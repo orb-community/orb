@@ -1,0 +1,12 @@
+---
+version: '3.3'
+services:
+  prometheus:
+    image: prom/prometheus
+  grafana:
+    image: grafana/grafana:7.3.0
+    ports:
+      - '3000:3000'
+  orb-api:
+    image: ns1labs/orb-api:develop
+

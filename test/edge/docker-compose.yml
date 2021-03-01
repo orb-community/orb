@@ -1,0 +1,12 @@
+---
+version: '3.3'
+services:
+  pktvisor:
+    image: ns1labs/pktvisor:develop
+  orb-agent:
+    image: ns1labs/orb-agent:develop
+  vector:
+    image: timberio/vector:0.11.X-distroless
+  consul:
+    image: consul
+
