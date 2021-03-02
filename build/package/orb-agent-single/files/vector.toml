@@ -1,0 +1,16 @@
+# Vector's API for introspection
+[api]
+enabled = true
+address = "127.0.0.1:8686"
+
+[sources.vector-logs]
+type = "internal_logs" # required
+
+[sinks.my_sink_id]
+# General
+type = "console" # required
+inputs = ["vector-logs"] # required
+target = "stdout" # optional, default
+
+# Encoding
+encoding.codec = "text" # required

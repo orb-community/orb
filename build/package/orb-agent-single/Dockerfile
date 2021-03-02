@@ -1,19 +1,23 @@
-FROM consul:1.9.3 as consul
-FROM timberio/vector:0.11.X-distroless-static as vector
+#FROM consul:1.9.3 as consul
+FROM timberio/vector:nightly-debian as vector
+FROM ns1labs/orb-agent:develop as orb-agent
 FROM ns1labs/pktvisor:develop
 
-COPY --from=consul /usr/bin/telegraf /usr/local/bin/telegraf
+COPY --from=vector /usr/bin/vector /usr/local/bin/vector
+COPY --from=orb-agent /usr/local/bin/orb-agent /usr/local/bin/orb-agent
 
 RUN  apt-get update \
-  && apt-get install -y runit-init dnsutils \
+  && apt-get install -y runit-init \
   && rm -rf /var/lib/apt \
   && mkdir -p /etc/runit/ \
-  && mkdir -p /etc/telegraf/ \
+  && mkdir -p /etc/vector/ \
+  && mkdir /var/lib/vector \
   && rm -rf /etc/service/*
 
-COPY misc/run-telegraf.sh /etc/service/telegraf/run
-COPY misc/run-pktvisord.sh /etc/service/pktvisord/run
-COPY misc/run-dig.sh /etc/service/dig/run
-COPY misc/entrypoint /usr/local/bin/entrypoint
+COPY files/vector.toml /etc/vector/vector.toml
+COPY scripts/run-orb-agent.sh /etc/service/orb-agentr/run
+COPY scripts/run-vector.sh /etc/service/vector/run
+COPY scripts/run-pktvisord.sh /etc/service/pktvisord/run
+COPY scripts/entrypoint /usr/local/bin/entrypoint
 
 ENTRYPOINT /usr/local/bin/entrypoint
