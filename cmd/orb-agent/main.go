@@ -7,7 +7,7 @@ import (
 
 func main() {
 	for {
-		fmt.Println("halau")
-		time.Sleep(time.Duration(5) * time.Second)
+		fmt.Println("orb-agent-checkpoint")
+		time.Sleep(time.Duration(30) * time.Second)
 	}
 }

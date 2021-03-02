@@ -1,10 +1,23 @@
-FROM golang:latest AS gobuild
-COPY . /src/
-WORKDIR /src/
-RUN go build -o orb-agent cmd/orb-agent/main.go
+#FROM consul:1.9.3 as consul
+FROM timberio/vector:nightly-debian as vector
+FROM ns1labs/orb-agent-slim:develop as orb-agent
+FROM ns1labs/pktvisor:develop
 
-FROM debian:bullseye-slim AS runtime
+COPY --from=vector /usr/bin/vector /usr/local/bin/vector
+COPY --from=orb-agent /usr/local/bin/orb-agent /usr/local/bin/orb-agent
 
-COPY --from=gobuild /src/orb-agent /usr/local/bin/orb-agent
+RUN  apt-get update \
+  && apt-get install -y runit-init \
+  && rm -rf /var/lib/apt \
+  && mkdir -p /etc/runit/ \
+  && mkdir -p /etc/vector/ \
+  && mkdir /var/lib/vector \
+  && rm -rf /etc/service/*
 
-ENTRYPOINT /usr/local/bin/orb-agent
+COPY files/vector.toml /etc/vector/vector.toml
+COPY scripts/run-orb-agent.sh /etc/service/orb-agentr/run
+COPY scripts/run-vector.sh /etc/service/vector/run
+COPY scripts/run-pktvisord.sh /etc/service/pktvisord/run
+COPY scripts/entrypoint /usr/local/bin/entrypoint
+
+ENTRYPOINT /usr/local/bin/entrypoint
