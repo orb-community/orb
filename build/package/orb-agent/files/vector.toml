@@ -1,16 +1,27 @@
 # Vector's API for introspection
 [api]
+playground = true
 enabled = true
-address = "127.0.0.1:8686"
+address = "0.0.0.0:8686"
 
-[sources.vector-logs]
-type = "internal_logs" # required
+[sources.pktvisor]
+  type = "prometheus_scrape" # required
+  endpoints = ["http://localhost:9998/metrics"] # required
+  scrape_interval_secs = 5 # optional, default, seconds
 
-[sinks.my_sink_id]
-# General
-type = "console" # required
-inputs = ["vector-logs"] # required
-target = "stdout" # optional, default
+[sinks.influx]
+  # General
+  type = "influxdb_metrics" # required
+  inputs = ["pktvisor", "prefix-*"] # required
+  bucket = "dev" # required
+  default_namespace = "service" # optional, no default
+  endpoint = "http://influxdb:8086/" # required
 
-# Encoding
-encoding.codec = "text" # required
+  # Auth
+  org = "dev" # required
+  token = "seekrit-dev-token"
+
+  # Encoding
+
+  # Healthcheck
+  healthcheck.enabled = true # optional, default
