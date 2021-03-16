@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-exec runsvdir /etc/service/
+exec /usr/bin/runsvdir -P /etc/service $@
