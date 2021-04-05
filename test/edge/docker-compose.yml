@@ -4,7 +4,7 @@ services:
   pktvisor:
     image: ns1labs/pktvisor:develop
     network_mode: "host"
-    command: "pktvisord --full-api"
+    command: "pktvisord --admin-api --prometheus"
   orb-agent:
     image: ns1labs/orb-agent:develop
   vector:
