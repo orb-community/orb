@@ -22,26 +22,25 @@ type Server struct {
 	config Config
 	logger *log.Logger
 	engine *gin.Engine
-	closer func()
 }
 
-func (s *Server) Close() {
-	s.closer()
+func New(c Config) *Server {
+	return &Server{config: c}
 }
 
-func New(c Config) (*Server, error) {
-	s := &Server{config: c}
+func (s *Server) Serve() error {
+	c := s.config
 
 	// setup error logger
 	errorLogFile, err := openLogFile(c.Loggers.ErrorLog.Path)
 	if err != nil {
-		defer errorLogFile.Close()
-		return nil, err
+		return err
 	}
+	defer errorLogFile.Close()
 
 	logger := log.New()
 	if level, err := log.ParseLevel(c.Loggers.ErrorLog.Level); err != nil {
-		return nil, err
+		return err
 	} else {
 		logger.SetLevel(level)
 	}
@@ -56,9 +55,10 @@ func New(c Config) (*Server, error) {
 	// setup access logger
 	accessLogFile, err := openLogFile(c.Loggers.AccessLog.Path)
 	if err != nil {
-		defer accessLogFile.Close()
-		return nil, err
+		return err
 	}
+	defer accessLogFile.Close()
+
 	// setup gin
 	gin.DefaultWriter = accessLogFile
 	gin.DefaultErrorWriter = s.logger.Writer()
@@ -69,18 +69,6 @@ func New(c Config) (*Server, error) {
 	s.engine = r
 	s.RegisterRoutes()
 
-	// close all the things
-	s.closer = func() {
-		accessLogFile.Close()
-		errorLogFile.Close()
-	}
-
-	return s, nil
-
-}
-
-func (s *Server) Serve() error {
-	c := s.config
 	if c.Listener.TLSConfig.Key != "" && c.Listener.TLSConfig.Cert != "" {
 		return s.engine.RunTLS(c.Listener.BindAddr, c.Listener.TLSConfig.Cert, c.Listener.TLSConfig.Key)
 	}

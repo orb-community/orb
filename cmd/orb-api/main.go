@@ -28,9 +28,7 @@ func Run(cmd *cobra.Command, args []string) {
 	var config server.Config
 	viper.Unmarshal(&config)
 	fmt.Printf("%+v\n", config)
-	s, err := server.New(config)
-	defer s.Close()
-	cobra.CheckErr(err)
+	s := server.New(config)
 	cobra.CheckErr(s.Serve())
 }
 
