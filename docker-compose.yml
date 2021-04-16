@@ -22,6 +22,24 @@ services:
       - '8086:8086'
     volumes:
       - influxdb-storage:/var/lib/influxdb
+  consul:
+    image: consul:1.9
+    # https://www.consul.io/docs/install/ports
+    ports:
+      # server: Server RPC address (TCP Only)  
+      - '8300:8300'
+      # LAN Serf: The Serf LAN port (TCP and UDP) 
+      - '8301:8301'
+      - '8301:8301/udp'
+      # http api
+      - '8500:8500'
+      # dns
+      - '8600:8600'
+      - '8600:8600/udp'
+    volumes:
+      - consul_data:/consul/data
 volumes:
   influxdb-storage:
+  consul_data:
+
 
