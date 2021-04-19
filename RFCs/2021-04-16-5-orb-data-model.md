@@ -1,7 +1,7 @@
 ## Orb Data Model
 
-Orb manages pktvisor configuration in a central control plane. The only configuration that remains at the agent is the
-Tap configuration (because it is host specific), and Vitals configuration (below).
+Orb manages pktvisor configuration in a central control plane. The only configuration that remains at the  edge with the agent are the
+Tap configuration (ns1labs/pktvisor#75) and Vitals configuration (below) because they are host specific.
 
 ### Vitals and Selector Configurations
 
@@ -9,7 +9,7 @@ Orb needs the ability to address the agents that it is controlling. It does this
 
 #### Vitals
 
-orb-agent is told on startup what its Vitals are: these are arbitrary key value pairs which typically represent
+orb-agent is told on startup what its Vitals are: these are arbitrary labels which typically represent
 information such as region, pop, and node type.
 
 `vitals.yaml`
@@ -64,7 +64,7 @@ $ orb-agent --config orb-agent.yaml
 
 ### Orb Selectors
 
-Selectors are named configurations of arbitrary key value pairs which can match against the Vitals of the agents
+Selectors are named configurations of arbitrary labels which can match against the Vitals of the agents
 available in the Orb ecosystem. They may be thought of as groups of agents. These names are referenced in Orb Policies.
 pktvisord does not read this configuration or use this data; it is used only by orb-agent. This schema is found only in
 the control plane, not on the command line or in files.
