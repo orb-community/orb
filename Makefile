@@ -5,14 +5,14 @@
 
 MF_DOCKER_IMAGE_NAME_PREFIX ?= orb
 BUILD_DIR = build
-SERVICES = fleet policy sink
+SERVICES = sink
 DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
 CGO_ENABLED ?= 0
 GOARCH ?= amd64
 
 define compile_service
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=vendor -ldflags "-s -w" -o ${BUILD_DIR}/orb-$(1) cmd/$(1)/main.go
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-s -w" -o ${BUILD_DIR}/orb-$(1) cmd/$(1)/main.go
 endef
 
 define make_docker
@@ -58,7 +58,7 @@ install:
 	cp ${BUILD_DIR}/* $(GOBIN)
 
 test:
-	go test -mod=vendor -v -race -count 1 -tags test $(shell go list ./... | grep -v 'vendor\|cmd')
+	go test -mod=mod -v -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd')
 
 proto:
 	protoc --gofast_out=plugins=grpc:. *.proto
@@ -102,13 +102,3 @@ rundev:
 
 run:
 	docker-compose -f docker/docker-compose.yml up
-
-runlora:
-	docker-compose \
-		-f docker/docker-compose.yml \
-		-f docker/addons/influxdb-writer/docker-compose.yml \
-		-f docker/addons/lora-adapter/docker-compose.yml up \
-
-# Run all Mainflux core services except distributed tracing system - Jaeger. Recommended on gateways:
-rungw:
-	MF_JAEGER_URL= docker-compose -f docker/docker-compose.yml up --scale jaeger=0
