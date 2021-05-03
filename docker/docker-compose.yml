@@ -1,0 +1,272 @@
+# Original Copyright (c) Mainflux
+# SPDX-License-Identifier: Apache-2.0
+
+# adapted for Orb project
+
+version: "3.7"
+
+networks:
+  orb-base-net:
+    driver: bridge
+
+volumes:
+  mainflux-auth-db-volume:
+  mainflux-users-db-volume:
+  mainflux-things-db-volume:
+  mainflux-auth-redis-volume:
+  mainflux-es-redis-volume:
+  mainflux-mqtt-broker-volume:
+
+services:
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: orb-nginx
+    restart: on-failure
+    volumes:
+      - ./nginx/nginx-${AUTH-key}.conf:/etc/nginx/nginx.conf.template
+      - ./nginx/entrypoint.sh:/entrypoint.sh
+      - ./nginx/snippets:/etc/nginx/snippets
+      - ./ssl/authorization.js:/etc/nginx/authorization.js
+      - ./ssl/certs/mainflux-server.crt:/etc/ssl/certs/mainflux-server.crt
+      - ./ssl/certs/ca.crt:/etc/ssl/certs/ca.crt
+      - ./ssl/certs/mainflux-server.key:/etc/ssl/private/mainflux-server.key
+      - ./ssl/dhparam.pem:/etc/ssl/certs/dhparam.pem
+    ports:
+      - ${MF_NGINX_HTTP_PORT}:${MF_NGINX_HTTP_PORT}
+      - ${MF_NGINX_SSL_PORT}:${MF_NGINX_SSL_PORT}
+      - ${MF_NGINX_MQTT_PORT}:${MF_NGINX_MQTT_PORT}
+      - ${MF_NGINX_MQTTS_PORT}:${MF_NGINX_MQTTS_PORT}
+    networks:
+      - orb-base-net
+    env_file:
+      - .env
+    command: /entrypoint.sh
+    depends_on:
+      - things
+      - users
+      - mqtt-adapter
+      - http-adapter
+
+  nats:
+    image: nats:2.2-alpine
+    container_name: orb-nats
+    command: "-c /etc/nats/nats.conf"
+    restart: on-failure
+    volumes:
+      - ./nats/:/etc/nats
+    networks:
+      - orb-base-net
+
+  auth-db:
+    image: postgres:13-alpine
+    container_name: mainflux-auth-db
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${MF_AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${MF_AUTH_DB_PASS}
+      POSTGRES_DB: ${MF_AUTH_DB}
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-auth-db-volume:/var/lib/postgresql/data
+
+  auth:
+    image: mainflux/auth:${MF_RELEASE_TAG}
+    container_name: mainflux-auth
+    depends_on:
+      - auth-db
+    expose:
+      - ${MF_AUTH_GRPC_PORT}
+    restart: on-failure
+    environment:
+      MF_AUTH_LOG_LEVEL: ${MF_AUTH_LOG_LEVEL}
+      MF_AUTH_DB_HOST: auth-db
+      MF_AUTH_DB_PORT: ${MF_AUTH_DB_PORT}
+      MF_AUTH_DB_USER: ${MF_AUTH_DB_USER}
+      MF_AUTH_DB_PASS: ${MF_AUTH_DB_PASS}
+      MF_AUTH_DB: ${MF_AUTH_DB}
+      MF_AUTH_HTTP_PORT: ${MF_AUTH_HTTP_PORT}
+      MF_AUTH_GRPC_PORT: ${MF_AUTH_GRPC_PORT}
+      MF_AUTH_SECRET: ${MF_AUTH_SECRET}
+      MF_JAEGER_URL: ${MF_JAEGER_URL}
+    ports:
+      - ${MF_AUTH_HTTP_PORT}:${MF_AUTH_HTTP_PORT}
+      - ${MF_AUTH_GRPC_PORT}:${MF_AUTH_GRPC_PORT}
+    networks:
+      - orb-base-net
+
+  users-db:
+    image: postgres:13-alpine
+    container_name: mainflux-users-db
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${MF_USERS_DB_USER}
+      POSTGRES_PASSWORD: ${MF_USERS_DB_PASS}
+      POSTGRES_DB: ${MF_USERS_DB}
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-users-db-volume:/var/lib/postgresql/data
+
+  users:
+    image: mainflux/users:${MF_RELEASE_TAG}
+    container_name: mainflux-users
+    volumes:
+      - ./templates/${MF_USERS_RESET_PWD_TEMPLATE}:/${MF_EMAIL_TEMPLATE}
+    depends_on:
+      - users-db
+      - auth
+    restart: on-failure
+    environment:
+      MF_USERS_LOG_LEVEL: ${MF_USERS_LOG_LEVEL}
+      MF_USERS_DB_HOST: users-db
+      MF_USERS_DB_PORT: ${MF_USERS_DB_PORT}
+      MF_USERS_DB_USER: ${MF_USERS_DB_USER}
+      MF_USERS_DB_PASS: ${MF_USERS_DB_PASS}
+      MF_USERS_DB: ${MF_USERS_DB}
+      MF_USERS_HTTP_PORT: ${MF_USERS_HTTP_PORT}
+      MF_JAEGER_URL: ${MF_JAEGER_URL}
+      MF_EMAIL_HOST: ${MF_EMAIL_HOST}
+      MF_EMAIL_PORT: ${MF_EMAIL_PORT}
+      MF_EMAIL_USERNAME: ${MF_EMAIL_USERNAME}
+      MF_EMAIL_PASSWORD: ${MF_EMAIL_PASSWORD}
+      MF_EMAIL_FROM_ADDRESS: ${MF_EMAIL_FROM_ADDRESS}
+      MF_EMAIL_FROM_NAME: ${MF_EMAIL_FROM_NAME}
+      MF_EMAIL_TEMPLATE: ${MF_EMAIL_TEMPLATE}
+      MF_TOKEN_RESET_ENDPOINT: ${MF_TOKEN_RESET_ENDPOINT}
+      MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
+      MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
+      MF_USERS_ADMIN_EMAIL: ${MF_USERS_ADMIN_EMAIL}
+      MF_USERS_ADMIN_PASSWORD: ${MF_USERS_ADMIN_PASSWORD}
+    ports:
+      - ${MF_USERS_HTTP_PORT}:${MF_USERS_HTTP_PORT}
+    networks:
+      - orb-base-net
+
+  things-db:
+    image: postgres:13-alpine
+    container_name: mainflux-things-db
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${MF_THINGS_DB_USER}
+      POSTGRES_PASSWORD: ${MF_THINGS_DB_PASS}
+      POSTGRES_DB: ${MF_THINGS_DB}
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-things-db-volume:/var/lib/postgresql/data
+
+  auth-redis:
+    image: redis:6.2-alpine
+    container_name: mainflux-auth-redis
+    restart: on-failure
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-auth-redis-volume:/data
+
+  things:
+    image: mainflux/things:${MF_RELEASE_TAG}
+    container_name: mainflux-things
+    depends_on:
+      - things-db
+      - auth
+    restart: on-failure
+    environment:
+      MF_THINGS_LOG_LEVEL: ${MF_THINGS_LOG_LEVEL}
+      MF_THINGS_DB_HOST: things-db
+      MF_THINGS_DB_PORT: ${MF_THINGS_DB_PORT}
+      MF_THINGS_DB_USER: ${MF_THINGS_DB_USER}
+      MF_THINGS_DB_PASS: ${MF_THINGS_DB_PASS}
+      MF_THINGS_DB: ${MF_THINGS_DB}
+      MF_THINGS_CACHE_URL: auth-redis:${MF_REDIS_TCP_PORT}
+      MF_THINGS_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
+      MF_THINGS_HTTP_PORT: ${MF_THINGS_HTTP_PORT}
+      MF_THINGS_AUTH_HTTP_PORT: ${MF_THINGS_AUTH_HTTP_PORT}
+      MF_THINGS_AUTH_GRPC_PORT: ${MF_THINGS_AUTH_GRPC_PORT}
+      MF_JAEGER_URL: ${MF_JAEGER_URL}
+      MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
+      MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
+    ports:
+      - ${MF_THINGS_HTTP_PORT}:${MF_THINGS_HTTP_PORT}
+      - ${MF_THINGS_AUTH_HTTP_PORT}:${MF_THINGS_AUTH_HTTP_PORT}
+      - ${MF_THINGS_AUTH_GRPC_PORT}:${MF_THINGS_AUTH_GRPC_PORT}
+    networks:
+      - orb-base-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.22
+    container_name: orb-jaeger
+    ports:
+      - ${MF_JAEGER_PORT}:${MF_JAEGER_PORT}/udp
+      - ${MF_JAEGER_FRONTEND}:${MF_JAEGER_FRONTEND}
+      - ${MF_JAEGER_COLLECTOR}:${MF_JAEGER_COLLECTOR}
+      - ${MF_JAEGER_CONFIGS}:${MF_JAEGER_CONFIGS}
+    networks:
+      - orb-base-net
+
+  vernemq:
+    image: mainflux/vernemq:${MF_RELEASE_TAG}
+    container_name: orb-vernemq
+    restart: on-failure
+    environment:
+      DOCKER_VERNEMQ_ALLOW_ANONYMOUS: ${MF_DOCKER_VERNEMQ_ALLOW_ANONYMOUS}
+      DOCKER_VERNEMQ_LOG__CONSOLE__LEVEL: ${MF_DOCKER_VERNEMQ_LOG__CONSOLE__LEVEL}
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-mqtt-broker-volume:/var/lib/vernemq
+
+  mqtt-adapter:
+    image: mainflux/mqtt:${MF_RELEASE_TAG}
+    container_name: mainflux-mqtt
+    depends_on:
+      - vernemq
+      - things
+      - nats
+    restart: on-failure
+    environment:
+      MF_MQTT_ADAPTER_LOG_LEVEL: ${MF_MQTT_ADAPTER_LOG_LEVEL}
+      MF_MQTT_ADAPTER_MQTT_PORT: ${MF_MQTT_ADAPTER_MQTT_PORT}
+      MF_MQTT_ADAPTER_WS_PORT: ${MF_MQTT_ADAPTER_WS_PORT}
+      MF_MQTT_ADAPTER_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
+      MF_NATS_URL: ${MF_NATS_URL}
+      MF_MQTT_ADAPTER_MQTT_TARGET_HOST: vernemq
+      MF_MQTT_ADAPTER_MQTT_TARGET_PORT: ${MF_MQTT_BROKER_PORT}
+      MF_MQTT_ADAPTER_MQTT_TARGET_HEALTH_CHECK: http://vernemq:8888/health
+      MF_MQTT_ADAPTER_WS_TARGET_HOST: vernemq
+      MF_MQTT_ADAPTER_WS_TARGET_PORT: ${MF_MQTT_BROKER_WS_PORT}
+      MF_JAEGER_URL: ${MF_JAEGER_URL}
+      MF_THINGS_AUTH_GRPC_URL: ${MF_THINGS_AUTH_GRPC_URL}
+      MF_THINGS_AUTH_GRPC_TIMEOUT: ${MF_THINGS_AUTH_GRPC_TIMEOUT}
+      MF_AUTH_CACHE_URL: auth-redis:${MF_REDIS_TCP_PORT}
+    networks:
+      - orb-base-net
+
+  http-adapter:
+    image: mainflux/http:${MF_RELEASE_TAG}
+    container_name: mainflux-http
+    depends_on:
+      - things
+      - nats
+    restart: on-failure
+    environment:
+      MF_HTTP_ADAPTER_LOG_LEVEL: debug
+      MF_HTTP_ADAPTER_PORT: ${MF_HTTP_ADAPTER_PORT}
+      MF_NATS_URL: ${MF_NATS_URL}
+      MF_JAEGER_URL: ${MF_JAEGER_URL}
+      MF_THINGS_AUTH_GRPC_URL: ${MF_THINGS_AUTH_GRPC_URL}
+      MF_THINGS_AUTH_GRPC_TIMEOUT: ${MF_THINGS_AUTH_GRPC_TIMEOUT}
+    ports:
+      - ${MF_HTTP_ADAPTER_PORT}:${MF_HTTP_ADAPTER_PORT}
+    networks:
+      - orb-base-net
+
+  es-redis:
+    image: redis:6.2.2-alpine
+    container_name: mainflux-es-redis
+    restart: on-failure
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-es-redis-volume:/data
