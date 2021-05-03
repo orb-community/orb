@@ -11,4 +11,5 @@ require (
 	github.com/prometheus/client_golang v1.7.1
 	github.com/uber/jaeger-client-go v2.24.0+incompatible
 	google.golang.org/grpc v1.30.0
+	gotest.tools v2.2.0+incompatible
 )

@@ -1,6 +1,8 @@
 // Copyright (c) Mainflux
 // SPDX-License-Identifier: Apache-2.0
 
+// adapted for Orb project
+
 package main
 
 import (

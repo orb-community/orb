@@ -19,7 +19,8 @@ volumes:
   orb-prometheus-volume:
   orb-grafana-volume:
   orb-fleet-db-volume:
-  orb-policy-db-volume:
+  orb-policies-db-volume:
+  orb-sinks-db-volume:
 
 services:
 
@@ -305,9 +306,9 @@ services:
     container_name: orb-fleet-db
     restart: on-failure
     environment:
-      POSTGRES_USER: ${MF_FLEET_DB_USER}
-      POSTGRES_PASSWORD: ${MF_FLEET_DB_PASS}
-      POSTGRES_DB: ${MF_FLEET_DB}
+      POSTGRES_USER: ${ORB_FLEET_DB_USER}
+      POSTGRES_PASSWORD: ${ORB_FLEET_DB_PASS}
+      POSTGRES_DB: ${ORB_FLEET_DB}
     ports:
       - 15004:5432
     networks:
@@ -315,22 +316,37 @@ services:
     volumes:
       - orb-fleet-db-volume:/var/lib/postgresql/data
 
-  policy-db:
+  policies-db:
     image: postgres:13-alpine
-    container_name: orb-policy-db
+    container_name: orb-policies-db
     restart: on-failure
     environment:
-      POSTGRES_USER: ${MF_POLICY_DB_USER}
-      POSTGRES_PASSWORD: ${MF_POLICY_DB_PASS}
-      POSTGRES_DB: ${MF_POLICY_DB}
+      POSTGRES_USER: ${ORB_POLICIES_DB_USER}
+      POSTGRES_PASSWORD: ${ORB_POLICIES_DB_PASS}
+      POSTGRES_DB: ${ORB_POLICIES_DB}
     ports:
       - 15005:5432
     networks:
       - orb-base-net
     volumes:
-      - orb-policy-db-volume:/var/lib/postgresql/data
+      - orb-policies-db-volume:/var/lib/postgresql/data
 
-## main LB ##
+  sinks-db:
+    image: postgres:13-alpine
+    container_name: orb-sinks-db
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${ORB_SINKS_DB_USER}
+      POSTGRES_PASSWORD: ${ORB_SINKS_DB_PASS}
+      POSTGRES_DB: ${ORB_SINKS_DB}
+    ports:
+      - 15006:5432
+    networks:
+      - orb-base-net
+    volumes:
+      - orb-sinks-db-volume:/var/lib/postgresql/data
+
+  ## main LB ##
 
   nginx:
     image: nginx:1.19-alpine
