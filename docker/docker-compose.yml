@@ -16,6 +16,8 @@ volumes:
   mainflux-auth-redis-volume:
   mainflux-es-redis-volume:
   mainflux-mqtt-broker-volume:
+  mainflux-prometheus-volume:
+  mainflux-grafana-volume:
 
 services:
   ui:
@@ -289,3 +291,29 @@ services:
       - orb-base-net
     volumes:
       - mainflux-es-redis-volume:/data
+
+  prometheus:
+    image: prom/prometheus:v2.26.0
+    container_name: orb-prom
+    restart: on-failure
+    ports:
+      - ${MF_PROMETHEUS_PORT}:${MF_PROMETHEUS_PORT}
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-prometheus-volume:/prometheus
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:7.5.5
+    container_name: orb-grafana
+    depends_on:
+      - prometheus
+    restart: on-failure
+    ports:
+      - ${MF_PUBLIC_GRAFANA_PORT}:${MF_GRAFANA_PORT}
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-grafana-volume:/var/lib/grafana
+      - ./configs/grafana-defaults.ini:/usr/share/grafana/conf/defaults.ini
