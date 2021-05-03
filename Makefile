@@ -4,15 +4,16 @@
 # adapted for Orb project
 
 MF_DOCKER_IMAGE_NAME_PREFIX ?= orb
+DOCKERHUB_REPO = ns1labs
 BUILD_DIR = build
-SERVICES = sink
+SERVICES = sink fleet policy
 DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
 CGO_ENABLED ?= 0
 GOARCH ?= amd64
 
 define compile_service
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-s -w" -o ${BUILD_DIR}/orb-$(1) cmd/$(1)/main.go
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-s -w" -o ${BUILD_DIR}/$(MF_DOCKER_IMAGE_NAME_PREFIX)-$(1) cmd/$(1)/main.go
 endef
 
 define make_docker
@@ -23,7 +24,7 @@ define make_docker
 		--build-arg SVC=$(svc) \
 		--build-arg GOARCH=$(GOARCH) \
 		--build-arg GOARM=$(GOARM) \
-		--tag=$(MF_DOCKER_IMAGE_NAME_PREFIX)/$(svc) \
+		--tag=$(DOCKERHUB_REPO)/$(MF_DOCKER_IMAGE_NAME_PREFIX)-$(svc) \
 		-f docker/Dockerfile .
 endef
 
@@ -33,7 +34,7 @@ define make_docker_dev
 	docker build \
 		--no-cache \
 		--build-arg SVC=$(svc) \
-		--tag=$(MF_DOCKER_IMAGE_NAME_PREFIX)/$(svc) \
+		--tag=$(DOCKERHUB_REPO)/$(MF_DOCKER_IMAGE_NAME_PREFIX)-$(svc) \
 		-f docker/Dockerfile.dev ./build
 endef
 
@@ -62,7 +63,6 @@ test:
 
 proto:
 	protoc --gofast_out=plugins=grpc:. *.proto
-	protoc --gofast_out=plugins=grpc:. pkg/messaging/*.proto
 
 $(SERVICES):
 	$(call compile_service,$(@))
@@ -78,27 +78,9 @@ dockers_dev: $(DOCKERS_DEV)
 
 define docker_push
 	for svc in $(SERVICES); do \
-		docker push $(MF_DOCKER_IMAGE_NAME_PREFIX)/$$svc:$(1); \
+		docker push $(DOCKERHUB_REPO)/$(MF_DOCKER_IMAGE_NAME_PREFIX)-$$svc:$(1); \
 	done
 endef
-
-changelog:
-	git log $(shell git describe --tags --abbrev=0)..HEAD --pretty=format:"- %s"
-
-latest: dockers
-	$(call docker_push,latest)
-
-release:
-	$(eval version = $(shell git describe --abbrev=0 --tags))
-	git checkout $(version)
-	$(MAKE) dockers
-	for svc in $(SERVICES); do \
-		docker tag $(MF_DOCKER_IMAGE_NAME_PREFIX)/$$svc $(MF_DOCKER_IMAGE_NAME_PREFIX)/$$svc:$(version); \
-	done
-	$(call docker_push,$(version))
-
-rundev:
-	cd scripts && ./run.sh
 
 run:
 	docker-compose -f docker/docker-compose.yml up
