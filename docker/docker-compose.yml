@@ -18,6 +18,19 @@ volumes:
   mainflux-mqtt-broker-volume:
 
 services:
+  ui:
+    image: mainflux/ui:latest
+    container_name: mainflux-ui
+    restart: on-failure
+    volumes:
+      - ./nginx/entrypoint-ui.sh:/entrypoint.sh
+    networks:
+      - orb-base-net
+    environment:
+      MF_UI_PORT: ${MF_UI_PORT}
+      MF_UI_MQTT_WS_URL: ${MF_UI_MQTT_WS_URL}
+    command: /entrypoint.sh
+
   nginx:
     image: nginx:1.19-alpine
     container_name: orb-nginx
@@ -65,6 +78,8 @@ services:
       POSTGRES_USER: ${MF_AUTH_DB_USER}
       POSTGRES_PASSWORD: ${MF_AUTH_DB_PASS}
       POSTGRES_DB: ${MF_AUTH_DB}
+    ports:
+      - 15001:5432
     networks:
       - orb-base-net
     volumes:
@@ -103,6 +118,8 @@ services:
       POSTGRES_USER: ${MF_USERS_DB_USER}
       POSTGRES_PASSWORD: ${MF_USERS_DB_PASS}
       POSTGRES_DB: ${MF_USERS_DB}
+    ports:
+      - 15002:5432
     networks:
       - orb-base-net
     volumes:
@@ -151,6 +168,8 @@ services:
       POSTGRES_USER: ${MF_THINGS_DB_USER}
       POSTGRES_PASSWORD: ${MF_THINGS_DB_PASS}
       POSTGRES_DB: ${MF_THINGS_DB}
+    ports:
+      - 15003:5432
     networks:
       - orb-base-net
     volumes:
