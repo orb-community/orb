@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
@@ -22,9 +21,7 @@ import (
 	"github.com/mainflux/mainflux/consumers/writers/postgres"
 	"github.com/mainflux/mainflux/logger"
 	"github.com/mainflux/mainflux/pkg/messaging/nats"
-	"github.com/mainflux/mainflux/pkg/transformers"
-	"github.com/mainflux/mainflux/pkg/transformers/json"
-	"github.com/mainflux/mainflux/pkg/transformers/senml"
+	"github.com/ns1labs/orb/pkg/transformers/passthrough"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 )
 
@@ -93,7 +90,7 @@ func main() {
 	defer db.Close()
 
 	repo := newService(db, logger)
-	t := makeTransformer(cfg, logger)
+	t := passthrough.New()
 
 	if err = consumers.Start(pubSub, repo, t, cfg.configPath, logger); err != nil {
 		logger.Error(fmt.Sprintf("Failed to create Postgres writer: %s", err))
@@ -166,21 +163,6 @@ func newService(db *sqlx.DB, logger logger.Logger) consumers.Consumer {
 	)
 
 	return svc
-}
-
-func makeTransformer(cfg config, logger logger.Logger) transformers.Transformer {
-	switch strings.ToUpper(cfg.transformer) {
-	case "SENML":
-		logger.Info("Using SenML transformer")
-		return senml.New(cfg.contentType)
-	case "JSON":
-		logger.Info("Using JSON transformer")
-		return json.New()
-	default:
-		logger.Error(fmt.Sprintf("Can't create transformer: unknown transformer type %s", cfg.transformer))
-		os.Exit(1)
-		return nil
-	}
 }
 
 func startHTTPServer(port string, errs chan error, logger logger.Logger) {
