@@ -16,51 +16,14 @@ volumes:
   mainflux-auth-redis-volume:
   mainflux-es-redis-volume:
   mainflux-mqtt-broker-volume:
-  mainflux-prometheus-volume:
-  mainflux-grafana-volume:
+  orb-prometheus-volume:
+  orb-grafana-volume:
+  orb-fleet-db-volume:
+  orb-policy-db-volume:
 
 services:
-  ui:
-    image: mainflux/ui:latest
-    container_name: mainflux-ui
-    restart: on-failure
-    volumes:
-      - ./nginx/entrypoint-ui.sh:/entrypoint.sh
-    networks:
-      - orb-base-net
-    environment:
-      MF_UI_PORT: ${MF_UI_PORT}
-      MF_UI_MQTT_WS_URL: ${MF_UI_MQTT_WS_URL}
-    command: /entrypoint.sh
 
-  nginx:
-    image: nginx:1.19-alpine
-    container_name: orb-nginx
-    restart: on-failure
-    volumes:
-      - ./nginx/nginx-${AUTH-key}.conf:/etc/nginx/nginx.conf.template
-      - ./nginx/entrypoint.sh:/entrypoint.sh
-      - ./nginx/snippets:/etc/nginx/snippets
-      - ./ssl/authorization.js:/etc/nginx/authorization.js
-      - ./ssl/certs/mainflux-server.crt:/etc/ssl/certs/mainflux-server.crt
-      - ./ssl/certs/ca.crt:/etc/ssl/certs/ca.crt
-      - ./ssl/certs/mainflux-server.key:/etc/ssl/private/mainflux-server.key
-      - ./ssl/dhparam.pem:/etc/ssl/certs/dhparam.pem
-    ports:
-      - ${MF_NGINX_HTTP_PORT}:${MF_NGINX_HTTP_PORT}
-      - ${MF_NGINX_SSL_PORT}:${MF_NGINX_SSL_PORT}
-      - ${MF_NGINX_MQTT_PORT}:${MF_NGINX_MQTT_PORT}
-      - ${MF_NGINX_MQTTS_PORT}:${MF_NGINX_MQTTS_PORT}
-    networks:
-      - orb-base-net
-    env_file:
-      - .env
-    command: /entrypoint.sh
-    depends_on:
-      - things
-      - users
-      - mqtt-adapter
-      - http-adapter
+## mainflux core messaging ##
 
   nats:
     image: nats:2.2-alpine
@@ -71,6 +34,29 @@ services:
       - ./nats/:/etc/nats
     networks:
       - orb-base-net
+
+  es-redis:
+    image: redis:6.2.2-alpine
+    container_name: mainflux-es-redis
+    restart: on-failure
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-es-redis-volume:/data
+
+  vernemq:
+    image: mainflux/vernemq:${MF_RELEASE_TAG}
+    container_name: orb-vernemq
+    restart: on-failure
+    environment:
+      DOCKER_VERNEMQ_ALLOW_ANONYMOUS: ${MF_DOCKER_VERNEMQ_ALLOW_ANONYMOUS}
+      DOCKER_VERNEMQ_LOG__CONSOLE__LEVEL: ${MF_DOCKER_VERNEMQ_LOG__CONSOLE__LEVEL}
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-mqtt-broker-volume:/var/lib/vernemq
+
+  ## mainflux core services ##
 
   auth-db:
     image: postgres:13-alpine
@@ -111,6 +97,15 @@ services:
       - ${MF_AUTH_GRPC_PORT}:${MF_AUTH_GRPC_PORT}
     networks:
       - orb-base-net
+
+  auth-redis:
+    image: redis:6.2-alpine
+    container_name: mainflux-auth-redis
+    restart: on-failure
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-auth-redis-volume:/data
 
   users-db:
     image: postgres:13-alpine
@@ -177,15 +172,6 @@ services:
     volumes:
       - mainflux-things-db-volume:/var/lib/postgresql/data
 
-  auth-redis:
-    image: redis:6.2-alpine
-    container_name: mainflux-auth-redis
-    restart: on-failure
-    networks:
-      - orb-base-net
-    volumes:
-      - mainflux-auth-redis-volume:/data
-
   things:
     image: mainflux/things:${MF_RELEASE_TAG}
     container_name: mainflux-things
@@ -214,29 +200,6 @@ services:
       - ${MF_THINGS_AUTH_GRPC_PORT}:${MF_THINGS_AUTH_GRPC_PORT}
     networks:
       - orb-base-net
-
-  jaeger:
-    image: jaegertracing/all-in-one:1.22
-    container_name: orb-jaeger
-    ports:
-      - ${MF_JAEGER_PORT}:${MF_JAEGER_PORT}/udp
-      - ${MF_JAEGER_FRONTEND}:${MF_JAEGER_FRONTEND}
-      - ${MF_JAEGER_COLLECTOR}:${MF_JAEGER_COLLECTOR}
-      - ${MF_JAEGER_CONFIGS}:${MF_JAEGER_CONFIGS}
-    networks:
-      - orb-base-net
-
-  vernemq:
-    image: mainflux/vernemq:${MF_RELEASE_TAG}
-    container_name: orb-vernemq
-    restart: on-failure
-    environment:
-      DOCKER_VERNEMQ_ALLOW_ANONYMOUS: ${MF_DOCKER_VERNEMQ_ALLOW_ANONYMOUS}
-      DOCKER_VERNEMQ_LOG__CONSOLE__LEVEL: ${MF_DOCKER_VERNEMQ_LOG__CONSOLE__LEVEL}
-    networks:
-      - orb-base-net
-    volumes:
-      - mainflux-mqtt-broker-volume:/var/lib/vernemq
 
   mqtt-adapter:
     image: mainflux/mqtt:${MF_RELEASE_TAG}
@@ -283,14 +246,18 @@ services:
     networks:
       - orb-base-net
 
-  es-redis:
-    image: redis:6.2.2-alpine
-    container_name: mainflux-es-redis
-    restart: on-failure
+## common core services ##
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.22
+    container_name: orb-jaeger
+    ports:
+      - ${MF_JAEGER_PORT}:${MF_JAEGER_PORT}/udp
+      - ${MF_JAEGER_FRONTEND}:${MF_JAEGER_FRONTEND}
+      - ${MF_JAEGER_COLLECTOR}:${MF_JAEGER_COLLECTOR}
+      - ${MF_JAEGER_CONFIGS}:${MF_JAEGER_CONFIGS}
     networks:
       - orb-base-net
-    volumes:
-      - mainflux-es-redis-volume:/data
 
   prometheus:
     image: prom/prometheus:v2.26.0
@@ -301,7 +268,7 @@ services:
     networks:
       - orb-base-net
     volumes:
-      - mainflux-prometheus-volume:/prometheus
+      - orb-prometheus-volume:/prometheus
       - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
 
   grafana:
@@ -315,5 +282,82 @@ services:
     networks:
       - orb-base-net
     volumes:
-      - mainflux-grafana-volume:/var/lib/grafana
+      - orb-grafana-volume:/var/lib/grafana
       - ./configs/grafana-defaults.ini:/usr/share/grafana/conf/defaults.ini
+
+  ui:
+    image: mainflux/ui:latest
+    container_name: mainflux-ui
+    restart: on-failure
+    volumes:
+      - ./nginx/entrypoint-ui.sh:/entrypoint.sh
+    networks:
+      - orb-base-net
+    environment:
+      MF_UI_PORT: ${MF_UI_PORT}
+      MF_UI_MQTT_WS_URL: ${MF_UI_MQTT_WS_URL}
+    command: /entrypoint.sh
+
+## orb services ##
+
+  fleet-db:
+    image: postgres:13-alpine
+    container_name: orb-fleet-db
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${MF_FLEET_DB_USER}
+      POSTGRES_PASSWORD: ${MF_FLEET_DB_PASS}
+      POSTGRES_DB: ${MF_FLEET_DB}
+    ports:
+      - 15004:5432
+    networks:
+      - orb-base-net
+    volumes:
+      - orb-fleet-db-volume:/var/lib/postgresql/data
+
+  policy-db:
+    image: postgres:13-alpine
+    container_name: orb-policy-db
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${MF_POLICY_DB_USER}
+      POSTGRES_PASSWORD: ${MF_POLICY_DB_PASS}
+      POSTGRES_DB: ${MF_POLICY_DB}
+    ports:
+      - 15005:5432
+    networks:
+      - orb-base-net
+    volumes:
+      - orb-policy-db-volume:/var/lib/postgresql/data
+
+## main LB ##
+
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: orb-nginx
+    restart: on-failure
+    volumes:
+      - ./nginx/nginx-${AUTH-key}.conf:/etc/nginx/nginx.conf.template
+      - ./nginx/entrypoint.sh:/entrypoint.sh
+      - ./nginx/snippets:/etc/nginx/snippets
+      - ./ssl/authorization.js:/etc/nginx/authorization.js
+      - ./ssl/certs/mainflux-server.crt:/etc/ssl/certs/mainflux-server.crt
+      - ./ssl/certs/ca.crt:/etc/ssl/certs/ca.crt
+      - ./ssl/certs/mainflux-server.key:/etc/ssl/private/mainflux-server.key
+      - ./ssl/dhparam.pem:/etc/ssl/certs/dhparam.pem
+    ports:
+      - ${MF_NGINX_HTTP_PORT}:${MF_NGINX_HTTP_PORT}
+      - ${MF_NGINX_SSL_PORT}:${MF_NGINX_SSL_PORT}
+      - ${MF_NGINX_MQTT_PORT}:${MF_NGINX_MQTT_PORT}
+      - ${MF_NGINX_MQTTS_PORT}:${MF_NGINX_MQTTS_PORT}
+    networks:
+      - orb-base-net
+    env_file:
+      - .env
+    command: /entrypoint.sh
+    depends_on:
+      - things
+      - users
+      - mqtt-adapter
+      - http-adapter
+      - ui
