@@ -6,7 +6,7 @@ package passthrough_test
 
 import (
 	"github.com/mainflux/mainflux/pkg/messaging"
-	"github.com/ns1labs/orb/pkg/transformers/passthrough"
+	"github.com/ns1labs/orb/pkg/mainflux/transformers/passthrough"
 	"gotest.tools/assert"
 	"testing"
 	"time"

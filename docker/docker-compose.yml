@@ -346,6 +346,17 @@ services:
     volumes:
       - orb-sinks-db-volume:/var/lib/postgresql/data
 
+  prom-sink:
+    image: ns1labs/orb-prom-sink:${MF_RELEASE_TAG}
+    container_name: orb-prom-sink
+    depends_on:
+      - nats
+    restart: on-failure
+    environment:
+      MF_NATS_URL: ${MF_NATS_URL}
+    networks:
+      - orb-base-net
+
   ## main LB ##
 
   nginx:
