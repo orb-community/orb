@@ -351,9 +351,11 @@ services:
     container_name: orb-prom-sink
     depends_on:
       - nats
+      - es-redis
     restart: on-failure
     environment:
       MF_NATS_URL: ${MF_NATS_URL}
+      ORB_SINKS_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
     networks:
       - orb-base-net
 

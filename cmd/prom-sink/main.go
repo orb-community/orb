@@ -5,9 +5,11 @@
 
 package main
 
+import "C"
 import (
 	"fmt"
 	"github.com/ns1labs/orb/pkg/mainflux/consumers/writers/promsink"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -16,7 +18,6 @@ import (
 	"syscall"
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
-	"github.com/mainflux/mainflux"
 	"github.com/mainflux/mainflux/consumers"
 	"github.com/mainflux/mainflux/consumers/writers/api"
 	"github.com/mainflux/mainflux/logger"
@@ -27,59 +28,62 @@ import (
 
 const (
 	svcName = "prom-sink"
-
-	defLogLevel      = "error"
-	defNatsURL       = "nats://localhost:4222"
-	defPort          = "8180"
-	defDBHost        = "localhost"
-	defDBPort        = "5432"
-	defDBUser        = "mainflux"
-	defDBPass        = "mainflux"
-	defDB            = "mainflux"
-	defDBSSLMode     = "disable"
-	defDBSSLCert     = ""
-	defDBSSLKey      = ""
-	defDBSSLRootCert = ""
-	defConfigPath    = "/config.toml"
-	defContentType   = "application/senml+json"
-	defTransformer   = "passthrough"
-
-	envNatsURL       = "MF_NATS_URL"
-	envLogLevel      = "MF_POSTGRES_WRITER_LOG_LEVEL"
-	envPort          = "MF_POSTGRES_WRITER_PORT"
-	envDBHost        = "MF_POSTGRES_WRITER_DB_HOST"
-	envDBPort        = "MF_POSTGRES_WRITER_DB_PORT"
-	envDBUser        = "MF_POSTGRES_WRITER_DB_USER"
-	envDBPass        = "MF_POSTGRES_WRITER_DB_PASS"
-	envDB            = "MF_POSTGRES_WRITER_DB"
-	envDBSSLMode     = "MF_POSTGRES_WRITER_DB_SSL_MODE"
-	envDBSSLCert     = "MF_POSTGRES_WRITER_DB_SSL_CERT"
-	envDBSSLKey      = "MF_POSTGRES_WRITER_DB_SSL_KEY"
-	envDBSSLRootCert = "MF_POSTGRES_WRITER_DB_SSL_ROOT_CERT"
-	envConfigPath    = "MF_POSTGRES_WRITER_CONFIG_PATH"
-	envContentType   = "MF_POSTGRES_WRITER_CONTENT_TYPE"
-	envTransformer   = "MF_POSTGRES_WRITER_TRANSFORMER"
 )
 
 type config struct {
-	natsURL     string
-	logLevel    string
-	port        string
-	configPath  string
-	contentType string
-	transformer string
-	//dbConfig    postgres.Config
+	NatsURL string `mapstructure:"nats_url"`
+
+	EsURL  string `mapstructure:"es_url"`
+	EsPass string `mapstructure:"es_pass"`
+	EsDB   string `mapstructure:"es_db"`
+
+	LogLevel   string `mapstructure:"log_level"`
+	Port       string `mapstructure:"port"`
+	ConfigPath string `mapstructure:"config_path"`
+
+	// todo sinks gRPC
+	// todo fleet mgr gRPC
+}
+
+func loadConfig() config {
+
+	mfC := viper.New()
+	mfC.SetEnvPrefix("mf")
+
+	mfC.SetDefault("nats_url", "nats://localhost:4222")
+
+	mfC.SetDefault("es_url", "localhost:6379")
+	mfC.SetDefault("es_pass", "")
+	mfC.SetDefault("es_db", "0")
+
+	mfC.AutomaticEnv()
+
+	orbC := viper.New()
+	orbC.SetEnvPrefix("orb_prom_sink")
+
+	orbC.SetDefault("config_path", "/config.toml")
+	orbC.SetDefault("log_level", "error")
+	orbC.SetDefault("port", "8180")
+
+	orbC.AutomaticEnv()
+
+	var c config
+	mfC.Unmarshal(&c)
+	orbC.Unmarshal(&c)
+	return c
+
 }
 
 func main() {
+
 	cfg := loadConfig()
 
-	logger, err := logger.New(os.Stdout, cfg.logLevel)
+	logger, err := logger.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
 
-	pubSub, err := nats.NewPubSub(cfg.natsURL, "", logger)
+	pubSub, err := nats.NewPubSub(cfg.NatsURL, "", logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Failed to connect to NATS: %s", err))
 		os.Exit(1)
@@ -93,13 +97,13 @@ func main() {
 	repo := newService( /*db, */ logger)
 	t := passthrough.New()
 
-	if err = consumers.Start(pubSub, repo, t, cfg.configPath, logger); err != nil {
+	if err = consumers.Start(pubSub, repo, t, cfg.ConfigPath, logger); err != nil {
 		logger.Error(fmt.Sprintf("Failed to create promsink writer: %s", err))
 	}
 
 	errs := make(chan error, 2)
 
-	go startHTTPServer(cfg.port, errs, logger)
+	go startHTTPServer(cfg.Port, errs, logger)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -109,30 +113,6 @@ func main() {
 
 	err = <-errs
 	logger.Error(fmt.Sprintf("promsink writer service terminated: %s", err))
-}
-
-func loadConfig() config {
-	//dbConfig := postgres.Config{
-	//	Host:        mainflux.Env(envDBHost, defDBHost),
-	//	Port:        mainflux.Env(envDBPort, defDBPort),
-	//	User:        mainflux.Env(envDBUser, defDBUser),
-	//	Pass:        mainflux.Env(envDBPass, defDBPass),
-	//	Name:        mainflux.Env(envDB, defDB),
-	//	SSLMode:     mainflux.Env(envDBSSLMode, defDBSSLMode),
-	//	SSLCert:     mainflux.Env(envDBSSLCert, defDBSSLCert),
-	//	SSLKey:      mainflux.Env(envDBSSLKey, defDBSSLKey),
-	//	SSLRootCert: mainflux.Env(envDBSSLRootCert, defDBSSLRootCert),
-	//}
-
-	return config{
-		natsURL:     mainflux.Env(envNatsURL, defNatsURL),
-		logLevel:    mainflux.Env(envLogLevel, defLogLevel),
-		port:        mainflux.Env(envPort, defPort),
-		configPath:  mainflux.Env(envConfigPath, defConfigPath),
-		contentType: mainflux.Env(envContentType, defContentType),
-		transformer: mainflux.Env(envTransformer, defTransformer),
-		//dbConfig:    dbConfig,
-	}
 }
 
 //func connectToDB(dbConfig postgres.Config, logger logger.Logger) *sqlx.DB {
