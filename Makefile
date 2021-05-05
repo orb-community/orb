@@ -9,7 +9,7 @@ BUILD_DIR = build
 SERVICES = fleet policies sinks prom-sink
 DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
-CGO_ENABLED ?= 0
+CGO_ENABLED ?= 1
 GOARCH ?= amd64
 
 define compile_service

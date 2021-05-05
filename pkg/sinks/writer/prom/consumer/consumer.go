@@ -2,10 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package promsink
+package consumer
 
 import (
-	"github.com/mainflux/mainflux/consumers"
+	mfconsumers "github.com/mainflux/mainflux/consumers"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	"go.uber.org/zap"
 )
@@ -14,7 +14,7 @@ type prometheusRepo struct {
 	logger *zap.Logger
 }
 
-func New(logger *zap.Logger) consumers.Consumer {
+func New(logger *zap.Logger) mfconsumers.Consumer {
 	logger.Info("created promsink")
 	return &prometheusRepo{logger: logger}
 }

@@ -8,21 +8,24 @@ package main
 import "C"
 import (
 	"fmt"
-	"github.com/ns1labs/orb/pkg/mainflux/consumers/writers/promsink"
+	"github.com/go-redis/redis"
+	"github.com/mainflux/mainflux/bootstrap/redis/consumer"
+	sinkwriter "github.com/ns1labs/orb/pkg/sinks/writer"
+	"github.com/ns1labs/orb/pkg/sinks/writer/prom"
+	natconsume "github.com/ns1labs/orb/pkg/sinks/writer/prom/consumer"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
-	"github.com/mainflux/mainflux/consumers"
 	"github.com/mainflux/mainflux/consumers/writers/api"
-	"github.com/mainflux/mainflux/logger"
+	mflog "github.com/mainflux/mainflux/logger"
 	"github.com/mainflux/mainflux/pkg/messaging/nats"
-	"github.com/ns1labs/orb/pkg/mainflux/transformers/passthrough"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 )
 
@@ -63,7 +66,7 @@ func loadConfig() config {
 
 	orbC.SetDefault("config_path", "/config.toml")
 	orbC.SetDefault("log_level", "error")
-	orbC.SetDefault("port", "8180")
+	orbC.SetDefault("port", "8190")
 
 	orbC.AutomaticEnv()
 
@@ -78,32 +81,30 @@ func main() {
 
 	cfg := loadConfig()
 
-	logger, err := logger.New(os.Stdout, cfg.LogLevel)
+	logger, err := mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
 
-	pubSub, err := nats.NewPubSub(cfg.NatsURL, "", logger)
+	esClient := connectToRedis(cfg.EsURL, cfg.EsPass, cfg.EsDB, logger)
+	defer esClient.Close()
+
+	pubSub, err := nats.NewPubSub(cfg.NatsURL, svcName, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Failed to connect to NATS: %s", err))
 		os.Exit(1)
 	}
 	defer pubSub.Close()
 
-	// prometheus connection: https://github.com/timescale/promscale/blob/master/docs/writing_to_promscale.md
-	//db := connectToDB(cfg.dbConfig, logger)
-	//defer db.Close()
+	// todo fleet grpc
+	// todo sink grpc
 
-	repo := newService( /*db, */ logger)
-	t := passthrough.New()
-
-	if err = consumers.Start(pubSub, repo, t, cfg.ConfigPath, logger); err != nil {
-		logger.Error(fmt.Sprintf("Failed to create promsink writer: %s", err))
-	}
+	svc := newService(logger)
 
 	errs := make(chan error, 2)
 
 	go startHTTPServer(cfg.Port, errs, logger)
+	go subscribeToOrbES(svc)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -115,21 +116,12 @@ func main() {
 	logger.Error(fmt.Sprintf("promsink writer service terminated: %s", err))
 }
 
-//func connectToDB(dbConfig postgres.Config, logger logger.Logger) *sqlx.DB {
-//	db, err := postgres.Connect(dbConfig)
-//	if err != nil {
-//		logger.Error(fmt.Sprintf("Failed to connect to Postgres: %s", err))
-//		os.Exit(1)
-//	}
-//	return db
-//}
-
-func newService( /*db *sqlx.DB, */ logger logger.Logger) consumers.Consumer {
+func newService(logger mflog.Logger) sinkwriter.Service {
 	zlog, _ := zap.NewProduction()
-	svc := promsink.New(zlog)
-	svc = api.LoggingMiddleware(svc, logger)
-	svc = api.MetricsMiddleware(
-		svc,
+	consumerSvc := natconsume.New(zlog)
+	consumerSvc = api.LoggingMiddleware(consumerSvc, logger)
+	consumerSvc = api.MetricsMiddleware(
+		consumerSvc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "promsink",
 			Subsystem: "message_writer",
@@ -143,12 +135,34 @@ func newService( /*db *sqlx.DB, */ logger logger.Logger) consumers.Consumer {
 			Help:      "Total duration of requests in microseconds.",
 		}, []string{"method"}),
 	)
-
+	svc := prom.New()
 	return svc
 }
 
-func startHTTPServer(port string, errs chan error, logger logger.Logger) {
+func startHTTPServer(port string, errs chan error, logger mflog.Logger) {
 	p := fmt.Sprintf(":%s", port)
 	logger.Info(fmt.Sprintf("promsink writer service started, exposed port %s", port))
 	errs <- http.ListenAndServe(p, api.MakeHandler(svcName))
+}
+
+func connectToRedis(URL, pass string, cacheDB string, logger mflog.Logger) *redis.Client {
+	db, err := strconv.Atoi(cacheDB)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Failed to connect to cache: %s", err))
+		os.Exit(1)
+	}
+
+	return redis.NewClient(&redis.Options{
+		Addr:     URL,
+		Password: pass,
+		DB:       db,
+	})
+}
+
+func subscribeToOrbES(svc sinkwriter.Service, client *redis.Client, esconsumer string, logger mflog.Logger) {
+	eventStore := consumer.NewEventStore(svc, client, esconsumer, logger)
+	logger.Info("Subscribed to Redis Event Store")
+	if err := eventStore.Subscribe("orb.policy"); err != nil {
+		logger.Warn(fmt.Sprintf("orb prometheus sync service failed to subscribe to event sourcing: %s", err))
+	}
 }
