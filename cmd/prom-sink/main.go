@@ -9,8 +9,6 @@ import "C"
 import (
 	"fmt"
 	"github.com/go-redis/redis"
-	esconsume "github.com/ns1labs/orb/pkg/sinks/redis/consumer"
-	sinkwriter "github.com/ns1labs/orb/pkg/sinks/writer"
 	"github.com/ns1labs/orb/pkg/sinks/writer/prom"
 	natconsume "github.com/ns1labs/orb/pkg/sinks/writer/prom/consumer"
 	"github.com/spf13/viper"
@@ -99,27 +97,9 @@ func main() {
 	// todo fleet grpc
 	// todo sink grpc
 
-	svc := newService(mflogger)
-
-	errs := make(chan error, 2)
-
-	go startHTTPServer(cfg.Port, errs, mflogger)
-	go subscribeToOrbES(svc, esClient, "FIXME", mflogger)
-
-	go func() {
-		c := make(chan os.Signal)
-		signal.Notify(c, syscall.SIGINT)
-		errs <- fmt.Errorf("%s", <-c)
-	}()
-
-	err = <-errs
-	mflogger.Error(fmt.Sprintf("promsink writer service terminated: %s", err))
-}
-
-func newService(logger mflog.Logger) sinkwriter.Service {
 	zlog, _ := zap.NewProduction()
 	consumerSvc := natconsume.New(zlog)
-	consumerSvc = mfwriters.LoggingMiddleware(consumerSvc, logger)
+	consumerSvc = mfwriters.LoggingMiddleware(consumerSvc, mflogger)
 	consumerSvc = mfwriters.MetricsMiddleware(
 		consumerSvc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
@@ -135,8 +115,21 @@ func newService(logger mflog.Logger) sinkwriter.Service {
 			Help:      "Total duration of requests in microseconds.",
 		}, []string{"method"}),
 	)
-	svc := prom.New(zlog)
-	return svc
+	svc := prom.New(zlog, mflogger, consumerSvc, pubSub, esClient, svcName)
+
+	errs := make(chan error, 2)
+
+	go startHTTPServer(cfg.Port, errs, mflogger)
+	go svc.Run()
+
+	go func() {
+		c := make(chan os.Signal)
+		signal.Notify(c, syscall.SIGINT)
+		errs <- fmt.Errorf("%s", <-c)
+	}()
+
+	err = <-errs
+	mflogger.Error(fmt.Sprintf("promsink writer service terminated: %s", err))
 }
 
 func startHTTPServer(port string, errs chan error, logger mflog.Logger) {
@@ -157,12 +150,4 @@ func connectToRedis(URL, pass string, cacheDB string, logger mflog.Logger) *redi
 		Password: pass,
 		DB:       db,
 	})
-}
-
-func subscribeToOrbES(svc sinkwriter.Service, client *redis.Client, esconsumer string, logger mflog.Logger) {
-	eventStore := esconsume.NewEventStore(svc, client, esconsumer, logger)
-	logger.Info("Subscribed to Redis Event Store")
-	if err := eventStore.Subscribe("orb.policy"); err != nil {
-		logger.Warn(fmt.Sprintf("orb prometheus sync service failed to subscribe to event sourcing: %s", err))
-	}
 }
