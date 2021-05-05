@@ -5,33 +5,40 @@
 package prom
 
 import (
-	"fmt"
-
 	mfconsumers "github.com/mainflux/mainflux/consumers"
-	"github.com/mainflux/mainflux/logger"
+	mflog "github.com/mainflux/mainflux/logger"
+	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
+	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
+
 	"github.com/ns1labs/orb/pkg/mainflux/transformers/passthrough"
 	"github.com/ns1labs/orb/pkg/promremotewrite"
-
-	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/sinks/writer"
+	"go.uber.org/zap"
 )
 
 type promSinkService struct {
+	mflogger   mflog.Logger
 	mfsdk      mfsdk.SDK
 	mfconsumer mfconsumers.Consumer
-	pWriterMgr promremotewrite.PromRemoteWriter
+	pubSub     mfnats.PubSub
+
+	natSubjectConfigPath string
+	logger               *zap.Logger
+	pWriterMgr           promremotewrite.PromRemoteWriter
 }
 
 func (p promSinkService) Run() error {
 	t := passthrough.New()
-	if err = mfconsumers.Start(pubSub, p.mfconsumer, t, cfg.ConfigPath, logger); err != nil {
-		logger.Error(fmt.Sprintf("Failed to create promsink writer: %s", err))
+	if err := mfconsumers.Start(p.pubSub, p.mfconsumer, t, p.natSubjectConfigPath, p.mflogger); err != nil {
+		p.logger.Error("Failed to create promsink writer", zap.Error(err))
 	}
+	return nil
 }
 
 // New instantiates the prom sink service implementation.
-func New() writer.Service {
+func New(logger *zap.Logger) writer.Service {
 	return &promSinkService{
+		logger:     logger,
 		pWriterMgr: promremotewrite.New(promremotewrite.PromRemoteConfig{}),
 	}
 }
