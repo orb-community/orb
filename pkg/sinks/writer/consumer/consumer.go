@@ -10,16 +10,16 @@ import (
 	"go.uber.org/zap"
 )
 
-type prometheusRepo struct {
+type sinkConsumer struct {
 	logger *zap.Logger
 }
 
 func New(logger *zap.Logger) mfconsumers.Consumer {
 	logger.Info("created promsink nats consumer")
-	return &prometheusRepo{logger: logger}
+	return &sinkConsumer{logger: logger}
 }
 
-func (p prometheusRepo) Consume(messages interface{}) error {
-	p.logger.Info("promsink consume", zap.String("subtopic", messages.(messaging.Message).Subtopic))
+func (p sinkConsumer) Consume(messages interface{}) error {
+	p.logger.Info("sink consume", zap.String("subtopic", messages.(messaging.Message).Subtopic))
 	return nil
 }

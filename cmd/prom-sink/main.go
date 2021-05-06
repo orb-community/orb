@@ -9,9 +9,9 @@ import "C"
 import (
 	"fmt"
 	"github.com/go-redis/redis"
+	"github.com/ns1labs/orb/pkg/config"
+	natconsume "github.com/ns1labs/orb/pkg/sinks/writer/consumer"
 	"github.com/ns1labs/orb/pkg/sinks/writer/prom"
-	natconsume "github.com/ns1labs/orb/pkg/sinks/writer/prom/consumer"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -28,66 +28,30 @@ import (
 )
 
 const (
-	svcName = "prom-sink"
+	svcName     = "prom-sink"
+	fullSvcName = "orb-prom-sink"
+	envPrefix   = "orb_prom_sink"
+	httpPort    = "8201"
 )
-
-type config struct {
-	NatsURL string `mapstructure:"nats_url"`
-
-	EsURL  string `mapstructure:"es_url"`
-	EsPass string `mapstructure:"es_pass"`
-	EsDB   string `mapstructure:"es_db"`
-
-	LogLevel   string `mapstructure:"log_level"`
-	Port       string `mapstructure:"port"`
-	ConfigPath string `mapstructure:"config_path"`
-
-	// todo sinks gRPC
-	// todo fleet mgr gRPC
-}
-
-func loadConfig() config {
-
-	mfC := viper.New()
-	mfC.SetEnvPrefix("mf")
-
-	mfC.SetDefault("nats_url", "nats://localhost:4222")
-
-	mfC.SetDefault("es_url", "localhost:6379")
-	mfC.SetDefault("es_pass", "")
-	mfC.SetDefault("es_db", "0")
-
-	mfC.AutomaticEnv()
-
-	orbC := viper.New()
-	orbC.SetEnvPrefix("orb_prom_sink")
-
-	orbC.SetDefault("config_path", "/config.toml")
-	orbC.SetDefault("log_level", "error")
-	orbC.SetDefault("port", "8190")
-
-	orbC.AutomaticEnv()
-
-	var c config
-	mfC.Unmarshal(&c)
-	orbC.Unmarshal(&c)
-	return c
-
-}
 
 func main() {
 
-	cfg := loadConfig()
+	natsCfg := config.LoadNatsConfig(envPrefix)
+	esCfg := config.LoadEsConfig(envPrefix)
+	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 
-	mflogger, err := mflog.New(os.Stdout, cfg.LogLevel)
+	// todo sinks gRPC
+	// todo fleet mgr gRPC
+
+	mflogger, err := mflog.New(os.Stdout, svcCfg.LogLevel)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
 
-	esClient := connectToRedis(cfg.EsURL, cfg.EsPass, cfg.EsDB, mflogger)
+	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, mflogger)
 	defer esClient.Close()
 
-	pubSub, err := mfnats.NewPubSub(cfg.NatsURL, svcName, mflogger)
+	pubSub, err := mfnats.NewPubSub(natsCfg.URL, svcName, mflogger)
 	if err != nil {
 		mflogger.Error(fmt.Sprintf("Failed to connect to NATS: %s", err))
 		os.Exit(1)
@@ -119,7 +83,7 @@ func main() {
 
 	errs := make(chan error, 2)
 
-	go startHTTPServer(cfg.Port, errs, mflogger)
+	go startHTTPServer(svcCfg.HttpPort, errs, mflogger)
 	go svc.Run()
 
 	go func() {
