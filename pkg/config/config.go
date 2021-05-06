@@ -59,6 +59,7 @@ func LoadNatsConfig(prefix string) NatsConfig {
 	cfg.SetDefault("url", "nats://localhost:4222")
 	cfg.SetDefault("config_path", "/config.toml")
 
+	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
 	var nC NatsConfig
 	cfg.Unmarshal(&nC)
@@ -76,12 +77,13 @@ func LoadPostgresConfig(prefix string, db string) PostgresConfig {
 	cfg.SetDefault("user", "orb")
 	cfg.SetDefault("pass", "orb")
 	cfg.SetDefault("db", db)
-	cfg.SetDefault("ssl_mode", "")
+	cfg.SetDefault("ssl_mode", "verify-full")
 	cfg.SetDefault("ssl_cert", "")
 	cfg.SetDefault("ssl_key", "")
 	cfg.SetDefault("ssl_root_cert", "")
 
 	cfg.AutomaticEnv()
+	cfg.AllowEmptyEnv(true)
 	var jC PostgresConfig
 	cfg.Unmarshal(&jC)
 
@@ -95,6 +97,7 @@ func LoadJaegerConfig(prefix string) JaegerConfig {
 
 	cfg.SetDefault("url", "localhost:6831")
 
+	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
 	var jC JaegerConfig
 	cfg.Unmarshal(&jC)
@@ -111,6 +114,7 @@ func LoadEsConfig(prefix string) EsConfig {
 	cfg.SetDefault("db", "0")
 	cfg.SetDefault("consumer", fmt.Sprintf("%s-es-consumer", prefix))
 
+	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
 	var esC EsConfig
 	cfg.Unmarshal(&esC)
@@ -126,6 +130,7 @@ func LoadBaseServiceConfig(prefix string, httpPort string) BaseSvcConfig {
 	cfg.SetDefault("server_cert", "")
 	cfg.SetDefault("server_key", "")
 
+	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
 	var svcC BaseSvcConfig
 	cfg.Unmarshal(&svcC)
@@ -141,6 +146,7 @@ func LoadMFAuthConfig(prefix string) MFAuthConfig {
 	cfg.SetDefault("client_tls", "false")
 	cfg.SetDefault("ca_certs", "")
 
+	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
 	var aC MFAuthConfig
 	cfg.Unmarshal(&aC)

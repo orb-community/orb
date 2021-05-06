@@ -6,10 +6,9 @@ package consumer
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ns1labs/orb/pkg/sinks/writer"
-
 	"github.com/go-redis/redis"
-	"github.com/mainflux/mainflux/logger"
+	"github.com/ns1labs/orb/pkg/sinks/writer"
+	"go.uber.org/zap"
 )
 
 const (
@@ -37,11 +36,11 @@ type eventStore struct {
 	svc        writer.Service
 	client     *redis.Client
 	esconsumer string
-	logger     logger.Logger
+	logger     *zap.Logger
 }
 
 // NewEventStore returns new event store instance.
-func NewEventStore(svc writer.Service, client *redis.Client, esconsumer string, log logger.Logger) Subscriber {
+func NewEventStore(svc writer.Service, client *redis.Client, esconsumer string, log *zap.Logger) Subscriber {
 	return eventStore{
 		svc:        svc,
 		client:     client,
@@ -79,7 +78,7 @@ func (es eventStore) Subscribe(subject string) error {
 				err = es.handleRemoveThing(rte)
 			}
 			if err != nil {
-				es.logger.Warn(fmt.Sprintf("Failed to handle event sourcing: %s", err.Error()))
+				es.logger.Warn("Failed to handle event sourcing")
 				break
 			}
 			es.client.XAck(stream, group, msg.ID)

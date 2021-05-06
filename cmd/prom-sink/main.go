@@ -9,9 +9,12 @@ import "C"
 import (
 	"fmt"
 	"github.com/go-redis/redis"
+	"github.com/go-zoo/bone"
+	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/pkg/config"
 	natconsume "github.com/ns1labs/orb/pkg/sinks/writer/consumer"
 	"github.com/ns1labs/orb/pkg/sinks/writer/prom"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -106,10 +109,17 @@ func main() {
 	logger.Error("promsink writer service terminated", zap.Error(err))
 }
 
+func makeHandler(svcName string) http.Handler {
+	r := bone.New()
+	r.GetFunc("/version", orb.Version(svcName))
+	r.Handle("/metrics", promhttp.Handler())
+	return r
+}
+
 func startHTTPServer(port string, errs chan error, logger *zap.Logger) {
 	p := fmt.Sprintf(":%s", port)
 	logger.Info("promsink writer service started, exposed port", zap.String("port", port))
-	errs <- http.ListenAndServe(p, mfwriters.MakeHandler(svcName))
+	errs <- http.ListenAndServe(p, makeHandler(svcName))
 }
 
 func connectToRedis(URL, pass string, cacheDB string, logger *zap.Logger) *redis.Client {

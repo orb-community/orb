@@ -9,7 +9,6 @@ import (
 	mfconsumers "github.com/mainflux/mainflux/consumers"
 	mflog "github.com/mainflux/mainflux/logger"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
-	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	esconsume "github.com/ns1labs/orb/pkg/sinks/redis/consumer"
 
 	"github.com/ns1labs/orb/pkg/mainflux/transformers/passthrough"
@@ -20,7 +19,6 @@ import (
 
 type promSinkService struct {
 	mflogger   mflog.Logger
-	mfsdk      mfsdk.SDK
 	mfconsumer mfconsumers.Consumer
 	pubSub     mfnats.PubSub
 
@@ -37,7 +35,7 @@ func (p promSinkService) Run() error {
 		p.logger.Error("Failed to create promsink writer", zap.Error(err))
 	}
 	p.logger.Info("started nats consumer")
-	eventStore := esconsume.NewEventStore(p, p.esclient, "prom-sink", p.mflogger)
+	eventStore := esconsume.NewEventStore(p, p.esclient, "prom-sink", p.logger)
 	p.logger.Info("Subscribed to Redis Event Store")
 	if err := eventStore.Subscribe("orb.policy"); err != nil {
 		p.logger.Warn("orb prometheus sync service failed to subscribe to event sourcing: %s", zap.Error(err))

@@ -31,6 +31,6 @@ func NewEventStoreMiddleware(svc sinks.Service, client *redis.Client) sinks.Serv
 	}
 }
 
-func (es eventStore) Add() error {
-	return nil
+func (es eventStore) Add() (sinks.Sink, error) {
+	return sinks.Sink{}, nil
 }
