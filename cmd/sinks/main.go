@@ -73,7 +73,7 @@ func main() {
 	}
 	auth := authapi.NewClient(authTracer, authConn, authTimeout)
 
-	svc := newService(auth, db, logger, esClient, svcCfg)
+	svc := newService(auth, db, logger, esClient)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(svc, svcCfg, logger, errs)
@@ -188,14 +188,14 @@ func connectToAuth(cfg config.MFAuthConfig, logger logger.Logger) *grpc.ClientCo
 	return conn
 }
 
-func startHTTPServer(svc sink.Service, cfg config, logger mflog.Logger, errs chan error) {
-	p := fmt.Sprintf(":%s", cfg.httpPort)
-	if cfg.serverCert != "" || cfg.serverKey != "" {
+func startHTTPServer(svc sinks.Service, cfg config.BaseSvcConfig, logger mflog.Logger, errs chan error) {
+	p := fmt.Sprintf(":%s", cfg.HttpPort)
+	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Sink service started using https on port %s with cert %s key %s",
-			cfg.httpPort, cfg.serverCert, cfg.serverKey))
-		errs <- http.ListenAndServeTLS(p, cfg.serverCert, cfg.serverKey, api.MakeHandler(svc, sink.NewConfigReader(cfg.encKey)))
+			cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
+		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, api.MakeHandler(svcName, svc))
 		return
 	}
-	logger.Info(fmt.Sprintf("Sink service started using http on port %s", cfg.httpPort))
-	errs <- http.ListenAndServe(p, api.MakeHandler(svc, sink.NewConfigReader(cfg.encKey)))
+	logger.Info(fmt.Sprintf("Sink service started using http on port %s", cfg.HttpPort))
+	errs <- http.ListenAndServe(p, api.MakeHandler(svcName, svc))
 }

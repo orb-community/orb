@@ -8,7 +8,7 @@ package postgres
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/mainflux/mainflux/logger"
-	"github.com/mainflux/mainflux/pkg/errors"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/sinks"
 )
 
@@ -34,8 +34,8 @@ func NewSinksRepository(db *sqlx.DB, log logger.Logger) sinks.SinksRepository {
 
 func (cr sinksRepository) Save(cfg sinks.Sink) (string, error) {
 	/*
-		q := `INSERT INTO sinks (mainflux_thing, owner, name, client_cert, client_key, ca_cert, mainflux_key, external_id, external_key, content, state)
-			  VALUES (:mainflux_thing, :owner, :name, :client_cert, :client_key, :ca_cert, :mainflux_key, :external_id, :external_key, :content, :state)`
+		q := `INSERT INTO sinks (sink_thing, owner, name, client_cert, client_key, ca_cert, sink_key, external_id, external_key, content, state)
+			  VALUES (:sink_thing, :owner, :name, :client_cert, :client_key, :ca_cert, :sink_key, :external_id, :external_key, :content, :state)`
 
 		tx, err := cr.db.Beginx()
 		if err != nil {
