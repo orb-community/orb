@@ -15,7 +15,7 @@ type prometheusRepo struct {
 }
 
 func New(logger *zap.Logger) mfconsumers.Consumer {
-	logger.Info("created promsink")
+	logger.Info("created promsink nats consumer")
 	return &prometheusRepo{logger: logger}
 }
 

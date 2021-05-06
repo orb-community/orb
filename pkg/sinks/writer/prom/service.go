@@ -36,7 +36,8 @@ func (p promSinkService) Run() error {
 	if err := mfconsumers.Start(p.pubSub, p.mfconsumer, t, p.natSubjectConfigPath, p.mflogger); err != nil {
 		p.logger.Error("Failed to create promsink writer", zap.Error(err))
 	}
-	eventStore := esconsume.NewEventStore(p, p.esclient, "FIX ME", p.mflogger)
+	p.logger.Info("started nats consumer")
+	eventStore := esconsume.NewEventStore(p, p.esclient, "prom-sink", p.mflogger)
 	p.logger.Info("Subscribed to Redis Event Store")
 	if err := eventStore.Subscribe("orb.policy"); err != nil {
 		p.logger.Warn("orb prometheus sync service failed to subscribe to event sourcing: %s", zap.Error(err))

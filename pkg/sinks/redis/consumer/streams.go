@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	stream = "FIX ME-stream"
-	group  = "FIX ME-group"
+	stream = "mainflux.things"
+	group  = "orb.prom-sink"
 
 	thingPrefix     = "thing."
 	thingRemove     = thingPrefix + "remove"
@@ -69,6 +69,8 @@ func (es eventStore) Subscribe(subject string) error {
 
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
+
+			fmt.Printf("promsink consume event: %+v", event)
 
 			var err error
 			switch event["operation"] {
