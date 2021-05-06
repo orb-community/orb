@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
-	"github.com/mainflux/mainflux"
+	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/sinks"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -27,7 +27,7 @@ func MakeHandler(svcName string, svc sinks.Service) http.Handler {
 		encodeResponse,
 		opts...))
 
-	r.GetFunc("/version", mainflux.Version(svcName))
+	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
 
 	return r

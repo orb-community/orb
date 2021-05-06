@@ -3,3 +3,29 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 package api
+
+import (
+	"github.com/go-kit/kit/metrics"
+	"github.com/ns1labs/orb/pkg/sinks"
+)
+
+var _ sinks.Service = (*metricsMiddleware)(nil)
+
+type metricsMiddleware struct {
+	counter metrics.Counter
+	latency metrics.Histogram
+	svc     sinks.Service
+}
+
+func (m metricsMiddleware) Add() (sinks.Sink, error) {
+	panic("implement me")
+}
+
+// MetricsMiddleware instruments core service by tracking request count and latency.
+func MetricsMiddleware(svc sinks.Service, counter metrics.Counter, latency metrics.Histogram) sinks.Service {
+	return &metricsMiddleware{
+		counter: counter,
+		latency: latency,
+		svc:     svc,
+	}
+}

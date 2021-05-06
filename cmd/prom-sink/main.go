@@ -43,17 +43,27 @@ func main() {
 	// todo sinks gRPC
 	// todo fleet mgr gRPC
 
+	// main logger
+	var logger *zap.Logger
+	if svcCfg.LogLevel == "debug" {
+		logger, _ = zap.NewDevelopment()
+	} else {
+		logger, _ = zap.NewProduction()
+	}
+	defer logger.Sync() // flushes buffer, if any
+
+	// only needed for mainflux interfaces
 	mflogger, err := mflog.New(os.Stdout, svcCfg.LogLevel)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
 
-	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, mflogger)
+	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
 	defer esClient.Close()
 
 	pubSub, err := mfnats.NewPubSub(natsCfg.URL, svcName, mflogger)
 	if err != nil {
-		mflogger.Error(fmt.Sprintf("Failed to connect to NATS: %s", err))
+		logger.Error("Failed to connect to NATS", zap.Error(err))
 		os.Exit(1)
 	}
 	defer pubSub.Close()
@@ -83,7 +93,7 @@ func main() {
 
 	errs := make(chan error, 2)
 
-	go startHTTPServer(svcCfg.HttpPort, errs, mflogger)
+	go startHTTPServer(svcCfg.HttpPort, errs, logger)
 	go svc.Run()
 
 	go func() {
@@ -93,19 +103,19 @@ func main() {
 	}()
 
 	err = <-errs
-	mflogger.Error(fmt.Sprintf("promsink writer service terminated: %s", err))
+	logger.Error("promsink writer service terminated", zap.Error(err))
 }
 
-func startHTTPServer(port string, errs chan error, logger mflog.Logger) {
+func startHTTPServer(port string, errs chan error, logger *zap.Logger) {
 	p := fmt.Sprintf(":%s", port)
-	logger.Info(fmt.Sprintf("promsink writer service started, exposed port %s", port))
+	logger.Info("promsink writer service started, exposed port", zap.String("port", port))
 	errs <- http.ListenAndServe(p, mfwriters.MakeHandler(svcName))
 }
 
-func connectToRedis(URL, pass string, cacheDB string, logger mflog.Logger) *redis.Client {
+func connectToRedis(URL, pass string, cacheDB string, logger *zap.Logger) *redis.Client {
 	db, err := strconv.Atoi(cacheDB)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to connect to cache: %s", err))
+		logger.Error("Failed to connect to cache", zap.Error(err))
 		os.Exit(1)
 	}
 

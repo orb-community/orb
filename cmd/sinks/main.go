@@ -8,12 +8,13 @@ package main
 import (
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
-	"github.com/mainflux/mainflux/logger"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/pkg/sinks"
+	"github.com/ns1labs/orb/pkg/sinks/api"
 	"github.com/ns1labs/orb/pkg/sinks/postgres"
 	redisprod "github.com/ns1labs/orb/pkg/sinks/redis/producer"
 	opentracing "github.com/opentracing/opentracing-go"
+	"go.uber.org/zap"
 	"io"
 	"io/ioutil"
 	"log"
@@ -28,7 +29,6 @@ import (
 	r "github.com/go-redis/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/mainflux/mainflux"
-	mflog "github.com/mainflux/mainflux/logger"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	jconfig "github.com/uber/jaeger-client-go/config"
 	"google.golang.org/grpc"
@@ -50,10 +50,14 @@ func main() {
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
 
-	logger, err := mflog.New(os.Stdout, svcCfg.LogLevel)
-	if err != nil {
-		log.Fatalf(err.Error())
+	// main logger
+	var logger *zap.Logger
+	if svcCfg.LogLevel == "debug" {
+		logger, _ = zap.NewDevelopment()
+	} else {
+		logger, _ = zap.NewProduction()
 	}
+	defer logger.Sync() // flushes buffer, if any
 
 	db := connectToDB(dbCfg, logger)
 	defer db.Close()
@@ -88,19 +92,19 @@ func main() {
 	logger.Error(fmt.Sprintf("Sink service terminated: %s", err))
 }
 
-func connectToDB(cfg config.PostgresConfig, logger mflog.Logger) *sqlx.DB {
+func connectToDB(cfg config.PostgresConfig, logger *zap.Logger) *sqlx.DB {
 	db, err := postgres.Connect(cfg)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to connect to postgres: %s", err))
+		logger.Error("Failed to connect to postgres", zap.Error(err))
 		os.Exit(1)
 	}
 	return db
 }
 
-func connectToRedis(redisURL, redisPass, redisDB string, logger mflog.Logger) *r.Client {
+func connectToRedis(redisURL, redisPass, redisDB string, logger *zap.Logger) *r.Client {
 	db, err := strconv.Atoi(redisDB)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to connect to redis: %s", err))
+		logger.Error("Failed to connect to redis", zap.Error(err))
 		os.Exit(1)
 	}
 
@@ -111,7 +115,7 @@ func connectToRedis(redisURL, redisPass, redisDB string, logger mflog.Logger) *r
 	})
 }
 
-func initJaeger(svcName, url string, logger logger.Logger) (opentracing.Tracer, io.Closer) {
+func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io.Closer) {
 	if url == "" {
 		return opentracing.NoopTracer{}, ioutil.NopCloser(nil)
 	}
@@ -128,14 +132,14 @@ func initJaeger(svcName, url string, logger logger.Logger) (opentracing.Tracer, 
 		},
 	}.NewTracer()
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to init Jaeger client: %s", err))
+		logger.Error("Failed to init Jaeger client", zap.Error(err))
 		os.Exit(1)
 	}
 
 	return tracer, closer
 }
 
-func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger mflog.Logger, esClient *r.Client) sinks.Service {
+func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client) sinks.Service {
 	thingsRepo := postgres.NewSinksRepository(db, logger)
 
 	svc := sinks.New(auth, thingsRepo)
@@ -159,7 +163,7 @@ func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger mflog.Logge
 	return svc
 }
 
-func connectToAuth(cfg config.MFAuthConfig, logger logger.Logger) *grpc.ClientConn {
+func connectToAuth(cfg config.MFAuthConfig, logger *zap.Logger) *grpc.ClientConn {
 	var opts []grpc.DialOption
 	tls, err := strconv.ParseBool(cfg.ClientTLS)
 	if err != nil {
@@ -188,7 +192,7 @@ func connectToAuth(cfg config.MFAuthConfig, logger logger.Logger) *grpc.ClientCo
 	return conn
 }
 
-func startHTTPServer(svc sinks.Service, cfg config.BaseSvcConfig, logger mflog.Logger, errs chan error) {
+func startHTTPServer(svc sinks.Service, cfg config.BaseSvcConfig, logger *zap.Logger, errs chan error) {
 	p := fmt.Sprintf(":%s", cfg.HttpPort)
 	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Sink service started using https on port %s with cert %s key %s",

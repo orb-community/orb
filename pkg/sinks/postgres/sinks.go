@@ -7,9 +7,9 @@ package postgres
 
 import (
 	"github.com/jmoiron/sqlx"
-	"github.com/mainflux/mainflux/logger"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/sinks"
+	"go.uber.org/zap"
 )
 
 const (
@@ -24,12 +24,12 @@ var (
 var _ sinks.SinksRepository = (*sinksRepository)(nil)
 
 type sinksRepository struct {
-	db  *sqlx.DB
-	log logger.Logger
+	db     *sqlx.DB
+	logger *zap.Logger
 }
 
-func NewSinksRepository(db *sqlx.DB, log logger.Logger) sinks.SinksRepository {
-	return &sinksRepository{db: db, log: log}
+func NewSinksRepository(db *sqlx.DB, log *zap.Logger) sinks.SinksRepository {
+	return &sinksRepository{db: db, logger: log}
 }
 
 func (cr sinksRepository) Save(cfg sinks.Sink) (string, error) {
