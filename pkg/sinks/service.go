@@ -26,6 +26,8 @@ type Service interface {
 	Add() (Sink, error)
 }
 
+var _ Service = (*sinkService)(nil)
+
 type sinkService struct {
 	auth mainflux.AuthServiceClient
 	repo SinksRepository
