@@ -23,7 +23,7 @@ func addEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		res := sinkRes{
+		res := policyRes{
 			id:      saved.PolicyID,
 			created: true,
 		}

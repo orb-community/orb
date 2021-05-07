@@ -50,6 +50,9 @@ func main() {
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
 
+	// todo sinks gRPC
+	// todo fleet mgr gRPC
+
 	// main logger
 	var logger *zap.Logger
 	if svcCfg.LogLevel == "debug" {
