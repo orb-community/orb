@@ -5,7 +5,6 @@
 
 package main
 
-import "C"
 import (
 	"fmt"
 	"github.com/go-redis/redis"

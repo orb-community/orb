@@ -255,7 +255,7 @@ services:
 
   jaeger:
     image: jaegertracing/all-in-one:1.22
-    container_name: orb-jaeger
+    container_name: orb-app-jaeger
     ports:
       - ${MF_JAEGER_PORT}:${MF_JAEGER_PORT}/udp
       - ${MF_JAEGER_FRONTEND}:${MF_JAEGER_FRONTEND}
@@ -266,7 +266,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.26.0
-    container_name: orb-prom
+    container_name: orb-app-prom
     restart: on-failure
     ports:
       - ${MF_PROMETHEUS_PORT}:${MF_PROMETHEUS_PORT}
@@ -278,7 +278,7 @@ services:
 
   grafana:
     image: grafana/grafana:7.5.5
-    container_name: orb-grafana
+    container_name: orb-app-grafana
     depends_on:
       - prometheus
     restart: on-failure
@@ -312,7 +312,7 @@ services:
     environment:
       POSTGRES_USER: ${ORB_FLEET_DB_USER}
       POSTGRES_PASSWORD: ${ORB_FLEET_DB_PASS}
-      POSTGRES_DB: ${ORB_FLEET_DB}
+      POSTGRES_DB: ${ORB_FLEET_DB_DB}
     ports:
       - 15004:5432
     networks:
@@ -327,7 +327,7 @@ services:
     environment:
       POSTGRES_USER: ${ORB_POLICIES_DB_USER}
       POSTGRES_PASSWORD: ${ORB_POLICIES_DB_PASS}
-      POSTGRES_DB: ${ORB_POLICIES_DB}
+      POSTGRES_DB: ${ORB_POLICIES_DB_DB}
     ports:
       - 15005:5432
     networks:
@@ -342,7 +342,7 @@ services:
     environment:
       POSTGRES_USER: ${ORB_SINKS_DB_USER}
       POSTGRES_PASSWORD: ${ORB_SINKS_DB_PASS}
-      POSTGRES_DB: ${ORB_SINKS_DB}
+      POSTGRES_DB: ${ORB_SINKS_DB_DB}
     ports:
       - 15006:5432
     networks:
@@ -350,16 +350,38 @@ services:
     volumes:
       - orb-sinks-db-volume:/var/lib/postgresql/data
 
+  sinks:
+    image: ns1labs/orb-sinks:${MF_RELEASE_TAG}
+    container_name: orb-sinks
+    depends_on:
+      - es-redis
+      - sinks-db
+      - auth
+      - jaeger
+    restart: on-failure
+    environment:
+      ORB_SINKS_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
+      ORB_SINKS_NATS_URL: ${MF_NATS_URL}
+      ORB_SINKS_DB_HOST: sinks-db
+      ORB_SINKS_DB_USER: ${ORB_SINKS_DB_USER}
+      ORB_SINKS_DB_PASS: ${ORB_SINKS_DB_PASS}
+      ORB_SINKS_DB: ${ORB_SINKS_DB_DB}
+      ORB_SINKS_DB_SSL_MODE: disable
+      ORB_SINKS_LOG_LEVEL: debug
+    networks:
+      - orb-base-net
+
   prom-sink:
     image: ns1labs/orb-prom-sink:${MF_RELEASE_TAG}
     container_name: orb-prom-sink
     depends_on:
       - nats
       - es-redis
+      - sinks
     restart: on-failure
     environment:
-      MF_NATS_URL: ${MF_NATS_URL}
-      MF_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
+      ORB_PROM_SINK_NATS_URL: ${MF_NATS_URL}
+      ORB_PROM_SINK_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
     networks:
       - orb-base-net
 

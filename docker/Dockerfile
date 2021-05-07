@@ -6,8 +6,8 @@ ARG GOARM
 WORKDIR /go/src/github.com/ns1labs/orb
 COPY . .
 RUN apk update \
-    && apk add make\
-    && make $SVC \
+    && apk add make
+RUN make $SVC \
     && mv build/orb-$SVC /exe
 
 FROM scratch
