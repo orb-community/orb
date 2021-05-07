@@ -10,6 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var _ mfconsumers.Consumer = (*sinkConsumer)(nil)
+
 type sinkConsumer struct {
 	logger *zap.Logger
 }
