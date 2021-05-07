@@ -29,6 +29,7 @@ import (
 	r "github.com/go-redis/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/mainflux/mainflux"
+	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	jconfig "github.com/uber/jaeger-client-go/config"
 	"google.golang.org/grpc"
@@ -49,9 +50,9 @@ func main() {
 	authCfg := config.LoadMFAuthConfig(envPrefix)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
+	sdkCfg := config.LoadMFSDKConfig(envPrefix)
 
-	// todo sinks gRPC
-	// todo fleet mgr gRPC
+	// todo policy gRPC
 
 	// main logger
 	var logger *zap.Logger
@@ -80,7 +81,7 @@ func main() {
 	}
 	auth := authapi.NewClient(authTracer, authConn, authTimeout)
 
-	svc := newService(auth, db, logger, esClient)
+	svc := newService(auth, db, logger, esClient, sdkCfg)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(svc, svcCfg, logger, errs)
@@ -142,10 +143,17 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client) fleet.Service {
+func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig) fleet.Service {
 	thingsRepo := postgres.NewFleetRepository(db, logger)
 
-	svc := fleet.New(auth, thingsRepo)
+	config := mfsdk.Config{
+		BaseURL:      sdkCfg.BaseURL,
+		ThingsPrefix: sdkCfg.ThingsPrefix,
+	}
+
+	mfsdk := mfsdk.NewSDK(config)
+
+	svc := fleet.New(auth, thingsRepo, mfsdk)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = api.NewLoggingMiddleware(svc, logger)
 	svc = api.MetricsMiddleware(

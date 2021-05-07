@@ -8,6 +8,7 @@ package fleet
 import (
 	"errors"
 	"github.com/mainflux/mainflux"
+	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 )
 
 var (
@@ -29,14 +30,16 @@ type Service interface {
 var _ Service = (*fleetService)(nil)
 
 type fleetService struct {
-	auth mainflux.AuthServiceClient
-	repo FleetRepository
+	auth  mainflux.AuthServiceClient
+	repo  FleetRepository
+	mfsdk mfsdk.SDK
 }
 
-func New(auth mainflux.AuthServiceClient, repo FleetRepository) Service {
+func New(auth mainflux.AuthServiceClient, repo FleetRepository, mfsdk mfsdk.SDK) Service {
 	return &fleetService{
-		auth: auth,
-		repo: repo,
+		auth:  auth,
+		repo:  repo,
+		mfsdk: mfsdk,
 	}
 }
 

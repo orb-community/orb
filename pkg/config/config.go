@@ -9,6 +9,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+type MFSDKConfig struct {
+	BaseURL      string `mapstructure:"base_url"`
+	ThingsPrefix string `mapstructure:"things_prefix"`
+}
+
 type MFAuthConfig struct {
 	URL       string `mapstructure:"url"`
 	Timeout   string `mapstructure:"timeout"`
@@ -49,6 +54,22 @@ type PostgresConfig struct {
 	SSLCert     string `mapstructure:"ssl_cert"`
 	SSLKey      string `mapstructure:"ssl_key"`
 	SSLRootCert string `mapstructure:"ssl_root_cert"`
+}
+
+func LoadMFSDKConfig(prefix string) MFSDKConfig {
+
+	cfg := viper.New()
+	cfg.SetEnvPrefix(fmt.Sprintf("%s_mf_sdk", prefix))
+
+	cfg.SetDefault("base_url", "http://localhost")
+	cfg.SetDefault("things_prefix", "")
+
+	cfg.AllowEmptyEnv(true)
+	cfg.AutomaticEnv()
+	var nC MFSDKConfig
+	cfg.Unmarshal(&nC)
+
+	return nC
 }
 
 func LoadNatsConfig(prefix string) NatsConfig {
