@@ -18,6 +18,9 @@ var (
 	// ErrNotFound indicates a non-existent entity request.
 	ErrNotFound = errors.New("non-existent entity")
 
+	// ErrConflict indicates that entity already exists.
+	ErrConflict = errors.New("entity already exists")
+
 	// ErrMalformedEntity indicates malformed entity specification.
 	ErrMalformedEntity = errors.New("malformed entity specification")
 
@@ -33,16 +36,18 @@ type Service interface {
 var _ Service = (*fleetService)(nil)
 
 type fleetService struct {
-	auth  mainflux.AuthServiceClient
-	repo  FleetRepository
-	mfsdk mfsdk.SDK
+	auth         mainflux.AuthServiceClient
+	agentRepo    AgentRepository
+	selectorRepo SelectorRepository
+	mfsdk        mfsdk.SDK
 }
 
-func New(auth mainflux.AuthServiceClient, repo FleetRepository, mfsdk mfsdk.SDK) Service {
+func New(auth mainflux.AuthServiceClient, agentRepo AgentRepository, selectorRepo SelectorRepository, mfsdk mfsdk.SDK) Service {
 	return &fleetService{
-		auth:  auth,
-		repo:  repo,
-		mfsdk: mfsdk,
+		auth:         auth,
+		agentRepo:    agentRepo,
+		selectorRepo: selectorRepo,
+		mfsdk:        mfsdk,
 	}
 }
 

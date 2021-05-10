@@ -27,7 +27,7 @@ func addEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		res := fleetRes{
-			id:      saved.AgentID,
+			id:      saved.MFThingID,
 			created: true,
 		}
 

@@ -4,14 +4,20 @@
 
 package fleet
 
-type Agent struct {
-	AgentID string
+import (
+	"context"
+	"time"
+)
+
+type Selector struct {
 	Owner   string
 	Name    string
+	Config  Metadata
+	Created time.Time
 }
 
-type FleetRepository interface {
-	// Save persists the Agent. Successful operation is indicated by non-nil
+type SelectorRepository interface {
+	// Save persists the Selector. Successful operation is indicated by non-nil
 	// error response.
-	Save(cfg Agent) (string, error)
+	Save(ctx context.Context, cfg Selector) (string, error)
 }
