@@ -10,25 +10,11 @@ package postgres
 
 import (
 	"context"
-	"database/sql/driver"
-	"encoding/json"
 	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/fleet"
 	"go.uber.org/zap"
-)
-
-const (
-	errDuplicate  = "unique_violation"
-	errInvalid    = "invalid_text_representation"
-	errTruncation = "string_data_right_truncation"
-)
-
-var (
-	errSaveAgentDB = errors.New("failed to save agent to database")
-	errMarshal     = errors.New("Failed to marshal metadata")
-	errUnmarshal   = errors.New("Failed to unmarshal metadata")
 )
 
 var _ fleet.AgentRepository = (*agentRepository)(nil)
@@ -53,7 +39,7 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 
 	dba, err := toDBAgent(agent)
 	if err != nil {
-		return errors.Wrap(errSaveAgentDB, err)
+		return errors.Wrap(errSaveDB, err)
 	}
 
 	_, err = r.db.NamedExecContext(ctx, q, dba)
@@ -67,7 +53,7 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 				return errors.Wrap(fleet.ErrConflict, err)
 			}
 		}
-		return errors.Wrap(errSaveAgentDB, err)
+		return errors.Wrap(errSaveDB, err)
 	}
 
 	return nil
@@ -80,40 +66,6 @@ type dbAgent struct {
 	OrbTags       dbMetadata `db:"orb_tags"`
 	AgentTags     dbMetadata `db:"agent_tags"`
 	AgentMetadata dbMetadata `db:"agent_metadata"`
-}
-
-// dbMetadata type for handling metadata properly in database/sql
-type dbMetadata map[string]interface{}
-
-// Scan - Implement the database/sql scanner interface
-func (m *dbMetadata) Scan(value interface{}) error {
-	if value == nil {
-		return nil
-	}
-
-	b, ok := value.([]byte)
-	if !ok {
-		return fleet.ErrScanMetadata
-	}
-
-	if err := json.Unmarshal(b, m); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Value Implements valuer
-func (m dbMetadata) Value() (driver.Value, error) {
-	if len(m) == 0 {
-		return "{}", nil
-	}
-
-	b, err := json.Marshal(m)
-	if err != nil {
-		return nil, err
-	}
-	return b, err
 }
 
 func toDBAgent(agent fleet.Agent) (dbAgent, error) {

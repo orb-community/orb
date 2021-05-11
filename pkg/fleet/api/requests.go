@@ -12,16 +12,16 @@ import (
 	"github.com/ns1labs/orb/pkg/fleet"
 )
 
-type addReq struct {
+type addAgentReq struct {
 	token string
 	name  string
 }
 
-func (req addReq) validate() error {
+func (req addAgentReq) validate() error {
+
 	if req.token == "" {
 		return fleet.ErrUnauthorizedAccess
 	}
-
 	if req.name == "" {
 		return fleet.ErrMalformedEntity
 	}

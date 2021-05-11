@@ -63,7 +63,7 @@ func migrateDB(db *sqlx.DB) error {
 						name        	   TEXT UNIQUE,
 						mf_owner_id        UUID NOT NULL,
 	
-						config             JSONB NOT NULL DEFAULT '{}',
+						metadata           JSONB NOT NULL DEFAULT '{}',
                         ts_created         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
 						PRIMARY KEY (name, mf_owner_id)
 					)`,

@@ -9,9 +9,6 @@ import (
 	"time"
 )
 
-type Tags map[string]interface{}
-type Metadata map[string]interface{}
-
 const (
 	new     = "new"
 	online  = "online"
@@ -30,6 +27,11 @@ type Agent struct {
 	State         string
 	LastHBData    Metadata
 	LastHB        time.Time
+}
+
+type AgentService interface {
+	// CreateAgent creates new agent
+	CreateAgent(ctx context.Context, token string, a Agent) (Agent, error)
 }
 
 type AgentRepository interface {

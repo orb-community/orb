@@ -82,10 +82,9 @@ func TestMain(m *testing.M) {
 		if err := pool.Purge(container); err != nil {
 			log.Fatalf("Could not purge container: %s", err)
 		}
+		testLog.Debug("purged database")
 
 	*/
-
-	testLog.Debug("purged database")
 
 	os.Exit(code)
 }

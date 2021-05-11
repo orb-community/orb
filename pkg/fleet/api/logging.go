@@ -5,6 +5,7 @@
 package api
 
 import (
+	"context"
 	"github.com/ns1labs/orb/pkg/fleet"
 	"go.uber.org/zap"
 )
@@ -16,7 +17,11 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
-func (l loggingMiddleware) Add() (fleet.Agent, error) {
+func (l loggingMiddleware) CreateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
+	panic("implement me")
+}
+
+func (l loggingMiddleware) CreateSelector(ctx context.Context, token string, s fleet.Selector) (fleet.Selector, error) {
 	panic("implement me")
 }
 

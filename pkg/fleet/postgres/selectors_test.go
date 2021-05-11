@@ -11,9 +11,12 @@ package postgres_test
 import (
 	"context"
 	"fmt"
+	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/fleet"
 	"github.com/ns1labs/orb/pkg/fleet/postgres"
+	"github.com/ns1labs/orb/pkg/types"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,34 +24,49 @@ import (
 
 func TestSelectorSave(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
-	selectorRepo := postgres.NewSelectorRepository(dbMiddleware)
+	selectorRepo := postgres.NewSelectorRepository(dbMiddleware, logger)
 
-	email := "agent-owner@example.com"
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
-	agent := fleet.Selector{
-		Name:  "myselector",
-		Owner: email,
+	nameID, err := types.NewIdentifier("my-selector")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	selector := fleet.Selector{
+		Name:      *nameID,
+		MFOwnerID: oID.String(),
+		Metadata:  fleet.Metadata{"testkey": "testvalue"},
 	}
 
 	cases := []struct {
-		desc  string
-		agent fleet.Selector
-		err   error
+		desc     string
+		selector fleet.Selector
+		err      error
 	}{
 		{
-			desc:  "create new selector",
-			agent: agent,
-			err:   nil,
+			desc:     "create new selector",
+			selector: selector,
+			err:      nil,
 		},
 		{
-			desc:  "create selector that already exist",
-			agent: agent,
-			err:   fleet.ErrConflict,
+			desc:     "create selector that already exist",
+			selector: selector,
+			err:      fleet.ErrConflict,
+		},
+		{
+			desc:     "create selector with invalid name",
+			selector: fleet.Selector{MFOwnerID: oID.String()},
+			err:      fleet.ErrMalformedEntity,
+		}, {
+			desc:     "create selector with invalid owner ID",
+			selector: fleet.Selector{Name: *nameID, MFOwnerID: "invalid"},
+			err:      fleet.ErrMalformedEntity,
 		},
 	}
 
 	for _, tc := range cases {
-		_, err := selectorRepo.Save(context.Background(), tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		err := selectorRepo.Save(context.Background(), tc.selector)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", tc.desc, tc.err, err))
 	}
+
 }

@@ -6,18 +6,24 @@ package fleet
 
 import (
 	"context"
+	"github.com/ns1labs/orb/pkg/types"
 	"time"
 )
 
 type Selector struct {
-	Owner   string
-	Name    string
-	Config  Metadata
-	Created time.Time
+	MFOwnerID string
+	Name      types.Identifier
+	Metadata  Metadata
+	Created   time.Time
+}
+
+type SelectorService interface {
+	// CreateSelector creates new Selector
+	CreateSelector(ctx context.Context, token string, s Selector) (Selector, error)
 }
 
 type SelectorRepository interface {
 	// Save persists the Selector. Successful operation is indicated by non-nil
 	// error response.
-	Save(ctx context.Context, cfg Selector) (string, error)
+	Save(ctx context.Context, selector Selector) error
 }

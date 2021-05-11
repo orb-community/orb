@@ -9,6 +9,7 @@
 package fleet
 
 import (
+	"context"
 	"errors"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
@@ -32,8 +33,15 @@ var (
 	ErrScanMetadata = errors.New("failed to scan metadata")
 )
 
+// A flat kv pair object
+type Tags map[string]interface{}
+
+// Maybe a full object hierarchy
+type Metadata map[string]interface{}
+
 type Service interface {
-	Add() (Agent, error)
+	AgentService
+	SelectorService
 }
 
 var _ Service = (*fleetService)(nil)
@@ -45,15 +53,19 @@ type fleetService struct {
 	mfsdk        mfsdk.SDK
 }
 
-func New(auth mainflux.AuthServiceClient, agentRepo AgentRepository, selectorRepo SelectorRepository, mfsdk mfsdk.SDK) Service {
+func (f fleetService) CreateSelector(ctx context.Context, token string, s Selector) (Selector, error) {
+	panic("implement me")
+}
+
+func (f fleetService) CreateAgent(ctx context.Context, token string, a Agent) (Agent, error) {
+	panic("implement me")
+}
+
+func NewFleetService(auth mainflux.AuthServiceClient, agentRepo AgentRepository, selectorRepo SelectorRepository, mfsdk mfsdk.SDK) Service {
 	return &fleetService{
 		auth:         auth,
 		agentRepo:    agentRepo,
 		selectorRepo: selectorRepo,
 		mfsdk:        mfsdk,
 	}
-}
-
-func (s fleetService) Add() (Agent, error) {
-	panic("implement me")
 }

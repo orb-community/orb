@@ -15,13 +15,14 @@ import (
 )
 
 func addEndpoint(svc fleet.Service) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req := request.(addReq)
+	return func(c context.Context, request interface{}) (interface{}, error) {
+		req := request.(addAgentReq)
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
 
-		saved, err := svc.Add()
+		// TODO
+		saved, err := svc.CreateAgent(c, req.token, fleet.Agent{})
 		if err != nil {
 			return nil, err
 		}

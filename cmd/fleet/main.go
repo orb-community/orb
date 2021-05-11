@@ -148,7 +148,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 
 func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig) fleet.Service {
 	agentRepo := postgres.NewAgentRepository(db, logger)
-	selectorRepo := postgres.NewSelectorRepository(db)
+	selectorRepo := postgres.NewSelectorRepository(db, logger)
 
 	config := mfsdk.Config{
 		BaseURL:      sdkCfg.BaseURL,
@@ -157,7 +157,7 @@ func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger
 
 	mfsdk := mfsdk.NewSDK(config)
 
-	svc := fleet.New(auth, agentRepo, selectorRepo, mfsdk)
+	svc := fleet.NewFleetService(auth, agentRepo, selectorRepo, mfsdk)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = api.NewLoggingMiddleware(svc, logger)
 	svc = api.MetricsMiddleware(
