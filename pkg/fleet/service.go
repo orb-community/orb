@@ -27,6 +27,9 @@ var (
 	// ErrUnauthorizedAccess indicates missing or invalid credentials provided
 	// when accessing a protected resource.
 	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
+
+	// ErrScanMetadata indicates problem with metadata in db.
+	ErrScanMetadata = errors.New("failed to scan metadata")
 )
 
 type Service interface {

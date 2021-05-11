@@ -14,7 +14,6 @@ import (
 	"encoding/json"
 	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
-	"github.com/mainflux/mainflux/users"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/fleet"
 	"go.uber.org/zap"
@@ -94,7 +93,7 @@ func (m *dbMetadata) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		return users.ErrScanMetadata
+		return fleet.ErrScanMetadata
 	}
 
 	if err := json.Unmarshal(b, m); err != nil {
