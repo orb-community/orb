@@ -9,21 +9,29 @@
 package api
 
 import (
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/fleet"
+	"github.com/ns1labs/orb/pkg/types"
 )
 
-type addAgentReq struct {
-	token string
-	name  string
+type addSelectorReq struct {
+	token    string
+	Name     string                 `json:"name,omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
-func (req addAgentReq) validate() error {
+func (req addSelectorReq) validate() error {
 
 	if req.token == "" {
 		return fleet.ErrUnauthorizedAccess
 	}
-	if req.name == "" {
+	if req.Name == "" {
 		return fleet.ErrMalformedEntity
+	}
+
+	_, err := types.NewIdentifier(req.Name)
+	if err != nil {
+		return errors.Wrap(fleet.ErrMalformedEntity, err)
 	}
 
 	return nil

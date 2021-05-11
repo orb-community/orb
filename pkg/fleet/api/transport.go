@@ -12,6 +12,7 @@ import (
 	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/fleet"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"strings"
@@ -21,10 +22,10 @@ func MakeHandler(svcName string, svc fleet.Service) http.Handler {
 	opts := []kithttp.ServerOption{}
 	r := bone.New()
 
-	r.Post("/fleet", kithttp.NewServer(
-		addEndpoint(svc),
-		decodeAddRequest,
-		encodeResponse,
+	r.Post("/selector", kithttp.NewServer(
+		addSelectorEndpoint(svc),
+		decodeAddSelectorRequest,
+		types.EncodeResponse,
 		opts...))
 
 	r.GetFunc("/version", orb.Version(svcName))
@@ -33,20 +34,15 @@ func MakeHandler(svcName string, svc fleet.Service) http.Handler {
 	return r
 }
 
-func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeAddSelectorRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
 		return nil, errors.ErrUnsupportedContentType
 	}
 
-	req := addAgentReq{token: r.Header.Get("Authorization")}
+	req := addSelectorReq{token: r.Header.Get("Authorization")}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
 	}
 
 	return req, nil
-}
-
-func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
-	w.Header().Set("Content-Type", "application/json")
-	return json.NewEncoder(w).Encode(response)
 }

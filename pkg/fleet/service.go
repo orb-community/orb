@@ -10,9 +10,10 @@ package fleet
 
 import (
 	"context"
-	"errors"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
+	"github.com/ns1labs/orb/pkg/errors"
+	"time"
 )
 
 var (
@@ -31,6 +32,8 @@ var (
 
 	// ErrScanMetadata indicates problem with metadata in db.
 	ErrScanMetadata = errors.New("failed to scan metadata")
+
+	errAddSelector = errors.New("failed to add selector")
 )
 
 // A flat kv pair object
@@ -47,17 +50,44 @@ type Service interface {
 var _ Service = (*fleetService)(nil)
 
 type fleetService struct {
-	auth         mainflux.AuthServiceClient
+	// for AuthN/AuthZ
+	auth mainflux.AuthServiceClient
+	// for Thing manipulation
+	mfsdk mfsdk.SDK
+	// Agents and Selectors
 	agentRepo    AgentRepository
 	selectorRepo SelectorRepository
-	mfsdk        mfsdk.SDK
 }
 
-func (f fleetService) CreateSelector(ctx context.Context, token string, s Selector) (Selector, error) {
-	panic("implement me")
+func (svc fleetService) identify(token string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return "", ErrUnauthorizedAccess
+	}
+
+	return res.GetId(), nil
 }
 
-func (f fleetService) CreateAgent(ctx context.Context, token string, a Agent) (Agent, error) {
+func (svc fleetService) CreateSelector(ctx context.Context, token string, s Selector) (Selector, error) {
+	mfOwnerID, err := svc.identify(token)
+	if err != nil {
+		return Selector{}, err
+	}
+
+	s.MFOwnerID = mfOwnerID
+
+	err = svc.selectorRepo.Save(ctx, s)
+	if err != nil {
+		return Selector{}, errors.Wrap(errAddSelector, err)
+	}
+
+	return s, nil
+}
+
+func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) (Agent, error) {
 	panic("implement me")
 }
 

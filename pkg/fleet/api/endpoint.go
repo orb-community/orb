@@ -12,23 +12,32 @@ import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/ns1labs/orb/pkg/fleet"
+	"github.com/ns1labs/orb/pkg/types"
 )
 
-func addEndpoint(svc fleet.Service) endpoint.Endpoint {
+func addSelectorEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(c context.Context, request interface{}) (interface{}, error) {
-		req := request.(addAgentReq)
+		req := request.(addSelectorReq)
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
 
-		// TODO
-		saved, err := svc.CreateAgent(c, req.token, fleet.Agent{})
+		nID, err := types.NewIdentifier(req.Name)
 		if err != nil {
 			return nil, err
 		}
 
-		res := fleetRes{
-			id:      saved.MFThingID,
+		selector := fleet.Selector{
+			Name:     *nID,
+			Metadata: req.Metadata,
+		}
+		saved, err := svc.CreateSelector(c, req.token, selector)
+		if err != nil {
+			return nil, err
+		}
+
+		res := selectorRes{
+			name:    saved.Name.String(),
 			created: true,
 		}
 

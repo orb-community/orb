@@ -4,7 +4,32 @@
 
 package api
 
-type fleetRes struct {
-	id      string
+import (
+	"github.com/ns1labs/orb/pkg/types"
+	"net/http"
+)
+
+var (
+	_ types.Response = (*selectorRes)(nil)
+)
+
+type selectorRes struct {
+	name    string
 	created bool
+}
+
+func (s selectorRes) Code() int {
+	if s.created {
+		return http.StatusCreated
+	}
+
+	return http.StatusOK
+}
+
+func (s selectorRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s selectorRes) Empty() bool {
+	return false
 }
