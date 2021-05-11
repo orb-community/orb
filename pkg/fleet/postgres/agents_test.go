@@ -40,8 +40,11 @@ func TestAgentSave(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	agent := fleet.Agent{
-		MFThingID: thID.String(),
-		MFOwnerID: oID.String(),
+		MFThingID:     thID.String(),
+		MFOwnerID:     oID.String(),
+		OrbTags:       fleet.Tags{"testkey": "testvalue"},
+		AgentTags:     fleet.Tags{"testkey": "testvalue"},
+		AgentMetadata: fleet.Metadata{"testkey": "testvalue"},
 	}
 
 	cases := []struct {
