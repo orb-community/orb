@@ -22,7 +22,7 @@ const (
 
 type Agent struct {
 	MFThingID     string
-	Owner         string
+	MFOwnerID     string
 	Created       time.Time
 	OrbTags       Tags
 	AgentTags     Tags
@@ -35,5 +35,5 @@ type Agent struct {
 type AgentRepository interface {
 	// Save persists the Agent. Successful operation is indicated by non-nil
 	// error response.
-	Save(ctx context.Context, cfg Agent) (string, error)
+	Save(ctx context.Context, agent Agent) error
 }

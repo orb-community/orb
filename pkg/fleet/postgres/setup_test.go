@@ -72,6 +72,8 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Could not setup test DB connection: %s", err)
 	}
 
+	testLog.Debug("connected to database")
+
 	code := m.Run()
 
 	// Defers will not be run when using os.Exit
@@ -79,6 +81,8 @@ func TestMain(m *testing.M) {
 	if err := pool.Purge(container); err != nil {
 		log.Fatalf("Could not purge container: %s", err)
 	}
+
+	testLog.Debug("purged database")
 
 	os.Exit(code)
 }

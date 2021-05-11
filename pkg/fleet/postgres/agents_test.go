@@ -17,6 +17,7 @@ import (
 	"github.com/ns1labs/orb/pkg/fleet/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"strings"
 	"testing"
 )
@@ -25,20 +26,22 @@ const maxNameSize = 1024
 
 var (
 	invalidName = strings.Repeat("m", maxNameSize+1)
+	logger, _   = zap.NewDevelopment()
 )
 
 func TestAgentSave(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
-	agentRepo := postgres.NewAgentRepository(dbMiddleware)
-
-	email := "agent-owner@example.com"
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
 
 	thID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	agent := fleet.Agent{
 		MFThingID: thID.String(),
-		Owner:     email,
+		MFOwnerID: oID.String(),
 	}
 
 	cases := []struct {
@@ -58,13 +61,18 @@ func TestAgentSave(t *testing.T) {
 		},
 		{
 			desc:  "create agent with invalid thing ID",
-			agent: fleet.Agent{MFThingID: "invalid", Owner: email},
+			agent: fleet.Agent{MFThingID: "invalid", MFOwnerID: oID.String()},
+			err:   fleet.ErrMalformedEntity,
+		},
+		{
+			desc:  "create agent with invalid owner ID",
+			agent: fleet.Agent{MFThingID: thID.String(), MFOwnerID: "invalid"},
 			err:   fleet.ErrMalformedEntity,
 		},
 	}
 
 	for _, tc := range cases {
-		_, err := agentRepo.Save(context.Background(), tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		err := agentRepo.Save(context.Background(), tc.agent)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", tc.desc, tc.err, err))
 	}
 }

@@ -147,7 +147,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 }
 
 func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig) fleet.Service {
-	agentRepo := postgres.NewAgentRepository(db)
+	agentRepo := postgres.NewAgentRepository(db, logger)
 	selectorRepo := postgres.NewSelectorRepository(db)
 
 	config := mfsdk.Config{
