@@ -37,7 +37,7 @@ func addSelectorEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		res := selectorRes{
-			name:    saved.Name.String(),
+			Name:    saved.Name.String(),
 			created: true,
 		}
 

@@ -14,7 +14,7 @@ var (
 )
 
 type selectorRes struct {
-	name    string
+	Name    string `json:"name"`
 	created bool
 }
 

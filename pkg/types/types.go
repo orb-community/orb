@@ -14,11 +14,15 @@ type Identifier struct {
 	string
 }
 
+const (
+	idRegexp = "^[a-zA-Z_][a-zA-Z0-9_-]*$"
+)
+
 var (
-	idRegexp, _ = regexp.Compile("[a-zA-Z_][a-zA-Z0-9_-]*")
+	idRegexpC, _ = regexp.Compile(idRegexp)
 
 	// ErrBadIdentifier indicates a bad identifer pattern
-	ErrBadIdentifier = errors.New("invalid identifier")
+	ErrBadIdentifier = errors.New("invalid identifier, must match " + idRegexp)
 )
 
 const maxIdentifierLength = 64
@@ -36,7 +40,7 @@ func (i *Identifier) IsValid() bool {
 	if len(i.string) < 2 || len(i.string) > maxIdentifierLength {
 		return false
 	}
-	if !idRegexp.MatchString(i.string) {
+	if !idRegexpC.MatchString(i.string) {
 		return false
 	}
 	return true

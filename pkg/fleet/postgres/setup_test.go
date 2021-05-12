@@ -78,13 +78,11 @@ func TestMain(m *testing.M) {
 
 	// Defers will not be run when using os.Exit
 	db.Close()
-	/*
-		if err := pool.Purge(container); err != nil {
-			log.Fatalf("Could not purge container: %s", err)
-		}
-		testLog.Debug("purged database")
 
-	*/
+	if err := pool.Purge(container); err != nil {
+		log.Fatalf("Could not purge container: %s", err)
+	}
+	testLog.Debug("purged database")
 
 	os.Exit(code)
 }

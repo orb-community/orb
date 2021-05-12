@@ -19,11 +19,11 @@ type metricsMiddleware struct {
 }
 
 func (m metricsMiddleware) CreateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
-	panic("implement me")
+	return m.svc.CreateAgent(ctx, token, a)
 }
 
 func (m metricsMiddleware) CreateSelector(ctx context.Context, token string, s fleet.Selector) (fleet.Selector, error) {
-	panic("implement me")
+	return m.svc.CreateSelector(ctx, token, s)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.

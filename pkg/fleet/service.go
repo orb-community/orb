@@ -33,7 +33,7 @@ var (
 	// ErrScanMetadata indicates problem with metadata in db.
 	ErrScanMetadata = errors.New("failed to scan metadata")
 
-	errAddSelector = errors.New("failed to add selector")
+	ErrCreateSelector = errors.New("failed to create selector")
 )
 
 // A flat kv pair object
@@ -81,7 +81,7 @@ func (svc fleetService) CreateSelector(ctx context.Context, token string, s Sele
 
 	err = svc.selectorRepo.Save(ctx, s)
 	if err != nil {
-		return Selector{}, errors.Wrap(errAddSelector, err)
+		return Selector{}, errors.Wrap(ErrCreateSelector, err)
 	}
 
 	return s, nil

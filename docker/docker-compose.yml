@@ -374,6 +374,33 @@ services:
     networks:
       - orb-base-net
 
+  fleet:
+    image: ns1labs/orb-fleet:${MF_RELEASE_TAG}
+    container_name: orb-fleet
+    depends_on:
+      - es-redis
+      - nats
+      - fleet-db
+      - auth
+      - jaeger
+      - things
+      #- policies
+    restart: on-failure
+    ports:
+      - 8203:8203
+    environment:
+      ORB_FLEET_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
+      ORB_FLEET_NATS_URL: ${MF_NATS_URL}
+      ORB_FLEET_HTTP_PORT: ${ORB_FLEET_HTTP_PORT}
+      ORB_FLEET_DB_HOST: fleet-db
+      ORB_FLEET_DB_USER: ${ORB_FLEET_DB_USER}
+      ORB_FLEET_DB_PASS: ${ORB_FLEET_DB_PASS}
+      ORB_FLEET_DB: ${ORB_FLEET_DB_DB}
+      ORB_FLEET_DB_SSL_MODE: disable
+      ORB_FLEET_LOG_LEVEL: debug
+    networks:
+      - orb-base-net
+
   prom-sink:
     image: ns1labs/orb-prom-sink:${MF_RELEASE_TAG}
     container_name: orb-prom-sink
@@ -416,6 +443,8 @@ services:
     depends_on:
       - things
       - users
+      - fleet
+      - sinks
       - mqtt-adapter
       - http-adapter
       - ui

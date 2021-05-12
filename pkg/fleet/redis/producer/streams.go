@@ -27,11 +27,11 @@ type eventStore struct {
 }
 
 func (es eventStore) CreateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
-	panic("implement me")
+	return es.svc.CreateAgent(ctx, token, a)
 }
 
 func (es eventStore) CreateSelector(ctx context.Context, token string, s fleet.Selector) (fleet.Selector, error) {
-	panic("implement me")
+	return es.svc.CreateSelector(ctx, token, s)
 }
 
 // NewEventStoreMiddleware returns wrapper around fleet service that sends

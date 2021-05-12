@@ -8,6 +8,7 @@ import (
 	"context"
 	"github.com/ns1labs/orb/pkg/fleet"
 	"go.uber.org/zap"
+	"time"
 )
 
 var _ fleet.Service = (*loggingMiddleware)(nil)
@@ -18,11 +19,24 @@ type loggingMiddleware struct {
 }
 
 func (l loggingMiddleware) CreateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
-	panic("implement me")
+	l.logger.Debug("CreateAgent")
+	return l.svc.CreateAgent(ctx, token, a)
 }
 
-func (l loggingMiddleware) CreateSelector(ctx context.Context, token string, s fleet.Selector) (fleet.Selector, error) {
-	panic("implement me")
+func (l loggingMiddleware) CreateSelector(ctx context.Context, token string, s fleet.Selector) (_ fleet.Selector, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: CreateSelector",
+				zap.String("selector", s.Name.String()),
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: CreateSelector",
+				zap.String("selector", s.Name.String()),
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.CreateSelector(ctx, token, s)
 }
 
 func NewLoggingMiddleware(svc fleet.Service, logger *zap.Logger) fleet.Service {

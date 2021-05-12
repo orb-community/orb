@@ -15,8 +15,12 @@ import (
 )
 
 const (
-	contentType = "application/json"
+	ContentType = "application/json"
 )
+
+type ErrorRes struct {
+	Err string `json:"error"`
+}
 
 // Response contains HTTP response specific methods.
 type Response interface {
@@ -31,7 +35,7 @@ type Response interface {
 }
 
 func EncodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
-	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Type", ContentType)
 
 	if ar, ok := response.(Response); ok {
 		for k, v := range ar.Headers() {
