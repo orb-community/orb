@@ -36,3 +36,28 @@ func (req addSelectorReq) validate() error {
 
 	return nil
 }
+
+type addAgentReq struct {
+	token         string
+	Name          string                 `json:"name,omitempty"`
+	OrbTags       map[string]interface{} `json:"orb_tags,omitempty"`
+	AgentTags     map[string]interface{} `json:"agent_tags,omitempty"`
+	AgentMetadata map[string]interface{} `json:"agent_metadata,omitempty"`
+}
+
+func (req addAgentReq) validate() error {
+
+	if req.token == "" {
+		return fleet.ErrUnauthorizedAccess
+	}
+	if req.Name == "" {
+		return fleet.ErrMalformedEntity
+	}
+
+	_, err := types.NewIdentifier(req.Name)
+	if err != nil {
+		return errors.Wrap(fleet.ErrMalformedEntity, err)
+	}
+
+	return nil
+}

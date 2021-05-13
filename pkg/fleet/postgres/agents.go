@@ -14,6 +14,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/fleet"
+	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
 )
 
@@ -30,16 +31,21 @@ func NewAgentRepository(db Database, logger *zap.Logger) fleet.AgentRepository {
 
 func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 
-	q := `INSERT INTO agents (mf_thing_id, mf_owner_id, orb_tags, agent_tags, agent_metadata)         
-			  VALUES (:mf_thing_id, :mf_owner_id, :orb_tags, :agent_tags, :agent_metadata)`
+	q := `INSERT INTO agents (name, mf_thing_id, mf_owner_id, orb_tags, agent_tags, agent_metadata, state)         
+			  VALUES (:name, :mf_thing_id, :mf_owner_id, :orb_tags, :agent_tags, :agent_metadata, :state)`
 
-	if agent.MFThingID == "" || agent.MFOwnerID == "" {
+	if !agent.Name.IsValid() || agent.MFOwnerID == "" {
 		return fleet.ErrMalformedEntity
 	}
 
 	dba, err := toDBAgent(agent)
 	if err != nil {
 		return errors.Wrap(errSaveDB, err)
+	}
+
+	// enforce removed state if no ThingID
+	if !dba.MFThingID.Valid {
+		dba.State = fleet.Removed
 	}
 
 	_, err = r.db.NamedExecContext(ctx, q, dba)
@@ -61,30 +67,38 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 }
 
 type dbAgent struct {
-	MFThingID     uuid.UUID  `db:"mf_thing_id"`
-	MFOwnerID     uuid.UUID  `db:"mf_owner_id"`
-	OrbTags       dbMetadata `db:"orb_tags"`
-	AgentTags     dbMetadata `db:"agent_tags"`
-	AgentMetadata dbMetadata `db:"agent_metadata"`
+	Name          types.Identifier `db:"name"`
+	MFOwnerID     uuid.UUID        `db:"mf_owner_id"`
+	MFThingID     uuid.NullUUID    `db:"mf_thing_id"`
+	OrbTags       dbMetadata       `db:"orb_tags"`
+	AgentTags     dbMetadata       `db:"agent_tags"`
+	AgentMetadata dbMetadata       `db:"agent_metadata"`
+	State         fleet.State      `db:"state"`
 }
 
 func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 
-	var tID uuid.UUID
-	err := tID.Scan(agent.MFThingID)
-	if err != nil {
-		return dbAgent{}, errors.Wrap(fleet.ErrMalformedEntity, err)
+	var tID uuid.NullUUID
+	if agent.MFThingID == "" {
+		tID = uuid.NullUUID{UUID: uuid.Nil, Valid: false}
+	} else {
+		err := tID.Scan(agent.MFThingID)
+		if err != nil {
+			return dbAgent{}, errors.Wrap(fleet.ErrMalformedEntity, err)
+		}
 	}
 
 	var oID uuid.UUID
-	err = oID.Scan(agent.MFOwnerID)
+	err := oID.Scan(agent.MFOwnerID)
 	if err != nil {
 		return dbAgent{}, errors.Wrap(fleet.ErrMalformedEntity, err)
 	}
 
 	return dbAgent{
+		Name:          agent.Name,
 		MFThingID:     tID,
 		MFOwnerID:     oID,
+		State:         agent.State,
 		OrbTags:       dbMetadata(agent.OrbTags),
 		AgentTags:     dbMetadata(agent.AgentTags),
 		AgentMetadata: dbMetadata(agent.AgentMetadata),

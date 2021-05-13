@@ -28,7 +28,7 @@ func addSelectorEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		selector := fleet.Selector{
-			Name:     *nID,
+			Name:     nID,
 			Metadata: req.Metadata,
 		}
 		saved, err := svc.CreateSelector(c, req.token, selector)
@@ -38,6 +38,39 @@ func addSelectorEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		res := selectorRes{
 			Name:    saved.Name.String(),
+			created: true,
+		}
+
+		return res, nil
+	}
+}
+
+func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(c context.Context, request interface{}) (interface{}, error) {
+		req := request.(addAgentReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		agent := fleet.Agent{
+			Name:          nID,
+			OrbTags:       req.OrbTags,
+			AgentTags:     req.AgentTags,
+			AgentMetadata: req.AgentMetadata,
+		}
+		saved, err := svc.CreateAgent(c, req.token, agent)
+		if err != nil {
+			return nil, err
+		}
+
+		res := agentRes{
+			Name:    saved.Name.String(),
+			ID:      saved.MFThingID,
 			created: true,
 		}
 

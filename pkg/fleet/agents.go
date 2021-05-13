@@ -6,25 +6,53 @@ package fleet
 
 import (
 	"context"
+	"database/sql/driver"
+	"github.com/ns1labs/orb/pkg/types"
 	"time"
 )
 
 const (
-	new     = "new"
-	online  = "online"
-	offline = "offline"
-	stale   = "stale"
-	removed = "removed"
+	New State = iota
+	Online
+	Offline
+	Stale
+	Removed
 )
 
+type State int
+
+var stateMap = [...]string{
+	"new",
+	"online",
+	"offline",
+	"stale",
+	"removed",
+}
+
+var stateRevMap = map[string]State{
+	"new":     New,
+	"online":  Online,
+	"offline": Offline,
+	"stale":   Stale,
+	"removed": Removed,
+}
+
+func (s State) String() string {
+	return stateMap[s]
+}
+
+func (s *State) Scan(value interface{}) error { *s = stateRevMap[value.(string)]; return nil }
+func (s State) Value() (driver.Value, error)  { return s.String(), nil }
+
 type Agent struct {
-	MFThingID     string
+	Name          types.Identifier
 	MFOwnerID     string
+	MFThingID     string
 	Created       time.Time
 	OrbTags       Tags
 	AgentTags     Tags
 	AgentMetadata Metadata
-	State         string
+	State         State
 	LastHBData    Metadata
 	LastHB        time.Time
 }

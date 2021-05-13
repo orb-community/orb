@@ -15,6 +15,7 @@ import (
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/fleet"
 	"github.com/ns1labs/orb/pkg/fleet/postgres"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -39,13 +40,19 @@ func TestAgentSave(t *testing.T) {
 	oID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	nameID, err := types.NewIdentifier("myagent")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	agent := fleet.Agent{
+		Name:          nameID,
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		OrbTags:       fleet.Tags{"testkey": "testvalue"},
 		AgentTags:     fleet.Tags{"testkey": "testvalue"},
 		AgentMetadata: fleet.Metadata{"testkey": "testvalue"},
 	}
+
+	name1, _ := types.NewIdentifier("myagent2")
 
 	cases := []struct {
 		desc  string
@@ -64,13 +71,18 @@ func TestAgentSave(t *testing.T) {
 		},
 		{
 			desc:  "create agent with invalid thing ID",
-			agent: fleet.Agent{MFThingID: "invalid", MFOwnerID: oID.String()},
+			agent: fleet.Agent{Name: name1, MFThingID: "invalid", MFOwnerID: oID.String()},
 			err:   fleet.ErrMalformedEntity,
 		},
 		{
 			desc:  "create agent with invalid owner ID",
-			agent: fleet.Agent{MFThingID: thID.String(), MFOwnerID: "invalid"},
+			agent: fleet.Agent{Name: name1, MFThingID: thID.String(), MFOwnerID: "invalid"},
 			err:   fleet.ErrMalformedEntity,
+		},
+		{
+			desc:  "create agent with null thing ID",
+			agent: fleet.Agent{Name: name1, MFThingID: "", MFOwnerID: oID.String()},
+			err:   nil,
 		},
 	}
 

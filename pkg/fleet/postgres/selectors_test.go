@@ -33,7 +33,7 @@ func TestSelectorSave(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	selector := fleet.Selector{
-		Name:      *nameID,
+		Name:      nameID,
 		MFOwnerID: oID.String(),
 		Metadata:  fleet.Metadata{"testkey": "testvalue"},
 	}
@@ -59,7 +59,7 @@ func TestSelectorSave(t *testing.T) {
 			err:      fleet.ErrMalformedEntity,
 		}, {
 			desc:     "create selector with invalid owner ID",
-			selector: fleet.Selector{Name: *nameID, MFOwnerID: "invalid"},
+			selector: fleet.Selector{Name: nameID, MFOwnerID: "invalid"},
 			err:      fleet.ErrMalformedEntity,
 		},
 	}

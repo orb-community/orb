@@ -34,6 +34,12 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		types.EncodeResponse,
 		opts...))
 
+	r.Post("/agents", kithttp.NewServer(
+		kitot.TraceServer(tracer, "create_agent")(addAgentEndpoint(svc)),
+		decodeAddAgentRequest,
+		types.EncodeResponse,
+		opts...))
+
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
 
@@ -46,6 +52,19 @@ func decodeAddSelectorRequest(_ context.Context, r *http.Request) (interface{}, 
 	}
 
 	req := addSelectorReq{token: r.Header.Get("Authorization")}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
+	}
+
+	return req, nil
+}
+
+func decodeAddAgentRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		return nil, errors.ErrUnsupportedContentType
+	}
+
+	req := addAgentReq{token: r.Header.Get("Authorization")}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
 	}

@@ -18,21 +18,32 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
-func (l loggingMiddleware) CreateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
-	l.logger.Debug("CreateAgent")
+func (l loggingMiddleware) CreateAgent(ctx context.Context, token string, a fleet.Agent) (_ fleet.Agent, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: create_agent",
+				zap.String("name", a.Name.String()),
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: create_agent",
+				zap.String("name", a.Name.String()),
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
 	return l.svc.CreateAgent(ctx, token, a)
 }
 
 func (l loggingMiddleware) CreateSelector(ctx context.Context, token string, s fleet.Selector) (_ fleet.Selector, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: CreateSelector",
-				zap.String("selector", s.Name.String()),
+			l.logger.Warn("method call: create_selector",
+				zap.String("name", s.Name.String()),
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: CreateSelector",
-				zap.String("selector", s.Name.String()),
+			l.logger.Info("method call: create_selector",
+				zap.String("name", s.Name.String()),
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())

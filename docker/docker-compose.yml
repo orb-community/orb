@@ -401,7 +401,7 @@ services:
       ORB_FLEET_DB_SSL_MODE: disable
       MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
       MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
-    #      ORB_FLEET_LOG_LEVEL: debug
+      ORB_FLEET_LOG_LEVEL: debug
     networks:
       - orb-base-net
 

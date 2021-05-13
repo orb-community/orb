@@ -27,13 +27,13 @@ var (
 
 const maxIdentifierLength = 64
 
-func NewIdentifier(v string) (*Identifier, error) {
+func NewIdentifier(v string) (Identifier, error) {
 	var i Identifier
 	i.string = v
 	if !i.IsValid() {
-		return nil, ErrBadIdentifier
+		return Identifier{}, ErrBadIdentifier
 	}
-	return &i, nil
+	return i, nil
 }
 
 func (i *Identifier) IsValid() bool {

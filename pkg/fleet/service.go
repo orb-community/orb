@@ -34,6 +34,8 @@ var (
 	ErrScanMetadata = errors.New("failed to scan metadata")
 
 	ErrCreateSelector = errors.New("failed to create selector")
+
+	ErrCreateAgent = errors.New("failed to create agent")
 )
 
 // A flat kv pair object
@@ -88,7 +90,20 @@ func (svc fleetService) CreateSelector(ctx context.Context, token string, s Sele
 }
 
 func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) (Agent, error) {
-	panic("implement me")
+	mfOwnerID, err := svc.identify(token)
+	if err != nil {
+		return Agent{}, err
+	}
+
+	a.MFOwnerID = mfOwnerID
+	// todo THING
+
+	err = svc.agentRepo.Save(ctx, a)
+	if err != nil {
+		return Agent{}, errors.Wrap(ErrCreateAgent, err)
+	}
+
+	return a, nil
 }
 
 func NewFleetService(auth mainflux.AuthServiceClient, agentRepo AgentRepository, selectorRepo SelectorRepository, mfsdk mfsdk.SDK) Service {
