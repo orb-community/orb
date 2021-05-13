@@ -65,7 +65,7 @@ func (svc fleetService) identify(token string) (string, error) {
 
 	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
-		return "", ErrUnauthorizedAccess
+		return "", errors.Wrap(ErrUnauthorizedAccess, err)
 	}
 
 	return res.GetId(), nil

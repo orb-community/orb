@@ -370,7 +370,9 @@ services:
       ORB_SINKS_DB_PASS: ${ORB_SINKS_DB_PASS}
       ORB_SINKS_DB: ${ORB_SINKS_DB_DB}
       ORB_SINKS_DB_SSL_MODE: disable
-      ORB_SINKS_LOG_LEVEL: debug
+      MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
+      MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
+    #      ORB_SINKS_LOG_LEVEL: debug
     networks:
       - orb-base-net
 
@@ -397,7 +399,9 @@ services:
       ORB_FLEET_DB_PASS: ${ORB_FLEET_DB_PASS}
       ORB_FLEET_DB: ${ORB_FLEET_DB_DB}
       ORB_FLEET_DB_SSL_MODE: disable
-      ORB_FLEET_LOG_LEVEL: debug
+      MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
+      MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
+    #      ORB_FLEET_LOG_LEVEL: debug
     networks:
       - orb-base-net
 

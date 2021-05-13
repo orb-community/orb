@@ -41,16 +41,17 @@ import (
 
 const (
 	svcName     = "fleet"
-	fullSvcName = "orb-fleet"
+	mfEnvPrefix = "mf"
 	envPrefix   = "orb_fleet"
 	httpPort    = "8203"
 )
 
 func main() {
 
+	authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
+
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
-	authCfg := config.LoadMFAuthConfig(envPrefix)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	sdkCfg := config.LoadMFSDKConfig(envPrefix)

@@ -40,16 +40,17 @@ import (
 
 const (
 	svcName     = "sinks"
-	fullSvcName = "orb-sinks"
+	mfEnvPrefix = "mf"
 	envPrefix   = "orb_sinks"
 	httpPort    = "8200"
 )
 
 func main() {
 
+	authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
+
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
-	authCfg := config.LoadMFAuthConfig(envPrefix)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
 
