@@ -49,12 +49,12 @@ const (
 func main() {
 
 	authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
+	sdkCfg := config.LoadMFSDKConfig(mfEnvPrefix)
 
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
-	sdkCfg := config.LoadMFSDKConfig(envPrefix)
 
 	// todo policy gRPC
 

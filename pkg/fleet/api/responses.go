@@ -38,6 +38,7 @@ func (s selectorRes) Empty() bool {
 type agentRes struct {
 	ID      string `json:"id"`
 	Name    string `json:"name"`
+	State   string `json:"state"`
 	created bool
 }
 

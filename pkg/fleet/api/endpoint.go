@@ -71,6 +71,7 @@ func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		res := agentRes{
 			Name:    saved.Name.String(),
 			ID:      saved.MFThingID,
+			State:   saved.State.String(),
 			created: true,
 		}
 

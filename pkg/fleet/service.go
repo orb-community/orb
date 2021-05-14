@@ -36,6 +36,13 @@ var (
 	ErrCreateSelector = errors.New("failed to create selector")
 
 	ErrCreateAgent = errors.New("failed to create agent")
+
+	// ErrThings indicates failure to communicate with Mainflux Things service.
+	// It can be due to networking error or invalid/unauthorized request.
+	ErrThings = errors.New("failed to receive response from Things service")
+
+	errCreateThing   = errors.New("failed to create thing")
+	errThingNotFound = errors.New("thing not found")
 )
 
 // A flat kv pair object
@@ -89,6 +96,37 @@ func (svc fleetService) CreateSelector(ctx context.Context, token string, s Sele
 	return s, nil
 }
 
+// Method thing retrieves Mainflux Thing creating one if an empty ID is passed.
+func (svc fleetService) thing(token, id string, name string) (mfsdk.Thing, error) {
+	thingID := id
+	var err error
+
+	if id == "" {
+		md := map[string]interface{}{"type": "orb-agent", "name": name}
+		thingID, err = svc.mfsdk.CreateThing(mfsdk.Thing{Metadata: md}, token)
+		if err != nil {
+			return mfsdk.Thing{}, errors.Wrap(errCreateThing, err)
+		}
+	}
+
+	thing, err := svc.mfsdk.Thing(thingID, token)
+	if err != nil {
+		if errors.Contains(err, mfsdk.ErrFailedFetch) {
+			return mfsdk.Thing{}, errors.Wrap(errThingNotFound, ErrNotFound)
+		}
+
+		if id != "" {
+			if errT := svc.mfsdk.DeleteThing(thingID, token); errT != nil {
+				err = errors.Wrap(err, errT)
+			}
+		}
+
+		return mfsdk.Thing{}, errors.Wrap(ErrThings, err)
+	}
+
+	return thing, nil
+}
+
 func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) (Agent, error) {
 	mfOwnerID, err := svc.identify(token)
 	if err != nil {
@@ -96,10 +134,20 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 	}
 
 	a.MFOwnerID = mfOwnerID
-	// todo THING
+
+	// create new Thing
+	mfThing, err := svc.thing(token, "", a.Name.String())
+	if err != nil {
+		return Agent{}, errors.Wrap(ErrCreateAgent, err)
+	}
+
+	a.MFThingID = mfThing.ID
 
 	err = svc.agentRepo.Save(ctx, a)
 	if err != nil {
+		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
+			err = errors.Wrap(err, errT)
+		}
 		return Agent{}, errors.Wrap(ErrCreateAgent, err)
 	}
 
