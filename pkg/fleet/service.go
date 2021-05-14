@@ -97,13 +97,12 @@ func (svc fleetService) CreateSelector(ctx context.Context, token string, s Sele
 }
 
 // Method thing retrieves Mainflux Thing creating one if an empty ID is passed.
-func (svc fleetService) thing(token, id string, name string) (mfsdk.Thing, error) {
+func (svc fleetService) thing(token, id string, name string, md map[string]interface{}) (mfsdk.Thing, error) {
 	thingID := id
 	var err error
 
 	if id == "" {
-		md := map[string]interface{}{"type": "orb-agent", "name": name}
-		thingID, err = svc.mfsdk.CreateThing(mfsdk.Thing{Metadata: md}, token)
+		thingID, err = svc.mfsdk.CreateThing(mfsdk.Thing{Name: name, Metadata: md}, token)
 		if err != nil {
 			return mfsdk.Thing{}, errors.Wrap(errCreateThing, err)
 		}
@@ -135,17 +134,38 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 
 	a.MFOwnerID = mfOwnerID
 
+	md := map[string]interface{}{"type": "orb-agent"}
+
 	// create new Thing
-	mfThing, err := svc.thing(token, "", a.Name.String())
+	mfThing, err := svc.thing(token, "", a.Name.String(), md)
 	if err != nil {
 		return Agent{}, errors.Wrap(ErrCreateAgent, err)
 	}
 
 	a.MFThingID = mfThing.ID
+	a.MFKeyID = mfThing.Key
+
+	// create main Channel
+	mfChannelID, err := svc.mfsdk.CreateChannel(mfsdk.Channel{
+		Name:     a.Name.String(),
+		Metadata: md,
+	}, token)
+	if err != nil {
+		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
+			err = errors.Wrap(err, errT)
+		}
+		return Agent{}, errors.Wrap(ErrCreateAgent, err)
+	}
+
+	a.MFChannelID = mfChannelID
 
 	err = svc.agentRepo.Save(ctx, a)
 	if err != nil {
 		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
+			err = errors.Wrap(err, errT)
+			// fall through
+		}
+		if errT := svc.mfsdk.DeleteChannel(mfChannelID, token); errT != nil {
 			err = errors.Wrap(err, errT)
 		}
 		return Agent{}, errors.Wrap(ErrCreateAgent, err)

@@ -36,10 +36,12 @@ func (s selectorRes) Empty() bool {
 }
 
 type agentRes struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	State   string `json:"state"`
-	created bool
+	ID        string `json:"id"`
+	Key       string `json:"key,omitempty"`
+	ChannelID string `json:"channel_id,omitempty"`
+	Name      string `json:"name"`
+	State     string `json:"state"`
+	created   bool
 }
 
 func (s agentRes) Code() int {

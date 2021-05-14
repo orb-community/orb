@@ -31,8 +31,8 @@ func NewAgentRepository(db Database, logger *zap.Logger) fleet.AgentRepository {
 
 func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 
-	q := `INSERT INTO agents (name, mf_thing_id, mf_owner_id, orb_tags, agent_tags, agent_metadata, state)         
-			  VALUES (:name, :mf_thing_id, :mf_owner_id, :orb_tags, :agent_tags, :agent_metadata, :state)`
+	q := `INSERT INTO agents (name, mf_thing_id, mf_owner_id, mf_channel_id, orb_tags, agent_tags, agent_metadata, state)         
+			  VALUES (:name, :mf_thing_id, :mf_owner_id, :mf_channel_id, :orb_tags, :agent_tags, :agent_metadata, :state)`
 
 	if !agent.Name.IsValid() || agent.MFOwnerID == "" {
 		return fleet.ErrMalformedEntity
@@ -70,6 +70,7 @@ type dbAgent struct {
 	Name          types.Identifier `db:"name"`
 	MFOwnerID     uuid.UUID        `db:"mf_owner_id"`
 	MFThingID     uuid.NullUUID    `db:"mf_thing_id"`
+	MFChannelID   uuid.NullUUID    `db:"mf_channel_id"`
 	OrbTags       dbMetadata       `db:"orb_tags"`
 	AgentTags     dbMetadata       `db:"agent_tags"`
 	AgentMetadata dbMetadata       `db:"agent_metadata"`
@@ -88,6 +89,16 @@ func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 		}
 	}
 
+	var chID uuid.NullUUID
+	if agent.MFChannelID == "" {
+		tID = uuid.NullUUID{UUID: uuid.Nil, Valid: false}
+	} else {
+		err := tID.Scan(agent.MFChannelID)
+		if err != nil {
+			return dbAgent{}, errors.Wrap(fleet.ErrMalformedEntity, err)
+		}
+	}
+
 	var oID uuid.UUID
 	err := oID.Scan(agent.MFOwnerID)
 	if err != nil {
@@ -97,6 +108,7 @@ func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 	return dbAgent{
 		Name:          agent.Name,
 		MFThingID:     tID,
+		MFChannelID:   chID,
 		MFOwnerID:     oID,
 		State:         agent.State,
 		OrbTags:       dbMetadata(agent.OrbTags),

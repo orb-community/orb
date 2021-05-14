@@ -48,6 +48,8 @@ type Agent struct {
 	Name          types.Identifier
 	MFOwnerID     string
 	MFThingID     string
+	MFKeyID       string
+	MFChannelID   string
 	Created       time.Time
 	OrbTags       Tags
 	AgentTags     Tags
