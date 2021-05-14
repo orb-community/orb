@@ -91,9 +91,9 @@ func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 
 	var chID uuid.NullUUID
 	if agent.MFChannelID == "" {
-		tID = uuid.NullUUID{UUID: uuid.Nil, Valid: false}
+		chID = uuid.NullUUID{UUID: uuid.Nil, Valid: false}
 	} else {
-		err := tID.Scan(agent.MFChannelID)
+		err := chID.Scan(agent.MFChannelID)
 		if err != nil {
 			return dbAgent{}, errors.Wrap(fleet.ErrMalformedEntity, err)
 		}
