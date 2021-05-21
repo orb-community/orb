@@ -354,7 +354,7 @@ services:
       - orb-sinks-db-volume:/var/lib/postgresql/data
 
   sinks:
-    image: ns1labs/orb-sinks:${MF_RELEASE_TAG}
+    image: ns1labs/orb-sinks:${ORB_RELEASE_TAG}
     container_name: orb-sinks
     depends_on:
       - es-redis
@@ -377,7 +377,7 @@ services:
       - orb-base-net
 
   fleet:
-    image: ns1labs/orb-fleet:${MF_RELEASE_TAG}
+    image: ns1labs/orb-fleet:${ORB_RELEASE_TAG}
     container_name: orb-fleet
     depends_on:
       - es-redis
@@ -407,7 +407,7 @@ services:
       - orb-base-net
 
   prom-sink:
-    image: ns1labs/orb-prom-sink:${MF_RELEASE_TAG}
+    image: ns1labs/orb-prom-sink:${ORB_RELEASE_TAG}
     container_name: orb-prom-sink
     depends_on:
       - nats

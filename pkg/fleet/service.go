@@ -145,7 +145,7 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 	a.MFThingID = mfThing.ID
 	a.MFKeyID = mfThing.Key
 
-	// create main Channel
+	// create main Agent RPC Channel
 	mfChannelID, err := svc.mfsdk.CreateChannel(mfsdk.Channel{
 		Name:     a.Name.String(),
 		Metadata: md,
@@ -158,6 +158,22 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 	}
 
 	a.MFChannelID = mfChannelID
+
+	// RPC Channel to Agent
+	err = svc.mfsdk.Connect(mfsdk.ConnectionIDs{
+		ChannelIDs: []string{mfChannelID},
+		ThingIDs:   []string{mfThing.ID},
+	}, token)
+	if err != nil {
+		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
+			err = errors.Wrap(err, errT)
+			// fall through
+		}
+		if errT := svc.mfsdk.DeleteChannel(mfChannelID, token); errT != nil {
+			err = errors.Wrap(err, errT)
+		}
+		return Agent{}, errors.Wrap(ErrCreateAgent, err)
+	}
 
 	err = svc.agentRepo.Save(ctx, a)
 	if err != nil {
