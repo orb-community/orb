@@ -14,6 +14,7 @@ require (
 	github.com/ory/dockertest/v3 v3.6.0
 	github.com/prometheus/client_golang v1.7.1
 	github.com/rubenv/sql-migrate v0.0.0-20200616145509-8d140a17f351
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/uber/jaeger-client-go v2.24.0+incompatible
