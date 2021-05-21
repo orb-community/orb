@@ -41,19 +41,20 @@ import (
 
 const (
 	svcName     = "fleet"
-	fullSvcName = "orb-fleet"
+	mfEnvPrefix = "mf"
 	envPrefix   = "orb_fleet"
 	httpPort    = "8203"
 )
 
 func main() {
 
+	authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
+	sdkCfg := config.LoadMFSDKConfig(mfEnvPrefix)
+
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
-	authCfg := config.LoadMFAuthConfig(envPrefix)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
-	sdkCfg := config.LoadMFSDKConfig(envPrefix)
 
 	// todo policy gRPC
 
@@ -72,8 +73,8 @@ func main() {
 	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
 	defer esClient.Close()
 
-	authTracer, authCloser := initJaeger(svcName, jCfg.URL, logger)
-	defer authCloser.Close()
+	tracer, tracerCloser := initJaeger(svcName, jCfg.URL, logger)
+	defer tracerCloser.Close()
 
 	authConn := connectToAuth(authCfg, logger)
 	defer authConn.Close()
@@ -82,12 +83,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Invalid %s value: %s", authCfg.Timeout, err.Error())
 	}
-	auth := authapi.NewClient(authTracer, authConn, authTimeout)
+	auth := authapi.NewClient(tracer, authConn, authTimeout)
 
 	svc := newService(auth, db, logger, esClient, sdkCfg)
 	errs := make(chan error, 2)
 
-	go startHTTPServer(svc, svcCfg, logger, errs)
+	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -147,7 +148,8 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 }
 
 func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig) fleet.Service {
-	thingsRepo := postgres.NewFleetRepository(db, logger)
+	agentRepo := postgres.NewAgentRepository(db, logger)
+	selectorRepo := postgres.NewSelectorRepository(db, logger)
 
 	config := mfsdk.Config{
 		BaseURL:      sdkCfg.BaseURL,
@@ -156,7 +158,7 @@ func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger
 
 	mfsdk := mfsdk.NewSDK(config)
 
-	svc := fleet.New(auth, thingsRepo, mfsdk)
+	svc := fleet.NewFleetService(auth, agentRepo, selectorRepo, mfsdk)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = api.NewLoggingMiddleware(svc, logger)
 	svc = api.MetricsMiddleware(
@@ -206,14 +208,14 @@ func connectToAuth(cfg config.MFAuthConfig, logger *zap.Logger) *grpc.ClientConn
 	return conn
 }
 
-func startHTTPServer(svc fleet.Service, cfg config.BaseSvcConfig, logger *zap.Logger, errs chan error) {
+func startHTTPServer(tracer opentracing.Tracer, svc fleet.Service, cfg config.BaseSvcConfig, logger *zap.Logger, errs chan error) {
 	p := fmt.Sprintf(":%s", cfg.HttpPort)
 	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Fleet service started using https on port %s with cert %s key %s",
 			cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
-		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, api.MakeHandler(svcName, svc))
+		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, api.MakeHandler(tracer, svcName, svc))
 		return
 	}
 	logger.Info(fmt.Sprintf("Fleet service started using http on port %s", cfg.HttpPort))
-	errs <- http.ListenAndServe(p, api.MakeHandler(svcName, svc))
+	errs <- http.ListenAndServe(p, api.MakeHandler(tracer, svcName, svc))
 }

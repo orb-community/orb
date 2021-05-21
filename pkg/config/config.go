@@ -59,7 +59,7 @@ type PostgresConfig struct {
 func LoadMFSDKConfig(prefix string) MFSDKConfig {
 
 	cfg := viper.New()
-	cfg.SetEnvPrefix(fmt.Sprintf("%s_mf_sdk", prefix))
+	cfg.SetEnvPrefix(fmt.Sprintf("%s_sdk", prefix))
 
 	cfg.SetDefault("base_url", "http://localhost")
 	cfg.SetDefault("things_prefix", "")

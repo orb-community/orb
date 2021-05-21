@@ -5,6 +5,7 @@
 package api
 
 import (
+	"context"
 	"github.com/go-kit/kit/metrics"
 	"github.com/ns1labs/orb/pkg/fleet"
 )
@@ -17,8 +18,12 @@ type metricsMiddleware struct {
 	svc     fleet.Service
 }
 
-func (m metricsMiddleware) Add() (fleet.Agent, error) {
-	panic("implement me")
+func (m metricsMiddleware) CreateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
+	return m.svc.CreateAgent(ctx, token, a)
+}
+
+func (m metricsMiddleware) CreateSelector(ctx context.Context, token string, s fleet.Selector) (fleet.Selector, error) {
+	return m.svc.CreateSelector(ctx, token, s)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.

@@ -19,6 +19,11 @@ define compile_service
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-s -w" -o ${BUILD_DIR}/$(MF_DOCKER_IMAGE_NAME_PREFIX)-$(1) cmd/$(1)/main.go
 endef
 
+define compile_service_linux
+	$(eval svc=$(subst docker_dev_,,$(1)))
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=linux GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-s -w" -o ${BUILD_DIR}/$(MF_DOCKER_IMAGE_NAME_PREFIX)-$(svc) cmd/$(svc)/main.go
+endef
+
 define make_docker
 	$(eval svc=$(subst docker_,,$(1)))
 
@@ -74,6 +79,7 @@ $(DOCKERS):
 	$(call make_docker,$(@),$(GOARCH))
 
 $(DOCKERS_DEV):
+	$(call compile_service_linux,$(@))
 	$(call make_docker_dev,$(@))
 
 dockers: $(DOCKERS)

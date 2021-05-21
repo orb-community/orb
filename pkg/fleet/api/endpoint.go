@@ -12,23 +12,67 @@ import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/ns1labs/orb/pkg/fleet"
+	"github.com/ns1labs/orb/pkg/types"
 )
 
-func addEndpoint(svc fleet.Service) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req := request.(addReq)
+func addSelectorEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(c context.Context, request interface{}) (interface{}, error) {
+		req := request.(addSelectorReq)
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
 
-		saved, err := svc.Add()
+		nID, err := types.NewIdentifier(req.Name)
 		if err != nil {
 			return nil, err
 		}
 
-		res := fleetRes{
-			id:      saved.AgentID,
+		selector := fleet.Selector{
+			Name:     nID,
+			Metadata: req.Metadata,
+		}
+		saved, err := svc.CreateSelector(c, req.token, selector)
+		if err != nil {
+			return nil, err
+		}
+
+		res := selectorRes{
+			Name:    saved.Name.String(),
 			created: true,
+		}
+
+		return res, nil
+	}
+}
+
+func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(c context.Context, request interface{}) (interface{}, error) {
+		req := request.(addAgentReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		agent := fleet.Agent{
+			Name:    nID,
+			OrbTags: req.OrbTags,
+		}
+		saved, err := svc.CreateAgent(c, req.token, agent)
+		if err != nil {
+			return nil, err
+		}
+
+		res := agentRes{
+			Name:      saved.Name.String(),
+			ID:        saved.MFThingID,
+			State:     saved.State.String(),
+			Key:       saved.MFKeyID,
+			ChannelID: saved.MFChannelID,
+			created:   true,
 		}
 
 		return res, nil

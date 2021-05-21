@@ -9,6 +9,7 @@
 package producer
 
 import (
+	"context"
 	"github.com/go-redis/redis"
 	"github.com/ns1labs/orb/pkg/fleet"
 )
@@ -25,6 +26,14 @@ type eventStore struct {
 	client *redis.Client
 }
 
+func (es eventStore) CreateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
+	return es.svc.CreateAgent(ctx, token, a)
+}
+
+func (es eventStore) CreateSelector(ctx context.Context, token string, s fleet.Selector) (fleet.Selector, error) {
+	return es.svc.CreateSelector(ctx, token, s)
+}
+
 // NewEventStoreMiddleware returns wrapper around fleet service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc fleet.Service, client *redis.Client) fleet.Service {
@@ -32,8 +41,4 @@ func NewEventStoreMiddleware(svc fleet.Service, client *redis.Client) fleet.Serv
 		svc:    svc,
 		client: client,
 	}
-}
-
-func (es eventStore) Add() (fleet.Agent, error) {
-	return fleet.Agent{}, nil
 }

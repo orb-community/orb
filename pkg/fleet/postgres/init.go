@@ -41,14 +41,37 @@ func migrateDB(db *sqlx.DB) error {
 			{
 				Id: "fleet_1",
 				Up: []string{
-					`CREATE TABLE IF NOT EXISTS fleet (
-						agent_id TEXT UNIQUE NOT NULL,
-						owner          VARCHAR(254),
-						PRIMARY KEY (agent_id, owner)
+					`CREATE TYPE agent_state AS ENUM ('new', 'online', 'offline', 'stale', 'removed');`,
+					`CREATE TABLE IF NOT EXISTS agents (
+						name        	   TEXT NOT NULL,
+						mf_owner_id        UUID NOT NULL,
+						mf_thing_id        UUID UNIQUE,
+						mf_channel_id      UUID,
+                        ts_created         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+						orb_tags           JSONB NOT NULL DEFAULT '{}',
+
+						agent_tags         JSONB NOT NULL DEFAULT '{}',
+						agent_metadata     JSONB NOT NULL DEFAULT '{}',
+
+						state              agent_state NOT NULL DEFAULT 'new',
+
+						last_hb_data       JSONB NOT NULL DEFAULT '{}',
+                        ts_last_hb         TIMESTAMPTZ DEFAULT NULL,
+						PRIMARY KEY (name, mf_owner_id)
+					)`,
+					`CREATE TABLE IF NOT EXISTS selectors (
+						name        	   TEXT NOT NULL,
+						mf_owner_id        UUID NOT NULL,
+	
+						metadata           JSONB NOT NULL DEFAULT '{}',
+                        ts_created         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+						PRIMARY KEY (name, mf_owner_id)
 					)`,
 				},
 				Down: []string{
-					"DROP TABLE fleet",
+					"DROP TABLE agents",
+					"DROP TABLE selectors",
 				},
 			},
 		},
