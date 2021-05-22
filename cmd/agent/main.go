@@ -8,19 +8,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ns1labs/orb/agent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/ns1labs/orb/agent"
 )
 
 const (
-	envPrefix = "orb_agent"
+	envPrefix     = "orb_agent"
+	defaultConfig = "/etc/orb/agent.yaml"
 )
 
 var (
-	cfgFiles      []string
-	defaultConfig = "/etc/orb/agent.yml"
+	cfgFiles []string
 
 	rootCmd = &cobra.Command{
 		Use:   "orb-agent",
@@ -45,7 +44,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.Flags().StringSliceVarP(&cfgFiles, "config", "c", []string{}, "Path to config files (can be specified multiple times)")
+	rootCmd.Flags().StringSliceVarP(&cfgFiles, "config", "c", []string{}, "Path to config files (may be specified multiple times)")
 }
 
 func mergeOrError(path string) {
