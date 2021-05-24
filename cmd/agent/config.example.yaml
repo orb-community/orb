@@ -23,8 +23,5 @@ orb:
     # agent RPC channel ID
     channel_id: "35a416a4-dc5f-4dca-b319-a6f1cc87bca7"
     # optional TLS config
-    tls:
-      cert: # path
-      key: # path
-      rootCA: # path
-      verify: # bool
+  tls:
+    verify: false

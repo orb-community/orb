@@ -22,6 +22,7 @@ const (
 
 var (
 	cfgFiles []string
+	Debug    bool
 
 	rootCmd = &cobra.Command{
 		Use:   "orb-agent",
@@ -34,12 +35,20 @@ var (
 func Run(cmd *cobra.Command, args []string) {
 
 	// logger
-	logger, err := zap.NewDevelopment()
+	var logger *zap.Logger
+	var err error
+	if Debug {
+		logger, err = zap.NewDevelopment()
+	} else {
+		logger, err = zap.NewProduction()
+	}
 	cobra.CheckErr(err)
 
 	// configuration
 	var config agent.Config
 	viper.Unmarshal(&config)
+
+	config.Debug = Debug
 
 	// new agent
 	a, err := agent.New(logger, config)
@@ -69,6 +78,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.Flags().StringSliceVarP(&cfgFiles, "config", "c", []string{}, "Path to config files (may be specified multiple times)")
+	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "d", false, "verbose debug output")
 }
 
 func mergeOrError(path string) {

@@ -38,8 +38,9 @@ func (a *Agent) connect() (mqtt.Client, error) {
 	opts.SetDefaultPublishHandler(f)
 	opts.SetPingTimeout(1 * time.Second)
 
-	// todo
-	opts.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	if !a.config.OrbAgent.TLS.Verify {
+		opts.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	}
 
 	c := mqtt.NewClient(opts)
 	if token := c.Connect(); token.Wait() && token.Error() != nil {
@@ -53,7 +54,10 @@ func (a *Agent) Start() error {
 
 	a.logger.Info("agent started")
 
-	mqtt.DEBUG = &agentLoggerDebug{a: a}
+	if a.config.Debug {
+		mqtt.DEBUG = &agentLoggerDebug{a: a}
+		a.logger.Debug("config", zap.Any("values", a.config))
+	}
 	mqtt.WARN = &agentLoggerWarn{a: a}
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
