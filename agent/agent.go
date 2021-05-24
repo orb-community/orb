@@ -8,33 +8,20 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
-	"log"
-	"os"
+	"go.uber.org/zap"
 	"time"
 )
 
-type Pktvisor map[string]interface{}
-
-type Sinks map[string]interface{}
-
-type OrbAgent struct {
-	Vitals map[string]string `mapstructure:"vitals"`
-	MQTT   map[string]string `mapstructure:"mqtt"`
-}
-
-type Config struct {
-	Version  float64  `mapstructure:"version"`
-	Pktvisor Pktvisor `mapstructure:"pktvisor"`
-	Sinks    Sinks    `mapstructure:"sinks"`
-	OrbAgent OrbAgent `mapstructure:"orb"`
-}
-
 type Agent struct {
+	logger *zap.Logger
 	config Config
+
+	rpcChannel string
+	client     mqtt.Client
 }
 
-func New(c Config) (*Agent, error) {
-	return &Agent{config: c}, nil
+func New(logger *zap.Logger, c Config) (*Agent, error) {
+	return &Agent{logger: logger, config: c}, nil
 }
 
 var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
@@ -42,43 +29,62 @@ var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("MSG: %s\n", msg.Payload())
 }
 
-func (a *Agent) Start() error {
-	fmt.Println("started")
+func (a *Agent) connect() (mqtt.Client, error) {
 
-	mqtt.DEBUG = log.New(os.Stdout, "", 0)
-	mqtt.ERROR = log.New(os.Stdout, "", 0)
 	opts := mqtt.NewClientOptions().AddBroker(a.config.OrbAgent.MQTT["address"]).SetClientID(a.config.OrbAgent.MQTT["id"])
 	opts.SetUsername(a.config.OrbAgent.MQTT["id"])
 	opts.SetPassword(a.config.OrbAgent.MQTT["key"])
 	opts.SetKeepAlive(2 * time.Second)
 	opts.SetDefaultPublishHandler(f)
 	opts.SetPingTimeout(1 * time.Second)
+
+	// todo
 	opts.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
 	c := mqtt.NewClient(opts)
 	if token := c.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+		return nil, token.Error()
 	}
 
-	if token := c.Subscribe("go-mqtt/sample", 0, nil); token.Wait() && token.Error() != nil {
-		fmt.Println(token.Error())
-		os.Exit(1)
+	return c, nil
+}
+
+func (a *Agent) Start() error {
+
+	a.logger.Info("agent started")
+
+	mqtt.DEBUG = &agentLoggerDebug{a: a}
+	mqtt.WARN = &agentLoggerWarn{a: a}
+	mqtt.CRITICAL = &agentLoggerCritical{a: a}
+	mqtt.ERROR = &agentLoggerError{a: a}
+
+	var err error
+	a.client, err = a.connect()
+	if err != nil {
+		a.logger.Error("connection failed", zap.Error(err))
+		return err
+	}
+
+	a.rpcChannel = fmt.Sprintf("channels/%s/messages", a.config.OrbAgent.MQTT["channel_id"])
+
+	if token := a.client.Subscribe(a.rpcChannel, 0, nil); token.Wait() && token.Error() != nil {
+		a.logger.Error("failed to subscribe to RPC channel", zap.Error(err))
+		return err
 	}
 
 	for i := 0; i < 5; i++ {
 		text := fmt.Sprintf("this is msg #%d!", i)
-		token := c.Publish("go-mqtt/sample", 0, false, text)
+		token := a.client.Publish(a.rpcChannel, 0, false, text)
 		token.Wait()
 	}
 
-	time.Sleep(6 * time.Second)
-
-	if token := c.Unsubscribe("go-mqtt/sample"); token.Wait() && token.Error() != nil {
-		fmt.Println(token.Error())
-		os.Exit(1)
-	}
-
-	c.Disconnect(250)
-
 	return nil
+}
+
+func (a *Agent) Stop() {
+	a.logger.Info("stopping agent")
+	if token := a.client.Unsubscribe(a.rpcChannel); token.Wait() && token.Error() != nil {
+		a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
+	}
+	a.client.Disconnect(250)
 }

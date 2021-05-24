@@ -6,11 +6,13 @@ package main
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/ns1labs/orb/agent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
@@ -30,12 +32,34 @@ var (
 )
 
 func Run(cmd *cobra.Command, args []string) {
+
+	// logger
+	logger, err := zap.NewDevelopment()
+	cobra.CheckErr(err)
+
+	// configuration
 	var config agent.Config
 	viper.Unmarshal(&config)
-	fmt.Printf("%+v\n", config)
-	s, err := agent.New(config)
+
+	// new agent
+	a, err := agent.New(logger, config)
 	cobra.CheckErr(err)
-	cobra.CheckErr(s.Start())
+
+	// handle signals
+	sigs := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		a.Stop()
+		done <- true
+	}()
+
+	// start agent
+	cobra.CheckErr(a.Start())
+	<-done
+
 }
 
 func Execute() {
