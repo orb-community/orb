@@ -6,6 +6,7 @@ package agent
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"go.uber.org/zap"
@@ -16,17 +17,13 @@ type Agent struct {
 	logger *zap.Logger
 	config Config
 
-	rpcChannel string
-	client     mqtt.Client
+	rpcChannelToCore   string
+	rpcChannelFromCore string
+	client             mqtt.Client
 }
 
 func New(logger *zap.Logger, c Config) (*Agent, error) {
 	return &Agent{logger: logger, config: c}, nil
-}
-
-var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	fmt.Printf("TOPIC: %s\n", msg.Topic())
-	fmt.Printf("MSG: %s\n", msg.Payload())
 }
 
 func (a *Agent) connect() (mqtt.Client, error) {
@@ -35,7 +32,9 @@ func (a *Agent) connect() (mqtt.Client, error) {
 	opts.SetUsername(a.config.OrbAgent.MQTT["id"])
 	opts.SetPassword(a.config.OrbAgent.MQTT["key"])
 	opts.SetKeepAlive(2 * time.Second)
-	opts.SetDefaultPublishHandler(f)
+	opts.SetDefaultPublishHandler(func(client mqtt.Client, message mqtt.Message) {
+		a.logger.Info("message on unknown channel", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
+	})
 	opts.SetPingTimeout(1 * time.Second)
 
 	if !a.config.OrbAgent.TLS.Verify {
@@ -69,25 +68,47 @@ func (a *Agent) Start() error {
 		return err
 	}
 
-	a.rpcChannel = fmt.Sprintf("channels/%s/messages", a.config.OrbAgent.MQTT["channel_id"])
+	a.rpcChannelToCore = fmt.Sprintf("channels/%s/messages/out", a.config.OrbAgent.MQTT["channel_id"])
+	a.rpcChannelFromCore = fmt.Sprintf("channels/%s/messages/in", a.config.OrbAgent.MQTT["channel_id"])
 
-	if token := a.client.Subscribe(a.rpcChannel, 0, nil); token.Wait() && token.Error() != nil {
+	if token := a.client.Subscribe(a.rpcChannelFromCore, 1, a.handleRPC); token.Wait() && token.Error() != nil {
 		a.logger.Error("failed to subscribe to RPC channel", zap.Error(err))
 		return err
 	}
 
-	for i := 0; i < 5; i++ {
-		text := fmt.Sprintf("this is msg #%d!", i)
-		token := a.client.Publish(a.rpcChannel, 0, false, text)
-		token.Wait()
+	err = a.sendAgentInfo()
+	if err != nil {
+		a.logger.Error("failed to send AGENTINFO", zap.Error(err))
+		return err
 	}
 
 	return nil
 }
 
+func (a *Agent) sendAgentInfo() error {
+
+	agentInfo := make(map[string]string)
+	agentInfo["version"] = "1.0"
+
+	body, err := json.Marshal(agentInfo)
+	if err != nil {
+		return err
+	}
+
+	if token := a.client.Publish(a.rpcChannelToCore, 0, false, body); token.Wait() && token.Error() != nil {
+		return token.Error()
+	}
+
+	return nil
+}
+
+func (a *Agent) handleRPC(client mqtt.Client, message mqtt.Message) {
+	a.logger.Info("RPC message", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
+}
+
 func (a *Agent) Stop() {
 	a.logger.Info("stopping agent")
-	if token := a.client.Unsubscribe(a.rpcChannel); token.Wait() && token.Error() != nil {
+	if token := a.client.Unsubscribe(a.rpcChannelFromCore); token.Wait() && token.Error() != nil {
 		a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
 	}
 	a.client.Disconnect(250)
