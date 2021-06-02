@@ -69,3 +69,7 @@ type AgentRepository interface {
 	// error response.
 	Save(ctx context.Context, agent Agent) error
 }
+
+type AgentComms interface {
+	StartComms() error
+}

@@ -11,6 +11,8 @@ package fleet
 import (
 	"context"
 	"github.com/mainflux/mainflux"
+	mfconsumers "github.com/mainflux/mainflux/consumers"
+	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
 	"time"
@@ -52,6 +54,7 @@ type Tags map[string]interface{}
 type Metadata map[string]interface{}
 
 type Service interface {
+	AgentComms
 	AgentService
 	SelectorService
 }
@@ -61,6 +64,9 @@ var _ Service = (*fleetService)(nil)
 type fleetService struct {
 	// for AuthN/AuthZ
 	auth mainflux.AuthServiceClient
+	// agent comms
+	agentConsumer mfconsumers.Consumer
+	agentPubSub   mfnats.PubSub
 	// for Thing manipulation
 	mfsdk mfsdk.SDK
 	// Agents and Selectors
@@ -190,11 +196,19 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 	return a, nil
 }
 
-func NewFleetService(auth mainflux.AuthServiceClient, agentRepo AgentRepository, selectorRepo SelectorRepository, mfsdk mfsdk.SDK) Service {
+func NewFleetService(auth mainflux.AuthServiceClient, agentRepo AgentRepository, selectorRepo SelectorRepository, mfsdk mfsdk.SDK, mfconsumer mfconsumers.Consumer) Service {
 	return &fleetService{
-		auth:         auth,
-		agentRepo:    agentRepo,
-		selectorRepo: selectorRepo,
-		mfsdk:        mfsdk,
+		auth:          auth,
+		agentRepo:     agentRepo,
+		selectorRepo:  selectorRepo,
+		mfsdk:         mfsdk,
+		agentConsumer: mfconsumer,
 	}
+}
+
+func (svc fleetService) StartComms() error {
+	if err := mfconsumers.Start(svc.agentPubSub, svc.agentConsumer, t, p.natSubjectConfigPath, p.mflogger); err != nil {
+		return err
+	}
+	return nil
 }

@@ -10,16 +10,16 @@ import (
 )
 
 type agentLoggerDebug struct {
-	a *Agent
+	a *orbAgent
 }
 type agentLoggerWarn struct {
-	a *Agent
+	a *orbAgent
 }
 type agentLoggerCritical struct {
-	a *Agent
+	a *orbAgent
 }
 type agentLoggerError struct {
-	a *Agent
+	a *orbAgent
 }
 
 var _ mqtt.Logger = (*agentLoggerDebug)(nil)

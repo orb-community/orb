@@ -82,13 +82,13 @@ func main() {
 	consumerSvc = mfwriters.MetricsMiddleware(
 		consumerSvc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-			Namespace: "promsink",
+			Namespace: svcName,
 			Subsystem: "message_writer",
 			Name:      "request_count",
 			Help:      "Number of requests received.",
 		}, []string{"method"}),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
-			Namespace: "promsink",
+			Namespace: svcName,
 			Subsystem: "message_writer",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",

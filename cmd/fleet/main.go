@@ -11,7 +11,11 @@ package main
 import (
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
+	mfwriters "github.com/mainflux/mainflux/consumers/writers/api"
+	mflog "github.com/mainflux/mainflux/logger"
+	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"github.com/ns1labs/orb/fleet"
+	natconsume "github.com/ns1labs/orb/fleet/agentcomms/consumer"
 	"github.com/ns1labs/orb/fleet/api"
 	"github.com/ns1labs/orb/fleet/postgres"
 	redisprod "github.com/ns1labs/orb/fleet/redis/producer"
@@ -67,6 +71,12 @@ func main() {
 	}
 	defer logger.Sync() // flushes buffer, if any
 
+	// only needed for mainflux interfaces
+	mflogger, err := mflog.New(os.Stdout, svcCfg.LogLevel)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
 	db := connectToDB(dbCfg, logger)
 	defer db.Close()
 
@@ -85,7 +95,32 @@ func main() {
 	}
 	auth := authapi.NewClient(tracer, authConn, authTimeout)
 
-	svc := newService(auth, db, logger, esClient, sdkCfg)
+	pubSub, err := mfnats.NewPubSub(natsCfg.URL, svcName, mflogger)
+	if err != nil {
+		logger.Error("Failed to connect to NATS", zap.Error(err))
+		os.Exit(1)
+	}
+	defer pubSub.Close()
+
+	consumerSvc := natconsume.New(logger)
+	consumerSvc = mfwriters.LoggingMiddleware(consumerSvc, mflogger)
+	consumerSvc = mfwriters.MetricsMiddleware(
+		consumerSvc,
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: svcName,
+			Subsystem: "agentcomms",
+			Name:      "request_count",
+			Help:      "Number of requests received.",
+		}, []string{"method"}),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: svcName,
+			Subsystem: "agentcomms",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, []string{"method"}),
+	)
+
+	svc := newService(auth, db, logger, esClient, sdkCfg, consumerSvc)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
