@@ -2,6 +2,6 @@
 
 A new network observability platform based on [pktvisor](https://github.com/ns1/pktvisor). 
 
-[Join us on Slack](https://join.slack.com/t/getorb/shared_invite/zt-nn4joou9-71Bp3HkubYf5Adh9c4cDNw) to chat about it.
+[Join us on Slack](https://join.slack.com/t/ns1labs/shared_invite/zt-qqsm5cb4-9fsq1xa~R3h~nX6W0sJzmA) to chat about it.
 
 Watch this space.
