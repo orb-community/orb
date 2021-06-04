@@ -103,12 +103,13 @@ func main() {
 
 	svc := newFleetService(auth, db, logger, esClient, sdkCfg)
 	commsSvc := fleet.NewFleetCommsService(logger, pubSub)
+	defer commsSvc.Stop()
 
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 
-	err = commsSvc.StartComms()
+	err = commsSvc.Start()
 	if err != nil {
 		logger.Error("unable to start agent communication", zap.Error(err))
 		os.Exit(1)

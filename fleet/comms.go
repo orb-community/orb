@@ -16,8 +16,10 @@ import (
 )
 
 type AgentCommsService interface {
-	// StartComms set up communication with the message bus to communicate with agents
-	StartComms() error
+	// Start set up communication with the message bus to communicate with agents
+	Start() error
+	// Stop end communication with the message bus
+	Stop() error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -44,9 +46,18 @@ func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 	return nil
 }
 
-func (svc fleetCommsService) StartComms() error {
+func (svc fleetCommsService) Start() error {
 	// TODO make this the agent channel
 	if err := svc.agentPubSub.Subscribe(mfnats.SubjectAllChannels, svc.handleMsgFromAgent); err != nil {
+		return err
+	}
+	svc.logger.Info("subscribed to agent info channels")
+	return nil
+}
+
+func (svc fleetCommsService) Stop() error {
+	// TODO make this the agent channel
+	if err := svc.agentPubSub.Unsubscribe(mfnats.SubjectAllChannels); err != nil {
 		return err
 	}
 	svc.logger.Info("subscribed to agent info channels")

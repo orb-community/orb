@@ -4,8 +4,6 @@
 
 package agent
 
-type Pktvisor map[string]interface{}
-
 type Sinks map[string]interface{}
 
 type TLS struct {
@@ -13,15 +11,15 @@ type TLS struct {
 }
 
 type OrbAgent struct {
-	Vitals map[string]string `mapstructure:"vitals"`
-	MQTT   map[string]string `mapstructure:"mqtt"`
-	TLS    TLS               `mapstructure:"tls"`
+	Backends []string          `mapstructure:"backends"`
+	Vitals   map[string]string `mapstructure:"vitals"`
+	MQTT     map[string]string `mapstructure:"mqtt"`
+	TLS      TLS               `mapstructure:"tls"`
 }
 
 type Config struct {
 	Debug    bool
 	Version  float64  `mapstructure:"version"`
-	Pktvisor Pktvisor `mapstructure:"pktvisor"`
 	Sinks    Sinks    `mapstructure:"sinks"`
 	OrbAgent OrbAgent `mapstructure:"orb"`
 }

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
+	"github.com/ns1labs/orb/agent/backend"
 	"go.uber.org/zap"
 	"time"
 )
@@ -70,18 +71,7 @@ func (a *orbAgent) nameChannels() {
 
 }
 
-func (a *orbAgent) Start() error {
-
-	a.logger.Info("agent started")
-
-	if a.config.Debug {
-		mqtt.DEBUG = &agentLoggerDebug{a: a}
-		a.logger.Debug("config", zap.Any("values", a.config))
-	}
-	mqtt.WARN = &agentLoggerWarn{a: a}
-	mqtt.CRITICAL = &agentLoggerCritical{a: a}
-	mqtt.ERROR = &agentLoggerError{a: a}
-
+func (a *orbAgent) startComms() error {
 	var err error
 	a.client, err = a.connect()
 	if err != nil {
@@ -99,6 +89,34 @@ func (a *orbAgent) Start() error {
 	err = a.sendAgentInfo()
 	if err != nil {
 		a.logger.Error("failed to send agent info", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
+func (a *orbAgent) startBackends() error {
+	a.logger.Info("registered backends", zap.Strings("values", backend.GetList()))
+	return nil
+}
+
+func (a *orbAgent) Start() error {
+
+	a.logger.Info("agent started")
+
+	if a.config.Debug {
+		mqtt.DEBUG = &agentLoggerDebug{a: a}
+		a.logger.Debug("config", zap.Any("values", a.config))
+	}
+	mqtt.WARN = &agentLoggerWarn{a: a}
+	mqtt.CRITICAL = &agentLoggerCritical{a: a}
+	mqtt.ERROR = &agentLoggerError{a: a}
+
+	if err := a.startBackends(); err != nil {
+		return err
+	}
+
+	if err := a.startComms(); err != nil {
 		return err
 	}
 

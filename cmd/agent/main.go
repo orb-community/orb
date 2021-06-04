@@ -7,6 +7,7 @@ package main
 import (
 	"fmt"
 	"github.com/ns1labs/orb/agent"
+	"github.com/ns1labs/orb/agent/backend/pktvisor"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -76,6 +77,9 @@ func Execute() {
 }
 
 func init() {
+
+	pktvisor.Register()
+
 	cobra.OnInitialize(initConfig)
 	rootCmd.Flags().StringSliceVarP(&cfgFiles, "config", "c", []string{}, "Path to config files (may be specified multiple times)")
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "d", false, "verbose debug output")
