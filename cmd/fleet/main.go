@@ -11,11 +11,9 @@ package main
 import (
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
-	mfwriters "github.com/mainflux/mainflux/consumers/writers/api"
 	mflog "github.com/mainflux/mainflux/logger"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"github.com/ns1labs/orb/fleet"
-	natconsume "github.com/ns1labs/orb/fleet/agentcomms/consumer"
 	"github.com/ns1labs/orb/fleet/api"
 	"github.com/ns1labs/orb/fleet/postgres"
 	redisprod "github.com/ns1labs/orb/fleet/redis/producer"
@@ -52,6 +50,7 @@ const (
 
 func main() {
 
+	natsCfg := config.LoadNatsConfig(envPrefix)
 	authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
 	sdkCfg := config.LoadMFSDKConfig(mfEnvPrefix)
 
@@ -102,28 +101,18 @@ func main() {
 	}
 	defer pubSub.Close()
 
-	consumerSvc := natconsume.New(logger)
-	consumerSvc = mfwriters.LoggingMiddleware(consumerSvc, mflogger)
-	consumerSvc = mfwriters.MetricsMiddleware(
-		consumerSvc,
-		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-			Namespace: svcName,
-			Subsystem: "agentcomms",
-			Name:      "request_count",
-			Help:      "Number of requests received.",
-		}, []string{"method"}),
-		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
-			Namespace: svcName,
-			Subsystem: "agentcomms",
-			Name:      "request_latency_microseconds",
-			Help:      "Total duration of requests in microseconds.",
-		}, []string{"method"}),
-	)
+	svc := newFleetService(auth, db, logger, esClient, sdkCfg)
+	commsSvc := fleet.NewFleetCommsService(logger, pubSub)
 
-	svc := newService(auth, db, logger, esClient, sdkCfg, consumerSvc)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
+
+	err = commsSvc.StartComms()
+	if err != nil {
+		logger.Error("unable to start agent communication", zap.Error(err))
+		os.Exit(1)
+	}
 
 	go func() {
 		c := make(chan os.Signal)
@@ -182,7 +171,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig) fleet.Service {
+func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig) fleet.Service {
 	agentRepo := postgres.NewAgentRepository(db, logger)
 	selectorRepo := postgres.NewSelectorRepository(db, logger)
 
@@ -193,7 +182,7 @@ func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger
 
 	mfsdk := mfsdk.NewSDK(config)
 
-	svc := fleet.NewFleetService(auth, agentRepo, selectorRepo, mfsdk)
+	svc := fleet.NewFleetService(logger, auth, agentRepo, selectorRepo, mfsdk)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = api.NewLoggingMiddleware(svc, logger)
 	svc = api.MetricsMiddleware(

@@ -59,6 +59,7 @@ type Agent struct {
 	LastHB        time.Time
 }
 
+// AgentService Agent CRUD interface
 type AgentService interface {
 	// CreateAgent creates new agent
 	CreateAgent(ctx context.Context, token string, a Agent) (Agent, error)
@@ -68,8 +69,4 @@ type AgentRepository interface {
 	// Save persists the Agent. Successful operation is indicated by non-nil
 	// error response.
 	Save(ctx context.Context, agent Agent) error
-}
-
-type AgentComms interface {
-	StartComms() error
 }
