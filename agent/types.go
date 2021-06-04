@@ -11,10 +11,10 @@ type TLS struct {
 }
 
 type OrbAgent struct {
-	Backends []string          `mapstructure:"backends"`
-	Vitals   map[string]string `mapstructure:"vitals"`
-	MQTT     map[string]string `mapstructure:"mqtt"`
-	TLS      TLS               `mapstructure:"tls"`
+	Backends map[string]map[string]string `mapstructure:"backends"`
+	Vitals   map[string]string            `mapstructure:"vitals"`
+	MQTT     map[string]string            `mapstructure:"mqtt"`
+	TLS      TLS                          `mapstructure:"tls"`
 }
 
 type Config struct {

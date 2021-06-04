@@ -4,7 +4,12 @@
 
 package backend
 
+import "go.uber.org/zap"
+
 type Backend interface {
+	Configure(*zap.Logger, map[string]string) error
+	Start() error
+	Stop() error
 }
 
 var registry = make(map[string]Backend)
@@ -19,4 +24,13 @@ func GetList() []string {
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+func HaveBackend(name string) bool {
+	_, prs := registry[name]
+	return prs
+}
+
+func GetBackend(name string) Backend {
+	return registry[name]
 }

@@ -7,6 +7,7 @@ package agent
 import (
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/agent/backend"
@@ -20,9 +21,10 @@ type Agent interface {
 }
 
 type orbAgent struct {
-	logger *zap.Logger
-	config Config
-	client mqtt.Client
+	logger   *zap.Logger
+	config   Config
+	client   mqtt.Client
+	backends map[string]backend.Backend
 
 	rpcChannelToCore   string
 	rpcChannelFromCore string
@@ -97,6 +99,24 @@ func (a *orbAgent) startComms() error {
 
 func (a *orbAgent) startBackends() error {
 	a.logger.Info("registered backends", zap.Strings("values", backend.GetList()))
+	a.logger.Info("requested backends", zap.Any("values", a.config.OrbAgent.Backends))
+	if len(a.config.OrbAgent.Backends) == 0 {
+		return errors.New("no backends specified")
+	}
+	a.backends = make(map[string]backend.Backend, len(a.config.OrbAgent.Backends))
+	for name, config := range a.config.OrbAgent.Backends {
+		if !backend.HaveBackend(name) {
+			return errors.New("specified backend does not exist: " + name)
+		}
+		be := backend.GetBackend(name)
+		if err := be.Configure(a.logger, config); err != nil {
+			return err
+		}
+		if err := be.Start(); err != nil {
+			return err
+		}
+		a.backends[name] = be
+	}
 	return nil
 }
 
@@ -119,6 +139,7 @@ func (a *orbAgent) Start() error {
 	if err := a.startComms(); err != nil {
 		return err
 	}
+	a.Stop()
 
 	return nil
 }
@@ -152,6 +173,11 @@ func (a *orbAgent) Stop() {
 	a.logger.Info("stopping agent")
 	if token := a.client.Unsubscribe(a.rpcChannelFromCore); token.Wait() && token.Error() != nil {
 		a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
+	}
+	for _, be := range a.backends {
+		if err := be.Stop(); err != nil {
+			a.logger.Error("backend error while stopping", zap.Error(err))
+		}
 	}
 	a.client.Disconnect(250)
 }
