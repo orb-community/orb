@@ -125,7 +125,7 @@ func (a *orbAgent) Start() error {
 	a.logger.Info("agent started")
 
 	if a.config.Debug {
-		mqtt.DEBUG = &agentLoggerDebug{a: a}
+		//mqtt.DEBUG = &agentLoggerDebug{a: a}
 		a.logger.Debug("config", zap.Any("values", a.config))
 	}
 	mqtt.WARN = &agentLoggerWarn{a: a}
@@ -139,7 +139,6 @@ func (a *orbAgent) Start() error {
 	if err := a.startComms(); err != nil {
 		return err
 	}
-	a.Stop()
 
 	return nil
 }
