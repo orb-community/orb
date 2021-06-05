@@ -71,12 +71,12 @@ func (p *pktvisorBackend) Start() error {
 
 	if status.Error != nil {
 		p.logger.Error("pktvisor startup error", zap.Error(status.Error))
-		return err
+		return status.Error
 	}
 
 	if status.Complete {
-		p.logger.Error("pktvisor startup error, check log", zap.Int("exit_code", status.Exit))
-		return err
+		p.proc.Stop()
+		return errors.New("pktvisor startup error, check log")
 	}
 
 	p.logger.Info("pktvisor process started", zap.Int("pid", status.PID))

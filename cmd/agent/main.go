@@ -53,7 +53,10 @@ func Run(cmd *cobra.Command, args []string) {
 
 	// new agent
 	a, err := agent.New(logger, config)
-	cobra.CheckErr(err)
+	if err != nil {
+		logger.Error("agent creation error", zap.Error(err))
+		os.Exit(1)
+	}
 
 	// handle signals
 	sigs := make(chan os.Signal, 1)
@@ -67,7 +70,11 @@ func Run(cmd *cobra.Command, args []string) {
 	}()
 
 	// start agent
-	cobra.CheckErr(a.Start())
+	err = a.Start()
+	if err != nil {
+		logger.Error("agent startup error", zap.Error(err))
+		os.Exit(1)
+	}
 	<-done
 
 }
