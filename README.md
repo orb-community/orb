@@ -1,11 +1,10 @@
-![Orb](docs/images/ORB-logo-black@3x.png)
+<img src="docs/images/ORB-logo-black@3x.png" alt="Orb" width="500"/>
 
-## https://getorb.io
 
 **Orb** is a new kind of observability platform that helps operators, developers, and end users understand their
-networks, distributed applications, and traffic flows in real time.
+networks, distributed applications, and traffic flows in real time. 
 
-It combines concepts from Internet of Things (IoT), Edge Compute, and high throughput stream processing to offer command
+**Orb** combines concepts from Internet of Things (IoT), Edge Compute, and high throughput stream processing to offer command
 of a fleet of distributed agents which can be orchestrated in real time to summarize high volume, information dense data
 streams down to lightweight, actionable data sets directly at the edge.
 
@@ -15,7 +14,7 @@ agent.
 
 The platform is open source, extensible, vendor neutral, and cloud native.
 
-**Orb** is a new project and just gathering speed. Star the project to show your interest!
+**Orb** is a new project and just gathering speed. Star the project to show your interest! See more at [getorb.io](https://getorb.io)
 
 We are very interested in hearing about your use cases, feature requests, and other feedback.
 
