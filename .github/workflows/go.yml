@@ -31,7 +31,7 @@ jobs:
         run: make sinks
 
       - name: Build prometheus sink
-      run: make prom-sink
+        run: make prom-sink
 
-    - name: Test
-      run: make test
+      - name: Test
+        run: make test
