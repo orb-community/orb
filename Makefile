@@ -9,7 +9,7 @@
 MF_DOCKER_IMAGE_NAME_PREFIX ?= orb
 DOCKERHUB_REPO = ns1labs
 BUILD_DIR = build
-SERVICES = fleet policies sinks prom-sink
+SERVICES = fleet policies sinks prom-sink agent
 DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
 CGO_ENABLED ?= 0

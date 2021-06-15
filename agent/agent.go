@@ -10,8 +10,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
+	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/agent/backend"
-	"github.com/ns1labs/orb/pkg/version"
 	"go.uber.org/zap"
 	"time"
 )
@@ -149,7 +149,7 @@ func (a *orbAgent) sendCapabilities() error {
 	capabilities := make(map[string]interface{})
 
 	capabilities["orb_agent"] = &OrbAgentInfo{
-		Version: version.Version,
+		Version: orb.GetVersion(),
 	}
 	capabilities["backends"] = make(map[string]BackendInfo)
 	for name, be := range a.backends {

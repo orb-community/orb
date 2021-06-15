@@ -13,7 +13,11 @@ import (
 	"net/http"
 )
 
-const version string = "1.0.0"
+const version string = "1.0.0-develop"
+
+func GetVersion() string {
+	return version
+}
 
 // VersionInfo contains version endpoint response.
 type VersionInfo struct {
