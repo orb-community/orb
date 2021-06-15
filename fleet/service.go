@@ -136,7 +136,7 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 
 	a.MFOwnerID = mfOwnerID
 
-	md := map[string]interface{}{"type": "orb-agent"}
+	md := map[string]interface{}{"type": "orb_agent"}
 
 	// create new Thing
 	mfThing, err := svc.thing(token, "", a.Name.String(), md)

@@ -24,6 +24,10 @@ type AgentCommsService interface {
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
 
+const SubjectAllCapabilitiesChannel = "channels.*.agent"
+const SubjectAllHeartbeatsChannel = "channels.*.hb"
+const SubjectToCoreChannel = "channels.*.out"
+
 type fleetCommsService struct {
 	logger *zap.Logger
 	// agent comms
@@ -37,29 +41,30 @@ func NewFleetCommsService(logger *zap.Logger, agentPubSub mfnats.PubSub) AgentCo
 	}
 }
 
-func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
+func (svc fleetCommsService) handleCapabilitiesFromAgent(msg messaging.Message) error {
 	var payload interface{}
 	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
 		return err
 	}
-	svc.logger.Info("received message", zap.Any("payload", payload))
+	svc.logger.Info("received message", zap.Any("payload", payload), zap.Any("subtopic", msg.Subtopic), zap.Any("channel", msg.Channel),
+		zap.Any("protocol", msg.Protocol), zap.Any("created", msg.Created), zap.Any("publisher", msg.Publisher))
 	return nil
 }
 
 func (svc fleetCommsService) Start() error {
 	// TODO make this the agent channel
-	if err := svc.agentPubSub.Subscribe(mfnats.SubjectAllChannels, svc.handleMsgFromAgent); err != nil {
+	if err := svc.agentPubSub.Subscribe(SubjectAllCapabilitiesChannel, svc.handleCapabilitiesFromAgent); err != nil {
 		return err
 	}
-	svc.logger.Info("subscribed to agent info channels")
+	svc.logger.Info("subscribed to agent capabilities channels")
 	return nil
 }
 
 func (svc fleetCommsService) Stop() error {
 	// TODO make this the agent channel
-	if err := svc.agentPubSub.Unsubscribe(mfnats.SubjectAllChannels); err != nil {
+	if err := svc.agentPubSub.Unsubscribe(SubjectAllCapabilitiesChannel); err != nil {
 		return err
 	}
-	svc.logger.Info("subscribed to agent info channels")
+	svc.logger.Info("subscribed to agent capabilities channels")
 	return nil
 }
