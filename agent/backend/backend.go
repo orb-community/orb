@@ -8,6 +8,7 @@ import "go.uber.org/zap"
 
 type Backend interface {
 	Configure(*zap.Logger, map[string]string) error
+	Version() (string, error)
 	Start() error
 	Stop() error
 }

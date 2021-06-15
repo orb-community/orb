@@ -4,7 +4,13 @@
 
 package agent
 
-type Sinks map[string]interface{}
+type OrbAgentInfo struct {
+	Version string `json:"version"`
+}
+
+type BackendInfo struct {
+	Version string `json:"version"`
+}
 
 type TLS struct {
 	Verify bool `mapstructure:"verify"`
@@ -12,7 +18,7 @@ type TLS struct {
 
 type OrbAgent struct {
 	Backends map[string]map[string]string `mapstructure:"backends"`
-	Vitals   map[string]string            `mapstructure:"vitals"`
+	Tags     map[string]string            `mapstructure:"tags"`
 	MQTT     map[string]string            `mapstructure:"mqtt"`
 	TLS      TLS                          `mapstructure:"tls"`
 }
@@ -20,6 +26,5 @@ type OrbAgent struct {
 type Config struct {
 	Debug    bool
 	Version  float64  `mapstructure:"version"`
-	Sinks    Sinks    `mapstructure:"sinks"`
 	OrbAgent OrbAgent `mapstructure:"orb"`
 }

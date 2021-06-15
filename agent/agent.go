@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/agent/backend"
+	"github.com/ns1labs/orb/pkg/version"
 	"go.uber.org/zap"
 	"time"
 )
@@ -26,11 +27,11 @@ type orbAgent struct {
 	client   mqtt.Client
 	backends map[string]backend.Backend
 
-	rpcChannelToCore   string
-	rpcChannelFromCore string
-	agentInfoChannel   string
-	heartChannel       string
-	logChannel         string
+	rpcChannelToCore    string
+	rpcChannelFromCore  string
+	capabilitiesChannel string
+	heartChannel        string
+	logChannel          string
 }
 
 var _ Agent = (*orbAgent)(nil)
@@ -67,7 +68,7 @@ func (a *orbAgent) nameChannels() {
 	base := fmt.Sprintf("channels/%s/messages", a.config.OrbAgent.MQTT["channel_id"])
 	a.rpcChannelToCore = fmt.Sprintf("%s/out", base)
 	a.rpcChannelFromCore = fmt.Sprintf("%s/in", base)
-	a.agentInfoChannel = fmt.Sprintf("%s/agent", base)
+	a.capabilitiesChannel = fmt.Sprintf("%s/agent", base)
 	a.heartChannel = fmt.Sprintf("%s/hb", base)
 	a.logChannel = fmt.Sprintf("%s/log", base)
 
@@ -88,7 +89,7 @@ func (a *orbAgent) startComms() error {
 		return err
 	}
 
-	err = a.sendAgentInfo()
+	err = a.sendCapabilities()
 	if err != nil {
 		a.logger.Error("failed to send agent info", zap.Error(err))
 		return err
@@ -143,21 +144,31 @@ func (a *orbAgent) Start() error {
 	return nil
 }
 
-func (a *orbAgent) sendAgentInfo() error {
+func (a *orbAgent) sendCapabilities() error {
 
-	agentInfo := make(map[string]string)
+	capabilities := make(map[string]interface{})
 
-	// todo
-	agentInfo["orb_version"] = "1.0"
-	agentInfo["agent_type"] = "pktvisor"
-	agentInfo["agent_version"] = "3.2.0"
+	capabilities["orb_agent"] = &OrbAgentInfo{
+		Version: version.Version,
+	}
+	capabilities["backends"] = make(map[string]BackendInfo)
+	for name, be := range a.backends {
+		ver, err := be.Version()
+		if err != nil {
+			a.logger.Error("backend failed to retrieve version", zap.String("backend", name), zap.Error(err))
+			continue
+		}
+		capabilities["backends"].(map[string]BackendInfo)[name] = BackendInfo{
+			Version: ver,
+		}
+	}
 
-	body, err := json.Marshal(agentInfo)
+	body, err := json.Marshal(capabilities)
 	if err != nil {
 		return err
 	}
 
-	if token := a.client.Publish(a.agentInfoChannel, 1, false, body); token.Wait() && token.Error() != nil {
+	if token := a.client.Publish(a.capabilitiesChannel, 1, false, body); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 

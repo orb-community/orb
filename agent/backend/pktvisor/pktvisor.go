@@ -5,10 +5,13 @@
 package pktvisor
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/go-cmd/cmd"
 	"github.com/ns1labs/orb/agent/backend"
 	"go.uber.org/zap"
+	"net/http"
 	"os/exec"
 	"time"
 )
@@ -20,6 +23,74 @@ type pktvisorBackend struct {
 	binary     string
 	proc       *cmd.Cmd
 	statusChan <-chan cmd.Status
+
+	adminAPIHost     string
+	adminAPIPort     uint16
+	adminAPIProtocol string
+}
+
+// AppMetrics represents server application information
+type AppMetrics struct {
+	App struct {
+		Version   string  `json:"version"`
+		UpTimeMin float64 `json:"up_time_min"`
+	} `json:"app"`
+}
+
+func request(url string, payload interface{}) error {
+	client := http.Client{
+		Timeout: time.Second * 30,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+
+	res, getErr := client.Do(req)
+	if getErr != nil {
+		return getErr
+	}
+	if res.StatusCode != 200 {
+		return errors.New(fmt.Sprintf("non 200 HTTP error code from pktvisord: %d", res.StatusCode))
+	}
+
+	err = json.NewDecoder(res.Body).Decode(&payload)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *pktvisorBackend) checkAlive() (bool, error) {
+	status := p.proc.Status()
+
+	if status.Error != nil {
+		p.logger.Error("pktvisor process error", zap.Error(status.Error))
+		return false, status.Error
+	}
+
+	if status.Complete {
+		p.proc.Stop()
+		// TODO auto restart
+		return false, errors.New("pktvisor process ended")
+	}
+
+	return true, nil
+}
+
+func (p *pktvisorBackend) Version() (string, error) {
+	alive, err := p.checkAlive()
+	if !alive {
+		return "unknown", err
+	}
+	URL := fmt.Sprintf("%s://%s:%d/api/v1/metrics/app", p.adminAPIProtocol, p.adminAPIHost, p.adminAPIPort)
+	var appMetrics AppMetrics
+	err = request(URL, &appMetrics)
+	if err != nil {
+		return "", err
+	}
+	return appMetrics.App.Version, nil
 }
 
 func (p *pktvisorBackend) Write(payload []byte) (n int, err error) {
@@ -108,6 +179,10 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]string
 }
 
 func Register() bool {
-	backend.Register("pktvisor", &pktvisorBackend{})
+	backend.Register("pktvisor", &pktvisorBackend{
+		adminAPIHost:     "localhost",
+		adminAPIPort:     10853,
+		adminAPIProtocol: "http",
+	})
 	return true
 }
