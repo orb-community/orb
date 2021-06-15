@@ -1,0 +1,34 @@
+name: Go
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.15
+
+    - name: Build fleet manager
+      run: make fleet
+      
+    - name: Build policy manager
+      run: make fleet
+      
+    - name: Build sink manager
+      run: make fleet
+      
+    - name: Build prometheus sink
+      run: make prom-sink
+
+    - name: Test
+      run: make test
