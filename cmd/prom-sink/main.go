@@ -14,8 +14,8 @@ import (
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/pkg/config"
-	natconsume "github.com/ns1labs/orb/pkg/sinks/writer/consumer"
-	"github.com/ns1labs/orb/pkg/sinks/writer/prom"
+	natconsume "github.com/ns1labs/orb/sinks/writer/consumer"
+	"github.com/ns1labs/orb/sinks/writer/prom"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"log"
@@ -82,13 +82,13 @@ func main() {
 	consumerSvc = mfwriters.MetricsMiddleware(
 		consumerSvc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-			Namespace: "promsink",
+			Namespace: svcName,
 			Subsystem: "message_writer",
 			Name:      "request_count",
 			Help:      "Number of requests received.",
 		}, []string{"method"}),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
-			Namespace: "promsink",
+			Namespace: svcName,
 			Subsystem: "message_writer",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
