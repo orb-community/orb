@@ -12,6 +12,7 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/agent/backend"
+	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"time"
 )
@@ -21,16 +22,21 @@ type Agent interface {
 	Stop()
 }
 
+const HeartbeatFreq = 60 * time.Second
+
 type orbAgent struct {
 	logger   *zap.Logger
 	config   Config
 	client   mqtt.Client
 	backends map[string]backend.Backend
 
-	rpcChannelToCore    string
-	rpcChannelFromCore  string
+	hbTicker *time.Ticker
+	hbDone   chan bool
+
+	rpcToCoreChannel    string
+	rpcFromCoreChannel  string
 	capabilitiesChannel string
-	heartChannel        string
+	heartbeatsChannel   string
 	logChannel          string
 }
 
@@ -66,12 +72,41 @@ func (a *orbAgent) connect() (mqtt.Client, error) {
 func (a *orbAgent) nameChannels() {
 
 	base := fmt.Sprintf("channels/%s/messages", a.config.OrbAgent.MQTT["channel_id"])
-	a.rpcChannelToCore = fmt.Sprintf("%s/out", base)
-	a.rpcChannelFromCore = fmt.Sprintf("%s/in", base)
-	a.capabilitiesChannel = fmt.Sprintf("%s/agent", base)
-	a.heartChannel = fmt.Sprintf("%s/hb", base)
-	a.logChannel = fmt.Sprintf("%s/log", base)
+	a.rpcToCoreChannel = fmt.Sprintf("%s/%s", base, fleet.RPCToCoreChannel)
+	a.rpcFromCoreChannel = fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreChannel)
+	a.capabilitiesChannel = fmt.Sprintf("%s/%s", base, fleet.CapabilitiesChannel)
+	a.heartbeatsChannel = fmt.Sprintf("%s/%s", base, fleet.HeartbeatsChannel)
+	a.logChannel = fmt.Sprintf("%s/%s", base, fleet.LogChannel)
 
+}
+func (a *orbAgent) sendSingleHeartbeat(t time.Time) {
+
+	a.logger.Debug("heartbeat")
+
+	hbData := make(map[string]interface{})
+	hbData["ts"] = t.Unix()
+
+	body, err := json.Marshal(hbData)
+	if err != nil {
+		a.logger.Error("error creating heartbeat data", zap.Error(err))
+		return
+	}
+
+	if token := a.client.Publish(a.heartbeatsChannel, 1, false, body); token.Wait() && token.Error() != nil {
+		a.logger.Error("error sending heartbeat", zap.Error(err))
+	}
+}
+
+func (a *orbAgent) sendHeartbeats() {
+	a.sendSingleHeartbeat(time.Now())
+	for {
+		select {
+		case <-a.hbDone:
+			return
+		case t := <-a.hbTicker.C:
+			a.sendSingleHeartbeat(t)
+		}
+	}
 }
 
 func (a *orbAgent) startComms() error {
@@ -84,16 +119,20 @@ func (a *orbAgent) startComms() error {
 
 	a.nameChannels()
 
-	if token := a.client.Subscribe(a.rpcChannelFromCore, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
+	if token := a.client.Subscribe(a.rpcFromCoreChannel, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
 		a.logger.Error("failed to subscribe to RPC channel", zap.Error(err))
 		return err
 	}
 
 	err = a.sendCapabilities()
 	if err != nil {
-		a.logger.Error("failed to send agent info", zap.Error(err))
+		a.logger.Error("failed to send agent capabilities", zap.Error(err))
 		return err
 	}
+
+	a.hbTicker = time.NewTicker(HeartbeatFreq)
+	a.hbDone = make(chan bool)
+	go a.sendHeartbeats()
 
 	return nil
 }
@@ -181,7 +220,9 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 
 func (a *orbAgent) Stop() {
 	a.logger.Info("stopping agent")
-	if token := a.client.Unsubscribe(a.rpcChannelFromCore); token.Wait() && token.Error() != nil {
+	a.hbTicker.Stop()
+	a.hbDone <- true
+	if token := a.client.Unsubscribe(a.rpcFromCoreChannel); token.Wait() && token.Error() != nil {
 		a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
 	}
 	for _, be := range a.backends {

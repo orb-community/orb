@@ -10,6 +10,7 @@ package fleet
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"go.uber.org/zap"
@@ -24,9 +25,11 @@ type AgentCommsService interface {
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
 
-const SubjectAllCapabilitiesChannel = "channels.*.agent"
-const SubjectAllHeartbeatsChannel = "channels.*.hb"
-const SubjectToCoreChannel = "channels.*.out"
+const CapabilitiesChannel = "agent"
+const HeartbeatsChannel = "hb"
+const RPCToCoreChannel = "tocore"
+const RPCFromCoreChannel = "fromcore"
+const LogChannel = "log"
 
 type fleetCommsService struct {
 	logger *zap.Logger
@@ -41,7 +44,7 @@ func NewFleetCommsService(logger *zap.Logger, agentPubSub mfnats.PubSub) AgentCo
 	}
 }
 
-func (svc fleetCommsService) handleCapabilitiesFromAgent(msg messaging.Message) error {
+func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 	var payload interface{}
 	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
 		return err
@@ -52,19 +55,35 @@ func (svc fleetCommsService) handleCapabilitiesFromAgent(msg messaging.Message) 
 }
 
 func (svc fleetCommsService) Start() error {
-	// TODO make this the agent channel
-	if err := svc.agentPubSub.Subscribe(SubjectAllCapabilitiesChannel, svc.handleCapabilitiesFromAgent); err != nil {
+	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", CapabilitiesChannel), svc.handleMsgFromAgent); err != nil {
 		return err
 	}
-	svc.logger.Info("subscribed to agent capabilities channels")
+	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", HeartbeatsChannel), svc.handleMsgFromAgent); err != nil {
+		return err
+	}
+	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", RPCToCoreChannel), svc.handleMsgFromAgent); err != nil {
+		return err
+	}
+	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", LogChannel), svc.handleMsgFromAgent); err != nil {
+		return err
+	}
+	svc.logger.Info("subscribed to agent channels")
 	return nil
 }
 
 func (svc fleetCommsService) Stop() error {
-	// TODO make this the agent channel
-	if err := svc.agentPubSub.Unsubscribe(SubjectAllCapabilitiesChannel); err != nil {
+	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", CapabilitiesChannel)); err != nil {
 		return err
 	}
-	svc.logger.Info("subscribed to agent capabilities channels")
+	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", HeartbeatsChannel)); err != nil {
+		return err
+	}
+	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", RPCToCoreChannel)); err != nil {
+		return err
+	}
+	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", LogChannel)); err != nil {
+		return err
+	}
+	svc.logger.Info("unsubscribed from agent channels")
 	return nil
 }
