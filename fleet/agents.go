@@ -41,7 +41,7 @@ func (s State) String() string {
 	return stateMap[s]
 }
 
-func (s *State) Scan(value interface{}) error { *s = stateRevMap[value.(string)]; return nil }
+func (s *State) Scan(value interface{}) error { *s = stateRevMap[string(value.([]byte))]; return nil }
 func (s State) Value() (driver.Value, error)  { return s.String(), nil }
 
 type Agent struct {
@@ -69,4 +69,8 @@ type AgentRepository interface {
 	// Save persists the Agent. Successful operation is indicated by non-nil
 	// error response.
 	Save(ctx context.Context, agent Agent) error
+	// RetrieveByIDWithOwner retrieves the Agent having the provided ID and owner
+	RetrieveByIDWithOwner(ctx context.Context, thingID string, ownerID string) (Agent, error)
+	// RetrieveByIDWithChannel retrieves the Agent having the provided ID and channelID access (i.e. from a Message)
+	RetrieveByIDWithChannel(ctx context.Context, thingID string, channelID string) (Agent, error)
 }

@@ -38,6 +38,9 @@ var (
 
 	ErrCreateAgent = errors.New("failed to create agent")
 
+	// ErrSelectEntity indicates error while reading entity from database
+	ErrSelectEntity = errors.New("select entity from db error")
+
 	// ErrThings indicates failure to communicate with Mainflux Things service.
 	// It can be due to networking error or invalid/unauthorized request.
 	ErrThings = errors.New("failed to receive response from Things service")

@@ -9,6 +9,7 @@
 package fleet
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/mainflux/mainflux/pkg/messaging"
@@ -32,25 +33,74 @@ const RPCFromCoreChannel = "fromcore"
 const LogChannel = "log"
 
 type fleetCommsService struct {
-	logger *zap.Logger
+	logger    *zap.Logger
+	agentRepo AgentRepository
+
 	// agent comms
 	agentPubSub mfnats.PubSub
 }
 
-func NewFleetCommsService(logger *zap.Logger, agentPubSub mfnats.PubSub) AgentCommsService {
+func NewFleetCommsService(logger *zap.Logger, agentRepo AgentRepository, agentPubSub mfnats.PubSub) AgentCommsService {
 	return &fleetCommsService{
 		logger:      logger,
+		agentRepo:   agentRepo,
 		agentPubSub: agentPubSub,
 	}
 }
 
+func (svc fleetCommsService) handleCapabilities(thingID string, channelID string, payload map[string]interface{}) error {
+	agent, err := svc.agentRepo.RetrieveByIDWithChannel(context.Background(), thingID, channelID)
+	if err != nil {
+		return err
+	}
+	svc.logger.Info("found agent", zap.Any("agent", agent))
+	return nil
+}
+
+func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, payload map[string]interface{}) error {
+	return nil
+
+}
+
 func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
-	var payload interface{}
+
+	var payload map[string]interface{}
 	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
 		return err
 	}
-	svc.logger.Info("received message", zap.Any("payload", payload), zap.Any("subtopic", msg.Subtopic), zap.Any("channel", msg.Channel),
-		zap.Any("protocol", msg.Protocol), zap.Any("created", msg.Created), zap.Any("publisher", msg.Publisher))
+
+	svc.logger.Debug("received agent message",
+		zap.Any("payload", payload),
+		zap.String("subtopic", msg.Subtopic),
+		zap.String("channel", msg.Channel),
+		zap.String("protocol", msg.Protocol),
+		zap.Int64("created", msg.Created),
+		zap.String("publisher", msg.Publisher))
+
+	// dispatch
+	switch msg.Subtopic {
+	case CapabilitiesChannel:
+		if err := svc.handleCapabilities(msg.Publisher, msg.Channel, payload); err != nil {
+			svc.logger.Error("parse capabilities failure", zap.Error(err))
+			return nil
+		}
+	case HeartbeatsChannel:
+		if err := svc.handleHeartbeat(msg.Publisher, msg.Channel, payload); err != nil {
+			svc.logger.Error("parse heartbeat failure", zap.Error(err))
+		}
+	case RPCToCoreChannel:
+		svc.logger.Error("implement me: RPCToCoreChannel")
+	case RPCFromCoreChannel:
+		svc.logger.Error("implement me: RPCFromCoreChannel")
+	case LogChannel:
+		svc.logger.Error("implement me: LogChannel")
+	default:
+		svc.logger.Warn("unsupported/unhandled agent subtopic, ignoring",
+			zap.String("subtopic", msg.Subtopic),
+			zap.String("thing_id", msg.Publisher),
+			zap.String("channel_id", msg.Channel))
+	}
+
 	return nil
 }
 

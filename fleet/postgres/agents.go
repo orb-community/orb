@@ -10,12 +10,14 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
+	"time"
 )
 
 var _ fleet.AgentRepository = (*agentRepository)(nil)
@@ -27,6 +29,44 @@ type agentRepository struct {
 
 func NewAgentRepository(db Database, logger *zap.Logger) fleet.AgentRepository {
 	return &agentRepository{db: db, logger: logger}
+}
+
+func (r agentRepository) RetrieveByIDWithOwner(ctx context.Context, thingID string, ownerID string) (fleet.Agent, error) {
+	q := `SELECT name, mf_channel_id, orb_tags, agent_tags, agent_metadata, state FROM agents WHERE mf_thing_id = $1 AND mf_owner_id = $2;`
+
+	dba, err := newDBAgentByOwner(thingID, ownerID)
+	if err != nil {
+		return fleet.Agent{}, errors.Wrap(errMarshal, err)
+	}
+
+	if err := r.db.QueryRowxContext(ctx, q, thingID, ownerID).StructScan(&dba); err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if err == sql.ErrNoRows || ok && errInvalid == pqErr.Code.Name() {
+			return fleet.Agent{}, errors.Wrap(fleet.ErrNotFound, err)
+		}
+		return fleet.Agent{}, errors.Wrap(fleet.ErrSelectEntity, err)
+	}
+
+	return toAgent(dba)
+}
+
+func (r agentRepository) RetrieveByIDWithChannel(ctx context.Context, thingID string, channelID string) (fleet.Agent, error) {
+	q := `SELECT name, mf_owner_id, orb_tags, agent_tags, agent_metadata, state FROM agents WHERE mf_thing_id = $1 AND mf_channel_id = $2;`
+
+	dba, err := newDBAgentByChannel(thingID, channelID)
+	if err != nil {
+		return fleet.Agent{}, errors.Wrap(errMarshal, err)
+	}
+
+	if err := r.db.QueryRowxContext(ctx, q, thingID, channelID).StructScan(&dba); err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if err == sql.ErrNoRows || ok && errInvalid == pqErr.Code.Name() {
+			return fleet.Agent{}, errors.Wrap(fleet.ErrNotFound, err)
+		}
+		return fleet.Agent{}, errors.Wrap(fleet.ErrSelectEntity, err)
+	}
+
+	return toAgent(dba)
 }
 
 func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
@@ -75,45 +115,114 @@ type dbAgent struct {
 	AgentTags     dbMetadata       `db:"agent_tags"`
 	AgentMetadata dbMetadata       `db:"agent_metadata"`
 	State         fleet.State      `db:"state"`
+	Created       time.Time        `db:"ts_last_hb"`
+	LastHBData    dbMetadata       `db:"last_hb_data"`
+	LastHB        time.Time        `db:"ts_last_hb"`
+}
+
+func getUUID(u string) (uuid.UUID, error) {
+	var oID uuid.UUID
+	err := oID.Scan(u)
+	if err != nil {
+		return uuid.UUID{}, errors.Wrap(fleet.ErrMalformedEntity, err)
+	}
+	return oID, nil
+}
+
+func getNullUUID(u string) (uuid.NullUUID, error) {
+	var tID uuid.NullUUID
+	if u == "" {
+		tID = uuid.NullUUID{UUID: uuid.Nil, Valid: false}
+	} else {
+		err := tID.Scan(u)
+		if err != nil {
+			return uuid.NullUUID{}, errors.Wrap(fleet.ErrMalformedEntity, err)
+		}
+	}
+	return tID, nil
+}
+
+func newDBAgentByChannel(thingID string, channelID string) (dbAgent, error) {
+
+	tID, err := getNullUUID(thingID)
+	if err != nil {
+		return dbAgent{}, err
+	}
+	chID, err := getNullUUID(channelID)
+	if err != nil {
+		return dbAgent{}, err
+	}
+
+	return dbAgent{
+		MFThingID:   tID,
+		MFChannelID: chID,
+	}, nil
+}
+
+func newDBAgentByOwner(thingID string, ownerID string) (dbAgent, error) {
+
+	tID, err := getNullUUID(thingID)
+	if err != nil {
+		return dbAgent{}, err
+	}
+	oID, err := getUUID(ownerID)
+	if err != nil {
+		return dbAgent{}, err
+	}
+
+	return dbAgent{
+		MFThingID: tID,
+		MFOwnerID: oID,
+	}, nil
 }
 
 func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 
-	var tID uuid.NullUUID
-	if agent.MFThingID == "" {
-		tID = uuid.NullUUID{UUID: uuid.Nil, Valid: false}
-	} else {
-		err := tID.Scan(agent.MFThingID)
-		if err != nil {
-			return dbAgent{}, errors.Wrap(fleet.ErrMalformedEntity, err)
-		}
-	}
-
-	var chID uuid.NullUUID
-	if agent.MFChannelID == "" {
-		chID = uuid.NullUUID{UUID: uuid.Nil, Valid: false}
-	} else {
-		err := chID.Scan(agent.MFChannelID)
-		if err != nil {
-			return dbAgent{}, errors.Wrap(fleet.ErrMalformedEntity, err)
-		}
-	}
-
-	var oID uuid.UUID
-	err := oID.Scan(agent.MFOwnerID)
+	tID, err := getNullUUID(agent.MFThingID)
 	if err != nil {
-		return dbAgent{}, errors.Wrap(fleet.ErrMalformedEntity, err)
+		return dbAgent{}, err
+	}
+	chID, err := getNullUUID(agent.MFChannelID)
+	if err != nil {
+		return dbAgent{}, err
+	}
+	oID, err := getUUID(agent.MFOwnerID)
+	if err != nil {
+		return dbAgent{}, err
 	}
 
 	return dbAgent{
 		Name:          agent.Name,
+		MFOwnerID:     oID,
 		MFThingID:     tID,
 		MFChannelID:   chID,
-		MFOwnerID:     oID,
-		State:         agent.State,
 		OrbTags:       dbMetadata(agent.OrbTags),
 		AgentTags:     dbMetadata(agent.AgentTags),
 		AgentMetadata: dbMetadata(agent.AgentMetadata),
+		State:         agent.State,
+		Created:       agent.Created,
+		LastHBData:    dbMetadata(agent.LastHBData),
+		LastHB:        agent.LastHB,
 	}, nil
+
+}
+
+func toAgent(dba dbAgent) (fleet.Agent, error) {
+
+	agent := fleet.Agent{
+		Name:          dba.Name,
+		MFOwnerID:     dba.MFOwnerID.String(),
+		MFThingID:     dba.MFThingID.UUID.String(),
+		MFChannelID:   dba.MFChannelID.UUID.String(),
+		Created:       dba.Created,
+		OrbTags:       fleet.Tags(dba.OrbTags),
+		AgentTags:     fleet.Tags(dba.AgentTags),
+		AgentMetadata: fleet.Metadata(dba.AgentMetadata),
+		State:         dba.State,
+		LastHBData:    fleet.Metadata(dba.LastHBData),
+		LastHB:        dba.LastHB,
+	}
+
+	return agent, nil
 
 }
