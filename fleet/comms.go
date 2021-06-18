@@ -59,8 +59,13 @@ func (svc fleetCommsService) handleCapabilities(thingID string, channelID string
 }
 
 func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, payload map[string]interface{}) error {
+	agent := Agent{MFThingID: thingID, MFChannelID: channelID}
+	agent.LastHBData = payload
+	err := svc.agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), agent)
+	if err != nil {
+		return err
+	}
 	return nil
-
 }
 
 func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
