@@ -79,13 +79,14 @@ func (a *orbAgent) nameChannels() {
 	a.logChannel = fmt.Sprintf("%s/%s", base, fleet.LogChannel)
 
 }
-func (a *orbAgent) sendSingleHeartbeat(t time.Time) {
+func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
 	a.logger.Debug("heartbeat")
 
 	hbData := fleet.Heartbeat{
 		SchemaVersion: fleet.CurrentHeartbeatSchemaVersion,
 		TimeStamp:     t,
+		State:         state,
 	}
 
 	body, err := json.Marshal(hbData)
@@ -100,13 +101,13 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time) {
 }
 
 func (a *orbAgent) sendHeartbeats() {
-	a.sendSingleHeartbeat(time.Now())
+	a.sendSingleHeartbeat(time.Now(), fleet.Online)
 	for {
 		select {
 		case <-a.hbDone:
 			return
 		case t := <-a.hbTicker.C:
-			a.sendSingleHeartbeat(t)
+			a.sendSingleHeartbeat(t, fleet.Online)
 		}
 	}
 }
@@ -227,6 +228,7 @@ func (a *orbAgent) Stop() {
 	a.logger.Info("stopping agent")
 	a.hbTicker.Stop()
 	a.hbDone <- true
+	a.sendSingleHeartbeat(time.Now(), fleet.Offline)
 	if token := a.client.Unsubscribe(a.rpcFromCoreChannel); token.Wait() && token.Error() != nil {
 		a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
 	}

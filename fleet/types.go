@@ -43,4 +43,5 @@ const CurrentHeartbeatSchemaVersion = "1.0"
 type Heartbeat struct {
 	SchemaVersion string    `json:"schema_version"`
 	TimeStamp     time.Time `json:"ts"`
+	State         State     `json:"state"`
 }
