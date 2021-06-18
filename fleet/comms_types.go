@@ -12,11 +12,17 @@ import (
 var (
 	// ErrSchemaVersion a message was received indicating a version we don't support
 	ErrSchemaVersion = errors.New("unsupported schema version")
-	// ErrSchemaMalformed a message contained a scheme we couldn't parse
+	// ErrSchemaMalformed a message contained a schema we couldn't parse
 	ErrSchemaMalformed = errors.New("schema malformed")
+	// ErrPayloadTooBig a message contained a payload that was abnormally large
+	ErrPayloadTooBig = errors.New("payload too big")
 )
 
+// MaxMsgPayloadSize maximum payload size we will process from a client
+const MaxMsgPayloadSize = 1024 * 5
+
 // MQTT messaging schemes
+
 type SchemaVersionCheck struct {
 	SchemaVersion string `json:"schema_version"`
 }

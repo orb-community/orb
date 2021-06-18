@@ -103,6 +103,8 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 
 func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 
+	// NOTE: we need to consider ALL input from the agent as untrusted
+
 	var payload map[string]interface{}
 	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
 		return err
@@ -115,6 +117,10 @@ func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 		zap.String("protocol", msg.Protocol),
 		zap.Int64("created", msg.Created),
 		zap.String("publisher", msg.Publisher))
+
+	if len(msg.Payload) > MaxMsgPayloadSize {
+		return ErrPayloadTooBig
+	}
 
 	// dispatch
 	switch msg.Subtopic {
