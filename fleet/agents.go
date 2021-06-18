@@ -59,14 +59,24 @@ type Agent struct {
 	LastHB        time.Time
 }
 
+// Page contains page related metadata as well as list of agents that
+// belong to this page.
+type Page struct {
+	PageMetadata
+	Agents []Agent
+}
+
 // AgentService Agent CRUD interface
 type AgentService interface {
 	// CreateAgent creates new agent
 	CreateAgent(ctx context.Context, token string, a Agent) (Agent, error)
+	// ListAgents retrieves data about subset of agents that belongs to the
+	// user identified by the provided key.
+	ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error)
 }
 
 type AgentRepository interface {
-	AgentHeartbeatRepository // may move this out
+	AgentHeartbeatRepository // may move this out so it can be in e.g. redis
 
 	// Save persists the Agent. Successful operation is indicated by non-nil
 	// error response.
@@ -75,6 +85,8 @@ type AgentRepository interface {
 	UpdateDataByIDWithChannel(ctx context.Context, agent Agent) error
 	// RetrieveByIDWithChannel retrieves the Agent having the provided ID and channelID access (i.e. from a Message)
 	RetrieveByIDWithChannel(ctx context.Context, thingID string, channelID string) (Agent, error)
+	// RetrieveAll retrieves the subset of Agents owned by the specified user
+	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
 }
 
 type AgentHeartbeatRepository interface {

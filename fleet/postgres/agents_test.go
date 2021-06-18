@@ -10,6 +10,7 @@ package postgres_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet"
@@ -28,6 +29,7 @@ const maxNameSize = 1024
 var (
 	invalidName = strings.Repeat("m", maxNameSize+1)
 	logger, _   = zap.NewDevelopment()
+	wrongValue  = "wrong-value"
 )
 
 func TestAgentSave(t *testing.T) {
@@ -35,6 +37,9 @@ func TestAgentSave(t *testing.T) {
 	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
 
 	thID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	oID, err := uuid.NewV4()
@@ -47,12 +52,11 @@ func TestAgentSave(t *testing.T) {
 		Name:          nameID,
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
+		MFChannelID:   chID.String(),
 		OrbTags:       fleet.Tags{"testkey": "testvalue"},
 		AgentTags:     fleet.Tags{"testkey": "testvalue"},
 		AgentMetadata: fleet.Metadata{"testkey": "testvalue"},
 	}
-
-	name1, _ := types.NewIdentifier("myagent2")
 
 	cases := []struct {
 		desc  string
@@ -68,11 +72,6 @@ func TestAgentSave(t *testing.T) {
 			desc:  "create agent that already exist",
 			agent: agent,
 			err:   fleet.ErrConflict,
-		},
-		{
-			desc:  "create agent with null thing ID",
-			agent: fleet.Agent{Name: name1, MFThingID: "", MFOwnerID: oID.String()},
-			err:   nil,
 		},
 	}
 
@@ -256,5 +255,157 @@ func TestAgentUpdateHeartbeat(t *testing.T) {
 			assert.Nil(t, err)
 			assert.Equal(t, tc.agent.LastHBData, ag.LastHBData, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
 		}
+	}
+}
+
+func TestMultiAgentRetrieval(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	wrongoID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	name := "agent_name"
+	metaStr := `{"field1":"value1","field2":{"subfield11":"value2","subfield12":{"subfield121":"value3","subfield122":"value4"}}}`
+	subMetaStr := `{"field2":{"subfield12":{"subfield121":"value3"}}}`
+
+	metadata := fleet.Metadata{}
+	json.Unmarshal([]byte(metaStr), &metadata)
+
+	subMeta := fleet.Metadata{}
+	json.Unmarshal([]byte(subMetaStr), &subMeta)
+
+	wrongMeta := fleet.Metadata{
+		"field": "value1",
+	}
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		thID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		chID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th := fleet.Agent{
+			MFOwnerID:   oID.String(),
+			MFThingID:   thID.String(),
+			MFChannelID: chID.String(),
+		}
+
+		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, i))
+		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th.AgentMetadata = metadata
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+		err = agentRepo.Save(context.Background(), th)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner        string
+		pageMetadata fleet.PageMetadata
+		size         uint64
+	}{
+		"retrieve all agents with existing owner": {
+			owner: oID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+			},
+			size: n,
+		},
+		"retrieve subset of agents with existing owner": {
+			owner: oID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset: n / 2,
+				Limit:  n,
+				Total:  n,
+			},
+			size: n / 2,
+		},
+		"retrieve agents with non-existing owner": {
+			owner: wrongoID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  0,
+			},
+			size: 0,
+		},
+		"retrieve agents with non-existing name": {
+			owner: oID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Name:   "wrong",
+				Total:  0,
+			},
+			size: 0,
+		},
+		"retrieve agents with non-existing metadata": {
+			owner: oID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset:   0,
+				Limit:    n,
+				Total:    0,
+				Metadata: wrongMeta,
+			},
+			size: 0,
+		},
+		"retrieve agents sorted by name ascendent": {
+			owner: oID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Order:  "name",
+				Dir:    "asc",
+			},
+			size: n,
+		},
+		"retrieve agents sorted by name descendent": {
+			owner: oID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Order:  "name",
+				Dir:    "desc",
+			},
+			size: n,
+		},
+	}
+
+	for desc, tc := range cases {
+		page, err := agentRepo.RetrieveAll(context.Background(), tc.owner, tc.pageMetadata)
+		size := uint64(len(page.Agents))
+		assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d\n", desc, tc.size, size))
+		assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d\n", desc, tc.pageMetadata.Total, page.Total))
+		assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
+
+		// Check if Agents list have been sorted properly
+		if size > 0 {
+			testSortAgents(t, tc.pageMetadata, page.Agents)
+		}
+	}
+}
+func testSortAgents(t *testing.T, pm fleet.PageMetadata, ths []fleet.Agent) {
+	switch pm.Order {
+	case "name":
+		current := ths[0]
+		for _, res := range ths {
+			if pm.Dir == "asc" {
+				assert.GreaterOrEqual(t, res.Name.String(), current.Name.String())
+			}
+			if pm.Dir == "desc" {
+				assert.GreaterOrEqual(t, current.Name.String(), res.Name.String())
+			}
+			current = res
+		}
+	default:
+		break
 	}
 }

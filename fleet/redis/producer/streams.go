@@ -26,6 +26,10 @@ type eventStore struct {
 	client *redis.Client
 }
 
+func (es eventStore) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (fleet.Page, error) {
+	return es.svc.ListAgents(ctx, token, pm)
+}
+
 func (es eventStore) CreateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
 	return es.svc.CreateAgent(ctx, token, a)
 }
