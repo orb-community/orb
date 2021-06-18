@@ -10,14 +10,13 @@ package postgres_test
 
 import (
 	"fmt"
+	"github.com/jmoiron/sqlx"
+	"github.com/ns1labs/orb/fleet/postgres"
+	"github.com/ns1labs/orb/pkg/config"
 	"go.uber.org/zap"
 	"log"
 	"os"
 	"testing"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/ns1labs/orb/fleet/postgres"
-	"github.com/ns1labs/orb/pkg/config"
 
 	dockertest "github.com/ory/dockertest/v3"
 )
@@ -38,11 +37,16 @@ func TestMain(m *testing.M) {
 		"POSTGRES_PASSWORD=test",
 		"POSTGRES_DB=test",
 	}
-	container, err := pool.Run("postgres", "13.2-alpine", cfg)
+	ro := dockertest.RunOptions{
+		Repository: "postgres",
+		Tag:        "13-alpine",
+		Env:        cfg,
+		Cmd:        []string{"postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"},
+	}
+	container, err := pool.RunWithOptions(&ro)
 	if err != nil {
 		log.Fatalf("Could not start container: %s", err)
 	}
-
 	port := container.GetPort("5432/tcp")
 
 	if err := pool.Retry(func() error {
@@ -79,10 +83,12 @@ func TestMain(m *testing.M) {
 	// Defers will not be run when using os.Exit
 	db.Close()
 
-	if err := pool.Purge(container); err != nil {
-		log.Fatalf("Could not purge container: %s", err)
+	if code != 0 {
+		if err := pool.Purge(container); err != nil {
+			log.Fatalf("Could not purge container: %s", err)
+		}
+		testLog.Debug("purged database upon success")
 	}
-	testLog.Debug("purged database")
 
 	os.Exit(code)
 }

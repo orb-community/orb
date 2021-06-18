@@ -27,6 +27,8 @@ var (
 	// ErrMalformedEntity indicates malformed entity specification.
 	ErrMalformedEntity = errors.New("malformed entity specification")
 
+	ErrUpdateEntity = errors.New("update entity failed")
+
 	// ErrUnauthorizedAccess indicates missing or invalid credentials provided
 	// when accessing a protected resource.
 	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")

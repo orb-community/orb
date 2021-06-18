@@ -23,6 +23,7 @@ const (
 
 var (
 	errSaveDB    = errors.New("Failed to save to database")
+	errUpdateDB  = errors.New("Failed to update database")
 	errMarshal   = errors.New("Failed to marshal metadata")
 	errUnmarshal = errors.New("Failed to unmarshal metadata")
 )

@@ -69,8 +69,13 @@ type AgentRepository interface {
 	// Save persists the Agent. Successful operation is indicated by non-nil
 	// error response.
 	Save(ctx context.Context, agent Agent) error
-	// RetrieveByIDWithOwner retrieves the Agent having the provided ID and owner
-	RetrieveByIDWithOwner(ctx context.Context, thingID string, ownerID string) (Agent, error)
+	// UpdateDataByIDWithChannel update the tags and metadata for the Agent having the provided ID and owner
+	UpdateDataByIDWithChannel(ctx context.Context, agent Agent) error
 	// RetrieveByIDWithChannel retrieves the Agent having the provided ID and channelID access (i.e. from a Message)
 	RetrieveByIDWithChannel(ctx context.Context, thingID string, channelID string) (Agent, error)
+}
+
+type AgentHeartbeatRepository interface {
+	// UpdateHeartbeatByIDWithChannel update the heartbeat data for the Agent having the provided ID and owner
+	UpdateHeartbeatByIDWithChannel(ctx context.Context, agent Agent) error
 }

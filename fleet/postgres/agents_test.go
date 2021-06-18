@@ -70,16 +70,6 @@ func TestAgentSave(t *testing.T) {
 			err:   fleet.ErrConflict,
 		},
 		{
-			desc:  "create agent with invalid thing ID",
-			agent: fleet.Agent{Name: name1, MFThingID: "invalid", MFOwnerID: oID.String()},
-			err:   fleet.ErrMalformedEntity,
-		},
-		{
-			desc:  "create agent with invalid owner ID",
-			agent: fleet.Agent{Name: name1, MFThingID: thID.String(), MFOwnerID: "invalid"},
-			err:   fleet.ErrMalformedEntity,
-		},
-		{
 			desc:  "create agent with null thing ID",
 			agent: fleet.Agent{Name: name1, MFThingID: "", MFOwnerID: oID.String()},
 			err:   nil,
@@ -124,39 +114,87 @@ func TestAgentRetrieve(t *testing.T) {
 	cases := map[string]struct {
 		thingID   string
 		channelID string
-		ownerID   string
 		err       error
 	}{
 		"retrieve existing agent by thingID and channelID": {
 			thingID:   agent.MFThingID,
 			channelID: agent.MFChannelID,
-			ownerID:   "",
 			err:       nil,
 		},
-		"retrieve existing agent by thingID and ownerID": {
-			thingID:   agent.MFThingID,
-			channelID: "",
-			ownerID:   agent.MFOwnerID,
-			err:       nil,
-		},
-		"retrieve non-existent agent by thingID and ownerID": {
+		"retrieve non-existent agent by thingID and channelID": {
 			thingID:   agent.MFOwnerID,
 			channelID: agent.MFChannelID,
-			ownerID:   "",
 			err:       fleet.ErrNotFound,
 		},
 	}
 
 	for desc, tc := range cases {
-		var ag fleet.Agent
-		if tc.channelID != "" {
-			ag, err = agentRepo.RetrieveByIDWithChannel(context.Background(), tc.thingID, tc.channelID)
-		} else {
-			ag, err = agentRepo.RetrieveByIDWithOwner(context.Background(), tc.thingID, tc.ownerID)
-		}
+		ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.thingID, tc.channelID)
 		if err == nil {
 			assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+	}
+}
+
+func TestAgentUpdate(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	thID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("myagent")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	agent := fleet.Agent{
+		Name:          nameID,
+		MFThingID:     thID.String(),
+		MFOwnerID:     oID.String(),
+		MFChannelID:   chID.String(),
+		OrbTags:       fleet.Tags{"testkey": "testvalue"},
+		AgentTags:     fleet.Tags{"testkey": "testvalue"},
+		AgentMetadata: fleet.Metadata{"testkey": "testvalue"},
+	}
+
+	err = agentRepo.Save(context.Background(), agent)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	cases := map[string]struct {
+		agent fleet.Agent
+		err   error
+	}{
+		"update existing agent by thingID and channelID": {
+			agent: fleet.Agent{
+				MFThingID:     thID.String(),
+				MFChannelID:   chID.String(),
+				AgentMetadata: fleet.Metadata{"newkey": "newvalue"},
+			},
+			err: nil,
+		},
+		"update non-existent agent by thingID and channelID": {
+			agent: fleet.Agent{
+				MFThingID:     chID.String(),
+				MFChannelID:   thID.String(),
+				AgentMetadata: fleet.Metadata{"newkey": "newvalue"},
+			},
+			err: fleet.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		err = agentRepo.UpdateDataByIDWithChannel(context.Background(), tc.agent)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		if err == nil {
+			ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.agent.MFThingID, tc.agent.MFChannelID)
+			assert.Nil(t, err)
+			assert.Equal(t, tc.agent.AgentMetadata, ag.AgentMetadata, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+		}
 	}
 }

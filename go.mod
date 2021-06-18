@@ -20,7 +20,7 @@ require (
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/uber/jaeger-client-go v2.24.0+incompatible
-	go.uber.org/zap v1.15.0
+	go.uber.org/zap v1.16.0
 	google.golang.org/grpc v1.30.0
 	gotest.tools v2.2.0+incompatible
 )

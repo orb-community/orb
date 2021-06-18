@@ -49,11 +49,12 @@ func NewFleetCommsService(logger *zap.Logger, agentRepo AgentRepository, agentPu
 }
 
 func (svc fleetCommsService) handleCapabilities(thingID string, channelID string, payload map[string]interface{}) error {
-	agent, err := svc.agentRepo.RetrieveByIDWithChannel(context.Background(), thingID, channelID)
+	agent := Agent{MFThingID: thingID, MFChannelID: channelID}
+	agent.AgentMetadata = payload
+	err := svc.agentRepo.UpdateDataByIDWithChannel(context.Background(), agent)
 	if err != nil {
 		return err
 	}
-	svc.logger.Info("found agent", zap.Any("agent", agent))
 	return nil
 }
 
