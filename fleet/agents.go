@@ -66,6 +66,8 @@ type AgentService interface {
 }
 
 type AgentRepository interface {
+	AgentHeartbeatRepository // may move this out
+
 	// Save persists the Agent. Successful operation is indicated by non-nil
 	// error response.
 	Save(ctx context.Context, agent Agent) error

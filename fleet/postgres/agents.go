@@ -20,7 +20,6 @@ import (
 )
 
 var _ fleet.AgentRepository = (*agentRepository)(nil)
-var _ fleet.AgentHeartbeatRepository = (*agentRepository)(nil)
 
 type agentRepository struct {
 	db     Database
@@ -75,8 +74,8 @@ func (r agentRepository) UpdateDataByIDWithChannel(ctx context.Context, agent fl
 func (r agentRepository) UpdateHeartbeatByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
 
 	q := `UPDATE agents SET (last_hb_data, ts_last_hb)         
-			= (:last_hb_data, :ts_last_hb) 
-			WHERE mf_thing_id = :thing_id AND mf_channel_id = :channel_id;`
+			= (:last_hb_data, now()) 
+			WHERE mf_thing_id = :mf_thing_id AND mf_channel_id = :mf_channel_id;`
 
 	if agent.MFThingID == "" || agent.MFChannelID == "" {
 		return fleet.ErrMalformedEntity

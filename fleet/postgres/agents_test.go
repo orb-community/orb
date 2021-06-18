@@ -137,7 +137,7 @@ func TestAgentRetrieve(t *testing.T) {
 	}
 }
 
-func TestAgentUpdate(t *testing.T) {
+func TestAgentUpdateData(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
 	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
 
@@ -170,7 +170,7 @@ func TestAgentUpdate(t *testing.T) {
 		agent fleet.Agent
 		err   error
 	}{
-		"update existing agent by thingID and channelID": {
+		"update existing agent data by thingID and channelID": {
 			agent: fleet.Agent{
 				MFThingID:     thID.String(),
 				MFChannelID:   chID.String(),
@@ -178,7 +178,7 @@ func TestAgentUpdate(t *testing.T) {
 			},
 			err: nil,
 		},
-		"update non-existent agent by thingID and channelID": {
+		"update non-existent agent data by thingID and channelID": {
 			agent: fleet.Agent{
 				MFThingID:     chID.String(),
 				MFChannelID:   thID.String(),
@@ -195,6 +195,66 @@ func TestAgentUpdate(t *testing.T) {
 			ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.agent.MFThingID, tc.agent.MFChannelID)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.agent.AgentMetadata, ag.AgentMetadata, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+		}
+	}
+}
+
+func TestAgentUpdateHeartbeat(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	thID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("myagent")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	agent := fleet.Agent{
+		Name:        nameID,
+		MFThingID:   thID.String(),
+		MFOwnerID:   oID.String(),
+		MFChannelID: chID.String(),
+		LastHBData:  fleet.Metadata{"heartbeatdata": "testvalue"},
+	}
+
+	err = agentRepo.Save(context.Background(), agent)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	cases := map[string]struct {
+		agent fleet.Agent
+		err   error
+	}{
+		"update existing agent heartbeat by thingID and channelID": {
+			agent: fleet.Agent{
+				MFThingID:   thID.String(),
+				MFChannelID: chID.String(),
+				LastHBData:  fleet.Metadata{"heartbeatdata2": "newvalue"},
+			},
+			err: nil,
+		},
+		"update non-existent agent heart beat by thingID and channelID": {
+			agent: fleet.Agent{
+				MFThingID:   chID.String(),
+				MFChannelID: thID.String(),
+				LastHBData:  fleet.Metadata{"heartbeatdata2": "newvalue"},
+			},
+			err: fleet.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		err = agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), tc.agent)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		if err == nil {
+			ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.agent.MFThingID, tc.agent.MFChannelID)
+			assert.Nil(t, err)
+			assert.Equal(t, tc.agent.LastHBData, ag.LastHBData, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
 		}
 	}
 }
