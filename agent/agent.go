@@ -79,12 +79,15 @@ func (a *orbAgent) nameChannels() {
 	a.logChannel = fmt.Sprintf("%s/%s", base, fleet.LogChannel)
 
 }
-func (a *orbAgent) sendSingleHeartbeat(t time.Time) {
+func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
 	a.logger.Debug("heartbeat")
 
-	hbData := make(map[string]interface{})
-	hbData["ts"] = t.Unix()
+	hbData := fleet.Heartbeat{
+		SchemaVersion: fleet.CurrentHeartbeatSchemaVersion,
+		TimeStamp:     t,
+		State:         state,
+	}
 
 	body, err := json.Marshal(hbData)
 	if err != nil {
@@ -98,13 +101,13 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time) {
 }
 
 func (a *orbAgent) sendHeartbeats() {
-	a.sendSingleHeartbeat(time.Now())
+	a.sendSingleHeartbeat(time.Now(), fleet.Online)
 	for {
 		select {
 		case <-a.hbDone:
 			return
 		case t := <-a.hbTicker.C:
-			a.sendSingleHeartbeat(t)
+			a.sendSingleHeartbeat(t, fleet.Online)
 		}
 	}
 }
@@ -185,19 +188,22 @@ func (a *orbAgent) Start() error {
 
 func (a *orbAgent) sendCapabilities() error {
 
-	capabilities := make(map[string]interface{})
-
-	capabilities["orb_agent"] = &OrbAgentInfo{
-		Version: orb.GetVersion(),
+	capabilities := fleet.Capabilities{
+		SchemaVersion: fleet.CurrentCapabilitiesSchemaVersion,
+		AgentTags:     a.config.OrbAgent.Tags,
+		OrbAgent: fleet.OrbAgentInfo{
+			Version: orb.GetVersion(),
+		},
 	}
-	capabilities["backends"] = make(map[string]BackendInfo)
+
+	capabilities.Backends = make(map[string]fleet.BackendInfo)
 	for name, be := range a.backends {
 		ver, err := be.Version()
 		if err != nil {
 			a.logger.Error("backend failed to retrieve version", zap.String("backend", name), zap.Error(err))
 			continue
 		}
-		capabilities["backends"].(map[string]BackendInfo)[name] = BackendInfo{
+		capabilities.Backends[name] = fleet.BackendInfo{
 			Version: ver,
 		}
 	}
@@ -222,6 +228,7 @@ func (a *orbAgent) Stop() {
 	a.logger.Info("stopping agent")
 	a.hbTicker.Stop()
 	a.hbDone <- true
+	a.sendSingleHeartbeat(time.Now(), fleet.Offline)
 	if token := a.client.Unsubscribe(a.rpcFromCoreChannel); token.Wait() && token.Error() != nil {
 		a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
 	}

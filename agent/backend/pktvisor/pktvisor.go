@@ -21,6 +21,7 @@ var _ backend.Backend = (*pktvisorBackend)(nil)
 type pktvisorBackend struct {
 	logger     *zap.Logger
 	binary     string
+	configFile string
 	proc       *cmd.Cmd
 	statusChan <-chan cmd.Status
 
@@ -110,7 +111,7 @@ func (p *pktvisorBackend) Start() error {
 	p.proc = cmd.NewCmdOptions(cmd.Options{
 		Buffered:  false,
 		Streaming: true,
-	}, p.binary, "--admin-api")
+	}, p.binary, "--admin-api", "--config", p.configFile)
 	p.statusChan = p.proc.Start()
 
 	// log STDOUT and STDERR lines streaming from Cmd
@@ -174,7 +175,9 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]string
 	if p.binary, prs = config["binary"]; !prs {
 		return errors.New("you must specify pktvisor binary")
 	}
-
+	if p.configFile, prs = config["config_file"]; !prs {
+		return errors.New("you must specify pktvisor configuration file")
+	}
 	return nil
 }
 

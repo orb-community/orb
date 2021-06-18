@@ -30,6 +30,7 @@ var (
 
 // dbMetadata type for handling metadata properly in database/sql
 type dbMetadata map[string]interface{}
+type dbTags map[string]string
 
 // Scan - Implement the database/sql scanner interface
 func (m *dbMetadata) Scan(value interface{}) error {
@@ -51,6 +52,36 @@ func (m *dbMetadata) Scan(value interface{}) error {
 
 // Value Implements valuer
 func (m dbMetadata) Value() (driver.Value, error) {
+	if len(m) == 0 {
+		return "{}", nil
+	}
+
+	b, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+	return b, err
+}
+
+func (m *dbTags) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	b, ok := value.([]byte)
+	if !ok {
+		return fleet.ErrScanMetadata
+	}
+
+	if err := json.Unmarshal(b, m); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Value Implements valuer
+func (m dbTags) Value() (driver.Value, error) {
 	if len(m) == 0 {
 		return "{}", nil
 	}
