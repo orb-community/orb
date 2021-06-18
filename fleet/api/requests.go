@@ -39,8 +39,8 @@ func (req addSelectorReq) validate() error {
 
 type addAgentReq struct {
 	token   string
-	Name    string                 `json:"name,omitempty"`
-	OrbTags map[string]interface{} `json:"orb_tags,omitempty"`
+	Name    string            `json:"name,omitempty"`
+	OrbTags map[string]string `json:"orb_tags,omitempty"`
 }
 
 func (req addAgentReq) validate() error {

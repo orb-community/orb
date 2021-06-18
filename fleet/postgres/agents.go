@@ -171,8 +171,8 @@ type dbAgent struct {
 	MFOwnerID     string           `db:"mf_owner_id"`
 	MFThingID     sql.NullString   `db:"mf_thing_id"`
 	MFChannelID   sql.NullString   `db:"mf_channel_id"`
-	OrbTags       dbMetadata       `db:"orb_tags"`
-	AgentTags     dbMetadata       `db:"agent_tags"`
+	OrbTags       dbTags           `db:"orb_tags"`
+	AgentTags     dbTags           `db:"agent_tags"`
 	AgentMetadata dbMetadata       `db:"agent_metadata"`
 	State         fleet.State      `db:"state"`
 	Created       time.Time        `db:"ts_created"`
@@ -185,8 +185,8 @@ func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 	a := dbAgent{
 		Name:          agent.Name,
 		MFOwnerID:     agent.MFOwnerID,
-		OrbTags:       dbMetadata(agent.OrbTags),
-		AgentTags:     dbMetadata(agent.AgentTags),
+		OrbTags:       dbTags(agent.OrbTags),
+		AgentTags:     dbTags(agent.AgentTags),
 		AgentMetadata: dbMetadata(agent.AgentMetadata),
 		State:         agent.State,
 		Created:       agent.Created,

@@ -4,14 +4,6 @@
 
 package agent
 
-type OrbAgentInfo struct {
-	Version string `json:"version"`
-}
-
-type BackendInfo struct {
-	Version string `json:"version"`
-}
-
 type TLS struct {
 	Verify bool `mapstructure:"verify"`
 }

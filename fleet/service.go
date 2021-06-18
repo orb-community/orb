@@ -52,7 +52,7 @@ var (
 )
 
 // A flat kv pair object
-type Tags map[string]interface{}
+type Tags map[string]string
 
 // Maybe a full object hierarchy
 type Metadata map[string]interface{}

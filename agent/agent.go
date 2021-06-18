@@ -83,8 +83,10 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time) {
 
 	a.logger.Debug("heartbeat")
 
-	hbData := make(map[string]interface{})
-	hbData["ts"] = t.Unix()
+	hbData := fleet.Heartbeat{
+		SchemaVersion: fleet.CurrentHeartbeatSchemaVersion,
+		TimeStamp:     t,
+	}
 
 	body, err := json.Marshal(hbData)
 	if err != nil {
@@ -185,19 +187,22 @@ func (a *orbAgent) Start() error {
 
 func (a *orbAgent) sendCapabilities() error {
 
-	capabilities := make(map[string]interface{})
-
-	capabilities["orb_agent"] = &OrbAgentInfo{
-		Version: orb.GetVersion(),
+	capabilities := fleet.Capabilities{
+		SchemaVersion: fleet.CurrentCapabilitiesSchemaVersion,
+		AgentTags:     a.config.OrbAgent.Tags,
+		OrbAgent: fleet.OrbAgentInfo{
+			Version: orb.GetVersion(),
+		},
 	}
-	capabilities["backends"] = make(map[string]BackendInfo)
+
+	capabilities.Backends = make(map[string]fleet.BackendInfo)
 	for name, be := range a.backends {
 		ver, err := be.Version()
 		if err != nil {
 			a.logger.Error("backend failed to retrieve version", zap.String("backend", name), zap.Error(err))
 			continue
 		}
-		capabilities["backends"].(map[string]BackendInfo)[name] = BackendInfo{
+		capabilities.Backends[name] = fleet.BackendInfo{
 			Version: ver,
 		}
 	}

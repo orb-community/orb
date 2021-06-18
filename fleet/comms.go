@@ -48,9 +48,23 @@ func NewFleetCommsService(logger *zap.Logger, agentRepo AgentRepository, agentPu
 	}
 }
 
-func (svc fleetCommsService) handleCapabilities(thingID string, channelID string, payload map[string]interface{}) error {
+func (svc fleetCommsService) handleCapabilities(thingID string, channelID string, payload []byte) error {
+	var versionCheck SchemaVersionCheck
+	if err := json.Unmarshal(payload, &versionCheck); err != nil {
+		return ErrSchemaMalformed
+	}
+	if versionCheck.SchemaVersion != CurrentCapabilitiesSchemaVersion {
+		return ErrSchemaVersion
+	}
+	var capabilities Capabilities
+	if err := json.Unmarshal(payload, &capabilities); err != nil {
+		return ErrSchemaMalformed
+	}
 	agent := Agent{MFThingID: thingID, MFChannelID: channelID}
-	agent.AgentMetadata = payload
+	agent.AgentMetadata = make(map[string]interface{})
+	agent.AgentMetadata["backends"] = capabilities.Backends
+	agent.AgentMetadata["orb_agent"] = capabilities.OrbAgent
+	agent.AgentTags = capabilities.AgentTags
 	err := svc.agentRepo.UpdateDataByIDWithChannel(context.Background(), agent)
 	if err != nil {
 		return err
@@ -58,9 +72,21 @@ func (svc fleetCommsService) handleCapabilities(thingID string, channelID string
 	return nil
 }
 
-func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, payload map[string]interface{}) error {
+func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, payload []byte) error {
+	var versionCheck SchemaVersionCheck
+	if err := json.Unmarshal(payload, &versionCheck); err != nil {
+		return ErrSchemaMalformed
+	}
+	if versionCheck.SchemaVersion != CurrentHeartbeatSchemaVersion {
+		return ErrSchemaVersion
+	}
+	var hb Heartbeat
+	if err := json.Unmarshal(payload, &hb); err != nil {
+		return ErrSchemaMalformed
+	}
 	agent := Agent{MFThingID: thingID, MFChannelID: channelID}
-	agent.LastHBData = payload
+	agent.LastHBData = make(map[string]interface{})
+	agent.LastHBData["ts"] = hb.TimeStamp.UnixNano()
 	err := svc.agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), agent)
 	if err != nil {
 		return err
@@ -86,13 +112,13 @@ func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 	// dispatch
 	switch msg.Subtopic {
 	case CapabilitiesChannel:
-		if err := svc.handleCapabilities(msg.Publisher, msg.Channel, payload); err != nil {
-			svc.logger.Error("parse capabilities failure", zap.Error(err))
+		if err := svc.handleCapabilities(msg.Publisher, msg.Channel, msg.Payload); err != nil {
+			svc.logger.Error("capabilities failure", zap.Error(err))
 			return nil
 		}
 	case HeartbeatsChannel:
-		if err := svc.handleHeartbeat(msg.Publisher, msg.Channel, payload); err != nil {
-			svc.logger.Error("parse heartbeat failure", zap.Error(err))
+		if err := svc.handleHeartbeat(msg.Publisher, msg.Channel, msg.Payload); err != nil {
+			svc.logger.Error("heartbeat failure", zap.Error(err))
 		}
 	case RPCToCoreChannel:
 		svc.logger.Error("implement me: RPCToCoreChannel")
