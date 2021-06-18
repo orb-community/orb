@@ -101,8 +101,9 @@ func main() {
 	}
 	defer pubSub.Close()
 
-	svc := newFleetService(auth, db, logger, esClient, sdkCfg)
-	commsSvc := fleet.NewFleetCommsService(logger, pubSub)
+	agentRepo := postgres.NewAgentRepository(db, logger)
+	svc := newFleetService(auth, db, logger, esClient, sdkCfg, agentRepo)
+	commsSvc := fleet.NewFleetCommsService(logger, agentRepo, pubSub)
 	defer commsSvc.Stop()
 
 	errs := make(chan error, 2)
@@ -172,8 +173,8 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig) fleet.Service {
-	agentRepo := postgres.NewAgentRepository(db, logger)
+func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, agentRepo fleet.AgentRepository) fleet.Service {
+
 	selectorRepo := postgres.NewSelectorRepository(db, logger)
 
 	config := mfsdk.Config{

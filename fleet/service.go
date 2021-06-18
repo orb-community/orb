@@ -27,6 +27,8 @@ var (
 	// ErrMalformedEntity indicates malformed entity specification.
 	ErrMalformedEntity = errors.New("malformed entity specification")
 
+	ErrUpdateEntity = errors.New("update entity failed")
+
 	// ErrUnauthorizedAccess indicates missing or invalid credentials provided
 	// when accessing a protected resource.
 	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
@@ -37,6 +39,9 @@ var (
 	ErrCreateSelector = errors.New("failed to create selector")
 
 	ErrCreateAgent = errors.New("failed to create agent")
+
+	// ErrSelectEntity indicates error while reading entity from database
+	ErrSelectEntity = errors.New("select entity from db error")
 
 	// ErrThings indicates failure to communicate with Mainflux Things service.
 	// It can be due to networking error or invalid/unauthorized request.
@@ -136,7 +141,7 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 
 	a.MFOwnerID = mfOwnerID
 
-	md := map[string]interface{}{"type": "orb-agent"}
+	md := map[string]interface{}{"type": "orb_agent"}
 
 	// create new Thing
 	mfThing, err := svc.thing(token, "", a.Name.String(), md)

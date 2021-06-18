@@ -44,9 +44,9 @@ func migrateDB(db *sqlx.DB) error {
 					`CREATE TYPE agent_state AS ENUM ('new', 'online', 'offline', 'stale', 'removed');`,
 					`CREATE TABLE IF NOT EXISTS agents (
 						name        	   TEXT NOT NULL,
-						mf_owner_id        UUID NOT NULL,
-						mf_thing_id        UUID UNIQUE,
-						mf_channel_id      UUID,
+						mf_owner_id        TEXT NOT NULL,
+						mf_thing_id        TEXT UNIQUE,
+						mf_channel_id      TEXT,
                         ts_created         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
 						orb_tags           JSONB NOT NULL DEFAULT '{}',
@@ -62,7 +62,7 @@ func migrateDB(db *sqlx.DB) error {
 					)`,
 					`CREATE TABLE IF NOT EXISTS selectors (
 						name        	   TEXT NOT NULL,
-						mf_owner_id        UUID NOT NULL,
+						mf_owner_id        TEXT NOT NULL,
 	
 						metadata           JSONB NOT NULL DEFAULT '{}',
                         ts_created         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,

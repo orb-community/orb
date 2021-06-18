@@ -10,12 +10,13 @@ package postgres
 
 import (
 	"context"
-	"github.com/gofrs/uuid"
+	"database/sql"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
+	"time"
 )
 
 var _ fleet.AgentRepository = (*agentRepository)(nil)
@@ -27,6 +28,105 @@ type agentRepository struct {
 
 func NewAgentRepository(db Database, logger *zap.Logger) fleet.AgentRepository {
 	return &agentRepository{db: db, logger: logger}
+}
+
+func (r agentRepository) UpdateDataByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
+
+	q := `UPDATE agents SET (orb_tags, agent_tags, agent_metadata)         
+			= (:orb_tags, :agent_tags, :agent_metadata) 
+			WHERE mf_thing_id = :mf_thing_id AND mf_channel_id = :mf_channel_id;`
+
+	if agent.MFThingID == "" || agent.MFChannelID == "" {
+		return fleet.ErrMalformedEntity
+	}
+
+	dba, err := toDBAgent(agent)
+	if err != nil {
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, dba)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case errInvalid, errTruncation:
+				return errors.Wrap(fleet.ErrMalformedEntity, err)
+			case errDuplicate:
+				return errors.Wrap(fleet.ErrConflict, err)
+			}
+		}
+		return errors.Wrap(errUpdateDB, err)
+	}
+
+	cnt, errdb := res.RowsAffected()
+	if errdb != nil {
+		return errors.Wrap(fleet.ErrUpdateEntity, errdb)
+	}
+
+	if cnt == 0 {
+		return fleet.ErrNotFound
+	}
+
+	return nil
+}
+
+func (r agentRepository) UpdateHeartbeatByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
+
+	q := `UPDATE agents SET (last_hb_data, ts_last_hb, state)         
+			= (:last_hb_data, now(), 'online') 
+			WHERE mf_thing_id = :mf_thing_id AND mf_channel_id = :mf_channel_id;`
+
+	if agent.MFThingID == "" || agent.MFChannelID == "" {
+		return fleet.ErrMalformedEntity
+	}
+
+	dba, err := toDBAgent(agent)
+	if err != nil {
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+	res, err := r.db.NamedExecContext(ctx, q, dba)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case errInvalid, errTruncation:
+				return errors.Wrap(fleet.ErrMalformedEntity, err)
+			case errDuplicate:
+				return errors.Wrap(fleet.ErrConflict, err)
+			}
+		}
+		return errors.Wrap(errUpdateDB, err)
+	}
+
+	cnt, errdb := res.RowsAffected()
+	if errdb != nil {
+		return errors.Wrap(fleet.ErrUpdateEntity, errdb)
+	}
+
+	if cnt == 0 {
+		return fleet.ErrNotFound
+	}
+
+	return nil
+
+}
+
+func (r agentRepository) RetrieveByIDWithChannel(ctx context.Context, thingID string, channelID string) (fleet.Agent, error) {
+
+	q := `SELECT * FROM agents WHERE mf_thing_id = $1 AND mf_channel_id = $2;`
+
+	dba := dbAgent{}
+
+	if err := r.db.QueryRowxContext(ctx, q, thingID, channelID).StructScan(&dba); err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if err == sql.ErrNoRows || ok && errInvalid == pqErr.Code.Name() {
+			return fleet.Agent{}, errors.Wrap(fleet.ErrNotFound, err)
+		}
+		return fleet.Agent{}, errors.Wrap(fleet.ErrSelectEntity, err)
+	}
+
+	return toAgent(dba)
 }
 
 func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
@@ -68,52 +168,68 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 
 type dbAgent struct {
 	Name          types.Identifier `db:"name"`
-	MFOwnerID     uuid.UUID        `db:"mf_owner_id"`
-	MFThingID     uuid.NullUUID    `db:"mf_thing_id"`
-	MFChannelID   uuid.NullUUID    `db:"mf_channel_id"`
+	MFOwnerID     string           `db:"mf_owner_id"`
+	MFThingID     sql.NullString   `db:"mf_thing_id"`
+	MFChannelID   sql.NullString   `db:"mf_channel_id"`
 	OrbTags       dbMetadata       `db:"orb_tags"`
 	AgentTags     dbMetadata       `db:"agent_tags"`
 	AgentMetadata dbMetadata       `db:"agent_metadata"`
 	State         fleet.State      `db:"state"`
+	Created       time.Time        `db:"ts_created"`
+	LastHBData    dbMetadata       `db:"last_hb_data"`
+	LastHB        sql.NullTime     `db:"ts_last_hb"`
 }
 
 func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 
-	var tID uuid.NullUUID
-	if agent.MFThingID == "" {
-		tID = uuid.NullUUID{UUID: uuid.Nil, Valid: false}
-	} else {
-		err := tID.Scan(agent.MFThingID)
-		if err != nil {
-			return dbAgent{}, errors.Wrap(fleet.ErrMalformedEntity, err)
-		}
-	}
-
-	var chID uuid.NullUUID
-	if agent.MFChannelID == "" {
-		chID = uuid.NullUUID{UUID: uuid.Nil, Valid: false}
-	} else {
-		err := chID.Scan(agent.MFChannelID)
-		if err != nil {
-			return dbAgent{}, errors.Wrap(fleet.ErrMalformedEntity, err)
-		}
-	}
-
-	var oID uuid.UUID
-	err := oID.Scan(agent.MFOwnerID)
-	if err != nil {
-		return dbAgent{}, errors.Wrap(fleet.ErrMalformedEntity, err)
-	}
-
-	return dbAgent{
+	a := dbAgent{
 		Name:          agent.Name,
-		MFThingID:     tID,
-		MFChannelID:   chID,
-		MFOwnerID:     oID,
-		State:         agent.State,
+		MFOwnerID:     agent.MFOwnerID,
 		OrbTags:       dbMetadata(agent.OrbTags),
 		AgentTags:     dbMetadata(agent.AgentTags),
 		AgentMetadata: dbMetadata(agent.AgentMetadata),
-	}, nil
+		State:         agent.State,
+		Created:       agent.Created,
+		LastHBData:    dbMetadata(agent.LastHBData),
+	}
+
+	if agent.MFThingID != "" {
+		a.MFThingID = sql.NullString{
+			String: agent.MFThingID,
+			Valid:  true,
+		}
+	}
+	if agent.MFChannelID != "" {
+		a.MFChannelID = sql.NullString{
+			String: agent.MFChannelID,
+			Valid:  true,
+		}
+	}
+	if !agent.LastHB.IsZero() {
+		a.LastHB = sql.NullTime{
+			Time:  agent.LastHB,
+			Valid: true,
+		}
+	}
+	return a, nil
+}
+
+func toAgent(dba dbAgent) (fleet.Agent, error) {
+
+	agent := fleet.Agent{
+		Name:          dba.Name,
+		MFOwnerID:     dba.MFOwnerID,
+		MFThingID:     dba.MFThingID.String,
+		MFChannelID:   dba.MFChannelID.String,
+		Created:       dba.Created,
+		OrbTags:       fleet.Tags(dba.OrbTags),
+		AgentTags:     fleet.Tags(dba.AgentTags),
+		AgentMetadata: fleet.Metadata(dba.AgentMetadata),
+		State:         dba.State,
+		LastHBData:    fleet.Metadata(dba.LastHBData),
+		LastHB:        dba.LastHB.Time,
+	}
+
+	return agent, nil
 
 }
