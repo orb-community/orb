@@ -27,7 +27,11 @@ var (
 	// ErrMalformedEntity indicates malformed entity specification.
 	ErrMalformedEntity = errors.New("malformed entity specification")
 
+	// ErrUpdateEntity indicates error in updating entity or entities
 	ErrUpdateEntity = errors.New("update entity failed")
+
+	// ErrViewEntity indicates error in viewing entity or entities
+	ErrViewEntity = errors.New("view entity failed")
 
 	// ErrUnauthorizedAccess indicates missing or invalid credentials provided
 	// when accessing a protected resource.
@@ -62,6 +66,17 @@ type Service interface {
 	SelectorService
 }
 
+// PageMetadata contains page metadata that helps navigation.
+type PageMetadata struct {
+	Total    uint64
+	Offset   uint64                 `json:"offset,omitempty"`
+	Limit    uint64                 `json:"limit,omitempty"`
+	Name     string                 `json:"name,omitempty"`
+	Order    string                 `json:"order,omitempty"`
+	Dir      string                 `json:"dir,omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+}
+
 var _ Service = (*fleetService)(nil)
 
 type fleetService struct {
@@ -73,6 +88,15 @@ type fleetService struct {
 	// Agents and Selectors
 	agentRepo    AgentRepository
 	selectorRepo SelectorRepository
+}
+
+func (svc fleetService) ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error) {
+	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return Page{}, errors.Wrap(ErrUnauthorizedAccess, err)
+	}
+
+	return svc.agentRepo.RetrieveAll(ctx, res.GetId(), pm)
 }
 
 func (svc fleetService) identify(token string) (string, error) {

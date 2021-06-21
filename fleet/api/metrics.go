@@ -18,6 +18,10 @@ type metricsMiddleware struct {
 	svc     fleet.Service
 }
 
+func (m metricsMiddleware) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (fleet.Page, error) {
+	return m.svc.ListAgents(ctx, token, pm)
+}
+
 func (m metricsMiddleware) CreateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
 	return m.svc.CreateAgent(ctx, token, a)
 }

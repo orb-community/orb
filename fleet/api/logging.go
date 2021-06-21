@@ -18,6 +18,20 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
+func (l loggingMiddleware) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (_ fleet.Page, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: list_agents",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: list_agents",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ListAgents(ctx, token, pm)
+}
+
 func (l loggingMiddleware) CreateAgent(ctx context.Context, token string, a fleet.Agent) (_ fleet.Agent, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

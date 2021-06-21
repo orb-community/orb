@@ -14,6 +14,15 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 )
 
+const (
+	maxLimitSize = 100
+	maxNameSize  = 1024
+	nameOrder    = "name"
+	idOrder      = "id"
+	ascDir       = "asc"
+	descDir      = "desc"
+)
+
 type addSelectorReq struct {
 	token    string
 	Name     string                 `json:"name,omitempty"`
@@ -55,6 +64,41 @@ func (req addAgentReq) validate() error {
 	_, err := types.NewIdentifier(req.Name)
 	if err != nil {
 		return errors.Wrap(fleet.ErrMalformedEntity, err)
+	}
+
+	return nil
+}
+
+type listResourcesReq struct {
+	token        string
+	pageMetadata fleet.PageMetadata
+}
+
+func (req *listResourcesReq) validate() error {
+	if req.token == "" {
+		return fleet.ErrUnauthorizedAccess
+	}
+
+	if req.pageMetadata.Limit == 0 {
+		req.pageMetadata.Limit = defLimit
+	}
+
+	if req.pageMetadata.Limit > maxLimitSize {
+		return fleet.ErrMalformedEntity
+	}
+
+	if len(req.pageMetadata.Name) > maxNameSize {
+		return fleet.ErrMalformedEntity
+	}
+
+	if req.pageMetadata.Order != "" &&
+		req.pageMetadata.Order != nameOrder && req.pageMetadata.Order != idOrder {
+		return fleet.ErrMalformedEntity
+	}
+
+	if req.pageMetadata.Dir != "" &&
+		req.pageMetadata.Dir != ascDir && req.pageMetadata.Dir != descDir {
+		return fleet.ErrMalformedEntity
 	}
 
 	return nil

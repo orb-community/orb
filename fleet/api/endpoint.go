@@ -78,3 +78,42 @@ func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(listResourcesReq)
+
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		page, err := svc.ListAgents(ctx, req.token, req.pageMetadata)
+		if err != nil {
+			return nil, err
+		}
+
+		res := agentsPageRes{
+			pageRes: pageRes{
+				Total:  page.Total,
+				Offset: page.Offset,
+				Limit:  page.Limit,
+				Order:  page.Order,
+				Dir:    page.Dir,
+			},
+			Agents: []viewAgentRes{},
+		}
+		for _, agent := range page.Agents {
+			view := viewAgentRes{
+				ID:        agent.MFThingID,
+				ChannelID: agent.MFChannelID,
+				Owner:     agent.MFOwnerID,
+				Name:      agent.Name.String(),
+				State:     agent.State.String(),
+				Metadata:  agent.AgentMetadata,
+			}
+			res.Agents = append(res.Agents, view)
+		}
+
+		return res, nil
+	}
+}
