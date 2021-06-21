@@ -9,40 +9,29 @@
 package sinks
 
 import (
-	"errors"
+	"context"
 	"github.com/mainflux/mainflux"
 )
 
-var (
-	// ErrNotFound indicates a non-existent entity request.
-	ErrNotFound = errors.New("non-existent entity")
-
-	// ErrMalformedEntity indicates malformed entity specification.
-	ErrMalformedEntity = errors.New("malformed entity specification")
-
-	// ErrUnauthorizedAccess indicates missing or invalid credentials provided
-	// when accessing a protected resource.
-	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
-)
-
 type Service interface {
-	Add() (Sink, error)
+	// CreateAgent creates new agent
+	CreateAgent(ctx context.Context, token string, s Sink) (Sink, error)
 }
 
 var _ Service = (*sinkService)(nil)
 
 type sinkService struct {
 	auth mainflux.AuthServiceClient
-	repo SinksRepository
+	repo SinkRepository
 }
 
-func New(auth mainflux.AuthServiceClient, repo SinksRepository) Service {
+func New(auth mainflux.AuthServiceClient, repo SinkRepository) Service {
 	return &sinkService{
 		auth: auth,
 		repo: repo,
 	}
 }
 
-func (s sinkService) Add() (Sink, error) {
+func (s sinkService) CreateAgent(ctx context.Context, token string, sink Sink) (Sink, error) {
 	panic("implement me")
 }

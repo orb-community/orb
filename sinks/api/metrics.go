@@ -5,6 +5,7 @@
 package api
 
 import (
+	"context"
 	"github.com/go-kit/kit/metrics"
 	"github.com/ns1labs/orb/sinks"
 )
@@ -17,7 +18,7 @@ type metricsMiddleware struct {
 	svc     sinks.Service
 }
 
-func (m metricsMiddleware) Add() (sinks.Sink, error) {
+func (m metricsMiddleware) CreateAgent(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
 	panic("implement me")
 }
 

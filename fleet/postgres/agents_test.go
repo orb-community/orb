@@ -53,9 +53,9 @@ func TestAgentSave(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       fleet.Tags{"testkey": "testvalue"},
-		AgentTags:     fleet.Tags{"testkey": "testvalue"},
-		AgentMetadata: fleet.Metadata{"testkey": "testvalue"},
+		OrbTags:       types.Tags{"testkey": "testvalue"},
+		AgentTags:     types.Tags{"testkey": "testvalue"},
+		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
 
 	cases := []struct {
@@ -71,7 +71,7 @@ func TestAgentSave(t *testing.T) {
 		{
 			desc:  "create agent that already exist",
 			agent: agent,
-			err:   fleet.ErrConflict,
+			err:   errors.ErrConflict,
 		},
 	}
 
@@ -102,9 +102,9 @@ func TestAgentRetrieve(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       fleet.Tags{"testkey": "testvalue"},
-		AgentTags:     fleet.Tags{"testkey": "testvalue"},
-		AgentMetadata: fleet.Metadata{"testkey": "testvalue"},
+		OrbTags:       types.Tags{"testkey": "testvalue"},
+		AgentTags:     types.Tags{"testkey": "testvalue"},
+		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
 
 	err = agentRepo.Save(context.Background(), agent)
@@ -123,7 +123,7 @@ func TestAgentRetrieve(t *testing.T) {
 		"retrieve non-existent agent by thingID and channelID": {
 			thingID:   agent.MFOwnerID,
 			channelID: agent.MFChannelID,
-			err:       fleet.ErrNotFound,
+			err:       errors.ErrNotFound,
 		},
 	}
 
@@ -157,9 +157,9 @@ func TestAgentUpdateData(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       fleet.Tags{"testkey": "testvalue"},
-		AgentTags:     fleet.Tags{"testkey": "testvalue"},
-		AgentMetadata: fleet.Metadata{"testkey": "testvalue"},
+		OrbTags:       types.Tags{"testkey": "testvalue"},
+		AgentTags:     types.Tags{"testkey": "testvalue"},
+		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
 
 	err = agentRepo.Save(context.Background(), agent)
@@ -173,7 +173,7 @@ func TestAgentUpdateData(t *testing.T) {
 			agent: fleet.Agent{
 				MFThingID:     thID.String(),
 				MFChannelID:   chID.String(),
-				AgentMetadata: fleet.Metadata{"newkey": "newvalue"},
+				AgentMetadata: types.Metadata{"newkey": "newvalue"},
 			},
 			err: nil,
 		},
@@ -181,9 +181,9 @@ func TestAgentUpdateData(t *testing.T) {
 			agent: fleet.Agent{
 				MFThingID:     chID.String(),
 				MFChannelID:   thID.String(),
-				AgentMetadata: fleet.Metadata{"newkey": "newvalue"},
+				AgentMetadata: types.Metadata{"newkey": "newvalue"},
 			},
-			err: fleet.ErrNotFound,
+			err: errors.ErrNotFound,
 		},
 	}
 
@@ -219,7 +219,7 @@ func TestAgentUpdateHeartbeat(t *testing.T) {
 		MFThingID:   thID.String(),
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		LastHBData:  fleet.Metadata{"heartbeatdata": "testvalue"},
+		LastHBData:  types.Metadata{"heartbeatdata": "testvalue"},
 	}
 
 	err = agentRepo.Save(context.Background(), agent)
@@ -233,7 +233,7 @@ func TestAgentUpdateHeartbeat(t *testing.T) {
 			agent: fleet.Agent{
 				MFThingID:   thID.String(),
 				MFChannelID: chID.String(),
-				LastHBData:  fleet.Metadata{"heartbeatdata2": "newvalue"},
+				LastHBData:  types.Metadata{"heartbeatdata2": "newvalue"},
 			},
 			err: nil,
 		},
@@ -241,9 +241,9 @@ func TestAgentUpdateHeartbeat(t *testing.T) {
 			agent: fleet.Agent{
 				MFThingID:   chID.String(),
 				MFChannelID: thID.String(),
-				LastHBData:  fleet.Metadata{"heartbeatdata2": "newvalue"},
+				LastHBData:  types.Metadata{"heartbeatdata2": "newvalue"},
 			},
-			err: fleet.ErrNotFound,
+			err: errors.ErrNotFound,
 		},
 	}
 
@@ -271,13 +271,13 @@ func TestMultiAgentRetrieval(t *testing.T) {
 	metaStr := `{"field1":"value1","field2":{"subfield11":"value2","subfield12":{"subfield121":"value3","subfield122":"value4"}}}`
 	subMetaStr := `{"field2":{"subfield12":{"subfield121":"value3"}}}`
 
-	metadata := fleet.Metadata{}
+	metadata := types.Metadata{}
 	json.Unmarshal([]byte(metaStr), &metadata)
 
-	subMeta := fleet.Metadata{}
+	subMeta := types.Metadata{}
 	json.Unmarshal([]byte(subMetaStr), &subMeta)
 
-	wrongMeta := fleet.Metadata{
+	wrongMeta := types.Metadata{
 		"field": "value1",
 	}
 

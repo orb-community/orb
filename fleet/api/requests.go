@@ -32,15 +32,15 @@ type addSelectorReq struct {
 func (req addSelectorReq) validate() error {
 
 	if req.token == "" {
-		return fleet.ErrUnauthorizedAccess
+		return errors.ErrUnauthorizedAccess
 	}
 	if req.Name == "" {
-		return fleet.ErrMalformedEntity
+		return errors.ErrMalformedEntity
 	}
 
 	_, err := types.NewIdentifier(req.Name)
 	if err != nil {
-		return errors.Wrap(fleet.ErrMalformedEntity, err)
+		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return nil
@@ -55,15 +55,15 @@ type addAgentReq struct {
 func (req addAgentReq) validate() error {
 
 	if req.token == "" {
-		return fleet.ErrUnauthorizedAccess
+		return errors.ErrUnauthorizedAccess
 	}
 	if req.Name == "" {
-		return fleet.ErrMalformedEntity
+		return errors.ErrMalformedEntity
 	}
 
 	_, err := types.NewIdentifier(req.Name)
 	if err != nil {
-		return errors.Wrap(fleet.ErrMalformedEntity, err)
+		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return nil
@@ -76,7 +76,7 @@ type listResourcesReq struct {
 
 func (req *listResourcesReq) validate() error {
 	if req.token == "" {
-		return fleet.ErrUnauthorizedAccess
+		return errors.ErrUnauthorizedAccess
 	}
 
 	if req.pageMetadata.Limit == 0 {
@@ -84,21 +84,21 @@ func (req *listResourcesReq) validate() error {
 	}
 
 	if req.pageMetadata.Limit > maxLimitSize {
-		return fleet.ErrMalformedEntity
+		return errors.ErrMalformedEntity
 	}
 
 	if len(req.pageMetadata.Name) > maxNameSize {
-		return fleet.ErrMalformedEntity
+		return errors.ErrMalformedEntity
 	}
 
 	if req.pageMetadata.Order != "" &&
 		req.pageMetadata.Order != nameOrder && req.pageMetadata.Order != idOrder {
-		return fleet.ErrMalformedEntity
+		return errors.ErrMalformedEntity
 	}
 
 	if req.pageMetadata.Dir != "" &&
 		req.pageMetadata.Dir != ascDir && req.pageMetadata.Dir != descDir {
-		return fleet.ErrMalformedEntity
+		return errors.ErrMalformedEntity
 	}
 
 	return nil

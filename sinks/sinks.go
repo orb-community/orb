@@ -4,14 +4,21 @@
 
 package sinks
 
+import (
+	"context"
+	"github.com/ns1labs/orb/pkg/types"
+	"time"
+)
+
 type Sink struct {
-	SinkID string
-	Owner  string
-	Name   string
+	Name      types.Identifier
+	MFOwnerID string
+	Config    types.Metadata
+	Created   time.Time
 }
 
-type SinksRepository interface {
+type SinkRepository interface {
 	// Save persists the Sink. Successful operation is indicated by non-nil
 	// error response.
-	Save(cfg Sink) (string, error)
+	Save(ctx context.Context, cfg Sink) error
 }

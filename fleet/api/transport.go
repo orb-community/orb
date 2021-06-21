@@ -13,6 +13,7 @@ import (
 	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/internal/httputil"
+	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/opentracing/opentracing-go"
@@ -71,7 +72,7 @@ func decodeAddSelector(_ context.Context, r *http.Request) (interface{}, error) 
 
 	req := addSelectorReq{token: r.Header.Get("Authorization")}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
+		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return req, nil
@@ -84,7 +85,7 @@ func decodeAddAgent(_ context.Context, r *http.Request) (interface{}, error) {
 
 	req := addAgentReq{token: r.Header.Get("Authorization")}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
+		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return req, nil
@@ -141,7 +142,7 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	case errors.Error:
 		w.Header().Set("Content-Type", types.ContentType)
 		switch {
-		case errors.Contains(errorVal, fleet.ErrUnauthorizedAccess):
+		case errors.Contains(errorVal, errors.ErrUnauthorizedAccess):
 			w.WriteHeader(http.StatusUnauthorized)
 
 		case errors.Contains(errorVal, errors.ErrInvalidQueryParams):
@@ -149,14 +150,14 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		case errors.Contains(errorVal, errors.ErrUnsupportedContentType):
 			w.WriteHeader(http.StatusUnsupportedMediaType)
 
-		case errors.Contains(errorVal, fleet.ErrMalformedEntity):
+		case errors.Contains(errorVal, errors.ErrMalformedEntity):
 			w.WriteHeader(http.StatusBadRequest)
-		case errors.Contains(errorVal, fleet.ErrNotFound):
+		case errors.Contains(errorVal, errors.ErrNotFound):
 			w.WriteHeader(http.StatusNotFound)
-		case errors.Contains(errorVal, fleet.ErrConflict):
+		case errors.Contains(errorVal, errors.ErrConflict):
 			w.WriteHeader(http.StatusConflict)
 
-		case errors.Contains(errorVal, fleet.ErrScanMetadata):
+		case errors.Contains(errorVal, db.ErrScanMetadata):
 			w.WriteHeader(http.StatusUnprocessableEntity)
 
 		case errors.Contains(errorVal, fleet.ErrCreateSelector):

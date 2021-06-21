@@ -13,7 +13,7 @@ import (
 type Selector struct {
 	Name      types.Identifier
 	MFOwnerID string
-	Metadata  Metadata
+	Metadata  types.Metadata
 	Created   time.Time
 }
 

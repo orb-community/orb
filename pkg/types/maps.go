@@ -2,12 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package api
+package types
 
-import "github.com/ns1labs/orb/pkg/types"
+// Tags A flat kv pair object
+type Tags map[string]string
 
-type sinkRes struct {
-	Name    string         `json:"name"`
-	Config  types.Metadata `json:"config,omitempty"`
-	created bool
-}
+// Metadata Maybe a full object hierarchy
+type Metadata map[string]interface{}

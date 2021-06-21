@@ -5,6 +5,7 @@
 package api
 
 import (
+	"context"
 	"github.com/ns1labs/orb/sinks"
 	"go.uber.org/zap"
 )
@@ -16,7 +17,7 @@ type loggingMiddleware struct {
 	svc    sinks.Service
 }
 
-func (l loggingMiddleware) Add() (sinks.Sink, error) {
+func (l loggingMiddleware) CreateAgent(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
 	panic("implement me")
 }
 

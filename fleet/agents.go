@@ -51,11 +51,11 @@ type Agent struct {
 	MFKeyID       string
 	MFChannelID   string
 	Created       time.Time
-	OrbTags       Tags
-	AgentTags     Tags
-	AgentMetadata Metadata
+	OrbTags       types.Tags
+	AgentTags     types.Tags
+	AgentMetadata types.Metadata
 	State         State
-	LastHBData    Metadata
+	LastHBData    types.Metadata
 	LastHB        time.Time
 }
 

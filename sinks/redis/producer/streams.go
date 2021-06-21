@@ -9,6 +9,7 @@
 package producer
 
 import (
+	"context"
 	"github.com/go-redis/redis"
 	"github.com/ns1labs/orb/sinks"
 )
@@ -25,6 +26,10 @@ type eventStore struct {
 	client *redis.Client
 }
 
+func (es eventStore) CreateAgent(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
+	panic("implement me")
+}
+
 // NewEventStoreMiddleware returns wrapper around sinks service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc sinks.Service, client *redis.Client) sinks.Service {
@@ -32,8 +37,4 @@ func NewEventStoreMiddleware(svc sinks.Service, client *redis.Client) sinks.Serv
 		svc:    svc,
 		client: client,
 	}
-}
-
-func (es eventStore) Add() (sinks.Sink, error) {
-	return sinks.Sink{}, nil
 }

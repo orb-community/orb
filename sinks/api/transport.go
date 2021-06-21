@@ -40,7 +40,7 @@ func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 
 	req := addReq{token: r.Header.Get("Authorization")}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(sinks.ErrMalformedEntity, err)
+		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return req, nil

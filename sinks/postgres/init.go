@@ -42,10 +42,16 @@ func migrateDB(db *sqlx.DB) error {
 				Id: "sinks_1",
 				Up: []string{
 					`CREATE TABLE IF NOT EXISTS sinks (
-						sink_id TEXT UNIQUE NOT NULL,
-						owner          VARCHAR(254),
-						PRIMARY KEY (sink_id, owner)
+						name           TEXT NOT NULL,
+						mf_owner_id    UUID NOT NULL,
+
+						orb_tags       JSONB NOT NULL DEFAULT '{}',
+
+						metadata       JSONB NOT NULL DEFAULT '{}',
+                        ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+						PRIMARY KEY (name, mf_owner_id)
 					)`,
+					`CREATE INDEX ON sinks (mf_owner_id)`,
 				},
 				Down: []string{
 					"DROP TABLE sinks",

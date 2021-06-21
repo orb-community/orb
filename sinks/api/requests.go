@@ -9,21 +9,28 @@
 package api
 
 import (
-	"github.com/ns1labs/orb/sinks"
+	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/pkg/types"
 )
 
 type addReq struct {
-	token string
-	name  string
+	Name   string         `json:"name,omitempty"`
+	Config types.Metadata `json:"config,omitempty"`
+	token  string
 }
 
 func (req addReq) validate() error {
 	if req.token == "" {
-		return sinks.ErrUnauthorizedAccess
+		return errors.ErrUnauthorizedAccess
 	}
 
-	if req.name == "" {
-		return sinks.ErrMalformedEntity
+	if req.Name == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	_, err := types.NewIdentifier(req.Name)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return nil
