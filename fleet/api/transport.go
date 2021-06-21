@@ -12,6 +12,7 @@ import (
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/internal/httputil"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/opentracing/opentracing-go"
@@ -19,6 +20,17 @@ import (
 	"io"
 	"net/http"
 	"strings"
+)
+
+const (
+	offsetKey   = "offset"
+	limitKey    = "limit"
+	nameKey     = "name"
+	orderKey    = "order"
+	dirKey      = "dir"
+	metadataKey = "metadata"
+	defOffset   = 0
+	defLimit    = 10
 )
 
 func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) http.Handler {
@@ -30,13 +42,19 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 
 	r.Post("/selectors", kithttp.NewServer(
 		kitot.TraceServer(tracer, "create_selector")(addSelectorEndpoint(svc)),
-		decodeAddSelectorRequest,
+		decodeAddSelector,
 		types.EncodeResponse,
 		opts...))
 
 	r.Post("/agents", kithttp.NewServer(
 		kitot.TraceServer(tracer, "create_agent")(addAgentEndpoint(svc)),
-		decodeAddAgentRequest,
+		decodeAddAgent,
+		types.EncodeResponse,
+		opts...))
+
+	r.Get("/agents", kithttp.NewServer(
+		kitot.TraceServer(tracer, "list_agents")(listAgentsEndpoint(svc)),
+		decodeList,
 		types.EncodeResponse,
 		opts...))
 
@@ -46,7 +64,7 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 	return r
 }
 
-func decodeAddSelectorRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeAddSelector(_ context.Context, r *http.Request) (interface{}, error) {
 	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
 		return nil, errors.ErrUnsupportedContentType
 	}
@@ -59,7 +77,7 @@ func decodeAddSelectorRequest(_ context.Context, r *http.Request) (interface{}, 
 	return req, nil
 }
 
-func decodeAddAgentRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeAddAgent(_ context.Context, r *http.Request) (interface{}, error) {
 	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
 		return nil, errors.ErrUnsupportedContentType
 	}
@@ -67,6 +85,52 @@ func decodeAddAgentRequest(_ context.Context, r *http.Request) (interface{}, err
 	req := addAgentReq{token: r.Header.Get("Authorization")}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
+	}
+
+	return req, nil
+}
+
+func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
+	o, err := httputil.ReadUintQuery(r, offsetKey, defOffset)
+	if err != nil {
+		return nil, err
+	}
+
+	l, err := httputil.ReadUintQuery(r, limitKey, defLimit)
+	if err != nil {
+		return nil, err
+	}
+
+	n, err := httputil.ReadStringQuery(r, nameKey, "")
+	if err != nil {
+		return nil, err
+	}
+
+	or, err := httputil.ReadStringQuery(r, orderKey, "")
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := httputil.ReadStringQuery(r, dirKey, "")
+	if err != nil {
+		return nil, err
+	}
+
+	m, err := httputil.ReadMetadataQuery(r, metadataKey, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req := listResourcesReq{
+		token: r.Header.Get("Authorization"),
+		pageMetadata: fleet.PageMetadata{
+			Offset:   o,
+			Limit:    l,
+			Name:     n,
+			Order:    or,
+			Dir:      d,
+			Metadata: m,
+		},
 	}
 
 	return req, nil
