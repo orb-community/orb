@@ -61,12 +61,12 @@ func (s agentRes) Empty() bool {
 }
 
 type viewAgentRes struct {
-	ID        string                 `json:"id"`
-	ChannelID string                 `json:"channel_id,omitempty"`
-	Owner     string                 `json:"-"`
-	Name      string                 `json:"name,omitempty"`
-	State     string                 `json:"state"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+	ID           string                 `json:"id"`
+	ChannelID    string                 `json:"channel_id,omitempty"`
+	Owner        string                 `json:"-"`
+	Name         string                 `json:"name,omitempty"`
+	State        string                 `json:"state"`
+	Capabilities map[string]interface{} `json:"capabilities,omitempty"`
 }
 
 func (res viewAgentRes) Code() int {

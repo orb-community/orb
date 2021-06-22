@@ -104,12 +104,12 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 		for _, agent := range page.Agents {
 			view := viewAgentRes{
-				ID:        agent.MFThingID,
-				ChannelID: agent.MFChannelID,
-				Owner:     agent.MFOwnerID,
-				Name:      agent.Name.String(),
-				State:     agent.State.String(),
-				Metadata:  agent.AgentMetadata,
+				ID:           agent.MFThingID,
+				ChannelID:    agent.MFChannelID,
+				Owner:        agent.MFOwnerID,
+				Name:         agent.Name.String(),
+				State:        agent.State.String(),
+				Capabilities: agent.AgentMetadata,
 			}
 			res.Agents = append(res.Agents, view)
 		}
