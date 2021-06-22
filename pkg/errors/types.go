@@ -20,4 +20,26 @@ var (
 
 	// ErrMalformedEntity indicates a malformed entity specification
 	ErrMalformedEntity = New("malformed entity specification")
+
+	// ErrNotFound indicates a non-existent entity request.
+	ErrNotFound = New("non-existent entity")
+
+	// ErrConflict indicates that entity already exists.
+	ErrConflict = New("entity already exists")
+
+	// ErrUpdateEntity indicates error in updating entity or entities
+	ErrUpdateEntity = New("update entity failed")
+
+	// ErrViewEntity indicates error in viewing entity or entities
+	ErrViewEntity = New("view entity failed")
+
+	// ErrUnauthorizedAccess indicates missing or invalid credentials provided
+	// when accessing a protected resource.
+	ErrUnauthorizedAccess = New("missing or invalid credentials provided")
+
+	// ErrScanMetadata indicates problem with metadata in db.
+	ErrScanMetadata = New("failed to scan metadata")
+
+	// ErrSelectEntity indicates error while reading entity from database
+	ErrSelectEntity = New("select entity from db error")
 )

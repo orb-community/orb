@@ -67,7 +67,7 @@ install:
 	cp ${BUILD_DIR}/* $(GOBIN)
 
 test:
-	go test -mod=mod -v -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd')
+	go test -mod=mod -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd')
 
 proto:
 	protoc --gofast_out=plugins=grpc:. *.proto

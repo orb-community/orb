@@ -35,7 +35,7 @@ func TestSelectorSave(t *testing.T) {
 	selector := fleet.Selector{
 		Name:      nameID,
 		MFOwnerID: oID.String(),
-		Metadata:  fleet.Metadata{"testkey": "testvalue"},
+		Metadata:  types.Metadata{"testkey": "testvalue"},
 	}
 
 	cases := []struct {
@@ -51,16 +51,16 @@ func TestSelectorSave(t *testing.T) {
 		{
 			desc:     "create selector that already exist",
 			selector: selector,
-			err:      fleet.ErrConflict,
+			err:      errors.ErrConflict,
 		},
 		{
 			desc:     "create selector with invalid name",
 			selector: fleet.Selector{MFOwnerID: oID.String()},
-			err:      fleet.ErrMalformedEntity,
+			err:      errors.ErrMalformedEntity,
 		}, {
 			desc:     "create selector with invalid owner ID",
 			selector: fleet.Selector{Name: nameID, MFOwnerID: "invalid"},
-			err:      fleet.ErrMalformedEntity,
+			err:      errors.ErrMalformedEntity,
 		},
 	}
 

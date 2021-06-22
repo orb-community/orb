@@ -6,41 +6,42 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package postgres
+package db
 
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/errors"
 )
 
 const (
-	errDuplicate  = "unique_violation"
-	errInvalid    = "invalid_text_representation"
-	errTruncation = "string_data_right_truncation"
+	ErrDuplicate  = "unique_violation"
+	ErrInvalid    = "invalid_text_representation"
+	ErrTruncation = "string_data_right_truncation"
 )
 
 var (
-	errSaveDB    = errors.New("Failed to save to database")
-	errUpdateDB  = errors.New("Failed to update database")
-	errMarshal   = errors.New("Failed to marshal metadata")
-	errUnmarshal = errors.New("Failed to unmarshal metadata")
+	ErrSaveDB    = errors.New("Failed to save to database")
+	ErrUpdateDB  = errors.New("Failed to update database")
+	ErrMarshal   = errors.New("Failed to marshal metadata")
+	ErrUnmarshal = errors.New("Failed to unmarshal metadata")
+	// ErrScanMetadata indicates problem with metadata in db.
+	ErrScanMetadata = errors.New("failed to scan metadata")
 )
 
-// dbMetadata type for handling metadata properly in database/sql
-type dbMetadata map[string]interface{}
-type dbTags map[string]string
+// Metadata type for handling metadata properly in database/sql
+type Metadata map[string]interface{}
+type Tags map[string]string
 
 // Scan - Implement the database/sql scanner interface
-func (m *dbMetadata) Scan(value interface{}) error {
+func (m *Metadata) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
 
 	b, ok := value.([]byte)
 	if !ok {
-		return fleet.ErrScanMetadata
+		return ErrScanMetadata
 	}
 
 	if err := json.Unmarshal(b, m); err != nil {
@@ -51,7 +52,7 @@ func (m *dbMetadata) Scan(value interface{}) error {
 }
 
 // Value Implements valuer
-func (m dbMetadata) Value() (driver.Value, error) {
+func (m Metadata) Value() (driver.Value, error) {
 	if len(m) == 0 {
 		return "{}", nil
 	}
@@ -63,14 +64,14 @@ func (m dbMetadata) Value() (driver.Value, error) {
 	return b, err
 }
 
-func (m *dbTags) Scan(value interface{}) error {
+func (m *Tags) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
 
 	b, ok := value.([]byte)
 	if !ok {
-		return fleet.ErrScanMetadata
+		return ErrScanMetadata
 	}
 
 	if err := json.Unmarshal(b, m); err != nil {
@@ -81,7 +82,7 @@ func (m *dbTags) Scan(value interface{}) error {
 }
 
 // Value Implements valuer
-func (m dbTags) Value() (driver.Value, error) {
+func (m Tags) Value() (driver.Value, error) {
 	if len(m) == 0 {
 		return "{}", nil
 	}

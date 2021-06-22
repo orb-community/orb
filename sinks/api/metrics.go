@@ -5,6 +5,7 @@
 package api
 
 import (
+	"context"
 	"github.com/go-kit/kit/metrics"
 	"github.com/ns1labs/orb/sinks"
 )
@@ -17,8 +18,8 @@ type metricsMiddleware struct {
 	svc     sinks.Service
 }
 
-func (m metricsMiddleware) Add() (sinks.Sink, error) {
-	panic("implement me")
+func (m metricsMiddleware) CreateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
+	return m.svc.CreateSink(ctx, token, s)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.

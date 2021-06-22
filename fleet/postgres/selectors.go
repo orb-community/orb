@@ -13,6 +13,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
@@ -35,12 +36,12 @@ func (r selectorRepository) Save(ctx context.Context, selector fleet.Selector) e
 			  VALUES (:name, :mf_owner_id, :metadata)`
 
 	if !selector.Name.IsValid() || selector.MFOwnerID == "" {
-		return fleet.ErrMalformedEntity
+		return errors.ErrMalformedEntity
 	}
 
 	dba, err := toDBSelector(selector)
 	if err != nil {
-		return errors.Wrap(errSaveDB, err)
+		return errors.Wrap(db.ErrSaveDB, err)
 	}
 
 	_, err = r.db.NamedExecContext(ctx, q, dba)
@@ -48,13 +49,13 @@ func (r selectorRepository) Save(ctx context.Context, selector fleet.Selector) e
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			switch pqErr.Code.Name() {
-			case errInvalid, errTruncation:
-				return errors.Wrap(fleet.ErrMalformedEntity, err)
-			case errDuplicate:
-				return errors.Wrap(fleet.ErrConflict, err)
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(errors.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return errors.Wrap(errors.ErrConflict, err)
 			}
 		}
-		return errors.Wrap(errSaveDB, err)
+		return errors.Wrap(db.ErrSaveDB, err)
 	}
 
 	return nil
@@ -63,7 +64,7 @@ func (r selectorRepository) Save(ctx context.Context, selector fleet.Selector) e
 type dbSelector struct {
 	Name      types.Identifier `db:"name"`
 	MFOwnerID uuid.UUID        `db:"mf_owner_id"`
-	Metadata  dbMetadata       `db:"metadata"`
+	Metadata  db.Metadata      `db:"metadata"`
 }
 
 func toDBSelector(selector fleet.Selector) (dbSelector, error) {
@@ -71,13 +72,13 @@ func toDBSelector(selector fleet.Selector) (dbSelector, error) {
 	var oID uuid.UUID
 	err := oID.Scan(selector.MFOwnerID)
 	if err != nil {
-		return dbSelector{}, errors.Wrap(fleet.ErrMalformedEntity, err)
+		return dbSelector{}, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return dbSelector{
 		Name:      selector.Name,
 		MFOwnerID: oID,
-		Metadata:  dbMetadata(selector.Metadata),
+		Metadata:  db.Metadata(selector.Metadata),
 	}, nil
 
 }

@@ -9,20 +9,7 @@
 package policies
 
 import (
-	"errors"
 	"github.com/mainflux/mainflux"
-)
-
-var (
-	// ErrNotFound indicates a non-existent entity request.
-	ErrNotFound = errors.New("non-existent entity")
-
-	// ErrMalformedEntity indicates malformed entity specification.
-	ErrMalformedEntity = errors.New("malformed entity specification")
-
-	// ErrUnauthorizedAccess indicates missing or invalid credentials provided
-	// when accessing a protected resource.
-	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
 )
 
 type Service interface {

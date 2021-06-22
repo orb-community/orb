@@ -13,39 +13,15 @@ import (
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
 	"time"
 )
 
 var (
-	// ErrNotFound indicates a non-existent entity request.
-	ErrNotFound = errors.New("non-existent entity")
-
-	// ErrConflict indicates that entity already exists.
-	ErrConflict = errors.New("entity already exists")
-
-	// ErrMalformedEntity indicates malformed entity specification.
-	ErrMalformedEntity = errors.New("malformed entity specification")
-
-	// ErrUpdateEntity indicates error in updating entity or entities
-	ErrUpdateEntity = errors.New("update entity failed")
-
-	// ErrViewEntity indicates error in viewing entity or entities
-	ErrViewEntity = errors.New("view entity failed")
-
-	// ErrUnauthorizedAccess indicates missing or invalid credentials provided
-	// when accessing a protected resource.
-	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
-
-	// ErrScanMetadata indicates problem with metadata in db.
-	ErrScanMetadata = errors.New("failed to scan metadata")
-
 	ErrCreateSelector = errors.New("failed to create selector")
 
 	ErrCreateAgent = errors.New("failed to create agent")
-
-	// ErrSelectEntity indicates error while reading entity from database
-	ErrSelectEntity = errors.New("select entity from db error")
 
 	// ErrThings indicates failure to communicate with Mainflux Things service.
 	// It can be due to networking error or invalid/unauthorized request.
@@ -55,12 +31,6 @@ var (
 	errThingNotFound = errors.New("thing not found")
 )
 
-// A flat kv pair object
-type Tags map[string]string
-
-// Maybe a full object hierarchy
-type Metadata map[string]interface{}
-
 type Service interface {
 	AgentService
 	SelectorService
@@ -69,12 +39,12 @@ type Service interface {
 // PageMetadata contains page metadata that helps navigation.
 type PageMetadata struct {
 	Total    uint64
-	Offset   uint64                 `json:"offset,omitempty"`
-	Limit    uint64                 `json:"limit,omitempty"`
-	Name     string                 `json:"name,omitempty"`
-	Order    string                 `json:"order,omitempty"`
-	Dir      string                 `json:"dir,omitempty"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Offset   uint64         `json:"offset,omitempty"`
+	Limit    uint64         `json:"limit,omitempty"`
+	Name     string         `json:"name,omitempty"`
+	Order    string         `json:"order,omitempty"`
+	Dir      string         `json:"dir,omitempty"`
+	Metadata types.Metadata `json:"metadata,omitempty"`
 }
 
 var _ Service = (*fleetService)(nil)
@@ -93,7 +63,7 @@ type fleetService struct {
 func (svc fleetService) ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error) {
 	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
-		return Page{}, errors.Wrap(ErrUnauthorizedAccess, err)
+		return Page{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
 	}
 
 	return svc.agentRepo.RetrieveAll(ctx, res.GetId(), pm)
@@ -105,7 +75,7 @@ func (svc fleetService) identify(token string) (string, error) {
 
 	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
-		return "", errors.Wrap(ErrUnauthorizedAccess, err)
+		return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 	}
 
 	return res.GetId(), nil
@@ -142,7 +112,7 @@ func (svc fleetService) thing(token, id string, name string, md map[string]inter
 	thing, err := svc.mfsdk.Thing(thingID, token)
 	if err != nil {
 		if errors.Contains(err, mfsdk.ErrFailedFetch) {
-			return mfsdk.Thing{}, errors.Wrap(errThingNotFound, ErrNotFound)
+			return mfsdk.Thing{}, errors.Wrap(errThingNotFound, errors.ErrNotFound)
 		}
 
 		if id != "" {

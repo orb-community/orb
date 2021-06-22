@@ -9,7 +9,7 @@
 package api
 
 import (
-	"github.com/ns1labs/orb/policies"
+	"github.com/ns1labs/orb/pkg/errors"
 )
 
 type addReq struct {
@@ -19,11 +19,11 @@ type addReq struct {
 
 func (req addReq) validate() error {
 	if req.token == "" {
-		return policies.ErrUnauthorizedAccess
+		return errors.ErrUnauthorizedAccess
 	}
 
 	if req.name == "" {
-		return policies.ErrMalformedEntity
+		return errors.ErrMalformedEntity
 	}
 
 	return nil

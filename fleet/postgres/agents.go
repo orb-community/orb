@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
@@ -35,7 +36,7 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 	dq := getDirQuery(pm.Dir)
 	m, mq, err := getMetadataQuery(pm.Metadata)
 	if err != nil {
-		return fleet.Page{}, errors.Wrap(fleet.ErrSelectEntity, err)
+		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
 	q := fmt.Sprintf(`SELECT * FROM agents
@@ -50,7 +51,7 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 
 	rows, err := r.db.NamedQueryContext(ctx, q, params)
 	if err != nil {
-		return fleet.Page{}, errors.Wrap(fleet.ErrSelectEntity, err)
+		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 	defer rows.Close()
 
@@ -58,12 +59,12 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 	for rows.Next() {
 		dbth := dbAgent{MFOwnerID: owner}
 		if err := rows.StructScan(&dbth); err != nil {
-			return fleet.Page{}, errors.Wrap(fleet.ErrSelectEntity, err)
+			return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 		}
 
 		th, err := toAgent(dbth)
 		if err != nil {
-			return fleet.Page{}, errors.Wrap(fleet.ErrViewEntity, err)
+			return fleet.Page{}, errors.Wrap(errors.ErrViewEntity, err)
 		}
 
 		items = append(items, th)
@@ -73,7 +74,7 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 
 	total, err := total(ctx, r.db, cq, params)
 	if err != nil {
-		return fleet.Page{}, errors.Wrap(fleet.ErrSelectEntity, err)
+		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
 	page := fleet.Page{
@@ -97,12 +98,12 @@ func (r agentRepository) UpdateDataByIDWithChannel(ctx context.Context, agent fl
 			WHERE mf_thing_id = :mf_thing_id AND mf_channel_id = :mf_channel_id;`
 
 	if agent.MFThingID == "" || agent.MFChannelID == "" {
-		return fleet.ErrMalformedEntity
+		return errors.ErrMalformedEntity
 	}
 
 	dba, err := toDBAgent(agent)
 	if err != nil {
-		return errors.Wrap(fleet.ErrUpdateEntity, err)
+		return errors.Wrap(errors.ErrUpdateEntity, err)
 	}
 
 	res, err := r.db.NamedExecContext(ctx, q, dba)
@@ -110,22 +111,22 @@ func (r agentRepository) UpdateDataByIDWithChannel(ctx context.Context, agent fl
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			switch pqErr.Code.Name() {
-			case errInvalid, errTruncation:
-				return errors.Wrap(fleet.ErrMalformedEntity, err)
-			case errDuplicate:
-				return errors.Wrap(fleet.ErrConflict, err)
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(errors.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return errors.Wrap(errors.ErrConflict, err)
 			}
 		}
-		return errors.Wrap(errUpdateDB, err)
+		return errors.Wrap(db.ErrUpdateDB, err)
 	}
 
 	cnt, errdb := res.RowsAffected()
 	if errdb != nil {
-		return errors.Wrap(fleet.ErrUpdateEntity, errdb)
+		return errors.Wrap(errors.ErrUpdateEntity, errdb)
 	}
 
 	if cnt == 0 {
-		return fleet.ErrNotFound
+		return errors.ErrNotFound
 	}
 
 	return nil
@@ -138,34 +139,34 @@ func (r agentRepository) UpdateHeartbeatByIDWithChannel(ctx context.Context, age
 			WHERE mf_thing_id = :mf_thing_id AND mf_channel_id = :mf_channel_id;`
 
 	if agent.MFThingID == "" || agent.MFChannelID == "" {
-		return fleet.ErrMalformedEntity
+		return errors.ErrMalformedEntity
 	}
 
 	dba, err := toDBAgent(agent)
 	if err != nil {
-		return errors.Wrap(fleet.ErrUpdateEntity, err)
+		return errors.Wrap(errors.ErrUpdateEntity, err)
 	}
 	res, err := r.db.NamedExecContext(ctx, q, dba)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			switch pqErr.Code.Name() {
-			case errInvalid, errTruncation:
-				return errors.Wrap(fleet.ErrMalformedEntity, err)
-			case errDuplicate:
-				return errors.Wrap(fleet.ErrConflict, err)
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(errors.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return errors.Wrap(errors.ErrConflict, err)
 			}
 		}
-		return errors.Wrap(errUpdateDB, err)
+		return errors.Wrap(db.ErrUpdateDB, err)
 	}
 
 	cnt, errdb := res.RowsAffected()
 	if errdb != nil {
-		return errors.Wrap(fleet.ErrUpdateEntity, errdb)
+		return errors.Wrap(errors.ErrUpdateEntity, errdb)
 	}
 
 	if cnt == 0 {
-		return fleet.ErrNotFound
+		return errors.ErrNotFound
 	}
 
 	return nil
@@ -180,10 +181,10 @@ func (r agentRepository) RetrieveByIDWithChannel(ctx context.Context, thingID st
 
 	if err := r.db.QueryRowxContext(ctx, q, thingID, channelID).StructScan(&dba); err != nil {
 		pqErr, ok := err.(*pq.Error)
-		if err == sql.ErrNoRows || ok && errInvalid == pqErr.Code.Name() {
-			return fleet.Agent{}, errors.Wrap(fleet.ErrNotFound, err)
+		if err == sql.ErrNoRows || ok && db.ErrInvalid == pqErr.Code.Name() {
+			return fleet.Agent{}, errors.Wrap(errors.ErrNotFound, err)
 		}
-		return fleet.Agent{}, errors.Wrap(fleet.ErrSelectEntity, err)
+		return fleet.Agent{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
 	return toAgent(dba)
@@ -195,12 +196,12 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 			  VALUES (:name, :mf_thing_id, :mf_owner_id, :mf_channel_id, :orb_tags, :agent_tags, :agent_metadata, :state)`
 
 	if !agent.Name.IsValid() || agent.MFOwnerID == "" || agent.MFThingID == "" || agent.MFChannelID == "" {
-		return fleet.ErrMalformedEntity
+		return errors.ErrMalformedEntity
 	}
 
 	dba, err := toDBAgent(agent)
 	if err != nil {
-		return errors.Wrap(errSaveDB, err)
+		return errors.Wrap(db.ErrSaveDB, err)
 	}
 
 	_, err = r.db.NamedExecContext(ctx, q, dba)
@@ -208,13 +209,13 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			switch pqErr.Code.Name() {
-			case errInvalid, errTruncation:
-				return errors.Wrap(fleet.ErrMalformedEntity, err)
-			case errDuplicate:
-				return errors.Wrap(fleet.ErrConflict, err)
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(errors.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return errors.Wrap(errors.ErrConflict, err)
 			}
 		}
-		return errors.Wrap(errSaveDB, err)
+		return errors.Wrap(db.ErrSaveDB, err)
 	}
 
 	return nil
@@ -226,12 +227,12 @@ type dbAgent struct {
 	MFOwnerID     string           `db:"mf_owner_id"`
 	MFThingID     string           `db:"mf_thing_id"`
 	MFChannelID   string           `db:"mf_channel_id"`
-	OrbTags       dbTags           `db:"orb_tags"`
-	AgentTags     dbTags           `db:"agent_tags"`
-	AgentMetadata dbMetadata       `db:"agent_metadata"`
+	OrbTags       db.Tags          `db:"orb_tags"`
+	AgentTags     db.Tags          `db:"agent_tags"`
+	AgentMetadata db.Metadata      `db:"agent_metadata"`
 	State         fleet.State      `db:"state"`
 	Created       time.Time        `db:"ts_created"`
-	LastHBData    dbMetadata       `db:"last_hb_data"`
+	LastHBData    db.Metadata      `db:"last_hb_data"`
 	LastHB        sql.NullTime     `db:"ts_last_hb"`
 }
 
@@ -242,12 +243,12 @@ func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 		MFOwnerID:     agent.MFOwnerID,
 		MFThingID:     agent.MFThingID,
 		MFChannelID:   agent.MFChannelID,
-		OrbTags:       dbTags(agent.OrbTags),
-		AgentTags:     dbTags(agent.AgentTags),
-		AgentMetadata: dbMetadata(agent.AgentMetadata),
+		OrbTags:       db.Tags(agent.OrbTags),
+		AgentTags:     db.Tags(agent.AgentTags),
+		AgentMetadata: db.Metadata(agent.AgentMetadata),
 		State:         agent.State,
 		Created:       agent.Created,
-		LastHBData:    dbMetadata(agent.LastHBData),
+		LastHBData:    db.Metadata(agent.LastHBData),
 	}
 
 	if !agent.LastHB.IsZero() {
@@ -267,11 +268,11 @@ func toAgent(dba dbAgent) (fleet.Agent, error) {
 		MFThingID:     dba.MFThingID,
 		MFChannelID:   dba.MFChannelID,
 		Created:       dba.Created,
-		OrbTags:       fleet.Tags(dba.OrbTags),
-		AgentTags:     fleet.Tags(dba.AgentTags),
-		AgentMetadata: fleet.Metadata(dba.AgentMetadata),
+		OrbTags:       types.Tags(dba.OrbTags),
+		AgentTags:     types.Tags(dba.AgentTags),
+		AgentMetadata: types.Metadata(dba.AgentMetadata),
 		State:         dba.State,
-		LastHBData:    fleet.Metadata(dba.LastHBData),
+		LastHBData:    types.Metadata(dba.LastHBData),
 		LastHB:        dba.LastHB.Time,
 	}
 
@@ -305,7 +306,7 @@ func getDirQuery(dir string) string {
 	}
 }
 
-func getMetadataQuery(m fleet.Metadata) ([]byte, string, error) {
+func getMetadataQuery(m types.Metadata) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {

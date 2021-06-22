@@ -5,8 +5,10 @@
 package api
 
 import (
+	"context"
 	"github.com/ns1labs/orb/sinks"
 	"go.uber.org/zap"
+	"time"
 )
 
 var _ sinks.Service = (*loggingMiddleware)(nil)
@@ -16,8 +18,18 @@ type loggingMiddleware struct {
 	svc    sinks.Service
 }
 
-func (l loggingMiddleware) Add() (sinks.Sink, error) {
-	panic("implement me")
+func (l loggingMiddleware) CreateSink(ctx context.Context, token string, s sinks.Sink) (_ sinks.Sink, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: create_sink",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: create_sink",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.CreateSink(ctx, token, s)
 }
 
 func NewLoggingMiddleware(svc sinks.Service, logger *zap.Logger) sinks.Service {

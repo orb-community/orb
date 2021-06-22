@@ -74,6 +74,7 @@ func migrateDB(db *sqlx.DB) error {
                         ts_created         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
 						PRIMARY KEY (name, mf_owner_id)
 					)`,
+					`CREATE INDEX ON selectors (mf_owner_id)`,
 				},
 				Down: []string{
 					"DROP TABLE agents",
