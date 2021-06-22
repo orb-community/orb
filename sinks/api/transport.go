@@ -10,21 +10,26 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb"
+	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"io"
 	"net/http"
 	"strings"
 )
 
 func MakeHandler(svcName string, svc sinks.Service) http.Handler {
-	opts := []kithttp.ServerOption{}
+	opts := []kithttp.ServerOption{
+		kithttp.ServerErrorEncoder(encodeError),
+	}
 	r := bone.New()
 
 	r.Post("/sinks", kithttp.NewServer(
 		addEndpoint(svc),
 		decodeAddRequest,
-		encodeResponse,
+		types.EncodeResponse,
 		opts...))
 
 	r.GetFunc("/version", orb.Version(svcName))
@@ -46,7 +51,42 @@ func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	return req, nil
 }
 
-func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
-	w.Header().Set("Content-Type", "application/json")
-	return json.NewEncoder(w).Encode(response)
+func encodeError(_ context.Context, err error, w http.ResponseWriter) {
+	switch errorVal := err.(type) {
+	case errors.Error:
+		w.Header().Set("Content-Type", types.ContentType)
+		switch {
+		case errors.Contains(errorVal, errors.ErrUnauthorizedAccess):
+			w.WriteHeader(http.StatusUnauthorized)
+
+		case errors.Contains(errorVal, errors.ErrInvalidQueryParams):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrUnsupportedContentType):
+			w.WriteHeader(http.StatusUnsupportedMediaType)
+
+		case errors.Contains(errorVal, errors.ErrMalformedEntity):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrNotFound):
+			w.WriteHeader(http.StatusNotFound)
+		case errors.Contains(errorVal, errors.ErrConflict):
+			w.WriteHeader(http.StatusConflict)
+
+		case errors.Contains(errorVal, db.ErrScanMetadata):
+			w.WriteHeader(http.StatusUnprocessableEntity)
+
+		case errors.Contains(errorVal, io.ErrUnexpectedEOF),
+			errors.Contains(errorVal, io.EOF):
+			w.WriteHeader(http.StatusBadRequest)
+
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		if errorVal.Msg() != "" {
+			if err := json.NewEncoder(w).Encode(types.ErrorRes{Err: errorVal.Msg()}); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		}
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

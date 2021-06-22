@@ -31,7 +31,7 @@ func addEndpoint(svc sinks.Service) endpoint.Endpoint {
 			Name:   nID,
 			Config: req.Config,
 		}
-		saved, err := svc.CreateAgent(ctx, req.token, sink)
+		saved, err := svc.CreateSink(ctx, req.token, sink)
 		if err != nil {
 			return nil, err
 		}

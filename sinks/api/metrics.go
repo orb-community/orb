@@ -18,8 +18,8 @@ type metricsMiddleware struct {
 	svc     sinks.Service
 }
 
-func (m metricsMiddleware) CreateAgent(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
-	panic("implement me")
+func (m metricsMiddleware) CreateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
+	return m.svc.CreateSink(ctx, token, s)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.

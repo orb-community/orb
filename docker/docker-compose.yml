@@ -445,11 +445,3 @@ services:
     env_file:
       - .env
     command: /entrypoint.sh
-    depends_on:
-      - things
-      - users
-      - fleet
-      - sinks
-      - mqtt-adapter
-      - http-adapter
-      - ui

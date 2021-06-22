@@ -26,8 +26,8 @@ type eventStore struct {
 	client *redis.Client
 }
 
-func (es eventStore) CreateAgent(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
-	panic("implement me")
+func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
+	return es.svc.CreateSink(ctx, token, s)
 }
 
 // NewEventStoreMiddleware returns wrapper around sinks service that sends
