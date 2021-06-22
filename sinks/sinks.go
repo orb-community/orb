@@ -17,7 +17,7 @@ type Sink struct {
 	Created   time.Time
 }
 
-type SinkRepository interface {
+type Repository interface {
 	// Save persists the Sink. Successful operation is indicated by non-nil
 	// error response.
 	Save(ctx context.Context, cfg Sink) error

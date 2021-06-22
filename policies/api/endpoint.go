@@ -11,23 +11,33 @@ package api
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies"
 )
 
 func addEndpoint(svc policies.Service) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addReq)
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
 
-		saved, err := svc.Add()
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		sink := policies.Policy{
+			Name:       nID,
+			PolicyYAML: req.PolicyYAML,
+		}
+		saved, err := svc.CreatePolicy(ctx, req.token, sink)
 		if err != nil {
 			return nil, err
 		}
 
 		res := policyRes{
-			id:      saved.PolicyID,
+			Name:    saved.Name.String(),
 			created: true,
 		}
 

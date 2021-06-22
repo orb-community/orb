@@ -5,6 +5,7 @@
 package api
 
 import (
+	"context"
 	"github.com/go-kit/kit/metrics"
 	"github.com/ns1labs/orb/policies"
 )
@@ -17,8 +18,8 @@ type metricsMiddleware struct {
 	svc     policies.Service
 }
 
-func (m metricsMiddleware) Add() (policies.Policy, error) {
-	panic("implement me")
+func (m metricsMiddleware) CreatePolicy(ctx context.Context, token string, p policies.Policy) (policies.Policy, error) {
+	return m.svc.CreatePolicy(ctx, token, p)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.

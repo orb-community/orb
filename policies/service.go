@@ -9,27 +9,59 @@
 package policies
 
 import (
+	"context"
 	"github.com/mainflux/mainflux"
+	"github.com/ns1labs/orb/pkg/errors"
+	"time"
+)
+
+var (
+	ErrCreatePolicy = errors.New("failed to create policy")
 )
 
 type Service interface {
-	Add() (Policy, error)
+	// CreatePolicy creates new data sink
+	CreatePolicy(ctx context.Context, token string, p Policy) (Policy, error)
 }
 
 var _ Service = (*policiesService)(nil)
 
 type policiesService struct {
 	auth mainflux.AuthServiceClient
-	repo PoliciesRepository
+	repo Repository
 }
 
-func New(auth mainflux.AuthServiceClient, repo PoliciesRepository) Service {
+func (s policiesService) identify(token string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	res, err := s.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+
+	return res.GetId(), nil
+}
+
+func (s policiesService) CreatePolicy(ctx context.Context, token string, p Policy) (Policy, error) {
+
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	p.MFOwnerID = mfOwnerID
+
+	err = s.repo.Save(ctx, p)
+	if err != nil {
+		return Policy{}, errors.Wrap(ErrCreatePolicy, err)
+	}
+	return p, nil
+}
+
+func New(auth mainflux.AuthServiceClient, repo Repository) Service {
 	return &policiesService{
 		auth: auth,
 		repo: repo,
 	}
-}
-
-func (s policiesService) Add() (Policy, error) {
-	panic("implement me")
 }

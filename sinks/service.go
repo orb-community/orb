@@ -28,10 +28,10 @@ var _ Service = (*sinkService)(nil)
 
 type sinkService struct {
 	auth mainflux.AuthServiceClient
-	repo SinkRepository
+	repo Repository
 }
 
-func New(auth mainflux.AuthServiceClient, repo SinkRepository) Service {
+func New(auth mainflux.AuthServiceClient, repo Repository) Service {
 	return &sinkService{
 		auth: auth,
 		repo: repo,

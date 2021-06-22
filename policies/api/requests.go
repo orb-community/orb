@@ -10,11 +10,13 @@ package api
 
 import (
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/pkg/types"
 )
 
 type addReq struct {
-	token string
-	name  string
+	Name       string `json:"name,omitempty"`
+	PolicyYAML string `json:"policy_yaml,omitempty"`
+	token      string
 }
 
 func (req addReq) validate() error {
@@ -22,8 +24,16 @@ func (req addReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 
-	if req.name == "" {
+	if req.Name == "" {
 		return errors.ErrMalformedEntity
+	}
+	if req.PolicyYAML == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	_, err := types.NewIdentifier(req.Name)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return nil

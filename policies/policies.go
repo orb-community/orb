@@ -4,14 +4,21 @@
 
 package policies
 
+import (
+	"context"
+	"github.com/ns1labs/orb/pkg/types"
+	"time"
+)
+
 type Policy struct {
-	PolicyID string
-	Owner    string
-	Name     string
+	Name       types.Identifier
+	MFOwnerID  string
+	PolicyYAML string
+	Created    time.Time
 }
 
-type PoliciesRepository interface {
+type Repository interface {
 	// Save persists the Policy. Successful operation is indicated by non-nil
 	// error response.
-	Save(cfg Policy) (string, error)
+	Save(ctx context.Context, policy Policy) error
 }
