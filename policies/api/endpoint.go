@@ -28,8 +28,10 @@ func addEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		sink := policies.Policy{
-			Name:       nID,
-			PolicyYAML: req.PolicyYAML,
+			Name:    nID,
+			Backend: req.Backend,
+			Format:  req.Format,
+			Policy:  req.Policy,
 		}
 		saved, err := svc.CreatePolicy(ctx, req.token, sink)
 		if err != nil {

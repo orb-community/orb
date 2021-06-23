@@ -10,8 +10,12 @@ package policies
 
 import (
 	"context"
+	"fmt"
 	"github.com/mainflux/mainflux"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/policies/backend"
+	"github.com/ns1labs/orb/policies/backend/orb"
+	"github.com/ns1labs/orb/policies/backend/pktvisor"
 	"time"
 )
 
@@ -50,6 +54,14 @@ func (s policiesService) CreatePolicy(ctx context.Context, token string, p Polic
 		return Policy{}, err
 	}
 
+	if !backend.HaveBackend(p.Backend) {
+		return Policy{}, errors.Wrap(ErrCreatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
+	}
+
+	if !backend.GetBackend(p.Backend).SupportsFormat(p.Format) {
+		return Policy{}, errors.Wrap(ErrCreatePolicy, errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", p.Format, p.Backend)))
+	}
+
 	p.MFOwnerID = mfOwnerID
 
 	err = s.repo.Save(ctx, p)
@@ -60,6 +72,10 @@ func (s policiesService) CreatePolicy(ctx context.Context, token string, p Polic
 }
 
 func New(auth mainflux.AuthServiceClient, repo Repository) Service {
+
+	orb.Register()
+	pktvisor.Register()
+
 	return &policiesService{
 		auth: auth,
 		repo: repo,

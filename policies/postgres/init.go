@@ -47,7 +47,10 @@ func migrateDB(db *sqlx.DB) error {
 
 						orb_tags       JSONB NOT NULL DEFAULT '{}',
 
-						policy_yaml	   TEXT,
+						backend        TEXT NOT NULL,
+						format         TEXT NOT NULL,
+						policy		   TEXT NOT NULL,
+
                         ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
 						PRIMARY KEY (name, mf_owner_id)
 					)`,

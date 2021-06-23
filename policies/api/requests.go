@@ -14,9 +14,11 @@ import (
 )
 
 type addReq struct {
-	Name       string `json:"name,omitempty"`
-	PolicyYAML string `json:"policy_yaml,omitempty"`
-	token      string
+	Name    string `json:"name"`
+	Backend string `json:"backend"`
+	Format  string `json:"format"`
+	Policy  string `json:"policy"`
+	token   string
 }
 
 func (req addReq) validate() error {
@@ -27,7 +29,13 @@ func (req addReq) validate() error {
 	if req.Name == "" {
 		return errors.ErrMalformedEntity
 	}
-	if req.PolicyYAML == "" {
+	if req.Backend == "" {
+		return errors.ErrMalformedEntity
+	}
+	if req.Format == "" {
+		return errors.ErrMalformedEntity
+	}
+	if req.Policy == "" {
 		return errors.ErrMalformedEntity
 	}
 

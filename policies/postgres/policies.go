@@ -33,8 +33,8 @@ func NewPoliciesRepository(db *sqlx.DB, log *zap.Logger) policies.Repository {
 
 func (r policiesRepository) Save(ctx context.Context, policy policies.Policy) error {
 
-	q := `INSERT INTO policies (name, mf_owner_id, policy_yaml)         
-			  VALUES (:name, :mf_owner_id, :policy_yaml)`
+	q := `INSERT INTO policies (name, mf_owner_id, backend, format, policy)         
+			  VALUES (:name, :mf_owner_id, :backend, :format, :policy)`
 
 	if !policy.Name.IsValid() || policy.MFOwnerID == "" {
 		return errors.ErrMalformedEntity
@@ -64,9 +64,11 @@ func (r policiesRepository) Save(ctx context.Context, policy policies.Policy) er
 }
 
 type dbPolicy struct {
-	Name       types.Identifier `db:"name"`
-	MFOwnerID  string           `db:"mf_owner_id"`
-	PolicyYAML string           `db:"policy_yaml"`
+	Name      types.Identifier `db:"name"`
+	MFOwnerID string           `db:"mf_owner_id"`
+	Backend   string           `db:"backend"`
+	Format    string           `db:"format"`
+	Policy    string           `db:"policy"`
 }
 
 func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
@@ -78,9 +80,11 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 	}
 
 	return dbPolicy{
-		Name:       policy.Name,
-		MFOwnerID:  uID.String(),
-		PolicyYAML: policy.PolicyYAML,
+		Name:      policy.Name,
+		MFOwnerID: uID.String(),
+		Backend:   policy.Backend,
+		Format:    policy.Format,
+		Policy:    policy.Policy,
 	}, nil
 
 }

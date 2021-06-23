@@ -11,10 +11,12 @@ import (
 )
 
 type Policy struct {
-	Name       types.Identifier
-	MFOwnerID  string
-	PolicyYAML string
-	Created    time.Time
+	Name      types.Identifier
+	MFOwnerID string
+	Backend   string
+	Format    string
+	Policy    string
+	Created   time.Time
 }
 
 type Repository interface {
