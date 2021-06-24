@@ -18,19 +18,6 @@ import (
 	"time"
 )
 
-var (
-	ErrCreateAgentGroup = errors.New("failed to create agent group")
-
-	ErrCreateAgent = errors.New("failed to create agent")
-
-	// ErrThings indicates failure to communicate with Mainflux Things service.
-	// It can be due to networking error or invalid/unauthorized request.
-	ErrThings = errors.New("failed to receive response from Things service")
-
-	errCreateThing   = errors.New("failed to create thing")
-	errThingNotFound = errors.New("thing not found")
-)
-
 type Service interface {
 	AgentService
 	AgentGroupService
@@ -60,15 +47,6 @@ type fleetService struct {
 	agentGroupRepository AgentGroupRepository
 }
 
-func (svc fleetService) ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error) {
-	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
-	if err != nil {
-		return Page{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
-	}
-
-	return svc.agentRepo.RetrieveAll(ctx, res.GetId(), pm)
-}
-
 func (svc fleetService) identify(token string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -79,22 +57,6 @@ func (svc fleetService) identify(token string) (string, error) {
 	}
 
 	return res.GetId(), nil
-}
-
-func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error) {
-	mfOwnerID, err := svc.identify(token)
-	if err != nil {
-		return AgentGroup{}, err
-	}
-
-	s.MFOwnerID = mfOwnerID
-
-	err = svc.agentGroupRepository.Save(ctx, s)
-	if err != nil {
-		return AgentGroup{}, errors.Wrap(ErrCreateAgentGroup, err)
-	}
-
-	return s, nil
 }
 
 // Method thing retrieves Mainflux Thing creating one if an empty ID is passed.
@@ -125,70 +87,6 @@ func (svc fleetService) thing(token, id string, name string, md map[string]inter
 	}
 
 	return thing, nil
-}
-
-func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) (Agent, error) {
-	mfOwnerID, err := svc.identify(token)
-	if err != nil {
-		return Agent{}, err
-	}
-
-	a.MFOwnerID = mfOwnerID
-
-	md := map[string]interface{}{"type": "orb_agent"}
-
-	// create new Thing
-	mfThing, err := svc.thing(token, "", a.Name.String(), md)
-	if err != nil {
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
-	a.MFThingID = mfThing.ID
-	a.MFKeyID = mfThing.Key
-
-	// create main Agent RPC Channel
-	mfChannelID, err := svc.mfsdk.CreateChannel(mfsdk.Channel{
-		Name:     a.Name.String(),
-		Metadata: md,
-	}, token)
-	if err != nil {
-		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-		}
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
-	a.MFChannelID = mfChannelID
-
-	// RPC Channel to Agent
-	err = svc.mfsdk.Connect(mfsdk.ConnectionIDs{
-		ChannelIDs: []string{mfChannelID},
-		ThingIDs:   []string{mfThing.ID},
-	}, token)
-	if err != nil {
-		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-			// fall through
-		}
-		if errT := svc.mfsdk.DeleteChannel(mfChannelID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-		}
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
-	err = svc.agentRepo.Save(ctx, a)
-	if err != nil {
-		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-			// fall through
-		}
-		if errT := svc.mfsdk.DeleteChannel(mfChannelID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-		}
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
-	return a, nil
 }
 
 func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, mfsdk mfsdk.SDK) Service {
