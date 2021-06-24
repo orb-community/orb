@@ -17,7 +17,7 @@ type orbBackend struct {
 
 func (p orbBackend) Validate(policy types.Metadata) error {
 	if version, ok := policy["version"]; ok {
-		if version != "1.0" {
+		if version != CurrentSchemaVersion {
 			return errors.New("unsupported version")
 		}
 	} else {
