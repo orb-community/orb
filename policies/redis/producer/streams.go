@@ -26,8 +26,8 @@ type eventStore struct {
 	client *redis.Client
 }
 
-func (e eventStore) CreatePolicy(ctx context.Context, token string, p policies.Policy) (policies.Policy, error) {
-	return e.svc.CreatePolicy(ctx, token, p)
+func (e eventStore) CreatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
+	return e.svc.CreatePolicy(ctx, token, p, format, policyData)
 }
 
 // NewEventStoreMiddleware returns wrapper around policies service that sends

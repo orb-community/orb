@@ -33,8 +33,8 @@ func NewPoliciesRepository(db *sqlx.DB, log *zap.Logger) policies.Repository {
 
 func (r policiesRepository) Save(ctx context.Context, policy policies.Policy) error {
 
-	q := `INSERT INTO policies (name, mf_owner_id, backend, format, policy)         
-			  VALUES (:name, :mf_owner_id, :backend, :format, :policy)`
+	q := `INSERT INTO policies (name, mf_owner_id, backend, policy)         
+			  VALUES (:name, :mf_owner_id, :backend, :policy)`
 
 	if !policy.Name.IsValid() || policy.MFOwnerID == "" {
 		return errors.ErrMalformedEntity
@@ -68,7 +68,7 @@ type dbPolicy struct {
 	MFOwnerID string           `db:"mf_owner_id"`
 	Backend   string           `db:"backend"`
 	Format    string           `db:"format"`
-	Policy    string           `db:"policy"`
+	Policy    db.Metadata      `db:"policy"`
 }
 
 func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
@@ -83,8 +83,7 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 		Name:      policy.Name,
 		MFOwnerID: uID.String(),
 		Backend:   policy.Backend,
-		Format:    policy.Format,
-		Policy:    policy.Policy,
+		Policy:    db.Metadata(policy.Policy),
 	}, nil
 
 }

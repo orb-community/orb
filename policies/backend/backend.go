@@ -4,8 +4,12 @@
 
 package backend
 
+import "github.com/ns1labs/orb/pkg/types"
+
 type Backend interface {
 	SupportsFormat(format string) bool
+	ConvertFromFormat(format string, policy string) (types.Metadata, error)
+	Validate(policy types.Metadata) error
 }
 
 var registry = make(map[string]Backend)

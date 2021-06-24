@@ -14,8 +14,7 @@ type Policy struct {
 	Name      types.Identifier
 	MFOwnerID string
 	Backend   string
-	Format    string
-	Policy    string
+	Policy    types.Metadata
 	Created   time.Time
 }
 

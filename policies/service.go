@@ -25,7 +25,7 @@ var (
 
 type Service interface {
 	// CreatePolicy creates new data sink
-	CreatePolicy(ctx context.Context, token string, p Policy) (Policy, error)
+	CreatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
 }
 
 var _ Service = (*policiesService)(nil)
@@ -47,7 +47,7 @@ func (s policiesService) identify(token string) (string, error) {
 	return res.GetId(), nil
 }
 
-func (s policiesService) CreatePolicy(ctx context.Context, token string, p Policy) (Policy, error) {
+func (s policiesService) CreatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error) {
 
 	mfOwnerID, err := s.identify(token)
 	if err != nil {
@@ -58,8 +58,22 @@ func (s policiesService) CreatePolicy(ctx context.Context, token string, p Polic
 		return Policy{}, errors.Wrap(ErrCreatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
 	}
 
-	if !backend.GetBackend(p.Backend).SupportsFormat(p.Format) {
-		return Policy{}, errors.Wrap(ErrCreatePolicy, errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", p.Format, p.Backend)))
+	if p.Policy == nil {
+		// if not already in json, make sure the back end can convert it
+		if !backend.GetBackend(p.Backend).SupportsFormat(format) {
+			return Policy{}, errors.Wrap(ErrCreatePolicy,
+				errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", format, p.Backend)))
+		}
+
+		p.Policy, err = backend.GetBackend(p.Backend).ConvertFromFormat(format, policyData)
+		if err != nil {
+			return Policy{}, errors.Wrap(ErrCreatePolicy, err)
+		}
+	}
+
+	err = backend.GetBackend(p.Backend).Validate(p.Policy)
+	if err != nil {
+		return Policy{}, errors.Wrap(ErrCreatePolicy, err)
 	}
 
 	p.MFOwnerID = mfOwnerID

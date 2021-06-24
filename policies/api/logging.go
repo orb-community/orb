@@ -18,7 +18,7 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
-func (l loggingMiddleware) CreatePolicy(ctx context.Context, token string, p policies.Policy) (_ policies.Policy, err error) {
+func (l loggingMiddleware) CreatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: create_policy",
@@ -29,7 +29,7 @@ func (l loggingMiddleware) CreatePolicy(ctx context.Context, token string, p pol
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.CreatePolicy(ctx, token, p)
+	return l.svc.CreatePolicy(ctx, token, p, format, policyData)
 }
 
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {

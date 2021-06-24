@@ -5,12 +5,45 @@
 package pktvisor
 
 import (
+	"errors"
+	"github.com/ghodss/yaml"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies/backend"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
 
 type pktvisorBackend struct {
+}
+
+func (p pktvisorBackend) Validate(policy types.Metadata) error {
+	// todo finish validation
+	return nil
+}
+
+func (p pktvisorBackend) convertFromYAML(policy string) (types.Metadata, error) {
+	j := collectionPolicy{}
+	err := yaml.Unmarshal([]byte(policy), &j)
+	if err != nil {
+		return types.Metadata{}, err
+	}
+	if j.Version != "1.0" {
+		return types.Metadata{}, errors.New("unsupported version")
+	}
+	if j.Visor == nil {
+		return types.Metadata{}, errors.New("malformed yaml policy")
+	}
+
+	return j.Visor, nil
+}
+
+func (p pktvisorBackend) ConvertFromFormat(format string, policy string) (types.Metadata, error) {
+	switch format {
+	case "yaml":
+		return p.convertFromYAML(policy)
+	default:
+		return nil, errors.New("unsupported format")
+	}
 }
 
 func (p pktvisorBackend) SupportsFormat(format string) bool {

@@ -14,11 +14,12 @@ import (
 )
 
 type addReq struct {
-	Name    string `json:"name"`
-	Backend string `json:"backend"`
-	Format  string `json:"format"`
-	Policy  string `json:"policy"`
-	token   string
+	Name       string         `json:"name"`
+	Backend    string         `json:"backend"`
+	Policy     types.Metadata `json:"policy,omitempty"`
+	Format     string         `json:"format,omitempty"`
+	PolicyData string         `json:"policy_data,omitempty"`
+	token      string
 }
 
 func (req addReq) validate() error {
@@ -32,11 +33,17 @@ func (req addReq) validate() error {
 	if req.Backend == "" {
 		return errors.ErrMalformedEntity
 	}
-	if req.Format == "" {
-		return errors.ErrMalformedEntity
-	}
-	if req.Policy == "" {
-		return errors.ErrMalformedEntity
+
+	if req.Policy == nil {
+		// passing policy data blob in the specified format
+		if req.Format == "" || req.PolicyData == "" {
+			return errors.ErrMalformedEntity
+		}
+	} else {
+		// policy is in json, verified by the back ends later
+		if req.Format != "" || req.PolicyData != "" {
+			return errors.ErrMalformedEntity
+		}
 	}
 
 	_, err := types.NewIdentifier(req.Name)
