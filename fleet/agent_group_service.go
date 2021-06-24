@@ -10,6 +10,7 @@ package fleet
 
 import (
 	"context"
+	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
 )
 
@@ -24,6 +25,19 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 	}
 
 	s.MFOwnerID = mfOwnerID
+
+	md := map[string]interface{}{"type": "orb_agent_group"}
+
+	// create main Agent RPC Channel
+	mfChannelID, err := svc.mfsdk.CreateChannel(mfsdk.Channel{
+		Name:     s.Name.String(),
+		Metadata: md,
+	}, token)
+	if err != nil {
+		return AgentGroup{}, errors.Wrap(ErrCreateAgent, err)
+	}
+
+	s.MFChannelID = mfChannelID
 
 	err = svc.agentGroupRepository.Save(ctx, s)
 	if err != nil {
