@@ -66,19 +66,21 @@ func migrateDB(db *sqlx.DB) error {
 					)`,
 					`CREATE INDEX ON agents (mf_owner_id)`,
 					// TODO json indexes
-					`CREATE TABLE IF NOT EXISTS selectors (
+					`CREATE TABLE IF NOT EXISTS agent_groups (
 						name        	   TEXT NOT NULL,
 						mf_owner_id        UUID NOT NULL,
+						mf_channel_id      UUID NOT NULL,
 	
 						metadata           JSONB NOT NULL DEFAULT '{}',
                         ts_created         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
 						PRIMARY KEY (name, mf_owner_id)
 					)`,
-					`CREATE INDEX ON selectors (mf_owner_id)`,
+					`CREATE INDEX ON agent_groups (mf_owner_id)`,
+					// TODO json indexes
 				},
 				Down: []string{
 					"DROP TABLE agents",
-					"DROP TABLE selectors",
+					"DROP TABLE agent_groups",
 				},
 			},
 		},

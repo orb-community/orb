@@ -23,13 +23,13 @@ const (
 	descDir      = "desc"
 )
 
-type addSelectorReq struct {
+type addAgentGroupReq struct {
 	token    string
 	Name     string                 `json:"name,omitempty"`
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
-func (req addSelectorReq) validate() error {
+func (req addAgentGroupReq) validate() error {
 
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess

@@ -10,16 +10,16 @@ import (
 )
 
 var (
-	_ types.Response = (*selectorRes)(nil)
+	_ types.Response = (*agentGroupRes)(nil)
 	_ types.Response = (*agentRes)(nil)
 )
 
-type selectorRes struct {
+type agentGroupRes struct {
 	Name    string `json:"name"`
 	created bool
 }
 
-func (s selectorRes) Code() int {
+func (s agentGroupRes) Code() int {
 	if s.created {
 		return http.StatusCreated
 	}
@@ -27,11 +27,11 @@ func (s selectorRes) Code() int {
 	return http.StatusOK
 }
 
-func (s selectorRes) Headers() map[string]string {
+func (s agentGroupRes) Headers() map[string]string {
 	return map[string]string{}
 }
 
-func (s selectorRes) Empty() bool {
+func (s agentGroupRes) Empty() bool {
 	return false
 }
 

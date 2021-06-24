@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	ErrCreateSelector = errors.New("failed to create selector")
+	ErrCreateAgentGroup = errors.New("failed to create agent group")
 
 	ErrCreateAgent = errors.New("failed to create agent")
 
@@ -33,7 +33,7 @@ var (
 
 type Service interface {
 	AgentService
-	SelectorService
+	AgentGroupService
 }
 
 // PageMetadata contains page metadata that helps navigation.
@@ -55,9 +55,9 @@ type fleetService struct {
 	auth mainflux.AuthServiceClient
 	// for Thing manipulation
 	mfsdk mfsdk.SDK
-	// Agents and Selectors
-	agentRepo    AgentRepository
-	selectorRepo SelectorRepository
+	// Agents and Agent Groups
+	agentRepo            AgentRepository
+	agentGroupRepository AgentGroupRepository
 }
 
 func (svc fleetService) ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error) {
@@ -81,17 +81,17 @@ func (svc fleetService) identify(token string) (string, error) {
 	return res.GetId(), nil
 }
 
-func (svc fleetService) CreateSelector(ctx context.Context, token string, s Selector) (Selector, error) {
+func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error) {
 	mfOwnerID, err := svc.identify(token)
 	if err != nil {
-		return Selector{}, err
+		return AgentGroup{}, err
 	}
 
 	s.MFOwnerID = mfOwnerID
 
-	err = svc.selectorRepo.Save(ctx, s)
+	err = svc.agentGroupRepository.Save(ctx, s)
 	if err != nil {
-		return Selector{}, errors.Wrap(ErrCreateSelector, err)
+		return AgentGroup{}, errors.Wrap(ErrCreateAgentGroup, err)
 	}
 
 	return s, nil
@@ -191,12 +191,12 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 	return a, nil
 }
 
-func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, selectorRepo SelectorRepository, mfsdk mfsdk.SDK) Service {
+func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, mfsdk mfsdk.SDK) Service {
 	return &fleetService{
-		logger:       logger,
-		auth:         auth,
-		agentRepo:    agentRepo,
-		selectorRepo: selectorRepo,
-		mfsdk:        mfsdk,
+		logger:               logger,
+		auth:                 auth,
+		agentRepo:            agentRepo,
+		agentGroupRepository: agentGroupRepository,
+		mfsdk:                mfsdk,
 	}
 }

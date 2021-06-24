@@ -10,20 +10,20 @@ import (
 	"time"
 )
 
-type Selector struct {
+type AgentGroup struct {
 	Name      types.Identifier
 	MFOwnerID string
 	Metadata  types.Metadata
 	Created   time.Time
 }
 
-type SelectorService interface {
-	// CreateSelector creates new Selector
-	CreateSelector(ctx context.Context, token string, s Selector) (Selector, error)
+type AgentGroupService interface {
+	// CreateAgentGroup creates new AgentGroup
+	CreateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error)
 }
 
-type SelectorRepository interface {
-	// Save persists the Selector. Successful operation is indicated by non-nil
+type AgentGroupRepository interface {
+	// Save persists the AgentGroup. Successful operation is indicated by non-nil
 	// error response.
-	Save(ctx context.Context, selector Selector) error
+	Save(ctx context.Context, group AgentGroup) error
 }

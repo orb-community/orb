@@ -19,27 +19,27 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ fleet.SelectorRepository = (*selectorRepository)(nil)
+var _ fleet.AgentGroupRepository = (*agentGroupRepository)(nil)
 
-type selectorRepository struct {
+type agentGroupRepository struct {
 	db     Database
 	logger *zap.Logger
 }
 
-func NewSelectorRepository(db Database, logger *zap.Logger) fleet.SelectorRepository {
-	return &selectorRepository{db: db, logger: logger}
+func NewAgentGroupRepository(db Database, logger *zap.Logger) fleet.AgentGroupRepository {
+	return &agentGroupRepository{db: db, logger: logger}
 }
 
-func (r selectorRepository) Save(ctx context.Context, selector fleet.Selector) error {
+func (r agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) error {
 
-	q := `INSERT INTO selectors (name, mf_owner_id, metadata)         
+	q := `INSERT INTO agent_groups (name, mf_owner_id, metadata)         
 			  VALUES (:name, :mf_owner_id, :metadata)`
 
-	if !selector.Name.IsValid() || selector.MFOwnerID == "" {
+	if !group.Name.IsValid() || group.MFOwnerID == "" {
 		return errors.ErrMalformedEntity
 	}
 
-	dba, err := toDBSelector(selector)
+	dba, err := toDBAgentGroup(group)
 	if err != nil {
 		return errors.Wrap(db.ErrSaveDB, err)
 	}
@@ -61,24 +61,24 @@ func (r selectorRepository) Save(ctx context.Context, selector fleet.Selector) e
 	return nil
 }
 
-type dbSelector struct {
+type dbAgentGroup struct {
 	Name      types.Identifier `db:"name"`
 	MFOwnerID uuid.UUID        `db:"mf_owner_id"`
 	Metadata  db.Metadata      `db:"metadata"`
 }
 
-func toDBSelector(selector fleet.Selector) (dbSelector, error) {
+func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
 
 	var oID uuid.UUID
-	err := oID.Scan(selector.MFOwnerID)
+	err := oID.Scan(group.MFOwnerID)
 	if err != nil {
-		return dbSelector{}, errors.Wrap(errors.ErrMalformedEntity, err)
+		return dbAgentGroup{}, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
-	return dbSelector{
-		Name:      selector.Name,
+	return dbAgentGroup{
+		Name:      group.Name,
 		MFOwnerID: oID,
-		Metadata:  db.Metadata(selector.Metadata),
+		Metadata:  db.Metadata(group.Metadata),
 	}, nil
 
 }

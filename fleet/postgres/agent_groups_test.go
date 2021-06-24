@@ -22,50 +22,50 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSelectorSave(t *testing.T) {
+func TestAgentGroupSave(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
-	selectorRepo := postgres.NewSelectorRepository(dbMiddleware, logger)
+	agentGroupRepository := postgres.NewAgentGroupRepository(dbMiddleware, logger)
 
 	oID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
-	nameID, err := types.NewIdentifier("my-selector")
+	nameID, err := types.NewIdentifier("my-group")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
-	selector := fleet.Selector{
+	group := fleet.AgentGroup{
 		Name:      nameID,
 		MFOwnerID: oID.String(),
 		Metadata:  types.Metadata{"testkey": "testvalue"},
 	}
 
 	cases := []struct {
-		desc     string
-		selector fleet.Selector
-		err      error
+		desc       string
+		agentGroup fleet.AgentGroup
+		err        error
 	}{
 		{
-			desc:     "create new selector",
-			selector: selector,
-			err:      nil,
+			desc:       "create new group",
+			agentGroup: group,
+			err:        nil,
 		},
 		{
-			desc:     "create selector that already exist",
-			selector: selector,
-			err:      errors.ErrConflict,
+			desc:       "create group that already exist",
+			agentGroup: group,
+			err:        errors.ErrConflict,
 		},
 		{
-			desc:     "create selector with invalid name",
-			selector: fleet.Selector{MFOwnerID: oID.String()},
-			err:      errors.ErrMalformedEntity,
+			desc:       "create group with invalid name",
+			agentGroup: fleet.AgentGroup{MFOwnerID: oID.String()},
+			err:        errors.ErrMalformedEntity,
 		}, {
-			desc:     "create selector with invalid owner ID",
-			selector: fleet.Selector{Name: nameID, MFOwnerID: "invalid"},
-			err:      errors.ErrMalformedEntity,
+			desc:       "create group with invalid owner ID",
+			agentGroup: fleet.AgentGroup{Name: nameID, MFOwnerID: "invalid"},
+			err:        errors.ErrMalformedEntity,
 		},
 	}
 
 	for _, tc := range cases {
-		err := selectorRepo.Save(context.Background(), tc.selector)
+		err := agentGroupRepository.Save(context.Background(), tc.agentGroup)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", tc.desc, tc.err, err))
 	}
 

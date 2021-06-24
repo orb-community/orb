@@ -15,9 +15,9 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 )
 
-func addSelectorEndpoint(svc fleet.Service) endpoint.Endpoint {
+func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(c context.Context, request interface{}) (interface{}, error) {
-		req := request.(addSelectorReq)
+		req := request.(addAgentGroupReq)
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
@@ -27,16 +27,16 @@ func addSelectorEndpoint(svc fleet.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		selector := fleet.Selector{
+		group := fleet.AgentGroup{
 			Name:     nID,
 			Metadata: req.Metadata,
 		}
-		saved, err := svc.CreateSelector(c, req.token, selector)
+		saved, err := svc.CreateAgentGroup(c, req.token, group)
 		if err != nil {
 			return nil, err
 		}
 
-		res := selectorRes{
+		res := agentGroupRes{
 			Name:    saved.Name.String(),
 			created: true,
 		}
