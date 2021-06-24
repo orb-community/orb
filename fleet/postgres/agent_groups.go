@@ -10,7 +10,6 @@ package postgres
 
 import (
 	"context"
-	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/db"
@@ -32,10 +31,10 @@ func NewAgentGroupRepository(db Database, logger *zap.Logger) fleet.AgentGroupRe
 
 func (r agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) error {
 
-	q := `INSERT INTO agent_groups (name, mf_owner_id, metadata)         
-			  VALUES (:name, :mf_owner_id, :metadata)`
+	q := `INSERT INTO agent_groups (name, mf_owner_id, mf_channel_id, metadata)         
+			  VALUES (:name, :mf_owner_id, :mf_channel_id, :metadata)`
 
-	if !group.Name.IsValid() || group.MFOwnerID == "" {
+	if !group.Name.IsValid() || group.MFOwnerID == "" || group.MFChannelID == "" {
 		return errors.ErrMalformedEntity
 	}
 
@@ -62,23 +61,19 @@ func (r agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) 
 }
 
 type dbAgentGroup struct {
-	Name      types.Identifier `db:"name"`
-	MFOwnerID uuid.UUID        `db:"mf_owner_id"`
-	Metadata  db.Metadata      `db:"metadata"`
+	Name        types.Identifier `db:"name"`
+	MFOwnerID   string           `db:"mf_owner_id"`
+	MFChannelID string           `db:"mf_channel_id"`
+	Metadata    db.Metadata      `db:"metadata"`
 }
 
 func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
 
-	var oID uuid.UUID
-	err := oID.Scan(group.MFOwnerID)
-	if err != nil {
-		return dbAgentGroup{}, errors.Wrap(errors.ErrMalformedEntity, err)
-	}
-
 	return dbAgentGroup{
-		Name:      group.Name,
-		MFOwnerID: oID,
-		Metadata:  db.Metadata(group.Metadata),
+		Name:        group.Name,
+		MFOwnerID:   group.MFOwnerID,
+		MFChannelID: group.MFChannelID,
+		Metadata:    db.Metadata(group.Metadata),
 	}, nil
 
 }

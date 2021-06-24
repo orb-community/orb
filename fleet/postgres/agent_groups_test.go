@@ -29,13 +29,17 @@ func TestAgentGroupSave(t *testing.T) {
 	oID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	nameID, err := types.NewIdentifier("my-group")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	group := fleet.AgentGroup{
-		Name:      nameID,
-		MFOwnerID: oID.String(),
-		Metadata:  types.Metadata{"testkey": "testvalue"},
+		Name:        nameID,
+		MFOwnerID:   oID.String(),
+		MFChannelID: chID.String(),
+		Metadata:    types.Metadata{"testkey": "testvalue"},
 	}
 
 	cases := []struct {
