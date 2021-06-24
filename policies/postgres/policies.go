@@ -31,39 +31,46 @@ func NewPoliciesRepository(db *sqlx.DB, log *zap.Logger) policies.Repository {
 	return &policiesRepository{db: db, logger: log}
 }
 
-func (r policiesRepository) Save(ctx context.Context, policy policies.Policy) error {
+func (r policiesRepository) Save(ctx context.Context, policy policies.Policy) (string, error) {
 
 	q := `INSERT INTO policies (name, mf_owner_id, backend, policy)         
-			  VALUES (:name, :mf_owner_id, :backend, :policy)`
+			  VALUES (:name, :mf_owner_id, :backend, :policy) RETURNING id`
 
 	if !policy.Name.IsValid() || policy.MFOwnerID == "" {
-		return errors.ErrMalformedEntity
+		return "", errors.ErrMalformedEntity
 	}
 
 	dba, err := toDBPolicy(policy)
 	if err != nil {
-		return errors.Wrap(db.ErrSaveDB, err)
+		return "", errors.Wrap(db.ErrSaveDB, err)
 	}
 
-	_, err = r.db.NamedExecContext(ctx, q, dba)
+	row, err := r.db.NamedQueryContext(ctx, q, dba)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			switch pqErr.Code.Name() {
 			case db.ErrInvalid, db.ErrTruncation:
-				return errors.Wrap(errors.ErrMalformedEntity, err)
+				return "", errors.Wrap(errors.ErrMalformedEntity, err)
 			case db.ErrDuplicate:
-				return errors.Wrap(errors.ErrConflict, err)
+				return "", errors.Wrap(errors.ErrConflict, err)
 			}
 		}
-		return errors.Wrap(db.ErrSaveDB, err)
+		return "", errors.Wrap(db.ErrSaveDB, err)
 	}
 
-	return nil
+	defer row.Close()
+	row.Next()
+	var id string
+	if err := row.Scan(&id); err != nil {
+		return "", err
+	}
+	return id, nil
 
 }
 
 type dbPolicy struct {
+	ID        string           `db:"id"`
 	Name      types.Identifier `db:"name"`
 	MFOwnerID string           `db:"mf_owner_id"`
 	Backend   string           `db:"backend"`
@@ -80,6 +87,7 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 	}
 
 	return dbPolicy{
+		ID:        policy.ID,
 		Name:      policy.Name,
 		MFOwnerID: uID.String(),
 		Backend:   policy.Backend,

@@ -31,6 +31,7 @@ const HeartbeatsChannel = "hb"
 const RPCToCoreChannel = "tocore"
 const RPCFromCoreChannel = "fromcore"
 const LogChannel = "log"
+const PolicyChannel = "policy"
 
 type fleetCommsService struct {
 	logger    *zap.Logger
