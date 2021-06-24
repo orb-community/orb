@@ -10,11 +10,16 @@ package api
 
 import (
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/pkg/types"
 )
 
 type addReq struct {
-	token string
-	name  string
+	Name       string         `json:"name"`
+	Backend    string         `json:"backend"`
+	Policy     types.Metadata `json:"policy,omitempty"`
+	Format     string         `json:"format,omitempty"`
+	PolicyData string         `json:"policy_data,omitempty"`
+	token      string
 }
 
 func (req addReq) validate() error {
@@ -22,8 +27,28 @@ func (req addReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 
-	if req.name == "" {
+	if req.Name == "" {
 		return errors.ErrMalformedEntity
+	}
+	if req.Backend == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	if req.Policy == nil {
+		// passing policy data blob in the specified format
+		if req.Format == "" || req.PolicyData == "" {
+			return errors.ErrMalformedEntity
+		}
+	} else {
+		// policy is in json, verified by the back ends later
+		if req.Format != "" || req.PolicyData != "" {
+			return errors.ErrMalformedEntity
+		}
+	}
+
+	_, err := types.NewIdentifier(req.Name)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return nil

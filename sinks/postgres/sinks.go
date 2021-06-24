@@ -20,23 +20,14 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	duplicateErr = "unique_violation"
-	fkViolation  = "foreign_key_violation"
-)
-
-var (
-	errSaveDB = errors.New("failed to save sink to database")
-)
-
-var _ sinks.SinkRepository = (*sinksRepository)(nil)
+var _ sinks.Repository = (*sinksRepository)(nil)
 
 type sinksRepository struct {
 	db     *sqlx.DB
 	logger *zap.Logger
 }
 
-func NewSinksRepository(db *sqlx.DB, log *zap.Logger) sinks.SinkRepository {
+func NewSinksRepository(db *sqlx.DB, log *zap.Logger) sinks.Repository {
 	return &sinksRepository{db: db, logger: log}
 }
 
@@ -50,7 +41,7 @@ func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) error {
 
 	dba, err := toDBSink(sink)
 	if err != nil {
-		return errors.Wrap(errSaveDB, err)
+		return errors.Wrap(db.ErrSaveDB, err)
 	}
 
 	_, err = cr.db.NamedExecContext(ctx, q, dba)
@@ -64,7 +55,7 @@ func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) error {
 				return errors.Wrap(errors.ErrConflict, err)
 			}
 		}
-		return errors.Wrap(errSaveDB, err)
+		return errors.Wrap(db.ErrSaveDB, err)
 	}
 
 	return nil

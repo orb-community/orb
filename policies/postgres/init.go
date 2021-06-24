@@ -42,9 +42,16 @@ func migrateDB(db *sqlx.DB) error {
 				Id: "policies_1",
 				Up: []string{
 					`CREATE TABLE IF NOT EXISTS policies (
-						policy_id TEXT UNIQUE NOT NULL,
-						owner          VARCHAR(254),
-						PRIMARY KEY (policy_id, owner)
+						name           TEXT NOT NULL,
+						mf_owner_id    UUID NOT NULL,
+
+						orb_tags       JSONB NOT NULL DEFAULT '{}',
+
+						backend        TEXT NOT NULL,
+						policy		   JSONB NOT NULL DEFAULT '{}',
+
+                        ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+						PRIMARY KEY (name, mf_owner_id)
 					)`,
 				},
 				Down: []string{

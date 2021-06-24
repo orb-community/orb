@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.2.0
+	github.com/ghodss/yaml v1.0.0
 	github.com/go-cmd/cmd v1.3.0
 	github.com/go-kit/kit v0.10.0
 	github.com/go-redis/redis v6.15.8+incompatible

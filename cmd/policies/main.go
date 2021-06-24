@@ -40,16 +40,17 @@ import (
 
 const (
 	svcName     = "policies"
-	fullSvcName = "orb-policies"
+	mfEnvPrefix = "mf"
 	envPrefix   = "orb_policies"
 	httpPort    = "8202"
 )
 
 func main() {
 
+	authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
+
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
-	authCfg := config.LoadMFAuthConfig(envPrefix)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
 

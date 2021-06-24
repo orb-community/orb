@@ -9,6 +9,7 @@
 package producer
 
 import (
+	"context"
 	"github.com/go-redis/redis"
 	"github.com/ns1labs/orb/policies"
 )
@@ -25,6 +26,10 @@ type eventStore struct {
 	client *redis.Client
 }
 
+func (e eventStore) CreatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
+	return e.svc.CreatePolicy(ctx, token, p, format, policyData)
+}
+
 // NewEventStoreMiddleware returns wrapper around policies service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc policies.Service, client *redis.Client) policies.Service {
@@ -32,8 +37,4 @@ func NewEventStoreMiddleware(svc policies.Service, client *redis.Client) policie
 		svc:    svc,
 		client: client,
 	}
-}
-
-func (es eventStore) Add() (policies.Policy, error) {
-	return policies.Policy{}, nil
 }

@@ -2,10 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package api
+package orb
 
-type policyRes struct {
-	Name    string `json:"name"`
-	Backend string `json:"backend"`
-	created bool
-}
+const CurrentSchemaVersion = "1.0"
