@@ -44,10 +44,10 @@ func migrateDB(db *sqlx.DB) error {
 					`CREATE TYPE agent_state AS ENUM ('new', 'online', 'offline', 'stale', 'removed');`,
 					`CREATE TABLE IF NOT EXISTS agents (
 
+						mf_thing_id        UUID NOT NULL,
 						name        	   TEXT NOT NULL,
 						mf_owner_id        UUID NOT NULL,
 
-						mf_thing_id        UUID NOT NULL,
 						mf_channel_id      UUID NOT NULL,
 
                         ts_created         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -67,13 +67,16 @@ func migrateDB(db *sqlx.DB) error {
 					`CREATE INDEX ON agents (mf_owner_id)`,
 					// TODO json indexes
 					`CREATE TABLE IF NOT EXISTS agent_groups (
+						id			       UUID NOT NULL DEFAULT gen_random_uuid(),
 						name        	   TEXT NOT NULL,
 						mf_owner_id        UUID NOT NULL,
+
 						mf_channel_id      UUID NOT NULL,
 	
 						tags			   JSONB NOT NULL DEFAULT '{}',
                         ts_created         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
-						PRIMARY KEY (name, mf_owner_id)
+						PRIMARY KEY (name, mf_owner_id),
+					    UNIQUE(id)
 					)`,
 					`CREATE INDEX ON agent_groups (mf_owner_id)`,
 					// TODO json indexes

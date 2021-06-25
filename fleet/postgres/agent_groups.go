@@ -29,38 +29,45 @@ func NewAgentGroupRepository(db Database, logger *zap.Logger) fleet.AgentGroupRe
 	return &agentGroupRepository{db: db, logger: logger}
 }
 
-func (r agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) error {
+func (r agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) (string, error) {
 
 	q := `INSERT INTO agent_groups (name, mf_owner_id, mf_channel_id, tags)         
-			  VALUES (:name, :mf_owner_id, :mf_channel_id, :tags)`
+			  VALUES (:name, :mf_owner_id, :mf_channel_id, :tags) RETURNING id`
 
 	if !group.Name.IsValid() || group.MFOwnerID == "" || group.MFChannelID == "" {
-		return errors.ErrMalformedEntity
+		return "", errors.ErrMalformedEntity
 	}
 
 	dba, err := toDBAgentGroup(group)
 	if err != nil {
-		return errors.Wrap(db.ErrSaveDB, err)
+		return "", errors.Wrap(db.ErrSaveDB, err)
 	}
 
-	_, err = r.db.NamedExecContext(ctx, q, dba)
+	row, err := r.db.NamedQueryContext(ctx, q, dba)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			switch pqErr.Code.Name() {
 			case db.ErrInvalid, db.ErrTruncation:
-				return errors.Wrap(errors.ErrMalformedEntity, err)
+				return "", errors.Wrap(errors.ErrMalformedEntity, err)
 			case db.ErrDuplicate:
-				return errors.Wrap(errors.ErrConflict, err)
+				return "", errors.Wrap(errors.ErrConflict, err)
 			}
 		}
-		return errors.Wrap(db.ErrSaveDB, err)
+		return "", errors.Wrap(db.ErrSaveDB, err)
 	}
 
-	return nil
+	defer row.Close()
+	row.Next()
+	var id string
+	if err := row.Scan(&id); err != nil {
+		return "", err
+	}
+	return id, nil
 }
 
 type dbAgentGroup struct {
+	ID          string           `db:"id"`
 	Name        types.Identifier `db:"name"`
 	MFOwnerID   string           `db:"mf_owner_id"`
 	MFChannelID string           `db:"mf_channel_id"`
@@ -70,6 +77,7 @@ type dbAgentGroup struct {
 func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
 
 	return dbAgentGroup{
+		ID:          group.ID,
 		Name:        group.Name,
 		MFOwnerID:   group.MFOwnerID,
 		MFChannelID: group.MFChannelID,

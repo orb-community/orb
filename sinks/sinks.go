@@ -11,6 +11,7 @@ import (
 )
 
 type Sink struct {
+	ID        string
 	Name      types.Identifier
 	MFOwnerID string
 	Config    types.Metadata
@@ -20,5 +21,5 @@ type Sink struct {
 type Repository interface {
 	// Save persists the Sink. Successful operation is indicated by non-nil
 	// error response.
-	Save(ctx context.Context, cfg Sink) error
+	Save(ctx context.Context, sink Sink) (string, error)
 }

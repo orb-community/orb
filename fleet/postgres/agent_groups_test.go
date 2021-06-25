@@ -69,7 +69,7 @@ func TestAgentGroupSave(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		err := agentGroupRepository.Save(context.Background(), tc.agentGroup)
+		_, err := agentGroupRepository.Save(context.Background(), tc.agentGroup)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", tc.desc, tc.err, err))
 	}
 

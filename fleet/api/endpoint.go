@@ -37,6 +37,7 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		res := agentGroupRes{
+			ID:      saved.ID,
 			Name:    saved.Name.String(),
 			Tags:    saved.Tags,
 			created: true,

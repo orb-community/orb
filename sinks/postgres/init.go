@@ -42,6 +42,7 @@ func migrateDB(db *sqlx.DB) error {
 				Id: "sinks_1",
 				Up: []string{
 					`CREATE TABLE IF NOT EXISTS sinks (
+						id			   UUID NOT NULL DEFAULT gen_random_uuid(),
 						name           TEXT NOT NULL,
 						mf_owner_id    UUID NOT NULL,
 
@@ -49,7 +50,8 @@ func migrateDB(db *sqlx.DB) error {
 
 						metadata       JSONB NOT NULL DEFAULT '{}',
                         ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
-						PRIMARY KEY (name, mf_owner_id)
+						PRIMARY KEY (name, mf_owner_id),
+					    UNIQUE(id)
 					)`,
 					`CREATE INDEX ON sinks (mf_owner_id)`,
 				},

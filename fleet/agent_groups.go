@@ -11,6 +11,7 @@ import (
 )
 
 type AgentGroup struct {
+	ID          string
 	Name        types.Identifier
 	MFOwnerID   string
 	MFChannelID string
@@ -26,5 +27,5 @@ type AgentGroupService interface {
 type AgentGroupRepository interface {
 	// Save persists the AgentGroup. Successful operation is indicated by non-nil
 	// error response.
-	Save(ctx context.Context, group AgentGroup) error
+	Save(ctx context.Context, group AgentGroup) (string, error)
 }

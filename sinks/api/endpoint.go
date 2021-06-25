@@ -37,6 +37,7 @@ func addEndpoint(svc sinks.Service) endpoint.Endpoint {
 		}
 
 		res := sinkRes{
+			ID:      saved.ID,
 			Name:    saved.Name.String(),
 			Config:  saved.Config,
 			created: true,

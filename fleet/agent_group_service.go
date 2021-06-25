@@ -55,11 +55,12 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 
 	s.MFChannelID = mfChannelID
 
-	err = svc.agentGroupRepository.Save(ctx, s)
+	id, err := svc.agentGroupRepository.Save(ctx, s)
 	if err != nil {
 		return AgentGroup{}, errors.Wrap(ErrCreateAgentGroup, err)
 	}
 
+	s.ID = id
 	err = svc.maintainAgentGroupChannels(s)
 
 	return s, err
