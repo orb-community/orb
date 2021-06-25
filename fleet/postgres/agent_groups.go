@@ -31,8 +31,8 @@ func NewAgentGroupRepository(db Database, logger *zap.Logger) fleet.AgentGroupRe
 
 func (r agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) error {
 
-	q := `INSERT INTO agent_groups (name, mf_owner_id, mf_channel_id, metadata)         
-			  VALUES (:name, :mf_owner_id, :mf_channel_id, :metadata)`
+	q := `INSERT INTO agent_groups (name, mf_owner_id, mf_channel_id, tags)         
+			  VALUES (:name, :mf_owner_id, :mf_channel_id, :tags)`
 
 	if !group.Name.IsValid() || group.MFOwnerID == "" || group.MFChannelID == "" {
 		return errors.ErrMalformedEntity
@@ -64,7 +64,7 @@ type dbAgentGroup struct {
 	Name        types.Identifier `db:"name"`
 	MFOwnerID   string           `db:"mf_owner_id"`
 	MFChannelID string           `db:"mf_channel_id"`
-	Metadata    db.Metadata      `db:"metadata"`
+	Tags        db.Tags          `db:"tags"`
 }
 
 func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
@@ -73,7 +73,7 @@ func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
 		Name:        group.Name,
 		MFOwnerID:   group.MFOwnerID,
 		MFChannelID: group.MFChannelID,
-		Metadata:    db.Metadata(group.Metadata),
+		Tags:        db.Tags(group.Tags),
 	}, nil
 
 }

@@ -14,12 +14,12 @@ type AgentGroup struct {
 	Name        types.Identifier
 	MFOwnerID   string
 	MFChannelID string
-	Metadata    types.Metadata
+	Tags        types.Tags
 	Created     time.Time
 }
 
 type AgentGroupService interface {
-	// CreateAgentGroup creates new AgentGroup
+	// CreateAgentGroup creates new AgentGroup, associated channel, applies to Agents as appropriate
 	CreateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error)
 }
 

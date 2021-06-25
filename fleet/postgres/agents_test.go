@@ -114,10 +114,12 @@ func TestAgentRetrieve(t *testing.T) {
 		thingID   string
 		channelID string
 		err       error
+		tags      types.Tags
 	}{
 		"retrieve existing agent by thingID and channelID": {
 			thingID:   agent.MFThingID,
 			channelID: agent.MFChannelID,
+			tags:      types.Tags{"testkey": "testvalue"},
 			err:       nil,
 		},
 		"retrieve non-existent agent by thingID and channelID": {
@@ -131,6 +133,10 @@ func TestAgentRetrieve(t *testing.T) {
 		ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.thingID, tc.channelID)
 		if err == nil {
 			assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+		}
+		if len(tc.tags) > 0 {
+			assert.Equal(t, tc.tags, ag.OrbTags)
+			assert.Equal(t, tc.tags, ag.AgentTags)
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 	}
@@ -270,6 +276,8 @@ func TestMultiAgentRetrieval(t *testing.T) {
 	name := "agent_name"
 	metaStr := `{"field1":"value1","field2":{"subfield11":"value2","subfield12":{"subfield121":"value3","subfield122":"value4"}}}`
 	subMetaStr := `{"field2":{"subfield12":{"subfield121":"value3"}}}`
+	tagsStr := `{"region": "EU", "node_type": "dns"}`
+	subTagsStr := `{"region": "EU"}`
 
 	metadata := types.Metadata{}
 	json.Unmarshal([]byte(metaStr), &metadata)
@@ -277,7 +285,16 @@ func TestMultiAgentRetrieval(t *testing.T) {
 	subMeta := types.Metadata{}
 	json.Unmarshal([]byte(subMetaStr), &subMeta)
 
+	tags := types.Tags{}
+	json.Unmarshal([]byte(tagsStr), &tags)
+
+	subTags := types.Tags{}
+	json.Unmarshal([]byte(subTagsStr), &subTags)
+
 	wrongMeta := types.Metadata{
+		"field": "value1",
+	}
+	wrongTags := types.Tags{
 		"field": "value1",
 	}
 
@@ -297,7 +314,7 @@ func TestMultiAgentRetrieval(t *testing.T) {
 		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
 		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 		th.AgentMetadata = metadata
-		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th.AgentTags = tags
 
 		err = agentRepo.Save(context.Background(), th)
 		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
@@ -326,6 +343,26 @@ func TestMultiAgentRetrieval(t *testing.T) {
 			},
 			size: n / 2,
 		},
+		"retrieve things with existing metadata": {
+			owner: oID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset:   0,
+				Limit:    n,
+				Total:    n,
+				Metadata: subMeta,
+			},
+			size: n,
+		},
+		"retrieve things with existing tags": {
+			owner: oID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Tags:   subTags,
+			},
+			size: n,
+		},
 		"retrieve agents with non-existing owner": {
 			owner: wrongoID.String(),
 			pageMetadata: fleet.PageMetadata{
@@ -352,6 +389,16 @@ func TestMultiAgentRetrieval(t *testing.T) {
 				Limit:    n,
 				Total:    0,
 				Metadata: wrongMeta,
+			},
+			size: 0,
+		},
+		"retrieve agents with non-existing tags": {
+			owner: oID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  0,
+				Tags:   wrongTags,
 			},
 			size: 0,
 		},

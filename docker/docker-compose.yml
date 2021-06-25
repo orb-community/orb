@@ -53,7 +53,7 @@ services:
       - mainflux-es-redis-volume:/data
 
   vernemq:
-    image: mainflux/vernemq:${MF_RELEASE_TAG}
+    image: "mainflux/vernemq:${MF_RELEASE_TAG}"
     container_name: orb-vernemq
     restart: on-failure
     environment:
@@ -82,7 +82,7 @@ services:
       - mainflux-auth-db-volume:/var/lib/postgresql/data
 
   auth:
-    image: mainflux/auth:${MF_RELEASE_TAG}
+    image: "mainflux/auth:${MF_RELEASE_TAG}"
     container_name: mainflux-auth
     depends_on:
       - auth-db
@@ -131,7 +131,7 @@ services:
       - mainflux-users-db-volume:/var/lib/postgresql/data
 
   users:
-    image: mainflux/users:${MF_RELEASE_TAG}
+    image: "mainflux/users:${MF_RELEASE_TAG}"
     container_name: mainflux-users
     volumes:
       - ./templates/${MF_USERS_RESET_PWD_TEMPLATE}:/${MF_EMAIL_TEMPLATE}
@@ -181,7 +181,7 @@ services:
       - mainflux-things-db-volume:/var/lib/postgresql/data
 
   things:
-    image: mainflux/things:${MF_RELEASE_TAG}
+    image: "mainflux/things:${MF_RELEASE_TAG}"
     container_name: mainflux-things
     depends_on:
       - things-db
@@ -210,7 +210,7 @@ services:
       - orb-base-net
 
   mqtt-adapter:
-    image: mainflux/mqtt:${MF_RELEASE_TAG}
+    image: "mainflux/mqtt:${MF_RELEASE_TAG}"
     container_name: mainflux-mqtt
     depends_on:
       - vernemq
@@ -236,7 +236,7 @@ services:
       - orb-base-net
 
   http-adapter:
-    image: mainflux/http:${MF_RELEASE_TAG}
+    image: "mainflux/http:${MF_RELEASE_TAG}"
     container_name: mainflux-http
     depends_on:
       - things
@@ -354,7 +354,7 @@ services:
       - orb-sinks-db-volume:/var/lib/postgresql/data
 
   policies:
-    image: ns1labs/orb-policies:${ORB_RELEASE_TAG}
+    image: "ns1labs/orb-policies:${ORB_RELEASE_TAG}"
     container_name: orb-policies
     depends_on:
       - es-redis
@@ -376,7 +376,7 @@ services:
       - orb-base-net
 
   sinks:
-    image: ns1labs/orb-sinks:${ORB_RELEASE_TAG}
+    image: "ns1labs/orb-sinks:${ORB_RELEASE_TAG}"
     container_name: orb-sinks
     depends_on:
       - es-redis
@@ -399,7 +399,7 @@ services:
       - orb-base-net
 
   fleet:
-    image: ns1labs/orb-fleet:${ORB_RELEASE_TAG}
+    image: "ns1labs/orb-fleet:${ORB_RELEASE_TAG}"
     container_name: orb-fleet
     depends_on:
       - es-redis
@@ -429,7 +429,7 @@ services:
       - orb-base-net
 
   prom-sink:
-    image: ns1labs/orb-prom-sink:${ORB_RELEASE_TAG}
+    image: "ns1labs/orb-prom-sink:${ORB_RELEASE_TAG}"
     container_name: orb-prom-sink
     depends_on:
       - nats

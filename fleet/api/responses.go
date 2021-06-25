@@ -15,7 +15,8 @@ var (
 )
 
 type agentGroupRes struct {
-	Name    string `json:"name"`
+	Name    string     `json:"name"`
+	Tags    types.Tags `json:"tags"`
 	created bool
 }
 

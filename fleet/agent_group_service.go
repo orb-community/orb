@@ -12,11 +12,27 @@ import (
 	"context"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
+	"go.uber.org/zap"
 )
 
 var (
 	ErrCreateAgentGroup = errors.New("failed to create agent group")
+
+	ErrMaintainAgentGroupChannels = errors.New("failed to maintain agent group channels")
 )
+
+func (svc fleetService) maintainAgentGroupChannels(g AgentGroup) error {
+	pm := PageMetadata{
+		Tags: g.Tags,
+	}
+	page, err := svc.agentRepo.RetrieveAll(context.Background(), g.MFOwnerID, pm)
+	svc.logger.Info("matching", zap.Any("page", page))
+	return err
+}
+
+func (svc fleetService) maintainAgentGroupChannelsForAgent(a Agent) error {
+	return nil
+}
 
 func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error) {
 	mfOwnerID, err := svc.identify(token)
@@ -28,7 +44,7 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 
 	md := map[string]interface{}{"type": "orb_agent_group"}
 
-	// create main Agent RPC Channel
+	// create main Group RPC Channel
 	mfChannelID, err := svc.mfsdk.CreateChannel(mfsdk.Channel{
 		Name:     s.Name.String(),
 		Metadata: md,
@@ -44,5 +60,7 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 		return AgentGroup{}, errors.Wrap(ErrCreateAgentGroup, err)
 	}
 
-	return s, nil
+	err = svc.maintainAgentGroupChannels(s)
+
+	return s, err
 }

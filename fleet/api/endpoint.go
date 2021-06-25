@@ -28,8 +28,8 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		group := fleet.AgentGroup{
-			Name:     nID,
-			Metadata: req.Metadata,
+			Name: nID,
+			Tags: req.Tags,
 		}
 		saved, err := svc.CreateAgentGroup(c, req.token, group)
 		if err != nil {
@@ -38,6 +38,7 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		res := agentGroupRes{
 			Name:    saved.Name.String(),
+			Tags:    saved.Tags,
 			created: true,
 		}
 

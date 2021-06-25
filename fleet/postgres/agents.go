@@ -38,15 +38,19 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
+	t, tmq, err := getTagsQuery(pm.Tags)
+	if err != nil {
+		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
 
-	q := fmt.Sprintf(`SELECT * FROM agents
-	      WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, mq, nq, oq, dq)
+	q := fmt.Sprintf(`SELECT * FROM agents WHERE mf_owner_id = :mf_owner_id %s%s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, mq, nq, oq, dq)
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
 		"limit":       pm.Limit,
 		"offset":      pm.Offset,
 		"name":        name,
 		"metadata":    m,
+		"tags":        t,
 	}
 
 	rows, err := r.db.NamedQueryContext(ctx, q, params)
@@ -70,7 +74,7 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 		items = append(items, th)
 	}
 
-	cq := fmt.Sprintf(`SELECT COUNT(*) FROM agents WHERE mf_owner_id = :mf_owner_id %s%s;`, nq, mq)
+	cq := fmt.Sprintf(`SELECT COUNT(*) FROM agents WHERE mf_owner_id = :mf_owner_id %s%s%s;`, nq, tmq, mq)
 
 	total, err := total(ctx, r.db, cq, params)
 	if err != nil {
@@ -311,6 +315,22 @@ func getMetadataQuery(m types.Metadata) ([]byte, string, error) {
 	mb := []byte("{}")
 	if len(m) > 0 {
 		mq = ` AND agent_metadata @> :metadata`
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, "", err
+		}
+		mb = b
+	}
+	return mb, mq, nil
+}
+
+func getTagsQuery(m types.Tags) ([]byte, string, error) {
+	mq := ""
+	mb := []byte("{}")
+	if len(m) > 0 {
+		// todo add in orb tags
+		mq = ` AND agent_tags @> :tags`
 
 		b, err := json.Marshal(m)
 		if err != nil {

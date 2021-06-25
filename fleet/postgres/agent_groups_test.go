@@ -39,7 +39,7 @@ func TestAgentGroupSave(t *testing.T) {
 		Name:        nameID,
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		Metadata:    types.Metadata{"testkey": "testvalue"},
+		Tags:        types.Tags{"testkey": "testvalue"},
 	}
 
 	cases := []struct {

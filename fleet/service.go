@@ -32,6 +32,7 @@ type PageMetadata struct {
 	Order    string         `json:"order,omitempty"`
 	Dir      string         `json:"dir,omitempty"`
 	Metadata types.Metadata `json:"metadata,omitempty"`
+	Tags     types.Tags     `json:"tags,omitempty"`
 }
 
 var _ Service = (*fleetService)(nil)

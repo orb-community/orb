@@ -71,7 +71,7 @@ func migrateDB(db *sqlx.DB) error {
 						mf_owner_id        UUID NOT NULL,
 						mf_channel_id      UUID NOT NULL,
 	
-						metadata           JSONB NOT NULL DEFAULT '{}',
+						tags			   JSONB NOT NULL DEFAULT '{}',
                         ts_created         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
 						PRIMARY KEY (name, mf_owner_id)
 					)`,

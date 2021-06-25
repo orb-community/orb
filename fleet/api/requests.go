@@ -24,9 +24,9 @@ const (
 )
 
 type addAgentGroupReq struct {
-	token    string
-	Name     string                 `json:"name,omitempty"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	token string
+	Name  string     `json:"name,omitempty"`
+	Tags  types.Tags `json:"tags"`
 }
 
 func (req addAgentGroupReq) validate() error {
@@ -35,6 +35,9 @@ func (req addAgentGroupReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 	if req.Name == "" {
+		return errors.ErrMalformedEntity
+	}
+	if len(req.Tags) == 0 {
 		return errors.ErrMalformedEntity
 	}
 
@@ -48,8 +51,8 @@ func (req addAgentGroupReq) validate() error {
 
 type addAgentReq struct {
 	token   string
-	Name    string            `json:"name,omitempty"`
-	OrbTags map[string]string `json:"orb_tags,omitempty"`
+	Name    string     `json:"name,omitempty"`
+	OrbTags types.Tags `json:"orb_tags,omitempty"`
 }
 
 func (req addAgentReq) validate() error {
