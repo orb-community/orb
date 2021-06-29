@@ -23,10 +23,14 @@ var (
 
 func (svc fleetService) maintainAgentGroupChannels(g AgentGroup) error {
 	pm := PageMetadata{
-		Tags: g.Tags,
+		// TODO MaxAgentsPerAgentGroup
+		Limit: 10000,
+		Tags:  g.Tags,
 	}
 	page, err := svc.agentRepo.RetrieveAll(context.Background(), g.MFOwnerID, pm)
 	svc.logger.Info("matching", zap.Any("page", page))
+	// TODO START HERE: have list of agents to connect group channel
+	// TODO instead make a postgres VIEW
 	return err
 }
 

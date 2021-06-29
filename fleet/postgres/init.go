@@ -65,7 +65,8 @@ func migrateDB(db *sqlx.DB) error {
 						UNIQUE(name, mf_owner_id)
 					)`,
 					`CREATE INDEX ON agents (mf_owner_id)`,
-					// TODO json indexes
+					`CREATE INDEX ON agents USING gin (orb_tags)`,
+					`CREATE INDEX ON agents USING gin (agent_tags)`,
 					`CREATE TABLE IF NOT EXISTS agent_groups (
 						id			       UUID NOT NULL DEFAULT gen_random_uuid(),
 						name        	   TEXT NOT NULL,
@@ -79,11 +80,21 @@ func migrateDB(db *sqlx.DB) error {
 					    UNIQUE(id)
 					)`,
 					`CREATE INDEX ON agent_groups (mf_owner_id)`,
-					// TODO json indexes
+					`CREATE INDEX ON agent_groups USING gin (tags)`,
+					`CREATE VIEW agent_group_membership(agent_groups_id, mf_thing_id, mf_channel_id, mf_owner_id) as
+					SELECT agent_groups.id,
+						   agents.mf_thing_id,
+						   agent_groups.mf_channel_id,
+							agent_groups.mf_owner_id
+					FROM agents,
+						 agent_groups
+					WHERE agent_groups.mf_owner_id = agents.mf_owner_id 
+						AND (agent_groups.tags <@ agents.agent_tags OR agent_groups.tags <@ agents.orb_tags)`,
 				},
 				Down: []string{
 					"DROP TABLE agents",
 					"DROP TABLE agent_groups",
+					"DROP VIEW agent_group_membership",
 				},
 			},
 		},
