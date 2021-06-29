@@ -40,7 +40,7 @@ paths:
                             type: object
       responses:
         '200':
-          description: 'Agent add details including key, shown only once'
+          description: 'Agent group add details'
           content:
             application/json:
               schema:
@@ -51,14 +51,8 @@ paths:
                         format: uuid
                     name:
                         type: string
-                    key:
-                        type: string
-                        format: uuid
-                    channel_id:
-                        type: string
-                        format: uuid
-                    state:
-                        type: string
+                    tags:
+                        type: object
         default:
           description: Unexpected error
           content:
