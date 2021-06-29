@@ -87,6 +87,8 @@ type AgentRepository interface {
 	RetrieveByIDWithChannel(ctx context.Context, thingID string, channelID string) (Agent, error)
 	// RetrieveAll retrieves the subset of Agents owned by the specified user
 	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
+	// RetrieveAllByAgentGroupID retrieves Agents in the specified group
+	RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string) ([]Agent, error)
 }
 
 type AgentHeartbeatRepository interface {

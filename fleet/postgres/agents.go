@@ -30,6 +30,39 @@ type agentRepository struct {
 	logger *zap.Logger
 }
 
+func (r agentRepository) RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string) ([]fleet.Agent, error) {
+
+	q := `SELECT mf_thing_id FROM agent_group_membership WHERE mf_owner_id = :mf_owner_id AND agent_groups_id = :group_id`
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+		"group_id":    agentGroupID,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []fleet.Agent
+	for rows.Next() {
+		dbth := dbAgent{MFOwnerID: owner}
+		if err := rows.StructScan(&dbth); err != nil {
+			return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		th, err := toAgent(dbth)
+		if err != nil {
+			return nil, errors.Wrap(errors.ErrViewEntity, err)
+		}
+
+		items = append(items, th)
+	}
+
+	return items, nil
+}
+
 func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet.PageMetadata) (fleet.Page, error) {
 	nq, name := getNameQuery(pm.Name)
 	oq := getOrderQuery(pm.Order)

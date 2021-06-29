@@ -21,20 +21,21 @@ var (
 	ErrMaintainAgentGroupChannels = errors.New("failed to maintain agent group channels")
 )
 
-func (svc fleetService) maintainAgentGroupChannels(g AgentGroup) error {
-	pm := PageMetadata{
-		// TODO MaxAgentsPerAgentGroup
-		Limit: 10000,
-		Tags:  g.Tags,
-	}
-	page, err := svc.agentRepo.RetrieveAll(context.Background(), g.MFOwnerID, pm)
-	svc.logger.Info("matching", zap.Any("page", page))
-	// TODO START HERE: have list of agents to connect group channel
-	// TODO instead make a postgres VIEW
-	return err
-}
+func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup) error {
 
-func (svc fleetService) maintainAgentGroupChannelsForAgent(a Agent) error {
+	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), g.MFOwnerID, g.ID)
+	idList := make([]string, len(list))
+	for i, agent := range list {
+		idList[i] = agent.MFThingID
+	}
+	ids := mfsdk.ConnectionIDs{
+		ChannelIDs: []string{g.MFChannelID},
+		ThingIDs:   idList,
+	}
+	err = svc.mfsdk.Connect(ids, token)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -65,7 +66,11 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 	}
 
 	s.ID = id
-	err = svc.maintainAgentGroupChannels(s)
+	err = svc.addAgentsToAgentGroupChannel(token, s)
+	if err != nil {
+		// TODO should we roll back?
+		svc.logger.Error("error adding agents to group channel", zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
+	}
 
 	return s, err
 }
