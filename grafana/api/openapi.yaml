@@ -5,32 +5,50 @@ info:
 servers:
   - url: 'http://localhost:3000'
 paths:
-  /user:
+  /grafana:
     get:
-      summary: 'Sample endpoint: Returns details about a particular user'
-      operationId: listUser
-      tags:
-        - user
-      parameters:
-        - name: id
-          in: query
-          description: ID of the user
-          required: true
-          schema:
-            type: integer
-            format: int32
+      summary: 'List Grafana integrations'
+      operationId: listGrafana
       responses:
         '200':
-          description: 'Sample response: Details about a user by ID'
-          headers:
-            x-next:
-              description: A link to the next page of responses
-              schema:
-                type: string
+          description: 'One page of Grafana config details'
+          content:
+            application/json:
+        default:
+          description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/Error'      
+    post:
+      summary: 'Create new Grafana integration'
+      operationId: createGrafana
+      requestBody:
+        required: true
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                        config:
+                            type: object
+      responses:
+        '200':
+          description: 'Grafana integration details'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    id:
+                        type: string
+                        format: uuid
+                    name:
+                        type: string
+                    config:
+                        type: object
         default:
           description: Unexpected error
           content:
@@ -39,19 +57,6 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    User:
-      type: object
-      required:
-        - id
-        - name
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        tag:
-          type: string
     Error:
       type: object
       required:
