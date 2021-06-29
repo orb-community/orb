@@ -5,32 +5,44 @@ info:
 servers:
   - url: 'http://localhost:8203'
 paths:
-  /user:
-    get:
-      summary: 'Sample endpoint: Returns details about a particular user'
-      operationId: listUser
+  /agents:
+    post:
+      summary: 'Create new Agent'
+      operationId: createAgent
       tags:
-        - user
-      parameters:
-        - name: id
-          in: query
-          description: ID of the user
-          required: true
-          schema:
-            type: integer
-            format: int32
+        - agent
+      requestBody:
+        required: true
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                        orb_tags:
+                            type: object
       responses:
         '200':
-          description: 'Sample response: Details about a user by ID'
-          headers:
-            x-next:
-              description: A link to the next page of responses
-              schema:
-                type: string
+          description: 'Agent add details including key, shown only once'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                    id:
+                        type: string
+                        format: uuid
+                    name:
+                        type: string
+                    key:
+                        type: string
+                        format: uuid
+                    channel_id:
+                        type: string
+                        format: uuid
+                    state:
+                        type: string
         default:
           description: Unexpected error
           content:
@@ -39,7 +51,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    User:
+    Agent:
       type: object
       required:
         - id
