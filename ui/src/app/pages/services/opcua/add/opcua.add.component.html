@@ -1,0 +1,40 @@
+<nb-card>
+  <nb-card-header class="table-header">
+    {{this.action}} OPC-UA Device
+  </nb-card-header>
+
+  <nb-card-body>
+    <div class="row form-row">
+      <div class="col-4 form-key">
+        Name:
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+              [(ngModel)]='formData.name'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-4 form-key">
+        Server URI:
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+              [(ngModel)]='formData.serverURI'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-4 form-key">
+        Node ID:
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+              [(ngModel)]='formData.nodeID'>
+      </div>
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton status="success" (click)="submit()">{{this.action}}</button>
+    <button nbButton status="danger" (click)="cancel()">Cancel</button>
+  </nb-card-footer>
+</nb-card>

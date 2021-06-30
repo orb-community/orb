@@ -1,0 +1,51 @@
+<table>
+  <tr>
+    <th *ngFor="let colName of config.colNames"> {{ colName }} </th>
+  </tr>
+  <tr *ngFor="let row of page.rows">
+    <td  *ngFor="let key of config.keys">
+      <div [ngSwitch]="key">
+        <div *ngSwitchCase="'edit'" class="edit-button">
+          <nb-icon nbButton size="tiny" icon="edit-outline"
+                   (click)="onEdit(row)">
+          </nb-icon>
+        </div>
+        <div *ngSwitchCase="'delete'" class="del-button">
+          <nb-icon nbButton size="tiny" icon="trash-2-outline"
+                   (click)="onDelete(row)">
+          </nb-icon>
+        </div>
+        <div *ngSwitchCase="'details'" class="detail-button">
+          <nb-icon nbButton size="tiny" icon="search-outline"
+                   (click)="onClickDetails(row)">
+          </nb-icon>
+        </div>
+        <div *ngSwitchCase="'checkbox'">
+          <nb-checkbox (checkedChange)="onToggleCheckbox(row)"></nb-checkbox>
+        </div>
+        <div *ngSwitchCase="'time'">
+          {{ row[key] | toMillisecs | date:'medium' }}
+        </div>
+        <div *ngSwitchCase="'created'">
+          {{ row[key] | date:'long' }}
+        </div>
+        <div *ngSwitchDefault>
+          <div [ngSwitch]="isObject(row[key])">
+            <div *ngSwitchCase="true">
+              <pre>{{row[key] | json}}</pre>
+            </div>
+            <div *ngSwitchDefault>
+              {{ row[key] }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<div *ngIf="!page.total" class="row no-msg">
+  <div class="col-12">
+    No content
+  </div>
+</div>
