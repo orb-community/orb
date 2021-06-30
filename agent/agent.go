@@ -133,6 +133,11 @@ func (a *orbAgent) startComms() error {
 		return err
 	}
 
+	err = a.sendGroupMembershipReq()
+	if err != nil {
+		a.logger.Error("failed to send group membership request", zap.Error(err))
+	}
+
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
 	a.hbDone = make(chan bool)
 	go a.sendHeartbeats()
@@ -220,8 +225,59 @@ func (a *orbAgent) sendCapabilities() error {
 	return nil
 }
 
+func (a *orbAgent) sendGroupMembershipReq() error {
+
+	payload := fleet.GroupMembershipReqRPCPayload{}
+
+	data := fleet.RPC{
+		SchemaVersion: fleet.CurrentRPCSchemaVersion,
+		Func:          fleet.GroupMembershipReqRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	if token := a.client.Publish(a.rpcToCoreChannel, 1, false, body); token.Wait() && token.Error() != nil {
+		return token.Error()
+	}
+
+	return nil
+}
+
+func (a *orbAgent) handleGroupMembership(payload interface{}) {
+	a.logger.Info("group membership", zap.Any("payload", payload))
+
+}
+
 func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
-	a.logger.Info("RPC message", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
+
+	a.logger.Info("RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
+
+	var versionCheck fleet.SchemaVersionCheck
+	if err := json.Unmarshal(message.Payload(), &versionCheck); err != nil {
+		a.logger.Error("error decoding RPC message from core", zap.Error(fleet.ErrSchemaMalformed))
+	}
+	if versionCheck.SchemaVersion != fleet.CurrentRPCSchemaVersion {
+		a.logger.Error("error decoding RPC message from core", zap.Error(fleet.ErrSchemaVersion))
+	}
+	var rpc fleet.RPC
+	if err := json.Unmarshal(message.Payload(), &rpc); err != nil {
+		a.logger.Error("error decoding RPC message from core", zap.Error(fleet.ErrSchemaMalformed))
+	}
+
+	// dispatch
+	switch rpc.Func {
+	case fleet.GroupMembershipRPCFunc:
+		a.handleGroupMembership(rpc.Payload)
+	default:
+		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
+			zap.String("func", rpc.Func),
+			zap.Any("payload", rpc.Payload))
+	}
+
 }
 
 func (a *orbAgent) Stop() {

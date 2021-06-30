@@ -28,6 +28,8 @@ type AgentCommsService interface {
 
 	// NotifyNewAgentGroupMembership RPC Core -> Agent: Notify Agent of new AgentGroup membership
 	NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error
+	// NotifyAgentGroupMembership RPC Core -> Agent: Notify Agent of all AgentGroup memberships
+	NotifyAgentGroupMembership(a Agent) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -37,7 +39,6 @@ const HeartbeatsChannel = "hb"
 const RPCToCoreChannel = "tocore"
 const RPCFromCoreChannel = "fromcore"
 const LogChannel = "log"
-const PolicyChannel = "policy"
 
 type fleetCommsService struct {
 	logger    *zap.Logger
@@ -49,7 +50,43 @@ type fleetCommsService struct {
 
 func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error {
 
-	payload := GroupMembershipRPCPayload{ChannelIDS: []string{ag.MFChannelID}}
+	payload := GroupMembershipRPCPayload{
+		ChannelIDS: []string{ag.MFChannelID},
+		FullList:   false,
+	}
+
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          GroupMembershipRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   a.MFChannelID,
+		Subtopic:  RPCFromCoreChannel,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
+
+	payload := GroupMembershipRPCPayload{
+		ChannelIDS: []string{"testing"},
+		FullList:   true,
+	}
 
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
@@ -138,6 +175,35 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 	return nil
 }
 
+func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, payload []byte) error {
+	var versionCheck SchemaVersionCheck
+	if err := json.Unmarshal(payload, &versionCheck); err != nil {
+		return ErrSchemaMalformed
+	}
+	if versionCheck.SchemaVersion != CurrentRPCSchemaVersion {
+		return ErrSchemaVersion
+	}
+	var rpc RPC
+	if err := json.Unmarshal(payload, &rpc); err != nil {
+		return ErrSchemaMalformed
+	}
+
+	// dispatch
+	switch rpc.Func {
+	case GroupMembershipReqRPCFunc:
+		if err := svc.NotifyAgentGroupMembership(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
+			svc.logger.Error(" failure", zap.Error(err))
+			return nil
+		}
+	default:
+		svc.logger.Warn("unsupported/unhandled agent RPC, ignoring",
+			zap.String("func", rpc.Func),
+			zap.Any("payload", rpc.Payload))
+	}
+
+	return nil
+}
+
 func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 
 	// NOTE: we need to consider ALL input from the agent as untrusted
@@ -164,16 +230,18 @@ func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 	case CapabilitiesChannel:
 		if err := svc.handleCapabilities(msg.Publisher, msg.Channel, msg.Payload); err != nil {
 			svc.logger.Error("capabilities failure", zap.Error(err))
-			return nil
+			return err
 		}
 	case HeartbeatsChannel:
 		if err := svc.handleHeartbeat(msg.Publisher, msg.Channel, msg.Payload); err != nil {
 			svc.logger.Error("heartbeat failure", zap.Error(err))
+			return err
 		}
 	case RPCToCoreChannel:
-		svc.logger.Error("implement me: RPCToCoreChannel")
-	case RPCFromCoreChannel:
-		svc.logger.Error("implement me: RPCFromCoreChannel")
+		if err := svc.handleRPCToCore(msg.Publisher, msg.Channel, msg.Payload); err != nil {
+			svc.logger.Error("RPC to core failure", zap.Error(err))
+			return err
+		}
 	case LogChannel:
 		svc.logger.Error("implement me: LogChannel")
 	default:
