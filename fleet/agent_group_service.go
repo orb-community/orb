@@ -23,7 +23,8 @@ var (
 
 func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup) error {
 
-	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), g.MFOwnerID, g.ID)
+	// first we get all agents, online or not, to connect them to the correct group channel
+	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), g.MFOwnerID, g.ID, false)
 	idList := make([]string, len(list))
 	for i, agent := range list {
 		idList[i] = agent.MFThingID
@@ -35,6 +36,19 @@ func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup)
 	err = svc.mfsdk.Connect(ids, token)
 	if err != nil {
 		return err
+	}
+
+	// now we get only onlinish agents to notify them in real time
+	list, err = svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), g.MFOwnerID, g.ID, true)
+	if err != nil {
+		return err
+	}
+	for _, agent := range list {
+		err := svc.agentComms.NotifyNewAgentGroupMembership(agent, g)
+		if err != nil {
+			// note we will not make failure to deliver to one agent fatal, just log
+			svc.logger.Error("failure during agent group membership comms", zap.Error(err))
+		}
 	}
 	return nil
 }

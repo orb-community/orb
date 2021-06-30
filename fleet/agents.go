@@ -88,7 +88,7 @@ type AgentRepository interface {
 	// RetrieveAll retrieves the subset of Agents owned by the specified user
 	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
 	// RetrieveAllByAgentGroupID retrieves Agents in the specified group
-	RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string) ([]Agent, error)
+	RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]Agent, error)
 }
 
 type AgentHeartbeatRepository interface {

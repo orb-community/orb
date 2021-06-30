@@ -15,13 +15,19 @@ import (
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"go.uber.org/zap"
+	"time"
 )
+
+const publisher = "orb-fleet"
 
 type AgentCommsService interface {
 	// Start set up communication with the message bus to communicate with agents
 	Start() error
 	// Stop end communication with the message bus
 	Stop() error
+
+	// NotifyNewAgentGroupMembership RPC Core -> Agent: Notify Agent of new AgentGroup membership
+	NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -39,6 +45,36 @@ type fleetCommsService struct {
 
 	// agent comms
 	agentPubSub mfnats.PubSub
+}
+
+func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error {
+
+	payload := GroupMembershipRPCPayload{ChannelIDS: []string{ag.MFChannelID}}
+
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          GroupMembershipRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   a.MFChannelID,
+		Subtopic:  RPCFromCoreChannel,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 func NewFleetCommsService(logger *zap.Logger, agentRepo AgentRepository, agentPubSub mfnats.PubSub) AgentCommsService {

@@ -30,9 +30,14 @@ type agentRepository struct {
 	logger *zap.Logger
 }
 
-func (r agentRepository) RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string) ([]fleet.Agent, error) {
+func (r agentRepository) RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]fleet.Agent, error) {
 
-	q := `SELECT mf_thing_id FROM agent_group_membership WHERE mf_owner_id = :mf_owner_id AND agent_groups_id = :group_id`
+	q := `SELECT agent_mf_thing_id AS mf_thing_id, agent_mf_channel_id AS mf_channel_id FROM agent_group_membership 
+			WHERE mf_owner_id = :mf_owner_id AND agent_groups_id = :group_id`
+
+	if onlinishOnly {
+		q = q + ` AND (agent_state = 'online' OR agent_state = 'stale')`
+	}
 
 	params := map[string]interface{}{
 		"mf_owner_id": owner,

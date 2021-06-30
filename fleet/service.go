@@ -46,6 +46,8 @@ type fleetService struct {
 	// Agents and Agent Groups
 	agentRepo            AgentRepository
 	agentGroupRepository AgentGroupRepository
+	// Agent Comms
+	agentComms AgentCommsService
 }
 
 func (svc fleetService) identify(token string) (string, error) {
@@ -90,12 +92,13 @@ func (svc fleetService) thing(token, id string, name string, md map[string]inter
 	return thing, nil
 }
 
-func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, mfsdk mfsdk.SDK) Service {
+func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, agentComms AgentCommsService, mfsdk mfsdk.SDK) Service {
 	return &fleetService{
 		logger:               logger,
 		auth:                 auth,
 		agentRepo:            agentRepo,
 		agentGroupRepository: agentGroupRepository,
+		agentComms:           agentComms,
 		mfsdk:                mfsdk,
 	}
 }

@@ -51,3 +51,17 @@ type Heartbeat struct {
 	TimeStamp     time.Time `json:"ts"`
 	State         State     `json:"state"`
 }
+
+const CurrentRPCSchemaVersion = "1.0"
+
+type RPC struct {
+	SchemaVersion string      `json:"schema_version"`
+	Func          string      `json:"func"`
+	Payload       interface{} `json:"payload"`
+}
+
+const GroupMembershipRPCFunc = "group_membership"
+
+type GroupMembershipRPCPayload struct {
+	ChannelIDS []string `json:"channel_ids"`
+}

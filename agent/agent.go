@@ -96,7 +96,7 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 	}
 
 	if token := a.client.Publish(a.heartbeatsChannel, 1, false, body); token.Wait() && token.Error() != nil {
-		a.logger.Error("error sending heartbeat", zap.Error(err))
+		a.logger.Error("error sending heartbeat", zap.Error(token.Error()))
 	}
 }
 
