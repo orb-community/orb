@@ -20,12 +20,15 @@ import (
 )
 
 var (
-	ErrCreatePolicy = errors.New("failed to create policy")
+	ErrCreatePolicy  = errors.New("failed to create policy")
+	ErrCreateDataset = errors.New("failed to create dataset")
 )
 
 type Service interface {
-	// CreatePolicy creates new data sink
+	// CreatePolicy creates new agent Policy
 	CreatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+	// CreateDataset creates new Dataset
+	CreateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 }
 
 var _ Service = (*policiesService)(nil)
@@ -33,6 +36,22 @@ var _ Service = (*policiesService)(nil)
 type policiesService struct {
 	auth mainflux.AuthServiceClient
 	repo Repository
+}
+
+func (s policiesService) CreateDataset(ctx context.Context, token string, d Dataset) (Dataset, error) {
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return Dataset{}, err
+	}
+
+	d.MFOwnerID = mfOwnerID
+
+	id, err := s.repo.SaveDataset(ctx, d)
+	if err != nil {
+		return Dataset{}, errors.Wrap(ErrCreateDataset, err)
+	}
+	d.ID = id
+	return d, nil
 }
 
 func (s policiesService) identify(token string) (string, error) {

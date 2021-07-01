@@ -26,6 +26,10 @@ type eventStore struct {
 	client *redis.Client
 }
 
+func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
+	return e.svc.CreateDataset(ctx, token, d)
+}
+
 func (e eventStore) CreatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
 	return e.svc.CreatePolicy(ctx, token, p, format, policyData)
 }

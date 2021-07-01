@@ -157,23 +157,26 @@ func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
 		Name:      dataset.Name,
 		MFOwnerID: uID.String(),
 		Metadata:  db.Metadata(dataset.Metadata),
-		Valid:     dataset.Valid,
 	}
 
+	d.Valid = true
 	if dataset.AgentGroupID != "" {
 		d.AgentGroupID = sql.NullString{String: dataset.AgentGroupID, Valid: true}
 	} else {
 		d.AgentGroupID = sql.NullString{Valid: false}
+		d.Valid = false
 	}
 	if dataset.PolicyID != "" {
 		d.PolicyID = sql.NullString{String: dataset.PolicyID, Valid: true}
 	} else {
 		d.PolicyID = sql.NullString{Valid: false}
+		d.Valid = false
 	}
 	if dataset.SinkID != "" {
 		d.SinkID = sql.NullString{String: dataset.SinkID, Valid: true}
 	} else {
 		d.SinkID = sql.NullString{Valid: false}
+		d.Valid = false
 	}
 
 	return d, nil

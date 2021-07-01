@@ -26,9 +26,15 @@ func MakeHandler(svcName string, svc policies.Service) http.Handler {
 	}
 	r := bone.New()
 
-	r.Post("/policies", kithttp.NewServer(
-		addEndpoint(svc),
-		decodeAddRequest,
+	r.Post("/policies/agent", kithttp.NewServer(
+		addPolicyEndpoint(svc),
+		decodeAddPolicyRequest,
+		types.EncodeResponse,
+		opts...))
+
+	r.Post("/policies/dataset", kithttp.NewServer(
+		addDatasetEndpoint(svc),
+		decodeAddDatasetRequest,
 		types.EncodeResponse,
 		opts...))
 
@@ -38,12 +44,25 @@ func MakeHandler(svcName string, svc policies.Service) http.Handler {
 	return r
 }
 
-func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeAddPolicyRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
 		return nil, errors.ErrUnsupportedContentType
 	}
 
-	req := addReq{token: r.Header.Get("Authorization")}
+	req := addPolicyReq{token: r.Header.Get("Authorization")}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return req, nil
+}
+
+func decodeAddDatasetRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		return nil, errors.ErrUnsupportedContentType
+	}
+
+	req := addDatasetReq{token: r.Header.Get("Authorization")}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}

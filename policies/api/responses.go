@@ -10,3 +10,9 @@ type policyRes struct {
 	Backend string `json:"backend"`
 	created bool
 }
+
+type datasetRes struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	created bool
+}
