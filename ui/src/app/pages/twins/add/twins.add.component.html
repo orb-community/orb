@@ -1,0 +1,22 @@
+<nb-card>
+  <nb-card-header class="table-header">
+    {{this.action}} Thing
+  </nb-card-header>
+
+  <nb-card-body>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Name:
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+              [(ngModel)]='formData.name'>
+      </div>
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton status="success" (click)="submit()">{{this.action}}</button>
+    <button nbButton status="danger" (click)="cancel()">Cancel</button>
+  </nb-card-footer>
+</nb-card>

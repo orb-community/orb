@@ -1,0 +1,31 @@
+<nb-card>
+  <nb-card-header class="table-header">
+    {{this.action}} Gateway
+  </nb-card-header>
+
+  <nb-card-body>
+    <div class="row form-row">
+      <div class="col-4 form-key">
+        Name:
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+              [(ngModel)]='formData.name'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-4 form-key">
+        External ID:
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+              [(ngModel)]='formData.externalID'>
+      </div>
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton status="success" (click)="submit()">{{this.action}}</button>
+    <button nbButton status="danger" (click)="cancel()">Cancel</button>
+  </nb-card-footer>
+</nb-card>

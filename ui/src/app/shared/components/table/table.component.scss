@@ -1,0 +1,51 @@
+table {
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #edf1f7;
+  text-align: left;
+  padding: 6px;
+}
+
+tr {
+  background-color: #ffffff;
+}
+
+tr:first-child {
+  background-color: #ffffff;
+}
+
+tr:hover td {
+  background-color: #edf1f7;
+}
+
+tr:nth-child(even) {
+  background-color: #f7f9fc;
+}
+
+.edit-button {
+  text-align: center;
+}
+.edit-button:hover {
+  color: #ffc720;
+}
+
+.del-button {
+  text-align: center;
+}
+.del-button:hover {
+  color: #e14a25;
+}
+
+.detail-button {
+  text-align: center;
+}
+.detail-button:hover {
+  color: #5f8ecf;
+}
+
+.no-msg {
+  text-align: center;
+  padding-top: 50px;
+}

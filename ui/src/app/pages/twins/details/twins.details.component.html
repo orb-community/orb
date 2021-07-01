@@ -1,0 +1,222 @@
+<nb-card size="tiny">
+  <nb-card-header class="card-header">
+    Twin Info
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row">
+      <div class="col-md-2">
+        <b>Name:</b>
+      </div>
+      <div class="col-md-4">
+        {{ twin.name }}
+      </div>
+      <div class="col-md-2">
+        <b>Owner:</b>
+      </div>
+      <div class="col-md-4">
+        {{ twin.owner }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-2">
+        <b>ID:</b>
+      </div>
+      <div class="col-md-4">
+        {{ twin.id }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-2">
+        <b>Created:</b>
+      </div>
+      <div class="col-md-4">
+        {{ twin.created | date: 'long' }}
+      </div>
+      <div class="col-md-2">
+        <b>Updated:</b>
+      </div>
+      <div class="col-md-4">
+        {{ twin.updated | date: 'long'}}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-2">
+        <b>Revision:</b>
+      </div>
+      <div class="col-md-4">
+        {{ twin.revision }}
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>
+
+<nb-card size="tiny">
+  <nb-card-header class="card-header">
+    State <em>{{ stateTime | date: 'long' }}</em>
+    <button nbButton size="tiny" class="button-green"
+            (click)="showStates()">
+      History
+    </button>
+  </nb-card-header>
+  <nb-card-body *ngIf="state">
+    <div class="row" *ngFor="let attr of state | keyvalue">
+      <div class="col-md-2" ><b>{{attr.key}}</b></div>
+      <div class="col-md-5">{{attr.value.value}}</div>
+      <div class="col-md-5">{{attr.value.time | date: 'long'}}</div>
+    </div>
+  </nb-card-body>
+</nb-card>
+
+<nb-card size="normal">
+  <nb-card-header class="card-header">
+    <div class="row">
+      <div class="col-6">
+        Definition <em *ngIf="def">{{def.created | date: 'long'}}</em>
+      </div>
+      <div class="col-4">
+        delta (ms): {{this.defDelta / 1e6}}
+      </div>
+      <div class="col-2">
+        <button nbButton size="tiny" class="button-green"
+                (click)="showDefinitions()">
+          History
+        </button>
+      </div>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <nb-list>
+      <nb-list-item>
+        <div class="col-md-2">
+          <b>Name</b>
+        </div>
+        <div class="col-md-4">
+          <b>Channel</b>
+        </div>
+        <div class="col-md-3">
+          <b>Subtopic</b>
+        </div>
+        <div class="col-md-2">
+          <b>Persisted</b>
+        </div>
+        <div class="col-md-1">
+        </div>
+      </nb-list-item>
+      <nb-list-item *ngFor="let attr of defAttrs">
+        <div class="col-md-2">
+          {{ attr.name }}
+        </div>
+        <div class="col-md-4">
+          {{ attr.channel }} - {{ defChans[attr.channel] }}
+        </div>
+        <div class="col-md-3">
+          {{ attr.subtopic }}
+        </div>
+        <div class="col-md-2">
+          <b>{{ attr.persist_state }}</b>
+        </div>
+        <div class="col-md-1">
+        </div>
+      </nb-list-item>
+    </nb-list>
+  </nb-card-body>
+</nb-card>
+
+<nb-card size="large">
+  <nb-card-header class="card-header">
+    <div class="row">
+      <div class="col-6">
+        Create definition
+      </div>
+
+      <div class="col-4">
+        delta (ms): <input type="text" nbInput value="{{this.defDelta / 1e6}}" (change)="delta($event)" fieldSize="tiny">
+      </div>
+
+      <div class="col-2">
+        <button nbButton size="tiny" class="button-green"
+                (click)="updateDefinition()">
+          Update definition
+        </button>
+      </div>
+    </div>
+  </nb-card-header>
+
+  <nb-card-body>
+    <nb-list>
+      <nb-list-item>
+        <div class="col-md-2">
+          <b>Name</b>
+        </div>
+        <div class="col-md-4">
+          <b>Channel</b>
+        </div>
+        <div class="col-md-3">
+          <b>Subtopic</b>
+        </div>
+        <div class="col-md-2">
+          <b>Persisted</b>
+        </div>
+        <div class="col-md-1">
+        </div>
+      </nb-list-item>
+      <nb-list-item *ngFor="let attr of editAttrs" class="pickable" (click)="selectAttribute(attr)">
+        <div class="col-md-2">
+          {{ attr.name }}
+        </div>
+        <div class="col-md-4">
+          {{ attr.channel }}
+        </div>
+        <div class="col-md-3">
+          {{ attr.subtopic }}
+        </div>
+        <div class="col-md-2">
+          <b>{{ attr.persist_state }}</b>
+        </div>
+        <div class="col-md-1">
+          <button nbButton size="tiny" class="button-red"
+                  (click)="removeAttribute(attr)">
+            x
+          </button>
+        </div>
+      </nb-list-item>
+    </nb-list>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <div class="row form-row">
+      <div class="col-md-1 form-key"> Name: </div>
+      <div class="col-md-3">
+        <input type="text" nbInput [(ngModel)]="editAttr.name" fieldSize="tiny">
+      </div>
+
+      <div class="col-md-1 form-key">Channel: </div>
+      <div class="col-md-6">
+        <nb-select placeholder="Select channel" [(selected)]="editAttr.channel" size="tiny">
+          <nb-option *ngFor="let channel of this.channels" [value]="channel.id">
+            {{channel.name}}
+          </nb-option>
+        </nb-select>
+      </div>
+    </div>
+
+    <div class="row form-row">
+      <div class="col-md-1 form-key"> Subtopic: </div>
+      <div class="col-md-3">
+        <input type="text" nbInput [(ngModel)]="editAttr.subtopic" fieldSize="tiny">
+      </div>
+      <div class="col-md-1 form-key"> Persisted: </div>
+      <div class="col-md-2">
+        <nb-checkbox (checkedChange)="togglePersist($event)" [checked]="editAttr.persist_state"></nb-checkbox>
+      </div>
+    </div>
+
+    <button nbButton size="tiny" class="button-blue"
+            (click)="addAttribute()">
+      Create / Update attribute
+    </button>
+  </nb-card-footer>
+</nb-card>
