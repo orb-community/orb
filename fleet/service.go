@@ -18,22 +18,9 @@ import (
 	"time"
 )
 
-var (
-	ErrCreateSelector = errors.New("failed to create selector")
-
-	ErrCreateAgent = errors.New("failed to create agent")
-
-	// ErrThings indicates failure to communicate with Mainflux Things service.
-	// It can be due to networking error or invalid/unauthorized request.
-	ErrThings = errors.New("failed to receive response from Things service")
-
-	errCreateThing   = errors.New("failed to create thing")
-	errThingNotFound = errors.New("thing not found")
-)
-
 type Service interface {
 	AgentService
-	SelectorService
+	AgentGroupService
 }
 
 // PageMetadata contains page metadata that helps navigation.
@@ -45,6 +32,7 @@ type PageMetadata struct {
 	Order    string         `json:"order,omitempty"`
 	Dir      string         `json:"dir,omitempty"`
 	Metadata types.Metadata `json:"metadata,omitempty"`
+	Tags     types.Tags     `json:"tags,omitempty"`
 }
 
 var _ Service = (*fleetService)(nil)
@@ -55,18 +43,11 @@ type fleetService struct {
 	auth mainflux.AuthServiceClient
 	// for Thing manipulation
 	mfsdk mfsdk.SDK
-	// Agents and Selectors
-	agentRepo    AgentRepository
-	selectorRepo SelectorRepository
-}
-
-func (svc fleetService) ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error) {
-	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
-	if err != nil {
-		return Page{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
-	}
-
-	return svc.agentRepo.RetrieveAll(ctx, res.GetId(), pm)
+	// Agents and Agent Groups
+	agentRepo            AgentRepository
+	agentGroupRepository AgentGroupRepository
+	// Agent Comms
+	agentComms AgentCommsService
 }
 
 func (svc fleetService) identify(token string) (string, error) {
@@ -79,22 +60,6 @@ func (svc fleetService) identify(token string) (string, error) {
 	}
 
 	return res.GetId(), nil
-}
-
-func (svc fleetService) CreateSelector(ctx context.Context, token string, s Selector) (Selector, error) {
-	mfOwnerID, err := svc.identify(token)
-	if err != nil {
-		return Selector{}, err
-	}
-
-	s.MFOwnerID = mfOwnerID
-
-	err = svc.selectorRepo.Save(ctx, s)
-	if err != nil {
-		return Selector{}, errors.Wrap(ErrCreateSelector, err)
-	}
-
-	return s, nil
 }
 
 // Method thing retrieves Mainflux Thing creating one if an empty ID is passed.
@@ -127,76 +92,13 @@ func (svc fleetService) thing(token, id string, name string, md map[string]inter
 	return thing, nil
 }
 
-func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) (Agent, error) {
-	mfOwnerID, err := svc.identify(token)
-	if err != nil {
-		return Agent{}, err
-	}
-
-	a.MFOwnerID = mfOwnerID
-
-	md := map[string]interface{}{"type": "orb_agent"}
-
-	// create new Thing
-	mfThing, err := svc.thing(token, "", a.Name.String(), md)
-	if err != nil {
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
-	a.MFThingID = mfThing.ID
-	a.MFKeyID = mfThing.Key
-
-	// create main Agent RPC Channel
-	mfChannelID, err := svc.mfsdk.CreateChannel(mfsdk.Channel{
-		Name:     a.Name.String(),
-		Metadata: md,
-	}, token)
-	if err != nil {
-		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-		}
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
-	a.MFChannelID = mfChannelID
-
-	// RPC Channel to Agent
-	err = svc.mfsdk.Connect(mfsdk.ConnectionIDs{
-		ChannelIDs: []string{mfChannelID},
-		ThingIDs:   []string{mfThing.ID},
-	}, token)
-	if err != nil {
-		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-			// fall through
-		}
-		if errT := svc.mfsdk.DeleteChannel(mfChannelID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-		}
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
-	err = svc.agentRepo.Save(ctx, a)
-	if err != nil {
-		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-			// fall through
-		}
-		if errT := svc.mfsdk.DeleteChannel(mfChannelID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-		}
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
-	return a, nil
-}
-
-func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, selectorRepo SelectorRepository, mfsdk mfsdk.SDK) Service {
+func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, agentComms AgentCommsService, mfsdk mfsdk.SDK) Service {
 	return &fleetService{
-		logger:       logger,
-		auth:         auth,
-		agentRepo:    agentRepo,
-		selectorRepo: selectorRepo,
-		mfsdk:        mfsdk,
+		logger:               logger,
+		auth:                 auth,
+		agentRepo:            agentRepo,
+		agentGroupRepository: agentGroupRepository,
+		agentComms:           agentComms,
+		mfsdk:                mfsdk,
 	}
 }

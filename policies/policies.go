@@ -11,6 +11,7 @@ import (
 )
 
 type Policy struct {
+	ID        string
 	Name      types.Identifier
 	MFOwnerID string
 	Backend   string
@@ -21,5 +22,5 @@ type Policy struct {
 type Repository interface {
 	// Save persists the Policy. Successful operation is indicated by non-nil
 	// error response.
-	Save(ctx context.Context, policy Policy) error
+	Save(ctx context.Context, policy Policy) (string, error)
 }

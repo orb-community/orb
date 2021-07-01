@@ -48,20 +48,20 @@ func (l loggingMiddleware) CreateAgent(ctx context.Context, token string, a flee
 	return l.svc.CreateAgent(ctx, token, a)
 }
 
-func (l loggingMiddleware) CreateSelector(ctx context.Context, token string, s fleet.Selector) (_ fleet.Selector, err error) {
+func (l loggingMiddleware) CreateAgentGroup(ctx context.Context, token string, s fleet.AgentGroup) (_ fleet.AgentGroup, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: create_selector",
+			l.logger.Warn("method call: create_agent_group",
 				zap.String("name", s.Name.String()),
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: create_selector",
+			l.logger.Info("method call: create_agent_group",
 				zap.String("name", s.Name.String()),
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.CreateSelector(ctx, token, s)
+	return l.svc.CreateAgentGroup(ctx, token, s)
 }
 
 func NewLoggingMiddleware(svc fleet.Service, logger *zap.Logger) fleet.Service {

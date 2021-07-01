@@ -41,9 +41,9 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 
 	r := bone.New()
 
-	r.Post("/selectors", kithttp.NewServer(
-		kitot.TraceServer(tracer, "create_selector")(addSelectorEndpoint(svc)),
-		decodeAddSelector,
+	r.Post("/agent_groups", kithttp.NewServer(
+		kitot.TraceServer(tracer, "create_agent_group")(addAgentGroupEndpoint(svc)),
+		decodeAddAgentGroup,
 		types.EncodeResponse,
 		opts...))
 
@@ -65,12 +65,12 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 	return r
 }
 
-func decodeAddSelector(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeAddAgentGroup(_ context.Context, r *http.Request) (interface{}, error) {
 	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
 		return nil, errors.ErrUnsupportedContentType
 	}
 
-	req := addSelectorReq{token: r.Header.Get("Authorization")}
+	req := addAgentGroupReq{token: r.Header.Get("Authorization")}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
@@ -160,7 +160,7 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		case errors.Contains(errorVal, db.ErrScanMetadata):
 			w.WriteHeader(http.StatusUnprocessableEntity)
 
-		case errors.Contains(errorVal, fleet.ErrCreateSelector):
+		case errors.Contains(errorVal, fleet.ErrCreateAgentGroup):
 			w.WriteHeader(http.StatusBadRequest)
 
 		case errors.Contains(errorVal, io.ErrUnexpectedEOF),

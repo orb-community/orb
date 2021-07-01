@@ -7,6 +7,7 @@ package api
 import "github.com/ns1labs/orb/pkg/types"
 
 type sinkRes struct {
+	ID      string         `json:"id"`
 	Name    string         `json:"name"`
 	Config  types.Metadata `json:"config,omitempty"`
 	created bool

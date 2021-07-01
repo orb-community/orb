@@ -26,8 +26,8 @@ func (m metricsMiddleware) CreateAgent(ctx context.Context, token string, a flee
 	return m.svc.CreateAgent(ctx, token, a)
 }
 
-func (m metricsMiddleware) CreateSelector(ctx context.Context, token string, s fleet.Selector) (fleet.Selector, error) {
-	return m.svc.CreateSelector(ctx, token, s)
+func (m metricsMiddleware) CreateAgentGroup(ctx context.Context, token string, s fleet.AgentGroup) (fleet.AgentGroup, error) {
+	return m.svc.CreateAgentGroup(ctx, token, s)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.

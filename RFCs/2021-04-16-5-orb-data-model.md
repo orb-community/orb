@@ -4,9 +4,9 @@ Orb manages pktvisor configuration in a central control plane. The only configur
 agent are the Tap configuration (ns1labs/pktvisor#75) and edge Tags configuration (below) because they are host
 specific.
 
-### Tags and Selector Configurations
+### Tags and Group Configurations
 
-Orb needs the ability to address the agents that it is controlling. It does this by matching Selectors with Tags.
+Orb needs the ability to address the agents that it is controlling. It does this by matching Groups with Tags.
 
 #### Tags
 
@@ -63,10 +63,10 @@ orb:
 $ orb-agent --config orb-agent.yaml
 ```
 
-### Orb Selectors
+### Orb Groups
 
-Selectors are named configurations of arbitrary labels which can match against the Tags of the agents available in the
-Orb ecosystem. They may be thought of as groups of agents. These names are referenced in Orb Policies.
+Groups are named configurations of arbitrary labels which can match against the Tags of the agents available in the Orb
+ecosystem. They may be thought of as groups of agents. These names are referenced in Orb Policies.
 pktvisord does not read this configuration or use this data; it is used only by orb-agent. This schema is found only in
 the control plane, not on the command line or in files.
 
@@ -74,7 +74,7 @@ the control plane, not on the command line or in files.
 version: "1.0"
 
 orb:
-  selectors:
+  groups:
     all_dns:
       node_type: dns
     eu_dns:
@@ -106,22 +106,20 @@ orb:
 
 ### Orb Policies
 
-An Orb policy ties together Selectors, a Collection Policy, and one or more Sinks. pktvisord does not read this
+An Orb policy ties together a Group, an agent Collection Policy, and one or more Sinks. pktvisord does not read this
 configuration or use this data; it is used only by orb-agent. This schema is found only in the control plane, not on the
 command line or in files.
 
-orb-agent will be made aware of the collection policy and the sinks if this selector matches its tags. In case of a
-match, orb-agent will attempt to apply the collection policy to its pktvisord, and update the control plane about
-success or failure. Upon success, the sink will be created.
+orb-agent will be made aware of the collection policy if it is in the policy's group. In case of a match, orb-agent will
+attempt to apply the collection policy to its pktvisord, and update the control plane about success or failure.
 
 ```yaml
 version: "1.0"
 
 orb:
   policy:
-    selectors:
-      - eu_dns
-    collection: anycast_dns
+    group: eu_dns
+    agent_policy: anycast_dns
     sinks:
       - default_prometheus
 ```

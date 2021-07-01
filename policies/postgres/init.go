@@ -42,6 +42,8 @@ func migrateDB(db *sqlx.DB) error {
 				Id: "policies_1",
 				Up: []string{
 					`CREATE TABLE IF NOT EXISTS policies (
+						id			   UUID NOT NULL DEFAULT gen_random_uuid(),
+
 						name           TEXT NOT NULL,
 						mf_owner_id    UUID NOT NULL,
 
@@ -51,7 +53,8 @@ func migrateDB(db *sqlx.DB) error {
 						policy		   JSONB NOT NULL DEFAULT '{}',
 
                         ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
-						PRIMARY KEY (name, mf_owner_id)
+						PRIMARY KEY (name, mf_owner_id),
+					    UNIQUE(id)
 					)`,
 				},
 				Down: []string{

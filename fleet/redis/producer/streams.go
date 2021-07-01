@@ -34,8 +34,8 @@ func (es eventStore) CreateAgent(ctx context.Context, token string, a fleet.Agen
 	return es.svc.CreateAgent(ctx, token, a)
 }
 
-func (es eventStore) CreateSelector(ctx context.Context, token string, s fleet.Selector) (fleet.Selector, error) {
-	return es.svc.CreateSelector(ctx, token, s)
+func (es eventStore) CreateAgentGroup(ctx context.Context, token string, s fleet.AgentGroup) (fleet.AgentGroup, error) {
+	return es.svc.CreateAgentGroup(ctx, token, s)
 }
 
 // NewEventStoreMiddleware returns wrapper around fleet service that sends

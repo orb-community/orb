@@ -78,10 +78,11 @@ func (s policiesService) CreatePolicy(ctx context.Context, token string, p Polic
 
 	p.MFOwnerID = mfOwnerID
 
-	err = s.repo.Save(ctx, p)
+	id, err := s.repo.Save(ctx, p)
 	if err != nil {
 		return Policy{}, errors.Wrap(ErrCreatePolicy, err)
 	}
+	p.ID = id
 	return p, nil
 }
 

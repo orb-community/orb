@@ -59,9 +59,10 @@ func (s sinkService) CreateSink(ctx context.Context, token string, sink Sink) (S
 
 	sink.MFOwnerID = mfOwnerID
 
-	err = s.repo.Save(ctx, sink)
+	id, err := s.repo.Save(ctx, sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
+	sink.ID = id
 	return sink, nil
 }

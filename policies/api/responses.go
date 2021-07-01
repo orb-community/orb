@@ -5,6 +5,7 @@
 package api
 
 type policyRes struct {
+	ID      string `json:"id"`
 	Name    string `json:"name"`
 	Backend string `json:"backend"`
 	created bool
