@@ -1,0 +1,41 @@
+<nb-card>
+  <nb-card-header class="table-header">
+    {{this.action}} User
+  </nb-card-header>
+
+  <nb-card-body>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Name:
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+              [(ngModel)]='formData.name'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Password:
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+              [(ngModel)]='formData.password'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Metadata:
+      </div>
+      <div class="col-9" style="height: 200px;">
+        <textarea [ngModel]="formData.metadata | json"
+                  (ngModelChange)="editorMetadata=$event">
+        </textarea>
+      </div>
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton status="success" (click)="submit()">{{this.action}}</button>
+    <button nbButton status="danger" (click)="cancel()">Cancel</button>
+  </nb-card-footer>
+</nb-card>

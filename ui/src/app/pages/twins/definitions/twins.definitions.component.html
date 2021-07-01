@@ -1,0 +1,13 @@
+<nb-card size="big">
+  <nb-card-header class="card-header">
+    {{ definitions.length }} {{ twin.name }} definitions
+  </nb-card-header>
+
+  <nb-card-body>
+    <nb-card-body>
+      <ngx-table-component [config]="tableConfig"
+                           [page]="page">
+      </ngx-table-component>
+    </nb-card-body>
+  </nb-card-body>
+</nb-card>

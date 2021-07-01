@@ -1,0 +1,124 @@
+<nb-card size="medium">
+  <nb-card-header class="table-header sub-header">
+    <div class="row search-bar">
+      <div class="col-md-4">
+        <input nbInput fullWidth placeholder="Server URI" [(ngModel)]="browseServerURI" fieldSize="small">
+      </div>
+      <div class="col-md-2">
+        <input nbInput fullWidth placeholder="ns=0" [(ngModel)]="browseNamespace" fieldSize="small">
+      </div>
+      <div class="col-md-2">
+        <input nbInput fullWidth placeholder="i=84" [(ngModel)]="browseIdentifier" fieldSize="small">
+      </div>
+      <div class="col-md-2">
+        <button nbButton size="small" class="button-blue button-header"
+                (click)="browseOpcuaNodes()">
+          <nb-icon icon="maximize-outline"></nb-icon>
+          Browse
+        </button>
+      </div>
+      <div class="col-md-2">
+        <button nbButton size="small" class="button-green button-header"
+                (click)="subscribeOpcuaNodes()" >
+          <nb-icon icon="collapse-outline"></nb-icon>
+          Subscribe
+        </button>
+      </div>
+    </div>
+    <nb-list>
+      <nb-list-item>
+        <div class="col-md-2">
+          <b>Node ID</b>
+        </div>
+        <div class="col-md-2">
+          <b>Data Type</b>
+        </div>
+        <div class="col-md-4">
+          <b>Description</b>
+        </div>
+        <div class="col-md-2">
+          <b>BrowseName</b>
+        </div>
+        <div class="col-md-2">
+          <input nbInput fullWidth placeholder="Search..." fieldSize="small"
+                 (input)="searchBrowse($event.target.value)">
+        </div>
+      </nb-list-item>
+    </nb-list>
+  </nb-card-header>
+  <nb-card-body>
+    <nb-list>
+      <nb-list-item *ngIf="!browsedNodes.length">
+        No browsed server
+      </nb-list-item>
+      <nb-list-item *ngFor="let node of browsedNodes">
+        <div class="col-md-2">
+          {{ node.NodeID }}
+        </div>
+        <div class="col-md-2">
+          {{ node.DataType }}
+        </div>
+        <div class="col-md-4">
+          {{ node.Description }}
+        </div>
+        <div class="col-md-2">
+          {{ node.BrowseName }}
+        </div>
+        <div class="col-md-2" style="text-align: center;">
+          <nb-checkbox (checkedChange)="onCheckboxChanged($event, node)"></nb-checkbox>
+        </div>
+      </nb-list-item>
+    </nb-list>
+  </nb-card-body>
+</nb-card>
+
+<button nbButton size="medium" class="button-add"
+        (click)="openAddModal()"
+        shape="semi-round">
+  Create OPC-UA Node
+</button>
+
+<nb-card>
+  <nb-card-header class="table-header">
+    <div class="row">
+      <div class="col-md-4">
+        {{ page.total }} &nbsp; OPC-UA Server Subscription
+      </div>
+      <div class="col-md-4">
+        <input nbInput fullWidth placeholder="Search..." fieldSize="small"
+               (input)="searchNode($event.target.value)">
+      </div>
+      <div class="col-md-2">
+        <button nbButton size="small" class="button-blue button-header"
+                (click)="onClickSave()">
+          <nb-icon icon="save-outline"></nb-icon>
+          Save
+        </button>
+      </div>
+      <div class="col-md-2">
+        <button nbButton size="small" class="button-green button-header"
+                (click)="fileInput.click()">
+          <nb-icon icon="file-add-outline"></nb-icon>
+          Upload
+          <input hidden #fileInput (change)="onFileSelected($event.target.files)" type="file">
+        </button>
+      </div>
+    </div>
+  </nb-card-header>
+
+  <nb-card-body>
+    <ngx-table-component [config]="tableConfig"
+                         [page]="page"
+                         (editEvent)=openEditModal($event)
+                         (delEvent)=openDeleteModal($event)
+                         (detailsEvent)=onOpenDetails($event)>
+    </ngx-table-component>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <ngx-pagination-component [page]="page"
+                              (changeLimitEvent)=onChangeLimit($event)
+                              (changePageEvent)=onChangePage($event)>
+    </ngx-pagination-component>
+  </nb-card-footer>
+</nb-card>

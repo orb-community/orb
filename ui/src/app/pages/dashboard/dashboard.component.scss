@@ -1,0 +1,54 @@
+nb-card-body {
+  text-align: center;
+}
+
+nb-card-header {
+  text-align: center;
+}
+
+nb-icon {
+  font-size: 6rem;
+}
+
+a {
+  background-color: #5e8ecf;
+  color: white;
+  font-size: 15px;
+  padding: 10px;
+  width: 200px;
+  display: inline-block;
+  text-decoration: none;
+}
+a:hover {
+  color: #3b3c4f;
+  text-decoration: none;
+}
+
+.dash-top {
+  background-color: #3b3c4f;
+  margin-top: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.dash-top-text {
+  color: #dfdee9;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dash-top-button {
+  margin-top: 30px;
+}
+
+.dash-bottom-text {
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+  vertical-align: middle;
+}
+
+.dash-bottom-button {
+  margin-top: 60px;
+}

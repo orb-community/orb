@@ -1,0 +1,60 @@
+<div class="row">
+  <div class="col-md-6">
+    <nb-card size="tiny">
+      <nb-card-header class="card-header">
+        User Info
+      </nb-card-header>
+      <nb-card-body>
+        <div class="row">
+          <div class="col-md-2 form-key"> Email: </div><div class="col-md-10"> {{ user.email }} </div>
+          <div class="col-md-2 form-key"> ID: </div><div class="col-md-10"> {{ user.id }} </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+
+  <div class="col-md-6">
+    <nb-card size="small">
+      <nb-card-header class="card-header">
+        <div class="row">
+            <div class="col-md-3">
+              Memberships
+            </div>
+            <div class="col-md-7">
+              <nb-select multiple placeholder="Select Group(s)" [(selected)]="selectedGroups" size="tiny">
+                <nb-option *ngFor="let g of this.userGroups" [value]="g">
+                  {{ g.name }}
+                </nb-option>
+              </nb-select>
+            </div>
+            <div class="col-md-2">
+              <button nbButton size="tiny" class="button-green"
+                      (click)="onAssign()">
+                Assign
+              </button>
+            </div>
+        </div>
+      </nb-card-header>
+      <nb-card-body>
+        <div *ngIf="!memberships">
+          <div style="text-align: center">
+            No memberships
+          </div>
+        </div>
+        <div *ngIf="memberships">
+          <div *ngFor="let m of memberships;" class="row" style="padding: 2.6px;">
+            <div class="col-md-9">
+              <nb-icon status="info" icon="arrow-right-outline"></nb-icon>
+              {{ m.name }}
+            </div>
+            <div class="col-md-3">
+              <button (click)="onUnassign(m)" nbButton size="tiny" class="button-red">
+                x
+              </button>
+            </div>
+          </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>

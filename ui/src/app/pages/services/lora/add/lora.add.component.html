@@ -1,0 +1,40 @@
+<nb-card>
+  <nb-card-header class="table-header">
+    {{this.action}} LoRa Device
+  </nb-card-header>
+
+  <nb-card-body>
+    <div class="row form-row">
+      <div class="col-4 form-key">
+        Name:
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+              [(ngModel)]='formData.name'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-4 form-key">
+        Application ID:
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+              [(ngModel)]='formData.appID'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-4 form-key">
+        Device EUI:
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+              [(ngModel)]='formData.devEUI'>
+      </div>
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton status="success" (click)="submit()">{{this.action}}</button>
+    <button nbButton status="danger" (click)="cancel()">Cancel</button>
+  </nb-card-footer>
+</nb-card>

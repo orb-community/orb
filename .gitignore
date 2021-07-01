@@ -2,3 +2,11 @@
 .DS_Store*
 build/*
 localconfig/
+
+# /ui - UI dependencies
+ui/node_modules
+ui/dist
+
+# /ui - UI e2e dependencies
+ui/e2e/*.js
+ui/e2e/*.map

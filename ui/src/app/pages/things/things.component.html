@@ -1,0 +1,50 @@
+<button nbButton size="medium" class="button-add"
+        (click)="openAddModal()"
+        shape="semi-round">
+  Create Thing
+</button>
+
+<nb-card>
+  <nb-card-header class="table-header">
+    <div class="row">
+      <div class="col-md-4">
+        {{ page.total }} &nbsp; Things
+      </div>
+      <div class="col-md-4">
+        <input nbInput fullWidth placeholder="Search..." fieldSize="small"
+               (input)="searchThing($event.target.value)">
+      </div>
+      <div class="col-md-2">
+        <button nbButton size="small" class="button-blue button-header"
+                (click)="onClickSave()">
+          <nb-icon icon="save-outline"></nb-icon>
+          Save
+        </button>
+      </div>
+      <div class="col-md-2">
+        <button nbButton size="small" class="button-green button-header"
+                (click)="fileInput.click()">
+          <nb-icon icon="file-add-outline"></nb-icon>
+          Upload
+          <input hidden #fileInput (change)="onFileSelected($event.target.files)" type="file">
+        </button>
+      </div>
+    </div>
+  </nb-card-header>
+
+  <nb-card-body>
+    <ngx-table-component [config]="tableConfig"
+                         [page]="page"
+                         (editEvent)=openEditModal($event)
+                         (delEvent)=openDeleteModal($event)
+                         (detailsEvent)=onOpenDetails($event)>
+    </ngx-table-component>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <ngx-pagination-component [page]="page"
+                              (changeLimitEvent)=onChangeLimit($event)
+                              (changePageEvent)=onChangePage($event)>
+    </ngx-pagination-component>
+  </nb-card-footer>
+</nb-card>

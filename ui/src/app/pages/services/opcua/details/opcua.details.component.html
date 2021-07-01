@@ -1,0 +1,50 @@
+<div class="row">
+  <div class="col-md-6">
+    <nb-card size="tiny">
+      <nb-card-header class="card-header">
+        OPC-UA Infos
+      </nb-card-header>
+      <nb-card-body>
+        <div class="row">
+          <div class="col-md-2 form-key"> Name: </div><div class="col-md-10"> {{ opcuaNode.name }} </div>
+          <div class="col-md-2 form-key"> ID: </div><div class="col-md-10"> {{ opcuaNode.id }} </div>
+          <div class="col-md-2 form-key"> Key: </div><div class="col-md-10"> {{ opcuaNode.key }} </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+
+    <nb-card size="large">
+      <nb-card-header class="card-header">
+        Raw Messages
+      </nb-card-header>
+      <nb-card-body>
+        <div *ngIf="messages.length == 0" style="text-align: center;">
+          No messages to display
+        </div>
+        <pre *ngFor="let message of messages">{{ message | json }}</pre>
+      </nb-card-body>
+    </nb-card>
+  </div>
+
+  <div class="col-md-6">
+    <nb-card size="tiny">
+      <nb-card-header class="card-header">
+        Metadata
+      </nb-card-header>
+      <nb-card-body>
+        <pre>{{ opcuaNode.metadata | json}}</pre>
+      </nb-card-body>
+    </nb-card>
+
+    <nb-card size="large">
+      <nb-card-body>
+        <div *ngIf="messages.length == 0" style="text-align: center;">
+          No charts to display
+        </div>
+        <div *ngIf="messages.length > 0" style="height:100%">
+          <ngx-chart [messages]="messages"></ngx-chart>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>
