@@ -5,9 +5,9 @@ info:
 servers:
   - url: 'http://localhost:8202'
 paths:
-  /policies:
+  /policies/agent:
     get:
-      summary: 'List Policies'
+      summary: 'List Agent Policies'
       operationId: listPolicies
       tags:
         - policy
