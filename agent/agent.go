@@ -259,40 +259,32 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 	return nil
 }
 
+func (a *orbAgent) subscribeGroupChannels(channels []string) []string {
+	var successList []string
+	for _, channelID := range channels {
+
+		base := fmt.Sprintf("channels/%s/messages", channelID)
+		rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
+
+		if token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore); token.Wait() && token.Error() != nil {
+			a.logger.Error("failed to subscribe to group channel/topic", zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+			continue
+		}
+		a.logger.Info("subscribed to a group", zap.String("topic", rpcFromCoreTopic))
+		successList = append(successList, channelID)
+	}
+	return successList
+}
+
 func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 
 	// if this is the full list, reset all group subscriptions and subscribed to this list
 	if rpc.FullList {
-
 		a.unsubscribeGroupChannels()
-
-		var successList []string
-		for _, channelID := range rpc.ChannelIDS {
-
-			base := fmt.Sprintf("channels/%s/messages", channelID)
-			rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
-
-			if token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore); token.Wait() && token.Error() != nil {
-				a.logger.Error("failed to subscribe to group channel/topic", zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
-				continue
-			}
-			successList = append(successList, channelID)
-		}
-		a.groupChannels = successList
+		a.groupChannels = a.subscribeGroupChannels(rpc.ChannelIDS)
 	} else {
 		// otherwise, just add these subscriptions to the existing list
-		var successList []string
-		for _, channelID := range rpc.ChannelIDS {
-
-			base := fmt.Sprintf("channels/%s/messages", channelID)
-			rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
-
-			if token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore); token.Wait() && token.Error() != nil {
-				a.logger.Error("failed to subscribe to group channel/topic", zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
-				continue
-			}
-			successList = append(successList, channelID)
-		}
+		successList := a.subscribeGroupChannels(rpc.ChannelIDS)
 		a.groupChannels = append(a.groupChannels, successList...)
 	}
 }
