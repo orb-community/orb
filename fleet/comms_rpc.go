@@ -16,6 +16,12 @@ type RPC struct {
 
 const GroupMembershipRPCFunc = "group_membership"
 
+type GroupMembershipRPC struct {
+	SchemaVersion string                    `json:"schema_version"`
+	Func          string                    `json:"func"`
+	Payload       GroupMembershipRPCPayload `json:"payload"`
+}
+
 type GroupMembershipRPCPayload struct {
 	ChannelIDS []string `json:"channel_ids"`
 	FullList   bool     `json:"full_list"`

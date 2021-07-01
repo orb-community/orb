@@ -34,11 +34,11 @@ type AgentCommsService interface {
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
 
-const CapabilitiesChannel = "agent"
-const HeartbeatsChannel = "hb"
-const RPCToCoreChannel = "tocore"
-const RPCFromCoreChannel = "fromcore"
-const LogChannel = "log"
+const CapabilitiesTopic = "agent"
+const HeartbeatsTopic = "hb"
+const RPCToCoreTopic = "tocore"
+const RPCFromCoreTopic = "fromcore"
+const LogTopic = "log"
 
 type fleetCommsService struct {
 	logger         *zap.Logger
@@ -69,7 +69,7 @@ func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGrou
 
 	msg := messaging.Message{
 		Channel:   a.MFChannelID,
-		Subtopic:  RPCFromCoreChannel,
+		Subtopic:  RPCFromCoreTopic,
 		Publisher: publisher,
 		Payload:   body,
 		Created:   time.Now().UnixNano(),
@@ -112,7 +112,7 @@ func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
 
 	msg := messaging.Message{
 		Channel:   a.MFChannelID,
-		Subtopic:  RPCFromCoreChannel,
+		Subtopic:  RPCFromCoreTopic,
 		Publisher: publisher,
 		Payload:   body,
 		Created:   time.Now().UnixNano(),
@@ -218,7 +218,7 @@ func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, p
 
 func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 
-	// NOTE: we need to consider ALL input from the agent as untrusted
+	// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
 
 	var payload map[string]interface{}
 	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
@@ -239,22 +239,22 @@ func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 
 	// dispatch
 	switch msg.Subtopic {
-	case CapabilitiesChannel:
+	case CapabilitiesTopic:
 		if err := svc.handleCapabilities(msg.Publisher, msg.Channel, msg.Payload); err != nil {
 			svc.logger.Error("capabilities failure", zap.Error(err))
 			return err
 		}
-	case HeartbeatsChannel:
+	case HeartbeatsTopic:
 		if err := svc.handleHeartbeat(msg.Publisher, msg.Channel, msg.Payload); err != nil {
 			svc.logger.Error("heartbeat failure", zap.Error(err))
 			return err
 		}
-	case RPCToCoreChannel:
+	case RPCToCoreTopic:
 		if err := svc.handleRPCToCore(msg.Publisher, msg.Channel, msg.Payload); err != nil {
 			svc.logger.Error("RPC to core failure", zap.Error(err))
 			return err
 		}
-	case LogChannel:
+	case LogTopic:
 		svc.logger.Error("implement me: LogChannel")
 	default:
 		svc.logger.Warn("unsupported/unhandled agent subtopic, ignoring",
@@ -267,16 +267,16 @@ func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 }
 
 func (svc fleetCommsService) Start() error {
-	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", CapabilitiesChannel), svc.handleMsgFromAgent); err != nil {
+	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", CapabilitiesTopic), svc.handleMsgFromAgent); err != nil {
 		return err
 	}
-	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", HeartbeatsChannel), svc.handleMsgFromAgent); err != nil {
+	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", HeartbeatsTopic), svc.handleMsgFromAgent); err != nil {
 		return err
 	}
-	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", RPCToCoreChannel), svc.handleMsgFromAgent); err != nil {
+	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", RPCToCoreTopic), svc.handleMsgFromAgent); err != nil {
 		return err
 	}
-	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", LogChannel), svc.handleMsgFromAgent); err != nil {
+	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", LogTopic), svc.handleMsgFromAgent); err != nil {
 		return err
 	}
 	svc.logger.Info("subscribed to agent channels")
@@ -284,16 +284,16 @@ func (svc fleetCommsService) Start() error {
 }
 
 func (svc fleetCommsService) Stop() error {
-	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", CapabilitiesChannel)); err != nil {
+	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", CapabilitiesTopic)); err != nil {
 		return err
 	}
-	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", HeartbeatsChannel)); err != nil {
+	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", HeartbeatsTopic)); err != nil {
 		return err
 	}
-	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", RPCToCoreChannel)); err != nil {
+	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", RPCToCoreTopic)); err != nil {
 		return err
 	}
-	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", LogChannel)); err != nil {
+	if err := svc.agentPubSub.Unsubscribe(fmt.Sprintf("channels.*.%s", LogTopic)); err != nil {
 		return err
 	}
 	svc.logger.Info("unsubscribed from agent channels")
