@@ -41,8 +41,9 @@ const RPCFromCoreChannel = "fromcore"
 const LogChannel = "log"
 
 type fleetCommsService struct {
-	logger    *zap.Logger
-	agentRepo AgentRepository
+	logger         *zap.Logger
+	agentRepo      AgentRepository
+	agentGroupRepo AgentGroupRepository
 
 	// agent comms
 	agentPubSub mfnats.PubSub
@@ -83,8 +84,18 @@ func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGrou
 
 func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
 
+	list, err := svc.agentGroupRepo.RetrieveAllByAgent(context.Background(), a)
+	if err != nil {
+		return err
+	}
+
+	fullList := make([]string, len(list))
+	for i, agentGroup := range list {
+		fullList[i] = agentGroup.MFChannelID
+	}
+
 	payload := GroupMembershipRPCPayload{
-		ChannelIDS: []string{"testing"},
+		ChannelIDS: fullList,
 		FullList:   true,
 	}
 
@@ -114,11 +125,12 @@ func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
 
 }
 
-func NewFleetCommsService(logger *zap.Logger, agentRepo AgentRepository, agentPubSub mfnats.PubSub) AgentCommsService {
+func NewFleetCommsService(logger *zap.Logger, agentRepo AgentRepository, agentGroupRepo AgentGroupRepository, agentPubSub mfnats.PubSub) AgentCommsService {
 	return &fleetCommsService{
-		logger:      logger,
-		agentRepo:   agentRepo,
-		agentPubSub: agentPubSub,
+		logger:         logger,
+		agentRepo:      agentRepo,
+		agentGroupRepo: agentGroupRepo,
+		agentPubSub:    agentPubSub,
 	}
 }
 

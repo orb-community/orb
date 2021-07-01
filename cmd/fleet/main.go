@@ -102,8 +102,10 @@ func main() {
 	defer pubSub.Close()
 
 	agentRepo := postgres.NewAgentRepository(db, logger)
-	commsSvc := fleet.NewFleetCommsService(logger, agentRepo, pubSub)
-	svc := newFleetService(auth, db, logger, esClient, sdkCfg, agentRepo, commsSvc)
+	agentGroupRepo := postgres.NewAgentGroupRepository(db, logger)
+
+	commsSvc := fleet.NewFleetCommsService(logger, agentRepo, agentGroupRepo, pubSub)
+	svc := newFleetService(auth, db, logger, esClient, sdkCfg, agentRepo, agentGroupRepo, commsSvc)
 	defer commsSvc.Stop()
 
 	errs := make(chan error, 2)
@@ -173,9 +175,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, agentRepo fleet.AgentRepository, agentComms fleet.AgentCommsService) fleet.Service {
-
-	agentGroupRepository := postgres.NewAgentGroupRepository(db, logger)
+func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, agentRepo fleet.AgentRepository, agentGroupRepo fleet.AgentGroupRepository, agentComms fleet.AgentCommsService) fleet.Service {
 
 	config := mfsdk.Config{
 		BaseURL:      sdkCfg.BaseURL,
@@ -184,7 +184,7 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 
 	mfsdk := mfsdk.NewSDK(config)
 
-	svc := fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepository, agentComms, mfsdk)
+	svc := fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = api.NewLoggingMiddleware(svc, logger)
 	svc = api.MetricsMiddleware(

@@ -249,7 +249,7 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 
 func (a *orbAgent) handleGroupMembership(payload interface{}) {
 	a.logger.Info("group membership", zap.Any("payload", payload))
-
+	panic("here")
 }
 
 func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {

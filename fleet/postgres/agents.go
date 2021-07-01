@@ -39,6 +39,10 @@ func (r agentRepository) RetrieveAllByAgentGroupID(ctx context.Context, owner st
 		q = q + ` AND (agent_state = 'online' OR agent_state = 'stale')`
 	}
 
+	if agentGroupID == "" || owner == "" {
+		return nil, errors.ErrMalformedEntity
+	}
+
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
 		"group_id":    agentGroupID,

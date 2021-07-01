@@ -29,6 +29,42 @@ func NewAgentGroupRepository(db Database, logger *zap.Logger) fleet.AgentGroupRe
 	return &agentGroupRepository{db: db, logger: logger}
 }
 
+func (r agentGroupRepository) RetrieveAllByAgent(ctx context.Context, a fleet.Agent) ([]fleet.AgentGroup, error) {
+
+	q := `SELECT agent_groups_id AS id, group_mf_channel_id AS mf_channel_id FROM agent_group_membership WHERE agent_mf_thing_id = :agent_id`
+
+	if a.MFThingID == "" {
+		return nil, errors.ErrMalformedEntity
+	}
+
+	params := map[string]interface{}{
+		"agent_id": a.MFThingID,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []fleet.AgentGroup
+	for rows.Next() {
+		dbth := dbAgentGroup{}
+		if err := rows.StructScan(&dbth); err != nil {
+			return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		th, err := toAgentGroup(dbth)
+		if err != nil {
+			return nil, errors.Wrap(errors.ErrViewEntity, err)
+		}
+
+		items = append(items, th)
+	}
+
+	return items, nil
+}
+
 func (r agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) (string, error) {
 
 	q := `INSERT INTO agent_groups (name, mf_owner_id, mf_channel_id, tags)         
@@ -82,6 +118,17 @@ func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
 		MFOwnerID:   group.MFOwnerID,
 		MFChannelID: group.MFChannelID,
 		Tags:        db.Tags(group.Tags),
+	}, nil
+
+}
+func toAgentGroup(dba dbAgentGroup) (fleet.AgentGroup, error) {
+
+	return fleet.AgentGroup{
+		ID:          dba.ID,
+		Name:        dba.Name,
+		MFOwnerID:   dba.MFOwnerID,
+		MFChannelID: dba.MFChannelID,
+		Tags:        types.Tags(dba.Tags),
 	}, nil
 
 }

@@ -28,4 +28,6 @@ type AgentGroupRepository interface {
 	// Save persists the AgentGroup. Successful operation is indicated by non-nil
 	// error response.
 	Save(ctx context.Context, group AgentGroup) (string, error)
+	// RetrieveAllByAgent get all AgentGroup which an Agent belongs to.
+	RetrieveAllByAgent(ctx context.Context, a Agent) ([]AgentGroup, error)
 }
