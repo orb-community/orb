@@ -50,6 +50,9 @@ func (cce createDatasetEvent) Encode() map[string]interface{} {
 		"id":        cce.id,
 		"owner":     cce.owner,
 		"name":      cce.name,
+		"group_id":  cce.agentGroupID,
+		"policy_id": cce.policyID,
+		"sink_id":   cce.sinkID,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": DatasetCreate,
 	}

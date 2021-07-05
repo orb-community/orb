@@ -9,43 +9,37 @@
 package consumer
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/go-redis/redis"
-	"github.com/ns1labs/orb/sinks/writer"
+	"context"
+	"github.com/go-redis/redis/v8"
+	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 )
 
 const (
-	stream = "mainflux.things"
-	group  = "orb.prom-sink"
+	stream = "orb.policies"
+	group  = "orb.fleet"
 
-	thingPrefix     = "thing."
-	thingRemove     = thingPrefix + "remove"
-	thingDisconnect = thingPrefix + "disconnect"
-
-	channelPrefix = "channel."
-	channelUpdate = channelPrefix + "update"
-	channelRemove = channelPrefix + "remove"
+	datasetPrefix = "dataset."
+	datasetCreate = datasetPrefix + "create"
+	policyPrefix  = "policy."
+	policyCreate  = policyPrefix + "create"
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
 
-// Subscriber represents event source for things and channels provisioning.
 type Subscriber interface {
-	// Subscribes to given subject and receives events.
-	Subscribe(string) error
+	Subscribe(context context.Context) error
 }
 
 type eventStore struct {
-	svc        writer.Service
+	svc        fleet.Service
 	client     *redis.Client
 	esconsumer string
 	logger     *zap.Logger
 }
 
 // NewEventStore returns new event store instance.
-func NewEventStore(svc writer.Service, client *redis.Client, esconsumer string, log *zap.Logger) Subscriber {
+func NewEventStore(svc fleet.Service, client *redis.Client, esconsumer string, log *zap.Logger) Subscriber {
 	return eventStore{
 		svc:        svc,
 		client:     client,
@@ -54,14 +48,14 @@ func NewEventStore(svc writer.Service, client *redis.Client, esconsumer string, 
 	}
 }
 
-func (es eventStore) Subscribe(subject string) error {
-	err := es.client.XGroupCreateMkStream(stream, group, "$").Err()
+func (es eventStore) Subscribe(context context.Context) error {
+	err := es.client.XGroupCreateMkStream(context, stream, group, "$").Err()
 	if err != nil && err.Error() != exists {
 		return err
 	}
 
 	for {
-		streams, err := es.client.XReadGroup(&redis.XReadGroupArgs{
+		streams, err := es.client.XReadGroup(context, &redis.XReadGroupArgs{
 			Group:    group,
 			Consumer: es.esconsumer,
 			Streams:  []string{stream, ">"},
@@ -74,58 +68,34 @@ func (es eventStore) Subscribe(subject string) error {
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
 
-			fmt.Printf("promsink consume event: %+v", event)
-
 			var err error
 			switch event["operation"] {
-			case thingRemove:
-				rte := decodeRemoveThing(event)
-				err = es.handleRemoveThing(rte)
+			case datasetCreate:
+				rte := decodeDatasetCreate(event)
+				err = es.handleDatasetCreate(rte)
 			}
 			if err != nil {
 				es.logger.Warn("Failed to handle event sourcing")
 				break
 			}
-			es.client.XAck(stream, group, msg.ID)
+			es.client.XAck(context, stream, group, msg.ID)
 		}
 	}
 }
 
-func decodeRemoveThing(event map[string]interface{}) removeEvent {
-	return removeEvent{
-		id: read(event, "id", ""),
+func decodeDatasetCreate(event map[string]interface{}) createDatasetEvent {
+	return createDatasetEvent{
+		id:           read(event, "id", ""),
+		owner:        read(event, "owner", ""),
+		name:         read(event, "name", ""),
+		agentGroupID: read(event, "group_id", ""),
+		policyID:     read(event, "policy_id", ""),
+		sinkID:       read(event, "sink_id", ""),
 	}
 }
 
-func decodeUpdateChannel(event map[string]interface{}) updateChannelEvent {
-	strmeta := read(event, "metadata", "{}")
-	var metadata map[string]interface{}
-	if err := json.Unmarshal([]byte(strmeta), metadata); err != nil {
-		metadata = map[string]interface{}{}
-	}
-
-	return updateChannelEvent{
-		id:       read(event, "id", ""),
-		name:     read(event, "name", ""),
-		metadata: metadata,
-	}
-}
-
-func decodeRemoveChannel(event map[string]interface{}) removeEvent {
-	return removeEvent{
-		id: read(event, "id", ""),
-	}
-}
-
-func decodeDisconnectThing(event map[string]interface{}) disconnectEvent {
-	return disconnectEvent{
-		channelID: read(event, "chan_id", ""),
-		thingID:   read(event, "thing_id", ""),
-	}
-}
-
-func (es eventStore) handleRemoveThing(rte removeEvent) error {
-	// return es.svc.RemoveConfigHandler(rte.id)
+func (es eventStore) handleDatasetCreate(e createDatasetEvent) error {
+	es.logger.Info("new data set", zap.String("dataset", e.id))
 	return nil
 }
 

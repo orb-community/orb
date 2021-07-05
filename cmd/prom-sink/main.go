@@ -10,7 +10,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/pkg/config"

@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	streamID  = "policies"
+	streamID  = "orb.policies"
 	streamLen = 1000
 )
 
@@ -35,12 +35,12 @@ func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.
 	}
 
 	event := createDatasetEvent{
-		id:           d.ID,
-		owner:        d.MFOwnerID,
-		name:         d.Name.String(),
-		agentGroupID: d.AgentGroupID,
-		policyID:     d.PolicyID,
-		sinkID:       d.SinkID,
+		id:           ds.ID,
+		owner:        ds.MFOwnerID,
+		name:         ds.Name.String(),
+		agentGroupID: ds.AgentGroupID,
+		policyID:     ds.PolicyID,
+		sinkID:       ds.SinkID,
 	}
 	record := &redis.XAddArgs{
 		Stream:       streamID,

@@ -9,6 +9,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
 	mflog "github.com/mainflux/mainflux/logger"
@@ -16,6 +17,7 @@ import (
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/fleet/api"
 	"github.com/ns1labs/orb/fleet/postgres"
+	rediscons "github.com/ns1labs/orb/fleet/redis/consumer"
 	redisprod "github.com/ns1labs/orb/fleet/redis/producer"
 	"github.com/ns1labs/orb/pkg/config"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -31,7 +33,7 @@ import (
 	"time"
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
-	r "github.com/go-redis/redis"
+	r "github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
@@ -111,6 +113,7 @@ func main() {
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
+	go subscribeToPoliciesES(svc, esClient, esCfg, logger)
 
 	err = commsSvc.Start()
 	if err != nil {
@@ -244,4 +247,12 @@ func startHTTPServer(tracer opentracing.Tracer, svc fleet.Service, cfg config.Ba
 	}
 	logger.Info(fmt.Sprintf("Fleet service started using http on port %s", cfg.HttpPort))
 	errs <- http.ListenAndServe(p, api.MakeHandler(tracer, svcName, svc))
+}
+
+func subscribeToPoliciesES(svc fleet.Service, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
+	eventStore := rediscons.NewEventStore(svc, client, cfg.Consumer, logger)
+	logger.Info("Subscribed to Redis Event Store for policies")
+	if err := eventStore.Subscribe(context.Background()); err != nil {
+		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
+	}
 }

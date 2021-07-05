@@ -29,7 +29,7 @@ import (
 	"time"
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
-	r "github.com/go-redis/redis"
+	r "github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
 	"github.com/mainflux/mainflux"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
