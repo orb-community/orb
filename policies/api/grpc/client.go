@@ -39,17 +39,18 @@ func NewClient(conn *grpc.ClientConn, tracer opentracing.Tracer, timeout time.Du
 			"RetrievePolicy",
 			encodeRetrievePolicyRequest,
 			decodePolicyResponse,
-			pb.PolicyID{},
+			pb.PolicyByIDReq{},
 		).Endpoint()),
 	}
 }
 
-func (client grpcClient) RetrievePolicy(ctx context.Context, in *pb.PolicyID, opts ...grpc.CallOption) (*pb.PolicyData, error) {
+func (client grpcClient) RetrievePolicyData(ctx context.Context, in *pb.PolicyByIDReq, opts ...grpc.CallOption) (*pb.PolicyData, error) {
 	ctx, cancel := context.WithTimeout(ctx, client.timeout)
 	defer cancel()
 
 	ar := accessByIDReq{
-		PolicyID: in.Value,
+		PolicyID: in.PolicyID,
+		OwnerID:  in.OwnerID,
 	}
 	res, err := client.retrievePolicy(ctx, ar)
 	if err != nil {
@@ -62,7 +63,7 @@ func (client grpcClient) RetrievePolicy(ctx context.Context, in *pb.PolicyID, op
 
 func encodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(accessByIDReq)
-	return &pb.PolicyID{Value: req.PolicyID}, nil
+	return &pb.PolicyByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
 }
 
 func decodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {

@@ -12,10 +12,11 @@ import "github.com/ns1labs/orb/policies"
 
 type accessByIDReq struct {
 	PolicyID string
+	OwnerID  string
 }
 
 func (req accessByIDReq) validate() error {
-	if req.PolicyID == "" {
+	if req.PolicyID == "" || req.OwnerID == "" {
 		return policies.ErrMalformedEntity
 	}
 

@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PolicyServiceClient interface {
-	RetrievePolicy(ctx context.Context, in *PolicyID, opts ...grpc.CallOption) (*PolicyData, error)
+	RetrievePolicyData(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*PolicyData, error)
 }
 
 type policyServiceClient struct {
@@ -29,9 +29,9 @@ func NewPolicyServiceClient(cc grpc.ClientConnInterface) PolicyServiceClient {
 	return &policyServiceClient{cc}
 }
 
-func (c *policyServiceClient) RetrievePolicy(ctx context.Context, in *PolicyID, opts ...grpc.CallOption) (*PolicyData, error) {
+func (c *policyServiceClient) RetrievePolicyData(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*PolicyData, error) {
 	out := new(PolicyData)
-	err := c.cc.Invoke(ctx, "/policies.PolicyService/RetrievePolicy", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/policies.PolicyService/RetrievePolicyData", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (c *policyServiceClient) RetrievePolicy(ctx context.Context, in *PolicyID, 
 // All implementations must embed UnimplementedPolicyServiceServer
 // for forward compatibility
 type PolicyServiceServer interface {
-	RetrievePolicy(context.Context, *PolicyID) (*PolicyData, error)
+	RetrievePolicyData(context.Context, *PolicyByIDReq) (*PolicyData, error)
 	mustEmbedUnimplementedPolicyServiceServer()
 }
 
@@ -50,8 +50,8 @@ type PolicyServiceServer interface {
 type UnimplementedPolicyServiceServer struct {
 }
 
-func (UnimplementedPolicyServiceServer) RetrievePolicy(context.Context, *PolicyID) (*PolicyData, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RetrievePolicy not implemented")
+func (UnimplementedPolicyServiceServer) RetrievePolicyData(context.Context, *PolicyByIDReq) (*PolicyData, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RetrievePolicyData not implemented")
 }
 func (UnimplementedPolicyServiceServer) mustEmbedUnimplementedPolicyServiceServer() {}
 
@@ -66,20 +66,20 @@ func RegisterPolicyServiceServer(s grpc.ServiceRegistrar, srv PolicyServiceServe
 	s.RegisterService(&PolicyService_ServiceDesc, srv)
 }
 
-func _PolicyService_RetrievePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PolicyID)
+func _PolicyService_RetrievePolicyData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PolicyByIDReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PolicyServiceServer).RetrievePolicy(ctx, in)
+		return srv.(PolicyServiceServer).RetrievePolicyData(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/policies.PolicyService/RetrievePolicy",
+		FullMethod: "/policies.PolicyService/RetrievePolicyData",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PolicyServiceServer).RetrievePolicy(ctx, req.(*PolicyID))
+		return srv.(PolicyServiceServer).RetrievePolicyData(ctx, req.(*PolicyByIDReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -92,8 +92,8 @@ var PolicyService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*PolicyServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "RetrievePolicy",
-			Handler:    _PolicyService_RetrievePolicy_Handler,
+			MethodName: "RetrievePolicyData",
+			Handler:    _PolicyService_RetrievePolicyData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -37,6 +37,10 @@ type Repository interface {
 	// SavePolicy persists a Policy. Successful operation is indicated by non-nil
 	// error response.
 	SavePolicy(ctx context.Context, policy Policy) (string, error)
+
+	// RetrievePolicyDataByID Retrieve policy data by id
+	RetrievePolicyDataByID(ctx context.Context, policy Policy) ([]byte, error)
+
 	// SaveDataset persists a Dataset. Successful operation is indicated by non-nil
 	// error response.
 	SaveDataset(ctx context.Context, dataset Dataset) (string, error)

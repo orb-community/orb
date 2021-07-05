@@ -113,7 +113,7 @@ func main() {
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
-	go subscribeToPoliciesES(svc, esClient, esCfg, logger)
+	go subscribeToPoliciesES(svc, commsSvc, esClient, esCfg, logger)
 
 	err = commsSvc.Start()
 	if err != nil {
@@ -249,8 +249,8 @@ func startHTTPServer(tracer opentracing.Tracer, svc fleet.Service, cfg config.Ba
 	errs <- http.ListenAndServe(p, api.MakeHandler(tracer, svcName, svc))
 }
 
-func subscribeToPoliciesES(svc fleet.Service, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
-	eventStore := rediscons.NewEventStore(svc, client, cfg.Consumer, logger)
+func subscribeToPoliciesES(svc fleet.Service, commsSvc fleet.AgentCommsService, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
+	eventStore := rediscons.NewEventStore(svc, commsSvc, client, cfg.Consumer, logger)
 	logger.Info("Subscribed to Redis Event Store for policies")
 	if err := eventStore.Subscribe(context.Background()); err != nil {
 		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
