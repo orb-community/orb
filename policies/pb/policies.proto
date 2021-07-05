@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package policies;
+option go_package = "policies/pb";
+
+service PolicyService {
+  rpc RetrievePolicy(PolicyID) returns (PolicyData) {}
+}
+
+message PolicyID {
+  string value = 1;
+}
+
+message PolicyData {
+  bytes value = 1;
+}

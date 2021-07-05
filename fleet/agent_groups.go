@@ -22,6 +22,8 @@ type AgentGroup struct {
 type AgentGroupService interface {
 	// CreateAgentGroup creates new AgentGroup, associated channel, applies to Agents as appropriate
 	CreateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error)
+	// RetrieveAgentGroupByIDInternal Retrieve an AgentGroup by id, without a token
+	RetrieveAgentGroupByIDInternal(ctx context.Context, id string) (AgentGroup, error)
 }
 
 type AgentGroupRepository interface {

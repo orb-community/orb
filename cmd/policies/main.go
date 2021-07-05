@@ -13,7 +13,7 @@ import (
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/policies"
-	"github.com/ns1labs/orb/policies/api"
+	http2 "github.com/ns1labs/orb/policies/api/http"
 	"github.com/ns1labs/orb/policies/postgres"
 	redisprod "github.com/ns1labs/orb/policies/redis/producer"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -151,8 +151,8 @@ func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger
 
 	svc := policies.New(auth, thingsRepo)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient, logger)
-	svc = api.NewLoggingMiddleware(svc, logger)
-	svc = api.MetricsMiddleware(
+	svc = http2.NewLoggingMiddleware(svc, logger)
+	svc = http2.MetricsMiddleware(
 		svc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "policies",
@@ -204,9 +204,9 @@ func startHTTPServer(svc policies.Service, cfg config.BaseSvcConfig, logger *zap
 	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Policies service started using https on port %s with cert %s key %s",
 			cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
-		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, api.MakeHandler(svcName, svc))
+		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, http2.MakeHandler(svcName, svc))
 		return
 	}
 	logger.Info(fmt.Sprintf("Policies service started using http on port %s", cfg.HttpPort))
-	errs <- http.ListenAndServe(p, api.MakeHandler(svcName, svc))
+	errs <- http.ListenAndServe(p, http2.MakeHandler(svcName, svc))
 }

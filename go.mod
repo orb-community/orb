@@ -7,7 +7,6 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-cmd/cmd v1.3.0
 	github.com/go-kit/kit v0.10.0
-	github.com/go-redis/redis v6.15.8+incompatible
 	github.com/go-redis/redis/v8 v8.11.0
 	github.com/go-zoo/bone v1.3.0
 	github.com/gofrs/uuid v3.3.0+incompatible
@@ -24,5 +23,6 @@ require (
 	github.com/uber/jaeger-client-go v2.24.0+incompatible
 	go.uber.org/zap v1.16.0
 	google.golang.org/grpc v1.30.0
+	google.golang.org/protobuf v1.24.0
 	gotest.tools v2.2.0+incompatible
 )

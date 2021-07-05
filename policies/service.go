@@ -20,8 +20,9 @@ import (
 )
 
 var (
-	ErrCreatePolicy  = errors.New("failed to create policy")
-	ErrCreateDataset = errors.New("failed to create dataset")
+	ErrCreatePolicy    = errors.New("failed to create policy")
+	ErrCreateDataset   = errors.New("failed to create dataset")
+	ErrMalformedEntity = errors.New("malformed entity")
 )
 
 type Service interface {

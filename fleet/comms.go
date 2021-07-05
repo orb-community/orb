@@ -30,6 +30,9 @@ type AgentCommsService interface {
 	NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error
 	// NotifyAgentGroupMembership RPC Core -> Agent: Notify Agent of all AgentGroup memberships
 	NotifyAgentGroupMembership(a Agent) error
+
+	// NotifyGroupNewAgentPolicy RPC Core -> AgentGroup
+	NotifyGroupNewAgentPolicy(ag AgentGroup, policy []byte) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)

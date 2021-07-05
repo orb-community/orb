@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/policies/pb"
 	"go.uber.org/zap"
 )
 
@@ -32,19 +33,22 @@ type Subscriber interface {
 }
 
 type eventStore struct {
-	svc        fleet.Service
-	client     *redis.Client
-	esconsumer string
-	logger     *zap.Logger
+	fleetService fleet.Service
+	commsService fleet.AgentCommsService
+	client       *redis.Client
+	esconsumer   string
+	logger       *zap.Logger
+	policyClient pb.PolicyServiceClient
 }
 
 // NewEventStore returns new event store instance.
-func NewEventStore(svc fleet.Service, client *redis.Client, esconsumer string, log *zap.Logger) Subscriber {
+func NewEventStore(fleetService fleet.Service, commsService fleet.AgentCommsService, client *redis.Client, esconsumer string, log *zap.Logger) Subscriber {
 	return eventStore{
-		svc:        svc,
-		client:     client,
-		esconsumer: esconsumer,
-		logger:     log,
+		fleetService: fleetService,
+		commsService: commsService,
+		client:       client,
+		esconsumer:   esconsumer,
+		logger:       log,
 	}
 }
 
@@ -72,10 +76,10 @@ func (es eventStore) Subscribe(context context.Context) error {
 			switch event["operation"] {
 			case datasetCreate:
 				rte := decodeDatasetCreate(event)
-				err = es.handleDatasetCreate(rte)
+				err = es.handleDatasetCreate(context, rte)
 			}
 			if err != nil {
-				es.logger.Warn("Failed to handle event sourcing")
+				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
 				break
 			}
 			es.client.XAck(context, stream, group, msg.ID)
@@ -94,9 +98,17 @@ func decodeDatasetCreate(event map[string]interface{}) createDatasetEvent {
 	}
 }
 
-func (es eventStore) handleDatasetCreate(e createDatasetEvent) error {
-	es.logger.Info("new data set", zap.String("dataset", e.id))
-	return nil
+func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEvent) error {
+	ag, err := es.fleetService.RetrieveAgentGroupByIDInternal(ctx, e.agentGroupID)
+	if err != nil {
+		return err
+	}
+	p, err := es.policyClient.RetrievePolicy(ctx, &pb.PolicyID{Value: e.policyID})
+	if err != nil {
+		return err
+	}
+
+	return es.commsService.NotifyGroupNewAgentPolicy(ag, p.Value)
 }
 
 func read(event map[string]interface{}, key, def string) string {
