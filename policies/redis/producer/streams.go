@@ -10,12 +10,13 @@ package producer
 
 import (
 	"context"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/policies"
+	"go.uber.org/zap"
 )
 
 const (
-	streamID  = "orb.policies"
+	streamID  = "policies"
 	streamLen = 1000
 )
 
@@ -24,10 +25,35 @@ var _ policies.Service = (*eventStore)(nil)
 type eventStore struct {
 	svc    policies.Service
 	client *redis.Client
+	logger *zap.Logger
 }
 
 func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
-	return e.svc.CreateDataset(ctx, token, d)
+	ds, err := e.svc.CreateDataset(ctx, token, d)
+	if err != nil {
+		return ds, err
+	}
+
+	event := createDatasetEvent{
+		id:           d.ID,
+		owner:        d.MFOwnerID,
+		name:         d.Name.String(),
+		agentGroupID: d.AgentGroupID,
+		policyID:     d.PolicyID,
+		sinkID:       d.SinkID,
+	}
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+	err = e.client.XAdd(ctx, record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+		return ds, err
+	}
+
+	return ds, nil
 }
 
 func (e eventStore) CreatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
@@ -36,8 +62,9 @@ func (e eventStore) CreatePolicy(ctx context.Context, token string, p policies.P
 
 // NewEventStoreMiddleware returns wrapper around policies service that sends
 // events to event store.
-func NewEventStoreMiddleware(svc policies.Service, client *redis.Client) policies.Service {
+func NewEventStoreMiddleware(svc policies.Service, client *redis.Client, logger *zap.Logger) policies.Service {
 	return eventStore{
+		logger: logger,
 		svc:    svc,
 		client: client,
 	}

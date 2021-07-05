@@ -29,7 +29,7 @@ import (
 	"time"
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
-	r "github.com/go-redis/redis"
+	r "github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
 	"github.com/mainflux/mainflux"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
@@ -150,7 +150,7 @@ func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger
 	thingsRepo := postgres.NewPoliciesRepository(db, logger)
 
 	svc := policies.New(auth, thingsRepo)
-	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
+	svc = redisprod.NewEventStoreMiddleware(svc, esClient, logger)
 	svc = api.NewLoggingMiddleware(svc, logger)
 	svc = api.MetricsMiddleware(
 		svc,

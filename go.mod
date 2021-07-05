@@ -8,6 +8,7 @@ require (
 	github.com/go-cmd/cmd v1.3.0
 	github.com/go-kit/kit v0.10.0
 	github.com/go-redis/redis v6.15.8+incompatible
+	github.com/go-redis/redis/v8 v8.11.0
 	github.com/go-zoo/bone v1.3.0
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/jmoiron/sqlx v1.2.1-0.20190826204134-d7d95172beb5
