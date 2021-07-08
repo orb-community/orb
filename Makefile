@@ -92,7 +92,7 @@ define docker_push
 endef
 
 run:
-	docker-compose -f docker/docker-compose.yml up
+	docker-compose -f docker/docker-compose.yml up -d
 
 ui:
 	cd ui/ && docker build --tag=ns1labs/orb-ui -f docker/Dockerfile .

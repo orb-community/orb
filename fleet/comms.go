@@ -52,6 +52,10 @@ type fleetCommsService struct {
 	agentPubSub mfnats.PubSub
 }
 
+func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ag AgentGroup, policy []byte) error {
+	panic("implement me")
+}
+
 func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error {
 
 	payload := GroupMembershipRPCPayload{

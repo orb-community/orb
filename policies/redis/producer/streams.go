@@ -28,6 +28,10 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (e eventStore) RetrievePolicyDataByIDInternal(ctx context.Context, policyID string, ownerID string) ([]byte, error) {
+	return e.RetrievePolicyDataByIDInternal(ctx, policyID, "")
+}
+
 func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
 	ds, err := e.svc.CreateDataset(ctx, token, d)
 	if err != nil {
@@ -36,7 +40,7 @@ func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.
 
 	event := createDatasetEvent{
 		id:           ds.ID,
-		owner:        ds.MFOwnerID,
+		ownerID:      ds.MFOwnerID,
 		name:         ds.Name.String(),
 		agentGroupID: ds.AgentGroupID,
 		policyID:     ds.PolicyID,

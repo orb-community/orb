@@ -53,6 +53,10 @@ func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup)
 	return nil
 }
 
+func (svc fleetService) RetrieveAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error) {
+	return svc.agentGroupRepository.RetrieveByID(ctx, groupID, ownerID)
+}
+
 func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error) {
 	mfOwnerID, err := svc.identify(token)
 	if err != nil {

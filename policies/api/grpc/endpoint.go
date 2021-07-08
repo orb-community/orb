@@ -22,7 +22,7 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		data, err := svc.RetrievePolicyDataByIDInternal(ctx, policies.Policy{ID: req.PolicyID, MFOwnerID: req.OwnerID})
+		data, err := svc.RetrievePolicyDataByIDInternal(ctx, req.PolicyID, req.OwnerID)
 		if err != nil {
 			return policyRes{}, err
 		}

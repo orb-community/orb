@@ -4,7 +4,7 @@ package policies;
 option go_package = "policies/pb";
 
 service PolicyService {
-  rpc RetrievePolicyData(PolicyByIDReq) returns (PolicyData) {}
+  rpc RetrievePolicyData(PolicyByIDReq) returns (PolicyDataRes) {}
 }
 
 message PolicyByIDReq {
@@ -12,6 +12,6 @@ message PolicyByIDReq {
   string ownerID = 2;
 }
 
-message PolicyData {
-  bytes value = 1;
+message PolicyDataRes {
+  bytes data = 1;
 }

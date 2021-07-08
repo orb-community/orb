@@ -26,6 +26,10 @@ type eventStore struct {
 	client *redis.Client
 }
 
+func (es eventStore) RetrieveAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
+	return es.svc.RetrieveAgentGroupByIDInternal(ctx, groupID, "")
+}
+
 func (es eventStore) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (fleet.Page, error) {
 	return es.svc.ListAgents(ctx, token, pm)
 }

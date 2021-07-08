@@ -90,7 +90,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 func decodeDatasetCreate(event map[string]interface{}) createDatasetEvent {
 	return createDatasetEvent{
 		id:           read(event, "id", ""),
-		owner:        read(event, "owner", ""),
+		ownerID:      read(event, "owner_id", ""),
 		name:         read(event, "name", ""),
 		agentGroupID: read(event, "group_id", ""),
 		policyID:     read(event, "policy_id", ""),
@@ -98,17 +98,21 @@ func decodeDatasetCreate(event map[string]interface{}) createDatasetEvent {
 	}
 }
 
+// the policy service is notifying that a new dataset has been created
+// notify all agents in the dataset group of the new agent policy
 func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEvent) error {
-	ag, err := es.fleetService.RetrieveAgentGroupByIDInternal(ctx, e.agentGroupID)
-	if err != nil {
-		return err
-	}
-	p, err := es.policyClient.RetrievePolicy(ctx, &pb.PolicyID{Value: e.policyID})
+
+	ag, err := es.fleetService.RetrieveAgentGroupByIDInternal(ctx, e.agentGroupID, e.ownerID)
 	if err != nil {
 		return err
 	}
 
-	return es.commsService.NotifyGroupNewAgentPolicy(ag, p.Value)
+	p, err := es.policyClient.RetrievePolicyData(ctx, &pb.PolicyByIDReq{PolicyID: e.policyID, OwnerID: e.ownerID})
+	if err != nil {
+		return err
+	}
+
+	return es.commsService.NotifyGroupNewAgentPolicy(ag, p.Data)
 }
 
 func read(event map[string]interface{}, key, def string) string {

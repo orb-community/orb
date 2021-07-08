@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PolicyServiceClient interface {
-	RetrievePolicyData(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*PolicyData, error)
+	RetrievePolicyData(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*PolicyDataRes, error)
 }
 
 type policyServiceClient struct {
@@ -29,8 +29,8 @@ func NewPolicyServiceClient(cc grpc.ClientConnInterface) PolicyServiceClient {
 	return &policyServiceClient{cc}
 }
 
-func (c *policyServiceClient) RetrievePolicyData(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*PolicyData, error) {
-	out := new(PolicyData)
+func (c *policyServiceClient) RetrievePolicyData(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*PolicyDataRes, error) {
+	out := new(PolicyDataRes)
 	err := c.cc.Invoke(ctx, "/policies.PolicyService/RetrievePolicyData", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (c *policyServiceClient) RetrievePolicyData(ctx context.Context, in *Policy
 // All implementations must embed UnimplementedPolicyServiceServer
 // for forward compatibility
 type PolicyServiceServer interface {
-	RetrievePolicyData(context.Context, *PolicyByIDReq) (*PolicyData, error)
+	RetrievePolicyData(context.Context, *PolicyByIDReq) (*PolicyDataRes, error)
 	mustEmbedUnimplementedPolicyServiceServer()
 }
 
@@ -50,7 +50,7 @@ type PolicyServiceServer interface {
 type UnimplementedPolicyServiceServer struct {
 }
 
-func (UnimplementedPolicyServiceServer) RetrievePolicyData(context.Context, *PolicyByIDReq) (*PolicyData, error) {
+func (UnimplementedPolicyServiceServer) RetrievePolicyData(context.Context, *PolicyByIDReq) (*PolicyDataRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrievePolicyData not implemented")
 }
 func (UnimplementedPolicyServiceServer) mustEmbedUnimplementedPolicyServiceServer() {}

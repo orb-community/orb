@@ -38,13 +38,13 @@ func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyService
 	}
 }
 
-func (gs *grpcServer) RetrievePolicy(ctx context.Context, id *pb.PolicyByIDReq) (*pb.PolicyData, error) {
+func (gs *grpcServer) RetrievePolicy(ctx context.Context, id *pb.PolicyByIDReq) (*pb.PolicyDataRes, error) {
 	_, res, err := gs.retrievePolicy.ServeGRPC(ctx, id)
 	if err != nil {
 		return nil, encodeError(err)
 	}
 
-	return res.(*pb.PolicyData), nil
+	return res.(*pb.PolicyDataRes), nil
 }
 
 func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -54,7 +54,7 @@ func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interf
 
 func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(policyRes)
-	return &pb.PolicyData{Value: res.data}, nil
+	return &pb.PolicyDataRes{Data: res.data}, nil
 }
 
 func encodeError(err error) error {

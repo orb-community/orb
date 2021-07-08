@@ -30,7 +30,7 @@ var (
 
 type createDatasetEvent struct {
 	id           string
-	owner        string
+	ownerID      string
 	name         string
 	agentGroupID string
 	policyID     string
@@ -40,7 +40,7 @@ type createDatasetEvent struct {
 
 type createPolicyEvent struct {
 	id        string
-	owner     string
+	ownerID   string
 	name      string
 	timestamp time.Time
 }
@@ -48,7 +48,7 @@ type createPolicyEvent struct {
 func (cce createDatasetEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
 		"id":        cce.id,
-		"owner":     cce.owner,
+		"owner_id":  cce.ownerID,
 		"name":      cce.name,
 		"group_id":  cce.agentGroupID,
 		"policy_id": cce.policyID,
@@ -61,7 +61,7 @@ func (cce createDatasetEvent) Encode() map[string]interface{} {
 func (cce createPolicyEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
 		"id":        cce.id,
-		"owner":     cce.owner,
+		"owner_id":  cce.ownerID,
 		"name":      cce.name,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": PolicyCreate,

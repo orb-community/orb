@@ -12,7 +12,7 @@ import "time"
 
 type createDatasetEvent struct {
 	id           string
-	owner        string
+	ownerID      string
 	name         string
 	agentGroupID string
 	policyID     string

@@ -74,3 +74,57 @@ func TestAgentGroupSave(t *testing.T) {
 	}
 
 }
+
+func TestAgentGroupRetrieve(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentGroupRepo := postgres.NewAgentGroupRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("my-group")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	group := fleet.AgentGroup{
+		Name:        nameID,
+		MFOwnerID:   oID.String(),
+		MFChannelID: chID.String(),
+		Tags:        types.Tags{"testkey": "testvalue"},
+	}
+
+	id, err := agentGroupRepo.Save(context.Background(), group)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	cases := map[string]struct {
+		groupID string
+		ownerID string
+		err     error
+		tags    types.Tags
+	}{
+		"retrieve existing agent group by groupID and ownerID": {
+			groupID: id,
+			ownerID: group.MFOwnerID,
+			tags:    types.Tags{"testkey": "testvalue"},
+			err:     nil,
+		},
+		"retrieve non-existent agent group by groupID and ownerID": {
+			ownerID: id,
+			groupID: group.MFOwnerID,
+			err:     errors.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		ag, err := agentGroupRepo.RetrieveByID(context.Background(), tc.groupID, tc.ownerID)
+		if err == nil {
+			assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+		}
+		if len(tc.tags) > 0 {
+			assert.Equal(t, tc.tags, ag.Tags)
+		}
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+	}
+}
