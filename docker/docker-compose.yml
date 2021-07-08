@@ -293,19 +293,6 @@ services:
       - orb-grafana-volume:/var/lib/grafana
       - ./configs/grafana-defaults.ini:/usr/share/grafana/conf/defaults.ini
 
-  ui:
-    image: mainflux/ui:latest
-    container_name: mainflux-ui
-    restart: on-failure
-    volumes:
-      - ./nginx/entrypoint-ui.sh:/entrypoint.sh
-    networks:
-      - orb-base-net
-    environment:
-      MF_UI_PORT: ${MF_UI_PORT}
-      MF_UI_MQTT_WS_URL: ${MF_UI_MQTT_WS_URL}
-    command: /entrypoint.sh
-
 ## orb services ##
 
   fleet-db:
@@ -441,6 +428,19 @@ services:
       ORB_PROM_SINK_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
     networks:
       - orb-base-net
+
+  ui:
+    image: "ns1labs/orb-ui:latest"
+    container_name: orb-ui
+    restart: on-failure
+    volumes:
+      - ./nginx/entrypoint-ui.sh:/entrypoint.sh
+    networks:
+      - orb-base-net
+    environment:
+      MF_UI_PORT: ${MF_UI_PORT}
+      MF_UI_MQTT_WS_URL: ${MF_UI_MQTT_WS_URL}
+    command: /entrypoint.sh
 
   ## main LB ##
 
