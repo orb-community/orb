@@ -45,6 +45,15 @@ import { TwinsAddComponent } from './twins/add/twins.add.component';
 import { TwinsDetailsComponent } from './twins/details/twins.details.component';
 import { TwinsStatesComponent } from './twins/states/twins.states.component';
 import { TwinsDefinitionsComponent } from './twins/definitions/twins.definitions.component';
+// ORB SPECIFIC
+// ORB - dataset-explorer
+import { DatasetExplorerComponent } from 'app/pages/dataset-explorer/dataset-explorer.component';
+import { DatasetExplorerAddComponent } from 'app/pages/dataset-explorer/add/dataset-explorer.add.component';
+import { DatasetExplorerDetailsComponent } from 'app/pages/dataset-explorer/details/dataset-explorer.details.component';
+// ORB - fleet-management
+import { FleetManagementComponent } from 'app/pages/fleet-management/fleet-management.component';
+import { FleetManagementAddComponent } from 'app/pages/fleet-management/add/fleet-management.add.component';
+import { FleetManagementDetailsComponent } from 'app/pages/fleet-management/details/fleet-management.details.component';
 
 @NgModule({
   imports: [
@@ -98,6 +107,15 @@ import { TwinsDefinitionsComponent } from './twins/definitions/twins.definitions
     TwinsDetailsComponent,
     TwinsStatesComponent,
     TwinsDefinitionsComponent,
+    // Orb
+    // FleetManagement
+    FleetManagementComponent,
+    FleetManagementAddComponent,
+    FleetManagementDetailsComponent,
+     // DatasetExplorer
+    DatasetExplorerComponent,
+    DatasetExplorerAddComponent,
+    DatasetExplorerDetailsComponent,
   ],
   providers: [
     NbDialogService,

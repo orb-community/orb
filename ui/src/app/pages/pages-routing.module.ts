@@ -25,9 +25,16 @@ import { TwinsDetailsComponent } from './twins/details/twins.details.component';
 import { TwinsStatesComponent } from './twins/states/twins.states.component';
 import { TwinsDefinitionsComponent } from './twins/definitions/twins.definitions.component';
 
+// ORB - dataset-explorer
+import { DatasetExplorerComponent } from 'app/pages/dataset-explorer/dataset-explorer.component';
+import { DatasetExplorerDetailsComponent } from 'app/pages/dataset-explorer/details/dataset-explorer.details.component';
+// ORB - fleet-management
+import { FleetManagementComponent } from 'app/pages/fleet-management/fleet-management.component';
+import { FleetManagementDetailsComponent } from 'app/pages/fleet-management/details/fleet-management.details.component';
+
 const children = environment.production ?
 [
-    {
+  {
       path: 'home',
       component: DashboardComponent,
     },
@@ -71,6 +78,22 @@ const children = environment.production ?
     {
       path: 'profile',
       component: ProfileComponent,
+    },
+   {
+      path: 'fleet-management',
+      component: FleetManagementComponent,
+    },
+    {
+      path: 'fleet-management/:id',
+      component: FleetManagementDetailsComponent,
+    },
+    {
+      path: 'dataset-explorer',
+      component: DatasetExplorerComponent,
+    },
+    {
+      path: 'dataset-explorer/:id',
+      component: DatasetExplorerDetailsComponent,
     },
   ] : [
     {
@@ -138,6 +161,22 @@ const children = environment.production ?
       path: 'services',
       loadChildren: () => import('./services/services.module')
         .then(m => m.ServicesModule),
+    },
+     {
+      path: 'fleet-management',
+      component: FleetManagementComponent,
+    },
+    {
+      path: 'fleet-management/:id',
+      component: FleetManagementDetailsComponent,
+    },
+    {
+      path: 'dataset-explorer',
+      component: DatasetExplorerComponent,
+    },
+    {
+      path: 'dataset-explorer/:id',
+      component: DatasetExplorerDetailsComponent,
     },
 ];
 
