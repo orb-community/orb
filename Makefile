@@ -48,7 +48,7 @@ endef
 
 all: $(SERVICES)
 
-.PHONY: all $(SERVICES) dockers dockers_dev latest release
+.PHONY: all $(SERVICES) dockers dockers_dev latest release ui
 
 clean:
 	rm -rf ${BUILD_DIR}
@@ -93,3 +93,8 @@ endef
 
 run:
 	docker-compose -f docker/docker-compose.yml up
+
+ui:
+	cd ui/ && docker build --tag=ns1labs/orb-ui -f docker/Dockerfile .
+
+
