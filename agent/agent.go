@@ -188,7 +188,7 @@ func (a *orbAgent) Start() error {
 		//mqtt.DEBUG = &agentLoggerDebug{a: a}
 		a.logger.Debug("config", zap.Any("values", a.config))
 	}
-	mqtt.WARN = &agentLoggerWarn{a: a}
+	//	mqtt.WARN = &agentLoggerWarn{a: a}
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
 
@@ -266,8 +266,18 @@ func (a *orbAgent) subscribeGroupChannels(channels []string) []string {
 		base := fmt.Sprintf("channels/%s/messages", channelID)
 		rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
 
-		if token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore); token.Wait() && token.Error() != nil {
+		token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore)
+		if token.Error() != nil {
 			a.logger.Error("failed to subscribe to group channel/topic", zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+			continue
+		}
+		ok := token.WaitTimeout(time.Second * 5)
+		if ok && token.Error() != nil {
+			a.logger.Error("failed to subscribe to group channel/topic", zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+			continue
+		}
+		if !ok {
+			a.logger.Error("failed to subscribe to group channel/topic: time out", zap.String("topic", rpcFromCoreTopic))
 			continue
 		}
 		a.logger.Info("subscribed to a group", zap.String("topic", rpcFromCoreTopic))

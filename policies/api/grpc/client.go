@@ -39,7 +39,7 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 			"RetrievePolicyData",
 			encodeRetrievePolicyRequest,
 			decodePolicyResponse,
-			pb.PolicyByIDReq{},
+			pb.PolicyDataRes{},
 		).Endpoint()),
 	}
 }
