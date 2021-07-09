@@ -13,7 +13,9 @@ import (
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/policies"
+	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	http2 "github.com/ns1labs/orb/policies/api/http"
+	"github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/policies/postgres"
 	redisprod "github.com/ns1labs/orb/policies/redis/producer"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -21,6 +23,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -47,12 +50,13 @@ const (
 
 func main() {
 
-	authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
+	authGRPCCfg := config.LoadGRPCConfig(mfEnvPrefix, "auth")
 
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
+	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
 
 	// todo sinks gRPC
 	// todo fleet mgr gRPC
@@ -72,22 +76,23 @@ func main() {
 	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
 	defer esClient.Close()
 
-	authTracer, authCloser := initJaeger(svcName, jCfg.URL, logger)
-	defer authCloser.Close()
+	tracer, tracerCloser := initJaeger(svcName, jCfg.URL, logger)
+	defer tracerCloser.Close()
 
-	authConn := connectToAuth(authCfg, logger)
-	defer authConn.Close()
+	authGRPCConn := connectToGRPC(authGRPCCfg, logger)
+	defer authGRPCConn.Close()
 
-	authTimeout, err := time.ParseDuration(authCfg.Timeout)
+	authGRPCTimeout, err := time.ParseDuration(authGRPCCfg.Timeout)
 	if err != nil {
-		log.Fatalf("Invalid %s value: %s", authCfg.Timeout, err.Error())
+		log.Fatalf("Invalid %s value: %s", authGRPCCfg.Timeout, err.Error())
 	}
-	auth := authapi.NewClient(authTracer, authConn, authTimeout)
+	authGRPCClient := authapi.NewClient(tracer, authGRPCConn, authGRPCTimeout)
 
-	svc := newService(auth, db, logger, esClient)
+	svc := newService(authGRPCClient, db, logger, esClient)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(svc, svcCfg, logger, errs)
+	go startGRPCServer(svc, tracer, policiesGRPCCfg, logger, errs)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -170,7 +175,7 @@ func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger
 	return svc
 }
 
-func connectToAuth(cfg config.MFAuthConfig, logger *zap.Logger) *grpc.ClientConn {
+func connectToGRPC(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
 	var opts []grpc.DialOption
 	tls, err := strconv.ParseBool(cfg.ClientTLS)
 	if err != nil {
@@ -187,14 +192,14 @@ func connectToAuth(cfg config.MFAuthConfig, logger *zap.Logger) *grpc.ClientConn
 		}
 	} else {
 		opts = append(opts, grpc.WithInsecure())
-		logger.Info("gRPC communication is not encrypted")
 	}
 
 	conn, err := grpc.Dial(cfg.URL, opts...)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to connect to auth service: %s", err))
+		logger.Error(fmt.Sprintf("Failed to dial to gRPC service %s: %s", cfg.URL, err))
 		os.Exit(1)
 	}
+	logger.Info(fmt.Sprintf("Dialed to gRPC service %s at %s, TLS? %t", cfg.Service, cfg.URL, tls))
 
 	return conn
 }
@@ -209,4 +214,31 @@ func startHTTPServer(svc policies.Service, cfg config.BaseSvcConfig, logger *zap
 	}
 	logger.Info(fmt.Sprintf("Policies service started using http on port %s", cfg.HttpPort))
 	errs <- http.ListenAndServe(p, http2.MakeHandler(svcName, svc))
+}
+
+func startGRPCServer(svc policies.Service, tracer opentracing.Tracer, cfg config.GRPCConfig, logger *zap.Logger, errs chan error) {
+	p := fmt.Sprintf(":%s", cfg.Port)
+	listener, err := net.Listen("tcp", p)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Failed to gRPC listen on port %s: %s", cfg.Port, err))
+		os.Exit(1)
+	}
+
+	var server *grpc.Server
+	if cfg.ServerCert != "" || cfg.ServerKey != "" {
+		creds, err := credentials.NewServerTLSFromFile(cfg.ServerCert, cfg.ServerKey)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Failed to load things certificates: %s", err))
+			os.Exit(1)
+		}
+		logger.Info(fmt.Sprintf("gRPC service started using https on port %s with cert %s key %s",
+			cfg.Port, cfg.ServerCert, cfg.ServerKey))
+		server = grpc.NewServer(grpc.Creds(creds))
+	} else {
+		logger.Info(fmt.Sprintf("gRPC service started using http on port %s", cfg.Port))
+		server = grpc.NewServer()
+	}
+
+	pb.RegisterPolicyServiceServer(server, policiesgrpc.NewServer(tracer, svc))
+	errs <- server.Serve(listener)
 }

@@ -12,7 +12,6 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/policies/pb"
 	"go.uber.org/zap"
 )
 
@@ -38,7 +37,6 @@ type eventStore struct {
 	client       *redis.Client
 	esconsumer   string
 	logger       *zap.Logger
-	policyClient pb.PolicyServiceClient
 }
 
 // NewEventStore returns new event store instance.
@@ -99,7 +97,7 @@ func decodeDatasetCreate(event map[string]interface{}) createDatasetEvent {
 }
 
 // the policy service is notifying that a new dataset has been created
-// notify all agents in the dataset group of the new agent policy
+// notify all agents in the AgentGroup specified in the dataset about the new agent policy
 func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEvent) error {
 
 	ag, err := es.fleetService.RetrieveAgentGroupByIDInternal(ctx, e.agentGroupID, e.ownerID)
@@ -107,12 +105,7 @@ func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEve
 		return err
 	}
 
-	p, err := es.policyClient.RetrievePolicyData(ctx, &pb.PolicyByIDReq{PolicyID: e.policyID, OwnerID: e.ownerID})
-	if err != nil {
-		return err
-	}
-
-	return es.commsService.NotifyGroupNewAgentPolicy(ag, p.Data)
+	return es.commsService.NotifyGroupNewAgentPolicy(ctx, ag, e.policyID, e.ownerID)
 }
 
 func read(event map[string]interface{}, key, def string) string {

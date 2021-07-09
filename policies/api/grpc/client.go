@@ -28,15 +28,15 @@ type grpcClient struct {
 }
 
 // NewClient returns new gRPC client instance.
-func NewClient(conn *grpc.ClientConn, tracer opentracing.Tracer, timeout time.Duration) pb.PolicyServiceClient {
-	svcName := "pb.PolicyService"
+func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Duration) pb.PolicyServiceClient {
+	svcName := "policies.PolicyService"
 
 	return &grpcClient{
 		timeout: timeout,
 		retrievePolicy: kitot.TraceClient(tracer, "retrieve_policy")(kitgrpc.NewClient(
 			conn,
 			svcName,
-			"RetrievePolicy",
+			"RetrievePolicyData",
 			encodeRetrievePolicyRequest,
 			decodePolicyResponse,
 			pb.PolicyByIDReq{},
@@ -58,7 +58,7 @@ func (client grpcClient) RetrievePolicyData(ctx context.Context, in *pb.PolicyBy
 	}
 
 	ir := res.(policyRes)
-	return &pb.PolicyDataRes{Data: ir.data}, nil
+	return &pb.PolicyDataRes{Name: ir.name, Data: ir.data}, nil
 }
 
 func encodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -68,5 +68,5 @@ func encodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interf
 
 func decodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*pb.PolicyDataRes)
-	return policyRes{data: res.GetData()}, nil
+	return policyRes{name: res.GetName(), data: res.GetData()}, nil
 }

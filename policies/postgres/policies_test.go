@@ -105,8 +105,9 @@ func TestAgentPolicyDataRetrieve(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		data, err := repo.RetrievePolicyDataByID(context.Background(), tc.policyID, tc.ownerID)
+		name, data, err := repo.RetrievePolicyDataByID(context.Background(), tc.policyID, tc.ownerID)
 		if err == nil {
+			assert.Equal(t, policy.Name.String(), name, fmt.Sprintf("%s: unexpected name change expected %s got %s", desc, policy.Name.String(), name))
 			var pdata types.Metadata
 			if err := json.Unmarshal(data, &pdata); err != nil {
 				assert.Error(t, err, "unable to unmarshal policy")

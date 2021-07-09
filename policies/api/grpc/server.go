@@ -24,22 +24,22 @@ var _ pb.PolicyServiceServer = (*grpcServer)(nil)
 
 type grpcServer struct {
 	pb.UnimplementedPolicyServiceServer
-	retrievePolicy kitgrpc.Handler
+	retrievePolicyData kitgrpc.Handler
 }
 
 // NewServer returns new PolicyServiceServer instance.
 func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyServiceServer {
 	return &grpcServer{
-		retrievePolicy: kitgrpc.NewServer(
+		retrievePolicyData: kitgrpc.NewServer(
 			kitot.TraceServer(tracer, "retrieve_policy")(retrievePolicyEndpoint(svc)),
-			decodeRetrievePolicyRequest,
-			encodePolicyResponse,
+			decodeRetrievePolicyDataRequest,
+			encodePolicyDataResponse,
 		),
 	}
 }
 
-func (gs *grpcServer) RetrievePolicy(ctx context.Context, id *pb.PolicyByIDReq) (*pb.PolicyDataRes, error) {
-	_, res, err := gs.retrievePolicy.ServeGRPC(ctx, id)
+func (gs *grpcServer) RetrievePolicyData(ctx context.Context, id *pb.PolicyByIDReq) (*pb.PolicyDataRes, error) {
+	_, res, err := gs.retrievePolicyData.ServeGRPC(ctx, id)
 	if err != nil {
 		return nil, encodeError(err)
 	}
@@ -47,12 +47,12 @@ func (gs *grpcServer) RetrievePolicy(ctx context.Context, id *pb.PolicyByIDReq) 
 	return res.(*pb.PolicyDataRes), nil
 }
 
-func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+func decodeRetrievePolicyDataRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.PolicyByIDReq)
 	return accessByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
 }
 
-func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+func encodePolicyDataResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(policyRes)
 	return &pb.PolicyDataRes{Data: res.data}, nil
 }

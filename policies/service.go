@@ -30,7 +30,7 @@ type Service interface {
 	CreatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
 
 	// RetrievePolicyDataByIDInternal gRPC version of retrieving policy data by id with no token
-	RetrievePolicyDataByIDInternal(ctx context.Context, policyID string, ownerID string) ([]byte, error)
+	RetrievePolicyDataByIDInternal(ctx context.Context, policyID string, ownerID string) (string, []byte, error)
 
 	// CreateDataset creates new Dataset
 	CreateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
@@ -43,9 +43,9 @@ type policiesService struct {
 	repo Repository
 }
 
-func (s policiesService) RetrievePolicyDataByIDInternal(ctx context.Context, policyID string, ownerID string) ([]byte, error) {
+func (s policiesService) RetrievePolicyDataByIDInternal(ctx context.Context, policyID string, ownerID string) (string, []byte, error) {
 	if policyID == "" || ownerID == "" {
-		return nil, ErrMalformedEntity
+		return "", nil, ErrMalformedEntity
 	}
 	return s.repo.RetrievePolicyDataByID(ctx, policyID, ownerID)
 }

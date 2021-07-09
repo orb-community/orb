@@ -20,6 +20,7 @@ import (
 	rediscons "github.com/ns1labs/orb/fleet/redis/consumer"
 	redisprod "github.com/ns1labs/orb/fleet/redis/producer"
 	"github.com/ns1labs/orb/pkg/config"
+	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	opentracing "github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
 	"io"
@@ -53,15 +54,14 @@ const (
 func main() {
 
 	natsCfg := config.LoadNatsConfig(envPrefix)
-	authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
+	authGRPCCfg := config.LoadGRPCConfig(mfEnvPrefix, "auth")
 	sdkCfg := config.LoadMFSDKConfig(mfEnvPrefix)
 
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
-
-	// todo policy gRPC
+	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
 
 	// main logger
 	var logger *zap.Logger
@@ -87,14 +87,23 @@ func main() {
 	tracer, tracerCloser := initJaeger(svcName, jCfg.URL, logger)
 	defer tracerCloser.Close()
 
-	authConn := connectToAuth(authCfg, logger)
-	defer authConn.Close()
+	authGRPCConn := connectToGRPC(authGRPCCfg, logger)
+	defer authGRPCConn.Close()
 
-	authTimeout, err := time.ParseDuration(authCfg.Timeout)
+	policiesGRPCConn := connectToGRPC(policiesGRPCCfg, logger)
+	defer policiesGRPCConn.Close()
+
+	authGRPCTimeout, err := time.ParseDuration(authGRPCCfg.Timeout)
 	if err != nil {
-		log.Fatalf("Invalid %s value: %s", authCfg.Timeout, err.Error())
+		log.Fatalf("Invalid %s value: %s", authGRPCCfg.Timeout, err.Error())
 	}
-	auth := authapi.NewClient(tracer, authConn, authTimeout)
+	authGRPCClient := authapi.NewClient(tracer, authGRPCConn, authGRPCTimeout)
+
+	policiesGRPCTimeout, err := time.ParseDuration(policiesGRPCCfg.Timeout)
+	if err != nil {
+		log.Fatalf("Invalid %s value: %s", policiesGRPCCfg.Timeout, err.Error())
+	}
+	policiesGRPCClient := policiesgrpc.NewClient(tracer, policiesGRPCConn, policiesGRPCTimeout)
 
 	pubSub, err := mfnats.NewPubSub(natsCfg.URL, svcName, mflogger)
 	if err != nil {
@@ -106,8 +115,8 @@ func main() {
 	agentRepo := postgres.NewAgentRepository(db, logger)
 	agentGroupRepo := postgres.NewAgentGroupRepository(db, logger)
 
-	commsSvc := fleet.NewFleetCommsService(logger, agentRepo, agentGroupRepo, pubSub)
-	svc := newFleetService(auth, db, logger, esClient, sdkCfg, agentRepo, agentGroupRepo, commsSvc)
+	commsSvc := fleet.NewFleetCommsService(logger, policiesGRPCClient, agentRepo, agentGroupRepo, pubSub)
+	svc := newFleetService(authGRPCClient, db, logger, esClient, sdkCfg, agentRepo, agentGroupRepo, commsSvc)
 	defer commsSvc.Stop()
 
 	errs := make(chan error, 2)
@@ -208,7 +217,7 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 	return svc
 }
 
-func connectToAuth(cfg config.MFAuthConfig, logger *zap.Logger) *grpc.ClientConn {
+func connectToGRPC(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
 	var opts []grpc.DialOption
 	tls, err := strconv.ParseBool(cfg.ClientTLS)
 	if err != nil {
@@ -225,14 +234,14 @@ func connectToAuth(cfg config.MFAuthConfig, logger *zap.Logger) *grpc.ClientConn
 		}
 	} else {
 		opts = append(opts, grpc.WithInsecure())
-		logger.Info("gRPC communication is not encrypted")
 	}
 
 	conn, err := grpc.Dial(cfg.URL, opts...)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to connect to auth service: %s", err))
+		logger.Error(fmt.Sprintf("Failed to dial to gRPC service %s: %s", cfg.URL, err))
 		os.Exit(1)
 	}
+	logger.Info(fmt.Sprintf("Dialed to gRPC service %s at %s, TLS? %t", cfg.Service, cfg.URL, tls))
 
 	return conn
 }

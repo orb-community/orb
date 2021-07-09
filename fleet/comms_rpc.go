@@ -27,6 +27,20 @@ type GroupMembershipRPCPayload struct {
 	FullList   bool     `json:"full_list"`
 }
 
+const AgentPolicyRPCFunc = "agent_policy"
+
+type AgentPolicyRPC struct {
+	SchemaVersion string                  `json:"schema_version"`
+	Func          string                  `json:"func"`
+	Payload       []AgentPolicyRPCPayload `json:"payload"`
+}
+
+type AgentPolicyRPCPayload struct {
+	ID   string      `json:"id"`
+	Name string      `json:"name"`
+	Data interface{} `json:"data"`
+}
+
 // Edge -> Core
 
 const GroupMembershipReqRPCFunc = "group_membership_req"

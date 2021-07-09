@@ -18,7 +18,7 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
-func (l loggingMiddleware) RetrievePolicyDataByIDInternal(ctx context.Context, policyID string, ownerID string) (_ []byte, err error) {
+func (l loggingMiddleware) RetrievePolicyDataByIDInternal(ctx context.Context, policyID string, ownerID string) (_ string, _ []byte, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: retrieve_policy_data_by_id",
@@ -29,7 +29,7 @@ func (l loggingMiddleware) RetrievePolicyDataByIDInternal(ctx context.Context, p
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.RetrievePolicyDataByIDInternal(ctx, policyID, "")
+	return l.svc.RetrievePolicyDataByIDInternal(ctx, policyID, ownerID)
 }
 
 func (l loggingMiddleware) CreateDataset(ctx context.Context, token string, d policies.Dataset) (_ policies.Dataset, err error) {

@@ -29,7 +29,7 @@ func (l loggingMiddleware) RetrieveAgentGroupByIDInternal(ctx context.Context, g
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.RetrieveAgentGroupByIDInternal(ctx, groupID, "")
+	return l.svc.RetrieveAgentGroupByIDInternal(ctx, groupID, ownerID)
 }
 
 func (l loggingMiddleware) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (_ fleet.Page, err error) {

@@ -27,22 +27,21 @@ type policiesRepository struct {
 	logger *zap.Logger
 }
 
-func (r policiesRepository) RetrievePolicyDataByID(ctx context.Context, policyID string, ownerID string) ([]byte, error) {
-	q := `SELECT policy FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
+func (r policiesRepository) RetrievePolicyDataByID(ctx context.Context, policyID string, ownerID string) (name string, data []byte, err error) {
+	q := `SELECT name, policy FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
 
 	if policyID == "" || ownerID == "" {
-		return nil, errors.ErrMalformedEntity
+		return "", nil, errors.ErrMalformedEntity
 	}
 
-	var data []byte
-	if err := r.db.QueryRowxContext(ctx, q, policyID, ownerID).Scan(&data); err != nil {
+	if err := r.db.QueryRowxContext(ctx, q, policyID, ownerID).Scan(&name, &data); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.Wrap(errors.ErrNotFound, err)
+			return "", nil, errors.Wrap(errors.ErrNotFound, err)
 		}
-		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		return "", nil, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	return data, nil
+	return name, data, nil
 }
 
 func (r policiesRepository) SaveDataset(ctx context.Context, dataset policies.Dataset) (string, error) {

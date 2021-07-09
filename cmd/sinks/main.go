@@ -47,7 +47,7 @@ const (
 
 func main() {
 
-	authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
+	authCfg := config.LoadGRPCConfig(mfEnvPrefix, "auth")
 
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
@@ -167,7 +167,7 @@ func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger
 	return svc
 }
 
-func connectToAuth(cfg config.MFAuthConfig, logger *zap.Logger) *grpc.ClientConn {
+func connectToAuth(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
 	var opts []grpc.DialOption
 	tls, err := strconv.ParseBool(cfg.ClientTLS)
 	if err != nil {

@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
+	"github.com/ns1labs/orb/policies/pb"
 	"go.uber.org/zap"
 	"time"
 )
@@ -32,7 +33,7 @@ type AgentCommsService interface {
 	NotifyAgentGroupMembership(a Agent) error
 
 	// NotifyGroupNewAgentPolicy RPC Core -> AgentGroup
-	NotifyGroupNewAgentPolicy(ag AgentGroup, policy []byte) error
+	NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -47,13 +48,52 @@ type fleetCommsService struct {
 	logger         *zap.Logger
 	agentRepo      AgentRepository
 	agentGroupRepo AgentGroupRepository
+	policyClient   pb.PolicyServiceClient
 
 	// agent comms
 	agentPubSub mfnats.PubSub
 }
 
-func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ag AgentGroup, policy []byte) error {
-	panic("implement me")
+func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error {
+	p, err := svc.policyClient.RetrievePolicyData(ctx, &pb.PolicyByIDReq{PolicyID: policyID, OwnerID: ownerID})
+	if err != nil {
+		return err
+	}
+
+	var pdata interface{}
+	if err := json.Unmarshal(p.Data, &pdata); err != nil {
+		return err
+	}
+
+	payload := []AgentPolicyRPCPayload{{
+		ID:   policyID,
+		Name: p.Name,
+		Data: pdata,
+	}}
+
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentPolicyRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   ag.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error {
@@ -132,12 +172,13 @@ func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
 
 }
 
-func NewFleetCommsService(logger *zap.Logger, agentRepo AgentRepository, agentGroupRepo AgentGroupRepository, agentPubSub mfnats.PubSub) AgentCommsService {
+func NewFleetCommsService(logger *zap.Logger, policyClient pb.PolicyServiceClient, agentRepo AgentRepository, agentGroupRepo AgentGroupRepository, agentPubSub mfnats.PubSub) AgentCommsService {
 	return &fleetCommsService{
 		logger:         logger,
 		agentRepo:      agentRepo,
 		agentGroupRepo: agentGroupRepo,
 		agentPubSub:    agentPubSub,
+		policyClient:   policyClient,
 	}
 }
 

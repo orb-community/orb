@@ -22,10 +22,10 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		data, err := svc.RetrievePolicyDataByIDInternal(ctx, req.PolicyID, req.OwnerID)
+		name, data, err := svc.RetrievePolicyDataByIDInternal(ctx, req.PolicyID, req.OwnerID)
 		if err != nil {
 			return policyRes{}, err
 		}
-		return policyRes{data: data}, nil
+		return policyRes{name: name, data: data}, nil
 	}
 }
