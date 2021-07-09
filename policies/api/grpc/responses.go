@@ -9,6 +9,7 @@
 package grpc
 
 type policyRes struct {
+	id      string
 	name    string
 	backend string
 	version int32

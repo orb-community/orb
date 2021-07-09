@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PolicyServiceClient interface {
 	RetrievePolicyData(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*PolicyDataRes, error)
+	RetrievePolicyDataByGroups(ctx context.Context, in *PolicyByGroupsReq, opts ...grpc.CallOption) (*PolicyDataListRes, error)
 }
 
 type policyServiceClient struct {
@@ -38,11 +39,21 @@ func (c *policyServiceClient) RetrievePolicyData(ctx context.Context, in *Policy
 	return out, nil
 }
 
+func (c *policyServiceClient) RetrievePolicyDataByGroups(ctx context.Context, in *PolicyByGroupsReq, opts ...grpc.CallOption) (*PolicyDataListRes, error) {
+	out := new(PolicyDataListRes)
+	err := c.cc.Invoke(ctx, "/policies.PolicyService/RetrievePolicyDataByGroups", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PolicyServiceServer is the server API for PolicyService service.
 // All implementations must embed UnimplementedPolicyServiceServer
 // for forward compatibility
 type PolicyServiceServer interface {
 	RetrievePolicyData(context.Context, *PolicyByIDReq) (*PolicyDataRes, error)
+	RetrievePolicyDataByGroups(context.Context, *PolicyByGroupsReq) (*PolicyDataListRes, error)
 	mustEmbedUnimplementedPolicyServiceServer()
 }
 
@@ -52,6 +63,9 @@ type UnimplementedPolicyServiceServer struct {
 
 func (UnimplementedPolicyServiceServer) RetrievePolicyData(context.Context, *PolicyByIDReq) (*PolicyDataRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrievePolicyData not implemented")
+}
+func (UnimplementedPolicyServiceServer) RetrievePolicyDataByGroups(context.Context, *PolicyByGroupsReq) (*PolicyDataListRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RetrievePolicyDataByGroups not implemented")
 }
 func (UnimplementedPolicyServiceServer) mustEmbedUnimplementedPolicyServiceServer() {}
 
@@ -84,6 +98,24 @@ func _PolicyService_RetrievePolicyData_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PolicyService_RetrievePolicyDataByGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PolicyByGroupsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PolicyServiceServer).RetrievePolicyDataByGroups(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/policies.PolicyService/RetrievePolicyDataByGroups",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PolicyServiceServer).RetrievePolicyDataByGroups(ctx, req.(*PolicyByGroupsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PolicyService_ServiceDesc is the grpc.ServiceDesc for PolicyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -94,6 +126,10 @@ var PolicyService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RetrievePolicyData",
 			Handler:    _PolicyService_RetrievePolicyData_Handler,
+		},
+		{
+			MethodName: "RetrievePolicyDataByGroups",
+			Handler:    _PolicyService_RetrievePolicyDataByGroups_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -50,3 +50,9 @@ const GroupMembershipReqRPCFunc = "group_membership_req"
 type GroupMembershipReqRPCPayload struct {
 	// empty
 }
+
+const AgentPoliciesReqRPCFunc = "agent_policies_req"
+
+type AgentPoliciesReqRPCPayload struct {
+	// empty
+}

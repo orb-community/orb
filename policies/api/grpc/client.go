@@ -27,6 +27,27 @@ type grpcClient struct {
 	retrievePolicy endpoint.Endpoint
 }
 
+func (client grpcClient) RetrievePolicyDataByGroups(ctx context.Context, in *pb.PolicyByGroupsReq, opts ...grpc.CallOption) (*pb.PolicyDataListRes, error) {
+
+}
+
+func (client grpcClient) RetrievePolicyData(ctx context.Context, in *pb.PolicyByIDReq, opts ...grpc.CallOption) (*pb.PolicyDataRes, error) {
+	ctx, cancel := context.WithTimeout(ctx, client.timeout)
+	defer cancel()
+
+	ar := accessByIDReq{
+		PolicyID: in.PolicyID,
+		OwnerID:  in.OwnerID,
+	}
+	res, err := client.retrievePolicy(ctx, ar)
+	if err != nil {
+		return nil, err
+	}
+
+	ir := res.(policyRes)
+	return &pb.PolicyDataRes{Id: ir.id, Name: ir.name, Data: ir.data, Backend: ir.backend, Version: ir.version}, nil
+}
+
 // NewClient returns new gRPC client instance.
 func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Duration) pb.PolicyServiceClient {
 	svcName := "policies.PolicyService"
@@ -44,23 +65,6 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 	}
 }
 
-func (client grpcClient) RetrievePolicyData(ctx context.Context, in *pb.PolicyByIDReq, opts ...grpc.CallOption) (*pb.PolicyDataRes, error) {
-	ctx, cancel := context.WithTimeout(ctx, client.timeout)
-	defer cancel()
-
-	ar := accessByIDReq{
-		PolicyID: in.PolicyID,
-		OwnerID:  in.OwnerID,
-	}
-	res, err := client.retrievePolicy(ctx, ar)
-	if err != nil {
-		return nil, err
-	}
-
-	ir := res.(policyRes)
-	return &pb.PolicyDataRes{Name: ir.name, Data: ir.data, Backend: ir.backend, Version: ir.version}, nil
-}
-
 func encodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(accessByIDReq)
 	return &pb.PolicyByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
@@ -68,5 +72,5 @@ func encodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interf
 
 func decodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*pb.PolicyDataRes)
-	return policyRes{name: res.GetName(), data: res.GetData(), version: res.GetVersion(), backend: res.GetBackend()}, nil
+	return policyRes{id: res.GetId(), name: res.GetName(), data: res.GetData(), version: res.GetVersion(), backend: res.GetBackend()}, nil
 }

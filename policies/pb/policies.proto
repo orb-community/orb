@@ -5,6 +5,7 @@ option go_package = "policies/pb";
 
 service PolicyService {
   rpc RetrievePolicyData(PolicyByIDReq) returns (PolicyDataRes) {}
+  rpc RetrievePolicyDataByGroups(PolicyByGroupsReq) returns (PolicyDataListRes) {}
 }
 
 message PolicyByIDReq {
@@ -12,9 +13,18 @@ message PolicyByIDReq {
   string ownerID = 2;
 }
 
+message PolicyByGroupsReq {
+  repeated string groupIDs = 1;
+}
+
 message PolicyDataRes {
-  string name = 1;
-  string backend = 2;
-  int32 version = 3;
-  bytes data = 4;
+  string id = 1;
+  string name = 2;
+  string backend = 3;
+  int32 version = 4;
+  bytes data = 5;
+}
+
+message PolicyDataListRes {
+  repeated PolicyDataRes policies = 1;
 }

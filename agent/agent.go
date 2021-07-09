@@ -150,6 +150,11 @@ func (a *orbAgent) startComms() error {
 		a.logger.Error("failed to send group membership request", zap.Error(err))
 	}
 
+	err = a.sendAgentPoliciesReq()
+	if err != nil {
+		a.logger.Error("failed to send agent policies request", zap.Error(err))
+	}
+
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
 	a.hbDone = make(chan bool)
 	go a.sendHeartbeats()
@@ -244,6 +249,28 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 	data := fleet.RPC{
 		SchemaVersion: fleet.CurrentRPCSchemaVersion,
 		Func:          fleet.GroupMembershipReqRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	if token := a.client.Publish(a.rpcToCoreTopic, 1, false, body); token.Wait() && token.Error() != nil {
+		return token.Error()
+	}
+
+	return nil
+}
+
+func (a *orbAgent) sendAgentPoliciesReq() error {
+
+	payload := fleet.AgentPoliciesReqRPCPayload{}
+
+	data := fleet.RPC{
+		SchemaVersion: fleet.CurrentRPCSchemaVersion,
+		Func:          fleet.AgentPoliciesReqRPCFunc,
 		Payload:       payload,
 	}
 
