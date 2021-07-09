@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	svcName     = "prom-sink"
+	svcName     = "prom_sink"
 	fullSvcName = "orb-prom-sink"
 	envPrefix   = "orb_prom_sink"
 	httpPort    = "8201"
