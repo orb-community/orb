@@ -18,6 +18,7 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies"
 	"go.uber.org/zap"
+	"time"
 )
 
 var _ policies.Repository = (*policiesRepository)(nil)
@@ -27,21 +28,22 @@ type policiesRepository struct {
 	logger *zap.Logger
 }
 
-func (r policiesRepository) RetrievePolicyDataByID(ctx context.Context, policyID string, ownerID string) (name string, data []byte, err error) {
-	q := `SELECT name, policy FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
+func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
+	q := `SELECT * FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
 
 	if policyID == "" || ownerID == "" {
-		return "", nil, errors.ErrMalformedEntity
+		return policies.Policy{}, errors.ErrMalformedEntity
 	}
 
-	if err := r.db.QueryRowxContext(ctx, q, policyID, ownerID).Scan(&name, &data); err != nil {
+	var dbp dbPolicy
+	if err := r.db.QueryRowxContext(ctx, q, policyID, ownerID).StructScan(&dbp); err != nil {
 		if err == sql.ErrNoRows {
-			return "", nil, errors.Wrap(errors.ErrNotFound, err)
+			return policies.Policy{}, errors.Wrap(errors.ErrNotFound, err)
 		}
-		return "", nil, errors.Wrap(errors.ErrSelectEntity, err)
+		return policies.Policy{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	return name, data, nil
+	return toPolicy(dbp), nil
 }
 
 func (r policiesRepository) SaveDataset(ctx context.Context, dataset policies.Dataset) (string, error) {
@@ -129,6 +131,7 @@ type dbPolicy struct {
 	OrbTags   db.Tags          `db:"orb_tags"`
 	Policy    db.Metadata      `db:"policy"`
 	Version   int32            `db:"version"`
+	Created   time.Time        `db:"ts_created"`
 }
 
 func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
@@ -202,4 +205,21 @@ func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
 
 func NewPoliciesRepository(db Database, log *zap.Logger) policies.Repository {
 	return &policiesRepository{db: db, logger: log}
+}
+
+func toPolicy(dba dbPolicy) policies.Policy {
+
+	policy := policies.Policy{
+		ID:        dba.ID,
+		Name:      dba.Name,
+		MFOwnerID: dba.MFOwnerID,
+		Backend:   dba.Backend,
+		Version:   dba.Version,
+		OrbTags:   types.Tags(dba.OrbTags),
+		Policy:    types.Metadata(dba.Policy),
+		Created:   dba.Created,
+	}
+
+	return policy
+
 }

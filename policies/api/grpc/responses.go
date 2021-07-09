@@ -9,8 +9,10 @@
 package grpc
 
 type policyRes struct {
-	name string
-	data []byte
+	name    string
+	backend string
+	version int32
+	data    []byte
 }
 
 type emptyRes struct {

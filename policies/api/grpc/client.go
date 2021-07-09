@@ -58,7 +58,7 @@ func (client grpcClient) RetrievePolicyData(ctx context.Context, in *pb.PolicyBy
 	}
 
 	ir := res.(policyRes)
-	return &pb.PolicyDataRes{Name: ir.name, Data: ir.data}, nil
+	return &pb.PolicyDataRes{Name: ir.name, Data: ir.data, Backend: ir.backend, Version: ir.version}, nil
 }
 
 func encodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -68,5 +68,5 @@ func encodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interf
 
 func decodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*pb.PolicyDataRes)
-	return policyRes{name: res.GetName(), data: res.GetData()}, nil
+	return policyRes{name: res.GetName(), data: res.GetData(), version: res.GetVersion(), backend: res.GetBackend()}, nil
 }

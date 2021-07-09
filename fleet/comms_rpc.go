@@ -36,9 +36,11 @@ type AgentPolicyRPC struct {
 }
 
 type AgentPolicyRPCPayload struct {
-	ID   string      `json:"id"`
-	Name string      `json:"name"`
-	Data interface{} `json:"data"`
+	ID      string      `json:"id"`
+	Name    string      `json:"name"`
+	Backend string      `json:"backend"`
+	Version int32       `json:"version"`
+	Data    interface{} `json:"data"`
 }
 
 // Edge -> Core

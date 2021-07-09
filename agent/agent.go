@@ -299,6 +299,12 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 	}
 }
 
+func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload) {
+
+	a.logger.Info("Agent Policy from core", zap.Any("payload", rpc))
+
+}
+
 func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Message) {
 
 	a.logger.Info("Group RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
@@ -319,6 +325,13 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 
 	// dispatch
 	switch rpc.Func {
+	case fleet.AgentPolicyRPCFunc:
+		var r fleet.AgentPolicyRPC
+		if err := json.Unmarshal(message.Payload(), &r); err != nil {
+			a.logger.Error("error decoding agent policy message from core", zap.Error(fleet.ErrSchemaMalformed))
+			return
+		}
+		a.handleAgentPolicies(r.Payload)
 	default:
 		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
 			zap.String("func", rpc.Func),
@@ -354,6 +367,13 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			return
 		}
 		a.handleGroupMembership(r.Payload)
+	case fleet.AgentPolicyRPCFunc:
+		var r fleet.AgentPolicyRPC
+		if err := json.Unmarshal(message.Payload(), &r); err != nil {
+			a.logger.Error("error decoding agent policy message from core", zap.Error(fleet.ErrSchemaMalformed))
+			return
+		}
+		a.handleAgentPolicies(r.Payload)
 	default:
 		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
 			zap.String("func", rpc.Func),

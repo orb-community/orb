@@ -66,9 +66,11 @@ func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ctx context.Context, ag A
 	}
 
 	payload := []AgentPolicyRPCPayload{{
-		ID:   policyID,
-		Name: p.Name,
-		Data: pdata,
+		ID:      policyID,
+		Name:    p.Name,
+		Backend: p.Backend,
+		Version: p.Version,
+		Data:    pdata,
 	}}
 
 	data := RPC{

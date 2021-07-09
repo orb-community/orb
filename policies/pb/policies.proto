@@ -14,5 +14,7 @@ message PolicyByIDReq {
 
 message PolicyDataRes {
   string name = 1;
-  bytes data = 2;
+  string backend = 2;
+  int32 version = 3;
+  bytes data = 4;
 }

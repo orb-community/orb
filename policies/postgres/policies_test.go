@@ -10,7 +10,6 @@ package postgres_test
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -105,14 +104,10 @@ func TestAgentPolicyDataRetrieve(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		name, data, err := repo.RetrievePolicyDataByID(context.Background(), tc.policyID, tc.ownerID)
+		tcp, err := repo.RetrievePolicyByID(context.Background(), tc.policyID, tc.ownerID)
 		if err == nil {
-			assert.Equal(t, policy.Name.String(), name, fmt.Sprintf("%s: unexpected name change expected %s got %s", desc, policy.Name.String(), name))
-			var pdata types.Metadata
-			if err := json.Unmarshal(data, &pdata); err != nil {
-				assert.Error(t, err, "unable to unmarshal policy")
-			}
-			assert.Equal(t, policy.Policy, pdata, fmt.Sprintf("%s: expected %s got %s\n", desc, policy.Policy, pdata))
+			assert.Equal(t, policy.Name, tcp.Name, fmt.Sprintf("%s: unexpected name change expected %s got %s", desc, policy.Name, tcp.Name))
+			assert.Equal(t, policy.Policy, tcp.Policy, fmt.Sprintf("%s: expected %s got %s\n", desc, policy.Policy, tcp.Policy))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 	}

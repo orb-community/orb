@@ -54,7 +54,12 @@ func decodeRetrievePolicyDataRequest(_ context.Context, grpcReq interface{}) (in
 
 func encodePolicyDataResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(policyRes)
-	return &pb.PolicyDataRes{Data: res.data}, nil
+	return &pb.PolicyDataRes{
+		Name:    res.name,
+		Backend: res.backend,
+		Version: res.version,
+		Data:    res.data,
+	}, nil
 }
 
 func encodeError(err error) error {

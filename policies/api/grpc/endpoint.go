@@ -10,6 +10,7 @@ package grpc
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/ns1labs/orb/policies"
 
 	"github.com/go-kit/kit/endpoint"
@@ -22,10 +23,19 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		name, data, err := svc.RetrievePolicyDataByIDInternal(ctx, req.PolicyID, req.OwnerID)
+		policy, err := svc.RetrievePolicyByIDInternal(ctx, req.PolicyID, req.OwnerID)
 		if err != nil {
 			return policyRes{}, err
 		}
-		return policyRes{name: name, data: data}, nil
+		data, err := json.Marshal(policy.Policy)
+		if err != nil {
+			return policyRes{}, err
+		}
+		return policyRes{
+			name:    policy.Name.String(),
+			backend: policy.Backend,
+			version: policy.Version,
+			data:    data,
+		}, nil
 	}
 }
