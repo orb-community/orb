@@ -135,7 +135,10 @@ func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGrou
 
 func (svc fleetCommsService) NotifyAgentPolicies(a Agent) error {
 
-	groups, err := svc.agentGroupRepo.RetrieveAllByAgent(context.Background(), a)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	groups, err := svc.agentGroupRepo.RetrieveAllByAgent(ctx, a)
 	if err != nil {
 		return err
 	}
@@ -150,7 +153,13 @@ func (svc fleetCommsService) NotifyAgentPolicies(a Agent) error {
 		groupIDs[i] = group.ID
 	}
 
-	p, err := svc.policyClient.RetrievePoliciesByGroups(context.Background(), &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: a.MFOwnerID})
+	// MQTT he doesn't have OwnerID, we need to look it up
+	a, err = svc.agentRepo.RetrieveByIDWithChannel(ctx, a.MFThingID, a.MFChannelID)
+	if err != nil {
+		return err
+	}
+
+	p, err := svc.policyClient.RetrievePoliciesByGroups(ctx, &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: a.MFOwnerID})
 	if err != nil {
 		return err
 	}
