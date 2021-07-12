@@ -24,8 +24,8 @@ var _ pb.PolicyServiceServer = (*grpcServer)(nil)
 
 type grpcServer struct {
 	pb.UnimplementedPolicyServiceServer
-	retrievePolicy          kitgrpc.Handler
-	retrievePoliciesByGroup kitgrpc.Handler
+	retrievePolicy           kitgrpc.Handler
+	retrievePoliciesByGroups kitgrpc.Handler
 }
 
 // NewServer returns new PolicyServiceServer instance.
@@ -36,16 +36,25 @@ func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyService
 			decodeRetrievePolicyRequest,
 			encodePolicyResponse,
 		),
-		retrievePoliciesByGroup: kitgrpc.NewServer(
-			kitot.TraceServer(tracer, "retrieve_policies_by_group")(retrievePoliciesByGroupEndpoint(svc)),
+		retrievePoliciesByGroups: kitgrpc.NewServer(
+			kitot.TraceServer(tracer, "retrieve_policies_by_groups")(retrievePoliciesByGroupsEndpoint(svc)),
 			decodeRetrievePoliciesByGroupRequest,
 			encodePolicyListResponse,
 		),
 	}
 }
 
-func (gs *grpcServer) RetrievePolicy(ctx context.Context, id *pb.PolicyByIDReq) (*pb.PolicyRes, error) {
-	_, res, err := gs.retrievePolicy.ServeGRPC(ctx, id)
+func (gs *grpcServer) RetrievePoliciesByGroups(ctx context.Context, req *pb.PoliciesByGroupsReq) (*pb.PolicyListRes, error) {
+	_, res, err := gs.retrievePoliciesByGroups.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, encodeError(err)
+	}
+
+	return res.(*pb.PolicyListRes), nil
+}
+
+func (gs *grpcServer) RetrievePolicy(ctx context.Context, req *pb.PolicyByIDReq) (*pb.PolicyRes, error) {
+	_, res, err := gs.retrievePolicy.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, encodeError(err)
 	}

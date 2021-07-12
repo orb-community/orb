@@ -21,11 +21,11 @@ type loggingMiddleware struct {
 func (l loggingMiddleware) RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) (_ []policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: retrieve_policy_by_group_id",
+			l.logger.Warn("method call: retrieve_policies_by_groups",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: retrieve_policy_by_group_id",
+			l.logger.Info("method call: retrieve_policies_by_groups",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())

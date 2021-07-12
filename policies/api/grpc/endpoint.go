@@ -41,7 +41,7 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 	}
 }
 
-func retrievePoliciesByGroupEndpoint(svc policies.Service) endpoint.Endpoint {
+func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(accessByGroupIDReq)
 		if err := req.validate(); err != nil {
