@@ -59,3 +59,40 @@ func TestRetrievePolicy(t *testing.T) {
 		assert.Equal(t, tc.code, e.Code(), fmt.Sprintf("%s: expected %s got %s", desc, tc.code, e.Code()))
 	}
 }
+
+func TestRetrievePoliciesByGroups(t *testing.T) {
+
+	usersAddr := fmt.Sprintf("localhost:%d", port)
+	conn, err := grpc.Dial(usersAddr, grpc.WithInsecure())
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	cli := policiesgrpc.NewClient(mocktracer.New(), conn, time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	cases := map[string]struct {
+		ids     []string
+		results int
+		code    codes.Code
+	}{
+		"retrieve existing policy by group": {
+			ids:     []string{dataset.AgentGroupID},
+			results: 1,
+			code:    codes.OK,
+		},
+		//"retrieve non-existent policy": {
+		//	id:   "nonexist",
+		//	code: codes.NotFound,
+		//},
+	}
+
+	for desc, tc := range cases {
+		plist, err := cli.RetrievePoliciesByGroups(ctx, &pb.PoliciesByGroupsReq{
+			GroupIDs: tc.ids,
+			OwnerID:  policy.MFOwnerID,
+		})
+		e, ok := status.FromError(err)
+		assert.True(t, ok, "OK expected to be true")
+		assert.Equal(t, tc.results, len(plist.Policies), fmt.Sprintf("%s: expected %d got %d", desc, tc.results, len(plist.Policies)))
+		assert.Equal(t, tc.code, e.Code(), fmt.Sprintf("%s: expected %s got %s", desc, tc.code, e.Code()))
+	}
+}
