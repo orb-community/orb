@@ -28,7 +28,7 @@ type agentGroupRepository struct {
 }
 
 func (r agentGroupRepository) RetrieveByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
-	q := `SELECT * FROM agent_groups WHERE id = $1 AND mf_owner_id = $2`
+	q := `SELECT id, name, mf_owner_id, mf_channel_id, tags, ts_created FROM agent_groups WHERE id = $1 AND mf_owner_id = $2`
 
 	if groupID == "" || ownerID == "" {
 		return fleet.AgentGroup{}, errors.ErrMalformedEntity

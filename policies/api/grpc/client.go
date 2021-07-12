@@ -28,7 +28,7 @@ type grpcClient struct {
 }
 
 func (client grpcClient) RetrievePolicyDataByGroups(ctx context.Context, in *pb.PolicyByGroupsReq, opts ...grpc.CallOption) (*pb.PolicyDataListRes, error) {
-
+	return nil, nil
 }
 
 func (client grpcClient) RetrievePolicyData(ctx context.Context, in *pb.PolicyByIDReq, opts ...grpc.CallOption) (*pb.PolicyDataRes, error) {

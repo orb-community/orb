@@ -29,7 +29,7 @@ type policiesRepository struct {
 }
 
 func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	q := `SELECT * FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
+	q := `SELECT id, name, mf_owner_id, orb_tags, backend, version, policy, ts_created FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
 
 	if policyID == "" || ownerID == "" {
 		return policies.Policy{}, errors.ErrMalformedEntity
