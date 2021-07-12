@@ -47,7 +47,7 @@ func (r agentGroupRepository) RetrieveByID(ctx context.Context, groupID string, 
 
 func (r agentGroupRepository) RetrieveAllByAgent(ctx context.Context, a fleet.Agent) ([]fleet.AgentGroup, error) {
 
-	q := `SELECT agent_groups_id AS id, group_mf_channel_id AS mf_channel_id FROM agent_group_membership WHERE agent_mf_thing_id = :agent_id`
+	q := `SELECT agent_groups_id AS id, group_mf_channel_id AS mf_channel_id, mf_owner_id FROM agent_group_membership WHERE agent_mf_thing_id = :agent_id`
 
 	if a.MFThingID == "" {
 		return nil, errors.ErrMalformedEntity

@@ -29,8 +29,11 @@ type Service interface {
 	// CreatePolicy creates new agent Policy
 	CreatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
 
-	// RetrievePolicyByIDInternal gRPC version of retrieving policy data by id with no token
+	// RetrievePolicyByIDInternal gRPC version of retrieving policy by id with no token
 	RetrievePolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (Policy, error)
+
+	// RetrievePoliciesByGroupIDInternal gRPC version of retrieving list of policies belonging to specified agent group with no token
+	RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
 
 	// CreateDataset creates new Dataset
 	CreateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
@@ -41,6 +44,13 @@ var _ Service = (*policiesService)(nil)
 type policiesService struct {
 	auth mainflux.AuthServiceClient
 	repo Repository
+}
+
+func (s policiesService) RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error) {
+	if len(groupIDs) == 0 || ownerID == "" {
+		return nil, ErrMalformedEntity
+	}
+	return s.repo.RetrievePoliciesByGroupID(ctx, groupIDs, ownerID)
 }
 
 func (s policiesService) RetrievePolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (Policy, error) {

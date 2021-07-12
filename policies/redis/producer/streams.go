@@ -28,6 +28,10 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (e eventStore) RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
+	return e.svc.RetrievePoliciesByGroupIDInternal(ctx, groupIDs, ownerID)
+}
+
 func (e eventStore) RetrievePolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
 	return e.svc.RetrievePolicyByIDInternal(ctx, policyID, ownerID)
 }

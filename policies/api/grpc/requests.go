@@ -22,3 +22,16 @@ func (req accessByIDReq) validate() error {
 
 	return nil
 }
+
+type accessByGroupIDReq struct {
+	GroupIDs []string
+	OwnerID  string
+}
+
+func (req accessByGroupIDReq) validate() error {
+	if len(req.GroupIDs) == 0 || req.OwnerID == "" {
+		return policies.ErrMalformedEntity
+	}
+
+	return nil
+}

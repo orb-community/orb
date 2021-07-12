@@ -12,6 +12,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/gofrs/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -26,6 +27,44 @@ var _ policies.Repository = (*policiesRepository)(nil)
 type policiesRepository struct {
 	db     Database
 	logger *zap.Logger
+}
+
+func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
+
+	q := `SELECT agent_policies.id AS id, agent_policies.name AS name, agent_policies.mf_owner_id, orb_tags, backend, version, policy, agent_policies.ts_created 
+			FROM agent_policies, datasets
+			WHERE agent_policies.id = datasets.agent_policy_id AND agent_policies.mf_owner_id = datasets.mf_owner_id AND valid = TRUE AND
+				agent_group_id IN (?) AND agent_policies.mf_owner_id = ?`
+
+	if len(groupIDs) == 0 || ownerID == "" {
+		return nil, errors.ErrMalformedEntity
+	}
+
+	query, args, err := sqlx.In(q, groupIDs, ownerID)
+	if err != nil {
+		return nil, err
+	}
+
+	query = r.db.Rebind(query)
+
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []policies.Policy
+	for rows.Next() {
+		dbth := dbPolicy{MFOwnerID: ownerID}
+		if err := rows.StructScan(&dbth); err != nil {
+			return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		th := toPolicy(dbth)
+		items = append(items, th)
+	}
+
+	return items, nil
 }
 
 func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {

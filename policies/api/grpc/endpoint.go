@@ -32,10 +32,41 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			return policyRes{}, err
 		}
 		return policyRes{
+			id:      policy.ID,
 			name:    policy.Name.String(),
 			backend: policy.Backend,
 			version: policy.Version,
 			data:    data,
 		}, nil
+	}
+}
+
+func retrievePoliciesByGroupEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(accessByGroupIDReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		plist, err := svc.RetrievePoliciesByGroupIDInternal(ctx, req.GroupIDs, req.OwnerID)
+		if err != nil {
+			return policyListRes{}, err
+		}
+		policies := make([]policyRes, len(plist))
+		for i, policy := range plist {
+			data, err := json.Marshal(policy.Policy)
+			if err != nil {
+				return policyListRes{}, err
+			}
+			policies[i] = policyRes{
+				id:      policy.ID,
+				name:    policy.Name.String(),
+				backend: policy.Backend,
+				version: policy.Version,
+				data:    data,
+			}
+		}
+
+		return policyListRes{policies: policies}, nil
 	}
 }

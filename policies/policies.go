@@ -38,8 +38,11 @@ type Repository interface {
 	// error response.
 	SavePolicy(ctx context.Context, policy Policy) (string, error)
 
-	// RetrievePolicyByID Retrieve policy data by id
+	// RetrievePolicyByID Retrieve policy by id
 	RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (Policy, error)
+
+	// RetrievePoliciesByGroupID Retrieve policy list by group id
+	RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
 
 	// SaveDataset persists a Dataset. Successful operation is indicated by non-nil
 	// error response.

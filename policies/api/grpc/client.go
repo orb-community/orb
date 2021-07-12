@@ -23,15 +23,34 @@ import (
 var _ pb.PolicyServiceClient = (*grpcClient)(nil)
 
 type grpcClient struct {
-	timeout        time.Duration
-	retrievePolicy endpoint.Endpoint
+	timeout                  time.Duration
+	retrievePolicy           endpoint.Endpoint
+	retrievePoliciesByGroups endpoint.Endpoint
 }
 
-func (client grpcClient) RetrievePolicyDataByGroups(ctx context.Context, in *pb.PolicyByGroupsReq, opts ...grpc.CallOption) (*pb.PolicyDataListRes, error) {
-	return nil, nil
+func (client grpcClient) RetrievePoliciesByGroups(ctx context.Context, in *pb.PoliciesByGroupsReq, opts ...grpc.CallOption) (*pb.PolicyListRes, error) {
+	ctx, cancel := context.WithTimeout(ctx, client.timeout)
+	defer cancel()
+
+	ar := accessByGroupIDReq{
+		GroupIDs: in.GroupIDs,
+		OwnerID:  in.OwnerID,
+	}
+	res, err := client.retrievePoliciesByGroups(ctx, ar)
+	if err != nil {
+		return nil, err
+	}
+
+	ir := res.(policyListRes)
+
+	plist := make([]*pb.PolicyRes, len(ir.policies))
+	for i, p := range ir.policies {
+		plist[i] = &pb.PolicyRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version}
+	}
+	return &pb.PolicyListRes{Policies: plist}, nil
 }
 
-func (client grpcClient) RetrievePolicyData(ctx context.Context, in *pb.PolicyByIDReq, opts ...grpc.CallOption) (*pb.PolicyDataRes, error) {
+func (client grpcClient) RetrievePolicy(ctx context.Context, in *pb.PolicyByIDReq, opts ...grpc.CallOption) (*pb.PolicyRes, error) {
 	ctx, cancel := context.WithTimeout(ctx, client.timeout)
 	defer cancel()
 
@@ -45,7 +64,7 @@ func (client grpcClient) RetrievePolicyData(ctx context.Context, in *pb.PolicyBy
 	}
 
 	ir := res.(policyRes)
-	return &pb.PolicyDataRes{Id: ir.id, Name: ir.name, Data: ir.data, Backend: ir.backend, Version: ir.version}, nil
+	return &pb.PolicyRes{Id: ir.id, Name: ir.name, Data: ir.data, Backend: ir.backend, Version: ir.version}, nil
 }
 
 // NewClient returns new gRPC client instance.
@@ -57,10 +76,18 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 		retrievePolicy: kitot.TraceClient(tracer, "retrieve_policy")(kitgrpc.NewClient(
 			conn,
 			svcName,
-			"RetrievePolicyData",
+			"RetrievePolicy",
 			encodeRetrievePolicyRequest,
 			decodePolicyResponse,
-			pb.PolicyDataRes{},
+			pb.PolicyRes{},
+		).Endpoint()),
+		retrievePoliciesByGroups: kitot.TraceClient(tracer, "retrieve_policies_by_groups")(kitgrpc.NewClient(
+			conn,
+			svcName,
+			"RetrievePoliciesByGroups",
+			encodeRetrievePoliciesByGroupsRequest,
+			decodePolicyListResponse,
+			pb.PolicyListRes{},
 		).Endpoint()),
 	}
 }
@@ -71,6 +98,20 @@ func encodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interf
 }
 
 func decodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	res := grpcRes.(*pb.PolicyDataRes)
+	res := grpcRes.(*pb.PolicyRes)
 	return policyRes{id: res.GetId(), name: res.GetName(), data: res.GetData(), version: res.GetVersion(), backend: res.GetBackend()}, nil
+}
+
+func encodeRetrievePoliciesByGroupsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(accessByGroupIDReq)
+	return &pb.PoliciesByGroupsReq{GroupIDs: req.GroupIDs, OwnerID: req.OwnerID}, nil
+}
+
+func decodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(*pb.PolicyListRes)
+	policies := make([]policyRes, len(res.Policies))
+	for i, p := range res.Policies {
+		policies[i] = policyRes{id: p.GetId(), name: p.GetName(), data: p.GetData(), version: p.GetVersion(), backend: p.GetBackend()}
+	}
+	return policyListRes{policies: policies}, nil
 }

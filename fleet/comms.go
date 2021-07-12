@@ -57,7 +57,7 @@ type fleetCommsService struct {
 }
 
 func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error {
-	p, err := svc.policyClient.RetrievePolicyData(ctx, &pb.PolicyByIDReq{PolicyID: policyID, OwnerID: ownerID})
+	p, err := svc.policyClient.RetrievePolicy(ctx, &pb.PolicyByIDReq{PolicyID: policyID, OwnerID: ownerID})
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func (svc fleetCommsService) NotifyAgentPolicies(a Agent) error {
 		groupIDs[i] = group.ID
 	}
 
-	p, err := svc.policyClient.RetrievePolicyDataByGroups(context.Background(), &pb.PolicyByGroupsReq{GroupIDs: groupIDs})
+	p, err := svc.policyClient.RetrievePoliciesByGroups(context.Background(), &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: a.MFOwnerID})
 	if err != nil {
 		return err
 	}

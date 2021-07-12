@@ -24,43 +24,64 @@ var _ pb.PolicyServiceServer = (*grpcServer)(nil)
 
 type grpcServer struct {
 	pb.UnimplementedPolicyServiceServer
-	retrievePolicyData kitgrpc.Handler
+	retrievePolicy          kitgrpc.Handler
+	retrievePoliciesByGroup kitgrpc.Handler
 }
 
 // NewServer returns new PolicyServiceServer instance.
 func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyServiceServer {
 	return &grpcServer{
-		retrievePolicyData: kitgrpc.NewServer(
+		retrievePolicy: kitgrpc.NewServer(
 			kitot.TraceServer(tracer, "retrieve_policy")(retrievePolicyEndpoint(svc)),
-			decodeRetrievePolicyDataRequest,
-			encodePolicyDataResponse,
+			decodeRetrievePolicyRequest,
+			encodePolicyResponse,
+		),
+		retrievePoliciesByGroup: kitgrpc.NewServer(
+			kitot.TraceServer(tracer, "retrieve_policies_by_group")(retrievePoliciesByGroupEndpoint(svc)),
+			decodeRetrievePoliciesByGroupRequest,
+			encodePolicyListResponse,
 		),
 	}
 }
 
-func (gs *grpcServer) RetrievePolicyData(ctx context.Context, id *pb.PolicyByIDReq) (*pb.PolicyDataRes, error) {
-	_, res, err := gs.retrievePolicyData.ServeGRPC(ctx, id)
+func (gs *grpcServer) RetrievePolicy(ctx context.Context, id *pb.PolicyByIDReq) (*pb.PolicyRes, error) {
+	_, res, err := gs.retrievePolicy.ServeGRPC(ctx, id)
 	if err != nil {
 		return nil, encodeError(err)
 	}
 
-	return res.(*pb.PolicyDataRes), nil
+	return res.(*pb.PolicyRes), nil
 }
 
-func decodeRetrievePolicyDataRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.PolicyByIDReq)
 	return accessByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
 }
 
-func encodePolicyDataResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(policyRes)
-	return &pb.PolicyDataRes{
+	return &pb.PolicyRes{
 		Id:      res.id,
 		Name:    res.name,
 		Backend: res.backend,
 		Version: res.version,
 		Data:    res.data,
 	}, nil
+}
+
+func decodeRetrievePoliciesByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.PoliciesByGroupsReq)
+	return accessByGroupIDReq{GroupIDs: req.GroupIDs, OwnerID: req.OwnerID}, nil
+}
+
+func encodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(policyListRes)
+
+	plist := make([]*pb.PolicyRes, len(res.policies))
+	for i, p := range res.policies {
+		plist[i] = &pb.PolicyRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version}
+	}
+	return &pb.PolicyListRes{Policies: plist}, nil
 }
 
 func encodeError(err error) error {

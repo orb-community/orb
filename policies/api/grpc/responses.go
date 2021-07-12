@@ -16,6 +16,10 @@ type policyRes struct {
 	data    []byte
 }
 
+type policyListRes struct {
+	policies []policyRes
+}
+
 type emptyRes struct {
 	err error
 }

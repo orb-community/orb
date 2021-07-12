@@ -19,13 +19,19 @@ type database struct {
 	db *sqlx.DB
 }
 
+func (dm database) Rebind(s string) string {
+	return dm.db.Rebind(s)
+}
+
 // Database provides a database interface
 type Database interface {
 	NamedExecContext(context.Context, string, interface{}) (sql.Result, error)
 	QueryRowxContext(context.Context, string, ...interface{}) *sqlx.Row
+	QueryxContext(context.Context, string, ...interface{}) (*sqlx.Rows, error)
 	NamedQueryContext(context.Context, string, interface{}) (*sqlx.Rows, error)
 	GetContext(context.Context, interface{}, string, ...interface{}) error
 	BeginTxx(context.Context, *sql.TxOptions) (*sqlx.Tx, error)
+	Rebind(string) string
 }
 
 // NewDatabase creates a ThingDatabase instance
@@ -43,6 +49,11 @@ func (dm database) NamedExecContext(ctx context.Context, query string, args inte
 func (dm database) QueryRowxContext(ctx context.Context, query string, args ...interface{}) *sqlx.Row {
 	addSpanTags(ctx, query)
 	return dm.db.QueryRowxContext(ctx, query, args...)
+}
+
+func (dm database) QueryxContext(ctx context.Context, query string, args ...interface{}) (*sqlx.Rows, error) {
+	addSpanTags(ctx, query)
+	return dm.db.QueryxContext(ctx, query, args...)
 }
 
 func (dm database) NamedQueryContext(ctx context.Context, query string, args interface{}) (*sqlx.Rows, error) {
