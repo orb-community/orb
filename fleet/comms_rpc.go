@@ -22,9 +22,14 @@ type GroupMembershipRPC struct {
 	Payload       GroupMembershipRPCPayload `json:"payload"`
 }
 
+type GroupMembershipData struct {
+	Name      string `json:"name"`
+	ChannelID string `json:"channel_id"`
+}
+
 type GroupMembershipRPCPayload struct {
-	ChannelIDS []string `json:"channel_ids"`
-	FullList   bool     `json:"full_list"`
+	Groups   []GroupMembershipData `json:"groups"`
+	FullList bool                  `json:"full_list"`
 }
 
 const AgentPolicyRPCFunc = "agent_policy"

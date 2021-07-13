@@ -103,8 +103,8 @@ func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ctx context.Context, ag A
 func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error {
 
 	payload := GroupMembershipRPCPayload{
-		ChannelIDS: []string{ag.MFChannelID},
-		FullList:   false,
+		Groups:   []GroupMembershipData{{Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
+		FullList: false,
 	}
 
 	data := RPC{
@@ -214,14 +214,15 @@ func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
 		return err
 	}
 
-	fullList := make([]string, len(list))
+	fullList := make([]GroupMembershipData, len(list))
 	for i, agentGroup := range list {
-		fullList[i] = agentGroup.MFChannelID
+		fullList[i].Name = agentGroup.Name.String()
+		fullList[i].ChannelID = agentGroup.MFChannelID
 	}
 
 	payload := GroupMembershipRPCPayload{
-		ChannelIDS: fullList,
-		FullList:   true,
+		Groups:   fullList,
+		FullList: true,
 	}
 
 	data := RPC{
