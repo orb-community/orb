@@ -19,7 +19,7 @@ export class AgentGroupsManagementAddComponent {
   };
   @Input() action: string = '';
   constructor(
-    protected dialogRef: NbDialogRef<AgentGroupsManagementAddComponentomponent>,
+    protected dialogRef: NbDialogRef<AgentGroupsManagementAddComponent>,
     private userGroupsService: UserGroupsService,
     private notificationsService: NotificationsService,
   ) { }

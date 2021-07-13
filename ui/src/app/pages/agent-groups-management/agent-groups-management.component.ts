@@ -7,7 +7,7 @@ import { UserGroupsService } from 'app/common/services/users/groups.service';
 import { FsService } from 'app/common/services/fs/fs.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ConfirmationComponent } from 'app/shared/components/confirmation/confirmation.component';
-import { AgentGroupManagementAddComponent } from 'app/pages/agent-group-management/add/agent-group-management.add.component';
+import { AgentGroupsManagementAddComponent } from './add/agent-groups-management.add.component';
 
 const defFreq: number = 100;
 
@@ -68,7 +68,7 @@ export class AgentGroupsManagementComponent implements OnInit {
   }
 
   openAddModal() {
-    this.dialogService.open(AgentGroupManagementAddComponent, { context: { action: 'Create' } }).onClose.subscribe(
+    this.dialogService.open(AgentGroupsManagementAddComponent, { context: { action: 'Create' } }).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.getGroups();
@@ -78,7 +78,7 @@ export class AgentGroupsManagementComponent implements OnInit {
   }
 
   openEditModal(row: any) {
-    this.dialogService.open(AgentGroupManagementAddComponent, { context: { formData: row, action: 'Edit' } }).onClose.subscribe(
+    this.dialogService.open(AgentGroupsManagementAddComponent, { context: { formData: row, action: 'Edit' } }).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.getGroups();
