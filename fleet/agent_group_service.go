@@ -25,6 +25,9 @@ func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup)
 
 	// first we get all agents, online or not, to connect them to the correct group channel
 	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), g.MFOwnerID, g.ID, false)
+	if len(list) == 0 {
+		return nil
+	}
 	idList := make([]string, len(list))
 	for i, agent := range list {
 		idList[i] = agent.MFThingID
@@ -51,6 +54,10 @@ func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup)
 		}
 	}
 	return nil
+}
+
+func (svc fleetService) RetrieveAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error) {
+	return svc.agentGroupRepository.RetrieveByID(ctx, groupID, ownerID)
 }
 
 func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error) {

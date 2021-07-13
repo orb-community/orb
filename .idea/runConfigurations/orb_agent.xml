@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="orb-agent" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="orb" />
+    <working_directory value="$PROJECT_DIR$/cmd/agent" />
+    <parameters value="-d -c $PROJECT_DIR$/localconfig/config.yaml" />
+    <sudo value="true" />
+    <kind value="FILE" />
+    <package value="github.com/ns1labs/orb" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/agent/main.go" />
+    <output_directory value="$PROJECT_DIR$/build" />
+    <method v="2" />
+  </configuration>
+</component>

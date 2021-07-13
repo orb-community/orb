@@ -1,0 +1,19 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="orb-fleet" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="orb" />
+    <working_directory value="$PROJECT_DIR$" />
+    <envs>
+      <env name="ORB_FLEET_DB_PORT" value="15004" />
+      <env name="ORB_FLEET_DB_SSL_MODE" value="disable" />
+      <env name="ORB_POLICIES_GRPC_URL" value="localhost:8282" />
+      <env name="ORB_POLICIES_GRPC_TIMEOUT" value="1s" />
+      <env name="MF_AUTH_GRPC_URL" value="localhost:8181" />
+    </envs>
+    <kind value="FILE" />
+    <package value="github.com/ns1labs/orb" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/fleet/main.go" />
+    <output_directory value="$PROJECT_DIR$/build" />
+    <method v="2" />
+  </configuration>
+</component>

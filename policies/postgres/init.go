@@ -41,7 +41,7 @@ func migrateDB(db *sqlx.DB) error {
 			{
 				Id: "policies_1",
 				Up: []string{
-					`CREATE TABLE IF NOT EXISTS policies (
+					`CREATE TABLE IF NOT EXISTS agent_policies (
 						id			   UUID NOT NULL DEFAULT gen_random_uuid(),
 
 						name           TEXT NOT NULL,
@@ -50,7 +50,25 @@ func migrateDB(db *sqlx.DB) error {
 						orb_tags       JSONB NOT NULL DEFAULT '{}',
 
 						backend        TEXT NOT NULL,
+						version        INTEGER NOT NULL DEFAULT 0,
 						policy		   JSONB NOT NULL DEFAULT '{}',
+
+                        ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+						PRIMARY KEY (name, mf_owner_id),
+					    UNIQUE(id)
+					)`,
+					`CREATE TABLE IF NOT EXISTS datasets (
+						id			   UUID NOT NULL DEFAULT gen_random_uuid(),
+
+						name             TEXT NOT NULL,
+						mf_owner_id      UUID NOT NULL,
+
+						valid			 BOOLEAN,
+						agent_group_id	 UUID,
+						agent_policy_id  UUID,
+						sink_id			 UUID,
+						
+						metadata       JSONB NOT NULL DEFAULT '{}',
 
                         ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
 						PRIMARY KEY (name, mf_owner_id),
@@ -58,7 +76,8 @@ func migrateDB(db *sqlx.DB) error {
 					)`,
 				},
 				Down: []string{
-					"DROP TABLE policies",
+					"DROP TABLE agent_policies",
+					"DROP TABLE datasets",
 				},
 			},
 		},

@@ -15,12 +15,36 @@ type Policy struct {
 	Name      types.Identifier
 	MFOwnerID string
 	Backend   string
+	Version   int32
+	OrbTags   types.Tags
 	Policy    types.Metadata
 	Created   time.Time
 }
 
+type Dataset struct {
+	ID           string
+	Name         types.Identifier
+	MFOwnerID    string
+	Valid        bool
+	AgentGroupID string
+	PolicyID     string
+	SinkID       string
+	Metadata     types.Metadata
+	Created      time.Time
+}
+
 type Repository interface {
-	// Save persists the Policy. Successful operation is indicated by non-nil
+	// SavePolicy persists a Policy. Successful operation is indicated by non-nil
 	// error response.
-	Save(ctx context.Context, policy Policy) (string, error)
+	SavePolicy(ctx context.Context, policy Policy) (string, error)
+
+	// RetrievePolicyByID Retrieve policy by id
+	RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (Policy, error)
+
+	// RetrievePoliciesByGroupID Retrieve policy list by group id
+	RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
+
+	// SaveDataset persists a Dataset. Successful operation is indicated by non-nil
+	// error response.
+	SaveDataset(ctx context.Context, dataset Dataset) (string, error)
 }

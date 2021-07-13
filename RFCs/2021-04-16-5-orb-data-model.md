@@ -104,20 +104,20 @@ orb:
       region: us-east-1
 ```
 
-### Orb Policies
+### Orb Datasets
 
-An Orb policy ties together a Group, an agent Collection Policy, and one or more Sinks. pktvisord does not read this
+An Orb dataset ties together a Group, an agent Collection Policy, and one or more Sinks. pktvisord does not read this
 configuration or use this data; it is used only by orb-agent. This schema is found only in the control plane, not on the
 command line or in files.
 
-orb-agent will be made aware of the collection policy if it is in the policy's group. In case of a match, orb-agent will
-attempt to apply the collection policy to its pktvisord, and update the control plane about success or failure.
+orb-agent will be made aware of the agent policy if it is in the policy's group. In case of a match, orb-agent will
+attempt to apply the collection policy to its backend, and update the control plane about success or failure.
 
 ```yaml
 version: "1.0"
 
 orb:
-  policy:
+  dataset:
     group: eu_dns
     agent_policy: anycast_dns
     sinks:

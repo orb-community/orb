@@ -9,9 +9,9 @@
 package consumer
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinks/writer"
 	"go.uber.org/zap"
 )
@@ -34,7 +34,7 @@ const (
 // Subscriber represents event source for things and channels provisioning.
 type Subscriber interface {
 	// Subscribes to given subject and receives events.
-	Subscribe(string) error
+	Subscribe(context.Context) error
 }
 
 type eventStore struct {
@@ -54,14 +54,14 @@ func NewEventStore(svc writer.Service, client *redis.Client, esconsumer string, 
 	}
 }
 
-func (es eventStore) Subscribe(subject string) error {
-	err := es.client.XGroupCreateMkStream(stream, group, "$").Err()
+func (es eventStore) Subscribe(context context.Context) error {
+	err := es.client.XGroupCreateMkStream(context, stream, group, "$").Err()
 	if err != nil && err.Error() != exists {
 		return err
 	}
 
 	for {
-		streams, err := es.client.XReadGroup(&redis.XReadGroupArgs{
+		streams, err := es.client.XReadGroup(context, &redis.XReadGroupArgs{
 			Group:    group,
 			Consumer: es.esconsumer,
 			Streams:  []string{stream, ">"},
@@ -74,8 +74,6 @@ func (es eventStore) Subscribe(subject string) error {
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
 
-			fmt.Printf("promsink consume event: %+v", event)
-
 			var err error
 			switch event["operation"] {
 			case thingRemove:
@@ -86,7 +84,7 @@ func (es eventStore) Subscribe(subject string) error {
 				es.logger.Warn("Failed to handle event sourcing")
 				break
 			}
-			es.client.XAck(stream, group, msg.ID)
+			es.client.XAck(context, stream, group, msg.ID)
 		}
 	}
 }

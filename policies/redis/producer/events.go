@@ -13,32 +13,56 @@ import (
 )
 
 const (
-	PolicyPrefix = "Policy."
-	PolicyCreate = PolicyPrefix + "create"
+	DatasetPrefix = "dataset."
+	DatasetCreate = DatasetPrefix + "create"
+	PolicyPrefix  = "policy."
+	PolicyCreate  = PolicyPrefix + "create"
 )
 
 type event interface {
-	encode() map[string]interface{}
+	Encode() map[string]interface{}
 }
 
 var (
+	_ event = (*createDatasetEvent)(nil)
 	_ event = (*createPolicyEvent)(nil)
 )
 
+type createDatasetEvent struct {
+	id           string
+	ownerID      string
+	name         string
+	agentGroupID string
+	policyID     string
+	sinkID       string
+	timestamp    time.Time
+}
+
 type createPolicyEvent struct {
-	mfThing   string
-	owner     string
+	id        string
+	ownerID   string
 	name      string
-	content   string
 	timestamp time.Time
 }
 
-func (cce createPolicyEvent) encode() map[string]interface{} {
+func (cce createDatasetEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
-		"thing_id":  cce.mfThing,
-		"owner":     cce.owner,
+		"id":        cce.id,
+		"owner_id":  cce.ownerID,
 		"name":      cce.name,
-		"content":   cce.content,
+		"group_id":  cce.agentGroupID,
+		"policy_id": cce.policyID,
+		"sink_id":   cce.sinkID,
+		"timestamp": cce.timestamp.Unix(),
+		"operation": DatasetCreate,
+	}
+}
+
+func (cce createPolicyEvent) Encode() map[string]interface{} {
+	return map[string]interface{}{
+		"id":        cce.id,
+		"owner_id":  cce.ownerID,
+		"name":      cce.name,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": PolicyCreate,
 	}
