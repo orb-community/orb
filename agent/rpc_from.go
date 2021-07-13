@@ -27,11 +27,7 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload) {
 
 	for _, payload := range rpc {
-		a.logger.Info("received agent policy from core",
-			zap.String("name", payload.Name),
-			zap.String("backend", payload.Backend),
-			zap.String("id", payload.ID),
-			zap.Int32("version", payload.Version))
+		a.policyManager.ManagePolicy(payload)
 	}
 
 }

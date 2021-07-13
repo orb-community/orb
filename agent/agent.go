@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/agent/backend"
+	"github.com/ns1labs/orb/agent/config"
+	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"time"
@@ -24,7 +26,7 @@ const HeartbeatFreq = 60 * time.Second
 
 type orbAgent struct {
 	logger   *zap.Logger
-	config   Config
+	config   config.Config
 	client   mqtt.Client
 	backends map[string]backend.Backend
 
@@ -40,12 +42,18 @@ type orbAgent struct {
 
 	// AgentGroup channels sent from core
 	groupChannels []string
+
+	policyManager policies.PolicyManager
 }
 
 var _ Agent = (*orbAgent)(nil)
 
-func New(logger *zap.Logger, c Config) (Agent, error) {
-	return &orbAgent{logger: logger, config: c}, nil
+func New(logger *zap.Logger, c config.Config) (Agent, error) {
+	pm, err := policies.New(logger, c)
+	if err != nil {
+		return nil, err
+	}
+	return &orbAgent{logger: logger, config: c, policyManager: pm}, nil
 }
 
 func (a *orbAgent) connect() (mqtt.Client, error) {
