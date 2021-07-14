@@ -11,6 +11,16 @@ package api
 import (
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
+	"github.com/ns1labs/orb/sinks"
+)
+
+const (
+	maxLimitSize = 100
+	maxNameSize  = 1024
+	nameOrder    = "name"
+	idOrder      = "id"
+	ascDir       = "asc"
+	descDir      = "desc"
 )
 
 type addReq struct {
@@ -31,6 +41,41 @@ func (req addReq) validate() error {
 	_, err := types.NewIdentifier(req.Name)
 	if err != nil {
 		return errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return nil
+}
+
+type listResourcesReq struct {
+	token        string
+	pageMetadata sinks.PageMetadata
+}
+
+func (req *listResourcesReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+
+	if req.pageMetadata.Limit == 0 {
+		req.pageMetadata.Limit = defLimit
+	}
+
+	if req.pageMetadata.Limit > maxLimitSize {
+		return errors.ErrMalformedEntity
+	}
+
+	if len(req.pageMetadata.Name) > maxNameSize {
+		return errors.ErrMalformedEntity
+	}
+
+	if req.pageMetadata.Order != "" &&
+		req.pageMetadata.Order != nameOrder && req.pageMetadata.Order != idOrder {
+		return errors.ErrMalformedEntity
+	}
+
+	if req.pageMetadata.Dir != "" &&
+		req.pageMetadata.Dir != ascDir && req.pageMetadata.Dir != descDir {
+		return errors.ErrMalformedEntity
 	}
 
 	return nil

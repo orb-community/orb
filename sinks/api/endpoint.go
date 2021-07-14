@@ -46,3 +46,30 @@ func addEndpoint(svc sinks.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func listSinksEndpoint(svc sinks.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(listResourcesReq)
+
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		page, err := svc.ListSinks(ctx, req.token, req.pageMetadata)
+		if err != nil {
+			return nil, err
+		}
+
+		res := sinksPagesRes{
+			pageRes: pageRes{
+				Total: page.Total,
+				Offset: page.Offset,
+				Limit: page.Limit,
+				Order: page.Order,
+				Dir: page.Dir,
+			},
+			Sinks: []sinkRes{},
+		}
+		return res, nil
+	}
+}
