@@ -21,7 +21,10 @@ import { UserGroupsService } from './services/users/groups.service';
 import { FsService } from './services/fs/fs.service';
 import { IntervalService } from './services/interval/interval.service';
 // Orb
+import { AgentGroupsManagementService } from './services/agent-group-management/agent-groups-management.service';
+import { DatasetManagementService } from './services/dataset-management/dataset-management.service';
 import { FleetManagementService} from './services/fleet-management/fleet-management.service';
+import { SinkManagementService} from './services/sink-management/sink-management.service';
 
 import { TokenInterceptor } from 'app/auth/auth.token.interceptor.service';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -43,7 +46,10 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     UserGroupsService,
     FsService,
     IntervalService,
+    AgentGroupsManagementService,
+    DatasetManagementService,
     FleetManagementService,
+    SinkManagementService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: TokenInterceptor,
