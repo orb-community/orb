@@ -1,15 +1,15 @@
 import { NgModule } from '@angular/core';
 import {
-  NbMenuModule,
-  NbDialogService,
-  NbWindowService,
-  NbButtonModule,
-  NbCardModule,
-  NbInputModule,
-  NbSelectModule,
-  NbCheckboxModule,
-  NbListModule,
-  NbTabsetModule,
+    NbMenuModule,
+    NbDialogService,
+    NbWindowService,
+    NbButtonModule,
+    NbCardModule,
+    NbInputModule,
+    NbSelectModule,
+    NbCheckboxModule,
+    NbListModule,
+    NbTabsetModule,
 } from '@nebular/theme';
 
 import { ThemeModule } from '../@theme/theme.module';
@@ -54,90 +54,90 @@ import { DatasetExplorerDetailsComponent } from 'app/pages/dataset-explorer/deta
 import { FleetManagementComponent } from 'app/pages/fleet-management/fleet-management.component';
 import { FleetManagementAddComponent } from 'app/pages/fleet-management/add/fleet-management.add.component';
 import { FleetManagementDetailsComponent } from 'app/pages/fleet-management/details/fleet-management.details.component';
-import {SinkManagementComponent} from './sink-management/sink-management.component';
-import {SinkManagementAddComponent} from './sink-management/add/sink-management.add.component';
-import {SinkManagementDetailsComponent} from './sink-management/details/sink-management.details.component';
-import {AgentGroupsManagementComponent} from './agent-groups-management/agent-groups-management.component';
-import {AgentGroupsManagementAddComponent} from './agent-groups-management/add/agent-groups-management.add.component';
-import {AgentGroupsManagementDetailsComponent} from './agent-groups-management/details/agent-groups-management.details.component';
+import { SinkManagementComponent } from './sink-management/sink-management.component';
+import { SinkManagementAddComponent } from './sink-management/add/sink-management.add.component';
+import { SinkManagementDetailsComponent } from './sink-management/details/sink-management.details.component';
+import { AgentGroupsManagementComponent } from './agent-groups-management/agent-groups-management.component';
+import { AgentGroupsManagementAddComponent } from './agent-groups-management/add/agent-groups-management.add.component';
+import { AgentGroupsManagementDetailsComponent } from './agent-groups-management/details/agent-groups-management.details.component';
 
 @NgModule({
-  imports: [
-    PagesRoutingModule,
-    ThemeModule,
-    NbMenuModule,
-    DashboardModule,
-    SharedModule,
-    CommonModule,
-    FormsModule,
-    NbButtonModule,
-    NbCardModule,
-    NbInputModule,
-    NbSelectModule,
-    NbCheckboxModule,
-    NbListModule,
-    NbTabsetModule,
-  ],
-  exports: [
-    SharedModule,
-    CommonModule,
-    FormsModule,
-    NbButtonModule,
-    NbCardModule,
-    NbInputModule,
-    NbSelectModule,
-    NbCheckboxModule,
-    NbListModule,
-  ],
-  declarations: [
-    PagesComponent,
-    // User Groups
-    UserGroupsComponent,
-    UserGroupsAddComponent,
-    UserGroupsDetailsComponent,
-    // Users
-    UsersComponent,
-    UsersAddComponent,
-    UsersDetailsComponent,
-    // Things
-    ThingsComponent,
-    ThingsAddComponent,
-    ThingsDetailsComponent,
-    // Channels
-    ChannelsComponent,
-    ChannelsAddComponent,
-    ChannelsDetailsComponent,
-    // Twins
-    TwinsComponent,
-    TwinsAddComponent,
-    TwinsDetailsComponent,
-    TwinsStatesComponent,
-    TwinsDefinitionsComponent,
-    // Orb
-    // Agent Group Management
-    AgentGroupsManagementComponent,
-    AgentGroupsManagementAddComponent,
-    AgentGroupsManagementDetailsComponent,
-    // Dataset Explorer
-    DatasetExplorerComponent,
-    DatasetExplorerAddComponent,
-    DatasetExplorerDetailsComponent,
-    // Fleet Management
-    FleetManagementComponent,
-    FleetManagementAddComponent,
-    FleetManagementDetailsComponent,
-    // Sink Management
-    SinkManagementComponent,
-    SinkManagementAddComponent,
-    SinkManagementDetailsComponent,
-  ],
-  providers: [
-    NbDialogService,
-    NbWindowService,
-  ],
-  entryComponents: [
-    ConfirmationComponent,
-  ],
+    imports: [
+        PagesRoutingModule,
+        ThemeModule,
+        NbMenuModule,
+        DashboardModule,
+        SharedModule,
+        CommonModule,
+        FormsModule,
+        NbButtonModule,
+        NbCardModule,
+        NbInputModule,
+        NbSelectModule,
+        NbCheckboxModule,
+        NbListModule,
+        NbTabsetModule,
+    ],
+    exports: [
+        SharedModule,
+        CommonModule,
+        FormsModule,
+        NbButtonModule,
+        NbCardModule,
+        NbInputModule,
+        NbSelectModule,
+        NbCheckboxModule,
+        NbListModule,
+    ],
+    declarations: [
+        PagesComponent,
+        // User Groups
+        UserGroupsComponent,
+        UserGroupsAddComponent,
+        UserGroupsDetailsComponent,
+        // Users
+        UsersComponent,
+        UsersAddComponent,
+        UsersDetailsComponent,
+        // Things
+        ThingsComponent,
+        ThingsAddComponent,
+        ThingsDetailsComponent,
+        // Channels
+        ChannelsComponent,
+        ChannelsAddComponent,
+        ChannelsDetailsComponent,
+        // Twins
+        TwinsComponent,
+        TwinsAddComponent,
+        TwinsDetailsComponent,
+        TwinsStatesComponent,
+        TwinsDefinitionsComponent,
+        // Orb
+        // Agent Group Management
+        AgentGroupsManagementComponent,
+        AgentGroupsManagementAddComponent,
+        AgentGroupsManagementDetailsComponent,
+        // Dataset Explorer
+        DatasetExplorerComponent,
+        DatasetExplorerAddComponent,
+        DatasetExplorerDetailsComponent,
+        // Fleet Management
+        FleetManagementComponent,
+        FleetManagementAddComponent,
+        FleetManagementDetailsComponent,
+        // Sink Management
+        SinkManagementComponent,
+        SinkManagementAddComponent,
+        SinkManagementDetailsComponent,
+    ],
+    providers: [
+        NbDialogService,
+        NbWindowService,
+    ],
+    entryComponents: [
+        ConfirmationComponent,
+    ],
 })
 export class PagesModule {
 }

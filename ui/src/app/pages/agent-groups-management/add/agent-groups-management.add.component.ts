@@ -5,9 +5,9 @@ import { UserGroupsService } from '../../../common/services/users/groups.service
 import { NotificationsService } from '../../../common/services/notifications/notifications.service';
 
 @Component({
-  selector: 'ngx-agent-group-management-add.component',
-  templateUrl: './agent-group-management.add.component.html',
-  styleUrls: ['./agent-group-management.add.component.scss'],
+  selector: 'ngx-agent-groups-management-add.component',
+  templateUrl: './agent-groups-management.add.component.html',
+  styleUrls: ['./agent-groups-management.add.component.scss'],
 })
 export class AgentGroupsManagementAddComponent {
   editorMetadata = '';

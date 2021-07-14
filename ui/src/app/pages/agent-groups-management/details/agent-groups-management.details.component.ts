@@ -7,9 +7,9 @@ import { UserGroupsService } from '../../../common/services/users/groups.service
 import { NotificationsService } from '../../../common/services/notifications/notifications.service';
 
 @Component({
-  selector: 'ngx-agent-group-management-details-component',
-  templateUrl: './agent-group-management.details.component.html',
-  styleUrls: ['./agent-group-management.details.component.scss'],
+  selector: 'ngx-agent-groups-management-details-component',
+  templateUrl: './agent-groups-management.details.component.html',
+  styleUrls: ['./agent-groups-management.details.component.scss'],
 })
 export class AgentGroupsManagementDetailsComponent implements OnInit {
   offset = 0;

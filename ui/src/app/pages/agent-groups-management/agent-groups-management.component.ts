@@ -12,9 +12,9 @@ import { AgentGroupsManagementAddComponent } from './add/agent-groups-management
 const defFreq: number = 100;
 
 @Component({
-  selector: 'ngx-fleet-management-component',
-  templateUrl: './fleet-management.component.html',
-  styleUrls: ['./fleet-management.component.scss'],
+  selector: 'ngx-agent-groups-management-component',
+  templateUrl: './agent-groups-management.component.html',
+  styleUrls: ['./agent-groups-management.component.scss'],
 })
 export class AgentGroupsManagementComponent implements OnInit {
   tableConfig: TableConfig = {
