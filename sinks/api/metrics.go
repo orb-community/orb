@@ -18,6 +18,10 @@ type metricsMiddleware struct {
 	svc     sinks.Service
 }
 
+func (m metricsMiddleware) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (_ sinks.Page, err error) {
+	return m.svc.ListSinks(ctx, token, pm)
+}
+
 func (m metricsMiddleware) CreateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
 	return m.svc.CreateSink(ctx, token, s)
 }

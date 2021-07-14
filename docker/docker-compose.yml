@@ -429,18 +429,18 @@ services:
     networks:
       - orb-base-net
 
-  ui:
-    image: "ns1labs/orb-ui:latest"
-    container_name: orb-ui
-    restart: on-failure
-    volumes:
-      - ./nginx/entrypoint-ui.sh:/entrypoint.sh
-    networks:
-      - orb-base-net
-    environment:
-      MF_UI_PORT: ${MF_UI_PORT}
-      MF_UI_MQTT_WS_URL: ${MF_UI_MQTT_WS_URL}
-    command: /entrypoint.sh
+#  ui:
+#    image: "ns1labs/orb-ui:latest"
+#    container_name: orb-ui
+#    restart: on-failure
+#    volumes:
+#      - ./nginx/entrypoint-ui.sh:/entrypoint.sh
+#    networks:
+#      - orb-base-net
+#    environment:
+#      MF_UI_PORT: ${MF_UI_PORT}
+#      MF_UI_MQTT_WS_URL: ${MF_UI_MQTT_WS_URL}
+#    command: /entrypoint.sh
 
   ## main LB ##
 

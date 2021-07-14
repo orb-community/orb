@@ -10,6 +10,8 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -18,17 +20,74 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 	"go.uber.org/zap"
+	"strings"
+	"time"
 )
 
-var _ sinks.Repository = (*sinksRepository)(nil)
+var _ sinks.SinkRepository = (*sinksRepository)(nil)
 
 type sinksRepository struct {
 	db     *sqlx.DB
 	logger *zap.Logger
 }
 
-func NewSinksRepository(db *sqlx.DB, log *zap.Logger) sinks.Repository {
-	return &sinksRepository{db: db, logger: log}
+func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
+	nameQuery, name := getNameQuery(pm.Name)
+	orderQuery := getOrderQuery(pm.Order)
+	dirQuery := getDirQuery(pm.Dir)
+	tags, tmq, err := getTagsQuery(pm.Tags)
+	if err != nil {
+		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	q := fmt.Sprintf(`SELECT * FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, nameQuery, orderQuery, dirQuery)
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+		"limit": pm.Limit,
+		"offset": pm.Offset,
+		"name": name,
+		"tags": tags,
+	}
+	rows, err := s.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []sinks.Sink
+	for rows.Next() {
+		dbSink := dbSink{MFOwnerID: owner}
+		if err := rows.StructScan(&dbSink); err != nil {
+			return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		sink, err := toSink(dbSink)
+		if err != nil {
+			return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		items = append(items, sink)
+	}
+
+	count := fmt.Sprintf(`SELECT COUNT(*) FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, nameQuery, orderQuery, dirQuery)
+
+	total, err := total(ctx, s.db, count, params)
+	if err != nil {
+		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	page := sinks.Page{
+		Sinks: items,
+		PageMetadata: sinks.PageMetadata{
+			Total: total,
+			Offset: pm.Offset,
+			Limit: pm.Limit,
+			Order: pm.Order,
+			Dir: pm.Dir,
+		},
+	}
+
+	return page, nil
 }
 
 func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, error) {
@@ -69,10 +128,14 @@ func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, er
 }
 
 type dbSink struct {
-	ID        string           `db:"id"`
-	Name      types.Identifier `db:"name"`
-	MFOwnerID string           `db:"mf_owner_id"`
-	Metadata  db.Metadata      `db:"metadata"`
+	ID          string           `db:"id"`
+	Name        types.Identifier `db:"name"`
+	MFOwnerID   string           `db:"mf_owner_id"`
+	Metadata    db.Metadata      `db:"metadata"`
+	Backend     string 		     `db:"backend"`
+	Description string 		     `db:"description"`
+	Created		time.Time		 `db:"ts_created"`
+
 }
 
 func toDBSink(sink sinks.Sink) (dbSink, error) {
@@ -90,4 +153,79 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 		Metadata:  db.Metadata(sink.Config),
 	}, nil
 
+}
+
+func toSink(dba dbSink) (sinks.Sink, error) {
+	sink := sinks.Sink{
+		ID:          dba.ID,
+		Name:        dba.Name,
+		MFOwnerID:   dba.MFOwnerID,
+		Type:        dba.Backend,
+		Description: dba.Description,
+		Config:      nil,
+		Created:     dba.Created,
+	}
+	return sink, nil
+}
+
+func getNameQuery(name string) (string, string) {
+	if name == "" {
+		return "", ""
+	}
+	name = fmt.Sprintf(`%%%s%%`, strings.ToLower(name))
+	nameQuey := ` AND LOWER(name) LIKE :name`
+	return nameQuey, name
+}
+
+func getOrderQuery(order string) string {
+	switch order {
+	case "name":
+		return "name"
+	default:
+		return "id"
+	}
+}
+
+func getDirQuery(dir string) string {
+	switch dir {
+	case "asc":
+		return "ASC"
+	default:
+		return "DESC"
+	}
+}
+
+func getTagsQuery(m types.Tags) ([]byte, string, error) {
+	mq := ""
+	mb := []byte("{}")
+	if len(m) > 0 {
+		// todo add in orb tags
+		mq = ` AND orb_tags @> :tags`
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, "", err
+		}
+		mb = b
+	}
+	return mb, mq, nil
+}
+
+func total(ctx context.Context, db Database, query string, params interface{}) (uint64, error) {
+	rows, err := db.NamedQueryContext(ctx, query, params)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+	total := uint64(0)
+	if rows.Next() {
+		if err := rows.Scan(&total); err != nil {
+			return 0, err
+		}
+	}
+	return total, nil
+}
+
+func NewSinksRepository(db *sqlx.DB, logger *zap.Logger) sinks.SinkRepository {
+	return &sinksRepository{db: db, logger: logger}
 }

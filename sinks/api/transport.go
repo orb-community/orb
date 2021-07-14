@@ -11,7 +11,6 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb"
-	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/internal/httputil"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -46,7 +45,7 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.Service) h
 		decodeAddRequest,
 		types.EncodeResponse,
 		opts...))
-	r.Get("sinks", kithttp.NewServer(
+	r.Get("/sinks", kithttp.NewServer(
 		kitot.TraceServer(tracer, "list_sinks")(listSinksEndpoint(svc)),
 		decodeList,
 		types.EncodeResponse,
@@ -104,7 +103,7 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 
 	req := listResourcesReq{
 		token: r.Header.Get("Authorization"),
-		pageMetadata: fleet.PageMetadata{
+		pageMetadata: sinks.PageMetadata{
 			Offset:   o,
 			Limit:    l,
 			Name:     n,

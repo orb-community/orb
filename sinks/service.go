@@ -11,6 +11,7 @@ package sinks
 import (
 	"context"
 	"github.com/mainflux/mainflux"
+	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
@@ -39,6 +40,7 @@ type sinkService struct {
 	logger *zap.Logger
 	// for AuthN/AuthZ
 	auth mainflux.AuthServiceClient
+	mfsdk mfsdk.SDK
 	// Sinks
 	sinkRepo SinkRepository
 }
@@ -55,10 +57,11 @@ func (s sinkService) identify(token string) (string, error) {
 	return res.GetId(), nil
 }
 
-func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository) Service {
+func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK) Service {
 	return &sinkService{
 		logger: logger,
 		auth: auth,
 		sinkRepo: sinkRepo,
+		mfsdk: mfsdk,
 	}
 }

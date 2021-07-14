@@ -6,36 +6,15 @@ package sinks
 
 import (
 	"context"
-	"database/sql/driver"
 	"github.com/ns1labs/orb/pkg/types"
 	"time"
 )
-
-const (
-	Prometheus Type = iota
-)
-
-type Type int
-
-var typeMap = [...]string{
-	"prometheus",
-}
-
-var typeRevMap = map[string]Type{
-	"prometheus": Prometheus,
-}
-
-func (t Type) String() string {
-	return typeMap[t]
-}
-func (t *Type) Scan(value interface{}) error { *t = typeRevMap[string(value.([]byte))]; return nil }
-func (t Type) Value() (driver.Value, error)  { return t.String(), nil }
 
 type Sink struct {
 	ID          string
 	Name        types.Identifier
 	MFOwnerID   string
-	Type	    Type
+	Type	    string
 	Description string
 	Config      types.Metadata
 	Created     time.Time
