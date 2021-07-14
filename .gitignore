@@ -6,6 +6,7 @@ localconfig/
 # /ui - UI dependencies
 ui/node_modules
 ui/dist
+ui/*.iml
 
 # /ui - UI e2e dependencies
 ui/e2e/*.js
