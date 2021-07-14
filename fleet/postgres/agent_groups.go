@@ -10,12 +10,14 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
+	"time"
 )
 
 var _ fleet.AgentGroupRepository = (*agentGroupRepository)(nil)
@@ -25,13 +27,27 @@ type agentGroupRepository struct {
 	logger *zap.Logger
 }
 
-func NewAgentGroupRepository(db Database, logger *zap.Logger) fleet.AgentGroupRepository {
-	return &agentGroupRepository{db: db, logger: logger}
+func (r agentGroupRepository) RetrieveByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
+	q := `SELECT id, name, mf_owner_id, mf_channel_id, tags, ts_created FROM agent_groups WHERE id = $1 AND mf_owner_id = $2`
+
+	if groupID == "" || ownerID == "" {
+		return fleet.AgentGroup{}, errors.ErrMalformedEntity
+	}
+
+	var group dbAgentGroup
+	if err := r.db.QueryRowxContext(ctx, q, groupID, ownerID).StructScan(&group); err != nil {
+		if err == sql.ErrNoRows {
+			return fleet.AgentGroup{}, errors.Wrap(errors.ErrNotFound, err)
+		}
+		return fleet.AgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	return toAgentGroup(group)
 }
 
 func (r agentGroupRepository) RetrieveAllByAgent(ctx context.Context, a fleet.Agent) ([]fleet.AgentGroup, error) {
 
-	q := `SELECT agent_groups_id AS id, group_mf_channel_id AS mf_channel_id FROM agent_group_membership WHERE agent_mf_thing_id = :agent_id`
+	q := `SELECT agent_groups_id AS id, agent_groups_name AS name, group_mf_channel_id AS mf_channel_id, mf_owner_id FROM agent_group_membership WHERE agent_mf_thing_id = :agent_id`
 
 	if a.MFThingID == "" {
 		return nil, errors.ErrMalformedEntity
@@ -108,6 +124,7 @@ type dbAgentGroup struct {
 	MFOwnerID   string           `db:"mf_owner_id"`
 	MFChannelID string           `db:"mf_channel_id"`
 	Tags        db.Tags          `db:"tags"`
+	Created     time.Time        `db:"ts_created"`
 }
 
 func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
@@ -131,4 +148,8 @@ func toAgentGroup(dba dbAgentGroup) (fleet.AgentGroup, error) {
 		Tags:        types.Tags(dba.Tags),
 	}, nil
 
+}
+
+func NewAgentGroupRepository(db Database, logger *zap.Logger) fleet.AgentGroupRepository {
+	return &agentGroupRepository{db: db, logger: logger}
 }

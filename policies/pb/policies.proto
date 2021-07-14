@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package policies;
+option go_package = "policies/pb";
+
+service PolicyService {
+  rpc RetrievePolicy(PolicyByIDReq) returns (PolicyRes) {}
+  rpc RetrievePoliciesByGroups(PoliciesByGroupsReq) returns (PolicyListRes) {}
+}
+
+message PolicyByIDReq {
+  string policyID = 1;
+  string ownerID = 2;
+}
+
+message PoliciesByGroupsReq {
+  repeated string groupIDs = 1;
+  string ownerID = 2;
+}
+
+message PolicyRes {
+  string id = 1;
+  string name = 2;
+  string backend = 3;
+  int32 version = 4;
+  bytes data = 5;
+}
+
+message PolicyListRes {
+  repeated PolicyRes policies = 1;
+}

@@ -20,12 +20,23 @@ import (
 )
 
 var (
-	ErrCreatePolicy = errors.New("failed to create policy")
+	ErrCreatePolicy    = errors.New("failed to create policy")
+	ErrCreateDataset   = errors.New("failed to create dataset")
+	ErrMalformedEntity = errors.New("malformed entity")
 )
 
 type Service interface {
-	// CreatePolicy creates new data sink
+	// CreatePolicy creates new agent Policy
 	CreatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+
+	// RetrievePolicyByIDInternal gRPC version of retrieving policy by id with no token
+	RetrievePolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (Policy, error)
+
+	// RetrievePoliciesByGroupIDInternal gRPC version of retrieving list of policies belonging to specified agent group with no token
+	RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
+
+	// CreateDataset creates new Dataset
+	CreateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 }
 
 var _ Service = (*policiesService)(nil)
@@ -33,6 +44,36 @@ var _ Service = (*policiesService)(nil)
 type policiesService struct {
 	auth mainflux.AuthServiceClient
 	repo Repository
+}
+
+func (s policiesService) RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error) {
+	if len(groupIDs) == 0 || ownerID == "" {
+		return nil, ErrMalformedEntity
+	}
+	return s.repo.RetrievePoliciesByGroupID(ctx, groupIDs, ownerID)
+}
+
+func (s policiesService) RetrievePolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (Policy, error) {
+	if policyID == "" || ownerID == "" {
+		return Policy{}, ErrMalformedEntity
+	}
+	return s.repo.RetrievePolicyByID(ctx, policyID, ownerID)
+}
+
+func (s policiesService) CreateDataset(ctx context.Context, token string, d Dataset) (Dataset, error) {
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return Dataset{}, err
+	}
+
+	d.MFOwnerID = mfOwnerID
+
+	id, err := s.repo.SaveDataset(ctx, d)
+	if err != nil {
+		return Dataset{}, errors.Wrap(ErrCreateDataset, err)
+	}
+	d.ID = id
+	return d, nil
 }
 
 func (s policiesService) identify(token string) (string, error) {
@@ -78,7 +119,7 @@ func (s policiesService) CreatePolicy(ctx context.Context, token string, p Polic
 
 	p.MFOwnerID = mfOwnerID
 
-	id, err := s.repo.Save(ctx, p)
+	id, err := s.repo.SavePolicy(ctx, p)
 	if err != nil {
 		return Policy{}, errors.Wrap(ErrCreatePolicy, err)
 	}

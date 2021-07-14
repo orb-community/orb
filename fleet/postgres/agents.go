@@ -85,7 +85,8 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	q := fmt.Sprintf(`SELECT * FROM agents WHERE mf_owner_id = :mf_owner_id %s%s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, mq, nq, oq, dq)
+	q := fmt.Sprintf(`SELECT mf_thing_id, name, mf_owner_id, mf_channel_id, ts_created, orb_tags, agent_tags, agent_metadata, state, last_hb_data, ts_last_hb
+			FROM agents WHERE mf_owner_id = :mf_owner_id %s%s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, mq, nq, oq, dq)
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
 		"limit":       pm.Limit,
@@ -221,7 +222,7 @@ func (r agentRepository) UpdateHeartbeatByIDWithChannel(ctx context.Context, age
 
 func (r agentRepository) RetrieveByIDWithChannel(ctx context.Context, thingID string, channelID string) (fleet.Agent, error) {
 
-	q := `SELECT * FROM agents WHERE mf_thing_id = $1 AND mf_channel_id = $2;`
+	q := `SELECT mf_thing_id, name, mf_owner_id, mf_channel_id, ts_created, orb_tags, agent_tags, agent_metadata, state, last_hb_data, ts_last_hb FROM agents WHERE mf_thing_id = $1 AND mf_channel_id = $2;`
 
 	dba := dbAgent{}
 

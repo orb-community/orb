@@ -6,12 +6,12 @@ package agent
 
 import (
 	"crypto/tls"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
-	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/agent/backend"
+	"github.com/ns1labs/orb/agent/config"
+	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"time"
@@ -26,7 +26,7 @@ const HeartbeatFreq = 60 * time.Second
 
 type orbAgent struct {
 	logger   *zap.Logger
-	config   Config
+	config   config.Config
 	client   mqtt.Client
 	backends map[string]backend.Backend
 
@@ -42,12 +42,18 @@ type orbAgent struct {
 
 	// AgentGroup channels sent from core
 	groupChannels []string
+
+	policyManager policies.PolicyManager
 }
 
 var _ Agent = (*orbAgent)(nil)
 
-func New(logger *zap.Logger, c Config) (Agent, error) {
-	return &orbAgent{logger: logger, config: c}, nil
+func New(logger *zap.Logger, c config.Config) (Agent, error) {
+	pm, err := policies.New(logger, c)
+	if err != nil {
+		return nil, err
+	}
+	return &orbAgent{logger: logger, config: c, policyManager: pm}, nil
 }
 
 func (a *orbAgent) connect() (mqtt.Client, error) {
@@ -83,38 +89,6 @@ func (a *orbAgent) nameAgentRPCTopics() {
 	a.logTopic = fmt.Sprintf("%s/%s", base, fleet.LogTopic)
 
 }
-func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
-
-	a.logger.Debug("heartbeat")
-
-	hbData := fleet.Heartbeat{
-		SchemaVersion: fleet.CurrentHeartbeatSchemaVersion,
-		TimeStamp:     t,
-		State:         state,
-	}
-
-	body, err := json.Marshal(hbData)
-	if err != nil {
-		a.logger.Error("error creating heartbeat data", zap.Error(err))
-		return
-	}
-
-	if token := a.client.Publish(a.heartbeatsTopic, 1, false, body); token.Wait() && token.Error() != nil {
-		a.logger.Error("error sending heartbeat", zap.Error(token.Error()))
-	}
-}
-
-func (a *orbAgent) sendHeartbeats() {
-	a.sendSingleHeartbeat(time.Now(), fleet.Online)
-	for {
-		select {
-		case <-a.hbDone:
-			return
-		case t := <-a.hbTicker.C:
-			a.sendSingleHeartbeat(t, fleet.Online)
-		}
-	}
-}
 
 func (a *orbAgent) unsubscribeGroupChannels() {
 	for _, channel := range a.groupChannels {
@@ -148,6 +122,11 @@ func (a *orbAgent) startComms() error {
 	err = a.sendGroupMembershipReq()
 	if err != nil {
 		a.logger.Error("failed to send group membership request", zap.Error(err))
+	}
+
+	err = a.sendAgentPoliciesReq()
+	if err != nil {
+		a.logger.Error("failed to send agent policies request", zap.Error(err))
 	}
 
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
@@ -188,7 +167,7 @@ func (a *orbAgent) Start() error {
 		//mqtt.DEBUG = &agentLoggerDebug{a: a}
 		a.logger.Debug("config", zap.Any("values", a.config))
 	}
-	mqtt.WARN = &agentLoggerWarn{a: a}
+	//	mqtt.WARN = &agentLoggerWarn{a: a}
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
 
@@ -203,153 +182,31 @@ func (a *orbAgent) Start() error {
 	return nil
 }
 
-func (a *orbAgent) sendCapabilities() error {
-
-	capabilities := fleet.Capabilities{
-		SchemaVersion: fleet.CurrentCapabilitiesSchemaVersion,
-		AgentTags:     a.config.OrbAgent.Tags,
-		OrbAgent: fleet.OrbAgentInfo{
-			Version: orb.GetVersion(),
-		},
-	}
-
-	capabilities.Backends = make(map[string]fleet.BackendInfo)
-	for name, be := range a.backends {
-		ver, err := be.Version()
-		if err != nil {
-			a.logger.Error("backend failed to retrieve version", zap.String("backend", name), zap.Error(err))
-			continue
-		}
-		capabilities.Backends[name] = fleet.BackendInfo{
-			Version: ver,
-		}
-	}
-
-	body, err := json.Marshal(capabilities)
-	if err != nil {
-		return err
-	}
-
-	if token := a.client.Publish(a.capabilitiesTopic, 1, false, body); token.Wait() && token.Error() != nil {
-		return token.Error()
-	}
-
-	return nil
-}
-
-func (a *orbAgent) sendGroupMembershipReq() error {
-
-	payload := fleet.GroupMembershipReqRPCPayload{}
-
-	data := fleet.RPC{
-		SchemaVersion: fleet.CurrentRPCSchemaVersion,
-		Func:          fleet.GroupMembershipReqRPCFunc,
-		Payload:       payload,
-	}
-
-	body, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	if token := a.client.Publish(a.rpcToCoreTopic, 1, false, body); token.Wait() && token.Error() != nil {
-		return token.Error()
-	}
-
-	return nil
-}
-
-func (a *orbAgent) subscribeGroupChannels(channels []string) []string {
+func (a *orbAgent) subscribeGroupChannels(groups []fleet.GroupMembershipData) []string {
 	var successList []string
-	for _, channelID := range channels {
+	for _, groupData := range groups {
 
-		base := fmt.Sprintf("channels/%s/messages", channelID)
+		base := fmt.Sprintf("channels/%s/messages", groupData.ChannelID)
 		rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
 
-		if token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore); token.Wait() && token.Error() != nil {
+		token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore)
+		if token.Error() != nil {
 			a.logger.Error("failed to subscribe to group channel/topic", zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
 			continue
 		}
-		a.logger.Info("subscribed to a group", zap.String("topic", rpcFromCoreTopic))
-		successList = append(successList, channelID)
+		ok := token.WaitTimeout(time.Second * 5)
+		if ok && token.Error() != nil {
+			a.logger.Error("failed to subscribe to group channel/topic", zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+			continue
+		}
+		if !ok {
+			a.logger.Error("failed to subscribe to group channel/topic: time out", zap.String("topic", rpcFromCoreTopic))
+			continue
+		}
+		a.logger.Info("completed RPC subscription to group", zap.String("name", groupData.Name), zap.String("topic", rpcFromCoreTopic))
+		successList = append(successList, groupData.ChannelID)
 	}
 	return successList
-}
-
-func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
-
-	// if this is the full list, reset all group subscriptions and subscribed to this list
-	if rpc.FullList {
-		a.unsubscribeGroupChannels()
-		a.groupChannels = a.subscribeGroupChannels(rpc.ChannelIDS)
-	} else {
-		// otherwise, just add these subscriptions to the existing list
-		successList := a.subscribeGroupChannels(rpc.ChannelIDS)
-		a.groupChannels = append(a.groupChannels, successList...)
-	}
-}
-
-func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Message) {
-
-	a.logger.Info("Group RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
-
-	var rpc fleet.RPC
-	if err := json.Unmarshal(message.Payload(), &rpc); err != nil {
-		a.logger.Error("error decoding RPC message from core", zap.Error(fleet.ErrSchemaMalformed))
-		return
-	}
-	if rpc.SchemaVersion != fleet.CurrentRPCSchemaVersion {
-		a.logger.Error("error decoding RPC message from core", zap.Error(fleet.ErrSchemaVersion))
-		return
-	}
-	if rpc.Func == "" || rpc.Payload == nil {
-		a.logger.Error("error decoding RPC message from core", zap.Error(fleet.ErrSchemaMalformed))
-		return
-	}
-
-	// dispatch
-	switch rpc.Func {
-	default:
-		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
-			zap.String("func", rpc.Func),
-			zap.Any("payload", rpc.Payload))
-	}
-
-}
-
-func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
-
-	a.logger.Info("RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
-
-	var rpc fleet.RPC
-	if err := json.Unmarshal(message.Payload(), &rpc); err != nil {
-		a.logger.Error("error decoding RPC message from core", zap.Error(fleet.ErrSchemaMalformed))
-		return
-	}
-	if rpc.SchemaVersion != fleet.CurrentRPCSchemaVersion {
-		a.logger.Error("error decoding RPC message from core", zap.Error(fleet.ErrSchemaVersion))
-		return
-	}
-	if rpc.Func == "" || rpc.Payload == nil {
-		a.logger.Error("error decoding RPC message from core", zap.Error(fleet.ErrSchemaMalformed))
-		return
-	}
-
-	// dispatch
-	switch rpc.Func {
-	case fleet.GroupMembershipRPCFunc:
-		var r fleet.GroupMembershipRPC
-		if err := json.Unmarshal(message.Payload(), &r); err != nil {
-			a.logger.Error("error decoding group membership message from core", zap.Error(fleet.ErrSchemaMalformed))
-			return
-		}
-		a.handleGroupMembership(r.Payload)
-	default:
-		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
-			zap.String("func", rpc.Func),
-			zap.Any("payload", rpc.Payload))
-	}
-
 }
 
 func (a *orbAgent) Stop() {

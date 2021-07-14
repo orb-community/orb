@@ -5,7 +5,8 @@
 package prom
 
 import (
-	"github.com/go-redis/redis"
+	"context"
+	"github.com/go-redis/redis/v8"
 	mfconsumers "github.com/mainflux/mainflux/consumers"
 	mflog "github.com/mainflux/mainflux/logger"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
@@ -37,7 +38,7 @@ func (p promSinkService) Run() error {
 	p.logger.Info("started nats consumer")
 	eventStore := esconsume.NewEventStore(p, p.esclient, "prom-sink", p.logger)
 	p.logger.Info("Subscribed to Redis Event Store")
-	if err := eventStore.Subscribe("orb.policy"); err != nil {
+	if err := eventStore.Subscribe(context.Background()); err != nil {
 		p.logger.Warn("orb prometheus sync service failed to subscribe to event sourcing: %s", zap.Error(err))
 	}
 	return nil

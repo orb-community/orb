@@ -8,18 +8,14 @@
 
 package consumer
 
-type removeEvent struct {
-	id string
-}
+import "time"
 
-type updateChannelEvent struct {
-	id       string
-	name     string
-	metadata map[string]interface{}
-}
-
-// Connection event is either connect or disconnect event.
-type disconnectEvent struct {
-	thingID   string
-	channelID string
+type createDatasetEvent struct {
+	id           string
+	ownerID      string
+	name         string
+	agentGroupID string
+	policyID     string
+	sinkID       string
+	timestamp    time.Time
 }

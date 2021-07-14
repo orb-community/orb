@@ -11,6 +11,8 @@ type Backend interface {
 	Version() (string, error)
 	Start() error
 	Stop() error
+
+	ApplyPolicy(interface{}) error
 }
 
 var registry = make(map[string]Backend)

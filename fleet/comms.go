@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
+	"github.com/ns1labs/orb/policies/pb"
 	"go.uber.org/zap"
 	"time"
 )
@@ -30,6 +31,11 @@ type AgentCommsService interface {
 	NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error
 	// NotifyAgentGroupMembership RPC Core -> Agent: Notify Agent of all AgentGroup memberships
 	NotifyAgentGroupMembership(a Agent) error
+	// NotifyAgentPolicies RPC Core -> Agent: Notify Agent of all AgentPolicy it should currently run based on group membership
+	NotifyAgentPolicies(a Agent) error
+
+	// NotifyGroupNewAgentPolicy RPC Core -> AgentGroup
+	NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -44,16 +50,61 @@ type fleetCommsService struct {
 	logger         *zap.Logger
 	agentRepo      AgentRepository
 	agentGroupRepo AgentGroupRepository
+	policyClient   pb.PolicyServiceClient
 
 	// agent comms
 	agentPubSub mfnats.PubSub
 }
 
+func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error {
+	p, err := svc.policyClient.RetrievePolicy(ctx, &pb.PolicyByIDReq{PolicyID: policyID, OwnerID: ownerID})
+	if err != nil {
+		return err
+	}
+
+	var pdata interface{}
+	if err := json.Unmarshal(p.Data, &pdata); err != nil {
+		return err
+	}
+
+	payload := []AgentPolicyRPCPayload{{
+		ID:      policyID,
+		Name:    p.Name,
+		Backend: p.Backend,
+		Version: p.Version,
+		Data:    pdata,
+	}}
+
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentPolicyRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   ag.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error {
 
 	payload := GroupMembershipRPCPayload{
-		ChannelIDS: []string{ag.MFChannelID},
-		FullList:   false,
+		Groups:   []GroupMembershipData{{Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
+		FullList: false,
 	}
 
 	data := RPC{
@@ -80,6 +131,80 @@ func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGrou
 
 	return nil
 
+}
+
+func (svc fleetCommsService) NotifyAgentPolicies(a Agent) error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	groups, err := svc.agentGroupRepo.RetrieveAllByAgent(ctx, a)
+	if err != nil {
+		return err
+	}
+
+	if len(groups) == 0 {
+		// no groups, nothing to do
+		return nil
+	}
+
+	groupIDs := make([]string, len(groups))
+	for i, group := range groups {
+		groupIDs[i] = group.ID
+	}
+
+	// MQTT he doesn't have OwnerID, we need to look it up
+	a, err = svc.agentRepo.RetrieveByIDWithChannel(ctx, a.MFThingID, a.MFChannelID)
+	if err != nil {
+		return err
+	}
+
+	p, err := svc.policyClient.RetrievePoliciesByGroups(ctx, &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: a.MFOwnerID})
+	if err != nil {
+		return err
+	}
+
+	payload := make([]AgentPolicyRPCPayload, len(p.Policies))
+	for i, policy := range p.Policies {
+
+		var pdata interface{}
+		if err := json.Unmarshal(policy.Data, &pdata); err != nil {
+			return err
+		}
+
+		payload[i] = AgentPolicyRPCPayload{
+			ID:      policy.Id,
+			Name:    policy.Name,
+			Backend: policy.Backend,
+			Version: policy.Version,
+			Data:    pdata,
+		}
+
+	}
+
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentPolicyRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   a.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
@@ -89,14 +214,15 @@ func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
 		return err
 	}
 
-	fullList := make([]string, len(list))
+	fullList := make([]GroupMembershipData, len(list))
 	for i, agentGroup := range list {
-		fullList[i] = agentGroup.MFChannelID
+		fullList[i].Name = agentGroup.Name.String()
+		fullList[i].ChannelID = agentGroup.MFChannelID
 	}
 
 	payload := GroupMembershipRPCPayload{
-		ChannelIDS: fullList,
-		FullList:   true,
+		Groups:   fullList,
+		FullList: true,
 	}
 
 	data := RPC{
@@ -125,12 +251,13 @@ func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
 
 }
 
-func NewFleetCommsService(logger *zap.Logger, agentRepo AgentRepository, agentGroupRepo AgentGroupRepository, agentPubSub mfnats.PubSub) AgentCommsService {
+func NewFleetCommsService(logger *zap.Logger, policyClient pb.PolicyServiceClient, agentRepo AgentRepository, agentGroupRepo AgentGroupRepository, agentPubSub mfnats.PubSub) AgentCommsService {
 	return &fleetCommsService{
 		logger:         logger,
 		agentRepo:      agentRepo,
 		agentGroupRepo: agentGroupRepo,
 		agentPubSub:    agentPubSub,
+		policyClient:   policyClient,
 	}
 }
 
@@ -204,7 +331,12 @@ func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, p
 	switch rpc.Func {
 	case GroupMembershipReqRPCFunc:
 		if err := svc.NotifyAgentGroupMembership(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
-			svc.logger.Error(" failure", zap.Error(err))
+			svc.logger.Error("notify group membership failure", zap.Error(err))
+			return nil
+		}
+	case AgentPoliciesReqRPCFunc:
+		if err := svc.NotifyAgentPolicies(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
+			svc.logger.Error("notify agent policies failure", zap.Error(err))
 			return nil
 		}
 	default:

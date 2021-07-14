@@ -70,7 +70,7 @@ test:
 	go test -mod=mod -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd')
 
 proto:
-	protoc --gofast_out=plugins=grpc:. *.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative policies/pb/policies.proto
 
 $(SERVICES):
 	$(call compile_service,$(@))
@@ -92,7 +92,7 @@ define docker_push
 endef
 
 run:
-	docker-compose -f docker/docker-compose.yml up
+	docker-compose -f docker/docker-compose.yml up -d
 
 ui:
 	cd ui/ && docker build --tag=ns1labs/orb-ui -f docker/Dockerfile .

@@ -81,8 +81,9 @@ func migrateDB(db *sqlx.DB) error {
 					)`,
 					`CREATE INDEX ON agent_groups (mf_owner_id)`,
 					`CREATE INDEX ON agent_groups USING gin (tags)`,
-					`CREATE VIEW agent_group_membership(agent_groups_id, agent_mf_thing_id, agent_mf_channel_id, group_mf_channel_id, mf_owner_id, agent_state) as
+					`CREATE VIEW agent_group_membership(agent_groups_id, agent_groups_name, agent_mf_thing_id, agent_mf_channel_id, group_mf_channel_id, mf_owner_id, agent_state) as
 					SELECT agent_groups.id,
+						   agent_groups.name,
 						   agents.mf_thing_id,
 						   agents.mf_channel_id,
 						   agent_groups.mf_channel_id,

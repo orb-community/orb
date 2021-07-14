@@ -6,14 +6,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package api
+package http
 
 import (
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 )
 
-type addReq struct {
+type addPolicyReq struct {
 	Name       string         `json:"name"`
 	Backend    string         `json:"backend"`
 	Policy     types.Metadata `json:"policy,omitempty"`
@@ -22,7 +22,7 @@ type addReq struct {
 	token      string
 }
 
-func (req addReq) validate() error {
+func (req addPolicyReq) validate() error {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
 	}
@@ -44,6 +44,31 @@ func (req addReq) validate() error {
 		if req.Format != "" || req.PolicyData != "" {
 			return errors.ErrMalformedEntity
 		}
+	}
+
+	_, err := types.NewIdentifier(req.Name)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return nil
+}
+
+type addDatasetReq struct {
+	Name         string `json:"name"`
+	AgentGroupID string `json:"agent_group_id"`
+	PolicyID     string `json:"agent_policy_id"`
+	SinkID       string `json:"sink_id"`
+	token        string
+}
+
+func (req addDatasetReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+
+	if req.Name == "" || req.AgentGroupID == "" || req.PolicyID == "" || req.SinkID == "" {
+		return errors.ErrMalformedEntity
 	}
 
 	_, err := types.NewIdentifier(req.Name)
