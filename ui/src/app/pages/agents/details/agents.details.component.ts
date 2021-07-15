@@ -7,7 +7,7 @@ import { UserGroupsService } from '../../../common/services/users/groups.service
 import { NotificationsService } from '../../../common/services/notifications/notifications.service';
 
 @Component({
-  selector: 'ngx-agent-groups-management-details-component',
+  selector: 'ngx-agents-details-component',
   templateUrl: './agents.details.component.html',
   styleUrls: ['./agents.details.component.scss'],
 })

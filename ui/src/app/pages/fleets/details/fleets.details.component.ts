@@ -7,7 +7,7 @@ import { UserGroupsService } from 'app/common/services/users/groups.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
-  selector: 'ngx-fleet-management-details-component',
+  selector: 'ngx-fleets-details-component',
   templateUrl: './fleets.details.component.html',
   styleUrls: ['./fleets.details.component.scss'],
 })

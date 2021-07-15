@@ -5,7 +5,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 
 @Component({
-  selector: 'ngx-sink-management-add.component',
+  selector: 'ngx-sinks-add.component',
   templateUrl: './sinks.add.component.html',
   styleUrls: ['./sinks.add.component.scss'],
 })

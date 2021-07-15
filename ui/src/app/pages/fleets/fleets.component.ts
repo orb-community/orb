@@ -12,7 +12,7 @@ import { FleetsAddComponent } from 'app/pages/fleets/add/fleets.add.component';
 const defFreq: number = 100;
 
 @Component({
-  selector: 'ngx-fleet-management-component',
+  selector: 'ngx-fleets-component',
   templateUrl: './fleets.component.html',
   styleUrls: ['./fleets.component.scss'],
 })

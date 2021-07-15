@@ -6,17 +6,17 @@ export const MENU_ITEMS: NbMenuItem[] = environment.production ?
     {
       title: 'Agent Groups Explorer',
       icon: 'home-outline',
-      link: '/pages/agent-groups-explorer',
+      link: '/pages/agents',
     },
     {
       title: 'Dataset Explorer',
       icon: 'home-outline',
-      link: '/pages/dataset-explorer',
+      link: '/pages/datasets',
     },
     {
       title: 'Fleet Management',
       icon: 'home-outline',
-      link: '/pages/fleet-management',
+      link: '/pages/fleets',
     },
     {
       title: 'Settings',
@@ -25,12 +25,17 @@ export const MENU_ITEMS: NbMenuItem[] = environment.production ?
         {
           title: 'Sink Management',
           icon: 'home-outline',
-          link: '/pages/agent-groups-explorer',
+          link: '/pages/sinks',
         },
         {
-          title: 'Sink Management',
+          title: 'Selector Management',
           icon: 'home-outline',
-          link: '/pages/agent-groups-explorer',
+          link: '/pages/selectors',
+        },
+        {
+          title: 'Policy Management',
+          icon: 'home-outline',
+          link: '/pages/policies',
         },
       ],
       link: '/pages/agent-groups-explorer',

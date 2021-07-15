@@ -12,7 +12,7 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 const defFreq: number = 100;
 
 @Component({
-  selector: 'ngx-sink-management-component',
+  selector: 'ngx-sinks-component',
   templateUrl: './sinks.component.html',
   styleUrls: ['./sinks.component.scss'],
 })

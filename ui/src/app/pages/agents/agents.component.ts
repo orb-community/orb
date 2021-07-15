@@ -12,7 +12,7 @@ import { AgentsAddComponent } from 'app/pages/agents/add/agents.add.component';
 const defFreq: number = 100;
 
 @Component({
-  selector: 'ngx-agent-groups-management-component',
+  selector: 'ngx-agents-component',
   templateUrl: './agents.component.html',
   styleUrls: ['./agents.component.scss'],
 })

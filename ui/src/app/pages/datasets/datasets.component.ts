@@ -12,7 +12,7 @@ import { DatasetsAddComponent } from 'app/pages/datasets/add/datasets.add.compon
 const defFreq: number = 100;
 
 @Component({
-  selector: 'ngx-dataset-explorer-component',
+  selector: 'ngx-datasets-component',
   templateUrl: './datasets.component.html',
   styleUrls: ['./datasets.component.scss'],
 })

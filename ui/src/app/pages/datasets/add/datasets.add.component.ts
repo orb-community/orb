@@ -5,7 +5,7 @@ import { UserGroupsService } from 'app/common/services/users/groups.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
-  selector: 'ngx-dataset-explorer-add.component',
+  selector: 'ngx-datasets-add.component',
   templateUrl: './datasets.add.component.html',
   styleUrls: ['./datasets.add.component.scss'],
 })

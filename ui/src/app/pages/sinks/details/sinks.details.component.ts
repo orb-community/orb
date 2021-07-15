@@ -5,7 +5,7 @@ import { Sink } from 'app/common/interfaces/sink.interface';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 
 @Component({
-  selector: 'ngx-sink-management-details-component',
+  selector: 'ngx-sinks-details-component',
   templateUrl: './sinks.details.component.html',
   styleUrls: ['./sinks.details.component.scss'],
 })

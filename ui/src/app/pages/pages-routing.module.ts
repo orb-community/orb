@@ -87,7 +87,7 @@ const children = environment.production ?
             component: AgentsDetailsComponent,
         },
         {
-            path: 'sink-management/:id',
+            path: 'sinks/:id',
             component: SinksDetailsComponent,
         },
         {
@@ -107,11 +107,11 @@ const children = environment.production ?
             component: FleetsDetailsComponent,
         },
         {
-            path: 'sink-management',
+            path: 'sinks',
             component: SinksComponent,
         },
         {
-            path: 'sink-management/:id',
+            path: 'sinks/:id',
             component: SinksDetailsComponent,
         },
 
@@ -191,7 +191,7 @@ const children = environment.production ?
             component: AgentsDetailsComponent,
         },
         {
-            path: 'sink-management/:id',
+            path: 'sinks/:id',
             component: SinksDetailsComponent,
         },
         {
@@ -211,11 +211,11 @@ const children = environment.production ?
             component: FleetsDetailsComponent,
         },
         {
-            path: 'sink-management',
+            path: 'sinks',
             component: SinksComponent,
         },
         {
-            path: 'sink-management/details/:id',
+            path: 'sinks/details/:id',
             component: SinksDetailsComponent,
         },
     ];
