@@ -47,19 +47,19 @@ import { TwinsStatesComponent } from './twins/states/twins.states.component';
 import { TwinsDefinitionsComponent } from './twins/definitions/twins.definitions.component';
 // ORB SPECIFIC
 // ORB - dataset-explorer
-import { DatasetExplorerComponent } from 'app/pages/dataset-explorer/dataset-explorer.component';
-import { DatasetExplorerAddComponent } from 'app/pages/dataset-explorer/add/dataset-explorer.add.component';
-import { DatasetExplorerDetailsComponent } from 'app/pages/dataset-explorer/details/dataset-explorer.details.component';
+import { DatasetsComponent } from 'app/pages/datasets/datasets.component';
+import { DatasetsAddComponent } from 'app/pages/datasets/add/datasets.add.component';
+import { DatasetsDetailsComponent } from 'app/pages/datasets/details/datasets.details.component';
 // ORB - fleet-management
-import { FleetManagementComponent } from 'app/pages/fleet-management/fleet-management.component';
-import { FleetManagementAddComponent } from 'app/pages/fleet-management/add/fleet-management.add.component';
-import { FleetManagementDetailsComponent } from 'app/pages/fleet-management/details/fleet-management.details.component';
-import { SinkManagementComponent } from './sink-management/sink-management.component';
-import { SinkManagementAddComponent } from './sink-management/add/sink-management.add.component';
-import { SinkManagementDetailsComponent } from './sink-management/details/sink-management.details.component';
-import { AgentGroupsManagementComponent } from './agent-groups-management/agent-groups-management.component';
-import { AgentGroupsManagementAddComponent } from './agent-groups-management/add/agent-groups-management.add.component';
-import { AgentGroupsManagementDetailsComponent } from './agent-groups-management/details/agent-groups-management.details.component';
+import { FleetsComponent } from 'app/pages/fleets/fleets.component';
+import { FleetsAddComponent } from 'app/pages/fleets/add/fleets.add.component';
+import { FleetsDetailsComponent } from 'app/pages/fleets/details/fleets.details.component';
+import { SinksComponent } from 'app/pages/sinks/sinks.component';
+import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
+import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
+import { AgentsComponent } from 'app/pages/agents/agents.component';
+import { AgentsAddComponent } from 'app/pages/agents/add/agents.add.component';
+import { AgentsDetailsComponent } from 'app/pages/agents/details/agents.details.component';
 
 @NgModule({
     imports: [
@@ -115,21 +115,21 @@ import { AgentGroupsManagementDetailsComponent } from './agent-groups-management
         TwinsDefinitionsComponent,
         // Orb
         // Agent Group Management
-        AgentGroupsManagementComponent,
-        AgentGroupsManagementAddComponent,
-        AgentGroupsManagementDetailsComponent,
+        AgentsComponent,
+        AgentsAddComponent,
+        AgentsDetailsComponent,
         // Dataset Explorer
-        DatasetExplorerComponent,
-        DatasetExplorerAddComponent,
-        DatasetExplorerDetailsComponent,
+        DatasetsComponent,
+        DatasetsAddComponent,
+        DatasetsDetailsComponent,
         // Fleet Management
-        FleetManagementComponent,
-        FleetManagementAddComponent,
-        FleetManagementDetailsComponent,
+        FleetsComponent,
+        FleetsAddComponent,
+        FleetsDetailsComponent,
         // Sink Management
-        SinkManagementComponent,
-        SinkManagementAddComponent,
-        SinkManagementDetailsComponent,
+        SinksComponent,
+        SinksAddComponent,
+        SinksDetailsComponent,
     ],
     providers: [
         NbDialogService,

@@ -26,17 +26,17 @@ import {TwinsStatesComponent} from './twins/states/twins.states.component';
 import {TwinsDefinitionsComponent} from './twins/definitions/twins.definitions.component';
 // ORB
 // Agent Group Management
-import { AgentGroupsManagementComponent } from './agent-groups-management/agent-groups-management.component';
-import { AgentGroupsManagementDetailsComponent } from './agent-groups-management/details/agent-groups-management.details.component';
+import { AgentsComponent } from 'app/pages/agents/agents.component';
+import { AgentsDetailsComponent } from 'app/pages/agents/details/agents.details.component';
 // Dataset Explorer
-import {DatasetExplorerComponent} from 'app/pages/dataset-explorer/dataset-explorer.component';
-import {DatasetExplorerDetailsComponent} from 'app/pages/dataset-explorer/details/dataset-explorer.details.component';
+import {DatasetsComponent} from 'app/pages/datasets/datasets.component';
+import {DatasetsDetailsComponent} from 'app/pages/datasets/details/datasets.details.component';
 // Fleet Management
-import {FleetManagementComponent} from 'app/pages/fleet-management/fleet-management.component';
-import {FleetManagementDetailsComponent} from 'app/pages/fleet-management/details/fleet-management.details.component';
+import {FleetsComponent} from 'app/pages/fleets/fleets.component';
+import {FleetsDetailsComponent} from 'app/pages/fleets/details/fleets.details.component';
 // Sink Management
-import { SinkManagementComponent } from './sink-management/sink-management.component';
-import { SinkManagementDetailsComponent } from './sink-management/details/sink-management.details.component';
+import { SinksComponent } from 'app/pages/sinks/sinks.component';
+import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
 
 
 const children = environment.production ?
@@ -80,39 +80,39 @@ const children = environment.production ?
         },
         {
             path: 'agent-groups-management',
-            component: AgentGroupsManagementComponent,
+            component: AgentsComponent,
         },
         {
             path: 'agent-groups-management/:id',
-            component: AgentGroupsManagementDetailsComponent,
+            component: AgentsDetailsComponent,
         },
         {
             path: 'sink-management/:id',
-            component: SinkManagementDetailsComponent,
+            component: SinksDetailsComponent,
         },
         {
             path: 'dataset-explorer',
-            component: DatasetExplorerComponent,
+            component: DatasetsComponent,
         },
         {
             path: 'dataset-explorer/:id',
-            component: DatasetExplorerDetailsComponent,
+            component: DatasetsDetailsComponent,
         },
         {
             path: 'fleet-management',
-            component: FleetManagementComponent,
+            component: FleetsComponent,
         },
         {
             path: 'fleet-management/:id',
-            component: FleetManagementDetailsComponent,
+            component: FleetsDetailsComponent,
         },
         {
             path: 'sink-management',
-            component: SinkManagementComponent,
+            component: SinksComponent,
         },
         {
             path: 'sink-management/:id',
-            component: SinkManagementDetailsComponent,
+            component: SinksDetailsComponent,
         },
 
     ] : [
@@ -184,39 +184,39 @@ const children = environment.production ?
         },
         {
             path: 'agent-groups-management',
-            component: AgentGroupsManagementComponent,
+            component: AgentsComponent,
         },
         {
             path: 'agent-groups-management/:id',
-            component: AgentGroupsManagementDetailsComponent,
+            component: AgentsDetailsComponent,
         },
         {
             path: 'sink-management/:id',
-            component: SinkManagementDetailsComponent,
+            component: SinksDetailsComponent,
         },
         {
             path: 'dataset-explorer',
-            component: DatasetExplorerComponent,
+            component: DatasetsComponent,
         },
         {
             path: 'dataset-explorer/:id',
-            component: DatasetExplorerDetailsComponent,
+            component: DatasetsDetailsComponent,
         },
         {
             path: 'fleet-management',
-            component: FleetManagementComponent,
+            component: FleetsComponent,
         },
         {
             path: 'fleet-management/:id',
-            component: FleetManagementDetailsComponent,
+            component: FleetsDetailsComponent,
         },
         {
             path: 'sink-management',
-            component: SinkManagementComponent,
+            component: SinksComponent,
         },
         {
-            path: 'sink-management/:id',
-            component: SinkManagementDetailsComponent,
+            path: 'sink-management/details/:id',
+            component: SinksDetailsComponent,
         },
     ];
 

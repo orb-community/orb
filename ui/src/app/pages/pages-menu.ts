@@ -19,8 +19,20 @@ export const MENU_ITEMS: NbMenuItem[] = environment.production ?
       link: '/pages/fleet-management',
     },
     {
-      title: 'Sink Management',
+      title: 'Settings',
       icon: 'home-outline',
+      children: [
+        {
+          title: 'Sink Management',
+          icon: 'home-outline',
+          link: '/pages/agent-groups-explorer',
+        },
+        {
+          title: 'Sink Management',
+          icon: 'home-outline',
+          link: '/pages/agent-groups-explorer',
+        },
+      ],
       link: '/pages/agent-groups-explorer',
     },
   ] :
@@ -41,8 +53,20 @@ export const MENU_ITEMS: NbMenuItem[] = environment.production ?
       link: '/pages/fleet-management',
     },
     {
-      title: 'Sink Management',
+      title: 'Settings',
       icon: 'home-outline',
+      children: [
+        {
+          title: 'Sink Management',
+          icon: 'home-outline',
+          link: '/pages/agent-groups-explorer',
+        },
+        {
+          title: 'Sink Management',
+          icon: 'home-outline',
+          link: '/pages/agent-groups-explorer',
+        },
+      ],
       link: '/pages/agent-groups-explorer',
     },
   ];
