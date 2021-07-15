@@ -12,7 +12,7 @@ const {
   updateOrCreateSinkManagementItem,
   deleteSinkManagementItem,
   createSinkManagement,
-} = require('./mock/sinks-crud');
+} = require('./mock/sink-management-crud');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -28,7 +28,6 @@ const getLatestTmp = (listSetter, filePath) => {
     writeTmpFile([], filePath);
   }
 };
-
 
 const app = express();
 const PORT = 3000;
@@ -64,13 +63,13 @@ app.use((req, res, next) => {
 // Sink Management Crud
 
 app.get('/sinks', (req, res) => {
-  console.log('gotten list of sinks');
+  console.log('Mock: gotten list of sinks');
   send(() => res.send(getSinkManagementList()), MOCK_DELAY);
 });
 
 app.get('/sinks/:id', (req, res) => {
   const { id } = req.params;
-  console.log('gotten a single sink');
+  console.log('Mock: gotten a single sink');
   const sinkItem = getSinkManagementById(id);
   send(() => res.send(sinkItem), MOCK_DELAY);
 });
@@ -81,7 +80,7 @@ app.post('/sinks', (req, res) => {
   const newList = updateOrCreateSinkManagementItem(newSinkItem);
   setSinkManagementList(newList);
   writeTmpFile(newList, SINK_TMP_FILE);
-   console.log('created a sink');
+   console.log('Mock: created a sink');
   send(() => res.send(newSinkItem), MOCK_DELAY);
 });
 
@@ -94,7 +93,7 @@ app.put('/sinks/:id', (req, res) => {
   }
   const newList =  updateOrCreateSinkManagementItem(sinkPayload);
   writeTmpFile(newList, SINK_TMP_FILE);
-  console.log('updated a sink');
+  console.log('Mock: updated a sink');
   send(() => res.sendStatus(204), MOCK_DELAY);
 });
 
@@ -106,8 +105,9 @@ app.delete('/sinks/:id', (req, res) => {
   }
 
   const newList = deleteSinkManagementItem(sinkItem);
-  console.log('deleted a sink');
+  console.log('Mock: deleted a sink');
   writeTmpFile(newList, SINK_TMP_FILE);
+  send(() => res.send(sinkItem), MOCK_DELAY);
 });
 
 const key = fs.readFileSync(`${__dirname}/certs/selfsigned.key`);

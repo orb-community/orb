@@ -89,7 +89,7 @@ export class SinksService {
   }
 
   editSink(sinkItem: Sink): any {
-    return this.http.put(environment.sinksUrl, sinkItem)
+    return this.http.put(`${environment.sinksUrl}/${sinkItem.id}`, sinkItem)
       .map(
         resp => {
           return resp;
@@ -105,7 +105,7 @@ export class SinksService {
   }
 
  deleteSink(sinkId: string) {
-    return this.http.delete(`${environment.thingsUrl}/${sinkId}`)
+    return this.http.delete(`${environment.sinksUrl}/${sinkId}`)
       .map(
         resp => {
           return resp;
