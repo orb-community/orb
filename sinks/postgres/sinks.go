@@ -69,7 +69,7 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 		items = append(items, sink)
 	}
 
-	count := fmt.Sprintf(`SELECT COUNT(*) FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, nameQuery, orderQuery, dirQuery)
+	count := fmt.Sprint(`SELECT COUNT(*) FROM sinks WHERE mf_owner_id = :mf_owner_id `)
 
 	total, err := total(ctx, s.db, count, params)
 	if err != nil {
@@ -135,6 +135,7 @@ type dbSink struct {
 	Backend     string 		     `db:"backend"`
 	Description string 		     `db:"description"`
 	Created		time.Time		 `db:"ts_created"`
+	OrbTags     db.Metadata      `db:"orb_tags"`
 
 }
 
