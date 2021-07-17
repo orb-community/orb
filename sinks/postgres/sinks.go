@@ -48,7 +48,7 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 		"name": name,
 		"tags": tags,
 	}
-	rows, err := s.db.NamedQueryContext(ctx, q, params)
+	rows, err := s.db.NamedQueryContext(ctx, q, params) // TODO Check how it works
 	if err != nil {
 		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}

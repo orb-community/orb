@@ -70,6 +70,16 @@ func listSinksEndpoint(svc sinks.Service) endpoint.Endpoint {
 			},
 			Sinks: []sinkRes{},
 		}
+
+		for _, sink := range page.Sinks {
+			view := sinkRes{
+				ID: sink.ID,
+				Name: sink.Name.String(),
+				Description: sink.Description,
+				Type: sink.Type,
+			}
+			res.Sinks = append(res.Sinks, view)
+		}
 		return res, nil
 	}
 }
