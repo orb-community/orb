@@ -1,0 +1,143 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: orb-fleet
+servers:
+  - url: 'http://localhost:8203'
+paths:
+  /agent_groups:
+    get:
+      summary: 'List Agent Groups'
+      operationId: listAgentGroups
+      tags:
+        - agent_group
+      responses:
+        '200':
+          description: 'One page of Agent Group details'
+          content:
+            application/json:
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'      
+    post:
+      summary: 'Create new Agent Group'
+      operationId: createAgentGroup
+      tags:
+        - agent_group
+      requestBody:
+        required: true
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                        tags:
+                            type: object
+      responses:
+        '200':
+          description: 'Agent group add details'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    id:
+                        type: string
+                        format: uuid
+                    name:
+                        type: string
+                    tags:
+                        type: object
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /agents:
+    get:
+      summary: 'List or search Agents'
+      operationId: listAgents
+      tags:
+        - agent
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          description: Offset in total results
+          schema:
+            type : integer
+            format: int64
+            minimum: 0
+      responses:
+        '200':
+          description: 'One page of Agent details'
+          content:
+            application/json:
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'      
+    post:
+      summary: 'Create new Agent'
+      operationId: createAgent
+      tags:
+        - agent
+      requestBody:
+        required: true
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                        orb_tags:
+                            type: object
+      responses:
+        '200':
+          description: 'Agent add details including key, shown only once'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    id:
+                        type: string
+                        format: uuid
+                    name:
+                        type: string
+                    key:
+                        type: string
+                        format: uuid
+                    channel_id:
+                        type: string
+                        format: uuid
+                    state:
+                        type: string
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
