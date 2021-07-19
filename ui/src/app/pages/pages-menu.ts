@@ -4,79 +4,80 @@ import { NbMenuItem } from '@nebular/theme';
 export const MENU_ITEMS: NbMenuItem[] = environment.production ?
   [
     {
-      title: 'Home',
+      title: 'Agent Groups Explorer',
       icon: 'home-outline',
-      link: '/pages/home',
-      home: true,
+      link: '/pages/agents',
     },
     {
-      title: 'Things',
-      icon: 'film-outline',
-      link: '/pages/things',
-    },
-    {
-      title: 'Channels',
-      icon: 'flip-2-outline',
-      link: '/pages/channels',
-    },
-    {
-      title: 'Twins',
-      icon: 'copy-outline',
-      link: '/pages/twins',
-    },
-  ] :
-  [
-    {
-      title: 'Home',
+      title: 'Dataset Explorer',
       icon: 'home-outline',
-      link: '/pages/home',
-      home: true,
+      link: '/pages/datasets',
     },
     {
-      title: 'User Groups',
-      icon: 'shield-outline',
-      link: '/pages/users/groups',
+      title: 'Fleet Management',
+      icon: 'home-outline',
+      link: '/pages/fleets',
     },
     {
-      title: 'Users',
-      icon: 'people-outline',
-      link: '/pages/users',
-    },
-    {
-      title: 'Things',
-      icon: 'film-outline',
-      link: '/pages/things',
-    },
-    {
-      title: 'Channels',
-      icon: 'flip-2-outline',
-      link: '/pages/channels',
-    },
-    {
-      title: 'Twins',
-      icon: 'copy-outline',
-      link: '/pages/twins',
-    },
-    {
-      title: 'Services',
-      icon: 'layers-outline',
+      title: 'Settings',
+      icon: 'home-outline',
       children: [
         {
-          title: 'LoRa',
-          icon: 'radio-outline',
-          link: '/pages/services/lora',
+          title: 'Sink Management',
+          icon: 'home-outline',
+          link: '/pages/sinks',
         },
         {
-          title: 'OPC-UA',
-          icon: 'globe-outline',
-          link: '/pages/services/opcua',
+          title: 'Selector Management',
+          icon: 'home-outline',
+          link: '/pages/selectors',
         },
         {
-          title: 'Gateways',
-          icon: 'hard-drive-outline',
-          link: '/pages/services/gateways',
+          title: 'Policy Management',
+          icon: 'home-outline',
+          link: '/pages/policies',
         },
       ],
+      link: '/pages/agent-groups-explorer',
     },
-  ];
+  ] :
+    [
+      {
+        title: 'Agent Groups Explorer',
+        icon: 'home-outline',
+        link: '/pages/agents',
+      },
+      {
+        title: 'Dataset Explorer',
+        icon: 'home-outline',
+        link: '/pages/datasets',
+      },
+      {
+        title: 'Fleet Management',
+        icon: 'home-outline',
+        link: '/pages/fleets',
+      },
+      {
+        title: 'Settings',
+        icon: 'home-outline',
+        children: [
+          {
+            title: 'Sink Management',
+            icon: 'home-outline',
+            link: '/pages/sinks',
+          },
+          {
+            title: 'Selector Management',
+            icon: 'home-outline',
+            link: '/pages/selectors',
+          },
+          {
+            title: 'Policy Management',
+            icon: 'home-outline',
+            link: '/pages/policies',
+          },
+        ],
+        link: '/pages/agent-groups-explorer',
+      },
+    ];
 
