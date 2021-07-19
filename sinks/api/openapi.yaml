@@ -7,28 +7,145 @@ servers:
 paths:
   /sinks:
     get:
-      summary: 'List Sinks'
+      summary: 'List current Sinks'
       operationId: listSinks
       tags:
         - sink
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Name"
+        - $ref: "#/components/parameters/Order"
+        - $ref: "#/components/parameters/Direction"
       responses:
         '200':
-          description: 'One page of Sink details'
+          $ref: "#/components/responses/SinksPageRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceError"
+    post:
+      summary: 'Create a new Sink'
+      operationId: createSink
+      tags:
+        - sink
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                config:
+                  type: object
+      responses:
+        '200':
+          description: 'Sink add details'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Sink'
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  config:
+                    type: object
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-    post:
-      summary: 'Create new Sink'
-      operationId: createSink
+  /sinks/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/SinkId"
+    get:
+      summary: 'Get an existing Sink configuration'
+      operationId: readSink
       tags:
         - sink
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      responses:
+        '200':
+          description: 'Sink add details'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  config:
+                    type: object
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: 'Update an existing Sink configuration'
+      operationId: updateSink
+      tags:
+        - sink
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                config:
+                  type: object
+      responses:
+        '200':
+          description: 'Sink add details'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  config:
+                    type: object
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: 'Delete an existing Sink configuration'
+      operationId: deleteSink
+      tags:
+        - sink
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
       requestBody:
         required: true
         content:
@@ -63,10 +180,12 @@ paths:
                 $ref: '#/components/schemas/Error'
   /features/sinks:
     get:
-      summary: 'List Sink backends and feature sets'
+      summary: 'List supported Sink backends and their configuration parameters'
       operationId: sinkFeatures
       tags:
         - sink
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
       responses:
         '200':
           description: 'Sink feature details'
@@ -83,7 +202,106 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 components:
+  parameters:
+    Name:
+      name: name
+      description: Name filter. Filtering is performed as a case-insensitive partial match.
+      in: query
+      schema:
+        type: string
+      required: false
+    Order:
+      name: order
+      description: Order type.
+      in: query
+      schema:
+        type: string
+        default: id
+        enum:
+          - name
+          - id
+      required: false
+    Direction:
+      name: dir
+      description: Order direction.
+      in: query
+      schema:
+        type: string
+        default: desc
+        enum:
+          - asc
+          - desc
+      required: false
+    Limit:
+      name: limit
+      description: Size of the subset to retrieve.
+      in: query
+      schema:
+        type: integer
+        default: 10
+        maximum: 100
+        minimum: 1
+      required: false
+    Offset:
+      name: offset
+      description: Number of items to skip during retrieval.
+      in: query
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+      required: false
+    Authorization:
+      name: Authorization
+      description: User's access token.
+      in: header
+      schema:
+        type: string
+        format: jwt
+      required: true
+    SinkId:
+      name: sinkId
+      description: Unique Sink identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+  responses:
+    SinksPageRes:
+      description: Data retrieved.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SinksPage"
+    ServiceError:
+      description: Unexpected server-side error occurred.
+      content:
+        application/json:
+          schema:
+            type: string
+            format: byte
   schemas:
+    SinksPage:
+      type: object
+      properties:
+        sinks:
+          type: array
+          minItems: 0
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/SinksResSchema"
+        total:
+          type: integer
+          description: Total number of items.
+        offset:
+          type: integer
+          description: Number of items to skip during retrieval.
+        limit:
+          type: integer
+          description: Maximum number of items to return in one page.
+      required:
+        - sinks
     ConfigEntry:
       type: object
       properties:
@@ -104,7 +322,7 @@ components:
         type: string
         name: remote_host
         description: The remote host to send Prometheus metrics toop
-    Sink:
+    SinksResSchema:
       type: object
       required:
         - id
