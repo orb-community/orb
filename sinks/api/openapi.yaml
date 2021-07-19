@@ -101,7 +101,7 @@ components:
                 type: string
             config:
                 type: object
-                description: Backend configuration fields details
+                description: Backend configuration field details
     Error:
         type: object
         properties:
