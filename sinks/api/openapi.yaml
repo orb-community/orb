@@ -325,7 +325,7 @@ components:
         title: Remote Host
         type: string
         name: remote_host
-        description: The remote host to send Prometheus metrics toop
+        description: The remote host to send Prometheus metrics too
     SinksObjSchema:
       type: object
       required:
