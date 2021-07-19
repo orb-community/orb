@@ -61,6 +61,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /features/sinks:
+    get:
+      summary: 'List Sink backends and feature sets'
+      operationId: sinkFeatures
+      tags:
+        - sink
+      responses:
+        '200':
+          description: 'Sink feature details'
+          content:
+            application/json:
+                schema:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/SinkBackend'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'      
 components:
   schemas:
     Sink:
@@ -70,6 +91,17 @@ components:
         properties:
             id:
                 type: string
+    SinkBackend:
+        type: object
+        properties:
+            backend:
+                type: string    
+                description: Name and identifier of the sink backend     
+            description:
+                type: string
+            config:
+                type: object
+                description: Backend configuration fields details
     Error:
         type: object
         properties:
