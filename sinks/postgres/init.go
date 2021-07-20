@@ -46,9 +46,10 @@ func migrateDB(db *sqlx.DB) error {
 						name           TEXT NOT NULL,
 						mf_owner_id    UUID NOT NULL,
 						description    TEXT NOT NULL,
-						backend        TEXT NOT NULL,           
-						orb_tags       JSONB NOT NULL DEFAULT '{}',
-
+						tags           JSONB NOT NULL DEFAULT '{}',						
+						backend        TEXT NOT NULL,
+						config		   JSON NOT NULL DEFAULT '{}',
+						
 						metadata       JSONB NOT NULL DEFAULT '{}',
                         ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
 						PRIMARY KEY (name, mf_owner_id),

@@ -14,9 +14,11 @@ type Sink struct {
 	ID          string
 	Name        types.Identifier
 	MFOwnerID   string
-	Type	    string
 	Description string
+	Backend	    string
 	Config      types.Metadata
+	Tags        types.Tags
+	//Status      Status
 	Created     time.Time
 }
 

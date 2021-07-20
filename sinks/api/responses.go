@@ -7,14 +7,17 @@ package api
 import (
 	"github.com/ns1labs/orb/pkg/types"
 	"net/http"
+	"time"
 )
 
 type sinkRes struct {
 	ID          string         `json:"id"`
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
-	Type		string 		   `json:"type"`
+	Tags        types.Tags     `json:"tags"`
+	Backend		string 		   `json:"backend"`
 	Config      types.Metadata `json:"config,omitempty"`
+	TsCreated   time.Time     `json:"ts_created"`
 	created     bool
 }
 

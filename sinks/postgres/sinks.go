@@ -91,8 +91,8 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 }
 
 func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, error) {
-	q := `INSERT INTO sinks (name, mf_owner_id, metadata)         
-			  VALUES (:name, :mf_owner_id, :metadata) RETURNING id`
+	q := `INSERT INTO sinks (name, mf_owner_id, metadata, description, backend, tags)         
+			  VALUES (:name, :mf_owner_id, :metadata, :description, :backend, :tags) RETURNING id`
 
 	if !sink.Name.IsValid() || sink.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -135,7 +135,7 @@ type dbSink struct {
 	Backend     string 		     `db:"backend"`
 	Description string 		     `db:"description"`
 	Created		time.Time		 `db:"ts_created"`
-	OrbTags     db.Metadata      `db:"orb_tags"`
+	Tags        db.Tags          `db:"tags"`
 
 }
 
@@ -148,10 +148,13 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 	}
 
 	return dbSink{
-		ID:        sink.ID,
-		Name:      sink.Name,
-		MFOwnerID: uID.String(),
-		Metadata:  db.Metadata(sink.Config),
+		ID:          sink.ID,
+		Name:        sink.Name,
+		MFOwnerID:   uID.String(),
+		Metadata:    db.Metadata(sink.Config),
+		Backend:     sink.Backend,
+		Description: sink.Description,
+		Tags: 		 db.Tags(sink.Tags),
 	}, nil
 
 }
@@ -161,10 +164,11 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 		ID:          dba.ID,
 		Name:        dba.Name,
 		MFOwnerID:   dba.MFOwnerID,
-		Type:        dba.Backend,
+		Backend:     dba.Backend,
 		Description: dba.Description,
-		Config:      nil,
+		Config:      types.Metadata(dba.Metadata),
 		Created:     dba.Created,
+		Tags: 		 types.Tags(dba.Tags),
 	}
 	return sink, nil
 }
