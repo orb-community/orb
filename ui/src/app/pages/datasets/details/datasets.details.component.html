@@ -1,0 +1,63 @@
+<div class="row">
+  <div class="col-md-6">
+    <nb-card size="tiny">
+      <nb-card-header class="card-header">
+        User Group Info
+      </nb-card-header>
+      <nb-card-body>
+        <div class="row">
+          <div class="col-md-2 form-key"> Email: </div><div class="col-md-10"> {{ userGroup.name }} </div>
+          <div class="col-md-2 form-key"> Description: </div><div class="col-md-10"> {{ userGroup.description }} </div>
+          <div class="col-md-2 form-key"> ID: </div><div class="col-md-10"> {{ userGroup.id }} </div>
+          <div class="col-md-2 form-key"> Owner ID: </div><div class="col-md-10"> {{ userGroup.owner_id }} </div>
+          <div class="col-md-2 form-key"> Parent ID: </div><div class="col-md-10"> {{ userGroup.parent_id }} </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+
+  <div class="col-md-6">
+    <nb-card size="small">
+      <nb-card-header class="card-header">
+        <div class="row">
+            <div class="col-md-3">
+              Members
+            </div>
+            <div class="col-md-7">
+              <nb-select multiple placeholder="Select User(s)" [(selected)]="selectedUsers" size="tiny">
+                <nb-option *ngFor="let user of this.users" [value]="user">
+                  {{user.email}}
+                </nb-option>
+              </nb-select>
+            </div>
+            <div class="col-md-2">
+              <button nbButton size="tiny" class="button-green"
+                      (click)="onAssign()">
+                Assign
+              </button>
+            </div>
+        </div>
+      </nb-card-header>
+      <nb-card-body>
+        <div *ngIf="!members">
+          <div style="text-align: center">
+            No members
+          </div>
+        </div>
+        <div *ngIf="members">
+          <div *ngFor="let mem of members;" class="row" style="padding: 2.6px;">
+            <div class="col-md-9">
+              <nb-icon status="info" icon="arrow-right-outline"></nb-icon>
+              {{mem.email}}
+            </div>
+            <div class="col-md-3">
+              <button (click)="onUnassign(mem)" nbButton size="tiny" class="button-red">
+                x
+              </button>
+            </div>
+          </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>

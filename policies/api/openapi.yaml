@@ -1,0 +1,80 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: orb-policies
+servers:
+  - url: 'http://localhost:8202'
+paths:
+  /policies/agent:
+    get:
+      summary: 'List Agent Policies'
+      operationId: listPolicies
+      tags:
+        - policy
+      responses:
+        '200':
+          description: 'One page of Policy details'
+          content:
+            application/json:
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'      
+    post:
+      summary: 'Create new Policy'
+      operationId: createPolicy
+      tags:
+        - policy
+      requestBody:
+        required: true
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                        backend:
+                            type: string
+                        policy:
+                            type: object
+                        format:
+                            type: string
+                        policy_data:
+                            type: string
+      responses:
+        '200':
+          description: 'Policy add details'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    id:
+                        type: string
+                        format: uuid
+                    name:
+                        type: string
+                    backend:
+                        type: string
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

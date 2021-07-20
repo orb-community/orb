@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
+	config2 "github.com/ns1labs/orb/agent/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -46,7 +47,7 @@ func Run(cmd *cobra.Command, args []string) {
 	cobra.CheckErr(err)
 
 	// configuration
-	var config agent.Config
+	var config config2.Config
 	viper.Unmarshal(&config)
 
 	config.Debug = Debug
@@ -54,7 +55,7 @@ func Run(cmd *cobra.Command, args []string) {
 	// new agent
 	a, err := agent.New(logger, config)
 	if err != nil {
-		logger.Error("agent creation error", zap.Error(err))
+		logger.Error("agent start up error", zap.Error(err))
 		os.Exit(1)
 	}
 

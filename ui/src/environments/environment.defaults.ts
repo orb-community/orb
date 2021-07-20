@@ -15,11 +15,15 @@ export const environment = {
   bootstrapUrl: '/bootstrap/things/bootstrap',
   connectUrl: '/connect',
   browseUrl: '/browse',
+  // ORB
+
+  sinksUrl: '/sinks',
 
   httpAdapterUrl: '/http',
   readerUrl: '/reader',
   readerPrefix: 'channels',
   readerSuffix: 'messages',
+
 
   mqttWsUrl: window['env']['mqttWsUrl'] || 'ws://localhost/mqtt',
   exportConfigFile: '/configs/export/config.toml',

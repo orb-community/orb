@@ -1,8 +1,11 @@
 <img src="docs/images/ORB-logo-black@3x.png" alt="Orb" width="500"/>
 
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/ns1labs/orb.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ns1labs/orb/alerts/)
+[![Language grade: Go](https://img.shields.io/lgtm/grade/go/g/ns1labs/orb.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ns1labs/orb/context:go)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/ns1labs/orb.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ns1labs/orb/context:javascript)
 
 **Orb** is a new kind of observability platform that helps operators, developers, and end users understand their
-networks, distributed applications, and traffic flows in real time. 
+networks, distributed applications, and traffic flows in real time.
 
 **Orb** combines concepts from Internet of Things (IoT), Edge Compute, and high throughput stream processing to offer command
 of a fleet of distributed agents which can be orchestrated in real time to summarize high volume, information dense data

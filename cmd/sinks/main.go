@@ -30,7 +30,7 @@ import (
 	"time"
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
-	r "github.com/go-redis/redis"
+	r "github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
 	"github.com/mainflux/mainflux"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
@@ -48,7 +48,8 @@ const (
 
 func main() {
 
-	authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
+	//authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
+	authCfg := config.LoadGRPCConfig(mfEnvPrefix, "auth")
 	sdkCfg := config.LoadMFSDKConfig(mfEnvPrefix)
 
 	esCfg := config.LoadEsConfig(envPrefix)
@@ -182,7 +183,7 @@ func newSinkService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Lo
 	return svc
 }
 
-func connectToAuth(cfg config.MFAuthConfig, logger *zap.Logger) *grpc.ClientConn {
+func connectToAuth(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
 	var opts []grpc.DialOption
 	tls, err := strconv.ParseBool(cfg.ClientTLS)
 	if err != nil {

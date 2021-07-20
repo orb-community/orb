@@ -343,6 +343,9 @@ services:
   policies:
     image: "ns1labs/orb-policies:${ORB_RELEASE_TAG}"
     container_name: orb-policies
+    ports:
+      - ${ORB_POLICIES_HTTP_PORT}:${ORB_POLICIES_HTTP_PORT}
+      - ${ORB_POLICIES_GRPC_PORT}:${ORB_POLICIES_GRPC_PORT}
     depends_on:
       - es-redis
       - policies-db
@@ -357,6 +360,7 @@ services:
       ORB_POLICIES_DB_PASS: ${ORB_POLICIES_DB_PASS}
       ORB_POLICIES_DB: ${ORB_POLICIES_DB_DB}
       ORB_POLICIES_DB_SSL_MODE: disable
+      ORB_POLICIES_GRPC_PORT: ${ORB_POLICIES_GRPC_PORT}
       MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
       MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
     networks:
@@ -412,6 +416,8 @@ services:
       MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
       MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
       ORB_FLEET_LOG_LEVEL: debug
+      ORB_POLICIES_GRPC_URL: ${ORB_POLICIES_GRPC_URL}
+      ORB_POLICIES_GRPC_TIMEOUT: ${ORB_POLICIES_GRPC_TIMEOUT}
     networks:
       - orb-base-net
 
