@@ -48,7 +48,6 @@ const (
 
 func main() {
 
-	//authCfg := config.LoadMFAuthConfig(mfEnvPrefix)
 	authCfg := config.LoadGRPCConfig(mfEnvPrefix, "auth")
 	sdkCfg := config.LoadMFSDKConfig(mfEnvPrefix)
 

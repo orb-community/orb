@@ -25,6 +25,13 @@ type GRPCConfig struct {
 	ServerKey  string `mapstructure:"server_key"`
 }
 
+type MFAuthConfig struct {
+	URL       string `mapstructure:"url"`
+	Timeout   string `mapstructure:"timeout"`
+	CaCerts   string `mapstructure:"ca_certs"`
+	ClientTLS string `mapstructure:"client_tls"`
+}
+
 type NatsConfig struct {
 	URL             string `mapstructure:"url"`
 	ConsumerCfgPath string `mapstructure:"config_path"`
@@ -166,7 +173,7 @@ func LoadGRPCConfig(prefix string, svc string) GRPCConfig {
 	cfg := viper.New()
 	cfg.SetEnvPrefix(fmt.Sprintf("%s_%s_grpc", prefix, svc))
 
-	cfg.SetDefault("url", "")
+	cfg.SetDefault("url", "localhost:8181")
 	cfg.SetDefault("port", "")
 	cfg.SetDefault("timeout", "1s")
 	cfg.SetDefault("client_tls", "false")

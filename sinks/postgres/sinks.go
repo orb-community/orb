@@ -40,7 +40,15 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	q := fmt.Sprintf(`SELECT * FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, nameQuery, orderQuery, dirQuery)
+	q := fmt.Sprintf(`SELECT id, 
+									name,
+									mf_owner_id, 
+									description,
+									tags,
+									backend,
+									metadata,
+									ts_created
+								FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, nameQuery, orderQuery, dirQuery)
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
 		"limit": pm.Limit,
