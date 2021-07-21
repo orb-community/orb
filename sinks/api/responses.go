@@ -61,3 +61,19 @@ type pageRes struct {
 	Order  string `json:"order"`
 	Dir    string `json:"direction"`
 }
+
+type sinksBackendsRes struct {
+	Backends []string
+}
+
+func (s sinksBackendsRes) Code() int {
+	return http.StatusOK
+}
+
+func (s sinksBackendsRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s sinksBackendsRes) Empty() bool {
+	return false
+}

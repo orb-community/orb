@@ -4,13 +4,22 @@ import (
 	"context"
 	"github.com/mainflux/mainflux"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/sinks/backend"
 )
 
 var (
 	ErrCreateSink = errors.New("failed to create Sink")
 
 	ErrConflictSink = errors.New("entity already exists")
-	)
+)
+
+func (svc sinkService) ListBackends(ctx context.Context, token string)([]string, error) {
+	_, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return []string{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+	return backend.GetList(), nil
+}
 
 func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error) {
 	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})

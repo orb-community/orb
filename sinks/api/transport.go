@@ -50,6 +50,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.Service) h
 		decodeList,
 		types.EncodeResponse,
 		opts...))
+	r.Get("/features/sinks", kithttp.NewServer(
+		kitot.TraceServer(tracer, "list_backends")(listBackendsEndpoint(svc)),
+		decodeListBackends,
+		types.EncodeResponse,
+		opts...))
 
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
@@ -67,6 +72,14 @@ func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
+	return req, nil
+}
+
+func decodeListBackends(_ context.Context, r *http.Request)(interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		return nil, errors.ErrUnsupportedContentType
+	}
+	req := listBackendsReq{token: r.Header.Get("Authorization")}
 	return req, nil
 }
 

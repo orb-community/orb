@@ -92,3 +92,20 @@ func listSinksEndpoint(svc sinks.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func listBackendsEndpoint(svc sinks.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(listBackendsReq)
+
+		backends, err := svc.ListBackends(ctx, req.token)
+		if err != nil {
+			return nil, err
+		}
+
+		res := sinksBackendsRes{
+			Backends: backends,
+		}
+
+		return res, nil
+	}
+}

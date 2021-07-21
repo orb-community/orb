@@ -34,6 +34,10 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 	return es.svc.CreateSink(ctx, token, s)
 }
 
+func (es eventStore) ListBackends(ctx context.Context, token string) (_ []string, err error) {
+	return es.svc.ListBackends(ctx, token)
+}
+
 // NewEventStoreMiddleware returns wrapper around sinks service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc sinks.Service, client *redis.Client) sinks.Service {
