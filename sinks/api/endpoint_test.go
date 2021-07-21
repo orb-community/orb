@@ -1,3 +1,11 @@
+// Copyright (c) Mainflux
+// SPDX-License-Identifier: Apache-2.0
+
+// Adapted for Orb project, modifications licensed under MPL v. 2.0:
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
 package api
 
 import (
@@ -22,6 +30,8 @@ const (
 	contentType = "application/json"
 	token		= "token"
 	email		= "user@example.com"
+	validJson	= "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	invalidJson	= "{"
 )
 
 var (
@@ -86,22 +96,62 @@ func TestCreateSinks(t *testing.T) {
 	server := newServer(service)
 	defer server.Close()
 
-	//sk := sink
-	//sk.ID = "key"
-	//data := toJSON(sk)
-	data := "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
-	req := testRequest{
-		client: server.Client(),
-		method: http.MethodPost,
-		url: fmt.Sprintf("%s/sinks", server.URL),
-		contentType: contentType,
-		token: token,
-		body: strings.NewReader(data),
+	cases := []struct {
+		desc 		string
+		req 		string
+		contentType string
+		auth 		string
+		status 		int
+		location 	string
+	} {
+		{
+			desc:			"add a valid sink",
+			req:			validJson,
+			contentType: 	contentType,
+			auth: 			token,
+			status: 		http.StatusOK,
+			location: 		"/sinks",
+		},
+		{
+			desc:			"add sink with invalid json",
+			req: 			invalidJson,
+			contentType:	contentType,
+			auth: 			token,
+			status: 		http.StatusBadRequest,
+			location: 		"/sinks",
+		},
+		{
+			desc:			"add a sink with a invalid token",
+			req: 			validJson,
+			contentType: 	contentType,
+			auth: 			"",
+			status: 		http.StatusUnauthorized,
+			location: 		"/sinks",
+		},
+		{
+			desc:			"add a valid without content type",
+			req: 			validJson,
+			contentType: 	"",
+			auth: 			token,
+			status: 		http.StatusUnsupportedMediaType,
+			location: 		"/sinks",
+		},
 	}
-	res, err := req.make()
-	assert.Nil(t, err, fmt.Sprintf("unexpect erro %s", err))
-	if res.StatusCode != http.StatusCreated {
-		t.Errorf("waited: %d, received: %d", http.StatusOK, res.StatusCode)
+
+	for _, sinkCase := range cases {
+		req := testRequest{
+			client: 	 server.Client(),
+			method: 	 http.MethodPost,
+			url: 		 fmt.Sprintf("%s/sinks", server.URL),
+			contentType: sinkCase.contentType,
+			token: 		 sinkCase.auth,
+			body: 		 strings.NewReader(sinkCase.req),
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("unexpect erro %s", err))
+
+		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 	}
+
 
 }
