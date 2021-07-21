@@ -24,13 +24,13 @@ const (
 )
 
 type addReq struct {
-	Name   string         `json:"name,omitempty"`
-	Backend string 		  `json:"backend,omitempty"`
-	Config types.Metadata `json:"config,omitempty"`
-	Description string    `json:"description,omitempty"`
-	Tags types.Tags       `json:"tags,omitempty"`
-	ValidateOnly bool     `json:"validate_only"`
-	token  string
+	Name         string         `json:"name,omitempty"`
+	Backend      string         `json:"backend,omitempty"`
+	Config       types.Metadata `json:"config,omitempty"`
+	Description  string         `json:"description,omitempty"`
+	Tags         types.Tags     `json:"tags,omitempty"`
+	ValidateOnly bool           `json:"validate_only"`
+	token        string
 }
 
 func (req addReq) validate() error {
