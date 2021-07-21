@@ -8,7 +8,9 @@ import (
 
 var (
 	ErrCreateSink = errors.New("failed to create Sink")
-)
+
+	ErrConflictSink = errors.New("entity already exists")
+	)
 
 func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error) {
 	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})

@@ -23,22 +23,31 @@ var _ sinks.SinkRepository = (*sinkRepositoryMock)(nil)
 type sinkRepositoryMock struct {
 	mu      sync.Mutex
 	counter uint64
-	sinksDb map[string]sinks.Sink
+	sinksMock map[string]sinks.Sink
 }
 
 func NewSinkRepository() sinks.SinkRepository {
 	return &sinkRepositoryMock{
-		sinksDb: make(map[string]sinks.Sink),
+		sinksMock: make(map[string]sinks.Sink),
 	}
 }
 
 func (s *sinkRepositoryMock) Save(ctx context.Context, sink sinks.Sink) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	for _, sk := range s.sinksMock {
+		if sk.Name == sink.Name {
+			return "", sinks.ErrConflictSink
+		}
+	}
+
+	s.counter++
 	ID, _ := uuid.NewV4()
 	sink.ID = ID.String()
-	s.sinksDb[sink.ID] = sink
-	return ID.String(), nil
+	s.sinksMock[sink.ID] = sink
+
+	return sink.ID, nil
 }
 
 func (s* sinkRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
@@ -55,7 +64,7 @@ func (s* sinkRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm s
 	var sks[]sinks.Sink
 
 	prefix := fmt.Sprintf("%s", owner)
-	for k, v := range s.sinksDb {
+	for k, v := range s.sinksMock {
 		id, _ := strconv.ParseUint(v.ID, 10, 64)
 		if strings.HasPrefix(k, prefix) && id >= first && id < last {
 			sks = append(sks, v)
