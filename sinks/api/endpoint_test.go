@@ -25,10 +25,12 @@ const (
 )
 
 var (
-	name, _ = types.NewIdentifier("teste")
 	sink = sinks.Sink{
-		Name: name,
-		Config: map[string]interface{}{"test": "data"},
+		Name:        types.Identifier{},
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
 	}
 )
 
@@ -62,7 +64,7 @@ func newService(tokens map[string]string) sinks.Service {
 
 	config := mfsdk.Config{
 		BaseURL: "localhost",
-		ThingsPrefix: "mf",
+		ThingsPrefix: "",
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
@@ -84,10 +86,10 @@ func TestCreateSinks(t *testing.T) {
 	server := newServer(service)
 	defer server.Close()
 
-	sk := sink
-	sk.ID = "key"
-	data := toJSON(sk)
-
+	//sk := sink
+	//sk.ID = "key"
+	//data := toJSON(sk)
+	data := "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
 	req := testRequest{
 		client: server.Client(),
 		method: http.MethodPost,
@@ -99,7 +101,7 @@ func TestCreateSinks(t *testing.T) {
 	res, err := req.make()
 	assert.Nil(t, err, fmt.Sprintf("unexpect erro %s", err))
 	if res.StatusCode != http.StatusCreated {
-		t.Errorf("waited: %d, received: %d", http.StatusCreated, res.StatusCode)
+		t.Errorf("waited: %d, received: %d", http.StatusOK, res.StatusCode)
 	}
 
 }
