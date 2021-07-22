@@ -22,7 +22,7 @@ func (p prometheusBackend) Validate(config types.Metadata) error {
 }
 
 func (p prometheusBackend) Metadata() interface{} {
-	return p
+	return p.Metadata()
 }
 
 func (p prometheusBackend) GetName() string {
@@ -39,11 +39,9 @@ func (p prometheusBackend) GetConfig() types.Metadata {
 
 func Register() bool {
 	backend.Register("prometheus", &prometheusBackend{
-		Name: "prometheus",
+		Name:        "prometheus",
 		Description: "prometheus backend",
-		Config: map[string]interface{}{"title":"Remote Host", "type":"string", "name": "remote_host"},
+		Config:      map[string]interface{}{"title": "Remote Host", "type": "string", "name": "remote_host"},
 	})
 	return true
 }
-
-

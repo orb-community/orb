@@ -85,6 +85,9 @@ func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 }
 
 func decodeView(_ context.Context, r *http.Request)(interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		return nil, errors.ErrUnsupportedContentType
+	}
 	req := viewResourceReq{
 		token: r.Header.Get("Authorization"),
 		id: bone.GetValue(r, "id"),

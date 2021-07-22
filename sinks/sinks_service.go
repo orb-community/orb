@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	ErrCreateSink = errors.New("failed to create Sink")
-
-	ErrConflictSink = errors.New("entity already exists")
+	ErrCreateSink                 = errors.New("failed to create Sink")
+	ErrConflictSink               = errors.New("entity already exists")
+	ErrUnsupportedContentTypeSink = errors.New("unsupported content type")
 )
 
 func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error) {
@@ -39,7 +39,7 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	return sink, nil
 }
 
-func (svc sinkService) ListBackends(ctx context.Context, token string)([]string, error) {
+func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string, error) {
 	_, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
 		return []string{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
@@ -47,11 +47,14 @@ func (svc sinkService) ListBackends(ctx context.Context, token string)([]string,
 	return backend.GetList(), nil
 }
 
-
-func (svc sinkService) GetBackend(ctx context.Context, token string, key string)(backend.Backend, error) {
+func (svc sinkService) GetBackend(ctx context.Context, token string, key string) (backend.Backend, error) {
 	_, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
-		return backend.GetBackend(""), errors.Wrap(errors.ErrUnauthorizedAccess, err)
+		return nil, errors.Wrap(errors.ErrUnauthorizedAccess, err)
 	}
-	return backend.GetBackend(key), nil
+	res := backend.GetBackend(key)
+	if res == nil {
+		return nil, errors.Wrap(errors.ErrNotFound, err)
+	}
+	return res, nil
 }

@@ -95,3 +95,7 @@ func (s sinksBackendRes) Headers() map[string]string {
 func (s sinksBackendRes) Empty() bool {
 	return false
 }
+
+type errorRes struct {
+	Err string `json:"error"`
+}
