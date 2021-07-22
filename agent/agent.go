@@ -59,11 +59,12 @@ func New(logger *zap.Logger, c config.Config) (Agent, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	pm, err := policies.New(logger, c, db)
 	if err != nil {
 		return nil, err
 	}
-	return &orbAgent{logger: logger, config: c, policyManager: pm}, nil
+	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db}, nil
 }
 
 func (a *orbAgent) startBackends() error {

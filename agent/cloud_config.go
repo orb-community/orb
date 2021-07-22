@@ -8,11 +8,44 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/pkg/errors"
+	migrate "github.com/rubenv/sql-migrate"
 	"strconv"
 )
 
+func migrateDB(db *sqlx.DB) error {
+	migrations := &migrate.MemoryMigrationSource{
+		Migrations: []*migrate.Migration{
+			{
+				Id: "cloud_config_1",
+				Up: []string{
+					`CREATE TABLE IF NOT EXISTS cloud_config (
+						address TEXT NOT NULL,
+						id TEXT	NOT NULL,
+						key TEXT	NOT NULL,
+						channel TEXT	NOT NULL,
+						ts_created INTEGER NOT NULL
+						)`,
+				},
+				Down: []string{
+					"DROP TABLE cloud_config",
+				},
+			},
+		},
+	}
+
+	_, err := migrate.Exec(db.DB, "sqlite3", migrations, migrate.Up)
+
+	return err
+}
+
 func autoProvision(c config.Config, db *sqlx.DB) (config.MQTTConfig, error) {
-	return config.MQTTConfig{}, nil
+
+	err := migrateDB(db)
+	if err != nil {
+		return config.MQTTConfig{}, err
+	}
+
+	return config.MQTTConfig{}, errors.New("unable to auto provision agent")
 }
 
 func GetCloudConfig(c config.Config, db *sqlx.DB) (config.MQTTConfig, error) {
