@@ -336,7 +336,6 @@ func TestViewBackends(t *testing.T) {
 
 }
 
-
 func TestViewSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
 	server := newServer(service)
@@ -346,13 +345,13 @@ func TestViewSink(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	data := toJSON(sinkRes{
-		ID: sk.ID,
-		Name: sk.Name.String() ,
+		ID:          sk.ID,
+		Name:        sk.Name.String(),
 		Description: sk.Description,
-		Backend: sk.Backend,
-		Config: sk.Config,
-		Tags: sk.Tags,
-		TsCreated: sk.Created,
+		Backend:     sk.Backend,
+		Config:      sk.Config,
+		Tags:        sk.Tags,
+		TsCreated:  sk.Created,
 	})
 
 	cases := []struct {
