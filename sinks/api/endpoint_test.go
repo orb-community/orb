@@ -351,7 +351,7 @@ func TestViewSink(t *testing.T) {
 		Backend:     sk.Backend,
 		Config:      sk.Config,
 		Tags:        sk.Tags,
-		TsCreated:  sk.Created,
+		TsCreated:   sk.Created,
 	})
 
 	cases := []struct {
