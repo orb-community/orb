@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinks"
+	"github.com/ns1labs/orb/sinks/backend"
 )
 
 const (
@@ -36,6 +37,10 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 
 func (es eventStore) ListBackends(ctx context.Context, token string) (_ []string, err error) {
 	return es.svc.ListBackends(ctx, token)
+}
+
+func (es eventStore) GetBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
+	return es.svc.GetBackend(ctx, token, key)
 }
 
 // NewEventStoreMiddleware returns wrapper around sinks service that sends

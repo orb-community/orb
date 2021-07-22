@@ -7,6 +7,7 @@ package sinks
 import (
 	"context"
 	"github.com/ns1labs/orb/pkg/types"
+	"github.com/ns1labs/orb/sinks/backend"
 	"time"
 )
 
@@ -37,6 +38,8 @@ type SinkService interface {
 	ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error)
 	// ListBackends retreives a lista of availible backends
 	ListBackends(ctx context.Context, token string) ([]string, error)
+
+	GetBackend(ctx context.Context, token string, key string)(backend.Backend, error)
 }
 
 type SinkRepository interface {

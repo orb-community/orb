@@ -63,7 +63,7 @@ type pageRes struct {
 }
 
 type sinksBackendsRes struct {
-	Backends []string
+	Backends []interface{} `json:"backends"`
 }
 
 func (s sinksBackendsRes) Code() int {
@@ -75,5 +75,23 @@ func (s sinksBackendsRes) Headers() map[string]string {
 }
 
 func (s sinksBackendsRes) Empty() bool {
+	return false
+}
+
+type sinksBackendRes struct {
+	Backend     string         `json:"backend"`
+	Description string         `json:"description"`
+	Config      types.Metadata `json:"config"`
+}
+
+func (s sinksBackendRes) Code() int {
+	return http.StatusOK
+}
+
+func (s sinksBackendRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s sinksBackendRes) Empty() bool {
 	return false
 }

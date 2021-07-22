@@ -7,6 +7,7 @@ package api
 import (
 	"context"
 	"github.com/ns1labs/orb/sinks"
+	"github.com/ns1labs/orb/sinks/backend"
 	"go.uber.org/zap"
 	"time"
 )
@@ -58,6 +59,20 @@ func (l loggingMiddleware) ListBackends(ctx context.Context, token string)(_ []s
 		}
 	}(time.Now())
 	return l.svc.ListBackends(ctx, token)
+}
+
+func (l loggingMiddleware) GetBackend(ctx context.Context, token string, key string)(_ backend.Backend, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_backend",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_backend",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.GetBackend(ctx, token, key)
 }
 
 func NewLoggingMiddleware(svc sinks.Service, logger *zap.Logger) sinks.Service {

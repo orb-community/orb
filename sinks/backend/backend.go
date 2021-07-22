@@ -8,6 +8,10 @@ import "github.com/ns1labs/orb/pkg/types"
 
 type Backend interface {
 	Validate(config types.Metadata) error
+	Metadata() (interface{})
+	GetName() (string)
+	GetDescription() (string)
+	GetConfig() (types.Metadata)
 }
 
 var registry = make(map[string]Backend)

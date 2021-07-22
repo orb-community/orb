@@ -8,6 +8,7 @@ import (
 	"context"
 	"github.com/go-kit/kit/metrics"
 	"github.com/ns1labs/orb/sinks"
+	"github.com/ns1labs/orb/sinks/backend"
 )
 
 var _ sinks.Service = (*metricsMiddleware)(nil)
@@ -28,6 +29,10 @@ func (m metricsMiddleware) CreateSink(ctx context.Context, token string, s sinks
 
 func (m metricsMiddleware) ListBackends(ctx context.Context, token string) (_ []string, err error) {
 	return m.svc.ListBackends(ctx, token)
+}
+
+func (m metricsMiddleware) GetBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
+	return m.svc.GetBackend(ctx, token, key)
 }
 // MetricsMiddleware instruments core service by tracking request count and latency.
 func MetricsMiddleware(svc sinks.Service, counter metrics.Counter, latency metrics.Histogram) sinks.Service {
