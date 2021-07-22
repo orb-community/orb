@@ -36,7 +36,6 @@ paths:
       tags:
         - agent_groups
       requestBody:
-        required: true
         $ref: "#/components/requestBodies/AgentGroupCreateReq"
       responses:
         '201':
@@ -107,14 +106,14 @@ paths:
 components:
   requestBodies:
     AgentGroupCreateReq:
-      description: JSON-formatted document describing the new AgentGroup configuration
+      description: JSON-formatted document describing the new Agent Group configuration
       required: true
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/AgentGroupCreateReqSchema"
     AgentGroupUpdateReq:
-      description: JSON-formatted document describing the updated AgentGroup configuration
+      description: JSON-formatted document describing the updated Agent Group configuration
       required: true
       content:
         application/json:
@@ -179,7 +178,7 @@ components:
       required: true
     AgentGroupId:
       name: id
-      description: Unique AgentGroup identifier.
+      description: Unique Agent Group identifier.
       in: path
       schema:
         type: string
@@ -187,7 +186,7 @@ components:
       required: true
   responses:
     AgentGroupObjRes:
-      description: AgentGroup object
+      description: Agent Group object
       content:
         application/json:
           schema:
@@ -212,61 +211,46 @@ components:
         name:
           type: string
           description: A unique name label
-          example: my-prom-agent group
+          example: eu-agents
         description:
           type: string
-          description: User description of this AgentGroup
-          example: An example prometheus agent group
+          description: User description of this Agent Group
+          example: An example agent group representing european dns nodes
         tags:
           type: object
-          description: User defined key/values for organization and searching
+          description: User defined key/values that will define the members of the group by matching against Agent tags
           example:
-            cloud: aws
-        config:
-          type: object
-          example:
-            remote_host: my.prometheus-host.com
-            username: dbuser
-          description:
-            Object representing backend specific configuration information
+            region: eu
+            node_type: dns
     AgentGroupCreateReqSchema:
       type: object
       required:
         - name
-        - backend
-        - config
+        - tags
       properties:
         name:
           type: string
           description: A unique name label
-          example: my-prom-agent group
+          example: eu-agents
         description:
           type: string
-          description: User description of this AgentGroup
-          example: An example prometheus agent group
+          description: User description of this Agent Group
+          example: An example agent group representing european dns nodes
         tags:
           type: object
-          description: User defined key/values for organization and searching
+          description: User defined key/values that will define the members of the group by matching against Agent tags
           example:
-            cloud: aws
-        backend:
-          type: string
-          example: prometheus
-          description: The agent group backend to use. Must match a backend from /features/agent_groups. Cannot change once created.
-        config:
-          type: object
-          example:
-            remote_host: my.prometheus-host.com
-            username: dbuser
-          description: Object representing backend specific configuration information
+            region: eu
+            node_type: dns
         validate_only:
           type: boolean
           example: false
-          description: When true, only run validation and confirm the AgentGroup could be created, but do not actually create it
+          description:
+            When true, only run validation and confirm the Group Agent could be created and how many Agents it would match, but do not actually create it
     AgentGroupPageSchema:
       type: object
       properties:
-        agent groups:
+        agent_groups:
           type: array
           minItems: 0
           uniqueItems: true
@@ -282,7 +266,7 @@ components:
           type: integer
           description: Maximum number of items to return in one page.
       required:
-        - agent_groupss
+        - agent_groups
     ConfigEntrySchema:
       type: object
       properties:
@@ -319,55 +303,28 @@ components:
         name:
           type: string
           description: A unique name label
-          example: my-prom-agent group
+          example: eu-agents
         description:
           type: string
-          description: User description of this AgentGroup
-          example: An example prometheus agent group
+          description: User description of this Agent Group
+          example: An example agent group representing european dns nodes
         tags:
           type: object
-          description: User defined key/values for organization and searching
+          description: User defined key/values that will define the members of the group by matching against Agent tags
           example:
-            cloud: aws
-        status:
-          readOnly: true
-          enum:
-            - active
-            - error
-          type: string
-          description: Status of this AgentGroup connection to the backend
-        error:
-          readOnly: true
-          type: string
-          description: Error message from AgentGroup backend connection if the AgentGroup is in error state
-        backend:
-          type: string
-          readOnly: true
-          example: prometheus
-          description: The agent group backend to use. Must match a backend from /features/agent_groups. Cannot change once created.
-        config:
-          type: object
-          example:
-            remote_host: my.prometheus-host.com
-            username: dbuser
-          description: Object representing backend specific configuration information
+            region: eu
+            node_type: dns
         ts_created:
           type: string
           format: date-time
           description: Timestamp of creation
-    AgentGroupBackendResSchema:
-      type: object
-      properties:
-        backend:
-          type: string
-          example: prometheus
-          description: Name and identifier of the agent group backend, used when creating new agent groups
-        description:
-          type: string
-          example: Prometheus time series database agent group
-        config:
-          type: array
-          description: Backend configuration field details
-          items:
-            items:
-              $ref: '#/components/schemas/ConfigEntrySchema'
+        matching_agents:
+          type: object
+          description: Counts of agents currently matching this group
+          properties:
+            total:
+              type: integer
+              description: total agents matching
+            online:
+              type: integer
+              description: total agents matching which are currently online
