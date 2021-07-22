@@ -84,3 +84,15 @@ func (req *listResourcesReq) validate() error {
 
 	return nil
 }
+
+type listBackendsReq struct {
+	token string
+}
+
+func (req *listBackendsReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+	return nil
+}
+

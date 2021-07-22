@@ -14,6 +14,7 @@ import (
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
+	"github.com/ns1labs/orb/sinks/backend/prometheus"
 	"go.uber.org/zap"
 	"time"
 )
@@ -58,6 +59,9 @@ func (s sinkService) identify(token string) (string, error) {
 }
 
 func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK) Service {
+
+	prometheus.Register()
+
 	return &sinkService{
 		logger: logger,
 		auth: auth,

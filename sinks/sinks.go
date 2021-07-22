@@ -35,6 +35,8 @@ type SinkService interface {
 	CreateSink(ctx context.Context, token string, s Sink) (Sink, error)
 	// ListSinks retrieves data about sinks
 	ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error)
+	// ListBackends retreives a lista of availible backends
+	ListBackends(ctx context.Context, token string) ([]string, error)
 }
 
 type SinkRepository interface {
