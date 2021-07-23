@@ -95,11 +95,6 @@ func (a *orbAgent) Start() error {
 
 	a.logger.Info("agent started")
 
-	if a.config.Debug {
-		//mqtt.DEBUG = &agentLoggerDebug{a: a}
-		a.logger.Debug("config", zap.Any("values", a.config))
-	}
-	//	mqtt.WARN = &agentLoggerWarn{a: a}
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
 
