@@ -44,22 +44,28 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.Service) h
 		kitot.TraceServer(tracer, "create_sink")(addEndpoint(svc)),
 		decodeAddRequest,
 		types.EncodeResponse,
-		opts...
+		opts...,
 	))
 	r.Get("/sinks", kithttp.NewServer(
 		kitot.TraceServer(tracer, "list_sinks")(listSinksEndpoint(svc)),
 		decodeList,
 		types.EncodeResponse,
-		opts...
+		opts...,
 	))
 	r.Get("/features/sinks", kithttp.NewServer(
 		kitot.TraceServer(tracer, "list_backends")(listBackendsEndpoint(svc)),
 		decodeListBackends,
 		types.EncodeResponse,
-		opts...
+		opts...,
 	))
 	r.Get("/features/sinks/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_backend")(viewBackendEndpoint(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...,
+	))
+	r.Get("/sinks/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "view_sink")(viewSinkEndpoint(svc)),
 		decodeView,
 		types.EncodeResponse,
 		opts...,
@@ -84,18 +90,18 @@ func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	return req, nil
 }
 
-func decodeView(_ context.Context, r *http.Request)(interface{}, error) {
+func decodeView(_ context.Context, r *http.Request) (interface{}, error) {
 	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
 		return nil, errors.ErrUnsupportedContentType
 	}
 	req := viewResourceReq{
 		token: r.Header.Get("Authorization"),
-		id: bone.GetValue(r, "id"),
+		id:    bone.GetValue(r, "id"),
 	}
 	return req, nil
 }
 
-func decodeListBackends(_ context.Context, r *http.Request)(interface{}, error) {
+func decodeListBackends(_ context.Context, r *http.Request) (interface{}, error) {
 	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
 		return nil, errors.ErrUnsupportedContentType
 	}

@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gofrs/uuid"
+	"github.com/mainflux/mainflux/things"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/backend"
@@ -58,6 +59,10 @@ func (s *sinkServiceMock) ListBackends(ctx context.Context, token string) ([]str
 
 func (s *sinkServiceMock) GetBackend(ctx context.Context, token string, key string) (backend.Backend, error) {
 	return s.Backends[key], nil
+}
+
+func (s *sinkServiceMock) ViewSink(ctx context.Context, token string, key string) (sinks.Sink, error) {
+	return sinks.Sink{}, nil
 }
 
 // Backend Mock
@@ -148,4 +153,15 @@ func (s *sinkRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm s
 		},
 	}
 	return page, nil
+}
+
+func (s *sinkRepositoryMock) RetrieveById(ctx context.Context, key string) (sinks.Sink, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if c, ok := s.sinksMock[key]; ok {
+		return c, nil
+	}
+
+	return sinks.Sink{}, things.ErrNotFound
 }

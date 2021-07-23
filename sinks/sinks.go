@@ -16,11 +16,11 @@ type Sink struct {
 	Name        types.Identifier
 	MFOwnerID   string
 	Description string
-	Backend	    string
+	Backend     string
 	Config      types.Metadata
 	Tags        types.Tags
 	//Status      Status
-	Created     time.Time
+	Created time.Time
 }
 
 // Page contains page related metadata as well as list of sinks that
@@ -36,10 +36,12 @@ type SinkService interface {
 	CreateSink(ctx context.Context, token string, s Sink) (Sink, error)
 	// ListSinks retrieves data about sinks
 	ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error)
-	// ListBackends retreives a lista of availible backends
+	// ListBackends retreives a list of availible backends
 	ListBackends(ctx context.Context, token string) ([]string, error)
-
-	GetBackend(ctx context.Context, token string, key string)(backend.Backend, error)
+	// GetBackend retreives a backend by the name
+	GetBackend(ctx context.Context, token string, key string) (backend.Backend, error)
+	// ViewSink retreives a sink by id
+	ViewSink(ctx context.Context, token string, key string) (Sink, error)
 }
 
 type SinkRepository interface {
@@ -48,4 +50,6 @@ type SinkRepository interface {
 	Save(ctx context.Context, sink Sink) (string, error)
 	// RetrieveAll retrieves Sinks
 	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
+	// RetriveById retrieves a Sink by Id
+	RetrieveById(ctx context.Context, key string) (Sink, error)
 }

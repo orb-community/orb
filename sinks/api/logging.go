@@ -47,7 +47,7 @@ func (l loggingMiddleware) CreateSink(ctx context.Context, token string, s sinks
 	return l.svc.CreateSink(ctx, token, s)
 }
 
-func (l loggingMiddleware) ListBackends(ctx context.Context, token string)(_ []string, err error) {
+func (l loggingMiddleware) ListBackends(ctx context.Context, token string) (_ []string, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: list_backends",
@@ -61,7 +61,7 @@ func (l loggingMiddleware) ListBackends(ctx context.Context, token string)(_ []s
 	return l.svc.ListBackends(ctx, token)
 }
 
-func (l loggingMiddleware) GetBackend(ctx context.Context, token string, key string)(_ backend.Backend, err error) {
+func (l loggingMiddleware) GetBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: view_backend",
@@ -73,6 +73,20 @@ func (l loggingMiddleware) GetBackend(ctx context.Context, token string, key str
 		}
 	}(time.Now())
 	return l.svc.GetBackend(ctx, token, key)
+}
+
+func (l loggingMiddleware) ViewSink(ctx context.Context, token string, key string) (_ sinks.Sink, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_sink",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Warn("method call: view_sink",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewSink(ctx, token, key)
 }
 
 func NewLoggingMiddleware(svc sinks.Service, logger *zap.Logger) sinks.Service {

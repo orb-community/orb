@@ -13,15 +13,6 @@ var (
 	ErrUnsupportedContentTypeSink = errors.New("unsupported content type")
 )
 
-func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error) {
-	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
-	if err != nil {
-		return Page{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
-	}
-
-	return svc.sinkRepo.RetrieveAll(ctx, res.GetId(), pm)
-}
-
 func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) (Sink, error) {
 
 	mfOwnerID, err := svc.identify(token)
@@ -57,4 +48,25 @@ func (svc sinkService) GetBackend(ctx context.Context, token string, key string)
 		return nil, errors.Wrap(errors.ErrNotFound, err)
 	}
 	return res, nil
+}
+
+func (svc sinkService) ViewSink(ctx context.Context, token string, key string) (Sink, error) {
+	_, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return Sink{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+	res, err := svc.sinkRepo.RetrieveById(ctx, key)
+	if err != nil {
+		return Sink{}, errors.Wrap(errors.ErrNotFound, err)
+	}
+	return res, nil
+}
+
+func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error) {
+	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return Page{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+
+	return svc.sinkRepo.RetrieveAll(ctx, res.GetId(), pm)
 }

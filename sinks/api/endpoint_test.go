@@ -39,8 +39,9 @@ const (
 )
 
 var (
-	sink = sinks.Sink{
-		Name:        types.Identifier{},
+	nameID, _ = types.NewIdentifier("my-sink")
+	sink      = sinks.Sink{
+		Name:        nameID,
 		Description: "An example prometheus sink",
 		Backend:     "prometheus",
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},

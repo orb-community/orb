@@ -34,6 +34,11 @@ func (m metricsMiddleware) ListBackends(ctx context.Context, token string) (_ []
 func (m metricsMiddleware) GetBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
 	return m.svc.GetBackend(ctx, token, key)
 }
+
+func (m metricsMiddleware) ViewSink(ctx context.Context, token string, key string) (_ sinks.Sink, err error) {
+	return m.svc.ViewSink(ctx, token, key)
+}
+
 // MetricsMiddleware instruments core service by tracking request count and latency.
 func MetricsMiddleware(svc sinks.Service, counter metrics.Counter, latency metrics.Histogram) sinks.Service {
 	return &metricsMiddleware{
