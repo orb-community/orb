@@ -9,6 +9,7 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/agent/backend"
+	"github.com/ns1labs/orb/agent/cloud_config"
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
@@ -102,7 +103,11 @@ func (a *orbAgent) Start() error {
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
 
-	cloudConfig, err := GetCloudConfig(a.config, a.db)
+	ccm, err := cloud_config.New(a.logger, a.config, a.db)
+	if err != nil {
+		return err
+	}
+	cloudConfig, err := ccm.GetCloudConfig()
 	if err != nil {
 		return err
 	}
