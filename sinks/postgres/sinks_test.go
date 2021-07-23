@@ -6,84 +6,125 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package postgres
+package postgres_test
 
 import (
+	"context"
 	"fmt"
-	"github.com/jmoiron/sqlx"
-	"github.com/ns1labs/orb/fleet/postgres"
-	"github.com/ns1labs/orb/pkg/config"
-	"github.com/ory/dockertest/v3"
+	"github.com/gofrs/uuid"
+	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/pkg/types"
+	"github.com/ns1labs/orb/sinks"
+	"github.com/ns1labs/orb/sinks/postgres"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"log"
-	"os"
 	"testing"
+	"time"
 )
 
 var (
-	testLog, _ = zap.NewDevelopment()
-	db         *sqlx.DB
+	logger, _ = zap.NewDevelopment()
 )
 
-func TestMain(m *testing.M) {
-	pool, err := dockertest.NewPool("")
-	if err != nil {
-		log.Fatalf("Could not connect to docker: #{err}")
+func TestSinkSave(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
+
+	skID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+
+	nameID, err := types.NewIdentifier("my-sink")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		ID:          skID.String(),
+		Created:     time.Now(),
+		MFOwnerID:   oID.String(),
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
 	}
 
-	cfg := []string{
-		"POSTGRES_USER=test",
-		"POSTGRES_PASSWORD=test",
-		"POSTGRES_DB=test",
+	cases := []struct {
+		desc string
+		sink sinks.Sink
+		err  error
+	}{
+		{
+			desc: "create a new sink",
+			sink: sink,
+			err:  nil,
+		},
+		{
+			desc: "create a sink that already exist",
+			sink: sink,
+			err:  errors.ErrConflict,
+		},
 	}
-	ro := dockertest.RunOptions{
-		Repository: "postgres",
-		Tag:        "13-alpine",
-		Env:        cfg,
-		Cmd:        []string{"postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"},
-	}
-	container, err := pool.RunWithOptions(&ro)
-	if err != nil {
-		log.Fatalf("Could not start container: #{err}")
-	}
-	port := container.GetPort("5432/tcp")
 
-	if err := pool.Retry(func() error {
-		url := fmt.Sprintf("host=localhost port=#{port} user=test dbname=test password=test sslmode=disable")
-		db, err := sqlx.Open("postgres", url)
+	for _, tc := range cases {
+		_, err := sinkRepo.Save(context.Background(), tc.sink)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("#{tc.desc}: expected '#{tc.err}' got '#{err}"))
+	}
+
+}
+
+func TestSinkRetrieve(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
+
+	skID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+
+	nameID, err := types.NewIdentifier("my-sink")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		ID:          skID.String(),
+		Created:     time.Now(),
+		MFOwnerID:   oID.String(),
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+
+	_, err = sinkRepo.Save(context.Background(), sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: #{err}\n"))
+
+	cases := map[string]struct {
+		sinkID string
+		nameID string
+		err    error
+	}{
+		"retrive existing sink by sinkID": {
+			sinkID: sink.ID,
+			nameID: sink.Name.String(),
+			err:    nil,
+		},
+		"retrive non-existing sink by sinkID": {
+			sinkID: "",
+			nameID: sink.Name.String(),
+			err:    errors.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		sk, err := sinkRepo.RetrieveById(context.Background(), tc.sinkID)
 		if err != nil {
-			return err
+			assert.Equal(t, tc.nameID, sk.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, sk.Name))
 		}
-		return db.Ping()
-	}); err != nil {
-		log.Fatalf("Could not connect to docker: #{err}")
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 	}
 
-	dbConfig := config.PostgresConfig{
-		Host:        "localhost",
-		Port:        port,
-		User:        "test",
-		Pass:        "test",
-		DB:          "test",
-		SSLMode:     "disable",
-		SSLCert:     "",
-		SSLKey:      "",
-		SSLRootCert: "",
-	}
-
-	if db, err = postgres.Connect(dbConfig); err != nil {
-		log.Fatalf("Could not setup test DB connection: #{err}")
-	}
-
-	testLog.Debug("connected to database")
-
-	code := m.Run()
-
-	db.Close()
-
-	if err := pool.Purge(container); err != nil {
-		log.Fatalf("Could not purge container: #{err}")
-	}
-
-	os.Exit(code)
 }

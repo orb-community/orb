@@ -10,10 +10,10 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gofrs/uuid"
-	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -27,7 +27,7 @@ import (
 var _ sinks.SinkRepository = (*sinksRepository)(nil)
 
 type sinksRepository struct {
-	db     *sqlx.DB
+	db     Database
 	logger *zap.Logger
 }
 
@@ -136,7 +136,41 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 }
 
 func (s sinksRepository) RetrieveById(ctx context.Context, key string) (sinks.Sink, error) {
-	return sinks.Sink{}, nil
+
+	q := "SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created " +
+		"FROM sinks where id = $1"
+
+	dba := dbSink{}
+
+	if err := s.db.QueryRowxContext(ctx, q, key).StructScan(&dba); err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if err == sql.ErrNoRows || ok && db.ErrInvalid == pqErr.Code.Name() {
+			return sinks.Sink{}, errors.Wrap(errors.ErrNotFound, err)
+		}
+		return sinks.Sink{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	return toSink(dba)
+
+	//if key == "" {
+	//	return sinks.Sink{}, errors.ErrMalformedEntity
+	//}
+	//
+	//params := map[string]interface{}{
+	//	"id": key,
+	//}
+	//
+	//rows, err := s.db.NamedQueryContext(ctx, q, params)
+	//if err != nil {
+	//	return sinks.Sink{}, errors.ErrSelectEntity
+	//}
+	//defer rows.Close()
+	//
+	//var item []sinks.Sink
+	//for rows.Next()
+	//
+	//
+	//return sinks.Sink{}, nil
 }
 
 type dbSink struct {
@@ -242,6 +276,6 @@ func total(ctx context.Context, db Database, query string, params interface{}) (
 	return total, nil
 }
 
-func NewSinksRepository(db *sqlx.DB, logger *zap.Logger) sinks.SinkRepository {
+func NewSinksRepository(db Database, logger *zap.Logger) sinks.SinkRepository {
 	return &sinksRepository{db: db, logger: logger}
 }
