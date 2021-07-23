@@ -1,15 +1,15 @@
 import { NgModule } from '@angular/core';
 import {
-  NbMenuModule,
-  NbDialogService,
-  NbWindowService,
-  NbButtonModule,
-  NbCardModule,
-  NbInputModule,
-  NbSelectModule,
-  NbCheckboxModule,
-  NbListModule,
-  NbTabsetModule,
+    NbMenuModule,
+    NbDialogService,
+    NbWindowService,
+    NbButtonModule,
+    NbCardModule,
+    NbInputModule,
+    NbSelectModule,
+    NbCheckboxModule,
+    NbListModule,
+    NbTabsetModule,
 } from '@nebular/theme';
 
 import { ThemeModule } from '../@theme/theme.module';
@@ -45,67 +45,99 @@ import { TwinsAddComponent } from './twins/add/twins.add.component';
 import { TwinsDetailsComponent } from './twins/details/twins.details.component';
 import { TwinsStatesComponent } from './twins/states/twins.states.component';
 import { TwinsDefinitionsComponent } from './twins/definitions/twins.definitions.component';
+// ORB SPECIFIC
+// ORB - dataset-explorer
+import { DatasetsComponent } from 'app/pages/datasets/datasets.component';
+import { DatasetsAddComponent } from 'app/pages/datasets/add/datasets.add.component';
+import { DatasetsDetailsComponent } from 'app/pages/datasets/details/datasets.details.component';
+// ORB - fleet-management
+import { FleetsComponent } from 'app/pages/fleets/fleets.component';
+import { FleetsAddComponent } from 'app/pages/fleets/add/fleets.add.component';
+import { FleetsDetailsComponent } from 'app/pages/fleets/details/fleets.details.component';
+import { SinksComponent } from 'app/pages/sinks/sinks.component';
+import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
+import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
+import { AgentsComponent } from 'app/pages/agents/agents.component';
+import { AgentsAddComponent } from 'app/pages/agents/add/agents.add.component';
+import { AgentsDetailsComponent } from 'app/pages/agents/details/agents.details.component';
 
 @NgModule({
-  imports: [
-    PagesRoutingModule,
-    ThemeModule,
-    NbMenuModule,
-    DashboardModule,
-    SharedModule,
-    CommonModule,
-    FormsModule,
-    NbButtonModule,
-    NbCardModule,
-    NbInputModule,
-    NbSelectModule,
-    NbCheckboxModule,
-    NbListModule,
-    NbTabsetModule,
-  ],
-  exports: [
-    SharedModule,
-    CommonModule,
-    FormsModule,
-    NbButtonModule,
-    NbCardModule,
-    NbInputModule,
-    NbSelectModule,
-    NbCheckboxModule,
-    NbListModule,
-  ],
-  declarations: [
-    PagesComponent,
-    // User Groups
-    UserGroupsComponent,
-    UserGroupsAddComponent,
-    UserGroupsDetailsComponent,
-    // Users
-    UsersComponent,
-    UsersAddComponent,
-    UsersDetailsComponent,
-    // Things
-    ThingsComponent,
-    ThingsAddComponent,
-    ThingsDetailsComponent,
-    // Channels
-    ChannelsComponent,
-    ChannelsAddComponent,
-    ChannelsDetailsComponent,
-    // Twins
-    TwinsComponent,
-    TwinsAddComponent,
-    TwinsDetailsComponent,
-    TwinsStatesComponent,
-    TwinsDefinitionsComponent,
-  ],
-  providers: [
-    NbDialogService,
-    NbWindowService,
-  ],
-  entryComponents: [
-    ConfirmationComponent,
-  ],
+    imports: [
+        PagesRoutingModule,
+        ThemeModule,
+        NbMenuModule,
+        DashboardModule,
+        SharedModule,
+        CommonModule,
+        FormsModule,
+        NbButtonModule,
+        NbCardModule,
+        NbInputModule,
+        NbSelectModule,
+        NbCheckboxModule,
+        NbListModule,
+        NbTabsetModule,
+    ],
+    exports: [
+        SharedModule,
+        CommonModule,
+        FormsModule,
+        NbButtonModule,
+        NbCardModule,
+        NbInputModule,
+        NbSelectModule,
+        NbCheckboxModule,
+        NbListModule,
+    ],
+    declarations: [
+        PagesComponent,
+        // User Groups
+        UserGroupsComponent,
+        UserGroupsAddComponent,
+        UserGroupsDetailsComponent,
+        // Users
+        UsersComponent,
+        UsersAddComponent,
+        UsersDetailsComponent,
+        // Things
+        ThingsComponent,
+        ThingsAddComponent,
+        ThingsDetailsComponent,
+        // Channels
+        ChannelsComponent,
+        ChannelsAddComponent,
+        ChannelsDetailsComponent,
+        // Twins
+        TwinsComponent,
+        TwinsAddComponent,
+        TwinsDetailsComponent,
+        TwinsStatesComponent,
+        TwinsDefinitionsComponent,
+        // Orb
+        // Agent Group Management
+        AgentsComponent,
+        AgentsAddComponent,
+        AgentsDetailsComponent,
+        // Dataset Explorer
+        DatasetsComponent,
+        DatasetsAddComponent,
+        DatasetsDetailsComponent,
+        // Fleet Management
+        FleetsComponent,
+        FleetsAddComponent,
+        FleetsDetailsComponent,
+        // Sink Management
+        SinksComponent,
+        SinksAddComponent,
+        SinksDetailsComponent,
+    ],
+    providers: [
+        NbDialogService,
+        NbWindowService,
+    ],
+    entryComponents: [
+        ConfirmationComponent,
+    ],
 })
 export class PagesModule {
 }

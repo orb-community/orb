@@ -197,7 +197,7 @@ components:
         format: jwt
       required: true
     SinkId:
-      name: sinkId
+      name: id
       description: Unique Sink identifier.
       in: path
       schema:
