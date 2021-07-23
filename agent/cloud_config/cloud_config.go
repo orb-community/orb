@@ -82,7 +82,7 @@ func (cc *cloudConfigManager) request(address string, token string, response int
 	if getErr != nil {
 		return getErr
 	}
-	if res.StatusCode != 200 {
+	if res.StatusCode != 201 {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return errors.New(fmt.Sprintf("non 200 HTTP error code from API, no or invalid body: %d", res.StatusCode))
@@ -136,12 +136,17 @@ func (cc *cloudConfigManager) autoProvision(apiAddress string, token string) (co
 	cc.logger.Info("attempting auto provision", zap.String("address", apiAddress))
 
 	var result AgentRes
-	err = cc.request(apiAddress, token, result, http.MethodPost, body)
+	err = cc.request(apiAddress, token, &result, http.MethodPost, body)
 	if err != nil {
 		return config.MQTTConfig{}, err
 	}
 
-	return config.MQTTConfig{}, errors.New("unable to auto provision agent")
+	return config.MQTTConfig{
+		Id:        result.ID,
+		Key:       result.Key,
+		ChannelID: result.ChannelID,
+	}, nil
+
 }
 
 func (cc *cloudConfigManager) GetCloudConfig() (config.MQTTConfig, error) {
@@ -199,6 +204,16 @@ func (cc *cloudConfigManager) GetCloudConfig() (config.MQTTConfig, error) {
 	if err != nil {
 		return config.MQTTConfig{}, err
 	}
-	return cc.autoProvision(apiAddress, token)
+
+	result, err := cc.autoProvision(apiAddress, token)
+	if err != nil {
+		return config.MQTTConfig{}, err
+	}
+	result.Address = mqttAddress
+	cc.logger.Info("using auto provisioned cloud configuration",
+		zap.String("address", mqttAddress),
+		zap.String("id", id))
+
+	return result, nil
 
 }
