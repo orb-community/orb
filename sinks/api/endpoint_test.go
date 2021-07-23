@@ -24,6 +24,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -391,6 +392,24 @@ func TestDeleteSink(t *testing.T) {
 			id: sink.ID,
 			auth: token,
 			status: http.StatusNoContent,
+		},
+		{
+			desc: "delete non-existent sink",
+			id: strconv.FormatUint(wrongID, 10),
+			auth: token,
+			status: http.StatusNoContent,
+		},
+		{
+			desc: "delete sink with invalid token",
+			id: sink.ID,
+			auth: invalidToken,
+			status: http.StatusUnauthorized,
+		},
+		{
+			desc: "delete sink with empty token",
+			id: sink.ID,
+			auth: "",
+			status: http.StatusUnauthorized,
 		},
 	}
 
