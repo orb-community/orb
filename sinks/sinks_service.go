@@ -46,3 +46,12 @@ func (s sinkService) CreateSink(ctx context.Context, token string, sink Sink) (S
 	sink.ID = id
 	return sink, nil
 }
+
+func (svc sinkService) DeleteSink(ctx context.Context, token string, id string) error {
+	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+
+	return svc.sinkRepo.Remove(ctx, res.GetEmail(), id)
+}

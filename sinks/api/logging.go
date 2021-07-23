@@ -60,6 +60,21 @@ func (l loggingMiddleware) ListBackends(ctx context.Context, token string)(_ []s
 	return l.svc.ListBackends(ctx, token)
 }
 
+func (l loggingMiddleware) DeleteSink(ctx context.Context, token string, id string) (err error)  {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: delete_sink",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: delete_sink",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+
+	return l.svc.DeleteSink(ctx, token, id)
+}
+
 func NewLoggingMiddleware(svc sinks.Service, logger *zap.Logger) sinks.Service {
 	return &loggingMiddleware{logger, svc}
 }

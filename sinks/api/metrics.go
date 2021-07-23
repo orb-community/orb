@@ -29,6 +29,10 @@ func (m metricsMiddleware) CreateSink(ctx context.Context, token string, s sinks
 func (m metricsMiddleware) ListBackends(ctx context.Context, token string) (_ []string, err error) {
 	return m.svc.ListBackends(ctx, token)
 }
+
+func (m metricsMiddleware) DeleteSink(ctx context.Context, token string, id string) error {
+	return m.svc.DeleteSink(ctx, token, id)
+}
 // MetricsMiddleware instruments core service by tracking request count and latency.
 func MetricsMiddleware(svc sinks.Service, counter metrics.Counter, latency metrics.Histogram) sinks.Service {
 	return &metricsMiddleware{

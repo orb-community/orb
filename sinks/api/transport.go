@@ -50,6 +50,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.Service) h
 		decodeList,
 		types.EncodeResponse,
 		opts...))
+	r.Delete("/sinks/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "delete_sink")(deleteSinkEndpoint(svc)),
+		decodeDeleteRequest,
+		types.EncodeResponse,
+		opts...))
 	r.Get("/features/sinks", kithttp.NewServer(
 		kitot.TraceServer(tracer, "list_backends")(listBackendsEndpoint(svc)),
 		decodeListBackends,
@@ -124,6 +129,15 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 			Dir:      d,
 			Metadata: m,
 		},
+	}
+
+	return req, nil
+}
+
+func decodeDeleteRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	req := deleteSinkReq{
+		token: r.Header.Get("Authorization"),
+		id: bone.GetValue(r, "id"),
 	}
 
 	return req, nil

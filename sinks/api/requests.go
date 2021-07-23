@@ -96,3 +96,19 @@ func (req *listBackendsReq) validate() error {
 	return nil
 }
 
+type deleteSinkReq struct {
+	token string
+	id string
+}
+
+func (req deleteSinkReq) validate() error  {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+
+	if req.id == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	return nil
+}

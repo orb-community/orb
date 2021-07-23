@@ -32,6 +32,7 @@ const (
 	contentType = "application/json"
 	token       = "token"
 	invalidToken = "invalid_token"
+	wrongID		= 0
 	email       = "user@example.com"
 	validJson   = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
 	invalidJson = "{"
@@ -371,5 +372,38 @@ func TestListSinks(t *testing.T) {
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d, got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
+	}
+}
+
+func TestDeleteSink(t *testing.T) {
+	svc := newService(map[string]string{token: email})
+	server := newServer(svc)
+	defer server.Close()
+
+	cases := []struct{
+		desc string
+		id string
+		auth string
+		status int
+	}{
+		{
+			desc: "delete existing sink",
+			id: sink.ID,
+			auth: token,
+			status: http.StatusNoContent,
+		},
+	}
+
+	for _, sinkCase := range cases {
+		req := testRequest{
+			client: server.Client(),
+			method: http.MethodDelete,
+			url: fmt.Sprintf("%s/sinks/:%s", server.URL, sinkCase.id),
+			token: sinkCase.auth,
+		}
+
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", sinkCase.desc, err))
+		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 	}
 }

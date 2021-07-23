@@ -11,6 +11,7 @@ package api
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 )
@@ -107,5 +108,26 @@ func listBackendsEndpoint(svc sinks.Service) endpoint.Endpoint {
 		}
 
 		return res, nil
+	}
+}
+
+func deleteSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(deleteSinkReq)
+
+		err = req.validate()
+		if err == errors.ErrNotFound {
+			return removeRes{}, nil
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		if err := svc.DeleteSink(ctx, req.token, req.id); err != nil {
+			return nil, err
+		}
+
+		return removeRes{}, nil
 	}
 }

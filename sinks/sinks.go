@@ -37,6 +37,8 @@ type SinkService interface {
 	ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error)
 	// ListBackends retreives a lista of availible backends
 	ListBackends(ctx context.Context, token string) ([]string, error)
+	// DeleteSink deletes an existing sink
+	DeleteSink(ctx context.Context, token string, id string) error
 }
 
 type SinkRepository interface {
@@ -45,4 +47,7 @@ type SinkRepository interface {
 	Save(ctx context.Context, sink Sink) (string, error)
 	// RetrieveAll retrieves Sinks
 	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
+	// Remove removes the sink having the provided identifier, that is owned
+	//  by the specific user.
+	Remove(ctx context.Context, owner string, id string) error
 }
