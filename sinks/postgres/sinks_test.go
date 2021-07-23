@@ -79,9 +79,6 @@ func TestSinkRetrieve(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
 	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
 
-	skID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
-
 	oID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
 
@@ -92,14 +89,13 @@ func TestSinkRetrieve(t *testing.T) {
 		Name:        nameID,
 		Description: "An example prometheus sink",
 		Backend:     "prometheus",
-		ID:          skID.String(),
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
 
-	_, err = sinkRepo.Save(context.Background(), sink)
+	sinkID, err := sinkRepo.Save(context.Background(), sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: #{err}\n"))
 
 	cases := map[string]struct {
@@ -108,7 +104,7 @@ func TestSinkRetrieve(t *testing.T) {
 		err    error
 	}{
 		"retrive existing sink by sinkID": {
-			sinkID: sink.ID,
+			sinkID: sinkID,
 			nameID: sink.Name.String(),
 			err:    nil,
 		},
@@ -120,10 +116,7 @@ func TestSinkRetrieve(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		sk, err := sinkRepo.RetrieveById(context.Background(), tc.sinkID)
-		if err != nil {
-			assert.Equal(t, tc.nameID, sk.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, sk.Name))
-		}
+		_, err := sinkRepo.RetrieveById(context.Background(), tc.sinkID)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 	}
 
