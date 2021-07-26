@@ -57,7 +57,7 @@ func (s *sinkServiceMock) ListBackends(ctx context.Context, token string) ([]str
 	return keys, nil
 }
 
-func (s *sinkServiceMock) GetBackend(ctx context.Context, token string, key string) (backend.Backend, error) {
+func (s *sinkServiceMock) ViewBackend(ctx context.Context, token string, key string) (backend.Backend, error) {
 	return s.Backends[key], nil
 }
 

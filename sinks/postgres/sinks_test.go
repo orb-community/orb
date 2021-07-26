@@ -223,6 +223,28 @@ func TestMultiSinkRetrieval(t *testing.T) {
 		size := uint64(len(page.Sinks))
 		assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
 		assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.pageMetadata.Total, page.Total))
-	}
 
+		if size > 0 {
+			testSortSinks(t, tc.pageMetadata, page.Sinks)
+		}
+	}
+}
+
+func testSortSinks(t *testing.T, pm sinks.PageMetadata, sks []sinks.Sink) {
+	t.Helper()
+	switch pm.Order {
+	case "name":
+		current := sks[0]
+		for _, res := range sks {
+			if pm.Dir == "asc" {
+				assert.GreaterOrEqual(t, res.Name.String(), current.Name.String())
+			}
+			if pm.Dir == "desc" {
+				assert.GreaterOrEqual(t, current.Name.String(), res.Name.String())
+			}
+			current = res
+		}
+	default:
+		break
+	}
 }

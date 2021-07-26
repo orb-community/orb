@@ -181,7 +181,7 @@ func TestViewBackend(t *testing.T) {
 	//bes, err := service.ListBackends(context.Background(), token)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	id := strings.Trim(string(bes[0]), "\n")
-	be, err := f.GetBackend(context.Background(), token, id)
+	be, err := f.ViewBackend(context.Background(), token, id)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	data := toJSON(sinksBackendRes{
@@ -270,7 +270,7 @@ func TestViewBackends(t *testing.T) {
 
 	var backends []interface{}
 	for _, bk := range bes {
-		b, err := f.GetBackend(context.Background(), token, bk)
+		b, err := f.ViewBackend(context.Background(), token, bk)
 		if err != nil {
 			require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 		}
