@@ -394,13 +394,13 @@ func TestDeleteSink(t *testing.T) {
 			desc: "delete existing sink",
 			id: sk.ID,
 			auth: token,
-			status: http.StatusOK,
+			status: http.StatusNoContent,
 		},
 		{
 			desc: "delete non-existent sink",
 			id: strconv.FormatUint(wrongID, 10),
 			auth: token,
-			status: http.StatusNotFound,
+			status: http.StatusNoContent,
 		},
 		{
 			desc: "delete sink with invalid token",
