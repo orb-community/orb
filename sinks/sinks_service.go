@@ -30,6 +30,15 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	return sink, nil
 }
 
+func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) error {
+	skOwnerID, err := svc.identify(token)
+	if err != nil {
+		return err
+	}
+	sink.MFOwnerID = skOwnerID
+	return svc.sinkRepo.Update(ctx, sink)
+}
+
 func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string, error) {
 	_, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {

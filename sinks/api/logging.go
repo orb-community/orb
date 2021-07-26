@@ -19,20 +19,6 @@ type loggingMiddleware struct {
 	svc    sinks.Service
 }
 
-func (l loggingMiddleware) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (_ sinks.Page, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			l.logger.Warn("method call: list_sinks",
-				zap.Error(err),
-				zap.Duration("duration", time.Since(begin)))
-		} else {
-			l.logger.Info("method call: list_sinks",
-				zap.Duration("duration", time.Since(begin)))
-		}
-	}(time.Now())
-	return l.svc.ListSinks(ctx, token, pm)
-}
-
 func (l loggingMiddleware) CreateSink(ctx context.Context, token string, s sinks.Sink) (_ sinks.Sink, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
@@ -45,6 +31,34 @@ func (l loggingMiddleware) CreateSink(ctx context.Context, token string, s sinks
 		}
 	}(time.Now())
 	return l.svc.CreateSink(ctx, token, s)
+}
+
+func (l loggingMiddleware) UpdateSink(ctx context.Context, token string, s sinks.Sink) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: edit_sink",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: edit_sink",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.UpdateSink(ctx, token, s)
+}
+
+func (l loggingMiddleware) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (_ sinks.Page, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: list_sinks",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: list_sinks",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ListSinks(ctx, token, pm)
 }
 
 func (l loggingMiddleware) ListBackends(ctx context.Context, token string) (_ []string, err error) {

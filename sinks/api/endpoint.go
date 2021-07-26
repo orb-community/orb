@@ -53,6 +53,33 @@ func addEndpoint(svc sinks.Service) endpoint.Endpoint {
 	}
 }
 
+func updateSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(updateSinkReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		nameID, _ := types.NewIdentifier(req.Name)
+		sink := sinks.Sink{
+			Name:        nameID,
+			ID:          req.id,
+			Tags:        req.Tags,
+			Backend:     req.Backend,
+			Config:      req.Config,
+			Description: req.Description,
+		}
+
+		if err := svc.UpdateSink(ctx, req.token, sink); err != nil {
+			return nil, err
+		}
+		res := sinkRes{
+			ID:      sink.ID,
+			created: false,
+		}
+		return res, nil
+	}
+}
+
 func listSinksEndpoint(svc sinks.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(listResourcesReq)

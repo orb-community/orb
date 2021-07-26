@@ -68,6 +68,37 @@ func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, er
 
 }
 
+func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
+	q := `UPDATE sinks SET description = :description, tags = :tags, metadata = :metadata WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+
+	sinkDB, err := toDBSink(sink)
+	if err != nil {
+		return errors.Wrap(sinks.ErrUpdateEntity, err)
+	}
+
+	res, errdb := s.db.NamedExecContext(ctx, q, sinkDB)
+	if errdb != nil {
+		pqErr, ok := errdb.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(sinks.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(sinks.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(sinks.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return sinks.ErrNotFound
+	}
+	return nil
+}
+
 func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
 	name, nameQuery := getNameQuery(pm.Name)
 	orderQuery := getOrderQuery(pm.Order)

@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/mainflux/mainflux/things"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/backend"
@@ -43,6 +44,10 @@ func NewSinkServiceMock() sinks.SinkService {
 
 func (s *sinkServiceMock) CreateSink(ctx context.Context, token string, sink sinks.Sink) (sinks.Sink, error) {
 	return sinks.Sink{}, nil
+}
+
+func (s *sinkServiceMock) UpdateSink(ctx context.Context, token string, sink sinks.Sink) (err error) {
+	return nil
 }
 
 func (s *sinkServiceMock) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (sinks.Page, error) {
@@ -121,6 +126,19 @@ func (s *sinkRepositoryMock) Save(ctx context.Context, sink sinks.Sink) (string,
 	s.sinksMock[sink.ID] = sink
 
 	return sink.ID, nil
+}
+
+func (s *sinkRepositoryMock) Update(ctx context.Context, sink sinks.Sink) (err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, ok := s.sinksMock[sink.ID]; ok {
+		if s.sinksMock[sink.ID].MFOwnerID != sink.MFOwnerID {
+			return errors.ErrUpdateEntity
+		}
+		s.sinksMock[sink.ID] = sink
+		return nil
+	}
+	return sinks.ErrNotFound
 }
 
 func (s *sinkRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {

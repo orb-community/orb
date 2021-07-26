@@ -27,12 +27,16 @@ type eventStore struct {
 	client *redis.Client
 }
 
-func (es eventStore) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (sinks.Page, error) {
-	return es.svc.ListSinks(ctx, token, pm)
-}
-
 func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
 	return es.svc.CreateSink(ctx, token, s)
+}
+
+func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink) (err error) {
+	return es.svc.UpdateSink(ctx, token, s)
+}
+
+func (es eventStore) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (sinks.Page, error) {
+	return es.svc.ListSinks(ctx, token, pm)
 }
 
 func (es eventStore) ListBackends(ctx context.Context, token string) (_ []string, err error) {

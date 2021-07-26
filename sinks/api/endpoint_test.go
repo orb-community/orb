@@ -12,6 +12,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gofrs/uuid"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/mainflux/mainflux/things"
 	thmocks "github.com/mainflux/mainflux/things/mocks"
@@ -47,9 +48,11 @@ var (
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
-	notFoundRes  = toJSON(errorRes{things.ErrNotFound.Error()})
-	unauthRes    = toJSON(errorRes{things.ErrUnauthorizedAccess.Error()})
-	notSupported = toJSON(errorRes{sinks.ErrUnsupportedContentTypeSink.Error()})
+	invalidName, _ = types.NewIdentifier(strings.Repeat("m", maxNameSize+1))
+	notFoundRes    = toJSON(errorRes{things.ErrNotFound.Error()})
+	unauthRes      = toJSON(errorRes{things.ErrUnauthorizedAccess.Error()})
+	notSupported   = toJSON(errorRes{sinks.ErrUnsupportedContentTypeSink.Error()})
+	wrongID, _     = uuid.NewV4()
 )
 
 type testRequest struct {
@@ -87,7 +90,6 @@ func newService(tokens map[string]string) sinks.Service {
 
 	mfsdk := mfsdk.NewSDK(config)
 	return sinks.NewSinkService(logger, auth, sinkRepo, mfsdk)
-	//return skmocks.NewSinkServiceMock()
 }
 
 func newServer(svc sinks.Service) *httptest.Server {
@@ -169,6 +171,123 @@ func TestCreateSinks(t *testing.T) {
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 	}
 
+}
+
+func TestUpdateSink(t *testing.T) {
+	service := newService(map[string]string{token: email})
+	server := newServer(service)
+	defer server.Close()
+
+	sk, err := service.CreateSink(context.Background(), token, sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	data := toJSON(updateSinkReq{
+		Name:        sk.Name.String(),
+		Description: sk.Description,
+		Backend:     sk.Backend,
+		Config:      sk.Config,
+		Tags:        sk.Tags,
+	})
+
+	cases := map[string]struct {
+		req         string
+		id          string
+		contentType string
+		auth        string
+		status      int
+	}{
+		"update existing sink": {
+			req:         data,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+		},
+		"update sink with a empty json request": {
+			req:         "{}",
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update sink with a invalid id": {
+			req:         data,
+			id:          "invalid",
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusNotFound,
+		},
+		"update non-existing sink": {
+			req:         data,
+			id:          wrongID.String(),
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusNotFound,
+		},
+		"update sink with invalid user token": {
+			req:         data,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        "invalid",
+			status:      http.StatusUnauthorized,
+		},
+		"update sink with empty user token": {
+			req:         data,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+		},
+		"update sink with invalid content type": {
+			req:         data,
+			id:          sk.ID,
+			contentType: "invalid",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+		},
+		"update sink without content type": {
+			req:         data,
+			id:          sk.ID,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+		},
+		"update sink with a empty request": {
+			req:         "",
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update sink with a invalid data format": {
+			req:         invalidJson,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update sink with different owner": {
+			req:         invalidJson,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+	}
+
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      server.Client(),
+			method:      http.MethodPut,
+			url:         fmt.Sprintf("%s/sinks/%s", server.URL, tc.id),
+			contentType: tc.contentType,
+			token:       tc.auth,
+			body:        strings.NewReader(tc.req),
+		}
+		res, err := req.make()
+		require.Nil(t, err, "%s: unexpected error: %s", desc, err)
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+	}
 }
 
 func TestViewBackend(t *testing.T) {

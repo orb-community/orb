@@ -46,6 +46,12 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.Service) h
 		types.EncodeResponse,
 		opts...,
 	))
+	r.Put("/sinks/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "edit_sink")(updateSinkEndpoint(svc)),
+		decodeEditRequest,
+		types.EncodeResponse,
+		opts...,
+	))
 	r.Get("/sinks", kithttp.NewServer(
 		kitot.TraceServer(tracer, "list_sinks")(listSinksEndpoint(svc)),
 		decodeList,
@@ -83,6 +89,22 @@ func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	}
 
 	req := addReq{token: r.Header.Get("Authorization")}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return req, nil
+}
+
+func decodeEditRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		return nil, errors.ErrUnsupportedContentType
+	}
+	req := updateSinkReq{
+		token: r.Header.Get("Authorization"),
+		id:    bone.GetValue(r, "id"),
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
