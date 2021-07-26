@@ -81,7 +81,7 @@ func (s sinksBackendsRes) Empty() bool {
 type removeRes struct {}
 
 func (res removeRes) Code() int {
-	return http.StatusNoContent
+	return http.StatusOK
 }
 
 func (res removeRes) Headers() map[string]string {

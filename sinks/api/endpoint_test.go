@@ -381,6 +381,9 @@ func TestDeleteSink(t *testing.T) {
 	server := newServer(svc)
 	defer server.Close()
 
+	sk, err := svc.CreateSink(context.Background(), token, sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
 	cases := []struct{
 		desc string
 		id string
@@ -389,25 +392,25 @@ func TestDeleteSink(t *testing.T) {
 	}{
 		{
 			desc: "delete existing sink",
-			id: sink.ID,
+			id: sk.ID,
 			auth: token,
-			status: http.StatusNoContent,
+			status: http.StatusOK,
 		},
 		{
 			desc: "delete non-existent sink",
 			id: strconv.FormatUint(wrongID, 10),
 			auth: token,
-			status: http.StatusNoContent,
+			status: http.StatusNotFound,
 		},
 		{
 			desc: "delete sink with invalid token",
-			id: sink.ID,
+			id: sk.ID,
 			auth: invalidToken,
 			status: http.StatusUnauthorized,
 		},
 		{
 			desc: "delete sink with empty token",
-			id: sink.ID,
+			id: sk.ID,
 			auth: "",
 			status: http.StatusUnauthorized,
 		},
@@ -417,7 +420,7 @@ func TestDeleteSink(t *testing.T) {
 		req := testRequest{
 			client: server.Client(),
 			method: http.MethodDelete,
-			url: fmt.Sprintf("%s/sinks/:%s", server.URL, sinkCase.id),
+			url: fmt.Sprintf("%s/sinks/%s", server.URL, sinkCase.id),
 			token: sinkCase.auth,
 		}
 

@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/sinks"
-	"strconv"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -45,7 +45,7 @@ func (s *sinkRepositoryMock) Save(ctx context.Context, sink sinks.Sink) (string,
 	s.counter++
 	ID, _ := uuid.NewV4()
 	sink.ID = ID.String()
-	s.sinksMock[sink.ID] = sink
+	s.sinksMock[key(sink.MFOwnerID, sink.ID)] = sink
 
 	return sink.ID, nil
 }
@@ -58,18 +58,16 @@ func (s* sinkRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm s
 		return sinks.Page{}, nil
 	}
 
-	first := uint64(pm.Offset) + 1
-	last := first + uint64(pm.Limit)
+	var sks []sinks.Sink
 
-	var sks[]sinks.Sink
-
-	prefix := fmt.Sprintf("%s", owner)
+	prefix := fmt.Sprintf("%s-", owner)
 	for k, v := range s.sinksMock {
-		id, _ := strconv.ParseUint(v.ID, 10, 64)
-		if strings.HasPrefix(k, prefix) && id >= first && id < last {
+		if strings.HasPrefix(k, prefix) {
 			sks = append(sks, v)
 		}
 	}
+
+	sks = sortSinks(pm, sks)
 
 	page := sinks.Page{
 		Sinks: sks,
@@ -96,4 +94,19 @@ func (s *sinkRepositoryMock) Remove(ctx context.Context, owner string, id string
 // prefix or suffix.
 func key(owner string, id string) string {
 	return fmt.Sprintf("%s-%s", owner, id)
+}
+
+func sortSinks(pm sinks.PageMetadata, sks []sinks.Sink) []sinks.Sink {
+		if pm.Dir == "asc" {
+			sort.Slice(sks, func(i, j int) bool {
+				return sks[i].Name.String() < sks[j].Name.String()
+			})
+		}
+		if pm.Dir == "desc" {
+			sort.Slice(sks, func(i, j int) bool {
+				return sks[i].Name.String() > sks[j].Name.String()
+			})
+		}
+
+	return sks
 }

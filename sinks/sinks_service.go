@@ -27,7 +27,7 @@ func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetad
 		return Page{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
 	}
 
-	return svc.sinkRepo.RetrieveAll(ctx, res.GetId(), pm)
+	return svc.sinkRepo.RetrieveAll(ctx, res.GetEmail(), pm)
 }
 
 func (s sinkService) CreateSink(ctx context.Context, token string, sink Sink) (Sink, error) {
@@ -53,5 +53,5 @@ func (svc sinkService) DeleteSink(ctx context.Context, token string, id string) 
 		return errors.Wrap(errors.ErrUnauthorizedAccess, err)
 	}
 
-	return svc.sinkRepo.Remove(ctx, res.GetEmail(), id)
+	return svc.sinkRepo.Remove(ctx, res.GetId(), id)
 }
