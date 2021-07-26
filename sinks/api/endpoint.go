@@ -104,7 +104,7 @@ func listBackendsEndpoint(svc sinks.Service) endpoint.Endpoint {
 
 		var completeBackends []interface{}
 		for _, bk := range backends {
-			b, err := svc.GetBackend(ctx, req.token, bk)
+			b, err := svc.ViewBackend(ctx, req.token, bk)
 			if err != nil {
 				return nil, err
 			}
@@ -123,7 +123,7 @@ func viewBackendEndpoint(svc sinks.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 
-		backend, err := svc.GetBackend(ctx, req.token, req.id)
+		backend, err := svc.ViewBackend(ctx, req.token, req.id)
 		if err != nil {
 			return nil, err
 		}

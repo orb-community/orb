@@ -39,8 +39,8 @@ func (es eventStore) ListBackends(ctx context.Context, token string) (_ []string
 	return es.svc.ListBackends(ctx, token)
 }
 
-func (es eventStore) GetBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
-	return es.svc.GetBackend(ctx, token, key)
+func (es eventStore) ViewBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
+	return es.svc.ViewBackend(ctx, token, key)
 }
 
 func (es eventStore) ViewSink(ctx context.Context, token string, key string) (_ sinks.Sink, err error) {

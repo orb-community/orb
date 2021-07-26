@@ -61,7 +61,7 @@ func (l loggingMiddleware) ListBackends(ctx context.Context, token string) (_ []
 	return l.svc.ListBackends(ctx, token)
 }
 
-func (l loggingMiddleware) GetBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
+func (l loggingMiddleware) ViewBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: view_backend",
@@ -72,7 +72,7 @@ func (l loggingMiddleware) GetBackend(ctx context.Context, token string, key str
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.GetBackend(ctx, token, key)
+	return l.svc.ViewBackend(ctx, token, key)
 }
 
 func (l loggingMiddleware) ViewSink(ctx context.Context, token string, key string) (_ sinks.Sink, err error) {

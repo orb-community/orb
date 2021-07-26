@@ -39,7 +39,7 @@ type SinkService interface {
 	// ListBackends retreives a list of availible backends
 	ListBackends(ctx context.Context, token string) ([]string, error)
 	// GetBackend retreives a backend by the name
-	GetBackend(ctx context.Context, token string, key string) (backend.Backend, error)
+	ViewBackend(ctx context.Context, token string, key string) (backend.Backend, error)
 	// ViewSink retreives a sink by id
 	ViewSink(ctx context.Context, token string, key string) (Sink, error)
 }

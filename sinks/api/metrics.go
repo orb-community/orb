@@ -31,8 +31,8 @@ func (m metricsMiddleware) ListBackends(ctx context.Context, token string) (_ []
 	return m.svc.ListBackends(ctx, token)
 }
 
-func (m metricsMiddleware) GetBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
-	return m.svc.GetBackend(ctx, token, key)
+func (m metricsMiddleware) ViewBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
+	return m.svc.ViewBackend(ctx, token, key)
 }
 
 func (m metricsMiddleware) ViewSink(ctx context.Context, token string, key string) (_ sinks.Sink, err error) {

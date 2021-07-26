@@ -69,28 +69,23 @@ func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, er
 }
 
 func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
-	nameQuery, name := getNameQuery(pm.Name)
+	name, nameQuery := getNameQuery(pm.Name)
 	orderQuery := getOrderQuery(pm.Order)
 	dirQuery := getDirQuery(pm.Dir)
-	tags, tmq, err := getTagsQuery(pm.Tags)
+	metadata, metadataQuery, err := getMetadataQuery(pm.Metadata)
+	tags, tagsQuery, err := getTagsQuery(pm.Tags)
 	if err != nil {
 		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	q := fmt.Sprintf(`SELECT id, 
-									name,
-									mf_owner_id, 
-									description,
-									tags,
-									backend,
-									metadata,
-									ts_created
-								FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, nameQuery, orderQuery, dirQuery)
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created
+								FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tagsQuery, metadataQuery, nameQuery, orderQuery, dirQuery)
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
 		"limit":       pm.Limit,
 		"offset":      pm.Offset,
 		"name":        name,
+		"metadata":    metadata,
 		"tags":        tags,
 	}
 	rows, err := s.db.NamedQueryContext(ctx, q, params) // TODO Check how it works
@@ -114,7 +109,7 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 		items = append(items, sink)
 	}
 
-	count := fmt.Sprint(`SELECT COUNT(*) FROM sinks WHERE mf_owner_id = :mf_owner_id `)
+	count := fmt.Sprintf(`SELECT COUNT(*) FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s%s`, tagsQuery, metadataQuery, nameQuery)
 
 	total, err := total(ctx, s.db, count, params)
 	if err != nil {
@@ -151,26 +146,6 @@ func (s sinksRepository) RetrieveById(ctx context.Context, key string) (sinks.Si
 	}
 
 	return toSink(dba)
-
-	//if key == "" {
-	//	return sinks.Sink{}, errors.ErrMalformedEntity
-	//}
-	//
-	//params := map[string]interface{}{
-	//	"id": key,
-	//}
-	//
-	//rows, err := s.db.NamedQueryContext(ctx, q, params)
-	//if err != nil {
-	//	return sinks.Sink{}, errors.ErrSelectEntity
-	//}
-	//defer rows.Close()
-	//
-	//var item []sinks.Sink
-	//for rows.Next()
-	//
-	//
-	//return sinks.Sink{}, nil
 }
 
 type dbSink struct {
@@ -224,7 +199,7 @@ func getNameQuery(name string) (string, string) {
 	}
 	name = fmt.Sprintf(`%%%s%%`, strings.ToLower(name))
 	nameQuey := ` AND LOWER(name) LIKE :name`
-	return nameQuey, name
+	return name, nameQuey
 }
 
 func getOrderQuery(order string) string {
@@ -245,12 +220,27 @@ func getDirQuery(dir string) string {
 	}
 }
 
+func getMetadataQuery(m types.Metadata) ([]byte, string, error) {
+	mq := ""
+	mb := []byte("{}")
+	if len(m) > 0 {
+		mq = ` AND metadata @> :metadata`
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, "", err
+		}
+		mb = b
+	}
+	return mb, mq, nil
+}
+
 func getTagsQuery(m types.Tags) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {
 		// todo add in orb tags
-		mq = ` AND orb_tags @> :tags`
+		mq = ` AND tags @> :tags`
 
 		b, err := json.Marshal(m)
 		if err != nil {

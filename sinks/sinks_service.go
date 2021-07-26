@@ -38,7 +38,7 @@ func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string
 	return backend.GetList(), nil
 }
 
-func (svc sinkService) GetBackend(ctx context.Context, token string, key string) (backend.Backend, error) {
+func (svc sinkService) ViewBackend(ctx context.Context, token string, key string) (backend.Backend, error) {
 	_, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
 		return nil, errors.Wrap(errors.ErrUnauthorizedAccess, err)

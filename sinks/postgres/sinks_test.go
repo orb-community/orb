@@ -121,3 +121,108 @@ func TestSinkRetrieve(t *testing.T) {
 	}
 
 }
+
+func TestMultiSinkRetrieval(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	wrongoID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+
+		nameID, err := types.NewIdentifier(fmt.Sprintf("my-sink-%d", i))
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+		sink := sinks.Sink{
+			Name:        nameID,
+			Description: "An example prometheus sink",
+			Backend:     "prometheus",
+			Created:     time.Now(),
+			MFOwnerID:   oID.String(),
+			Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+			Tags:        map[string]string{"cloud": "aws"},
+		}
+
+		_, err = sinkRepo.Save(context.Background(), sink)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner        string
+		pageMetadata sinks.PageMetadata
+		size         uint64
+	}{
+		"retrieve all sinks with existing owner": {
+			owner: oID.String(),
+			pageMetadata: sinks.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+			},
+			size: n,
+		},
+		"retrieve subset of sinks with existing owner": {
+			owner: oID.String(),
+			pageMetadata: sinks.PageMetadata{
+				Offset: n / 2,
+				Limit:  n,
+				Total:  n,
+			},
+			size: n / 2,
+		},
+		"retrieve sinks with no-existing owner": {
+			owner: wrongoID.String(),
+			pageMetadata: sinks.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  0,
+			},
+			size: 0,
+		},
+		"retrieve sinks with no-existing name": {
+			owner: oID.String(),
+			pageMetadata: sinks.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Name:   "wrong",
+				Total:  0,
+			},
+			size: 0,
+		},
+		"retrieve agents sorted by name ascendent": {
+			owner: oID.String(),
+			pageMetadata: sinks.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Order:  "name",
+				Dir:    "asc",
+			},
+			size: n,
+		},
+		"retrieve agents sorted by name descendent": {
+			owner: oID.String(),
+			pageMetadata: sinks.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Order:  "name",
+				Dir:    "desc",
+			},
+			size: n,
+		},
+	}
+
+	for desc, tc := range cases {
+		page, err := sinkRepo.RetrieveAll(context.Background(), tc.owner, tc.pageMetadata)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+		size := uint64(len(page.Sinks))
+		assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
+		assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.pageMetadata.Total, page.Total))
+	}
+
+}
