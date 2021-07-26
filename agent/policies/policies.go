@@ -25,11 +25,7 @@ type policyManager struct {
 	db     *sqlx.DB
 }
 
-func New(logger *zap.Logger, c config.Config) (PolicyManager, error) {
-	db, err := sqlx.Connect("sqlite3", "orb-agent.db")
-	if err != nil {
-		return nil, err
-	}
+func New(logger *zap.Logger, c config.Config, db *sqlx.DB) (PolicyManager, error) {
 	return &policyManager{logger: logger, config: c, db: db}, nil
 }
 
