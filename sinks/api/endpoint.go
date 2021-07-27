@@ -73,8 +73,13 @@ func updateSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
 			return nil, err
 		}
 		res := sinkRes{
-			ID:      sink.ID,
-			created: false,
+			ID:          sink.ID,
+			Name:        sink.Name.String(),
+			Tags:        sink.Tags,
+			Backend:     sink.Backend,
+			Config:      sink.Config,
+			Description: sink.Description,
+			created:     false,
 		}
 		return res, nil
 	}
