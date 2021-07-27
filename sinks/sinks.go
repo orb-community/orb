@@ -34,6 +34,8 @@ var (
 
 	// ErrUpdateEntity indicates error while updating a entity
 	ErrUpdateEntity = errors.New("failed to update entity")
+
+	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
 )
 
 type Sink struct {
