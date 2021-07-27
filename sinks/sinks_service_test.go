@@ -29,6 +29,7 @@ const (
 	token        = "token"
 	invalidToken = "invalid"
 	email        = "user@example.com"
+	n            = uint64(10)
 )
 
 var (
@@ -72,7 +73,7 @@ func TestCreateSink(t *testing.T) {
 		},
 		"add a sink with a invalid token": {
 			sink:  sink,
-			token: "",
+			token: "invalid",
 			err:   sinks.ErrUnauthorizedAccess,
 		},
 	}
@@ -119,4 +120,153 @@ func TestUpdateSink(t *testing.T) {
 		err := service.UpdateSink(context.Background(), tc.token, tc.sink)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 	}
+}
+
+func TestViewSink(t *testing.T) {
+	service := newService(map[string]string{token: email})
+
+	sk, err := service.CreateSink(context.Background(), token, sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		key   string
+		token string
+		err   error
+	}{
+		"view a existing sink": {
+			key:   sk.ID,
+			token: token,
+			err:   nil,
+		},
+		"view a existing sink with wrong credentials": {
+			key:   sk.ID,
+			token: invalidToken,
+			err:   sinks.ErrUnauthorizedAccess,
+		},
+		"view a non-existing sink": {
+			key:   wrongID.String(),
+			token: token,
+			err:   sinks.ErrNotFound,
+		},
+	}
+
+	for desc, sinkCase := range cases {
+		_, err := service.ViewSink(context.Background(), sinkCase.token, sinkCase.key)
+		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s\n", desc, sinkCase.err, err))
+	}
+}
+
+func TestListThings(t *testing.T) {
+	service := newService(map[string]string{token: email})
+	metadata := make(map[string]interface{})
+	metadata["serial"] = "12345"
+	var sks []sinks.Sink
+	for i := uint64(0); i < n; i++ {
+		sink.Name, _ = types.NewIdentifier(fmt.Sprintf("my-sink-%d", i))
+		sk, err := service.CreateSink(context.Background(), token, sink)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+		sks = append(sks, sk)
+	}
+
+	cases := map[string]struct {
+		token        string
+		pageMetadata sinks.PageMetadata
+		size         uint64
+		err          error
+	}{
+		"list all sinks": {
+			token: token,
+			pageMetadata: sinks.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+			},
+			size: n,
+			err:  nil,
+		},
+		"list half of sinks": {
+			token: token,
+			pageMetadata: sinks.PageMetadata{
+				Offset: n / 2,
+				Limit:  n,
+			},
+			size: n / 2,
+			err:  nil,
+		},
+		"list last sinks": {
+			token: token,
+			pageMetadata: sinks.PageMetadata{
+				Offset: n - 1,
+				Limit:  n,
+			},
+			size: 1,
+			err:  nil,
+		},
+		"list empty set": {
+			token: token,
+			pageMetadata: sinks.PageMetadata{
+				Offset: n + 1,
+				Limit:  n,
+			},
+			size: 0,
+			err:  nil,
+		},
+		"list with zero limit": {
+			token: token,
+			pageMetadata: sinks.PageMetadata{
+				Offset: 1,
+				Limit:  0,
+			},
+			size: 0,
+			err:  nil,
+		},
+		"list sinks with wrong credentials": {
+			token: invalidToken,
+			pageMetadata: sinks.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+			},
+			size: n,
+			err:  sinks.ErrUnauthorizedAccess,
+		},
+		"list sinks with metadata": {
+			token: token,
+			pageMetadata: sinks.PageMetadata{
+				Offset:   0,
+				Limit:    n,
+				Metadata: metadata,
+			},
+			size: n,
+			err:  nil,
+		},
+		"list all sinks sorted by name asc": {
+			token: token,
+			pageMetadata: sinks.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Order:  "name",
+				Dir:    "asc",
+			},
+			size: n,
+			err:  nil,
+		},
+		"list all sinks sorted by name desc": {
+			token: token,
+			pageMetadata: sinks.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Order:  "name",
+				Dir:    "desc",
+			},
+			size: n,
+			err:  nil,
+		},
+	}
+
+	for desc, sinkCase := range cases {
+		page, err := service.ListSinks(context.Background(), sinkCase.token, sinkCase.pageMetadata)
+		size := uint64(len(page.Sinks))
+		assert.Equal(t, sinkCase.size, size, fmt.Sprintf("%s: expected %d got %d\n", desc, sinkCase.size, size))
+		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s", desc, sinkCase.err, err))
+	}
+
 }

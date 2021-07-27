@@ -145,10 +145,6 @@ func (s *sinkRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm s
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if pm.Limit < 0 {
-		return sinks.Page{}, nil
-	}
-
 	first := uint64(pm.Offset) + 1
 	last := first + uint64(pm.Limit)
 
