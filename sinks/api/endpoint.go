@@ -11,6 +11,7 @@ package api
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 )
@@ -64,6 +65,8 @@ func updateSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
 			Name:        nameID,
 			ID:          req.id,
 			Tags:        req.Tags,
+			Status:      req.Status,
+			Error:       req.Error,
 			Backend:     req.Backend,
 			Config:      req.Config,
 			Description: req.Description,
@@ -75,10 +78,12 @@ func updateSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
 		res := sinkRes{
 			ID:          sink.ID,
 			Name:        sink.Name.String(),
+			Description: sink.Description,
 			Tags:        sink.Tags,
+			Status:      sink.Status,
+			Error:       sink.Error,
 			Backend:     sink.Backend,
 			Config:      sink.Config,
-			Description: sink.Description,
 			created:     false,
 		}
 		return res, nil
@@ -188,5 +193,26 @@ func viewSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
 			TsCreated:   sink.Created,
 		}
 		return res, err
+	}
+}
+
+func deleteSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(deleteSinkReq)
+
+		err = req.validate()
+		if err == errors.ErrNotFound {
+			return removeRes{}, nil
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		if err := svc.DeleteSink(ctx, req.token, req.id); err != nil {
+			return nil, err
+		}
+
+		return removeRes{}, nil
 	}
 }

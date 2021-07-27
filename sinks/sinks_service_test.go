@@ -38,6 +38,8 @@ var (
 		Name:        nameID,
 		Description: "An example prometheus sink",
 		Backend:     "prometheus",
+		Status:      "active",
+		Error:       "",
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}

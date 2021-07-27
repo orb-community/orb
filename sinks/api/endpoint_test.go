@@ -500,16 +500,15 @@ func TestListSinks(t *testing.T) {
 }
 
 func TestViewBackend(t *testing.T) {
-	f := skmocks.NewSinkServiceMock()
 	service := newService(map[string]string{token: email})
 	server := newServer(service)
 	defer server.Close()
 
-	bes, err := f.ListBackends(context.Background(), token)
+	bes, err := service.ListBackends(context.Background(), token)
 	//bes, err := service.ListBackends(context.Background(), token)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	id := strings.Trim(string(bes[0]), "\n")
-	be, err := f.ViewBackend(context.Background(), token, id)
+	be, err := service.ViewBackend(context.Background(), token, id)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	data := toJSON(sinksBackendRes{
@@ -588,17 +587,16 @@ func TestViewBackend(t *testing.T) {
 }
 
 func TestViewBackends(t *testing.T) {
-	f := skmocks.NewSinkServiceMock()
 	service := newService(map[string]string{token: email})
 	server := newServer(service)
 	defer server.Close()
 
-	bes, err := f.ListBackends(context.Background(), token)
+	bes, err := service.ListBackends(context.Background(), token)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	var backends []interface{}
 	for _, bk := range bes {
-		b, err := f.ViewBackend(context.Background(), token, bk)
+		b, err := service.ViewBackend(context.Background(), token, bk)
 		if err != nil {
 			require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 		}

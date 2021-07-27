@@ -15,6 +15,8 @@ type sinkRes struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 	Tags        types.Tags     `json:"tags"`
+	Status      string         `json:"status"`
+	Error       string         `json:"error"`
 	Backend     string         `json:"backend"`
 	Config      types.Metadata `json:"config,omitempty"`
 	TsCreated   time.Time      `json:"ts_created"`
@@ -98,4 +100,18 @@ func (s sinksBackendRes) Empty() bool {
 
 type errorRes struct {
 	Err string `json:"error"`
+}
+
+type removeRes struct{}
+
+func (res removeRes) Code() int {
+	return http.StatusNoContent
+}
+
+func (res removeRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (res removeRes) Empty() bool {
+	return true
 }

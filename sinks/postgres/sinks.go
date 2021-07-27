@@ -32,8 +32,8 @@ type sinksRepository struct {
 }
 
 func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, error) {
-	q := `INSERT INTO sinks (name, mf_owner_id, metadata, description, backend, tags)         
-			  VALUES (:name, :mf_owner_id, :metadata, :description, :backend, :tags) RETURNING id`
+	q := `INSERT INTO sinks (name, mf_owner_id, metadata, description, backend, tags, status, error)         
+			  VALUES (:name, :mf_owner_id, :metadata, :description, :backend, :tags, :status, :error) RETURNING id`
 
 	if !sink.Name.IsValid() || sink.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -69,7 +69,7 @@ func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, er
 }
 
 func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
-	q := `UPDATE sinks SET description = :description, tags = :tags, metadata = :metadata WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE sinks SET name = :name, description = :description, tags = :tags, status = :status, error = :error, metadata = :metadata WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 
 	sinkDB, err := toDBSink(sink)
 	if err != nil {
@@ -112,7 +112,7 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, status, error, backend, metadata, ts_created
 								FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tagsQuery, metadataQuery, nameQuery, orderQuery, dirQuery)
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
@@ -166,7 +166,7 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 
 func (s sinksRepository) RetrieveById(ctx context.Context, key string) (sinks.Sink, error) {
 
-	q := "SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created " +
+	q := "SELECT id, name, mf_owner_id, description, tags, status, error, backend, metadata, ts_created " +
 		"FROM sinks where id = $1"
 
 	dba := dbSink{}
@@ -182,6 +182,10 @@ func (s sinksRepository) RetrieveById(ctx context.Context, key string) (sinks.Si
 	return toSink(dba)
 }
 
+func (s sinksRepository) Remove(ctx context.Context, owner, id string) error {
+	return sinks.ErrNotFound
+}
+
 type dbSink struct {
 	ID          string           `db:"id"`
 	Name        types.Identifier `db:"name"`
@@ -191,6 +195,8 @@ type dbSink struct {
 	Description string           `db:"description"`
 	Created     time.Time        `db:"ts_created"`
 	Tags        db.Tags          `db:"tags"`
+	Status      string           `db:"status"`
+	Error       string           `db:"error"`
 }
 
 func toDBSink(sink sinks.Sink) (dbSink, error) {
@@ -209,6 +215,8 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 		Backend:     sink.Backend,
 		Description: sink.Description,
 		Tags:        db.Tags(sink.Tags),
+		Status:      sink.Status,
+		Error:       sink.Error,
 	}, nil
 
 }
@@ -223,6 +231,8 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 		Config:      types.Metadata(dba.Metadata),
 		Created:     dba.Created,
 		Tags:        types.Tags(dba.Tags),
+		Status:      dba.Status,
+		Error:       dba.Error,
 	}
 	return sink, nil
 }

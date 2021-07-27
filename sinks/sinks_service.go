@@ -87,3 +87,12 @@ func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetad
 
 	return svc.sinkRepo.RetrieveAll(ctx, res.GetId(), pm)
 }
+
+func (svc sinkService) DeleteSink(ctx context.Context, token string, id string) error {
+	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+
+	return svc.sinkRepo.Remove(ctx, res.GetId(), id)
+}

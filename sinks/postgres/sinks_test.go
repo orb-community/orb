@@ -32,13 +32,13 @@ func TestSinkSave(t *testing.T) {
 	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
 
 	skID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	oID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	nameID, err := types.NewIdentifier("my-sink")
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	sink := sinks.Sink{
 		Name:        nameID,
@@ -47,6 +47,8 @@ func TestSinkSave(t *testing.T) {
 		ID:          skID.String(),
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
+		Status:      "active",
+		Error:       "",
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
@@ -70,7 +72,7 @@ func TestSinkSave(t *testing.T) {
 
 	for _, tc := range cases {
 		_, err := sinkRepo.Save(context.Background(), tc.sink)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("#{tc.desc}: expected '#{tc.err}' got '#{err}"))
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", tc.desc, tc.err, err))
 	}
 
 }
@@ -80,16 +82,16 @@ func TestSinkUpdate(t *testing.T) {
 	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
 
 	oID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	invalideOwnerID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	invalideID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	nameID, err := types.NewIdentifier("my-sink")
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	sink := sinks.Sink{
 		Name:        nameID,
@@ -102,7 +104,7 @@ func TestSinkUpdate(t *testing.T) {
 	}
 
 	sinkID, err := sinkRepo.Save(context.Background(), sink)
-	require.Nil(t, err, fmt.Sprintf("unexpected error: #{err}\n"))
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 
 	sink.ID = sinkID
 
@@ -149,10 +151,10 @@ func TestSinkRetrieve(t *testing.T) {
 	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
 
 	oID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	nameID, err := types.NewIdentifier("my-sink")
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: #{err}"))
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	sink := sinks.Sink{
 		Name:        nameID,
@@ -165,7 +167,7 @@ func TestSinkRetrieve(t *testing.T) {
 	}
 
 	sinkID, err := sinkRepo.Save(context.Background(), sink)
-	require.Nil(t, err, fmt.Sprintf("unexpected error: #{err}\n"))
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 
 	cases := map[string]struct {
 		sinkID string

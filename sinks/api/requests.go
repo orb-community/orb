@@ -29,6 +29,8 @@ type addReq struct {
 	Config       types.Metadata `json:"config,omitempty"`
 	Description  string         `json:"description,omitempty"`
 	Tags         types.Tags     `json:"tags,omitempty"`
+	Status       string         `json:"status,omitempty"`
+	Error        string         `json:"error,omitempty"`
 	ValidateOnly bool           `json:"validate_only"`
 	token        string
 }
@@ -56,6 +58,8 @@ type updateSinkReq struct {
 	Config       types.Metadata `json:"config,omitempty"`
 	Description  string         `json:"description,omitempty"`
 	Tags         types.Tags     `json:"tags,omitempty"`
+	Status       string         `json:"status,omitempty"`
+	Error        string         `json:"error,omitempty"`
 	ValidateOnly bool           `json:"validate_only"`
 	id           string
 	token        string
@@ -136,5 +140,22 @@ func (req *listBackendsReq) validate() error {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
 	}
+	return nil
+}
+
+type deleteSinkReq struct {
+	token string
+	id    string
+}
+
+func (req deleteSinkReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+
+	if req.id == "" {
+		return errors.ErrMalformedEntity
+	}
+
 	return nil
 }

@@ -51,6 +51,26 @@ func (es eventStore) ViewSink(ctx context.Context, token string, key string) (_ 
 	return es.svc.ViewSink(ctx, token, key)
 }
 
+func (es eventStore) DeleteSink(ctx context.Context, token, id string) error {
+	if err := es.svc.DeleteSink(ctx, token, id); err != nil {
+		return err
+	}
+
+	event := deleteSinkEvent{
+		id: id,
+	}
+
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+
+	es.client.XAdd(ctx, record).Err()
+
+	return nil
+}
+
 // NewEventStoreMiddleware returns wrapper around sinks service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc sinks.Service, client *redis.Client) sinks.Service {
