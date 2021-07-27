@@ -273,6 +273,38 @@ func TestListThings(t *testing.T) {
 
 }
 
+func TestViewBackends(t *testing.T) {
+	service := newService(map[string]string{token: email})
+
+	cases := map[string]struct {
+		token   string
+		backend string
+		err     error
+	}{
+		"view a existing backend": {
+			token:   token,
+			backend: "prometheus",
+			err:     nil,
+		},
+		"view a non-existing backend": {
+			token:   token,
+			backend: "grafana",
+			err:     sinks.ErrNotFound,
+		},
+		"view sinks with wrong credentials": {
+			token:   invalidToken,
+			backend: "prometheus",
+			err:     sinks.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, sinkCase := range cases {
+		_, err := service.ViewBackend(context.Background(), sinkCase.token, sinkCase.backend)
+		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s", desc, sinkCase.err, err))
+	}
+
+}
+
 func TestListBackends(t *testing.T) {
 	service := newService(map[string]string{token: email})
 
@@ -280,11 +312,11 @@ func TestListBackends(t *testing.T) {
 		token string
 		err   error
 	}{
-		"list all sinks": {
+		"list all backends": {
 			token: token,
 			err:   nil,
 		},
-		"list sinks with wrong credentials": {
+		"list backends with wrong credentials": {
 			token: invalidToken,
 			err:   sinks.ErrUnauthorizedAccess,
 		},
