@@ -15,6 +15,7 @@ import (
 const (
 	SinkPrefix = "sinks."
 	SinkCreate = SinkPrefix + "create"
+	SinkDelete = SinkPrefix + "delete"
 )
 
 type event interface {
@@ -41,5 +42,16 @@ func (cce createSinkEvent) encode() map[string]interface{} {
 		"content":   cce.content,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": SinkCreate,
+	}
+}
+
+type deleteSinkEvent struct {
+	id string
+}
+
+func (dse deleteSinkEvent) Encode() map[string]interface{} {
+	return map[string]interface{}{
+		"id": dse.id,
+		"operation": SinkDelete,
 	}
 }

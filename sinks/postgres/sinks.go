@@ -13,7 +13,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gofrs/uuid"
-	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -27,7 +26,7 @@ import (
 var _ sinks.SinkRepository = (*sinksRepository)(nil)
 
 type sinksRepository struct {
-	db     *sqlx.DB
+	db     Database
 	logger *zap.Logger
 }
 
@@ -135,6 +134,20 @@ func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, er
 
 }
 
+func (s sinksRepository) Remove(ctx context.Context, owner, id string) error {
+	dbsk := dbSink{
+		ID: id,
+		MFOwnerID: owner,
+	}
+
+	q := `DELETE FROM things WHERE id = :id AND owner = :owner;`
+	if _, err := s.db.NamedExecContext(ctx, q, dbsk); err != nil {
+		return errors.Wrap(sinks.ErrRemoveEntity, err)
+	}
+
+	return nil
+}
+
 type dbSink struct {
 	ID          string           `db:"id"`
 	Name        types.Identifier `db:"name"`
@@ -239,6 +252,6 @@ func total(ctx context.Context, db Database, query string, params interface{}) (
 	return total, nil
 }
 
-func NewSinksRepository(db *sqlx.DB, logger *zap.Logger) sinks.SinkRepository {
+func NewSinksRepository(db Database, logger *zap.Logger) sinks.SinkRepository {
 	return &sinksRepository{db: db, logger: logger}
 }

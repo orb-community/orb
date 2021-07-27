@@ -11,6 +11,8 @@ var (
 	ErrCreateSink = errors.New("failed to create Sink")
 
 	ErrConflictSink = errors.New("entity already exists")
+
+	ErrRemoveEntity = errors.New("remove entity failed")
 )
 
 func (svc sinkService) ListBackends(ctx context.Context, token string)([]string, error) {
