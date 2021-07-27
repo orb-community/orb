@@ -104,6 +104,9 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 	orderQuery := getOrderQuery(pm.Order)
 	dirQuery := getDirQuery(pm.Dir)
 	metadata, metadataQuery, err := getMetadataQuery(pm.Metadata)
+	if err != nil {
+		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
 	tags, tagsQuery, err := getTagsQuery(pm.Tags)
 	if err != nil {
 		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)

@@ -29,6 +29,7 @@ type sinkServiceMock struct {
 	Backends map[string]backendMock
 }
 
+//TODO check if it's really necessary this mock
 func NewSinkServiceMock() sinks.SinkService {
 	return &sinkServiceMock{
 		map[string]backendMock{
