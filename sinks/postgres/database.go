@@ -1,3 +1,11 @@
+// Copyright (c) Mainflux
+// SPDX-License-Identifier: Apache-2.0
+
+// Adapted for Orb project, modifications licensed under MPL v. 2.0:
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
 package postgres
 
 import (
@@ -20,7 +28,6 @@ type Database interface {
 	NamedQueryContext(context.Context, string, interface{}) (*sqlx.Rows, error)
 	GetContext(context.Context, interface{}, string, ...interface{}) error
 	BeginTxx(context.Context, *sql.TxOptions) (*sqlx.Tx, error)
-
 }
 
 func NewDatabase(db *sqlx.DB) Database {
@@ -49,7 +56,7 @@ func (dm database) GetContext(ctx context.Context, dest interface{}, query strin
 	return dm.db.GetContext(ctx, dest, query, args)
 }
 
-func (dm database) BeginTxx(ctx context.Context, opts *sql.TxOptions)(*sqlx.Tx, error) {
+func (dm database) BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error) {
 	span := opentracing.SpanFromContext(ctx)
 	if span != nil {
 		span.SetTag("span.kind", "client")

@@ -10,6 +10,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gofrs/uuid"
@@ -28,73 +29,6 @@ var _ sinks.SinkRepository = (*sinksRepository)(nil)
 type sinksRepository struct {
 	db     Database
 	logger *zap.Logger
-}
-
-func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
-	nameQuery, name := getNameQuery(pm.Name)
-	orderQuery := getOrderQuery(pm.Order)
-	dirQuery := getDirQuery(pm.Dir)
-	tags, tmq, err := getTagsQuery(pm.Tags)
-	if err != nil {
-		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
-	}
-
-	q := fmt.Sprintf(`SELECT id, 
-									name,
-									mf_owner_id, 
-									description,
-									tags,
-									backend,
-									metadata,
-									ts_created
-								FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, nameQuery, orderQuery, dirQuery)
-	params := map[string]interface{}{
-		"mf_owner_id": owner,
-		"limit": pm.Limit,
-		"offset": pm.Offset,
-		"name": name,
-		"tags": tags,
-	}
-	rows, err := s.db.NamedQueryContext(ctx, q, params) // TODO Check how it works
-	if err != nil {
-		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
-	}
-	defer rows.Close()
-
-	var items []sinks.Sink
-	for rows.Next() {
-		dbSink := dbSink{MFOwnerID: owner}
-		if err := rows.StructScan(&dbSink); err != nil {
-			return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
-		}
-
-		sink, err := toSink(dbSink)
-		if err != nil {
-			return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
-		}
-
-		items = append(items, sink)
-	}
-
-	count := fmt.Sprint(`SELECT COUNT(*) FROM sinks WHERE mf_owner_id = :mf_owner_id `)
-
-	total, err := total(ctx, s.db, count, params)
-	if err != nil {
-		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
-	}
-
-	page := sinks.Page{
-		Sinks: items,
-		PageMetadata: sinks.PageMetadata{
-			Total: total,
-			Offset: pm.Offset,
-			Limit: pm.Limit,
-			Order: pm.Order,
-			Dir: pm.Dir,
-		},
-	}
-
-	return page, nil
 }
 
 func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, error) {
@@ -134,6 +68,117 @@ func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, er
 
 }
 
+func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
+	q := `UPDATE sinks SET description = :description, tags = :tags, metadata = :metadata WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+
+	sinkDB, err := toDBSink(sink)
+	if err != nil {
+		return errors.Wrap(sinks.ErrUpdateEntity, err)
+	}
+
+	res, errdb := s.db.NamedExecContext(ctx, q, sinkDB)
+	if errdb != nil {
+		pqErr, ok := errdb.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(sinks.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(sinks.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(sinks.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return sinks.ErrNotFound
+	}
+	return nil
+}
+
+func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
+	name, nameQuery := getNameQuery(pm.Name)
+	orderQuery := getOrderQuery(pm.Order)
+	dirQuery := getDirQuery(pm.Dir)
+	metadata, metadataQuery, err := getMetadataQuery(pm.Metadata)
+	tags, tagsQuery, err := getTagsQuery(pm.Tags)
+	if err != nil {
+		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created
+								FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tagsQuery, metadataQuery, nameQuery, orderQuery, dirQuery)
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+		"limit":       pm.Limit,
+		"offset":      pm.Offset,
+		"name":        name,
+		"metadata":    metadata,
+		"tags":        tags,
+	}
+	rows, err := s.db.NamedQueryContext(ctx, q, params) // TODO Check how it works
+	if err != nil {
+		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []sinks.Sink
+	for rows.Next() {
+		dbSink := dbSink{MFOwnerID: owner}
+		if err := rows.StructScan(&dbSink); err != nil {
+			return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		sink, err := toSink(dbSink)
+		if err != nil {
+			return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		items = append(items, sink)
+	}
+
+	count := fmt.Sprintf(`SELECT COUNT(*) FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s%s`, tagsQuery, metadataQuery, nameQuery)
+
+	total, err := total(ctx, s.db, count, params)
+	if err != nil {
+		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	page := sinks.Page{
+		Sinks: items,
+		PageMetadata: sinks.PageMetadata{
+			Total:  total,
+			Offset: pm.Offset,
+			Limit:  pm.Limit,
+			Order:  pm.Order,
+			Dir:    pm.Dir,
+		},
+	}
+
+	return page, nil
+}
+
+func (s sinksRepository) RetrieveById(ctx context.Context, key string) (sinks.Sink, error) {
+
+	q := "SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created " +
+		"FROM sinks where id = $1"
+
+	dba := dbSink{}
+
+	if err := s.db.QueryRowxContext(ctx, q, key).StructScan(&dba); err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if err == sql.ErrNoRows || ok && db.ErrInvalid == pqErr.Code.Name() {
+			return sinks.Sink{}, errors.Wrap(errors.ErrNotFound, err)
+		}
+		return sinks.Sink{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	return toSink(dba)
+}
+
 func (s sinksRepository) Remove(ctx context.Context, owner, id string) error {
 	dbsk := dbSink{
 		ID: id,
@@ -153,11 +198,10 @@ type dbSink struct {
 	Name        types.Identifier `db:"name"`
 	MFOwnerID   string           `db:"mf_owner_id"`
 	Metadata    db.Metadata      `db:"metadata"`
-	Backend     string 		     `db:"backend"`
-	Description string 		     `db:"description"`
-	Created		time.Time		 `db:"ts_created"`
+	Backend     string           `db:"backend"`
+	Description string           `db:"description"`
+	Created     time.Time        `db:"ts_created"`
 	Tags        db.Tags          `db:"tags"`
-
 }
 
 func toDBSink(sink sinks.Sink) (dbSink, error) {
@@ -175,7 +219,7 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 		Metadata:    db.Metadata(sink.Config),
 		Backend:     sink.Backend,
 		Description: sink.Description,
-		Tags: 		 db.Tags(sink.Tags),
+		Tags:        db.Tags(sink.Tags),
 	}, nil
 
 }
@@ -189,7 +233,7 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 		Description: dba.Description,
 		Config:      types.Metadata(dba.Metadata),
 		Created:     dba.Created,
-		Tags: 		 types.Tags(dba.Tags),
+		Tags:        types.Tags(dba.Tags),
 	}
 	return sink, nil
 }
@@ -200,7 +244,7 @@ func getNameQuery(name string) (string, string) {
 	}
 	name = fmt.Sprintf(`%%%s%%`, strings.ToLower(name))
 	nameQuey := ` AND LOWER(name) LIKE :name`
-	return nameQuey, name
+	return name, nameQuey
 }
 
 func getOrderQuery(order string) string {
@@ -221,12 +265,27 @@ func getDirQuery(dir string) string {
 	}
 }
 
+func getMetadataQuery(m types.Metadata) ([]byte, string, error) {
+	mq := ""
+	mb := []byte("{}")
+	if len(m) > 0 {
+		mq = ` AND metadata @> :metadata`
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, "", err
+		}
+		mb = b
+	}
+	return mb, mq, nil
+}
+
 func getTagsQuery(m types.Tags) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {
 		// todo add in orb tags
-		mq = ` AND orb_tags @> :tags`
+		mq = ` AND tags @> :tags`
 
 		b, err := json.Marshal(m)
 		if err != nil {

@@ -54,6 +54,38 @@ func addEndpoint(svc sinks.Service) endpoint.Endpoint {
 	}
 }
 
+func updateSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(updateSinkReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		nameID, _ := types.NewIdentifier(req.Name)
+		sink := sinks.Sink{
+			Name:        nameID,
+			ID:          req.id,
+			Tags:        req.Tags,
+			Backend:     req.Backend,
+			Config:      req.Config,
+			Description: req.Description,
+		}
+
+		if err := svc.UpdateSink(ctx, req.token, sink); err != nil {
+			return nil, err
+		}
+		res := sinkRes{
+			ID:          sink.ID,
+			Name:        sink.Name.String(),
+			Tags:        sink.Tags,
+			Backend:     sink.Backend,
+			Config:      sink.Config,
+			Description: sink.Description,
+			created:     false,
+		}
+		return res, nil
+	}
+}
+
 func listSinksEndpoint(svc sinks.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(listResourcesReq)
@@ -103,11 +135,60 @@ func listBackendsEndpoint(svc sinks.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
+		var completeBackends []interface{}
+		for _, bk := range backends {
+			b, err := svc.ViewBackend(ctx, req.token, bk)
+			if err != nil {
+				return nil, err
+			}
+			completeBackends = append(completeBackends, b)
+		}
+
 		res := sinksBackendsRes{
-			Backends: backends,
+			Backends: completeBackends,
 		}
 
 		return res, nil
+	}
+}
+
+func viewBackendEndpoint(svc sinks.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+
+		backend, err := svc.ViewBackend(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+
+		res := sinksBackendRes{
+			Backend:     backend.GetName(),
+			Description: backend.GetDescription(),
+			Config:      backend.GetConfig(),
+		}
+
+		return res, nil
+	}
+}
+
+func viewSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		sink, err := svc.ViewSink(ctx, req.token, req.id)
+		if err != nil {
+			return sink, err
+		}
+
+		res := sinkRes{
+			ID:          sink.ID,
+			Name:        sink.Name.String(),
+			Description: sink.Description,
+			Tags:        sink.Tags,
+			Backend:     sink.Backend,
+			Config:      sink.Config,
+			TsCreated:   sink.Created,
+		}
+		return res, err
 	}
 }
 

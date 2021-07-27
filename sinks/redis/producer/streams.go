@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinks"
+	"github.com/ns1labs/orb/sinks/backend"
 )
 
 const (
@@ -26,16 +27,28 @@ type eventStore struct {
 	client *redis.Client
 }
 
-func (es eventStore) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (sinks.Page, error) {
-	return es.svc.ListSinks(ctx, token, pm)
-}
-
 func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
 	return es.svc.CreateSink(ctx, token, s)
 }
 
+func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink) (err error) {
+	return es.svc.UpdateSink(ctx, token, s)
+}
+
+func (es eventStore) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (sinks.Page, error) {
+	return es.svc.ListSinks(ctx, token, pm)
+}
+
 func (es eventStore) ListBackends(ctx context.Context, token string) (_ []string, err error) {
 	return es.svc.ListBackends(ctx, token)
+}
+
+func (es eventStore) ViewBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
+	return es.svc.ViewBackend(ctx, token, key)
+}
+
+func (es eventStore) ViewSink(ctx context.Context, token string, key string) (_ sinks.Sink, err error) {
+	return es.svc.ViewSink(ctx, token, key)
 }
 
 func (es eventStore) DeleteSink(ctx context.Context, token, id string) error {
@@ -43,14 +56,14 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) error {
 		return err
 	}
 
-	event := deleteSinkEvent {
+	event := deleteSinkEvent{
 		id: id,
 	}
 
 	record := &redis.XAddArgs{
-		Stream: streamID,
+		Stream:       streamID,
 		MaxLenApprox: streamLen,
-		Values: event.Encode(),
+		Values:       event.Encode(),
 	}
 
 	es.client.XAdd(ctx, record).Err()
