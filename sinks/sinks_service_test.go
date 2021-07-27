@@ -225,7 +225,7 @@ func TestListThings(t *testing.T) {
 				Offset: 0,
 				Limit:  n,
 			},
-			size: n,
+			size: 0,
 			err:  sinks.ErrUnauthorizedAccess,
 		},
 		"list sinks with metadata": {
@@ -267,6 +267,50 @@ func TestListThings(t *testing.T) {
 		size := uint64(len(page.Sinks))
 		assert.Equal(t, sinkCase.size, size, fmt.Sprintf("%s: expected %d got %d\n", desc, sinkCase.size, size))
 		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s", desc, sinkCase.err, err))
+
+		testSortSinks(t, sinkCase.pageMetadata, page.Sinks)
 	}
 
+}
+
+func TestListBackends(t *testing.T) {
+	service := newService(map[string]string{token: email})
+
+	cases := map[string]struct {
+		token string
+		err   error
+	}{
+		"list all sinks": {
+			token: token,
+			err:   nil,
+		},
+		"list sinks with wrong credentials": {
+			token: invalidToken,
+			err:   sinks.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, sinkCase := range cases {
+		_, err := service.ListBackends(context.Background(), sinkCase.token)
+		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s", desc, sinkCase.err, err))
+	}
+
+}
+
+func testSortSinks(t *testing.T, pm sinks.PageMetadata, sks []sinks.Sink) {
+	switch pm.Order {
+	case "name":
+		current := sks[0]
+		for _, res := range sks {
+			if pm.Dir == "asc" {
+				assert.GreaterOrEqual(t, res.Name.String(), current.Name.String())
+			}
+			if pm.Dir == "desc" {
+				assert.GreaterOrEqual(t, current.Name.String(), res.Name.String())
+			}
+			current = res
+		}
+	default:
+		break
+	}
 }

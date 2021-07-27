@@ -17,7 +17,6 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/backend"
-	"strconv"
 	"strings"
 	"sync"
 )
@@ -30,6 +29,7 @@ type sinkServiceMock struct {
 	Backends map[string]backendMock
 }
 
+//TODO check if it's really necessary this mock
 func NewSinkServiceMock() sinks.SinkService {
 	return &sinkServiceMock{
 		map[string]backendMock{
@@ -151,12 +151,15 @@ func (s *sinkRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm s
 	var sks []sinks.Sink
 
 	prefix := fmt.Sprintf("%s", owner)
-	for k, v := range s.sinksMock {
-		id, _ := strconv.ParseUint(v.ID, 10, 64)
-		if strings.HasPrefix(k, prefix) && id >= first && id < last {
+	id := uint64(0)
+	for _, v := range s.sinksMock {
+		id++
+		if strings.HasPrefix(v.MFOwnerID, prefix) && id >= first && id < last {
 			sks = append(sks, v)
 		}
 	}
+
+	sks = sortSinks(pm, sks)
 
 	page := sinks.Page{
 		Sinks: sks,
