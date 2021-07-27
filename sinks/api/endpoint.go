@@ -34,6 +34,8 @@ func addEndpoint(svc sinks.Service) endpoint.Endpoint {
 			Config:      req.Config,
 			Description: req.Description,
 			Tags:        req.Tags,
+			Status:      req.Status,
+			Error:       req.Error,
 		}
 		saved, err := svc.CreateSink(ctx, req.token, sink)
 		if err != nil {
@@ -45,6 +47,8 @@ func addEndpoint(svc sinks.Service) endpoint.Endpoint {
 			Name:        saved.Name.String(),
 			Description: saved.Description,
 			Tags:        saved.Tags,
+			Status:      saved.Status,
+			Error:       saved.Error,
 			Backend:     saved.Backend,
 			Config:      saved.Config,
 			TsCreated:   saved.Created,
@@ -120,6 +124,8 @@ func listSinksEndpoint(svc sinks.Service) endpoint.Endpoint {
 				Name:        sink.Name.String(),
 				Description: sink.Description,
 				Tags:        sink.Tags,
+				Status:      sink.Status,
+				Error:       sink.Error,
 				Backend:     sink.Backend,
 				Config:      sink.Config,
 				TsCreated:   sink.Created,
@@ -188,6 +194,8 @@ func viewSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
 			Name:        sink.Name.String(),
 			Description: sink.Description,
 			Tags:        sink.Tags,
+			Status:      sink.Status,
+			Error:       sink.Error,
 			Backend:     sink.Backend,
 			Config:      sink.Config,
 			TsCreated:   sink.Created,

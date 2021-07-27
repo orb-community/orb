@@ -68,6 +68,7 @@ func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, er
 
 }
 
+//TODO Check the update for the field name, to a unique name per owner
 func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
 	q := `UPDATE sinks SET name = :name, description = :description, tags = :tags, status = :status, error = :error, metadata = :metadata WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 
