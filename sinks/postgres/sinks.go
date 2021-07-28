@@ -68,7 +68,6 @@ func (cr sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, er
 
 }
 
-//TODO Check the update for the field name, to a unique name per owner
 func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
 	q := `UPDATE sinks SET name = :name, description = :description, tags = :tags, status = :status, error = :error, metadata = :metadata WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 
@@ -84,6 +83,8 @@ func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
 			switch pqErr.Code.Name() {
 			case db.ErrInvalid, db.ErrTruncation:
 				return errors.Wrap(sinks.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return errors.Wrap(sinks.ErrUpdateEntity, err)
 			}
 		}
 		return errors.Wrap(sinks.ErrUpdateEntity, err)

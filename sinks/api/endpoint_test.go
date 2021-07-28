@@ -168,7 +168,7 @@ func TestCreateSinks(t *testing.T) {
 			body:        strings.NewReader(sinkCase.req),
 		}
 		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpect erro %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 	}
 
@@ -576,9 +576,9 @@ func TestViewBackend(t *testing.T) {
 			token:       sinkCase.auth,
 		}
 		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		body, err := ioutil.ReadAll(res.Body)
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		data := strings.Trim(string(body), "\n")
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 		assert.Equal(t, sinkCase.res, data, fmt.Sprintf("%s: expected body %s got %s", sinkCase.desc, sinkCase.res, data))
@@ -653,9 +653,9 @@ func TestViewBackends(t *testing.T) {
 			token:       sinkCase.auth,
 		}
 		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		body, err := ioutil.ReadAll(res.Body)
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		data := strings.Trim(string(body), "\n")
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 		assert.Equal(t, sinkCase.res, data, fmt.Sprintf("%s: expected body %s got %s", sinkCase.desc, sinkCase.res, data))
@@ -740,9 +740,9 @@ func TestViewSink(t *testing.T) {
 			token:       sinkCase.auth,
 		}
 		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		body, err := ioutil.ReadAll(res.Body)
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		data := strings.Trim(string(body), "\n")
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 		assert.Equal(t, sinkCase.res, data, fmt.Sprintf("%s: expected body %s got %s", sinkCase.desc, sinkCase.res, data))
