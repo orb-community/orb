@@ -38,6 +38,8 @@ var (
 		Name:        nameID,
 		Description: "An example prometheus sink",
 		Backend:     "prometheus",
+		Status:      "active",
+		Error:       "",
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
@@ -342,22 +344,22 @@ func TestDeleteSink(t *testing.T) {
 		err   error
 	}{
 		{
-			desc: "delete existing sink",
-			id: sk.ID,
+			desc:  "delete existing sink",
+			id:    sk.ID,
 			token: token,
-			err: nil,
+			err:   nil,
 		},
 		{
-			desc: "delete non-existent sink",
-			id: wrongID.String(),
+			desc:  "delete non-existent sink",
+			id:    wrongID.String(),
 			token: token,
-			err: nil,
+			err:   nil,
 		},
 		{
-			desc: "delete sink with wrong credentials",
-			id: sk.ID,
+			desc:  "delete sink with wrong credentials",
+			id:    sk.ID,
 			token: invalidToken,
-			err: sinks.ErrUnauthorizedAccess,
+			err:   sinks.ErrUnauthorizedAccess,
 		},
 	}
 

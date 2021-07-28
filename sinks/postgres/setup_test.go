@@ -29,7 +29,7 @@ var (
 func TestMain(m *testing.M) {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		log.Fatalf("Could not connect to docker: #{err}")
+		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
 	cfg := []string{
@@ -45,7 +45,7 @@ func TestMain(m *testing.M) {
 	}
 	container, err := pool.RunWithOptions(&ro)
 	if err != nil {
-		log.Fatalf("Could not start container: #{err}")
+		log.Fatalf("Could not start container: %s", err)
 	}
 	port := container.GetPort("5432/tcp")
 
@@ -73,7 +73,7 @@ func TestMain(m *testing.M) {
 	}
 
 	if db, err = postgres.Connect(dbConfig); err != nil {
-		log.Fatalf("Could not setup test DB connection: #{err}")
+		log.Fatalf("Could not setup test DB connection: %s", err)
 	}
 
 	testLog.Debug("connected to database")
@@ -83,7 +83,7 @@ func TestMain(m *testing.M) {
 	db.Close()
 
 	if err := pool.Purge(container); err != nil {
-		log.Fatalf("Could not purge container: #{err}")
+		log.Fatalf("Could not purge container: %s", err)
 	}
 
 	os.Exit(code)

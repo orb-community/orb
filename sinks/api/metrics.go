@@ -43,8 +43,8 @@ func (m metricsMiddleware) ViewSink(ctx context.Context, token string, key strin
 	return m.svc.ViewSink(ctx, token, key)
 }
 
-func (m metricsMiddleware) DeleteSink(ctx context.Context, token string, id string) error {
-	return m.svc.DeleteSink(ctx, token, id)
+func (m metricsMiddleware) DeleteSink(ctx context.Context, token string, key string) (err error) {
+	return m.svc.DeleteSink(ctx, token, key)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.

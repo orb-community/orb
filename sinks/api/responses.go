@@ -15,6 +15,8 @@ type sinkRes struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 	Tags        types.Tags     `json:"tags"`
+	Status      string         `json:"status"`
+	Error       string         `json:"error"`
 	Backend     string         `json:"backend"`
 	Config      types.Metadata `json:"config,omitempty"`
 	TsCreated   time.Time      `json:"ts_created"`

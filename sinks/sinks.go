@@ -36,6 +36,8 @@ var (
 	ErrUpdateEntity = errors.New("failed to update entity")
 
 	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
+
+	ErrRemoveEntity = errors.New("failed to remove entity")
 )
 
 type Sink struct {
@@ -46,9 +48,9 @@ type Sink struct {
 	Backend     string
 	Config      types.Metadata
 	Tags        types.Tags
-	//Status      Status
-	//Error 	  string
-	Created time.Time
+	Status      string
+	Error       string
+	Created     time.Time
 }
 
 // Page contains page related metadata as well as list of sinks that
@@ -72,8 +74,8 @@ type SinkService interface {
 	ViewBackend(ctx context.Context, token string, key string) (backend.Backend, error)
 	// ViewSink retreives a sink by id
 	ViewSink(ctx context.Context, token string, key string) (Sink, error)
-	// DeleteSink deletes an existing sink
-	DeleteSink(ctx context.Context, token string, id string) error
+
+	DeleteSink(ctx context.Context, token string, key string) error
 }
 
 type SinkRepository interface {
@@ -87,7 +89,6 @@ type SinkRepository interface {
 	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
 	// RetriveById retrieves a Sink by Id
 	RetrieveById(ctx context.Context, key string) (Sink, error)
-	// Remove removes the sink having the provided identifier, that is owned
-	//  by the specific user.
-	Remove(ctx context.Context, owner string, id string) error
+
+	Remove(ctx context.Context, owner string, key string) error
 }

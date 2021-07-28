@@ -18,7 +18,6 @@ import (
 var (
 	ErrCreateSink                 = errors.New("failed to create Sink")
 	ErrConflictSink               = errors.New("entity already exists")
-	ErrRemoveEntity               = errors.New("remove entity failed")
 	ErrUnsupportedContentTypeSink = errors.New("unsupported content type")
 )
 
@@ -61,7 +60,6 @@ func (svc sinkService) ViewBackend(ctx context.Context, token string, key string
 	if err != nil {
 		return nil, errors.Wrap(errors.ErrUnauthorizedAccess, err)
 	}
-
 	res := backend.GetBackend(key)
 	if res == nil {
 		return nil, errors.Wrap(errors.ErrNotFound, err)

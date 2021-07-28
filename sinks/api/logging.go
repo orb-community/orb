@@ -103,19 +103,18 @@ func (l loggingMiddleware) ViewSink(ctx context.Context, token string, key strin
 	return l.svc.ViewSink(ctx, token, key)
 }
 
-func (l loggingMiddleware) DeleteSink(ctx context.Context, token string, id string) (err error) {
+func (l loggingMiddleware) DeleteSink(ctx context.Context, token string, key string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: delete_sink",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: delete_sink",
+			l.logger.Warn("method call: delete_sink",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-
-	return l.svc.DeleteSink(ctx, token, id)
+	return l.svc.DeleteSink(ctx, token, key)
 }
 
 func NewLoggingMiddleware(svc sinks.Service, logger *zap.Logger) sinks.Service {

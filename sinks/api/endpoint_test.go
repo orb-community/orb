@@ -32,12 +32,12 @@ import (
 )
 
 const (
-	contentType = "application/json"
-	token       = "token"
-	invalidToken = "invalid_token"
-	email       = "user@example.com"
-	validJson   = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
-	invalidJson = "{"
+	contentType  = "application/json"
+	token        = "token"
+	invalidToken = "invalid"
+	email        = "user@example.com"
+	validJson    = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	invalidJson  = "{"
 )
 
 var (
@@ -49,7 +49,6 @@ var (
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
-
 	invalidName  = strings.Repeat("m", maxNameSize+1)
 	notFoundRes  = toJSON(errorRes{things.ErrNotFound.Error()})
 	unauthRes    = toJSON(errorRes{things.ErrUnauthorizedAccess.Error()})
@@ -169,7 +168,7 @@ func TestCreateSinks(t *testing.T) {
 			body:        strings.NewReader(sinkCase.req),
 		}
 		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpect erro %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 	}
 
@@ -500,71 +499,16 @@ func TestListSinks(t *testing.T) {
 	}
 }
 
-func TestDeleteSink(t *testing.T) {
-	svc := newService(map[string]string{token: email})
-	server := newServer(svc)
-	defer server.Close()
-
-	sk, err := svc.CreateSink(context.Background(), token, sink)
-	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
-
-	cases := []struct{
-		desc string
-		id string
-		auth string
-		status int
-	}{
-		{
-			desc: "delete existing sink",
-			id: sk.ID,
-			auth: token,
-			status: http.StatusNoContent,
-		},
-		{
-			desc:   "delete non-existent sink",
-			id:     wrongID.String(),
-			auth:   token,
-			status: http.StatusNoContent,
-		},
-		{
-			desc: "delete sink with invalid token",
-			id: sk.ID,
-			auth: invalidToken,
-			status: http.StatusUnauthorized,
-		},
-		{
-			desc: "delete sink with empty token",
-			id: sk.ID,
-			auth: "",
-			status: http.StatusUnauthorized,
-		},
-	}
-
-	for _, sinkCase := range cases {
-		req := testRequest{
-			client: server.Client(),
-			method: http.MethodDelete,
-			url:    fmt.Sprintf("%s/sinks/%s", server.URL, sinkCase.id),
-			token:  sinkCase.auth,
-		}
-
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", sinkCase.desc, err))
-		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
-	}
-}
-
 func TestViewBackend(t *testing.T) {
-	f := skmocks.NewSinkServiceMock()
 	service := newService(map[string]string{token: email})
 	server := newServer(service)
 	defer server.Close()
 
-	bes, err := f.ListBackends(context.Background(), token)
+	bes, err := service.ListBackends(context.Background(), token)
 	//bes, err := service.ListBackends(context.Background(), token)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	id := strings.Trim(string(bes[0]), "\n")
-	be, err := f.ViewBackend(context.Background(), token, id)
+	be, err := service.ViewBackend(context.Background(), token, id)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	data := toJSON(sinksBackendRes{
@@ -632,9 +576,9 @@ func TestViewBackend(t *testing.T) {
 			token:       sinkCase.auth,
 		}
 		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		body, err := ioutil.ReadAll(res.Body)
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		data := strings.Trim(string(body), "\n")
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 		assert.Equal(t, sinkCase.res, data, fmt.Sprintf("%s: expected body %s got %s", sinkCase.desc, sinkCase.res, data))
@@ -643,17 +587,16 @@ func TestViewBackend(t *testing.T) {
 }
 
 func TestViewBackends(t *testing.T) {
-	f := skmocks.NewSinkServiceMock()
 	service := newService(map[string]string{token: email})
 	server := newServer(service)
 	defer server.Close()
 
-	bes, err := f.ListBackends(context.Background(), token)
+	bes, err := service.ListBackends(context.Background(), token)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	var backends []interface{}
 	for _, bk := range bes {
-		b, err := f.ViewBackend(context.Background(), token, bk)
+		b, err := service.ViewBackend(context.Background(), token, bk)
 		if err != nil {
 			require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 		}
@@ -710,9 +653,9 @@ func TestViewBackends(t *testing.T) {
 			token:       sinkCase.auth,
 		}
 		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		body, err := ioutil.ReadAll(res.Body)
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		data := strings.Trim(string(body), "\n")
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 		assert.Equal(t, sinkCase.res, data, fmt.Sprintf("%s: expected body %s got %s", sinkCase.desc, sinkCase.res, data))
@@ -797,9 +740,9 @@ func TestViewSink(t *testing.T) {
 			token:       sinkCase.auth,
 		}
 		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		body, err := ioutil.ReadAll(res.Body)
-		assert.Nil(t, err, fmt.Sprintf("unexpect error %s", err))
+		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 		data := strings.Trim(string(body), "\n")
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 		assert.Equal(t, sinkCase.res, data, fmt.Sprintf("%s: expected body %s got %s", sinkCase.desc, sinkCase.res, data))
