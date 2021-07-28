@@ -299,6 +299,54 @@ func TestMultiSinkRetrieval(t *testing.T) {
 	}
 }
 
+func TestSinkRemoval(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sinkName, err := types.NewIdentifier("my-sink")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sink := sinks.Sink{
+		Name:        sinkName,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		Created:     time.Now(),
+		MFOwnerID:   oID.String(),
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+
+	sinkID, err := sinkRepo.Save(context.Background(), sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	sink.ID = sinkID
+
+	cases := map[string]struct{
+		sink sinks.Sink
+		err error
+	}{
+		"delete existing sink": {
+			sink: sink,
+			err: nil,
+		},
+		"delete non-existent sink": {
+			sink: sink,
+			err: nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := sinkRepo.Remove(context.Background(), tc.sink.MFOwnerID, tc.sink.ID)
+		require.Nil(t, err, fmt.Sprintf("%s: failed to remove sink due to: %s", desc, err))
+
+		_, err = sinkRepo.RetrieveById(context.Background(), tc.sink.ID)
+		require.True(t, errors.Contains(err, sinks.ErrNotFound), fmt.Sprintf("%s: expected %s got %s", desc, sinks.ErrNotFound, err))
+	}
+}
+
 func testSortSinks(t *testing.T, pm sinks.PageMetadata, sks []sinks.Sink) {
 	t.Helper()
 	switch pm.Order {

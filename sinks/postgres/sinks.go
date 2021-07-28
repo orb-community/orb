@@ -188,7 +188,7 @@ func (s sinksRepository) Remove(ctx context.Context, owner, id string) error {
 		MFOwnerID: owner,
 	}
 
-	q := `DELETE FROM things WHERE id = :id AND owner = :owner;`
+	q := `DELETE FROM sinks WHERE id = :id AND mf_owner_id = :mf_owner_id;`
 	if _, err := s.db.NamedExecContext(ctx, q, dbsk); err != nil {
 		return errors.Wrap(sinks.ErrRemoveEntity, err)
 	}
