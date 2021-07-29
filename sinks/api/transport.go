@@ -76,6 +76,12 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.Service) h
 		types.EncodeResponse,
 		opts...,
 	))
+	r.Delete("/sinks/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "delete_sink")(deleteSinkEndpoint(svc)),
+		decodeDeleteRequest,
+		types.EncodeResponse,
+		opts...,
+	))
 
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
@@ -172,6 +178,15 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 			Dir:      d,
 			Metadata: m,
 		},
+	}
+
+	return req, nil
+}
+
+func decodeDeleteRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	req := deleteSinkReq{
+		token: r.Header.Get("Authorization"),
+		id:    bone.GetValue(r, "id"),
 	}
 
 	return req, nil
