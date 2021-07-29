@@ -36,6 +36,8 @@ var (
 	ErrUpdateEntity = errors.New("failed to update entity")
 
 	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
+
+	ErrRemoveEntity = errors.New("failed to remove entity")
 )
 
 type Sink struct {

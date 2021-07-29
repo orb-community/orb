@@ -331,6 +331,44 @@ func TestListBackends(t *testing.T) {
 
 }
 
+func TestDeleteSink(t *testing.T) {
+	svc := newService(map[string]string{token: email})
+
+	sk, err := svc.CreateSink(context.Background(), token, sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	cases := []struct {
+		desc  string
+		id    string
+		token string
+		err   error
+	}{
+		{
+			desc:  "delete existing sink",
+			id:    sk.ID,
+			token: token,
+			err:   nil,
+		},
+		{
+			desc:  "delete non-existent sink",
+			id:    wrongID.String(),
+			token: token,
+			err:   nil,
+		},
+		{
+			desc:  "delete sink with wrong credentials",
+			id:    sk.ID,
+			token: invalidToken,
+			err:   sinks.ErrUnauthorizedAccess,
+		},
+	}
+
+	for _, sinkCase := range cases {
+		err := svc.DeleteSink(context.Background(), sinkCase.token, sinkCase.id)
+		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s\n", sinkCase.desc, sinkCase.err, err))
+	}
+}
+
 func testSortSinks(t *testing.T, pm sinks.PageMetadata, sks []sinks.Sink) {
 	switch pm.Order {
 	case "name":
