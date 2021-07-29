@@ -10,6 +10,7 @@ package sinks
 
 import (
 	"context"
+	"fmt"
 	"github.com/mainflux/mainflux"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/sinks/backend"
@@ -30,6 +31,17 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 
 	sink.MFOwnerID = mfOwnerID
 
+	if backend.HaveBackend(sink.Backend) {
+		err = backend.GetBackend(sink.Backend).Connect(sink.Config)
+		if err != nil {
+			sink.Status = "not connected"
+			sink.Error = fmt.Sprint(err)
+		} else {
+			sink.Status = "connected"
+			sink.Error = ""
+		}
+	}
+
 	id, err := svc.sinkRepo.Save(ctx, sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
@@ -43,7 +55,19 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if err != nil {
 		return err
 	}
+
 	sink.MFOwnerID = skOwnerID
+
+	if backend.HaveBackend(sink.Backend) {
+		err = backend.GetBackend(sink.Backend).Connect(sink.Config)
+		if err != nil {
+			sink.Status = "not connected"
+			sink.Error = fmt.Sprint(err)
+		} else {
+			sink.Status = "connected"
+			sink.Error = ""
+		}
+	}
 	return svc.sinkRepo.Update(ctx, sink)
 }
 

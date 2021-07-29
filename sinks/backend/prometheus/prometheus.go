@@ -5,43 +5,59 @@
 package prometheus
 
 import (
+	"fmt"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
+	"io"
+	"strconv"
 )
 
 var _ backend.Backend = (*prometheusBackend)(nil)
 
 type prometheusBackend struct {
-	Name        string         `json:"name"`
+	apiHost     string
+	apiPort     uint64
+	apiUser     string
+	apiPassword string
+}
+
+type SinkFeature struct {
+	Backend     string         `json:"backend"`
 	Description string         `json:"description"`
 	Config      types.Metadata `json:"config"`
 }
 
-func (p prometheusBackend) Validate(config types.Metadata) error {
+func (p *prometheusBackend) Connect(config map[string]interface{}) error {
+	for k, v := range config {
+		switch k {
+		case "remote_host":
+			p.apiHost = fmt.Sprint(v)
+		case "port":
+			p.apiPort, _ = strconv.ParseUint(fmt.Sprint(v), 10, 64)
+		case "username":
+			p.apiUser = fmt.Sprint(v)
+		case "password":
+			p.apiPassword = fmt.Sprint(v)
+		}
+	}
+	return errors.New("Error to connect to prometheus backend")
+}
+
+func (p *prometheusBackend) Metadata() interface{} {
+	return SinkFeature{
+		Backend:     "prometheus",
+		Description: "Prometheus time series database sink",
+		Config:      map[string]interface{}{"title": "Remote Host", "type": "string", "name": "remote_host"},
+	}
+}
+
+func (p *prometheusBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string) error {
 	return nil
 }
 
-func (p prometheusBackend) Metadata() interface{} {
-	return p.Metadata()
-}
-
-func (p prometheusBackend) GetName() string {
-	return p.Name
-}
-
-func (p prometheusBackend) GetDescription() string {
-	return p.Description
-}
-
-func (p prometheusBackend) GetConfig() types.Metadata {
-	return p.Config
-}
-
 func Register() bool {
-	backend.Register("prometheus", &prometheusBackend{
-		Name:        "prometheus",
-		Description: "prometheus backend",
-		Config:      map[string]interface{}{"title": "Remote Host", "type": "string", "name": "remote_host"},
-	})
+	backend.Register("prometheus", &prometheusBackend{})
+
 	return true
 }

@@ -151,7 +151,7 @@ func listBackendsEndpoint(svc sinks.Service) endpoint.Endpoint {
 			if err != nil {
 				return nil, err
 			}
-			completeBackends = append(completeBackends, b)
+			completeBackends = append(completeBackends, b.Metadata())
 		}
 
 		res := sinksBackendsRes{
@@ -172,9 +172,7 @@ func viewBackendEndpoint(svc sinks.Service) endpoint.Endpoint {
 		}
 
 		res := sinksBackendRes{
-			Backend:     backend.GetName(),
-			Description: backend.GetDescription(),
-			Config:      backend.GetConfig(),
+			backend.Metadata(),
 		}
 
 		return res, nil

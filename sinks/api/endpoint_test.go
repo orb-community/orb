@@ -512,9 +512,7 @@ func TestViewBackend(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	data := toJSON(sinksBackendRes{
-		Backend:     be.GetName(),
-		Description: be.GetDescription(),
-		Config:      be.GetConfig(),
+		Backend: be.Metadata(),
 	})
 
 	cases := []struct {
@@ -600,7 +598,7 @@ func TestViewBackends(t *testing.T) {
 		if err != nil {
 			require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 		}
-		backends = append(backends, b)
+		backends = append(backends, b.Metadata())
 	}
 
 	data := toJSON(sinksBackendsRes{
@@ -678,6 +676,8 @@ func TestViewSink(t *testing.T) {
 		Backend:     sk.Backend,
 		Config:      sk.Config,
 		Tags:        sk.Tags,
+		Status:      sk.Status,
+		Error:       sk.Error,
 		TsCreated:   sk.Created,
 	})
 

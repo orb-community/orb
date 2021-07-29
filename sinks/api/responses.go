@@ -65,7 +65,7 @@ type pageRes struct {
 }
 
 type sinksBackendsRes struct {
-	Backends []interface{} `json:"backends"`
+	Backends []interface{} `json:"backends,omitempty"`
 }
 
 func (s sinksBackendsRes) Code() int {
@@ -81,9 +81,7 @@ func (s sinksBackendsRes) Empty() bool {
 }
 
 type sinksBackendRes struct {
-	Backend     string         `json:"backend"`
-	Description string         `json:"description"`
-	Config      types.Metadata `json:"config"`
+	Backend interface{} `json:"config"`
 }
 
 func (s sinksBackendRes) Code() int {

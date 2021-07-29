@@ -4,14 +4,9 @@
 
 package backend
 
-import "github.com/ns1labs/orb/pkg/types"
-
 type Backend interface {
-	Validate(config types.Metadata) error
 	Metadata() interface{}
-	GetName() string
-	GetDescription() string
-	GetConfig() types.Metadata
+	Connect(map[string]interface{}) error
 }
 
 var registry = make(map[string]Backend)
@@ -34,5 +29,8 @@ func HaveBackend(name string) bool {
 }
 
 func GetBackend(name string) Backend {
+	if name == "" {
+		return nil
+	}
 	return registry[name]
 }
