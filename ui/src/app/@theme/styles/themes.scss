@@ -19,12 +19,11 @@ $nb-themes: nb-register-theme((
   card-margin-bottom: 1.875rem,
   card-header-with-select-padding-top: 0.5rem,
   card-header-with-select-padding-bottom: 0.5rem,
-
   select-min-width: 6rem,
-
   slide-out-background: #f7f9fc,
   slide-out-shadow-color: 0 4px 14px 0 #8f9bb3,
   slide-out-shadow-color-rtl: 0 4px 14px 0 #8f9bb3,
+  //select-min-width: 200px,
 ), default, default);
 
 $nb-themes: nb-register-theme((

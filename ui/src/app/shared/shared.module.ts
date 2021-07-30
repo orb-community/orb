@@ -1,4 +1,6 @@
 import { NgModule } from '@angular/core';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
 
 import { ThemeModule } from 'app/@theme/theme.module';
 import {
@@ -9,8 +11,8 @@ import {
   NbDatepickerModule,
   NbInputModule,
   NbCheckboxModule,
- } from '@nebular/theme';
- import { FormsModule } from '@angular/forms';
+} from '@nebular/theme';
+import { FormsModule } from '@angular/forms';
 
 import { MapModule } from './components/map/map.module';
 import { ConfirmationComponent } from './components/confirmation/confirmation.component';
@@ -34,6 +36,8 @@ import { PaginationComponent } from './components/pagination/pagination.componen
     FormsModule,
     NbIconModule,
     NbCheckboxModule,
+    MatChipsModule,
+    MatIconModule,
   ],
   declarations: [
     ConfirmationComponent,
@@ -60,4 +64,5 @@ import { PaginationComponent } from './components/pagination/pagination.componen
   ],
 })
 
-export class SharedModule { }
+export class SharedModule {
+}

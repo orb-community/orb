@@ -1,35 +1,60 @@
 <nb-card>
   <nb-card-header class="table-header">
-    {{this.action}} Sink
+    {{ this.action }} New Sink
   </nb-card-header>
-
   <nb-card-body>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Name:
+        Name<!-- TODO add red asterisk here with a span or something-->
       </div>
       <div class="col-6">
         <input nbInput fullWidth fieldSize="tiny"
-              [(ngModel)]='formData.name'>
+               [(ngModel)]='formData.name'>
       </div>
     </div>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Description:
+        Description
       </div>
       <div class="col-6">
         <input nbInput fullWidth fieldSize="tiny"
-              [(ngModel)]='formData.description'>
+               [(ngModel)]='formData.description'>
       </div>
     </div>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Metadata:
+        Tags
       </div>
-      <div class="col-9" style="height: 200px;">
-        <textarea [ngModel]="formData.metadata | json"
-                  (ngModelChange)="editorMetadata=$event">
-        </textarea>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='formData.tags'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Backend
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='formData.backend'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Remote Host
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='formData.config.remote_host'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Username
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='formData.config.username'>
       </div>
     </div>
   </nb-card-body>

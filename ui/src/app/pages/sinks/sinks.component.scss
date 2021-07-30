@@ -1,3 +1,61 @@
-.button-header {
-  width: 100%;
+.orb-sink-filter-dropdown {
+  float: right;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  padding: 0;
+  width: 140px;
+  height: 40px;
+  right: 24px;
+  top: 101px;
+}
+
+// TODO cleanup css to nebular theme settings
+.button-new-sink {
+  /* Button */
+  // TODO this button should be aligned right
+
+  /* Auto Layout */
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 8px 0 0;
+
+  position: static;
+  width: 108px;
+  left: calc(50% - 108px / 2 + 25px);
+  top: 0;
+  bottom: 0;
+
+  border-radius: 4px;
+
+  /* Inside Auto Layout */
+
+  flex: none;
+  order: 1;
+  flex-grow: 0;
+  margin: 0 16px;
+}
+
+.button-new-sink:hover {
+  /* Property 1=Text + Icon, Property 2=Hover */
+  /* Auto Layout */
+
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 8px 4px 4px;
+
+  position: absolute;
+  left: 12.2%;
+  right: 12.2%;
+  top: 39.47%;
+  bottom: 39.47%;
+
+  /* Background 3 */
+
+  background: #2b3148;
+  border-radius: 4px;
 }

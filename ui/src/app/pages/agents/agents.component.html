@@ -36,7 +36,7 @@
     <ngx-table-component [config]="tableConfig"
                          [page]="page"
                          (editEvent)=openEditModal($event)
-                         (delEvent)=openDeleteModal($event)
+                         (deleteEvent)="openDeleteModal($event)"
                          (detailsEvent)=onOpenDetails($event)>
     </ngx-table-component>
   </nb-card-body>

@@ -69,7 +69,7 @@
     "secure": false
   },
   "/sinks/*": {
-    "target": "http://localhost:8200",
+    "target": "http://localhost:80/api/v1",
     "secure": false
   }
 }

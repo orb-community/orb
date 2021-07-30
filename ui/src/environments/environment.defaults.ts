@@ -15,8 +15,8 @@ export const environment = {
   bootstrapUrl: '/bootstrap/things/bootstrap',
   connectUrl: '/connect',
   browseUrl: '/browse',
-  // ORB
 
+  // ORB
   sinksUrl: '/sinks',
 
   httpAdapterUrl: '/http',

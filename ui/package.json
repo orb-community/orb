@@ -13,6 +13,7 @@
     "ng": "ng",
     "conventional-changelog": "conventional-changelog",
     "start": "ng serve --proxy-config=proxy-config.json",
+    "start:proxydocker": "ng serve --proxy-config=proxy-config-docker.json",
     "start:withmock": "ng serve --proxy-config=proxy-config-mock.json & nodemon mock-json-server/mock-server.js --ignore 'mock-json-server/mock/sinks.json'",
     "build": "ng build",
     "build:prod": "npm run build -- --prod --aot",
