@@ -15,6 +15,7 @@
     <input type="text" [(ngModel)]='formData.name' nbInput placeholder="{{sink.name}}">
   </nb-card-body>
   <nb-card-footer>
-    <button nbButton>I Understand, Delete This Sink</button>
+    <button [disabled]="isEnabled()" nbButton (click)="onDelete()">I Understand, Delete This Sink
+    </button>
   </nb-card-footer>
 </nb-card>

@@ -1,4 +1,4 @@
-import {NbJSThemeOptions} from '@nebular/theme';
+import { NbJSThemeOptions} from '@nebular/theme';
 
 const palette = {
   primary: '#3089fc',

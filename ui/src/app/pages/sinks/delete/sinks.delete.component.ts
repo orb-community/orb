@@ -34,4 +34,8 @@ export class SinksDeleteComponent {
   onClose() {
     this.dialogRef.close(true);
   }
+
+  isEnabled(): boolean {
+    return this.formData.name !== this.sink.name;
+  }
 }
