@@ -1,21 +1,21 @@
-import { ModuleWithProviders, NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatRippleModule } from '@angular/material/core';
+import {ModuleWithProviders, NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {MatRippleModule} from '@angular/material/core';
 import {
   NbActionsModule,
+  NbButtonModule,
+  NbContextMenuModule,
+  NbIconModule,
   NbLayoutModule,
   NbMenuModule,
   NbSearchModule,
-  NbSidebarModule,
-  NbUserModule,
-  NbContextMenuModule,
-  NbButtonModule,
   NbSelectModule,
-  NbIconModule,
+  NbSidebarModule,
   NbThemeModule,
+  NbUserModule,
 } from '@nebular/theme';
-import { NbEvaIconsModule } from '@nebular/eva-icons';
-import { NbSecurityModule } from '@nebular/security';
+import {NbEvaIconsModule} from '@nebular/eva-icons';
+import {NbSecurityModule} from '@nebular/security';
 
 import {
   FooterComponent,
@@ -24,24 +24,9 @@ import {
   SearchInputComponent,
   SwitcherComponent,
 } from './components';
-import {
-  CapitalizePipe,
-  PluralPipe,
-  RoundPipe,
-  TimingPipe,
-  NumberWithCommasPipe,
-} from './pipes';
-import {
-  OneColumnLayoutComponent,
-  ThreeColumnsLayoutComponent,
-  TwoColumnsLayoutComponent,
-} from './layouts';
-import { DEFAULT_THEME } from './styles/theme.default';
-import { COSMIC_THEME } from './styles/theme.cosmic';
-import { CORPORATE_THEME } from './styles/theme.corporate';
-import { DARK_THEME } from './styles/theme.dark';
-import { MATERIAL_LIGHT_THEME } from './styles/material/theme.material-light';
-import { MATERIAL_DARK_THEME } from './styles/material/theme.material-dark';
+import {CapitalizePipe, NumberWithCommasPipe, PluralPipe, RoundPipe, TimingPipe} from './pipes';
+import {OneColumnLayoutComponent, ThreeColumnsLayoutComponent, TwoColumnsLayoutComponent} from './layouts';
+import {MATERIAL_DARK_THEME} from './styles/material/theme.material-dark';
 
 const NB_MODULES = [
   NbLayoutModule,
@@ -86,10 +71,10 @@ export class ThemeModule {
       ngModule: ThemeModule,
       providers: [
         ...NbThemeModule.forRoot(
-          {
-            name: 'default',
-          },
-          [ DEFAULT_THEME, COSMIC_THEME, CORPORATE_THEME, DARK_THEME, MATERIAL_LIGHT_THEME, MATERIAL_DARK_THEME ],
+            {
+              name: 'material-dark',
+            },
+            [MATERIAL_DARK_THEME],
         ).providers,
       ],
     };

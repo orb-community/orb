@@ -1,16 +1,16 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NbMediaBreakpointsService, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {NbMediaBreakpointsService, NbMenuService, NbSidebarService, NbThemeService} from '@nebular/theme';
 
-import { LayoutService } from '../../../@core/utils';
-import { map, takeUntil } from 'rxjs/operators';
-import { Subject, Observable } from 'rxjs';
-import { RippleService } from '../../../@core/utils/ripple.service';
+import {LayoutService} from '../../../@core/utils';
+import {map, takeUntil} from 'rxjs/operators';
+import {Observable, Subject} from 'rxjs';
+import {RippleService} from '../../../@core/utils/ripple.service';
 
 // Mainflux - Users
-import { User } from 'app/common/interfaces/mainflux.interface';
-import { UsersService } from 'app/common/services/users/users.service';
+import {User} from 'app/common/interfaces/mainflux.interface';
+import {UsersService} from 'app/common/services/users/users.service';
 
-import { STRINGS } from 'assets/text/strings';
+import {STRINGS} from 'assets/text/strings';
 
 @Component({
   selector: 'ngx-header',
@@ -26,24 +26,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   themes = [
     {
-      value: 'default',
-      name: 'Light',
-    },
-    {
       value: 'dark',
       name: 'Dark',
-    },
-    {
-      value: 'cosmic',
-      name: 'Cosmic',
-    },
-    {
-      value: 'corporate',
-      name: 'Corporate',
-    },
-    {
-      value: 'material-light',
-      name: 'Material Light',
     },
     {
       value: 'material-dark',
@@ -69,16 +53,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private rippleService: RippleService,
     private usersService: UsersService,
   ) {
-    this.materialTheme$ = this.themeService.onThemeChange()
-      .pipe(map(theme => {
-        const themeName: string = theme?.name || '';
-        return themeName.startsWith('material');
-      }));
   }
 
   ngOnInit() {
-    this.currentTheme = this.themeService.currentTheme;
-
     // Mfx - get Users infos and picture
     this.usersService.getProfile().subscribe(
       (resp: any) => {
