@@ -34,7 +34,7 @@ $orb-primary-focused: #0c5dc5;
 $orb-primary-inactive: #969fb9;
 
 .button-new-sink {
-  color: #3089FC;
+  color: #3089fc;
 
   .content {
     color: #3089fc;
@@ -45,21 +45,21 @@ $orb-primary-inactive: #969fb9;
   margin: 0;
   padding: 0;
   z-index: 999;
-  background-color: #2B3148;
+  background-color: #bb3148;
 
   :hover {
-    background-color: #2B3148;
+    background-color: #2b3148;
     color: $orb-gray;
   }
 }
 
 .orb-action-hover-container {
   display: inline-block !important;
-  background-color: #2B3148;
-  color: #2B3148;
+  background-color: #2b3148;
+  color: #2b3148;
 
   .icon {
-    background-color: #2B3148;
+    background-color: #2b3148;
   }
 }
 
