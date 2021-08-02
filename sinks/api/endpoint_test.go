@@ -749,3 +749,53 @@ func TestViewSink(t *testing.T) {
 	}
 
 }
+
+func TestDeleteSink(t *testing.T) {
+	svc := newService(map[string]string{token: email})
+	server := newServer(svc)
+	defer server.Close()
+	sk, err := svc.CreateSink(context.Background(), token, sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	cases := []struct {
+		desc   string
+		id     string
+		auth   string
+		status int
+	}{
+		{
+			desc:   "delete existing sink",
+			id:     sk.ID,
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+		{
+			desc:   "delete non-existent sink",
+			id:     wrongID.String(),
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+		{
+			desc:   "delete sink with invalid token",
+			id:     sk.ID,
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+		},
+		{
+			desc:   "delete sink with empty token",
+			id:     sk.ID,
+			auth:   "",
+			status: http.StatusUnauthorized,
+		},
+	}
+	for _, sinkCase := range cases {
+		req := testRequest{
+			client: server.Client(),
+			method: http.MethodDelete,
+			url:    fmt.Sprintf("%s/sinks/%s", server.URL, sinkCase.id),
+			token:  sinkCase.auth,
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", sinkCase.desc, err))
+		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
+	}
+}
