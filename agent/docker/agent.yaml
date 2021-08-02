@@ -1,0 +1,18 @@
+version: "1.0"
+
+pktvisor:
+  binary: "/usr/local/sbin/pktvisord"
+
+orb:
+  mqtt:
+    # MQTT address
+    address: tls://127.0.0.1:8883
+    # agent id
+    id: "e342be9c-e70e-45e0-a1b1-31fe6e5954e1"
+    # agent key
+    key: "2b5f5f6f-dab8-4239-915e-77262b7b2da2"
+    # agent RPC channel ID
+    channel_id: "35a416a4-dc5f-4dca-b319-a6f1cc87bca7"
+  # optional TLS config
+  tls:
+    verify: false
