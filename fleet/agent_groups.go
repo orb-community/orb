@@ -11,12 +11,14 @@ import (
 )
 
 type AgentGroup struct {
-	ID          string
-	Name        types.Identifier
-	MFOwnerID   string
-	MFChannelID string
-	Tags        types.Tags
-	Created     time.Time
+	ID             string
+	MFOwnerID      string
+	Name           types.Identifier
+	Description    string
+	MFChannelID    string
+	MatchingAgents types.Metadata
+	Tags           types.Tags
+	Created        time.Time
 }
 
 type AgentGroupService interface {
