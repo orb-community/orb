@@ -14,9 +14,7 @@ export class SinksDeleteComponent {
     id: '',
   };
 
-  @Input() formData = {
-    name: '',
-  };
+  sinkName: string = '';
 
   constructor(
       protected dialogRef: NbDialogRef<SinksDeleteComponent>,
@@ -25,10 +23,7 @@ export class SinksDeleteComponent {
   }
 
   onDelete() {
-    // TODO check this is the case --lowercase #probablynot
-    if (this.formData.name.toLowerCase() === this.sink.name.toLowerCase()) {
-      this.sinkService.deleteSink(this.sink.id);
-    }
+    this.sinkService.deleteSink(this.sink.id);
   }
 
   onClose() {
@@ -36,6 +31,6 @@ export class SinksDeleteComponent {
   }
 
   isEnabled(): boolean {
-    return this.formData.name !== this.sink.name;
+    return this.sinkName.toLowerCase() === this.sink.name.toLowerCase();
   }
 }
