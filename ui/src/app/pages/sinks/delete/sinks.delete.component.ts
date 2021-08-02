@@ -1,6 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {NbDialogRef} from '@nebular/theme';
-import {Sink} from 'app/common/interfaces/sink.interface';
+import {SinksService} from 'app/common/services/sinks/sinks.service';
 
 @Component({
   selector: 'ngx-sinks-delete-component',
@@ -9,22 +9,26 @@ import {Sink} from 'app/common/interfaces/sink.interface';
 })
 
 export class SinksDeleteComponent {
-  sink: Sink;
+  @Input() sink = {
+    name: '',
+    id: '',
+  };
+
   @Input() formData = {
     name: '',
   };
-  @Input() sinkName: string = '';
 
   constructor(
       protected dialogRef: NbDialogRef<SinksDeleteComponent>,
+      protected sinkService: SinksService,
   ) {
   }
 
   onDelete() {
     // TODO check this is the case --lowercase #probablynot
-    // if (this.formData.name.toLowerCase() === this.sink.name.toLowerCase()) {
-    // this.sinksService.deleteSink(this.sink.id);
-    // }
+    if (this.formData.name.toLowerCase() === this.sink.name.toLowerCase()) {
+      this.sinkService.deleteSink(this.sink.id);
+    }
   }
 
   onClose() {

@@ -102,16 +102,16 @@ export class SinksComponent implements OnInit {
   }
 
   openDeleteModal(row: any) {
-    const sink = this.page.rows[row] as Sink;
+    const {name, id} = row;
     this.dialogService.open(SinksDeleteComponent, {
-      context: {sinkName: sink.name},
+      context: {sink: {name, id}},
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
         confirm => {
           if (confirm) {
             this.sinkService.deleteSink(row.id).subscribe(
-                resp => {
+                () => {
                   this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
                   this.notificationsService.success('Sink Item successfully deleted', '');
                 },
@@ -122,18 +122,18 @@ export class SinksComponent implements OnInit {
   }
 
   openDetailsModal(row: any) {
-    this.sinkService.getSinkById(row.id).subscribe(
-      resp => {
-        this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
-        this.notificationsService.success('Sink ', '');
-      },
-    );
-    this.dialogService.open(SinksDetailsComponent, {autoFocus: true, closeOnEsc: true}).onClose.subscribe(
-      confirm => {
-        if (confirm) {
+    const {name, description, backend, config, ts_created, id} = row;
 
-        }
-      },
+    this.dialogService.open(SinksDetailsComponent, {
+      context: {sink: {id, name, description, backend, config, ts_created}},
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe(
+        confirm => {
+          if (confirm) {
+            this.getSinks();
+          }
+        },
     );
   }
 

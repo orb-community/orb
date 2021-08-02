@@ -38,14 +38,22 @@ $orb-primary-inactive: #969fb9;
   margin: 0;
   padding: 0;
   z-index: 999;
+  background-color: #2B3148;
 
   :hover {
+    background-color: #2B3148;
     color: $orb-gray;
   }
 }
 
 .orb-action-hover-container {
   display: inline-block !important;
+  background-color: #2B3148;
+  color: #2B3148;
+
+  .icon {
+    background-color: #2B3148;
+  }
 }
 
 .orb-tag-sink {

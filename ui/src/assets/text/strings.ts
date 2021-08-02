@@ -19,5 +19,14 @@ export const STRINGS = {
       warning: '*To confirm, type your sink label exactly as it appears',
       close: 'Close',
     },
+    details: {
+      header: 'Sink Details',
+      close: 'Close',
+      name: 'Sink Name',
+      description: 'Sink Description',
+      backend: 'Sink Service Type',
+      remote_host: 'Remote Host',
+      ts_created: 'Date Created',
+    },
   },
 };

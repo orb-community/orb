@@ -1,37 +1,38 @@
 <nb-card>
   <nb-card-header class="table-header">
-    Sink Details
+    {{header}}
+    <button nbButton (click)="onClose()"></button>
   </nb-card-header>
   <nb-card-body>
     <div class="row form-row">
       <div class="col-6">
-        <p class="form-key">Name<!-- TODO add red asterisk here with a span or something--></p>
+        <p class="form-key">{{name}}<span class="ns1red">*</span></p>
         <p>{{ sink.name }}</p>
       </div>
       <div class="col-6">
-        <p class="col-3 form-key">Description</p>
+        <p class="col-3 form-key">{{description}}</p>
         <p class="col-6">{{ sink.description }}</p>
       </div>
     </div>
     <div class="row form-row">
       <div class="col-6">
-        <p class="col-3 form-key">Sink Service Type<!-- TODO add red asterisk here with a span or something--></p>
+        <p class="col-3 form-key">{{backend}}<span class="ns1red">*</span></p>
         <p class="col-6">{{ sink.backend }}</p>
       </div>
       <div class="col-6">
-        <p class="col-3 form-key">Remote Host</p>
+        <p class="col-3 form-key">{{remote_host}}</p>
         <p class="col-6">{{ sink.config.remote_host }}</p>
       </div>
     </div>
     <div class="row form-row">
       <div class="col-6">
-        <p class="col-3 form-key">Date Created</p>
+        <p class="col-3 form-key">{{ts_created}}</p>
         <p class="col-6">{{ sink.ts_created }}</p>
       </div>
     </div>
   </nb-card-body>
 
   <nb-card-footer>
-    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(sink.id)">Edit</button>
+    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(sink)">Edit</button>
   </nb-card-footer>
 </nb-card>
