@@ -27,6 +27,7 @@ import {
 import {CapitalizePipe, NumberWithCommasPipe, PluralPipe, RoundPipe, TimingPipe} from './pipes';
 import {OneColumnLayoutComponent, ThreeColumnsLayoutComponent, TwoColumnsLayoutComponent} from './layouts';
 import {MATERIAL_DARK_THEME} from './styles/material/theme.material-dark';
+import {ORB_DARK_THEME} from './styles/orb/theme.orb-dark';
 
 const NB_MODULES = [
   NbLayoutModule,
@@ -72,9 +73,9 @@ export class ThemeModule {
       providers: [
         ...NbThemeModule.forRoot(
             {
-              name: 'material-dark',
+              name: 'orb-dark',
             },
-            [MATERIAL_DARK_THEME],
+            [MATERIAL_DARK_THEME, ORB_DARK_THEME],
         ).providers,
       ],
     };
