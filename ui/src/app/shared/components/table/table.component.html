@@ -4,7 +4,7 @@
       <div [ngSwitch]="colName">
         <button *ngSwitchCase="'orb-sink-add'" nbButton ghost=true class="button-new-sink"
                 (click)="onAdd()">
-          New Sink
+          + New Sink
         </button>
         <div *ngSwitchDefault>
           {{ colName }}

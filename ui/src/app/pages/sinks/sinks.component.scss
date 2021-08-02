@@ -40,6 +40,7 @@
   order: 1;
   flex-grow: 0;
   margin: 0 16px;
+  color: #3089FC;
 }
 
 .button-new-sink:hover {
@@ -62,4 +63,10 @@
 
   background: #2b3148;
   border-radius: 4px;
+}
+
+tr div p {
+  :hover {
+    color: #2a64f6;
+  }
 }

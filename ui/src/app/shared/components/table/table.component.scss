@@ -33,6 +33,13 @@ $orb-primary-pressed: #0c5dc5;
 $orb-primary-focused: #0c5dc5;
 $orb-primary-inactive: #969fb9;
 
+.button-new-sink {
+  color: #3089FC;
+
+  .content {
+    color: #3089fc;
+  }
+}
 
 .orb-action-hover {
   margin: 0;

@@ -6,7 +6,6 @@ import {NotificationsService} from 'app/common/services/notifications/notificati
 import {SinksService} from 'app/common/services/sinks/sinks.service';
 import {SinksAddComponent} from 'app/pages/sinks/add/sinks.add.component';
 import {SinksDetailsComponent} from 'app/pages/sinks/details/sinks.details.component';
-import {Sink} from 'app/common/interfaces/sink.interface';
 import {SinksDeleteComponent} from 'app/pages/sinks/delete/sinks.delete.component';
 
 const defFreq: number = 100;

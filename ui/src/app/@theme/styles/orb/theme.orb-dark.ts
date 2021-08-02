@@ -46,16 +46,6 @@ export const baseTheme: NbJSThemeOptions = {
     infoLight: '#eab9ff',
     warningLight: '#fde3b7',
     dangerLight: '#fbadb1',
-
-    menu: {
-      item: {
-        icon: {
-          active: {
-            color: palette.secondary,
-          },
-        },
-      },
-    },
   },
 };
 
