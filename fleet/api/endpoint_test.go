@@ -11,7 +11,10 @@ package api_test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
+	"github.com/mainflux/mainflux/things"
+	thingsapi "github.com/mainflux/mainflux/things/api/things/http"
 	"github.com/ns1labs/orb/fleet"
 	api "github.com/ns1labs/orb/fleet/api"
 	flmocks "github.com/ns1labs/orb/fleet/mocks"
@@ -21,6 +24,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -32,6 +36,11 @@ const (
 	email        = "user@example.com"
 	validJson    = "{\n	\"name\": \"eu-agents\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
 	invalidJson  = "{"
+	channelsNum  = 3
+)
+
+var (
+	metadata = map[string]interface{}{"meta": "data"}
 )
 
 type testRequest struct {
@@ -57,12 +66,33 @@ func (tr testRequest) make() (*http.Response, error) {
 	return tr.client.Do(req)
 }
 
-func newService(tokens map[string]string) fleet.Service {
-	auth := flmocks.NewAuthService(tokens)
+func generateChannels() map[string]things.Channel {
+	channels := make(map[string]things.Channel, channelsNum)
+	for i := 0; i < channelsNum; i++ {
+		id := strconv.Itoa(i + 1)
+		channels[id] = things.Channel{
+			ID:       id,
+			Owner:    email,
+			Metadata: metadata,
+		}
+	}
+	return channels
+}
+
+func newThingsService(auth mainflux.AuthServiceClient) things.Service {
+	return flmocks.NewThingsService(map[string]things.Thing{}, generateChannels(), auth)
+}
+
+func newThingsServer(svc things.Service) *httptest.Server {
+	mux := thingsapi.MakeHandler(mocktracer.New(), svc)
+	return httptest.NewServer(mux)
+}
+
+func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	agentGroupRepo := flmocks.NewAgentGroupRepository()
 	var logger *zap.Logger
 	config := mfsdk.Config{
-		BaseURL: "http://localhost",
+		BaseURL: url,
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
@@ -80,9 +110,12 @@ func toJSON(data interface{}) string {
 }
 
 func TestCreateAgentGroup(t *testing.T) {
-	service := newService(map[string]string{token: email})
-	server := newServer(service)
-	defer server.Close()
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+	fleetServer := newServer(fleetService)
+	defer fleetServer.Close()
 
 	cases := []struct {
 		desc        string
@@ -104,9 +137,9 @@ func TestCreateAgentGroup(t *testing.T) {
 
 	for _, tc := range cases {
 		req := testRequest{
-			client:      server.Client(),
+			client:      fleetServer.Client(),
 			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/agent_groups", server.URL),
+			url:         fmt.Sprintf("%s/agent_groups", fleetServer.URL),
 			contentType: tc.contentType,
 			token:       tc.auth,
 			body:        strings.NewReader(tc.req),

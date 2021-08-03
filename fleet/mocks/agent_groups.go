@@ -15,12 +15,14 @@ import (
 var _ fleet.AgentGroupRepository = (*agentGroupRepositoryMock)(nil)
 
 type agentGroupRepositoryMock struct {
-	counter int64
+	counter        int64
 	agentGroupMock map[string]fleet.AgentGroup
 }
 
 func NewAgentGroupRepository() agentGroupRepositoryMock {
-	return agentGroupRepositoryMock{}
+	return agentGroupRepositoryMock{
+		agentGroupMock: make(map[string]fleet.AgentGroup),
+	}
 }
 
 func (a agentGroupRepositoryMock) Save(ctx context.Context, group fleet.AgentGroup) (string, error) {
@@ -40,5 +42,3 @@ func (a agentGroupRepositoryMock) RetrieveAllByAgent(ctx context.Context, agent 
 func (a agentGroupRepositoryMock) RetrieveByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
 	panic("implement me")
 }
-
-
