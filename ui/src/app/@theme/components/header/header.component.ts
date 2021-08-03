@@ -53,6 +53,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private rippleService: RippleService,
     private usersService: UsersService,
   ) {
+    this.materialTheme$ = this.themeService.onThemeChange();
   }
 
   ngOnInit() {
