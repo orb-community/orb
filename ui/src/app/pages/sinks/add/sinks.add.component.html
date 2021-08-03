@@ -1,3 +1,4 @@
+<!-- TODO refactor this into page<variable fields> + stepper -->
 <nb-card>
   <nb-card-header class="table-header">
     {{ this.action }} New Sink
@@ -5,7 +6,7 @@
   <nb-card-body>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Name<!-- TODO add red asterisk here with a span or something-->
+        Name<span class="ns1red">*</span>
       </div>
       <div class="col-6">
         <input nbInput fullWidth fieldSize="tiny"
@@ -32,7 +33,7 @@
     </div>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Backend
+        Type<span class="ns1red">*</span>
       </div>
       <div class="col-6">
         <input nbInput fullWidth fieldSize="tiny"
@@ -41,7 +42,7 @@
     </div>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Remote Host
+        Remote Host<span class="ns1red">*</span>
       </div>
       <div class="col-6">
         <input nbInput fullWidth fieldSize="tiny"
