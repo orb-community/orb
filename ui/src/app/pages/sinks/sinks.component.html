@@ -8,19 +8,19 @@
       <p *ngIf="page.rows && page.rows.length === 0" class="card-subtitle">
         There are no sinks yet.
       </p>
-      <nb-select [(selected)]="pageFilters" class="orb-sink-filter-dropdown" appearance="outline"
+      <nb-select [(selected)]="pageFilters" appearance="outline" class="orb-sink-filter-dropdown"
                  placeholder="Filter">
         <nb-option *ngFor="let conf of tableFilters">{{ conf.name }}</nb-option>
       </nb-select>
     </div>
   </nb-card-header>
   <nb-card-body>
-    <ngx-table-component [config]="tableConfig"
-                         [page]="page"
-                         (addEvent)=onOpenAdd()
-                         (editEvent)=onOpenEdit()
+    <ngx-table-component (addEvent)=onOpenAdd()
                          (delEvent)=openDeleteModal($event)
-                         (detailsEvent)=openDetailsModal($event)>
+                         (detailsEvent)=openDetailsModal($event)
+                         (editEvent)=onOpenEdit()
+                         [config]="tableConfig"
+                         [page]="page">
     </ngx-table-component>
   </nb-card-body>
 </nb-card>

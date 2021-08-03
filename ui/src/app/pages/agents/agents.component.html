@@ -1,6 +1,6 @@
-<button nbButton size="medium" class="button-add"
-        (click)="openAddModal()"
-        shape="semi-round">
+<button (click)="openAddModal()" class="button-add" nbButton
+        shape="semi-round"
+        size="medium">
   Create User Group
 </button>
 
@@ -11,40 +11,40 @@
         {{ page.total }} &nbsp; User Groups
       </div>
       <div class="col-md-4">
-        <input nbInput fullWidth placeholder="Search..." fieldSize="small"
-               (input)="searcUserGroupsbyName($event.target.value)">
+        <input (input)="searcUserGroupsbyName($event.target.value)" fieldSize="small" fullWidth nbInput
+               placeholder="Search...">
       </div>
       <div class="col-md-2">
-        <button nbButton size="small" class="button-blue button-header"
-                (click)="onClickSave()">
+        <button (click)="onClickSave()" class="button-blue button-header" nbButton
+                size="small">
           <nb-icon icon="save-outline"></nb-icon>
           Save
         </button>
       </div>
       <div class="col-md-2">
-        <button nbButton size="small" class="button-green button-header"
-                (click)="fileInput.click()">
+        <button (click)="fileInput.click()" class="button-green button-header" nbButton
+                size="small">
           <nb-icon icon="file-add-outline"></nb-icon>
           Upload
-          <input hidden #fileInput (change)="onFileSelected($event.target.files)" type="file">
+          <input #fileInput (change)="onFileSelected($event.target.files)" hidden type="file">
         </button>
       </div>
     </div>
   </nb-card-header>
 
   <nb-card-body>
-    <ngx-table-component [config]="tableConfig"
-                         [page]="page"
+    <ngx-table-component (delEvent)="openDeleteModal($event)"
+                         (detailsEvent)=onOpenDetails($event)
                          (editEvent)=openEditModal($event)
-                         (delEvent)="openDeleteModal($event)"
-                         (detailsEvent)=onOpenDetails($event)>
+                         [config]="tableConfig"
+                         [page]="page">
     </ngx-table-component>
   </nb-card-body>
 
   <nb-card-footer>
-    <ngx-pagination-component [page]="page"
-                              (changeLimitEvent)=onChangeLimit($event)
-                              (changePageEvent)=onChangePage($event)>
+    <ngx-pagination-component (changeLimitEvent)=onChangeLimit($event)
+                              (changePageEvent)=onChangePage($event)
+                              [page]="page">
     </ngx-pagination-component>
   </nb-card-footer>
 </nb-card>

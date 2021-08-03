@@ -4,13 +4,13 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { ThemeModule } from 'app/@theme/theme.module';
 import {
-  NbCardModule,
-  NbIconModule,
   NbButtonModule,
-  NbSelectModule,
-  NbDatepickerModule,
-  NbInputModule,
+  NbCardModule,
   NbCheckboxModule,
+  NbDatepickerModule,
+  NbIconModule,
+  NbInputModule,
+  NbSelectModule,
 } from '@nebular/theme';
 import { FormsModule } from '@angular/forms';
 

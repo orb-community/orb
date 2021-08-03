@@ -3,15 +3,15 @@
 }
 
 .orb-sink-filter-dropdown {
-  float: right;
+  align-items: flex-start;
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
-  padding: 0;
-  width: 140px;
+  float: right;
   height: 40px;
+  padding: 0;
   right: 24px;
   top: 101px;
+  width: 140px;
 }
 
 // TODO cleanup css to nebular theme settings
@@ -20,49 +20,49 @@
   // TODO this button should be aligned right
 
   /* Auto Layout */
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
   align-items: center;
-  padding: 0 8px 0 0;
-
-  position: static;
-  width: 108px;
-  left: calc(50% - 108px / 2 + 25px);
-  top: 0;
-  bottom: 0;
-
   border-radius: 4px;
+  bottom: 0;
+  color: #3089fc;
+  display: flex;
+
+  flex: none;
+  flex-direction: row;
+  flex-grow: 0;
+  justify-content: flex-end;
+  left: calc(50% - 108px / 2 + 25px);
+
+  margin: 0 16px;
 
   /* Inside Auto Layout */
 
-  flex: none;
   order: 1;
-  flex-grow: 0;
-  margin: 0 16px;
-  color: #3089fc;
+  padding: 0 8px 0 0;
+  position: static;
+  top: 0;
+  width: 108px;
 }
 
 .button-new-sink:hover {
   /* Property 1=Text + Icon, Property 2=Hover */
   /* Auto Layout */
 
+  align-items: center;
+  background: #2b3148;
+  border-radius: 4px;
+  bottom: 39.47%;
   display: flex;
+
   flex-direction: row;
   justify-content: center;
-  align-items: center;
-  padding: 4px 8px 4px 4px;
-
-  position: absolute;
   left: 12.2%;
-  right: 12.2%;
-  top: 39.47%;
-  bottom: 39.47%;
+  padding: 4px 8px 4px 4px;
+  position: absolute;
 
   /* Background 3 */
 
-  background: #2b3148;
-  border-radius: 4px;
+  right: 12.2%;
+  top: 39.47%;
 }
 
 tr div p {

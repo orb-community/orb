@@ -56,4 +56,5 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     },
   ],
 })
-export class CommonModule { }
+export class CommonModule {
+}

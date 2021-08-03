@@ -1,6 +1,6 @@
-import {ModuleWithProviders, NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {MatRippleModule} from '@angular/material/core';
+import { ModuleWithProviders, NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatRippleModule } from '@angular/material/core';
 import {
   NbActionsModule,
   NbButtonModule,
@@ -14,8 +14,8 @@ import {
   NbThemeModule,
   NbUserModule,
 } from '@nebular/theme';
-import {NbEvaIconsModule} from '@nebular/eva-icons';
-import {NbSecurityModule} from '@nebular/security';
+import { NbEvaIconsModule } from '@nebular/eva-icons';
+import { NbSecurityModule } from '@nebular/security';
 
 import {
   FooterComponent,
@@ -24,10 +24,10 @@ import {
   SearchInputComponent,
   SwitcherComponent,
 } from './components';
-import {CapitalizePipe, NumberWithCommasPipe, PluralPipe, RoundPipe, TimingPipe} from './pipes';
-import {OneColumnLayoutComponent, ThreeColumnsLayoutComponent, TwoColumnsLayoutComponent} from './layouts';
-import {MATERIAL_DARK_THEME} from './styles/material/theme.material-dark';
-import {ORB_DARK_THEME} from './styles/orb/theme.orb-dark';
+import { CapitalizePipe, NumberWithCommasPipe, PluralPipe, RoundPipe, TimingPipe } from './pipes';
+import { OneColumnLayoutComponent, ThreeColumnsLayoutComponent, TwoColumnsLayoutComponent } from './layouts';
+import { MATERIAL_DARK_THEME } from './styles/material/theme.material-dark';
+import { ORB_DARK_THEME } from './styles/orb/theme.orb-dark';
 
 const NB_MODULES = [
   NbLayoutModule,
@@ -72,10 +72,10 @@ export class ThemeModule {
       ngModule: ThemeModule,
       providers: [
         ...NbThemeModule.forRoot(
-            {
-              name: 'orb-dark',
-            },
-            [MATERIAL_DARK_THEME, ORB_DARK_THEME],
+          {
+            name: 'orb-dark',
+          },
+          [MATERIAL_DARK_THEME, ORB_DARK_THEME],
         ).providers,
       ],
     };

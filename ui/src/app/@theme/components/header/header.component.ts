@@ -1,16 +1,16 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {NbMediaBreakpointsService, NbMenuService, NbSidebarService, NbThemeService} from '@nebular/theme';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { NbMediaBreakpointsService, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
 
-import {LayoutService} from '../../../@core/utils';
-import {map, takeUntil} from 'rxjs/operators';
-import {Observable, Subject} from 'rxjs';
-import {RippleService} from '../../../@core/utils/ripple.service';
+import { LayoutService } from '../../../@core/utils';
+import { map, takeUntil } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { RippleService } from '../../../@core/utils/ripple.service';
 
 // Mainflux - Users
-import {User} from 'app/common/interfaces/mainflux.interface';
-import {UsersService} from 'app/common/services/users/users.service';
+import { User } from 'app/common/interfaces/mainflux.interface';
+import { UsersService } from 'app/common/services/users/users.service';
 
-import {STRINGS} from 'assets/text/strings';
+import { STRINGS } from 'assets/text/strings';
 
 @Component({
   selector: 'ngx-header',
@@ -39,8 +39,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   // Mainflux - Menu and version
   userMenu = [
-    { title: 'Profile', link: '/pages/profile' },
-    { title: 'Log out', link: '/auth/logout' },
+    {title: 'Profile', link: '/pages/profile'},
+    {title: 'Log out', link: '/auth/logout'},
   ];
   version = '0.0.0';
 
@@ -70,7 +70,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       },
     );
 
-    const { xl } = this.breakpointService.getBreakpointsMap();
+    const {xl} = this.breakpointService.getBreakpointsMap();
     this.themeService.onMediaQueryChange()
       .pipe(
         map(([, currentBreakpoint]) => currentBreakpoint.width < xl),
@@ -80,7 +80,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     this.themeService.onThemeChange()
       .pipe(
-        map(({ name }) => name),
+        map(({name}) => name),
         takeUntil(this.destroy$),
       )
       .subscribe(themeName => {

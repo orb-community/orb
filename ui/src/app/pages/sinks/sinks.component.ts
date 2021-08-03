@@ -1,12 +1,18 @@
-import {Component, OnInit} from '@angular/core';
-import {NbDialogService} from '@nebular/theme';
+import { Component, OnInit } from '@angular/core';
+import { NbDialogService } from '@nebular/theme';
 
-import {DropdownFilterItem, PageFilters, TableConfig, TablePage, User} from 'app/common/interfaces/mainflux.interface';
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {SinksService} from 'app/common/services/sinks/sinks.service';
-import {SinksAddComponent} from 'app/pages/sinks/add/sinks.add.component';
-import {SinksDetailsComponent} from 'app/pages/sinks/details/sinks.details.component';
-import {SinksDeleteComponent} from 'app/pages/sinks/delete/sinks.delete.component';
+import {
+  DropdownFilterItem,
+  PageFilters,
+  TableConfig,
+  TablePage,
+  User,
+} from 'app/common/interfaces/mainflux.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { SinksService } from 'app/common/services/sinks/sinks.service';
+import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
+import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
+import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.component';
 
 const defFreq: number = 100;
 
@@ -107,16 +113,16 @@ export class SinksComponent implements OnInit {
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
-        confirm => {
-          if (confirm) {
-            this.sinkService.deleteSink(row.id).subscribe(
-                () => {
-                  this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
-                  this.notificationsService.success('Sink Item successfully deleted', '');
-                },
-            );
-          }
-        },
+      confirm => {
+        if (confirm) {
+          this.sinkService.deleteSink(row.id).subscribe(
+            () => {
+              this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
+              this.notificationsService.success('Sink Item successfully deleted', '');
+            },
+          );
+        }
+      },
     );
   }
 
@@ -128,11 +134,11 @@ export class SinksComponent implements OnInit {
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
-        confirm => {
-          if (confirm) {
-            this.getSinks();
-          }
-        },
+      confirm => {
+        if (confirm) {
+          this.getSinks();
+        }
+      },
     );
   }
 
