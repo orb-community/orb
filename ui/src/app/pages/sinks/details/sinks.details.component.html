@@ -1,10 +1,12 @@
 <nb-card size="large" class="nb-card-medium">
-  <nb-card-header class="table-header">
+  <nb-card-header>
     {{header}}
-    <button nbButton (click)="onClose()"></button>
+    <button nbButton ghost="true" size="small" class="orb-close-dialog"
+            (click)="onClose()"><span class="nb-close"></span>Close
+    </button>
   </nb-card-header>
   <nb-card-body>
-    <div class="row form-row">
+    <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="form-key">{{name}}<span class="ns1red">*</span></p>
         <p>{{ sink.name }}</p>

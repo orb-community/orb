@@ -2,6 +2,15 @@ nb-card {
   width: 400px;
 }
 
+.nb-card-header {
+  background: #232940;
+  color: #232940;
+
+  .p {
+    color: #969fb9;
+  }
+}
+
 button {
   margin: 10px;
 }
@@ -16,27 +25,8 @@ nb-card-footer {
 }
 
 // ORB
-// TODO sink delete scss
 .orb-close-dialog {
-  /* Auto Layout */
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0 8px 0 0;
-
-  position: static;
-  width: 108px;
-  left: calc(50% - 108px / 2 + 25px);
-  top: 0;
-  bottom: 0;
+  color: #3089fc;
 
   border-radius: 4px;
-
-  /* Inside Auto Layout */
-
-  flex: none;
-  order: 1;
-  flex-grow: 0;
-  margin: 0 16px;
 }

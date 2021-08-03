@@ -45,7 +45,13 @@ nb-tabset {
   margin: 0;
 }
 
-// TODO this selector for edit button
+// ORB
 .sink-edit-button {
   background-color: blue;
+}
+
+.orb-close-dialog {
+  color: #3089fc;
+
+  border-radius: 4px;
 }
