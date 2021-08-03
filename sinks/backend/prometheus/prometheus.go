@@ -10,7 +10,6 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
 	"io"
-	"reflect"
 	"strconv"
 )
 
@@ -30,7 +29,7 @@ type SinkFeature struct {
 }
 
 func (p *prometheusBackend) Connect(config map[string]interface{}) error {
-	if config != nil || !reflect.ValueOf(config).IsNil() {
+	if len(config) != 0 {
 		for k, v := range config {
 			switch k {
 			case "remote_host":
