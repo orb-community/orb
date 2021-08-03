@@ -34,7 +34,7 @@ const (
 	defLimit    = 10
 )
 
-func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.Service) http.Handler {
+func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.SinkService) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(encodeError),
 	}

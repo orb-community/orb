@@ -15,10 +15,11 @@ var (
 )
 
 type agentGroupRes struct {
-	ID      string     `json:"id"`
-	Name    string     `json:"name"`
-	Tags    types.Tags `json:"tags"`
-	created bool
+	ID       string         `json:"id"`
+	Name     string         `json:"name"`
+	Tags     types.Tags     `json:"tags"`
+	Matching types.Metadata `json:"matching_agents"`
+	created  bool
 }
 
 func (s agentGroupRes) Code() int {

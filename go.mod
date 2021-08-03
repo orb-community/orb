@@ -10,6 +10,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.0
 	github.com/go-zoo/bone v1.3.0
 	github.com/gofrs/uuid v3.3.0+incompatible
+	github.com/golang/protobuf v1.5.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.7.0
 	github.com/mainflux/mainflux v0.12.0

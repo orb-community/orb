@@ -123,6 +123,22 @@ paths:
                   $ref: '#/components/schemas/SinkBackendResSchema'
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /features/sinks/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/BackendId"
+    get:
+      summary: 'Get an existing Sink backend configuration'
+      operationId: readBackend
+      tags:
+        - sink
+      responses:
+        '200':
+          $ref: "#/components/responses/SinkBackendObjRes"
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
   requestBodies:
     SinkCreateReq:
@@ -204,6 +220,14 @@ components:
         type: string
         format: uuid
       required: true
+    BackendId:
+      name: id
+      description: Unique Backend identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
   responses:
     SinkObjRes:
       description: Sink object
@@ -224,6 +248,12 @@ components:
           schema:
             type: string
             format: byte
+    SinkBackendObjRes:
+      description: Backend object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SinkBackendObjSchema"
   schemas:
     SinkUpdateReqSchema:
       type: object
@@ -376,6 +406,24 @@ components:
           description: Timestamp of creation
     SinkBackendResSchema:
       type: object
+      properties:
+        backend:
+          type: string
+          example: prometheus
+          description: Name and identifier of the sink backend, used when creating new sinks
+        description:
+          type: string
+          example: Prometheus time series database sink
+        config:
+          type: array
+          description: Backend configuration field details
+          items:
+            items:
+              $ref: '#/components/schemas/ConfigEntrySchema'
+    SinkBackendObjSchema:
+      type: object
+      required:
+        - id
       properties:
         backend:
           type: string

@@ -14,8 +14,6 @@ import (
 	"fmt"
 	"github.com/gofrs/uuid"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
-	"github.com/mainflux/mainflux/things"
-	thmocks "github.com/mainflux/mainflux/things/mocks"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 	skmocks "github.com/ns1labs/orb/sinks/mocks"
@@ -50,8 +48,8 @@ var (
 		Tags:        map[string]string{"cloud": "aws"},
 	}
 	invalidName  = strings.Repeat("m", maxNameSize+1)
-	notFoundRes  = toJSON(errorRes{things.ErrNotFound.Error()})
-	unauthRes    = toJSON(errorRes{things.ErrUnauthorizedAccess.Error()})
+	notFoundRes  = toJSON(errorRes{sinks.ErrNotFound.Error()})
+	unauthRes    = toJSON(errorRes{sinks.ErrUnauthorizedAccess.Error()})
 	notSupported = toJSON(errorRes{sinks.ErrUnsupportedContentTypeSink.Error()})
 	wrongID, _   = uuid.NewV4()
 )
@@ -79,8 +77,8 @@ func (tr testRequest) make() (*http.Response, error) {
 	return tr.client.Do(req)
 }
 
-func newService(tokens map[string]string) sinks.Service {
-	auth := thmocks.NewAuthService(tokens)
+func newService(tokens map[string]string) sinks.SinkService {
+	auth := skmocks.NewAuthService(tokens)
 	sinkRepo := skmocks.NewSinkRepository()
 	var logger *zap.Logger
 
@@ -93,7 +91,7 @@ func newService(tokens map[string]string) sinks.Service {
 	return sinks.NewSinkService(logger, auth, sinkRepo, mfsdk)
 }
 
-func newServer(svc sinks.Service) *httptest.Server {
+func newServer(svc sinks.SinkService) *httptest.Server {
 	mux := MakeHandler(mocktracer.New(), "sinks", svc)
 	return httptest.NewServer(mux)
 }
@@ -185,8 +183,7 @@ func TestUpdateSink(t *testing.T) {
 	data := toJSON(updateSinkReq{
 		Name:        sk.Name.String(),
 		Description: sk.Description,
-		Backend:     sk.Backend,
-		Config:      sk.Config,
+		Config:      sink.Config,
 		Tags:        sk.Tags,
 	})
 
@@ -505,7 +502,6 @@ func TestViewBackend(t *testing.T) {
 	defer server.Close()
 
 	bes, err := service.ListBackends(context.Background(), token)
-	//bes, err := service.ListBackends(context.Background(), token)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	id := strings.Trim(string(bes[0]), "\n")
 	be, err := service.ViewBackend(context.Background(), token, id)

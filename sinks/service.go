@@ -19,10 +19,6 @@ import (
 	"time"
 )
 
-type Service interface {
-	SinkService
-}
-
 // PageMetadata contains page metadata that helps navigation
 type PageMetadata struct {
 	Total    uint64
@@ -35,12 +31,10 @@ type PageMetadata struct {
 	Tags     types.Tags     `json:"tags,omitempty"`
 }
 
-var _ Service = (*sinkService)(nil)
-
 type sinkService struct {
 	logger *zap.Logger
 	// for AuthN/AuthZ
-	auth mainflux.AuthServiceClient
+	auth  mainflux.AuthServiceClient
 	mfsdk mfsdk.SDK
 	// Sinks
 	sinkRepo SinkRepository
@@ -58,14 +52,14 @@ func (s sinkService) identify(token string) (string, error) {
 	return res.GetId(), nil
 }
 
-func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK) Service {
+func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK) SinkService {
 
 	prometheus.Register()
 
 	return &sinkService{
-		logger: logger,
-		auth: auth,
+		logger:   logger,
+		auth:     auth,
 		sinkRepo: sinkRepo,
-		mfsdk: mfsdk,
+		mfsdk:    mfsdk,
 	}
 }

@@ -12,11 +12,11 @@ import (
 	"time"
 )
 
-var _ sinks.Service = (*loggingMiddleware)(nil)
+var _ sinks.SinkService = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
 	logger *zap.Logger
-	svc    sinks.Service
+	svc    sinks.SinkService
 }
 
 func (l loggingMiddleware) CreateSink(ctx context.Context, token string, s sinks.Sink) (_ sinks.Sink, err error) {
@@ -117,6 +117,6 @@ func (l loggingMiddleware) DeleteSink(ctx context.Context, token string, key str
 	return l.svc.DeleteSink(ctx, token, key)
 }
 
-func NewLoggingMiddleware(svc sinks.Service, logger *zap.Logger) sinks.Service {
+func NewLoggingMiddleware(svc sinks.SinkService, logger *zap.Logger) sinks.SinkService {
 	return &loggingMiddleware{logger, svc}
 }

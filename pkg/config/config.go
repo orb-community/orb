@@ -24,14 +24,6 @@ type GRPCConfig struct {
 	ServerCert string `mapstructure:"server_cert"`
 	ServerKey  string `mapstructure:"server_key"`
 }
-
-type MFAuthConfig struct {
-	URL       string `mapstructure:"url"`
-	Timeout   string `mapstructure:"timeout"`
-	CaCerts   string `mapstructure:"ca_certs"`
-	ClientTLS string `mapstructure:"client_tls"`
-}
-
 type NatsConfig struct {
 	URL             string `mapstructure:"url"`
 	ConsumerCfgPath string `mapstructure:"config_path"`

@@ -68,13 +68,13 @@ type SinkService interface {
 	UpdateSink(ctx context.Context, token string, s Sink) error
 	// ListSinks retrieves data about sinks
 	ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error)
-	// ListBackends retreives a list of availible backends
+	// ListBackends retrieves a list of available backends
 	ListBackends(ctx context.Context, token string) ([]string, error)
-	// GetBackend retreives a backend by the name
+	// ViewBackend retrieves a backend by the name
 	ViewBackend(ctx context.Context, token string, key string) (backend.Backend, error)
-	// ViewSink retreives a sink by id
+	// ViewSink retrieves a sink by id
 	ViewSink(ctx context.Context, token string, key string) (Sink, error)
-
+	// DeleteSink delete a existing sink by id
 	DeleteSink(ctx context.Context, token string, key string) error
 }
 
@@ -87,8 +87,8 @@ type SinkRepository interface {
 	Update(ctx context.Context, sink Sink) error
 	// RetrieveAll retrieves Sinks
 	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
-	// RetriveById retrieves a Sink by Id
+	// RetrieveById retrieves a Sink by Id
 	RetrieveById(ctx context.Context, key string) (Sink, error)
-
+	// Remove a existing Sink by id
 	Remove(ctx context.Context, owner string, key string) error
 }

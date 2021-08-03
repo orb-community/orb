@@ -10,6 +10,7 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
 	"io"
+	"reflect"
 	"strconv"
 )
 
@@ -29,16 +30,18 @@ type SinkFeature struct {
 }
 
 func (p *prometheusBackend) Connect(config map[string]interface{}) error {
-	for k, v := range config {
-		switch k {
-		case "remote_host":
-			p.apiHost = fmt.Sprint(v)
-		case "port":
-			p.apiPort, _ = strconv.ParseUint(fmt.Sprint(v), 10, 64)
-		case "username":
-			p.apiUser = fmt.Sprint(v)
-		case "password":
-			p.apiPassword = fmt.Sprint(v)
+	if config != nil || !reflect.ValueOf(config).IsNil() {
+		for k, v := range config {
+			switch k {
+			case "remote_host":
+				p.apiHost = fmt.Sprint(v)
+			case "port":
+				p.apiPort, _ = strconv.ParseUint(fmt.Sprint(v), 10, 64)
+			case "username":
+				p.apiUser = fmt.Sprint(v)
+			case "password":
+				p.apiPassword = fmt.Sprint(v)
+			}
 		}
 	}
 	return errors.New("Error to connect to prometheus backend")
@@ -48,7 +51,9 @@ func (p *prometheusBackend) Metadata() interface{} {
 	return SinkFeature{
 		Backend:     "prometheus",
 		Description: "Prometheus time series database sink",
-		Config:      map[string]interface{}{"title": "Remote Host", "type": "string", "name": "remote_host"},
+		Config: map[string]interface{}{
+			"title": "Remote Host", "type": "string", "name": "remote_host",
+		},
 	}
 }
 

@@ -20,10 +20,10 @@ const (
 	streamLen = 1000
 )
 
-var _ sinks.Service = (*eventStore)(nil)
+var _ sinks.SinkService = (*eventStore)(nil)
 
 type eventStore struct {
-	svc    sinks.Service
+	svc    sinks.SinkService
 	client *redis.Client
 }
 
@@ -73,7 +73,7 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) error {
 
 // NewEventStoreMiddleware returns wrapper around sinks service that sends
 // events to event store.
-func NewEventStoreMiddleware(svc sinks.Service, client *redis.Client) sinks.Service {
+func NewEventStoreMiddleware(svc sinks.SinkService, client *redis.Client) sinks.SinkService {
 	return eventStore{
 		svc:    svc,
 		client: client,

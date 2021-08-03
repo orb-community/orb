@@ -74,9 +74,6 @@ func main() {
 	tracer, tracerCloser := initJaeger(svcName, jCfg.URL, logger)
 	defer tracerCloser.Close()
 
-	authTracer, authCloser := initJaeger(svcName, jCfg.URL, logger)
-	defer authCloser.Close()
-
 	authConn := connectToAuth(authCfg, logger)
 	defer authConn.Close()
 
@@ -84,11 +81,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Invalid %s value: %s", authCfg.Timeout, err.Error())
 	}
-	auth := authapi.NewClient(authTracer, authConn, authTimeout)
+	auth := authapi.NewClient(tracer, authConn, authTimeout)
 
 	sinkRepo := postgres.NewSinksRepository(db, logger)
 
-	svc := newSinkService(auth, db, logger, esClient, sdkCfg, sinkRepo)
+	svc := newSinkService(auth, logger, esClient, sdkCfg, sinkRepo)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
@@ -150,12 +147,10 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-
-
-func newSinkService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, repoSink sinks.SinkRepository) sinks.Service {
+func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, repoSink sinks.SinkRepository) sinks.SinkService {
 
 	config := mfsdk.Config{
-		BaseURL: sdkCfg.BaseURL,
+		BaseURL:      sdkCfg.BaseURL,
 		ThingsPrefix: sdkCfg.ThingsPrefix,
 	}
 
@@ -211,7 +206,7 @@ func connectToAuth(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
 	return conn
 }
 
-func startHTTPServer(tracer opentracing.Tracer, svc sinks.Service, cfg config.BaseSvcConfig, logger *zap.Logger, errs chan error) {
+func startHTTPServer(tracer opentracing.Tracer, svc sinks.SinkService, cfg config.BaseSvcConfig, logger *zap.Logger, errs chan error) {
 	p := fmt.Sprintf(":%s", cfg.HttpPort)
 	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Sink service started using https on port %s with cert %s key %s",

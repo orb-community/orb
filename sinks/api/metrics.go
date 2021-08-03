@@ -11,12 +11,12 @@ import (
 	"github.com/ns1labs/orb/sinks/backend"
 )
 
-var _ sinks.Service = (*metricsMiddleware)(nil)
+var _ sinks.SinkService = (*metricsMiddleware)(nil)
 
 type metricsMiddleware struct {
 	counter metrics.Counter
 	latency metrics.Histogram
-	svc     sinks.Service
+	svc     sinks.SinkService
 }
 
 func (m metricsMiddleware) CreateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
@@ -48,7 +48,7 @@ func (m metricsMiddleware) DeleteSink(ctx context.Context, token string, key str
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.
-func MetricsMiddleware(svc sinks.Service, counter metrics.Counter, latency metrics.Histogram) sinks.Service {
+func MetricsMiddleware(svc sinks.SinkService, counter metrics.Counter, latency metrics.Histogram) sinks.SinkService {
 	return &metricsMiddleware{
 		counter: counter,
 		latency: latency,

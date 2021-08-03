@@ -38,7 +38,7 @@ var (
 		Name:        nameID,
 		Description: "An example prometheus sink",
 		Backend:     "prometheus",
-		Status:      "active",
+		Status:      "",
 		Error:       "",
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
@@ -46,7 +46,7 @@ var (
 	wrongID, _ = uuid.NewV4()
 )
 
-func newService(tokens map[string]string) sinks.Service {
+func newService(tokens map[string]string) sinks.SinkService {
 	auth := thmocks.NewAuthService(tokens)
 	sinkRepo := skmocks.NewSinkRepository()
 	var logger *zap.Logger
@@ -89,10 +89,10 @@ func TestCreateSink(t *testing.T) {
 
 func TestUpdateSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
-
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
+	sk.Backend = ""
 	wrongSink := sinks.Sink{ID: wrongID.String()}
 	sink.ID = sk.ID
 
@@ -102,7 +102,7 @@ func TestUpdateSink(t *testing.T) {
 		err   error
 	}{
 		"update existing sink": {
-			sink:  sink,
+			sink:  sk,
 			token: token,
 			err:   nil,
 		},
@@ -111,10 +111,15 @@ func TestUpdateSink(t *testing.T) {
 			token: invalidToken,
 			err:   sinks.ErrUnauthorizedAccess,
 		},
-		"update a non-existing thing": {
+		"update a non-existing sink": {
 			sink:  wrongSink,
 			token: token,
 			err:   sinks.ErrNotFound,
+		},
+		"update sink read only fields": {
+			sink:  sink,
+			token: token,
+			err:   errors.ErrUpdateEntity,
 		},
 	}
 

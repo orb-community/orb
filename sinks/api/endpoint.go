@@ -16,7 +16,7 @@ import (
 	"github.com/ns1labs/orb/sinks"
 )
 
-func addEndpoint(svc sinks.Service) endpoint.Endpoint {
+func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addReq)
 		if err := req.validate(); err != nil {
@@ -34,8 +34,6 @@ func addEndpoint(svc sinks.Service) endpoint.Endpoint {
 			Config:      req.Config,
 			Description: req.Description,
 			Tags:        req.Tags,
-			Status:      req.Status,
-			Error:       req.Error,
 		}
 		saved, err := svc.CreateSink(ctx, req.token, sink)
 		if err != nil {
@@ -58,7 +56,7 @@ func addEndpoint(svc sinks.Service) endpoint.Endpoint {
 	}
 }
 
-func updateSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
+func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(updateSinkReq)
 		if err := req.validate(); err != nil {
@@ -69,9 +67,6 @@ func updateSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
 			Name:        nameID,
 			ID:          req.id,
 			Tags:        req.Tags,
-			Status:      req.Status,
-			Error:       req.Error,
-			Backend:     req.Backend,
 			Config:      req.Config,
 			Description: req.Description,
 		}
@@ -94,7 +89,7 @@ func updateSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
 	}
 }
 
-func listSinksEndpoint(svc sinks.Service) endpoint.Endpoint {
+func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(listResourcesReq)
 
@@ -136,7 +131,7 @@ func listSinksEndpoint(svc sinks.Service) endpoint.Endpoint {
 	}
 }
 
-func listBackendsEndpoint(svc sinks.Service) endpoint.Endpoint {
+func listBackendsEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(listBackendsReq)
 
@@ -162,7 +157,7 @@ func listBackendsEndpoint(svc sinks.Service) endpoint.Endpoint {
 	}
 }
 
-func viewBackendEndpoint(svc sinks.Service) endpoint.Endpoint {
+func viewBackendEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 
@@ -179,7 +174,7 @@ func viewBackendEndpoint(svc sinks.Service) endpoint.Endpoint {
 	}
 }
 
-func viewSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
+func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 		sink, err := svc.ViewSink(ctx, req.token, req.id)
@@ -202,7 +197,7 @@ func viewSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
 	}
 }
 
-func deleteSinkEndpoint(svc sinks.Service) endpoint.Endpoint {
+func deleteSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(deleteSinkReq)
 

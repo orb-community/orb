@@ -14,12 +14,12 @@ type sinkRes struct {
 	ID          string         `json:"id"`
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
-	Tags        types.Tags     `json:"tags"`
-	Status      string         `json:"status"`
-	Error       string         `json:"error"`
-	Backend     string         `json:"backend"`
+	Tags        types.Tags     `json:"tags,omitempty"`
+	Status      string         `json:"status,omitempty"`
+	Error       string         `json:"error,omitempty"`
+	Backend     string         `json:"backend,omitempty"`
 	Config      types.Metadata `json:"config,omitempty"`
-	TsCreated   time.Time      `json:"ts_created"`
+	TsCreated   time.Time      `json:"ts_created,omitempty"`
 	created     bool
 }
 
