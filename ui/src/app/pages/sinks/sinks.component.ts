@@ -1,13 +1,18 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { NbDialogService } from '@nebular/theme';
 
-import { User, PageFilters, TableConfig, TablePage } from 'app/common/interfaces/mainflux.interface';
-import { FsService } from 'app/common/services/fs/fs.service';
+import {
+  DropdownFilterItem,
+  PageFilters,
+  TableConfig,
+  TablePage,
+  User,
+} from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { ConfirmationComponent } from 'app/shared/components/confirmation/confirmation.component';
-import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
+import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
+import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
+import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.component';
 
 const defFreq: number = 100;
 
@@ -18,21 +23,34 @@ const defFreq: number = 100;
 })
 export class SinksComponent implements OnInit {
   tableConfig: TableConfig = {
-    colNames: ['', '', '', 'Name', 'Description', 'ID'],
-    keys: ['edit', 'delete', 'details', 'name', 'description', 'id'],
+    colNames: ['Name', 'Description', 'Type', 'Status', 'Tags', 'orb-sink-add'],
+    keys: ['name', 'description', 'type', 'status', 'tags', 'orb-action-hover'],
   };
-  page: TablePage = {};
-  pageFilters: PageFilters = {};
+  page: TablePage = {
+    limit: 10,
+  };
+  pageFilters: PageFilters = {
+    offset: 0,
+    order: 'id',
+    dir: 'desc',
+    name: '',
+  };
+  tableFilters: DropdownFilterItem[];
 
   searchFreq = 0;
 
   constructor(
-    private router: Router,
     private dialogService: NbDialogService,
     private sinkService: SinksService,
-    private fsService: FsService,
     private notificationsService: NotificationsService,
-  ) { }
+  ) {
+    this.tableFilters = this.tableConfig.colNames.map((name, index) => ({
+      id: index.toString(),
+      name,
+      order: 'asc',
+      selected: false,
+    })).filter((filter) => (!filter.name.startsWith('orb-')));
+  }
 
   ngOnInit() {
     // Fetch all sinks
@@ -47,7 +65,7 @@ export class SinksComponent implements OnInit {
           offset: resp.offset,
           limit: resp.limit,
           total: resp.total,
-          rows: resp,
+          rows: resp.sinks,
         };
       },
     );
@@ -68,8 +86,8 @@ export class SinksComponent implements OnInit {
     this.getSinks();
   }
 
-  openAddModal() {
-    this.dialogService.open(SinksAddComponent, { context: { action: 'Create' } }).onClose.subscribe(
+  onOpenAdd() {
+    this.dialogService.open(SinksAddComponent, {context: {action: 'Add'}}).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.getSinks();
@@ -78,22 +96,27 @@ export class SinksComponent implements OnInit {
     );
   }
 
-  openEditModal(row: any) {
-    this.dialogService.open(SinksAddComponent, { context: { formData: row, action: 'Edit' } }).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.getSinks();
-        }
-      },
-    );
+  onOpenEdit() {
+    // this.dialogService.open(SinksAddComponent, {context: {action: 'Edit'}}).onClose.subscribe(
+    //   confirm => {
+    //     if (confirm) {
+    //       this.getSinks();
+    //     }
+    //   },
+    // );
   }
 
   openDeleteModal(row: any) {
-    this.dialogService.open(ConfirmationComponent, { context: { type: 'Sink Management' } }).onClose.subscribe(
+    const {name, id} = row;
+    this.dialogService.open(SinksDeleteComponent, {
+      context: {sink: {name, id}},
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.sinkService.deleteSink(row.id).subscribe(
-            resp => {
+            () => {
               this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
               this.notificationsService.success('Sink Item successfully deleted', '');
             },
@@ -103,13 +126,23 @@ export class SinksComponent implements OnInit {
     );
   }
 
-  onOpenDetails(row: any) {
-    if (row.id) {
-      this.router.navigate([`${this.router.routerState.snapshot.url}/details/${row.id}`]);
-    }
+  openDetailsModal(row: any) {
+    const {name, description, backend, config, ts_created, id} = row;
+
+    this.dialogService.open(SinksDetailsComponent, {
+      context: {sink: {id, name, description, backend, config, ts_created}},
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe(
+      confirm => {
+        if (confirm) {
+          this.getSinks();
+        }
+      },
+    );
   }
 
-  searchSinkItembyName(input) {
+  searchSinkItemByName(input) {
     const t = new Date().getTime();
     if ((t - this.searchFreq) > defFreq) {
       this.getSinks(input);
@@ -117,10 +150,6 @@ export class SinksComponent implements OnInit {
     }
   }
 
-  onClickSave() {
-    this.fsService.exportToCsv('sink_items.csv', this.page.rows);
-  }
+  filterByInactive = (sink) => sink.status === 'inactive';
 
-  onFileSelected(files: FileList) {
-  }
 }

@@ -8,19 +8,23 @@ import { Sink } from 'app/common/interfaces/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { PageFilters } from 'app/common/interfaces/mainflux.interface';
 
+// default filters
 const defLimit: number = 20;
+const defOrder: string = 'id';
+const defDir: string = 'desc';
 
 @Injectable()
 export class SinksService {
-  picture = 'assets/images/mainflux-logo.png';
-
   constructor(
     private http: HttpClient,
     private notificationsService: NotificationsService,
-  ) { }
+  ) {
+  }
 
-  addSink(sink: Sink) {
-    return this.http.post(environment.sinksUrl, sink, { observe: 'response' })
+  addSink(sinkItem: Sink) {
+    return this.http.post(environment.sinksUrl,
+      sinkItem,
+      {observe: 'response'})
       .map(
         resp => {
           return resp;
@@ -30,7 +34,7 @@ export class SinksService {
         err => {
           this.notificationsService.error('Failed to create Sink',
             `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throw(err);
+          return Observable.throwError(err);
         },
       );
   }
@@ -44,9 +48,9 @@ export class SinksService {
       )
       .catch(
         err => {
-           this.notificationsService.error('Failed to fetch Sink',
+          this.notificationsService.error('Failed to fetch Sink',
             `Error: ${err.status} - ${err.statusText}`);
-            return Observable.throw(err);
+          return Observable.throwError(err);
         },
       );
   }
@@ -54,26 +58,20 @@ export class SinksService {
   getSinks(filters: PageFilters) {
     filters.offset = filters.offset || 0;
     filters.limit = filters.limit || defLimit;
+    filters.order = filters.order || defOrder;
+    filters.dir = filters.dir || defDir;
 
     let params = new HttpParams()
       .set('offset', filters.offset.toString())
       .set('limit', filters.limit.toString())
-      .set('order', 'name')
+      .set('order', filters.order)
       .set('dir', 'asc');
-
-    if (filters.type) {
-      if (filters.metadata) {
-        params = params.append('metadata', `{"${filters.type}": ${filters.metadata}}`);
-      } else {
-        params = params.append('metadata', `{"type":"${filters.type}"}`);
-      }
-    }
 
     if (filters.name) {
       params = params.append('name', filters.name);
     }
 
-    return this.http.get(environment.sinksUrl, { params })
+    return this.http.get(environment.sinksUrl, {params})
       .map(
         resp => {
           return resp;
@@ -83,7 +81,7 @@ export class SinksService {
         err => {
           this.notificationsService.error('Failed to get sinks',
             `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throw(err);
+          return Observable.throwError(err);
         },
       );
   }
@@ -99,12 +97,12 @@ export class SinksService {
         err => {
           this.notificationsService.error('Failed to edit Sink',
             `Error: ${err.status} - ${err.statusText}`);
-            return Observable.throw(err);
+          return Observable.throwError(err);
         },
       );
   }
 
- deleteSink(sinkId: string) {
+  deleteSink(sinkId: string) {
     return this.http.delete(`${environment.sinksUrl}/${sinkId}`)
       .map(
         resp => {
@@ -115,7 +113,7 @@ export class SinksService {
         err => {
           this.notificationsService.error('Failed to delete Sink',
             `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throw(err);
+          return Observable.throwError(err);
         },
       );
   }

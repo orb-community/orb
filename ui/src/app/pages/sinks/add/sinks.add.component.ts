@@ -5,7 +5,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 
 @Component({
-  selector: 'ngx-sinks-add.component',
+  selector: 'ngx-sinks-add-component',
   templateUrl: './sinks.add.component.html',
   styleUrls: ['./sinks.add.component.scss'],
 })
@@ -15,41 +15,50 @@ export class SinksAddComponent {
   @Input() formData = {
     name: '',
     description: '',
+    tags: '',
+    backend: '',
+    config: {
+      remote_host: '',
+      username: '',
+    },
     metadata: {},
   };
   @Input() action: string = '';
+
   constructor(
     protected dialogRef: NbDialogRef<SinksAddComponent>,
-    private sinkService: SinksService,
+    private sinksService: SinksService,
     private notificationsService: NotificationsService,
-  ) { }
+  ) {
+  }
 
   cancel() {
     this.dialogRef.close(false);
   }
 
   submit() {
-    if (this.editorMetadata !== '') {
+    if (this.formData.tags !== '') {
       try {
-        this.formData.metadata = JSON.parse(this.editorMetadata) || {};
+        this.formData.tags = JSON.parse(this.formData.tags);
       } catch (e) {
         this.notificationsService.error('Wrong metadata format', '');
         return;
       }
     }
 
-    if (this.action === 'Create') {
-      this.sinkService.addSink(this.formData).subscribe(
+    this.formData.backend && (this.formData.metadata['backend'] = this.formData.backend);
+    if (this.action === 'Add') {
+      this.sinksService.addSink(this.formData).subscribe(
         resp => {
-          this.notificationsService.success('Sink Item successfully created', '');
+          this.notificationsService.success('Sink successfully created', '');
           this.dialogRef.close(true);
         },
       );
     }
     if (this.action === 'Edit') {
-      this.sinkService.editSink(this.formData).subscribe(
+      this.sinksService.editSink(this.formData).subscribe(
         resp => {
-          this.notificationsService.success('Sink Item successfully edited', '');
+          this.notificationsService.success('Sink successfully edited', '');
           this.dialogRef.close(true);
         },
       );

@@ -9,8 +9,7 @@ import { STRINGS } from 'assets/text/strings';
 
 export class DashboardComponent {
   title: string = STRINGS.home.title;
-  description: string = STRINGS.home.description;
 
-  constructor(
-  ) { }
+  constructor() {
+  }
 }

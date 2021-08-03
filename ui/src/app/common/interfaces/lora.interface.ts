@@ -1,10 +1,10 @@
 export interface LoraMetadata {
-    type: string;
-    lora: {
-      dev_eui?: string,
-      app_id?: string,
-    };
-    channel_id: string;
+  type: string;
+  lora: {
+    dev_eui?: string,
+    app_id?: string,
+  };
+  channel_id: string;
 }
 
 export interface LoraDevice {

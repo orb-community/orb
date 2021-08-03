@@ -1,12 +1,32 @@
 export const STRINGS = {
   header: {
-    logotype: 'MAINFLUX',
+    logotype: 'ORB',
   },
   footer: {
     disclaimer: '',
   },
-  home : {
-    title: 'Welcome to Mainflux IoT Platform',
-    description: 'Mainflux IoT Platform is composed of all components and micro services necessary for IoT solutions, projects or products',
+  home: {
+    title: 'Orb Observation Overview',
+  },
+  fleet: {
+    title: 'Fleet Management',
+  },
+  sink: {
+    header: 'All Sinks',
+    delete: {
+      header: 'Delete Sink Confirmation',
+      body: 'Are you sure you want to delete this sink? This may cause policies which use this sink to become invalid. This action cannot be undone.',
+      warning: '*To confirm, type your sink label exactly as it appears',
+      close: 'Close',
+    },
+    details: {
+      header: 'Sink Details',
+      close: 'Close',
+      name: 'Sink Name',
+      description: 'Sink Description',
+      backend: 'Sink Service Type',
+      remote_host: 'Remote Host',
+      ts_created: 'Date Created',
+    },
   },
 };

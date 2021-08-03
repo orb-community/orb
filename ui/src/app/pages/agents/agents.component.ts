@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { NbDialogService } from '@nebular/theme';
 
-import { User, PageFilters, TableConfig, TablePage } from 'app/common/interfaces/mainflux.interface';
+import { PageFilters, TableConfig, TablePage, User } from 'app/common/interfaces/mainflux.interface';
 import { UserGroupsService } from 'app/common/services/users/groups.service';
 import { FsService } from 'app/common/services/fs/fs.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
@@ -32,7 +32,8 @@ export class AgentsComponent implements OnInit {
     private userGroupsService: UserGroupsService,
     private fsService: FsService,
     private notificationsService: NotificationsService,
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     // Fetch all User Groups
@@ -68,7 +69,7 @@ export class AgentsComponent implements OnInit {
   }
 
   openAddModal() {
-    this.dialogService.open(AgentsAddComponent, { context: { action: 'Create' } }).onClose.subscribe(
+    this.dialogService.open(AgentsAddComponent, {context: {action: 'Create'}}).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.getGroups();
@@ -78,7 +79,7 @@ export class AgentsComponent implements OnInit {
   }
 
   openEditModal(row: any) {
-    this.dialogService.open(AgentsAddComponent, { context: { formData: row, action: 'Edit' } }).onClose.subscribe(
+    this.dialogService.open(AgentsAddComponent, {context: {formData: row, action: 'Edit'}}).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.getGroups();
@@ -88,7 +89,7 @@ export class AgentsComponent implements OnInit {
   }
 
   openDeleteModal(row: any) {
-    this.dialogService.open(ConfirmationComponent, { context: { type: 'User Group' } }).onClose.subscribe(
+    this.dialogService.open(ConfirmationComponent, {context: {type: 'User Group'}}).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.userGroupsService.deleteGroup(row.id).subscribe(
