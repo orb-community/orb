@@ -1,9 +1,17 @@
-import { Component, Input, AfterViewInit,
-  ViewChild, ElementRef, ViewEncapsulation, OnChanges, OnDestroy } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  OnDestroy,
+  ViewChild,
+  ViewEncapsulation
+} from '@angular/core';
 import { Gateway } from 'app/common/interfaces/gateway.interface';
 import { SenMLRec } from 'app/common/interfaces/mainflux.interface';
 import { Terminal } from 'xterm';
-import { MqttService, IMqttMessage, MqttConnectionState } from 'ngx-mqtt';
+import { IMqttMessage, MqttConnectionState, MqttService } from 'ngx-mqtt';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { Subscription } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -20,7 +28,7 @@ export class GatewaysXtermComponent implements AfterViewInit, OnChanges, OnDestr
   hbInterval: number = 5 * 1000;
   @Input() gateway: Gateway;
   intervalId: number;
-  subscriptions: Subscription[] = new Array();
+  subscriptions: Subscription[] = [];
   uuid: string;
   connected: boolean;
 
@@ -28,7 +36,7 @@ export class GatewaysXtermComponent implements AfterViewInit, OnChanges, OnDestr
   stateSub: Subscription;
   public terminal: Terminal;
 
-  @ViewChild('terminal', { static: false }) terminalElement: ElementRef;
+  @ViewChild('terminal', {static: false}) terminalElement: ElementRef;
 
   constructor(
     private mqttService: MqttService,
@@ -40,11 +48,11 @@ export class GatewaysXtermComponent implements AfterViewInit, OnChanges, OnDestr
 
   ngOnChanges() {
     if (this.gateway === undefined ||
-        this.terminal === undefined ||
-        this.connected === true)
-    return;
-    if ( this.gateway.id && this.gateway.metadata.ctrl_channel_id) {
-      this.mqttService.connect({ username: this.gateway.id, password: this.gateway.key });
+      this.terminal === undefined ||
+      this.connected === true)
+      return;
+    if (this.gateway.id && this.gateway.metadata.ctrl_channel_id) {
+      this.mqttService.connect({username: this.gateway.id, password: this.gateway.key});
       this.stateSub = this.mqttService.state.subscribe(this.connectionHandler.bind(this));
     }
   }
@@ -59,18 +67,18 @@ export class GatewaysXtermComponent implements AfterViewInit, OnChanges, OnDestr
   }
 
   connectAgent() {
-      const topic = `${this.createTopic(this.gateway.metadata.ctrl_channel_id)}/res/term/${this.uuid}`;
-      const term = this.terminal;
-      this.mqttService.publish(topic, 'payload');
-      this.chanSub = this.mqttService.observe(topic).subscribe(
-        (message: IMqttMessage) => {
-          let res: string;
-          const pl = message.payload.toString();
-          res = JSON.parse(pl);
-          const msg = <SenMLRec>(<any>res[0]);
-          term.write(msg.vs);
-        });
-      this.notificationsService.success(`Subscribed to channel ${topic}`, '');
+    const topic = `${this.createTopic(this.gateway.metadata.ctrl_channel_id)}/res/term/${this.uuid}`;
+    const term = this.terminal;
+    this.mqttService.publish(topic, 'payload');
+    this.chanSub = this.mqttService.observe(topic).subscribe(
+      (message: IMqttMessage) => {
+        let res: string;
+        const pl = message.payload.toString();
+        res = JSON.parse(pl);
+        const msg = <SenMLRec>(<any>res[0]);
+        term.write(msg.vs);
+      });
+    this.notificationsService.success(`Subscribed to channel ${topic}`, '');
   }
 
   publish(channel: string, bn: string, n: string, vs: string) {
@@ -97,7 +105,7 @@ export class GatewaysXtermComponent implements AfterViewInit, OnChanges, OnDestr
     this.terminal = new Terminal();
     this.terminal.open(this.terminalElement.nativeElement);
     this.terminal.writeln('Welcome to Mainflux IoT Agent');
-    this.terminal.onData( data => {
+    this.terminal.onData(data => {
       const vs = `c,${data}`;
       this.publish(this.gateway.metadata.ctrl_channel_id, this.uuid, 'term', btoa(vs));
     });

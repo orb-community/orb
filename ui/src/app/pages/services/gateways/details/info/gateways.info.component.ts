@@ -11,6 +11,6 @@ import { Gateway } from 'app/common/interfaces/gateway.interface';
 export class GatewaysInfoComponent {
   @Input() gateway: Gateway;
 
-  constructor(
-  ) { }
+  constructor() {
+  }
 }

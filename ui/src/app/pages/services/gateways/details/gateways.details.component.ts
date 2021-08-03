@@ -24,7 +24,8 @@ export class GatewaysDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private gatewaysService: GatewaysService,
     private notificationsService: NotificationsService,
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');

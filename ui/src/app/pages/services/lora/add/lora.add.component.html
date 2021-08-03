@@ -9,8 +9,8 @@
         Name:
       </div>
       <div class="col-6">
-        <input nbInput fullWidth fieldSize="tiny"
-              [(ngModel)]='formData.name'>
+        <input [(ngModel)]='formData.name' fieldSize="tiny" fullWidth
+               nbInput>
       </div>
     </div>
     <div class="row form-row">
@@ -18,8 +18,8 @@
         Application ID:
       </div>
       <div class="col-6">
-        <input nbInput fullWidth fieldSize="tiny"
-              [(ngModel)]='formData.appID'>
+        <input [(ngModel)]='formData.appID' fieldSize="tiny" fullWidth
+               nbInput>
       </div>
     </div>
     <div class="row form-row">
@@ -27,14 +27,14 @@
         Device EUI:
       </div>
       <div class="col-6">
-        <input nbInput fullWidth fieldSize="tiny"
-              [(ngModel)]='formData.devEUI'>
+        <input [(ngModel)]='formData.devEUI' fieldSize="tiny" fullWidth
+               nbInput>
       </div>
     </div>
   </nb-card-body>
 
   <nb-card-footer>
-    <button nbButton status="success" (click)="submit()">{{this.action}}</button>
-    <button nbButton status="danger" (click)="cancel()">Cancel</button>
+    <button (click)="submit()" nbButton status="success">{{this.action}}</button>
+    <button (click)="cancel()" nbButton status="danger">Cancel</button>
   </nb-card-footer>
 </nb-card>

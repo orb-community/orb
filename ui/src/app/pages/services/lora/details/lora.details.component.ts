@@ -18,7 +18,8 @@ export class LoraDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private loraService: LoraService,
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');

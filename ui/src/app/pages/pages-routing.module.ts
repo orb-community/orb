@@ -7,13 +7,6 @@ import { ProfileComponent } from './profile/profile.component';
 
 import { environment } from 'environments/environment';
 
-// Mainflux - User Groups
-import { UserGroupsComponent } from './user-groups/user-groups.component';
-import { UserGroupsDetailsComponent } from './user-groups/details/user-groups.details.component';
-// Mainflux - User
-import { UsersComponent } from './users/users.component';
-import { UsersDetailsComponent } from './users/details/users.details.component';
-
 // ORB
 // Agent Group Management
 import { AgentsComponent } from 'app/pages/agents/agents.component';
@@ -41,15 +34,15 @@ const children = environment.production ?
       component: ProfileComponent,
     },
     {
-      path: 'agent-groups-management',
+      path: 'agents',
       component: AgentsComponent,
     },
     {
-      path: 'dataset-explorer',
+      path: 'datasets',
       component: DatasetsComponent,
     },
     {
-      path: 'fleet-management',
+      path: 'fleets',
       component: FleetsComponent,
     },
     {
@@ -58,6 +51,10 @@ const children = environment.production ?
     },
     {
       path: 'sinks/add',
+      component: SinksAddComponent,
+    },
+    {
+      path: 'sinks/edit/:id',
       component: SinksAddComponent,
     },
   ] : [
@@ -71,29 +68,8 @@ const children = environment.production ?
       pathMatch: 'full',
     },
     {
-      path: 'users/groups',
-      component: UserGroupsComponent,
-    },
-    {
-      path: 'users/groups/details/:id',
-      component: UserGroupsDetailsComponent,
-    },
-    {
-      path: 'users',
-      component: UsersComponent,
-    },
-    {
-      path: 'users/details/:id',
-      component: UsersDetailsComponent,
-    },
-    {
       path: 'profile',
       component: ProfileComponent,
-    },
-    {
-      path: 'services',
-      loadChildren: () => import('./services/services.module')
-        .then(m => m.ServicesModule),
     },
     {
       path: 'agents',

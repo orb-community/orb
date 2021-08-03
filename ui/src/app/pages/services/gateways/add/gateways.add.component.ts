@@ -15,11 +15,13 @@ export class GatewaysAddComponent {
     externalID: '',
   };
   @Input() action: string = '';
+
   constructor(
     protected dialogRef: NbDialogRef<GatewaysAddComponent>,
     private gatewaysService: GatewaysService,
     private notificationsService: NotificationsService,
-  ) { }
+  ) {
+  }
 
   cancel() {
     this.dialogRef.close(false);
@@ -29,7 +31,7 @@ export class GatewaysAddComponent {
     if (this.formData.name === '' || this.formData.name.length > 32) {
       this.notificationsService.warn(
         'Name is required and must be maximum 32 characters long.', '');
-        return false;
+      return false;
     }
 
     if (this.formData.externalID === '' || this.formData.externalID.length < 8) {

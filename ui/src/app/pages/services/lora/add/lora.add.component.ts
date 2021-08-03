@@ -16,11 +16,13 @@ export class LoraAddComponent {
     devEUI: '',
   };
   @Input() action: string = '';
+
   constructor(
     protected dialogRef: NbDialogRef<LoraAddComponent>,
     private loraService: LoraService,
     private notificationsService: NotificationsService,
-  ) { }
+  ) {
+  }
 
   cancel() {
     this.dialogRef.close(false);

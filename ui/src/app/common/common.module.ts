@@ -10,7 +10,6 @@ import { ChannelsService } from './services/channels/channels.service';
 import { GatewaysService } from './services/gateways/gateways.service';
 import { LoraService } from './services/lora/lora.service';
 import { OpcuaService } from './services/opcua/opcua.service';
-import { OpcuaStore } from 'app/common/store/opcua.store';
 import { MessagesService } from './services/messages/messages.service';
 import { MqttManagerService } from './services/mqtt/mqtt.manager.service';
 import { NotificationsService } from './services/notifications/notifications.service';
@@ -23,8 +22,8 @@ import { IntervalService } from './services/interval/interval.service';
 // Orb
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { DatasetsService } from 'app/common/services/datasets/datasets.service';
-import { FleetsService} from 'app/common/services/fleets/fleets.service';
-import { SinksService} from 'app/common/services/sinks/sinks.service';
+import { FleetsService } from 'app/common/services/fleets/fleets.service';
+import { SinksService } from 'app/common/services/sinks/sinks.service';
 
 import { TokenInterceptor } from 'app/auth/auth.token.interceptor.service';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -36,7 +35,6 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     GatewaysService,
     LoraService,
     OpcuaService,
-    OpcuaStore,
     MessagesService,
     MqttManagerService,
     NotificationsService,

@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { Gateway } from 'app/common/interfaces/gateway.interface';
-import { Config, ConfigContent, Route, ConfigUpdate } from 'app/common/interfaces/bootstrap.interface';
+import { Config, ConfigContent, ConfigUpdate, Route } from 'app/common/interfaces/bootstrap.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { environment } from 'environments/environment';
 import { BootstrapService } from 'app/common/services/bootstrap/bootstrap.service';
@@ -21,7 +21,7 @@ export class GatewaysConfigComponent implements OnChanges {
     nats_url: '',
     export_config: {
       file: `${environment.exportConfigFile}`,
-      mqtt : {},
+      mqtt: {},
       exp: {},
       routes: Array<Route>(2),
     },
@@ -30,7 +30,8 @@ export class GatewaysConfigComponent implements OnChanges {
   constructor(
     private bootstrapService: BootstrapService,
     private notificationsService: NotificationsService,
-  ) {}
+  ) {
+  }
 
   ngOnChanges() {
     if (this.gateway.metadata.external_key === '') {

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { NbDialogService } from '@nebular/theme';
 
-import { PageFilters, TableConfig, TablePage, MsgFilters } from 'app/common/interfaces/mainflux.interface';
+import { MsgFilters, PageFilters, TableConfig, TablePage } from 'app/common/interfaces/mainflux.interface';
 import { Gateway } from 'app/common/interfaces/gateway.interface';
 import { GatewaysService } from 'app/common/services/gateways/gateways.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
@@ -35,7 +35,8 @@ export class GatewaysComponent implements OnInit {
     private notificationsService: NotificationsService,
     private fsService: FsService,
     private dialogService: NbDialogService,
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     this.getGateways();
@@ -89,7 +90,7 @@ export class GatewaysComponent implements OnInit {
   }
 
   openAddModal() {
-    this.dialogService.open(GatewaysAddComponent, { context: { action: 'Create' } }).onClose.subscribe(
+    this.dialogService.open(GatewaysAddComponent, {context: {action: 'Create'}}).onClose.subscribe(
       confirm => {
         if (confirm) {
           setTimeout(
@@ -103,7 +104,7 @@ export class GatewaysComponent implements OnInit {
   }
 
   openEditModal(row: any) {
-    this.dialogService.open(GatewaysAddComponent, { context: { formData: row, action: 'Edit' } }).onClose.subscribe(
+    this.dialogService.open(GatewaysAddComponent, {context: {formData: row, action: 'Edit'}}).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.getGateways();
@@ -113,7 +114,7 @@ export class GatewaysComponent implements OnInit {
   }
 
   openDeleteModal(row: any) {
-    this.dialogService.open(ConfirmationComponent, { context: { type: 'Gateway' } }).onClose.subscribe(
+    this.dialogService.open(ConfirmationComponent, {context: {type: 'Gateway'}}).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.gatewaysService.deleteGateway(row).subscribe(

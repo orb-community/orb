@@ -35,7 +35,8 @@ export class LoraComponent implements OnInit {
     private notificationsService: NotificationsService,
     private fsService: FsService,
     private dialogService: NbDialogService,
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     this.getLoraDevices();
@@ -91,7 +92,7 @@ export class LoraComponent implements OnInit {
   }
 
   openAddModal() {
-    this.dialogService.open(LoraAddComponent, { context: { action: 'Create' } }).onClose.subscribe(
+    this.dialogService.open(LoraAddComponent, {context: {action: 'Create'}}).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.getLoraDevices();
@@ -101,7 +102,7 @@ export class LoraComponent implements OnInit {
   }
 
   openEditModal(row: any) {
-    this.dialogService.open(LoraAddComponent, { context: { formData: row, action: 'Edit' } }).onClose.subscribe(
+    this.dialogService.open(LoraAddComponent, {context: {formData: row, action: 'Edit'}}).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.getLoraDevices();
@@ -111,7 +112,7 @@ export class LoraComponent implements OnInit {
   }
 
   openDeleteModal(row: any) {
-    this.dialogService.open(ConfirmationComponent, { context: { type: 'LoRa Device' } }).onClose.subscribe(
+    this.dialogService.open(ConfirmationComponent, {context: {type: 'LoRa Device'}}).onClose.subscribe(
       confirm => {
         if (confirm) {
           this.loraService.deleteDevice(row).subscribe(
