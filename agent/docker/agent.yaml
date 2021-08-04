@@ -8,10 +8,3 @@ orb:
     pktvisor:
       binary: "/usr/local/sbin/pktvisord"
       config_file: "/etc/orb/agent.yaml"
-  cloud:
-    config:
-      auto_provision: true
-    api:
-      address: https://api.orb.live
-    mqtt:
-      address: tls://mqtt.orb.live:8883

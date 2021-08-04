@@ -50,13 +50,7 @@ type orbAgent struct {
 var _ Agent = (*orbAgent)(nil)
 
 func New(logger *zap.Logger, c config.Config) (Agent, error) {
-	var dbFile string
-	if c.OrbAgent.DB.File == "" {
-		dbFile = "orb-agent.db"
-	} else {
-		dbFile = c.OrbAgent.DB.File
-	}
-	db, err := sqlx.Connect("sqlite3", dbFile)
+	db, err := sqlx.Connect("sqlite3", c.OrbAgent.DB.File)
 	if err != nil {
 		return nil, err
 	}

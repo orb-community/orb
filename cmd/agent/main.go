@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 )
 
@@ -97,13 +98,25 @@ func mergeOrError(path string) {
 	v.SetConfigFile(path)
 	v.SetConfigType("yaml")
 
-	v.BindEnv("orb.cloud.api.token", "ORB_TOKEN")
+	v.AutomaticEnv()
+	replacer := strings.NewReplacer(".", "_")
+	v.SetEnvKeyReplacer(replacer)
+
+	// note: viper seems to require a default (or a BindEnv) to be overridden by environment variables
+	v.SetDefault("orb.cloud.api.address", "api.orb.live")
+	v.SetDefault("orb.cloud.api.token", "")
+	v.SetDefault("orb.cloud.config.agent_name", "")
 	v.SetDefault("orb.cloud.config.auto_provision", true)
+	v.SetDefault("orb.cloud.mqtt.address", "mqtt.orb.live")
+	v.SetDefault("orb.cloud.mqtt.id", "")
+	v.SetDefault("orb.cloud.mqtt.key", "")
+	v.SetDefault("orb.cloud.mqtt.channel_id", "")
+	v.SetDefault("orb.db.file", "./orb-agent.db")
+	v.SetDefault("orb.tls.verify", true)
 
 	cobra.CheckErr(v.ReadInConfig())
 	var config config2.Config
 	v.Unmarshal(&config)
-	fmt.Printf("config: %+v\n", config)
 
 	var fZero float64
 
