@@ -48,7 +48,11 @@ func Run(cmd *cobra.Command, args []string) {
 
 	// configuration
 	var config config2.Config
-	viper.Unmarshal(&config)
+	err = viper.Unmarshal(&config)
+	if err != nil {
+		logger.Error("agent start up error (config)", zap.Error(err))
+		os.Exit(1)
+	}
 
 	config.Debug = Debug
 
@@ -103,11 +107,11 @@ func mergeOrError(path string) {
 	v.SetEnvKeyReplacer(replacer)
 
 	// note: viper seems to require a default (or a BindEnv) to be overridden by environment variables
-	v.SetDefault("orb.cloud.api.address", "api.orb.live")
+	v.SetDefault("orb.cloud.api.address", "https://api.orb.live")
 	v.SetDefault("orb.cloud.api.token", "")
 	v.SetDefault("orb.cloud.config.agent_name", "")
 	v.SetDefault("orb.cloud.config.auto_provision", true)
-	v.SetDefault("orb.cloud.mqtt.address", "mqtt.orb.live")
+	v.SetDefault("orb.cloud.mqtt.address", "tls://mqtt.orb.live:8883")
 	v.SetDefault("orb.cloud.mqtt.id", "")
 	v.SetDefault("orb.cloud.mqtt.key", "")
 	v.SetDefault("orb.cloud.mqtt.channel_id", "")
@@ -115,8 +119,6 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.tls.verify", true)
 
 	cobra.CheckErr(v.ReadInConfig())
-	var config config2.Config
-	v.Unmarshal(&config)
 
 	var fZero float64
 
