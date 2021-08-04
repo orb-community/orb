@@ -10,9 +10,9 @@ import {
 } from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
 import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
 import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.component';
+import { Router } from '@angular/router';
 
 const defFreq: number = 100;
 
@@ -43,6 +43,7 @@ export class SinksComponent implements OnInit {
     private dialogService: NbDialogService,
     private sinkService: SinksService,
     private notificationsService: NotificationsService,
+    private router: Router,
   ) {
     this.tableFilters = this.tableConfig.colNames.map((name, index) => ({
       id: index.toString(),
@@ -87,13 +88,7 @@ export class SinksComponent implements OnInit {
   }
 
   onOpenAdd() {
-    this.dialogService.open(SinksAddComponent, {context: {action: 'Add'}}).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.getSinks();
-        }
-      },
-    );
+    this.router.navigate([`${this.router.routerState.snapshot.url}/add`]);
   }
 
   onOpenEdit() {

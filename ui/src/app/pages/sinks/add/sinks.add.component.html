@@ -1,7 +1,7 @@
 <!-- TODO refactor this into page<variable fields> + stepper -->
 <nb-card>
   <nb-card-header class="table-header">
-    {{ this.action }} New Sink
+    New Sink
   </nb-card-header>
   <nb-card-body>
     <div class="row form-row">
@@ -61,7 +61,7 @@
   </nb-card-body>
 
   <nb-card-footer>
-    <button nbButton status="success" (click)="submit()">{{this.action}}</button>
+    <button nbButton status="success" (click)="submit()">Accept</button>
     <button nbButton status="danger" (click)="cancel()">Cancel</button>
   </nb-card-footer>
 </nb-card>

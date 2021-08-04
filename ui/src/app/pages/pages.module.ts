@@ -22,12 +22,11 @@ import { FormsModule } from '@angular/forms';
 import { SharedModule } from 'app/shared/shared.module';
 import { CommonModule } from 'app/common/common.module';
 import { ConfirmationComponent } from 'app/shared/components/confirmation/confirmation.component';
-// ORB SPECIFIC
-// ORB - dataset-explorer
+
+// ORB
 import { DatasetsComponent } from 'app/pages/datasets/datasets.component';
 import { DatasetsAddComponent } from 'app/pages/datasets/add/datasets.add.component';
 import { DatasetsDetailsComponent } from 'app/pages/datasets/details/datasets.details.component';
-// ORB - fleet-management
 import { FleetsComponent } from 'app/pages/fleets/fleets.component';
 import { FleetsAddComponent } from 'app/pages/fleets/add/fleets.add.component';
 import { FleetsDetailsComponent } from 'app/pages/fleets/details/fleets.details.component';
