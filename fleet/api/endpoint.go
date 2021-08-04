@@ -58,10 +58,12 @@ func viewAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 			return nil, err
 		}
 		res := agentGroupRes{
-			ID:      agentGroup.ID,
-			Name:    agentGroup.Name.String(),
-			Tags:    agentGroup.Tags,
-			created: false,
+			ID:             agentGroup.ID,
+			Name:           agentGroup.Name.String(),
+			Description:    agentGroup.Description,
+			Tags:           agentGroup.Tags,
+			TsCreated:      agentGroup.Created,
+			MatchingAgents: map[string]interface{}{},
 		}
 		return res, nil
 	}

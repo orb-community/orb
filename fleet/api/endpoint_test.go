@@ -45,14 +45,13 @@ const (
 
 var (
 	agentGroup = fleet.AgentGroup{
-		ID:             "",
-		MFOwnerID:      "",
-		Name:           types.Identifier{},
-		Description:    "",
-		MFChannelID:    "",
-		MatchingAgents: nil,
-		Tags:           nil,
-		Created:        time.Time{},
+		ID:          "",
+		MFOwnerID:   "",
+		Name:        types.Identifier{},
+		Description: "",
+		MFChannelID: "",
+		Tags:        nil,
+		Created:     time.Time{},
 	}
 	metadata = map[string]interface{}{"meta": "data"}
 )
