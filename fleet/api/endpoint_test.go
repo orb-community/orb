@@ -9,6 +9,7 @@
 package api_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/mainflux/mainflux"
@@ -18,8 +19,10 @@ import (
 	"github.com/ns1labs/orb/fleet"
 	api "github.com/ns1labs/orb/fleet/api"
 	flmocks "github.com/ns1labs/orb/fleet/mocks"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
@@ -27,6 +30,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 const (
@@ -40,6 +44,16 @@ const (
 )
 
 var (
+	agentGroup = fleet.AgentGroup{
+		ID:             "",
+		MFOwnerID:      "",
+		Name:           types.Identifier{},
+		Description:    "",
+		MFChannelID:    "",
+		MatchingAgents: nil,
+		Tags:           nil,
+		Created:        time.Time{},
+	}
 	metadata = map[string]interface{}{"meta": "data"}
 )
 
@@ -147,6 +161,85 @@ func TestCreateAgentGroup(t *testing.T) {
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+	}
+
+}
+
+func TestViewAgentGroup(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+	fleetServer := newServer(fleetService)
+	defer fleetServer.Close()
+
+	validnName, _ := types.NewIdentifier("")
+	agentGroup.Name = validnName
+	ag, err := fleetService.CreateAgentGroup(context.Background(), token, agentGroup)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		id          string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"view a existing agent group": {
+			id:          ag.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+			location:    "/agent_groups/{id}",
+		},
+		"view a non-existing agent group": {
+			id:          "9bb1b244-a199-93c2-aa03-28067b431e2c",
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusNotFound,
+			location:    "/agent_groups/{id}",
+		},
+		"view a agent group with invalid content type": {
+			id:          ag.ID,
+			contentType: "application",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/agent_groups/{id}",
+		},
+		"view a agent group with empty content type": {
+			id:          ag.ID,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/agent_groups/{id}",
+		},
+		"view a agent group with a invalid token": {
+			id:          ag.ID,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/agent_groups/{id}",
+		},
+		"view a agent group with a empty token": {
+			id:          ag.ID,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+			location:    "/agent_groups/{id}",
+		},
+	}
+
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      fleetServer.Client(),
+			method:      http.MethodGet,
+			url:         fmt.Sprintf("%s/agent_groups/%s", fleetServer.URL, tc.id),
+			contentType: tc.contentType,
+			token:       tc.auth,
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 	}
 
 }
