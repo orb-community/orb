@@ -182,8 +182,8 @@ func TestViewAgentGroup(t *testing.T) {
 	fleetServer := newServer(fleetService)
 	defer fleetServer.Close()
 
-	validnName, _ := types.NewIdentifier("")
-	agentGroup.Name = validnName
+	validName, _ := types.NewIdentifier("")
+	agentGroup.Name = validName
 	ag, err := fleetService.CreateAgentGroup(context.Background(), token, agentGroup)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 

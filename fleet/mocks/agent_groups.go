@@ -40,5 +40,9 @@ func (a agentGroupRepositoryMock) RetrieveAllByAgent(ctx context.Context, agent 
 }
 
 func (a agentGroupRepositoryMock) RetrieveByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
-	panic("implement me")
+	if c, ok := a.agentGroupMock[groupID]; ok {
+		return c, nil
+	}
+
+	return fleet.AgentGroup{}, fleet.ErrNotFound
 }

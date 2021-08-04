@@ -49,7 +49,21 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 func viewAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		return response, fleet.ErrNotFound
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		agentGroup, err := svc.RetrieveAgentGroupByID(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+		res := agentGroupRes{
+			ID:      agentGroup.ID,
+			Name:    agentGroup.Name.String(),
+			Tags:    agentGroup.Tags,
+			created: false,
+		}
+		return res, nil
 	}
 }
 

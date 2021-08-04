@@ -47,6 +47,8 @@ var (
 type AgentGroupService interface {
 	// CreateAgentGroup creates new AgentGroup, associated channel, applies to Agents as appropriate
 	CreateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error)
+	// RetrieveAgentGroupByID Retrieve an AgentGroup by id
+	RetrieveAgentGroupByID(ctx context.Context, token string, id string) (AgentGroup, error)
 	// RetrieveAgentGroupByIDInternal Retrieve an AgentGroup by id, without a token
 	RetrieveAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
 }
