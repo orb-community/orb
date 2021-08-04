@@ -67,5 +67,9 @@
   "/states/*": {
     "target": "http://localhost:9021",
     "secure": false
+  },
+  "/sinks/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
   }
 }

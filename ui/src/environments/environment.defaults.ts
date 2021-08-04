@@ -16,10 +16,14 @@ export const environment = {
   connectUrl: '/connect',
   browseUrl: '/browse',
 
+  // ORB
+  sinksUrl: '/sinks',
+
   httpAdapterUrl: '/http',
   readerUrl: '/reader',
   readerPrefix: 'channels',
   readerSuffix: 'messages',
+
 
   mqttWsUrl: window['env']['mqttWsUrl'] || 'ws://localhost/mqtt',
   exportConfigFile: '/configs/export/config.toml',

@@ -1,0 +1,67 @@
+<!-- TODO refactor this into page<variable fields> + stepper -->
+<nb-card>
+  <nb-card-header class="table-header">
+    {{ this.action }} New Sink
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Name<span class="ns1red">*</span>
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='formData.name'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Description
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='formData.description'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Tags
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='formData.tags'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Type<span class="ns1red">*</span>
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='formData.backend'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Remote Host<span class="ns1red">*</span>
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='formData.config.remote_host'>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-3 form-key">
+        Username
+      </div>
+      <div class="col-6">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='formData.config.username'>
+      </div>
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton status="success" (click)="submit()">{{this.action}}</button>
+    <button nbButton status="danger" (click)="cancel()">Cancel</button>
+  </nb-card-footer>
+</nb-card>

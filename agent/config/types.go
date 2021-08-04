@@ -8,11 +8,24 @@ type TLS struct {
 	Verify bool `mapstructure:"verify"`
 }
 
+type OrbAPIConfig struct {
+	Address string
+	Token   string
+}
+
+type MQTTConfig struct {
+	Address   string
+	Id        string
+	Key       string
+	ChannelID string
+}
+
 type OrbAgent struct {
 	Backends map[string]map[string]string `mapstructure:"backends"`
 	Tags     map[string]string            `mapstructure:"tags"`
-	MQTT     map[string]string            `mapstructure:"mqtt"`
+	Cloud    map[string]map[string]string `mapstructure:"cloud"`
 	TLS      TLS                          `mapstructure:"tls"`
+	DB       map[string]string            `mapstructure:"db"`
 }
 
 type Config struct {

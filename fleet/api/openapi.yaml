@@ -1,0 +1,330 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: orb-fleet
+servers:
+  - url: 'http://localhost:8203'
+paths:
+  /agent_groups:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List current Agent Groups'
+      operationId: listAgentGroups
+      tags:
+        - agent_groups
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Name"
+        - $ref: "#/components/parameters/Order"
+        - $ref: "#/components/parameters/Direction"
+      responses:
+        '200':
+          $ref: "#/components/responses/AgentGroupsPageRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    post:
+      summary: 'Create a new Agent Group'
+      operationId: createAgentGroup
+      tags:
+        - agent_groups
+      requestBody:
+        $ref: "#/components/requestBodies/AgentGroupCreateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/AgentGroupObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Missing or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /agent_groups/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/AgentGroupId"
+    get:
+      summary: 'Get an existing Agent Group'
+      operationId: readAgentGroup
+      tags:
+        - agent_groups
+      responses:
+        '201':
+          $ref: "#/components/responses/AgentGroupObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    put:
+      summary: 'Update an existing Agent Group'
+      operationId: updateAgentGroup
+      tags:
+        - agent_groups
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/AgentGroupUpdateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/AgentGroupObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    delete:
+      summary: 'Delete an existing Agent Group'
+      operationId: deleteAgentGroup
+      tags:
+        - agent_groups
+      responses:
+        '204':
+          description: AgentGroup removed.
+        '400':
+          description: Failed due to malformed AgentGroup ID.
+        '401':
+          description: Missing or invalid access token provided.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+components:
+  requestBodies:
+    AgentGroupCreateReq:
+      description: JSON-formatted document describing the new Agent Group configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentGroupCreateReqSchema"
+    AgentGroupUpdateReq:
+      description: JSON-formatted document describing the updated Agent Group configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentGroupUpdateReqSchema"
+  parameters:
+    Name:
+      name: name
+      description: Name filter. Filtering is performed as a case-insensitive partial match.
+      in: query
+      schema:
+        type: string
+      required: false
+    Order:
+      name: order
+      description: Order type.
+      in: query
+      schema:
+        type: string
+        default: id
+        enum:
+          - name
+          - id
+      required: false
+    Direction:
+      name: dir
+      description: Order direction.
+      in: query
+      schema:
+        type: string
+        default: desc
+        enum:
+          - asc
+          - desc
+      required: false
+    Limit:
+      name: limit
+      description: Size of the subset to retrieve.
+      in: query
+      schema:
+        type: integer
+        default: 10
+        maximum: 100
+        minimum: 1
+      required: false
+    Offset:
+      name: offset
+      description: Number of items to skip during retrieval.
+      in: query
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+      required: false
+    Authorization:
+      name: Authorization
+      description: User's access token.
+      in: header
+      schema:
+        type: string
+        format: jwt
+      required: true
+    AgentGroupId:
+      name: id
+      description: Unique Agent Group identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+  responses:
+    AgentGroupObjRes:
+      description: Agent Group object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentGroupsObjSchema"
+    AgentGroupsPageRes:
+      description: Data retrieved.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentGroupPageSchema"
+    ServiceErrorRes:
+      description: Unexpected server-side error occurred.
+      content:
+        application/json:
+          schema:
+            type: string
+            format: byte
+  schemas:
+    AgentGroupUpdateReqSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: eu-agents
+        description:
+          type: string
+          description: User description of this Agent Group
+          example: An example agent group representing european dns nodes
+        tags:
+          type: object
+          description: User defined key/values that will define the members of the group by matching against Agent tags
+          example:
+            region: eu
+            node_type: dns
+    AgentGroupCreateReqSchema:
+      type: object
+      required:
+        - name
+        - tags
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: eu-agents
+        description:
+          type: string
+          description: User description of this Agent Group
+          example: An example agent group representing european dns nodes
+        tags:
+          type: object
+          description: User defined key/values that will define the members of the group by matching against Agent tags
+          example:
+            region: eu
+            node_type: dns
+        validate_only:
+          type: boolean
+          example: false
+          description:
+            When true, only run validation and confirm the Group Agent could be created and how many Agents it would match, but do not actually create it
+    AgentGroupPageSchema:
+      type: object
+      properties:
+        agent_groups:
+          type: array
+          minItems: 0
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/AgentGroupsObjSchema"
+        total:
+          type: integer
+          description: Total number of items.
+        offset:
+          type: integer
+          description: Number of items to skip during retrieval.
+        limit:
+          type: integer
+          description: Maximum number of items to return in one page.
+      required:
+        - agent_groups
+    ConfigEntrySchema:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Visual title of the config item shown in UI
+        type:
+          type: string
+          description: "Data field type"
+          enum:
+            - string
+            - password
+            - int
+        name:
+          type: string
+          description: The field label used in the JSON config object for this field
+        description:
+          type: string
+          description: A description of the use of this configuration field
+      example:
+        title: Remote Host
+        type: string
+        name: remote_host
+        description: The remote host to send Prometheus metrics too
+    AgentGroupsObjSchema:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier (UUID)
+        name:
+          type: string
+          description: A unique name label
+          example: eu-agents
+        description:
+          type: string
+          description: User description of this Agent Group
+          example: An example agent group representing european dns nodes
+        tags:
+          type: object
+          description: User defined key/values that will define the members of the group by matching against Agent tags
+          example:
+            region: eu
+            node_type: dns
+        ts_created:
+          type: string
+          format: date-time
+          description: Timestamp of creation
+        matching_agents:
+          type: object
+          description: Counts of agents currently matching this group
+          properties:
+            total:
+              type: integer
+              description: total agents matching
+            online:
+              type: integer
+              description: total agents matching which are currently online

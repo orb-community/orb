@@ -18,8 +18,8 @@
 
 .table-header {
   background-color: #d3d4de !important;
-  text-align: center !important;
   color: black !important;
+  text-align: center !important;
 }
 
 .card-header {
@@ -28,9 +28,9 @@
 }
 
 .form-key {
-  text-align: right;
-  padding: 0;
   font-weight: bold;
+  padding: 0;
+  text-align: right;
 }
 
 .form-row {
@@ -38,10 +38,10 @@
 }
 
 .button-add {
-  margin-bottom: 10px;
-  position: right;
-  color: white !important;
   background-color: #2a64f6 !important;
+  //position: ;
+  color: white !important;
+  margin-bottom: 10px;
 }
 
 
@@ -53,55 +53,62 @@
 
 // Header
 .header-logo {
-  font-family: 'Montserrat' sans-serif !important;
-  font-weight: 700 !important;
   color: white !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 400 !important;
 }
+
 .header-version {
-  font-family: 'Montserrat' sans-serif !important;
-  font-weight: 10 !important;
   color: white !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 10 !important;
 }
 
 .nb-theme-default nb-layout.window-mode .layout nb-layout-header {
-  background-color: #141526 !important;
+  background-color: #232940 !important;
 }
+
 .nb-theme-default nb-user .user-name {
   color: white;
 }
 
 // Menu
 nb-sidebar {
-  background-color: #272739 !important;
+  background-color: #171c30 !important;
 }
+
 .nb-theme-default nb-menu .menu-item {
-  border-bottom: 1px solid #151a30;
   background-color: #272739 !important;
+  border-bottom: 1px solid #151a30;
 }
 
 // Menu items
 .nb-theme-default nb-menu .menu-item a,
 .nb-theme-default nb-menu .menu-item a .menu-icon {
-  color: #7677a6;
+  color: #df316f !important;
 }
+
 .nb-theme-default nb-menu .menu-item a:hover {
-  background-color: #414259 !important;
+  background-color: #c9225e !important;
 }
+
 .nb-theme-default nb-menu .menu-item a.active {
-  color: white !important;
-  background-color: #414259 !important;
+  background-color: white !important;
+  color: #df316f !important;
 }
+
 .nb-theme-default nb-menu .menu-item a.active .menu-icon {
-  color: white !important;
+  color: #df316f !important;
 }
 
 // First sub menu child
 .nb-theme-default nb-menu .menu-item {
   border: 0 !important;
 }
+
 .nb-theme-default nb-menu .menu-item:first-child a.active {
-  color: white !important;
   border-top: 0 !important;
+  color: #df316f !important;
 }
 
 // Pages padding

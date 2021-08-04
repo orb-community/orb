@@ -1,0 +1,26 @@
+<nb-card>
+  <nb-card-header>
+    <div>
+      <h4>All Sinks</h4>
+      <p *ngIf="page.rows && page.rows.length > 0" class="card-subtitle">
+        You have {{page.rows.length}} sinks total, {{page.rows.filter(filterByInactive).length}} have errors.
+      </p>
+      <p *ngIf="page.rows && page.rows.length === 0" class="card-subtitle">
+        There are no sinks yet.
+      </p>
+      <nb-select [(selected)]="pageFilters" appearance="outline" class="orb-sink-filter-dropdown"
+                 placeholder="Filter">
+        <nb-option *ngFor="let conf of tableFilters">{{ conf.name }}</nb-option>
+      </nb-select>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <ngx-table-component (addEvent)=onOpenAdd()
+                         (delEvent)=openDeleteModal($event)
+                         (detailsEvent)=openDetailsModal($event)
+                         (editEvent)=onOpenEdit()
+                         [config]="tableConfig"
+                         [page]="page">
+    </ngx-table-component>
+  </nb-card-body>
+</nb-card>

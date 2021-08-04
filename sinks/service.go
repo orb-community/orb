@@ -11,31 +11,35 @@ package sinks
 import (
 	"context"
 	"github.com/mainflux/mainflux"
+	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/pkg/types"
+	"github.com/ns1labs/orb/sinks/backend/prometheus"
+	"go.uber.org/zap"
 	"time"
 )
 
-var (
-	ErrCreateSink = errors.New("failed to create sink")
-)
-
-type Service interface {
-	// CreateSink creates new data sink
-	CreateSink(ctx context.Context, token string, s Sink) (Sink, error)
+// PageMetadata contains page metadata that helps navigation
+type PageMetadata struct {
+	Total    uint64
+	Offset   uint64         `json:"offset,omitempty"`
+	Limit    uint64         `json:"limit,omitempty"`
+	Name     string         `json:"name,omitempty"`
+	Order    string         `json:"order,omitempty"`
+	Dir      string         `json:"dir,omitempty"`
+	Metadata types.Metadata `json:"metadata,omitempty"`
+	Tags     types.Tags     `json:"tags,omitempty"`
 }
 
-var _ Service = (*sinkService)(nil)
+var _ SinkService = (*sinkService)(nil)
 
 type sinkService struct {
-	auth mainflux.AuthServiceClient
-	repo Repository
-}
-
-func New(auth mainflux.AuthServiceClient, repo Repository) Service {
-	return &sinkService{
-		auth: auth,
-		repo: repo,
-	}
+	logger *zap.Logger
+	// for AuthN/AuthZ
+	auth  mainflux.AuthServiceClient
+	mfsdk mfsdk.SDK
+	// Sinks
+	sinkRepo SinkRepository
 }
 
 func (s sinkService) identify(token string) (string, error) {
@@ -50,19 +54,14 @@ func (s sinkService) identify(token string) (string, error) {
 	return res.GetId(), nil
 }
 
-func (s sinkService) CreateSink(ctx context.Context, token string, sink Sink) (Sink, error) {
+func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK) SinkService {
 
-	mfOwnerID, err := s.identify(token)
-	if err != nil {
-		return Sink{}, err
+	prometheus.Register()
+
+	return &sinkService{
+		logger:   logger,
+		auth:     auth,
+		sinkRepo: sinkRepo,
+		mfsdk:    mfsdk,
 	}
-
-	sink.MFOwnerID = mfOwnerID
-
-	id, err := s.repo.Save(ctx, sink)
-	if err != nil {
-		return Sink{}, errors.Wrap(ErrCreateSink, err)
-	}
-	sink.ID = id
-	return sink, nil
 }

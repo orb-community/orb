@@ -2,11 +2,15 @@
   "compileOnSave": false,
   "compilerOptions": {
     "importHelpers": true,
-    "module": "esnext",
+    "module": "ESNext",
     "outDir": "./dist/out-tsc",
+    "baseUrl": "src",
+    "paths": {
+      "app/*": ["app/*"]
+    },
     "sourceMap": true,
     "declaration": false,
-    "moduleResolution": "node",
+    "moduleResolution": "Node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "es2015",

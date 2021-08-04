@@ -45,13 +45,15 @@ func migrateDB(db *sqlx.DB) error {
 						id			   UUID NOT NULL DEFAULT gen_random_uuid(),
 						name           TEXT NOT NULL,
 						mf_owner_id    UUID NOT NULL,
-
-						orb_tags       JSONB NOT NULL DEFAULT '{}',
-
+						description    TEXT NOT NULL,
+						tags           JSONB NOT NULL DEFAULT '{}',
+						status         TEXT,
+						error          TEXT,
+						backend        TEXT NOT NULL,
 						metadata       JSONB NOT NULL DEFAULT '{}',
-                        ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+						ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
 						PRIMARY KEY (name, mf_owner_id),
-					    UNIQUE(id)
+						UNIQUE(id)
 					)`,
 					`CREATE INDEX ON sinks (mf_owner_id)`,
 				},

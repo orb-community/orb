@@ -1,0 +1,440 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: orb-sinks
+servers:
+  - url: 'http://localhost:8200'
+paths:
+  /sinks:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List current Sinks'
+      operationId: listSinks
+      tags:
+        - sink
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Name"
+        - $ref: "#/components/parameters/Order"
+        - $ref: "#/components/parameters/Direction"
+      responses:
+        '200':
+          $ref: "#/components/responses/SinksPageRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    post:
+      summary: 'Create (or pre-validate) a new Sink'
+      operationId: createSink
+      tags:
+        - sink
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/SinkCreateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/SinkObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Missing or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /sinks/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/SinkId"
+    get:
+      summary: 'Get an existing Sink configuration'
+      operationId: readSink
+      tags:
+        - sink
+      responses:
+        '201':
+          $ref: "#/components/responses/SinkObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    put:
+      summary: 'Update an existing Sink configuration'
+      operationId: updateSink
+      tags:
+        - sink
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/SinkUpdateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/SinkObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    delete:
+      summary: 'Delete an existing Sink configuration'
+      operationId: deleteSink
+      tags:
+        - sink
+      responses:
+        '204':
+          description: Sink removed.
+        '400':
+          description: Failed due to malformed Sink ID.
+        '401':
+          description: Missing or invalid access token provided.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /features/sinks:
+    get:
+      summary: 'List supported Sink backends and their configuration parameters'
+      operationId: sinkFeatures
+      tags:
+        - sink
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      responses:
+        '200':
+          description: 'Sink feature details'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SinkBackendResSchema'
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /features/sinks/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/BackendId"
+    get:
+      summary: 'Get an existing Sink backend configuration'
+      operationId: readBackend
+      tags:
+        - sink
+      responses:
+        '200':
+          $ref: "#/components/responses/SinkBackendObjRes"
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+components:
+  requestBodies:
+    SinkCreateReq:
+      description: JSON-formatted document describing the new Sink configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SinkCreateReqSchema"
+    SinkUpdateReq:
+      description: JSON-formatted document describing the updated Sink configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SinkUpdateReqSchema"
+  parameters:
+    Name:
+      name: name
+      description: Name filter. Filtering is performed as a case-insensitive partial match.
+      in: query
+      schema:
+        type: string
+      required: false
+    Order:
+      name: order
+      description: Order type.
+      in: query
+      schema:
+        type: string
+        default: id
+        enum:
+          - name
+          - id
+      required: false
+    Direction:
+      name: dir
+      description: Order direction.
+      in: query
+      schema:
+        type: string
+        default: desc
+        enum:
+          - asc
+          - desc
+      required: false
+    Limit:
+      name: limit
+      description: Size of the subset to retrieve.
+      in: query
+      schema:
+        type: integer
+        default: 10
+        maximum: 100
+        minimum: 1
+      required: false
+    Offset:
+      name: offset
+      description: Number of items to skip during retrieval.
+      in: query
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+      required: false
+    Authorization:
+      name: Authorization
+      description: User's access token.
+      in: header
+      schema:
+        type: string
+        format: jwt
+      required: true
+    SinkId:
+      name: id
+      description: Unique Sink identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    BackendId:
+      name: id
+      description: Unique Backend identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+  responses:
+    SinkObjRes:
+      description: Sink object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SinksObjSchema"
+    SinksPageRes:
+      description: Data retrieved.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SinkPageSchema"
+    ServiceErrorRes:
+      description: Unexpected server-side error occurred.
+      content:
+        application/json:
+          schema:
+            type: string
+            format: byte
+    SinkBackendObjRes:
+      description: Backend object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SinkBackendObjSchema"
+  schemas:
+    SinkUpdateReqSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-prom-sink
+        description:
+          type: string
+          description: User description of this Sink
+          example: An example prometheus sink
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            cloud: aws
+        config:
+          type: object
+          example:
+            remote_host: my.prometheus-host.com
+            username: dbuser
+          description:
+            Object representing backend specific configuration information
+    SinkCreateReqSchema:
+      type: object
+      required:
+        - name
+        - backend
+        - config
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-prom-sink
+        description:
+          type: string
+          description: User description of this Sink
+          example: An example prometheus sink
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            cloud: aws
+        backend:
+          type: string
+          example: prometheus
+          description: The sink backend to use. Must match a backend from /features/sinks. Cannot change once created.
+        config:
+          type: object
+          example:
+            remote_host: my.prometheus-host.com
+            username: dbuser
+          description: Object representing backend specific configuration information
+        validate_only:
+          type: boolean
+          example: false
+          description: When true, only run validation and confirm the Sink could be created, but do not actually create it
+    SinkPageSchema:
+      type: object
+      properties:
+        sinks:
+          type: array
+          minItems: 0
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/SinksObjSchema"
+        total:
+          type: integer
+          description: Total number of items.
+        offset:
+          type: integer
+          description: Number of items to skip during retrieval.
+        limit:
+          type: integer
+          description: Maximum number of items to return in one page.
+      required:
+        - sinks
+    ConfigEntrySchema:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Visual title of the config item shown in UI
+        type:
+          type: string
+          description: "Data field type"
+          enum:
+            - string
+            - password
+            - int
+        name:
+          type: string
+          description: The field label used in the JSON config object for this field
+        description:
+          type: string
+          description: A description of the use of this configuration field
+      example:
+        title: Remote Host
+        type: string
+        name: remote_host
+        description: The remote host to send Prometheus metrics too
+    SinksObjSchema:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier (UUID)
+        name:
+          type: string
+          description: A unique name label
+          example: my-prom-sink
+        description:
+          type: string
+          description: User description of this Sink
+          example: An example prometheus sink
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            cloud: aws
+        status:
+          readOnly: true
+          enum:
+            - active
+            - error
+          type: string
+          description: Status of this Sink connection to the backend
+        error:
+          readOnly: true
+          type: string
+          description: Error message from Sink backend connection if the Sink is in error state
+        backend:
+          type: string
+          readOnly: true
+          example: prometheus
+          description: The sink backend to use. Must match a backend from /features/sinks. Cannot change once created.
+        config:
+          type: object
+          example:
+            remote_host: my.prometheus-host.com
+            username: dbuser
+          description: Object representing backend specific configuration information
+        ts_created:
+          type: string
+          format: date-time
+          description: Timestamp of creation
+    SinkBackendResSchema:
+      type: object
+      properties:
+        backend:
+          type: string
+          example: prometheus
+          description: Name and identifier of the sink backend, used when creating new sinks
+        description:
+          type: string
+          example: Prometheus time series database sink
+        config:
+          type: array
+          description: Backend configuration field details
+          items:
+            items:
+              $ref: '#/components/schemas/ConfigEntrySchema'
+    SinkBackendObjSchema:
+      type: object
+      required:
+        - id
+      properties:
+        backend:
+          type: string
+          example: prometheus
+          description: Name and identifier of the sink backend, used when creating new sinks
+        description:
+          type: string
+          example: Prometheus time series database sink
+        config:
+          type: array
+          description: Backend configuration field details
+          items:
+            items:
+              $ref: '#/components/schemas/ConfigEntrySchema'
