@@ -104,13 +104,14 @@ func newThingsServer(svc things.Service) *httptest.Server {
 
 func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	agentGroupRepo := flmocks.NewAgentGroupRepository()
+	agentRepo := flmocks.NewAgentRepositoryMock()
 	var logger *zap.Logger
 	config := mfsdk.Config{
 		BaseURL: url,
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-	return fleet.NewFleetService(logger, auth, nil, agentGroupRepo, nil, mfsdk)
+	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, nil, mfsdk)
 }
 
 func newServer(svc fleet.Service) *httptest.Server {
@@ -144,7 +145,15 @@ func TestCreateAgentGroup(t *testing.T) {
 			req:         validJson,
 			contentType: contentType,
 			auth:        token,
-			status:      http.StatusOK,
+			status:      http.StatusCreated,
+			location:    "/agent_groups",
+		},
+		{
+			desc:        "add a valid agent group with invalid token",
+			req:         validJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
 			location:    "/agent_groups",
 		},
 	}
@@ -238,7 +247,7 @@ func TestViewAgentGroup(t *testing.T) {
 			token:       tc.auth,
 		}
 		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+		assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 	}
 

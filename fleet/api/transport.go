@@ -46,6 +46,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeAddAgentGroup,
 		types.EncodeResponse,
 		opts...))
+	r.Get("/agent_groups/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "view_agent_group")(viewAgentGroupEndpoint(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...))
 
 	r.Post("/agents", kithttp.NewServer(
 		kitot.TraceServer(tracer, "create_agent")(addAgentEndpoint(svc)),
@@ -75,6 +80,17 @@ func decodeAddAgentGroup(_ context.Context, r *http.Request) (interface{}, error
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
+	return req, nil
+}
+
+func decodeView(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		return nil, errors.ErrUnsupportedContentType
+	}
+	req := viewResourceReq{
+		token: r.Header.Get("Authorization"),
+		id:    bone.GetValue(r, "id"),
+	}
 	return req, nil
 }
 

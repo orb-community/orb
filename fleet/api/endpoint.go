@@ -47,6 +47,12 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 	}
 }
 
+func viewAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		return response, fleet.ErrNotFound
+	}
+}
+
 func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(c context.Context, request interface{}) (interface{}, error) {
 		req := request.(addAgentReq)
