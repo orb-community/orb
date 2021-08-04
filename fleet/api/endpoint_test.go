@@ -131,24 +131,21 @@ func TestCreateAgentGroup(t *testing.T) {
 	fleetServer := newServer(fleetService)
 	defer fleetServer.Close()
 
-	cases := []struct {
-		desc        string
+	cases := map[string]struct {
 		req         string
 		contentType string
 		auth        string
 		status      int
 		location    string
 	}{
-		{
-			desc:        "add a valid agent group",
+		"add a valid agent group": {
 			req:         validJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusCreated,
 			location:    "/agent_groups",
 		},
-		{
-			desc:        "add a valid agent group with invalid token",
+		"add a valid agent group with invalid token": {
 			req:         validJson,
 			contentType: contentType,
 			auth:        invalidToken,
@@ -157,7 +154,7 @@ func TestCreateAgentGroup(t *testing.T) {
 		},
 	}
 
-	for _, tc := range cases {
+	for desc, tc := range cases {
 		req := testRequest{
 			client:      fleetServer.Client(),
 			method:      http.MethodPost,
@@ -168,7 +165,7 @@ func TestCreateAgentGroup(t *testing.T) {
 		}
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 	}
 
 }
