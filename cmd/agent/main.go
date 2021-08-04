@@ -18,7 +18,6 @@ import (
 )
 
 const (
-	envPrefix     = "orb_agent"
 	defaultConfig = "/etc/orb/agent.yaml"
 )
 
@@ -96,7 +95,15 @@ func init() {
 func mergeOrError(path string) {
 	v := viper.New()
 	v.SetConfigFile(path)
+	v.SetConfigType("yaml")
+
+	v.BindEnv("orb.cloud.api.token", "ORB_TOKEN")
+	v.SetDefault("orb.cloud.config.auto_provision", true)
+
 	cobra.CheckErr(v.ReadInConfig())
+	var config config2.Config
+	v.Unmarshal(&config)
+	fmt.Printf("config: %+v\n", config)
 
 	var fZero float64
 
@@ -117,9 +124,6 @@ func mergeOrError(path string) {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	viper.SetConfigType("yaml")
-	viper.SetEnvPrefix(envPrefix)
-	viper.AutomaticEnv() // read in environment variables that match
 
 	if len(cfgFiles) == 0 {
 		mergeOrError(defaultConfig)

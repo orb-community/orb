@@ -51,10 +51,10 @@ var _ Agent = (*orbAgent)(nil)
 
 func New(logger *zap.Logger, c config.Config) (Agent, error) {
 	var dbFile string
-	if _, ok := c.OrbAgent.DB["file"]; !ok {
+	if c.OrbAgent.DB.File == "" {
 		dbFile = "orb-agent.db"
 	} else {
-		dbFile = c.OrbAgent.DB["file"]
+		dbFile = c.OrbAgent.DB.File
 	}
 	db, err := sqlx.Connect("sqlite3", dbFile)
 	if err != nil {

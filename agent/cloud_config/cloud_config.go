@@ -17,7 +17,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -119,8 +118,8 @@ func (cc *cloudConfigManager) autoProvision(apiAddress string, token string) (co
 		Name string `json:"name"`
 	}
 
-	aname, haveAname := cc.config.OrbAgent.Cloud["config"]["agent_name"]
-	if !haveAname {
+	aname := cc.config.OrbAgent.Cloud.Config.AgentName
+	if aname == "" {
 		hostname, err := os.Hostname()
 		if err != nil {
 			return config.MQTTConfig{}, err
@@ -159,49 +158,31 @@ func (cc *cloudConfigManager) autoProvision(apiAddress string, token string) (co
 
 func (cc *cloudConfigManager) GetCloudConfig() (config.MQTTConfig, error) {
 
-	// if MQTT is specified in the config file, always use that
-	mqttAddress, haveMqttAddress := cc.config.OrbAgent.Cloud["mqtt"]["address"]
-	apiAddress, haveApiAddress := cc.config.OrbAgent.Cloud["api"]["address"]
-	id, haveId := cc.config.OrbAgent.Cloud["mqtt"]["id"]
-	key, haveKey := cc.config.OrbAgent.Cloud["mqtt"]["key"]
-	channel, haveChannel := cc.config.OrbAgent.Cloud["mqtt"]["channel_id"]
-
 	// currently we require address to be specified, it cannot be auto provisioned.
 	// this may change in the future
-	if !haveMqttAddress {
+	mqtt := cc.config.OrbAgent.Cloud.MQTT
+	if len(mqtt.Address) == 0 {
 		return config.MQTTConfig{}, errors.New("cloud.mqtt.address must be specified in configuration")
 	}
 
-	if haveMqttAddress && haveId && haveKey && haveChannel {
+	if len(mqtt.Id) > 0 && len(mqtt.Key) > 0 && len(mqtt.ChannelID) > 0 {
 		cc.logger.Info("using explicitly specified cloud configuration",
-			zap.String("address", mqttAddress),
-			zap.String("id", id))
+			zap.String("address", mqtt.Address),
+			zap.String("id", mqtt.Id))
 		return config.MQTTConfig{
-			Address:   mqttAddress,
-			Id:        id,
-			Key:       key,
-			ChannelID: channel,
+			Address:   mqtt.Address,
+			Id:        mqtt.Id,
+			Key:       mqtt.Key,
+			ChannelID: mqtt.ChannelID,
 		}, nil
 	}
 
 	// if full config is not available, possibly attempt auto provision configuration
-	var ap bool
-	var err error
-	apConfig, haveAutoProvision := cc.config.OrbAgent.Cloud["config"]["auto_provision"]
-	if haveAutoProvision {
-		ap, err = strconv.ParseBool(apConfig)
-		if err != nil {
-			return config.MQTTConfig{}, err
-		}
-	} else {
-		ap = true
-	}
-
-	if !ap {
+	if !cc.config.OrbAgent.Cloud.Config.AutoProvision {
 		return config.MQTTConfig{}, errors.New("valid cloud MQTT config was not specified, and auto_provision was disabled")
 	}
 
-	err = cc.migrateDB()
+	err := cc.migrateDB()
 	if err != nil {
 		return config.MQTTConfig{}, err
 	}
@@ -215,29 +196,29 @@ func (cc *cloudConfigManager) GetCloudConfig() (config.MQTTConfig, error) {
 		}
 	} else {
 		// successfully loaded previous auto provision
-		dba.Address = mqttAddress
+		dba.Address = mqtt.Address
 		cc.logger.Info("using previous auto provisioned cloud configuration loaded from local storage",
-			zap.String("address", mqttAddress),
+			zap.String("address", mqtt.Address),
 			zap.String("id", dba.Id))
 		return dba, nil
 	}
 
 	// attempt a live auto provision
-	if !haveApiAddress {
+	apiConfig := cc.config.OrbAgent.Cloud.API
+	if len(apiConfig.Address) == 0 {
 		return config.MQTTConfig{}, errors.New("wanted to auto provision, but no API address was available")
 	}
-	token, haveToken := cc.config.OrbAgent.Cloud["api"]["token"]
-	if !haveToken {
+	if len(apiConfig.Token) == 0 {
 		return config.MQTTConfig{}, errors.New("wanted to auto provision, but no API token was available")
 	}
 
-	result, err := cc.autoProvision(apiAddress, token)
+	result, err := cc.autoProvision(apiConfig.Address, apiConfig.Token)
 	if err != nil {
 		return config.MQTTConfig{}, err
 	}
-	result.Address = mqttAddress
+	result.Address = mqtt.Address
 	cc.logger.Info("using auto provisioned cloud configuration",
-		zap.String("address", mqttAddress),
+		zap.String("address", mqtt.Address),
 		zap.String("id", result.Id))
 
 	return result, nil
