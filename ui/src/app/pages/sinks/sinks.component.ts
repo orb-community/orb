@@ -12,7 +12,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
 import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.component';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 const defFreq: number = 100;
 
@@ -22,19 +22,23 @@ const defFreq: number = 100;
   styleUrls: ['./sinks.component.scss'],
 })
 export class SinksComponent implements OnInit {
+
   tableConfig: TableConfig = {
     colNames: ['Name', 'Description', 'Type', 'Status', 'Tags', 'orb-sink-add'],
     keys: ['name', 'description', 'type', 'status', 'tags', 'orb-action-hover'],
   };
+
   page: TablePage = {
     limit: 10,
   };
+
   pageFilters: PageFilters = {
     offset: 0,
     order: 'id',
     dir: 'desc',
     name: '',
   };
+
   tableFilters: DropdownFilterItem[];
 
   searchFreq = 0;
@@ -44,6 +48,7 @@ export class SinksComponent implements OnInit {
     private sinkService: SinksService,
     private notificationsService: NotificationsService,
     private router: Router,
+    private route: ActivatedRoute,
   ) {
     this.tableFilters = this.tableConfig.colNames.map((name, index) => ({
       id: index.toString(),
@@ -88,7 +93,7 @@ export class SinksComponent implements OnInit {
   }
 
   onOpenAdd() {
-    this.router.navigate([`${this.router.routerState.snapshot.url}/add`]);
+    this.router.navigate(['./add'], {relativeTo: this.route});
   }
 
   onOpenEdit() {

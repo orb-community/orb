@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'ngx-sinks-add-component',
@@ -28,11 +28,12 @@ export class SinksAddComponent {
     private sinksService: SinksService,
     private notificationsService: NotificationsService,
     private router: Router,
+    private route: ActivatedRoute,
   ) {
   }
 
   goBack() {
-    this.router.navigate([`${this.router.getCurrentNavigation()}`]);
+    this.router.navigate(['../../sinks'], {relativeTo: this.route});
   }
 
   cancel() {
@@ -56,6 +57,11 @@ export class SinksAddComponent {
       this.sinksService.addSink(this.formData).subscribe(
         resp => {
           this.notificationsService.success('Sink successfully created', '');
+        },
+        error => {
+          this.notificationsService.error('Sink creation failed', error);
+        },
+        () => {
           this.goBack();
         },
       );
@@ -63,7 +69,12 @@ export class SinksAddComponent {
     if (action === 'edit') {
       this.sinksService.editSink(this.formData).subscribe(
         resp => {
-          this.notificationsService.success('Sink successfully edited', '');
+          this.notificationsService.success('Sink successfully updated', '');
+        },
+        error => {
+          this.notificationsService.error('Sink update failed', error);
+        },
+        () => {
           this.goBack();
         },
       );
