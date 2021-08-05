@@ -47,8 +47,8 @@ export class SinksComponent implements OnInit {
     private dialogService: NbDialogService,
     private sinkService: SinksService,
     private notificationsService: NotificationsService,
-    private router: Router,
     private route: ActivatedRoute,
+    private router: Router,
   ) {
     this.tableFilters = this.tableConfig.colNames.map((name, index) => ({
       id: index.toString(),
@@ -93,13 +93,13 @@ export class SinksComponent implements OnInit {
   }
 
   onOpenAdd() {
-    this.router.navigate(['add'], {
+    this.router.navigate(['../sinks/add'], {
       relativeTo: this.route,
     });
   }
 
   onOpenEdit(row: any) {
-    this.router.navigate(['edit'], {
+    this.router.navigate(['../sinks/edit'], {
       relativeTo: this.route,
       queryParams: {id: row.id},
       state: {sink: row},

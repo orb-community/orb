@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
 import { STRINGS } from 'assets/text/strings';
+import { ActivatedRoute, Router } from '@angular/router';
 
 const strings = STRINGS.sink;
 
@@ -31,13 +32,19 @@ export class SinksDetailsComponent {
   };
 
   constructor(
-      protected dialogRef: NbDialogRef<SinksDetailsComponent>,
+    protected dialogRef: NbDialogRef<SinksDetailsComponent>,
+    protected route: ActivatedRoute,
+    protected router: Router,
   ) {
   }
 
 
   onOpenEdit(row: any) {
-    // TODO implement router call
+    this.router.navigate(['../sinks/edit'], {
+      relativeTo: this.route,
+      queryParams: {id: row.id},
+      state: {sink: row},
+    });
   }
 
   onClose() {
