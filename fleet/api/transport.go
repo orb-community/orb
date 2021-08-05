@@ -46,6 +46,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeAddAgentGroup,
 		types.EncodeResponse,
 		opts...))
+	r.Get("/agent_groups", kithttp.NewServer(
+		kitot.TraceServer(tracer, "list_agent_group")(listAgentGroupsEndpoint(svc)),
+		decodeList,
+		types.EncodeResponse,
+		opts...))
 	r.Get("/agent_groups/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_agent_group")(viewAgentGroupEndpoint(svc)),
 		decodeView,

@@ -56,7 +56,19 @@ func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup)
 	return nil
 }
 
-func (svc fleetService) RetrieveAgentGroupByID(ctx context.Context, token string, id string) (AgentGroup, error) {
+func (svc fleetService) ListAgentGroups(ctx context.Context, token string) (PageAgentGroup, error) {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return PageAgentGroup{}, err
+	}
+	ag, err := svc.agentGroupRepository.RetrieveAllAgentGroupsByOwner(ctx, ownerID)
+	if err != nil {
+		return PageAgentGroup{}, err
+	}
+	return ag, nil
+}
+
+func (svc fleetService) ViewAgentGroupByID(ctx context.Context, token string, id string) (AgentGroup, error) {
 	ownerID, err := svc.identify(token)
 	if err != nil {
 		return AgentGroup{}, err
@@ -68,7 +80,7 @@ func (svc fleetService) RetrieveAgentGroupByID(ctx context.Context, token string
 	return ag, nil
 }
 
-func (svc fleetService) RetrieveAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error) {
+func (svc fleetService) ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error) {
 	return svc.agentGroupRepository.RetrieveByID(ctx, groupID, ownerID)
 }
 

@@ -41,6 +41,23 @@ func (s agentGroupRes) Empty() bool {
 	return false
 }
 
+type agentGroupsPageRes struct {
+	pageRes
+	AgentGroups []agentGroupRes `json:"agentGroups"`
+}
+
+func (res agentGroupsPageRes) Code() int {
+	return http.StatusOK
+}
+
+func (res agentGroupsPageRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (res agentGroupsPageRes) Empty() bool {
+	return false
+}
+
 type agentRes struct {
 	ID        string `json:"id"`
 	Key       string `json:"key,omitempty"`

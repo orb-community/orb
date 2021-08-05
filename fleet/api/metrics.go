@@ -18,12 +18,16 @@ type metricsMiddleware struct {
 	svc     fleet.Service
 }
 
-func (m metricsMiddleware) RetrieveAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
-	return m.svc.RetrieveAgentGroupByIDInternal(ctx, groupID, ownerID)
+func (m metricsMiddleware) ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
+	return m.svc.ViewAgentGroupByIDInternal(ctx, groupID, ownerID)
 }
 
-func (m metricsMiddleware) RetrieveAgentGroupByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
-	return m.svc.RetrieveAgentGroupByID(ctx, groupID, ownerID)
+func (m metricsMiddleware) ViewAgentGroupByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
+	return m.svc.ViewAgentGroupByID(ctx, groupID, ownerID)
+}
+
+func (m metricsMiddleware) ListAgentGroups(ctx context.Context, token string) (fleet.PageAgentGroup, error) {
+	return m.svc.ListAgentGroups(ctx, token)
 }
 
 func (m metricsMiddleware) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (fleet.Page, error) {

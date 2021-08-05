@@ -41,6 +41,10 @@ const (
 	validJson    = "{\n	\"name\": \"eu-agents\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
 	invalidJson  = "{"
 	channelsNum  = 3
+	limit        = 10
+	nameKey      = "name"
+	ascKey       = "asc"
+	descKey      = "desc"
 )
 
 var (
@@ -247,4 +251,97 @@ func TestViewAgentGroup(t *testing.T) {
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 	}
 
+}
+
+func TestListAgentGroup(t *testing.T) {
+	fleetServer, fleetService := createFleetServer(t)
+	defer fleetServer.Close()
+
+	var data []agentGroupRes
+	for i := 0; i < limit; i++ {
+		validName, _ := types.NewIdentifier(fmt.Sprintf("eu-agent-%d", i))
+		agentGroup.Name = validName
+		ag, err := fleetService.CreateAgentGroup(context.Background(), token, agentGroup)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+		data = append(data, agentGroupRes{
+			ID:             ag.ID,
+			Name:           ag.Name.String(),
+			Description:    ag.Description,
+			Tags:           ag.Tags,
+			TsCreated:      ag.Created,
+			MatchingAgents: nil,
+		})
+	}
+
+	cases := map[string]struct {
+		auth   string
+		status int
+		url    string
+		res    []agentGroupRes
+	}{
+		"retrieve a list of agent groups": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, limit),
+			res:    data[0:limit],
+		},
+	}
+
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      fleetServer.Client(),
+			method:      http.MethodGet,
+			url:         fmt.Sprintf(fmt.Sprintf("%s/agent_groups%s", fleetServer.URL, tc.url)),
+			contentType: contentType,
+			token:       tc.auth,
+			body:        nil,
+		}
+		res, err := req.make()
+		require.Nil(t, err, "%s: unexpected error: %s", desc, err)
+		var body agentGroupsPageRes
+		json.NewDecoder(res.Body).Decode(&body)
+		assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		assert.ElementsMatchf(t, tc.res, body.AgentGroups, fmt.Sprintf("%s: expected body %v got %v", desc, tc.res, body.AgentGroups))
+	}
+
+}
+
+func createAgentGroup(t *testing.T, name string) (fleet.AgentGroup, error) {
+	t.Helper()
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	validName, _ := types.NewIdentifier(name)
+	agentGroup.Name = validName
+	ag, err := fleetService.CreateAgentGroup(context.Background(), token, agentGroup)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	return ag, nil
+}
+
+func createFleetServer(t *testing.T) (*httptest.Server, fleet.Service) {
+	t.Helper()
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+	return newServer(fleetService), fleetService
+}
+
+type agentGroupRes struct {
+	ID             string         `json:"id"`
+	Name           string         `json:"name"`
+	Description    string         `json:"description,omitempty"`
+	Tags           types.Tags     `json:"tags"`
+	TsCreated      time.Time      `json:"ts_created,omitempty"`
+	MatchingAgents types.Metadata `json:"matching_agents,omitempty"`
+	created        bool
+}
+
+type agentGroupsPageRes struct {
+	Total       uint64          `json:"total"`
+	Offset      uint64          `json:"offset"`
+	Limit       uint64          `json:"limit"`
+	AgentGroups []agentGroupRes `json:"agentGroups"`
 }

@@ -18,32 +18,46 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
-func (l loggingMiddleware) RetrieveAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (_ fleet.AgentGroup, err error) {
+func (l loggingMiddleware) ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (_ fleet.AgentGroup, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: retrieve_agent_group_by_id",
+			l.logger.Warn("method call: view_agent_group_by_id_internal",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: retrieve_agent_group_by_id",
+			l.logger.Info("method call: view_agent_group_by_id_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.RetrieveAgentGroupByIDInternal(ctx, groupID, ownerID)
+	return l.svc.ViewAgentGroupByIDInternal(ctx, groupID, ownerID)
 }
 
-func (l loggingMiddleware) RetrieveAgentGroupByID(ctx context.Context, groupID string, ownerID string) (_ fleet.AgentGroup, err error) {
+func (l loggingMiddleware) ViewAgentGroupByID(ctx context.Context, groupID string, ownerID string) (_ fleet.AgentGroup, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: retrieve_agent_group_by_id",
+			l.logger.Warn("method call: view_agent_group_by_id",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: retrieve_agent_group_by_id",
+			l.logger.Info("method call: view_agent_group_by_id",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.RetrieveAgentGroupByID(ctx, groupID, ownerID)
+	return l.svc.ViewAgentGroupByID(ctx, groupID, ownerID)
+}
+
+func (l loggingMiddleware) ListAgentGroups(ctx context.Context, token string) (_ fleet.PageAgentGroup, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: list_agent_groups",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: list_agent_groups",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ListAgentGroups(ctx, token)
 }
 
 func (l loggingMiddleware) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (_ fleet.Page, err error) {

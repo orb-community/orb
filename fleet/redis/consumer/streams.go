@@ -100,7 +100,7 @@ func decodeDatasetCreate(event map[string]interface{}) createDatasetEvent {
 // notify all agents in the AgentGroup specified in the dataset about the new agent policy
 func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEvent) error {
 
-	ag, err := es.fleetService.RetrieveAgentGroupByIDInternal(ctx, e.agentGroupID, e.ownerID)
+	ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, e.agentGroupID, e.ownerID)
 	if err != nil {
 		return err
 	}

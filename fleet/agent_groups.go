@@ -21,6 +21,11 @@ type AgentGroup struct {
 	Created     time.Time
 }
 
+type PageAgentGroup struct {
+	PageMetadata
+	AgentGroups []AgentGroup
+}
+
 var (
 	// ErrMalformedEntity indicates malformed entity specification (e.g.
 	// invalid username or password).
@@ -46,10 +51,12 @@ var (
 type AgentGroupService interface {
 	// CreateAgentGroup creates new AgentGroup, associated channel, applies to Agents as appropriate
 	CreateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error)
-	// RetrieveAgentGroupByID Retrieve an AgentGroup by id
-	RetrieveAgentGroupByID(ctx context.Context, token string, id string) (AgentGroup, error)
-	// RetrieveAgentGroupByIDInternal Retrieve an AgentGroup by id, without a token
-	RetrieveAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
+	// ViewAgentGroupByID Retrieve an AgentGroup by id
+	ViewAgentGroupByID(ctx context.Context, token string, id string) (AgentGroup, error)
+	// ViewAgentGroupByIDInternal Retrieve an AgentGroup by id, without a token
+	ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
+	// ListAgentGroups Retrieve a list of AgentGroups by owner
+	ListAgentGroups(ctx context.Context, token string) (PageAgentGroup, error)
 }
 
 type AgentGroupRepository interface {
@@ -60,4 +67,6 @@ type AgentGroupRepository interface {
 	RetrieveAllByAgent(ctx context.Context, a Agent) ([]AgentGroup, error)
 	// RetrieveByID get an AgentGroup by id
 	RetrieveByID(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
+	// RetrieveAllAgentGroupsByOwner get all AgentGroup by owner.
+	RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string) (PageAgentGroup, error)
 }
