@@ -56,12 +56,12 @@ func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup)
 	return nil
 }
 
-func (svc fleetService) ListAgentGroups(ctx context.Context, token string) (PageAgentGroup, error) {
+func (svc fleetService) ListAgentGroups(ctx context.Context, token string, pm PageMetadata) (PageAgentGroup, error) {
 	ownerID, err := svc.identify(token)
 	if err != nil {
 		return PageAgentGroup{}, err
 	}
-	ag, err := svc.agentGroupRepository.RetrieveAllAgentGroupsByOwner(ctx, ownerID)
+	ag, err := svc.agentGroupRepository.RetrieveAllAgentGroupsByOwner(ctx, ownerID, pm)
 	if err != nil {
 		return PageAgentGroup{}, err
 	}

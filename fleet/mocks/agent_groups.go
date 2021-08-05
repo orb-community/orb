@@ -48,13 +48,20 @@ func (a *agentGroupRepositoryMock) RetrieveByID(ctx context.Context, groupID str
 	return fleet.AgentGroup{}, fleet.ErrNotFound
 }
 
-func (a *agentGroupRepositoryMock) RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string) (fleet.PageAgentGroup, error) {
+func (a *agentGroupRepositoryMock) RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm fleet.PageMetadata) (fleet.PageAgentGroup, error) {
+	first := uint64(pm.Offset)
+	last := first + uint64(pm.Limit)
+
 	var agentGroups []fleet.AgentGroup
+	id := uint64(0)
 	for _, v := range a.agentGroupMock {
-		if v.MFOwnerID == ownerID {
+		if v.MFOwnerID == ownerID && id >= first && id < last {
 			agentGroups = append(agentGroups, v)
 		}
+		id++
 	}
+
+	agentGroups = sortAgentGroups(pm, agentGroups)
 
 	pageAgentGroup := fleet.PageAgentGroup{
 		PageMetadata: fleet.PageMetadata{

@@ -27,7 +27,7 @@ type agentGroupRepository struct {
 	logger *zap.Logger
 }
 
-func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string) (fleet.PageAgentGroup, error) {
+func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm fleet.PageMetadata) (fleet.PageAgentGroup, error) {
 	panic("implement me")
 }
 

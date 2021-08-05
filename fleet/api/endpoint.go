@@ -76,7 +76,10 @@ func listAgentGroupsEndpoint(svc fleet.Service) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
-		page, err := svc.ListAgentGroups(ctx, req.token)
+		page, err := svc.ListAgentGroups(ctx, req.token, req.pageMetadata)
+		if err != nil {
+			return nil, err
+		}
 
 		res := agentGroupsPageRes{
 			pageRes: pageRes{

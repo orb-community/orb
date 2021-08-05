@@ -56,7 +56,7 @@ type AgentGroupService interface {
 	// ViewAgentGroupByIDInternal Retrieve an AgentGroup by id, without a token
 	ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
 	// ListAgentGroups Retrieve a list of AgentGroups by owner
-	ListAgentGroups(ctx context.Context, token string) (PageAgentGroup, error)
+	ListAgentGroups(ctx context.Context, token string, pm PageMetadata) (PageAgentGroup, error)
 }
 
 type AgentGroupRepository interface {
@@ -68,5 +68,5 @@ type AgentGroupRepository interface {
 	// RetrieveByID get an AgentGroup by id
 	RetrieveByID(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
 	// RetrieveAllAgentGroupsByOwner get all AgentGroup by owner.
-	RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string) (PageAgentGroup, error)
+	RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageAgentGroup, error)
 }

@@ -26,8 +26,8 @@ func (m metricsMiddleware) ViewAgentGroupByID(ctx context.Context, groupID strin
 	return m.svc.ViewAgentGroupByID(ctx, groupID, ownerID)
 }
 
-func (m metricsMiddleware) ListAgentGroups(ctx context.Context, token string) (fleet.PageAgentGroup, error) {
-	return m.svc.ListAgentGroups(ctx, token)
+func (m metricsMiddleware) ListAgentGroups(ctx context.Context, token string, pm fleet.PageMetadata) (fleet.PageAgentGroup, error) {
+	return m.svc.ListAgentGroups(ctx, token, pm)
 }
 
 func (m metricsMiddleware) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (fleet.Page, error) {
