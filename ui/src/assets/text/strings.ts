@@ -8,6 +8,7 @@ export const STRINGS = {
   home: {
     title: 'Orb Observation Overview',
   },
+  // Fleet Pages strings
   fleet: {
     title: 'Fleet Management',
   },
@@ -42,6 +43,7 @@ export const STRINGS = {
       warning: '*To confirm, type your sink label exactly as it appears',
       close: 'Close',
     },
+    // details modal
     details: {
       header: 'Sink Details',
       close: 'Close',

@@ -1,8 +1,8 @@
-import {Component, Input} from '@angular/core';
-import {NbDialogRef} from '@nebular/theme';
-import {STRINGS} from 'assets/text/strings';
+import { Component, Input } from '@angular/core';
+import { NbDialogRef } from '@nebular/theme';
+import { STRINGS } from 'assets/text/strings';
 
-const strings = STRINGS.sink.details;
+const strings = STRINGS.sink;
 
 @Component({
   selector: 'ngx-sinks-details-component',
@@ -10,13 +10,13 @@ const strings = STRINGS.sink.details;
   styleUrls: ['./sinks.details.component.scss'],
 })
 export class SinksDetailsComponent {
-  header: string = strings.header;
-  close: string = strings.close;
-  name: string = strings.name;
-  description: string = strings.description;
-  backend: string = strings.backend;
-  remote_host: string = strings.remote_host;
-  ts_created: string = strings.ts_created;
+  header = strings.details.header;
+  close = strings.details.close;
+  name = strings.propNames.name;
+  description = strings.propNames.description;
+  backend = strings.propNames.backend;
+  remote_host = strings.propNames.config_remote_host;
+  ts_created = strings.propNames.ts_created;
 
   @Input() sink = {
     id: '',
@@ -38,7 +38,6 @@ export class SinksDetailsComponent {
 
   onOpenEdit(row: any) {
     // TODO implement router call
-    console.error('sink edit unavailable');
   }
 
   onClose() {
