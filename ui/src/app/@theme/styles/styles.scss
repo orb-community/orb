@@ -21,6 +21,7 @@
 @import './layout';
 @import './overrides';
 @import './material/material-overrides';
+@import './orb/orb-overrides';
 
 // install the framework and custom global styles
 @include nb-install() {
@@ -37,4 +38,5 @@
 
   @include nb-overrides();
   @include material-overrides();
+  @include orb-overrides();
 };

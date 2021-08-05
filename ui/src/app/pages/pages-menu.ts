@@ -5,76 +5,88 @@ export const MENU_ITEMS: NbMenuItem[] = environment.production ?
   [
     {
       title: 'Home',
-      icon: 'home-outline',
-      link: '/pages/home',
+      icon: 'layout-outline',
+      link: '/home',
       home: true,
     },
     {
-      title: 'Things',
-      icon: 'film-outline',
-      link: '/pages/things',
+      title: 'Fleet Management',
+      icon: 'cube-outline',
+      link: '/pages/fleets',
+      children: [
+        {
+          title: 'List View',
+        },
+        {
+          title: 'Metric View',
+        },
+      ],
     },
     {
-      title: 'Channels',
-      icon: 'flip-2-outline',
-      link: '/pages/channels',
+      title: 'Dataset Explorer',
+      icon: 'layers-outline',
+      link: '/pages/datasets',
     },
     {
-      title: 'Twins',
-      icon: 'copy-outline',
-      link: '/pages/twins',
+      title: 'Settings',
+      icon: 'settings-2-outline',
+      children: [
+        {
+          title: 'Sink Management',
+          link: '/pages/sinks',
+        },
+        {
+          title: 'Selector Management',
+          link: '/pages/selectors',
+        },
+        {
+          title: 'Policy Management',
+          link: '/pages/policies',
+        },
+      ],
     },
-  ] :
+  ]
+  :
   [
     {
       title: 'Home',
-      icon: 'home-outline',
-      link: '/pages/home',
+      icon: 'layout-outline',
+      link: '/home',
       home: true,
     },
     {
-      title: 'User Groups',
-      icon: 'shield-outline',
-      link: '/pages/users/groups',
-    },
-    {
-      title: 'Users',
-      icon: 'people-outline',
-      link: '/pages/users',
-    },
-    {
-      title: 'Things',
-      icon: 'film-outline',
-      link: '/pages/things',
-    },
-    {
-      title: 'Channels',
-      icon: 'flip-2-outline',
-      link: '/pages/channels',
-    },
-    {
-      title: 'Twins',
-      icon: 'copy-outline',
-      link: '/pages/twins',
-    },
-    {
-      title: 'Services',
-      icon: 'layers-outline',
+      title: 'Fleet Management',
+      icon: 'cube-outline',
+      link: '/pages/fleets',
       children: [
         {
-          title: 'LoRa',
-          icon: 'radio-outline',
-          link: '/pages/services/lora',
+          title: 'List View',
         },
         {
-          title: 'OPC-UA',
-          icon: 'globe-outline',
-          link: '/pages/services/opcua',
+          title: 'Metric View',
+        },
+      ],
+    },
+    {
+      title: 'Dataset Explorer',
+      icon: 'layers-outline',
+      link: '/pages/datasets',
+    },
+    {
+      title: 'Settings',
+      icon: 'settings-2-outline',
+      children: [
+        {
+          title: 'Sink Management',
+          link: '/pages/sinks',
         },
         {
-          title: 'Gateways',
-          icon: 'hard-drive-outline',
-          link: '/pages/services/gateways',
+          title: 'Selector Management',
+          link: '/pages/selectors',
+        },
+        {
+          title: 'Policy Management',
+          link: '/pages/policies',
         },
       ],
     },

@@ -83,14 +83,6 @@ export interface MainfluxMsg {
   protocol: string;
 }
 
-export interface PageFilters {
-  offset?: number;
-  limit?: number;
-  name?: string;
-  type?: string;
-  metadata?: string;
-}
-
 export interface MsgFilters {
   offset?: number;
   limit?: number;
@@ -118,6 +110,25 @@ export interface Message {
 export interface Dataset {
   label?: string;
   messages?: Message[];
+}
+
+// Mainflux::ORB
+export interface PageFilters {
+  limit?: number;
+  offset?: number;
+  name?: string;
+  order?: string;
+  dir?: string;
+  // mainflux and other components metadata
+  metadata?: string;
+  type?: string;
+}
+
+export interface DropdownFilterItem {
+  id?: string;
+  name?: string;
+  order?: string;
+  selected?: boolean;
 }
 
 export interface TableConfig {

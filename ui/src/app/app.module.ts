@@ -12,32 +12,33 @@ import { ThemeModule } from './@theme/theme.module';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import {
+  NbButtonModule,
+  NbCardModule,
   NbChatModule,
   NbDatepickerModule,
   NbDialogModule,
+  NbIconModule,
+  NbInputModule,
   NbMenuModule,
   NbSidebarModule,
   NbToastrModule,
   NbWindowModule,
-  NbInputModule,
-  NbCardModule,
-  NbIconModule,
-  NbButtonModule,
 } from '@nebular/theme';
 
 // MFx- Foorm dependency
 import { FormsModule } from '@angular/forms';
 // Mfx - MQTT dependencies for Gateways page
-import { MqttModule, IMqttServiceOptions, MqttService } from 'ngx-mqtt';
+import { IMqttServiceOptions, MqttModule, MqttService } from 'ngx-mqtt';
 import { environment } from 'environments/environment';
-export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
-  connectOnCreate: false,
-  url: environment.mqttWsUrl,
-};
 // Mfx - Auth and Profile pages
 import { LogoutComponent } from './pages/logout/logout.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { ProfileComponent } from './pages/profile/profile.component';
+
+export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
+  connectOnCreate: false,
+  url: environment.mqttWsUrl,
+};
 
 @NgModule({
   declarations: [

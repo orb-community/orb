@@ -8,18 +8,29 @@ import { TableConfig, TablePage } from 'app/common/interfaces/mainflux.interface
   styleUrls: ['./table.component.scss'],
 })
 export class TableComponent {
-  isObject(val: any): boolean { return typeof val === 'object'; }
+  isHover: boolean;
+
+  isObject(val: any): boolean {
+    return typeof val === 'object';
+  }
 
   @Input() config: TableConfig = {};
   @Input() page: TablePage = {};
-  @Output() editEvent: EventEmitter<any> = new EventEmitter();
+  @Output() addEvent: EventEmitter<any> = new EventEmitter();
+  @Output() checkEvent: EventEmitter<any> = new EventEmitter();
   @Output() delEvent: EventEmitter<any> = new EventEmitter();
   @Output() detailsEvent: EventEmitter<any> = new EventEmitter();
-  @Output() checkEvent: EventEmitter<any> = new EventEmitter();
-  constructor(
-  ) { }
+  @Output() editEvent: EventEmitter<any> = new EventEmitter();
+  @Output() hoverEvent: EventEmitter<any> = new EventEmitter();
 
-  onClickDetails(row: any) {
+  constructor() {
+  }
+
+  onAdd() {
+    this.addEvent.emit();
+  }
+
+  onDetails(row: any) {
     this.detailsEvent.emit(row);
   }
 
@@ -33,5 +44,13 @@ export class TableComponent {
 
   onToggleCheckbox(row: any) {
     this.checkEvent.emit(row);
+  }
+
+  onMouseEnter(evt: any, row: any) {
+    row.isHover = true;
+  }
+
+  onMouseLeave(evt: any, row: any) {
+    row.isHover = false;
   }
 }

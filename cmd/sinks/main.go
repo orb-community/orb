@@ -11,6 +11,7 @@ package main
 import (
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
+	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/api"
@@ -48,6 +49,7 @@ const (
 func main() {
 
 	authCfg := config.LoadGRPCConfig(mfEnvPrefix, "auth")
+	sdkCfg := config.LoadMFSDKConfig(mfEnvPrefix)
 
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
@@ -69,8 +71,8 @@ func main() {
 	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
 	defer esClient.Close()
 
-	authTracer, authCloser := initJaeger(svcName, jCfg.URL, logger)
-	defer authCloser.Close()
+	tracer, tracerCloser := initJaeger(svcName, jCfg.URL, logger)
+	defer tracerCloser.Close()
 
 	authConn := connectToAuth(authCfg, logger)
 	defer authConn.Close()
@@ -79,12 +81,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Invalid %s value: %s", authCfg.Timeout, err.Error())
 	}
-	auth := authapi.NewClient(authTracer, authConn, authTimeout)
+	auth := authapi.NewClient(tracer, authConn, authTimeout)
 
-	svc := newService(auth, db, logger, esClient)
+	sinkRepo := postgres.NewSinksRepository(db, logger)
+
+	svc := newSinkService(auth, logger, esClient, sdkCfg, sinkRepo)
 	errs := make(chan error, 2)
 
-	go startHTTPServer(svc, svcCfg, logger, errs)
+	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -143,10 +147,16 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client) sinks.Service {
-	thingsRepo := postgres.NewSinksRepository(db, logger)
+func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, repoSink sinks.SinkRepository) sinks.SinkService {
 
-	svc := sinks.New(auth, thingsRepo)
+	config := mfsdk.Config{
+		BaseURL:      sdkCfg.BaseURL,
+		ThingsPrefix: sdkCfg.ThingsPrefix,
+	}
+
+	mfsdk := mfsdk.NewSDK(config)
+
+	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = api.NewLoggingMiddleware(svc, logger)
 	svc = api.MetricsMiddleware(
@@ -196,14 +206,14 @@ func connectToAuth(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
 	return conn
 }
 
-func startHTTPServer(svc sinks.Service, cfg config.BaseSvcConfig, logger *zap.Logger, errs chan error) {
+func startHTTPServer(tracer opentracing.Tracer, svc sinks.SinkService, cfg config.BaseSvcConfig, logger *zap.Logger, errs chan error) {
 	p := fmt.Sprintf(":%s", cfg.HttpPort)
 	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Sink service started using https on port %s with cert %s key %s",
 			cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
-		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, api.MakeHandler(svcName, svc))
+		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, api.MakeHandler(tracer, svcName, svc))
 		return
 	}
 	logger.Info(fmt.Sprintf("Sink service started using http on port %s", cfg.HttpPort))
-	errs <- http.ListenAndServe(p, api.MakeHandler(svcName, svc))
+	errs <- http.ListenAndServe(p, api.MakeHandler(tracer, svcName, svc))
 }
