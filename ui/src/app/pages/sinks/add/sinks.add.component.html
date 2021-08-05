@@ -1,12 +1,11 @@
-<!-- TODO refactor this into page<variable fields> + stepper -->
-<nb-card>
-  <nb-card-header class="table-header">
-    New Sink
-  </nb-card-header>
-  <nb-card-body>
+<div>
+  <header>
+    <div>{{strings[action].header}}</div>
+  </header>
+  <div>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Name<span class="ns1red">*</span>
+        {{strings.propNames.name}}<span class="ns1red">*</span>
       </div>
       <div class="col-6">
         <input nbInput fullWidth fieldSize="tiny"
@@ -15,7 +14,7 @@
     </div>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Description
+        {{strings.propNames.description}}
       </div>
       <div class="col-6">
         <input nbInput fullWidth fieldSize="tiny"
@@ -24,7 +23,7 @@
     </div>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Tags
+        {{strings.propNames.tags}}
       </div>
       <div class="col-6">
         <input nbInput fullWidth fieldSize="tiny"
@@ -33,7 +32,7 @@
     </div>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Type<span class="ns1red">*</span>
+        {{strings.propNames.backend}}<span class="ns1red">*</span>
       </div>
       <div class="col-6">
         <input nbInput fullWidth fieldSize="tiny"
@@ -42,7 +41,7 @@
     </div>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Remote Host<span class="ns1red">*</span>
+        {{strings.propNames.config_remote_host}}<span class="ns1red">*</span>
       </div>
       <div class="col-6">
         <input nbInput fullWidth fieldSize="tiny"
@@ -51,17 +50,17 @@
     </div>
     <div class="row form-row">
       <div class="col-3 form-key">
-        Username
+        {{strings.propNames.config_username}}
       </div>
       <div class="col-6">
         <input nbInput fullWidth fieldSize="tiny"
                [(ngModel)]='formData.config.username'>
       </div>
     </div>
-  </nb-card-body>
+  </div>
 
-  <nb-card-footer>
-    <button nbButton status="success" (click)="submit()">Accept</button>
-    <button nbButton status="danger" (click)="cancel()">Cancel</button>
-  </nb-card-footer>
-</nb-card>
+  <footer>
+    <button nbButton status="success" (click)="submit()">{{strings.stepper.save}}</button>
+    <button nbButton status="danger" (click)="cancel()">{{strings.stepper.back}}</button>
+  </footer>
+</div>

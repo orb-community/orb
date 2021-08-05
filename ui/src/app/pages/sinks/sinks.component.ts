@@ -93,17 +93,17 @@ export class SinksComponent implements OnInit {
   }
 
   onOpenAdd() {
-    this.router.navigate(['./add'], {relativeTo: this.route});
+    this.router.navigate(['add'], {
+      relativeTo: this.route,
+    });
   }
 
-  onOpenEdit() {
-    // this.dialogService.open(SinksAddComponent, {context: {action: 'Edit'}}).onClose.subscribe(
-    //   confirm => {
-    //     if (confirm) {
-    //       this.getSinks();
-    //     }
-    //   },
-    // );
+  onOpenEdit(row: any) {
+    this.router.navigate(['edit'], {
+      relativeTo: this.route,
+      queryParams: {id: row.id},
+      state: {sink: row},
+    });
   }
 
   openDeleteModal(row: any) {

@@ -3,6 +3,8 @@ import { Component, Input } from '@angular/core';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Sink } from 'app/common/interfaces/sink.interface';
+import { STRINGS } from 'assets/text/strings';
 
 @Component({
   selector: 'ngx-sinks-add-component',
@@ -10,9 +12,13 @@ import { ActivatedRoute, Router } from '@angular/router';
   styleUrls: ['./sinks.add.component.scss'],
 })
 export class SinksAddComponent {
-  editorMetadata = '';
 
-  @Input() formData = {
+  strings = STRINGS.sink;
+
+  action = '';
+
+  @Input()
+  formData = {
     name: '',
     description: '',
     tags: '',
@@ -24,12 +30,18 @@ export class SinksAddComponent {
     metadata: {},
   };
 
+  sink: Sink;
+  isEdit: boolean;
+
   constructor(
     private sinksService: SinksService,
     private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
   ) {
+    this.sink = this.router.getCurrentNavigation().extras.state?.sink || null;
+    this.isEdit = !!this.sink;
+    this.action = this.isEdit ? 'edit' : 'add';
   }
 
   goBack() {

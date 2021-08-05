@@ -48,14 +48,16 @@ const children = environment.production ?
     {
       path: 'sinks',
       component: SinksComponent,
-    },
-    {
-      path: 'sinks/add',
-      component: SinksAddComponent,
-    },
-    {
-      path: 'sinks/edit/:id',
-      component: SinksAddComponent,
+      children: [
+        {
+          path: 'add',
+          component: SinksAddComponent,
+        },
+        {
+          path: 'edit/:id',
+          component: SinksAddComponent,
+        },
+      ],
     },
   ] : [
     {
@@ -86,14 +88,16 @@ const children = environment.production ?
     {
       path: 'sinks',
       component: SinksComponent,
-    },
-    {
-      path: 'sinks/add',
-      component: SinksAddComponent,
-    },
-    {
-      path: 'sinks/edit/:id',
-      component: SinksAddComponent,
+      children: [
+        {
+          path: 'add',
+          component: SinksAddComponent,
+        },
+        {
+          path: 'edit/:id',
+          component: SinksAddComponent,
+        },
+      ],
     },
   ];
 
