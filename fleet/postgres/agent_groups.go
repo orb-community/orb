@@ -44,37 +44,38 @@ func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context,
 
 	q := fmt.Sprintf(
 		`select
-				   id,
-				   name,
-				   description,
-				   mf_owner_id,
-				   mf_channel_id,
-				   tags,
-				   ts_created,
-				   json_build_object('total', total, 'online', online) AS matching_agents
-				from
-				(select
-					   ag.id,
-					   ag.name,
-					   ag.description,
-					   ag.mf_owner_id,
-					   ag.mf_channel_id,
-					   ag.tags,
-					   ag.ts_created,
-					   sum(case when agm.agent_groups_id is not null then 1 else 0 end) as total,
-					   sum(case when agm.agent_state = 'online' then 1 else 0 end) as online
-				from agent_groups ag
+			id,
+			name,
+			description,
+			mf_owner_id,
+			mf_channel_id,
+			tags,
+			ts_created,
+			json_build_object('total', total, 'online', online) AS matching_agents
+		from
+			(select
+				ag.id,
+				ag.name,
+				ag.description,
+				ag.mf_owner_id,
+				ag.mf_channel_id,
+				ag.tags,
+				ag.ts_created,
+				sum(case when agm.agent_groups_id is not null then 1 else 0 end) as total,
+				sum(case when agm.agent_state = 'online' then 1 else 0 end) as online
+			from agent_groups ag
 				left join agent_group_membership agm
 					on ag.id = agm.agent_groups_id
 					and ag.mf_owner_id = agm.mf_owner_id
-				WHERE ag.mf_owner_id = :mf_owner_id %s
+			WHERE ag.mf_owner_id = :mf_owner_id %s
 				group by ag.id,
-					   ag.name,
-					   ag.description,
-					   ag.mf_owner_id,
-					   ag.mf_channel_id,
-					   ag.tags,
-					   ag.ts_created) as agent_groups %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, metadataQuery, orderQuery, dirQuery)
+					ag.name,
+					ag.description,
+					ag.mf_owner_id,
+					ag.mf_channel_id,
+					ag.tags,
+					ag.ts_created)
+			as agent_groups %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, metadataQuery, orderQuery, dirQuery)
 
 	params := map[string]interface{}{
 		"mf_owner_id": ownerID,
@@ -107,30 +108,31 @@ func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context,
 
 	count := fmt.Sprintf(
 		`select
-				   COUNT(*)
-				from
-				(select
-					   ag.id,
-					   ag.name,
-					   ag.description,
-					   ag.mf_owner_id,
-					   ag.mf_channel_id,
-					   ag.tags,
-					   ag.ts_created,
-					   sum(case when agm.agent_groups_id is not null then 1 else 0 end) as total,
-					   sum(case when agm.agent_state = 'online' then 1 else 0 end) as online
-				from agent_groups ag
-				left join agent_group_membership agm
-					on ag.id = agm.agent_groups_id
+			COUNT(*)
+		from
+		(select
+			ag.id,
+			ag.name,
+			ag.description,
+			ag.mf_owner_id,
+			ag.mf_channel_id,
+			ag.tags,
+			ag.ts_created,
+			sum(case when agm.agent_groups_id is not null then 1 else 0 end) as total,
+			sum(case when agm.agent_state = 'online' then 1 else 0 end) as online
+		from agent_groups ag
+			left join agent_group_membership agm
+				on ag.id = agm.agent_groups_id
 					and ag.mf_owner_id = agm.mf_owner_id
-				WHERE ag.mf_owner_id = :mf_owner_id %s
-				group by ag.id,
-					   ag.name,
-					   ag.description,
-					   ag.mf_owner_id,
-					   ag.mf_channel_id,
-					   ag.tags,
-					   ag.ts_created) as agent_groups %s%s;`, nameQuery, tagsQuery, metadataQuery)
+		WHERE ag.mf_owner_id = :mf_owner_id %s
+		group by ag.id,
+			ag.name,
+			ag.description,
+			ag.mf_owner_id,
+			ag.mf_channel_id,
+			ag.tags,
+			ag.ts_created) 
+		as agent_groups %s%s;`, nameQuery, tagsQuery, metadataQuery)
 
 	total, err := total(ctx, a.db, count, params)
 	if err != nil {
@@ -152,40 +154,39 @@ func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context,
 }
 
 func (a agentGroupRepository) RetrieveByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
-	//q := `SELECT id, name, mf_owner_id, mf_channel_id, tags, ts_created FROM agent_groups WHERE id = $1 AND mf_owner_id = $2`
 	q :=
 		`select
-       id,
-       name,
-       description,
-       mf_owner_id,
-       mf_channel_id,
-       tags,
-       ts_created,
-       json_build_object('total', total, 'online', online) AS matching_agents
+		id,
+		name,
+		description,
+		mf_owner_id,
+		mf_channel_id,
+		tags,
+		ts_created,
+		json_build_object('total', total, 'online', online) AS matching_agents
 	from
 	(select
-		   ag.id,
-		   ag.name,
-		   ag.description,
-		   ag.mf_owner_id,
-		   ag.mf_channel_id,
-		   ag.tags,
-		   ag.ts_created,
-		   sum(case when agm.agent_groups_id is not null then 1 else 0 end) as total,
-		   sum(case when agm.agent_state = 'online' then 1 else 0 end) as online
+		ag.id,
+		ag.name,
+		ag.description,
+		ag.mf_owner_id,
+		ag.mf_channel_id,
+		ag.tags,
+		ag.ts_created,
+		sum(case when agm.agent_groups_id is not null then 1 else 0 end) as total,
+		sum(case when agm.agent_state = 'online' then 1 else 0 end) as online
 	from agent_groups ag
 	left join agent_group_membership agm
 		on ag.id = agm.agent_groups_id
 		and ag.mf_owner_id = agm.mf_owner_id
 	WHERE ag.id = $1 AND ag.mf_owner_id = $2
 	group by ag.id,
-		   ag.name,
-		   ag.description,
-		   ag.mf_owner_id,
-		   ag.mf_channel_id,
-		   ag.tags,
-		   ag.ts_created) as agent_groups`
+		ag.name,
+		ag.description,
+		ag.mf_owner_id,
+		ag.mf_channel_id,
+		ag.tags,
+		ag.ts_created) as agent_groups`
 
 	if groupID == "" || ownerID == "" {
 		return fleet.AgentGroup{}, errors.ErrMalformedEntity
