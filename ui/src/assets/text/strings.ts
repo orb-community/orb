@@ -14,6 +14,11 @@ export const STRINGS = {
   },
   // Sink Pages strings
   sink: {
+    // sink statuses
+    status: {
+      active: 'Active',
+      error: 'Error',
+    },
     // sink.interface name descriptors
     propNames: {
       id: 'id',
