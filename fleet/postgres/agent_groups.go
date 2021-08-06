@@ -204,7 +204,47 @@ func (a agentGroupRepository) RetrieveByID(ctx context.Context, groupID string, 
 }
 
 func (a agentGroupRepository) Update(ctx context.Context, ownerID string, group fleet.AgentGroup) (fleet.AgentGroup, error) {
-	panic("implement me")
+	q := `UPDATE agent_groups SET name = :name, description = :description, tags = :tags WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	groupDB, err := toDBAgentGroup(group)
+	if err != nil {
+		return fleet.AgentGroup{}, errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	groupDB.MFOwnerID = ownerID
+
+	//params := map[string]interface{}{
+	//	"name": go
+	//	"id": group.ID,
+	//	"mf_owner_id": ownerID,
+	//}
+
+	res, err := a.db.NamedExecContext(ctx, q, groupDB)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return fleet.AgentGroup{}, errors.Wrap(fleet.ErrMalformedEntity, err)
+			}
+		}
+		return fleet.AgentGroup{}, errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return fleet.AgentGroup{}, errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return fleet.AgentGroup{}, fleet.ErrNotFound
+	}
+
+	agMatchs, err := a.RetrieveByID(ctx, group.ID, ownerID)
+	if err != nil {
+		return fleet.AgentGroup{}, errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	return agMatchs, nil
 }
 
 func (a agentGroupRepository) RetrieveAllByAgent(ctx context.Context, ag fleet.Agent) ([]fleet.AgentGroup, error) {
@@ -296,6 +336,7 @@ func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
 	return dbAgentGroup{
 		ID:          group.ID,
 		Name:        group.Name,
+		Description: group.Description,
 		MFOwnerID:   group.MFOwnerID,
 		MFChannelID: group.MFChannelID,
 		Tags:        db.Tags(group.Tags),
