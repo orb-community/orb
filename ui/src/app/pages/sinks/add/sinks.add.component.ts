@@ -5,6 +5,7 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Sink } from 'app/common/interfaces/sink.interface';
 import { STRINGS } from 'assets/text/strings';
+import { sinkTypes } from 'app/pages/sinks/sinks.component';
 
 @Component({
   selector: 'ngx-sinks-add-component',

@@ -31,6 +31,7 @@ export const STRINGS = {
       config: 'Connection Details',
       config_remote_host: 'Remote Host',
       config_username: 'Username',
+      config_password: 'Password',
       ts_created: 'Date Created',
     },
     // add page

@@ -6,11 +6,6 @@
 
 import { Prometheus } from 'app/common/interfaces/prometheus.interface';
 
-export enum sinkStatus {
-  active = 'active',
-  error = 'error',
-}
-
 export interface Sink {
   /** id: UUIDv4 (read only) */
   id?: string;
@@ -24,7 +19,7 @@ export interface Sink {
    */
   tags?: any;
   /** Status: string ['active'|'error'] */
-  status?: sinkStatus | string;
+  status?: string;
   /** Error Message: string contains error message if status is 'error' (read only) */
   error?: string;
   /**

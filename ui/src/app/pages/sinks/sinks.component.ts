@@ -16,6 +16,21 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 const defFreq: number = 100;
 
+/**
+ * Available sink statuses
+ */
+export enum sinkStatus {
+  active = 'active',
+  error = 'error',
+}
+
+export enum sinkTypes {
+  prometheus = 'prometheus',
+  // aws = 'aws',
+  // s3 = 's3',
+  // azure = 'azure',
+}
+
 @Component({
   selector: 'ngx-sinks-component',
   templateUrl: './sinks.component.html',

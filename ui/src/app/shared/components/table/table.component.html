@@ -2,9 +2,11 @@
   <tr>
     <th *ngFor="let colName of config.colNames">
       <div [ngSwitch]="colName">
+        <!-- TODO create some sort of rule to detect when to use different cases here-->
+        <!-- TODO generalize this table component and introduce strings from `STRINGS{}` -->
         <button *ngSwitchCase="'orb-sink-add'" nbButton ghost=true class="button-new-sink"
                 (click)="onAdd()">
-          + New Sink
+          {{strings.sink.list.create}}
         </button>
         <div *ngSwitchDefault>
           {{ colName }}
