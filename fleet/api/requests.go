@@ -72,6 +72,21 @@ func (req addAgentReq) validate() error {
 	return nil
 }
 
+type viewResourceReq struct {
+	token string
+	id    string
+}
+
+func (req viewResourceReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+	if req.id == "" {
+		return errors.ErrMalformedEntity
+	}
+	return nil
+}
+
 type listResourcesReq struct {
 	token        string
 	pageMetadata fleet.PageMetadata
