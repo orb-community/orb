@@ -75,7 +75,7 @@ func (a *agentGroupRepositoryMock) RetrieveAllAgentGroupsByOwner(ctx context.Con
 
 func (a *agentGroupRepositoryMock) Update(ctx context.Context, ownerID string, group fleet.AgentGroup) (fleet.AgentGroup, error) {
 	if _, ok := a.agentGroupMock[group.ID]; ok {
-		if a.agentGroupMock[group.ID].MFOwnerID != group.MFOwnerID {
+		if a.agentGroupMock[group.ID].MFOwnerID != ownerID {
 			return fleet.AgentGroup{}, fleet.ErrUpdateEntity
 		}
 		a.agentGroupMock[group.ID] = group

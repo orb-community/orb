@@ -85,6 +85,11 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 	if err != nil {
 		return AgentGroup{}, err
 	}
+
+	if len(group.MatchingAgents) > 0 {
+		return AgentGroup{}, errors.ErrUpdateEntity
+	}
+
 	ag, err := svc.agentGroupRepository.Update(ctx, ownerID, group)
 	if err != nil {
 		return AgentGroup{}, err

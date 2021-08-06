@@ -118,12 +118,13 @@ func updateAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 			return agentGroupRes{}, err
 		}
 		ag := fleet.AgentGroup{
+			ID:          req.id,
 			Name:        validName,
 			Description: req.Description,
 			Tags:        req.Tags,
 		}
 
-		data, err := svc.CreateAgentGroup(ctx, req.token, ag)
+		data, err := svc.EditAgentGroup(ctx, req.token, ag)
 		if err != nil {
 			return agentGroupRes{}, err
 		}

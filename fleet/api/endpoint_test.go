@@ -413,7 +413,7 @@ func TestListAgentGroup(t *testing.T) {
 
 }
 
-func TestUpdateSink(t *testing.T) {
+func TestUpdateAgentGroup(t *testing.T) {
 	cli := newClientServer(t)
 
 	ag, err := createAgentGroup(t, "ue-agent-group", &cli)

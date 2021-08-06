@@ -32,11 +32,13 @@ import (
 )
 
 const (
-	token       = "token"
-	email       = "user@example.com"
-	channelsNum = 3
-	maxNameSize = 1024
-	limit       = 10
+	token        = "token"
+	invalidToken = "invalid"
+	email        = "user@example.com"
+	channelsNum  = 3
+	maxNameSize  = 1024
+	limit        = 10
+	wrongID      = "9bb1b244-a199-93c2-aa03-28067b431e2c"
 )
 
 var (
@@ -271,6 +273,51 @@ func TestListAgentGroup(t *testing.T) {
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		testSortAgentGroups(t, tc.pm, page.AgentGroups)
 
+	}
+}
+
+func TestUpdateAgentGroup(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ag, err := createAgentGroup(t, "ue-agent-group", fleetService)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	matching := types.Metadata{"total": 0, "online": 0}
+	wrongAgentGroup := fleet.AgentGroup{ID: wrongID}
+	readyOnlyAgentGroup := fleet.AgentGroup{ID: wrongID, MatchingAgents: matching}
+	cases := map[string]struct {
+		group fleet.AgentGroup
+		token string
+		err   error
+	}{
+		"update existing sink": {
+			group: ag,
+			token: token,
+			err:   nil,
+		},
+		"update group with wrong credentials": {
+			group: ag,
+			token: invalidToken,
+			err:   fleet.ErrUnauthorizedAccess,
+		},
+		"update a non-existing group": {
+			group: wrongAgentGroup,
+			token: token,
+			err:   fleet.ErrNotFound,
+		},
+		"update group read only fields": {
+			group: readyOnlyAgentGroup,
+			token: token,
+			err:   errors.ErrUpdateEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		_, err := fleetService.EditAgentGroup(context.Background(), tc.token, tc.group)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 	}
 }
 
