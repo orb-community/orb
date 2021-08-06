@@ -66,7 +66,6 @@ func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context,
 				from agent_groups ag
 				left join agent_group_membership agm
 					on ag.id = agm.agent_groups_id
-					and ag.name = agm.agent_groups_name
 					and ag.mf_owner_id = agm.mf_owner_id
 				WHERE ag.mf_owner_id = :mf_owner_id %s
 				group by ag.id,
@@ -123,7 +122,6 @@ func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context,
 				from agent_groups ag
 				left join agent_group_membership agm
 					on ag.id = agm.agent_groups_id
-					and ag.name = agm.agent_groups_name
 					and ag.mf_owner_id = agm.mf_owner_id
 				WHERE ag.mf_owner_id = :mf_owner_id %s
 				group by ag.id,
@@ -179,7 +177,6 @@ func (a agentGroupRepository) RetrieveByID(ctx context.Context, groupID string, 
 	from agent_groups ag
 	left join agent_group_membership agm
 		on ag.id = agm.agent_groups_id
-		and ag.name = agm.agent_groups_name
 		and ag.mf_owner_id = agm.mf_owner_id
 	WHERE ag.id = $1 AND ag.mf_owner_id = $2
 	group by ag.id,
