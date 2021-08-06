@@ -1,33 +1,33 @@
 <div class="header-container">
   <div class="logo-container">
-    <a
-      href="#"
-      class="sidebar-toggle"
-      matRipple
-      [matRippleUnbounded]="true"
-      [matRippleCentered]="true"
-      (click)="toggleSidebar()"
-    >
-      <nb-icon [icon]="(materialTheme$ | async) ? 'menu-outline' : 'menu-2-outline'"></nb-icon>
-    </a>
-    <a class="logo header-logo" href="#" (click)="navigateHome()">{{logotype}}</a>
-    <div class="header-version">v{{version}}</div>
+      <a
+              href="#"
+              class="sidebar-toggle"
+              matRipple
+              [matRippleUnbounded]="true"
+              [matRippleCentered]="true"
+              (click)="toggleSidebar()"
+      >
+          <nb-icon [icon]="'menu-outline'"></nb-icon>
+      </a>
+      <a class="logo header-logo" href="#" (click)="navigateHome()"><img
+              src="assets/images/orb_logo_50.png" alt="ORB Overview" class="header-logo"></a>
   </div>
 </div>
 
 <div class="header-container">
-  <nb-actions size="small">
-    <nb-action
-      class="user-action"
-      *nbIsGranted="['view', 'user']"
-      matRipple
-      [matRippleUnbounded]="true"
-      [matRippleCentered]="true">
-      <nb-user [nbContextMenu]="userMenu"
-               [onlyPicture]="userPictureOnly"
-               [name]="user?.email"
-               [picture]="user?.picture">
-      </nb-user>
-    </nb-action>
-  </nb-actions>
+    <nb-actions size="small">
+        <nb-action
+                class="user-action"
+                *nbIsGranted="['view', 'user']"
+                matRipple
+                [matRippleUnbounded]="true"
+                [matRippleCentered]="true">
+            <nb-user [nbContextMenu]="userMenu"
+                     [onlyPicture]="userPictureOnly"
+                     [name]="user?.email"
+                     [picture]="user?.picture">
+            </nb-user>
+        </nb-action>
+    </nb-actions>
 </div>

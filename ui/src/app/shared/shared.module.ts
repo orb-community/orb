@@ -1,25 +1,27 @@
-import { NgModule } from '@angular/core';
+import {NgModule} from '@angular/core';
+import {MatChipsModule} from '@angular/material/chips';
+import {MatIconModule} from '@angular/material/icon';
 
-import { ThemeModule } from 'app/@theme/theme.module';
+import {ThemeModule} from 'app/@theme/theme.module';
 import {
-  NbCardModule,
-  NbIconModule,
   NbButtonModule,
-  NbSelectModule,
-  NbDatepickerModule,
-  NbInputModule,
+  NbCardModule,
   NbCheckboxModule,
- } from '@nebular/theme';
- import { FormsModule } from '@angular/forms';
+  NbDatepickerModule,
+  NbIconModule,
+  NbInputModule,
+  NbSelectModule,
+} from '@nebular/theme';
+import {FormsModule} from '@angular/forms';
 
-import { MapModule } from './components/map/map.module';
-import { ConfirmationComponent } from './components/confirmation/confirmation.component';
-import { ChartModule } from './components/chart/chart.module';
-import { MessageMonitorComponent } from './components/message-monitor/message-monitor.component';
-import { MessageValuePipe } from './pipes/message-value.pipe';
-import { ToMillisecsPipe } from './pipes/time.pipe';
-import { TableComponent } from './components/table/table.component';
-import { PaginationComponent } from './components/pagination/pagination.component';
+import {MapModule} from './components/map/map.module';
+import {ConfirmationComponent} from './components/confirmation/confirmation.component';
+import {ChartModule} from './components/chart/chart.module';
+import {MessageMonitorComponent} from './components/message-monitor/message-monitor.component';
+import {MessageValuePipe} from './pipes/message-value.pipe';
+import {ToMillisecsPipe} from './pipes/time.pipe';
+import {TableComponent} from './components/table/table.component';
+import {PaginationComponent} from './components/pagination/pagination.component';
 
 @NgModule({
   imports: [
@@ -34,6 +36,8 @@ import { PaginationComponent } from './components/pagination/pagination.componen
     FormsModule,
     NbIconModule,
     NbCheckboxModule,
+    MatChipsModule,
+    MatIconModule,
   ],
   declarations: [
     ConfirmationComponent,
@@ -60,4 +64,5 @@ import { PaginationComponent } from './components/pagination/pagination.componen
   ],
 })
 
-export class SharedModule { }
+export class SharedModule {
+}

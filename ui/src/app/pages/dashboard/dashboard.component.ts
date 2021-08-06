@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { STRINGS } from 'assets/text/strings';
+import {Component} from '@angular/core';
+import {STRINGS} from 'assets/text/strings';
 
 @Component({
   selector: 'ngx-dashboard',
@@ -9,8 +9,7 @@ import { STRINGS } from 'assets/text/strings';
 
 export class DashboardComponent {
   title: string = STRINGS.home.title;
-  description: string = STRINGS.home.description;
 
-  constructor(
-  ) { }
+  constructor() {
+  }
 }

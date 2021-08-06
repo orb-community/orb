@@ -93,6 +93,8 @@ func TestUpdateSink(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	sk.Backend = ""
+	sk.Status = ""
+	sk.Error = ""
 	wrongSink := sinks.Sink{ID: wrongID.String()}
 	sink.ID = sk.ID
 

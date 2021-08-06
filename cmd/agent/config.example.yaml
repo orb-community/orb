@@ -1,28 +1,33 @@
 version: "1.0"
 
-pktvisor:
-  binary: "/bin/pktvisord"
+visor:
   taps:
-    anycast:
-      type: pcap
+    mydefault:
+      input_type: pcap
       config:
-        iface: eth0
-sinks:
+        iface: "eth0"
 
 orb:
-  vitals:
+  backends:
+    pktvisor:
+      binary: "/usr/local/sbin/pktvisord"
+      config_file: "/etc/orb/agent.yaml"
+  tags:
     region: EU
     pop: ams02
     node_type: dns
-  mqtt:
-    # MQTT address
-    address: tls://127.0.0.1:8883
-    # agent id
-    id: "e342be9c-e70e-45e0-a1b1-31fe6e5954e1"
-    # agent key
-    key: "2b5f5f6f-dab8-4239-915e-77262b7b2da2"
-    # agent RPC channel ID
-    channel_id: "35a416a4-dc5f-4dca-b319-a6f1cc87bca7"
+  cloud:
+    config:
+      #agent_name: auto-provisioned
+      auto_provision: true
+    api:
+      address: https://api.orb.live
+      token: TOKEN
+    mqtt:
+      address: tls://127.0.0.1:8883
+  #      id: "f420a133-7651-412d-852a-6141fafeaea5"
+  #      key: "14ae65ae-092f-4fdc-be6a-0cfb378119dc"
+  #      channel_id: "9610b0a4-b05f-46e5-a32d-000d8a2ec1fd"
   # optional TLS config
   tls:
-    verify: false
+    verify: true

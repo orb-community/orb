@@ -1,13 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { NbDialogService } from '@nebular/theme';
+import {Component, OnInit} from '@angular/core';
+import {Router} from '@angular/router';
+import {NbDialogService} from '@nebular/theme';
 
-import { User, PageFilters, TableConfig, TablePage } from 'app/common/interfaces/mainflux.interface';
-import { UserGroupsService } from 'app/common/services/users/groups.service';
-import { FsService } from 'app/common/services/fs/fs.service';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { ConfirmationComponent } from 'app/shared/components/confirmation/confirmation.component';
-import { AgentsAddComponent } from 'app/pages/agents/add/agents.add.component';
+import {PageFilters, TableConfig, TablePage, User} from 'app/common/interfaces/mainflux.interface';
+import {UserGroupsService} from 'app/common/services/users/groups.service';
+import {FsService} from 'app/common/services/fs/fs.service';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import {ConfirmationComponent} from 'app/shared/components/confirmation/confirmation.component';
+import {AgentsAddComponent} from 'app/pages/agents/add/agents.add.component';
 
 const defFreq: number = 100;
 
@@ -27,12 +27,13 @@ export class AgentsComponent implements OnInit {
   searchFreq = 0;
 
   constructor(
-    private router: Router,
-    private dialogService: NbDialogService,
-    private userGroupsService: UserGroupsService,
-    private fsService: FsService,
-    private notificationsService: NotificationsService,
-  ) { }
+      private router: Router,
+      private dialogService: NbDialogService,
+      private userGroupsService: UserGroupsService,
+      private fsService: FsService,
+      private notificationsService: NotificationsService,
+  ) {
+  }
 
   ngOnInit() {
     // Fetch all User Groups
@@ -68,37 +69,37 @@ export class AgentsComponent implements OnInit {
   }
 
   openAddModal() {
-    this.dialogService.open(AgentsAddComponent, { context: { action: 'Create' } }).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.getGroups();
-        }
-      },
+    this.dialogService.open(AgentsAddComponent, {context: {action: 'Create'}}).onClose.subscribe(
+        confirm => {
+          if (confirm) {
+            this.getGroups();
+          }
+        },
     );
   }
 
   openEditModal(row: any) {
-    this.dialogService.open(AgentsAddComponent, { context: { formData: row, action: 'Edit' } }).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.getGroups();
-        }
-      },
+    this.dialogService.open(AgentsAddComponent, {context: {formData: row, action: 'Edit'}}).onClose.subscribe(
+        confirm => {
+          if (confirm) {
+            this.getGroups();
+          }
+        },
     );
   }
 
   openDeleteModal(row: any) {
-    this.dialogService.open(ConfirmationComponent, { context: { type: 'User Group' } }).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.userGroupsService.deleteGroup(row.id).subscribe(
-            resp => {
-              this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
-              this.notificationsService.success('User Group successfully deleted', '');
-            },
-          );
-        }
-      },
+    this.dialogService.open(ConfirmationComponent, {context: {type: 'User Group'}}).onClose.subscribe(
+        confirm => {
+          if (confirm) {
+            this.userGroupsService.deleteGroup(row.id).subscribe(
+                resp => {
+                  this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
+                  this.notificationsService.success('User Group successfully deleted', '');
+                },
+            );
+          }
+        },
     );
   }
 
