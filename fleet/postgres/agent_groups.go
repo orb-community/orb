@@ -11,6 +11,8 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/db"
@@ -28,11 +30,165 @@ type agentGroupRepository struct {
 }
 
 func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm fleet.PageMetadata) (fleet.PageAgentGroup, error) {
-	panic("implement me")
+	nameQuery, name := getNameQuery(pm.Name)
+	orderQuery := getAgentGroupOrderQuery(pm.Order)
+	dirQuery := getDirQuery(pm.Dir)
+	metadata, metadataQuery, err := getMetadataQuery(pm.Metadata)
+	if err != nil {
+		return fleet.PageAgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	tags, tagsQuery, err := getAgentGroupTagsQuery(pm.Tags)
+	if err != nil {
+		return fleet.PageAgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	q := fmt.Sprintf(
+		`select
+				   id,
+				   name,
+				   description,
+				   mf_owner_id,
+				   mf_channel_id,
+				   tags,
+				   ts_created,
+				   json_build_object('total', total, 'online', online) AS matching_agents
+				from
+				(select
+					   ag.id,
+					   ag.name,
+					   ag.description,
+					   ag.mf_owner_id,
+					   ag.mf_channel_id,
+					   ag.tags,
+					   ag.ts_created,
+					   sum(case when agm.agent_groups_id is not null then 1 else 0 end) as total,
+					   sum(case when agm.agent_state = 'online' then 1 else 0 end) as online
+				from agent_groups ag
+				left join agent_group_membership agm
+					on ag.id = agm.agent_groups_id
+					and ag.name = agm.agent_groups_name
+					and ag.mf_owner_id = agm.mf_owner_id
+				WHERE ag.mf_owner_id = :mf_owner_id %s
+				group by ag.id,
+					   ag.name,
+					   ag.description,
+					   ag.mf_owner_id,
+					   ag.mf_channel_id,
+					   ag.tags,
+					   ag.ts_created) as agent_groups %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, metadataQuery, orderQuery, dirQuery)
+
+	params := map[string]interface{}{
+		"mf_owner_id": ownerID,
+		"limit":       pm.Limit,
+		"offset":      pm.Offset,
+		"name":        name,
+		"metadata":    metadata,
+		"tags":        tags,
+	}
+	rows, err := a.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return fleet.PageAgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []fleet.AgentGroup
+	for rows.Next() {
+		dbAgentGroup := dbAgentGroup{MFOwnerID: ownerID}
+		if err := rows.StructScan(&dbAgentGroup); err != nil {
+			return fleet.PageAgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		agentGroup, err := toAgentGroup(dbAgentGroup)
+		if err != nil {
+			return fleet.PageAgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		items = append(items, agentGroup)
+	}
+
+	count := fmt.Sprintf(
+		`select
+				   COUNT(*)
+				from
+				(select
+					   ag.id,
+					   ag.name,
+					   ag.description,
+					   ag.mf_owner_id,
+					   ag.mf_channel_id,
+					   ag.tags,
+					   ag.ts_created,
+					   sum(case when agm.agent_groups_id is not null then 1 else 0 end) as total,
+					   sum(case when agm.agent_state = 'online' then 1 else 0 end) as online
+				from agent_groups ag
+				left join agent_group_membership agm
+					on ag.id = agm.agent_groups_id
+					and ag.name = agm.agent_groups_name
+					and ag.mf_owner_id = agm.mf_owner_id
+				WHERE ag.mf_owner_id = :mf_owner_id %s
+				group by ag.id,
+					   ag.name,
+					   ag.description,
+					   ag.mf_owner_id,
+					   ag.mf_channel_id,
+					   ag.tags,
+					   ag.ts_created) as agent_groups %s%s;`, nameQuery, tagsQuery, metadataQuery)
+
+	total, err := total(ctx, a.db, count, params)
+	if err != nil {
+		return fleet.PageAgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	page := fleet.PageAgentGroup{
+		AgentGroups: items,
+		PageMetadata: fleet.PageMetadata{
+			Total:  total,
+			Offset: pm.Offset,
+			Limit:  pm.Limit,
+			Order:  pm.Order,
+			Dir:    pm.Dir,
+		},
+	}
+
+	return page, nil
 }
 
 func (a agentGroupRepository) RetrieveByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
-	q := `SELECT id, name, mf_owner_id, mf_channel_id, tags, ts_created FROM agent_groups WHERE id = $1 AND mf_owner_id = $2`
+	//q := `SELECT id, name, mf_owner_id, mf_channel_id, tags, ts_created FROM agent_groups WHERE id = $1 AND mf_owner_id = $2`
+	q :=
+		`select
+       id,
+       name,
+       description,
+       mf_owner_id,
+       mf_channel_id,
+       tags,
+       ts_created,
+       json_build_object('total', total, 'online', online) AS matching_agents
+	from
+	(select
+		   ag.id,
+		   ag.name,
+		   ag.description,
+		   ag.mf_owner_id,
+		   ag.mf_channel_id,
+		   ag.tags,
+		   ag.ts_created,
+		   sum(case when agm.agent_groups_id is not null then 1 else 0 end) as total,
+		   sum(case when agm.agent_state = 'online' then 1 else 0 end) as online
+	from agent_groups ag
+	left join agent_group_membership agm
+		on ag.id = agm.agent_groups_id
+		and ag.name = agm.agent_groups_name
+		and ag.mf_owner_id = agm.mf_owner_id
+	WHERE ag.id = $1 AND ag.mf_owner_id = $2
+	group by ag.id,
+		   ag.name,
+		   ag.description,
+		   ag.mf_owner_id,
+		   ag.mf_channel_id,
+		   ag.tags,
+		   ag.ts_created) as agent_groups`
 
 	if groupID == "" || ownerID == "" {
 		return fleet.AgentGroup{}, errors.ErrMalformedEntity
@@ -87,8 +243,8 @@ func (a agentGroupRepository) RetrieveAllByAgent(ctx context.Context, ag fleet.A
 
 func (a agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) (string, error) {
 
-	q := `INSERT INTO agent_groups (name, mf_owner_id, mf_channel_id, tags)         
-			  VALUES (:name, :mf_owner_id, :mf_channel_id, :tags) RETURNING id`
+	q := `INSERT INTO agent_groups (name, description, mf_owner_id, mf_channel_id, tags)         
+			  VALUES (:name, :description, :mf_owner_id, :mf_channel_id, :tags) RETURNING id`
 
 	if !group.Name.IsValid() || group.MFOwnerID == "" || group.MFChannelID == "" {
 		return "", errors.ErrMalformedEntity
@@ -123,12 +279,14 @@ func (a agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) 
 }
 
 type dbAgentGroup struct {
-	ID          string           `db:"id"`
-	Name        types.Identifier `db:"name"`
-	MFOwnerID   string           `db:"mf_owner_id"`
-	MFChannelID string           `db:"mf_channel_id"`
-	Tags        db.Tags          `db:"tags"`
-	Created     time.Time        `db:"ts_created"`
+	ID             string           `db:"id"`
+	Name           types.Identifier `db:"name"`
+	Description    string           `db:"description"`
+	MFOwnerID      string           `db:"mf_owner_id"`
+	MFChannelID    string           `db:"mf_channel_id"`
+	Tags           db.Tags          `db:"tags"`
+	Created        time.Time        `db:"ts_created"`
+	MatchingAgents db.Metadata      `db:"matching_agents"`
 }
 
 func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
@@ -145,13 +303,40 @@ func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
 func toAgentGroup(dba dbAgentGroup) (fleet.AgentGroup, error) {
 
 	return fleet.AgentGroup{
-		ID:          dba.ID,
-		Name:        dba.Name,
-		MFOwnerID:   dba.MFOwnerID,
-		MFChannelID: dba.MFChannelID,
-		Tags:        types.Tags(dba.Tags),
+		ID:             dba.ID,
+		Name:           dba.Name,
+		Description:    dba.Description,
+		MFOwnerID:      dba.MFOwnerID,
+		MFChannelID:    dba.MFChannelID,
+		Tags:           types.Tags(dba.Tags),
+		MatchingAgents: types.Metadata(dba.MatchingAgents),
 	}, nil
 
+}
+
+func getAgentGroupOrderQuery(order string) string {
+	switch order {
+	case "name":
+		return "name"
+	default:
+		return "id"
+	}
+}
+
+func getAgentGroupTagsQuery(m types.Tags) ([]byte, string, error) {
+	mq := ""
+	mb := []byte("{}")
+	if len(m) > 0 {
+		// todo add in orb tags
+		mq = ` AND tags @> :tags`
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, "", err
+		}
+		mb = b
+	}
+	return mb, mq, nil
 }
 
 func NewAgentGroupRepository(db Database, logger *zap.Logger) fleet.AgentGroupRepository {

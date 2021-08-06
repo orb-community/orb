@@ -63,7 +63,7 @@ func viewAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 			Description:    agentGroup.Description,
 			Tags:           agentGroup.Tags,
 			TsCreated:      agentGroup.Created,
-			MatchingAgents: map[string]interface{}{},
+			MatchingAgents: agentGroup.MatchingAgents,
 		}
 		return res, nil
 	}
@@ -98,7 +98,7 @@ func listAgentGroupsEndpoint(svc fleet.Service) endpoint.Endpoint {
 				Description:    ag.Description,
 				Tags:           ag.Tags,
 				TsCreated:      ag.Created,
-				MatchingAgents: nil,
+				MatchingAgents: ag.MatchingAgents,
 			}
 			res.AgentGroups = append(res.AgentGroups, view)
 		}
