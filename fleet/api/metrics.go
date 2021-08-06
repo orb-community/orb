@@ -30,6 +30,10 @@ func (m metricsMiddleware) ListAgentGroups(ctx context.Context, token string, pm
 	return m.svc.ListAgentGroups(ctx, token, pm)
 }
 
+func (m metricsMiddleware) EditAgentGroup(ctx context.Context, token string, ag fleet.AgentGroup) (fleet.AgentGroup, error) {
+	return m.svc.EditAgentGroup(ctx, token, ag)
+}
+
 func (m metricsMiddleware) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (fleet.Page, error) {
 	return m.svc.ListAgents(ctx, token, pm)
 }

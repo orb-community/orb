@@ -10,6 +10,7 @@ import (
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
+	"github.com/mainflux/mainflux/things"
 	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/internal/httputil"
@@ -24,6 +25,7 @@ import (
 )
 
 const (
+	contentType = "application/json"
 	offsetKey   = "offset"
 	limitKey    = "limit"
 	nameKey     = "name"
@@ -54,6 +56,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 	r.Get("/agent_groups/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_agent_group")(viewAgentGroupEndpoint(svc)),
 		decodeView,
+		types.EncodeResponse,
+		opts...))
+	r.Put("/agent_groups/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "update_agent_group")(updateAgentGroupEndpoint(svc)),
+		decodeAgentGroupUpdate,
 		types.EncodeResponse,
 		opts...))
 
@@ -96,6 +103,22 @@ func decodeView(_ context.Context, r *http.Request) (interface{}, error) {
 		token: r.Header.Get("Authorization"),
 		id:    bone.GetValue(r, "id"),
 	}
+	return req, nil
+}
+
+func decodeAgentGroupUpdate(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), contentType) {
+		return nil, errors.ErrUnsupportedContentType
+	}
+
+	req := updateAgentGroupReq{
+		token: r.Header.Get("Authorization"),
+		id:    bone.GetValue(r, "id"),
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(things.ErrMalformedEntity, err)
+	}
+
 	return req, nil
 }
 

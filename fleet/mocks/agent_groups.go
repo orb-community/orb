@@ -10,6 +10,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/sinks"
 )
 
 var _ fleet.AgentGroupRepository = (*agentGroupRepositoryMock)(nil)
@@ -70,4 +71,15 @@ func (a *agentGroupRepositoryMock) RetrieveAllAgentGroupsByOwner(ctx context.Con
 		AgentGroups: agentGroups,
 	}
 	return pageAgentGroup, nil
+}
+
+func (a *agentGroupRepositoryMock) Update(ctx context.Context, ownerID string, group fleet.AgentGroup) (fleet.AgentGroup, error) {
+	if _, ok := a.agentGroupMock[group.ID]; ok {
+		if a.agentGroupMock[group.ID].MFOwnerID != group.MFOwnerID {
+			return fleet.AgentGroup{}, fleet.ErrUpdateEntity
+		}
+		a.agentGroupMock[group.ID] = group
+		return a.agentGroupMock[group.ID], nil
+	}
+	return fleet.AgentGroup{}, sinks.ErrNotFound
 }

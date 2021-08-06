@@ -80,6 +80,18 @@ func (svc fleetService) ViewAgentGroupByID(ctx context.Context, token string, id
 	return ag, nil
 }
 
+func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group AgentGroup) (AgentGroup, error) {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+	ag, err := svc.agentGroupRepository.Update(ctx, ownerID, group)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+	return ag, nil
+}
+
 func (svc fleetService) ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error) {
 	return svc.agentGroupRepository.RetrieveByID(ctx, groupID, ownerID)
 }

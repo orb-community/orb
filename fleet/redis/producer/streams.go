@@ -38,6 +38,10 @@ func (es eventStore) ListAgentGroups(ctx context.Context, token string, pm fleet
 	return es.svc.ListAgentGroups(ctx, token, pm)
 }
 
+func (es eventStore) EditAgentGroup(ctx context.Context, token string, ag fleet.AgentGroup) (fleet.AgentGroup, error) {
+	return es.svc.EditAgentGroup(ctx, token, ag)
+}
+
 func (es eventStore) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (fleet.Page, error) {
 	return es.svc.ListAgents(ctx, token, pm)
 }

@@ -58,6 +58,8 @@ type AgentGroupService interface {
 	ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
 	// ListAgentGroups Retrieve a list of AgentGroups by owner
 	ListAgentGroups(ctx context.Context, token string, pm PageMetadata) (PageAgentGroup, error)
+	// EditAgentGroup edit a existing agent group by id and owner
+	EditAgentGroup(ctx context.Context, token string, ag AgentGroup) (AgentGroup, error)
 }
 
 type AgentGroupRepository interface {
@@ -70,4 +72,6 @@ type AgentGroupRepository interface {
 	RetrieveByID(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
 	// RetrieveAllAgentGroupsByOwner get all AgentGroup by owner.
 	RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageAgentGroup, error)
+	// Update a existing agent group by owner and id
+	Update(ctx context.Context, ownerID string, group AgentGroup) (AgentGroup, error)
 }

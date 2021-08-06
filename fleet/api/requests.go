@@ -49,6 +49,34 @@ func (req addAgentGroupReq) validate() error {
 	return nil
 }
 
+type updateAgentGroupReq struct {
+	id          string
+	token       string
+	Name        string     `json:"name,omitempty"`
+	Description string     `json:"description,omitempty"`
+	Tags        types.Tags `json:"tags"`
+}
+
+func (req updateAgentGroupReq) validate() error {
+
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+	if req.Name == "" {
+		return errors.ErrMalformedEntity
+	}
+	if len(req.Tags) == 0 {
+		return errors.ErrMalformedEntity
+	}
+
+	_, err := types.NewIdentifier(req.Name)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return nil
+}
+
 type addAgentReq struct {
 	token   string
 	Name    string     `json:"name,omitempty"`

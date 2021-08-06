@@ -106,6 +106,41 @@ func listAgentGroupsEndpoint(svc fleet.Service) endpoint.Endpoint {
 	}
 }
 
+func updateAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(updateAgentGroupReq)
+		if err := req.validate(); err != nil {
+			return agentGroupRes{}, err
+		}
+
+		validName, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return agentGroupRes{}, err
+		}
+		ag := fleet.AgentGroup{
+			Name:        validName,
+			Description: req.Description,
+			Tags:        req.Tags,
+		}
+
+		data, err := svc.CreateAgentGroup(ctx, req.token, ag)
+		if err != nil {
+			return agentGroupRes{}, err
+		}
+
+		res := agentGroupRes{
+			ID:             data.ID,
+			Name:           data.Name.String(),
+			Description:    data.Description,
+			Tags:           data.Tags,
+			TsCreated:      data.Created,
+			MatchingAgents: data.MatchingAgents,
+		}
+
+		return res, nil
+	}
+}
+
 func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(c context.Context, request interface{}) (interface{}, error) {
 		req := request.(addAgentReq)
