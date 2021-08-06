@@ -26,6 +26,7 @@ import (
 	"go.uber.org/zap"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -34,10 +35,22 @@ const (
 	token       = "token"
 	email       = "user@example.com"
 	channelsNum = 3
+	maxNameSize = 1024
+	limit       = 10
 )
 
 var (
-	metadata = map[string]interface{}{"meta": "data"}
+	agentGroup = fleet.AgentGroup{
+		ID:          "",
+		MFOwnerID:   "",
+		Name:        types.Identifier{},
+		Description: "",
+		MFChannelID: "",
+		Tags:        nil,
+		Created:     time.Time{},
+	}
+	invalidName = strings.Repeat("m", maxNameSize+1)
+	metadata    = map[string]interface{}{"meta": "data"}
 )
 
 func generateChannels() map[string]things.Channel {
@@ -115,4 +128,182 @@ func TestCreateAgentGroup(t *testing.T) {
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 
+}
+
+func TestViewAgentGroup(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ag, err := createAgentGroup(t, "ue-agent-group", fleetService)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		id    string
+		token string
+		err   error
+	}{
+		"view a existing agent group": {
+			id:    ag.ID,
+			token: token,
+			err:   nil,
+		},
+		"view agent group with wrong credentials": {
+			id:    ag.ID,
+			token: "wrong",
+			err:   things.ErrUnauthorizedAccess,
+		},
+		"view non-existing agent group": {
+			id:    "9bb1b244-a199-93c2-aa03-28067b431e2c",
+			token: token,
+			err:   things.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		_, err := fleetService.ViewAgentGroupByID(context.Background(), tc.token, tc.id)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestListAgentGroup(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	var agents []fleet.AgentGroup
+	for i := 0; i < limit; i++ {
+		ag, err := createAgentGroup(t, fmt.Sprintf("ue-agent-group-%d", i), fleetService)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+		agents = append(agents, ag)
+	}
+
+	cases := map[string]struct {
+		token string
+		pm    fleet.PageMetadata
+		size  uint64
+		err   error
+	}{
+		"retrieve a list of agent groups": {
+			token: token,
+			pm: fleet.PageMetadata{
+				Limit:  limit,
+				Offset: 0,
+			},
+			size: limit,
+			err:  nil,
+		},
+		"list half": {
+			token: token,
+			pm: fleet.PageMetadata{
+				Offset: limit / 2,
+				Limit:  limit,
+			},
+			size: limit / 2,
+			err:  nil,
+		},
+		"list last agent group": {
+			token: token,
+			pm: fleet.PageMetadata{
+				Offset: limit - 1,
+				Limit:  limit,
+			},
+			size: 1,
+			err:  nil,
+		},
+		"list empty set": {
+			token: token,
+			pm: fleet.PageMetadata{
+				Offset: limit + 1,
+				Limit:  limit,
+			},
+			size: 0,
+			err:  nil,
+		},
+		"list with zero limit": {
+			token: token,
+			pm: fleet.PageMetadata{
+				Offset: 1,
+				Limit:  0,
+			},
+			size: 0,
+			err:  nil,
+		},
+		"list with wrong credentials": {
+			token: "wrong",
+			pm: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  0,
+			},
+			size: 0,
+			err:  fleet.ErrUnauthorizedAccess,
+		},
+		"list all agent groups sorted by name ascendent": {
+			token: token,
+			pm: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  limit,
+				Order:  "name",
+				Dir:    "asc",
+			},
+			size: limit,
+			err:  nil,
+		},
+		"list all agent groups sorted by name descendent": {
+			token: token,
+			pm: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  limit,
+				Order:  "name",
+				Dir:    "desc",
+			},
+			size: limit,
+			err:  nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		page, err := fleetService.ListAgentGroups(context.Background(), tc.token, tc.pm)
+		size := uint64(len(page.AgentGroups))
+		assert.Equal(t, size, tc.size, fmt.Sprintf("%s: expected %d got %d", desc, tc.size, size))
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		testSortAgentGroups(t, tc.pm, page.AgentGroups)
+
+	}
+}
+
+func createAgentGroup(t *testing.T, name string, svc fleet.AgentGroupService) (fleet.AgentGroup, error) {
+	t.Helper()
+	agCopy := agentGroup
+	validName, err := types.NewIdentifier(name)
+	if err != nil {
+		return fleet.AgentGroup{}, err
+	}
+	agCopy.Name = validName
+	ag, err := svc.CreateAgentGroup(context.Background(), token, agentGroup)
+	if err != nil {
+		return fleet.AgentGroup{}, err
+	}
+	return ag, nil
+}
+
+func testSortAgentGroups(t *testing.T, pm fleet.PageMetadata, ags []fleet.AgentGroup) {
+	t.Helper()
+	switch pm.Order {
+	case "name":
+		current := ags[0]
+		for _, res := range ags {
+			if pm.Dir == "asc" {
+				assert.GreaterOrEqual(t, res.Name.String(), current.Name.String())
+			}
+			if pm.Dir == "desc" {
+				assert.GreaterOrEqual(t, current.Name.String(), res.Name.String())
+			}
+			current = res
+		}
+	default:
+		break
+	}
 }
