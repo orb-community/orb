@@ -196,6 +196,29 @@ func (s sinksRepository) Remove(ctx context.Context, owner, id string) error {
 	return nil
 }
 
+func (s sinksRepository) RetrieveToValidate(ctx context.Context, name, owner string) error {
+
+	q := `SELECT name, mf_owner_id FROM sinks WHERE name = :name AND mf_owner_id = :mf_owner_id;`
+
+	nname, err := types.NewIdentifier(name)
+
+	dba := dbSink{
+		Name:      nname,
+		MFOwnerID: owner,
+	}
+
+	row, err := s.db.NamedQueryContext(ctx, q, dba)
+	if err != nil {
+		return err
+	}
+
+	if row.Next() {
+		return errors.ErrConflict
+	}
+
+	return nil
+}
+
 type dbSink struct {
 	ID          string           `db:"id"`
 	Name        types.Identifier `db:"name"`

@@ -349,6 +349,71 @@ func TestSinkRemoval(t *testing.T) {
 	}
 }
 
+func TestSinkValidate(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	existingNameID, err := types.NewIdentifier("existing-sink")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	noNameID, err := types.NewIdentifier("")
+
+	invalidOwnerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sink := sinks.Sink{
+		Name:        existingNameID,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		Created:     time.Now(),
+		MFOwnerID:   oID.String(),
+		Status:      "active",
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+
+	sinkID, err := sinkRepo.Save(context.Background(), sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	sink.ID = sinkID
+
+	cases := []struct {
+		desc     string
+		sinkName types.Identifier
+		owner    string
+		err      error
+	}{
+		{
+			desc:     "validate a new sink",
+			sinkName: noNameID,
+			owner:    oID.String(),
+			err:      nil,
+		},
+		{
+			desc:     "validate a sink that already exist",
+			sinkName: sink.Name,
+			owner:    sink.MFOwnerID,
+			err:      errors.ErrConflict,
+		},
+		{
+			desc:     "validate a sink with an invalid owner id",
+			sinkName: sink.Name,
+			owner:    invalidOwnerID.String(),
+			err:      nil,
+		},
+	}
+
+	for _, tc := range cases {
+		err := sinkRepo.RetrieveToValidate(context.Background(), tc.sinkName.String(), tc.owner)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected error %s got %s", tc.desc, tc.err, err))
+	}
+
+}
+
 func testSortSinks(t *testing.T, pm sinks.PageMetadata, sks []sinks.Sink) {
 	t.Helper()
 	switch pm.Order {

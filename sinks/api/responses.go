@@ -113,3 +113,28 @@ func (res removeRes) Headers() map[string]string {
 func (res removeRes) Empty() bool {
 	return true
 }
+
+type validateSinkRes struct {
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Tags        types.Tags     `json:"tags,omitempty"`
+	Status      string         `json:"status,omitempty"`
+	Error       string         `json:"error,omitempty"`
+	Backend     string         `json:"backend,omitempty"`
+	Config      types.Metadata `json:"config,omitempty"`
+	TsCreated   time.Time      `json:"ts_created,omitempty"`
+	created     bool
+}
+
+func (s validateSinkRes) Code() int {
+	return http.StatusOK
+}
+
+func (s validateSinkRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s validateSinkRes) Empty() bool {
+	return false
+}

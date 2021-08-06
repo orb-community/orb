@@ -374,6 +374,33 @@ func TestDeleteSink(t *testing.T) {
 	}
 }
 
+func TestValidateSink(t *testing.T) {
+	service := newService(map[string]string{token: email})
+
+	cases := map[string]struct {
+		sink  sinks.Sink
+		token string
+		err   error
+	}{
+		"validate a new sink": {
+			sink:  sink,
+			token: token,
+			err:   nil,
+		},
+		"validate a sink with a invalid token": {
+			sink:  sink,
+			token: invalidToken,
+			err:   sinks.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, sinkCase := range cases {
+		_, err := service.ValidateSink(context.Background(), sinkCase.token, sink)
+		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s", desc, err, sinkCase.err))
+	}
+
+}
+
 func testSortSinks(t *testing.T, pm sinks.PageMetadata, sks []sinks.Sink) {
 	switch pm.Order {
 	case "name":

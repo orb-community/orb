@@ -139,6 +139,33 @@ paths:
           description: A non-existent entity request.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /sinks/validate:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    post:
+      summary: "validate a new sink"
+      operationId: validateSink
+      tags:
+        - sink
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/SinkCreateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/SinkObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Missing or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+
 components:
   requestBodies:
     SinkCreateReq:
