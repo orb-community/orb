@@ -24,7 +24,7 @@ export enum sinkStatus {
   error = 'error',
 }
 
-export enum sinkTypes {
+export enum sinkTypesList {
   prometheus = 'prometheus',
   // aws = 'aws',
   // s3 = 's3',

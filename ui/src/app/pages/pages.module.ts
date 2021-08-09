@@ -17,7 +17,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { PagesRoutingModule } from './pages-routing.module';
 
 // Mainflux - Dependencies
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 // Mainflux - Common and Shared
 import { SharedModule } from 'app/shared/shared.module';
 import { CommonModule } from 'app/common/common.module';
@@ -37,6 +37,9 @@ import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.compon
 import { AgentsComponent } from 'app/pages/agents/agents.component';
 import { AgentsAddComponent } from 'app/pages/agents/add/agents.add.component';
 import { AgentsDetailsComponent } from 'app/pages/agents/details/agents.details.component';
+import { MatInputModule } from '@angular/material/input';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
 
 @NgModule({
   imports: [
@@ -54,6 +57,10 @@ import { AgentsDetailsComponent } from 'app/pages/agents/details/agents.details.
     NbCheckboxModule,
     NbListModule,
     NbTabsetModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatChipsModule,
+    MatIconModule,
   ],
   exports: [
     SharedModule,

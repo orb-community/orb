@@ -22,6 +22,7 @@ import { MessageValuePipe } from './pipes/message-value.pipe';
 import { ToMillisecsPipe } from './pipes/time.pipe';
 import { TableComponent } from './components/table/table.component';
 import { PaginationComponent } from './components/pagination/pagination.component';
+import { TagsArrayPipe } from 'app/shared/pipes/tags-array.pipe';
 
 @NgModule({
   imports: [
@@ -44,6 +45,7 @@ import { PaginationComponent } from './components/pagination/pagination.componen
     MessageMonitorComponent,
     MessageValuePipe,
     ToMillisecsPipe,
+    TagsArrayPipe,
     TableComponent,
     PaginationComponent,
   ],
@@ -57,10 +59,12 @@ import { PaginationComponent } from './components/pagination/pagination.componen
     MessageMonitorComponent,
     TableComponent,
     PaginationComponent,
+    TagsArrayPipe,
   ],
   providers: [
     MessageValuePipe,
     ToMillisecsPipe,
+    TagsArrayPipe,
   ],
 })
 

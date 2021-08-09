@@ -71,11 +71,17 @@ export const STRINGS = {
         tags: 'Tags',
       },
     },
-    // stepper cues
-    stepper: {
-      back: 'Back',
-      next: 'Next',
-      save: 'Save',
-    },
+  },
+  // stepper cues
+  stepper: {
+    back: 'Back',
+    next: 'Next',
+    save: 'Save',
+  },
+  // tags cues
+  tags: {
+    addTag: 'Add New Tag',
+    key: 'Tag Key',
+    value: 'Tag Value',
   },
 };

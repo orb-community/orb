@@ -4,7 +4,9 @@
  * /src/cmd/prom-sink/main.go
  * https://github.com/ns1labs/orb/wiki/Architecture:-Sinks
  */
-export interface Prometheus {
+import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
+
+export interface PrometheusConfig extends SinkConfig<string> {
   /** Remote Host Name: string */
   remote_host?: string;
   /** Username: string */
