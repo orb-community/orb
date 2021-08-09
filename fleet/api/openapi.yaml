@@ -103,6 +103,32 @@ paths:
           description: Missing or invalid access token provided.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /agent_groups/validate:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    post:
+      summary: 'Validate a new Agent Group'
+      operationId: validateAgentGroup
+      tags:
+        - agent_groups
+      requestBody:
+        $ref: "#/components/requestBodies/AgentGroupCreateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/AgentGroupObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Missing or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+
 components:
   requestBodies:
     AgentGroupCreateReq:

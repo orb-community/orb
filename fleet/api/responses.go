@@ -128,3 +128,50 @@ type pageRes struct {
 	Order  string `json:"order"`
 	Dir    string `json:"direction"`
 }
+
+type validateAgentGroupRes struct {
+	ID             string         `json:"id"`
+	Name           string         `json:"name"`
+	Description    string         `json:"description,omitempty"`
+	Tags           types.Tags     `json:"tags"`
+	TsCreated      time.Time      `json:"ts_created,omitempty"`
+	MatchingAgents types.Metadata `json:"matching_agents,omitempty"`
+	created        bool
+}
+
+func (s validateAgentGroupRes) Code() int {
+	return http.StatusOK
+}
+
+func (s validateAgentGroupRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s validateAgentGroupRes) Empty() bool {
+	return false
+}
+
+type validateAgentRes struct {
+	ID        string `json:"id"`
+	Key       string `json:"key,omitempty"`
+	ChannelID string `json:"channel_id,omitempty"`
+	Name      string `json:"name"`
+	State     string `json:"state"`
+	created   bool
+}
+
+func (s validateAgentRes) Code() int {
+	if s.created {
+		return http.StatusCreated
+	}
+
+	return http.StatusOK
+}
+
+func (s validateAgentRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s validateAgentRes) Empty() bool {
+	return false
+}

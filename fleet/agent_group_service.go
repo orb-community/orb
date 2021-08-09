@@ -119,3 +119,31 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 
 	return s, err
 }
+
+func (svc fleetService) ValidateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error) {
+	mfOwnerID, err := svc.identify(token)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+
+	s.MFOwnerID = mfOwnerID
+
+	md := map[string]interface{}{"type": "orb_agent_group"}
+
+	// create main Group RPC Channel
+	mfChannelID, err := svc.mfsdk.CreateChannel(mfsdk.Channel{
+		Name:     s.Name.String(),
+		Metadata: md,
+	}, token)
+	if err != nil {
+		return AgentGroup{}, errors.Wrap(ErrCreateAgent, err)
+	}
+
+	s.MFChannelID = mfChannelID
+
+	if err != nil {
+		return AgentGroup{}, errors.Wrap(ErrCreateAgentGroup, err)
+	}
+
+	return s, err
+}

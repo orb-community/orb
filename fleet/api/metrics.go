@@ -42,6 +42,14 @@ func (m metricsMiddleware) CreateAgentGroup(ctx context.Context, token string, s
 	return m.svc.CreateAgentGroup(ctx, token, s)
 }
 
+func (m metricsMiddleware) ValidateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
+	return m.svc.ValidateAgent(ctx, token, a)
+}
+
+func (m metricsMiddleware) ValidateAgentGroup(ctx context.Context, token string, s fleet.AgentGroup) (fleet.AgentGroup, error) {
+	return m.svc.ValidateAgentGroup(ctx, token, s)
+}
+
 // MetricsMiddleware instruments core service by tracking request count and latency.
 func MetricsMiddleware(svc fleet.Service, counter metrics.Counter, latency metrics.Histogram) fleet.Service {
 	return &metricsMiddleware{

@@ -68,6 +68,16 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeList,
 		types.EncodeResponse,
 		opts...))
+	r.Post("/agent_groups/validate", kithttp.NewServer(
+		kitot.TraceServer(tracer, "validate_agent_group")(validateAgentGroupEndpoint(svc)),
+		decodeValidateAgentGroup,
+		types.EncodeResponse,
+		opts...))
+	r.Post("/agents", kithttp.NewServer(
+		kitot.TraceServer(tracer, "validate_agent")(validateAgentEndpoint(svc)),
+		decodeValidateAgent,
+		types.EncodeResponse,
+		opts...))
 
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
@@ -153,6 +163,32 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 			Dir:      d,
 			Metadata: m,
 		},
+	}
+
+	return req, nil
+}
+
+func decodeValidateAgentGroup(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		return nil, errors.ErrUnsupportedContentType
+	}
+
+	req := validateAgentGroupReq{token: r.Header.Get("Authorization")}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return req, nil
+}
+
+func decodeValidateAgent(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		return nil, errors.ErrUnsupportedContentType
+	}
+
+	req := validateAgentReq{token: r.Header.Get("Authorization")}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return req, nil

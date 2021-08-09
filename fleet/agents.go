@@ -73,6 +73,8 @@ type AgentService interface {
 	// ListAgents retrieves data about subset of agents that belongs to the
 	// user identified by the provided key.
 	ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error)
+	// ValidateAgent creates new agent
+	ValidateAgent(ctx context.Context, token string, a Agent) (Agent, error)
 }
 
 type AgentRepository interface {
