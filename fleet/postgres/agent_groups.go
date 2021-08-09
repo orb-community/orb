@@ -30,7 +30,16 @@ type agentGroupRepository struct {
 }
 
 func (a agentGroupRepository) Delete(ctx context.Context, groupID string, ownerID string) error {
-	panic("implement me")
+	params := map[string]interface{}{
+		"id":    groupID,
+		"owner": ownerID,
+	}
+
+	q := `DELETE FROM agent_groups WHERE id = :id AND mf_owner_id = :owner;`
+	if _, err := a.db.NamedQueryContext(ctx, q, params); err != nil {
+		return errors.Wrap(fleet.ErrRemoveEntity, err)
+	}
+	return nil
 }
 
 func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm fleet.PageMetadata) (fleet.PageAgentGroup, error) {
