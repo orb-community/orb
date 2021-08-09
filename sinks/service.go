@@ -31,6 +31,8 @@ type PageMetadata struct {
 	Tags     types.Tags     `json:"tags,omitempty"`
 }
 
+var _ SinkService = (*sinkService)(nil)
+
 type sinkService struct {
 	logger *zap.Logger
 	// for AuthN/AuthZ
