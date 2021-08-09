@@ -42,35 +42,31 @@ func TestAgentGroupSave(t *testing.T) {
 		Tags:        types.Tags{"testkey": "testvalue"},
 	}
 
-	cases := []struct {
-		desc       string
+	cases := map[string]struct {
 		agentGroup fleet.AgentGroup
 		err        error
 	}{
-		{
-			desc:       "create new group",
+		"create new group": {
 			agentGroup: group,
 			err:        nil,
 		},
-		{
-			desc:       "create group that already exist",
+		"create group that already exist": {
 			agentGroup: group,
 			err:        errors.ErrConflict,
 		},
-		{
-			desc:       "create group with invalid name",
+		"create group with invalid name": {
 			agentGroup: fleet.AgentGroup{MFOwnerID: oID.String()},
 			err:        errors.ErrMalformedEntity,
-		}, {
-			desc:       "create group with invalid owner ID",
+		},
+		"create group with invalid owner ID": {
 			agentGroup: fleet.AgentGroup{Name: nameID, MFOwnerID: "invalid"},
 			err:        errors.ErrMalformedEntity,
 		},
 	}
 
-	for _, tc := range cases {
+	for desc, tc := range cases {
 		_, err := agentGroupRepository.Save(context.Background(), tc.agentGroup)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", tc.desc, tc.err, err))
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
 	}
 
 }
