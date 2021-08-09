@@ -49,7 +49,7 @@ endef
 
 all: $(SERVICES)
 
-.PHONY: all $(SERVICES) dockers dockers_dev ui services agent
+.PHONY: all $(SERVICES) dockers dockers_dev ui services agent agent_bin
 
 clean:
 	rm -rf ${BUILD_DIR}
@@ -87,8 +87,11 @@ dockers_dev: $(DOCKERS_DEV)
 run:
 	docker-compose -f docker/docker-compose.yml up -d
 
+agent_bin:
+	$(call compile_service_linux,agent)
+
 agent:
-	$(call compile_service,agent)
+	docker build --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(REF_TAG) -f agent/docker/Dockerfile .
 
 ui:
 	cd ui/ && docker build --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(REF_TAG) -f docker/Dockerfile .

@@ -1,12 +1,12 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Observable} from 'rxjs';
 import 'rxjs/add/observable/empty';
-import { Router } from '@angular/router';
+import {Router} from '@angular/router';
 
-import { environment } from 'environments/environment';
-import { User } from 'app/common/interfaces/mainflux.interface';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import {environment} from 'environments/environment';
+import {User} from 'app/common/interfaces/mainflux.interface';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
 
 const defLimit: number = 20;
 
@@ -18,10 +18,11 @@ export class FleetsService {
     private http: HttpClient,
     private router: Router,
     private notificationsService: NotificationsService,
-  ) { }
+  ) {
+  }
 
   addUser(user: User) {
-    return this.http.post(environment.usersUrl, user, { observe: 'response' })
+    return this.http.post(environment.usersUrl, user, {observe: 'response'})
       .map(
         resp => {
           return resp;
@@ -67,7 +68,7 @@ export class FleetsService {
       params = params.append('email', email);
     }
 
-    return this.http.get(environment.usersUrl, { params })
+    return this.http.get(environment.usersUrl, {params})
       .map(
         resp => {
           return resp;
@@ -77,7 +78,7 @@ export class FleetsService {
         err => {
           this.notificationsService.error('Failed to fetch Users',
             `Error: ${err.status} - ${err.statusText}`);
-            return Observable.throw(err);
+          return Observable.throw(err);
         },
       );
   }
@@ -93,13 +94,13 @@ export class FleetsService {
         err => {
           this.notificationsService.error('Failed to edit User',
             `Error: ${err.status} - ${err.statusText}`);
-            return Observable.throw(err);
+          return Observable.throw(err);
         },
       );
   }
 
   changeUserPassword(passReq: any): any {
-    return this.http.patch(environment.changePassUrl, passReq, { observe: 'response' })
+    return this.http.patch(environment.changePassUrl, passReq, {observe: 'response'})
       .map(
         resp => {
           return resp;
@@ -109,7 +110,7 @@ export class FleetsService {
         err => {
           this.notificationsService.error('Failed to change User password',
             `Error: ${err.status} - ${err.statusText}`);
-            return Observable.throw(err);
+          return Observable.throw(err);
         },
       );
   }
@@ -133,7 +134,7 @@ export class FleetsService {
         err => {
           this.notificationsService.error('Failed to fetch Group memberships',
             `Error: ${err.status} - ${err.statusText}`);
-            return Observable.throw(err);
+          return Observable.throw(err);
         },
       );
   }

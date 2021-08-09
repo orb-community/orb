@@ -1,30 +1,47 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {Component, Input} from '@angular/core';
+import {NbDialogRef} from '@nebular/theme';
+import {STRINGS} from 'assets/text/strings';
 
-import { Sink } from 'app/common/interfaces/sink.interface';
-import { SinksService } from 'app/common/services/sinks/sinks.service';
+const strings = STRINGS.sink.details;
 
 @Component({
   selector: 'ngx-sinks-details-component',
   templateUrl: './sinks.details.component.html',
   styleUrls: ['./sinks.details.component.scss'],
 })
-export class SinksDetailsComponent implements OnInit {
+export class SinksDetailsComponent {
+  header: string = strings.header;
+  close: string = strings.close;
+  name: string = strings.name;
+  description: string = strings.description;
+  backend: string = strings.backend;
+  remote_host: string = strings.remote_host;
+  ts_created: string = strings.ts_created;
 
-  sink: Sink = {};
+  @Input() sink = {
+    id: '',
+    name: '',
+    description: '',
+    backend: '',
+    config: {
+      remote_host: '',
+      username: '',
+    },
+    ts_created: '',
+  };
 
   constructor(
-    private route: ActivatedRoute,
-    private sinkService: SinksService,
-  ) {}
+      protected dialogRef: NbDialogRef<SinksDetailsComponent>,
+  ) {
+  }
 
-  ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id');
 
-    this.sinkService.getSinkById(id).subscribe(
-      (resp: any) => {
-        this.sink = resp;
-      },
-    );
+  onOpenEdit(row: any) {
+    // TODO implement router call
+    console.error('sink edit unavailable');
+  }
+
+  onClose() {
+    this.dialogRef.close();
   }
 }

@@ -27,7 +27,11 @@ type agentGroupRepository struct {
 	logger *zap.Logger
 }
 
-func (r agentGroupRepository) RetrieveByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
+func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm fleet.PageMetadata) (fleet.PageAgentGroup, error) {
+	panic("implement me")
+}
+
+func (a agentGroupRepository) RetrieveByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
 	q := `SELECT id, name, mf_owner_id, mf_channel_id, tags, ts_created FROM agent_groups WHERE id = $1 AND mf_owner_id = $2`
 
 	if groupID == "" || ownerID == "" {
@@ -35,7 +39,7 @@ func (r agentGroupRepository) RetrieveByID(ctx context.Context, groupID string, 
 	}
 
 	var group dbAgentGroup
-	if err := r.db.QueryRowxContext(ctx, q, groupID, ownerID).StructScan(&group); err != nil {
+	if err := a.db.QueryRowxContext(ctx, q, groupID, ownerID).StructScan(&group); err != nil {
 		if err == sql.ErrNoRows {
 			return fleet.AgentGroup{}, errors.Wrap(errors.ErrNotFound, err)
 		}
@@ -45,19 +49,19 @@ func (r agentGroupRepository) RetrieveByID(ctx context.Context, groupID string, 
 	return toAgentGroup(group)
 }
 
-func (r agentGroupRepository) RetrieveAllByAgent(ctx context.Context, a fleet.Agent) ([]fleet.AgentGroup, error) {
+func (a agentGroupRepository) RetrieveAllByAgent(ctx context.Context, ag fleet.Agent) ([]fleet.AgentGroup, error) {
 
 	q := `SELECT agent_groups_id AS id, agent_groups_name AS name, group_mf_channel_id AS mf_channel_id, mf_owner_id FROM agent_group_membership WHERE agent_mf_thing_id = :agent_id`
 
-	if a.MFThingID == "" {
+	if ag.MFThingID == "" {
 		return nil, errors.ErrMalformedEntity
 	}
 
 	params := map[string]interface{}{
-		"agent_id": a.MFThingID,
+		"agent_id": ag.MFThingID,
 	}
 
-	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	rows, err := a.db.NamedQueryContext(ctx, q, params)
 	if err != nil {
 		return nil, errors.Wrap(errors.ErrSelectEntity, err)
 	}
@@ -81,7 +85,7 @@ func (r agentGroupRepository) RetrieveAllByAgent(ctx context.Context, a fleet.Ag
 	return items, nil
 }
 
-func (r agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) (string, error) {
+func (a agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) (string, error) {
 
 	q := `INSERT INTO agent_groups (name, mf_owner_id, mf_channel_id, tags)         
 			  VALUES (:name, :mf_owner_id, :mf_channel_id, :tags) RETURNING id`
@@ -95,7 +99,7 @@ func (r agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) 
 		return "", errors.Wrap(db.ErrSaveDB, err)
 	}
 
-	row, err := r.db.NamedQueryContext(ctx, q, dba)
+	row, err := a.db.NamedQueryContext(ctx, q, dba)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {

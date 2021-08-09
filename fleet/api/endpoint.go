@@ -47,6 +47,65 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 	}
 }
 
+func viewAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		agentGroup, err := svc.ViewAgentGroupByID(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+		res := agentGroupRes{
+			ID:             agentGroup.ID,
+			Name:           agentGroup.Name.String(),
+			Description:    agentGroup.Description,
+			Tags:           agentGroup.Tags,
+			TsCreated:      agentGroup.Created,
+			MatchingAgents: map[string]interface{}{},
+		}
+		return res, nil
+	}
+}
+
+func listAgentGroupsEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(listResourcesReq)
+
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		page, err := svc.ListAgentGroups(ctx, req.token, req.pageMetadata)
+		if err != nil {
+			return nil, err
+		}
+
+		res := agentGroupsPageRes{
+			pageRes: pageRes{
+				Total:  page.Total,
+				Offset: page.Offset,
+				Limit:  page.Limit,
+				Order:  page.Order,
+				Dir:    page.Dir,
+			},
+			AgentGroups: []agentGroupRes{},
+		}
+		for _, ag := range page.AgentGroups {
+			view := agentGroupRes{
+				ID:             ag.ID,
+				Name:           ag.Name.String(),
+				Description:    ag.Description,
+				Tags:           ag.Tags,
+				TsCreated:      ag.Created,
+				MatchingAgents: nil,
+			}
+			res.AgentGroups = append(res.AgentGroups, view)
+		}
+		return res, nil
+	}
+}
+
 func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(c context.Context, request interface{}) (interface{}, error) {
 		req := request.(addAgentReq)

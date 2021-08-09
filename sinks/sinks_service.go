@@ -30,7 +30,7 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 
 	sink.MFOwnerID = mfOwnerID
 
-	err = validateBackend(sink)
+	err = validateBackend(&sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
@@ -116,7 +116,7 @@ func (svc sinkService) ValidateSink(ctx context.Context, token string, sink Sink
 
 	sink.MFOwnerID = mfOwnerID
 
-	err = validateBackend(sink)
+	err = validateBackend(&sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
@@ -124,7 +124,7 @@ func (svc sinkService) ValidateSink(ctx context.Context, token string, sink Sink
 	return sink, nil
 }
 
-func validateBackend(sink Sink) error {
+func validateBackend(sink *Sink) error {
 	if backend.HaveBackend(sink.Backend) {
 		err := backend.GetBackend(sink.Backend).Connect(sink.Config)
 		if err != nil {

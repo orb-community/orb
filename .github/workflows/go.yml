@@ -78,7 +78,12 @@ jobs:
           docker push ns1labs/orb-sinks:${{ env.REF_TAG }}
           docker push ns1labs/orb-prom-sink:${{ env.REF_TAG }}
 
-      # agent
+      - name: Build + push orb-agent
+        env:
+          IMAGE_NAME: ns1labs/orb-agent
+        run: |
+          make agent
+          docker push ${{ env.IMAGE_NAME }}:${{ env.REF_TAG }}
 
       - name: Build + push orb-ui
         env:
