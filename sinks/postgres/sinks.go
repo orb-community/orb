@@ -247,6 +247,8 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 		Metadata:    db.Metadata(sink.Config),
 		Backend:     sink.Backend,
 		Description: sink.Description,
+		Status:      sink.Status,
+		Error:       sink.Error,
 		Tags:        db.Tags(sink.Tags),
 	}, nil
 
