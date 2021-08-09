@@ -107,10 +107,23 @@ func (s *sinkRepositoryMock) RetrieveById(ctx context.Context, key string) (sink
 	return sinks.Sink{}, things.ErrNotFound
 }
 
-func (s *sinkRepositoryMock) Remove(ctx context.Context, owner string, key string) error {
+func (s *sinkRepositoryMock) Remove(ctx context.Context, owner string, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	delete(s.sinksMock, key(owner, id))
 	return nil
 }
 
 func (s *sinkRepositoryMock) RetrieveToValidate(ctx context.Context, name, owner string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, ok := s.sinksMock[name]; ok {
+		if s.sinksMock[name].MFOwnerID == owner {
+			return errors.ErrConflict
+		}
+	}
+
 	return nil
 }

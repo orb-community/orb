@@ -826,7 +826,7 @@ func TestValidateSink(t *testing.T) {
 			location:    "/sinks/validate",
 		},
 		{
-			desc:        "add a sink with a invalid token",
+			desc:        "validate a sink with a invalid token",
 			req:         validJson,
 			contentType: contentType,
 			auth:        "",
@@ -834,7 +834,7 @@ func TestValidateSink(t *testing.T) {
 			location:    "/sinks/validate",
 		},
 		{
-			desc:        "add a valid without content type",
+			desc:        "validate a valid sink without content type",
 			req:         validJson,
 			contentType: "",
 			auth:        token,
