@@ -92,7 +92,7 @@ type SinkRepository interface {
 	// RetrieveById retrieves a Sink by Id
 	RetrieveById(ctx context.Context, key string) (Sink, error)
 	// Remove a existing Sink by id
-	Remove(ctx context.Context, owner string, key string) error
+	Remove(ctx context.Context, owner string, id string) error
 	// RetrieveToValidate validates a sink
 	RetrieveToValidate(ctx context.Context, name, owner string) error
 }
