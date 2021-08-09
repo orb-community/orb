@@ -136,3 +136,15 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 
 	return s, err
 }
+
+func (svc fleetService) RemoveAgentGroup(ctx context.Context, token, groupId string) error {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return err
+	}
+	err = svc.agentGroupRepository.Delete(ctx, groupId, ownerID)
+	if err != nil {
+		return err
+	}
+	return nil
+}

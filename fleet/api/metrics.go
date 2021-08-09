@@ -22,8 +22,8 @@ func (m metricsMiddleware) ViewAgentGroupByIDInternal(ctx context.Context, group
 	return m.svc.ViewAgentGroupByIDInternal(ctx, groupID, ownerID)
 }
 
-func (m metricsMiddleware) ViewAgentGroupByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
-	return m.svc.ViewAgentGroupByID(ctx, groupID, ownerID)
+func (m metricsMiddleware) ViewAgentGroupByID(ctx context.Context, token string, groupID string) (fleet.AgentGroup, error) {
+	return m.svc.ViewAgentGroupByID(ctx, token, groupID)
 }
 
 func (m metricsMiddleware) ListAgentGroups(ctx context.Context, token string, pm fleet.PageMetadata) (fleet.PageAgentGroup, error) {
@@ -44,6 +44,10 @@ func (m metricsMiddleware) CreateAgent(ctx context.Context, token string, a flee
 
 func (m metricsMiddleware) CreateAgentGroup(ctx context.Context, token string, s fleet.AgentGroup) (fleet.AgentGroup, error) {
 	return m.svc.CreateAgentGroup(ctx, token, s)
+}
+
+func (m metricsMiddleware) RemoveAgentGroup(ctx context.Context, token string, groupID string) error {
+	return m.svc.RemoveAgentGroup(ctx, token, groupID)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.

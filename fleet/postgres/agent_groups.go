@@ -29,6 +29,10 @@ type agentGroupRepository struct {
 	logger *zap.Logger
 }
 
+func (a agentGroupRepository) Delete(ctx context.Context, groupID string, ownerID string) error {
+	panic("implement me")
+}
+
 func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm fleet.PageMetadata) (fleet.PageAgentGroup, error) {
 	nameQuery, name := getNameQuery(pm.Name)
 	orderQuery := getAgentGroupOrderQuery(pm.Order)

@@ -120,6 +120,20 @@ func (l loggingMiddleware) CreateAgentGroup(ctx context.Context, token string, s
 	return l.svc.CreateAgentGroup(ctx, token, s)
 }
 
+func (l loggingMiddleware) RemoveAgentGroup(ctx context.Context, token, groupID string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: delete_agent_group",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: delete_agent_group",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.RemoveAgentGroup(ctx, token, groupID)
+}
+
 func NewLoggingMiddleware(svc fleet.Service, logger *zap.Logger) fleet.Service {
 	return &loggingMiddleware{logger, svc}
 }
