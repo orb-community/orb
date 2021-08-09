@@ -110,3 +110,7 @@ func (s *sinkRepositoryMock) RetrieveById(ctx context.Context, key string) (sink
 func (s *sinkRepositoryMock) Remove(ctx context.Context, owner string, key string) error {
 	return nil
 }
+
+func (s *sinkRepositoryMock) RetrieveToValidate(ctx context.Context, name, owner string) error {
+	return nil
+}

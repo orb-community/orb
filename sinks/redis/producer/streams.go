@@ -51,6 +51,10 @@ func (es eventStore) ViewSink(ctx context.Context, token string, key string) (_ 
 	return es.svc.ViewSink(ctx, token, key)
 }
 
+func (es eventStore) ValidateSink(ctx context.Context, token string, s sinks.Sink) (_ sinks.Sink, err error) {
+	return es.svc.ValidateSink(ctx, token, s)
+}
+
 func (es eventStore) DeleteSink(ctx context.Context, token, id string) error {
 	if err := es.svc.DeleteSink(ctx, token, id); err != nil {
 		return err
