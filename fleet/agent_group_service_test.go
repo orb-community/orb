@@ -112,7 +112,7 @@ func TestCreateAgentGroup(t *testing.T) {
 		"add an agent group with an invalid token": {
 			agent: validAgent,
 			token: invalidToken,
-			err:   errors.ErrUnauthorizedAccess,
+			err:   fleet.ErrUnauthorizedAccess,
 		},
 	}
 
