@@ -31,9 +31,10 @@ import (
 )
 
 const (
-	token       = "token"
-	email       = "user@example.com"
-	channelsNum = 3
+	token        = "token"
+	invalidToken = "invalid"
+	email        = "user@example.com"
+	channelsNum  = 3
 )
 
 var (
@@ -107,6 +108,11 @@ func TestCreateAgentGroup(t *testing.T) {
 			agent: validAgent,
 			token: token,
 			err:   nil,
+		},
+		"add an agent group with an invalid token": {
+			agent: validAgent,
+			token: invalidToken,
+			err:   errors.ErrUnauthorizedAccess,
 		},
 	}
 
