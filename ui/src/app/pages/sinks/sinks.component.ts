@@ -10,11 +10,26 @@ import {
 } from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
 import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
 import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.component';
+import { ActivatedRoute, Router } from '@angular/router';
 
 const defFreq: number = 100;
+
+/**
+ * Available sink statuses
+ */
+export enum sinkStatus {
+  active = 'active',
+  error = 'error',
+}
+
+export enum sinkTypesList {
+  prometheus = 'prometheus',
+  // aws = 'aws',
+  // s3 = 's3',
+  // azure = 'azure',
+}
 
 @Component({
   selector: 'ngx-sinks-component',
@@ -22,19 +37,23 @@ const defFreq: number = 100;
   styleUrls: ['./sinks.component.scss'],
 })
 export class SinksComponent implements OnInit {
+
   tableConfig: TableConfig = {
     colNames: ['Name', 'Description', 'Type', 'Status', 'Tags', 'orb-sink-add'],
     keys: ['name', 'description', 'type', 'status', 'tags', 'orb-action-hover'],
   };
+
   page: TablePage = {
     limit: 10,
   };
+
   pageFilters: PageFilters = {
     offset: 0,
     order: 'id',
     dir: 'desc',
     name: '',
   };
+
   tableFilters: DropdownFilterItem[];
 
   searchFreq = 0;
@@ -43,6 +62,8 @@ export class SinksComponent implements OnInit {
     private dialogService: NbDialogService,
     private sinkService: SinksService,
     private notificationsService: NotificationsService,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {
     this.tableFilters = this.tableConfig.colNames.map((name, index) => ({
       id: index.toString(),
@@ -87,23 +108,17 @@ export class SinksComponent implements OnInit {
   }
 
   onOpenAdd() {
-    this.dialogService.open(SinksAddComponent, {context: {action: 'Add'}}).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.getSinks();
-        }
-      },
-    );
+    this.router.navigate(['../sinks/add'], {
+      relativeTo: this.route,
+    });
   }
 
-  onOpenEdit() {
-    // this.dialogService.open(SinksAddComponent, {context: {action: 'Edit'}}).onClose.subscribe(
-    //   confirm => {
-    //     if (confirm) {
-    //       this.getSinks();
-    //     }
-    //   },
-    // );
+  onOpenEdit(row: any) {
+    this.router.navigate(['../sinks/edit'], {
+      relativeTo: this.route,
+      queryParams: {id: row.id},
+      state: {sink: row},
+    });
   }
 
   openDeleteModal(row: any) {

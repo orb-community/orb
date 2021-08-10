@@ -54,7 +54,7 @@ const children = environment.production ?
       component: SinksAddComponent,
     },
     {
-      path: 'sinks/edit/:id',
+      path: 'sinks/edit',
       component: SinksAddComponent,
     },
   ] : [
@@ -92,7 +92,7 @@ const children = environment.production ?
       component: SinksAddComponent,
     },
     {
-      path: 'sinks/edit/:id',
+      path: 'sinks/edit',
       component: SinksAddComponent,
     },
   ];
