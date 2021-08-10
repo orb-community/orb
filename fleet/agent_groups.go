@@ -60,6 +60,8 @@ type AgentGroupService interface {
 	ListAgentGroups(ctx context.Context, token string, pm PageMetadata) (PageAgentGroup, error)
 	// EditAgentGroup edit a existing agent group by id and owner
 	EditAgentGroup(ctx context.Context, token string, ag AgentGroup) (AgentGroup, error)
+	// DeleteAgentGroupByID Remove a existing agent group by owner an id
+	RemoveAgentGroup(ctx context.Context, token string, id string) error
 }
 
 type AgentGroupRepository interface {
@@ -74,4 +76,6 @@ type AgentGroupRepository interface {
 	RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageAgentGroup, error)
 	// Update a existing agent group by owner and id
 	Update(ctx context.Context, ownerID string, group AgentGroup) (AgentGroup, error)
+	// Delete a existing agent group by owner and id
+	Delete(ctx context.Context, groupID string, ownerID string) error
 }

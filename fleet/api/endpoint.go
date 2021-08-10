@@ -142,6 +142,21 @@ func updateAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 	}
 }
 
+func removeAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		if err := svc.RemoveAgentGroup(ctx, req.token, req.id); err != nil {
+			return nil, err
+		}
+		return removeRes{}, nil
+	}
+}
+
 func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(c context.Context, request interface{}) (interface{}, error) {
 		req := request.(addAgentReq)

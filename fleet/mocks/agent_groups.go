@@ -83,3 +83,12 @@ func (a *agentGroupRepositoryMock) Update(ctx context.Context, ownerID string, g
 	}
 	return fleet.AgentGroup{}, sinks.ErrNotFound
 }
+
+func (a *agentGroupRepositoryMock) Delete(ctx context.Context, groupID string, ownerID string) error {
+	if _, ok := a.agentGroupMock[groupID]; ok {
+		if a.agentGroupMock[groupID].MFOwnerID != ownerID {
+			delete(a.agentGroupMock, groupID)
+		}
+	}
+	return nil
+}

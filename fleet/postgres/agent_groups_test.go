@@ -162,7 +162,7 @@ func TestMultiAgentGroupRetrieval(t *testing.T) {
 		pageMetadata fleet.PageMetadata
 		size         uint64
 	}{
-		"retrieve all sinks with existing owner": {
+		"retrieve all groups with existing owner": {
 			owner: oID.String(),
 			pageMetadata: fleet.PageMetadata{
 				Offset: 0,
@@ -233,6 +233,125 @@ func TestMultiAgentGroupRetrieval(t *testing.T) {
 		if size > 0 {
 			testSortAgentGroups(t, tc.pageMetadata, page.AgentGroups)
 		}
+	}
+}
+
+func TestAgentGroupUpdate(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	groupRepo := postgres.NewAgentGroupRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("my-group")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	invalideOwnerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	invalideID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	group := fleet.AgentGroup{
+		Name:        nameID,
+		MFOwnerID:   oID.String(),
+		MFChannelID: chID.String(),
+		Tags:        types.Tags{"testkey": "testvalue"},
+	}
+
+	groupID, err := groupRepo.Save(context.Background(), group)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	group.ID = groupID
+
+	cases := map[string]struct {
+		group fleet.AgentGroup
+		err   error
+	}{
+		"update a existing group": {
+			group: group,
+			err:   nil,
+		},
+		"update a non-existing group with a existing user": {
+			group: fleet.AgentGroup{
+				ID:        invalideID.String(),
+				MFOwnerID: oID.String(),
+			},
+			err: fleet.ErrNotFound,
+		},
+		"update a existing group with a non-existing user": {
+			group: fleet.AgentGroup{
+				ID:        groupID,
+				MFOwnerID: invalideOwnerID.String(),
+			},
+			err: fleet.ErrNotFound,
+		},
+		"update a non-existing group with a non-existing user": {
+			group: fleet.AgentGroup{
+				ID:        invalideID.String(),
+				MFOwnerID: invalideOwnerID.String(),
+			},
+			err: fleet.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		_, err := groupRepo.Update(context.Background(), tc.group.MFOwnerID, tc.group)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+	}
+}
+
+func TestAgentGroupDelete(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	groupRepo := postgres.NewAgentGroupRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("my-group")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	group := fleet.AgentGroup{
+		Name:        nameID,
+		MFOwnerID:   oID.String(),
+		MFChannelID: chID.String(),
+		Tags:        types.Tags{"testkey": "testvalue"},
+	}
+
+	groupID, err := groupRepo.Save(context.Background(), group)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	group.ID = groupID
+
+	cases := map[string]struct {
+		ID      string
+		ownerID string
+		err     error
+	}{
+		"remove a existing agent group": {
+			ID:      group.ID,
+			ownerID: group.MFOwnerID,
+			err:     nil,
+		},
+		"remove a non-existing agent group": {
+			ID:      group.ID,
+			ownerID: group.MFOwnerID,
+			err:     nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := groupRepo.Delete(context.Background(), tc.ID, tc.ownerID)
+		require.Nil(t, err, fmt.Sprintf("%s: failed to remove agent group due to: %s", desc, err))
+
+		_, err = groupRepo.RetrieveByID(context.Background(), tc.ID, tc.ownerID)
+		require.True(t, errors.Contains(err, fleet.ErrNotFound), fmt.Sprintf("%s: expected %s got %s", desc, fleet.ErrNotFound, err))
 	}
 }
 

@@ -55,6 +55,10 @@ func (es eventStore) CreateAgentGroup(ctx context.Context, token string, s fleet
 	return es.svc.CreateAgentGroup(ctx, token, s)
 }
 
+func (es eventStore) RemoveAgentGroup(ctx context.Context, token string, groupID string) (err error) {
+	return es.svc.RemoveAgentGroup(ctx, token, groupID)
+}
+
 // NewEventStoreMiddleware returns wrapper around fleet service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc fleet.Service, client *redis.Client) fleet.Service {

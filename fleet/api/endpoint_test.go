@@ -526,6 +526,53 @@ func TestUpdateAgentGroup(t *testing.T) {
 	}
 }
 
+func TestDeleteAgentGroup(t *testing.T) {
+
+	cli := newClientServer(t)
+
+	ag, err := createAgentGroup(t, "ue-agent-group", &cli)
+	require.Nil(t, err, "unexpected error: %s", err)
+
+	cases := map[string]struct {
+		id     string
+		auth   string
+		status int
+	}{
+		"delete existing sink": {
+			id:     ag.ID,
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+		"delete non-existent sink": {
+			id:     wrongID,
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+		"delete sink with invalid token": {
+			id:     ag.ID,
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+		},
+		"delete sink with empty token": {
+			id:     ag.ID,
+			auth:   "",
+			status: http.StatusUnauthorized,
+		},
+	}
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      cli.server.Client(),
+			method:      http.MethodDelete,
+			contentType: contentType,
+			url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
+			token:       tc.auth,
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+	}
+}
+
 func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.AgentGroup, error) {
 	agCopy := agentGroup
 	validName, err := types.NewIdentifier(name)

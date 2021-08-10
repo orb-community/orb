@@ -321,6 +321,47 @@ func TestUpdateAgentGroup(t *testing.T) {
 	}
 }
 
+func TestRemoveAgentGroup(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ag, err := createAgentGroup(t, "ue-agent-group", fleetService)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	cases := map[string]struct {
+		id    string
+		token string
+		err   error
+	}{
+		"remove existing agent group": {
+			id:    ag.ID,
+			token: token,
+			err:   nil,
+		},
+		"remove agent group with wrong credentials": {
+			id:    ag.ID,
+			token: "wrong",
+			err:   things.ErrUnauthorizedAccess,
+		},
+		"remove removed agent group": {
+			id:    ag.ID,
+			token: token,
+			err:   nil,
+		},
+		"remove non-existing thing": {
+			id:    wrongID,
+			token: token,
+			err:   nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := fleetService.RemoveAgentGroup(context.Background(), tc.token, tc.id)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+	}
+}
+
 func createAgentGroup(t *testing.T, name string, svc fleet.AgentGroupService) (fleet.AgentGroup, error) {
 	t.Helper()
 	agCopy := agentGroup
