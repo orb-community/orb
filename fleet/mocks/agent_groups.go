@@ -78,3 +78,13 @@ func (a *agentGroupRepositoryMock) RetrieveAllAgentGroupsByOwner(ctx context.Con
 	}
 	return pageAgentGroup, nil
 }
+
+func (a *agentGroupRepositoryMock) RetrieveToValidate(ctx context.Context, name, owner string) error {
+	if _, ok := a.agentGroupMock[name]; ok {
+		if a.agentGroupMock[name].MFOwnerID == owner {
+			return fleet.ErrConflict
+		}
+	}
+
+	return nil
+}
