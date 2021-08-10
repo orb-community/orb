@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 import { TableConfig, TablePage } from 'app/common/interfaces/mainflux.interface';
+import { STRINGS } from 'assets/text/strings';
 
 @Component({
   selector: 'ngx-table-component',
@@ -9,6 +10,8 @@ import { TableConfig, TablePage } from 'app/common/interfaces/mainflux.interface
 })
 export class TableComponent {
   isHover: boolean;
+
+  strings = STRINGS;
 
   isObject(val: any): boolean {
     return typeof val === 'object';
