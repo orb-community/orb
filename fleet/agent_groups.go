@@ -57,7 +57,7 @@ type AgentGroupService interface {
 	ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
 	// ListAgentGroups Retrieve a list of AgentGroups by owner
 	ListAgentGroups(ctx context.Context, token string, pm PageMetadata) (PageAgentGroup, error)
-	// ValidateAgentGroup validate new AgentGroup, associated channel, applies to Agents as appropriate
+	// ValidateAgentGroup validate AgentGroup
 	ValidateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error)
 }
 
@@ -71,4 +71,6 @@ type AgentGroupRepository interface {
 	RetrieveByID(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
 	// RetrieveAllAgentGroupsByOwner get all AgentGroup by owner.
 	RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageAgentGroup, error)
+	// RetrieveToValidate validates a agent group
+	RetrieveToValidate(ctx context.Context, groupID string, ownerID string) error
 }

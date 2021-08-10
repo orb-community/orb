@@ -54,8 +54,8 @@ func (es eventStore) ValidateAgent(ctx context.Context, token string, a fleet.Ag
 	return es.svc.ValidateAgent(ctx, token, a)
 }
 
-func (es eventStore) ValidateAgentGroup(ctx context.Context, token string, ag fleet.AgentGroup) (fleet.AgentGroup, error) {
-	return es.svc.ValidateAgentGroup(ctx, token, ag)
+func (es eventStore) ValidateAgentGroup(ctx context.Context, token string, s fleet.AgentGroup) (fleet.AgentGroup, error) {
+	return es.svc.ValidateAgentGroup(ctx, token, s)
 }
 
 // NewEventStoreMiddleware returns wrapper around fleet service that sends
