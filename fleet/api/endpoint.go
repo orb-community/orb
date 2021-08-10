@@ -106,7 +106,7 @@ func listAgentGroupsEndpoint(svc fleet.Service) endpoint.Endpoint {
 	}
 }
 
-func updateAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
+func editAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(updateAgentGroupReq)
 		if err := req.validate(); err != nil {

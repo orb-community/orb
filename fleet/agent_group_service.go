@@ -94,7 +94,7 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 		return AgentGroup{}, err
 	}
 
-	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), group.MFOwnerID, group.ID, true)
+	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, group.ID, true)
 	if err != nil {
 		return AgentGroup{}, err
 	}
