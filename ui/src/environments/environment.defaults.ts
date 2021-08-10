@@ -34,7 +34,7 @@ export const environment = {
     mqttWsUrl: window['env']['mqttWsUrl'] || 'ws://localhost/mqtt',
     exportConfigFile: '/configs/export/config.toml',
     // expose ORB routes and api versioning
-    orbApi: ORB.orbApi,
+    orbApi: {urlKeys: Object.keys(ORB.servicesUrls), ...ORB.orbApi},
     ...ORB.servicesUrls,
   }
 ;

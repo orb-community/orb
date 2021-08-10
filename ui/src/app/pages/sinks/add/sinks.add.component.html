@@ -1,67 +1,75 @@
-<!-- TODO refactor this into page<variable fields> + stepper -->
-<nb-card>
-  <nb-card-header class="table-header">
-    {{ this.action }} New Sink
-  </nb-card-header>
-  <nb-card-body>
-    <div class="row form-row">
-      <div class="col-3 form-key">
-        Name<span class="ns1red">*</span>
-      </div>
-      <div class="col-6">
-        <input nbInput fullWidth fieldSize="tiny"
-               [(ngModel)]='formData.name'>
+<div>
+  <header>
+    <div>{{strings.sink[isEdit ? 'edit' : 'add']['header']}}</div>
+  </header>
+  <div>
+    <div>
+      <p>
+        {{strings.sink.propNames.name}}<span class="ns1red">*</span>
+      </p>
+      <input nbInput id="name" type="text" [(ngModel)]="sink.name">
+    </div>
+    <div>
+      <p>
+        {{strings.sink.propNames.description}}
+      </p>
+      <input nbInput id="description" type="text" [(ngModel)]="sink.description">
+    </div>
+    <div>
+      <p>
+        {{strings.sink.propNames.backend}}<span class="ns1red">*</span>
+      </p>
+      <input nbInput [placeholder]="sinkTypesList.prometheus" id='backend' type=text [(ngModel)]="sink.backend">
+    </div>
+    <div>
+      <p>
+        {{strings.sink.propNames.config_remote_host}}<span class="ns1red">*</span>
+      </p>
+      <input nbInput id='config.remote_host' type=text [(ngModel)]='sink.config.remote_host'>
+    </div>
+    <div>
+      <p>
+        {{strings.sink.propNames.config_username}}
+      </p>
+      <input nbInput id='config.username' type=text [(ngModel)]='sink.config.username'>
+    </div>
+    <div>
+      <p>
+        {{strings.sink.propNames.tags}}
+      </p>
+      <div>
+        <!--TODO tags add/edit/delete actions and view components.
+         * create a component for tag add action
+         * create a component that shows a tag and has a delete button
+         *  always display fresh tags.add.component, when user clicks addNewTag(),
+         push tag details into sink|sinkForm to update displayed tag list and reset
+         tag input fields. 
+        -->
+        <mat-form-field appearance="fill">
+          <mat-chip-list>
+            <mat-chip *ngFor="let tag of ((sink?.tags || {}) | tagsArrayPipe)"
+                      selectable removable (removed)="removeTag(tag)">
+              <span>&#123;</span>
+              {{tag.key}}
+              <span>: </span>
+              {{tag.value}}
+              <span>&#125;</span>
+              <nb-icon icon="close-circle-outline" matChipRemove>cancel</nb-icon>
+            </mat-chip>
+          </mat-chip-list>
+        </mat-form-field>
+        <div>
+          <input [(ngModel)]="tagsForm.key" nbInput placeholder="{{strings.tags.key}}">
+          <span>:</span>
+          <input [(ngModel)]="tagsForm.value" nbInput placeholder="{{strings.tags.value}}">
+          <button nbButton status="success" (click)="addTag()">{{strings.tags.addTag}}</button>
+        </div>
       </div>
     </div>
-    <div class="row form-row">
-      <div class="col-3 form-key">
-        Description
-      </div>
-      <div class="col-6">
-        <input nbInput fullWidth fieldSize="tiny"
-               [(ngModel)]='formData.description'>
-      </div>
-    </div>
-    <div class="row form-row">
-      <div class="col-3 form-key">
-        Tags
-      </div>
-      <div class="col-6">
-        <input nbInput fullWidth fieldSize="tiny"
-               [(ngModel)]='formData.tags'>
-      </div>
-    </div>
-    <div class="row form-row">
-      <div class="col-3 form-key">
-        Type<span class="ns1red">*</span>
-      </div>
-      <div class="col-6">
-        <input nbInput fullWidth fieldSize="tiny"
-               [(ngModel)]='formData.backend'>
-      </div>
-    </div>
-    <div class="row form-row">
-      <div class="col-3 form-key">
-        Remote Host<span class="ns1red">*</span>
-      </div>
-      <div class="col-6">
-        <input nbInput fullWidth fieldSize="tiny"
-               [(ngModel)]='formData.config.remote_host'>
-      </div>
-    </div>
-    <div class="row form-row">
-      <div class="col-3 form-key">
-        Username
-      </div>
-      <div class="col-6">
-        <input nbInput fullWidth fieldSize="tiny"
-               [(ngModel)]='formData.config.username'>
-      </div>
-    </div>
-  </nb-card-body>
+  </div>
 
-  <nb-card-footer>
-    <button nbButton status="success" (click)="submit()">{{this.action}}</button>
-    <button nbButton status="danger" (click)="cancel()">Cancel</button>
-  </nb-card-footer>
-</nb-card>
+  <footer>
+    <button nbButton status="success" (click)="onSubmit()">{{strings.stepper.save}}</button>
+    <button nbButton status="danger" (click)="cancel()">{{strings.stepper.back}}</button>
+  </footer>
+</div>
