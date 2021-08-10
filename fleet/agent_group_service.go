@@ -22,7 +22,6 @@ var (
 )
 
 func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup) error {
-
 	// first we get all agents, online or not, to connect them to the correct group channel
 	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), g.MFOwnerID, g.ID, false)
 	if len(list) == 0 {
@@ -94,6 +93,18 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 	if err != nil {
 		return AgentGroup{}, err
 	}
+
+	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), group.MFOwnerID, group.ID, true)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+	for _, agent := range list {
+		err := svc.agentComms.NotifyAgentGroupMembership(agent)
+		if err != nil {
+			svc.logger.Error("failure during agent group membership comms", zap.Error(err))
+		}
+	}
+
 	return ag, nil
 }
 

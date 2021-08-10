@@ -74,6 +74,20 @@ func (l loggingMiddleware) CreatePolicy(ctx context.Context, token string, p pol
 	return l.svc.CreatePolicy(ctx, token, p, format, policyData)
 }
 
+func (l loggingMiddleware) InactivateDataset(ctx context.Context, groupID string, ownerID string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: inactivate_dataset",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: inactivate_dataset",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.InactivateDataset(ctx, groupID, ownerID)
+}
+
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {
 	return &loggingMiddleware{logger, svc}
 }

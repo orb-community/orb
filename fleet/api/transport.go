@@ -10,7 +10,6 @@ import (
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
-	"github.com/mainflux/mainflux/things"
 	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/internal/httputil"
@@ -116,7 +115,7 @@ func decodeAgentGroupUpdate(_ context.Context, r *http.Request) (interface{}, er
 		id:    bone.GetValue(r, "id"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(things.ErrMalformedEntity, err)
+		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
 	}
 
 	return req, nil

@@ -20,9 +20,11 @@ import (
 )
 
 var (
-	ErrCreatePolicy    = errors.New("failed to create policy")
-	ErrCreateDataset   = errors.New("failed to create dataset")
-	ErrMalformedEntity = errors.New("malformed entity")
+	ErrCreatePolicy      = errors.New("failed to create policy")
+	ErrCreateDataset     = errors.New("failed to create dataset")
+	ErrInactivateDataset = errors.New("failed to inactivate dataset")
+	ErrUpdateEntity      = errors.New("failed to update entity")
+	ErrMalformedEntity   = errors.New("malformed entity")
 )
 
 type Service interface {
@@ -37,6 +39,9 @@ type Service interface {
 
 	// CreateDataset creates new Dataset
 	CreateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
+
+	// InactivateDataSet when a agent group is deleted
+	InactivateDataset(ctx context.Context, groupID string, ownerID string) error
 }
 
 var _ Service = (*policiesService)(nil)
@@ -74,6 +79,13 @@ func (s policiesService) CreateDataset(ctx context.Context, token string, d Data
 	}
 	d.ID = id
 	return d, nil
+}
+
+func (s policiesService) InactivateDataset(ctx context.Context, groupID string, ownerID string) error {
+	if groupID == "" || ownerID == "" {
+		return ErrMalformedEntity
+	}
+	return s.repo.UpdateDatasetToInactivate(ctx, groupID, ownerID)
 }
 
 func (s policiesService) identify(token string) (string, error) {

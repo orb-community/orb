@@ -70,3 +70,18 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 		return policyListRes{policies: policies}, nil
 	}
 }
+
+func inactivateDataset(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(accessByGroupAndOwnerID)
+		if err := req.validate(); err != nil {
+			return policyRes{}, err
+		}
+
+		err = svc.InactivateDataset(ctx, req.GroupID, req.OwnerID)
+		if err != nil {
+			return policyRes{}, err
+		}
+		return policyRes{}, nil
+	}
+}

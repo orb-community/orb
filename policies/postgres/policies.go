@@ -123,6 +123,37 @@ func (r policiesRepository) SaveDataset(ctx context.Context, dataset policies.Da
 
 }
 
+func (r policiesRepository) UpdateDatasetToInactivate(ctx context.Context, groupID string, ownerID string) error {
+	q := `UPDATE datasets SET valid = false WHERE mf_owner_id = :mf_owner_id and agent_group_id = :agent_group_id`
+
+	params := map[string]interface{}{
+		"mf_owner_id":    groupID,
+		"agent_group_id": ownerID,
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrInactivateDataset
+	}
+	return nil
+}
+
 func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 
 	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags)         

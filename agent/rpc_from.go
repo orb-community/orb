@@ -12,15 +12,20 @@ import (
 )
 
 func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
-
-	// if this is the full list, reset all group subscriptions and subscribed to this list
-	if rpc.FullList {
+	// todo think in a better approach (Create a new handle to unsubscribe)
+	// if this is true, than the agent group was deleted, and we need to unsubscribe all
+	if rpc.UnsubscribeFullList {
 		a.unsubscribeGroupChannels()
-		a.groupChannels = a.subscribeGroupChannels(rpc.Groups)
 	} else {
-		// otherwise, just add these subscriptions to the existing list
-		successList := a.subscribeGroupChannels(rpc.Groups)
-		a.groupChannels = append(a.groupChannels, successList...)
+		// if this is the full list, reset all group subscriptions and subscribed to this list
+		if rpc.FullList {
+			a.unsubscribeGroupChannels()
+			a.groupChannels = a.subscribeGroupChannels(rpc.Groups)
+		} else {
+			// otherwise, just add these subscriptions to the existing list
+			successList := a.subscribeGroupChannels(rpc.Groups)
+			a.groupChannels = append(a.groupChannels, successList...)
+		}
 	}
 }
 

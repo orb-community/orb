@@ -26,6 +26,7 @@ type grpcServer struct {
 	pb.UnimplementedPolicyServiceServer
 	retrievePolicy           kitgrpc.Handler
 	retrievePoliciesByGroups kitgrpc.Handler
+	inactivateDataset        kitgrpc.Handler
 }
 
 // NewServer returns new PolicyServiceServer instance.
@@ -40,6 +41,11 @@ func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyService
 			kitot.TraceServer(tracer, "retrieve_policies_by_groups")(retrievePoliciesByGroupsEndpoint(svc)),
 			decodeRetrievePoliciesByGroupRequest,
 			encodePolicyListResponse,
+		),
+		inactivateDataset: kitgrpc.NewServer(
+			kitot.TraceServer(tracer, "inactivate_dataset")(inactivateDataset(svc)),
+			decodeInactivateDatasetByGroupRequest,
+			encodePolicyResponse,
 		),
 	}
 }
@@ -62,6 +68,14 @@ func (gs *grpcServer) RetrievePolicy(ctx context.Context, req *pb.PolicyByIDReq)
 	return res.(*pb.PolicyRes), nil
 }
 
+func (gs *grpcServer) InactivateDataset(ctx context.Context, req *pb.PolicyByIDReq) (*pb.PolicyRes, error) {
+	_, res, err := gs.inactivateDataset.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, encodeError(err)
+	}
+	return res.(*pb.PolicyRes), nil
+}
+
 func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.PolicyByIDReq)
 	return accessByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
@@ -76,6 +90,11 @@ func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, 
 		Version: res.version,
 		Data:    res.data,
 	}, nil
+}
+
+func decodeInactivateDatasetByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.PolicyByIDReq)
+	return accessByGroupAndOwnerID{GroupID: req.PolicyID, OwnerID: req.OwnerID}, nil
 }
 
 func decodeRetrievePoliciesByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -99,6 +118,8 @@ func encodeError(err error) error {
 		return nil
 	case policies.ErrMalformedEntity:
 		return status.Error(codes.InvalidArgument, "received invalid can access request")
+	case policies.ErrInactivateDataset:
+		return status.Error(codes.NotFound, "failed to inactivate dataset")
 	default:
 		return status.Error(codes.Internal, "internal server error")
 	}
