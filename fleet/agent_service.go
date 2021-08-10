@@ -106,58 +106,5 @@ func (svc fleetService) ValidateAgent(ctx context.Context, token string, a Agent
 	}
 
 	a.MFOwnerID = mfOwnerID
-
-	md := map[string]interface{}{"type": "orb_agent"}
-
-	// create new Thing
-	mfThing, err := svc.thing(token, "", a.Name.String(), md)
-	if err != nil {
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
-	a.MFThingID = mfThing.ID
-	a.MFKeyID = mfThing.Key
-
-	// create main Agent RPC Channel
-	mfChannelID, err := svc.mfsdk.CreateChannel(mfsdk.Channel{
-		Name:     a.Name.String(),
-		Metadata: md,
-	}, token)
-	if err != nil {
-		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-		}
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
-	a.MFChannelID = mfChannelID
-
-	// RPC Channel to Agent
-	err = svc.mfsdk.Connect(mfsdk.ConnectionIDs{
-		ChannelIDs: []string{mfChannelID},
-		ThingIDs:   []string{mfThing.ID},
-	}, token)
-	if err != nil {
-		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-			// fall through
-		}
-		if errT := svc.mfsdk.DeleteChannel(mfChannelID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-		}
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
-	if err != nil {
-		if errT := svc.mfsdk.DeleteThing(mfThing.ID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-			// fall through
-		}
-		if errT := svc.mfsdk.DeleteChannel(mfChannelID, token); errT != nil {
-			err = errors.Wrap(err, errT)
-		}
-		return Agent{}, errors.Wrap(ErrCreateAgent, err)
-	}
-
 	return a, nil
 }
