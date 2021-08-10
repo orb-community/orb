@@ -32,6 +32,7 @@ import (
 
 const (
 	token       = "token"
+	invalidToken       = ""
 	email       = "user@example.com"
 	channelsNum = 3
 )
@@ -108,10 +109,63 @@ func TestCreateAgentGroup(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
+		"add a agent group with invalid token": {
+			agent: validAgent,
+			token: invalidToken,
+			err:   fleet.ErrUnauthorizedAccess,
+		},
 	}
 
 	for desc, tc := range cases {
 		_, err := fleetService.CreateAgentGroup(context.Background(), tc.token, tc.agent)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+
+}
+
+func TestValidateAgentGroup(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	nameID, err := types.NewIdentifier("eu-agents")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	validAgent := fleet.AgentGroup{
+		MFOwnerID:   ownerID.String(),
+		Name:        nameID,
+		Description: "An example agent group representing european dns nodes",
+		Tags:        make(map[string]string),
+		Created:     time.Time{},
+	}
+
+	validAgent.Tags = map[string]string{
+		"region":    "eu",
+		"node_type": "dns",
+	}
+
+	cases := map[string]struct {
+		agent fleet.AgentGroup
+		token string
+		err   error
+	}{
+		"validate a valid agent group": {
+			agent: validAgent,
+			token: token,
+			err:   nil,
+		},
+		"validate a agent group with a invalid token": {
+			agent: validAgent,
+			token: invalidToken,
+			err:   fleet.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		_, err := fleetService.ValidateAgentGroup(context.Background(), tc.token, tc.agent)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 
