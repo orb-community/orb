@@ -122,13 +122,13 @@ func (a agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) 
 	return id, nil
 }
 
-func (a agentGroupRepository) RetrieveToValidate(ctx context.Context, groupID string, ownerID string) error {
+func (a agentGroupRepository) RetrieveToValidate(ctx context.Context, name, ownerID string) error {
 	q := `SELECT name, mf_owner_id FROM agent_groups WHERE name = :name AND mf_owner_id = :mf_owner_id`
 
-	name, err := types.NewIdentifier(groupID)
+	nname, err := types.NewIdentifier(name)
 
 	dba := dbAgentGroup{
-		Name:      name,
+		Name:      nname,
 		MFOwnerID: ownerID,
 	}
 
