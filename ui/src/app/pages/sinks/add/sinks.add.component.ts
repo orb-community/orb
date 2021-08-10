@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
@@ -6,13 +6,18 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { STRINGS } from 'assets/text/strings';
 import { sinkTypesList } from 'app/pages/sinks/sinks.component';
+import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 
 @Component({
   selector: 'ngx-sinks-add-component',
   templateUrl: './sinks.add.component.html',
   styleUrls: ['./sinks.add.component.scss'],
 })
-export class SinksAddComponent {
+export class SinksAddComponent implements OnInit {
+  // stepper vars
+  firstFormGroup: FormGroup;
+  secondFormGroup: FormGroup;
+  isEditable = false;
 
   strings = STRINGS;
 
@@ -27,12 +32,12 @@ export class SinksAddComponent {
     },
     tags: {},
   };
-  
+
   tagsForm = { key: '', value: '' };
 
   sink: Sink;
 
-  sinkTypesList = sinkTypesList;
+  sinkTypesList = Object.values(sinkTypesList);
 
   isEdit: boolean;
 
@@ -41,12 +46,29 @@ export class SinksAddComponent {
     private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
+    private _formBuilder: FormBuilder
   ) {
+
+    this.firstFormGroup = new FormGroup({
+      name: new FormControl(''),
+      description: new FormControl(''),
+      backend: new FormControl(''),
+    });
+
     this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
     this.isEdit = !!this.sink;
     if (!this.isEdit) {
       this.sink = this.emptySink();
     }
+  }
+
+  ngOnInit() {
+     this.firstFormGroup = this._formBuilder.group({
+      firstCtrl: ['', Validators.required]
+    });
+    this.secondFormGroup = this._formBuilder.group({
+      secondCtrl: ['', Validators.required]
+    });
   }
 
   goBack() {

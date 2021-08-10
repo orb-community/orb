@@ -36,7 +36,7 @@ export const STRINGS = {
     },
     // add page
     add: {
-      header: 'Create New Sink',
+      header: 'Sink Creation',
     },
     // edit page
     edit: {

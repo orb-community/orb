@@ -117,6 +117,7 @@
     "tslint": "^5.7.0",
     "tslint-language-service": "^0.9.9",
     "typescript": "3.7.5",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "xng-breadcrumb": "^6.7.0"
   }
 }

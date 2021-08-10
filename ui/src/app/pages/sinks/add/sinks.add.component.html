@@ -1,75 +1,58 @@
-<div>
+<div class="container">
   <header>
-    <div>{{strings.sink[isEdit ? 'edit' : 'add']['header']}}</div>
+    <xng-breadcrumb></xng-breadcrumb>
+    <h4>{{strings.sink[isEdit ? 'edit' : 'add']['header']}}</h4>
   </header>
-  <div>
-    <div>
-      <p>
-        {{strings.sink.propNames.name}}<span class="ns1red">*</span>
-      </p>
-      <input nbInput id="name" type="text" [(ngModel)]="sink.name">
-    </div>
-    <div>
-      <p>
-        {{strings.sink.propNames.description}}
-      </p>
-      <input nbInput id="description" type="text" [(ngModel)]="sink.description">
-    </div>
-    <div>
-      <p>
-        {{strings.sink.propNames.backend}}<span class="ns1red">*</span>
-      </p>
-      <input nbInput [placeholder]="sinkTypesList.prometheus" id='backend' type=text [(ngModel)]="sink.backend">
-    </div>
-    <div>
-      <p>
-        {{strings.sink.propNames.config_remote_host}}<span class="ns1red">*</span>
-      </p>
-      <input nbInput id='config.remote_host' type=text [(ngModel)]='sink.config.remote_host'>
-    </div>
-    <div>
-      <p>
-        {{strings.sink.propNames.config_username}}
-      </p>
-      <input nbInput id='config.username' type=text [(ngModel)]='sink.config.username'>
-    </div>
-    <div>
-      <p>
-        {{strings.sink.propNames.tags}}
-      </p>
-      <div>
-        <!--TODO tags add/edit/delete actions and view components.
-         * create a component for tag add action
-         * create a component that shows a tag and has a delete button
-         *  always display fresh tags.add.component, when user clicks addNewTag(),
-         push tag details into sink|sinkForm to update displayed tag list and reset
-         tag input fields. 
-        -->
-        <mat-form-field appearance="fill">
-          <mat-chip-list>
-            <mat-chip *ngFor="let tag of ((sink?.tags || {}) | tagsArrayPipe)"
-                      selectable removable (removed)="removeTag(tag)">
-              <span>&#123;</span>
-              {{tag.key}}
-              <span>: </span>
-              {{tag.value}}
-              <span>&#125;</span>
-              <nb-icon icon="close-circle-outline" matChipRemove>cancel</nb-icon>
-            </mat-chip>
-          </mat-chip-list>
-        </mat-form-field>
-        <div>
-          <input [(ngModel)]="tagsForm.key" nbInput placeholder="{{strings.tags.key}}">
-          <span>:</span>
-          <input [(ngModel)]="tagsForm.value" nbInput placeholder="{{strings.tags.value}}">
-          <button nbButton status="success" (click)="addTag()">{{strings.tags.addTag}}</button>
-        </div>
-      </div>
+  <div class="d-flex row">
+    <div class="d-flex col-12">
+      <nb-stepper orientation="vertical" disableStepNavigation="true" linear="true">
+        <nb-step label="step number one" [stepControl]="firstFormGroup">
+          <form [formGroup]="firstFormGroup">
+            <nb-form-field>
+              <input nbInput formGroupName="name"/>
+            </nb-form-field>
+            <nb-form-field>
+              <input nbInput formControlName="description"/>
+            </nb-form-field>
+            <nb-form-field>
+               <nb-select formControlName="backend" appearance="outline" class="orb-sink-filter-dropdown"
+                 placeholder="Select backend type">
+                <nb-option *ngFor="let type of sinkTypesList">{{ type }}</nb-option>
+              </nb-select>
+            </nb-form-field>
+          </form>
+        </nb-step>
+        <nb-step label="stepLabel">
+            <ng-template #stepLabel>
+                <div>
+                    step number two
+                </div>
+            </ng-template>
+              <div>
+          <p>
+            {{strings.sink.propNames.name}}<span class="ns1red">*</span>
+          </p>
+               <input nbInput id="name" type="text" [(ngModel)]="sink.name">
+             </div>
+          <div>
+            <p>
+              {{strings.sink.propNames.description}}
+            </p>
+            <input nbInput id="description" type="text" [(ngModel)]="sink.description">
+          </div>
+          <div>
+            <p>
+              {{strings.sink.propNames.backend}}<span class="ns1red">*</span>
+            </p>
+<!--            <input nbInput [placeholder]="sinkTypesList.prometheus" id='backend' type=text [(ngModel)]="sink.backend">-->
+          </div>
+        </nb-step>
+      </nb-stepper>
     </div>
   </div>
 
-  <footer>
-    <button nbButton status="success" (click)="onSubmit()">{{strings.stepper.save}}</button>
-    <button nbButton status="danger" (click)="cancel()">{{strings.stepper.back}}</button>
-  </footer>
+<!--  <footer>-->
+<!--    <button nbButton status="success" (click)="onSubmit()">{{strings.stepper.save}}</button>-->
+<!--    <button nbButton status="danger" (click)="cancel()">{{strings.stepper.back}}</button>-->
+<!--  </footer>-->
 </div>
