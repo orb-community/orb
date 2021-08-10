@@ -80,13 +80,14 @@ func newThingsServer(svc things.Service) *httptest.Server {
 func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	agentGroupRepo := flmocks.NewAgentGroupRepository()
 	agentRepo := flmocks.NewAgentRepositoryMock()
+	agentComms := flmocks.NewFleetCommService()
 	var logger *zap.Logger
 	config := mfsdk.Config{
 		BaseURL: url,
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, nil, mfsdk)
+	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
 }
 
 func TestCreateAgentGroup(t *testing.T) {

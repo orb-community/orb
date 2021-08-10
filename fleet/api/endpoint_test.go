@@ -114,13 +114,14 @@ func newThingsServer(svc things.Service) *httptest.Server {
 func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	agentGroupRepo := flmocks.NewAgentGroupRepository()
 	agentRepo := flmocks.NewAgentRepositoryMock()
+	agentComms := flmocks.NewFleetCommService()
 	var logger *zap.Logger
 	config := mfsdk.Config{
 		BaseURL: url,
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, nil, mfsdk)
+	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
 }
 
 func newServer(svc fleet.Service) *httptest.Server {
@@ -538,22 +539,22 @@ func TestDeleteAgentGroup(t *testing.T) {
 		auth   string
 		status int
 	}{
-		"delete existing sink": {
+		"delete existing agent group": {
 			id:     ag.ID,
 			auth:   token,
 			status: http.StatusNoContent,
 		},
-		"delete non-existent sink": {
+		"delete non-existent agent group": {
 			id:     wrongID,
 			auth:   token,
 			status: http.StatusNoContent,
 		},
-		"delete sink with invalid token": {
+		"delete agent group with invalid token": {
 			id:     ag.ID,
 			auth:   invalidToken,
 			status: http.StatusUnauthorized,
 		},
-		"delete sink with empty token": {
+		"delete agent group with empty token": {
 			id:     ag.ID,
 			auth:   "",
 			status: http.StatusUnauthorized,
