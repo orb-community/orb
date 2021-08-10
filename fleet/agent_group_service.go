@@ -21,6 +21,26 @@ var (
 	ErrMaintainAgentGroupChannels = errors.New("failed to maintain agent group channels")
 )
 
+func (svc fleetService) removeAgentGroupSubscriptions(groupID string, ownerID string) error {
+	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, groupID, true)
+	if err != nil {
+		return err
+	}
+	for _, agent := range list {
+		err := svc.agentComms.UnsubscribeAgentGroupMembership(agent)
+		if err != nil {
+			svc.logger.Error("failure during agent group membership comms", zap.Error(err))
+		}
+	}
+
+	err = svc.agentComms.InactivateDatasetByAgentGroup(groupID, ownerID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup) error {
 	// first we get all agents, online or not, to connect them to the correct group channel
 	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), g.MFOwnerID, g.ID, false)
@@ -156,6 +176,11 @@ func (svc fleetService) RemoveAgentGroup(ctx context.Context, token, groupId str
 	err = svc.agentGroupRepository.Delete(ctx, groupId, ownerID)
 	if err != nil {
 		return err
+	}
+
+	err = svc.removeAgentGroupSubscriptions(groupId, ownerID)
+	if err != nil {
+		svc.logger.Error("error adding agents to group channel", zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
 	}
 	return nil
 }

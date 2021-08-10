@@ -37,6 +37,8 @@ type AgentCommsService interface {
 	NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 	// InactivateDatasetByAgentGroup inactivate a dataset when delete a agent group
 	InactivateDatasetByAgentGroup(groupID string, ownerID string) error
+	// UnsubscribeAgentGroupMembership unsubscribe the agent membership when delete a agent group
+	UnsubscribeAgentGroupMembership(a Agent) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
