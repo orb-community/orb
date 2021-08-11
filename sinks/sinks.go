@@ -38,6 +38,8 @@ var (
 	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
 
 	ErrRemoveEntity = errors.New("failed to remove entity")
+
+	ErrInvalidBackend = errors.New("No available backends")
 )
 
 type Sink struct {

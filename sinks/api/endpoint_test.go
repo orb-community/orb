@@ -801,9 +801,10 @@ func TestValidateSink(t *testing.T) {
 	server := newServer(service)
 	defer server.Close()
 
-	var invalidSink = "{\n    \"namee\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
-	var invalidNameSink = "{\n    \"name\": \"my...SINK1\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
-	var invalidTagSink = "{\"tags\": {\n        \"cloud\": \"aws\"\n    }}"
+	var invalidSinkField = "{\n    \"namee\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    }}"
+	var invalidSinkValueName = "{\n    \"name\": \"my...SINK1\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    }}"
+	var invalidSinkValueBackend = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"invalidBackend\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    }}"
+	var invalidSinkValueTag = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": \"invalidTag\"}"
 
 	cases := []struct {
 		desc        string
@@ -822,25 +823,29 @@ func TestValidateSink(t *testing.T) {
 			location:    "/sinks/validate",
 		},
 		{
-			//TODO: Terranova - change test case to invalid json
-			desc:        "validate an invalid sink",
+			desc:        "validate an invalid json",
 			req:         invalidJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/sinks/validate",
 		},
-		//TODO: Terranova - create test case for invalid sink
 		{
-			//TODO: Terranova - change test case to empty token
-			desc:        "validate a sink with a invalid token",
+			desc:        "validate a sink with a empty token",
 			req:         validJson,
 			contentType: contentType,
 			auth:        "",
 			status:      http.StatusUnauthorized,
 			location:    "/sinks/validate",
 		},
-		//TODO: Terranova - create test case for invalid token
+		{
+			desc:        "validate a sink with an invalid token",
+			req:         validJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/sinks/validate",
+		},
 		{
 			desc:        "validate a valid sink without content type",
 			req:         validJson,
@@ -850,24 +855,32 @@ func TestValidateSink(t *testing.T) {
 			location:    "/sinks/validate",
 		},
 		{
-			desc:        "validate a invalid sink configuration",
-			req:         invalidSink,
+			desc:        "validate an invalid sink field",
+			req:         invalidSinkField,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/sinks/validate",
 		},
 		{
-			desc:        "validate a invalid sink name",
-			req:         invalidNameSink,
+			desc:        "validate a sink with invalid name value",
+			req:         invalidSinkValueName,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/sinks/validate",
 		},
 		{
-			desc:        "validate a invalid sink tag",
-			req:         invalidTagSink,
+			desc:        "validate a sink with invalid backend value",
+			req:         invalidSinkValueBackend,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate a sink with invalid tag value",
+			req:         invalidSinkValueTag,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,

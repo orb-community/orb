@@ -135,7 +135,7 @@ func validateBackend(sink *Sink) error {
 			sink.Error = ""
 		}
 	} else {
-		return errors.New("No available backend")
+		return ErrInvalidBackend
 	}
 	return nil
 }
