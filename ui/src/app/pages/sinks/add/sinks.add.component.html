@@ -1,75 +1,171 @@
-<div>
+<div class="container">
   <header>
-    <div>{{strings.sink[isEdit ? 'edit' : 'add']['header']}}</div>
+    <xng-breadcrumb></xng-breadcrumb>
+    <h4>{{strings.sink[isEdit ? 'edit' : 'add']['header']}}</h4>
   </header>
-  <div>
-    <div>
-      <p>
-        {{strings.sink.propNames.name}}<span class="ns1red">*</span>
-      </p>
-      <input nbInput id="name" type="text" [(ngModel)]="sink.name">
-    </div>
-    <div>
-      <p>
-        {{strings.sink.propNames.description}}
-      </p>
-      <input nbInput id="description" type="text" [(ngModel)]="sink.description">
-    </div>
-    <div>
-      <p>
-        {{strings.sink.propNames.backend}}<span class="ns1red">*</span>
-      </p>
-      <input nbInput [placeholder]="sinkTypesList.prometheus" id='backend' type=text [(ngModel)]="sink.backend">
-    </div>
-    <div>
-      <p>
-        {{strings.sink.propNames.config_remote_host}}<span class="ns1red">*</span>
-      </p>
-      <input nbInput id='config.remote_host' type=text [(ngModel)]='sink.config.remote_host'>
-    </div>
-    <div>
-      <p>
-        {{strings.sink.propNames.config_username}}
-      </p>
-      <input nbInput id='config.username' type=text [(ngModel)]='sink.config.username'>
-    </div>
-    <div>
-      <p>
-        {{strings.sink.propNames.tags}}
-      </p>
-      <div>
-        <!--TODO tags add/edit/delete actions and view components.
-         * create a component for tag add action
-         * create a component that shows a tag and has a delete button
-         *  always display fresh tags.add.component, when user clicks addNewTag(),
-         push tag details into sink|sinkForm to update displayed tag list and reset
-         tag input fields. 
-        -->
-        <mat-form-field appearance="fill">
-          <mat-chip-list>
-            <mat-chip *ngFor="let tag of ((sink?.tags || {}) | tagsArrayPipe)"
-                      selectable removable (removed)="removeTag(tag)">
-              <span>&#123;</span>
-              {{tag.key}}
-              <span>: </span>
-              {{tag.value}}
-              <span>&#125;</span>
-              <nb-icon icon="close-circle-outline" matChipRemove>cancel</nb-icon>
-            </mat-chip>
-          </mat-chip-list>
-        </mat-form-field>
-        <div>
-          <input [(ngModel)]="tagsForm.key" nbInput placeholder="{{strings.tags.key}}">
-          <span>:</span>
-          <input [(ngModel)]="tagsForm.value" nbInput placeholder="{{strings.tags.value}}">
-          <button nbButton status="success" (click)="addTag()">{{strings.tags.addTag}}</button>
-        </div>
-      </div>
+  <div class="d-flex row">
+    <div class="d-flex col-12 mt-5">
+      <nb-stepper orientation="vertical"
+                  class="stepper w-100 ml-5"
+                  disableStepNavigation>
+        <nb-step [label]="firstStepTemplate"
+                 [stepControl]="firstFormGroup">
+           <ng-template #firstStepTemplate>
+                <div class="step-label d-flex flex-column">
+                  <strong>Sink Details</strong>
+                  <p>Provide a name and description for the Sink</p>
+                </div>
+            </ng-template>
+          <form [formGroup]="firstFormGroup" (ngSubmit)="onFormSubmit()">
+            <nb-form-field>
+              <div class="d-flex flex-column">
+                <div>
+                  <label class="font-weight-bold">Name Label</label>
+                  <span class="required">*</span>
+                </div>
+                <input nbInput
+                       autofocus
+                       fullWidth="true"
+                       fieldSize="medium"
+                       formControlName="name"/>
+              </div>
+            </nb-form-field>
+            <nb-form-field>
+                <div>
+                  <label class="font-weight-bold">Sink Description</label>
+                </div>
+              <input nbInput
+                     fullWidth="true"
+                     fieldSize="medium"
+                     formControlName="description"/>
+            </nb-form-field>
+            <nb-form-field>
+                <div>
+                  <label class="font-weight-bold">Sink Type</label>
+                  <span class="required">*</span>
+                </div>
+               <nb-select size="medium"
+                          (selectedChange)="onSinkTypeSelected($event)"
+                          fullWidth="true"
+                          formControlName="backend"
+                          appearance="outline"
+                          placeholder="Select backend type">
+                <nb-option *ngFor="let type of sinkTypesList"
+                           [value]="type">{{ type }}</nb-option>
+              </nb-select>
+            </nb-form-field>
+            <div class="d-flex justify-content-end">
+              <button
+                nbButton
+                ghost
+                (click)="goBack()"
+                type="button"
+                status="primary">Cancel</button>
+              <button class="next-button"
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="submit"
+                      [disabled]="!firstFormGroup.valid" nbStepperNext>Next</button>
+            </div>
+          </form>
+        </nb-step>
+        <nb-step [label]="secondStepLabel">
+            <ng-template #secondStepLabel>
+                <div class="step-label d-flex flex-column">
+                  <strong>Sink Destination</strong>
+                  <p>Configure your sink settings</p>
+                </div>
+            </ng-template>
+          <form [formGroup]="secondFormGroup">
+            <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index">
+              <div>
+                <label class="font-weight-bold">{{control.label}}</label>
+              </div>
+              <div [ngSwitch]="control.input">
+                 <input *ngSwitchCase="'text'"
+                   [autofocus]="i == 0"
+                   nbInput
+                   [type]="control.type"
+                   fullWidth="true"
+                   fieldSize="medium"
+                   [formControlName]="control.prop" />
+               <nb-select *ngSwitchCase="'select'"
+                          size="medium"
+                          fullWidth="true"
+                          formControlName="backend"
+                          appearance="outline"
+                          placeholder="Select backend type">
+                <nb-option *ngFor="let type of control.options"
+                           [value]="type">{{ type }}</nb-option>
+               </nb-select>
+              </div>
+            </nb-form-field>
+            <div class="d-flex justify-content-end" *ngIf="secondFormGroup">
+              <button
+                nbButton
+                ghost
+                status="primary"
+                nbStepperPrevious>Back</button>
+              <button class="next-button"
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="submit"
+                      [disabled]="!secondFormGroup.valid" nbStepperNext>Next</button>
+            </div>
+          </form>
+        </nb-step>
+        <nb-step [label]="thirdStepLabel">
+            <ng-template #thirdStepLabel>
+                <div class="step-label d-flex flex-column">
+                  <strong>Review & Confirm</strong>
+                </div>
+            </ng-template>
+          <div class="d-flex row">
+            <div class="col-md-12 col-xl-6">
+                <div>
+                  <label class="font-weight-bold">Name Label</label>
+                  <p>{{firstFormGroup.controls.name.value}}</p>
+                </div>
+            </div>
+            <div class="col-md-12 col-xl-6">
+                <div>
+                  <label class="font-weight-bold">Description</label>
+                  <p>{{firstFormGroup.controls.description.value}}</p>
+                </div>
+            </div>
+            <div class="col-md-12 col-xl-6">
+                <div>
+                  <label class="font-weight-bold">Sink Type</label>
+                  <p>{{firstFormGroup.controls.backend.value}}</p>
+                </div>
+            </div>
+          </div>
+          <div class="d-flex row mt-4">
+            <div class="col-md-12 col-xl-6" *ngFor="let control of selectedSinkSetting">
+               <div>
+                  <label class="font-weight-bold">{{control.label}}</label>
+                  <p *ngIf="control.type != 'password'">{{secondFormGroup.controls[control.prop].value}}</p>
+                  <p *ngIf="control.type == 'password'">*******</p>
+                </div>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end" *ngIf="secondFormGroup">
+              <button
+                nbButton
+                ghost
+                status="primary"
+                nbStepperPrevious>Back</button>
+              <button class="next-button"
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      (click)="onFormSubmit()"
+                      type="submit">Save</button>
+            </div>
+        </nb-step>
+      </nb-stepper>
     </div>
   </div>
-
-  <footer>
-    <button nbButton status="success" (click)="onSubmit()">{{strings.stepper.save}}</button>
-    <button nbButton status="danger" (click)="cancel()">{{strings.stepper.back}}</button>
-  </footer>
 </div>

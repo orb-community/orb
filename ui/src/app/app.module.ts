@@ -34,6 +34,7 @@ import { environment } from 'environments/environment';
 import { LogoutComponent } from './pages/logout/logout.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { ProfileComponent } from './pages/profile/profile.component';
+import { BreadcrumbModule } from 'xng-breadcrumb';
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   connectOnCreate: false,
@@ -73,6 +74,9 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     NbCardModule,
     NbIconModule,
     NbButtonModule,
+
+    // 3rd party
+    BreadcrumbModule,
   ],
   bootstrap: [AppComponent],
   // Mfx dependencies

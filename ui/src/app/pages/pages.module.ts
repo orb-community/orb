@@ -3,11 +3,11 @@ import {
   NbButtonModule,
   NbCardModule,
   NbCheckboxModule,
-  NbDialogService,
+  NbDialogService, NbFormFieldModule,
   NbInputModule,
   NbListModule,
   NbMenuModule,
-  NbSelectModule,
+  NbSelectModule, NbStepperModule,
   NbTabsetModule,
   NbWindowService,
 } from '@nebular/theme';
@@ -40,6 +40,7 @@ import { AgentsDetailsComponent } from 'app/pages/agents/details/agents.details.
 import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
+import { BreadcrumbModule } from 'xng-breadcrumb';
 
 @NgModule({
   imports: [
@@ -61,6 +62,9 @@ import { MatIconModule } from '@angular/material/icon';
     MatInputModule,
     MatChipsModule,
     MatIconModule,
+    BreadcrumbModule,
+    NbStepperModule,
+    NbFormFieldModule,
   ],
   exports: [
     SharedModule,
