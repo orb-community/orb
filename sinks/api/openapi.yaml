@@ -152,6 +152,7 @@ paths:
         $ref: "#/components/requestBodies/SinkCreateReq"
       responses:
         '200':
+          description: Valid sink.
           $ref: "#/components/responses/SinkObjRes"
         '400':
           description: Failed due to malformed JSON.
