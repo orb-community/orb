@@ -70,8 +70,8 @@ func (client grpcClient) RetrievePolicy(ctx context.Context, in *pb.PolicyByIDRe
 }
 
 func (client grpcClient) InactivateDataset(ctx context.Context, in *pb.DatasetByGroupReq, otps ...grpc.CallOption) (*empty.Empty, error) {
-	ctx, cancel := context.WithTimeout(ctx, client.timeout)
-	//ctx, cancel := context.WithTimeout(ctx, time.Second*30000000)
+	//ctx, cancel := context.WithTimeout(ctx, client.timeout)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*30000000)
 	defer cancel()
 
 	ar := accessByGroupAndOwnerID{

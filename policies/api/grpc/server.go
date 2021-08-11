@@ -46,7 +46,7 @@ func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyService
 		inactivateDataset: kitgrpc.NewServer(
 			kitot.TraceServer(tracer, "inactivate_dataset")(inactivateDataset(svc)),
 			decodeInactivateDatasetByGroupRequest,
-			encodePolicyResponse,
+			encodeInactivateDatasetResponse,
 		),
 	}
 }
@@ -82,6 +82,16 @@ func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interf
 	return accessByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
 }
 
+func decodeInactivateDatasetByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.DatasetByGroupReq)
+	return accessByGroupAndOwnerID{GroupID: req.GroupID, OwnerID: req.OwnerID}, nil
+}
+
+func decodeRetrievePoliciesByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.PoliciesByGroupsReq)
+	return accessByGroupIDReq{GroupIDs: req.GroupIDs, OwnerID: req.OwnerID}, nil
+}
+
 func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(policyRes)
 	return &pb.PolicyRes{
@@ -93,16 +103,6 @@ func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, 
 	}, nil
 }
 
-func decodeInactivateDatasetByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*pb.PolicyByIDReq)
-	return accessByGroupAndOwnerID{GroupID: req.PolicyID, OwnerID: req.OwnerID}, nil
-}
-
-func decodeRetrievePoliciesByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*pb.PoliciesByGroupsReq)
-	return accessByGroupIDReq{GroupIDs: req.GroupIDs, OwnerID: req.OwnerID}, nil
-}
-
 func encodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(policyListRes)
 
@@ -111,6 +111,10 @@ func encodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface
 		plist[i] = &pb.PolicyRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version}
 	}
 	return &pb.PolicyListRes{Policies: plist}, nil
+}
+
+func encodeInactivateDatasetResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	return &empty.Empty{}, nil
 }
 
 func encodeError(err error) error {

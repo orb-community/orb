@@ -75,13 +75,13 @@ func inactivateDataset(svc policies.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(accessByGroupAndOwnerID)
 		if err := req.validate(); err != nil {
-			return policyRes{}, err
+			return nil, err
 		}
 
 		err = svc.InactivateDataset(ctx, req.GroupID, req.OwnerID)
 		if err != nil {
-			return policyRes{}, err
+			return nil, err
 		}
-		return policyRes{}, nil
+		return nil, nil
 	}
 }
