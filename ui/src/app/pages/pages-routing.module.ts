@@ -54,7 +54,7 @@ const children = environment.production ?
       component: SinksAddComponent,
     },
     {
-      path: 'sinks/edit/:id',
+      path: 'sinks/edit',
       component: SinksAddComponent,
     },
   ] : [
@@ -86,14 +86,17 @@ const children = environment.production ?
     {
       path: 'sinks',
       component: SinksComponent,
+      data: { breadcrumb: 'Sink Management' },
     },
     {
       path: 'sinks/add',
       component: SinksAddComponent,
+      data: { breadcrumb: 'New' },
     },
     {
-      path: 'sinks/edit/:id',
+      path: 'sinks/edit',
       component: SinksAddComponent,
+      data: { breadcrumb: 'Edit' },
     },
   ];
 

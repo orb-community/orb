@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
 import { environment } from 'environments/environment';
-import { Sink } from 'app/common/interfaces/sink.interface';
+import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { PageFilters } from 'app/common/interfaces/mainflux.interface';
 
@@ -33,7 +33,7 @@ export class SinksService {
       .catch(
         err => {
           this.notificationsService.error('Failed to create Sink',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
           return Observable.throwError(err);
         },
       );

@@ -3,11 +3,11 @@ import {
   NbButtonModule,
   NbCardModule,
   NbCheckboxModule,
-  NbDialogService,
+  NbDialogService, NbFormFieldModule,
   NbInputModule,
   NbListModule,
   NbMenuModule,
-  NbSelectModule,
+  NbSelectModule, NbStepperModule,
   NbTabsetModule,
   NbWindowService,
 } from '@nebular/theme';
@@ -17,17 +17,16 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { PagesRoutingModule } from './pages-routing.module';
 
 // Mainflux - Dependencies
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 // Mainflux - Common and Shared
 import { SharedModule } from 'app/shared/shared.module';
 import { CommonModule } from 'app/common/common.module';
 import { ConfirmationComponent } from 'app/shared/components/confirmation/confirmation.component';
-// ORB SPECIFIC
-// ORB - dataset-explorer
+
+// ORB
 import { DatasetsComponent } from 'app/pages/datasets/datasets.component';
 import { DatasetsAddComponent } from 'app/pages/datasets/add/datasets.add.component';
 import { DatasetsDetailsComponent } from 'app/pages/datasets/details/datasets.details.component';
-// ORB - fleet-management
 import { FleetsComponent } from 'app/pages/fleets/fleets.component';
 import { FleetsAddComponent } from 'app/pages/fleets/add/fleets.add.component';
 import { FleetsDetailsComponent } from 'app/pages/fleets/details/fleets.details.component';
@@ -38,6 +37,10 @@ import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.compon
 import { AgentsComponent } from 'app/pages/agents/agents.component';
 import { AgentsAddComponent } from 'app/pages/agents/add/agents.add.component';
 import { AgentsDetailsComponent } from 'app/pages/agents/details/agents.details.component';
+import { MatInputModule } from '@angular/material/input';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
+import { BreadcrumbModule } from 'xng-breadcrumb';
 
 @NgModule({
   imports: [
@@ -55,6 +58,13 @@ import { AgentsDetailsComponent } from 'app/pages/agents/details/agents.details.
     NbCheckboxModule,
     NbListModule,
     NbTabsetModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatChipsModule,
+    MatIconModule,
+    BreadcrumbModule,
+    NbStepperModule,
+    NbFormFieldModule,
   ],
   exports: [
     SharedModule,

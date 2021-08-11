@@ -18,7 +18,7 @@
     <ngx-table-component (addEvent)=onOpenAdd()
                          (delEvent)=openDeleteModal($event)
                          (detailsEvent)=openDetailsModal($event)
-                         (editEvent)=onOpenEdit()
+                         (editEvent)=onOpenEdit($event)
                          [config]="tableConfig"
                          [page]="page">
     </ngx-table-component>
