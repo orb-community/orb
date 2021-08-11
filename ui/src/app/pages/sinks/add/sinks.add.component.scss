@@ -24,6 +24,7 @@ nb-card-footer {
 
   .label-index {
     background-color: #969fb9;
+    transition: box-shadow 0.3s 0s ease-in-out;
     color: #969fb9;
     border: none !important;
     //box-shadow: 0 0 8px -2px #ffffff;
@@ -75,7 +76,9 @@ nb-card-footer {
   }
 
   .connector.connector-past {
+    transition: background 0.5s 0s ease-in-out;
     &::after {
+      transition: border 0.5s 0s ease-in-out;
       border-left: solid 1px #df316f;
     }
   }
