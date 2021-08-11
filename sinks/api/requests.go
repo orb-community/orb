@@ -24,13 +24,12 @@ const (
 )
 
 type addReq struct {
-	Name         string         `json:"name,omitempty"`
-	Backend      string         `json:"backend,omitempty"`
-	Config       types.Metadata `json:"config,omitempty"`
-	Description  string         `json:"description,omitempty"`
-	Tags         types.Tags     `json:"tags,omitempty"`
-	ValidateOnly bool           `json:"validate_only"`
-	token        string
+	Name        string         `json:"name,omitempty"`
+	Backend     string         `json:"backend,omitempty"`
+	Config      types.Metadata `json:"config,omitempty"`
+	Description string         `json:"description,omitempty"`
+	Tags        types.Tags     `json:"tags,omitempty"`
+	token       string
 }
 
 func (req addReq) validate() error {
@@ -51,13 +50,12 @@ func (req addReq) validate() error {
 }
 
 type updateSinkReq struct {
-	Name         string         `json:"name,omitempty"`
-	Config       types.Metadata `json:"config,omitempty"`
-	Description  string         `json:"description,omitempty"`
-	Tags         types.Tags     `json:"tags,omitempty"`
-	ValidateOnly bool           `json:"validate_only"`
-	id           string
-	token        string
+	Name        string         `json:"name,omitempty"`
+	Config      types.Metadata `json:"config,omitempty"`
+	Description string         `json:"description,omitempty"`
+	Tags        types.Tags     `json:"tags,omitempty"`
+	id          string
+	token       string
 }
 
 func (req updateSinkReq) validate() error {
@@ -150,6 +148,32 @@ func (req deleteSinkReq) validate() error {
 
 	if req.id == "" {
 		return errors.ErrMalformedEntity
+	}
+
+	return nil
+}
+
+type validateReq struct {
+	Name        string         `json:"name,omitempty"`
+	Backend     string         `json:"backend,omitempty"`
+	Config      types.Metadata `json:"config,omitempty"`
+	Description string         `json:"description,omitempty"`
+	Tags        types.Tags     `json:"tags,omitempty"`
+	token       string
+}
+
+func (req validateReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+
+	if req.Name == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	_, err := types.NewIdentifier(req.Name)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return nil

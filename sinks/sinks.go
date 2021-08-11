@@ -76,6 +76,8 @@ type SinkService interface {
 	ViewSink(ctx context.Context, token string, key string) (Sink, error)
 	// DeleteSink delete a existing sink by id
 	DeleteSink(ctx context.Context, token string, key string) error
+	// ValidateSink validate a sink configuration without saving
+	ValidateSink(ctx context.Context, token string, sink Sink) (Sink, error)
 }
 
 type SinkRepository interface {

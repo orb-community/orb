@@ -217,3 +217,44 @@ func deleteSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		return removeRes{}, nil
 	}
 }
+
+func validateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(validateReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		sink := sinks.Sink{
+			Name:        nID,
+			Backend:     req.Backend,
+			Config:      req.Config,
+			Description: req.Description,
+			Tags:        req.Tags,
+		}
+
+		validated, err := svc.ValidateSink(ctx, req.token, sink)
+		if err != nil {
+			return nil, err
+		}
+
+		res := validateSinkRes{
+			ID:          validated.ID,
+			Name:        validated.Name.String(),
+			Description: validated.Description,
+			Tags:        validated.Tags,
+			Status:      validated.Status,
+			Error:       validated.Error,
+			Backend:     validated.Backend,
+			Config:      validated.Config,
+			TsCreated:   validated.Created,
+		}
+
+		return res, err
+	}
+}

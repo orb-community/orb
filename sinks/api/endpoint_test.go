@@ -795,3 +795,97 @@ func TestDeleteSink(t *testing.T) {
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 	}
 }
+
+func TestValidateSink(t *testing.T) {
+	service := newService(map[string]string{token: email})
+	server := newServer(service)
+	defer server.Close()
+
+	var invalidSink = "{\n    \"namee\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	var invalidNameSink = "{\n    \"name\": \"my...SINK1\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	var invalidTagSink = "{\"tags\": {\n        \"cloud\": \"aws\"\n    }}"
+
+	cases := []struct {
+		desc        string
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		{
+			desc:        "validate a valid sink",
+			req:         validJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+			location:    "/sinks/validate",
+		},
+		{
+			//TODO: Terranova - change test case to invalid json
+			desc:        "validate an invalid sink",
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks/validate",
+		},
+		//TODO: Terranova - create test case for invalid sink
+		{
+			//TODO: Terranova - change test case to empty token
+			desc:        "validate a sink with a invalid token",
+			req:         validJson,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+			location:    "/sinks/validate",
+		},
+		//TODO: Terranova - create test case for invalid token
+		{
+			desc:        "validate a valid sink without content type",
+			req:         validJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate a invalid sink configuration",
+			req:         invalidSink,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate a invalid sink name",
+			req:         invalidNameSink,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate a invalid sink tag",
+			req:         invalidTagSink,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks/validate",
+		},
+	}
+
+	for _, sinkCase := range cases {
+		req := testRequest{
+			client:      server.Client(),
+			method:      http.MethodPost,
+			url:         fmt.Sprintf("%s/sinks/validate", server.URL),
+			contentType: sinkCase.contentType,
+			token:       sinkCase.auth,
+			body:        strings.NewReader(sinkCase.req),
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
+	}
+}
