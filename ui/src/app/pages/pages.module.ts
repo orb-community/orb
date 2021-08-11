@@ -40,7 +40,7 @@ import { AgentsDetailsComponent } from 'app/pages/agents/details/agents.details.
 import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
-import {BreadcrumbModule} from "xng-breadcrumb";
+import { BreadcrumbModule } from 'xng-breadcrumb';
 
 @NgModule({
   imports: [

@@ -33,7 +33,7 @@ export class SinksService {
       .catch(
         err => {
           this.notificationsService.error('Failed to create Sink',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
           return Observable.throwError(err);
         },
       );
