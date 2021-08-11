@@ -126,6 +126,11 @@ func (svc fleetService) ValidateAgentGroup(ctx context.Context, token string, s 
 		return AgentGroup{}, err
 	}
 
+	err = svc.agentGroupRepository.RetrieveToValidate(ctx, s.Name.String(), s.MFOwnerID)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+
 	s.MFOwnerID = mfOwnerID
 
 	return s, err
