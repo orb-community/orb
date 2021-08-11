@@ -10,6 +10,7 @@ package grpc
 
 import (
 	"context"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/ns1labs/orb/policies"
 	"github.com/ns1labs/orb/policies/pb"
 
@@ -68,12 +69,12 @@ func (gs *grpcServer) RetrievePolicy(ctx context.Context, req *pb.PolicyByIDReq)
 	return res.(*pb.PolicyRes), nil
 }
 
-func (gs *grpcServer) InactivateDataset(ctx context.Context, req *pb.PolicyByIDReq) (*pb.PolicyRes, error) {
+func (gs *grpcServer) InactivateDataset(ctx context.Context, req *pb.DatasetByGroupReq) (*empty.Empty, error) {
 	_, res, err := gs.inactivateDataset.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, encodeError(err)
 	}
-	return res.(*pb.PolicyRes), nil
+	return res.(*empty.Empty), nil
 }
 
 func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {

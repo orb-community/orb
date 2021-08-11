@@ -10,6 +10,7 @@ package grpc
 
 import (
 	"context"
+	"github.com/golang/protobuf/ptypes/empty"
 	"time"
 
 	"github.com/go-kit/kit/endpoint"
@@ -68,22 +69,22 @@ func (client grpcClient) RetrievePolicy(ctx context.Context, in *pb.PolicyByIDRe
 	return &pb.PolicyRes{Id: ir.id, Name: ir.name, Data: ir.data, Backend: ir.backend, Version: ir.version}, nil
 }
 
-func (client grpcClient) InactivateDataset(ctx context.Context, in *pb.PolicyByIDReq, otps ...grpc.CallOption) error {
+func (client grpcClient) InactivateDataset(ctx context.Context, in *pb.DatasetByGroupReq, otps ...grpc.CallOption) (*empty.Empty, error) {
 	ctx, cancel := context.WithTimeout(ctx, client.timeout)
 	//ctx, cancel := context.WithTimeout(ctx, time.Second*30000000)
 	defer cancel()
 
 	ar := accessByGroupAndOwnerID{
-		GroupID: in.PolicyID,
+		GroupID: in.GroupID,
 		OwnerID: in.OwnerID,
 	}
 
 	_, err := client.inactivateDataset(ctx, ar)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return nil, nil
 }
 
 // NewClient returns new gRPC client instance.
@@ -114,7 +115,7 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 			"InactivateDataset",
 			encodeInactivateDatasetRequest,
 			decodePolicyResponse,
-			pb.PolicyRes{},
+			empty.Empty{},
 		).Endpoint()),
 	}
 }
@@ -136,9 +137,9 @@ func encodeRetrievePoliciesByGroupsRequest(_ context.Context, grpcReq interface{
 
 func encodeInactivateDatasetRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(accessByGroupAndOwnerID)
-	return &pb.PolicyByIDReq{
-		PolicyID: req.GroupID,
-		OwnerID:  req.OwnerID,
+	return &pb.DatasetByGroupReq{
+		GroupID: req.GroupID,
+		OwnerID: req.OwnerID,
 	}, nil
 }
 

@@ -4,6 +4,7 @@ package pb
 
 import (
 	context "context"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -20,7 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 type PolicyServiceClient interface {
 	RetrievePolicy(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*PolicyRes, error)
 	RetrievePoliciesByGroups(ctx context.Context, in *PoliciesByGroupsReq, opts ...grpc.CallOption) (*PolicyListRes, error)
-	InactivateDataset(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) error
+	InactivateDataset(ctx context.Context, in *DatasetByGroupReq, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type policyServiceClient struct {
@@ -49,14 +50,13 @@ func (c *policyServiceClient) RetrievePoliciesByGroups(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *policyServiceClient) InactivateDataset(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) error {
-	out := new(PolicyRes)
+func (c *policyServiceClient) InactivateDataset(ctx context.Context, in *DatasetByGroupReq, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/policies.PolicyService/InactivateDataset", in, out, opts...)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
-
+	return out, nil
 }
 
 // PolicyServiceServer is the server API for PolicyService service.
@@ -65,7 +65,7 @@ func (c *policyServiceClient) InactivateDataset(ctx context.Context, in *PolicyB
 type PolicyServiceServer interface {
 	RetrievePolicy(context.Context, *PolicyByIDReq) (*PolicyRes, error)
 	RetrievePoliciesByGroups(context.Context, *PoliciesByGroupsReq) (*PolicyListRes, error)
-	InactivateDataset(ctx context.Context, in *PolicyByIDReq) (*PolicyRes, error)
+	InactivateDataset(context.Context, *DatasetByGroupReq) (*empty.Empty, error)
 	mustEmbedUnimplementedPolicyServiceServer()
 }
 
@@ -79,8 +79,8 @@ func (UnimplementedPolicyServiceServer) RetrievePolicy(context.Context, *PolicyB
 func (UnimplementedPolicyServiceServer) RetrievePoliciesByGroups(context.Context, *PoliciesByGroupsReq) (*PolicyListRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrievePoliciesByGroups not implemented")
 }
-func (UnimplementedPolicyServiceServer) InactivateDataset(ctx context.Context, req *PoliciesByGroupsReq) error {
-	return status.Errorf(codes.Unimplemented, "method InactivateDataSet not implemented")
+func (UnimplementedPolicyServiceServer) InactivateDataset(context.Context, *DatasetByGroupReq) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InactivateDataset not implemented")
 }
 func (UnimplementedPolicyServiceServer) mustEmbedUnimplementedPolicyServiceServer() {}
 
@@ -132,7 +132,7 @@ func _PolicyService_RetrievePoliciesByGroups_Handler(srv interface{}, ctx contex
 }
 
 func _PolicyService_InactivateDataset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PolicyByIDReq)
+	in := new(DatasetByGroupReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func _PolicyService_InactivateDataset_Handler(srv interface{}, ctx context.Conte
 		FullMethod: "/policies.PolicyService/InactivateDataset",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PolicyServiceServer).InactivateDataset(ctx, req.(*PolicyByIDReq))
+		return srv.(PolicyServiceServer).InactivateDataset(ctx, req.(*DatasetByGroupReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }

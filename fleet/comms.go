@@ -106,7 +106,7 @@ func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ctx context.Context, ag A
 func (svc fleetCommsService) InactivateDatasetByAgentGroup(groupID string, ownerID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30000000)
 	defer cancel()
-	err := svc.policyClient.InactivateDataset(ctx, &pb.PolicyByIDReq{PolicyID: groupID, OwnerID: ownerID})
+	_, err := svc.policyClient.InactivateDataset(ctx, &pb.DatasetByGroupReq{GroupID: groupID, OwnerID: ownerID})
 	if err != nil {
 		return err
 	}
