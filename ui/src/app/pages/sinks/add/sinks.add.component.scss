@@ -94,3 +94,23 @@ nb-card-footer {
   text-align: end;
 }
 
+::ng-deep .orb-breadcrumb {
+  align-items: center;
+
+  display: flex;
+
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 12px;
+
+  ::ng-deep .xng-breadcrumb-trail {
+    color: #ffffff !important;
+
+    &::before {
+      color: #969fb9 !important;
+      content: 'Settings / Sink Management /\00a0';
+    }
+  }
+}
