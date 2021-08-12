@@ -28,6 +28,10 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { TokenInterceptor } from 'app/auth/auth.token.interceptor.service';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
+// Orb mock
+
+import { AgentsMockService } from 'app/common/services/agents/agents.mock.service';
+
 @NgModule({
   providers: [
     BootstrapService,
@@ -46,6 +50,7 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     IntervalService,
     // ORB Services
     AgentsService,
+    AgentsMockService,
     DatasetsService,
     FleetsService,
     SinksService,
