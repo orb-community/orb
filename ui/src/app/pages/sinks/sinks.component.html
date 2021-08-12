@@ -1,19 +1,22 @@
-<nb-card>
-  <nb-card-header>
-    <div>
-      <h4>All Sinks</h4>
-      <p *ngIf="page.rows && page.rows.length > 0" class="card-subtitle">
-        You have {{page.rows.length}} sinks total, {{page.rows.filter(filterByInactive).length}} have errors.
-      </p>
-      <p *ngIf="page.rows && page.rows.length === 0" class="card-subtitle">
-        There are no sinks yet.
-      </p>
-      <nb-select [(selected)]="pageFilters" appearance="outline" class="orb-sink-filter-dropdown"
-                 placeholder="Filter">
-        <nb-option *ngFor="let conf of tableFilters">{{ conf.name }}</nb-option>
-      </nb-select>
-    </div>
-  </nb-card-header>
+<div class="container">
+  <header>
+    <xng-breadcrumb class="orb-breadcrumb">
+    </xng-breadcrumb>
+    <h4>{{strings.list.header}}</h4>
+    <p *ngIf=" page.rows && page.rows.length> 0">
+      You have {{page.rows.length}} sinks total, {{page.rows.filter(filterByInactive).length}} have errors.
+    </p>
+    <p *ngIf="page.rows && page.rows.length === 0">
+      There are no sinks yet.
+    </p>
+    <nb-select
+        [(selected)]="pageFilters"
+        appearance="outline"
+        class="orb-sink-filter-dropdown"
+        placeholder="Filter">
+      <nb-option *ngFor="let conf of tableFilters">{{ conf.name }}</nb-option>
+    </nb-select>
+  </header>
   <nb-card-body>
     <ngx-table-component (addEvent)=onOpenAdd()
                          (delEvent)=openDeleteModal($event)
@@ -23,4 +26,4 @@
                          [page]="page">
     </ngx-table-component>
   </nb-card-body>
-</nb-card>
+</div>

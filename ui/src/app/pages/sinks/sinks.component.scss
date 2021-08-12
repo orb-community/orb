@@ -1,3 +1,11 @@
+h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 32px;
+}
+
 .ns1red {
   color: #df316f;
 }
@@ -68,5 +76,42 @@
 tr div p {
   :hover {
     color: #2a64f6;
+  }
+}
+
+::ng-deep header p {
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px !important;
+  line-height: 20px;
+
+  width: 250px;
+  height: 20px;
+  margin-left: 16px;
+  margin-top: 24px;
+
+  display: flex;
+  align-items: center;
+}
+
+::ng-deep .orb-breadcrumb {
+  align-items: center;
+
+  display: flex;
+
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 12px;
+
+  ::ng-deep .xng-breadcrumb-trail {
+    color: #ffffff !important;
+
+    &::before {
+      color: #969fb9 !important;
+      content: 'Settings /\00a0';
+    }
   }
 }

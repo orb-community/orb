@@ -13,6 +13,7 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
 import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { STRINGS } from 'assets/text/strings';
 
 const defFreq: number = 100;
 
@@ -37,6 +38,7 @@ export enum sinkTypesList {
   styleUrls: ['./sinks.component.scss'],
 })
 export class SinksComponent implements OnInit {
+  strings = STRINGS.sink;
 
   tableConfig: TableConfig = {
     colNames: ['Name', 'Description', 'Type', 'Status', 'Tags', 'orb-sink-add'],

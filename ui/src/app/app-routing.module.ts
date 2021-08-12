@@ -17,6 +17,7 @@ export const routes: Routes = [
     path: 'pages',
     loadChildren: () => import('./pages/pages.module')
       .then(m => m.PagesModule),
+    data: {breadcrumb: {skip: true}},
   },
   {
     path: 'auth',
