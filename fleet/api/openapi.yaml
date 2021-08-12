@@ -114,8 +114,8 @@ paths:
       requestBody:
         $ref: "#/components/requestBodies/AgentGroupCreateReq"
       responses:
-        '201':
-          $ref: "#/components/responses/AgentGroupObjRes"
+        '200':
+          description: Valid Agent group
         '400':
           description: Failed due to malformed JSON.
         '401':

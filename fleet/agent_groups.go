@@ -71,6 +71,4 @@ type AgentGroupRepository interface {
 	RetrieveByID(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
 	// RetrieveAllAgentGroupsByOwner get all AgentGroup by owner.
 	RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageAgentGroup, error)
-	// RetrieveToValidate validates a agent group
-	RetrieveToValidate(ctx context.Context, groupID string, ownerID string) error
 }
