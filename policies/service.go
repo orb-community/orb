@@ -40,7 +40,7 @@ type Service interface {
 	// CreateDataset creates new Dataset
 	CreateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 
-	// InactivateDataSet when a agent group is deleted
+	// InactivateDataSet
 	InactivateDataset(ctx context.Context, groupID string, token string) error
 }
 

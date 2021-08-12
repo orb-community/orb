@@ -225,12 +225,6 @@ func (a agentGroupRepository) Update(ctx context.Context, ownerID string, group 
 
 	groupDB.MFOwnerID = ownerID
 
-	//params := map[string]interface{}{
-	//	"name": go
-	//	"id": group.ID,
-	//	"mf_owner_id": ownerID,
-	//}
-
 	res, err := a.db.NamedExecContext(ctx, q, groupDB)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)

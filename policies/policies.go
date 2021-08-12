@@ -47,6 +47,6 @@ type Repository interface {
 	// SaveDataset persists a Dataset. Successful operation is indicated by non-nil
 	// error response.
 	SaveDataset(ctx context.Context, dataset Dataset) (string, error)
-	// UpdateDatasetToInactivate incative a dataset when delete a agent group
+	// UpdateDatasetToInactivate inactivate a dataset
 	UpdateDatasetToInactivate(ctx context.Context, groupID string, ownerID string) error
 }
