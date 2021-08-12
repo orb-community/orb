@@ -75,6 +75,7 @@ export const MENU_ITEMS: NbMenuItem[] = environment.production ?
     {
       title: 'Settings',
       icon: 'settings-2-outline',
+      expanded: false,
       children: [
         {
           title: 'Sink Management',

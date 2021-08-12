@@ -46,14 +46,21 @@ $orb-primary-inactive: #969fb9;
   }
 
   .orb-action-hover {
-    margin: 0;
-    padding: 0;
+    padding-left: 30px;
     z-index: 999;
-    background-color: #bb3148;
+    background-color: #232940 !important;
+    color: $orb-gray !important;
+    border: 0 !important;
 
     :hover {
-      background-color: #2b3148;
-      color: $orb-gray;
+      nb-icon {
+        border: 0 !important;
+
+        icon {
+          background-color: #232940 !important;
+          color: $orb-gray !important;
+        }
+      }
     }
   }
 
