@@ -28,9 +28,8 @@ type GroupMembershipData struct {
 }
 
 type GroupMembershipRPCPayload struct {
-	Groups              []GroupMembershipData `json:"groups"`
-	FullList            bool                  `json:"full_list"`
-	UnsubscribeFullList bool                  `json:"unsubscribe_full_list"`
+	Groups   []GroupMembershipData `json:"groups"`
+	FullList bool                  `json:"full_list"`
 }
 
 const AgentPolicyRPCFunc = "agent_policy"
@@ -48,6 +47,8 @@ type AgentPolicyRPCPayload struct {
 	Version int32       `json:"version"`
 	Data    interface{} `json:"data"`
 }
+
+const GroupRemovedRPCFunc = "group_removed"
 
 // Edge -> Core
 

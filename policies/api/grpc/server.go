@@ -27,7 +27,6 @@ type grpcServer struct {
 	pb.UnimplementedPolicyServiceServer
 	retrievePolicy           kitgrpc.Handler
 	retrievePoliciesByGroups kitgrpc.Handler
-	inactivateDataset        kitgrpc.Handler
 }
 
 // NewServer returns new PolicyServiceServer instance.

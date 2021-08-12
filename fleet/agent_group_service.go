@@ -22,15 +22,13 @@ var (
 )
 
 func (svc fleetService) removeAgentGroupSubscriptions(groupID string, ownerID string) error {
-	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, groupID, true)
+	ag, err := svc.agentGroupRepository.RetrieveByID(context.Background(), groupID, ownerID)
 	if err != nil {
 		return err
 	}
-	for _, agent := range list {
-		err := svc.agentComms.UnsubscribeAgentGroupMembership(agent)
-		if err != nil {
-			svc.logger.Error("failure during agent group membership comms", zap.Error(err))
-		}
+	err = svc.agentComms.NotifyGroupRemoval(ag)
+	if err != nil {
+		svc.logger.Error("failure during agent group membership comms", zap.Error(err))
 	}
 
 	return nil
@@ -172,14 +170,16 @@ func (svc fleetService) RemoveAgentGroup(ctx context.Context, token, groupId str
 	if err != nil {
 		return err
 	}
+
+	err = svc.removeAgentGroupSubscriptions(groupId, ownerID)
+	if err != nil {
+		svc.logger.Error("removing agents from group channel", zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
+	}
+
 	err = svc.agentGroupRepository.Delete(ctx, groupId, ownerID)
 	if err != nil {
 		return err
 	}
 
-	err = svc.removeAgentGroupSubscriptions(groupId, ownerID)
-	if err != nil {
-		svc.logger.Error("error adding agents to group channel", zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
-	}
 	return nil
 }

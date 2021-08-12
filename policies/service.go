@@ -41,7 +41,7 @@ type Service interface {
 	CreateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 
 	// InactivateDataSet
-	InactivateDataset(ctx context.Context, groupID string, token string) error
+	InactivateDatasetByGroupID(ctx context.Context, groupID string, token string) error
 }
 
 var _ Service = (*policiesService)(nil)
@@ -81,7 +81,7 @@ func (s policiesService) CreateDataset(ctx context.Context, token string, d Data
 	return d, nil
 }
 
-func (s policiesService) InactivateDataset(ctx context.Context, groupID string, token string) error {
+func (s policiesService) InactivateDatasetByGroupID(ctx context.Context, groupID string, token string) error {
 	ownerID, err := s.identify(token)
 	if err != nil {
 		return err
@@ -90,7 +90,7 @@ func (s policiesService) InactivateDataset(ctx context.Context, groupID string, 
 	if groupID == "" {
 		return ErrMalformedEntity
 	}
-	return s.repo.UpdateDatasetToInactivate(ctx, groupID, ownerID)
+	return s.repo.InactivateDatasetByGroupID(ctx, groupID, ownerID)
 }
 
 func (s policiesService) identify(token string) (string, error) {

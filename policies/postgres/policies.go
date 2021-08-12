@@ -123,7 +123,7 @@ func (r policiesRepository) SaveDataset(ctx context.Context, dataset policies.Da
 
 }
 
-func (r policiesRepository) UpdateDatasetToInactivate(ctx context.Context, groupID string, ownerID string) error {
+func (r policiesRepository) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
 	q := `UPDATE datasets SET valid = false WHERE mf_owner_id = :mf_owner_id and agent_group_id = :agent_group_id`
 
 	params := map[string]interface{}{

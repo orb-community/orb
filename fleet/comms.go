@@ -36,7 +36,7 @@ type AgentCommsService interface {
 	// NotifyGroupNewAgentPolicy RPC Core -> AgentGroup
 	NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 	// UnsubscribeAgentGroupMembership unsubscribe the agent membership when delete a agent group
-	UnsubscribeAgentGroupMembership(a Agent) error
+	NotifyGroupRemoval(ag AgentGroup) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -103,9 +103,8 @@ func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ctx context.Context, ag A
 
 func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error {
 	payload := GroupMembershipRPCPayload{
-		Groups:              []GroupMembershipData{{Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
-		FullList:            false,
-		UnsubscribeFullList: false,
+		Groups:   []GroupMembershipData{{Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
+		FullList: false,
 	}
 
 	data := RPC{
@@ -222,9 +221,8 @@ func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
 	}
 
 	payload := GroupMembershipRPCPayload{
-		Groups:              fullList,
-		FullList:            true,
-		UnsubscribeFullList: false,
+		Groups:   fullList,
+		FullList: true,
 	}
 
 	data := RPC{
@@ -253,15 +251,11 @@ func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
 
 }
 
-func (svc fleetCommsService) UnsubscribeAgentGroupMembership(a Agent) error {
-	payload := GroupMembershipRPCPayload{
-		UnsubscribeFullList: true,
-	}
+func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
 
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
-		Func:          GroupMembershipRPCFunc,
-		Payload:       payload,
+		Func:          GroupRemovedRPCFunc,
 	}
 
 	body, err := json.Marshal(data)
@@ -270,7 +264,7 @@ func (svc fleetCommsService) UnsubscribeAgentGroupMembership(a Agent) error {
 	}
 
 	msg := messaging.Message{
-		Channel:   a.MFChannelID,
+		Channel:   ag.MFChannelID,
 		Subtopic:  RPCFromCoreTopic,
 		Publisher: publisher,
 		Payload:   body,

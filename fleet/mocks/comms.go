@@ -41,6 +41,6 @@ func (ac agentCommsServiceMock) InactivateDatasetByAgentGroup(groupID string, ow
 	return nil
 }
 
-func (ac agentCommsServiceMock) UnsubscribeAgentGroupMembership(a fleet.Agent) error {
+func (ac agentCommsServiceMock) NotifyGroupRemoval(a fleet.AgentGroup) error {
 	return nil
 }

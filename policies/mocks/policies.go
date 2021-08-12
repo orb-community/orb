@@ -53,6 +53,6 @@ func (m mockPoliciesRepository) SaveDataset(ctx context.Context, dataset policie
 	return ID.String(), nil
 }
 
-func (m mockPoliciesRepository) UpdateDatasetToInactivate(ctx context.Context, groupID string, ownerID string) error {
+func (m mockPoliciesRepository) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
 	panic("implement me")
 }

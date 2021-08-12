@@ -123,11 +123,11 @@ func (l loggingMiddleware) CreateAgentGroup(ctx context.Context, token string, s
 func (l loggingMiddleware) RemoveAgentGroup(ctx context.Context, token, groupID string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: delete_agent_group",
+			l.logger.Warn("method call: delete_agent_groups",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: delete_agent_group",
+			l.logger.Info("method call: delete_agent_groups",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
