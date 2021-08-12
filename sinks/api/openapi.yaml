@@ -31,7 +31,7 @@ paths:
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
     post:
-      summary: 'Create (or pre-validate) a new Sink'
+      summary: 'Create a new Sink'
       operationId: createSink
       tags:
         - sink
@@ -336,10 +336,6 @@ components:
             remote_host: my.prometheus-host.com
             username: dbuser
           description: Object representing backend specific configuration information
-        validate_only:
-          type: boolean
-          example: false
-          description: When true, only run validation and confirm the Sink could be created, but do not actually create it
     SinkPageSchema:
       type: object
       properties:

@@ -252,7 +252,6 @@ func validateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			Error:       validated.Error,
 			Backend:     validated.Backend,
 			Config:      validated.Config,
-			TsCreated:   validated.Created,
 		}
 
 		return res, err
