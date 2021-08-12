@@ -297,9 +297,12 @@ func (a agentGroupRepository) RetrieveAllByAgent(ctx context.Context, ag fleet.A
 }
 
 func (a agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) (string, error) {
-
+	tx, err := a.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return "", err
+	}
 	q := `INSERT INTO agent_groups (name, description, mf_owner_id, mf_channel_id, tags)         
-			  VALUES (:name, :description, :mf_owner_id, :mf_channel_id, :tags) RETURNING id`
+			  VALUES ($1, $2, $3, $4, $5) RETURNING id`
 
 	if !group.Name.IsValid() || group.MFOwnerID == "" || group.MFChannelID == "" {
 		return "", errors.ErrMalformedEntity
@@ -310,8 +313,9 @@ func (a agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) 
 		return "", errors.Wrap(db.ErrSaveDB, err)
 	}
 
-	row, err := a.db.NamedQueryContext(ctx, q, dba)
+	row, err := tx.QueryContext(ctx, q, dba.Name, dba.Description, dba.MFOwnerID, dba.MFChannelID, dba.Tags)
 	if err != nil {
+		tx.Rollback()
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			switch pqErr.Code.Name() {
@@ -330,6 +334,11 @@ func (a agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) 
 	if err := row.Scan(&id); err != nil {
 		return "", err
 	}
+
+	if err = tx.Commit(); err != nil {
+		return "", errors.Wrap(db.ErrSaveDB, err)
+	}
+
 	return id, nil
 }
 

@@ -24,9 +24,10 @@ const (
 )
 
 type addAgentGroupReq struct {
-	token string
-	Name  string     `json:"name,omitempty"`
-	Tags  types.Tags `json:"tags"`
+	token       string
+	Name        string     `json:"name,omitempty"`
+	Description string     `json:"description,omitempty"`
+	Tags        types.Tags `json:"tags"`
 }
 
 func (req addAgentGroupReq) validate() error {

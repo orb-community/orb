@@ -153,14 +153,18 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 		return AgentGroup{}, errors.Wrap(ErrCreateAgentGroup, err)
 	}
 
-	s.ID = id
-	err = svc.addAgentsToAgentGroupChannel(token, s)
+	ag, err := svc.agentGroupRepository.RetrieveByID(ctx, id, mfOwnerID)
+	if err != nil {
+		return AgentGroup{}, errors.Wrap(ErrCreateAgentGroup, err)
+	}
+
+	err = svc.addAgentsToAgentGroupChannel(token, ag)
 	if err != nil {
 		// TODO should we roll back?
 		svc.logger.Error("error adding agents to group channel", zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
 	}
 
-	return s, err
+	return ag, err
 }
 
 func (svc fleetService) RemoveAgentGroup(ctx context.Context, token, groupId string) error {
