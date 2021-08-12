@@ -1,4 +1,4 @@
-# Mainflux IoT Admin UI based on Angular 8+ and <a href="https://github.com/akveo/nebular">Nebular</a>
+# ORB<a href="https://github.com/akveo/nebular">Nebular</a>
 
 ## Prerequisites
 
