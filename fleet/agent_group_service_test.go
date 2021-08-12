@@ -139,7 +139,6 @@ func TestValidateAgentGroup(t *testing.T) {
 		Name:        nameID,
 		Description: "An example agent group representing european dns nodes",
 		Tags:        make(map[string]string),
-		Created:     time.Time{},
 	}
 
 	validAgent.Tags = map[string]string{

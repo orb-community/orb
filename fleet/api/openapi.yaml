@@ -120,12 +120,8 @@ paths:
           description: Failed due to malformed JSON.
         '401':
           description: Missing or invalid access token provided.
-        '409':
-          description: Entity already exist.
         '415':
           description: Missing or invalid content type.
-        '422':
-          description: Database can't process request.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
 

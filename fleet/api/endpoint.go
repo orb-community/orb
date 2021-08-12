@@ -204,7 +204,6 @@ func validateAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 			ID:      saved.ID,
 			Name:    saved.Name.String(),
 			Tags:    saved.Tags,
-			created: true,
 		}
 
 		return res, nil

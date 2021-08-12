@@ -50,10 +50,6 @@ func (es eventStore) CreateAgentGroup(ctx context.Context, token string, s fleet
 	return es.svc.CreateAgentGroup(ctx, token, s)
 }
 
-func (es eventStore) ValidateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
-	return es.svc.ValidateAgent(ctx, token, a)
-}
-
 func (es eventStore) ValidateAgentGroup(ctx context.Context, token string, s fleet.AgentGroup) (fleet.AgentGroup, error) {
 	return es.svc.ValidateAgentGroup(ctx, token, s)
 }
