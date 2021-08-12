@@ -5,10 +5,14 @@ import 'rxjs/add/observable/empty';
 import { Router } from '@angular/router';
 
 import { environment } from '../../../../environments/environment';
-import { User } from '../../../common/interfaces/mainflux.interface';
 import { NotificationsService } from '../../../common/services/notifications/notifications.service';
+import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { PageFilters } from 'app/common/interfaces/mainflux.interface';
 
+// default filters
 const defLimit: number = 20;
+const defOrder: string = 'id';
+const defDir: string = 'desc';
 
 @Injectable()
 export class AgentsService {
@@ -21,8 +25,10 @@ export class AgentsService {
   ) {
   }
 
-  addUser(user: User) {
-    return this.http.post(environment.usersUrl, user, {observe: 'response'})
+  addAgent(agentItem: Agent) {
+    return this.http.post(environment.agentsUrl,
+      agentItem,
+      {observe: 'response'})
       .map(
         resp => {
           return resp;
@@ -30,45 +36,46 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to create User',
+          this.notificationsService.error('Failed to create Agent',
+            `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
+          return Observable.throwError(err);
+        },
+      );
+  }
+
+  getAgentById(agentId: string): any {
+    return this.http.get(`${environment.agentsUrl}/${agentId}`)
+      .map(
+        resp => {
+          return resp;
+        },
+      )
+      .catch(
+        err => {
+          this.notificationsService.error('Failed to fetch Agent',
             `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throw(err);
+          return Observable.throwError(err);
         },
       );
   }
 
-  getProfile(): any {
-    return this.getUser('profile');
-  }
-
-  getUser(userID: string): any {
-    return this.http.get(`${environment.usersUrl}/${userID}`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.router.navigateByUrl('/auth/login');
-          return Observable.empty();
-        },
-      );
-  }
-
-  getUsers(offset?: number, limit?: number, email?: string): any {
-    offset = offset || 0;
-    limit = limit || defLimit;
+  getAgents(filters: PageFilters) {
+    filters.offset = filters.offset || 0;
+    filters.limit = filters.limit || defLimit;
+    filters.order = filters.order || defOrder;
+    filters.dir = filters.dir || defDir;
 
     let params = new HttpParams()
-      .set('offset', offset.toString())
-      .set('limit', limit.toString());
+      .set('offset', filters.offset.toString())
+      .set('limit', filters.limit.toString())
+      .set('order', filters.order)
+      .set('dir', 'asc');
 
-    if (email) {
-      params = params.append('email', email);
+    if (filters.name) {
+      params = params.append('name', filters.name);
     }
 
-    return this.http.get(environment.usersUrl, {params})
+    return this.http.get(environment.agentsUrl, {params})
       .map(
         resp => {
           return resp;
@@ -76,15 +83,15 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to fetch Users',
+          this.notificationsService.error('Failed to get Agents',
             `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throw(err);
+          return Observable.throwError(err);
         },
       );
   }
 
-  editUser(user: User): any {
-    return this.http.put(environment.usersUrl, user)
+  editSink(agentItem: Agent): any {
+    return this.http.put(`${environment.agentsUrl}/${agentItem.id}`, agentItem)
       .map(
         resp => {
           return resp;
@@ -92,15 +99,15 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to edit User',
+          this.notificationsService.error('Failed to edit Agent',
             `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throw(err);
+          return Observable.throwError(err);
         },
       );
   }
 
-  changeUserPassword(passReq: any): any {
-    return this.http.patch(environment.changePassUrl, passReq, {observe: 'response'})
+  deleteAgent(agentId: string) {
+    return this.http.delete(`${environment.agentsUrl}/${agentId}`)
       .map(
         resp => {
           return resp;
@@ -108,33 +115,9 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to change User password',
+          this.notificationsService.error('Failed to delete Agent',
             `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throw(err);
-        },
-      );
-  }
-
-  getServiceVersion() {
-    return this.http.get(environment.usersVersionUrl);
-  }
-
-  getUserPicture(): any {
-    return this.picture;
-  }
-
-  getMemberships(memberID?: string): any {
-    return this.http.get(`${environment.membersUrl}/${memberID}/groups`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to fetch Group memberships',
-            `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throw(err);
+          return Observable.throwError(err);
         },
       );
   }

@@ -1,15 +1,36 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { NbDialogService } from '@nebular/theme';
 
-import { PageFilters, TableConfig, TablePage, User } from 'app/common/interfaces/mainflux.interface';
-import { UserGroupsService } from 'app/common/services/users/groups.service';
-import { FsService } from 'app/common/services/fs/fs.service';
+import {
+  DropdownFilterItem,
+  PageFilters,
+  TableConfig,
+  TablePage,
+  User,
+} from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { ConfirmationComponent } from 'app/shared/components/confirmation/confirmation.component';
-import { AgentsAddComponent } from 'app/pages/agents/add/agents.add.component';
+import { ActivatedRoute, Router } from '@angular/router';
+import { STRINGS } from 'assets/text/strings';
+import { AgentsMockService } from 'app/common/services/agents/agents.mock.service';
+import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.component';
+import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
 
 const defFreq: number = 100;
+
+/**
+ * Available sink statuses
+ */
+export enum sinkStatus {
+  active = 'active',
+  error = 'error',
+}
+
+export enum sinkTypesList {
+  prometheus = 'prometheus',
+  // aws = 'aws',
+  // s3 = 's3',
+  // azure = 'azure',
+}
 
 @Component({
   selector: 'ngx-agents-component',
@@ -17,37 +38,57 @@ const defFreq: number = 100;
   styleUrls: ['./agents.component.scss'],
 })
 export class AgentsComponent implements OnInit {
+  strings = STRINGS.sink;
+
   tableConfig: TableConfig = {
-    colNames: ['', '', '', 'Name', 'Description', 'ID'],
-    keys: ['edit', 'delete', 'details', 'name', 'description', 'id'],
+    colNames: ['Name', 'Description', 'Type', 'Status', 'Tags', 'orb-sink-add'],
+    keys: ['name', 'description', 'type', 'status', 'tags', 'orb-action-hover'],
   };
-  page: TablePage = {};
-  pageFilters: PageFilters = {};
+
+  page: TablePage = {
+    limit: 10,
+  };
+
+  pageFilters: PageFilters = {
+    offset: 0,
+    order: 'id',
+    dir: 'desc',
+    name: '',
+  };
+
+  tableFilters: DropdownFilterItem[];
 
   searchFreq = 0;
 
   constructor(
-    private router: Router,
     private dialogService: NbDialogService,
-    private userGroupsService: UserGroupsService,
-    private fsService: FsService,
+    private agentsService: AgentsMockService,
     private notificationsService: NotificationsService,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {
+    this.tableFilters = this.tableConfig.colNames.map((name, index) => ({
+      id: index.toString(),
+      name,
+      order: 'asc',
+      selected: false,
+    })).filter((filter) => (!filter.name.startsWith('orb-')));
   }
 
   ngOnInit() {
-    // Fetch all User Groups
-    this.getGroups();
+    // Fetch all sinks
+    this.getAgents();
   }
 
-  getGroups(name?: string): void {
-    this.userGroupsService.getGroups(this.page.offset, this.page.limit, name).subscribe(
+  getAgents(name?: string): void {
+    this.pageFilters.name = name;
+    this.agentsService.getAgents(this.pageFilters).subscribe(
       (resp: any) => {
         this.page = {
           offset: resp.offset,
           limit: resp.limit,
           total: resp.total,
-          rows: resp.groups,
+          rows: resp.agents,
         };
       },
     );
@@ -60,42 +101,41 @@ export class AgentsComponent implements OnInit {
     if (dir === 'next') {
       this.pageFilters.offset = this.page.offset + this.page.limit;
     }
-    this.getGroups();
+    this.getAgents();
   }
 
   onChangeLimit(limit: number) {
     this.pageFilters.limit = limit;
-    this.getGroups();
+    this.getAgents();
   }
 
-  openAddModal() {
-    this.dialogService.open(AgentsAddComponent, {context: {action: 'Create'}}).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.getGroups();
-        }
-      },
-    );
+  onOpenAdd() {
+    this.router.navigate(['../agents/add'], {
+      relativeTo: this.route,
+    });
   }
 
-  openEditModal(row: any) {
-    this.dialogService.open(AgentsAddComponent, {context: {formData: row, action: 'Edit'}}).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.getGroups();
-        }
-      },
-    );
+  onOpenEdit(row: any) {
+    this.router.navigate(['../agents/edit'], {
+      relativeTo: this.route,
+      queryParams: {id: row.id},
+      state: {agent: row},
+    });
   }
 
   openDeleteModal(row: any) {
-    this.dialogService.open(ConfirmationComponent, {context: {type: 'User Group'}}).onClose.subscribe(
+    const {name, id} = row;
+    this.dialogService.open(AgentDeleteComponent, {
+      context: {agent: {name, id}},
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.userGroupsService.deleteGroup(row.id).subscribe(
-            resp => {
+          this.agentsService.deleteAgent(row.id).subscribe(
+            () => {
               this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
-              this.notificationsService.success('User Group successfully deleted', '');
+              this.notificationsService.success('Sink Item successfully deleted', '');
             },
           );
         }
@@ -103,24 +143,30 @@ export class AgentsComponent implements OnInit {
     );
   }
 
-  onOpenDetails(row: any) {
-    if (row.id) {
-      this.router.navigate([`${this.router.routerState.snapshot.url}/details/${row.id}`]);
-    }
+  openDetailsModal(row: any) {
+    const {name, description, backend, config, ts_created, id} = row;
+
+    this.dialogService.open(AgentDetailsComponent, {
+      context: {agent: {id, name, description, backend, config, ts_created}},
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe(
+      confirm => {
+        if (confirm) {
+          this.getAgents();
+        }
+      },
+    );
   }
 
-  searcUserGroupsbyName(input) {
+  searchAgentByName(input) {
     const t = new Date().getTime();
     if ((t - this.searchFreq) > defFreq) {
-      this.getGroups(input);
+      this.getAgents(input);
       this.searchFreq = t;
     }
   }
 
-  onClickSave() {
-    this.fsService.exportToCsv('mfx_user_groups.csv', this.page.rows);
-  }
+  filterByInactive = (sink) => sink.status === 'inactive';
 
-  onFileSelected(files: FileList) {
-  }
 }
