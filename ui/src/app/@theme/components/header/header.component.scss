@@ -34,7 +34,7 @@
 
     .logo-container {
       .sidebar-toggle {
-        @include nb-ltr(margin-right, 0px !important);
+        @include nb-ltr(margin-right, 0 !important);
         @include nb-rtl(margin-left, 27px !important);
         text-decoration: none;
         color: nb-theme(text-primary-color);
