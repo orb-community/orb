@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "ngx-admin-demo": {
+    "orb-ui": {
       "root": "",
       "sourceRoot": "src",
       "projectType": "application",
@@ -81,18 +81,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "ngx-admin-demo:build"
+            "browserTarget": "orb-ui:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "ngx-admin-demo:build:production"
+              "browserTarget": "orb-ui:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "ngx-admin-demo:build"
+            "browserTarget": "orb-ui:build"
           }
         },
         "test": {
@@ -148,7 +148,7 @@
         }
       }
     },
-    "ngx-admin-demo-e2e": {
+    "orb-ui-e2e": {
       "root": "",
       "sourceRoot": "",
       "projectType": "application",
@@ -157,7 +157,7 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "./protractor.conf.js",
-            "devServerTarget": "ngx-admin-demo:serve"
+            "devServerTarget": "orb-ui:serve"
           }
         },
         "lint": {
@@ -172,7 +172,7 @@
       }
     }
   },
-  "defaultProject": "ngx-admin-demo",
+  "defaultProject": "orb-ui",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "ngx",
