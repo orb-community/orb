@@ -8,7 +8,6 @@ const ORB = {
     sinksUrl: '/sinks',
     agentsUrl: '/agents',
     agentGroupsUrl: '/agent_groups',
-    loginUrl: '/tokens',
   },
 };
 
@@ -28,7 +27,7 @@ export const environment = {
   bootstrapUrl: '/bootstrap/things/bootstrap',
   connectUrl: '/connect',
   browseUrl: '/browse',
-
+  loginUrl: '/tokens',
   httpAdapterUrl: '/http',
   readerUrl: '/reader',
   readerPrefix: 'channels',
