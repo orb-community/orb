@@ -33,11 +33,6 @@ func (svc fleetService) removeAgentGroupSubscriptions(groupID string, ownerID st
 		}
 	}
 
-	err = svc.agentComms.InactivateDatasetByAgentGroup(groupID, ownerID)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

@@ -35,15 +35,3 @@ func (req accessByGroupIDReq) validate() error {
 
 	return nil
 }
-
-type accessByGroupAndOwnerID struct {
-	GroupID string
-	OwnerID string
-}
-
-func (req accessByGroupAndOwnerID) validate() error {
-	if req.GroupID == "" || req.OwnerID == "" {
-		return policies.ErrMalformedEntity
-	}
-	return nil
-}

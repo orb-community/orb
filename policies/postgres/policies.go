@@ -127,8 +127,8 @@ func (r policiesRepository) UpdateDatasetToInactivate(ctx context.Context, group
 	q := `UPDATE datasets SET valid = false WHERE mf_owner_id = :mf_owner_id and agent_group_id = :agent_group_id`
 
 	params := map[string]interface{}{
-		"mf_owner_id":    groupID,
-		"agent_group_id": ownerID,
+		"agent_group_id": groupID,
+		"mf_owner_id":    ownerID,
 	}
 
 	res, err := r.db.NamedExecContext(ctx, q, params)

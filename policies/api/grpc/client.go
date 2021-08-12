@@ -10,7 +10,6 @@ package grpc
 
 import (
 	"context"
-	"github.com/golang/protobuf/ptypes/empty"
 	"time"
 
 	"github.com/go-kit/kit/endpoint"
@@ -27,7 +26,6 @@ type grpcClient struct {
 	timeout                  time.Duration
 	retrievePolicy           endpoint.Endpoint
 	retrievePoliciesByGroups endpoint.Endpoint
-	inactivateDataset        endpoint.Endpoint
 }
 
 func (client grpcClient) RetrievePoliciesByGroups(ctx context.Context, in *pb.PoliciesByGroupsReq, opts ...grpc.CallOption) (*pb.PolicyListRes, error) {
@@ -69,24 +67,6 @@ func (client grpcClient) RetrievePolicy(ctx context.Context, in *pb.PolicyByIDRe
 	return &pb.PolicyRes{Id: ir.id, Name: ir.name, Data: ir.data, Backend: ir.backend, Version: ir.version}, nil
 }
 
-func (client grpcClient) InactivateDataset(ctx context.Context, in *pb.DatasetByGroupReq, otps ...grpc.CallOption) (*empty.Empty, error) {
-	//ctx, cancel := context.WithTimeout(ctx, client.timeout)
-	ctx, cancel := context.WithTimeout(ctx, time.Second*30000000)
-	defer cancel()
-
-	ar := accessByGroupAndOwnerID{
-		GroupID: in.GroupID,
-		OwnerID: in.OwnerID,
-	}
-
-	_, err := client.inactivateDataset(ctx, ar)
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil
-}
-
 // NewClient returns new gRPC client instance.
 func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Duration) pb.PolicyServiceClient {
 	svcName := "policies.PolicyService"
@@ -109,14 +89,6 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 			decodePolicyListResponse,
 			pb.PolicyListRes{},
 		).Endpoint()),
-		inactivateDataset: kitot.TraceClient(tracer, "inactivate_dataset")(kitgrpc.NewClient(
-			conn,
-			svcName,
-			"InactivateDataset",
-			encodeInactivateDatasetRequest,
-			decodePolicyResponse,
-			empty.Empty{},
-		).Endpoint()),
 	}
 }
 
@@ -133,14 +105,6 @@ func decodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, 
 func encodeRetrievePoliciesByGroupsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(accessByGroupIDReq)
 	return &pb.PoliciesByGroupsReq{GroupIDs: req.GroupIDs, OwnerID: req.OwnerID}, nil
-}
-
-func encodeInactivateDatasetRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(accessByGroupAndOwnerID)
-	return &pb.DatasetByGroupReq{
-		GroupID: req.GroupID,
-		OwnerID: req.OwnerID,
-	}, nil
 }
 
 func decodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {

@@ -35,8 +35,6 @@ type AgentCommsService interface {
 	NotifyAgentPolicies(a Agent) error
 	// NotifyGroupNewAgentPolicy RPC Core -> AgentGroup
 	NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
-	// InactivateDatasetByAgentGroup inactivate a dataset when delete a agent group
-	InactivateDatasetByAgentGroup(groupID string, ownerID string) error
 	// UnsubscribeAgentGroupMembership unsubscribe the agent membership when delete a agent group
 	UnsubscribeAgentGroupMembership(a Agent) error
 }
@@ -100,16 +98,6 @@ func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ctx context.Context, ag A
 		return err
 	}
 
-	return nil
-}
-
-func (svc fleetCommsService) InactivateDatasetByAgentGroup(groupID string, ownerID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30000000)
-	defer cancel()
-	_, err := svc.policyClient.InactivateDataset(ctx, &pb.DatasetByGroupReq{GroupID: groupID, OwnerID: ownerID})
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

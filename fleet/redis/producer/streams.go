@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/fleet"
+	"go.uber.org/zap"
 )
 
 const (
@@ -24,6 +25,7 @@ var _ fleet.Service = (*eventStore)(nil)
 type eventStore struct {
 	svc    fleet.Service
 	client *redis.Client
+	logger *zap.Logger
 }
 
 func (es eventStore) ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
@@ -39,7 +41,6 @@ func (es eventStore) ListAgentGroups(ctx context.Context, token string, pm fleet
 }
 
 func (es eventStore) EditAgentGroup(ctx context.Context, token string, ag fleet.AgentGroup) (fleet.AgentGroup, error) {
-
 	return es.svc.EditAgentGroup(ctx, token, ag)
 }
 
@@ -56,7 +57,28 @@ func (es eventStore) CreateAgentGroup(ctx context.Context, token string, s fleet
 }
 
 func (es eventStore) RemoveAgentGroup(ctx context.Context, token string, groupID string) (err error) {
-	return es.svc.RemoveAgentGroup(ctx, token, groupID)
+	err = es.svc.RemoveAgentGroup(ctx, token, groupID)
+	if err != nil {
+		return err
+	}
+
+	event := removeAgentGroupEvent{
+		groupID: groupID,
+		token:   token,
+	}
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.encode(),
+	}
+	err = es.client.XAdd(ctx, record).Err()
+	if err != nil {
+		es.logger.Error("error sending event to event store", zap.Error(err))
+		return err
+	}
+
+	return nil
+
 }
 
 // NewEventStoreMiddleware returns wrapper around fleet service that sends

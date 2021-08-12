@@ -43,11 +43,6 @@ func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyService
 			decodeRetrievePoliciesByGroupRequest,
 			encodePolicyListResponse,
 		),
-		inactivateDataset: kitgrpc.NewServer(
-			kitot.TraceServer(tracer, "inactivate_dataset")(inactivateDataset(svc)),
-			decodeInactivateDatasetByGroupRequest,
-			encodeInactivateDatasetResponse,
-		),
 	}
 }
 
@@ -69,22 +64,9 @@ func (gs *grpcServer) RetrievePolicy(ctx context.Context, req *pb.PolicyByIDReq)
 	return res.(*pb.PolicyRes), nil
 }
 
-func (gs *grpcServer) InactivateDataset(ctx context.Context, req *pb.DatasetByGroupReq) (*empty.Empty, error) {
-	_, res, err := gs.inactivateDataset.ServeGRPC(ctx, req)
-	if err != nil {
-		return nil, encodeError(err)
-	}
-	return res.(*empty.Empty), nil
-}
-
 func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.PolicyByIDReq)
 	return accessByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
-}
-
-func decodeInactivateDatasetByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*pb.DatasetByGroupReq)
-	return accessByGroupAndOwnerID{GroupID: req.GroupID, OwnerID: req.OwnerID}, nil
 }
 
 func decodeRetrievePoliciesByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {

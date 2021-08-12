@@ -41,7 +41,7 @@ type Service interface {
 	CreateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 
 	// InactivateDataSet when a agent group is deleted
-	InactivateDataset(ctx context.Context, groupID string, ownerID string) error
+	InactivateDataset(ctx context.Context, groupID string, token string) error
 }
 
 var _ Service = (*policiesService)(nil)
@@ -81,8 +81,13 @@ func (s policiesService) CreateDataset(ctx context.Context, token string, d Data
 	return d, nil
 }
 
-func (s policiesService) InactivateDataset(ctx context.Context, groupID string, ownerID string) error {
-	if groupID == "" || ownerID == "" {
+func (s policiesService) InactivateDataset(ctx context.Context, groupID string, token string) error {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return err
+	}
+
+	if groupID == "" {
 		return ErrMalformedEntity
 	}
 	return s.repo.UpdateDatasetToInactivate(ctx, groupID, ownerID)

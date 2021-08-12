@@ -1,13 +1,11 @@
 syntax = "proto3";
 
-import "google/protobuf/empty.proto";
 package policies;
 option go_package = "policies/pb";
 
 service PolicyService {
   rpc RetrievePolicy(PolicyByIDReq) returns (PolicyRes) {}
   rpc RetrievePoliciesByGroups(PoliciesByGroupsReq) returns (PolicyListRes) {}
-  rpc InactivateDataset(DatasetByGroupReq) returns (google.protobuf.Empty) {}
 }
 
 message PolicyByIDReq {
@@ -17,11 +15,6 @@ message PolicyByIDReq {
 
 message PoliciesByGroupsReq {
   repeated string groupIDs = 1;
-  string ownerID = 2;
-}
-
-message DatasetByGroupReq {
-  string groupID = 1;
   string ownerID = 2;
 }
 

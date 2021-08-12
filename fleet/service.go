@@ -92,6 +92,10 @@ func (svc fleetService) thing(token, id string, name string, md map[string]inter
 	return thing, nil
 }
 
+func (svc fleetService) GetAuth() mainflux.AuthServiceClient {
+	return svc.auth
+}
+
 func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, agentComms AgentCommsService, mfsdk mfsdk.SDK) Service {
 	return &fleetService{
 		logger:               logger,
