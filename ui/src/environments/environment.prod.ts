@@ -1,6 +1,6 @@
 import { environment as defaultEnvironment } from './environment.defaults';
 
-const {orbApi: {apiUrl, version, urlKeys}} = defaultEnvironment;
+const {orbApi: {apiUrl, version, urlKeys, servicesUrls}} = defaultEnvironment;
 
 export const environment = {
   production: true,
@@ -8,5 +8,10 @@ export const environment = {
   ...defaultEnvironment,
   // ORB api --prod
   // override all urls prepend /api/v<#>/<service_url>
-  ...urlKeys.map(key => ({[key]: `${apiUrl}${version}${defaultEnvironment[key]}`})),
+  ...urlKeys.reduce(
+    (acc, cur) => {
+      acc[cur] = `${apiUrl}${version}${servicesUrls[cur]}`;
+      return acc;
+    },
+    {}),
 };

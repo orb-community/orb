@@ -19,10 +19,6 @@
     "target": "http://localhost:8180",
     "secure": false
   },
-  "/tokens": {
-    "target": "http://localhost:8180",
-    "secure": false
-  },
   "/things/*": {
     "target": "http://localhost:8182",
     "secure": false
@@ -66,6 +62,10 @@
   },
   "/states/*": {
     "target": "http://localhost:9021",
+    "secure": false
+  },
+  "/tokens/*": {
+    "target": "http://localhost:8180",
     "secure": false
   },
   "/sinks/*": {
