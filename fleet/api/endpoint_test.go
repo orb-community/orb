@@ -150,6 +150,13 @@ func TestCreateAgentGroup(t *testing.T) {
 			status:      http.StatusCreated,
 			location:    "/agent_groups",
 		},
+		"add a duplicated agent group": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusConflict,
+			location:    "/agent_groups",
+		},
 		"add a valid agent group with invalid token": {
 			req:         validJson,
 			contentType: contentType,
@@ -169,13 +176,6 @@ func TestCreateAgentGroup(t *testing.T) {
 			contentType: "",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
-			location:    "/agent_groups",
-		},
-		"add a duplicated agent group": {
-			req:         validJson,
-			contentType: contentType,
-			auth:        token,
-			status:      http.StatusConflict,
 			location:    "/agent_groups",
 		},
 	}
@@ -437,6 +437,10 @@ func TestValidateAgentGroup(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()
 
+	var invalidValueTag   = "{\n \"name\": \"eu-agents\", \n    \"tags\": {\n       \"invalidTag\", \n      \"node_type\": \"dns\"\n    }, \n   \"description\": \"An example agent group representing european dns nodes\", \n \"validate_only\": false \n}"
+	var invalidValueName  = "{\n \"name\": \",,AGENT 6,\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	var invalidField	  = "{\n \"nname\": \",,AGENT 6,\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+
 	cases := map[string]struct {
 		req         string
 		contentType string
@@ -451,25 +455,55 @@ func TestValidateAgentGroup(t *testing.T) {
 			status:      http.StatusOK,
 			location:    "/agent_groups/validate",
 		},
-		"validate a invalid agent group": {
+
+		"validate a agent group invalid json": {
 			req:         invalidJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/agent_groups/validate",
 		},
-		"validate a invalid token": {
+
+		"validate a empty token": {
 			req:         validJson,
 			contentType: contentType,
 			auth:        "",
 			status:      http.StatusUnauthorized,
 			location:    "/agent_groups/validate",
 		},
-		"validate a without agent group": {
+		"validate a agent group without content type": {
 			req:         validJson,
 			contentType: "",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
+			location:    "/agent_groups/validate",
+		},
+		"validate a agent group with a invalid tag": {
+			req:         invalidValueTag,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agent_groups/validate",
+		},
+		"validate a agent group with a invalid name": {
+			req:         invalidValueName,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agent_groups/validate",
+		},
+		"validate a agent group with a invalid token": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/agent_groups/validate",
+		},
+		"validate a agent group with a invalid agent group field": {
+			req:         invalidField,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusBadRequest,
 			location:    "/agent_groups/validate",
 		},
 	}
