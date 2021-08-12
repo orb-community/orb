@@ -18,7 +18,6 @@ td, th {
 /**
  * ORB
  */
-// TODO REVIEW ORB SCSS OVERRIDES
 $orb-online: #61f69f;
 $orb-stale: #f2994a;
 
@@ -36,45 +35,82 @@ $orb-primary-pressed: #0c5dc5;
 $orb-primary-focused: #0c5dc5;
 $orb-primary-inactive: #969fb9;
 
-.button-new-sink {
-  color: #3089fc;
 
-  .content {
+::ng-deep {
+  .button-new-sink {
     color: #3089fc;
+
+    .content {
+      color: #3089fc;
+    }
   }
-}
 
-.orb-action-hover {
-  margin: 0;
-  padding: 0;
-  z-index: 999;
-  background-color: #bb3148;
+  .orb-action-hover {
+    margin: 0;
+    padding: 0;
+    z-index: 999;
+    background-color: #bb3148;
 
-  :hover {
+    :hover {
+      background-color: #2b3148;
+      color: $orb-gray;
+    }
+  }
+
+  .orb-action-hover-container {
+    display: inline-block !important;
     background-color: #2b3148;
-    color: $orb-gray;
+    color: #2b3148;
+
+    .icon {
+      background-color: #2b3148;
+    }
   }
-}
 
-.orb-action-hover-container {
-  display: inline-block !important;
-  background-color: #2b3148;
-  color: #2b3148;
-
-  .icon {
-    background-color: #2b3148;
+  .orb-tag-sink {
+    background: $orb-primary;
+    color: $orb-white;
   }
-}
 
-.orb-tag-sink {
-  background: $orb-primary;
-  color: $orb-white;
-}
+  .orb-service-active {
+    color: $orb-online;
+    padding-right: 10px;
+  }
 
-.orb-service-active {
-  color: $orb-online;
-}
+  .orb-service-inactive {
+    color: $orb-secondary;
+    padding-right: 10px;
+  }
 
-.orb-service-inactive {
-  color: $orb-stale;
+  .sink-table {
+    background: #232940;
+    border-radius: 8px;
+    width: 1171px;
+  }
+
+  td.sink-table-row {
+    padding: 10px 16px !important;
+
+    span {
+      font-family: 'Montserrat', sans-serif;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 20px;
+      color: #ffffff;
+    }
+  }
+
+  .sink-table-title {
+    padding: 10px 16px !important;
+
+    span {
+      font-family: 'Montserrat', sans-serif;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 20px;
+      color: #969fb9;
+    }
+  }
 }

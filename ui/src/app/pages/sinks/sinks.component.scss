@@ -6,8 +6,23 @@ h4 {
   line-height: 32px;
 }
 
-.ns1red {
-  color: #df316f;
+.sink-summary {
+  .sink-info-regular {
+    color: #ffffff;
+
+    &::before {
+      content: 'You have\00a0';
+      color: #969fb9;
+    }
+  }
+
+  .sink-info-accent {
+    color: #969fb9;
+  }
+}
+
+.summary-accent {
+  color: #969fb9;
 }
 
 .orb-sink-filter-dropdown {
@@ -22,55 +37,39 @@ h4 {
   width: 140px;
 }
 
-// TODO cleanup css to nebular theme settings
 .button-new-sink {
-  /* Button */
-  // TODO this button should be aligned right
-
-  /* Auto Layout */
-  align-items: center;
-  border-radius: 4px;
-  bottom: 0;
-  color: #3089fc;
-  display: flex;
-
-  flex: none;
-  flex-direction: row;
-  flex-grow: 0;
+  width: 155px;
+  height: 236px;
+  border: 1px solid #969fb9;
+  background: #232940;
+  box-sizing: border-box;
   justify-content: flex-end;
-  left: calc(50% - 108px / 2 + 25px);
 
-  margin: 0 16px;
+  &::ng-deep div {
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
 
-  /* Inside Auto Layout */
+  &:hover {
+    background: #232940;
+    border: 1px solid #3089fc;
+    box-sizing: border-box;
+    border-radius: 4px;
+  }
 
-  order: 1;
-  padding: 0 8px 0 0;
-  position: static;
-  top: 0;
-  width: 108px;
-}
+  &:active {
+    background: #232940;
+    border: 1px solid #3089fc;
+    box-sizing: border-box;
+    border-radius: 4px;
+  }
 
-.button-new-sink:hover {
-  /* Property 1=Text + Icon, Property 2=Hover */
-  /* Auto Layout */
-
-  align-items: center;
-  background: #2b3148;
-  border-radius: 4px;
-  bottom: 39.47%;
-  display: flex;
-
-  flex-direction: row;
-  justify-content: center;
-  left: 12.2%;
-  padding: 4px 8px 4px 4px;
-  position: absolute;
-
-  /* Background 3 */
-
-  right: 12.2%;
-  top: 39.47%;
+  &:default {
+    background: #232940;
+    border: 1px solid #969fb9;
+    box-sizing: border-box;
+    border-radius: 4px;
+  }
 }
 
 tr div p {
@@ -79,39 +78,38 @@ tr div p {
   }
 }
 
-::ng-deep header p {
-  font-family: 'Montserrat', sans-serif;
-  font-style: normal;
-  font-weight: normal;
-  font-size: 14px !important;
-  line-height: 20px;
+::ng-deep {
+  header p {
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px !important;
+    line-height: 20px;
 
-  width: 250px;
-  height: 20px;
-  margin-left: 16px;
-  margin-top: 24px;
+    width: 250px;
+    height: 20px;
+    margin-left: 16px;
+    margin-top: 24px;
 
-  display: flex;
-  align-items: center;
-}
+    display: flex;
+    align-items: center;
+  }
 
-::ng-deep .orb-breadcrumb {
-  align-items: center;
+  .orb-breadcrumb {
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 12px;
 
-  display: flex;
+    ::ng-deep .xng-breadcrumb-trail {
+      color: #ffffff !important;
 
-  font-family: 'Montserrat', sans-serif;
-  font-style: normal;
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 12px;
-
-  ::ng-deep .xng-breadcrumb-trail {
-    color: #ffffff !important;
-
-    &::before {
-      color: #969fb9 !important;
-      content: 'Settings /\00a0';
+      &::before {
+        color: #969fb9 !important;
+        content: 'Settings /\00a0';
+      }
     }
   }
 }
