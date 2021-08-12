@@ -1,21 +1,27 @@
-<table>
+<table class="container sink-table">
+  <thead>
   <tr>
-    <th *ngFor="let colName of config.colNames">
+    <th *ngFor="let colName of config.colNames"
+        class="sink-table-title">
       <div [ngSwitch]="colName">
-        <button *ngSwitchCase="'orb-sink-add'" nbButton ghost=true class="button-new-sink"
-                (click)="onAdd()">
-          {{strings.sink.list.create}}
-        </button>
-        <div *ngSwitchDefault>
-          {{ colName }}
+        <div class="d-flex justify-content-end">
+          <button *ngSwitchCase="'orb-sink-add'" nbButton ghost=true class="button-new-sink"
+                  (click)="onAdd()">
+            <i class="fa fa-plus">&nbsp;</i>{{strings.sink.list.create}}
+          </button>
         </div>
+        <span *ngSwitchDefault>
+          {{ colName }}
+        </span>
       </div>
     </th>
   </tr>
+  </thead>
+  <tbody>
   <tr *ngFor="let row of page.rows"
       (mouseenter)="onMouseEnter($event, row)"
       (mouseleave)="onMouseLeave($event, row)">
-    <td *ngFor="let key of config.keys">
+    <td *ngFor="let key of config.keys" class="sink-table-row">
       <div [ngSwitch]="key">
         <div *ngSwitchCase="'checkbox'">
           <nb-checkbox (checkedChange)="onToggleCheckbox(row)"></nb-checkbox>
@@ -25,14 +31,18 @@
         </div>
         <div *ngSwitchCase="'status'">
           <div *ngIf="row[key] === 'active'">
-            <nb-icon icon="check-mark-circle-2" class="orb-service-active"></nb-icon>
-            {{ row[key] }}</div>
+            <i class="fa fa-circle orb-service-active" aria-hidden="true"></i>
+            {{ row[key] | titlecase }}</div>
           <div *ngIf="row[key] !== 'active'">
-            <nb-icon icon="alert-circle" class="orb-service-inactive"></nb-icon>
-            {{ row[key] }}</div>
+            <i class="fa fa-circle orb-service-inactive" aria-hidden="true"></i>
+            {{ row[key] | titlecase }}</div>
         </div>
         <mat-chip-list *ngSwitchCase="'tags'">
-          <mat-chip class="orb-tag-sink " *ngFor="let tag of row[key] | keyvalue">{{tag.value}}</mat-chip>
+          <mat-chip
+              class="orb-tag-sink "
+              *ngFor="let tag of row[key] | keyvalue">
+            {{tag.key}}, {{tag.value}}
+          </mat-chip>
         </mat-chip-list>
         <div *ngSwitchCase="'created'">
           {{ row[key] | date:'long' }}
@@ -64,10 +74,5 @@
       </div>
     </td>
   </tr>
+  </tbody>
 </table>
-
-<div *ngIf="!page.total" class="row no-msg">
-  <div class="col-12">
-    No content
-  </div>
-</div>

@@ -112,6 +112,8 @@ $nb-themes: nb-register-theme((
 ), material-dark, material-dark);
 
 $nb-themes: nb-register-theme((
+  layout-padding-left: 0,
+  layout-padding-right: 0,
   layout-padding-top: 2.25rem,
   menu-item-icon-margin: 0 0 0 0,
   menu-item-icon-active-color: #df316f,

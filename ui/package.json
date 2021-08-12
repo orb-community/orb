@@ -1,13 +1,13 @@
 {
-  "name": "ngx-admin",
-  "version": "4.0.1",
-  "license": "MIT",
+  "name": "orb-ui",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/akveo/ngx-admin.git"
+    "url": "https://github.com/ns1labs/orb.git"
   },
   "bugs": {
-    "url": "https://github.com/akveo/ngx-admin/issues"
+    "url": "https://github.com/ns1labs/orb/issues"
   },
   "scripts": {
     "ng": "ng",
@@ -15,11 +15,11 @@
     "start": "ng serve --proxy-config=proxy-config.json",
     "start:withmock": "ng serve --proxy-config=proxy-config-mock.json & nodemon mock-json-server/mock-server.js --ignore 'mock-json-server/mock/sinks.json'",
     "build": "ng build",
-    "build:prod": "npm run build -- --prod --aot",
+    "build:prod": "npm run build -- --configuration production --aot",
     "test": "ng test",
     "test:coverage": "rimraf coverage && npm run test -- --code-coverage",
     "lint": "ng lint",
-    "lint:fix": "ng lint ngx-admin-demo --fix",
+    "lint:fix": "ng lint orb-ui --fix",
     "lint:styles": "stylelint ./src/**/*.scss",
     "lint:ci": "npm run lint && npm run lint:styles",
     "pree2e": "webdriver-manager update --standalone false --gecko false",
