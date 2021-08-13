@@ -14,27 +14,27 @@ func NewFleetCommService() fleet.AgentCommsService {
 }
 
 func (ac agentCommsServiceMock) Start() error {
-	panic("implement me")
+	return nil
 }
 
 func (ac agentCommsServiceMock) Stop() error {
-	panic("implement me")
+	return nil
 }
 
 func (ac agentCommsServiceMock) NotifyNewAgentGroupMembership(a fleet.Agent, ag fleet.AgentGroup) error {
-	panic("implement me")
+	return nil
 }
 
 func (ac agentCommsServiceMock) NotifyAgentGroupMembership(a fleet.Agent) error {
-	panic("implement me")
+	return nil
 }
 
 func (ac agentCommsServiceMock) NotifyAgentPolicies(a fleet.Agent) error {
-	panic("implement me")
+	return nil
 }
 
 func (ac agentCommsServiceMock) NotifyGroupNewAgentPolicy(ctx context.Context, ag fleet.AgentGroup, policyID string, ownerID string) error {
-	panic("implement me")
+	return nil
 }
 
 func (ac agentCommsServiceMock) InactivateDatasetByAgentGroup(groupID string, ownerID string) error {

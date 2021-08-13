@@ -91,7 +91,7 @@ func decodeAgentGroupRemove(event map[string]interface{}) removeDatasetEvent {
 // Inactivate a Dataset after AgentGroup deletion
 func (es eventStore) handleAgentGroupRemove(ctx context.Context, groupID string, token string) error {
 
-	err := es.policiesService.InactivateDataset(ctx, groupID, token)
+	err := es.policiesService.InactivateDatasetByGroupID(ctx, groupID, token)
 	if err != nil {
 		return err
 	}

@@ -34,8 +34,8 @@ func (m metricsMiddleware) CreatePolicy(ctx context.Context, token string, p pol
 	return m.svc.CreatePolicy(ctx, token, p, format, policyData)
 }
 
-func (m metricsMiddleware) InactivateDataset(ctx context.Context, groupID string, ownerID string) error {
-	return m.svc.InactivateDataset(ctx, groupID, ownerID)
+func (m metricsMiddleware) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
+	return m.svc.InactivateDatasetByGroupID(ctx, groupID, ownerID)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.

@@ -115,7 +115,7 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	agentGroupRepo := flmocks.NewAgentGroupRepository()
 	agentRepo := flmocks.NewAgentRepositoryMock()
 	agentComms := flmocks.NewFleetCommService()
-	var logger *zap.Logger
+	logger, _ := zap.NewDevelopment()
 	config := mfsdk.Config{
 		BaseURL: url,
 	}
