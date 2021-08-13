@@ -134,7 +134,6 @@ type validateAgentGroupRes struct {
 	Name           string         `json:"name"`
 	Description    string         `json:"description,omitempty"`
 	Tags           types.Tags     `json:"tags"`
-	TsCreated      time.Time      `json:"ts_created,omitempty"`
 	MatchingAgents types.Metadata `json:"matching_agents,omitempty"`
 }
 
