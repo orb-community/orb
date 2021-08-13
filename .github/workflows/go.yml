@@ -51,6 +51,7 @@ jobs:
         run: make test
 
       - name: Build UI
+        if: steps.filter.outputs.ui == 'true'
         run: make ui
 
   package:
@@ -126,6 +127,7 @@ jobs:
           docker push ${{ env.IMAGE_NAME }}:${{ env.REF_TAG }}
 
       - name: Build + push orb-ui
+        if: steps.filter.outputs.ui == 'true'
         env:
           IMAGE_NAME: ns1labs/orb-ui
         run: |
