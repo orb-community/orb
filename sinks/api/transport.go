@@ -58,6 +58,12 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.SinkServic
 		types.EncodeResponse,
 		opts...,
 	))
+	r.Post("/sinks/validate", kithttp.NewServer(
+		kitot.TraceServer(tracer, "validate_sink")(validateSinkEndpoint(svc)),
+		decodeValidateRequest,
+		types.EncodeResponse,
+		opts...,
+	))
 	r.Get("/features/sinks", kithttp.NewServer(
 		kitot.TraceServer(tracer, "list_backends")(listBackendsEndpoint(svc)),
 		decodeListBackends,
@@ -192,6 +198,19 @@ func decodeDeleteRequest(_ context.Context, r *http.Request) (interface{}, error
 	return req, nil
 }
 
+func decodeValidateRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		return nil, errors.ErrUnsupportedContentType
+	}
+
+	req := validateReq{token: r.Header.Get("Authorization")}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return req, nil
+}
+
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	switch errorVal := err.(type) {
 	case errors.Error:
@@ -217,6 +236,8 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 
 		case errors.Contains(errorVal, io.ErrUnexpectedEOF),
 			errors.Contains(errorVal, io.EOF):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, sinks.ErrInvalidBackend):
 			w.WriteHeader(http.StatusBadRequest)
 
 		default:

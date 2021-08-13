@@ -795,3 +795,110 @@ func TestDeleteSink(t *testing.T) {
 		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
 	}
 }
+
+func TestValidateSink(t *testing.T) {
+	service := newService(map[string]string{token: email})
+	server := newServer(service)
+	defer server.Close()
+
+	var invalidSinkField = "{\n    \"namee\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    }}"
+	var invalidSinkValueName = "{\n    \"name\": \"my...SINK1\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    }}"
+	var invalidSinkValueBackend = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"invalidBackend\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    }}"
+	var invalidSinkValueTag = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": \"invalidTag\"}"
+
+	cases := []struct {
+		desc        string
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		{
+			desc:        "validate a valid sink",
+			req:         validJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate an invalid json",
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate a sink with a empty token",
+			req:         validJson,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate a sink with an invalid token",
+			req:         validJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate a valid sink without content type",
+			req:         validJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate an invalid sink field",
+			req:         invalidSinkField,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate a sink with invalid name value",
+			req:         invalidSinkValueName,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate a sink with invalid backend value",
+			req:         invalidSinkValueBackend,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks/validate",
+		},
+		{
+			desc:        "validate a sink with invalid tag value",
+			req:         invalidSinkValueTag,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks/validate",
+		},
+	}
+
+	for _, sinkCase := range cases {
+		req := testRequest{
+			client:      server.Client(),
+			method:      http.MethodPost,
+			url:         fmt.Sprintf("%s/sinks/validate", server.URL),
+			contentType: sinkCase.contentType,
+			token:       sinkCase.auth,
+			body:        strings.NewReader(sinkCase.req),
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
+	}
+}

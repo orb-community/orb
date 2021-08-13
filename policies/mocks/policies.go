@@ -52,3 +52,7 @@ func (m mockPoliciesRepository) SaveDataset(ctx context.Context, dataset policie
 	m.gdb[dataset.AgentGroupID][0] = m.pdb[dataset.PolicyID]
 	return ID.String(), nil
 }
+
+func (m mockPoliciesRepository) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
+	panic("implement me")
+}

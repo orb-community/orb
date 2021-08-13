@@ -13,8 +13,10 @@ import (
 )
 
 const (
-	AgentPrefix = "agent."
-	AgentCreate = AgentPrefix + "create"
+	AgentPrefix      = "agent."
+	AgentCreate      = AgentPrefix + "create"
+	AgentGroupPrefix = "agent_group."
+	AgentGroupRemove = AgentGroupPrefix + "remove"
 )
 
 type event interface {
@@ -23,6 +25,7 @@ type event interface {
 
 var (
 	_ event = (*createAgentEvent)(nil)
+	_ event = (*removeAgentGroupEvent)(nil)
 )
 
 type createAgentEvent struct {
@@ -31,6 +34,21 @@ type createAgentEvent struct {
 	name      string
 	content   string
 	timestamp time.Time
+}
+
+type removeAgentGroupEvent struct {
+	groupID   string
+	token     string
+	timestamp time.Time
+}
+
+func (rde removeAgentGroupEvent) encode() map[string]interface{} {
+	return map[string]interface{}{
+		"group_id":  rde.groupID,
+		"token":     rde.token,
+		"timestamp": rde.timestamp.Unix(),
+		"operation": AgentGroupRemove,
+	}
 }
 
 func (cce createAgentEvent) encode() map[string]interface{} {

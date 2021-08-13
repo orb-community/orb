@@ -12,7 +12,6 @@ import (
 )
 
 func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
-
 	// if this is the full list, reset all group subscriptions and subscribed to this list
 	if rpc.FullList {
 		a.unsubscribeGroupChannels()

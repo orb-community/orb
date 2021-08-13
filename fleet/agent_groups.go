@@ -12,13 +12,14 @@ import (
 )
 
 type AgentGroup struct {
-	ID          string
-	MFOwnerID   string
-	Name        types.Identifier
-	Description string
-	MFChannelID string
-	Tags        types.Tags
-	Created     time.Time
+	ID             string
+	MFOwnerID      string
+	Name           types.Identifier
+	Description    string
+	MFChannelID    string
+	Tags           types.Tags
+	Created        time.Time
+	MatchingAgents types.Metadata
 }
 
 type PageAgentGroup struct {
@@ -57,6 +58,10 @@ type AgentGroupService interface {
 	ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
 	// ListAgentGroups Retrieve a list of AgentGroups by owner
 	ListAgentGroups(ctx context.Context, token string, pm PageMetadata) (PageAgentGroup, error)
+	// EditAgentGroup edit a existing agent group by id and owner
+	EditAgentGroup(ctx context.Context, token string, ag AgentGroup) (AgentGroup, error)
+	// DeleteAgentGroupByID Remove a existing agent group by owner an id
+	RemoveAgentGroup(ctx context.Context, token string, id string) error
 	// ValidateAgentGroup validate AgentGroup
 	ValidateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error)
 }
@@ -71,4 +76,8 @@ type AgentGroupRepository interface {
 	RetrieveByID(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
 	// RetrieveAllAgentGroupsByOwner get all AgentGroup by owner.
 	RetrieveAllAgentGroupsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageAgentGroup, error)
+	// Update a existing agent group by owner and id
+	Update(ctx context.Context, ownerID string, group AgentGroup) (AgentGroup, error)
+	// Delete a existing agent group by owner and id
+	Delete(ctx context.Context, groupID string, ownerID string) error
 }

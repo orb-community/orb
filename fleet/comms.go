@@ -33,9 +33,10 @@ type AgentCommsService interface {
 	NotifyAgentGroupMembership(a Agent) error
 	// NotifyAgentPolicies RPC Core -> Agent: Notify Agent of all AgentPolicy it should currently run based on group membership
 	NotifyAgentPolicies(a Agent) error
-
 	// NotifyGroupNewAgentPolicy RPC Core -> AgentGroup
 	NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
+	// NotifyGroupRemoval unsubscribe the agent membership when delete a agent group
+	NotifyGroupRemoval(ag AgentGroup) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -101,7 +102,6 @@ func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ctx context.Context, ag A
 }
 
 func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error {
-
 	payload := GroupMembershipRPCPayload{
 		Groups:   []GroupMembershipData{{Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
 		FullList: false,
@@ -249,6 +249,31 @@ func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
 
 	return nil
 
+}
+
+func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
+
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          GroupRemovedRPCFunc,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   ag.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewFleetCommsService(logger *zap.Logger, policyClient pb.PolicyServiceClient, agentRepo AgentRepository, agentGroupRepo AgentGroupRepository, agentPubSub mfnats.PubSub) AgentCommsService {

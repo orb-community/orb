@@ -129,6 +129,20 @@ type pageRes struct {
 	Dir    string `json:"direction"`
 }
 
+type removeRes struct{}
+
+func (r removeRes) Code() int {
+	return http.StatusNoContent
+}
+
+func (r removeRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (r removeRes) Empty() bool {
+	return true
+}
+
 type validateAgentGroupRes struct {
 	ID             string         `json:"id"`
 	Name           string         `json:"name"`
