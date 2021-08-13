@@ -376,7 +376,7 @@ func createAgentGroup(t *testing.T, name string, svc fleet.AgentGroupService) (f
 		return fleet.AgentGroup{}, err
 	}
 	agCopy.Name = validName
-	ag, err := svc.CreateAgentGroup(context.Background(), token, agentGroup)
+	ag, err := svc.CreateAgentGroup(context.Background(), token, agCopy)
 	if err != nil {
 		return fleet.AgentGroup{}, err
 	}
