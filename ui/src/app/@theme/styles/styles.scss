@@ -21,7 +21,11 @@
 @import './layout';
 @import './overrides';
 @import './material/material-overrides';
-@import './orb/orb-overrides';
+
+//DataTable
+@import '~@swimlane/ngx-datatable/index.css';
+@import '~@swimlane/ngx-datatable/themes/material.scss';
+@import '~@swimlane/ngx-datatable/assets/icons.css';
 
 // install the framework and custom global styles
 @include nb-install() {

@@ -35,6 +35,7 @@ import { IMqttServiceOptions, MqttModule, MqttService } from 'ngx-mqtt';
 import { environment } from 'environments/environment';
 // Mfx - Auth and Profile pages
 import { BreadcrumbModule } from 'xng-breadcrumb';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   connectOnCreate: false,
@@ -73,7 +74,7 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
 
     // 3rd party
     BreadcrumbModule,
-    NbLayoutModule,
+    NgxDatatableModule,
     NbAlertModule,
     NbCheckboxModule,
   ],

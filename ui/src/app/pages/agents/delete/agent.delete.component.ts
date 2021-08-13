@@ -23,7 +23,7 @@ export class AgentDeleteComponent {
   }
 
   onDelete() {
-    this.agentService.deleteAgent(this.agent.id);
+    this.agentService.deleteAgentGroup(this.agent.id);
   }
 
   onClose() {

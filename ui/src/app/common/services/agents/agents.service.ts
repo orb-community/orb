@@ -2,7 +2,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import 'rxjs/add/observable/empty';
-import { Router } from '@angular/router';
 
 import { environment } from '../../../../environments/environment';
 import { NotificationsService } from '../../../common/services/notifications/notifications.service';
@@ -20,12 +19,11 @@ export class AgentsService {
 
   constructor(
     private http: HttpClient,
-    private router: Router,
     private notificationsService: NotificationsService,
   ) {
   }
 
-  addAgent(agentItem: Agent) {
+  addAgentGroup(agentItem: Agent) {
     return this.http.post(environment.agentsUrl,
       agentItem,
       {observe: 'response'})
@@ -43,7 +41,7 @@ export class AgentsService {
       );
   }
 
-  getAgentById(agentId: string): any {
+  getAgentGroupById(agentId: string): any {
     return this.http.get(`${environment.agentsUrl}/${agentId}`)
       .map(
         resp => {
@@ -59,7 +57,7 @@ export class AgentsService {
       );
   }
 
-  getAgents(filters: PageFilters) {
+  getAgentGroups(filters: PageFilters) {
     filters.offset = filters.offset || 0;
     filters.limit = filters.limit || defLimit;
     filters.order = filters.order || defOrder;
@@ -90,7 +88,7 @@ export class AgentsService {
       );
   }
 
-  editSink(agentItem: Agent): any {
+  editAgentGroup(agentItem: Agent): any {
     return this.http.put(`${environment.agentsUrl}/${agentItem.id}`, agentItem)
       .map(
         resp => {
@@ -106,7 +104,7 @@ export class AgentsService {
       );
   }
 
-  deleteAgent(agentId: string) {
+  deleteAgentGroup(agentId: string) {
     return this.http.delete(`${environment.agentsUrl}/${agentId}`)
       .map(
         resp => {
