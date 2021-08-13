@@ -27,12 +27,10 @@ nb-card-footer {
     transition: box-shadow 0.3s 0s ease-in-out;
     color: #969fb9;
     border: none !important;
-    //box-shadow: 0 0 8px -2px #ffffff;
     background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDExIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0wLjUgMy45OTY1MUw0LjE4NjgyIDcuNjgzMzNMMTAuODIzMSAxLjA0NzA2TDkuNzgzNDEgMEw0LjE4NjgyIDUuNTk2NTlMMS41Mzk2OCAyLjk1NjgzTDAuNSAzLjk5NjUxWiIgZmlsbD0iIzE1MWEzMCIvPgo8L3N2Zz4K');
     background-size: 20px 14px;
     background-repeat: no-repeat;
     background-position: center;
-    //background-blend-mode: exclusion;
     z-index: 3;
     :first-child {
       visibility: hidden;
@@ -66,8 +64,8 @@ nb-card-footer {
 
     &::after {
       content: '';
-      height: 40px;
-      transform: translateY(-40px);
+      height: 60px;
+      transform: translateY(-60px);
       width: 1px;
       border-left: solid 1px #969fb9b3;
       position: absolute;
@@ -110,7 +108,7 @@ nb-card-footer {
 
     &::before {
       color: #969fb9 !important;
-      content: 'Settings / Sink Management /\00a0';
+      content: 'Settings / Agent Groups /\00a0';
     }
   }
 }
