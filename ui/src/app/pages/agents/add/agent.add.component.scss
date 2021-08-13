@@ -40,12 +40,36 @@ nb-card-footer {
   .step {
     flex-direction: row-reverse !important;
     align-items: start !important;
+
+    &-label {
+      p {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 400;
+        color: #969fb9;
+      }
+      strong {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        color: #969fb9;
+      }
+    }
   }
+  //
+  //.step.completed {
+  //   & > .label-index {
+  //      box-shadow: 0 0 12px 1px #df316f;
+  //      background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDExIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0wLjUgMy45OTY1MUw0LjE4NjgyIDcuNjgzMzNMMTAuODIzMSAxLjA0NzA2TDkuNzgzNDEgMEw0LjE4NjgyIDUuNTk2NTlMMS41Mzk2OCAyLjk1NjgzTDAuNSAzLjk5NjUxWiIgZmlsbD0iI2ZmZiIvPgo8L3N2Zz4K');
+  //      background-color: #969fb9;
+  //  }
+  //}
 
   .step.selected {
-    -webkit-text-stroke: rgba(255, 255, 255, 0.15);
-    -webkit-text-stroke-width: 1px;
-    text-shadow: 0 0 20px #ffffff8f;
+    p {
+      color: #fff;
+    }
+    strong {
+      color: #fff;
+    }
 
     & > .label-index {
         box-shadow: 0 0 12px 1px #df316f;
@@ -64,8 +88,8 @@ nb-card-footer {
 
     &::after {
       content: '';
-      height: 60px;
-      transform: translateY(-60px);
+      height: 70px;
+      transform: translateY(-70px);
       width: 1px;
       border-left: solid 1px #969fb9b3;
       position: absolute;

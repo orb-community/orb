@@ -65,29 +65,59 @@
             </div>
           </ng-template>
           <form [formGroup]="secondFormGroup">
-            <!--            <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index">-->
-            <!--              <div>-->
-            <!--                <label class="font-weight-bold">{{control.label}}</label>-->
-            <!--              </div>-->
-            <!--              <div [ngSwitch]="control.input">-->
-            <!--                 <input *ngSwitchCase="'text'"-->
-            <!--                   [autofocus]="i == 0"-->
-            <!--                   nbInput-->
-            <!--                   [type]="control.type"-->
-            <!--                   fullWidth="true"-->
-            <!--                   fieldSize="medium"-->
-            <!--                   [formControlName]="control.prop" />-->
-            <!--               <nb-select *ngSwitchCase="'select'"-->
-            <!--                          size="medium"-->
-            <!--                          fullWidth="true"-->
-            <!--                          formControlName="backend"-->
-            <!--                          appearance="outline"-->
-            <!--                          placeholder="Select backend type">-->
-            <!--                <nb-option *ngFor="let type of control.options"-->
-            <!--                           [value]="type">{{ type }}</nb-option>-->
-            <!--               </nb-select>-->
-            <!--              </div>-->
-            <!--            </nb-form-field>-->
+            <nb-form-field>
+              <div>
+                <p>These values will be used to match agents, that way you'll be able to easily agregate Agents</p>
+              </div>
+              <div class="container d-flex row px-0 mx-0">
+                <div class="d-flex flex-column col-5 px-0 mx-0">
+                  <div>
+                    <label class="font-weight-bold">Key</label>
+                    <span class="required">*</span>
+                  </div>
+                  <div>
+                    <input nbInput
+                           autofocus
+                           fullWidth="true"
+                           fieldSize="medium"
+                           formControlName="key"/>
+                  </div>
+                </div>
+                <div class="d-flex justify-content-center align-items-center col-1 mt-4 px-0 mx-0">
+                  <nb-icon style="color: #df316f;" icon="plus-outline" size="14"></nb-icon>
+                </div>
+                <div class="d-flex flex-column col-5 px-0 mx-0">
+                  <div>
+                    <label class="font-weight-bold">Value</label>
+                    <span class="required">*</span>
+                  </div>
+                  <div>
+                    <input nbInput
+                           autofocus
+                           fullWidth="true"
+                           fieldSize="medium"
+                           formControlName="value"/>
+                  </div>
+                </div>
+                <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
+                     style="transform: translateY(14px);">
+                  <button nbButton ghost (click)="onAddTag()">
+                    <nb-icon style="color: #df316f;" status="primary" icon="plus-outline" size="14"></nb-icon>
+                  </button>
+                </div>
+              </div>
+            </nb-form-field>
+            <hr/>
+            <div class="d-flex">
+              <mat-chip-list>
+                <mat-chip
+                  class="orb-tag-sink "
+                  *ngFor="let tag of secondFormGroup.controls.otb_tags | keyvalue">
+                  {{tag.key}}, {{tag.value}}
+                </mat-chip>
+              </mat-chip-list>
+            </div>
+
             <div class="d-flex justify-content-end" *ngIf="secondFormGroup">
               <button
                 nbButton

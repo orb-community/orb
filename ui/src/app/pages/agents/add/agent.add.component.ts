@@ -58,12 +58,21 @@ export class AgentAddComponent implements OnInit {
       description: [''],
     });
 
-    this.secondFormGroup = this._formBuilder.group({});
+    this.secondFormGroup = this._formBuilder.group({
+      orb_tags: [[], Validators.minLength(1)],
+      key: [''],
+      value: [''],
+    });
 
   }
 
   goBack() {
     this.router.navigate(['../../sinks'], {relativeTo: this.route});
+  }
+
+  onAddTag() {
+    debugger;
+    // this.secondFormGroup.get('orb_tags').valu
   }
 
   onFormSubmit() {

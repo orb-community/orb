@@ -25,12 +25,14 @@
            class="sink-info-accent">
           There are no agents yet.
         </p>
+      </div>
       <div class="d-flex add-agent-container">
         <button nbButton
                 ghost="true"
                 status="primary"
                 (click)="onOpenAdd()">
           <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
+      </div>
     </div>
 
     <ngx-datatable
@@ -45,26 +47,6 @@
 
   </div>
 </div>
-      <div class="d-flex add-agent-container">
-        <button nbButton
-                ghost="true"
-                status="primary"
-                (click)="onOpenAdd()">
-          <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
-      </div>
-    </div>
-    <ngx-datatable
-      *ngIf="columns"
-      class="orb w-100"
-      [rows]="page.rows"
-      [columns]="columns"
-      [columnMode]="columnMode.flex"
-      [headerHeight]="50"
-      [footerHeight]="0"
-      [rowHeight]="50">
-    </ngx-datatable>
-  </div>
-</div>
 
 <ng-template #agentsTemplateCell let-row="row" let-value="value" let-i="index">
   <strong> {{ value.length }} </strong>
@@ -73,12 +55,6 @@
 <ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
   <div class="d-flex">
     <mat-chip-list>
-      <mat-chip
-        class="orb-tag-sink "
-        *ngFor="let tag of value | keyvalue">
-        {{tag.key}}, {{tag.value}}
-      </mat-chip>
-    </mat-chip-list>
       <mat-chip
         class="orb-tag-sink "
         *ngFor="let tag of value | keyvalue">
