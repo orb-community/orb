@@ -35,6 +35,7 @@ import { LogoutComponent } from './pages/logout/logout.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { BreadcrumbModule } from 'xng-breadcrumb';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   connectOnCreate: false,
@@ -77,6 +78,7 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
 
     // 3rd party
     BreadcrumbModule,
+    NgxDatatableModule,
   ],
   bootstrap: [AppComponent],
   // Mfx dependencies

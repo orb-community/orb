@@ -5,8 +5,6 @@ import { PagesComponent } from './pages.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { ProfileComponent } from './profile/profile.component';
 
-import { environment } from 'environments/environment';
-
 // ORB
 // Agent Group Management
 import { AgentsComponent } from 'app/pages/agents/agents.component';

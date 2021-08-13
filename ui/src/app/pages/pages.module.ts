@@ -42,6 +42,7 @@ import { AgentsComponent } from 'app/pages/agents/agents.component';
 import { AgentAddComponent } from 'app/pages/agents/add/agent.add.component';
 import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
 import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.component';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 
 @NgModule({
   imports: [
@@ -66,6 +67,7 @@ import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.compo
     BreadcrumbModule,
     NbStepperModule,
     NbFormFieldModule,
+    NgxDatatableModule,
   ],
   exports: [
     SharedModule,
