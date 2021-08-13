@@ -1,13 +1,12 @@
 import { AfterViewInit, ChangeDetectorRef, Component, TemplateRef, ViewChild } from '@angular/core';
-import { NbDialogService } from '@nebular/theme';
+import {NbDialogService} from '@nebular/theme';
 
 import { DropdownFilterItem, PageFilters, TablePage, User } from 'app/common/interfaces/mainflux.interface';
-  TableConfig,
   TablePage,
   User,
 } from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute , Router} from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.component';
 import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
@@ -15,21 +14,6 @@ import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 
 const defFreq: number = 100;
-
-/**
- * Available sink statuses
- */
-export enum sinkStatus {
-  active = 'active',
-  error = 'error',
-}
-
-export enum sinkTypesList {
-  prometheus = 'prometheus',
-  // aws = 'aws',
-  // s3 = 's3',
-  // azure = 'azure',
-}
 
 @Component({
   selector: 'ngx-agents-component',
@@ -76,13 +60,56 @@ export class AgentsComponent implements AfterViewInit {
     private route: ActivatedRoute,
     private router: Router,
   ) {}
-    this.tableFilters = this.tableConfig.colNames.map((name, index) => ({
+
+  ngAfterViewInit() {
+    this.columns = [
+      {
+        prop: 'name',
+        name: 'Name',
+        resizeable: false,
+        flexGrow: 1,
+        maxWidth: 243,
+      },
+      {
+        name: 'Description',
+        resizeable: false,
+        width: 200,
+        flexGrow: 3,
+
+        maxWidth: 350,
+      },
+      {
+        prop: 'agents',
+        name: 'Agents',
+        resizeable: false,
+        flexGrow: 1,
+        width: 80,
+        maxWidth: 100,
+
+        cellTemplate: this.agentsTemplateCell,
+      },
+      {
+        name: 'Tags',
+        resizeable: false,
+        flexGrow: 4,
+        cellTemplate: this.agentTagsTemplateCell,
+      },
+      {
+        name: '',
+        prop: 'actions',
+        maxWidth: 140,
+        flexGrow: 2,
+        resizeable: false,
+        sortable: false,
+        cellTemplate: this.actionsTemplateCell,
+      },
+    ];
+    this.tableFilters = this.columns.map((entry, index) => ({
       id: index.toString(),
-      name,
+      name: entry.name,
       order: 'asc',
       selected: false,
-    })).filter((filter) => (!filter.name.startsWith('orb-')));
-
+    })).filter((filter) => (!filter.name?.startsWith('orb-')));
   ngAfterViewInit() {
     this.columns = [
       {

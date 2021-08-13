@@ -1,9 +1,7 @@
-import {HttpClient, HttpParams} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import 'rxjs/add/observable/empty';
 import 'rxjs/add/observable/of';
-import {Router} from '@angular/router';
 
 import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
 import {Agent} from 'app/common/interfaces/orb/agent.interface.ts';
