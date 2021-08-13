@@ -31,7 +31,7 @@ paths:
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
     post:
-      summary: 'Create (or pre-validate) a new Sink'
+      summary: 'Create a new Sink'
       operationId: createSink
       tags:
         - sink
@@ -139,6 +139,34 @@ paths:
           description: A non-existent entity request.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /sinks/validate:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    post:
+      summary: "validate a sink configuration without saving it"
+      operationId: validateSink
+      tags:
+        - sink
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/SinkCreateReq"
+      responses:
+        '200':
+          description: Valid sink.
+          $ref: "#/components/responses/SinkObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Missing or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+
 components:
   requestBodies:
     SinkCreateReq:
@@ -308,10 +336,6 @@ components:
             remote_host: my.prometheus-host.com
             username: dbuser
           description: Object representing backend specific configuration information
-        validate_only:
-          type: boolean
-          example: false
-          description: When true, only run validation and confirm the Sink could be created, but do not actually create it
     SinkPageSchema:
       type: object
       properties:
