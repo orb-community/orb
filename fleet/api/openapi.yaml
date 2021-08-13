@@ -129,6 +129,8 @@ paths:
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
     post:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
       summary: 'Create a new Agent'
       operationId: createAgent
       tags:
@@ -169,6 +171,8 @@ paths:
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
     put:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
       summary: 'Update an existing Agent'
       operationId: updateAgent
       tags:
@@ -188,6 +192,8 @@ paths:
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
     delete:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
       summary: 'Delete an existing Agent'
       operationId: deleteAgent
       tags:
@@ -311,7 +317,7 @@ components:
       required: true
     AgentGroupId:
       name: id
-      description: Unique Agent identifier.
+      description: Unique Agent Group identifier.
       in: path
       schema:
         type: string
@@ -427,8 +433,8 @@ components:
         name:
           type: string
           description: A unique name label
-          example: eu-agents
-        agent_tags:
+          example: my-agent1
+        orb_tags:
           type: object
           description: User defined key/values that will define the members of the group by matching against Agent tags
           example:
@@ -443,8 +449,8 @@ components:
         name:
           type: string
           description: A unique name label
-          example: eu-agents
-        agent_tags:
+          example: my-agent1
+        orb_tags:
           type: object
           description: User defined key/values that will define the members of the group by matching against Agent tags
           example:
@@ -543,7 +549,7 @@ components:
         name:
           type: string
           description: A unique name label
-          example: eu-agent
+          example: my-agent1
         agent_tags:
           type: object
           description: Orb tags field sent in by the agent when it connects group by matching against Agent tags
@@ -585,8 +591,8 @@ components:
         name:
           type: string
           description: A unique name label
-          example: eu-agent
-        agent_tags:
+          example: my-agent1
+        orb_tags:
           type: object
           description: Orb tags field sent in by the agent when it connects group by matching against Agent tags
           example:
