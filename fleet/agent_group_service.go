@@ -21,8 +21,19 @@ var (
 	ErrMaintainAgentGroupChannels = errors.New("failed to maintain agent group channels")
 )
 
-func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup) error {
+func (svc fleetService) removeAgentGroupSubscriptions(groupID string, ownerID string) error {
+	ag, err := svc.agentGroupRepository.RetrieveByID(context.Background(), groupID, ownerID)
+	if err != nil {
+		return err
+	}
+	err = svc.agentComms.NotifyGroupRemoval(ag)
+	if err != nil {
+		svc.logger.Error("failure during agent group membership comms", zap.Error(err))
+	}
+	return nil
+}
 
+func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup) error {
 	// first we get all agents, online or not, to connect them to the correct group channel
 	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), g.MFOwnerID, g.ID, false)
 	if len(list) == 0 {
@@ -80,6 +91,35 @@ func (svc fleetService) ViewAgentGroupByID(ctx context.Context, token string, id
 	return ag, nil
 }
 
+func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group AgentGroup) (AgentGroup, error) {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+
+	if len(group.MatchingAgents) > 0 {
+		return AgentGroup{}, errors.ErrUpdateEntity
+	}
+
+	ag, err := svc.agentGroupRepository.Update(ctx, ownerID, group)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+
+	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, group.ID, true)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+	for _, agent := range list {
+		err := svc.agentComms.NotifyAgentGroupMembership(agent)
+		if err != nil {
+			svc.logger.Error("failure during agent group membership comms", zap.Error(err))
+		}
+	}
+
+	return ag, nil
+}
+
 func (svc fleetService) ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error) {
 	return svc.agentGroupRepository.RetrieveByID(ctx, groupID, ownerID)
 }
@@ -110,12 +150,35 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 		return AgentGroup{}, errors.Wrap(ErrCreateAgentGroup, err)
 	}
 
-	s.ID = id
-	err = svc.addAgentsToAgentGroupChannel(token, s)
+	ag, err := svc.agentGroupRepository.RetrieveByID(ctx, id, mfOwnerID)
+	if err != nil {
+		return AgentGroup{}, errors.Wrap(ErrCreateAgentGroup, err)
+	}
+
+	err = svc.addAgentsToAgentGroupChannel(token, ag)
 	if err != nil {
 		// TODO should we roll back?
 		svc.logger.Error("error adding agents to group channel", zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
 	}
 
-	return s, err
+	return ag, err
+}
+
+func (svc fleetService) RemoveAgentGroup(ctx context.Context, token, groupId string) error {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return err
+	}
+
+	err = svc.removeAgentGroupSubscriptions(groupId, ownerID)
+	if err != nil {
+		svc.logger.Error("removing agents from group channel", zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
+	}
+
+	err = svc.agentGroupRepository.Delete(ctx, groupId, ownerID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

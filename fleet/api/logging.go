@@ -60,6 +60,20 @@ func (l loggingMiddleware) ListAgentGroups(ctx context.Context, token string, pm
 	return l.svc.ListAgentGroups(ctx, token, pm)
 }
 
+func (l loggingMiddleware) EditAgentGroup(ctx context.Context, token string, ag fleet.AgentGroup) (_ fleet.AgentGroup, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: edit_agent_groups",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: edit_agent_groups",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.EditAgentGroup(ctx, token, ag)
+}
+
 func (l loggingMiddleware) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (_ fleet.Page, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
@@ -104,6 +118,20 @@ func (l loggingMiddleware) CreateAgentGroup(ctx context.Context, token string, s
 		}
 	}(time.Now())
 	return l.svc.CreateAgentGroup(ctx, token, s)
+}
+
+func (l loggingMiddleware) RemoveAgentGroup(ctx context.Context, token, groupID string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: delete_agent_groups",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: delete_agent_groups",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.RemoveAgentGroup(ctx, token, groupID)
 }
 
 func NewLoggingMiddleware(svc fleet.Service, logger *zap.Logger) fleet.Service {

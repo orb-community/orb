@@ -71,3 +71,23 @@ func (a *agentGroupRepositoryMock) RetrieveAllAgentGroupsByOwner(ctx context.Con
 	}
 	return pageAgentGroup, nil
 }
+
+func (a *agentGroupRepositoryMock) Update(ctx context.Context, ownerID string, group fleet.AgentGroup) (fleet.AgentGroup, error) {
+	if _, ok := a.agentGroupMock[group.ID]; ok {
+		if a.agentGroupMock[group.ID].MFOwnerID != ownerID {
+			return fleet.AgentGroup{}, fleet.ErrUpdateEntity
+		}
+		a.agentGroupMock[group.ID] = group
+		return a.agentGroupMock[group.ID], nil
+	}
+	return fleet.AgentGroup{}, fleet.ErrNotFound
+}
+
+func (a *agentGroupRepositoryMock) Delete(ctx context.Context, groupID string, ownerID string) error {
+	if _, ok := a.agentGroupMock[groupID]; ok {
+		if a.agentGroupMock[groupID].MFOwnerID != ownerID {
+			delete(a.agentGroupMock, groupID)
+		}
+	}
+	return nil
+}

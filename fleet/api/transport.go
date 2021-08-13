@@ -24,6 +24,7 @@ import (
 )
 
 const (
+	contentType = "application/json"
 	offsetKey   = "offset"
 	limitKey    = "limit"
 	nameKey     = "name"
@@ -56,13 +57,22 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeView,
 		types.EncodeResponse,
 		opts...))
+	r.Put("/agent_groups/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "edit_agent_group")(editAgentGroupEndpoint(svc)),
+		decodeAgentGroupUpdate,
+		types.EncodeResponse,
+		opts...))
+	r.Delete("/agent_groups/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "delete_agent_group")(removeAgentGroupEndpoint(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...))
 
 	r.Post("/agents", kithttp.NewServer(
 		kitot.TraceServer(tracer, "create_agent")(addAgentEndpoint(svc)),
 		decodeAddAgent,
 		types.EncodeResponse,
 		opts...))
-
 	r.Get("/agents", kithttp.NewServer(
 		kitot.TraceServer(tracer, "list_agents")(listAgentsEndpoint(svc)),
 		decodeList,
@@ -96,6 +106,22 @@ func decodeView(_ context.Context, r *http.Request) (interface{}, error) {
 		token: r.Header.Get("Authorization"),
 		id:    bone.GetValue(r, "id"),
 	}
+	return req, nil
+}
+
+func decodeAgentGroupUpdate(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), contentType) {
+		return nil, errors.ErrUnsupportedContentType
+	}
+
+	req := updateAgentGroupReq{
+		token: r.Header.Get("Authorization"),
+		id:    bone.GetValue(r, "id"),
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
+	}
+
 	return req, nil
 }
 

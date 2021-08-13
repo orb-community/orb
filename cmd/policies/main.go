@@ -9,6 +9,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
 	"github.com/ns1labs/orb/pkg/config"
@@ -17,6 +18,7 @@ import (
 	http2 "github.com/ns1labs/orb/policies/api/http"
 	"github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/policies/postgres"
+	rediscon "github.com/ns1labs/orb/policies/redis/consumer"
 	redisprod "github.com/ns1labs/orb/policies/redis/producer"
 	opentracing "github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
@@ -93,6 +95,7 @@ func main() {
 
 	go startHTTPServer(svc, svcCfg, logger, errs)
 	go startGRPCServer(svc, tracer, policiesGRPCCfg, logger, errs)
+	go subscribeToFleetES(svc, esClient, esCfg, logger)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -241,4 +244,12 @@ func startGRPCServer(svc policies.Service, tracer opentracing.Tracer, cfg config
 
 	pb.RegisterPolicyServiceServer(server, policiesgrpc.NewServer(tracer, svc))
 	errs <- server.Serve(listener)
+}
+
+func subscribeToFleetES(svc policies.Service, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
+	eventStore := rediscon.NewEventStore(svc, client, cfg.Consumer, logger)
+	logger.Info("Subscribed to Redis Event Store for agent groups")
+	if err := eventStore.Subscribe(context.Background()); err != nil {
+		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
+	}
 }
