@@ -10,7 +10,6 @@ package grpc
 
 import (
 	"context"
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/ns1labs/orb/policies"
 	"github.com/ns1labs/orb/policies/pb"
 
@@ -94,18 +93,12 @@ func encodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface
 	return &pb.PolicyListRes{Policies: plist}, nil
 }
 
-func encodeInactivateDatasetResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	return &empty.Empty{}, nil
-}
-
 func encodeError(err error) error {
 	switch err {
 	case nil:
 		return nil
 	case policies.ErrMalformedEntity:
 		return status.Error(codes.InvalidArgument, "received invalid can access request")
-	case policies.ErrInactivateDataset:
-		return status.Error(codes.NotFound, "failed to inactivate dataset")
 	default:
 		return status.Error(codes.Internal, "internal server error")
 	}

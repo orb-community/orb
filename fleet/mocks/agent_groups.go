@@ -10,7 +10,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/sinks"
 )
 
 var _ fleet.AgentGroupRepository = (*agentGroupRepositoryMock)(nil)
@@ -81,7 +80,7 @@ func (a *agentGroupRepositoryMock) Update(ctx context.Context, ownerID string, g
 		a.agentGroupMock[group.ID] = group
 		return a.agentGroupMock[group.ID], nil
 	}
-	return fleet.AgentGroup{}, sinks.ErrNotFound
+	return fleet.AgentGroup{}, fleet.ErrNotFound
 }
 
 func (a *agentGroupRepositoryMock) Delete(ctx context.Context, groupID string, ownerID string) error {

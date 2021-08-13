@@ -30,7 +30,6 @@ func (svc fleetService) removeAgentGroupSubscriptions(groupID string, ownerID st
 	if err != nil {
 		svc.logger.Error("failure during agent group membership comms", zap.Error(err))
 	}
-
 	return nil
 }
 

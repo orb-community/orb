@@ -35,7 +35,7 @@ type AgentCommsService interface {
 	NotifyAgentPolicies(a Agent) error
 	// NotifyGroupNewAgentPolicy RPC Core -> AgentGroup
 	NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
-	// UnsubscribeAgentGroupMembership unsubscribe the agent membership when delete a agent group
+	// NotifyGroupRemoval unsubscribe the agent membership when delete a agent group
 	NotifyGroupRemoval(ag AgentGroup) error
 }
 
