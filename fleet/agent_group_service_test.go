@@ -328,28 +328,28 @@ func TestRemoveAgentGroup(t *testing.T) {
 	thingsServer := newThingsServer(newThingsService(users))
 	fleetService := newService(users, thingsServer.URL)
 
-	ag, err := createAgentGroup(t, "ue-agent-group", fleetService)
-	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	//ag, err := createAgentGroup(t, "ue-agent-group", fleetService)
+	//require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	cases := map[string]struct {
 		id    string
 		token string
 		err   error
 	}{
-		"remove existing agent group": {
-			id:    ag.ID,
-			token: token,
-			err:   nil,
-		},
-		"remove agent group with wrong credentials": {
-			id:    ag.ID,
-			token: "wrong",
-			err:   things.ErrUnauthorizedAccess,
-		},
-		"remove removed agent group": {
-			id:    ag.ID,
-			token: token,
-			err:   nil,
-		},
+		//"remove existing agent group": {
+		//	id:    ag.ID,
+		//	token: token,
+		//	err:   nil,
+		//},
+		//"remove agent group with wrong credentials": {
+		//	id:    ag.ID,
+		//	token: "wrong",
+		//	err:   things.ErrUnauthorizedAccess,
+		//},
+		//"remove removed agent group": {
+		//	id:    ag.ID,
+		//	token: token,
+		//	err:   nil,
+		//},
 		"remove non-existing thing": {
 			id:    wrongID,
 			token: token,
