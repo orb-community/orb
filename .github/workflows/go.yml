@@ -15,6 +15,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            agent:
+              - 'agent/**'
+              - 'cmd/agent/**'
+            fleet:
+              - 'fleet/**'
+              - 'cmd/fleet/**'
+            policies:
+              - 'policies/**'
+              - 'cmd/policies/**'
+            sinks:
+              - 'sinks/**'
+              - 'cmd/sinks/**'
+              - 'cmd/prom-sinks/**'
+            ui:
+              - 'ui/**'
 
       - name: Set up Go
         uses: actions/setup-go@v2
@@ -25,12 +44,14 @@ jobs:
         run: make services
 
       - name: Build orb agent (go build only)
-        run: make agent
+        if: steps.filter.outputs.agent == 'true'
+        run: make agent_bin
 
       - name: Go unit tests
         run: make test
 
       - name: Build UI
+        if: steps.filter.outputs.ui == 'true'
         run: make ui
 
   package:
@@ -41,6 +62,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            agent:
+              - 'agent/**'
+              - 'cmd/agent/**'
+            fleet:
+              - 'fleet/**'
+              - 'cmd/fleet/**'
+            policies:
+              - 'policies/**'
+              - 'cmd/policies/**'
+            sinks:
+              - 'sinks/**'
+              - 'cmd/sinks/**'
+              - 'cmd/prom-sinks/**'
+            ui:
+              - 'ui/**'
 
       - name: Get branch name
         shell: bash
@@ -79,6 +119,7 @@ jobs:
           docker push ns1labs/orb-prom-sink:${{ env.REF_TAG }}
 
       - name: Build + push orb-agent
+        if: steps.filter.outputs.agent == 'true'
         env:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
@@ -86,6 +127,7 @@ jobs:
           docker push ${{ env.IMAGE_NAME }}:${{ env.REF_TAG }}
 
       - name: Build + push orb-ui
+        if: steps.filter.outputs.ui == 'true'
         env:
           IMAGE_NAME: ns1labs/orb-ui
         run: |
