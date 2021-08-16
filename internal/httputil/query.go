@@ -10,11 +10,12 @@ package httputil
 
 import (
 	"encoding/json"
-	"net/http"
-	"strconv"
-
+	"fmt"
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb/pkg/errors"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
 // ReadUintQuery reads the value of uint64 http query parameters for a given key
@@ -108,4 +109,36 @@ func ReadFloatQuery(r *http.Request, key string, def float64) (float64, error) {
 	}
 
 	return val, nil
+}
+
+// ReadTagQuery reads the value of json http query parameters for a given key
+func ReadTagQuery(r *http.Request, key string, def map[string]string) (map[string]string, error) {
+	vals := bone.GetQuery(r, key)
+
+	if len(vals) == 0 {
+		return def, nil
+	}
+
+	value := tagsBeforeUnmarshal(vals)
+	m := make(map[string]string)
+	err := json.Unmarshal([]byte(value), &m)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrInvalidQueryParams, err)
+	}
+
+	return m, nil
+}
+
+func tagsBeforeUnmarshal(vals []string) string {
+	s := ""
+	for _, v := range vals {
+		if s == "" {
+			s = s + v
+		} else {
+			s = s + "," + v
+		}
+	}
+	s = strings.Replace(s, "{", "", -1)
+	s = strings.Replace(s, "}", "", -1)
+	return fmt.Sprintf("{ %s }", s)
 }
