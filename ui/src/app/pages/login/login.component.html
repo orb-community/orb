@@ -1,16 +1,17 @@
-<nb-layout id="MY LOGIN LAYOUT">
-
-  <nb-layout-column>
-    <img alt="ORB logo"
-         src="assets/images/orb_logo_original.png">
-    <h3>{{strings.presentation.description}}</h3>
-    <h3>{{strings.presentation.action}}</h3>
+<nb-layout class="login-layout">
+  <nb-layout-column class="orb-pane col-12 col-sm-8">
+    <div class="d-inline-block">
+      <img alt="ORB logo"
+           src="assets/images/orb_logo_original.png">
+      <p>{{strings.presentation.description}}</p>
+      <strong>{{strings.presentation.action}}</strong>
+    </div>
   </nb-layout-column>
 
-  <nb-layout-column>
+  <nb-layout-column class="form-pane col-12 col-sm-4">
 
-    <h1 id="title"
-        class="title">{{strings.form.title}}</h1>
+    <h4 id="title"
+        class="title">{{strings.form.title}}</h4>
 
     <nb-alert *ngIf="showMessages.error && errors?.length && !submitted"
               outline="danger"
@@ -33,7 +34,7 @@
     <form (ngSubmit)="login()" #form="ngForm" aria-labelledby="title">
 
       <div class="form-control-group">
-        <label class="label" for="input-email">Email address:</label>
+        <label class="label" for="input-email"></label>
         <input nbInput
                fullWidth
                [(ngModel)]="user.email"
@@ -59,8 +60,7 @@
 
       <div class="form-control-group">
     <span class="label-with-link">
-      <label class="label" for="input-password">Password:</label>
-      <a class="forgot-password caption-2" routerLink="../request-password">Forgot Password?</a>
+      <label class="label" for="input-password"></label>
     </span>
         <input nbInput
                fullWidth
@@ -87,6 +87,7 @@
             characters
           </p>
         </ng-container>
+        <a class="forgot-password caption-2" routerLink="../request-password">Forgot Password?</a>
       </div>
 
       <div class="form-control-group accept-group">
@@ -103,8 +104,11 @@
       </button>
     </form>
 
-    <section class="another-action" aria-label="Register">
-      Don't have an account? <a class="text-link" routerLink="../register">Register</a>
+    <section class="another-action"
+             aria-label="Register">
+      {{strings.form.nonuser}}
+      <a class="text-link"
+         routerLink="../register">{{strings.form.register}}</a>
     </section>
 
   </nb-layout-column>

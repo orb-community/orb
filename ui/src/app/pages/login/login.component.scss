@@ -1,30 +1,46 @@
-@import '../../@theme/styles/themes';
+::ng-deep {
+  .login-layout {
+    background: url("assets/images/login-background.png");
+    mix-blend-mode: soft-light;
 
-@include nb-install-component() {
-  ::ng-deep router-outlet + * {
-    animation: fade 1s;
-    display: block;
+    .orb-pane {
+      background-color: transparent;
+      padding: 262px 350px 200px 144px;
+      display: flex;
 
-    @keyframes fade {
-      from {
-        opacity: 0;
+      div {
+        img {
+          width: 313px;
+          height: 119px;
+        }
+
+        p {
+          font-family: 'Montserrat', serif;
+          font-size: 24px;
+          font-style: normal;
+          font-weight: 200;
+          line-height: 32px;
+          letter-spacing: 0em;
+          text-align: left;
+        }
+
+        strong {
+          //styleName: Page Title;
+          font-family: 'Montserrat', serif;
+          font-size: 24px;
+          font-style: normal;
+          font-weight: 400;
+          line-height: 32px;
+          letter-spacing: 0em;
+          text-align: left;
+
+        }
       }
+    }
 
-      to {
-        opacity: 1;
-      }
+    .form-pane {
+
+      background: url("assets/images/login-panel-background.png");
     }
   }
-
-  ::ng-deep {
-    nb-icon.expand-state {
-      visibility: hidden;
-    }
-
-    .scrollable {
-      padding: 12px 0 12px 27px !important;
-
-    }
-  }
-
 }
