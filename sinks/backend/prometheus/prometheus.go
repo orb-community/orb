@@ -7,7 +7,6 @@ package prometheus
 import (
 	"fmt"
 	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
 	"io"
 	"strconv"
@@ -23,9 +22,17 @@ type prometheusBackend struct {
 }
 
 type SinkFeature struct {
-	Backend     string         `json:"backend"`
-	Description string         `json:"description"`
-	Config      types.Metadata `json:"config"`
+	Backend     string          `json:"backend"`
+	Description string          `json:"description"`
+	Config      []configFeature `json:"config"`
+}
+
+type configFeature struct {
+	Type     string `json:"type"`
+	Input    string `json:"input"`
+	Title    string `json:"title"`
+	Name     string `json:"name"`
+	Required bool   `json:"required"`
 }
 
 func (p *prometheusBackend) Connect(config map[string]interface{}) error {
@@ -50,9 +57,7 @@ func (p *prometheusBackend) Metadata() interface{} {
 	return SinkFeature{
 		Backend:     "prometheus",
 		Description: "Prometheus time series database sink",
-		Config: map[string]interface{}{
-			"title": "Remote Host", "type": "string", "name": "remote_host",
-		},
+		Config:      createFeatureConfig(),
 	}
 }
 
@@ -64,4 +69,32 @@ func Register() bool {
 	backend.Register("prometheus", &prometheusBackend{})
 
 	return true
+}
+
+func createFeatureConfig() []configFeature {
+	var configs []configFeature
+
+	remoteHost := configFeature{
+		Type:     "text",
+		Input:    "text",
+		Title:    "Remote Host",
+		Name:     "remote_host",
+		Required: true,
+	}
+	userName := configFeature{
+		Type:     "text",
+		Input:    "text",
+		Title:    "Username",
+		Name:     "username",
+		Required: true,
+	}
+	password := configFeature{
+		Type:     "password",
+		Input:    "text",
+		Title:    "Password",
+		Name:     "password",
+		Required: true,
+	}
+	configs = append(configs, remoteHost, userName, password)
+	return configs
 }
