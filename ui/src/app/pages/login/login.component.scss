@@ -1,27 +1,32 @@
 ::ng-deep {
   .login-layout {
-    background: url("assets/images/login-background.png");
-    mix-blend-mode: soft-light;
+    background: url('assets/images/login-background.png');
 
     .orb-pane {
+      background-blend-mode: normal;
       background-color: transparent;
-      padding: 262px 350px 200px 144px;
+      padding: 0;
+      margin: 0.2vh 350px 0.2vh 144px;
       display: flex;
 
-      div {
-        img {
-          width: 313px;
-          height: 119px;
-        }
+       div {
+         max-width: 331px;
 
-        p {
-          font-family: 'Montserrat', serif;
+         img {
+           width: 313px;
+           height: 119px;
+           margin-bottom: 47px;
+         }
+
+         p {
+           font-family: 'Montserrat', serif;
           font-size: 24px;
           font-style: normal;
-          font-weight: 200;
+          font-weight: 200 !important;
           line-height: 32px;
-          letter-spacing: 0em;
+          letter-spacing: 0;
           text-align: left;
+          color: #969fb9;
         }
 
         strong {
@@ -29,9 +34,9 @@
           font-family: 'Montserrat', serif;
           font-size: 24px;
           font-style: normal;
-          font-weight: 400;
+          font-weight: 400 !important;
           line-height: 32px;
-          letter-spacing: 0em;
+          letter-spacing: 0;
           text-align: left;
 
         }
@@ -39,8 +44,8 @@
     }
 
     .form-pane {
+      background: url('assets/images/login-panel-background.png');
 
-      background: url("assets/images/login-panel-background.png");
     }
   }
 }
