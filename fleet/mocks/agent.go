@@ -2,12 +2,16 @@ package mocks
 
 import (
 	"context"
+	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/errors"
 )
 
 var _ fleet.AgentRepository = (*agentRepositoryMock)(nil)
 
 type agentRepositoryMock struct {
+	counter			uint64
+	agentMock map[string]fleet.Agent
 }
 
 func (a agentRepositoryMock) UpdateHeartbeatByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
@@ -15,7 +19,14 @@ func (a agentRepositoryMock) UpdateHeartbeatByIDWithChannel(ctx context.Context,
 }
 
 func (a agentRepositoryMock) Save(ctx context.Context, agent fleet.Agent) error {
-	panic("implement me")
+	ID, err := uuid.NewV4()
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+	a.counter++
+	agent.MFThingID = ID.String()
+	a.agentMock[ID.String()] = agent
+	return nil
 }
 
 func (a agentRepositoryMock) UpdateDataByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
