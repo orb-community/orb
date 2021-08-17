@@ -85,6 +85,31 @@ func (es eventStore) RemoveAgentGroup(ctx context.Context, token string, groupID
 
 }
 
+func (es eventStore) RemoveAgent(ctx context.Context, token, id string) (err error) {
+	if err := es.svc.RemoveAgent(ctx, token, id); err != nil {
+		return err
+	}
+
+	event := removeAgentEvent{
+		id:    id,
+		token: token,
+	}
+
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.encode(),
+	}
+
+	err = es.client.XAdd(ctx, record).Err()
+	if err != nil {
+		es.logger.Error("error sending event to event store", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
 // NewEventStoreMiddleware returns wrapper around fleet service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc fleet.Service, client *redis.Client) fleet.Service {

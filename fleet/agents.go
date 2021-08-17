@@ -95,6 +95,8 @@ type AgentRepository interface {
 	RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]Agent, error)
 	// UpdateAgentByID update the the tags and name for the Agent having provided ID and owner
 	UpdateAgentByID(ctx context.Context, ownerID string, agent Agent) (Agent, error)
+	// Delete an existing agent by owner and id
+	Delete(ctx context.Context, owner string, id string) error
 }
 
 type AgentHeartbeatRepository interface {
