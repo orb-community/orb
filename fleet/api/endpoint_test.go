@@ -682,6 +682,106 @@ func TestUpdateAgent(t *testing.T) {
 	}
 }
 
+func TestCreateAgent(t *testing.T) {
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"add a valid agent": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusCreated,
+			location:    "/agents",
+		},
+		"add a duplicated agent": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusConflict,
+			location:    "/agents",
+		},
+		"add a valid agent with invalid token": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/agents",
+		},
+		"add a agent with a invalid json": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents",
+		},
+		"add a agent without a content type": {
+			req:         validJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/agents",
+		},
+	}
+
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      cli.server.Client(),
+			method:      http.MethodPost,
+			url:         fmt.Sprintf("%s/agents", cli.server.URL),
+			contentType: tc.contentType,
+			token:       tc.auth,
+			body:        strings.NewReader(tc.req),
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+	}
+
+}
+
+func TestValidateAgent(t *testing.T) {
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"validate a valid agent": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+			location:    "/agents/validate",
+		},
+	}
+
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      cli.server.Client(),
+			method:      http.MethodPost,
+			url:         fmt.Sprintf("%s/agents/validate", cli.server.URL),
+			contentType: tc.contentType,
+			token:       tc.auth,
+			body:        strings.NewReader(tc.req),
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+	}
+
+}
+
 func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.AgentGroup, error) {
 	agCopy := agentGroup
 	validName, err := types.NewIdentifier(name)
