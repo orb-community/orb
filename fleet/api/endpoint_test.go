@@ -198,57 +198,39 @@ func TestViewAgentGroup(t *testing.T) {
 	require.Nil(t, err, "unexpected error: %s", err)
 
 	cases := map[string]struct {
-		id          string
-		contentType string
-		auth        string
-		status      int
-		location    string
+		id       string
+		auth     string
+		status   int
+		location string
 	}{
 		"view a existing agent group": {
-			id:          ag.ID,
-			contentType: contentType,
-			auth:        token,
-			status:      http.StatusOK,
+			id:     ag.ID,
+			auth:   token,
+			status: http.StatusOK,
 		},
 		"view a non-existing agent group": {
-			id:          wrongID,
-			contentType: contentType,
-			auth:        token,
-			status:      http.StatusNotFound,
-		},
-		"view a agent group with invalid content type": {
-			id:          ag.ID,
-			contentType: "application",
-			auth:        token,
-			status:      http.StatusUnsupportedMediaType,
-		},
-		"view a agent group with empty content type": {
-			id:          ag.ID,
-			contentType: "",
-			auth:        token,
-			status:      http.StatusUnsupportedMediaType,
+			id:     wrongID,
+			auth:   token,
+			status: http.StatusNotFound,
 		},
 		"view a agent group with a invalid token": {
-			id:          ag.ID,
-			contentType: contentType,
-			auth:        invalidToken,
-			status:      http.StatusUnauthorized,
+			id:     ag.ID,
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
 		},
 		"view a agent group with a empty token": {
-			id:          ag.ID,
-			contentType: contentType,
-			auth:        "",
-			status:      http.StatusUnauthorized,
+			id:     ag.ID,
+			auth:   "",
+			status: http.StatusUnauthorized,
 		},
 	}
 
 	for desc, tc := range cases {
 		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodGet,
-			url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
-			contentType: tc.contentType,
-			token:       tc.auth,
+			client: cli.server.Client(),
+			method: http.MethodGet,
+			url:    fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
+			token:  tc.auth,
 		}
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
