@@ -53,6 +53,16 @@ func (a agentRepositoryMock) RetrieveAllByAgentGroupID(ctx context.Context, owne
 	return []fleet.Agent{}, nil
 }
 
+func (a agentRepositoryMock) Delete(ctx context.Context, owner, thingID string) error {
+	if _, ok := a.agentsMock[thingID]; ok {
+		if a.agentsMock[thingID].MFOwnerID == owner {
+			delete(a.agentsMock, thingID)
+		}
+	}
+
+	return nil
+}
+
 func NewAgentRepositoryMock() fleet.AgentRepository {
 	return &agentRepositoryMock{
 		agentsMock: make(map[string]fleet.Agent),
