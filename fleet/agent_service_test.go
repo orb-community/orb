@@ -95,6 +95,16 @@ func TestRemoveAgent(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
+		"remove agent with wrong credentials": {
+			id:    ag.MFThingID,
+			token: invalidToken,
+			err:   fleet.ErrUnauthorizedAccess,
+		},
+		"remove non-existing agent": {
+			id:    wrongID,
+			token: token,
+			err:   nil,
+		},
 	}
 
 	for desc, tc := range cases {
