@@ -15,4 +15,16 @@
       }
     }
   }
+
+  ::ng-deep {
+    nb-icon.expand-state {
+      visibility: hidden;
+    }
+
+    .scrollable {
+      padding: 12px 0 12px 27px !important;
+
+    }
+  }
+
 }
