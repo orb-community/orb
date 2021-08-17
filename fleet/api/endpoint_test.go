@@ -747,6 +747,10 @@ func TestCreateAgent(t *testing.T) {
 }
 
 func TestValidateAgent(t *testing.T) {
+	var invalidTag = "{\n \"name\": \"eu-agents\", \n    \"tags\": {\n       \"invalidTag\", \n      \"node_type\": \"dns\"\n    }, \n   \"description\": \"An example agent group representing european dns nodes\", \n \"validate_only\": false \n}"
+	var invalidName = "{\n \"name\": \",,AGENT 6,\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	var invalidField = "{\n \"nname\": \"eu-agents\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+
 	cli := newClientServer(t)
 	defer cli.server.Close()
 
@@ -764,6 +768,56 @@ func TestValidateAgent(t *testing.T) {
 			status:      http.StatusOK,
 			location:    "/agents/validate",
 		},
+		"validate a agent with invalid json": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents/validate",
+		},
+		"validate a agent with a empty token": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+			location:    "/agents/validate",
+		},
+		"validate a agent without a content type": {
+			req:         validJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/agents/validate",
+		},
+		"validate a agent with a invalid tag": {
+			req:         invalidTag,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents/validate",
+		},
+		"validate a agent with a invalid name": {
+			req:         invalidName,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents/validate",
+		},
+		"validate a agent with a invalid token": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/agents/validate",
+		},
+		"validate a agent with a invalid agent field": {
+			req:         invalidField,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents/validate",
+		},
+
 	}
 
 	for desc, tc := range cases {

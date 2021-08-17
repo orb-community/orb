@@ -151,3 +151,19 @@ func (l loggingMiddleware) RemoveAgentGroup(ctx context.Context, token, groupID 
 func NewLoggingMiddleware(svc fleet.Service, logger *zap.Logger) fleet.Service {
 	return &loggingMiddleware{logger, svc}
 }
+
+func (l loggingMiddleware) ValidateAgent(ctx context.Context, token string, a fleet.Agent) (_ fleet.Agent, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: validate_agent",
+				zap.String("name", a.Name.String()),
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: validate_agent",
+				zap.String("name", a.Name.String()),
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ValidateAgent(ctx, token, a)
+}

@@ -221,10 +221,10 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 			view := viewAgentRes{
 				ID:           agent.MFThingID,
 				ChannelID:    agent.MFChannelID,
-				Owner:        agent.MFOwnerID,
+				//Owner:        agent.MFOwnerID,
 				Name:         agent.Name.String(),
 				State:        agent.State.String(),
-				Capabilities: agent.AgentMetadata,
+				//Capabilities: agent.AgentMetadata,
 			}
 			res.Agents = append(res.Agents, view)
 		}
@@ -267,5 +267,37 @@ func editAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		return res, nil
 
+	}
+}
+
+func validateAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(c context.Context, request interface{}) (interface{}, error) {
+		req := request.(addAgentReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		agent := fleet.Agent{
+			Name:    nID,
+			OrbTags: req.OrbTags,
+		}
+		saved, err := svc.ValidateAgent(c, req.token, agent)
+		if err != nil {
+			return nil, err
+		}
+
+		res := validateAgentRes{
+			Name:      saved.Name.String(),
+			ID:        saved.MFThingID,
+			State:     saved.State.String(),
+			Key:       saved.MFKeyID,
+			ChannelID: saved.MFChannelID,
+		}
+		return res, nil
 	}
 }
