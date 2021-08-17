@@ -59,18 +59,12 @@ func (res agentGroupsPageRes) Empty() bool {
 }
 
 type agentRes struct {
-	ID            string         `json:"id"`
-	Name          string         `json:"name"`
-	ChannelID     string         `json:"channel_id,omitempty"`
-	AgentTags     types.Tags     `json:"agent_tags"`
-	OrbTags       types.Tags     `json:"orb_tags"`
-	TsCreated     time.Time      `json:"ts_created"`
-	AgentMetadata types.Metadata `json:"agent_metadata"`
-	State         string         `json:"state"`
-	LastHbData    time.Time      `json:"last_hb_data"`
-	TslastHb      time.Time      `json:"ts_last_hb"`
-	Key           string         `json:"key,omitempty"`
-	created       bool
+	ID        string `json:"id"`
+	Key       string `json:"key,omitempty"`
+	ChannelID string `json:"channel_id,omitempty"`
+	Name      string `json:"name"`
+	State     string `json:"state"`
+	created   bool
 }
 
 func (s agentRes) Code() int {
@@ -90,12 +84,16 @@ func (s agentRes) Empty() bool {
 }
 
 type viewAgentRes struct {
-	ID           string                 `json:"id"`
-	ChannelID    string                 `json:"channel_id,omitempty"`
-	Owner        string                 `json:"-"`
-	Name         string                 `json:"name,omitempty"`
-	State        string                 `json:"state"`
-	Capabilities map[string]interface{} `json:"capabilities,omitempty"`
+	ID            string         `json:"id"`
+	Name          string         `json:"name"`
+	ChannelID     string         `json:"channel_id,omitempty"`
+	AgentTags     types.Tags     `json:"agent_tags"`
+	OrbTags       types.Tags     `json:"orb_tags"`
+	TsCreated     time.Time      `json:"ts_created"`
+	AgentMetadata types.Metadata `json:"agent_metadata"`
+	State         string         `json:"state"`
+	LastHBData    types.Metadata `json:"last_hb_data"`
+	LastHB        time.Time      `json:"ts_last_hb"`
 }
 
 func (res viewAgentRes) Code() int {
