@@ -315,6 +315,7 @@ func TestMultiAgentRetrieval(t *testing.T) {
 		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 		th.AgentMetadata = metadata
 		th.AgentTags = tags
+		th.OrbTags = subTags
 
 		err = agentRepo.Save(context.Background(), th)
 		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
@@ -343,7 +344,7 @@ func TestMultiAgentRetrieval(t *testing.T) {
 			},
 			size: n / 2,
 		},
-		"retrieve things with existing metadata": {
+		"retrieve agents with existing metadata": {
 			owner: oID.String(),
 			pageMetadata: fleet.PageMetadata{
 				Offset:   0,
@@ -353,7 +354,7 @@ func TestMultiAgentRetrieval(t *testing.T) {
 			},
 			size: n,
 		},
-		"retrieve things with existing tags": {
+		"retrieve agents with existing tags": {
 			owner: oID.String(),
 			pageMetadata: fleet.PageMetadata{
 				Offset: 0,

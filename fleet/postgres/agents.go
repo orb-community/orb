@@ -80,7 +80,7 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
-	t, tmq, err := getTagsQuery(pm.Tags)
+	t, tmq, err := getOrbTagsQuery(pm.Tags)
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
@@ -440,12 +440,26 @@ func getMetadataQuery(m types.Metadata) ([]byte, string, error) {
 	return mb, mq, nil
 }
 
-func getTagsQuery(m types.Tags) ([]byte, string, error) {
+func getAgentTagsQuery(m types.Tags) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {
-		// todo add in orb tags
 		mq = ` AND agent_tags @> :tags`
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, "", err
+		}
+		mb = b
+	}
+	return mb, mq, nil
+}
+
+func getOrbTagsQuery(m types.Tags) ([]byte, string, error) {
+	mq := ""
+	mb := []byte("{}")
+	if len(m) > 0 {
+		mq = ` AND orb_tags @> :tags`
 
 		b, err := json.Marshal(m)
 		if err != nil {
