@@ -439,6 +439,74 @@ func TestMultiAgentRetrieval(t *testing.T) {
 		}
 	}
 }
+
+func TestAgentUpdate(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	thID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("my-agent1")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	updatedNameID, err := types.NewIdentifier("my-agent2")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	agent := fleet.Agent{
+		Name:          nameID,
+		MFThingID:     thID.String(),
+		MFOwnerID:     oID.String(),
+		MFChannelID:   chID.String(),
+		OrbTags:       types.Tags{"testkey": "testvalue"},
+		AgentTags:     types.Tags{"testkey": "testvalue"},
+		AgentMetadata: types.Metadata{"testkey": "testvalue"},
+	}
+
+	err = agentRepo.Save(context.Background(), agent)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	cases := map[string]struct {
+		agent fleet.Agent
+		err   error
+	}{
+		"update existing agent data by thingID": {
+			agent: fleet.Agent{
+				MFThingID: thID.String(),
+				MFOwnerID: oID.String(),
+				Name:      updatedNameID,
+				OrbTags:   types.Tags{"newkey": "newvalue"},
+			},
+			err: nil,
+		},
+		"update non-existent agent data by thingID": {
+			agent: fleet.Agent{
+				MFThingID: oID.String(),
+				MFOwnerID: oID.String(),
+				Name:      updatedNameID,
+				OrbTags:   types.Tags{"newkey": "newvalue"},
+			},
+			err: errors.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		err = agentRepo.UpdateAgentByID(context.Background(), tc.agent.MFOwnerID, tc.agent)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		if err == nil {
+			ag, err := agentRepo.RetrieveByID(context.Background(), tc.agent.MFOwnerID, tc.agent.MFThingID)
+			assert.Nil(t, err)
+			assert.Equal(t, tc.agent.OrbTags, ag.OrbTags, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+		}
+	}
+}
+
 func testSortAgents(t *testing.T, pm fleet.PageMetadata, ths []fleet.Agent) {
 	switch pm.Order {
 	case "name":
