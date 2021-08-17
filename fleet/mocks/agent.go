@@ -2,16 +2,14 @@ package mocks
 
 import (
 	"context"
-	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/errors"
 )
 
 var _ fleet.AgentRepository = (*agentRepositoryMock)(nil)
 
 type agentRepositoryMock struct {
-	counter			uint64
-	agentMock map[string]fleet.Agent
+	counter    uint64
+	agentsMock map[string]fleet.Agent
 }
 
 func (a agentRepositoryMock) UpdateHeartbeatByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
@@ -19,14 +17,24 @@ func (a agentRepositoryMock) UpdateHeartbeatByIDWithChannel(ctx context.Context,
 }
 
 func (a agentRepositoryMock) Save(ctx context.Context, agent fleet.Agent) error {
-	ID, err := uuid.NewV4()
-	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, err)
+	for _, ag := range a.agentsMock {
+		if ag.Name == agent.Name && ag.MFOwnerID == agent.MFOwnerID {
+			return fleet.ErrConflict
+		}
 	}
-	a.counter++
-	agent.MFThingID = ID.String()
-	a.agentMock[ID.String()] = agent
+	a.agentsMock[agent.MFThingID] = agent
 	return nil
+}
+
+func (a agentRepositoryMock) UpdateAgentByID(ctx context.Context, ownerID string, agent fleet.Agent) (fleet.Agent, error) {
+	if _, ok := a.agentsMock[agent.MFThingID]; ok {
+		if a.agentsMock[agent.MFThingID].MFOwnerID != ownerID {
+			return fleet.Agent{}, fleet.ErrUpdateEntity
+		}
+		a.agentsMock[agent.MFThingID] = agent
+		return a.agentsMock[agent.MFThingID], nil
+	}
+	return fleet.Agent{}, fleet.ErrNotFound
 }
 
 func (a agentRepositoryMock) UpdateDataByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
@@ -46,5 +54,7 @@ func (a agentRepositoryMock) RetrieveAllByAgentGroupID(ctx context.Context, owne
 }
 
 func NewAgentRepositoryMock() fleet.AgentRepository {
-	return agentRepositoryMock{}
+	return &agentRepositoryMock{
+		agentsMock: make(map[string]fleet.Agent),
+	}
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
+	"go.uber.org/zap"
 )
 
 var (
@@ -97,4 +98,24 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 	}
 
 	return a, nil
+}
+
+func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent) (Agent, error) {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return Agent{}, err
+	}
+	agent.MFOwnerID = ownerID
+
+	res, err := svc.agentRepo.UpdateAgentByID(ctx, ownerID, agent)
+	if err != nil {
+		return Agent{}, err
+	}
+
+	err = svc.agentComms.NotifyAgentGroupMembership(res)
+	if err != nil {
+		svc.logger.Error("failure during agent group membership comms", zap.Error(err))
+	}
+
+	return res, nil
 }

@@ -232,3 +232,40 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func editAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(updateAgentReq)
+
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		validName, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+		agent := fleet.Agent{
+			Name:      validName,
+			MFThingID: req.id,
+			OrbTags:   req.Tags,
+		}
+
+		updatedAgent, err := svc.EditAgent(ctx, req.token, agent)
+		if err != nil {
+			return nil, err
+		}
+
+		res := agentRes{
+			ID:        updatedAgent.MFThingID,
+			Key:       "",
+			ChannelID: "",
+			Name:      updatedAgent.Name.String(),
+			State:     "",
+			created:   false,
+		}
+
+		return res, nil
+
+	}
+}

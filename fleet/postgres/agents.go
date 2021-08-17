@@ -269,6 +269,10 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 
 }
 
+func (r agentRepository) UpdateAgentByID(ctx context.Context, ownerID string, agent fleet.Agent) (fleet.Agent, error) {
+	return fleet.Agent{}, nil
+}
+
 type dbAgent struct {
 	Name          types.Identifier `db:"name"`
 	MFOwnerID     string           `db:"mf_owner_id"`

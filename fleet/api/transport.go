@@ -78,6 +78,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeList,
 		types.EncodeResponse,
 		opts...))
+	r.Put("/agents/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "edit_agent")(editAgentEndpoint(svc)),
+		decodeAgentUpdate,
+		types.EncodeResponse,
+		opts...))
 
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
@@ -99,9 +104,6 @@ func decodeAddAgentGroup(_ context.Context, r *http.Request) (interface{}, error
 }
 
 func decodeView(_ context.Context, r *http.Request) (interface{}, error) {
-	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
-		return nil, errors.ErrUnsupportedContentType
-	}
 	req := viewResourceReq{
 		token: r.Header.Get("Authorization"),
 		id:    bone.GetValue(r, "id"),
@@ -133,6 +135,21 @@ func decodeAddAgent(_ context.Context, r *http.Request) (interface{}, error) {
 	req := addAgentReq{token: r.Header.Get("Authorization")}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return req, nil
+}
+
+func decodeAgentUpdate(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), contentType) {
+		return nil, errors.ErrUnsupportedContentType
+	}
+	req := updateAgentReq{
+		token: r.Header.Get("Authorization"),
+		id:    bone.GetValue(r, "id"),
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
 	}
 
 	return req, nil
