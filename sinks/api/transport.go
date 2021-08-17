@@ -125,9 +125,6 @@ func decodeEditRequest(_ context.Context, r *http.Request) (interface{}, error) 
 }
 
 func decodeView(_ context.Context, r *http.Request) (interface{}, error) {
-	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
-		return nil, errors.ErrUnsupportedContentType
-	}
 	req := viewResourceReq{
 		token: r.Header.Get("Authorization"),
 		id:    bone.GetValue(r, "id"),
@@ -136,9 +133,6 @@ func decodeView(_ context.Context, r *http.Request) (interface{}, error) {
 }
 
 func decodeListBackends(_ context.Context, r *http.Request) (interface{}, error) {
-	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
-		return nil, errors.ErrUnsupportedContentType
-	}
 	req := listBackendsReq{token: r.Header.Get("Authorization")}
 	return req, nil
 }
