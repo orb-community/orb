@@ -119,3 +119,7 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 
 	return res, nil
 }
+
+func (svc fleetService) RemoveAgent(ctx context.Context, owner, id string) error {
+	return nil
+}

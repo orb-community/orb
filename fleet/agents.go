@@ -75,6 +75,8 @@ type AgentService interface {
 	ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error)
 	// EditAgent
 	EditAgent(ctx context.Context, token string, agent Agent) (Agent, error)
+	// RemoveAgent removes an existing agent by owner and id
+	RemoveAgent(ctx context.Context, owner string, id string) error
 }
 
 type AgentRepository interface {
