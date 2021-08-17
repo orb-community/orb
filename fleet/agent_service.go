@@ -126,5 +126,10 @@ func (svc fleetService) RemoveAgent(ctx context.Context, owner, id string) error
 		return err
 	}
 
+	err = svc.agentRepo.Delete(ctx, owner, id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
