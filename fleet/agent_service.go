@@ -121,5 +121,10 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 }
 
 func (svc fleetService) RemoveAgent(ctx context.Context, owner, id string) error {
+	_, err := svc.identify(owner)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
