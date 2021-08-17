@@ -683,6 +683,8 @@ func TestUpdateAgent(t *testing.T) {
 }
 
 func TestCreateAgent(t *testing.T) {
+	var validJson   = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+
 	cli := newClientServer(t)
 	defer cli.server.Close()
 
@@ -714,7 +716,7 @@ func TestCreateAgent(t *testing.T) {
 			status:      http.StatusUnauthorized,
 			location:    "/agents",
 		},
-		"add a agent with a invalid json": {
+		"add a agent with an invalid json": {
 			req:         invalidJson,
 			contentType: contentType,
 			auth:        token,
@@ -747,9 +749,10 @@ func TestCreateAgent(t *testing.T) {
 }
 
 func TestValidateAgent(t *testing.T) {
-	var invalidTag = "{\n \"name\": \"eu-agents\", \n    \"tags\": {\n       \"invalidTag\", \n      \"node_type\": \"dns\"\n    }, \n   \"description\": \"An example agent group representing european dns nodes\", \n \"validate_only\": false \n}"
-	var invalidName = "{\n \"name\": \",,AGENT 6,\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
-	var invalidField = "{\n \"nname\": \"eu-agents\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	var validJson   = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+	var invalidTag  = "{\"name\":\"eu-agents\",\"orb_tags\": {\n\"invalidTag\", \n \"node_type\":\"dns\"}}"
+	var invalidName = "{\"name\":\",,AGENT 6,\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+	var invalidField = "{\"nname\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
 
 	cli := newClientServer(t)
 	defer cli.server.Close()
