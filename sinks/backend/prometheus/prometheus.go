@@ -22,17 +22,9 @@ type prometheusBackend struct {
 }
 
 type SinkFeature struct {
-	Backend     string          `json:"backend"`
-	Description string          `json:"description"`
-	Config      []configFeature `json:"config"`
-}
-
-type configFeature struct {
-	Type     string `json:"type"`
-	Input    string `json:"input"`
-	Title    string `json:"title"`
-	Name     string `json:"name"`
-	Required bool   `json:"required"`
+	Backend     string                  `json:"backend"`
+	Description string                  `json:"description"`
+	Config      []backend.ConfigFeature `json:"config"`
 }
 
 func (p *prometheusBackend) Connect(config map[string]interface{}) error {
@@ -57,7 +49,7 @@ func (p *prometheusBackend) Metadata() interface{} {
 	return SinkFeature{
 		Backend:     "prometheus",
 		Description: "Prometheus time series database sink",
-		Config:      createFeatureConfig(),
+		Config:      p.CreateFeatureConfig(),
 	}
 }
 
@@ -71,24 +63,24 @@ func Register() bool {
 	return true
 }
 
-func createFeatureConfig() []configFeature {
-	var configs []configFeature
+func (p *prometheusBackend) CreateFeatureConfig() []backend.ConfigFeature {
+	var configs []backend.ConfigFeature
 
-	remoteHost := configFeature{
+	remoteHost := backend.ConfigFeature{
 		Type:     "text",
 		Input:    "text",
 		Title:    "Remote Host",
 		Name:     "remote_host",
 		Required: true,
 	}
-	userName := configFeature{
+	userName := backend.ConfigFeature{
 		Type:     "text",
 		Input:    "text",
 		Title:    "Username",
 		Name:     "username",
 		Required: true,
 	}
-	password := configFeature{
+	password := backend.ConfigFeature{
 		Type:     "password",
 		Input:    "text",
 		Title:    "Password",
