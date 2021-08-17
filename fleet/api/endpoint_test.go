@@ -56,7 +56,21 @@ var (
 		Tags:        nil,
 		Created:     time.Time{},
 	}
-	metadata    = map[string]interface{}{"meta": "data"}
+	agent = fleet.Agent{
+		Name:          types.Identifier{},
+		MFOwnerID:     "",
+		MFThingID:     "",
+		MFKeyID:       "",
+		MFChannelID:   "",
+		Created:       time.Time{},
+		OrbTags:       nil,
+		AgentTags:     nil,
+		AgentMetadata: nil,
+		State:         0,
+		LastHBData:    nil,
+		LastHB:        time.Time{},
+	}
+	metadata    = map[string]interface{}{"type": "orb_agent"}
 	tags        = types.Tags{"region": "us", "node_type": "dns"}
 	invalidName = strings.Repeat("m", maxNameSize+1)
 )
@@ -71,7 +85,7 @@ type testRequest struct {
 }
 
 type clientServer struct {
-	service fleet.AgentGroupService
+	service fleet.Service
 	server  *httptest.Server
 }
 
@@ -574,6 +588,118 @@ func TestDeleteAgentGroup(t *testing.T) {
 	}
 }
 
+func TestUpdateAgent(t *testing.T) {
+	cli := newClientServer(t)
+
+	ag, err := createAgent(t, "my-agent1", &cli)
+	require.Nil(t, err, "unexpected error: %s", err)
+
+	data := toJSON(updateAgentReq{
+		Name: ag.Name.String(),
+		Tags: ag.OrbTags,
+	})
+
+	cases := map[string]struct {
+		req         string
+		id          string
+		contentType string
+		auth        string
+		status      int
+	}{
+		"update existing agent": {
+			req:         data,
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+		},
+		"update agent with a empty json request": {
+			req:         "{}",
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update agent with a invalid id": {
+			req:         data,
+			id:          "invalid",
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusNotFound,
+		},
+		"update non-existing agent": {
+			req:         data,
+			id:          wrongID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusNotFound,
+		},
+		"update agent with invalid user token": {
+			req:         data,
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        "invalid",
+			status:      http.StatusUnauthorized,
+		},
+		"update agent with empty user token": {
+			req:         data,
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+		},
+		"update agent with invalid content type": {
+			req:         data,
+			id:          ag.MFThingID,
+			contentType: "invalid",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+		},
+		"update agent without content type": {
+			req:         data,
+			id:          ag.MFThingID,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+		},
+		"update agent with a empty request": {
+			req:         "",
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update agent with a invalid data format": {
+			req:         invalidJson,
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update agent with different owner": {
+			req:         invalidJson,
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+	}
+
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      cli.server.Client(),
+			method:      http.MethodPut,
+			url:         fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
+			contentType: tc.contentType,
+			token:       tc.auth,
+			body:        strings.NewReader(tc.req),
+		}
+		res, err := req.make()
+		require.Nil(t, err, "%s: unexpected error: %s", desc, err)
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+	}
+}
+
 func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.AgentGroup, error) {
 	agCopy := agentGroup
 	validName, err := types.NewIdentifier(name)
@@ -585,6 +711,19 @@ func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.Agent
 		return fleet.AgentGroup{}, err
 	}
 	return ag, nil
+}
+
+func createAgent(t *testing.T, name string, cli *clientServer) (fleet.Agent, error) {
+	aCopy := agent
+	validName, err := types.NewIdentifier(name)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	aCopy.Name = validName
+	aCopy.OrbTags = tags
+	a, err := cli.service.CreateAgent(context.Background(), token, aCopy)
+	if err != nil {
+		return fleet.Agent{}, err
+	}
+	return a, nil
 }
 
 func newClientServer(t *testing.T) clientServer {
@@ -623,4 +762,10 @@ type updateAgentGroupReq struct {
 	Name        string     `json:"name,omitempty"`
 	Description string     `json:"description,omitempty"`
 	Tags        types.Tags `json:"tags"`
+}
+
+type updateAgentReq struct {
+	token string
+	Name  string     `json:"name,omitempty"`
+	Tags  types.Tags `json:"tags"`
 }

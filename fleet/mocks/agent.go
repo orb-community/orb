@@ -15,7 +15,7 @@ func (a agentRepositoryMock) UpdateHeartbeatByIDWithChannel(ctx context.Context,
 }
 
 func (a agentRepositoryMock) Save(ctx context.Context, agent fleet.Agent) error {
-	panic("implement me")
+	return nil
 }
 
 func (a agentRepositoryMock) UpdateDataByIDWithChannel(ctx context.Context, agent fleet.Agent) error {

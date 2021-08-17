@@ -232,3 +232,9 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func editAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		return nil, nil
+	}
+}
