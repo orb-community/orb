@@ -315,6 +315,7 @@ func TestMultiAgentRetrieval(t *testing.T) {
 		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 		th.AgentMetadata = metadata
 		th.AgentTags = tags
+		th.OrbTags = subTags
 
 		err = agentRepo.Save(context.Background(), th)
 		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))

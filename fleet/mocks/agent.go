@@ -3,11 +3,16 @@ package mocks
 import (
 	"context"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/types"
 )
 
 var _ fleet.AgentRepository = (*agentRepositoryMock)(nil)
 
 type agentRepositoryMock struct {
+}
+
+func (a agentRepositoryMock) RetrieveMatchingAgents(ctx context.Context, tags types.Tags) (types.Metadata, error) {
+	return nil, nil
 }
 
 func (a agentRepositoryMock) UpdateHeartbeatByIDWithChannel(ctx context.Context, agent fleet.Agent) error {

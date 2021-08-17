@@ -55,19 +55,14 @@ func (r agentRepository) RetrieveMatchingAgents(ctx context.Context, tags types.
 	}
 	defer rows.Close()
 
-	var items []types.Metadata
-	for rows.Next() {
-		dbth := dbMatchingAgent{}
-		if err := rows.StructScan(&dbth); err != nil {
+	dbma := dbMatchingAgent{}
+	if rows.Next() {
+		if err := rows.StructScan(&dbma); err != nil {
 			return types.Metadata{}, errors.Wrap(errors.ErrSelectEntity, err)
 		}
-		items = append(items, types.Metadata(dbth.MatchingAgents))
 	}
 
-	if len(items) > 0 {
-		return items[0], nil
-	}
-	return types.Metadata{}, nil
+	return types.Metadata(dbma.MatchingAgents), nil
 }
 
 func (r agentRepository) RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]fleet.Agent, error) {
@@ -120,7 +115,7 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
-	t, tmq, err := getTagsQuery(pm.Tags)
+	t, tmq, err := getAgentTagsQuery(pm.Tags)
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}

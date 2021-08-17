@@ -255,7 +255,6 @@ func validateAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		res := validateAgentGroupRes{
-			ID:             validated.ID,
 			Name:           validated.Name.String(),
 			Tags:           validated.Tags,
 			MatchingAgents: validated.MatchingAgents,

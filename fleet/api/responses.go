@@ -144,7 +144,7 @@ func (r removeRes) Empty() bool {
 }
 
 type validateAgentGroupRes struct {
-	ID             string         `json:"id"`
+	ID             string         `json:"id,omitempty"`
 	Name           string         `json:"name"`
 	Description    string         `json:"description,omitempty"`
 	Tags           types.Tags     `json:"tags"`
