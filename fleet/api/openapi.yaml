@@ -211,7 +211,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/Authorization"
     post:
-      summary: 'Create a new Agent'
+      summary: 'Validate a new Agent without saving'
       operationId: validateAgent
       tags:
         - agents
