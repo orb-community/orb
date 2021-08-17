@@ -249,15 +249,16 @@ func validateAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 			Name: nID,
 			Tags: req.Tags,
 		}
-		saved, err := svc.ValidateAgentGroup(c, req.token, group)
+		validated, err := svc.ValidateAgentGroup(c, req.token, group)
 		if err != nil {
 			return nil, err
 		}
 
 		res := validateAgentGroupRes{
-			ID:   saved.ID,
-			Name: saved.Name.String(),
-			Tags: saved.Tags,
+			ID:             validated.ID,
+			Name:           validated.Name.String(),
+			Tags:           validated.Tags,
+			MatchingAgents: validated.MatchingAgents,
 		}
 
 		return res, nil
