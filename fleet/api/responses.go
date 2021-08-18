@@ -152,7 +152,6 @@ type validateAgentRes struct {
 	Key       string `json:"key,omitempty"`
 	ChannelID string `json:"channel_id,omitempty"`
 	Name      string `json:"name"`
-	State     string `json:"state"`
 }
 
 func (s validateAgentRes) Code() int {
