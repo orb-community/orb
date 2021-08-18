@@ -148,10 +148,10 @@ func (r removeRes) Empty() bool {
 }
 
 type validateAgentRes struct {
-	ID        string `json:"id"`
-	Key       string `json:"key,omitempty"`
-	ChannelID string `json:"channel_id,omitempty"`
-	Name      string `json:"name"`
+	Key       string 		 `json:"key,omitempty"`
+	ChannelID string 		 `json:"channel_id,omitempty"`
+	Name      string 		 `json:"name"`
+	OrbTags   types.Tags     `json:"orb_tags"`
 }
 
 func (s validateAgentRes) Code() int {
