@@ -11,7 +11,7 @@ var _ fleet.AgentRepository = (*agentRepositoryMock)(nil)
 type agentRepositoryMock struct {
 }
 
-func (a agentRepositoryMock) RetrieveMatchingAgents(ctx context.Context, tags types.Tags) (types.Metadata, error) {
+func (a agentRepositoryMock) RetrieveMatchingAgents(ctx context.Context, ownerID string, tags types.Tags) (types.Metadata, error) {
 	return nil, nil
 }
 

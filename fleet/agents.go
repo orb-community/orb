@@ -90,7 +90,7 @@ type AgentRepository interface {
 	// RetrieveAllByAgentGroupID retrieves Agents in the specified group
 	RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]Agent, error)
 	// RetrieveMatchingAgents retrieve the matching agents by tags
-	RetrieveMatchingAgents(ctx context.Context, tags types.Tags) (types.Metadata, error)
+	RetrieveMatchingAgents(ctx context.Context, owner string, tags types.Tags) (types.Metadata, error)
 }
 
 type AgentHeartbeatRepository interface {

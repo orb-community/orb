@@ -30,8 +30,8 @@ type agentRepository struct {
 	logger *zap.Logger
 }
 
-func (r agentRepository) RetrieveMatchingAgents(ctx context.Context, tags types.Tags) (types.Metadata, error) {
-	t, tmq, err := getOrbTagsQuery(tags)
+func (r agentRepository) RetrieveMatchingAgents(ctx context.Context, ownerID string, tags types.Tags) (types.Metadata, error) {
+	t, tmq, err := getOrbOrAgentTagsQuery(tags)
 	if err != nil {
 		return types.Metadata{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
@@ -43,10 +43,11 @@ func (r agentRepository) RetrieveMatchingAgents(ctx context.Context, tags types.
 			(select
 				sum(case when mf_thing_id is not null then 1 else 0 end) as total,
 				sum(case when state = 'online' then 1 else 0 end) as online
-			from agents WHERE mf_thing_id is not null %s) as agent_groups`, tmq)
+			from agents WHERE mf_owner_id = :mf_owner_id %s) as agent_groups`, tmq)
 
 	params := map[string]interface{}{
-		"tags": t,
+		"tags":        t,
+		"mf_owner_id": ownerID,
 	}
 
 	rows, err := r.db.NamedQueryContext(ctx, q, params)
@@ -115,7 +116,7 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
-	t, tmq, err := getAgentTagsQuery(pm.Tags)
+	t, tmq, err := getOrbOrAgentTagsQuery(pm.Tags)
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
@@ -407,28 +408,12 @@ func getMetadataQuery(m types.Metadata) ([]byte, string, error) {
 	return mb, mq, nil
 }
 
-func getAgentTagsQuery(m types.Tags) ([]byte, string, error) {
+func getOrbOrAgentTagsQuery(m types.Tags) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {
 		// todo add in orb tags
-		mq = ` AND agent_tags @> :tags`
-
-		b, err := json.Marshal(m)
-		if err != nil {
-			return nil, "", err
-		}
-		mb = b
-	}
-	return mb, mq, nil
-}
-
-func getOrbTagsQuery(m types.Tags) ([]byte, string, error) {
-	mq := ""
-	mb := []byte("{}")
-	if len(m) > 0 {
-		// todo add in orb tags
-		mq = ` AND orb_tags @> :tags`
+		mq = ` AND (agent_tags <@ :tags OR orb_tags <@ :tags)`
 
 		b, err := json.Marshal(m)
 		if err != nil {
