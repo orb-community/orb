@@ -570,6 +570,53 @@ func TestDeleteAgentGroup(t *testing.T) {
 	}
 }
 
+func TestViewAgent(t *testing.T) {
+	cli := newClientServer(t)
+
+	ag, err := createAgent(t, "my-agent1", &cli)
+	require.Nil(t, err, "unexpected error: %s", err)
+
+	cases := map[string]struct {
+		id     string
+		auth   string
+		status int
+	}{
+		"view a existing agent": {
+			id:     ag.MFThingID,
+			auth:   token,
+			status: http.StatusOK,
+		},
+		"view a non-existing agent": {
+			id:     wrongID,
+			auth:   token,
+			status: http.StatusNotFound,
+		},
+		"view a agent with a invalid token": {
+			id:     ag.MFThingID,
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+		},
+		"view a agent with a empty token": {
+			id:     ag.MFThingID,
+			auth:   "",
+			status: http.StatusUnauthorized,
+		},
+	}
+
+	for desc, tc := range cases {
+		req := testRequest{
+			client: cli.server.Client(),
+			method: http.MethodGet,
+			url:    fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
+			token:  tc.auth,
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+	}
+
+}
+
 func TestUpdateAgent(t *testing.T) {
 	cli := newClientServer(t)
 

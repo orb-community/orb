@@ -38,6 +38,43 @@ var (
 	}
 )
 
+func TestViewAgent(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ag, err := createAgent(t, "my-agent1", fleetService)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		id    string
+		token string
+		err   error
+	}{
+		"view a existing agent": {
+			id:    ag.MFThingID,
+			token: token,
+			err:   nil,
+		},
+		"view agent with wrong credentials": {
+			id:    ag.MFThingID,
+			token: "wrong",
+			err:   fleet.ErrUnauthorizedAccess,
+		},
+		"view non-existing agent": {
+			id:    "9bb1b244-a199-93c2-aa03-28067b431e2c",
+			token: token,
+			err:   fleet.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		_, err := fleetService.ViewAgentByID(context.Background(), tc.token, tc.id)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
 func TestUpdateAgent(t *testing.T) {
 	users := flmocks.NewAuthService(map[string]string{token: email})
 
