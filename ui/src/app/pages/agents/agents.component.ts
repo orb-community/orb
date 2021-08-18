@@ -181,7 +181,6 @@ export class AgentsComponent implements AfterViewInit {
       confirm => {
         if (confirm) {
           this.getAgents();
-          this.cdr.detectChanges();
         }
       },
     );
