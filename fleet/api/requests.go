@@ -101,6 +101,33 @@ func (req addAgentReq) validate() error {
 	return nil
 }
 
+type updateAgentReq struct {
+	id    string
+	token string
+	Name  string     `json:"name,omitempty"`
+	Tags  types.Tags `json:"orb_tags,omitempty"`
+}
+
+func (req updateAgentReq) validate() error {
+
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+	if req.Name == "" {
+		return errors.ErrMalformedEntity
+	}
+	if len(req.Tags) == 0 {
+		return errors.ErrMalformedEntity
+	}
+
+	_, err := types.NewIdentifier(req.Name)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return nil
+}
+
 type viewResourceReq struct {
 	token string
 	id    string

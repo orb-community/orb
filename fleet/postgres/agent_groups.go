@@ -50,7 +50,7 @@ func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context,
 	if err != nil {
 		return fleet.PageAgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
-	tags, tagsQuery, err := getAgentGroupTagsQuery(pm.Tags)
+	tags, tagsQuery, err := getTagsQuery(pm.Tags)
 	if err != nil {
 		return fleet.PageAgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
@@ -382,7 +382,7 @@ func getAgentGroupOrderQuery(order string) string {
 	}
 }
 
-func getAgentGroupTagsQuery(m types.Tags) ([]byte, string, error) {
+func getTagsQuery(m types.Tags) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {
