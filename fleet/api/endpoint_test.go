@@ -195,7 +195,7 @@ func TestViewAgentGroup(t *testing.T) {
 	cli := newClientServer(t)
 
 	ag, err := createAgentGroup(t, "ue-agent-group", &cli)
-	require.Nil(t, err, "unexpected error: %s", err)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	cases := map[string]struct {
 		id       string
@@ -400,7 +400,7 @@ func TestListAgentGroup(t *testing.T) {
 			token:       tc.auth,
 		}
 		res, err := req.make()
-		require.Nil(t, err, "%s: unexpected error: %s", desc, err)
+		require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
 		var body agentGroupsPageRes
 		json.NewDecoder(res.Body).Decode(&body)
 		total := uint64(len(body.AgentGroups))
@@ -414,7 +414,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 	cli := newClientServer(t)
 
 	ag, err := createAgentGroup(t, "ue-agent-group", &cli)
-	require.Nil(t, err, "unexpected error: %s", err)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	data := toJSON(updateAgentGroupReq{
 		Name:        ag.Name.String(),
@@ -528,7 +528,7 @@ func TestDeleteAgentGroup(t *testing.T) {
 	cli := newClientServer(t)
 
 	ag, err := createAgentGroup(t, "ue-agent-group", &cli)
-	require.Nil(t, err, "unexpected error: %s", err)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	cases := map[string]struct {
 		id     string
@@ -574,7 +574,7 @@ func TestViewAgent(t *testing.T) {
 	cli := newClientServer(t)
 
 	ag, err := createAgent(t, "my-agent1", &cli)
-	require.Nil(t, err, "unexpected error: %s", err)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	cases := map[string]struct {
 		id     string
@@ -614,6 +614,180 @@ func TestViewAgent(t *testing.T) {
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 	}
+}
+
+func TestListAgent(t *testing.T) {
+	cli := newClientServer(t)
+
+	var data []viewAgentRes
+	for i := 0; i < limit; i++ {
+		ag, err := createAgent(t, fmt.Sprintf("my-agent-%d", i), &cli)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+		data = append(data, viewAgentRes{
+			ID:            ag.MFThingID,
+			Name:          ag.Name.String(),
+			ChannelID:     ag.MFChannelID,
+			AgentTags:     ag.AgentTags,
+			OrbTags:       ag.OrbTags,
+			TsCreated:     ag.Created,
+			AgentMetadata: ag.AgentMetadata,
+			State:         ag.State.String(),
+			LastHBData:    ag.LastHBData,
+			LastHB:        ag.LastHB,
+		})
+	}
+
+	cases := map[string]struct {
+		auth   string
+		status int
+		url    string
+		res    []viewAgentRes
+		total  uint64
+	}{
+		"retrieve a list of agents": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, limit),
+			res:    data[0:limit],
+			total:  limit,
+		},
+		"get a list of agents with empty token": {
+			auth:   "",
+			status: http.StatusUnauthorized,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, 1),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents with invalid token": {
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, 1),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents with invalid order": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d&order=wrong", 0, 5),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents with invalid dir": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d&order=name&dir=wrong", 0, 5),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents with negative offset": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", -1, 5),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents with negative limit": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, -5),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents with zero limit": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, 0),
+			res:    data[0:limit],
+			total:  limit,
+		},
+		"get a list of agents without offset": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("?limit=%d", limit),
+			res:    data[0:limit],
+			total:  limit,
+		},
+		"get a list of agents without limit": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("?offset=%d", 1),
+			res:    data[1:limit],
+			total:  limit - 1,
+		},
+		"get a list of agents with limit greater than max": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, 110),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents with default URL": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("%s", ""),
+			res:    data[0:limit],
+			total:  limit,
+		},
+		"get a list of agents with invalid number of params": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=4&limit=4&limit=5&offset=5"),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents with invalid offset": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=e&limit=5"),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents with invalid limit": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=5&limit=e"),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents filtering with invalid name": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d&name=%s", 0, 5, invalidName),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents sorted with invalid order": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d&order=wrong&dir=desc", 0, 5),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of agents sorted with invalid direction": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d&order=name&dir=wrong", 0, 5),
+			res:    nil,
+			total:  0,
+		},
+	}
+
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      cli.server.Client(),
+			method:      http.MethodGet,
+			url:         fmt.Sprintf(fmt.Sprintf("%s/agents%s", cli.server.URL, tc.url)),
+			contentType: contentType,
+			token:       tc.auth,
+		}
+		res, err := req.make()
+		require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+		var body agentsPageRes
+		json.NewDecoder(res.Body).Decode(&body)
+		total := uint64(len(body.Agents))
+		assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+	}
 
 }
 
@@ -621,7 +795,7 @@ func TestUpdateAgent(t *testing.T) {
 	cli := newClientServer(t)
 
 	ag, err := createAgent(t, "my-agent1", &cli)
-	require.Nil(t, err, "unexpected error: %s", err)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	data := toJSON(updateAgentReq{
 		Name: ag.Name.String(),
@@ -724,12 +898,13 @@ func TestUpdateAgent(t *testing.T) {
 			body:        strings.NewReader(tc.req),
 		}
 		res, err := req.make()
-		require.Nil(t, err, "%s: unexpected error: %s", desc, err)
+		require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 	}
 }
 
 func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.AgentGroup, error) {
+	t.Helper()
 	agCopy := agentGroup
 	validName, err := types.NewIdentifier(name)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
@@ -743,6 +918,7 @@ func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.Agent
 }
 
 func createAgent(t *testing.T, name string, cli *clientServer) (fleet.Agent, error) {
+	t.Helper()
 	aCopy := agent
 	validName, err := types.NewIdentifier(name)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
@@ -784,6 +960,26 @@ type agentGroupsPageRes struct {
 	Offset      uint64          `json:"offset"`
 	Limit       uint64          `json:"limit"`
 	AgentGroups []agentGroupRes `json:"agentGroups"`
+}
+
+type viewAgentRes struct {
+	ID            string         `json:"id"`
+	Name          string         `json:"name"`
+	ChannelID     string         `json:"channel_id,omitempty"`
+	AgentTags     types.Tags     `json:"agent_tags"`
+	OrbTags       types.Tags     `json:"orb_tags"`
+	TsCreated     time.Time      `json:"ts_created"`
+	AgentMetadata types.Metadata `json:"agent_metadata"`
+	State         string         `json:"state"`
+	LastHBData    types.Metadata `json:"last_hb_data"`
+	LastHB        time.Time      `json:"ts_last_hb"`
+}
+
+type agentsPageRes struct {
+	Total  uint64         `json:"total"`
+	Offset uint64         `json:"offset"`
+	Limit  uint64         `json:"limit"`
+	Agents []viewAgentRes `json:"agents"`
 }
 
 type updateAgentGroupReq struct {
