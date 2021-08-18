@@ -21,6 +21,7 @@ import {
   NbDialogModule,
   NbIconModule,
   NbInputModule,
+  NbLayoutModule,
   NbMenuModule,
   NbSidebarModule,
   NbToastrModule,
@@ -35,6 +36,7 @@ import { environment } from 'environments/environment';
 // Mfx - Auth and Profile pages
 import { BreadcrumbModule } from 'xng-breadcrumb';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
+import { ProfileComponent } from 'app/pages/profile/profile.component';
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   connectOnCreate: false,
@@ -44,6 +46,7 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
 @NgModule({
   declarations: [
     AppComponent,
+    ProfileComponent,
   ],
   imports: [
     BrowserModule,
@@ -66,14 +69,17 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     // Mfx dependencies
     MqttModule.forRoot(MQTT_SERVICE_OPTIONS),
     FormsModule,
+
+    // 3rd party
     NbInputModule,
     NbCardModule,
     NbIconModule,
     NbButtonModule,
-
-    // 3rd party
     BreadcrumbModule,
     NgxDatatableModule,
+    NbAlertModule,
+    NbCheckboxModule,
+    NbLayoutModule,
     NbAlertModule,
     NbCheckboxModule,
   ],
