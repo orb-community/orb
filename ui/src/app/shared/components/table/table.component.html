@@ -5,7 +5,9 @@
         class="sink-table-title">
       <div [ngSwitch]="colName">
         <div class="d-flex justify-content-end">
-          <button *ngSwitchCase="'orb-sink-add'" nbButton ghost=true class="button-new-sink"
+          <button *ngSwitchCase="'orb-sink-add'"
+                  nbButton ghost=true
+                  class="button-new-sink"
                   (click)="onAdd()">
             <i class="fa fa-plus">&nbsp;</i>{{strings.sink.list.create}}
           </button>
@@ -21,7 +23,8 @@
   <tr *ngFor="let row of page.rows"
       (mouseenter)="onMouseEnter($event, row)"
       (mouseleave)="onMouseLeave($event, row)">
-    <td *ngFor="let key of config.keys" class="sink-table-row">
+    <td *ngFor="let key of config.keys"
+        class="sink-table-row">
       <div [ngSwitch]="key">
         <div *ngSwitchCase="'checkbox'">
           <nb-checkbox (checkedChange)="onToggleCheckbox(row)"></nb-checkbox>
@@ -31,32 +34,44 @@
         </div>
         <div *ngSwitchCase="'status'">
           <div *ngIf="row[key] === 'active'">
-            <i class="fa fa-circle orb-service-active" aria-hidden="true"></i>
-            {{ row[key] | titlecase }}</div>
+            <i class="fa fa-circle orb-service-active"
+               aria-hidden="true"></i>
+            {{ row[key] | titlecase }}
+          </div>
           <div *ngIf="row[key] !== 'active'">
-            <i class="fa fa-circle orb-service-inactive" aria-hidden="true"></i>
-            {{ row[key] | titlecase }}</div>
+            <i class="fa fa-circle orb-service-inactive"
+               aria-hidden="true"></i>
+            {{ row[key] | titlecase }}
+          </div>
         </div>
-        <mat-chip-list *ngSwitchCase="'tags'">
-          <mat-chip
-              class="orb-tag-sink "
-              *ngFor="let tag of row[key] | keyvalue">
-            {{tag.key}}, {{tag.value}}
-          </mat-chip>
-        </mat-chip-list>
+        <div *ngSwitchCase="'tags'">
+          <mat-chip-list>
+            <mat-chip
+                class="orb-tag-sink "
+                *ngFor="let tag of row[key] | keyvalue">
+              <span class="align-content-center" style="font-size: 11px;">{{tag.key}}, {{tag.value}}</span>
+            </mat-chip>
+          </mat-chip-list>
+        </div>
         <div *ngSwitchCase="'created'">
           {{ row[key] | date:'long' }}
         </div>
-        <div class="orb-action-hover-container orb-table-actions" *ngSwitchCase="
-        'orb-action-hover'">
+        <div class="orb-action-hover-container orb-table-actions"
+             *ngSwitchCase="'orb-action-hover'">
           <div *ngIf="row['isHover']">
-            <button nbButton class="orb-action-hover detail-button" (click)="onDetails(row)">
+            <button nbButton
+                    class="orb-action-hover detail-button"
+                    (click)="onDetails(row)">
               <nb-icon icon="search-outline"></nb-icon>
             </button>
-            <button nbButton class="orb-action-hover edit-button" (click)="onEdit(row)">
+            <button nbButton
+                    class="orb-action-hover edit-button"
+                    (click)="onEdit(row)">
               <nb-icon icon="edit-outline"></nb-icon>
             </button>
-            <button nbButton class="orb-action-hover del-button" (click)="onDelete(row)">
+            <button nbButton
+                    class="orb-action-hover del-button"
+                    (click)="onDelete(row)">
               <nb-icon icon="trash-2-outline"></nb-icon>
             </button>
           </div>

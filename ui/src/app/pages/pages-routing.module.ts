@@ -20,28 +20,28 @@ import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
 
 const children = environment.production ?
   [
-    {
-      path: 'home',
-      component: DashboardComponent,
-    },
-    {
-      path: '',
-      redirectTo: 'home',
-      pathMatch: 'full',
-    },
-    {
-      path: 'profile',
-      component: ProfileComponent,
-    },
-    {
-      path: 'agents',
-      component: AgentsComponent,
-    },
-    {
+  {
+    path: 'home',
+    component: DashboardComponent,
+  },
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full',
+  },
+  {
+    path: 'profile',
+    component: ProfileComponent,
+  },
+  {
+    path: 'agents',
+    component: AgentsComponent,
+  },
+  {
       path: 'datasets',
       component: DatasetsComponent,
-    },
-    {
+  },
+  {
       path: 'fleets',
       component: FleetsComponent,
     },
@@ -74,8 +74,8 @@ const children = environment.production ?
     {
       path: 'agents',
       component: AgentsComponent,
-    },
-    {
+  },
+  {
       path: 'datasets',
       component: DatasetsComponent,
     },

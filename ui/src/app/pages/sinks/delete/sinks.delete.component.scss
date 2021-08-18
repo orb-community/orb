@@ -2,14 +2,6 @@ nb-card {
   width: 400px;
 }
 
-.nb-card-header {
-  background: #232940;
-  color: #232940;
-
-  .p {
-    color: #969fb9;
-  }
-}
 
 button {
   margin: 10px;
@@ -25,8 +17,32 @@ nb-card-footer {
 }
 
 // ORB
-.orb-close-dialog {
-  color: #3089fc;
+::ng-deep {
+  .orb-close-dialog {
+    color: #232940;
+    border-radius: 4px;
 
-  border-radius: 4px;
+    .content {
+      color: #232940;
+    }
+  }
+
+  .orb-sink-delete-warning-button {
+    color: #df316f;
+
+    .content {
+      color: #df316f;
+    }
+  }
+
+  .nb-card-header {
+    background: #232940 !important;
+    color: #232940 !important;
+    fill: #232940;
+
+    .p {
+      color: #969fb9;
+    }
+  }
+
 }

@@ -112,12 +112,34 @@ $nb-themes: nb-register-theme((
 ), material-dark, material-dark);
 
 $nb-themes: nb-register-theme((
+  // outter layout
   layout-padding-left: 0,
   layout-padding-right: 0,
-  layout-padding-top: 2.25rem,
-  menu-item-icon-margin: 0 0 0 0,
+  layout-padding-top: 1.75rem,
+  // nav menu
+  scrollable-padding: 10px 0 12px 0,
+  //menu-card-height-tiny: 13.5rem,
+  menu-item-divider-style: 0,
+  menu-item-active-text-color: #969fb9,
   menu-item-icon-active-color: #df316f,
-  card-height-tiny: 13.5rem,
+  //menu-item-icon-margin: 12px 12px 12px 15px,
+  //menu-item-padding: 10px 0 10px 0 !important,
+  menu-submenu-item-border-style: 0,
+  //menu-item-menu-submenu-margin: 12px 0 12px 62px,
+  menu-submenu-item-padding: 16px 0 20px 20px,
+  menu-text-color: #ffffff,
+  menu-text-font-family: 'Montserrat',
+  menu-text-line-height: 13px,
+  menu-text-font-size: 13px,
+  menu-text-font-weight: 400,
+  // side bar
+  sidebar-background-color: #171c30,
+  sidebar-shadow: 0,
+  sidebar-menu-item-highlight-color: #969fb9,
+  // button
+  button-outline-border-width : 0,
+  button-filled-border-width: 0,
+  // card
   card-height-small: 21.1875rem,
   card-height-medium: 28.875rem,
   card-height-large: 36.5625rem,
@@ -129,6 +151,7 @@ $nb-themes: nb-register-theme((
   select-giant-text-line-height: 1rem,
   option-list-border-radius: 0,
   input-large-text-line-height: 1rem,
+  // slide
   slide-out-background: linear-gradient(270deg, #1f1f1f 0%, #292929 100%),
   slide-out-shadow-color: 0 4px 14px 0 #292929,
   slide-out-shadow-color-rtl: 0 4px 14px 0 #292929,
