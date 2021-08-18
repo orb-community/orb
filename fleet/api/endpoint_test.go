@@ -730,6 +730,20 @@ func TestCreateAgent(t *testing.T) {
 			status:      http.StatusUnsupportedMediaType,
 			location:    "/agents",
 		},
+		"add a agent with an invalid content type": {
+			req:         validJson,
+			contentType: "invalid",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/agents",
+		},
+		"add a agent with an empty request": {
+			req:         "{}",
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents",
+		},
 	}
 
 	for desc, tc := range cases {
