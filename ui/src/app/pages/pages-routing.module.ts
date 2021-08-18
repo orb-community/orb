@@ -3,9 +3,6 @@ import { NgModule } from '@angular/core';
 
 import { PagesComponent } from './pages.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { ProfileComponent } from './profile/profile.component';
-
-import { environment } from 'environments/environment';
 
 // ORB
 // Agent Group Management
@@ -17,9 +14,10 @@ import { FleetsComponent } from 'app/pages/fleets/fleets.component';
 // Sink Management
 import { SinksComponent } from 'app/pages/sinks/sinks.component';
 import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
+import { AgentAddComponent } from 'app/pages/agents/add/agent.add.component';
+import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
 
-const children = environment.production ?
-  [
+const children = [
   {
     path: 'home',
     component: DashboardComponent,
@@ -30,50 +28,19 @@ const children = environment.production ?
     pathMatch: 'full',
   },
   {
-    path: 'profile',
-    component: ProfileComponent,
-  },
-  {
     path: 'agents',
     component: AgentsComponent,
+      data: {breadcrumb: 'Agent Groups'},
   },
   {
-      path: 'datasets',
-      component: DatasetsComponent,
-  },
-  {
-      path: 'fleets',
-      component: FleetsComponent,
+      path: 'agents/add',
+      component: AgentAddComponent,
+      data: {breadcrumb: 'New'},
     },
     {
-      path: 'sinks',
-      component: SinksComponent,
-    },
-    {
-      path: 'sinks/add',
-      component: SinksAddComponent,
-    },
-    {
-      path: 'sinks/edit',
-      component: SinksAddComponent,
-    },
-  ] : [
-    {
-      path: 'home',
-      component: DashboardComponent,
-    },
-    {
-      path: '',
-      redirectTo: 'home',
-      pathMatch: 'full',
-    },
-    {
-      path: 'profile',
-      component: ProfileComponent,
-    },
-    {
-      path: 'agents',
-      component: AgentsComponent,
+      path: 'agents/edit',
+      component: AgentDetailsComponent,
+      data: { breadcrumb: 'Edit' },
   },
   {
       path: 'datasets',

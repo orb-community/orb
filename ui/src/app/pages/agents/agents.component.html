@@ -1,50 +1,90 @@
-<button (click)="openAddModal()" class="button-add" nbButton
-        shape="semi-round"
-        size="medium">
-  Create User Group
-</button>
-
-<nb-card>
-  <nb-card-header class="table-header">
-    <div class="row">
-      <div class="col-md-4">
-        {{ page.total }} &nbsp; User Groups
+<div class="container">
+  <header>
+    <xng-breadcrumb class="orb-breadcrumb">
+    </xng-breadcrumb>
+    <h4>{{strings.list.header}}</h4>
+    <div class="filter-dropdown">
+      <nb-select
+        [(selected)]="pageFilters"
+        appearance="outline"
+        class="d-flex justify-content-end"
+        style="width: 140px;"
+        placeholder="Filter">
+        <nb-option *ngFor="let conf of tableFilters">{{ conf.name }}</nb-option>
+      </nb-select>
+    </div>
+  </header>
+  <div class="d-flex flex-column mt-4">
+    <div class="d-flex justify-content-between">
+      <div class="d-flex">
+        <p *ngIf=" page.rows && page.rows.length> 0"
+           class="sink-info-regular">
+          You have <strong>{{page.rows.filter(filterByActive).length}} groups active</strong>.
+        </p>
+        <p *ngIf="page.rows && page.rows.length === 0"
+           class="sink-info-accent">
+          There are no agents yet.
+        </p>
       </div>
-      <div class="col-md-4">
-        <input (input)="searcUserGroupsbyName($event.target.value)" fieldSize="small" fullWidth nbInput
-               placeholder="Search...">
-      </div>
-      <div class="col-md-2">
-        <button (click)="onClickSave()" class="button-blue button-header" nbButton
-                size="small">
-          <nb-icon icon="save-outline"></nb-icon>
-          Save
-        </button>
-      </div>
-      <div class="col-md-2">
-        <button (click)="fileInput.click()" class="button-green button-header" nbButton
-                size="small">
-          <nb-icon icon="file-add-outline"></nb-icon>
-          Upload
-          <input #fileInput (change)="onFileSelected($event.target.files)" hidden type="file">
-        </button>
+      <div class="d-flex add-agent-container">
+        <button nbButton
+                ghost="true"
+                status="primary"
+                (click)="onOpenAdd()">
+          <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
       </div>
     </div>
-  </nb-card-header>
 
-  <nb-card-body>
-    <ngx-table-component (delEvent)="openDeleteModal($event)"
-                         (detailsEvent)=onOpenDetails($event)
-                         (editEvent)=openEditModal($event)
-                         [config]="tableConfig"
-                         [page]="page">
-    </ngx-table-component>
-  </nb-card-body>
+    <ngx-datatable
+        class="orb w-100"
+        [rows]="page.rows"
+        [columns]="columns"
+        [columnMode]="columnMode.flex"
+        [headerHeight]="50"
+        [footerHeight]="0"
+        [rowHeight]="50">
+    </ngx-datatable>
 
-  <nb-card-footer>
-    <ngx-pagination-component (changeLimitEvent)=onChangeLimit($event)
-                              (changePageEvent)=onChangePage($event)
-                              [page]="page">
-    </ngx-pagination-component>
-  </nb-card-footer>
-</nb-card>
+  </div>
+</div>
+
+<ng-template #agentsTemplateCell let-row="row" let-value="value" let-i="index">
+  <strong> {{ value.length }} </strong>
+</ng-template>
+
+<ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
+  <div class="d-flex">
+    <mat-chip-list>
+      <mat-chip
+        class="orb-tag-sink "
+        *ngFor="let tag of value | keyvalue">
+        {{tag.key}}, {{tag.value}}
+      </mat-chip>
+    </mat-chip-list>
+  </div>
+</ng-template>
+
+<ng-template #actionsTemplateCell let-row="row" let-value="value" let-i="index">
+
+   <div class="d-flex flex-row">
+    <button nbButton
+            ghost
+            class="orb-action-hover detail-button"
+            (click)="openDetailsModal(value)">
+      <nb-icon icon="search-outline"></nb-icon>
+    </button>
+    <button nbButton
+            ghost
+            class="orb-action-hover edit-button"
+            (click)="onOpenEdit(value)">
+      <nb-icon icon="edit-outline"></nb-icon>
+    </button>
+    <button nbButton
+            ghost
+            class="orb-action-hover del-button"
+            (click)="openDeleteModal(value)">
+      <nb-icon icon="trash-2-outline"></nb-icon>
+    </button>
+  </div>
+</ng-template>
+

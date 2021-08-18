@@ -36,14 +36,15 @@ import { SinksComponent } from 'app/pages/sinks/sinks.component';
 import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
 import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
 import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.component';
-import { AgentsComponent } from 'app/pages/agents/agents.component';
-import { AgentsAddComponent } from 'app/pages/agents/add/agents.add.component';
-import { AgentsDetailsComponent } from 'app/pages/agents/details/agents.details.component';
 import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { BreadcrumbModule } from 'xng-breadcrumb';
-import { ProfileComponent } from 'app/pages/profile/profile.component';
+import { AgentsComponent } from 'app/pages/agents/agents.component';
+import { AgentAddComponent } from 'app/pages/agents/add/agent.add.component';
+import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
+import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.component';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 
 @NgModule({
   imports: [
@@ -68,6 +69,7 @@ import { ProfileComponent } from 'app/pages/profile/profile.component';
     BreadcrumbModule,
     NbStepperModule,
     NbFormFieldModule,
+    NgxDatatableModule,
   ],
   exports: [
     SharedModule,
@@ -82,12 +84,12 @@ import { ProfileComponent } from 'app/pages/profile/profile.component';
   ],
   declarations: [
     PagesComponent,
-    ProfileComponent,
     // Orb
     // Agent Group Management
     AgentsComponent,
-    AgentsAddComponent,
-    AgentsDetailsComponent,
+    AgentAddComponent,
+    AgentDetailsComponent,
+    AgentDeleteComponent,
     // Dataset Explorer
     DatasetsComponent,
     DatasetsAddComponent,
