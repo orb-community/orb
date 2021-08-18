@@ -21,7 +21,6 @@ import {
   NbDialogModule,
   NbIconModule,
   NbInputModule,
-  NbLayoutModule,
   NbMenuModule,
   NbSidebarModule,
   NbToastrModule,

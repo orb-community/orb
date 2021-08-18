@@ -3,7 +3,6 @@ import { NgModule } from '@angular/core';
 
 import { PagesComponent } from './pages.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { ProfileComponent } from './profile/profile.component';
 
 // ORB
 // Agent Group Management
@@ -27,10 +26,6 @@ const children = [
     path: '',
     redirectTo: 'home',
     pathMatch: 'full',
-  },
-  {
-    path: 'profile',
-    component: ProfileComponent,
   },
   {
     path: 'agents',

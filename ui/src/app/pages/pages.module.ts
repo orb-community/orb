@@ -84,7 +84,6 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
   ],
   declarations: [
     PagesComponent,
-    ProfileComponent,
     // Orb
     // Agent Group Management
     AgentsComponent,

@@ -1,6 +1,6 @@
-import {Component, Input} from '@angular/core';
-import {NbDialogRef} from '@nebular/theme';
-import { AgentsMockService } from 'app/common/services/agents/agents.mock.service';
+import { Component, Input } from '@angular/core';
+import { NbDialogRef } from '@nebular/theme';
+import { AgentsService } from 'app/common/services/agents/agents.service';
 
 @Component({
   selector: 'ngx-agent-delete-component',
@@ -17,8 +17,8 @@ export class AgentDeleteComponent {
   agentName: string = '';
 
   constructor(
-      protected dialogRef: NbDialogRef<AgentDeleteComponent>,
-      protected agentService: AgentsMockService,
+    protected dialogRef: NbDialogRef<AgentDeleteComponent>,
+    protected agentService: AgentsService,
   ) {
   }
 
