@@ -50,7 +50,7 @@ const DEV_ITEMS: NbMenuItem[] = [
   {
     title: 'Dev',
     icon: 'layout-outline',
-    link: '/dev',
+    link: '/pages/dev',
   },
 ];
 

@@ -18,7 +18,7 @@ import {SinksComponent} from 'app/pages/sinks/sinks.component';
 import {SinksAddComponent} from 'app/pages/sinks/add/sinks.add.component';
 import {AgentAddComponent} from 'app/pages/agents/add/agent.add.component';
 import {AgentDetailsComponent} from 'app/pages/agents/details/agent.details.component';
-import {ComponentsShowcaseComponent} from 'app/pages/components-showcase/components-showcase.component';
+import {ShowcaseComponent} from 'app/pages/showcase/showcase.component';
 
 const children = [
   {
@@ -32,7 +32,7 @@ const children = [
   },
   {
     path: 'dev',
-    component: ComponentsShowcaseComponent,
+    component: ShowcaseComponent,
   },
   {
     path: 'profile',
@@ -80,16 +80,16 @@ const children = [
 
 
 const DEV_ROUTES = [
-  {
+   {
     path: 'dev',
-    component: ComponentsShowcaseComponent,
+    component: ShowcaseComponent,
   },
 ];
 
 const routes: Routes = [{
   path: '',
   component: PagesComponent,
-  children: [
+   children: [
     ...children,
     ...environment.production ? [] : DEV_ROUTES,
   ],
