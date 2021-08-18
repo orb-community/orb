@@ -305,6 +305,78 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 
 }
 
+func (r agentRepository) UpdateAgentByID(ctx context.Context, ownerID string, agent fleet.Agent) error {
+	q := `UPDATE agents SET (name, orb_tags)         
+			= (:name, :orb_tags) 
+			WHERE mf_thing_id = :mf_thing_id AND mf_owner_id = :mf_owner_id;`
+
+	agent.MFOwnerID = ownerID
+	if agent.MFThingID == "" || agent.MFOwnerID == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	dba, err := toDBAgent(agent)
+	if err != nil {
+		return errors.Wrap(errors.ErrUpdateEntity, err)
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, dba)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(errors.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return errors.Wrap(errors.ErrConflict, err)
+			}
+		}
+		return errors.Wrap(db.ErrUpdateDB, err)
+	}
+
+	cnt, errdb := res.RowsAffected()
+	if errdb != nil {
+		return errors.Wrap(errors.ErrUpdateEntity, errdb)
+	}
+
+	if cnt == 0 {
+		return errors.ErrNotFound
+	}
+
+	return nil
+}
+
+func (r agentRepository) RetrieveByID(ctx context.Context, ownerID string, thingID string) (fleet.Agent, error) {
+	q := `SELECT 
+			mf_thing_id, 
+			name, 
+			mf_owner_id, 
+			mf_channel_id, 
+			ts_created, 
+			orb_tags, 
+			agent_tags, 
+			agent_metadata, 
+			state, 
+			last_hb_data, 
+			ts_last_hb 
+		FROM agents 
+		WHERE 
+			mf_thing_id = $1 
+			AND mf_owner_id = $2;`
+
+	dba := dbAgent{}
+
+	if err := r.db.QueryRowxContext(ctx, q, thingID, ownerID).StructScan(&dba); err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if err == sql.ErrNoRows || ok && db.ErrInvalid == pqErr.Code.Name() {
+			return fleet.Agent{}, errors.Wrap(errors.ErrNotFound, err)
+		}
+		return fleet.Agent{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	return toAgent(dba)
+}
+
 type dbAgent struct {
 	Name          types.Identifier `db:"name"`
 	MFOwnerID     string           `db:"mf_owner_id"`

@@ -28,6 +28,10 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (es eventStore) EditAgent(ctx context.Context, token string, agent fleet.Agent) (fleet.Agent, error) {
+	return es.svc.EditAgent(ctx, token, agent)
+}
+
 func (es eventStore) ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {
 	return es.svc.ViewAgentGroupByIDInternal(ctx, groupID, ownerID)
 }

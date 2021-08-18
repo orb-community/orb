@@ -299,7 +299,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		token string
 		err   error
 	}{
-		"update existing sink": {
+		"update existing agent": {
 			group: ag,
 			token: token,
 			err:   nil,

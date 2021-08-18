@@ -73,6 +73,8 @@ type AgentService interface {
 	// ListAgents retrieves data about subset of agents that belongs to the
 	// user identified by the provided key.
 	ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error)
+	// EditAgent
+	EditAgent(ctx context.Context, token string, agent Agent) (Agent, error)
 }
 
 type AgentRepository interface {
@@ -91,6 +93,10 @@ type AgentRepository interface {
 	RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]Agent, error)
 	// RetrieveMatchingAgents retrieve the matching agents by tags
 	RetrieveMatchingAgents(ctx context.Context, owner string, tags types.Tags) (types.Metadata, error)
+	// UpdateAgentByID update the the tags and name for the Agent having provided ID and owner
+	UpdateAgentByID(ctx context.Context, ownerID string, agent Agent) error
+	// RetrieveByID retrieves the Agent having the provided ID and owner
+	RetrieveByID(ctx context.Context, ownerID string, thingID string) (Agent, error)
 }
 
 type AgentHeartbeatRepository interface {

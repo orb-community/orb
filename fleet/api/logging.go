@@ -18,6 +18,20 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
+func (l loggingMiddleware) EditAgent(ctx context.Context, token string, agent fleet.Agent) (_ fleet.Agent, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: edit_agent_by_id",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: edit_agent_by_id",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.EditAgent(ctx, token, agent)
+}
+
 func (l loggingMiddleware) ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (_ fleet.AgentGroup, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

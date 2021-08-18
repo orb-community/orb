@@ -80,7 +80,7 @@ func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context,
 				left join agent_group_membership agm
 					on ag.id = agm.agent_groups_id
 					and ag.mf_owner_id = agm.mf_owner_id
-			WHERE ag.mf_owner_id = :mf_owner_id %s
+			WHERE ag.mf_owner_id = :mf_owner_id %s%s%s
 				group by ag.id,
 					ag.name,
 					ag.description,
@@ -88,7 +88,7 @@ func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context,
 					ag.mf_channel_id,
 					ag.tags,
 					ag.ts_created)
-			as agent_groups %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, metadataQuery, orderQuery, dirQuery)
+			as agent_groups ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, metadataQuery, orderQuery, dirQuery)
 
 	params := map[string]interface{}{
 		"mf_owner_id": ownerID,
@@ -137,7 +137,7 @@ func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context,
 			left join agent_group_membership agm
 				on ag.id = agm.agent_groups_id
 					and ag.mf_owner_id = agm.mf_owner_id
-		WHERE ag.mf_owner_id = :mf_owner_id %s
+		WHERE ag.mf_owner_id = :mf_owner_id %s%s%s
 		group by ag.id,
 			ag.name,
 			ag.description,
@@ -145,7 +145,7 @@ func (a agentGroupRepository) RetrieveAllAgentGroupsByOwner(ctx context.Context,
 			ag.mf_channel_id,
 			ag.tags,
 			ag.ts_created) 
-		as agent_groups %s%s;`, nameQuery, tagsQuery, metadataQuery)
+		as agent_groups;`, nameQuery, tagsQuery, metadataQuery)
 
 	total, err := total(ctx, a.db, count, params)
 	if err != nil {
