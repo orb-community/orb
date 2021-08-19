@@ -27,33 +27,38 @@
         </p>
       </div>
       <div class="d-flex">
-        <input nbInput
-               #input="ngModel"
-               type="text"
-               fieldSize="medium"
-               [(ngModel)]="pageFilters.name"/>
+        <nb-form-field>
+          <nb-icon nbPrefix icon="search-outline" pack="eva"></nb-icon>
+          <input nbInput
+                 debounce
+                 [delay]="700"
+                 (func)="searchAgentByName($event)"
+                 placeholder="Search by name"
+                 type="text"
+                 fieldSize="medium"
+                 [(ngModel)]="pageFilters.name"/>
+        </nb-form-field>
       </div>
     </div>
-      <div class="d-flex add-agent-container">
-        <button nbButton
-                ghost="true"
-                status="primary"
-                (click)="onOpenAdd()">
-          <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
-      </div>
-<!--    <button nbButton (click)="mockCreate()">Create</button>-->
+    <div class="d-flex add-agent-container">
+      <button nbButton
+              ghost="true"
+              status="primary"
+              (click)="onOpenAdd()">
+        <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
+    </div>
     <ngx-datatable
-        class="orb w-100"
-        style="height: calc(100vh - 300px)"
-        [scrollbarV]="true"
-        [scrollbarH]="false"
-        [rows]="page.rows"
-        [limit]="page.limit"
-        [columns]="columns"
-        [columnMode]="columnMode.standard"
-        [headerHeight]="50"
-        [footerHeight]="50"
-        [rowHeight]="50">
+      class="orb w-100"
+      style="height: calc(100vh - 300px)"
+      [scrollbarV]="true"
+      [scrollbarH]="false"
+      [rows]="page.rows"
+      [limit]="page.limit"
+      [columns]="columns"
+      [columnMode]="columnMode.standard"
+      [headerHeight]="50"
+      [footerHeight]="50"
+      [rowHeight]="50">
     </ngx-datatable>
   </div>
 </div>
@@ -76,7 +81,7 @@
 
 <ng-template #actionsTemplateCell let-row="row" let-value="value" let-i="index">
 
-   <div class="d-flex flex-row">
+  <div class="d-flex flex-row">
     <button nbButton
             ghost
             class="orb-action-hover detail-button"
@@ -112,7 +117,7 @@
 
 <ng-template #actionsTemplateCell let-row="row" let-value="value" let-i="index">
 
-   <div class="d-flex flex-row">
+  <div class="d-flex flex-row">
     <button nbButton
             ghost
             class="orb-action-hover detail-button"

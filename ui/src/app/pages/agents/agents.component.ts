@@ -9,9 +9,6 @@ import {AgentDeleteComponent} from 'app/pages/agents/delete/agent.delete.compone
 import {AgentDetailsComponent} from 'app/pages/agents/details/agent.details.component';
 import {ColumnMode, TableColumn} from '@swimlane/ngx-datatable';
 import {AgentsService} from 'app/common/services/agents/agents.service';
-import {debounceTime, distinctUntilChanged} from "rxjs/operators";
-
-const defFreq: number = 100;
 
 @Component({
   selector: 'ngx-agents-component',
@@ -30,9 +27,6 @@ export class AgentsComponent implements AfterViewInit {
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
   @ViewChild('addAgentTemplateRef') addAgentTemplateRef: TemplateRef<any>;
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
-
-  //input
-  @ViewChild('input') searchInput;
 
   page: TablePage = {
     limit: 10,
@@ -103,14 +97,6 @@ export class AgentsComponent implements AfterViewInit {
       order: 'asc',
       selected: false,
     })).filter((filter) => (!filter.name?.startsWith('orb-')));
-    debugger;
-    this.searchInput.update
-      .pipe(debounceTime(500))
-      .pipe(distinctUntilChanged())
-      .subscribe(model => (value) => {
-        debugger;
-        this.getAgents(value);
-      });
 
     this.getAgents();
     this.cdr.detectChanges();
@@ -196,28 +182,8 @@ export class AgentsComponent implements AfterViewInit {
   }
 
   searchAgentByName(input) {
-    const t = new Date().getTime();
-    if ((t - this.searchFreq) > defFreq) {
-      this.getAgents(input);
-      this.searchFreq = t;
-    }
+    this.getAgents(input);
   }
 
   filterByActive = (agent) => agent.status === 'active';
-
-  mockCreate() {
-    for (let i = 0; i < 10; i++) {
-      this.agentsService.addAgentGroup({
-        name: `sample-at-${Math.floor(Math.random() * 10000)}`,
-        description: 'Lorem ipsum ipsils',
-        tags: {
-          node_type: 'dns',
-          region: 'EU',
-        },
-      }).subscribe(evt => {
-        console.log('added');
-        this.getAgents();
-      });
-    }
-  }
 }

@@ -8277,6 +8277,13 @@ ng2-completer@^9.0.1:
   resolved "https://registry.yarnpkg.com/ng2-completer/-/ng2-completer-9.0.1.tgz#5ba97fd978bfcef746f5ed71d965f65d280de4de"
   integrity sha512-zEKehHdCK8E/k4Y0HepprGdYBHr2AOsaq4QpeqoCyUElOOC5M3qi3ZEHV1VF54I7heBQktswwXe5UyWduJ0Xeg==
 
+ngx-debounce@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/ngx-debounce/-/ngx-debounce-2.0.1.tgz#74892d7969344ea9d2e39bb4a0503611d8710d3e"
+  integrity sha512-J0SphXZ2W3h+V0h8aphzYrUDQhFfoKKJd7cy2MhYLFSy6Ov6TyuMTDDD7IkHEEclNe/iE476Y8RO1CfHRAZEKA==
+  dependencies:
+    tslib "^1.9.0"
+
 ngx-mqtt@^7.0.14:
   version "7.0.14"
   resolved "https://registry.yarnpkg.com/ngx-mqtt/-/ngx-mqtt-7.0.14.tgz#35065b6bb70153a18a92f50e0db208576c388ea1"

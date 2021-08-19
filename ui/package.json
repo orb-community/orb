@@ -109,6 +109,7 @@
     "karma-jasmine": "1.1.0",
     "karma-jasmine-html-reporter": "0.2.2",
     "moment": "^2.29.1",
+    "ngx-debounce": "^2.0.1",
     "nodemon": "^2.0.12",
     "npm-run-all": "4.0.2",
     "protractor": "5.1.2",
