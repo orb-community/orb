@@ -23,7 +23,7 @@ export class AgentsService {
   ) {
   }
 
-  addAgentGroup(agentItem: Agent) {
+  addAgentGroup(agentItem: any) {
     return this.http.post(environment.agentsUrl,
       agentItem,
       {observe: 'response'})
