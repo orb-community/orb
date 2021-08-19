@@ -62,6 +62,8 @@ type AgentGroupService interface {
 	EditAgentGroup(ctx context.Context, token string, ag AgentGroup) (AgentGroup, error)
 	// DeleteAgentGroupByID Remove a existing agent group by owner an id
 	RemoveAgentGroup(ctx context.Context, token string, id string) error
+	// ValidateAgentGroup validate AgentGroup
+	ValidateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error)
 }
 
 type AgentGroupRepository interface {
