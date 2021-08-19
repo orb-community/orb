@@ -13,7 +13,7 @@ export const baseTheme: NbJSThemeOptions = {
   name: 'orb-dark',
   base: 'dark',
   variables: {
-    fontMain: 'Montserrat, sans-serif',
+    fontMain: '\'Montserrat\', sans-serif',
     fontSecondary: 'Montserrat, sans-serif',
 
     bg: '#171c30',

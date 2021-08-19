@@ -53,7 +53,7 @@
                           (selectedChange)="onSinkTypeSelected($event)"
                           fullWidth="true"
                           formControlName="backend"
-                          appearance="outline"
+                          appearance="filled"
                           placeholder="Select backend type">
                 <nb-option *ngFor="let type of sinkTypesList"
                            [value]="type">{{ type }}</nb-option>
@@ -96,10 +96,10 @@
                    fieldSize="medium"
                    [formControlName]="control.prop" />
                <nb-select *ngSwitchCase="'select'"
+                          appearance="filled"
                           size="medium"
                           fullWidth="true"
                           formControlName="backend"
-                          appearance="outline"
                           placeholder="Select backend type">
                 <nb-option *ngFor="let type of control.options"
                            [value]="type">{{ type }}</nb-option>
