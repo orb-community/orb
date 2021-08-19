@@ -194,6 +194,35 @@ func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 	}
 }
 
+func viewAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		ag, err := svc.ViewAgentByID(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+
+		res := viewAgentRes{
+			ID:            ag.MFThingID,
+			Name:          ag.Name.String(),
+			ChannelID:     ag.MFChannelID,
+			AgentTags:     ag.AgentTags,
+			OrbTags:       ag.OrbTags,
+			TsCreated:     ag.Created,
+			AgentMetadata: ag.AgentMetadata,
+			State:         ag.State.String(),
+			LastHBData:    ag.LastHBData,
+			LastHB:        ag.LastHB,
+		}
+		return res, nil
+	}
+}
+
 func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(listResourcesReq)
