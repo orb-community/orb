@@ -98,3 +98,38 @@
   </div>
 </ng-template>
 
+<ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
+  <div class="d-flex">
+    <mat-chip-list>
+      <mat-chip
+        class="orb-tag-sink "
+        *ngFor="let tag of value | keyvalue">
+        {{tag.key}}, {{tag.value}}
+      </mat-chip>
+    </mat-chip-list>
+  </div>
+</ng-template>
+
+<ng-template #actionsTemplateCell let-row="row" let-value="value" let-i="index">
+
+   <div class="d-flex flex-row">
+    <button nbButton
+            ghost
+            class="orb-action-hover detail-button"
+            (click)="openDetailsModal(value)">
+      <nb-icon icon="search-outline"></nb-icon>
+    </button>
+    <button nbButton
+            ghost
+            class="orb-action-hover edit-button"
+            (click)="onOpenEdit(value)">
+      <nb-icon icon="edit-outline"></nb-icon>
+    </button>
+    <button nbButton
+            ghost
+            class="orb-action-hover del-button"
+            (click)="openDeleteModal(value)">
+      <nb-icon icon="trash-2-outline"></nb-icon>
+    </button>
+  </div>
+</ng-template>
