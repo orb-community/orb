@@ -1,19 +1,14 @@
-import {AfterViewInit, Component, TemplateRef, ViewChild} from '@angular/core';
-import {NbDialogService} from '@nebular/theme';
+import { AfterViewInit, ChangeDetectorRef, Component, TemplateRef, ViewChild } from '@angular/core';
+import { NbDialogService } from '@nebular/theme';
 
-import {
-  DropdownFilterItem,
-  PageFilters,
-  TablePage,
-  User,
-} from 'app/common/interfaces/mainflux.interface';
+import { DropdownFilterItem, PageFilters, TablePage, User } from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { ActivatedRoute , Router} from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
-import { AgentsMockService } from 'app/common/services/agents/agents.mock.service';
 import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.component';
 import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
-import { TableColumn , ColumnMode} from '@swimlane/ngx-datatable';
+import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
+import { AgentsService } from 'app/common/services/agents/agents.service';
 
 const defFreq: number = 100;
 
@@ -51,8 +46,9 @@ export class AgentsComponent implements AfterViewInit {
   searchFreq = 0;
 
   constructor(
+    private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
-    private agentsService: AgentsMockService,
+    private agentsService: AgentsService,
     private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
@@ -108,6 +104,7 @@ export class AgentsComponent implements AfterViewInit {
       selected: false,
     })).filter((filter) => (!filter.name?.startsWith('orb-')));
     this.getAgents();
+    this.cdr.detectChanges();
   }
 
   getAgents(name?: string): void {

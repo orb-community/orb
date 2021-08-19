@@ -1,7 +1,7 @@
 import { NbMenuItem } from '@nebular/theme';
 import { environment } from '../../environments/environment';
 
-const MENU: NbMenuItem[] = [
+export const MENU: NbMenuItem[] = [
   {
     title: 'Home',
     icon: 'layout-outline',

@@ -3,8 +3,8 @@ import {NgModule} from '@angular/core';
 
 import {PagesComponent} from './pages.component';
 import {DashboardComponent} from './dashboard/dashboard.component';
-import {ProfileComponent} from './profile/profile.component';
-import {environment} from 'environments/environment';
+import { ProfileComponent } from './profile/profile.component';
+import { environment } from 'environments/environment';
 
 // ORB
 // Agent Group Management
@@ -16,8 +16,8 @@ import {FleetsComponent} from 'app/pages/fleets/fleets.component';
 // Sink Management
 import {SinksComponent} from 'app/pages/sinks/sinks.component';
 import {SinksAddComponent} from 'app/pages/sinks/add/sinks.add.component';
-import {AgentAddComponent} from 'app/pages/agents/add/agent.add.component';
-import {AgentDetailsComponent} from 'app/pages/agents/details/agent.details.component';
+import { AgentAddComponent } from 'app/pages/agents/add/agent.add.component';
+import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
 import {ShowcaseComponent} from 'app/pages/showcase/showcase.component';
 
 const children = [

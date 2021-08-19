@@ -67,6 +67,11 @@ func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interf
 	return accessByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
 }
 
+func decodeRetrievePoliciesByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.PoliciesByGroupsReq)
+	return accessByGroupIDReq{GroupIDs: req.GroupIDs, OwnerID: req.OwnerID}, nil
+}
+
 func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(policyRes)
 	return &pb.PolicyRes{
@@ -76,11 +81,6 @@ func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, 
 		Version: res.version,
 		Data:    res.data,
 	}, nil
-}
-
-func decodeRetrievePoliciesByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*pb.PoliciesByGroupsReq)
-	return accessByGroupIDReq{GroupIDs: req.GroupIDs, OwnerID: req.OwnerID}, nil
 }
 
 func encodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {

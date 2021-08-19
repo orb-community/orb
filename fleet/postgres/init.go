@@ -70,6 +70,7 @@ func migrateDB(db *sqlx.DB) error {
 					`CREATE TABLE IF NOT EXISTS agent_groups (
 						id			       UUID NOT NULL DEFAULT gen_random_uuid(),
 						name        	   TEXT NOT NULL,
+						description        TEXT NOT NULL,
 						mf_owner_id        UUID NOT NULL,
 
 						mf_channel_id      UUID NOT NULL,

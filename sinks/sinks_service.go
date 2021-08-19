@@ -107,6 +107,23 @@ func (svc sinkService) DeleteSink(ctx context.Context, token string, id string) 
 	return svc.sinkRepo.Remove(ctx, res, id)
 }
 
+func (svc sinkService) ValidateSink(ctx context.Context, token string, sink Sink) (Sink, error) {
+
+	mfOwnerID, err := svc.identify(token)
+	if err != nil {
+		return Sink{}, err
+	}
+
+	sink.MFOwnerID = mfOwnerID
+
+	err = validateBackend(&sink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrCreateSink, err)
+	}
+
+	return sink, nil
+}
+
 func validateBackend(sink *Sink) error {
 	if backend.HaveBackend(sink.Backend) {
 		err := backend.GetBackend(sink.Backend).Connect(sink.Config)
@@ -118,7 +135,7 @@ func validateBackend(sink *Sink) error {
 			sink.Error = ""
 		}
 	} else {
-		return errors.New("No available backend")
+		return ErrInvalidBackend
 	}
 	return nil
 }

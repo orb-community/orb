@@ -48,6 +48,8 @@ type AgentPolicyRPCPayload struct {
 	Data    interface{} `json:"data"`
 }
 
+const GroupRemovedRPCFunc = "group_removed"
+
 // Edge -> Core
 
 const GroupMembershipReqRPCFunc = "group_membership_req"

@@ -28,8 +28,9 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		group := fleet.AgentGroup{
-			Name: nID,
-			Tags: req.Tags,
+			Name:        nID,
+			Description: req.Description,
+			Tags:        req.Tags,
 		}
 		saved, err := svc.CreateAgentGroup(c, req.token, group)
 		if err != nil {
@@ -37,10 +38,12 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		res := agentGroupRes{
-			ID:      saved.ID,
-			Name:    saved.Name.String(),
-			Tags:    saved.Tags,
-			created: true,
+			ID:             saved.ID,
+			Name:           saved.Name.String(),
+			Description:    saved.Description,
+			Tags:           saved.Tags,
+			MatchingAgents: saved.MatchingAgents,
+			created:        true,
 		}
 
 		return res, nil
@@ -63,7 +66,7 @@ func viewAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 			Description:    agentGroup.Description,
 			Tags:           agentGroup.Tags,
 			TsCreated:      agentGroup.Created,
-			MatchingAgents: map[string]interface{}{},
+			MatchingAgents: agentGroup.MatchingAgents,
 		}
 		return res, nil
 	}
@@ -98,11 +101,62 @@ func listAgentGroupsEndpoint(svc fleet.Service) endpoint.Endpoint {
 				Description:    ag.Description,
 				Tags:           ag.Tags,
 				TsCreated:      ag.Created,
-				MatchingAgents: nil,
+				MatchingAgents: ag.MatchingAgents,
 			}
 			res.AgentGroups = append(res.AgentGroups, view)
 		}
 		return res, nil
+	}
+}
+
+func editAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(updateAgentGroupReq)
+		if err := req.validate(); err != nil {
+			return agentGroupRes{}, err
+		}
+
+		validName, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return agentGroupRes{}, err
+		}
+		ag := fleet.AgentGroup{
+			ID:          req.id,
+			Name:        validName,
+			Description: req.Description,
+			Tags:        req.Tags,
+		}
+
+		data, err := svc.EditAgentGroup(ctx, req.token, ag)
+		if err != nil {
+			return agentGroupRes{}, err
+		}
+
+		res := agentGroupRes{
+			ID:             data.ID,
+			Name:           data.Name.String(),
+			Description:    data.Description,
+			Tags:           data.Tags,
+			TsCreated:      data.Created,
+			MatchingAgents: data.MatchingAgents,
+		}
+
+		return res, nil
+	}
+}
+
+func removeAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		if err := svc.RemoveAgentGroup(ctx, req.token, req.id); err != nil {
+			return nil, err
+		}
+		return removeRes{}, nil
 	}
 }
 
@@ -163,18 +217,63 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 			},
 			Agents: []viewAgentRes{},
 		}
-		for _, agent := range page.Agents {
+		for _, ag := range page.Agents {
 			view := viewAgentRes{
-				ID:           agent.MFThingID,
-				ChannelID:    agent.MFChannelID,
-				Owner:        agent.MFOwnerID,
-				Name:         agent.Name.String(),
-				State:        agent.State.String(),
-				Capabilities: agent.AgentMetadata,
+				ID:            ag.MFThingID,
+				Name:          ag.Name.String(),
+				ChannelID:     ag.MFChannelID,
+				AgentTags:     ag.AgentTags,
+				OrbTags:       ag.OrbTags,
+				TsCreated:     ag.Created,
+				AgentMetadata: ag.AgentMetadata,
+				State:         ag.State.String(),
+				LastHBData:    ag.LastHBData,
+				LastHB:        ag.LastHB,
 			}
 			res.Agents = append(res.Agents, view)
 		}
 
 		return res, nil
+	}
+}
+
+func editAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(updateAgentReq)
+
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		validName, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+		agent := fleet.Agent{
+			Name:      validName,
+			MFThingID: req.id,
+			OrbTags:   req.Tags,
+		}
+
+		ag, err := svc.EditAgent(ctx, req.token, agent)
+		if err != nil {
+			return nil, err
+		}
+
+		res := viewAgentRes{
+			ID:            ag.MFThingID,
+			Name:          ag.Name.String(),
+			ChannelID:     ag.MFChannelID,
+			AgentTags:     ag.AgentTags,
+			OrbTags:       ag.OrbTags,
+			TsCreated:     ag.Created,
+			AgentMetadata: ag.AgentMetadata,
+			State:         ag.State.String(),
+			LastHBData:    ag.LastHBData,
+			LastHB:        ag.LastHB,
+		}
+
+		return res, nil
+
 	}
 }

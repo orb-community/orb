@@ -1,6 +1,7 @@
-import {Component, Input} from '@angular/core';
-import {NbDialogRef} from '@nebular/theme';
-import {SinksService} from 'app/common/services/sinks/sinks.service';
+import { Component, Input } from '@angular/core';
+import { NbDialogRef } from '@nebular/theme';
+import { SinksService } from 'app/common/services/sinks/sinks.service';
+import { STRINGS } from 'assets/text/strings';
 
 @Component({
   selector: 'ngx-sinks-delete-component',
@@ -14,11 +15,13 @@ export class SinksDeleteComponent {
     id: '',
   };
 
+  strings = STRINGS.sink;
+
   sinkName: string = '';
 
   constructor(
-      protected dialogRef: NbDialogRef<SinksDeleteComponent>,
-      protected sinkService: SinksService,
+    protected dialogRef: NbDialogRef<SinksDeleteComponent>,
+    protected sinkService: SinksService,
   ) {
   }
 

@@ -15,6 +15,7 @@ import (
 const (
 	DatasetPrefix = "dataset."
 	DatasetCreate = DatasetPrefix + "create"
+	DatasetRemove = DatasetPrefix + "remove"
 	PolicyPrefix  = "policy."
 	PolicyCreate  = PolicyPrefix + "create"
 )

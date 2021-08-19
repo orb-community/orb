@@ -8,6 +8,22 @@ export const STRINGS = {
   home: {
     title: 'Orb Observation Overview',
   },
+  // Login Pages strings
+  login: {
+    presentation: {
+      description: 'An Open-Source Network observability platform',
+      action: 'Unleash the power of small data with dynamic edge observability',
+    },
+    form: {
+      title: 'Log in or sign up',
+      username: 'Username',
+      password: 'Password',
+      forgot: 'Forgot Password?',
+      login: 'Log in',
+      register: 'Register',
+      nonuser: 'Don\'t have an account?',
+    },
+  },
   // Fleet Pages strings
   fleet: {
     title: 'Fleet Management',

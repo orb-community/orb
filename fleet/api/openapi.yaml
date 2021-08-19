@@ -103,6 +103,131 @@ paths:
           description: Missing or invalid access token provided.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /agents:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List current Agents'
+      operationId: listAgents
+      tags:
+        - agents
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Name"
+        - $ref: "#/components/parameters/Order"
+        - $ref: "#/components/parameters/Direction"
+      responses:
+        '200':
+          $ref: "#/components/responses/AgentPageRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    post:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: 'Create a new Agent'
+      operationId: createAgent
+      tags:
+        - agents
+      requestBody:
+        $ref: "#/components/requestBodies/AgentCreateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/AgentObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Missing or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /agents/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/AgentGroupId"
+    get:
+      summary: 'Get an existing Agent'
+      operationId: readAgent
+      tags:
+        - agents
+      responses:
+        '201':
+          $ref: "#/components/responses/AgentObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    put:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: 'Update an existing Agent'
+      operationId: updateAgent
+      tags:
+        - agents
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/AgentUpdateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/AgentObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: 'Delete an existing Agent'
+      operationId: deleteAgent
+      tags:
+        - agents
+      responses:
+        '204':
+          description: Agent removed.
+        '400':
+          description: Failed due to malformed Agent ID.
+        '401':
+          description: Missing or invalid access token provided.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /agents/validate:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    post:
+      summary: 'Validate a new Agent without saving'
+      operationId: validateAgent
+      tags:
+        - agents
+      requestBody:
+        $ref: "#/components/requestBodies/AgentCreateReq"
+      responses:
+        '200':
+          $ref: "#/components/responses/AgentValidateObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '415':
+          description: Missing or invalid content type.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
   requestBodies:
     AgentGroupCreateReq:
@@ -119,6 +244,20 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AgentGroupUpdateReqSchema"
+    AgentCreateReq:
+      description: JSON-formatted document describing the new Agent configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentCreateReqSchema"
+    AgentUpdateReq:
+      description: JSON-formatted document describing the updated Agent configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentUpdateReqSchema"
   parameters:
     Name:
       name: name
@@ -184,6 +323,14 @@ components:
         type: string
         format: uuid
       required: true
+    AgentId:
+      name: id
+      description: Unique Agent identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
   responses:
     AgentGroupObjRes:
       description: Agent Group object
@@ -197,6 +344,24 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AgentGroupPageSchema"
+    AgentObjRes:
+      description: Agent object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentObjSchema"
+    AgentValidateObjRes:
+      description: Agent validation object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentValidateObjSchema"
+    AgentPageRes:
+      description: Data retrieved.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentPageSchema"
     ServiceErrorRes:
       description: Unexpected server-side error occurred.
       content:
@@ -242,11 +407,6 @@ components:
           example:
             region: eu
             node_type: dns
-        validate_only:
-          type: boolean
-          example: false
-          description:
-            When true, only run validation and confirm the Group Agent could be created and how many Agents it would match, but do not actually create it
     AgentGroupPageSchema:
       type: object
       properties:
@@ -267,6 +427,55 @@ components:
           description: Maximum number of items to return in one page.
       required:
         - agent_groups
+    AgentUpdateReqSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-agent1
+        orb_tags:
+          type: object
+          description: User defined key/values that will define the members of the group by matching against Agent tags
+          example:
+            region: eu
+            node_type: dns
+    AgentCreateReqSchema:
+      type: object
+      required:
+        - name
+        - tags
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-agent1
+        orb_tags:
+          type: object
+          description: User defined key/values that will define the members of the group by matching against Agent tags
+          example:
+            region: eu
+            node_type: dns
+    AgentPageSchema:
+      type: object
+      properties:
+        agents:
+          type: array
+          minItems: 0
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/AgentObjSchema"
+        total:
+          type: integer
+          description: Total number of items.
+        offset:
+          type: integer
+          description: Number of items to skip during retrieval.
+        limit:
+          type: integer
+          description: Maximum number of items to return in one page.
+      required:
+        - agents
     ConfigEntrySchema:
       type: object
       properties:
@@ -328,3 +537,64 @@ components:
             online:
               type: integer
               description: total agents matching which are currently online
+    AgentObjSchema:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier (UUID)
+        name:
+          type: string
+          description: A unique name label
+          example: my-agent1
+        agent_tags:
+          type: object
+          description: Orb tags field sent in by the agent when it connects group by matching against Agent tags
+          example:
+            region: eu
+            node_type: dns
+        orb_tags:
+          type: object
+          description: Orb tags field defined through the API or UI
+          example:
+            region: eu
+            node_type: dns
+        ts_created:
+          type: string
+          format: date-time
+          description: Timestamp of creation
+        agent_metadata:
+          type: object
+          description: JSON object sent in by the agent representing its Capabilities
+          example:
+            region: eu
+            node_type: dns
+        state:
+          type: string
+          description: Current connection status of the agent, one of 'new', 'online', 'offline', 'stale', 'removed'
+          example: 'online'
+        last_hb_data:
+          type: object
+          description: JSON object sent in by the agent as its last heartbeat
+        ts_last_hb:
+          type: string
+          format: date-time
+          description: A time stamp of the last heartbeat that was received
+    AgentValidateObjSchema:
+      type: object
+      required:
+        - id
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-agent1
+        orb_tags:
+          type: object
+          description: Orb tags field sent in by the agent when it connects group by matching against Agent tags
+          example:
+            region: eu
+            node_type: dns
