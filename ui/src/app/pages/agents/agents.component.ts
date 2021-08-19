@@ -1,13 +1,14 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { AfterViewInit, ChangeDetectorRef, Component, TemplateRef, ViewChild } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 
-import { PageFilters, TableConfig, TablePage, User } from 'app/common/interfaces/mainflux.interface';
-import { UserGroupsService } from 'app/common/services/users/groups.service';
-import { FsService } from 'app/common/services/fs/fs.service';
+import { DropdownFilterItem, PageFilters, TablePage, User } from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { ConfirmationComponent } from 'app/shared/components/confirmation/confirmation.component';
-import { AgentsAddComponent } from 'app/pages/agents/add/agents.add.component';
+import { ActivatedRoute, Router } from '@angular/router';
+import { STRINGS } from 'assets/text/strings';
+import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.component';
+import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
+import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
+import { AgentsService } from 'app/common/services/agents/agents.service';
 
 const defFreq: number = 100;
 
@@ -16,38 +17,105 @@ const defFreq: number = 100;
   templateUrl: './agents.component.html',
   styleUrls: ['./agents.component.scss'],
 })
-export class AgentsComponent implements OnInit {
-  tableConfig: TableConfig = {
-    colNames: ['', '', '', 'Name', 'Description', 'ID'],
-    keys: ['edit', 'delete', 'details', 'name', 'description', 'id'],
+export class AgentsComponent implements AfterViewInit {
+  strings = STRINGS.agents;
+
+  columnMode = ColumnMode;
+  columns: TableColumn[];
+
+  // templates
+
+  @ViewChild('agentsTemplateCell') agentsTemplateCell: TemplateRef<any>;
+  @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
+  @ViewChild('addAgentTemplateRef') addAgentTemplateRef: TemplateRef<any>;
+  @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+
+  page: TablePage = {
+    limit: 10,
   };
-  page: TablePage = {};
-  pageFilters: PageFilters = {};
+
+  pageFilters: PageFilters = {
+    offset: 0,
+    order: 'id',
+    dir: 'desc',
+    name: '',
+  };
+
+  tableFilters: DropdownFilterItem[];
 
   searchFreq = 0;
 
   constructor(
-    private router: Router,
+    private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
-    private userGroupsService: UserGroupsService,
-    private fsService: FsService,
+    private agentsService: AgentsService,
     private notificationsService: NotificationsService,
-  ) {
+    private route: ActivatedRoute,
+    private router: Router,
+  ) {}
+
+  ngAfterViewInit() {
+    this.columns = [
+      {
+        prop: 'name',
+        name: 'Name',
+        resizeable: false,
+        flexGrow: 1,
+        maxWidth: 243,
+      },
+      {
+        name: 'Description',
+        resizeable: false,
+        width: 200,
+        flexGrow: 3,
+
+        maxWidth: 350,
+      },
+      {
+        prop: 'agents',
+        name: 'Agents',
+        resizeable: false,
+        flexGrow: 1,
+        width: 80,
+        maxWidth: 100,
+
+        cellTemplate: this.agentsTemplateCell,
+      },
+      {
+        name: 'Tags',
+        resizeable: false,
+        flexGrow: 4,
+        cellTemplate: this.agentTagsTemplateCell,
+      },
+      {
+        name: '',
+        prop: 'actions',
+        maxWidth: 140,
+        flexGrow: 2,
+        resizeable: false,
+        sortable: false,
+        cellTemplate: this.actionsTemplateCell,
+      },
+    ];
+    this.tableFilters = this.columns.map((entry, index) => ({
+      id: index.toString(),
+      name: entry.name,
+      order: 'asc',
+      selected: false,
+    })).filter((filter) => (!filter.name?.startsWith('orb-')));
+    this.getAgents();
+    this.cdr.detectChanges();
   }
 
-  ngOnInit() {
-    // Fetch all User Groups
-    this.getGroups();
-  }
-
-  getGroups(name?: string): void {
-    this.userGroupsService.getGroups(this.page.offset, this.page.limit, name).subscribe(
+  getAgents(name?: string): void {
+    this.pageFilters.name = name;
+    this.agentsService.getAgentGroups(this.pageFilters).subscribe(
       (resp: any) => {
         this.page = {
           offset: resp.offset,
           limit: resp.limit,
           total: resp.total,
-          rows: resp.groups,
+          rows: resp.agents,
         };
       },
     );
@@ -60,42 +128,41 @@ export class AgentsComponent implements OnInit {
     if (dir === 'next') {
       this.pageFilters.offset = this.page.offset + this.page.limit;
     }
-    this.getGroups();
+    this.getAgents();
   }
 
   onChangeLimit(limit: number) {
     this.pageFilters.limit = limit;
-    this.getGroups();
+    this.getAgents();
   }
 
-  openAddModal() {
-    this.dialogService.open(AgentsAddComponent, {context: {action: 'Create'}}).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.getGroups();
-        }
-      },
-    );
+  onOpenAdd() {
+    this.router.navigate(['../agents/add'], {
+      relativeTo: this.route,
+    });
   }
 
-  openEditModal(row: any) {
-    this.dialogService.open(AgentsAddComponent, {context: {formData: row, action: 'Edit'}}).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.getGroups();
-        }
-      },
-    );
+  onOpenEdit(row: any) {
+    this.router.navigate(['../agents/edit'], {
+      relativeTo: this.route,
+      queryParams: {id: row.id},
+      state: {agent: row},
+    });
   }
 
   openDeleteModal(row: any) {
-    this.dialogService.open(ConfirmationComponent, {context: {type: 'User Group'}}).onClose.subscribe(
+    const {name, id} = row;
+    this.dialogService.open(AgentDeleteComponent, {
+      context: {agent: {name, id}},
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.userGroupsService.deleteGroup(row.id).subscribe(
-            resp => {
+          this.agentsService.deleteAgentGroup(row.id).subscribe(
+            () => {
               this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
-              this.notificationsService.success('User Group successfully deleted', '');
+              this.notificationsService.success('Sink Item successfully deleted', '');
             },
           );
         }
@@ -103,24 +170,30 @@ export class AgentsComponent implements OnInit {
     );
   }
 
-  onOpenDetails(row: any) {
-    if (row.id) {
-      this.router.navigate([`${this.router.routerState.snapshot.url}/details/${row.id}`]);
-    }
+  openDetailsModal(row: any) {
+    const {name, description, backend, config, ts_created, id} = row;
+
+    this.dialogService.open(AgentDetailsComponent, {
+      context: {agent: {id, name, description, backend, config, ts_created}},
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe(
+      confirm => {
+        if (confirm) {
+          this.getAgents();
+        }
+      },
+    );
   }
 
-  searcUserGroupsbyName(input) {
+  searchAgentByName(input) {
     const t = new Date().getTime();
     if ((t - this.searchFreq) > defFreq) {
-      this.getGroups(input);
+      this.getAgents(input);
       this.searchFreq = t;
     }
   }
 
-  onClickSave() {
-    this.fsService.exportToCsv('mfx_user_groups.csv', this.page.rows);
-  }
+  filterByActive = (agent) => agent.status === 'active';
 
-  onFileSelected(files: FileList) {
-  }
 }

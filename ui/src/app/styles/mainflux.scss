@@ -51,21 +51,10 @@
   background-color: #f2f2f2;
 }
 
-// Header
-.header-logo {
-  color: white !important;
-  font-family: 'Montserrat', sans-serif !important;
-  font-weight: 400 !important;
-}
-
 .header-version {
   color: white !important;
   font-family: 'Montserrat', sans-serif !important;
   font-weight: 10 !important;
-}
-
-.nb-theme-default nb-layout.window-mode .layout nb-layout-header {
-  background-color: #232940 !important;
 }
 
 .nb-theme-default nb-user .user-name {
@@ -84,6 +73,9 @@ nb-sidebar {
 // Menu items
 .nb-theme-default nb-menu .menu-item a,
 .nb-theme-default nb-menu .menu-item a .menu-icon {
+  margin-right: 17px;
+  width: 22px;
+  height: 22px;
   color: #969fb9 !important;
 
   span {

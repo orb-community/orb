@@ -105,10 +105,10 @@ $theme: (
   color-basic-500: #c5cee0,
   color-basic-600: #8f9bb3,
   color-basic-700: #2e3a59,
-  color-basic-800: #222b45,
+  color-basic-800: #171c30,
   color-basic-900: #192038,
-  color-basic-1000: #151a30,
-  color-basic-1100: #101426,
+  color-basic-1000: #171c30,
+  color-basic-1100: #232940,
   color-basic-transparent-100: rgba(143, 155, 179, 0.08),
   color-basic-transparent-200: rgba(143, 155, 179, 0.16),
   color-basic-transparent-300: rgba(143, 155, 179, 0.24),
@@ -364,7 +364,7 @@ $theme: (
   text-danger-active-color: color-danger-active,
   text-danger-disabled-color: color-danger-400,
 
-  font-family-primary: unquote('Roboto, sans-serif'),
+  font-family-primary: unquote('\'Montserrat\', sans-serif'),
 
   shadow: unquote(
       '0px 2px 1px -1px rgba(0, 0, 0, 0.2), 0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12)'
