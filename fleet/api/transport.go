@@ -31,6 +31,7 @@ const (
 	orderKey    = "order"
 	dirKey      = "dir"
 	metadataKey = "metadata"
+	tagsKey     = "tags"
 	defOffset   = 0
 	defLimit    = 10
 )
@@ -190,6 +191,11 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	t, err := httputil.ReadTagQuery(r, tagsKey, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	req := listResourcesReq{
 		token: r.Header.Get("Authorization"),
 		pageMetadata: fleet.PageMetadata{
@@ -199,6 +205,7 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 			Order:    or,
 			Dir:      d,
 			Metadata: m,
+			Tags:     t,
 		},
 	}
 

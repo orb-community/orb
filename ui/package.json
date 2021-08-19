@@ -87,6 +87,7 @@
     "@angular/language-service": "9.0.4",
     "@compodoc/compodoc": "1.0.1",
     "@fortawesome/fontawesome-free": "^5.2.0",
+    "@swimlane/ngx-datatable": "^19.0.0",
     "@types/d3-color": "1.0.5",
     "@types/jasmine": "2.5.54",
     "@types/jasminewd2": "2.0.3",

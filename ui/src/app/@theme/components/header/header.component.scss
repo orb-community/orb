@@ -32,19 +32,21 @@
     align-items: center;
     width: auto;
 
-    .sidebar-toggle {
-      @include nb-ltr(margin-right, 1.25rem);
-      @include nb-rtl(margin-left, 1.25rem);
-      text-decoration: none;
-      color: nb-theme(text-primary-color);
+    .logo-container {
+      .sidebar-toggle {
+        @include nb-ltr(margin-right, 0 !important);
+        @include nb-rtl(margin-left, 27px !important);
+        text-decoration: none;
+        color: nb-theme(text-primary-color);
 
-      nb-icon {
-        font-size: 1.75rem;
+        nb-icon {
+          font-size: 1.75rem;
+        }
       }
     }
 
     .logo {
-      padding: 0 1.25rem;
+      padding: 0 0 0 17px;
       font-size: 1.75rem;
       //@include nb-ltr(border-left, 1px solid nb-theme(divider-color));
       //@include nb-rtl(border-right, 1px solid nb-theme(divider-color));

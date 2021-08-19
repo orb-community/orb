@@ -105,7 +105,7 @@ type updateAgentReq struct {
 	id    string
 	token string
 	Name  string     `json:"name,omitempty"`
-	Tags  types.Tags `json:"tags"`
+	Tags  types.Tags `json:"orb_tags,omitempty"`
 }
 
 func (req updateAgentReq) validate() error {

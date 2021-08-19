@@ -94,7 +94,9 @@ type AgentRepository interface {
 	// RetrieveAllByAgentGroupID retrieves Agents in the specified group
 	RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]Agent, error)
 	// UpdateAgentByID update the the tags and name for the Agent having provided ID and owner
-	UpdateAgentByID(ctx context.Context, ownerID string, agent Agent) (Agent, error)
+	UpdateAgentByID(ctx context.Context, ownerID string, agent Agent) error
+	// RetrieveByID retrieves the Agent having the provided ID and owner
+	RetrieveByID(ctx context.Context, ownerID string, thingID string) (Agent, error)
 }
 
 type AgentHeartbeatRepository interface {
