@@ -8,6 +8,22 @@ export const STRINGS = {
   home: {
     title: 'Orb Observation Overview',
   },
+  // Login Pages strings
+  login: {
+    presentation: {
+      description: 'An Open-Source Network observability platform',
+      action: 'Unleash the power of small data with dynamic edge observability',
+    },
+    form: {
+      title: 'Log in or sign up',
+      username: 'Username',
+      password: 'Password',
+      forgot: 'Forgot Password?',
+      login: 'Log in',
+      register: 'Register',
+      nonuser: 'Don\'t have an account?',
+    },
+  },
   // Fleet Pages strings
   fleet: {
     title: 'Fleet Management',
@@ -62,6 +78,64 @@ export const STRINGS = {
       total: ['You have', 'total.'],
       error: 'have errors.',
       create: 'New Sink',
+      filters: {
+        select: 'Filter',
+        name: 'Name',
+        description: 'Description',
+        status: 'Status',
+        type: 'Type',
+        tags: 'Tags',
+      },
+    },
+  },
+  agents: {
+    // sink statuses
+    status: {
+      active: 'Active',
+      error: 'Error',
+    },
+    // sink.interface name descriptors
+    propNames: {
+      id: 'id',
+      name: 'Name',
+      description: 'Description',
+      tags: 'Tags',
+      status: 'Status',
+      error: 'Error',
+      backend: 'Service Type',
+      config: 'Connection Details',
+      config_remote_host: 'Remote Host',
+      config_username: 'Username',
+      config_password: 'Password',
+      ts_created: 'Date Created',
+    },
+    // add page
+    add: {
+      header: 'Agent Groups',
+    },
+    // edit page
+    edit: {
+      header: 'Update Agent',
+    },
+    // delete modal
+    delete: {
+      header: 'Delete Agent Confirmation',
+      body: 'Are you sure you want to delete this agent?  This action cannot be undone.',
+      close: 'Close',
+    },
+    // details modal
+    details: {
+      header: 'Agent Details',
+      close: 'Close',
+    },
+    // dashboard page
+    list: {
+      header: 'All Agents',
+      none: 'There are no agents listed.',
+      agent: 'agent',
+      total: ['You have', 'total.'],
+      error: 'have errors.',
+      create: 'New Agent',
       filters: {
         select: 'Filter',
         name: 'Name',

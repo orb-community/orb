@@ -51,21 +51,10 @@
   background-color: #f2f2f2;
 }
 
-// Header
-.header-logo {
-  color: white !important;
-  font-family: 'Montserrat', sans-serif !important;
-  font-weight: 400 !important;
-}
-
 .header-version {
   color: white !important;
   font-family: 'Montserrat', sans-serif !important;
   font-weight: 10 !important;
-}
-
-.nb-theme-default nb-layout.window-mode .layout nb-layout-header {
-  background-color: #232940 !important;
 }
 
 .nb-theme-default nb-user .user-name {
@@ -78,27 +67,53 @@ nb-sidebar {
 }
 
 .nb-theme-default nb-menu .menu-item {
-  background-color: #272739 !important;
-  border-bottom: 1px solid #151a30;
+  background-color: #171c30 !important;
 }
 
 // Menu items
 .nb-theme-default nb-menu .menu-item a,
 .nb-theme-default nb-menu .menu-item a .menu-icon {
-  color: #df316f !important;
+  margin-right: 17px;
+  width: 22px;
+  height: 22px;
+  color: #969fb9 !important;
+
+  span {
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-weight: lighter;
+    font-size: 12px;
+    line-height: 12px;
+  }
 }
 
 .nb-theme-default nb-menu .menu-item a:hover {
   background-color: #c9225e !important;
+
+  span {
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 12px;
+  }
 }
 
 .nb-theme-default nb-menu .menu-item a.active {
   background-color: white !important;
-  color: #df316f !important;
+  color: #ffffff !important;
+
+  span {
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 12px;
+    line-height: 12px;
+  }
 }
 
 .nb-theme-default nb-menu .menu-item a.active .menu-icon {
-  color: #df316f !important;
+  color: #ffffff !important;
 }
 
 // First sub menu child
@@ -108,7 +123,7 @@ nb-sidebar {
 
 .nb-theme-default nb-menu .menu-item:first-child a.active {
   border-top: 0 !important;
-  color: #df316f !important;
+  color: #ffffff !important;
 }
 
 // Pages padding

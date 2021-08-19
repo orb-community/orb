@@ -1,5 +1,5 @@
 @import './themes';
-
+@import 'orb/ngx-datatable/ngx-datatable';
 
 @mixin nb-overrides() {
   nb-select.size-medium button {
@@ -9,12 +9,89 @@
       right: 0.41rem !important;
     }
   }
+  // Navbar
+  nb-layout-header nav {
+    box-shadow: none !important;
+  }
+  .mat-ripple.mat-ripple-unbounded {
+    color: #c4c4c4 !important;
+  }
+
+  nb-user.size-medium .user-name {
+    font-family: 'Montserrat';
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  nb-layout .layout {
+    background-color: #171c30;
+  }
+
+  nb-layout-header {
+    max-height: 71px;
+    background-color: #232940 !important;
+  }
+
+  //sidebar
+
+  nb-sidebar {
+    background-color: #171c30 !important;
+    box-shadow: none !important;
+    .scrollable {
+      padding-top: 5px !important;
+    }
+  }
+
+  nb-menu .menu-item a.active {
+    color: #fff !important;
+    font-weight: 700 !important;
+  }
+  nb-menu {
+    font-family: Montserrat !important;
+    font-size: 12px;
+
+    .menu-item {
+      .menu-items {
+        .menu-item {
+          .a {
+            .active {
+              color: #fff !important;
+              font-weight: 700 !important;
+            }
+          }
+        }
+      }
+
+      & > menu-items & > .menu-item a.active {
+        color: #fff !important;
+        font-weight: 700 !important;
+      }
+
+      a {
+        color: #c4c4c4 !important;
+        font-weight: 400 !important;
+
+        active {
+          color: #fff !important;
+        }
+
+        .menu-title {
+          padding-left: 17px;
+        }
+      }
+
+      .menu-icon {
+        width: 22px;
+        height: 22px;
+      }
+    }
+  }
 
   nb-card nb-list {
     @include nb-scrollbars(
-      nb-theme(card-scrollbar-color),
-      nb-theme(card-scrollbar-background-color),
-      nb-theme(card-scrollbar-width));
+        nb-theme(card-scrollbar-color),
+        nb-theme(card-scrollbar-background-color),
+        nb-theme(card-scrollbar-width));
   }
 
   .table {
