@@ -3,11 +3,13 @@ import {
   NbButtonModule,
   NbCardModule,
   NbCheckboxModule,
-  NbDialogService, NbFormFieldModule,
+  NbDialogService,
+  NbFormFieldModule,
   NbInputModule,
   NbListModule,
   NbMenuModule,
-  NbSelectModule, NbStepperModule,
+  NbSelectModule,
+  NbStepperModule,
   NbTabsetModule,
   NbWindowService,
 } from '@nebular/theme';
@@ -41,6 +43,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { BreadcrumbModule } from 'xng-breadcrumb';
+import { ProfileComponent } from 'app/pages/profile/profile.component';
 
 @NgModule({
   imports: [
@@ -79,6 +82,7 @@ import { BreadcrumbModule } from 'xng-breadcrumb';
   ],
   declarations: [
     PagesComponent,
+    ProfileComponent,
     // Orb
     // Agent Group Management
     AgentsComponent,

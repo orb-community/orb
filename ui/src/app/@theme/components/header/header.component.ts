@@ -1,10 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NbMediaBreakpointsService, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
 
-import { LayoutService } from '../../../@core/utils';
+import { LayoutService } from 'app/@core/utils';
 import { map, takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
-import { RippleService } from '../../../@core/utils/ripple.service';
+import { RippleService } from 'app/@core/utils/ripple.service';
 
 // Mainflux - Users
 import { User } from 'app/common/interfaces/mainflux.interface';

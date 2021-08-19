@@ -12,13 +12,16 @@ import { ThemeModule } from './@theme/theme.module';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import {
+  NbAlertModule,
   NbButtonModule,
   NbCardModule,
   NbChatModule,
+  NbCheckboxModule,
   NbDatepickerModule,
   NbDialogModule,
   NbIconModule,
   NbInputModule,
+  NbLayoutModule,
   NbMenuModule,
   NbSidebarModule,
   NbToastrModule,
@@ -31,9 +34,6 @@ import { FormsModule } from '@angular/forms';
 import { IMqttServiceOptions, MqttModule, MqttService } from 'ngx-mqtt';
 import { environment } from 'environments/environment';
 // Mfx - Auth and Profile pages
-import { LogoutComponent } from './pages/logout/logout.component';
-import { RegisterComponent } from './pages/register/register.component';
-import { ProfileComponent } from './pages/profile/profile.component';
 import { BreadcrumbModule } from 'xng-breadcrumb';
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
@@ -44,10 +44,6 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
 @NgModule({
   declarations: [
     AppComponent,
-    // Mfx Componennt
-    LogoutComponent,
-    RegisterComponent,
-    ProfileComponent,
   ],
   imports: [
     BrowserModule,
@@ -77,6 +73,9 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
 
     // 3rd party
     BreadcrumbModule,
+    NbLayoutModule,
+    NbAlertModule,
+    NbCheckboxModule,
   ],
   bootstrap: [AppComponent],
   // Mfx dependencies
