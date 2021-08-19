@@ -70,6 +70,8 @@ type Page struct {
 type AgentService interface {
 	// CreateAgent creates new agent
 	CreateAgent(ctx context.Context, token string, a Agent) (Agent, error)
+	// ViewAgentByID retrieves a Agent by provided thingID
+	ViewAgentByID(ctx context.Context, token string, thingID string) (Agent, error)
 	// ListAgents retrieves data about subset of agents that belongs to the
 	// user identified by the provided key.
 	ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error)
