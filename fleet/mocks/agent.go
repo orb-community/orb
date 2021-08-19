@@ -61,7 +61,27 @@ func (a agentRepositoryMock) RetrieveByIDWithChannel(ctx context.Context, thingI
 }
 
 func (a agentRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm fleet.PageMetadata) (fleet.Page, error) {
-	panic("implement me")
+	first := uint64(pm.Offset)
+	last := first + uint64(pm.Limit)
+
+	var agents []fleet.Agent
+	id := uint64(0)
+	for _, v := range a.agentsMock {
+		if v.MFOwnerID == owner && id >= first && id < last {
+			agents = append(agents, v)
+		}
+		id++
+	}
+
+	agents = sortAgents(pm, agents)
+
+	pageAgentGroup := fleet.Page{
+		PageMetadata: fleet.PageMetadata{
+			Total: a.counter,
+		},
+		Agents: agents,
+	}
+	return pageAgentGroup, nil
 }
 
 func (a agentRepositoryMock) RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]fleet.Agent, error) {
