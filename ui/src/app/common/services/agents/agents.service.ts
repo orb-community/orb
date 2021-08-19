@@ -6,7 +6,6 @@ import 'rxjs/add/observable/empty';
 import {environment} from '../../../../environments/environment';
 import {NotificationsService} from '../../../common/services/notifications/notifications.service';
 import {Agent} from 'app/common/interfaces/orb/agent.interface';
-import {PageFilters} from 'app/common/interfaces/mainflux.interface';
 import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination';
 import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
 
