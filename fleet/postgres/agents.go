@@ -273,9 +273,9 @@ func (r agentRepository) UpdateAgentByID(ctx context.Context, ownerID string, ag
 	return fleet.Agent{}, nil
 }
 
-func (r agentRepository) Delete(ctx context.Context, ownerID string, id string) error {
+func (r agentRepository) Delete(ctx context.Context, ownerID string, thingID string) error {
 	params := map[string]interface{}{
-		"id":    id,
+		"id":    thingID,
 		"owner": ownerID,
 	}
 

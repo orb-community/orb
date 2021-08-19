@@ -120,13 +120,13 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 	return res, nil
 }
 
-func (svc fleetService) RemoveAgent(ctx context.Context, owner, id string) error {
-	_, err := svc.identify(owner)
+func (svc fleetService) RemoveAgent(ctx context.Context, token, thingID string) error {
+	ownerID, err := svc.identify(token)
 	if err != nil {
 		return err
 	}
 
-	err = svc.agentRepo.Delete(ctx, owner, id)
+	err = svc.agentRepo.Delete(ctx, ownerID, thingID)
 	if err != nil {
 		return err
 	}

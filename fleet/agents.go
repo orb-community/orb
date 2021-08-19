@@ -76,7 +76,7 @@ type AgentService interface {
 	// EditAgent
 	EditAgent(ctx context.Context, token string, agent Agent) (Agent, error)
 	// RemoveAgent removes an existing agent by owner and id
-	RemoveAgent(ctx context.Context, owner string, id string) error
+	RemoveAgent(ctx context.Context, token string, thingID string) error
 }
 
 type AgentRepository interface {
@@ -96,7 +96,7 @@ type AgentRepository interface {
 	// UpdateAgentByID update the the tags and name for the Agent having provided ID and owner
 	UpdateAgentByID(ctx context.Context, ownerID string, agent Agent) (Agent, error)
 	// Delete an existing agent by owner and id
-	Delete(ctx context.Context, owner string, id string) error
+	Delete(ctx context.Context, owner string, thingID string) error
 }
 
 type AgentHeartbeatRepository interface {
