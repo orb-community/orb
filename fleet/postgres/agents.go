@@ -80,7 +80,7 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
-	t, tmq, err := getTagsQuery(pm.Tags)
+	t, tmq, err := getOrbTagsQuery(pm.Tags)
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
@@ -269,8 +269,76 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 
 }
 
-func (r agentRepository) UpdateAgentByID(ctx context.Context, ownerID string, agent fleet.Agent) (fleet.Agent, error) {
-	return fleet.Agent{}, nil
+func (r agentRepository) UpdateAgentByID(ctx context.Context, ownerID string, agent fleet.Agent) error {
+	q := `UPDATE agents SET (name, orb_tags)         
+			= (:name, :orb_tags) 
+			WHERE mf_thing_id = :mf_thing_id AND mf_owner_id = :mf_owner_id;`
+
+	agent.MFOwnerID = ownerID
+	if agent.MFThingID == "" || agent.MFOwnerID == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	dba, err := toDBAgent(agent)
+	if err != nil {
+		return errors.Wrap(errors.ErrUpdateEntity, err)
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, dba)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(errors.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return errors.Wrap(errors.ErrConflict, err)
+			}
+		}
+		return errors.Wrap(db.ErrUpdateDB, err)
+	}
+
+	cnt, errdb := res.RowsAffected()
+	if errdb != nil {
+		return errors.Wrap(errors.ErrUpdateEntity, errdb)
+	}
+
+	if cnt == 0 {
+		return errors.ErrNotFound
+	}
+
+	return nil
+}
+
+func (r agentRepository) RetrieveByID(ctx context.Context, ownerID string, thingID string) (fleet.Agent, error) {
+	q := `SELECT 
+			mf_thing_id, 
+			name, 
+			mf_owner_id, 
+			mf_channel_id, 
+			ts_created, 
+			orb_tags, 
+			agent_tags, 
+			agent_metadata, 
+			state, 
+			last_hb_data, 
+			ts_last_hb 
+		FROM agents 
+		WHERE 
+			mf_thing_id = $1 
+			AND mf_owner_id = $2;`
+
+	dba := dbAgent{}
+
+	if err := r.db.QueryRowxContext(ctx, q, thingID, ownerID).StructScan(&dba); err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if err == sql.ErrNoRows || ok && db.ErrInvalid == pqErr.Code.Name() {
+			return fleet.Agent{}, errors.Wrap(errors.ErrNotFound, err)
+		}
+		return fleet.Agent{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	return toAgent(dba)
 }
 
 func (r agentRepository) Delete(ctx context.Context, ownerID string, thingID string) error {
@@ -387,12 +455,26 @@ func getMetadataQuery(m types.Metadata) ([]byte, string, error) {
 	return mb, mq, nil
 }
 
-func getTagsQuery(m types.Tags) ([]byte, string, error) {
+func getAgentTagsQuery(m types.Tags) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {
-		// todo add in orb tags
 		mq = ` AND agent_tags @> :tags`
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, "", err
+		}
+		mb = b
+	}
+	return mb, mq, nil
+}
+
+func getOrbTagsQuery(m types.Tags) ([]byte, string, error) {
+	mq := ""
+	mb := []byte("{}")
+	if len(m) > 0 {
+		mq = ` AND orb_tags @> :tags`
 
 		b, err := json.Marshal(m)
 		if err != nil {

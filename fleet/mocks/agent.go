@@ -12,6 +12,16 @@ type agentRepositoryMock struct {
 	agentsMock map[string]fleet.Agent
 }
 
+func (a agentRepositoryMock) RetrieveByID(ctx context.Context, ownerID string, thingID string) (fleet.Agent, error) {
+	if _, ok := a.agentsMock[thingID]; ok {
+		if a.agentsMock[thingID].MFOwnerID != ownerID {
+			return fleet.Agent{}, fleet.ErrNotFound
+		}
+		return a.agentsMock[thingID], nil
+	}
+	return fleet.Agent{}, fleet.ErrNotFound
+}
+
 func (a agentRepositoryMock) UpdateHeartbeatByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
 	panic("implement me")
 }
@@ -26,15 +36,15 @@ func (a agentRepositoryMock) Save(ctx context.Context, agent fleet.Agent) error 
 	return nil
 }
 
-func (a agentRepositoryMock) UpdateAgentByID(ctx context.Context, ownerID string, agent fleet.Agent) (fleet.Agent, error) {
+func (a agentRepositoryMock) UpdateAgentByID(ctx context.Context, ownerID string, agent fleet.Agent) error {
 	if _, ok := a.agentsMock[agent.MFThingID]; ok {
 		if a.agentsMock[agent.MFThingID].MFOwnerID != ownerID {
-			return fleet.Agent{}, fleet.ErrUpdateEntity
+			return fleet.ErrUpdateEntity
 		}
 		a.agentsMock[agent.MFThingID] = agent
-		return a.agentsMock[agent.MFThingID], nil
+		return nil
 	}
-	return fleet.Agent{}, fleet.ErrNotFound
+	return fleet.ErrNotFound
 }
 
 func (a agentRepositoryMock) UpdateDataByIDWithChannel(ctx context.Context, agent fleet.Agent) error {

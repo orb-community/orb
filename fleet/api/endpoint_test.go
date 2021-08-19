@@ -796,5 +796,5 @@ type updateAgentGroupReq struct {
 type updateAgentReq struct {
 	token string
 	Name  string     `json:"name,omitempty"`
-	Tags  types.Tags `json:"tags"`
+	Tags  types.Tags `json:"orb_tags"`
 }

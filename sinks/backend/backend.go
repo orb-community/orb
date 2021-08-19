@@ -7,6 +7,15 @@ package backend
 type Backend interface {
 	Metadata() interface{}
 	Connect(map[string]interface{}) error
+	CreateFeatureConfig() []ConfigFeature
+}
+
+type ConfigFeature struct {
+	Type     string `json:"type"`
+	Input    string `json:"input"`
+	Title    string `json:"title"`
+	Name     string `json:"name"`
+	Required bool   `json:"required"`
 }
 
 var registry = make(map[string]Backend)
