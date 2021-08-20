@@ -7,11 +7,11 @@
   <div class="d-flex flex-column mt-4">
     <div class="d-flex justify-content-between mb-2">
       <div class="d-flex">
-        <p *ngIf=" rowData && rowData.length> 0"
+        <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
            class="sink-info-regular">
-          You have <strong>{{rowData.filter(filterByActive).length}} groups active</strong>.
+          You have <strong>{{paginationControls.data.filter(filterByActive).length}} groups active</strong>.
         </p>
-        <p *ngIf="rowData && rowData.length === 0"
+        <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
            class="sink-info-accent">
           There are no agents yet.
         </p>
