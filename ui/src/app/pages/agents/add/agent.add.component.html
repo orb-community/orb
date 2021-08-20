@@ -67,7 +67,7 @@
           <form [formGroup]="secondFormGroup">
             <nb-form-field>
               <div>
-                <p>These values will be used to match agents, that way you'll be able to easily agregate Agents</p>
+                <p>Add aggregator tags</p>
               </div>
               <div class="container d-flex row px-0 mx-0">
                 <div class="d-flex flex-column col-5 px-0 mx-0">
@@ -101,7 +101,7 @@
                 </div>
                 <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
                      style="transform: translateY(14px);">
-                  <button nbButton ghost (click)="onAddTag()">
+                  <button nbButton ghost (click)="onAddTag()" [disabled]="secondFormGroup.controls['key'].value === ''">
                     <nb-icon style="color: #df316f;" status="primary" icon="plus-outline" size="14"></nb-icon>
                   </button>
                 </div>
@@ -111,9 +111,9 @@
             <div class="d-flex">
               <mat-chip-list>
                 <mat-chip
-                  class="orb-tag-sink "
-                  *ngFor="let tag of secondFormGroup.controls.otb_tags | keyvalue">
-                  {{tag.key}}, {{tag.value}}
+                    class="orb-tag-sink "
+                    *ngFor="let tag of secondFormGroup.controls.tags.value | keyvalue | tagchip">
+                  {{tag}}
                 </mat-chip>
               </mat-chip-list>
             </div>

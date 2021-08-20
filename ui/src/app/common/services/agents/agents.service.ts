@@ -3,10 +3,11 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from '../../../../environments/environment';
-import { NotificationsService } from '../../../common/services/notifications/notifications.service';
+import { environment } from 'environments/environment';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { PageFilters } from 'app/common/interfaces/mainflux.interface';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -23,9 +24,9 @@ export class AgentsService {
   ) {
   }
 
-  addAgentGroup(agentItem: Agent) {
+  addAgentGroup(agentGroupItem: AgentGroup) {
     return this.http.post(environment.agentsUrl,
-      agentItem,
+      agentGroupItem,
       {observe: 'response'})
       .map(
         resp => {
@@ -41,8 +42,8 @@ export class AgentsService {
       );
   }
 
-  getAgentGroupById(agentId: string): any {
-    return this.http.get(`${environment.agentsUrl}/${agentId}`)
+  getAgentGroupById(id: string): any {
+    return this.http.get(`${environment.agentsUrl}/${id}`)
       .map(
         resp => {
           return resp;

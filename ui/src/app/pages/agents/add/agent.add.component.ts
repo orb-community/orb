@@ -1,12 +1,12 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {SinksService} from 'app/common/services/sinks/sinks.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Sink} from 'app/common/interfaces/orb/sink.interface';
-import {STRINGS} from 'assets/text/strings';
-import {sinkTypesList} from 'app/pages/sinks/sinks.component';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { STRINGS } from 'assets/text/strings';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
+import { AgentsService } from 'app/common/services/agents/agents.service';
+import { tagInputValidator } from 'app/shared/directives/tag-input.validator';
 
 @Component({
   selector: 'ngx-agent-add-component',
@@ -21,35 +21,18 @@ export class AgentAddComponent implements OnInit {
 
   strings = STRINGS.agents;
 
-  customSinkSettings: {};
-  selectedSinkSetting: any[];
-
-  sinkForm = {
-    name: '',
-    description: '',
-    backend: sinkTypesList.prometheus,
-    config: {
-      host_name: '',
-      username: '',
-      password: '',
-    },
-    tags: {},
-  };
-  sink: Sink;
-
-  sinkTypesList = Object.values(sinkTypesList);
+  agentGroup: AgentGroup;
 
   isEdit: boolean;
 
   constructor(
-    private sinksService: SinksService,
+    private agentsService: AgentsService,
     private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
-
+    this.agentGroup = this.router.getCurrentNavigation().extras.state?.agentGroup as AgentGroup || null;
   }
 
   ngOnInit() {
@@ -59,7 +42,7 @@ export class AgentAddComponent implements OnInit {
     });
 
     this.secondFormGroup = this._formBuilder.group({
-      orb_tags: [[], Validators.minLength(1)],
+      tags: [{}, tagInputValidator()],
       key: [''],
       value: [''],
     });
@@ -67,34 +50,36 @@ export class AgentAddComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['../../sinks'], {relativeTo: this.route});
+    this.router.navigate(['../../agents'], {relativeTo: this.route});
   }
 
   onAddTag() {
-    debugger;
-    // this.secondFormGroup.get('orb_tags').valu
+    const {tags, key, value} = this.secondFormGroup.controls;
+    tags.value[key.value] = value.value;
+  }
+
+  onRemoveTag() {
+
   }
 
   onFormSubmit() {
-    // const payload = {
-    //   name: this.firstFormGroup.controls.name.value,
-    //   backend: this.firstFormGroup.controls.backend.value,
-    //   description: this.firstFormGroup.controls.description.value,
-    //   config: this.selectedSinkSetting.reduce((accumulator, current) => {
-    //     accumulator[current.prop] = this.secondFormGroup.controls[current.prop].value;
-    //     return accumulator;
-    //   }, {}),
-    //   tags: {
-    //     cloud: 'aws',
-    //   },
-    //   validate_only: false, // Apparently this guy is required..
-    // };
-    // // TODO Check this out
-    // // console.log(payload);
-    // this.sinksService.addSink(payload).subscribe(resp => {
-    //   this.notificationsService.success('Sink successfully created', '');
-    //   this.goBack();
-    // });
+    const payload = {
+      name: this.firstFormGroup.controls.name.value,
+      description: this.firstFormGroup.controls.description.value,
+      // TODO tag input
+      tags: {
+        hardcoded: 'payload',
+      },
+      validate_only: false, // Apparently this guy is required..
+    };
+
+    // // TODO remove line bellow
+    // console.log(payload);
+
+    this.agentsService.addAgentGroup(payload).subscribe(resp => {
+      this.notificationsService.success('Agent Group successfully created', '');
+      this.goBack();
+    });
   }
 
 }
