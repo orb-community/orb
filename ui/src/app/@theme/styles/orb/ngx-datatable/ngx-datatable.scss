@@ -146,6 +146,7 @@ $orb-primary-focused: #0c5dc5;
       background-repeat: repeat-y;
       background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAYAAAD5PA/NAAAAFklEQVQI12PQkNdi1VTQ5gbSwkAsDQARLAIGtOSFUAAAAABJRU5ErkJggg==');
     }
+
   }
 
   /**
@@ -288,8 +289,8 @@ $orb-primary-focused: #0c5dc5;
   .datatable-footer {
     border-top: 1px solid rgba(0, 0, 0, 0.12);
     font-size: 12px;
-    font-weight: 400;
-    color: rgba(0, 0, 0, 0.54);
+    font-weight: 500;
+    color: $orb-white;
 
     .page-count {
       line-height: 50px;
@@ -304,7 +305,7 @@ $orb-primary-focused: #0c5dc5;
         vertical-align: middle;
 
         &.disabled a {
-          color: rgba(0, 0, 0, 0.26) !important;
+          color: $orb-gray !important;
           background-color: transparent !important;
         }
 
@@ -323,11 +324,10 @@ $orb-primary-focused: #0c5dc5;
         margin: 6px 3px;
         text-align: center;
         vertical-align: top;
-        color: rgba(0, 0, 0, 0.54);
+        color: $orb-white;
         text-decoration: none;
 
         &:hover {
-          color: rgba(0, 0, 0, 0.75);
           background-color: rgba(158, 158, 158, 0.2);
         }
       }
@@ -412,6 +412,10 @@ $orb-primary-focused: #0c5dc5;
       cursor: pointer;
     }
   }
+}
+
+.ngx-datatable.scroll-vertical .datatable-body {
+  overflow-x: hidden;
 }
 
 /**
