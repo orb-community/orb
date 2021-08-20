@@ -168,8 +168,6 @@ func (s validateAgentGroupRes) Empty() bool {
 }
 
 type validateAgentRes struct {
-	Key       string 		 `json:"key,omitempty"`
-	ChannelID string 		 `json:"channel_id,omitempty"`
 	Name      string 		 `json:"name"`
 	OrbTags   types.Tags     `json:"orb_tags"`
 }

@@ -361,8 +361,6 @@ func validateAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		res := validateAgentRes{
 			Name:      saved.Name.String(),
-			Key:       saved.MFKeyID,
-			ChannelID: saved.MFChannelID,
 			OrbTags:   saved.OrbTags,
 		}
 		return res, nil
