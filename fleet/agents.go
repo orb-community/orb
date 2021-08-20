@@ -70,6 +70,8 @@ type Page struct {
 type AgentService interface {
 	// CreateAgent creates new agent
 	CreateAgent(ctx context.Context, token string, a Agent) (Agent, error)
+	// ViewAgentByID retrieves a Agent by provided thingID
+	ViewAgentByID(ctx context.Context, token string, thingID string) (Agent, error)
 	// ListAgents retrieves data about subset of agents that belongs to the
 	// user identified by the provided key.
 	ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error)
@@ -91,6 +93,8 @@ type AgentRepository interface {
 	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
 	// RetrieveAllByAgentGroupID retrieves Agents in the specified group
 	RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]Agent, error)
+	// RetrieveMatchingAgents retrieve the matching agents by tags
+	RetrieveMatchingAgents(ctx context.Context, owner string, tags types.Tags) (types.Metadata, error)
 	// UpdateAgentByID update the the tags and name for the Agent having provided ID and owner
 	UpdateAgentByID(ctx context.Context, ownerID string, agent Agent) error
 	// RetrieveByID retrieves the Agent having the provided ID and owner

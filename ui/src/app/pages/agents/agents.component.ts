@@ -1,27 +1,36 @@
-import { AfterViewInit, ChangeDetectorRef, Component, TemplateRef, ViewChild } from '@angular/core';
-import { NbDialogService } from '@nebular/theme';
+import {AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild} from '@angular/core';
+import {NbDialogService} from '@nebular/theme';
 
-import { DropdownFilterItem, PageFilters, TablePage, User } from 'app/common/interfaces/mainflux.interface';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { STRINGS } from 'assets/text/strings';
-import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.component';
-import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
-import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
-import { AgentsService } from 'app/common/services/agents/agents.service';
+import {DropdownFilterItem} from 'app/common/interfaces/mainflux.interface';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {STRINGS} from 'assets/text/strings';
+import {AgentDeleteComponent} from 'app/pages/agents/delete/agent.delete.component';
+import {AgentDetailsComponent} from 'app/pages/agents/details/agent.details.component';
+import {ColumnMode, TableColumn} from '@swimlane/ngx-datatable';
+import {AgentsService} from 'app/common/services/agents/agents.service';
+import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination';
+import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
+import {Debounce} from 'app/shared/decorators/utils';
 
-const defFreq: number = 100;
 
 @Component({
   selector: 'ngx-agents-component',
   templateUrl: './agents.component.html',
   styleUrls: ['./agents.component.scss'],
 })
-export class AgentsComponent implements AfterViewInit {
+export class AgentsComponent implements OnInit, AfterViewInit {
   strings = STRINGS.agents;
 
   columnMode = ColumnMode;
   columns: TableColumn[];
+
+  loading = false;
+
+  paginationControls: OrbPagination<AgentGroup>;
+
+  searchPlaceholder = 'Search by name';
+  filterSelectedIndex = '0';
 
   // templates
 
@@ -30,20 +39,21 @@ export class AgentsComponent implements AfterViewInit {
   @ViewChild('addAgentTemplateRef') addAgentTemplateRef: TemplateRef<any>;
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
-  page: TablePage = {
-    limit: 10,
-  };
 
-  pageFilters: PageFilters = {
-    offset: 0,
-    order: 'id',
-    dir: 'desc',
-    name: '',
-  };
-
-  tableFilters: DropdownFilterItem[];
-
-  searchFreq = 0;
+  tableFilters: DropdownFilterItem[] = [
+    {
+      id: '0',
+      label: 'Name',
+      prop: 'name',
+      selected: false,
+    },
+    {
+      id: '1',
+      label: 'Tags',
+      prop: 'tags',
+      selected: false,
+    },
+  ];
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -52,7 +62,15 @@ export class AgentsComponent implements AfterViewInit {
     private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
-  ) {}
+  ) {
+    this.agentsService.clean();
+    this.paginationControls = AgentsService.getDefaultPagination();
+  }
+
+  ngOnInit() {
+    this.agentsService.clean();
+    this.getAgents();
+  }
 
   ngAfterViewInit() {
     this.columns = [
@@ -61,79 +79,64 @@ export class AgentsComponent implements AfterViewInit {
         name: 'Name',
         resizeable: false,
         flexGrow: 1,
-        maxWidth: 243,
+        minWidth: 90,
       },
       {
+        prop: 'description',
         name: 'Description',
         resizeable: false,
-        width: 200,
-        flexGrow: 3,
-
-        maxWidth: 350,
+        minWidth: 100,
+        flexGrow: 2,
       },
       {
         prop: 'agents',
         name: 'Agents',
         resizeable: false,
+        minWidth: 100,
         flexGrow: 1,
-        width: 80,
-        maxWidth: 100,
-
         cellTemplate: this.agentsTemplateCell,
       },
       {
+        prop: 'tags',
         name: 'Tags',
-        resizeable: false,
-        flexGrow: 4,
+        minWidth: 90,
+        flexGrow: 3,
         cellTemplate: this.agentTagsTemplateCell,
       },
       {
         name: '',
         prop: 'actions',
-        maxWidth: 140,
-        flexGrow: 2,
+        minWidth: 130,
         resizeable: false,
         sortable: false,
+        flexGrow: 1,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
-    this.tableFilters = this.columns.map((entry, index) => ({
-      id: index.toString(),
-      name: entry.name,
-      order: 'asc',
-      selected: false,
-    })).filter((filter) => (!filter.name?.startsWith('orb-')));
-    this.getAgents();
+
     this.cdr.detectChanges();
   }
 
-  getAgents(name?: string): void {
-    this.pageFilters.name = name;
-    this.agentsService.getAgentGroups(this.pageFilters).subscribe(
-      (resp: any) => {
-        this.page = {
-          offset: resp.offset,
-          limit: resp.limit,
-          total: resp.total,
-          rows: resp.agents,
-        };
+  @Debounce(400)
+  getAgents(pageInfo: NgxDatabalePageInfo = null): void {
+    const isFilter = pageInfo === null;
+    if (isFilter) {
+      pageInfo = {
+        offset: this.paginationControls.offset,
+        limit: this.paginationControls.limit,
+      };
+      if (this.paginationControls.name?.length > 0) pageInfo.name = this.paginationControls.name;
+      if (this.paginationControls.tags?.length > 0) pageInfo.tags = this.paginationControls.tags;
+    }
+
+    this.loading = true;
+    this.agentsService.getAgentGroups(pageInfo, isFilter).subscribe(
+      (resp: OrbPagination<AgentGroup>) => {
+        this.paginationControls = resp;
+        this.paginationControls.offset = pageInfo.offset;
+        this.loading = false;
       },
     );
-  }
-
-  onChangePage(dir: any) {
-    if (dir === 'prev') {
-      this.pageFilters.offset = this.page.offset - this.page.limit;
-    }
-    if (dir === 'next') {
-      this.pageFilters.offset = this.page.offset + this.page.limit;
-    }
-    this.getAgents();
-  }
-
-  onChangeLimit(limit: number) {
-    this.pageFilters.limit = limit;
-    this.getAgents();
   }
 
   onOpenAdd() {
@@ -150,6 +153,10 @@ export class AgentsComponent implements AfterViewInit {
     });
   }
 
+  onFilterSelected(selectedIndex) {
+    this.searchPlaceholder = `Search by ${this.tableFilters[selectedIndex].label}`;
+  }
+
   openDeleteModal(row: any) {
     const {name, id} = row;
     this.dialogService.open(AgentDeleteComponent, {
@@ -161,7 +168,7 @@ export class AgentsComponent implements AfterViewInit {
         if (confirm) {
           this.agentsService.deleteAgentGroup(row.id).subscribe(
             () => {
-              this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
+              // this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
               this.notificationsService.success('Sink Item successfully deleted', '');
             },
           );
@@ -187,13 +194,11 @@ export class AgentsComponent implements AfterViewInit {
   }
 
   searchAgentByName(input) {
-    const t = new Date().getTime();
-    if ((t - this.searchFreq) > defFreq) {
-      this.getAgents(input);
-      this.searchFreq = t;
-    }
+    this.getAgents({
+      ...this.paginationControls,
+      [this.tableFilters[this.filterSelectedIndex].prop]: input,
+    });
   }
 
   filterByActive = (agent) => agent.status === 'active';
-
 }

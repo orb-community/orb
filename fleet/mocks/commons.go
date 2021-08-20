@@ -45,3 +45,36 @@ func sortAgentGroups(pm fleet.PageMetadata, ags []fleet.AgentGroup) []fleet.Agen
 
 	return ags
 }
+
+func sortAgents(pm fleet.PageMetadata, ags []fleet.Agent) []fleet.Agent {
+	switch pm.Order {
+	case "name":
+		if pm.Dir == "asc" {
+			sort.SliceStable(ags, func(i, j int) bool {
+				return ags[i].Name.String() < ags[j].Name.String()
+			})
+		}
+		if pm.Dir == "desc" {
+			sort.SliceStable(ags, func(i, j int) bool {
+				return ags[i].Name.String() > ags[j].Name.String()
+			})
+		}
+	case "id":
+		if pm.Dir == "asc" {
+			sort.SliceStable(ags, func(i, j int) bool {
+				return ags[i].MFThingID < ags[j].MFThingID
+			})
+		}
+		if pm.Dir == "desc" {
+			sort.SliceStable(ags, func(i, j int) bool {
+				return ags[i].MFThingID > ags[j].MFThingID
+			})
+		}
+	default:
+		sort.SliceStable(ags, func(i, j int) bool {
+			return ags[i].MFThingID < ags[j].MFThingID
+		})
+	}
+
+	return ags
+}

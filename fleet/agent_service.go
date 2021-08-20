@@ -27,6 +27,14 @@ var (
 	errThingNotFound = errors.New("thing not found")
 )
 
+func (svc fleetService) ViewAgentByID(ctx context.Context, token string, thingID string) (Agent, error) {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return Agent{}, err
+	}
+	return svc.agentRepo.RetrieveByID(ctx, ownerID, thingID)
+}
+
 func (svc fleetService) ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error) {
 	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {

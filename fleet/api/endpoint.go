@@ -194,6 +194,35 @@ func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 	}
 }
 
+func viewAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		ag, err := svc.ViewAgentByID(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+
+		res := viewAgentRes{
+			ID:            ag.MFThingID,
+			Name:          ag.Name.String(),
+			ChannelID:     ag.MFChannelID,
+			AgentTags:     ag.AgentTags,
+			OrbTags:       ag.OrbTags,
+			TsCreated:     ag.Created,
+			AgentMetadata: ag.AgentMetadata,
+			State:         ag.State.String(),
+			LastHBData:    ag.LastHBData,
+			LastHB:        ag.LastHB,
+		}
+		return res, nil
+	}
+}
+
 func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(listResourcesReq)
@@ -231,6 +260,37 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 				LastHB:        ag.LastHB,
 			}
 			res.Agents = append(res.Agents, view)
+		}
+
+		return res, nil
+	}
+}
+
+func validateAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(c context.Context, request interface{}) (interface{}, error) {
+		req := request.(addAgentGroupReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		group := fleet.AgentGroup{
+			Name: nID,
+			Tags: req.Tags,
+		}
+		validated, err := svc.ValidateAgentGroup(c, req.token, group)
+		if err != nil {
+			return nil, err
+		}
+
+		res := validateAgentGroupRes{
+			Name:           validated.Name.String(),
+			Tags:           validated.Tags,
+			MatchingAgents: validated.MatchingAgents,
 		}
 
 		return res, nil

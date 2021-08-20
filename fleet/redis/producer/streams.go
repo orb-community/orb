@@ -28,6 +28,10 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (es eventStore) ViewAgentByID(ctx context.Context, token string, thingID string) (fleet.Agent, error) {
+	return es.svc.ViewAgentByID(ctx, token, thingID)
+}
+
 func (es eventStore) EditAgent(ctx context.Context, token string, agent fleet.Agent) (fleet.Agent, error) {
 	return es.svc.EditAgent(ctx, token, agent)
 }
@@ -83,6 +87,10 @@ func (es eventStore) RemoveAgentGroup(ctx context.Context, token string, groupID
 
 	return nil
 
+}
+
+func (es eventStore) ValidateAgentGroup(ctx context.Context, token string, s fleet.AgentGroup) (fleet.AgentGroup, error) {
+	return es.svc.ValidateAgentGroup(ctx, token, s)
 }
 
 // NewEventStoreMiddleware returns wrapper around fleet service that sends

@@ -18,6 +18,20 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
+func (l loggingMiddleware) ViewAgentByID(ctx context.Context, token string, thingID string) (_ fleet.Agent, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_agent_by_id",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_agent_by_id",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewAgentByID(ctx, token, thingID)
+}
+
 func (l loggingMiddleware) EditAgent(ctx context.Context, token string, agent fleet.Agent) (_ fleet.Agent, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
@@ -146,6 +160,22 @@ func (l loggingMiddleware) RemoveAgentGroup(ctx context.Context, token, groupID 
 		}
 	}(time.Now())
 	return l.svc.RemoveAgentGroup(ctx, token, groupID)
+}
+
+func (l loggingMiddleware) ValidateAgentGroup(ctx context.Context, token string, s fleet.AgentGroup) (_ fleet.AgentGroup, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: validate_agent_group",
+				zap.String("name", s.Name.String()),
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: validate_agent_group",
+				zap.String("name", s.Name.String()),
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ValidateAgentGroup(ctx, token, s)
 }
 
 func NewLoggingMiddleware(svc fleet.Service, logger *zap.Logger) fleet.Service {
