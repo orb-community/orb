@@ -182,12 +182,16 @@ func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		res := agentRes{
-			Name:      saved.Name.String(),
-			ID:        saved.MFThingID,
-			State:     saved.State.String(),
-			Key:       saved.MFKeyID,
-			ChannelID: saved.MFChannelID,
-			created:   true,
+			Name:          saved.Name.String(),
+			ID:            saved.MFThingID,
+			State:         saved.State.String(),
+			OrbTags:       saved.OrbTags,
+			AgentTags:     saved.AgentTags,
+			AgentMetadata: saved.AgentMetadata,
+			LastHBData:    saved.LastHBData,
+			TsCreated:     saved.Created,
+			created:       true,
+			ChannelID:     saved.MFChannelID,
 		}
 
 		return res, nil
