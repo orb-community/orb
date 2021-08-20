@@ -37,6 +37,7 @@ export class AgentsService {
       dir: defDir,
       data: [],
     };
+    this.paginationCache = {};
   }
 
   addAgentGroup(agentItem: any) {

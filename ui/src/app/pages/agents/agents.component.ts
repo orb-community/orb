@@ -68,6 +68,7 @@ export class AgentsComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.agentsService.clean();
     this.getAgents();
   }
 
@@ -77,46 +78,46 @@ export class AgentsComponent implements OnInit, AfterViewInit {
         prop: 'name',
         name: 'Name',
         resizeable: false,
-        width: 120,
-        maxWidth: 243,
+        flexGrow: 1,
+        minWidth: 90,
       },
       {
         prop: 'description',
         name: 'Description',
         resizeable: false,
-        width: 200,
-        maxWidth: 350,
+        minWidth: 100,
+        flexGrow: 2,
       },
       {
         prop: 'agents',
         name: 'Agents',
         resizeable: false,
-        width: 80,
-        maxWidth: 100,
+        minWidth: 100,
+        flexGrow: 1,
         cellTemplate: this.agentsTemplateCell,
       },
       {
         prop: 'tags',
         name: 'Tags',
-        width: 200,
-        canAutoResize: true,
+        minWidth: 90,
+        flexGrow: 3,
         cellTemplate: this.agentTagsTemplateCell,
       },
       {
         name: '',
         prop: 'actions',
-        width: 120,
+        minWidth: 130,
         resizeable: false,
         sortable: false,
+        flexGrow: 1,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
 
-
     this.cdr.detectChanges();
   }
 
-  @Debounce(700)
+  @Debounce(400)
   getAgents(pageInfo: NgxDatabalePageInfo = null): void {
     const isFilter = pageInfo === null;
     if (isFilter) {

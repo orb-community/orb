@@ -146,6 +146,7 @@ $orb-primary-focused: #0c5dc5;
       background-repeat: repeat-y;
       background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAYAAAD5PA/NAAAAFklEQVQI12PQkNdi1VTQ5gbSwkAsDQARLAIGtOSFUAAAAABJRU5ErkJggg==');
     }
+
   }
 
   /**
@@ -289,7 +290,7 @@ $orb-primary-focused: #0c5dc5;
     border-top: 1px solid rgba(0, 0, 0, 0.12);
     font-size: 12px;
     font-weight: 500;
-    color:  $orb-white;
+    color: $orb-white;
 
     .page-count {
       line-height: 50px;
@@ -411,6 +412,10 @@ $orb-primary-focused: #0c5dc5;
       cursor: pointer;
     }
   }
+}
+
+.ngx-datatable.scroll-vertical .datatable-body {
+  overflow-x: hidden;
 }
 
 /**
