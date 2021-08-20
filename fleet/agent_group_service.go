@@ -182,3 +182,18 @@ func (svc fleetService) RemoveAgentGroup(ctx context.Context, token, groupId str
 
 	return nil
 }
+
+func (svc fleetService) ValidateAgentGroup(ctx context.Context, token string, ag AgentGroup) (AgentGroup, error) {
+	mfOwnerID, err := svc.identify(token)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+
+	ag.MFOwnerID = mfOwnerID
+	res, err := svc.agentRepo.RetrieveMatchingAgents(ctx, mfOwnerID, ag.Tags)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+	ag.MatchingAgents = res
+	return ag, err
+}

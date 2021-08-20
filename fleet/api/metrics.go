@@ -58,6 +58,10 @@ func (m metricsMiddleware) RemoveAgentGroup(ctx context.Context, token string, g
 	return m.svc.RemoveAgentGroup(ctx, token, groupID)
 }
 
+func (m metricsMiddleware) ValidateAgentGroup(ctx context.Context, token string, s fleet.AgentGroup) (fleet.AgentGroup, error) {
+	return m.svc.ValidateAgentGroup(ctx, token, s)
+}
+
 func (m metricsMiddleware) RemoveAgent(ctx context.Context, owner string, id string) error {
 	return m.svc.RemoveAgent(ctx, owner, id)
 }

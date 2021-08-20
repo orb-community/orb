@@ -266,6 +266,37 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 	}
 }
 
+func validateAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(c context.Context, request interface{}) (interface{}, error) {
+		req := request.(addAgentGroupReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		group := fleet.AgentGroup{
+			Name: nID,
+			Tags: req.Tags,
+		}
+		validated, err := svc.ValidateAgentGroup(c, req.token, group)
+		if err != nil {
+			return nil, err
+		}
+
+		res := validateAgentGroupRes{
+			Name:           validated.Name.String(),
+			Tags:           validated.Tags,
+			MatchingAgents: validated.MatchingAgents,
+		}
+
+		return res, nil
+	}
+}
+
 func editAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(updateAgentReq)
