@@ -16,7 +16,8 @@
               <p>This is how you will be able to easily identify your Agent Group</p>
             </div>
           </ng-template>
-          <form [formGroup]="firstFormGroup" (ngSubmit)="onFormSubmit()">
+          <form [formGroup]="firstFormGroup"
+                (ngSubmit)="onFormSubmit()">
             <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
@@ -101,8 +102,16 @@
                 </div>
                 <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
                      style="transform: translateY(14px);">
-                  <button nbButton ghost (click)="onAddTag()" [disabled]="secondFormGroup.controls['key'].value === ''">
-                    <nb-icon style="color: #df316f;" status="primary" icon="plus-outline" size="14"></nb-icon>
+                  <button nbButton
+                          ghost
+                          (click)="onAddTag()"
+                          [disabled]="(secondFormGroup.controls['key'].value === '' ||
+                          secondFormGroup.controls['value'].value === '')">
+                    <nb-icon style="color: #df316f;"
+                             status="primary"
+                             icon="plus-outline"
+                             size="14">
+                    </nb-icon>
                   </button>
                 </div>
               </div>
@@ -112,18 +121,20 @@
               <mat-chip-list>
                 <mat-chip
                     class="orb-tag-sink "
-                    *ngFor="let tag of secondFormGroup.controls.tags.value | keyvalue | tagchip">
-                  {{tag}}
+                    *ngFor="let tag of secondFormGroup.controls.tags.value">
+                  {{tag | keyvalue | tagchip}}
+                  <button class="nb-close" (click)="onRemoveTag(tag)"></button>
                 </mat-chip>
               </mat-chip-list>
             </div>
 
-            <div class="d-flex justify-content-end" *ngIf="secondFormGroup">
+            <div class="d-flex justify-content-end"
+                 *ngIf="secondFormGroup">
               <button
-                nbButton
-                ghost
-                status="primary"
-                nbStepperPrevious>Back
+                  nbButton
+                  ghost
+                  status="primary"
+                  nbStepperPrevious>Back
               </button>
               <button class="next-button"
                       nbButton

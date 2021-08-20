@@ -6,7 +6,6 @@ import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
-import { tagInputValidator } from 'app/shared/directives/tag-input.validator';
 
 @Component({
   selector: 'ngx-agent-add-component',
@@ -42,7 +41,7 @@ export class AgentAddComponent implements OnInit {
     });
 
     this.secondFormGroup = this._formBuilder.group({
-      tags: [{}, tagInputValidator()],
+      tags: [[], Validators.minLength(1)],
       key: [''],
       value: [''],
     });
@@ -53,13 +52,27 @@ export class AgentAddComponent implements OnInit {
     this.router.navigate(['../../agents'], {relativeTo: this.route});
   }
 
+  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
   onAddTag() {
     const {tags, key, value} = this.secondFormGroup.controls;
-    tags.value[key.value] = value.value;
+    // sanitize minimally anyway
+    if (key?.value && key.value !== '') {
+      if (value?.value && value.value !== '') {
+        // key and value fields
+        tags.setValue([{[key.value]: value.value}].concat(tags.value));
+      }
+    } else {
+      // TODO remove this else clause and error
+      console.error('This shouldn\'t be happening');
+    }
   }
 
-  onRemoveTag() {
+  onRemoveTag(tag: any) {
+    const {tags} = this.secondFormGroup.controls;
+    const indexToRemove = tags.value.indexOf(tag);
 
+    if (indexToRemove >= 0)
+      tags.setValue(tags.value.slice(0, indexToRemove).concat(tags.value.slice(indexToRemove + 1)));
   }
 
   onFormSubmit() {
