@@ -4,10 +4,10 @@ import {Observable} from 'rxjs';
 import 'rxjs/add/observable/empty';
 
 import {environment} from '../../../../environments/environment';
-import {NotificationsService} from '../../../common/services/notifications/notifications.service';
-import {Agent} from 'app/common/interfaces/orb/agent.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination';
 import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
+import { Agent } from 'app/common/interfaces/orb/agent.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -40,9 +40,9 @@ export class AgentsService {
     this.paginationCache = {};
   }
 
-  addAgentGroup(agentItem: any) {
+  addAgentGroup(agentGroupItem: AgentGroup) {
     return this.http.post(environment.agentsUrl,
-      agentItem,
+      agentGroupItem,
       {observe: 'response'})
       .map(
         resp => {
@@ -58,8 +58,8 @@ export class AgentsService {
       );
   }
 
-  getAgentGroupById(agentId: string): any {
-    return this.http.get(`${environment.agentsUrl}/${agentId}`)
+  getAgentGroupById(id: string): any {
+    return this.http.get(`${environment.agentsUrl}/${id}`)
       .map(
         resp => {
           return resp;

@@ -97,21 +97,18 @@ export const STRINGS = {
     // sink.interface name descriptors
     propNames: {
       id: 'id',
-      name: 'Name',
+      name: 'Agent Group Name',
       description: 'Description',
+      key: 'Key',
+      value: 'Value',
       tags: 'Tags',
       status: 'Status',
       error: 'Error',
-      backend: 'Service Type',
-      config: 'Connection Details',
-      config_remote_host: 'Remote Host',
-      config_username: 'Username',
-      config_password: 'Password',
       ts_created: 'Date Created',
     },
     // add page
     add: {
-      header: 'Agent Groups',
+      header: 'New Agent Group',
     },
     // edit page
     edit: {
