@@ -147,6 +147,26 @@ func (r removeRes) Empty() bool {
 	return true
 }
 
+type validateAgentGroupRes struct {
+	ID             string         `json:"id,omitempty"`
+	Name           string         `json:"name"`
+	Description    string         `json:"description,omitempty"`
+	Tags           types.Tags     `json:"tags"`
+	MatchingAgents types.Metadata `json:"matching_agents,omitempty"`
+}
+
+func (s validateAgentGroupRes) Code() int {
+	return http.StatusOK
+}
+
+func (s validateAgentGroupRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s validateAgentGroupRes) Empty() bool {
+	return false
+}
+
 type validateAgentRes struct {
 	Key       string 		 `json:"key,omitempty"`
 	ChannelID string 		 `json:"channel_id,omitempty"`
