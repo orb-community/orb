@@ -12,8 +12,8 @@
                  [stepControl]="firstFormGroup">
           <ng-template #firstStepTemplate>
             <div class="step-label d-flex flex-column">
-              <strong>Agent Details</strong>
-              <p>This is how you will be able to easily identify your Agent Group</p>
+              <strong>{{strings.add.step.title1}}</strong>
+              <p>{{strings.add.step.desc1}}</p>
             </div>
           </ng-template>
           <form [formGroup]="firstFormGroup"
@@ -21,7 +21,7 @@
             <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
-                  <label class="font-weight-bold">Group Name</label>
+                  <label class="font-weight-bold">{{strings.propNames.name}}</label>
                   <span class="required">*</span>
                 </div>
                 <input nbInput
@@ -33,7 +33,7 @@
             </nb-form-field>
             <nb-form-field>
               <div>
-                <label class="font-weight-bold">Description</label>
+                <label class="font-weight-bold">{{strings.propNames.description}}</label>
               </div>
               <input nbInput
                      fullWidth="true"
@@ -42,18 +42,20 @@
             </nb-form-field>
             <div class="d-flex justify-content-end">
               <button
-                nbButton
-                ghost
-                (click)="goBack()"
-                type="button"
-                status="primary">Cancel
+                  nbButton
+                  ghost
+                  (click)="goBack()"
+                  type="button"
+                  status="primary">
+                {{strings.stepper.back}}
               </button>
               <button class="next-button"
                       nbButton
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="!firstFormGroup.valid" nbStepperNext>Next
+                      [disabled]="!firstFormGroup.valid" nbStepperNext>
+                {{strings.stepper.next}}
               </button>
             </div>
           </form>
@@ -61,19 +63,33 @@
         <nb-step [label]="secondStepLabel">
           <ng-template #secondStepLabel>
             <div class="step-label d-flex flex-column">
-              <strong>Select Value Pairs</strong>
-              <p>Set the values that will be used to group Agents.</p>
+              <strong>{{strings.add.step.title2}}</strong>
+              <p>{{strings.add.step.desc2}}</p>
             </div>
           </ng-template>
           <form [formGroup]="secondFormGroup">
+            <div class="d-flex">
+              <mat-chip-list>
+                <mat-chip
+                    class="orb-tag-sink "
+                    *ngFor="let tag of secondFormGroup.controls.tags.value">
+                  {{ tag | keyvalue | tagchip}}
+                  <nb-icon style="color: #ffffff; margin-left: 4px"
+                           status="primary"
+                           (click)="onRemoveTag(tag)"
+                           icon="close-circle-outline"
+                           size="14"></nb-icon>
+                </mat-chip>
+              </mat-chip-list>
+            </div>
             <nb-form-field>
-              <div>
-                <p>Add aggregator tags</p>
-              </div>
+              <!--              <div>-->
+              <!--                <p>Add aggregator tags</p>-->
+              <!--              </div>-->
               <div class="container d-flex row px-0 mx-0">
                 <div class="d-flex flex-column col-5 px-0 mx-0">
                   <div>
-                    <label class="font-weight-bold">Key</label>
+                    <label class="font-weight-bold">{{strings.propNames.key}}</label>
                     <span class="required">*</span>
                   </div>
                   <div>
@@ -89,7 +105,7 @@
                 </div>
                 <div class="d-flex flex-column col-5 px-0 mx-0">
                   <div>
-                    <label class="font-weight-bold">Value</label>
+                    <label class="font-weight-bold">{{strings.propNames.value}}</label>
                     <span class="required">*</span>
                   </div>
                   <div>
@@ -117,20 +133,6 @@
               </div>
             </nb-form-field>
             <hr/>
-            <div class="d-flex">
-              <mat-chip-list>
-                <mat-chip
-                    class="orb-tag-sink "
-                    *ngFor="let tag of secondFormGroup.controls.tags.value">
-                  {{ tag | keyvalue | tagchip}}
-                          <nb-icon style="color: #fff; margin-left: 4px"
-                             status="primary"
-                                   (click)="onRemoveTag(tag)"
-                                    icon="close-circle-outline"
-                                   size="14"></nb-icon>
-                </mat-chip>
-              </mat-chip-list>
-            </div>
 
             <div class="d-flex justify-content-end"
                  *ngIf="secondFormGroup">
@@ -138,14 +140,16 @@
                   nbButton
                   ghost
                   status="primary"
-                  nbStepperPrevious>Back
+                  nbStepperPrevious>
+                {{strings.stepper.back}}
               </button>
               <button class="next-button"
                       nbButton
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="!secondFormGroup.valid" nbStepperNext>Next
+                      [disabled]="!secondFormGroup.valid" nbStepperNext>
+                {{strings.stepper.next}}
               </button>
             </div>
           </form>
@@ -153,36 +157,68 @@
         <nb-step [label]="thirdStepLabel">
           <ng-template #thirdStepLabel>
             <div class="step-label d-flex flex-column">
-              <strong>Review & Confirm</strong>
+              <strong>{{strings.add.step.title3}}</strong>
             </div>
           </ng-template>
           <div class="d-flex row">
             <div class="col-md-12 col-xl-6">
               <div>
-                <label class="font-weight-bold">Name Label</label>
+                <label class="font-weight-bold">{{strings.propNames.name}}</label>
                 <p>{{firstFormGroup.controls.name.value}}</p>
               </div>
             </div>
             <div class="col-md-12 col-xl-6">
               <div>
-                <label class="font-weight-bold">Description</label>
+                <label class="font-weight-bold">{{strings.propNames.description}}</label>
                 <p>{{firstFormGroup.controls.description.value}}</p>
               </div>
             </div>
           </div>
-          <div class="d-flex justify-content-end" *ngIf="secondFormGroup">
+          <div class="d-flex row">
+            <div class="col-md-12 col-xl-6">
+              <mat-chip-list>
+                <mat-chip
+                    class="orb-tag-sink "
+                    *ngFor="let tag of secondFormGroup.controls.tags.value">
+                  {{ tag | keyvalue | tagchip}}
+                  <nb-icon style="color: #ffffff; margin-left: 4px"
+                           status="primary"
+                           (click)="onRemoveTag(tag)"
+                           icon="close-circle-outline"
+                           size="14"></nb-icon>
+                </mat-chip>
+              </mat-chip-list>
+            </div>
+          </div>
+          <div class="d-flex row">
+            <div class="col-md-12 col-xl-6">
+              <div>
+                <p *ngIf="!!tagMatch?.total && tagMatch.total > 0">
+                  {{strings.match.matchAny}}#&nbsp;{{tagMatch.total}}#&nbsp;{{strings.match.agents}}.#&nbsp;
+                  <a>{{strings.match.expand}}</a>
+                </p>
+                <p *ngIf="(!!tagMatch?.total && tagMatch.total === 0) || !tagMatch.total">
+                  {{strings.match.matchNone}}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end"
+               *ngIf="secondFormGroup">
             <button
-              nbButton
-              ghost
-              status="primary"
-              nbStepperPrevious>Back
+                nbButton
+                ghost
+                status="primary"
+                nbStepperPrevious>
+              {{strings.stepper.back}}
             </button>
             <button class="next-button"
                     nbButton
                     shape="round"
                     status="primary"
                     (click)="onFormSubmit()"
-                    type="submit">Save
+                    type="submit">
+              {{strings.stepper.save}}
             </button>
           </div>
         </nb-step>
