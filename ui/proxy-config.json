@@ -75,5 +75,9 @@
   "/agents/*": {
     "target": "http://localhost:80/api/v1",
     "secure": false
+  },
+  "/agents_groups/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
   }
 }
