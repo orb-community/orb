@@ -24,7 +24,8 @@
                   <label class="font-weight-bold">{{strings.propNames.name}}</label>
                   <span class="required">*</span>
                 </div>
-                <input nbInput
+                <input class="stepper-input"
+                       nbInput
                        autofocus
                        fullWidth="true"
                        fieldSize="medium"
@@ -35,12 +36,13 @@
               <div>
                 <label class="font-weight-bold">{{strings.propNames.description}}</label>
               </div>
-              <input nbInput
+              <input class="stepper-input"
+                     nbInput
                      fullWidth="true"
                      fieldSize="medium"
                      formControlName="description"/>
             </nb-form-field>
-            <div class="d-flex justify-content-end">
+            <div class="d-flex justify-content-start" style="padding-left: 35%;">
               <button
                   nbButton
                   ghost
@@ -86,7 +88,7 @@
               <!--              <div>-->
               <!--                <p>Add aggregator tags</p>-->
               <!--              </div>-->
-              <div class="container d-flex row px-0 mx-0">
+              <div class="container d-flex row px-0 mx-0" style="width:50%;">
                 <div class="d-flex flex-column col-5 px-0 mx-0">
                   <div>
                     <label class="font-weight-bold">{{strings.propNames.key}}</label>
@@ -134,7 +136,7 @@
             </nb-form-field>
             <hr/>
 
-            <div class="d-flex justify-content-end"
+            <div class="d-flex justify-content-start" style="padding-left: 35%;"
                  *ngIf="secondFormGroup">
               <button
                   nbButton
@@ -160,7 +162,7 @@
               <strong>{{strings.add.step.title3}}</strong>
             </div>
           </ng-template>
-          <div class="d-flex row">
+          <div class="d-flex row" *ngIf="!expanded">
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">{{strings.propNames.name}}</label>
@@ -191,19 +193,30 @@
             </div>
           </div>
           <div class="d-flex row">
-            <div class="col-md-12 col-xl-6">
+            <div class="col-md-6" style="width: 50%;">
               <div>
-                <p *ngIf="!!tagMatch?.total && tagMatch.total > 0">
-                  {{strings.match.matchAny}}#&nbsp;{{tagMatch.total}}#&nbsp;{{strings.match.agents}}.#&nbsp;
-                  <a>{{strings.match.expand}}</a>
+                <p *ngIf="tagMatch?.total && tagMatch.total > 0" class="inline">
+                  {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}
+                  .&nbsp;<button nbButton
+                                 class="appearance-ghost size-small status-basic button-expand"
+                                 (click)="toggleExpandMatches()">{{expanded
+                  ? strings.match.collapse
+                  : strings.match.expand}}</button>
                 </p>
-                <p *ngIf="(!!tagMatch?.total && tagMatch.total === 0) || !tagMatch.total">
+                <p *ngIf="!tagMatch.total || tagMatch.total === 0">
                   {{strings.match.matchNone}}
                 </p>
               </div>
             </div>
           </div>
-          <div class="d-flex justify-content-end"
+          <div class="d-flex row" *ngIf="expanded">
+            <div class="tag-table">
+              <ngx-table-component [config]="tableConfig"
+                                   [page]="page">
+              </ngx-table-component>
+            </div>
+          </div>
+          <div class="d-flex justify-content-start" style="padding-left: 35%;"
                *ngIf="secondFormGroup">
             <button
                 nbButton

@@ -7,6 +7,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
+import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { DropdownFilterItem, PageFilters, TableConfig, TablePage } from 'app/common/interfaces/mainflux.interface';
 
 @Component({
   selector: 'ngx-agent-add-component',
@@ -14,20 +16,47 @@ import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
   styleUrls: ['./agent.add.component.scss'],
 })
 export class AgentAddComponent implements OnInit {
+  // expandable table vars
+  tableConfig: TableConfig = {
+    colNames: ['Agent Name', 'Tags', 'Status', 'Last Activity'],
+    keys: ['name', 'agent_tags', 'state', 'ts_lst_hb'],
+  };
+
+  page: TablePage = {
+    limit: 10,
+  };
+
+  pageFilters: PageFilters = {
+    offset: 0,
+    order: 'id',
+    dir: 'desc',
+    name: '',
+  };
+
+  tableFilters: DropdownFilterItem[];
+
+  searchFreq = 0;
+
+  expanded: boolean;
+
   // stepper vars
   firstFormGroup: FormGroup;
+
   secondFormGroup: FormGroup;
-  isEditable = false;
 
-  strings = {...STRINGS.agents, stepper: STRINGS.stepper};
-
+  // agent vars
   agentGroup: AgentGroup;
 
-  matchingAgents: [];
+  matchingAgents: Agent[];
 
   tagMatch: TagMatch = {};
 
+  // page vars
+  strings = {...STRINGS.agents, stepper: STRINGS.stepper};
+
   isEdit: boolean;
+
+  isEditable = false;
 
   constructor(
     private agentsService: AgentsService,
@@ -50,8 +79,8 @@ export class AgentAddComponent implements OnInit {
       key: [''],
       value: [''],
     });
-
     this.tagMatch.total = this.tagMatch.online = 0;
+    this.expanded = false;
   }
 
   goBack() {
@@ -86,6 +115,51 @@ export class AgentAddComponent implements OnInit {
     }
   }
 
+  // query agent group matches
+  updateTagMatches() {
+    // validate:true
+    const payload = this.wrapPayload(true);
+    // // remove line bellow
+    // console.log(payload)
+
+    // just validate and get matches summary
+    this.agentsService.validateAgentGroup(payload).subscribe((resp: any) => {
+      // this.tagMatch = {
+      //   total: resp.matchingAgents.total,
+      //   online: resp.matchingAgents.online,
+      // };
+      // TODO rewire this
+      this.tagMatch = {
+        total: 10,
+        online: 3,
+      };
+      // TODO rewire this
+      this.matchingAgents = new Array(10)
+        .fill(null)
+        .map((_, i) => (
+          {
+            name: `Lorem Ipsum ${i}`,
+            agent_tags: {cloud: `aws-${i}`},
+            state: ['new', 'online', 'offline', 'stale'][i % 4],
+            ts_lst_hb: `${+new Date()}`,
+          }
+        ));
+      // update matching agent table
+      this.page = {
+        offset: 0,
+        limit: 10,
+        total: 10,
+        rows: this.matchingAgents,
+      };
+
+      this.notificationsService.success(this.strings.match.updated, '');
+    });
+  }
+
+  toggleExpandMatches() {
+    this.expanded = !this.expanded;
+  }
+
   wrapPayload(validate: boolean) {
     const {name, description} = this.firstFormGroup.controls;
     const {tags: {value: tagsList}} = this.secondFormGroup.controls;
@@ -102,23 +176,6 @@ export class AgentAddComponent implements OnInit {
       tags: {...tagsObj},
       validate_only: !!validate && validate, // Apparently this guy is required..
     };
-  }
-
-  // query agent group matches
-  updateTagMatches() {
-    // validate:true
-    const payload = this.wrapPayload(true);
-    // // remove line bellow
-    // console.log(payload)
-
-    // just validate and get matches summary
-    this.agentsService.validateAgentGroup(payload).subscribe((resp: any) => {
-      this.tagMatch = {
-        total: resp.matchingAgents.total,
-        online: resp.matchingAgents.online,
-      };
-      this.notificationsService.success(this.strings.match.updated, '');
-    });
   }
 
   // saves current agent group

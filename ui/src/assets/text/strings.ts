@@ -110,9 +110,11 @@ export const STRINGS = {
     match: {
       matchAny: 'The Selected Qualifiers Will Match Against',
       matchNone: 'The Selected Qualifiers Do Not Match Any Agent',
-      agents: 'Agent',
+      agents: 'Agent(s)' +
+        '',
       updated: 'Agent Group matches updated',
       expand: 'Expand',
+      collapse: 'Collapse',
     },
     // add page
     add: {
