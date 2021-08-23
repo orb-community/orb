@@ -41,7 +41,7 @@ export class AgentsService {
   }
 
   addAgentGroup(agentGroupItem: AgentGroup) {
-    return this.http.post(environment.agentGroupsUrl,
+    return this.http.post(environment.agentsUrl,
       {...agentGroupItem, validate: false},
       {observe: 'response'})
       .map(
@@ -59,7 +59,7 @@ export class AgentsService {
   }
 
   validateAgentGroup(agentGroupItem: AgentGroup) {
-    return this.http.post(environment.agentGroupsUrl,
+    return this.http.post(environment.agentsUrl,
       {...agentGroupItem, validate: true},
       {observe: 'response'})
       .map(

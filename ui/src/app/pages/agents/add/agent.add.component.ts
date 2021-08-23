@@ -112,14 +112,12 @@ export class AgentAddComponent implements OnInit {
     // console.log(payload)
 
     // just validate and get matches summary
-    //
     this.agentsService.validateAgentGroup(payload).subscribe((resp: any) => {
       this.tagMatch = {
         total: resp.matchingAgents.total,
         online: resp.matchingAgents.online,
       };
       this.notificationsService.success(this.strings.match.updated, '');
-      this.goBack();
     });
   }
 
