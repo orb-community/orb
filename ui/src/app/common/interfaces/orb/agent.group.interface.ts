@@ -5,6 +5,7 @@
  */
 
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
 
 /**
  * @interface AgentGroup
@@ -55,10 +56,7 @@ export interface AgentGroup {
    * save summary of matching agents
    * @ignore
    */
-  matching_agents?: {
-    total: number;
-    online: number;
-  };
+  matching_agents?: TagMatch;
 
   /**
    * keep track of matched agents

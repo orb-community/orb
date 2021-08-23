@@ -106,9 +106,25 @@ export const STRINGS = {
       error: 'Error',
       ts_created: 'Date Created',
     },
+    // matches
+    match: {
+      matchAny: 'The Selected Qualifiers Will Match Against',
+      matchNone: 'The Selected Qualifiers Do Not Match Any Agent',
+      agents: 'Agent',
+      updated: 'Agent Group matches updated',
+      expand: 'Expand',
+    },
     // add page
     add: {
       header: 'New Agent Group',
+      step: {
+        title1: 'Agent Group Details',
+        desc1: 'This is how you will be able to easily identify your Agent Group',
+        title2: 'Agent Group Tags',
+        desc2: 'Set the tags that will be used to group Agents',
+        title3: 'Review & Confirm',
+      },
+      success: 'Agent Group successfully created',
     },
     // edit page
     edit: {

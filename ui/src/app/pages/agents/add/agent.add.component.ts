@@ -6,6 +6,7 @@ import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
+import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
 
 @Component({
   selector: 'ngx-agent-add-component',
@@ -18,9 +19,13 @@ export class AgentAddComponent implements OnInit {
   secondFormGroup: FormGroup;
   isEditable = false;
 
-  strings = STRINGS.agents;
+  strings = {...STRINGS.agents, stepper: STRINGS.stepper};
 
   agentGroup: AgentGroup;
+
+  matchingAgents: [];
+
+  tagMatch: TagMatch = {};
 
   isEdit: boolean;
 
@@ -46,6 +51,7 @@ export class AgentAddComponent implements OnInit {
       value: [''],
     });
 
+    this.tagMatch.total = this.tagMatch.online = 0;
   }
 
   goBack() {
@@ -60,6 +66,9 @@ export class AgentAddComponent implements OnInit {
       if (value?.value && value.value !== '') {
         // key and value fields
         tags.setValue([{[key.value]: value.value}].concat(tags.value));
+        key.reset('');
+        value.reset('');
+        this.updateTagMatches();
       }
     } else {
       // TODO remove this else clause and error
@@ -68,29 +77,61 @@ export class AgentAddComponent implements OnInit {
   }
 
   onRemoveTag(tag: any) {
-    const {tags} = this.secondFormGroup.controls;
-    const indexToRemove = tags.value.indexOf(tag);
+    const {tags, tags: {value: tagsList}} = this.secondFormGroup.controls;
+    const indexToRemove = tagsList.indexOf(tag);
 
-    if (indexToRemove >= 0)
-      tags.setValue(tags.value.slice(0, indexToRemove).concat(tags.value.slice(indexToRemove + 1)));
+    if (indexToRemove >= 0) {
+      tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
+      this.updateTagMatches();
+    }
   }
 
-  onFormSubmit() {
-    const payload = {
-      name: this.firstFormGroup.controls.name.value,
-      description: this.firstFormGroup.controls.description.value,
-      // TODO tag input
-      tags: {
-        hardcoded: 'payload',
-      },
-      validate_only: false, // Apparently this guy is required..
+  wrapPayload(validate: boolean) {
+    const {name, description} = this.firstFormGroup.controls;
+    const {tags: {value: tagsList}} = this.secondFormGroup.controls;
+    const tagsObj = tagsList.reduce((prev, curr) => {
+      for (const [key, value] of Object.entries(curr)) {
+        prev[key] = value;
+      }
+      return prev;
+    }, {});
+
+    return {
+      name: name.value,
+      description: description.value,
+      tags: {...tagsObj},
+      validate_only: !!validate && validate, // Apparently this guy is required..
     };
+  }
 
-    // // TODO remove line bellow
-    // console.log(payload);
+  // query agent group matches
+  updateTagMatches() {
+    // validate:true
+    const payload = this.wrapPayload(true);
+    // // remove line bellow
+    // console.log(payload)
 
+    // just validate and get matches summary
+    //
+    this.agentsService.validateAgentGroup(payload).subscribe((resp: any) => {
+      this.tagMatch = {
+        total: resp.matchingAgents.total,
+        online: resp.matchingAgents.online,
+      };
+      this.notificationsService.success(this.strings.match.updated, '');
+      this.goBack();
+    });
+  }
+
+  // saves current agent group
+  onFormSubmit() {
+    // validate:false
+    const payload = this.wrapPayload(false);
+
+    // // remove line bellow
+    // console.log(payload)
     this.agentsService.addAgentGroup(payload).subscribe(resp => {
-      this.notificationsService.success('Agent Group successfully created', '');
+      this.notificationsService.success(this.strings.add.success, '');
       this.goBack();
     });
   }

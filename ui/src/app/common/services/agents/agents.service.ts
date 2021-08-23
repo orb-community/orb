@@ -1,12 +1,12 @@
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import {environment} from '../../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination';
-import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 
 // default filters
@@ -41,8 +41,8 @@ export class AgentsService {
   }
 
   addAgentGroup(agentGroupItem: AgentGroup) {
-    return this.http.post(environment.agentsUrl,
-      agentGroupItem,
+    return this.http.post(environment.agentGroupsUrl,
+      {...agentGroupItem, validate: false},
       {observe: 'response'})
       .map(
         resp => {
@@ -52,6 +52,24 @@ export class AgentsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to create Agent',
+            `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
+          return Observable.throwError(err);
+        },
+      );
+  }
+
+  validateAgentGroup(agentGroupItem: AgentGroup) {
+    return this.http.post(environment.agentGroupsUrl,
+      {...agentGroupItem, validate: true},
+      {observe: 'response'})
+      .map(
+        resp => {
+          return resp;
+        },
+      )
+      .catch(
+        err => {
+          this.notificationsService.error('Failed to Validate Agent',
             `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
           return Observable.throwError(err);
         },
