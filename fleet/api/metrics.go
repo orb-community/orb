@@ -62,8 +62,8 @@ func (m metricsMiddleware) ValidateAgentGroup(ctx context.Context, token string,
 	return m.svc.ValidateAgentGroup(ctx, token, s)
 }
 
-func (m metricsMiddleware) RemoveAgent(ctx context.Context, owner string, id string) error {
-	return m.svc.RemoveAgent(ctx, owner, id)
+func (m metricsMiddleware) RemoveAgent(ctx context.Context, token string, thingID string) error {
+	return m.svc.RemoveAgent(ctx, token, thingID)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.

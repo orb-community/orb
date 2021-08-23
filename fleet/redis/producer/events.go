@@ -17,7 +17,6 @@ const (
 	AgentCreate      = AgentPrefix + "create"
 	AgentGroupPrefix = "agent_group."
 	AgentGroupRemove = AgentGroupPrefix + "remove"
-	AgentRemove      = AgentPrefix + "remove"
 )
 
 type event interface {
@@ -60,20 +59,5 @@ func (cce createAgentEvent) encode() map[string]interface{} {
 		"content":   cce.content,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": AgentCreate,
-	}
-}
-
-type removeAgentEvent struct {
-	id        string
-	token     string
-	timestamp time.Time
-}
-
-func (rde removeAgentEvent) encode() map[string]interface{} {
-	return map[string]interface{}{
-		"agent_id":  rde.id,
-		"token":     rde.token,
-		"timestamp": rde.timestamp.Unix(),
-		"operation": AgentRemove,
 	}
 }

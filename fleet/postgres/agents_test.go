@@ -518,6 +518,9 @@ func TestDeleteAgent(t *testing.T) {
 	thID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	invalidID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	chID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
@@ -548,7 +551,7 @@ func TestDeleteAgent(t *testing.T) {
 			err:     nil,
 		},
 		"remove a non-existing agent": {
-			ID:      ag.MFThingID,
+			ID:      invalidID.String(),
 			ownerID: ag.MFOwnerID,
 			err:     nil,
 		},

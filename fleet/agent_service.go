@@ -139,6 +139,19 @@ func (svc fleetService) RemoveAgent(ctx context.Context, token, thingID string) 
 		return err
 	}
 
+	res, err := svc.agentRepo.RetrieveByID(ctx, ownerID, thingID)
+	if err != nil {
+		return nil
+	}
+
+	if errT := svc.mfsdk.DeleteThing(res.MFThingID, token); errT != nil {
+		err = errors.Wrap(err, errT)
+	}
+
+	if errT := svc.mfsdk.DeleteChannel(res.MFChannelID, token); errT != nil {
+		err = errors.Wrap(err, errT)
+	}
+
 	err = svc.agentRepo.Delete(ctx, ownerID, thingID)
 	if err != nil {
 		return err
