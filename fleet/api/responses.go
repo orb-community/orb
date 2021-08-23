@@ -173,8 +173,8 @@ func (s validateAgentGroupRes) Empty() bool {
 }
 
 type validateAgentRes struct {
-	Name      string 		 `json:"name"`
-	OrbTags   types.Tags     `json:"orb_tags"`
+	Name    string     `json:"name"`
+	OrbTags types.Tags `json:"orb_tags"`
 }
 
 func (s validateAgentRes) Code() int {

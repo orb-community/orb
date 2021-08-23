@@ -358,14 +358,14 @@ func validateAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			Name:    nID,
 			OrbTags: req.OrbTags,
 		}
-		saved, err := svc.ValidateAgent(c, req.token, agent)
+		validated, err := svc.ValidateAgent(c, req.token, agent)
 		if err != nil {
 			return nil, err
 		}
 
 		res := validateAgentRes{
-			Name:      saved.Name.String(),
-			OrbTags:   saved.OrbTags,
+			Name:      validated.Name.String(),
+			OrbTags:   validated.OrbTags,
 		}
 		return res, nil
 	}
