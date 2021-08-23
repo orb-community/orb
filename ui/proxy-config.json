@@ -73,7 +73,7 @@
     "secure": false
   },
   "/agents/*": {
-    "target": "http://localhost:8203",
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/agents_groups/*": {
