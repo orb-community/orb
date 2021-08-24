@@ -26,15 +26,6 @@ type mainfluxThings struct {
 	channels    map[string]things.Channel
 	auth        mainflux.AuthServiceClient
 	connections map[string][]string
-	tconns      chan Connection                      // used for synchronization with thing
-	cconns      map[string]map[string]things.Channel //used to track connections
-}
-
-// Connection represents connection between channel and thing that is used for testing purposes.
-type Connection struct {
-	chanID    string
-	thing     things.Thing
-	connected bool
 }
 
 // NewThingsService returns Mainflux Things service mock.
@@ -196,15 +187,6 @@ func (svc *mainfluxThings) RemoveChannel(_ context.Context, owner string, id str
 	defer svc.mu.Unlock()
 
 	delete(svc.channels, key(owner, id))
-
-	for thk := range svc.cconns {
-		delete(svc.cconns[thk], key(owner, id))
-	}
-	svc.tconns <- Connection{
-		chanID:    id,
-		connected: false,
-	}
-
 	return nil
 }
 
