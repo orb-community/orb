@@ -182,11 +182,11 @@ func (svc *mainfluxThings) ListChannels(context.Context, string, things.PageMeta
 	panic("not implemented")
 }
 
-func (svc *mainfluxThings) RemoveChannel(_ context.Context, owner string, id string) error {
+func (svc *mainfluxThings) RemoveChannel(_ context.Context, _ string, id string) error {
 	svc.mu.Lock()
 	defer svc.mu.Unlock()
 
-	delete(svc.channels, key(owner, id))
+	delete(svc.channels, id)
 	return nil
 }
 
