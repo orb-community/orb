@@ -1,21 +1,26 @@
-<nb-card size="medium">
-  <nb-card-header class="d-flex">
-    <p class="align-content-center">Delete Sink Confirmation</p>
-    <button nbButton ghost="true" size="small" class="orb-close-dialog"
-            (click)="onClose()"><span class="nb-close"></span>Close
+<nb-card size="large" class="nb-card-medium">
+  <nb-card-header>
+    {{strings.delete.header}}
+    <button nbButton
+            ghost="true"
+            size="small"
+            class="orb-close-dialog align-content-end"
+            (click)="onClose()">
+      <span class="nb-close">{{strings.delete.close}}</span>
     </button>
   </nb-card-header>
   <nb-card-body>
     <div class="row form-row">
-      <p>Are you sure you want to delete this sink? This may cause
-        policies which use this sink to become invalid. This action
-        cannot be undone.<span class="ns1-red">*</span></p>
+      <p>{{strings.delete.body}}<span class="ns1-red">*</span></p>
     </div>
-    <p class="ns1-red">*To confirm, type your sink label exactly as it appears</p>
-    <input type="text" nbInput placeholder="{{agentGroup.name}}" [(ngModel)]="agentName">
+    <p class="ns1-red">{{strings.delete.warning}}</p>
+    <input type="text" nbInput placeholder="{{name}}" [(ngModel)]="validationInput">
   </nb-card-body>
   <nb-card-footer>
-    <button [disabled]="!isEnabled()" nbButton (click)="onDelete()">I Understand, Delete This Sink
+    <button nbButton
+            class="orb-sink-delete-warning-button"
+            [disabled]="!isEnabled()"
+            (click)="onDelete()">{{strings.delete.delete}}
     </button>
   </nb-card-footer>
 </nb-card>

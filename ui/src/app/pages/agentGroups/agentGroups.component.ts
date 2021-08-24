@@ -158,9 +158,9 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
   }
 
   openDeleteModal(row: any) {
-    const {name, id} = row;
+    const {name} = row;
     this.dialogService.open(AgentGroupDeleteComponent, {
-      context: {agentGroup: {name, id}},
+      context: {name},
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
@@ -169,7 +169,7 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
           this.agentsService.deleteAgentGroup(row.id).subscribe(
             () => {
               // this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
-              this.notificationsService.success('Sink Item successfully deleted', '');
+              this.notificationsService.success('Agent Group Successfully Deleted', '');
             },
           );
         }

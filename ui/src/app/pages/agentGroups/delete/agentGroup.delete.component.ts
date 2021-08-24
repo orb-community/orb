@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
-import { AgentsService } from 'app/common/services/agents/agents.service';
+import { STRINGS } from 'assets/text/strings';
 
 @Component({
   selector: 'ngx-agent-group-delete-component',
@@ -9,28 +9,25 @@ import { AgentsService } from 'app/common/services/agents/agents.service';
 })
 
 export class AgentGroupDeleteComponent {
-  @Input() agentGroup = {
-    name: '',
-    id: '',
-  };
+  strings = STRINGS.agents;
+  @Input() name: string;
 
-  agentName: string = '';
+  validationInput: string = '';
 
   constructor(
     protected dialogRef: NbDialogRef<AgentGroupDeleteComponent>,
-    protected agentService: AgentsService,
   ) {
   }
 
   onDelete() {
-    this.agentService.deleteAgentGroup(this.agentGroup.id);
-  }
-
-  onClose() {
     this.dialogRef.close(true);
   }
 
+  onClose() {
+    this.dialogRef.close(false);
+  }
+
   isEnabled(): boolean {
-    return this.agentName.toLowerCase() === this.agentGroup.name.toLowerCase();
+    return this.validationInput.toLowerCase() === this.name.toLowerCase();
   }
 }
