@@ -11,11 +11,11 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { DropdownFilterItem, PageFilters, TableConfig, TablePage } from 'app/common/interfaces/mainflux.interface';
 
 @Component({
-  selector: 'ngx-agent-add-component',
-  templateUrl: './agent.add.component.html',
-  styleUrls: ['./agent.add.component.scss'],
+  selector: 'ngx-agent-group-add-component',
+  templateUrl: './agentGroup.add.component.html',
+  styleUrls: ['./agentGroup.add.component.scss'],
 })
-export class AgentAddComponent implements OnInit {
+export class AgentGroupAddComponent implements OnInit {
   // expandable table vars
   tableConfig: TableConfig = {
     colNames: ['Agent Name', 'Tags', 'Status', 'Last Activity'],

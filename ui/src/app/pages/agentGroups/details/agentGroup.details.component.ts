@@ -5,17 +5,17 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 
 @Component({
-  selector: 'ngx-agent-details-component',
-  templateUrl: './agent.details.component.html',
-  styleUrls: ['./agent.details.component.scss'],
+  selector: 'ngx-agent-group-details-component',
+  templateUrl: './agentGroup.details.component.html',
+  styleUrls: ['./agentGroup.details.component.scss'],
 })
-export class AgentDetailsComponent {
+export class AgentGroupDetailsComponent {
   strings = STRINGS.agents;
 
   @Input() agentGroup: AgentGroup = {};
 
   constructor(
-    protected dialogRef: NbDialogRef<AgentDetailsComponent>,
+    protected dialogRef: NbDialogRef<AgentGroupDetailsComponent>,
     protected route: ActivatedRoute,
     protected router: Router,
   ) {

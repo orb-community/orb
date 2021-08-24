@@ -8,7 +8,7 @@ import { environment } from 'environments/environment';
 
 // ORB
 // Agent Group Management
-import { AgentsComponent } from 'app/pages/agents/agents.component';
+import { AgentGroupsComponent } from 'app/pages/agentGroups/agentGroups.component';
 // Dataset Explorer
 import { DatasetsComponent } from 'app/pages/datasets/datasets.component';
 // Fleet Management
@@ -16,8 +16,8 @@ import { FleetsComponent } from 'app/pages/fleets/fleets.component';
 // Sink Management
 import { SinksComponent } from 'app/pages/sinks/sinks.component';
 import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
-import { AgentAddComponent } from 'app/pages/agents/add/agent.add.component';
-import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
+import { AgentGroupAddComponent } from 'app/pages/agentGroups/add/agentGroup.add.component';
+import { AgentGroupDetailsComponent } from 'app/pages/agentGroups/details/agentGroup.details.component';
 import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 
 const children = [
@@ -40,17 +40,17 @@ const children = [
   },
   {
     path: 'agents',
-    component: AgentsComponent,
+    component: AgentGroupsComponent,
     data: {breadcrumb: 'Agent Groups'},
   },
   {
     path: 'agents/add',
-    component: AgentAddComponent,
+    component: AgentGroupAddComponent,
     data: {breadcrumb: 'New'},
   },
   {
     path: 'agents/edit',
-    component: AgentDetailsComponent,
+    component: AgentGroupDetailsComponent,
     data: {breadcrumb: 'Edit'},
   },
   {

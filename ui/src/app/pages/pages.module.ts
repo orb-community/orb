@@ -40,10 +40,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { BreadcrumbModule } from 'xng-breadcrumb';
-import { AgentsComponent } from 'app/pages/agents/agents.component';
-import { AgentAddComponent } from 'app/pages/agents/add/agent.add.component';
-import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
-import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.component';
+import { AgentGroupsComponent } from 'app/pages/agentGroups/agentGroups.component';
+import { AgentGroupAddComponent } from 'app/pages/agentGroups/add/agentGroup.add.component';
+import { AgentGroupDetailsComponent } from 'app/pages/agentGroups/details/agentGroup.details.component';
+import { AgentGroupDeleteComponent } from 'app/pages/agentGroups/delete/agentGroup.delete.component';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 import { DebounceModule } from 'ngx-debounce';
@@ -89,10 +89,10 @@ import { DebounceModule } from 'ngx-debounce';
     PagesComponent,
     // Orb
     // Agent Group Management
-    AgentsComponent,
-    AgentAddComponent,
-    AgentDetailsComponent,
-    AgentDeleteComponent,
+    AgentGroupsComponent,
+    AgentGroupAddComponent,
+    AgentGroupDetailsComponent,
+    AgentGroupDeleteComponent,
     // Dataset Explorer
     DatasetsComponent,
     DatasetsAddComponent,

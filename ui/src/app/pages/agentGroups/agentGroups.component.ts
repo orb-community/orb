@@ -5,8 +5,8 @@ import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
-import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.component';
-import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
+import { AgentGroupDeleteComponent } from 'app/pages/agentGroups/delete/agentGroup.delete.component';
+import { AgentGroupDetailsComponent } from 'app/pages/agentGroups/details/agentGroup.details.component';
 import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
@@ -15,11 +15,11 @@ import { Debounce } from 'app/shared/decorators/utils';
 
 
 @Component({
-  selector: 'ngx-agents-component',
-  templateUrl: './agents.component.html',
-  styleUrls: ['./agents.component.scss'],
+  selector: 'ngx-agent-groups-component',
+  templateUrl: './agentGroups.component.html',
+  styleUrls: ['./agentGroups.component.scss'],
 })
-export class AgentsComponent implements OnInit, AfterViewInit {
+export class AgentGroupsComponent implements OnInit, AfterViewInit {
   strings = STRINGS.agents;
 
   columnMode = ColumnMode;
@@ -159,7 +159,7 @@ export class AgentsComponent implements OnInit, AfterViewInit {
 
   openDeleteModal(row: any) {
     const {name, id} = row;
-    this.dialogService.open(AgentDeleteComponent, {
+    this.dialogService.open(AgentGroupDeleteComponent, {
       context: {agentGroup: {name, id}},
       autoFocus: true,
       closeOnEsc: true,
@@ -178,7 +178,7 @@ export class AgentsComponent implements OnInit, AfterViewInit {
   }
 
   openDetailsModal(row: any) {
-    this.dialogService.open(AgentDetailsComponent, {
+    this.dialogService.open(AgentGroupDetailsComponent, {
       context: {agentGroup: row},
       autoFocus: true,
       closeOnEsc: true,

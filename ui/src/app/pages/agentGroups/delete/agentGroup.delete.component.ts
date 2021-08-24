@@ -3,12 +3,12 @@ import { NbDialogRef } from '@nebular/theme';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 
 @Component({
-  selector: 'ngx-agent-delete-component',
-  templateUrl: './agent.delete.component.html',
-  styleUrls: ['./agent.delete.component.scss'],
+  selector: 'ngx-agent-group-delete-component',
+  templateUrl: './agentGroup.delete.component.html',
+  styleUrls: ['./agentGroup.delete.component.scss'],
 })
 
-export class AgentDeleteComponent {
+export class AgentGroupDeleteComponent {
   @Input() agentGroup = {
     name: '',
     id: '',
@@ -17,7 +17,7 @@ export class AgentDeleteComponent {
   agentName: string = '';
 
   constructor(
-    protected dialogRef: NbDialogRef<AgentDeleteComponent>,
+    protected dialogRef: NbDialogRef<AgentGroupDeleteComponent>,
     protected agentService: AgentsService,
   ) {
   }
