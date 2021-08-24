@@ -9,7 +9,7 @@ import { AgentsService } from 'app/common/services/agents/agents.service';
 })
 
 export class AgentDeleteComponent {
-  @Input() agent = {
+  @Input() agentGroup = {
     name: '',
     id: '',
   };
@@ -23,7 +23,7 @@ export class AgentDeleteComponent {
   }
 
   onDelete() {
-    this.agentService.deleteAgentGroup(this.agent.id);
+    this.agentService.deleteAgentGroup(this.agentGroup.id);
   }
 
   onClose() {
@@ -31,6 +31,6 @@ export class AgentDeleteComponent {
   }
 
   isEnabled(): boolean {
-    return this.agentName.toLowerCase() === this.agent.name.toLowerCase();
+    return this.agentName.toLowerCase() === this.agentGroup.name.toLowerCase();
   }
 }

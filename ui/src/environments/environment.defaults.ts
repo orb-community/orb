@@ -7,7 +7,9 @@ const ORB = {
   servicesUrls: {
     sinksUrl: '/sinks',
     agentsUrl: '/agents',
+    validateAgentsUrl: '/agents/validate',
     agentGroupsUrl: '/agent_groups',
+    validateAgentGroupsUrl: '/agent_groups/validate',
   },
 };
 

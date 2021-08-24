@@ -33,7 +33,7 @@
         <nb-form-field *ngIf="filterSelectedIndex =='1'">
           <nb-icon nbPrefix icon="search-outline" pack="eva"></nb-icon>
           <input nbInput
-                 (keyup)="getAgents()"
+                 (keyup)="getAgentGroups()"
                  [placeholder]="searchPlaceholder"
                  type="text"
                  fieldSize="medium"
@@ -42,7 +42,7 @@
         <nb-form-field *ngIf="filterSelectedIndex =='0'">
           <nb-icon nbPrefix icon="search-outline" pack="eva"></nb-icon>
           <input nbInput
-                 (keyup)="getAgents()"
+                 (keyup)="getAgentGroups()"
                  [placeholder]="searchPlaceholder"
                  type="text"
                  fieldSize="medium"
@@ -58,20 +58,20 @@
         <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
     </div>
     <ngx-datatable
-      class="orb w-100"
-      style="height: calc(100vh - 300px)"
-      [loadingIndicator]="loading"
-      [externalPaging]="true"
-      [count]="paginationControls.total"
-      [offset]="paginationControls.offset"
-      [rows]="paginationControls.data"
-      [scrollbarV]="true"
-      (page)='getAgents($event)'
-      [columns]="columns"
-      [columnMode]="columnMode.flex"
-      [headerHeight]="50"
-      [footerHeight]="50"
-      [rowHeight]="50">
+        class="orb w-100"
+        style="height: calc(100vh - 300px)"
+        [loadingIndicator]="loading"
+        [externalPaging]="true"
+        [count]="paginationControls.total"
+        [offset]="paginationControls.offset"
+        [rows]="paginationControls.data"
+        [scrollbarV]="true"
+        (page)='getAgentGroups($event)'
+        [columns]="columns"
+        [columnMode]="columnMode.flex"
+        [headerHeight]="50"
+        [footerHeight]="50"
+        [rowHeight]="50">
     </ngx-datatable>
   </div>
 </div>
@@ -98,19 +98,19 @@
     <button nbButton
             ghost
             class="orb-action-hover detail-button"
-            (click)="openDetailsModal(value)">
+            (click)="openDetailsModal(row)">
       <nb-icon icon="search-outline"></nb-icon>
     </button>
     <button nbButton
             ghost
             class="orb-action-hover edit-button"
-            (click)="onOpenEdit(value)">
+            (click)="onOpenEdit(row)">
       <nb-icon icon="edit-outline"></nb-icon>
     </button>
     <button nbButton
             ghost
             class="orb-action-hover del-button"
-            (click)="openDeleteModal(value)">
+            (click)="openDeleteModal(row)">
       <nb-icon icon="trash-2-outline"></nb-icon>
     </button>
   </div>

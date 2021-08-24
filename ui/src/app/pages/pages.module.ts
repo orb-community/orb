@@ -45,7 +45,7 @@ import { AgentAddComponent } from 'app/pages/agents/add/agent.add.component';
 import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
 import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.component';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
-import {ShowcaseComponent} from 'app/pages/showcase/showcase.component';
+import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 import { DebounceModule } from 'ngx-debounce';
 
 @NgModule({

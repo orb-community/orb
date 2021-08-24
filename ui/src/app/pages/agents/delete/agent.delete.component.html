@@ -12,7 +12,7 @@
         cannot be undone.<span class="ns1-red">*</span></p>
     </div>
     <p class="ns1-red">*To confirm, type your sink label exactly as it appears</p>
-    <input type="text" nbInput placeholder="{{agent.name}}" [(ngModel)]="agentName">
+    <input type="text" nbInput placeholder="{{agentGroup.name}}" [(ngModel)]="agentName">
   </nb-card-body>
   <nb-card-footer>
     <button [disabled]="!isEnabled()" nbButton (click)="onDelete()">I Understand, Delete This Sink

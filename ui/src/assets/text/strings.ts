@@ -98,13 +98,16 @@ export const STRINGS = {
     propNames: {
       id: 'id',
       name: 'Agent Group Name',
-      description: 'Description',
+      selName: 'Selector Name',
+      description: 'Agent Group Description',
+      selDescription: 'Selector Description',
       key: 'Key',
       value: 'Value',
       tags: 'Tags',
       status: 'Status',
       error: 'Error',
       ts_created: 'Date Created',
+      matches: 'Matches Against',
     },
     // matches
     match: {
@@ -147,7 +150,7 @@ export const STRINGS = {
     list: {
       header: 'All Agents',
       none: 'There are no agents listed.',
-      agent: 'agent',
+      agentGroup: 'agent',
       total: ['You have', 'total.'],
       error: 'have errors.',
       create: 'New Agent',

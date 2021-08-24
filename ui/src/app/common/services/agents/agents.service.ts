@@ -7,7 +7,6 @@ import { environment } from '../../../../environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -41,7 +40,7 @@ export class AgentsService {
   }
 
   addAgentGroup(agentGroupItem: AgentGroup) {
-    return this.http.post(environment.agentsUrl,
+    return this.http.post(environment.agentGroupsUrl,
       {...agentGroupItem, validate_only: false},
       {observe: 'response'})
       .map(
@@ -59,7 +58,7 @@ export class AgentsService {
   }
 
   validateAgentGroup(agentGroupItem: AgentGroup) {
-    return this.http.post(environment.agentsUrl,
+    return this.http.post(environment.validateAgentGroupsUrl,
       {...agentGroupItem, validate_only: true},
       {observe: 'response'})
       .map(
@@ -77,7 +76,7 @@ export class AgentsService {
   }
 
   getAgentGroupById(id: string): any {
-    return this.http.get(`${environment.agentsUrl}/${id}`)
+    return this.http.get(`${environment.agentGroupsUrl}/${id}`)
       .map(
         resp => {
           return resp;
@@ -114,14 +113,14 @@ export class AgentsService {
       return Observable.of(this.cache);
     }
 
-    return this.http.get(environment.agentsUrl, {params})
+    return this.http.get(environment.agentGroupsUrl, {params})
       .map(
         (resp: any) => {
           this.paginationCache[pageInfo.offset] = true;
           // This is the position to insert the new data
           const start = pageInfo.offset * resp.limit;
           const newData = [...this.cache.data];
-          newData.splice(start, resp.limit, ...resp.agents);
+          newData.splice(start, resp.limit, ...resp.agentGroups);
           this.cache = {
             ...this.cache,
             total: resp.total,
@@ -141,8 +140,8 @@ export class AgentsService {
       );
   }
 
-  editAgentGroup(agentItem: Agent): any {
-    return this.http.put(`${environment.agentsUrl}/${agentItem.id}`, agentItem)
+  editAgentGroup(agentGroup: AgentGroup): any {
+    return this.http.put(`${environment.agentGroupsUrl}/${agentGroup.id}`, agentGroup)
       .map(
         resp => {
           return resp;
@@ -157,8 +156,8 @@ export class AgentsService {
       );
   }
 
-  deleteAgentGroup(agentId: string) {
-    return this.http.delete(`${environment.agentsUrl}/${agentId}`)
+  deleteAgentGroup(agentGroupId: string) {
+    return this.http.delete(`${environment.agentGroupsUrl}/${agentGroupId}`)
       .map(
         resp => {
           return resp;
@@ -166,7 +165,7 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to delete Agent',
+          this.notificationsService.error('Failed to Delete Agent Group',
             `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },

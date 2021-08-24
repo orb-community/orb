@@ -1,6 +1,8 @@
 <nb-card size="large" class="nb-card-medium">
   <nb-card-header>
-    {{header}}
+    {{strings.details.header}}
+
+
     <button nbButton ghost="true" size="small" class="orb-close-dialog"
             (click)="onClose()"><span class="nb-close"></span>Close
     </button>
@@ -8,33 +10,39 @@
   <nb-card-body>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{name}}<span class="ns1red">*</span></p>
-        <p>{{ agent.name }}</p>
+        <p class="form-key">{{strings.propNames.selName}}<span class="ns1red">*</span></p>
+        <p>{{ agentGroup.name }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{description}}</p>
-        <p>{{ agent.description }}</p>
+        <p class="form-key">{{strings.propNames.selDescription}}</p>
+        <p>{{ agentGroup.description }}</p>
       </div>
     </div>
     <div class="row form-row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{backend}}<span class="ns1red">*</span></p>
-        <p>{{ agent.backend }}</p>
+        <p class="form-key">{{strings.propNames.tags}}<span class="ns1red">*</span></p>
+        <mat-chip-list>
+          <mat-chip
+              class="orb-tag-sink "
+              *ngFor="let tag of agentGroup.tags">
+            {{ tag | keyvalue | tagchip}}
+          </mat-chip>
+        </mat-chip-list>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{remote_host}}</p>
-        <p>{{ agent.config.remote_host }}</p>
+        <p class="form-key">{{strings.propNames.matches}}</p>
+        <p>{{ agentGroup.matching_agents.total }} {{strings.match.agents}}</p>
       </div>
     </div>
     <div class="row form-row">
       <div class="col-6 align-items-start d-flex flex-column">
-        <p class="form-key">{{ts_created}}</p>
-        <p>{{ agent.ts_created }}</p>
+        <p class="form-key">{{strings.propNames.ts_created}}</p>
+        <p>{{ agentGroup.ts_created }}</p>
       </div>
     </div>
   </nb-card-body>
 
   <nb-card-footer>
-    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(agent)">Edit</button>
+    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(agentGroup)">Edit</button>
   </nb-card-footer>
 </nb-card>

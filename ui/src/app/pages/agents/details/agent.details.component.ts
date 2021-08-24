@@ -2,8 +2,7 @@ import { Component, Input } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
 import { STRINGS } from 'assets/text/strings';
 import { ActivatedRoute, Router } from '@angular/router';
-
-const strings = STRINGS.sink;
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 
 @Component({
   selector: 'ngx-agent-details-component',
@@ -11,25 +10,9 @@ const strings = STRINGS.sink;
   styleUrls: ['./agent.details.component.scss'],
 })
 export class AgentDetailsComponent {
-  header = strings.details.header;
-  close = strings.details.close;
-  name = strings.propNames.name;
-  description = strings.propNames.description;
-  backend = strings.propNames.backend;
-  remote_host = strings.propNames.config_remote_host;
-  ts_created = strings.propNames.ts_created;
+  strings = STRINGS.agents;
 
-  @Input() agent = {
-    id: '',
-    name: '',
-    description: '',
-    backend: '',
-    config: {
-      remote_host: '',
-      username: '',
-    },
-    ts_created: '',
-  };
+  @Input() agentGroup: AgentGroup = {};
 
   constructor(
     protected dialogRef: NbDialogRef<AgentDetailsComponent>,
@@ -43,7 +26,7 @@ export class AgentDetailsComponent {
     this.router.navigate(['../agents/edit'], {
       relativeTo: this.route,
       queryParams: {id: row.id},
-      state: {sink: row},
+      state: {agentGroup: row},
     });
   }
 
