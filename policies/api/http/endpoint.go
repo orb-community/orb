@@ -49,6 +49,18 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 	}
 }
 
+func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		return nil, nil
+	}
+}
+
+func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		return nil, nil
+	}
+}
+
 func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addDatasetReq)
