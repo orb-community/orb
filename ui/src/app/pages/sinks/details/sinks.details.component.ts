@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
 import { STRINGS } from 'assets/text/strings';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Sink } from 'app/common/interfaces/orb/sink.interface';
 
 const strings = STRINGS.sink;
 
@@ -19,17 +20,7 @@ export class SinksDetailsComponent {
   remote_host = strings.propNames.config_remote_host;
   ts_created = strings.propNames.ts_created;
 
-  @Input() sink = {
-    id: '',
-    name: '',
-    description: '',
-    backend: '',
-    config: {
-      remote_host: '',
-      username: '',
-    },
-    ts_created: '',
-  };
+  @Input() sink: Sink = {};
 
   constructor(
     protected dialogRef: NbDialogRef<SinksDetailsComponent>,
