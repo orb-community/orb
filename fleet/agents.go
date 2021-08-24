@@ -102,7 +102,7 @@ type AgentRepository interface {
 	// RetrieveByID retrieves the Agent having the provided ID and owner
 	RetrieveByID(ctx context.Context, ownerID string, thingID string) (Agent, error)
 	// Delete an existing agent by owner and id
-	Delete(ctx context.Context, owner string, thingID string) error
+	Delete(ctx context.Context, ownerID string, thingID string) error
 }
 
 type AgentHeartbeatRepository interface {

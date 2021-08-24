@@ -88,9 +88,9 @@ func (a agentRepositoryMock) RetrieveAllByAgentGroupID(ctx context.Context, owne
 	return []fleet.Agent{}, nil
 }
 
-func (a agentRepositoryMock) Delete(ctx context.Context, owner, thingID string) error {
+func (a agentRepositoryMock) Delete(ctx context.Context, ownerID, thingID string) error {
 	if _, ok := a.agentsMock[thingID]; ok {
-		if a.agentsMock[thingID].MFOwnerID == owner {
+		if a.agentsMock[thingID].MFOwnerID == ownerID {
 			delete(a.agentsMock, thingID)
 		}
 	}
