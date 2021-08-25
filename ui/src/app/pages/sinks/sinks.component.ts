@@ -17,21 +17,6 @@ import { STRINGS } from 'assets/text/strings';
 
 const defFreq: number = 100;
 
-/**
- * Available sink statuses
- */
-export enum sinkStatus {
-  active = 'active',
-  error = 'error',
-}
-
-export enum sinkTypesList {
-  prometheus = 'prometheus',
-  // aws = 'aws',
-  // s3 = 's3',
-  // azure = 'azure',
-}
-
 @Component({
   selector: 'ngx-sinks-component',
   templateUrl: './sinks.component.html',
@@ -112,6 +97,7 @@ export class SinksComponent implements OnInit {
   onOpenAdd() {
     this.router.navigate(['../sinks/add'], {
       relativeTo: this.route,
+      state: {isEdit: false},
     });
   }
 
@@ -119,7 +105,7 @@ export class SinksComponent implements OnInit {
     this.router.navigate(['../sinks/edit'], {
       relativeTo: this.route,
       queryParams: {id: row.id},
-      state: {sink: row},
+      state: {sink: row, isEdit: true},
     });
   }
 

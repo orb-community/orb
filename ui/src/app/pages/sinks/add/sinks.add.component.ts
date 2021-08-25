@@ -1,40 +1,13 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {SinksService} from 'app/common/services/sinks/sinks.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Sink} from 'app/common/interfaces/orb/sink.interface';
-import {STRINGS} from 'assets/text/strings';
-import {sinkTypesList} from 'app/pages/sinks/sinks.component';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-
-
-const SETTINGS_EXAMPLE = {
-  prometheus: [
-    {
-      type: 'text',
-      input: 'text',
-      title: 'Remote Host',
-      name: 'remote_host',
-      required: true,
-    },
-    {
-      type: 'text',
-      input: 'text',
-      title: 'Username',
-      name: 'username',
-      required: true,
-    },
-    {
-      type: 'password',
-      input: 'text',
-      title: 'Password',
-      name: 'password',
-      required: true,
-    },
-  ],
-};
-
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { SinksService } from 'app/common/services/sinks/sinks.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { STRINGS } from 'assets/text/strings';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
+import { SINK_BACKEND_SETTINGS, SINK_BACKEND_TYPES } from 'app/common/services/sinks/sink.settings';
 
 @Component({
   selector: 'ngx-sinks-add-component',
@@ -42,30 +15,20 @@ const SETTINGS_EXAMPLE = {
   styleUrls: ['./sinks.add.component.scss'],
 })
 export class SinksAddComponent implements OnInit {
-  // stepper vars
-  firstFormGroup: FormGroup;
-  secondFormGroup: FormGroup;
-  isEditable = false;
-
   strings = STRINGS;
 
+  // stepper vars
+  firstFormGroup: FormGroup;
+
+  secondFormGroup: FormGroup;
+
   customSinkSettings: {};
+
   selectedSinkSetting: any[];
 
-  sinkForm = {
-    name: '',
-    description: '',
-    backend: '',
-    config: {
-      host_name: '',
-      username: '',
-      password: '',
-    },
-    tags: {},
-  };
   sink: Sink;
 
-  sinkTypesList = Object.values(sinkTypesList);
+  sinkTypesList = Object.values(SINK_BACKEND_TYPES);
 
   isEdit: boolean;
 
@@ -77,24 +40,30 @@ export class SinksAddComponent implements OnInit {
     private _formBuilder: FormBuilder,
   ) {
     this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
-
+    this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
   }
 
   ngOnInit() {
+    const {name, description, backend} = !!this.sink ? this.sink : {
+      name: 'my-prom-sink-',
+      description: '',
+      backend: '',
+    } as SinkConfig<string>;
     this.firstFormGroup = this._formBuilder.group({
-      name: ['my-prom-sink-', Validators.required],
-      description: [''],
-      backend: ['', Validators.required],
+      name: [name, Validators.required],
+      description: [description],
+      backend: [backend, Validators.required],
     });
 
     this.secondFormGroup = this._formBuilder.group({});
 
-    /***TODO THIS IS JUST AN EXAMPLE OF HOW TO MAP WHAT COMES FROM THE BE TO SOMETHING THAT MAKES MORE
+    /**
+     * TODO map interface to settings obj and fields OR get it from service-Backend
+     * THIS IS JUST AN EXAMPLE OF HOW TO MAP WHAT COMES FROM THE BE TO SOMETHING THAT MAKES MORE
      * SENSE IN THE FRONTEND.
      */
-
-    this.customSinkSettings = Object.keys(SETTINGS_EXAMPLE).reduce((accumulator, curr) => {
-      accumulator[curr] = SETTINGS_EXAMPLE[curr].map(entry => ({
+    this.customSinkSettings = Object.keys(SINK_BACKEND_SETTINGS).reduce((accumulator, curr) => {
+      accumulator[curr] = SINK_BACKEND_SETTINGS[curr].map(entry => ({
         type: entry.type,
         label: entry.title,
         prop: entry.name,
@@ -125,18 +94,39 @@ export class SinksAddComponent implements OnInit {
     };
     // TODO Check this out
     // console.log(payload);
-    this.sinksService.addSink(payload).subscribe(resp => {
-      this.notificationsService.success('Sink successfully created', '');
-      this.goBack();
-    });
+    if (this.isEdit) {
+      // updating existing sink
+      this.sinksService.editSink(payload).subscribe(resp => {
+        this.notificationsService.success('Sink successfully created', '');
+        this.goBack();
+      });
+    } else {
+      this.sinksService.addSink(payload).subscribe(resp => {
+        this.notificationsService.success('Sink successfully created', '');
+        this.goBack();
+      });
+    }
+
   }
 
   onSinkTypeSelected(selectedValue) {
+    // SinkConfig<string> being the generic of all other `sinkTypes`.
+    const conf = !!this.sink &&
+      this.isEdit &&
+      (selectedValue === this.sink.backend) &&
+      this.sink?.config &&
+      this.sink.config as SinkConfig<string> || null;
+
     this.selectedSinkSetting = this.customSinkSettings[selectedValue];
+
     const dynamicFormControls = this.selectedSinkSetting.reduce((accumulator, curr) => {
-      accumulator[curr.prop] = ['', curr.required ? Validators.required : null];
+      accumulator[curr.prop] = [
+        !!conf && (curr.prop in conf) && curr.prop || '',
+        curr.required ? Validators.required : null,
+      ];
       return accumulator;
     }, {});
+
     this.secondFormGroup = this._formBuilder.group(dynamicFormControls);
   }
 }
