@@ -211,9 +211,7 @@
               <ngx-datatable
                   class="orb w-100"
                   style="height: 500px"
-                  [loadingIndicator]="loading"
-                  [offset]="paginationControls.offset"
-                  [rows]="paginationControls.data"
+                  [rows]="matchingAgents"
                   [scrollbarV]="true"
                   [columns]="columns"
                   [columnMode]="columnMode.flex"

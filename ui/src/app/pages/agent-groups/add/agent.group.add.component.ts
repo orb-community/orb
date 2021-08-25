@@ -1,16 +1,16 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {AfterViewInit, Component, OnInit, TemplateRef, ViewChild} from '@angular/core';
 
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { STRINGS } from 'assets/text/strings';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
-import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
-import { AgentsService } from 'app/common/services/agents/agents.service';
-import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {STRINGS} from 'assets/text/strings';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
+import {AgentGroupsService} from 'app/common/services/agents/agent.groups.service';
+import {TagMatch} from 'app/common/interfaces/orb/tag.match.interface';
+import {Agent} from 'app/common/interfaces/orb/agent.interface';
+import {DropdownFilterItem} from 'app/common/interfaces/mainflux.interface';
+import {AgentsService} from 'app/common/services/agents/agents.service';
+import {ColumnMode, TableColumn} from '@swimlane/ngx-datatable';
 
 
 @Component({
@@ -121,12 +121,12 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
         prop: 'state',
         name: 'Status',
         minWidth: 90,
-        flexGrow: 3,
+        flexGrow: 1,
         cellTemplate: this.agentStateTemplateRef,
       },
       {
         name: 'Last Activity',
-        prop: 'ts_lst_hb',
+        prop: 'ts_last_hb',
         minWidth: 130,
         resizeable: false,
         sortable: false,
@@ -153,10 +153,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onRemoveTag(tag
-                :
-                any
-  ) {
+  onRemoveTag(tag: any) {
     const {tags, tags: {value: tagsList}} = this.secondFormGroup.controls;
     const indexToRemove = tagsList.indexOf(tag);
 
@@ -168,11 +165,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
 
   // query agent group matches
   updateTagMatches() {
-    // validate:true
     const payload = this.wrapPayload(true);
-    // // remove line bellow
-    // console.log(payload)
-
     // just validate and get matches summary
     this.agentGroupsService.validateAgentGroup(payload).subscribe((resp: any) => {
       this.tagMatch = {
@@ -184,15 +177,11 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     });
   }
 
-  updateMatchingAgents(pageInfo
-                         :
-                         NgxDatabalePageInfo = null
-  ) {
-    const isFilter = pageInfo === null;
-    const tags = this.secondFormGroup.controls.tags.value.map(obj => Object.keys(obj)[0]);
-    this.agentsService.getAgents(pageInfo, isFilter).subscribe(
+  updateMatchingAgents() {
+    const tags = this.secondFormGroup.controls.tags.value;
+    this.agentsService.getMatchingAgents(tags).subscribe(
       resp => {
-        this.matchingAgents = resp.body.matchingAgents;
+        this.matchingAgents = resp;
       },
     );
   }
@@ -202,10 +191,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     !!this.expanded && this.updateMatchingAgents();
   }
 
-  wrapPayload(validate
-                :
-                boolean
-  ) {
+  wrapPayload(validate: boolean) {
     const {name, description} = this.firstFormGroup.controls;
     const {tags: {value: tagsList}} = this.secondFormGroup.controls;
     const tagsObj = tagsList.reduce((prev, curr) => {

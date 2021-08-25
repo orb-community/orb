@@ -37,6 +37,30 @@ export class AgentsService {
     this.paginationCache = {};
   }
 
+   getMatchingAgents(tagsInfo: any) {
+    const params = new HttpParams()
+      .set('offset', AgentsService.getDefaultPagination().offset.toString())
+      .set('limit', AgentsService.getDefaultPagination().limit.toString())
+      .set('order', AgentsService.getDefaultPagination().order.toString())
+      .set('dir', AgentsService.getDefaultPagination().dir.toString())
+      .set('tags', JSON.stringify(tagsInfo).replace('[', '').replace(']', ''));
+
+    return this.http.get(environment.agentsUrl, {params})
+      .map(
+        (resp: any) => {
+          return resp.agents;
+        },
+      )
+      .catch(
+        err => {
+          this.notificationsService.error('Failed to get Matching Agents',
+            `Error: ${err.status} - ${err.statusText}`);
+          return Observable.throwError(err);
+        },
+      );
+  }
+
+
   getAgents(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     const offset = pageInfo.offset || this.cache.offset;
     let params = new HttpParams()
