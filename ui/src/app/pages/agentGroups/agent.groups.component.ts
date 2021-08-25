@@ -5,10 +5,10 @@ import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
-import { AgentGroupDeleteComponent } from 'app/pages/agentGroups/delete/agentGroup.delete.component';
-import { AgentGroupDetailsComponent } from 'app/pages/agentGroups/details/agentGroup.details.component';
+import { AgentGroupDeleteComponent } from 'app/pages/agentGroups/delete/agent.group.delete.component';
+import { AgentGroupDetailsComponent } from 'app/pages/agentGroups/details/agent.group.details.component';
 import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
-import { AgentsService } from 'app/common/services/agents/agents.service';
+import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
@@ -16,8 +16,8 @@ import { Debounce } from 'app/shared/decorators/utils';
 
 @Component({
   selector: 'ngx-agent-groups-component',
-  templateUrl: './agentGroups.component.html',
-  styleUrls: ['./agentGroups.component.scss'],
+  templateUrl: './agent.groups.component.html',
+  styleUrls: ['./agent.groups.component.scss'],
 })
 export class AgentGroupsComponent implements OnInit, AfterViewInit {
   strings = STRINGS.agents;
@@ -58,13 +58,13 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
-    private agentsService: AgentsService,
+    private agentsService: AgentGroupsService,
     private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
   ) {
     this.agentsService.clean();
-    this.paginationControls = AgentsService.getDefaultPagination();
+    this.paginationControls = AgentGroupsService.getDefaultPagination();
   }
 
   ngOnInit() {

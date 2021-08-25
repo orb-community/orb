@@ -4,8 +4,8 @@ import { STRINGS } from 'assets/text/strings';
 
 @Component({
   selector: 'ngx-agent-group-delete-component',
-  templateUrl: './agentGroup.delete.component.html',
-  styleUrls: ['./agentGroup.delete.component.scss'],
+  templateUrl: './agent.group.delete.component.html',
+  styleUrls: ['./agent.group.delete.component.scss'],
 })
 
 export class AgentGroupDeleteComponent {

@@ -5,15 +5,16 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { AgentsService } from 'app/common/services/agents/agents.service';
+import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { DropdownFilterItem, PageFilters, TableConfig, TablePage } from 'app/common/interfaces/mainflux.interface';
 
+
 @Component({
   selector: 'ngx-agent-group-add-component',
-  templateUrl: './agentGroup.add.component.html',
-  styleUrls: ['./agentGroup.add.component.scss'],
+  templateUrl: './agent.group.add.component.html',
+  styleUrls: ['./agent.group.add.component.scss'],
 })
 export class AgentGroupAddComponent implements OnInit {
   // expandable table vars
@@ -44,6 +45,7 @@ export class AgentGroupAddComponent implements OnInit {
 
   secondFormGroup: FormGroup;
 
+  addForm: FormGroup;
   // agent vars
   agentGroup: AgentGroup;
 
@@ -59,7 +61,8 @@ export class AgentGroupAddComponent implements OnInit {
   isEditable = false;
 
   constructor(
-    private agentsService: AgentsService,
+    private agentGroupsService: AgentGroupsService,
+    private agentsService: AgentGroupsService,
     private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
@@ -79,6 +82,12 @@ export class AgentGroupAddComponent implements OnInit {
       key: [''],
       value: [''],
     });
+
+    this.addForm = this._formBuilder.group({
+      firstFormGroup: this.firstFormGroup,
+      secondFormGroup: this.secondFormGroup,
+    });
+
     this.tagMatch.total = this.tagMatch.online = 0;
     this.expanded = false;
   }
@@ -94,7 +103,7 @@ export class AgentGroupAddComponent implements OnInit {
     if (key?.value && key.value !== '') {
       if (value?.value && value.value !== '') {
         // key and value fields
-        tags.setValue([{[key.value]: value.value}].concat(tags.value));
+        tags.reset([{[key.value]: value.value}].concat(tags.value));
         key.reset('');
         value.reset('');
         this.updateTagMatches();
@@ -123,41 +132,41 @@ export class AgentGroupAddComponent implements OnInit {
     // console.log(payload)
 
     // just validate and get matches summary
-    this.agentsService.validateAgentGroup(payload).subscribe((resp: any) => {
-      // this.tagMatch = {
-      //   total: resp.matchingAgents.total,
-      //   online: resp.matchingAgents.online,
-      // };
-      // TODO rewire this
+    this.agentGroupsService.validateAgentGroup(payload).subscribe((resp: any) => {
       this.tagMatch = {
-        total: 10,
-        online: 3,
-      };
-      // TODO rewire this
-      this.matchingAgents = new Array(10)
-        .fill(null)
-        .map((_, i) => (
-          {
-            name: `Lorem Ipsum ${i}`,
-            agent_tags: {cloud: `aws-${i}`},
-            state: ['new', 'online', 'offline', 'stale'][i % 4],
-            ts_lst_hb: `${+new Date()}`,
-          }
-        ));
-      // update matching agent table
-      this.page = {
-        offset: 0,
-        limit: 10,
-        total: 10,
-        rows: this.matchingAgents,
+        total: resp.matchingAgents.total,
+        online: resp.matchingAgents.online,
       };
 
       this.notificationsService.success(this.strings.match.updated, '');
     });
   }
 
+  updateMatchingAgents() {
+    // update list of agents
+    // this.agentsService.
+    this.matchingAgents = new Array(10)
+      .fill(null)
+      .map((_, i) => (
+        {
+          name: `Lorem Ipsum ${i}`,
+          agent_tags: {cloud: `aws-${i}`},
+          state: ['new', 'online', 'offline', 'stale'][i % 4],
+          ts_lst_hb: `${+new Date()}`,
+        }
+      ));
+    // update matching agent table
+    this.page = {
+      offset: 0,
+      limit: 10,
+      total: 10,
+      rows: this.matchingAgents,
+    };
+  }
+
   toggleExpandMatches() {
     this.expanded = !this.expanded;
+    !!this.expanded && this.updateMatchingAgents();
   }
 
   wrapPayload(validate: boolean) {
@@ -185,7 +194,7 @@ export class AgentGroupAddComponent implements OnInit {
 
     // // remove line bellow
     // console.log(payload)
-    this.agentsService.addAgentGroup(payload).subscribe(resp => {
+    this.agentGroupsService.addAgentGroup(payload).subscribe(() => {
       this.notificationsService.success(this.strings.add.success, '');
       this.goBack();
     });

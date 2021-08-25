@@ -8,7 +8,7 @@ import { environment } from 'environments/environment';
 
 // ORB
 // Agent Group Management
-import { AgentGroupsComponent } from 'app/pages/agentGroups/agentGroups.component';
+import { AgentGroupsComponent } from 'app/pages/agentGroups/agent.groups.component';
 // Dataset Explorer
 import { DatasetsComponent } from 'app/pages/datasets/datasets.component';
 // Fleet Management
@@ -16,8 +16,8 @@ import { FleetsComponent } from 'app/pages/fleets/fleets.component';
 // Sink Management
 import { SinksComponent } from 'app/pages/sinks/sinks.component';
 import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
-import { AgentGroupAddComponent } from 'app/pages/agentGroups/add/agentGroup.add.component';
-import { AgentGroupDetailsComponent } from 'app/pages/agentGroups/details/agentGroup.details.component';
+import { AgentGroupAddComponent } from 'app/pages/agentGroups/add/agent.group.add.component';
+import { AgentGroupDetailsComponent } from 'app/pages/agentGroups/details/agent.group.details.component';
 import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 
 const children = [

@@ -6,8 +6,8 @@ import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 
 @Component({
   selector: 'ngx-agent-group-details-component',
-  templateUrl: './agentGroup.details.component.html',
-  styleUrls: ['./agentGroup.details.component.scss'],
+  templateUrl: './agent.group.details.component.html',
+  styleUrls: ['./agent.group.details.component.scss'],
 })
 export class AgentGroupDetailsComponent {
   strings = STRINGS.agents;
