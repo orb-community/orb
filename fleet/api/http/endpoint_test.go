@@ -6,7 +6,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package api_test
+package http_test
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	"github.com/mainflux/mainflux/things"
 	thingsapi "github.com/mainflux/mainflux/things/api/things/http"
 	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/api"
+	http2 "github.com/ns1labs/orb/fleet/api/http"
 	flmocks "github.com/ns1labs/orb/fleet/mocks"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/opentracing/opentracing-go/mocktracer"
@@ -139,7 +139,7 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 }
 
 func newServer(svc fleet.Service) *httptest.Server {
-	mux := api.MakeHandler(mocktracer.New(), "fleet", svc)
+	mux := http2.MakeHandler(mocktracer.New(), "fleet", svc)
 	return httptest.NewServer(mux)
 }
 

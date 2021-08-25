@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package fleet;
+option go_package = "fleet/pb";
+
+service FleetService {
+  rpc RetrieveAgent(AgentByIDReq) returns (AgentRes) {}
+}
+
+message AgentByIDReq {
+  string agentID = 1;
+  string ownerID = 2;
+}
+
+message AgentRes {
+  string id = 1;
+  string name = 2;
+  string channel = 3;
+}
