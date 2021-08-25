@@ -41,22 +41,6 @@ export class SinksAddComponent implements OnInit {
   ) {
     this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
-  }
-
-  ngOnInit() {
-    const {name, description, backend} = !!this.sink ? this.sink : {
-      name: 'my-prom-sink-',
-      description: '',
-      backend: '',
-    } as SinkConfig<string>;
-    this.firstFormGroup = this._formBuilder.group({
-      name: [name, Validators.required],
-      description: [description],
-      backend: [backend, Validators.required],
-    });
-
-    this.secondFormGroup = this._formBuilder.group({});
-
     /**
      * TODO map interface to settings obj and fields OR get it from service-Backend
      * THIS IS JUST AN EXAMPLE OF HOW TO MAP WHAT COMES FROM THE BE TO SOMETHING THAT MAKES MORE
@@ -72,6 +56,24 @@ export class SinksAddComponent implements OnInit {
       }));
       return accumulator;
     }, {});
+  }
+
+  ngOnInit() {
+    const {name, description, backend} = !!this.sink ? this.sink : {
+      name: '',
+      description: '',
+      backend: 'prometheus', // default sink
+    } as SinkConfig<string>;
+    this.firstFormGroup = this._formBuilder.group({
+      name: [name, Validators.required],
+      description: [description],
+      backend: [backend, Validators.required],
+    });
+
+    this.isEdit && this.firstFormGroup.controls.backend.disable();
+
+    // builds secondFormGroup
+    this.onSinkTypeSelected(backend);
   }
 
   goBack() {
