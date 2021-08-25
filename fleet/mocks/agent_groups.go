@@ -30,6 +30,13 @@ func (a *agentGroupRepositoryMock) Save(ctx context.Context, group fleet.AgentGr
 	if err != nil {
 		return "", errors.Wrap(errors.ErrMalformedEntity, err)
 	}
+
+	for _, ag := range a.agentGroupMock {
+		if ag.Name == group.Name {
+			return "", errors.Wrap(errors.ErrConflict, err)
+		}
+	}
+
 	a.counter++
 	group.ID = ID.String()
 	a.agentGroupMock[ID.String()] = group

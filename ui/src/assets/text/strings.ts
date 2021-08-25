@@ -63,6 +63,7 @@ export const STRINGS = {
       header: 'Delete Sink Confirmation',
       body: 'Are you sure you want to delete this sink? This may cause policies which use this sink to become invalid. This action cannot be undone.',
       warning: '*To confirm, type your sink label exactly as it appears',
+      delete: 'I Understand, Delete This Sink',
       close: 'Close',
     },
     // details modal
@@ -97,21 +98,36 @@ export const STRINGS = {
     // sink.interface name descriptors
     propNames: {
       id: 'id',
-      name: 'Name',
+      name: 'Agent Group Name',
       description: 'Description',
+      key: 'Key',
+      value: 'Value',
       tags: 'Tags',
       status: 'Status',
       error: 'Error',
-      backend: 'Service Type',
-      config: 'Connection Details',
-      config_remote_host: 'Remote Host',
-      config_username: 'Username',
-      config_password: 'Password',
       ts_created: 'Date Created',
+    },
+    // matches
+    match: {
+      matchAny: 'The Selected Qualifiers Will Match Against',
+      matchNone: 'The Selected Qualifiers Do Not Match Any Agent',
+      agents: 'Agent(s)' +
+        '',
+      updated: 'Agent Group matches updated',
+      expand: 'Expand',
+      collapse: 'Collapse',
     },
     // add page
     add: {
-      header: 'Agent Groups',
+      header: 'New Agent Group',
+      step: {
+        title1: 'Agent Group Details',
+        desc1: 'This is how you will be able to easily identify your Agent Group',
+        title2: 'Agent Group Tags',
+        desc2: 'Set the tags that will be used to group Agents',
+        title3: 'Review & Confirm',
+      },
+      success: 'Agent Group successfully created',
     },
     // edit page
     edit: {

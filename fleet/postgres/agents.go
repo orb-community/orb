@@ -30,6 +30,42 @@ type agentRepository struct {
 	logger *zap.Logger
 }
 
+func (r agentRepository) RetrieveMatchingAgents(ctx context.Context, ownerID string, tags types.Tags) (types.Metadata, error) {
+	t, tmq, err := getOrbOrAgentTagsQuery(tags)
+	if err != nil {
+		return types.Metadata{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	q := fmt.Sprintf(
+		`select
+			json_build_object('total', coalesce(total,0), 'online', coalesce(online,0)) AS matching_agents
+		from
+			(select
+				sum(case when mf_thing_id is not null then 1 else 0 end) as total,
+				sum(case when state = 'online' then 1 else 0 end) as online
+			from agents WHERE mf_owner_id = :mf_owner_id %s) as agent_groups`, tmq)
+
+	params := map[string]interface{}{
+		"tags":        t,
+		"mf_owner_id": ownerID,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return types.Metadata{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	dbma := dbMatchingAgent{}
+	if rows.Next() {
+		if err := rows.StructScan(&dbma); err != nil {
+			return types.Metadata{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+	}
+
+	return types.Metadata(dbma.MatchingAgents), nil
+}
+
 func (r agentRepository) RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]fleet.Agent, error) {
 
 	q := `SELECT agent_mf_thing_id AS mf_thing_id, agent_mf_channel_id AS mf_channel_id FROM agent_group_membership 
@@ -80,7 +116,7 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
-	t, tmq, err := getOrbTagsQuery(pm.Tags)
+	t, tmq, err := getOrbOrAgentTagsQuery(pm.Tags)
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
@@ -355,6 +391,10 @@ type dbAgent struct {
 	LastHB        sql.NullTime     `db:"ts_last_hb"`
 }
 
+type dbMatchingAgent struct {
+	MatchingAgents db.Metadata `db:"matching_agents"`
+}
+
 func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 
 	a := dbAgent{
@@ -440,26 +480,12 @@ func getMetadataQuery(m types.Metadata) ([]byte, string, error) {
 	return mb, mq, nil
 }
 
-func getAgentTagsQuery(m types.Tags) ([]byte, string, error) {
+func getOrbOrAgentTagsQuery(m types.Tags) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {
-		mq = ` AND agent_tags @> :tags`
-
-		b, err := json.Marshal(m)
-		if err != nil {
-			return nil, "", err
-		}
-		mb = b
-	}
-	return mb, mq, nil
-}
-
-func getOrbTagsQuery(m types.Tags) ([]byte, string, error) {
-	mq := ""
-	mb := []byte("{}")
-	if len(m) > 0 {
-		mq = ` AND orb_tags @> :tags`
+		// todo add in orb tags
+		mq = ` AND (agent_tags <@ :tags OR orb_tags <@ :tags)`
 
 		b, err := json.Marshal(m)
 		if err != nil {

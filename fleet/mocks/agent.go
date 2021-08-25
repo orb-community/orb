@@ -3,6 +3,7 @@ package mocks
 import (
 	"context"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/types"
 )
 
 var _ fleet.AgentRepository = (*agentRepositoryMock)(nil)
@@ -20,6 +21,10 @@ func (a agentRepositoryMock) RetrieveByID(ctx context.Context, ownerID string, t
 		return a.agentsMock[thingID], nil
 	}
 	return fleet.Agent{}, fleet.ErrNotFound
+}
+
+func (a agentRepositoryMock) RetrieveMatchingAgents(ctx context.Context, ownerID string, tags types.Tags) (types.Metadata, error) {
+	return nil, nil
 }
 
 func (a agentRepositoryMock) UpdateHeartbeatByIDWithChannel(ctx context.Context, agent fleet.Agent) error {

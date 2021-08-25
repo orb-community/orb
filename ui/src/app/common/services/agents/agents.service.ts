@@ -4,28 +4,45 @@ import { Observable } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
 import { environment } from '../../../../environments/environment';
-import { NotificationsService } from '../../../common/services/notifications/notifications.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { PageFilters } from 'app/common/interfaces/mainflux.interface';
 
 // default filters
 const defLimit: number = 20;
-const defOrder: string = 'id';
-const defDir: string = 'desc';
+const defOrder: string = 'name';
+const defDir = 'desc';
 
 @Injectable()
 export class AgentsService {
   picture = 'assets/images/mainflux-logo.png';
 
+  paginationCache: any = {};
+  cache: OrbPagination<AgentGroup>;
+
   constructor(
     private http: HttpClient,
     private notificationsService: NotificationsService,
   ) {
+    this.clean();
   }
 
-  addAgentGroup(agentItem: Agent) {
+  clean() {
+    this.cache = {
+      limit: defLimit,
+      offset: 0,
+      order: defOrder,
+      total: 0,
+      dir: defDir,
+      data: [],
+    };
+    this.paginationCache = {};
+  }
+
+  addAgentGroup(agentGroupItem: AgentGroup) {
     return this.http.post(environment.agentsUrl,
-      agentItem,
+      {...agentGroupItem, validate_only: false},
       {observe: 'response'})
       .map(
         resp => {
@@ -41,8 +58,26 @@ export class AgentsService {
       );
   }
 
-  getAgentGroupById(agentId: string): any {
-    return this.http.get(`${environment.agentsUrl}/${agentId}`)
+  validateAgentGroup(agentGroupItem: AgentGroup) {
+    return this.http.post(environment.agentsUrl,
+      {...agentGroupItem, validate_only: true},
+      {observe: 'response'})
+      .map(
+        resp => {
+          return resp;
+        },
+      )
+      .catch(
+        err => {
+          this.notificationsService.error('Failed to Validate Agent',
+            `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
+          return Observable.throwError(err);
+        },
+      );
+  }
+
+  getAgentGroupById(id: string): any {
+    return this.http.get(`${environment.agentsUrl}/${id}`)
       .map(
         resp => {
           return resp;
@@ -57,26 +92,44 @@ export class AgentsService {
       );
   }
 
-  getAgentGroups(filters: PageFilters) {
-    filters.offset = filters.offset || 0;
-    filters.limit = filters.limit || defLimit;
-    filters.order = filters.order || defOrder;
-    filters.dir = filters.dir || defDir;
-
+  getAgentGroups(pageInfo: NgxDatabalePageInfo, isFilter = false) {
+    const offset = pageInfo.offset || this.cache.offset;
     let params = new HttpParams()
-      .set('offset', filters.offset.toString())
-      .set('limit', filters.limit.toString())
-      .set('order', filters.order)
-      .set('dir', 'asc');
+      .set('offset', offset.toString())
+      .set('limit', (pageInfo.limit || this.cache.limit).toString())
+      .set('order', this.cache.order)
+      .set('dir', this.cache.dir);
 
-    if (filters.name) {
-      params = params.append('name', filters.name);
+    if (isFilter) {
+      if (pageInfo.name) {
+        params = params.append('name', pageInfo.name);
+      }
+      if (pageInfo.tags) {
+        params.append('tags', JSON.stringify(pageInfo.tags));
+      }
+      this.paginationCache[offset] = false;
+    }
+
+    if (this.paginationCache[pageInfo.offset]) {
+      return Observable.of(this.cache);
     }
 
     return this.http.get(environment.agentsUrl, {params})
       .map(
-        resp => {
-          return resp;
+        (resp: any) => {
+          this.paginationCache[pageInfo.offset] = true;
+          // This is the position to insert the new data
+          const start = pageInfo.offset * resp.limit;
+          const newData = [...this.cache.data];
+          newData.splice(start, resp.limit, ...resp.agents);
+          this.cache = {
+            ...this.cache,
+            total: resp.total,
+            data: newData,
+          };
+          if (pageInfo.name) this.cache.name = pageInfo.name;
+          if (pageInfo.tags) this.cache.tags = pageInfo.tags;
+          return this.cache;
         },
       )
       .catch(
@@ -118,5 +171,16 @@ export class AgentsService {
           return Observable.throwError(err);
         },
       );
+  }
+
+  public static getDefaultPagination(): OrbPagination<AgentGroup> {
+    return {
+      limit: defLimit,
+      order: defOrder,
+      dir: defDir,
+      offset: 0,
+      total: 0,
+      data: null,
+    };
   }
 }

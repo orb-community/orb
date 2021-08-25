@@ -93,6 +93,8 @@ type AgentRepository interface {
 	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
 	// RetrieveAllByAgentGroupID retrieves Agents in the specified group
 	RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]Agent, error)
+	// RetrieveMatchingAgents retrieve the matching agents by tags
+	RetrieveMatchingAgents(ctx context.Context, owner string, tags types.Tags) (types.Metadata, error)
 	// UpdateAgentByID update the the tags and name for the Agent having provided ID and owner
 	UpdateAgentByID(ctx context.Context, ownerID string, agent Agent) error
 	// RetrieveByID retrieves the Agent having the provided ID and owner

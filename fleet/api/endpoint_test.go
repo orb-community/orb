@@ -166,11 +166,32 @@ func TestCreateAgentGroup(t *testing.T) {
 			status:      http.StatusCreated,
 			location:    "/agent_groups",
 		},
+		"add a duplicated agent group": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusConflict,
+			location:    "/agent_groups",
+		},
 		"add a valid agent group with invalid token": {
 			req:         validJson,
 			contentType: contentType,
 			auth:        invalidToken,
 			status:      http.StatusUnauthorized,
+			location:    "/agent_groups",
+		},
+		"add a agent group with a invalid json": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agent_groups",
+		},
+		"add a agent group without a content type": {
+			req:         validJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
 			location:    "/agent_groups",
 		},
 	}
@@ -568,6 +589,97 @@ func TestDeleteAgentGroup(t *testing.T) {
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 	}
+}
+
+func TestValidateAgentGroup(t *testing.T) {
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	var invalidValueTag = "{\n \"name\": \"eu-agents\", \n    \"tags\": {\n       \"invalidTag\", \n      \"node_type\": \"dns\"\n    }, \n   \"description\": \"An example agent group representing european dns nodes\", \n \"validate_only\": false \n}"
+	var invalidValueName = "{\n \"name\": \",,AGENT 6,\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	var invalidField = "{\n \"nname\": \",,AGENT 6,\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"validate a valid agent group": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+			location:    "/agent_groups/validate",
+		},
+
+		"validate a agent group invalid json": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agent_groups/validate",
+		},
+
+		"validate a empty token": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+			location:    "/agent_groups/validate",
+		},
+		"validate a agent group without content type": {
+			req:         validJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/agent_groups/validate",
+		},
+		"validate a agent group with a invalid tag": {
+			req:         invalidValueTag,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agent_groups/validate",
+		},
+		"validate a agent group with a invalid name": {
+			req:         invalidValueName,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agent_groups/validate",
+		},
+		"validate a agent group with a invalid token": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/agent_groups/validate",
+		},
+		"validate a agent group with a invalid agent group field": {
+			req:         invalidField,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusBadRequest,
+			location:    "/agent_groups/validate",
+		},
+	}
+
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      cli.server.Client(),
+			method:      http.MethodPost,
+			url:         fmt.Sprintf("%s/agent_groups/validate", cli.server.URL),
+			contentType: tc.contentType,
+			token:       tc.auth,
+			body:        strings.NewReader(tc.req),
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+	}
+
 }
 
 func TestViewAgent(t *testing.T) {
