@@ -1,12 +1,12 @@
-import {Component} from '@angular/core';
+import { Component } from '@angular/core';
 
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {SinksService} from 'app/common/services/sinks/sinks.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Sink} from 'app/common/interfaces/orb/sink.interface';
-import {STRINGS} from 'assets/text/strings';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {SinkConfig} from 'app/common/interfaces/orb/sink.config/sink.config.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { SinksService } from 'app/common/services/sinks/sinks.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { STRINGS } from 'assets/text/strings';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
 
 @Component({
   selector: 'ngx-sinks-add-component',
@@ -20,6 +20,8 @@ export class SinksAddComponent {
   firstFormGroup: FormGroup;
 
   secondFormGroup: FormGroup;
+
+  thirdFormGroup: FormGroup;
 
   customSinkSettings: {};
 
@@ -58,11 +60,12 @@ export class SinksAddComponent {
         }));
         return accumulator;
       }, {});
-      const {name, description, backend} = !!this.sink ? this.sink : {
+      const {name, description, backend, tags} = !!this.sink ? this.sink : {
         name: '',
         description: '',
         backend: 'prometheus', // default sink
-      } as SinkConfig<string>;
+        tags: {},
+      } as Sink;
       this.firstFormGroup = this._formBuilder.group({
         name: [name, Validators.required],
         description: [description],
@@ -73,6 +76,14 @@ export class SinksAddComponent {
 
       // builds secondFormGroup
       this.onSinkTypeSelected(backend);
+
+      this.thirdFormGroup = this._formBuilder.group({
+        tags: [Object.keys(tags).map(key => ({[key]: tags[key]})),
+          Validators.minLength(1)],
+        key: [''],
+        value: [''],
+      });
+
       this.isLoading = false;
     });
   }
@@ -90,9 +101,12 @@ export class SinksAddComponent {
         accumulator[current.prop] = this.secondFormGroup.controls[current.prop].value;
         return accumulator;
       }, {}),
-      tags: {
-        cloud: 'aws',
-      },
+      tags: this.thirdFormGroup.controls.tags.value.reduce((prev, curr) => {
+        for (const [key, value] of Object.entries(curr)) {
+          prev[key] = value;
+        }
+        return prev;
+      }, {}),
       validate_only: false, // Apparently this guy is required..
     };
     // TODO Check this out
@@ -133,5 +147,31 @@ export class SinksAddComponent {
     }, {});
 
     this.secondFormGroup = this._formBuilder.group(dynamicFormControls);
+  }
+
+  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
+  onAddTag() {
+    const {tags, key, value} = this.thirdFormGroup.controls;
+    // sanitize minimally anyway
+    if (key?.value && key.value !== '') {
+      if (value?.value && value.value !== '') {
+        // key and value fields
+        tags.reset([{[key.value]: value.value}].concat(tags.value));
+        key.reset('');
+        value.reset('');
+      }
+    } else {
+      // TODO remove this else clause and error
+      console.error('This shouldn\'t be happening');
+    }
+  }
+
+  onRemoveTag(tag: any) {
+    const {tags, tags: {value: tagsList}} = this.thirdFormGroup.controls;
+    const indexToRemove = tagsList.indexOf(tag);
+
+    if (indexToRemove >= 0) {
+      tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
+    }
   }
 }

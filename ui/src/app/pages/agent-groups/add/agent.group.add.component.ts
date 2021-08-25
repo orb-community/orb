@@ -1,16 +1,16 @@
-import {AfterViewInit, Component, OnInit, TemplateRef, ViewChild} from '@angular/core';
+import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {STRINGS} from 'assets/text/strings';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
-import {AgentGroupsService} from 'app/common/services/agents/agent.groups.service';
-import {TagMatch} from 'app/common/interfaces/orb/tag.match.interface';
-import {Agent} from 'app/common/interfaces/orb/agent.interface';
-import {DropdownFilterItem} from 'app/common/interfaces/mainflux.interface';
-import {AgentsService} from 'app/common/services/agents/agents.service';
-import {ColumnMode, TableColumn} from '@swimlane/ngx-datatable';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { STRINGS } from 'assets/text/strings';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
+import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
+import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
+import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
+import { AgentsService } from 'app/common/services/agents/agents.service';
+import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 
 
 @Component({
@@ -29,7 +29,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
 
   // templates
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
-  @ViewChild('agentStateTemplateRef') agentStateTemplateRef: TemplateRef<any>;
+  @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
     {
@@ -179,8 +179,6 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
         total: resp.body.matching_agents.total,
         online: resp.body.matching_agents.online,
       };
-
-      this.notificationsService.success(this.strings.match.updated, '');
     });
   }
 
