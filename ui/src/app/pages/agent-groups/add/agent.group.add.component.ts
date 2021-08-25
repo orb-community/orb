@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,7 +10,6 @@ import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
 import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 
 
@@ -19,32 +18,18 @@ import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
   templateUrl: './agent.group.add.component.html',
   styleUrls: ['./agent.group.add.component.scss'],
 })
-export class AgentGroupAddComponent implements OnInit {
+export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   // page vars
   strings = {...STRINGS.agents, stepper: STRINGS.stepper};
 
   isEdit: boolean;
 
-  // // expandable table vars
-  // tableConfig: TableConfig = {
-  //   colNames: ['Agent Name', 'Tags', 'Status', 'Last Activity'],
-  //   keys: ['name', 'agent_tags', 'state', 'ts_lst_hb'],
-  // };
   columnMode = ColumnMode;
   columns: TableColumn[];
 
-  loading = false;
-
-  paginationControls: OrbPagination<Agent>;
-
-  searchPlaceholder = 'Search by name';
-  filterSelectedIndex = '0';
-
   // templates
-  @ViewChild('agentsTemplateCell') agentsTemplateCell: TemplateRef<any>;
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
-  @ViewChild('addAgentTemplateRef') addAgentTemplateRef: TemplateRef<any>;
-  @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+  @ViewChild('agentStateTemplateRef') agentStateTemplateRef: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
     {
@@ -115,6 +100,41 @@ export class AgentGroupAddComponent implements OnInit {
     this.router.navigate(['../../agents'], {relativeTo: this.route});
   }
 
+  ngAfterViewInit() {
+    this.columns = [
+      {
+        prop: 'name',
+        name: 'Agent Name',
+        resizeable: false,
+        flexGrow: 1,
+        minWidth: 90,
+      },
+      {
+        prop: 'orb_tags',
+        name: 'Tags',
+        resizeable: false,
+        minWidth: 100,
+        flexGrow: 2,
+        cellTemplate: this.agentTagsTemplateCell,
+      },
+      {
+        prop: 'state',
+        name: 'Status',
+        minWidth: 90,
+        flexGrow: 3,
+        cellTemplate: this.agentStateTemplateRef,
+      },
+      {
+        name: 'Last Activity',
+        prop: 'ts_lst_hb',
+        minWidth: 130,
+        resizeable: false,
+        sortable: false,
+        flexGrow: 1,
+      },
+    ];
+  }
+
   // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
   onAddTag() {
     const {tags, key, value} = this.secondFormGroup.controls;
@@ -133,7 +153,10 @@ export class AgentGroupAddComponent implements OnInit {
     }
   }
 
-  onRemoveTag(tag: any) {
+  onRemoveTag(tag
+                :
+                any
+  ) {
     const {tags, tags: {value: tagsList}} = this.secondFormGroup.controls;
     const indexToRemove = tagsList.indexOf(tag);
 
@@ -161,44 +184,17 @@ export class AgentGroupAddComponent implements OnInit {
     });
   }
 
-  updateMatchingAgents(pageInfo: NgxDatabalePageInfo = null) {
+  updateMatchingAgents(pageInfo
+                         :
+                         NgxDatabalePageInfo = null
+  ) {
     const isFilter = pageInfo === null;
-    if (isFilter) {
-      pageInfo = {
-        offset: this.paginationControls.offset,
-        limit: this.paginationControls.limit,
-      };
-      if (this.paginationControls.name?.length > 0) pageInfo.name = this.paginationControls.name;
-      if (this.paginationControls.tags?.length > 0) pageInfo.tags = this.paginationControls.tags;
-    }
-
-    this.loading = true;
+    const tags = this.secondFormGroup.controls.tags.value.map(obj => Object.keys(obj)[0]);
     this.agentsService.getAgents(pageInfo, isFilter).subscribe(
-      (resp: OrbPagination<Agent>) => {
-        this.paginationControls = resp;
-        this.paginationControls.offset = pageInfo.offset;
-        this.loading = false;
+      resp => {
+        this.matchingAgents = resp.body.matchingAgents;
       },
     );
-    // update list of agents
-    // this.agentsService.getAgents();
-    // this.matchingAgents = new Array(10)
-    //   .fill(null)
-    //   .map((_, i) => (
-    //     {
-    //       name: `Lorem Ipsum ${i}`,
-    //       agent_tags: {cloud: `aws-${i}`},
-    //       state: ['new', 'online', 'offline', 'stale'][i % 4],
-    //       ts_lst_hb: `${+new Date()}`,
-    //     }
-    //   ));
-    // update matching agent table
-    // this.page = {
-    //   offset: 0,
-    //   limit: 10,
-    //   total: 10,
-    //   rows: this.matchingAgents,
-    // };
   }
 
   toggleExpandMatches() {
@@ -206,7 +202,10 @@ export class AgentGroupAddComponent implements OnInit {
     !!this.expanded && this.updateMatchingAgents();
   }
 
-  wrapPayload(validate: boolean) {
+  wrapPayload(validate
+                :
+                boolean
+  ) {
     const {name, description} = this.firstFormGroup.controls;
     const {tags: {value: tagsList}} = this.secondFormGroup.controls;
     const tagsObj = tagsList.reduce((prev, curr) => {

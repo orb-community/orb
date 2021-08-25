@@ -208,9 +208,19 @@
           </div>
           <div class="d-flex row" *ngIf="expanded">
             <div class="tag-table">
-              <ngx-table-component [config]="tableConfig"
-                                   [page]="page">
-              </ngx-table-component>
+              <ngx-datatable
+                  class="orb w-100"
+                  style="height: 500px"
+                  [loadingIndicator]="loading"
+                  [offset]="paginationControls.offset"
+                  [rows]="paginationControls.data"
+                  [scrollbarV]="true"
+                  [columns]="columns"
+                  [columnMode]="columnMode.flex"
+                  [headerHeight]="50"
+                  [footerHeight]="50"
+                  [rowHeight]="50">
+              </ngx-datatable>
             </div>
           </div>
           <div class="d-flex justify-content-start" style="padding-left: 35%;"
@@ -236,3 +246,30 @@
     </div>
   </div>
 </div>
+
+<ng-template #agentStateTemplateCell let-row="row" let-value="value" let-i="index">
+  <div>
+    <div *ngIf="row.status === 'active'">
+      <i class="fa fa-circle orb-service-active"
+         aria-hidden="true"></i>
+      {{ row.status | titlecase }}
+    </div>
+    <div *ngIf="row.status !== 'active'">
+      <i class="fa fa-circle orb-service-inactive"
+         aria-hidden="true"></i>
+      {{ row.status | titlecase }}
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
+  <div class="d-flex">
+    <mat-chip-list>
+      <mat-chip
+          class="orb-tag-sink "
+          *ngFor="let tag of value | keyvalue">
+        {{tag.key}}, {{tag.value}}
+      </mat-chip>
+    </mat-chip-list>
+  </div>
+</ng-template>
