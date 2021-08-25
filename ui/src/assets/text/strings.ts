@@ -63,6 +63,7 @@ export const STRINGS = {
       header: 'Delete Sink Confirmation',
       body: 'Are you sure you want to delete this sink? This may cause policies which use this sink to become invalid. This action cannot be undone.',
       warning: '*To confirm, type your sink label exactly as it appears',
+      delete: 'I Understand, Delete This Sink',
       close: 'Close',
     },
     // details modal
