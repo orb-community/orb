@@ -3,7 +3,6 @@ import {NbDialogService} from '@nebular/theme';
 
 import {
   DropdownFilterItem,
-  TableConfig,
 } from 'app/common/interfaces/mainflux.interface';
 import {NotificationsService} from 'app/common/services/notifications/notifications.service';
 import {SinksService} from 'app/common/services/sinks/sinks.service';
@@ -53,7 +52,7 @@ export class SinksComponent implements OnInit, AfterViewInit {
 
   @ViewChild('sinkStatusTemplateCell') sinkStatusTemplateCell: TemplateRef<any>;
   @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
-  @ViewChild('sinkTagsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+  @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
 
   constructor(
@@ -72,11 +71,6 @@ export class SinksComponent implements OnInit, AfterViewInit {
     this.sinkService.clean();
     this.getSinks();
   }
-
-  ableConfig: TableConfig = {
-    colNames: ['Name', 'Description', 'Type', 'Status', 'Tags', 'orb-sink-add'],
-    keys: ['name', 'description', 'backend', 'status', 'tags', 'orb-action-hover'],
-  };
 
   ngAfterViewInit() {
     this.columns = [
@@ -99,14 +93,14 @@ export class SinksComponent implements OnInit, AfterViewInit {
         name: 'Type',
         resizeable: false,
         minWidth: 100,
-        flexGrow: 2,
+        flexGrow: 1,
       },
       {
         prop: 'status',
         name: 'Status',
         resizeable: false,
         minWidth: 100,
-        flexGrow: 2,
+        flexGrow: 1,
         cellTemplate: this.sinkStatusTemplateCell,
       },
       {
@@ -119,7 +113,7 @@ export class SinksComponent implements OnInit, AfterViewInit {
       {
         name: '',
         prop: 'actions',
-        minWidth: 130,
+        minWidth: 150,
         resizeable: false,
         sortable: false,
         flexGrow: 1,
