@@ -76,16 +76,16 @@
   </div>
 </div>
 
-<ng-template #agentsTemplateCell let-row="row" let-value="value" let-i="index">
+<ng-template #agentGroupTemplateCell let-row="row" let-value="value" let-i="index">
   <strong> {{ value.length }} </strong>
 </ng-template>
 
-<ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
+<ng-template #agentGroupTagsTemplateCell let-row="row" let-value="value" let-i="index">
   <div class="d-flex">
     <mat-chip-list>
       <mat-chip
-        class="orb-tag-sink "
-        *ngFor="let tag of value | keyvalue">
+          class="orb-tag-sink "
+          *ngFor="let tag of value | keyvalue">
         {{tag.key}}, {{tag.value}}
       </mat-chip>
     </mat-chip-list>

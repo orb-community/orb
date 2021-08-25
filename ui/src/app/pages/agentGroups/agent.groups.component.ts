@@ -34,9 +34,9 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
 
   // templates
 
-  @ViewChild('agentsTemplateCell') agentsTemplateCell: TemplateRef<any>;
-  @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
-  @ViewChild('addAgentTemplateRef') addAgentTemplateRef: TemplateRef<any>;
+  @ViewChild('agentGroupTemplateCell') agentGroupsTemplateCell: TemplateRef<any>;
+  @ViewChild('agentGroupTagsTemplateCell') agentGroupTagsTemplateCell: TemplateRef<any>;
+  @ViewChild('addAgentGroupTemplateRef') addAgentGroupTemplateRef: TemplateRef<any>;
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
 
@@ -58,17 +58,17 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
-    private agentsService: AgentGroupsService,
+    private agentGroupsService: AgentGroupsService,
     private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
   ) {
-    this.agentsService.clean();
+    this.agentGroupsService.clean();
     this.paginationControls = AgentGroupsService.getDefaultPagination();
   }
 
   ngOnInit() {
-    this.agentsService.clean();
+    this.agentGroupsService.clean();
     this.getAgentGroups();
   }
 
@@ -94,14 +94,14 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
         resizeable: false,
         minWidth: 100,
         flexGrow: 1,
-        cellTemplate: this.agentsTemplateCell,
+        cellTemplate: this.agentGroupsTemplateCell,
       },
       {
         prop: 'tags',
         name: 'Tags',
         minWidth: 90,
         flexGrow: 3,
-        cellTemplate: this.agentTagsTemplateCell,
+        cellTemplate: this.agentGroupTagsTemplateCell,
       },
       {
         name: '',
@@ -130,7 +130,7 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
     }
 
     this.loading = true;
-    this.agentsService.getAgentGroups(pageInfo, isFilter).subscribe(
+    this.agentGroupsService.getAgentGroups(pageInfo, isFilter).subscribe(
       (resp: OrbPagination<AgentGroup>) => {
         this.paginationControls = resp;
         this.paginationControls.offset = pageInfo.offset;
@@ -166,7 +166,7 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.agentsService.deleteAgentGroup(row.id).subscribe(
+          this.agentGroupsService.deleteAgentGroup(row.id).subscribe(
             () => {
               // this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
               this.notificationsService.success('Agent Group Successfully Deleted', '');

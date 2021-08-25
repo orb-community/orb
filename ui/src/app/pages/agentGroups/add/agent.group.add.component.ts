@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -8,7 +8,10 @@ import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { DropdownFilterItem, PageFilters, TableConfig, TablePage } from 'app/common/interfaces/mainflux.interface';
+import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
+import { AgentsService } from 'app/common/services/agents/agents.service';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 
 
 @Component({
@@ -17,26 +20,46 @@ import { DropdownFilterItem, PageFilters, TableConfig, TablePage } from 'app/com
   styleUrls: ['./agent.group.add.component.scss'],
 })
 export class AgentGroupAddComponent implements OnInit {
-  // expandable table vars
-  tableConfig: TableConfig = {
-    colNames: ['Agent Name', 'Tags', 'Status', 'Last Activity'],
-    keys: ['name', 'agent_tags', 'state', 'ts_lst_hb'],
-  };
+  // page vars
+  strings = {...STRINGS.agents, stepper: STRINGS.stepper};
 
-  page: TablePage = {
-    limit: 10,
-  };
+  isEdit: boolean;
 
-  pageFilters: PageFilters = {
-    offset: 0,
-    order: 'id',
-    dir: 'desc',
-    name: '',
-  };
+  // // expandable table vars
+  // tableConfig: TableConfig = {
+  //   colNames: ['Agent Name', 'Tags', 'Status', 'Last Activity'],
+  //   keys: ['name', 'agent_tags', 'state', 'ts_lst_hb'],
+  // };
+  columnMode = ColumnMode;
+  columns: TableColumn[];
 
-  tableFilters: DropdownFilterItem[];
+  loading = false;
 
-  searchFreq = 0;
+  paginationControls: OrbPagination<Agent>;
+
+  searchPlaceholder = 'Search by name';
+  filterSelectedIndex = '0';
+
+  // templates
+  @ViewChild('agentsTemplateCell') agentsTemplateCell: TemplateRef<any>;
+  @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
+  @ViewChild('addAgentTemplateRef') addAgentTemplateRef: TemplateRef<any>;
+  @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+
+  tableFilters: DropdownFilterItem[] = [
+    {
+      id: '0',
+      label: 'Name',
+      prop: 'name',
+      selected: false,
+    },
+    {
+      id: '1',
+      label: 'Tags',
+      prop: 'tags',
+      selected: false,
+    },
+  ];
 
   expanded: boolean;
 
@@ -53,21 +76,15 @@ export class AgentGroupAddComponent implements OnInit {
 
   tagMatch: TagMatch = {};
 
-  // page vars
-  strings = {...STRINGS.agents, stepper: STRINGS.stepper};
-
-  isEdit: boolean;
-
-  isEditable = false;
-
   constructor(
     private agentGroupsService: AgentGroupsService,
-    private agentsService: AgentGroupsService,
+    private agentsService: AgentsService,
     private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
+    this.agentsService.clean();
     this.agentGroup = this.router.getCurrentNavigation().extras.state?.agentGroup as AgentGroup || null;
   }
 
@@ -90,6 +107,8 @@ export class AgentGroupAddComponent implements OnInit {
 
     this.tagMatch.total = this.tagMatch.online = 0;
     this.expanded = false;
+
+    this.agentGroupsService.clean();
   }
 
   goBack() {
@@ -142,26 +161,44 @@ export class AgentGroupAddComponent implements OnInit {
     });
   }
 
-  updateMatchingAgents() {
+  updateMatchingAgents(pageInfo: NgxDatabalePageInfo = null) {
+    const isFilter = pageInfo === null;
+    if (isFilter) {
+      pageInfo = {
+        offset: this.paginationControls.offset,
+        limit: this.paginationControls.limit,
+      };
+      if (this.paginationControls.name?.length > 0) pageInfo.name = this.paginationControls.name;
+      if (this.paginationControls.tags?.length > 0) pageInfo.tags = this.paginationControls.tags;
+    }
+
+    this.loading = true;
+    this.agentsService.getAgents(pageInfo, isFilter).subscribe(
+      (resp: OrbPagination<Agent>) => {
+        this.paginationControls = resp;
+        this.paginationControls.offset = pageInfo.offset;
+        this.loading = false;
+      },
+    );
     // update list of agents
-    // this.agentsService.
-    this.matchingAgents = new Array(10)
-      .fill(null)
-      .map((_, i) => (
-        {
-          name: `Lorem Ipsum ${i}`,
-          agent_tags: {cloud: `aws-${i}`},
-          state: ['new', 'online', 'offline', 'stale'][i % 4],
-          ts_lst_hb: `${+new Date()}`,
-        }
-      ));
+    // this.agentsService.getAgents();
+    // this.matchingAgents = new Array(10)
+    //   .fill(null)
+    //   .map((_, i) => (
+    //     {
+    //       name: `Lorem Ipsum ${i}`,
+    //       agent_tags: {cloud: `aws-${i}`},
+    //       state: ['new', 'online', 'offline', 'stale'][i % 4],
+    //       ts_lst_hb: `${+new Date()}`,
+    //     }
+    //   ));
     // update matching agent table
-    this.page = {
-      offset: 0,
-      limit: 10,
-      total: 10,
-      rows: this.matchingAgents,
-    };
+    // this.page = {
+    //   offset: 0,
+    //   limit: 10,
+    //   total: 10,
+    //   rows: this.matchingAgents,
+    // };
   }
 
   toggleExpandMatches() {
