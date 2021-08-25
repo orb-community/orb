@@ -71,6 +71,19 @@ export class SinksService {
       );
   }
 
+  getSinkBackends() {
+    return this.http.get(environment.sinkBackends)
+      .map((resp: any) => {
+        return resp.backends;
+      }).catch(
+        err => {
+          this.notificationsService.error('Failed to get Sink Backends',
+            `Error: ${err.status} - ${err.statusText}`);
+          return Observable.throwError(err);
+        },
+      );
+  }
+
   getSinks(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     const offset = pageInfo.offset || this.cache.offset;
     let params = new HttpParams()

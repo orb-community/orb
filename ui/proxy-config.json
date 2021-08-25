@@ -68,6 +68,10 @@
     "target": "http://localhost:80/api/v1",
     "secure": false
   },
+  "/features/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
   "/sinks/*": {
     "target": "http://localhost:80/api/v1",
     "secure": false

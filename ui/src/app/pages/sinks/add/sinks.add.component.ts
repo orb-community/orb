@@ -1,20 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import {Component} from '@angular/core';
 
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
-import { STRINGS } from 'assets/text/strings';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
-import { SINK_BACKEND_SETTINGS, SINK_BACKEND_TYPES } from 'app/common/services/sinks/sink.settings';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import {SinksService} from 'app/common/services/sinks/sinks.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Sink} from 'app/common/interfaces/orb/sink.interface';
+import {STRINGS} from 'assets/text/strings';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {SinkConfig} from 'app/common/interfaces/orb/sink.config/sink.config.interface';
 
 @Component({
   selector: 'ngx-sinks-add-component',
   templateUrl: './sinks.add.component.html',
   styleUrls: ['./sinks.add.component.scss'],
 })
-export class SinksAddComponent implements OnInit {
+export class SinksAddComponent {
   strings = STRINGS;
 
   // stepper vars
@@ -28,10 +27,10 @@ export class SinksAddComponent implements OnInit {
 
   sink: Sink;
 
-  sinkTypesList = Object.values(SINK_BACKEND_TYPES);
+  sinkTypesList = [];
 
   isEdit: boolean;
-
+  isLoading = false;
   constructor(
     private sinksService: SinksService,
     private notificationsService: NotificationsService,
@@ -41,39 +40,41 @@ export class SinksAddComponent implements OnInit {
   ) {
     this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
-    /**
-     * TODO map interface to settings obj and fields OR get it from service-Backend
-     * THIS IS JUST AN EXAMPLE OF HOW TO MAP WHAT COMES FROM THE BE TO SOMETHING THAT MAKES MORE
-     * SENSE IN THE FRONTEND.
-     */
-    this.customSinkSettings = Object.keys(SINK_BACKEND_SETTINGS).reduce((accumulator, curr) => {
-      accumulator[curr] = SINK_BACKEND_SETTINGS[curr].map(entry => ({
-        type: entry.type,
-        label: entry.title,
-        prop: entry.name,
-        input: entry.input,
-        required: entry.required,
-      }));
-      return accumulator;
-    }, {});
+    this.getSinkBackends();
   }
 
-  ngOnInit() {
-    const {name, description, backend} = !!this.sink ? this.sink : {
-      name: '',
-      description: '',
-      backend: 'prometheus', // default sink
-    } as SinkConfig<string>;
-    this.firstFormGroup = this._formBuilder.group({
-      name: [name, Validators.required],
-      description: [description],
-      backend: [backend, Validators.required],
+  getSinkBackends() {
+    this.isLoading = true;
+    this.sinksService.getSinkBackends().subscribe(backends => {
+      this.sinkTypesList = backends.map(entry => entry.backend);
+      this.customSinkSettings = this.sinkTypesList.reduce((accumulator, curr) => {
+        const index = backends.findIndex(entry => entry.backend === curr);
+        accumulator[curr] = backends[index].config.map(entry => ({
+          type: entry.type,
+          label: entry.title,
+          prop: entry.name,
+          input: entry.input,
+          required: entry.required,
+        }));
+        return accumulator;
+      }, {});
+      const {name, description, backend} = !!this.sink ? this.sink : {
+        name: '',
+        description: '',
+        backend: 'prometheus', // default sink
+      } as SinkConfig<string>;
+      this.firstFormGroup = this._formBuilder.group({
+        name: [name, Validators.required],
+        description: [description],
+        backend: [backend, Validators.required],
+      });
+
+      this.isEdit && this.firstFormGroup.controls.backend.disable();
+
+      // builds secondFormGroup
+      this.onSinkTypeSelected(backend);
+      this.isLoading = false;
     });
-
-    this.isEdit && this.firstFormGroup.controls.backend.disable();
-
-    // builds secondFormGroup
-    this.onSinkTypeSelected(backend);
   }
 
   goBack() {

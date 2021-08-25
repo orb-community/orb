@@ -8,6 +8,7 @@ const ORB = {
   },
   servicesUrls: {
     sinksUrl: '/sinks',
+    sinkBackends: '/features/sinks',
     agentsUrl: '/agents',
     validateAgentsUrl: '/agents/validate',
     agentGroupsUrl: '/agent_groups',

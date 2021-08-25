@@ -8,7 +8,7 @@
     </xng-breadcrumb>
     <h4>{{strings.sink[isEdit ? 'edit' : 'add']['header']}}</h4>
   </header>
-  <div class="d-flex row">
+  <div class="d-flex row" *ngIf="!isLoading">
     <div class="d-flex col-12 mt-5">
       <nb-stepper orientation="vertical"
                   class="stepper w-100 ml-5"
@@ -73,7 +73,7 @@
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="!firstFormGroup.valid" nbStepperNext>Next</button>
+                      [disabled]="!firstFormGroup?.valid" nbStepperNext>Next</button>
             </div>
           </form>
         </nb-step>
@@ -119,7 +119,7 @@
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="!secondFormGroup.valid" nbStepperNext>Next</button>
+                      [disabled]="!secondFormGroup?.valid" nbStepperNext>Next</button>
             </div>
           </form>
         </nb-step>
@@ -133,19 +133,19 @@
             <div class="col-md-12 col-xl-6">
                 <div>
                   <label class="font-weight-bold">Name Label</label>
-                  <p>{{firstFormGroup.controls.name.value}}</p>
+                  <p>{{firstFormGroup?.controls.name.value}}</p>
                 </div>
             </div>
             <div class="col-md-12 col-xl-6">
                 <div>
                   <label class="font-weight-bold">Description</label>
-                  <p>{{firstFormGroup.controls.description.value}}</p>
+                  <p>{{firstFormGroup?.controls.description.value}}</p>
                 </div>
             </div>
             <div class="col-md-12 col-xl-6">
                 <div>
                   <label class="font-weight-bold">Sink Type</label>
-                  <p>{{firstFormGroup.controls.backend.value}}</p>
+                  <p>{{firstFormGroup?.controls.backend.value}}</p>
                 </div>
             </div>
           </div>
