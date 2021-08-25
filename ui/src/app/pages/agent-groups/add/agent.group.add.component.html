@@ -24,8 +24,7 @@
                   <label class="font-weight-bold">{{strings.propNames.name}}</label>
                   <span class="required">*</span>
                 </div>
-                <input class="stepper-input"
-                       nbInput
+                <input nbInput
                        autofocus
                        fullWidth="true"
                        fieldSize="medium"
@@ -36,13 +35,12 @@
               <div>
                 <label class="font-weight-bold">{{strings.propNames.description}}</label>
               </div>
-              <input class="stepper-input"
-                     nbInput
+              <input nbInput
                      fullWidth="true"
                      fieldSize="medium"
                      formControlName="description"/>
             </nb-form-field>
-            <div class="d-flex justify-content-start" style="padding-left: 35%;">
+            <div class="d-flex justify-content-end">
               <button
                   nbButton
                   ghost
@@ -85,7 +83,7 @@
               </mat-chip-list>
             </div>
             <nb-form-field>
-              <div class="container d-flex row px-0 mx-0" style="width:50%;">
+              <div class="container d-flex row px-0 mx-0">
                 <div class="d-flex flex-column col-5 px-0 mx-0">
                   <div>
                     <label class="font-weight-bold">{{strings.propNames.key}}</label>
@@ -133,7 +131,7 @@
             </nb-form-field>
             <hr/>
 
-            <div class="d-flex justify-content-start" style="padding-left: 35%;"
+            <div class="d-flex justify-content-end"
                  *ngIf="secondFormGroup">
               <button
                   nbButton
@@ -221,7 +219,7 @@
               </ngx-datatable>
             </div>
           </div>
-          <div class="d-flex justify-content-start" style="padding-left: 35%;"
+          <div class="d-flex justify-content-end"
                *ngIf="secondFormGroup">
             <button
                 nbButton
