@@ -71,16 +71,23 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   ) {
     this.agentsService.clean();
     this.agentGroup = this.router.getCurrentNavigation().extras.state?.agentGroup as AgentGroup || null;
+    this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
   }
 
   ngOnInit() {
+    const {name, description, tags} = !!this.agentGroup ? this.agentGroup : {
+      name: '',
+      description: '',
+      tags: {},
+    } as AgentGroup;
     this.firstFormGroup = this._formBuilder.group({
-      name: ['', Validators.required],
-      description: [''],
+      name: [name, Validators.required],
+      description: [description],
     });
 
     this.secondFormGroup = this._formBuilder.group({
-      tags: [[], Validators.minLength(1)],
+      tags: [Object.keys(tags).map(key => ({[key]: tags[key]})),
+        Validators.minLength(1)],
       key: [''],
       value: [''],
     });

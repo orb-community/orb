@@ -149,7 +149,7 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
     this.router.navigate(['../agents/edit'], {
       relativeTo: this.route,
       queryParams: {id: row.id},
-      state: {agentGroup: row},
+      state: {agentGroup: row, edit: true},
     });
   }
 
