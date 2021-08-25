@@ -36,36 +36,38 @@
               </div>
             </nb-form-field>
             <nb-form-field>
-                <div>
-                  <label class="font-weight-bold">Sink Description</label>
-                </div>
+              <div>
+                <label class="font-weight-bold">Sink Description</label>
+              </div>
               <input nbInput
                      fullWidth="true"
                      fieldSize="medium"
                      formControlName="description"/>
             </nb-form-field>
             <nb-form-field>
-                <div>
-                  <label class="font-weight-bold">Sink Type</label>
-                  <span class="required">*</span>
-                </div>
-               <nb-select size="medium"
-                          (selectedChange)="onSinkTypeSelected($event)"
-                          fullWidth="true"
-                          formControlName="backend"
-                          appearance="filled"
-                          placeholder="Select backend type">
+              <div>
+                <label class="font-weight-bold">Sink Type</label>
+                <span class="required">*</span>
+              </div>
+              <nb-select size="medium"
+                         (selectedChange)="onSinkTypeSelected($event)"
+                         fullWidth="true"
+                         formControlName="backend"
+                         appearance="filled"
+                         placeholder="Select backend type"
+              >
                 <nb-option *ngFor="let type of sinkTypesList"
-                           [value]="type">{{ type }}</nb-option>
+                           [value]="type">{{ type | titlecase }}</nb-option>
               </nb-select>
             </nb-form-field>
             <div class="d-flex justify-content-end">
               <button
-                nbButton
-                ghost
-                (click)="goBack()"
-                type="button"
-                status="primary">Cancel</button>
+                  nbButton
+                  ghost
+                  (click)="goBack()"
+                  type="button"
+                  status="primary">Cancel
+              </button>
               <button class="next-button"
                       nbButton
                       shape="round"

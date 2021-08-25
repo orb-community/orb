@@ -17,21 +17,6 @@ import { STRINGS } from 'assets/text/strings';
 
 const defFreq: number = 100;
 
-/**
- * Available sink statuses
- */
-export enum sinkStatus {
-  active = 'active',
-  error = 'error',
-}
-
-export enum sinkTypesList {
-  prometheus = 'prometheus',
-  // aws = 'aws',
-  // s3 = 's3',
-  // azure = 'azure',
-}
-
 @Component({
   selector: 'ngx-sinks-component',
   templateUrl: './sinks.component.html',
@@ -42,7 +27,7 @@ export class SinksComponent implements OnInit {
 
   tableConfig: TableConfig = {
     colNames: ['Name', 'Description', 'Type', 'Status', 'Tags', 'orb-sink-add'],
-    keys: ['name', 'description', 'type', 'status', 'tags', 'orb-action-hover'],
+    keys: ['name', 'description', 'backend', 'status', 'tags', 'orb-action-hover'],
   };
 
   page: TablePage = {
@@ -112,6 +97,7 @@ export class SinksComponent implements OnInit {
   onOpenAdd() {
     this.router.navigate(['../sinks/add'], {
       relativeTo: this.route,
+      state: {edit: false},
     });
   }
 
@@ -119,7 +105,7 @@ export class SinksComponent implements OnInit {
     this.router.navigate(['../sinks/edit'], {
       relativeTo: this.route,
       queryParams: {id: row.id},
-      state: {sink: row},
+      state: {sink: row, edit: true},
     });
   }
 
@@ -144,10 +130,8 @@ export class SinksComponent implements OnInit {
   }
 
   openDetailsModal(row: any) {
-    const {name, description, backend, config, ts_created, id} = row;
-
     this.dialogService.open(SinksDetailsComponent, {
-      context: {sink: {id, name, description, backend, config, ts_created}},
+      context: {sink: row},
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(

@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
-import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { STRINGS } from 'assets/text/strings';
 
 @Component({
@@ -21,16 +20,15 @@ export class SinksDeleteComponent {
 
   constructor(
     protected dialogRef: NbDialogRef<SinksDeleteComponent>,
-    protected sinkService: SinksService,
   ) {
   }
 
   onDelete() {
-    this.sinkService.deleteSink(this.sink.id);
+    this.dialogRef.close(true);
   }
 
   onClose() {
-    this.dialogRef.close(true);
+    this.dialogRef.close(false);
   }
 
   isEnabled(): boolean {
