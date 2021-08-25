@@ -56,7 +56,7 @@
                           appearance="filled"
                           placeholder="Select backend type">
                 <nb-option *ngFor="let type of sinkTypesList"
-                           [value]="type">{{ type }}</nb-option>
+                           [value]="type">{{ type | titlecase }}</nb-option>
               </nb-select>
             </nb-form-field>
             <div class="d-flex justify-content-end">
