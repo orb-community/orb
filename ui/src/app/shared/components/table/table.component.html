@@ -58,7 +58,7 @@
         </div>
         <div class="orb-action-hover-container orb-table-actions"
              *ngSwitchCase="'orb-action-hover'">
-          <div *ngIf="row['isHover']">
+          <div>
             <button nbButton
                     class="orb-action-hover detail-button"
                     (click)="onDetails(row)">
