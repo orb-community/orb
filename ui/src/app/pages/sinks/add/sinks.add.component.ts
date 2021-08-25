@@ -124,7 +124,9 @@ export class SinksAddComponent {
 
     const dynamicFormControls = this.selectedSinkSetting.reduce((accumulator, curr) => {
       accumulator[curr.prop] = [
-        !!conf && (curr.prop in conf) && curr.prop || '',
+        !!conf && (curr.prop in conf) && curr.prop ||
+        (!!this.sink && this.sink?.config && (curr.prop in this.sink.config) && this.sink.config[curr.prop]) ||
+        '',
         curr.required ? Validators.required : null,
       ];
       return accumulator;
