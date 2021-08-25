@@ -153,8 +153,8 @@ export class AgentGroupAddComponent implements OnInit {
     // just validate and get matches summary
     this.agentGroupsService.validateAgentGroup(payload).subscribe((resp: any) => {
       this.tagMatch = {
-        total: resp.matchingAgents.total,
-        online: resp.matchingAgents.online,
+        total: resp.body.matching_agents.total,
+        online: resp.body.matching_agents.online,
       };
 
       this.notificationsService.success(this.strings.match.updated, '');
