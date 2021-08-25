@@ -8,7 +8,7 @@
         appearance="outline"
         class="orb-sink-filter-dropdown d-flex justify-content-end"
         placeholder="Filter">
-      <nb-option *ngFor="let conf of tableFilters">{{ conf.name }}</nb-option>
+      <nb-option *ngFor="let conf of tableFilters">{{ conf.label | titlecase }}</nb-option>
     </nb-select>
     <div class="justify-content-start sink-summary">
       <p *ngIf=" page.rows && page.rows.length> 0"

@@ -55,7 +55,7 @@ export class SinksAddComponent implements OnInit {
   sinkForm = {
     name: '',
     description: '',
-    backend: sinkTypesList.prometheus,
+    backend: '',
     config: {
       host_name: '',
       username: '',

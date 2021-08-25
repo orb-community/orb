@@ -42,7 +42,7 @@ export class SinksComponent implements OnInit {
 
   tableConfig: TableConfig = {
     colNames: ['Name', 'Description', 'Type', 'Status', 'Tags', 'orb-sink-add'],
-    keys: ['name', 'description', 'type', 'status', 'tags', 'orb-action-hover'],
+    keys: ['name', 'description', 'backend', 'status', 'tags', 'orb-action-hover'],
   };
 
   page: TablePage = {

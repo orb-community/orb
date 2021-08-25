@@ -32,6 +32,9 @@
         <div *ngSwitchCase="'time'">
           {{ row[key] | toMillisecs | date:'medium' }}
         </div>
+        <div *ngSwitchCase="'backend'">
+          {{ row[key] | titlecase }}
+        </div>
         <div *ngSwitchCase="'status'">
           <div *ngIf="row[key] === 'active'">
             <i class="fa fa-circle orb-service-active"
