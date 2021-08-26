@@ -2,7 +2,6 @@ import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewC
 import { NbDialogService } from '@nebular/theme';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -57,7 +56,6 @@ export class SinksComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
     private sinkService: SinksService,
-    private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
   ) {

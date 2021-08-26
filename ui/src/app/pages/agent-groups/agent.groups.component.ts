@@ -2,7 +2,6 @@ import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewC
 import { NbDialogService } from '@nebular/theme';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { AgentGroupDeleteComponent } from 'app/pages/agent-groups/delete/agent.group.delete.component';
@@ -59,7 +58,6 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
     private agentGroupsService: AgentGroupsService,
-    private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
   ) {
