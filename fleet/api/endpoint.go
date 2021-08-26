@@ -185,6 +185,7 @@ func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			Name:          saved.Name.String(),
 			ID:            saved.MFThingID,
 			State:         saved.State.String(),
+			Key:           saved.MFKeyID,
 			OrbTags:       saved.OrbTags,
 			AgentTags:     saved.AgentTags,
 			AgentMetadata: saved.AgentMetadata,
@@ -364,8 +365,8 @@ func validateAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		res := validateAgentRes{
-			Name:      validated.Name.String(),
-			OrbTags:   validated.OrbTags,
+			Name:    validated.Name.String(),
+			OrbTags: validated.OrbTags,
 		}
 		return res, nil
 	}

@@ -62,6 +62,7 @@ type agentRes struct {
 	ID            string         `json:"id"`
 	Name          string         `json:"name"`
 	State         string         `json:"state"`
+	Key           string         `json:"key,omitempty"`
 	ChannelID     string         `json:"channel_id,omitempty"`
 	AgentTags     types.Tags     `json:"agent_tags"`
 	OrbTags       types.Tags     `json:"orb_tags"`
