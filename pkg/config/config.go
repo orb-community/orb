@@ -180,23 +180,3 @@ func LoadGRPCConfig(prefix string, svc string) GRPCConfig {
 	cfg.Unmarshal(&aC)
 	return aC
 }
-
-func LoadGRPCConfig2(prefix string, svc string) GRPCConfig {
-	cfg := viper.New()
-	cfg.SetEnvPrefix(fmt.Sprintf("%s_%s_grpc", prefix, svc))
-
-	cfg.SetDefault("url", "localhost:8181")
-	cfg.SetDefault("port", "")
-	cfg.SetDefault("timeout", "1s")
-	cfg.SetDefault("client_tls", "false")
-	cfg.SetDefault("ca_certs", "")
-	cfg.SetDefault("server_cert", "")
-	cfg.SetDefault("server_key", "")
-
-	cfg.AllowEmptyEnv(true)
-	cfg.AutomaticEnv()
-	var aC GRPCConfig
-	aC.Service = svc
-	cfg.Unmarshal(&aC)
-	return aC
-}
