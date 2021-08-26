@@ -19,6 +19,16 @@
       </div>
     </div>
     <div class="row">
+      <div class="col-6 align-items-start d-flex flex-column">
+        <p class="detail-title">{{strings.propNames.ts_created}}</p>
+        <p>{{ agentGroup.ts_created }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.matches}}</p>
+        <p>{{ agentGroup.matching_agents.total }} {{strings.match.agents}}</p>
+      </div>
+    </div>
+    <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.tags}}<span class="ns1red">*</span></p>
         <div>
