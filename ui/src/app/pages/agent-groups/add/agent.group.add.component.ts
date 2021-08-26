@@ -50,8 +50,6 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   firstFormGroup: FormGroup;
 
   secondFormGroup: FormGroup;
-
-  addForm: FormGroup;
   // agent vars
   agentGroup: AgentGroup;
 
@@ -93,14 +91,9 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
 
     this.secondFormGroup = this._formBuilder.group({
       tags: [Object.keys(tags).map(key => ({[key]: tags[key]})) || [],
-        Validators.minLength(1), Validators.required],
+        Validators.minLength(1)],
       key: [''],
       value: [''],
-    });
-
-    this.addForm = this._formBuilder.group({
-      firstFormGroup: this.firstFormGroup,
-      secondFormGroup: this.secondFormGroup,
     });
 
     this.tagMatch.total = this.tagMatch.online = 0;
@@ -127,7 +120,11 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   }
 
   goBack() {
-    this.router.navigate(['../../../agent-groups'], {relativeTo: this.route});
+    if (this.isEdit) {
+      this.router.navigate(['../../../agent-groups'], {relativeTo: this.route});
+    } else {
+      this.router.navigate(['../../agent-groups'], {relativeTo: this.route});
+    }
   }
 
   ngAfterViewInit() {

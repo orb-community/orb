@@ -80,12 +80,12 @@
 <ng-template #sinkStatusTemplateCell let-row="row" let-value="value" let-i="index">
   <div>
     <div *ngIf="row.status === 'active'">
-      <i class="fa fa-circle orb-service-active"
+      <i class="fa fa-circle orb-service-active" style="color: #61f69f;"
          aria-hidden="true"></i>
       {{ row.status | titlecase }}
     </div>
     <div *ngIf="row.status !== 'active'">
-      <i class="fa fa-circle orb-service-inactive"
+      <i class="fa fa-circle orb-service-inactive" style="color: #f2994a;"
          aria-hidden="true"></i>
       {{ row.status | titlecase }}
     </div>

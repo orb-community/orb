@@ -87,7 +87,7 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
         flexGrow: 2,
       },
       {
-        prop: 'matching_agents.total',
+        prop: 'matching_agents["total"]',
         name: 'Agents',
         resizeable: false,
         minWidth: 100,

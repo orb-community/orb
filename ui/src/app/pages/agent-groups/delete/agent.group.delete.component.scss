@@ -34,11 +34,14 @@ nb-card-footer {
     }
   }
 
-  .orb-sink-delete-warning-button {
-    color: #df316f;
+  button.orb-sink-delete-warning-button {
+    .status-basic :enabled {
+      background-color: #df316f !important;
 
-    .content {
-      color: #df316f;
+      .content {
+        color: #ffffff !important;
+      }
+
     }
   }
 

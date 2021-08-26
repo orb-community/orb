@@ -98,7 +98,11 @@ export class SinkAddComponent {
   }
 
   goBack() {
-    this.router.navigate(['../../../sinks'], {relativeTo: this.route});
+    if (this.isEdit) {
+      this.router.navigate(['../../../sinks'], {relativeTo: this.route});
+    } else {
+      this.router.navigate(['../../sinks'], {relativeTo: this.route});
+    }
   }
 
   onFormSubmit() {
