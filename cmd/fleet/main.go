@@ -65,7 +65,7 @@ func main() {
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
-	fleetGRPCCfg := config.LoadGRPCConfig("orb", svcName)
+	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
 
 	// main logger
 	var logger *zap.Logger

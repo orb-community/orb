@@ -58,7 +58,10 @@ func main() {
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
+	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
+
+	fmt.Sprintf(fleetGRPCCfg.Port)
 
 	// todo sinks gRPC
 	// todo fleet mgr gRPC
