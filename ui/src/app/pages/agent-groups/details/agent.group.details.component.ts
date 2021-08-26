@@ -22,12 +22,11 @@ export class AgentGroupDetailsComponent {
   }
 
 
-  onOpenEdit(row: any) {
-    this.router.navigate(['../agent-group/edit'], {
-      relativeTo: this.route,
-      queryParams: {id: row.id},
-      state: {agentGroup: row},
-    });
+  onOpenEdit(agentGroup: any) {
+    this.router.navigate(
+      [`../agent-group/edit/${agentGroup.id}`],
+      {relativeTo: this.route},
+    );
   }
 
   onClose() {

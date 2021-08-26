@@ -143,11 +143,10 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onOpenEdit(row: any) {
-    this.router.navigate(['../agent-group/edit'], {
+  onOpenEdit(agentGroup: any) {
+    this.router.navigate([`../agent-group/edit/${agentGroup.id}`], {
+      state: {agentGroup: agentGroup, edit: true},
       relativeTo: this.route,
-      queryParams: {id: row.id},
-      state: {agentGroup: row, edit: true},
     });
   }
 
@@ -156,7 +155,7 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
   }
 
   openDeleteModal(row: any) {
-    const {name} = row;
+    const {name, id} = row;
     this.dialogService.open(AgentGroupDeleteComponent, {
       context: {name},
       autoFocus: true,
@@ -164,7 +163,7 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.agentGroupsService.deleteAgentGroup(row.id).subscribe(() => this.getAgentGroups());
+          this.agentGroupsService.deleteAgentGroup(id).subscribe(() => this.getAgentGroups());
         }
       },
     );

@@ -48,7 +48,7 @@ const children = [
     data: {breadcrumb: 'New'},
   },
   {
-    path: 'agent-group/edit',
+    path: 'agent-group/edit/:id',
     component: AgentGroupAddComponent,
     data: {breadcrumb: 'Edit'},
   },
@@ -71,7 +71,7 @@ const children = [
     data: {breadcrumb: 'New'},
   },
   {
-    path: 'sink/edit',
+    path: 'sink/edit/:id',
     component: SinkAddComponent,
     data: {breadcrumb: 'Edit'},
   },

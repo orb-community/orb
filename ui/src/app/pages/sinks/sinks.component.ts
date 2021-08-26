@@ -144,18 +144,20 @@ export class SinksComponent implements OnInit, AfterViewInit {
   }
 
   onOpenAdd() {
-    this.router.navigate(['../sink/add'], {
-      relativeTo: this.route,
-      state: {edit: false},
-    });
+    this.router.navigate(
+      ['../sink/add'],
+      {relativeTo: this.route},
+    );
   }
 
-  onOpenEdit(row: any) {
-    this.router.navigate(['../sink/edit'], {
-      relativeTo: this.route,
-      queryParams: {id: row.id},
-      state: {sink: row, edit: true},
-    });
+  onOpenEdit(sink: any) {
+    this.router.navigate(
+      [`../sink/edit/${sink.id}`],
+      {
+        relativeTo: this.route,
+        state: {sink: sink, edit: true},
+      },
+    );
   }
 
   onFilterSelected(selectedIndex) {
@@ -163,15 +165,15 @@ export class SinksComponent implements OnInit, AfterViewInit {
   }
 
   openDeleteModal(row: any) {
-    const {name, id} = row;
+    const {id} = row;
     this.dialogService.open(SinkDeleteComponent, {
-      context: {sink: {name, id}},
+      context: {sink: row},
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.sinkService.deleteSink(row.id).subscribe(() => this.getSinks());
+          this.sinkService.deleteSink(id).subscribe(() => this.getSinks());
         }
       },
     );

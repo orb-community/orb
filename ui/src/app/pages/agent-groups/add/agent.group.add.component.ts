@@ -1,6 +1,4 @@
 import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -61,10 +59,11 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
 
   tagMatch: TagMatch = {};
 
+  isLoading = false;
+
   constructor(
     private agentGroupsService: AgentGroupsService,
     private agentsService: AgentsService,
-    private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
@@ -72,6 +71,13 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     this.agentsService.clean();
     this.agentGroup = this.router.getCurrentNavigation().extras.state?.agentGroup as AgentGroup || null;
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
+    const id = this.route.snapshot.paramMap.get('id');
+    !!id && this.agentGroupsService.getAgentGroupById(id).subscribe(resp => {
+      this.agentGroup = resp.agentGroup;
+      this.isLoading = false;
+    });
+    this.isEdit = !!id;
+    this.isLoading = this.isEdit;
   }
 
   ngOnInit() {
@@ -86,8 +92,8 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     });
 
     this.secondFormGroup = this._formBuilder.group({
-      tags: [Object.keys(tags).map(key => ({[key]: tags[key]})),
-        Validators.minLength(1)],
+      tags: [Object.keys(tags).map(key => ({[key]: tags[key]})) || [],
+        Validators.minLength(1), Validators.required],
       key: [''],
       value: [''],
     });
@@ -103,8 +109,25 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     this.agentGroupsService.clean();
   }
 
+  resetFormValues() {
+    const {name, description, tags} = !!this.agentGroup ? this.agentGroup : {
+      name: '',
+      description: '',
+      tags: {},
+    } as AgentGroup;
+
+    this.firstFormGroup.setValue({name: name, description: description});
+
+    this.secondFormGroup.controls.tags.setValue(
+      Object.keys(tags).map(key => ({[key]: tags[key]})));
+
+    this.updateTagMatches();
+
+    this.agentGroupsService.clean();
+  }
+
   goBack() {
-    this.router.navigate(['../../agent-groups'], {relativeTo: this.route});
+    this.router.navigate(['../../../agent-groups'], {relativeTo: this.route});
   }
 
   ngAfterViewInit() {
@@ -221,10 +244,11 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
 
     // // remove line bellow
     // console.log(payload)
-    this.agentGroupsService.addAgentGroup(payload).subscribe(() => {
-      this.notificationsService.success(this.strings.add.success, '');
-      this.goBack();
-    });
+    if (this.isEdit) {
+      this.agentGroupsService.editAgentGroup(this.agentGroup).subscribe(resp => this.goBack());
+    } else {
+      this.agentGroupsService.addAgentGroup(payload).subscribe(() => this.goBack());
+    }
   }
 
 }

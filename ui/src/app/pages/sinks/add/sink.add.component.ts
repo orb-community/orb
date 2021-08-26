@@ -33,6 +33,7 @@ export class SinkAddComponent {
 
   isEdit: boolean;
   isLoading = false;
+  sinkLoading = false;
   constructor(
     private sinksService: SinksService,
     private notificationsService: NotificationsService,
@@ -42,9 +43,15 @@ export class SinkAddComponent {
   ) {
     this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
-    // const id = this.route.snapshot.paramMap.get('id');
-    // sinksService.getSinkById(id).subscribe(resp => (this.sink = resp.sink));
-    this.getSinkBackends();
+    const id = this.route.snapshot.paramMap.get('id');
+    !!id && sinksService.getSinkById(id).subscribe(resp => {
+      this.sink = resp;
+      this.sinkLoading = false;
+      this.getSinkBackends();
+    });
+    this.isEdit = !!id;
+    this.sinkLoading = this.isEdit;
+    !this.sinkLoading && this.getSinkBackends();
   }
 
   getSinkBackends() {
@@ -91,7 +98,7 @@ export class SinkAddComponent {
   }
 
   goBack() {
-    this.router.navigate(['../../sinks'], {relativeTo: this.route});
+    this.router.navigate(['../../../sinks'], {relativeTo: this.route});
   }
 
   onFormSubmit() {
@@ -115,7 +122,7 @@ export class SinkAddComponent {
     // console.log(payload);
     if (this.isEdit) {
       // updating existing sink
-      this.sinksService.editSink(payload).subscribe(resp => {
+      this.sinksService.editSink({...payload, id: this.sink.id}).subscribe(resp => {
         this.notificationsService.success('Sink successfully created', '');
         this.goBack();
       });
