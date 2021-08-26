@@ -9,24 +9,36 @@
 package http_test
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/gofrs/uuid"
 	"github.com/mainflux/mainflux"
-	"github.com/mainflux/mainflux/things"
-	thingsapi "github.com/mainflux/mainflux/things/api/things/http"
-	"github.com/ns1labs/orb/fleet"
 	flmocks "github.com/ns1labs/orb/fleet/mocks"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies"
 	api "github.com/ns1labs/orb/policies/api/http"
+	plmocks "github.com/ns1labs/orb/policies/mocks"
 	"github.com/opentracing/opentracing-go/mocktracer"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
+	"testing"
 )
 
 const (
+	token       = "token"
 	email       = "user@example.com"
-	channelsNum = 3
+	format      = "yaml"
+	policy_data = `version: "1.0"
+visor:
+  taps:
+    anycast:
+      type: pcap
+      config:
+        iface: eth0`
 )
 
 var (
@@ -43,7 +55,7 @@ type testRequest struct {
 }
 
 type clientServer struct {
-	service fleet.Service
+	service policies.Service
 	server  *httptest.Server
 }
 
@@ -61,30 +73,9 @@ func (tr testRequest) make() (*http.Response, error) {
 	return tr.client.Do(req)
 }
 
-func generateChannels() map[string]things.Channel {
-	channels := make(map[string]things.Channel, channelsNum)
-	for i := 0; i < channelsNum; i++ {
-		id := strconv.Itoa(i + 1)
-		channels[id] = things.Channel{
-			ID:       id,
-			Owner:    email,
-			Metadata: metadata,
-		}
-	}
-	return channels
-}
-
-func newThingsService(auth mainflux.AuthServiceClient) things.Service {
-	return flmocks.NewThingsService(map[string]things.Thing{}, generateChannels(), auth)
-}
-
-func newThingsServer(svc things.Service) *httptest.Server {
-	mux := thingsapi.MakeHandler(mocktracer.New(), svc)
-	return httptest.NewServer(mux)
-}
-
-func newService(auth mainflux.AuthServiceClient, url string) policies.Service {
-	return policies.New(auth, nil)
+func newService(auth mainflux.AuthServiceClient) policies.Service {
+	policyRepo := plmocks.NewPoliciesRepository()
+	return policies.New(auth, policyRepo)
 }
 
 func newServer(svc policies.Service) *httptest.Server {
@@ -95,4 +86,92 @@ func newServer(svc policies.Service) *httptest.Server {
 func toJSON(data interface{}) string {
 	jsonData, _ := json.Marshal(data)
 	return string(jsonData)
+}
+
+func TestViewPolicy(t *testing.T) {
+	cli := newClientServer(t)
+	policy := createPolicy(t, &cli, "policy")
+
+	cases := map[string]struct {
+		ID     string
+		token  string
+		status int
+	}{
+		"view a existing policy": {
+			ID:     policy.ID,
+			token:  token,
+			status: http.StatusOK,
+		},
+		"view a non-existing policy": {
+			ID:     "d0967904-8824-4ed1-b11c-9a92f9e4e43c",
+			token:  token,
+			status: http.StatusNotFound,
+		},
+		"view a policy with a invalid token": {
+			ID:     policy.ID,
+			token:  "invalid",
+			status: http.StatusUnauthorized,
+		},
+		"view a policy with a empty token": {
+			ID:     policy.ID,
+			token:  "",
+			status: http.StatusUnauthorized,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			//t.Parallel()
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/policies/%s", cli.server.URL, tc.ID),
+				token:  tc.token,
+			}
+			res, err := req.make()
+			if err != nil {
+				require.Nil(t, err, "%s: Unexpected error: %s", desc, err)
+			}
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+
+}
+
+func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
+	t.Helper()
+	ID, err := uuid.NewV4()
+	if err != nil {
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	}
+
+	validName, err := types.NewIdentifier(name)
+	if err != nil {
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	}
+
+	policy := policies.Policy{
+		ID:      ID.String(),
+		Name:    validName,
+		Backend: "pktvisor",
+	}
+
+	res, err := cli.service.CreatePolicy(context.Background(), token, policy, format, policy_data)
+	if err != nil {
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	}
+	return res
+}
+
+func newClientServer(t *testing.T) clientServer {
+	t.Helper()
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	policiesService := newService(users)
+	policiesServer := newServer(policiesService)
+
+	return clientServer{
+		service: policiesService,
+		server:  policiesServer,
+	}
 }

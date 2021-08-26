@@ -18,6 +18,20 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
+func (l loggingMiddleware) RetrievePolicyByID(ctx context.Context, token string, policyID string) (_ policies.Policy, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_policy_by_id",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_policy_by_id",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.RetrievePolicyByID(ctx, token, policyID)
+}
+
 func (l loggingMiddleware) RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) (_ []policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

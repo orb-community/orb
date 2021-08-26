@@ -51,7 +51,22 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 
 func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		return nil, nil
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		policy, err := svc.RetrievePolicyByID(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+
+		res := policyRes{
+			ID:      policy.ID,
+			Name:    policy.Name.String(),
+			Backend: policy.Backend,
+		}
+		return res, nil
 	}
 }
 

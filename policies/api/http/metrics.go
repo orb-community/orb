@@ -18,6 +18,10 @@ type metricsMiddleware struct {
 	svc     policies.Service
 }
 
+func (m metricsMiddleware) RetrievePolicyByID(ctx context.Context, token string, policyID string) (policies.Policy, error) {
+	return m.svc.RetrievePolicyByID(ctx, token, policyID)
+}
+
 func (m metricsMiddleware) RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
 	return m.svc.RetrievePoliciesByGroupIDInternal(ctx, groupIDs, ownerID)
 }

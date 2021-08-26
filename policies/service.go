@@ -20,16 +20,21 @@ import (
 )
 
 var (
-	ErrCreatePolicy      = errors.New("failed to create policy")
-	ErrCreateDataset     = errors.New("failed to create dataset")
-	ErrInactivateDataset = errors.New("failed to inactivate dataset")
-	ErrUpdateEntity      = errors.New("failed to update entity")
-	ErrMalformedEntity   = errors.New("malformed entity")
+	ErrCreatePolicy       = errors.New("failed to create policy")
+	ErrCreateDataset      = errors.New("failed to create dataset")
+	ErrInactivateDataset  = errors.New("failed to inactivate dataset")
+	ErrUpdateEntity       = errors.New("failed to update entity")
+	ErrMalformedEntity    = errors.New("malformed entity")
+	ErrNotFound           = errors.New("non-existent entity")
+	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
 )
 
 type Service interface {
 	// CreatePolicy creates new agent Policy
 	CreatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+
+	// RetrievePolicyByID retrieving policy by id with token
+	RetrievePolicyByID(ctx context.Context, token string, policyID string) (Policy, error)
 
 	// RetrievePolicyByIDInternal gRPC version of retrieving policy by id with no token
 	RetrievePolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (Policy, error)
@@ -142,6 +147,19 @@ func (s policiesService) CreatePolicy(ctx context.Context, token string, p Polic
 	}
 	p.ID = id
 	return p, nil
+}
+
+func (s policiesService) RetrievePolicyByID(ctx context.Context, token string, policyID string) (Policy, error) {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	res, err := s.repo.RetrievePolicyByID(ctx, policyID, ownerID)
+	if err != nil {
+		return Policy{}, err
+	}
+	return res, nil
 }
 
 func New(auth mainflux.AuthServiceClient, repo Repository) Service {

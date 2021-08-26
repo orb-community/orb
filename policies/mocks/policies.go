@@ -34,7 +34,13 @@ func (m mockPoliciesRepository) SavePolicy(ctx context.Context, policy policies.
 }
 
 func (m mockPoliciesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	return m.pdb[policyID], nil
+	if _, ok := m.pdb[policyID]; ok {
+		if m.pdb[policyID].MFOwnerID != ownerID {
+			return policies.Policy{}, policies.ErrNotFound
+		}
+		return m.pdb[policyID], nil
+	}
+	return policies.Policy{}, policies.ErrNotFound
 }
 
 func (m mockPoliciesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) (ret []policies.Policy, err error) {
