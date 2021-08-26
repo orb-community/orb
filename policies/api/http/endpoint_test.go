@@ -138,6 +138,16 @@ func TestViewPolicy(t *testing.T) {
 
 }
 
+func TestListPolicies(t *testing.T) {
+	cli := newClientServer(t)
+
+	var policies []policies.Policy
+	for i := 0; i < 10; i++ {
+		p := createPolicy(t, &cli, fmt.Sprintf("policy-%d", i))
+		policies = append(policies, p)
+	}
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
