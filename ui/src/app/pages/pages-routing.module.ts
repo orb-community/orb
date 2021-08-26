@@ -15,7 +15,7 @@ import { DatasetsComponent } from 'app/pages/datasets/datasets.component';
 import { FleetsComponent } from 'app/pages/fleets/fleets.component';
 // Sink Management
 import { SinksComponent } from 'app/pages/sinks/sinks.component';
-import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
+import { SinkAddComponent } from 'app/pages/sinks/add/sink.add.component';
 import { AgentGroupAddComponent } from 'app/pages/agent-groups/add/agent.group.add.component';
 import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 
@@ -38,17 +38,17 @@ const children = [
     component: ProfileComponent,
   },
   {
-    path: 'agents',
+    path: 'agent-groups',
     component: AgentGroupsComponent,
     data: {breadcrumb: 'Agent Groups'},
   },
   {
-    path: 'agents/add',
+    path: 'agent-group/add',
     component: AgentGroupAddComponent,
     data: {breadcrumb: 'New'},
   },
   {
-    path: 'agents/edit',
+    path: 'agent-group/edit',
     component: AgentGroupAddComponent,
     data: {breadcrumb: 'Edit'},
   },
@@ -66,13 +66,13 @@ const children = [
     data: {breadcrumb: 'Sink Management'},
   },
   {
-    path: 'sinks/add',
-    component: SinksAddComponent,
+    path: 'sink/add',
+    component: SinkAddComponent,
     data: {breadcrumb: 'New'},
   },
   {
-    path: 'sinks/edit',
-    component: SinksAddComponent,
+    path: 'sink/edit',
+    component: SinkAddComponent,
     data: {breadcrumb: 'Edit'},
   },
 ];

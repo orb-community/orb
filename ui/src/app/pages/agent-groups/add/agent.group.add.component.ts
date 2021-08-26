@@ -104,7 +104,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   }
 
   goBack() {
-    this.router.navigate(['../../agents'], {relativeTo: this.route});
+    this.router.navigate(['../../agent-groups'], {relativeTo: this.route});
   }
 
   ngAfterViewInit() {

@@ -6,7 +6,7 @@
             size="small"
             class="orb-close-dialog align-content-end"
             (click)="onClose()">
-      <span class="nb-close">{{strings.delete.close}}</span>
+      <span class="nb-close"></span>
     </button>
   </nb-card-header>
   <nb-card-body>
@@ -14,7 +14,7 @@
       <p>{{strings.delete.body}}<span class="ns1-red">*</span></p>
     </div>
     <p class="ns1-red">{{strings.delete.warning}}</p>
-    <input type="text" nbInput placeholder="{{sink.name}}" [(ngModel)]="sinkName">
+    <input type="text" nbInput placeholder="{{sink.name}}" [(ngModel)]="userInput">
   </nb-card-body>
   <nb-card-footer>
     <button nbButton

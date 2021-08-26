@@ -4,14 +4,14 @@ import { NbDialogService } from '@nebular/theme';
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
-import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.component';
+import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
+import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
 
 @Component({
   selector: 'ngx-sinks-component',
@@ -146,14 +146,14 @@ export class SinksComponent implements OnInit, AfterViewInit {
   }
 
   onOpenAdd() {
-    this.router.navigate(['../sinks/add'], {
+    this.router.navigate(['../sink/add'], {
       relativeTo: this.route,
       state: {edit: false},
     });
   }
 
   onOpenEdit(row: any) {
-    this.router.navigate(['../sinks/edit'], {
+    this.router.navigate(['../sink/edit'], {
       relativeTo: this.route,
       queryParams: {id: row.id},
       state: {sink: row, edit: true},
@@ -166,7 +166,7 @@ export class SinksComponent implements OnInit, AfterViewInit {
 
   openDeleteModal(row: any) {
     const {name, id} = row;
-    this.dialogService.open(SinksDeleteComponent, {
+    this.dialogService.open(SinkDeleteComponent, {
       context: {sink: {name, id}},
       autoFocus: true,
       closeOnEsc: true,
@@ -180,7 +180,7 @@ export class SinksComponent implements OnInit, AfterViewInit {
   }
 
   openDetailsModal(row: any) {
-    this.dialogService.open(SinksDetailsComponent, {
+    this.dialogService.open(SinkDetailsComponent, {
       context: {sink: row},
       autoFocus: true,
       closeOnEsc: true,

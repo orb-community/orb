@@ -7,11 +7,11 @@ import { Sink } from 'app/common/interfaces/orb/sink.interface';
 const strings = STRINGS.sink;
 
 @Component({
-  selector: 'ngx-sinks-details-component',
-  templateUrl: './sinks.details.component.html',
-  styleUrls: ['./sinks.details.component.scss'],
+  selector: 'ngx-sink-details-component',
+  templateUrl: './sink.details.component.html',
+  styleUrls: ['./sink.details.component.scss'],
 })
-export class SinksDetailsComponent {
+export class SinkDetailsComponent {
   header = strings.details.header;
   close = strings.details.close;
   name = strings.propNames.name;
@@ -23,18 +23,15 @@ export class SinksDetailsComponent {
   @Input() sink: Sink = {};
 
   constructor(
-    protected dialogRef: NbDialogRef<SinksDetailsComponent>,
+    protected dialogRef: NbDialogRef<SinkDetailsComponent>,
     protected route: ActivatedRoute,
     protected router: Router,
   ) {
   }
 
-
-  onOpenEdit(row: any) {
-    this.router.navigate(['../sinks/edit'], {
+  onOpenEdit(sink: any) {
+    this.router.navigate(['../sinks/edit/:id', sink.id], {
       relativeTo: this.route,
-      queryParams: {id: row.id},
-      state: {sink: row},
     });
   }
 

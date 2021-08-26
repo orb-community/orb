@@ -9,11 +9,11 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
 
 @Component({
-  selector: 'ngx-sinks-add-component',
-  templateUrl: './sinks.add.component.html',
-  styleUrls: ['./sinks.add.component.scss'],
+  selector: 'ngx-sink-add-component',
+  templateUrl: './sink.add.component.html',
+  styleUrls: ['./sink.add.component.scss'],
 })
-export class SinksAddComponent {
+export class SinkAddComponent {
   strings = STRINGS;
 
   // stepper vars
@@ -42,6 +42,8 @@ export class SinksAddComponent {
   ) {
     this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
+    // const id = this.route.snapshot.paramMap.get('id');
+    // sinksService.getSinkById(id).subscribe(resp => (this.sink = resp.sink));
     this.getSinkBackends();
   }
 

@@ -23,7 +23,7 @@ export class AgentGroupDetailsComponent {
 
 
   onOpenEdit(row: any) {
-    this.router.navigate(['../agents/edit'], {
+    this.router.navigate(['../agent-group/edit'], {
       relativeTo: this.route,
       queryParams: {id: row.id},
       state: {agentGroup: row},

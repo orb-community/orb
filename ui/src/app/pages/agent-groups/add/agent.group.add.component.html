@@ -31,6 +31,7 @@
                        formControlName="name"/>
               </div>
             </nb-form-field>
+            <hr/>
             <nb-form-field>
               <div>
                 <label class="font-weight-bold">{{strings.propNames.description}}</label>
@@ -40,6 +41,7 @@
                      fieldSize="medium"
                      formControlName="description"/>
             </nb-form-field>
+            <hr/>
             <div class="d-flex justify-content-end">
               <button
                   nbButton
@@ -82,6 +84,7 @@
                 </mat-chip>
               </mat-chip-list>
             </div>
+            <hr/>
             <nb-form-field>
               <div class="container d-flex row px-0 mx-0">
                 <div class="d-flex flex-column col-5 px-0 mx-0">
@@ -142,6 +145,7 @@
                 </div>
               </div>
             </div>
+            <hr/>
             <div class="d-flex justify-content-end"
                  *ngIf="secondFormGroup">
               <button
@@ -175,6 +179,7 @@
                 <p>{{firstFormGroup.controls.name.value}}</p>
               </div>
             </div>
+            <hr/>
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">{{strings.propNames.description}}</label>
@@ -182,6 +187,7 @@
               </div>
             </div>
           </div>
+          <hr/>
           <div class="d-flex row">
             <div class="col-12">
               <mat-chip-list>
@@ -193,6 +199,7 @@
               </mat-chip-list>
             </div>
           </div>
+          <hr/>
           <div class="d-flex row">
             <div class="col-12">
               <div>
@@ -210,6 +217,7 @@
               </div>
             </div>
           </div>
+          <hr/>
           <div class="d-flex row" *ngIf="expanded">
             <div class="tag-table">
               <ngx-datatable
@@ -225,6 +233,7 @@
               </ngx-datatable>
             </div>
           </div>
+          <hr/>
           <div class="d-flex justify-content-end"
                *ngIf="secondFormGroup">
             <button

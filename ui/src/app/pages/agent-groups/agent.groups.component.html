@@ -85,7 +85,7 @@
     <mat-chip-list>
       <mat-chip
           class="orb-tag-sink "
-          *ngFor="let tag of value | keyvalue">
+          *ngFor="let tag of value | keyvalue | slice:0:3">
         {{tag.key}}, {{tag.value}}
       </mat-chip>
     </mat-chip-list>
@@ -119,8 +119,8 @@
   <div class="d-flex">
     <mat-chip-list>
       <mat-chip
-        class="orb-tag-sink "
-        *ngFor="let tag of value | keyvalue">
+          class="orb-tag-sink "
+          *ngFor="let tag of value | keyvalue | slice:0:3">
         {{tag.key}}, {{tag.value}}
       </mat-chip>
     </mat-chip-list>
