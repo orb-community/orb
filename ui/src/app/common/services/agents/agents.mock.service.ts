@@ -1,11 +1,11 @@
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import 'rxjs/add/observable/empty';
 import 'rxjs/add/observable/of';
 
-import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
-import {Agent} from 'app/common/interfaces/orb/agent.interface.ts';
-import {PageFilters} from 'app/common/interfaces/mainflux.interface';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
+import { Agent } from 'app/common/interfaces/orb/agent.interface.ts';
+import { PageFilters } from 'app/common/interfaces/mainflux.interface';
 import * as Moment from 'moment';
 import * as Faker from 'faker';
 import * as uuid from 'uuid';
@@ -130,7 +130,6 @@ export class AgentsMockService {
         online: 2,
       },
       agents: [],
-      validate_only: true,
     };
 
     return Observable.of(newAgentgroup);

@@ -4,9 +4,9 @@ import { Observable } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
 import { environment } from 'environments/environment';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -14,9 +14,9 @@ const defOrder: string = 'name';
 const defDir = 'desc';
 
 @Injectable()
-export class SinksService {
+export class AgentGroupsService {
   paginationCache: any = {};
-  cache: OrbPagination<Sink>;
+  cache: OrbPagination<AgentGroup>;
 
   constructor(
     private http: HttpClient,
@@ -37,9 +37,9 @@ export class SinksService {
     this.paginationCache = {};
   }
 
-  addSink(sinkItem: Sink) {
-    return this.http.post(environment.sinksUrl,
-      sinkItem,
+  addAgentGroup(agentGroupItem: AgentGroup) {
+    return this.http.post(environment.agentGroupsUrl,
+      {...agentGroupItem, validate_only: false},
       {observe: 'response'})
       .map(
         resp => {
@@ -48,15 +48,17 @@ export class SinksService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to create Sink',
+          this.notificationsService.error('Failed to create Agent',
             `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
           return Observable.throwError(err);
         },
       );
   }
 
-  getSinkById(sinkId: string): any {
-    return this.http.get(`${environment.sinksUrl}/${sinkId}`)
+  validateAgentGroup(agentGroupItem: AgentGroup) {
+    return this.http.post(environment.validateAgentGroupsUrl,
+      {...agentGroupItem, validate_only: true},
+      {observe: 'response'})
       .map(
         resp => {
           return resp;
@@ -64,27 +66,30 @@ export class SinksService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to fetch Sink',
-            `Error: ${err.status} - ${err.statusText}`);
+          this.notificationsService.error('Failed to Validate Agent',
+            `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
           return Observable.throwError(err);
         },
       );
   }
 
-  getSinkBackends() {
-    return this.http.get(environment.sinkBackends)
-      .map((resp: any) => {
-        return resp.backends;
-      }).catch(
+  getAgentGroupById(id: string): any {
+    return this.http.get(`${environment.agentGroupsUrl}/${id}`)
+      .map(
+        resp => {
+          return resp;
+        },
+      )
+      .catch(
         err => {
-          this.notificationsService.error('Failed to get Sink Backends',
+          this.notificationsService.error('Failed to fetch Agent',
             `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );
   }
 
-  getSinks(pageInfo: NgxDatabalePageInfo, isFilter = false) {
+  getAgentGroups(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     const offset = pageInfo.offset || this.cache.offset;
     let params = new HttpParams()
       .set('offset', offset.toString())
@@ -106,14 +111,14 @@ export class SinksService {
       return Observable.of(this.cache);
     }
 
-    return this.http.get(environment.sinksUrl, {params})
+    return this.http.get(environment.agentGroupsUrl, {params})
       .map(
         (resp: any) => {
           this.paginationCache[pageInfo.offset] = true;
           // This is the position to insert the new data
           const start = pageInfo.offset * resp.limit;
           const newData = [...this.cache.data];
-          newData.splice(start, resp.limit, ...resp.sinks);
+          newData.splice(start, resp.limit, ...resp.agentGroups);
           this.cache = {
             ...this.cache,
             total: resp.total,
@@ -126,15 +131,15 @@ export class SinksService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to get Sinks',
+          this.notificationsService.error('Failed to get Agents',
             `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );
   }
 
-  editSink(sinkItem: Sink): any {
-    return this.http.put(`${environment.sinksUrl}/${sinkItem.id}`, sinkItem)
+  editAgentGroup(agentGroup: AgentGroup): any {
+    return this.http.put(`${environment.agentGroupsUrl}/${agentGroup.id}`, agentGroup)
       .map(
         resp => {
           return resp;
@@ -142,15 +147,15 @@ export class SinksService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to edit Sink',
+          this.notificationsService.error('Failed to edit Agent',
             `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );
   }
 
-  deleteSink(sinkId: string) {
-    return this.http.delete(`${environment.sinksUrl}/${sinkId}`)
+  deleteAgentGroup(agentGroupId: string) {
+    return this.http.delete(`${environment.agentGroupsUrl}/${agentGroupId}`)
       .map(
         resp => {
           return resp;
@@ -158,14 +163,14 @@ export class SinksService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to delete Sink',
+          this.notificationsService.error('Failed to Delete Agent Group',
             `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );
   }
 
-  public static getDefaultPagination(): OrbPagination<Sink> {
+  public static getDefaultPagination(): OrbPagination<AgentGroup> {
     return {
       limit: defLimit,
       order: defOrder,

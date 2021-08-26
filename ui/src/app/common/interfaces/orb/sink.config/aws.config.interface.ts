@@ -7,10 +7,10 @@
 import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
 
 /**
- * @interface PrometheusConfig
+ * @interface AWSConfig
  */
-export interface PrometheusConfig extends SinkConfig<string> {
-  name: 'Prometheus';
+export interface AWSConfig extends SinkConfig<string> {
+  name: 'AWS';
   /**
    *  Remote Host URL {string}
    */
