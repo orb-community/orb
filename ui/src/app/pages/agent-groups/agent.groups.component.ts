@@ -166,12 +166,7 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.agentGroupsService.deleteAgentGroup(row.id).subscribe(
-            () => {
-              // this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
-              this.notificationsService.success('Agent Group Successfully Deleted', '');
-            },
-          );
+          this.agentGroupsService.deleteAgentGroup(row.id).subscribe(() => this.getAgentGroups());
         }
       },
     );
@@ -182,13 +177,7 @@ export class AgentGroupsComponent implements OnInit, AfterViewInit {
       context: {agentGroup: row},
       autoFocus: true,
       closeOnEsc: true,
-    }).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.getAgentGroups();
-        }
-      },
-    );
+    }).onClose.subscribe(() => this.getAgentGroups());
   }
 
   searchAgentByName(input) {

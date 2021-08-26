@@ -1,19 +1,17 @@
-import {AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild} from '@angular/core';
-import {NbDialogService} from '@nebular/theme';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { NbDialogService } from '@nebular/theme';
 
-import {
-  DropdownFilterItem,
-} from 'app/common/interfaces/mainflux.interface';
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {SinksService} from 'app/common/services/sinks/sinks.service';
-import {SinksDetailsComponent} from 'app/pages/sinks/details/sinks.details.component';
-import {SinksDeleteComponent} from 'app/pages/sinks/delete/sinks.delete.component';
-import {ActivatedRoute, Router} from '@angular/router';
-import {STRINGS} from 'assets/text/strings';
-import {ColumnMode, TableColumn} from '@swimlane/ngx-datatable';
-import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination';
-import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
-import {Debounce} from 'app/shared/decorators/utils';
+import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { SinksService } from 'app/common/services/sinks/sinks.service';
+import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
+import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.component';
+import { ActivatedRoute, Router } from '@angular/router';
+import { STRINGS } from 'assets/text/strings';
+import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
+import { Debounce } from 'app/shared/decorators/utils';
 
 @Component({
   selector: 'ngx-sinks-component',
@@ -175,12 +173,7 @@ export class SinksComponent implements OnInit, AfterViewInit {
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.sinkService.deleteSink(row.id).subscribe(
-            () => {
-              // this.page.rows = this.page.rows.filter((u: User) => u.id !== row.id);
-              this.notificationsService.success('Sink Item successfully deleted', '');
-            },
-          );
+          this.sinkService.deleteSink(row.id).subscribe(() => this.getSinks());
         }
       },
     );
@@ -191,13 +184,7 @@ export class SinksComponent implements OnInit, AfterViewInit {
       context: {sink: row},
       autoFocus: true,
       closeOnEsc: true,
-    }).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.getSinks();
-        }
-      },
-    );
+    }).onClose.subscribe(() => this.getSinks());
   }
 
   searchSinkItemByName(input) {
