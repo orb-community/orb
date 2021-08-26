@@ -9,9 +9,9 @@
 package http
 
 import (
-	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
+	"github.com/ns1labs/orb/policies"
 )
 
 const (
@@ -106,7 +106,7 @@ func (req addDatasetReq) validate() error {
 
 type listResourcesReq struct {
 	token        string
-	pageMetadata fleet.PageMetadata
+	pageMetadata policies.PageMetadata
 }
 
 func (req *listResourcesReq) validate() error {

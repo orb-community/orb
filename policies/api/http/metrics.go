@@ -18,24 +18,28 @@ type metricsMiddleware struct {
 	svc     policies.Service
 }
 
-func (m metricsMiddleware) RetrievePolicyByID(ctx context.Context, token string, policyID string) (policies.Policy, error) {
-	return m.svc.RetrievePolicyByID(ctx, token, policyID)
+func (m metricsMiddleware) ListPolicies(ctx context.Context, token string, pm policies.PageMetadata) (policies.Page, error) {
+	return m.svc.ListPolicies(ctx, token, pm)
 }
 
-func (m metricsMiddleware) RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
-	return m.svc.RetrievePoliciesByGroupIDInternal(ctx, groupIDs, ownerID)
+func (m metricsMiddleware) ViewPolicyByID(ctx context.Context, token string, policyID string) (policies.Policy, error) {
+	return m.svc.ViewPolicyByID(ctx, token, policyID)
 }
 
-func (m metricsMiddleware) RetrievePolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	return m.svc.RetrievePolicyByIDInternal(ctx, policyID, ownerID)
+func (m metricsMiddleware) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
+	return m.svc.ListPoliciesByGroupIDInternal(ctx, groupIDs, ownerID)
 }
 
-func (m metricsMiddleware) CreateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
-	return m.svc.CreateDataset(ctx, token, d)
+func (m metricsMiddleware) ViewPolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
+	return m.svc.ViewPolicyByIDInternal(ctx, policyID, ownerID)
 }
 
-func (m metricsMiddleware) CreatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
-	return m.svc.CreatePolicy(ctx, token, p, format, policyData)
+func (m metricsMiddleware) AddDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
+	return m.svc.AddDataset(ctx, token, d)
+}
+
+func (m metricsMiddleware) AddPolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
+	return m.svc.AddPolicy(ctx, token, p, format, policyData)
 }
 
 func (m metricsMiddleware) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {

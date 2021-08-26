@@ -62,7 +62,7 @@ func TestRetrievePolicyByID(t *testing.T) {
 	}
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := svc.RetrievePolicyByID(context.Background(), tc.token, tc.id)
+			_, err := svc.ViewPolicyByID(context.Background(), tc.token, tc.id)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		})
 	}
@@ -86,7 +86,7 @@ func createPolicy(t *testing.T, svc policies.Service, name string) policies.Poli
 		Backend: "pktvisor",
 	}
 
-	res, err := svc.CreatePolicy(context.Background(), token, policy, format, policy_data)
+	res, err := svc.AddPolicy(context.Background(), token, policy, format, policy_data)
 	if err != nil {
 		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 	}

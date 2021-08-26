@@ -11,7 +11,6 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb"
-	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/internal/httputil"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -143,7 +142,7 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 
 	req := listResourcesReq{
 		token: r.Header.Get("Authorization"),
-		pageMetadata: fleet.PageMetadata{
+		pageMetadata: policies.PageMetadata{
 			Offset:   o,
 			Limit:    l,
 			Name:     n,

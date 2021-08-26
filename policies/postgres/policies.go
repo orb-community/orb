@@ -29,6 +29,10 @@ type policiesRepository struct {
 	logger *zap.Logger
 }
 
+func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm policies.PageMetadata) (policies.Page, error) {
+	return policies.Page{}, nil
+}
+
 func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
 
 	q := `SELECT agent_policies.id AS id, agent_policies.name AS name, agent_policies.mf_owner_id, orb_tags, backend, version, policy, agent_policies.ts_created 

@@ -33,7 +33,7 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Policy:  req.Policy,
 		}
 
-		saved, err := svc.CreatePolicy(ctx, req.token, policy, req.Format, req.PolicyData)
+		saved, err := svc.AddPolicy(ctx, req.token, policy, req.Format, req.PolicyData)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +56,7 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		policy, err := svc.RetrievePolicyByID(ctx, req.token, req.id)
+		policy, err := svc.ViewPolicyByID(ctx, req.token, req.id)
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +72,35 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 
 func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		return nil, nil
+		req := request.(listResourcesReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		page, err := svc.ListPolicies(ctx, req.token, req.pageMetadata)
+		if err != nil {
+			return nil, err
+		}
+
+		res := policiesPageRes{
+			pageRes: pageRes{
+				Total:  page.Total,
+				Offset: page.Offset,
+				Limit:  page.Limit,
+				Order:  page.Order,
+				Dir:    page.Dir,
+			},
+			Policies: []policyRes{},
+		}
+		for _, ag := range page.Policies {
+			view := policyRes{
+				ID:      ag.ID,
+				Name:    ag.Name.String(),
+				Backend: ag.Backend,
+			}
+			res.Policies = append(res.Policies, view)
+		}
+		return res, nil
 	}
 }
 
@@ -95,7 +123,7 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			SinkID:       req.SinkID,
 		}
 
-		saved, err := svc.CreateDataset(ctx, req.token, d)
+		saved, err := svc.AddDataset(ctx, req.token, d)
 		if err != nil {
 			return nil, err
 		}

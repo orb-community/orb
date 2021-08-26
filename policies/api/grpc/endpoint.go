@@ -23,7 +23,7 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		policy, err := svc.RetrievePolicyByIDInternal(ctx, req.PolicyID, req.OwnerID)
+		policy, err := svc.ViewPolicyByIDInternal(ctx, req.PolicyID, req.OwnerID)
 		if err != nil {
 			return policyRes{}, err
 		}
@@ -48,7 +48,7 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		plist, err := svc.RetrievePoliciesByGroupIDInternal(ctx, req.GroupIDs, req.OwnerID)
+		plist, err := svc.ListPoliciesByGroupIDInternal(ctx, req.GroupIDs, req.OwnerID)
 		if err != nil {
 			return policyListRes{}, err
 		}

@@ -25,6 +25,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -39,10 +40,14 @@ visor:
       type: pcap
       config:
         iface: eth0`
+	limit        = 10
+	invalidToken = "invalid"
+	maxNameSize  = 1024
 )
 
 var (
-	metadata = map[string]interface{}{"type": "orb_agent"}
+	metadata    = map[string]interface{}{"type": "orb_agent"}
+	invalidName = strings.Repeat("m", maxNameSize+1)
 )
 
 type testRequest struct {
@@ -121,7 +126,6 @@ func TestViewPolicy(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			//t.Parallel()
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
@@ -136,6 +140,174 @@ func TestViewPolicy(t *testing.T) {
 		})
 	}
 
+}
+
+func TestListPolicies(t *testing.T) {
+	cli := newClientServer(t)
+
+	var data []policyRes
+	for i := 0; i < limit; i++ {
+		p := createPolicy(t, &cli, fmt.Sprintf("policy-%d", i))
+		data = append(data, policyRes{
+			ID:      p.ID,
+			Name:    p.Name.String(),
+			Backend: p.Backend,
+			created: true,
+		})
+	}
+
+	cases := map[string]struct {
+		auth   string
+		status int
+		url    string
+		res    []policyRes
+		total  uint64
+	}{
+		"retrieve a list of policies": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, limit),
+			res:    data[0:limit],
+			total:  limit,
+		},
+		"get a list of policies with empty token": {
+			auth:   "",
+			status: http.StatusUnauthorized,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, 1),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies with invalid token": {
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, 1),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies with invalid order": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d&order=wrong", 0, 5),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies with invalid dir": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d&order=name&dir=wrong", 0, 5),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies with negative offset": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", -1, 5),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies with negative limit": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, -5),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies with zero limit": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, 0),
+			res:    data[0:limit],
+			total:  limit,
+		},
+		"get a list of policies without offset": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("?limit=%d", limit),
+			res:    data[0:limit],
+			total:  limit,
+		},
+		"get a list of policies without limit": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("?offset=%d", 1),
+			res:    data[1:limit],
+			total:  limit - 1,
+		},
+		"get a list of policies with limit greater than max": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, 110),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies with default URL": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("%s", ""),
+			res:    data[0:limit],
+			total:  limit,
+		},
+		"get a list of policies with invalid number of params": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=4&limit=4&limit=5&offset=5"),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies with invalid offset": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=e&limit=5"),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies with invalid limit": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=5&limit=e"),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies filtering with invalid name": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d&name=%s", 0, 5, invalidName),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies sorted with invalid order": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d&order=wrong&dir=desc", 0, 5),
+			res:    nil,
+			total:  0,
+		},
+		"get a list of policies sorted with invalid direction": {
+			auth:   token,
+			status: http.StatusBadRequest,
+			url:    fmt.Sprintf("?offset=%d&limit=%d&order=name&dir=wrong", 0, 5),
+			res:    nil,
+			total:  0,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf(fmt.Sprintf("%s/policies%s", cli.server.URL, tc.url)),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var body policiesPageRes
+			json.NewDecoder(res.Body).Decode(&body)
+			total := uint64(len(body.Policies))
+			assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+			assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		})
+	}
 }
 
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
@@ -156,7 +328,7 @@ func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy 
 		Backend: "pktvisor",
 	}
 
-	res, err := cli.service.CreatePolicy(context.Background(), token, policy, format, policy_data)
+	res, err := cli.service.AddPolicy(context.Background(), token, policy, format, policy_data)
 	if err != nil {
 		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 	}
@@ -174,4 +346,18 @@ func newClientServer(t *testing.T) clientServer {
 		service: policiesService,
 		server:  policiesServer,
 	}
+}
+
+type policyRes struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Backend string `json:"backend"`
+	created bool
+}
+
+type policiesPageRes struct {
+	Total    uint64      `json:"total"`
+	Offset   uint64      `json:"offset"`
+	Limit    uint64      `json:"limit"`
+	Policies []policyRes `json:"data"`
 }
