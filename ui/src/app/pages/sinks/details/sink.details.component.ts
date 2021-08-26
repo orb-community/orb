@@ -30,10 +30,11 @@ export class SinkDetailsComponent {
   }
 
   onOpenEdit(sink: any) {
+    this.dialogRef.close();
     this.router.navigate(
-      [`../sink/edit/${sink.id}`, sink.id], {
-        relativeTo: this.route,
-      });
+      [`pages/sink/edit/${sink.id}`],
+      {state: {sink: sink, edit: true}},
+    );
   }
 
   onClose() {

@@ -12,27 +12,27 @@
   <nb-card-body>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{name}}<span class="ns1red">*</span></p>
+        <p class="detail">{{name}}<span class="ns1red">*</span></p>
         <p>{{ sink.name }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{description}}</p>
+        <p class="detail">{{description}}</p>
         <p>{{ sink.description }}</p>
       </div>
     </div>
-    <div class="row form-row">
+    <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{backend}}<span class="ns1red">*</span></p>
+        <p class="detail">{{backend}}<span class="ns1red">*</span></p>
         <p>{{ sink.backend }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{remote_host}}</p>
+        <p class="detail">{{remote_host}}</p>
         <p>{{ sink.config.remote_host }}</p>
       </div>
     </div>
-    <div class="row form-row">
+    <div class="row">
       <div class="col-6 align-items-start d-flex flex-column">
-        <p class="form-key">{{ts_created}}</p>
+        <p class="detail">{{ts_created}}</p>
         <p>{{ sink.ts_created }}</p>
       </div>
     </div>
