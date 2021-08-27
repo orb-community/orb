@@ -11,11 +11,23 @@ paths:
       operationId: listPolicies
       tags:
         - policy
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Name"
+        - $ref: "#/components/parameters/Order"
+        - $ref: "#/components/parameters/Direction"
       responses:
         '200':
           description: 'One page of Policy details'
           content:
             application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PolicyBackendResSchema'
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
         default:
           description: Unexpected error
           content:
@@ -66,7 +78,281 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 components:
+  requestBodies:
+    PolicyCreateReq:
+      description: JSON-formatted document describing the new Policy configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyCreateReqSchema"
+    PolicyUpdateReq:
+      description: JSON-formatted document describing the updated Policy configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyUpdateReqSchema"
+  parameters:
+    Name:
+      name: name
+      description: Name filter. Filtering is performed as a case-insensitive partial match.
+      in: query
+      schema:
+        type: string
+      required: false
+    Order:
+      name: order
+      description: Order type.
+      in: query
+      schema:
+        type: string
+        default: id
+        enum:
+          - name
+          - id
+      required: false
+    Direction:
+      name: dir
+      description: Order direction.
+      in: query
+      schema:
+        type: string
+        default: desc
+        enum:
+          - asc
+          - desc
+      required: false
+    Limit:
+      name: limit
+      description: Size of the subset to retrieve.
+      in: query
+      schema:
+        type: integer
+        default: 10
+        maximum: 100
+        minimum: 1
+      required: false
+    Offset:
+      name: offset
+      description: Number of items to skip during retrieval.
+      in: query
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+      required: false
+    Authorization:
+      name: Authorization
+      description: User's access token.
+      in: header
+      schema:
+        type: string
+        format: jwt
+      required: true
+    PolicyId:
+      name: id
+      description: Unique Agent Policy identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    DatasetId:
+      name: id
+      description: Unique Dataset identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+  responses:
+    PolicyObjRes:
+      description: Policy object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyObjSchema"
+    PolicyPageRes:
+      description: Data retrieved.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyPageSchema"
+    ServiceErrorRes:
+      description: Unexpected server-side error occurred.
+      content:
+        application/json:
+          schema:
+            type: string
+            format: byte
+    PolicyBackendObjRes:
+      description: Backend object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyBackendObjSchema"
   schemas:
+    PolicyUpdateReqSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-policy
+        description:
+          type: string
+          description: User description of this Policy
+          example:
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+
+    PolicyCreateReqSchema:
+      type: object
+      required:
+        - name
+        - backend
+        - description
+        - version
+        - policy
+        - tags
+        - config
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-policy
+        description:
+          type: string
+          description: User description of this Policy
+          example: A policy example
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+
+        backend:
+          type: string
+          example: pktvisor
+          description: Agent backend this policy is for. Cannot change once created.
+    PolicyPageSchema:
+      type: object
+      properties:
+        policy:
+          type: array
+          minItems: 0
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/PolicyObjSchema"
+        total:
+          type: integer
+          description: Total number of items.
+        offset:
+          type: integer
+          description: Number of items to skip during retrieval.
+        limit:
+          type: integer
+          description: Maximum number of items to return in one page.
+      required:
+        - policy
+    ConfigEntrySchema:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Visual title of the config item shown in UI
+        type:
+          type: string
+          description: "Data field type"
+          enum:
+            - string
+            - password
+            - int
+        name:
+          type: string
+          description: The field label used in the JSON config object for this field
+        description:
+          type: string
+          description: A description of the use of this configuration field
+      example:
+        title:
+        type: string
+        name:
+        description:
+    PolicyObjSchema:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier (UUID)
+        name:
+          type: string
+          description: A unique name label
+          example: my-policy
+        description:
+          type: string
+          description: User description of this Policy
+          example:
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+        backend:
+          type: string
+          example: pktvisor
+          description: The policy backend to use. Cannot change once created.
+        ts_created:
+          type: string
+          format: date-time
+          description: Timestamp of creation
+        version:
+          type: integer
+          readOnly: true
+          example:
+          description: A monotonically increasing counter starting at 0 on creation and increasing with each policy update.
+        policy:
+          type: object
+          example: pktvisor
+          description: Agent backend specific policy data.
+    PolicyBackendResSchema:
+      type: object
+      properties:
+        backend:
+          type: string
+          example: pktvisor
+          description: Name and identifier of the policy backend, used when creating new policy
+        description:
+          type: string
+          example:
+        config:
+          type: array
+          description: Backend configuration field details
+          items:
+            items:
+              $ref: '#/components/schemas/ConfigEntrySchema'
+    PolicyBackendObjSchema:
+      type: object
+      required:
+        - id
+      properties:
+        backend:
+          type: string
+          example: pktvisor
+          description: Name and identifier of the policy backend, used when creating new policy
+        description:
+          type: string
+          example:
+        config:
+          type: array
+          description: Backend configuration field details
+          items:
+            items:
+              $ref: '#/components/schemas/ConfigEntrySchema'
     Error:
       type: object
       required:
