@@ -6,75 +6,210 @@ servers:
   - url: 'http://localhost:8202'
 paths:
   /policies/agent:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
     get:
       summary: 'List Agent Policies'
       operationId: listPolicies
       tags:
         - policy
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Name"
+        - $ref: "#/components/parameters/Order"
+        - $ref: "#/components/parameters/Direction"
       responses:
         '200':
-          description: 'One page of Policy details'
-          content:
-            application/json:
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'      
+          $ref: "#/components/responses/PoliciesPageRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
     post:
-      summary: 'Create new Policy'
+      summary: 'Create new Agent Policy'
       operationId: createPolicy
       tags:
         - policy
       requestBody:
+        $ref: "#/components/requestBodies/PolicyCreateReq"
+      responses:
+        '201':
+          $ref: "#/components/requestBodies/PolicyObjRes"
+        '400':
+          description: Failed due to malformed JSON
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Mising or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /policies/agent/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/PolicyId"
+    get:
+      summary: 'Get an existing Agent Policy'
+      operationId: readPolicy
+      tags:
+        - policy
+      responses:
+        '201':
+          $ref: "#/components/responses/PolicyObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    put:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: 'Update an existing Agent Policy'
+      operationId: updatePolicy
+      tags:
+        - policy
+      requestBody:
         required: true
-        content:
-            application/json:
-                schema:
-                    type: object
-                    properties:
-                        name:
-                            type: string
-                        backend:
-                            type: string
-                        policy:
-                            type: object
-                        format:
-                            type: string
-                        policy_data:
-                            type: string
+        $ref: "#/components/requestBodies/PolicyUpdateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/PolicyObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '422':
+          description: Databse can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: "Delete an existing Agent Policy"
+      operationId: deletePolicy
+      tags:
+        - policy
+      responses:
+        '204':
+          description: Policy removed.
+        '400':
+          description: Failed due to malformed Policy ID.
+        '401':
+          description: Missing or invalid access token provided.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /policies/agent/validate:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    post:
+      summary: 'Validate an Agent Policy configuration without saving it'
+      operationId: validatePolicy
+      tags:
+        - policy
+      requestBody:
+        $ref: "#/components/requestBodies/PolicyCreateReq"
       responses:
         '200':
-          description: 'Policy add details'
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                    id:
-                        type: string
-                        format: uuid
-                    name:
-                        type: string
-                    backend:
-                        type: string
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: "#/components/responses/PolicyValidateObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '415':
+          description: Missing or invalid content type.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
-  schemas:
-    Error:
-      type: object
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-          format: int32
-        message:
-          type: string
+  requestBodies:
+    PolicyCreateReq:
+      description: JSON-formatted document describing the new Policy configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyCreateReqSchema"
+    PolicyUpdateReq:
+      description: JSON-formatted document describing the updated Policy configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyUpdateReqSchema"
+  parameters:
+    Name:
+      name: name
+      description: Name filter. Filtering is perfomed as a case-insensitive partial match.
+      in: query
+      schema:
+        type: string
+      required: false
+    Order:
+      name: order
+      description: Order type.
+      in: query
+      schema:
+        type: string
+        default: id
+        enum:
+          - name
+          - id
+      required: false
+    Direction:
+      name: dir
+      description: Order direction.
+      in: query
+      schema:
+        type: string
+        default: desc
+        enum:
+          - asc
+          - desc
+      required: false
+    Limit:
+      name: limit
+      description: Size of the subset to retrieve.
+      in: query
+      schema:
+        type: integer
+        default: 10
+        maximum: 100
+        minimum: 1
+      required: false
+    Offset:
+      name: offset
+      description: Number of items to skip during retrieval.
+      in: query
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+      required: false
+    Authorization:
+      name: Authorization
+      description: User's access token.
+      in: header
+      schema:
+        type: string
+        format: jwt
+      required: true
+    PolicyId:
+      name: id
+      description: Unique Agent Policy identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    DatasetId:
+      name: id
+      description: Unique Dataset identifier.
+      in: path
