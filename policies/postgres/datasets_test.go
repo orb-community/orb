@@ -52,25 +52,24 @@ func TestDatasetSave(t *testing.T) {
 		Created:      time.Time{},
 	}
 
-	cases := []struct {
-		desc    string
+	cases := map[string]struct {
 		dataset policies.Dataset
 		err     error
 	}{
-		{
-			desc:    "create new dataset",
+		"create new dataset": {
 			dataset: dataset,
 			err:     nil,
 		},
-		{
-			desc:    "create dataset that already exist",
+		"create dataset that already exist": {
 			dataset: dataset,
 			err:     errors.ErrConflict,
 		},
 	}
 
-	for _, tc := range cases {
-		_, err := repo.SaveDataset(context.Background(), tc.dataset)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", tc.desc, tc.err, err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := repo.SaveDataset(context.Background(), tc.dataset)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
+		})
 	}
 }

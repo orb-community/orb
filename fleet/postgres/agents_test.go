@@ -58,26 +58,25 @@ func TestAgentSave(t *testing.T) {
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
 
-	cases := []struct {
-		desc  string
+	cases := map[string]struct {
 		agent fleet.Agent
 		err   error
 	}{
-		{
-			desc:  "create new agent",
+		"create new agent": {
 			agent: agent,
 			err:   nil,
 		},
-		{
-			desc:  "create agent that already exist",
+		"create agent that already exist": {
 			agent: agent,
 			err:   errors.ErrConflict,
 		},
 	}
 
-	for _, tc := range cases {
-		err := agentRepo.Save(context.Background(), tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", tc.desc, tc.err, err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := agentRepo.Save(context.Background(), tc.agent)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
+		})
 	}
 }
 
@@ -130,15 +129,17 @@ func TestAgentRetrieve(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.thingID, tc.channelID)
-		if err == nil {
-			assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
-		}
-		if len(tc.tags) > 0 {
-			assert.Equal(t, tc.tags, ag.OrbTags)
-			assert.Equal(t, tc.tags, ag.AgentTags)
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.thingID, tc.channelID)
+			if err == nil {
+				assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+			}
+			if len(tc.tags) > 0 {
+				assert.Equal(t, tc.tags, ag.OrbTags)
+				assert.Equal(t, tc.tags, ag.AgentTags)
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
 	}
 }
 
@@ -194,13 +195,15 @@ func TestAgentUpdateData(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err = agentRepo.UpdateDataByIDWithChannel(context.Background(), tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
-		if err == nil {
-			ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.agent.MFThingID, tc.agent.MFChannelID)
-			assert.Nil(t, err)
-			assert.Equal(t, tc.agent.AgentMetadata, ag.AgentMetadata, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
-		}
+		t.Run(desc, func(t *testing.T) {
+			err = agentRepo.UpdateDataByIDWithChannel(context.Background(), tc.agent)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+			if err == nil {
+				ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.agent.MFThingID, tc.agent.MFChannelID)
+				assert.Nil(t, err)
+				assert.Equal(t, tc.agent.AgentMetadata, ag.AgentMetadata, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+			}
+		})
 	}
 }
 
@@ -254,13 +257,15 @@ func TestAgentUpdateHeartbeat(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err = agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
-		if err == nil {
-			ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.agent.MFThingID, tc.agent.MFChannelID)
-			assert.Nil(t, err)
-			assert.Equal(t, tc.agent.LastHBData, ag.LastHBData, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
-		}
+		t.Run(desc, func(t *testing.T) {
+			err = agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), tc.agent)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+			if err == nil {
+				ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.agent.MFThingID, tc.agent.MFChannelID)
+				assert.Nil(t, err)
+				assert.Equal(t, tc.agent.LastHBData, ag.LastHBData, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+			}
+		})
 	}
 }
 
@@ -428,16 +433,18 @@ func TestMultiAgentRetrieval(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		page, err := agentRepo.RetrieveAll(context.Background(), tc.owner, tc.pageMetadata)
-		size := uint64(len(page.Agents))
-		assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d\n", desc, tc.size, size))
-		assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d\n", desc, tc.pageMetadata.Total, page.Total))
-		assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
+		t.Run(desc, func(t *testing.T) {
+			page, err := agentRepo.RetrieveAll(context.Background(), tc.owner, tc.pageMetadata)
+			size := uint64(len(page.Agents))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d\n", desc, tc.size, size))
+			assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d\n", desc, tc.pageMetadata.Total, page.Total))
+			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
 
-		// Check if Agents list have been sorted properly
-		if size > 0 {
-			testSortAgents(t, tc.pageMetadata, page.Agents)
-		}
+			// Check if Agents list have been sorted properly
+			if size > 0 {
+				testSortAgents(t, tc.pageMetadata, page.Agents)
+			}
+		})
 	}
 }
 
@@ -498,13 +505,15 @@ func TestAgentUpdate(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err = agentRepo.UpdateAgentByID(context.Background(), tc.agent.MFOwnerID, tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
-		if err == nil {
-			ag, err := agentRepo.RetrieveByID(context.Background(), tc.agent.MFOwnerID, tc.agent.MFThingID)
-			assert.Nil(t, err)
-			assert.Equal(t, tc.agent.OrbTags, ag.OrbTags, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
-		}
+		t.Run(desc, func(t *testing.T) {
+			err = agentRepo.UpdateAgentByID(context.Background(), tc.agent.MFOwnerID, tc.agent)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+			if err == nil {
+				ag, err := agentRepo.RetrieveByID(context.Background(), tc.agent.MFOwnerID, tc.agent.MFThingID)
+				assert.Nil(t, err)
+				assert.Equal(t, tc.agent.OrbTags, ag.OrbTags, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+			}
+		})
 	}
 }
 

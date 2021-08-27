@@ -106,48 +106,42 @@ func TestCreateSinks(t *testing.T) {
 	server := newServer(service)
 	defer server.Close()
 
-	cases := []struct {
-		desc        string
+	cases := map[string]struct {
 		req         string
 		contentType string
 		auth        string
 		status      int
 		location    string
 	}{
-		{
-			desc:        "add a valid sink",
+		"add a valid sink": {
 			req:         validJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusOK,
 			location:    "/sinks",
 		},
-		{
-			desc:        "add a duplicate sink",
+		"add a duplicate sink": {
 			req:         validJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusConflict,
 			location:    "/sinks",
 		},
-		{
-			desc:        "add sink with invalid json",
+		"add sink with invalid json": {
 			req:         invalidJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/sinks",
 		},
-		{
-			desc:        "add a sink with a invalid token",
+		"add a sink with a invalid token": {
 			req:         validJson,
 			contentType: contentType,
 			auth:        "",
 			status:      http.StatusUnauthorized,
 			location:    "/sinks",
 		},
-		{
-			desc:        "add a valid without content type",
+		"add a valid without content type": {
 			req:         validJson,
 			contentType: "",
 			auth:        token,
@@ -156,18 +150,20 @@ func TestCreateSinks(t *testing.T) {
 		},
 	}
 
-	for _, sinkCase := range cases {
-		req := testRequest{
-			client:      server.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/sinks", server.URL),
-			contentType: sinkCase.contentType,
-			token:       sinkCase.auth,
-			body:        strings.NewReader(sinkCase.req),
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
-		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/sinks", server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 
 }
@@ -274,17 +270,19 @@ func TestUpdateSink(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      server.Client(),
-			method:      http.MethodPut,
-			url:         fmt.Sprintf("%s/sinks/%s", server.URL, tc.id),
-			contentType: tc.contentType,
-			token:       tc.auth,
-			body:        strings.NewReader(tc.req),
-		}
-		res, err := req.make()
-		require.Nil(t, err, "%s: unexpected error: %s", desc, err)
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      server.Client(),
+				method:      http.MethodPut,
+				url:         fmt.Sprintf("%s/sinks/%s", server.URL, tc.id),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			require.Nil(t, err, "%s: unexpected error: %s", desc, err)
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 
@@ -312,169 +310,145 @@ func TestListSinks(t *testing.T) {
 
 	sinkURL := fmt.Sprintf("%s/sinks", server.URL)
 
-	cases := []struct {
-		desc   string
+	cases := map[string]struct {
 		auth   string
 		status int
 		url    string
 		res    []sinks.Sink
 	}{
-		{
-			desc:   "get a list of sinks",
+		"get a list of sinks": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 0, 5),
 			res:    data[0:5],
 		},
-		{
-			desc:   "get a list of sinks with empty token",
+		"get a list of sinks with empty token": {
 			auth:   "",
 			status: http.StatusUnauthorized,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 0, 1),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks with invalid token",
+		"get a list of sinks with invalid token": {
 			auth:   invalidToken,
 			status: http.StatusUnauthorized,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 0, 1),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks ordered by name descendent",
+		"get a list of sinks ordered by name descendent": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=desc", sinkURL, 0, 5),
 			res:    data[0:5],
 		},
-		{
-			desc:   "get a list of sinks ordered by name ascendent",
+		"get a list of sinks ordered by name ascendent": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=asc", sinkURL, 0, 5),
 			res:    data[0:5],
 		},
-		{
-			desc:   "get a list of sinks with invalid order",
+		"get a list of sinks with invalid order": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=wrong", sinkURL, 0, 5),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks with invalid dir",
+		"get a list of sinks with invalid dir": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=wrong", sinkURL, 0, 5),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks with negative offset",
+		"get a list of sinks with negative offset": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, -1, 5),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks with negative limit",
+		"get a list of sinks with negative limit": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 1, -5),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks with offset 1 and zero limit",
+		"get a list of sinks with offset 1 and zero limit": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 1, 0),
 			res:    data[1:8],
 		},
-		{
-			desc:   "get a list of sinks without offset",
+		"get a list of sinks without offset": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?limit=%d", sinkURL, 5),
 			res:    data[0:5],
 		},
-		{
-			desc:   "get a list of sinks without limit",
+		"get a list of sinks without limit": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d", sinkURL, 1),
 			res:    data[1:11],
 		},
-		{
-			desc:   "get a list of sinks with redundant query params",
+		"get a list of sinks with redundant query params": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&value=something", sinkURL, 0, 5),
 			res:    data[0:5],
 		},
-		{
-			desc:   "get a list of sinks with limit greater than max",
+		"get a list of sinks with limit greater than max": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 0, 110),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks with default URL",
+		"get a list of sinks with default URL": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s%s", sinkURL, ""),
 			res:    data[0:10],
 		},
-		{
-			desc:   "get a list of sinks with invalid number of params",
+		"get a list of sinks with invalid number of params": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s%s", sinkURL, "?offset=4&limit=4&limit=5&offset=5"),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks with invalid offset",
+		"get a list of sinks with invalid offset": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s%s", sinkURL, "?offset=e&limit=5"),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks with invalid limit",
+		"get a list of sinks with invalid limit": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s%s", sinkURL, "?offset=5&limit=e"),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks filtering with invalid name",
+		"get a list of sinks filtering with invalid name": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&name=%s", sinkURL, 0, 5, invalidName),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks sorted by name ascendent",
+		"get a list of sinks sorted by name ascendent": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=asc", sinkURL, 0, 5),
 			res:    data[0:5],
 		},
-		{
-			desc:   "get a list of sinks sorted by name descendent",
+		"get a list of sinks sorted by name descendent": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=desc", sinkURL, 0, 5),
 			res:    data[0:5],
 		},
-		{
-			desc:   "get a list of sinks sorted with invalid order",
+		"get a list of sinks sorted with invalid order": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=wrong&dir=desc", sinkURL, 0, 5),
 			res:    nil,
 		},
-		{
-			desc:   "get a list of sinks sorted with invalid order",
+		"get a list of sinks sorted with invalid direction": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=wrong", sinkURL, 0, 5),
@@ -482,17 +456,19 @@ func TestListSinks(t *testing.T) {
 		},
 	}
 
-	for _, sinkCase := range cases {
-		req := testRequest{
-			client: server.Client(),
-			method: http.MethodGet,
-			url:    sinkCase.url,
-			token:  sinkCase.auth,
-		}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: server.Client(),
+				method: http.MethodGet,
+				url:    tc.url,
+				token:  tc.auth,
+			}
 
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d, got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d, got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 
@@ -550,19 +526,21 @@ func TestViewBackend(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client: server.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/features/sinks/%s", server.URL, tc.id),
-			token:  tc.auth,
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
-		body, err := ioutil.ReadAll(res.Body)
-		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
-		data := strings.Trim(string(body), "\n")
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
-		assert.Equal(t, tc.res, data, fmt.Sprintf("%s: expected body %s got %s", desc, tc.res, data))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/features/sinks/%s", server.URL, tc.id),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			body, err := ioutil.ReadAll(res.Body)
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			data := strings.Trim(string(body), "\n")
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+			assert.Equal(t, tc.res, data, fmt.Sprintf("%s: expected body %s got %s", desc, tc.res, data))
+		})
 	}
 
 }
@@ -611,19 +589,21 @@ func TestViewBackends(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client: server.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/features/sinks", server.URL),
-			token:  tc.auth,
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
-		body, err := ioutil.ReadAll(res.Body)
-		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
-		data := strings.Trim(string(body), "\n")
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
-		assert.Equal(t, tc.res, data, fmt.Sprintf("%s: expected body %s got %s", desc, tc.res, data))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/features/sinks", server.URL),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			body, err := ioutil.ReadAll(res.Body)
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			data := strings.Trim(string(body), "\n")
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+			assert.Equal(t, tc.res, data, fmt.Sprintf("%s: expected body %s got %s", desc, tc.res, data))
+		})
 	}
 
 }
@@ -648,48 +628,42 @@ func TestViewSink(t *testing.T) {
 		TsCreated:   sk.Created,
 	})
 
-	cases := []struct {
-		desc        string
+	cases := map[string]struct {
 		id          string
 		contentType string
 		auth        string
 		status      int
 		res         string
 	}{
-		{
-			desc:        "view existing sink",
+		"view existing sink": {
 			id:          sk.ID,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusOK,
 			res:         data,
 		},
-		{
-			desc:        "view non-existing sink",
+		"view non-existing sink": {
 			id:          "logstash",
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusNotFound,
 			res:         notFoundRes,
 		},
-		{
-			desc:        "view backend by passing invalid token",
+		"view backend by passing invalid token": {
 			id:          sink.ID,
 			contentType: contentType,
 			auth:        "blah",
 			status:      http.StatusUnauthorized,
 			res:         unauthRes,
 		},
-		{
-			desc:        "view backend by passing empty token",
+		"view backend by passing empty token": {
 			id:          sink.ID,
 			contentType: contentType,
 			auth:        "",
 			status:      http.StatusUnauthorized,
 			res:         unauthRes,
 		},
-		{
-			desc:        "view backend by passing invalid id",
+		"view backend by passing invalid id": {
 			id:          "invalid",
 			contentType: contentType,
 			auth:        token,
@@ -698,21 +672,23 @@ func TestViewSink(t *testing.T) {
 		},
 	}
 
-	for _, sinkCase := range cases {
-		req := testRequest{
-			client:      server.Client(),
-			method:      http.MethodGet,
-			contentType: sinkCase.contentType,
-			url:         fmt.Sprintf("%s/sinks/%s", server.URL, sinkCase.id),
-			token:       sinkCase.auth,
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
-		body, err := ioutil.ReadAll(res.Body)
-		assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
-		data := strings.Trim(string(body), "\n")
-		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
-		assert.Equal(t, sinkCase.res, data, fmt.Sprintf("%s: expected body %s got %s", sinkCase.desc, sinkCase.res, data))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      server.Client(),
+				method:      http.MethodGet,
+				contentType: tc.contentType,
+				url:         fmt.Sprintf("%s/sinks/%s", server.URL, tc.id),
+				token:       tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			body, err := ioutil.ReadAll(res.Body)
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			data := strings.Trim(string(body), "\n")
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+			assert.Equal(t, tc.res, data, fmt.Sprintf("%s: expected body %s got %s", desc, tc.res, data))
+		})
 	}
 
 }
@@ -723,47 +699,44 @@ func TestDeleteSink(t *testing.T) {
 	defer server.Close()
 	sk, err := svc.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
-	cases := []struct {
-		desc   string
+	cases := map[string]struct {
 		id     string
 		auth   string
 		status int
 	}{
-		{
-			desc:   "delete existing sink",
+		"delete existing sink": {
 			id:     sk.ID,
 			auth:   token,
 			status: http.StatusNoContent,
 		},
-		{
-			desc:   "delete non-existent sink",
+		"delete non-existent sink": {
 			id:     wrongID.String(),
 			auth:   token,
 			status: http.StatusNoContent,
 		},
-		{
-			desc:   "delete sink with invalid token",
+		"delete sink with invalid token": {
 			id:     sk.ID,
 			auth:   invalidToken,
 			status: http.StatusUnauthorized,
 		},
-		{
-			desc:   "delete sink with empty token",
+		"delete sink with empty token": {
 			id:     sk.ID,
 			auth:   "",
 			status: http.StatusUnauthorized,
 		},
 	}
-	for _, sinkCase := range cases {
-		req := testRequest{
-			client: server.Client(),
-			method: http.MethodDelete,
-			url:    fmt.Sprintf("%s/sinks/%s", server.URL, sinkCase.id),
-			token:  sinkCase.auth,
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", sinkCase.desc, err))
-		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: server.Client(),
+				method: http.MethodDelete,
+				url:    fmt.Sprintf("%s/sinks/%s", server.URL, tc.id),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 
@@ -777,80 +750,70 @@ func TestValidateSink(t *testing.T) {
 	var invalidSinkValueBackend = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"invalidBackend\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    }}"
 	var invalidSinkValueTag = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": \"invalidTag\"}"
 
-	cases := []struct {
-		desc        string
+	cases := map[string]struct {
 		req         string
 		contentType string
 		auth        string
 		status      int
 		location    string
 	}{
-		{
-			desc:        "validate a valid sink",
+		"validate a valid sink": {
 			req:         validJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusOK,
 			location:    "/sinks/validate",
 		},
-		{
-			desc:        "validate an invalid json",
+		"validate an invalid json": {
 			req:         invalidJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/sinks/validate",
 		},
-		{
-			desc:        "validate a sink with a empty token",
+		"validate a sink with a empty token": {
 			req:         validJson,
 			contentType: contentType,
 			auth:        "",
 			status:      http.StatusUnauthorized,
 			location:    "/sinks/validate",
 		},
-		{
-			desc:        "validate a sink with an invalid token",
+		"validate a sink with an invalid token": {
 			req:         validJson,
 			contentType: contentType,
 			auth:        invalidToken,
 			status:      http.StatusUnauthorized,
 			location:    "/sinks/validate",
 		},
-		{
-			desc:        "validate a valid sink without content type",
+		"validate a valid sink without content type": {
 			req:         validJson,
 			contentType: "",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
 			location:    "/sinks/validate",
 		},
-		{
-			desc:        "validate an invalid sink field",
+		"validate an invalid sink field": {
 			req:         invalidSinkField,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/sinks/validate",
 		},
-		{
-			desc:        "validate a sink with invalid name value",
+		"validate a sink with invalid name value": {
 			req:         invalidSinkValueName,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/sinks/validate",
 		},
-		{
-			desc:        "validate a sink with invalid backend value",
+		"validate a sink with invalid backend value": {
 			req:         invalidSinkValueBackend,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/sinks/validate",
 		},
-		{
-			desc:        "validate a sink with invalid tag value",
+		"validate a sink with invalid tag value": {
 			req:         invalidSinkValueTag,
 			contentType: contentType,
 			auth:        token,
@@ -859,17 +822,19 @@ func TestValidateSink(t *testing.T) {
 		},
 	}
 
-	for _, sinkCase := range cases {
-		req := testRequest{
-			client:      server.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/sinks/validate", server.URL),
-			contentType: sinkCase.contentType,
-			token:       sinkCase.auth,
-			body:        strings.NewReader(sinkCase.req),
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
-		assert.Equal(t, sinkCase.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", sinkCase.desc, sinkCase.status, res.StatusCode))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/sinks/validate", server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }

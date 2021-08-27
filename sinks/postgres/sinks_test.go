@@ -53,26 +53,25 @@ func TestSinkSave(t *testing.T) {
 		Tags:        map[string]string{"cloud": "aws"},
 	}
 
-	cases := []struct {
-		desc string
+	cases := map[string]struct {
 		sink sinks.Sink
 		err  error
 	}{
-		{
-			desc: "create a new sink",
+		"create a new sink": {
 			sink: sink,
 			err:  nil,
 		},
-		{
-			desc: "create a sink that already exist",
+		"create a sink that already exist": {
 			sink: sink,
 			err:  errors.ErrConflict,
 		},
 	}
 
-	for _, tc := range cases {
-		_, err := sinkRepo.Save(context.Background(), tc.sink)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", tc.desc, tc.err, err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := sinkRepo.Save(context.Background(), tc.sink)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
 	}
 
 }
@@ -140,8 +139,10 @@ func TestSinkUpdate(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := sinkRepo.Update(context.Background(), tc.sink)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			err := sinkRepo.Update(context.Background(), tc.sink)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
 	}
 
 }
@@ -187,8 +188,10 @@ func TestSinkRetrieve(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		_, err := sinkRepo.RetrieveById(context.Background(), tc.sinkID)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			_, err := sinkRepo.RetrieveById(context.Background(), tc.sinkID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
 	}
 
 }
@@ -289,15 +292,17 @@ func TestMultiSinkRetrieval(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		page, err := sinkRepo.RetrieveAll(context.Background(), tc.owner, tc.pageMetadata)
-		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
-		size := uint64(len(page.Sinks))
-		assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
-		assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.pageMetadata.Total, page.Total))
+		t.Run(desc, func(t *testing.T) {
+			page, err := sinkRepo.RetrieveAll(context.Background(), tc.owner, tc.pageMetadata)
+			require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+			size := uint64(len(page.Sinks))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
+			assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.pageMetadata.Total, page.Total))
 
-		if size > 0 {
-			testSortSinks(t, tc.pageMetadata, page.Sinks)
-		}
+			if size > 0 {
+				testSortSinks(t, tc.pageMetadata, page.Sinks)
+			}
+		})
 	}
 }
 
@@ -341,11 +346,13 @@ func TestSinkRemoval(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := sinkRepo.Remove(context.Background(), tc.sink.MFOwnerID, tc.sink.ID)
-		require.Nil(t, err, fmt.Sprintf("%s: failed to remove sink due to: %s", desc, err))
+		t.Run(desc, func(t *testing.T) {
+			err := sinkRepo.Remove(context.Background(), tc.sink.MFOwnerID, tc.sink.ID)
+			require.Nil(t, err, fmt.Sprintf("%s: failed to remove sink due to: %s", desc, err))
 
-		_, err = sinkRepo.RetrieveById(context.Background(), tc.sink.ID)
-		require.True(t, errors.Contains(err, sinks.ErrNotFound), fmt.Sprintf("%s: expected %s got %s", desc, sinks.ErrNotFound, err))
+			_, err = sinkRepo.RetrieveById(context.Background(), tc.sink.ID)
+			require.True(t, errors.Contains(err, sinks.ErrNotFound), fmt.Sprintf("%s: expected %s got %s", desc, sinks.ErrNotFound, err))
+		})
 	}
 }
 

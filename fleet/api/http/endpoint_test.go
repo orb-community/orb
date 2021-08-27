@@ -197,17 +197,19 @@ func TestCreateAgentGroup(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/agent_groups", cli.server.URL),
-			contentType: tc.contentType,
-			token:       tc.auth,
-			body:        strings.NewReader(tc.req),
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/agent_groups", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 
 }
@@ -247,15 +249,17 @@ func TestViewAgentGroup(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client: cli.server.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
-			token:  tc.auth,
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 
 }
@@ -413,20 +417,22 @@ func TestListAgentGroup(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodGet,
-			url:         fmt.Sprintf(fmt.Sprintf("%s/agent_groups%s", cli.server.URL, tc.url)),
-			contentType: contentType,
-			token:       tc.auth,
-		}
-		res, err := req.make()
-		require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
-		var body agentGroupsPageRes
-		json.NewDecoder(res.Body).Decode(&body)
-		total := uint64(len(body.AgentGroups))
-		assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
-		assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodGet,
+				url:         fmt.Sprintf(fmt.Sprintf("%s/agent_groups%s", cli.server.URL, tc.url)),
+				contentType: contentType,
+				token:       tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var body agentGroupsPageRes
+			json.NewDecoder(res.Body).Decode(&body)
+			total := uint64(len(body.AgentGroups))
+			assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+			assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		})
 	}
 
 }
@@ -530,17 +536,19 @@ func TestUpdateAgentGroup(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodPut,
-			url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
-			contentType: tc.contentType,
-			token:       tc.auth,
-			body:        strings.NewReader(tc.req),
-		}
-		res, err := req.make()
-		require.Nil(t, err, "%s: unexpected error: %s", desc, err)
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPut,
+				url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			require.Nil(t, err, "%s: unexpected error: %s", desc, err)
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 
@@ -578,16 +586,18 @@ func TestDeleteAgentGroup(t *testing.T) {
 		},
 	}
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodDelete,
-			contentType: contentType,
-			url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
-			token:       tc.auth,
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodDelete,
+				contentType: contentType,
+				url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
+				token:       tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 
@@ -667,17 +677,19 @@ func TestValidateAgentGroup(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/agent_groups/validate", cli.server.URL),
-			contentType: tc.contentType,
-			token:       tc.auth,
-			body:        strings.NewReader(tc.req),
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/agent_groups/validate", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 
 }
@@ -716,15 +728,17 @@ func TestViewAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client: cli.server.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
-			token:  tc.auth,
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 
@@ -885,20 +899,22 @@ func TestListAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodGet,
-			url:         fmt.Sprintf(fmt.Sprintf("%s/agents%s", cli.server.URL, tc.url)),
-			contentType: contentType,
-			token:       tc.auth,
-		}
-		res, err := req.make()
-		require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
-		var body agentsPageRes
-		json.NewDecoder(res.Body).Decode(&body)
-		total := uint64(len(body.Agents))
-		assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
-		assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodGet,
+				url:         fmt.Sprintf(fmt.Sprintf("%s/agents%s", cli.server.URL, tc.url)),
+				contentType: contentType,
+				token:       tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var body agentsPageRes
+			json.NewDecoder(res.Body).Decode(&body)
+			total := uint64(len(body.Agents))
+			assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+			assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		})
 	}
 
 }
@@ -1001,17 +1017,19 @@ func TestUpdateAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodPut,
-			url:         fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
-			contentType: tc.contentType,
-			token:       tc.auth,
-			body:        strings.NewReader(tc.req),
-		}
-		res, err := req.make()
-		require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPut,
+				url:         fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 

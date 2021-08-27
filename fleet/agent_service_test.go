@@ -70,8 +70,10 @@ func TestViewAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		_, err := fleetService.ViewAgentByID(context.Background(), tc.token, tc.id)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.ViewAgentByID(context.Background(), tc.token, tc.id)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
 	}
 }
 
@@ -173,11 +175,13 @@ func TestListAgents(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		page, err := fleetService.ListAgents(context.Background(), tc.token, tc.pm)
-		size := uint64(len(page.Agents))
-		assert.Equal(t, size, tc.size, fmt.Sprintf("%s: expected %d got %d", desc, tc.size, size))
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
-		testSortAgents(t, tc.pm, page.Agents)
+		t.Run(desc, func(t *testing.T) {
+			page, err := fleetService.ListAgents(context.Background(), tc.token, tc.pm)
+			size := uint64(len(page.Agents))
+			assert.Equal(t, size, tc.size, fmt.Sprintf("%s: expected %d got %d", desc, tc.size, size))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+			testSortAgents(t, tc.pm, page.Agents)
+		})
 
 	}
 }
@@ -215,8 +219,10 @@ func TestUpdateAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		_, err := fleetService.EditAgent(context.Background(), tc.token, tc.group)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.EditAgent(context.Background(), tc.token, tc.group)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
+		})
 	}
 }
 

@@ -43,26 +43,25 @@ func TestPolicySave(t *testing.T) {
 		OrbTags:   types.Tags{"testkey": "testvalue"},
 	}
 
-	cases := []struct {
-		desc   string
+	cases := map[string]struct {
 		policy policies.Policy
 		err    error
 	}{
-		{
-			desc:   "create new policy",
+		"create new policy": {
 			policy: policy,
 			err:    nil,
 		},
-		{
-			desc:   "create policy that already exist",
+		"create policy that already exist": {
 			policy: policy,
 			err:    errors.ErrConflict,
 		},
 	}
 
-	for _, tc := range cases {
-		_, err := repo.SavePolicy(context.Background(), tc.policy)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", tc.desc, tc.err, err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := repo.SavePolicy(context.Background(), tc.policy)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
+		})
 	}
 }
 
@@ -105,12 +104,14 @@ func TestAgentPolicyDataRetrieve(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		tcp, err := repo.RetrievePolicyByID(context.Background(), tc.policyID, tc.ownerID)
-		if err == nil {
-			assert.Equal(t, policy.Name, tcp.Name, fmt.Sprintf("%s: unexpected name change expected %s got %s", desc, policy.Name, tcp.Name))
-			assert.Equal(t, policy.Policy, tcp.Policy, fmt.Sprintf("%s: expected %s got %s\n", desc, policy.Policy, tcp.Policy))
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			tcp, err := repo.RetrievePolicyByID(context.Background(), tc.policyID, tc.ownerID)
+			if err == nil {
+				assert.Equal(t, policy.Name, tcp.Name, fmt.Sprintf("%s: unexpected name change expected %s got %s", desc, policy.Name, tcp.Name))
+				assert.Equal(t, policy.Policy, tcp.Policy, fmt.Sprintf("%s: expected %s got %s\n", desc, policy.Policy, tcp.Policy))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
 	}
 }
 
@@ -175,13 +176,15 @@ func TestAgentPoliciesRetrieveByGroup(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		plist, err := repo.RetrievePoliciesByGroupID(context.Background(), tc.groupID, tc.ownerID)
-		if err == nil {
-			assert.Equal(t, tc.results, len(plist), fmt.Sprintf("%s: expected %d got %d\n", desc, tc.results, len(plist)))
-			if tc.results > 0 {
-				assert.Equal(t, policy.Name.String(), plist[0].Name.String(), fmt.Sprintf("%s: expected %s got %s\n", desc, policy.Name.String(), plist[0].Name.String()))
+		t.Run(desc, func(t *testing.T) {
+			plist, err := repo.RetrievePoliciesByGroupID(context.Background(), tc.groupID, tc.ownerID)
+			if err == nil {
+				assert.Equal(t, tc.results, len(plist), fmt.Sprintf("%s: expected %d got %d\n", desc, tc.results, len(plist)))
+				if tc.results > 0 {
+					assert.Equal(t, policy.Name.String(), plist[0].Name.String(), fmt.Sprintf("%s: expected %s got %s\n", desc, policy.Name.String(), plist[0].Name.String()))
+				}
 			}
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
 	}
 }
