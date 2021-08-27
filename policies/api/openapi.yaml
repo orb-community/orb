@@ -255,13 +255,17 @@ components:
         description:
           type: string
           description: User description of this Policy
-          example:
+          example: A policy example
         tags:
           type: object
           description: User defined key/values for organization and searching
           example:
             region: eu
             node_type: dns
+        policy:
+          type: object
+          description: Agent backend specific policy data
+          example:
 
     PolicyCreateReqSchema:
       type: object
@@ -287,11 +291,14 @@ components:
           example:
             region: eu
             node_type: dns
-
         backend:
           type: string
           example: pktvisor
           description: Agent backend this policy is for. Cannot change once created.
+        policy:
+          type: object
+          example:
+          description: Agent backend specific policy data.
     PolicyPageSchema:
       type: object
       properties:
@@ -343,6 +350,7 @@ components:
       properties:
         id:
           type: string
+          readOnly: true
           format: uuid
           description: Unique identifier (UUID)
         name:
@@ -352,7 +360,7 @@ components:
         description:
           type: string
           description: User description of this Policy
-          example:
+          example: An example policy
         tags:
           type: object
           description: User defined key/values for organization and searching
@@ -365,16 +373,17 @@ components:
           description: The policy backend to use. Cannot change once created.
         ts_created:
           type: string
+          readOnly: true
           format: date-time
           description: Timestamp of creation
         version:
           type: integer
           readOnly: true
-          example:
+          example: 0
           description: A monotonically increasing counter starting at 0 on creation and increasing with each policy update.
         policy:
           type: object
-          example: pktvisor
+          example:
           description: Agent backend specific policy data.
     PolicyBackendResSchema:
       type: object
