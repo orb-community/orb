@@ -6,6 +6,8 @@ servers:
   - url: 'http://localhost:8202'
 paths:
   /policies/agent:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
     get:
       summary: 'List Agent Policies'
       operationId: listPolicies
@@ -19,64 +21,114 @@ paths:
         - $ref: "#/components/parameters/Direction"
       responses:
         '200':
-          description: 'One page of Policy details'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PolicyBackendResSchema'
+          $ref: "#/components/responses/PoliciesPageRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'      
     post:
-      summary: 'Create new Policy'
+      summary: 'Create new Agent Policy'
       operationId: createPolicy
       tags:
         - policy
       requestBody:
+        $ref: "#/components/requestBodies/PolicyCreateReq"
+      responses:
+        '201':
+          $ref: "#/components/requestBodies/PolicyObjRes"
+        '400':
+          description: Failed due to malformed JSON
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Mising or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /policies/agent/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/PolicyId"
+    get:
+      summary: 'Get an existing Agent Policy'
+      operationId: readPolicy
+      tags:
+        - policy
+      responses:
+        '201':
+          $ref: "#/components/responses/PolicyObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    put:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: 'Update an existing Agent Policy'
+      operationId: updatePolicy
+      tags:
+        - policy
+      requestBody:
         required: true
-        content:
-            application/json:
-                schema:
-                    type: object
-                    properties:
-                        name:
-                            type: string
-                        backend:
-                            type: string
-                        policy:
-                            type: object
-                        format:
-                            type: string
-                        policy_data:
-                            type: string
+        $ref: "#/components/requestBodies/PolicyUpdateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/PolicyObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '422':
+          description: Databse can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: "Delete an existing Agent Policy"
+      operationId: deletePolicy
+      tags:
+        - policy
+      responses:
+        '204':
+          description: Policy removed.
+        '400':
+          description: Failed due to malformed Policy ID.
+        '401':
+          description: Missing or invalid access token provided.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /policies/agent/validate:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    post:
+      summary: 'Validate an Agent Policy configuration without saving it'
+      operationId: validatePolicy
+      tags:
+        - policy
+      requestBody:
+        $ref: "#/components/requestBodies/PolicyCreateReq"
       responses:
         '200':
-          description: 'Policy add details'
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                    id:
-                        type: string
-                        format: uuid
-                    name:
-                        type: string
-                    backend:
-                        type: string
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: "#/components/responses/PolicyValidateObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '415':
+          description: Missing or invalid content type.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+
 components:
   requestBodies:
     PolicyCreateReq:
@@ -208,6 +260,8 @@ components:
           type: object
           description: User defined key/values for organization and searching
           example:
+            region: eu
+            node_type: dns
 
     PolicyCreateReqSchema:
       type: object
@@ -218,7 +272,6 @@ components:
         - version
         - policy
         - tags
-        - config
       properties:
         name:
           type: string
@@ -232,6 +285,8 @@ components:
           type: object
           description: User defined key/values for organization and searching
           example:
+            region: eu
+            node_type: dns
 
         backend:
           type: string
@@ -302,6 +357,8 @@ components:
           type: object
           description: User defined key/values for organization and searching
           example:
+            region: eu
+            node_type: dns
         backend:
           type: string
           example: pktvisor
