@@ -116,6 +116,8 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
 
     this.updateTagMatches();
 
+    this.updateMatchingAgents();
+
     this.agentGroupsService.clean();
   }
 
@@ -173,6 +175,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
         key.reset('');
         value.reset('');
         this.updateTagMatches();
+        this.updateMatchingAgents();
       }
     } else {
       // TODO remove this else clause and error
@@ -187,6 +190,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     if (indexToRemove >= 0) {
       tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
       this.updateTagMatches();
+      this.updateMatchingAgents();
     }
   }
 

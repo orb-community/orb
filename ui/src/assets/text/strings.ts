@@ -146,12 +146,12 @@ export const STRINGS = {
     },
     // details modal
     details: {
-      header: 'Agent Details',
+      header: 'Agent Group Details',
       close: 'Close',
     },
     // dashboard page
     list: {
-      header: 'All Agents',
+      header: 'All Agents Groups',
       none: 'There are no agents listed.',
       agentGroup: 'agent',
       total: ['You have', 'total.'],
