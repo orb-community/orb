@@ -59,6 +59,8 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
 
   isLoading = false;
 
+  agentGroupID;
+
   constructor(
     private agentGroupsService: AgentGroupsService,
     private agentsService: AgentsService,
@@ -68,13 +70,12 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   ) {
     this.agentsService.clean();
     this.agentGroup = this.router.getCurrentNavigation().extras.state?.agentGroup as AgentGroup || null;
-    this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
-    const id = this.route.snapshot.paramMap.get('id');
-    !!id && this.agentGroupsService.getAgentGroupById(id).subscribe(resp => {
+    this.agentGroupID = this.route.snapshot.paramMap.get('id');
+    !!this.agentGroupID && this.agentGroupsService.getAgentGroupById(this.agentGroupID).subscribe(resp => {
       this.agentGroup = resp.agentGroup;
       this.isLoading = false;
     });
-    this.isEdit = !!id;
+    this.isEdit = !!this.agentGroupID && this.router.getCurrentNavigation().extras.state?.edit as boolean;
     this.isLoading = this.isEdit;
   }
 
@@ -246,7 +247,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     // // remove line bellow
     // console.log(payload)
     if (this.isEdit) {
-      this.agentGroupsService.editAgentGroup(this.agentGroup).subscribe(resp => this.goBack());
+      this.agentGroupsService.editAgentGroup({...payload, id: this.agentGroupID}).subscribe(resp => this.goBack());
     } else {
       this.agentGroupsService.addAgentGroup(payload).subscribe(() => this.goBack());
     }
