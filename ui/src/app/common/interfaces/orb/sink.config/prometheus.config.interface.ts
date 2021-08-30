@@ -1,16 +1,28 @@
 /**
  * Prometheus Sink Config Interface
- * for more details:
- * /src/cmd/prom-sink/main.go
- * https://github.com/ns1labs/orb/wiki/Architecture:-Sinks
+ *
+ * [Prometheus Sink]{@link https://github.com/ns1labs/orb/blob/develop/cmd/prom-sink/main.go}
+ * [Sinks Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Sinks}
  */
 import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
 
+/**
+ * @interface PrometheusConfig
+ */
 export interface PrometheusConfig extends SinkConfig<string> {
-  /** Remote Host Name: string */
+  name: 'Prometheus';
+  /**
+   *  Remote Host URL {string}
+   */
   remote_host?: string;
-  /** Username: string */
+
+  /**
+   *  Username|Email(?) {string}
+   */
   username?: string;
-  /** Password: string */
+
+  /**
+   *  Password {string}
+   */
   password?: string;
 }

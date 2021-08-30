@@ -1,44 +1,73 @@
 /**
  * Sink Data Model Interface
  *
- * https://github.com/ns1labs/orb/wiki/Architecture:-Sinks
+ * [Sinks Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Sinks}
  */
 
 import { PrometheusConfig } from 'app/common/interfaces/orb/sink.config/prometheus.config.interface';
-import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
+import { AWSConfig } from 'app/common/interfaces/orb/sink.config/aws.config.interface';
 
+/**
+ * @interface Sink
+ */
 export interface Sink {
-  /** id: UUIDv4 (read only) */
-  id?: string;
-  /** Name: string [a-zA-Z_:][a-zA-Z0-9_]* */
-  name?: string;
-  /** Description: string */
-  description?: string;
   /**
-   * ORB Tags: orb_tags string<JSON>
-   * simple key/values - no recursive objects
+   *  ID {string} UUIDv4 (read only)
    */
-  tags?: { [propName: string]: string };
-  /** Status: string ['active'|'error'] */
-  status?: string;
-  /** Error Message: string contains error message if status is 'error' (read only) */
-  error?: string;
+  id?: string;
+
   /**
-   * Backend Type: string (set once)
+   * Name {string} [a-zA-Z_:][a-zA-Z0-9_]*
+   */
+  name?: string;
+
+  /**
+   * Description {string}
+   */
+  description?: string;
+
+  /**
+   * A timestamp of creation {string}
+   */
+  ts_created?: string;
+
+  /**
+   * Tags {{[propName: string]: string}}
+   */
+  tags?: any;
+
+  /**
+   *  Status: {string} = 'active'|'error'
+   */
+  status?: string;
+
+  /**
+   * Error Message: {string}
+   * Contains error message if status is 'error' (read only)
+   */
+  error?: string;
+
+  /**
+   * Backend Type: {string}
    * Match a backend from /features/sinks.
    * Cannot change once created (read only)
    */
   backend?: string;
-  /** config: object containing sink specific info */
-  config?: SinkConfig<string>;
-  /** ts_created: UUIDv4 (read only) */
-  ts_created?: string;
+
+  /**
+   * Sink Config {{[propName: string]: string}}
+   * config: object containing sink specific info
+   */
+  config?: SinkTypes;
 }
+
+export type SinkTypes = PrometheusConfig|AWSConfig;
 
 /**
  * Prometheus Sink Type
+ * @type PromSink
  */
-export type PromSink = Sink | {
+export type PromSink = Sink|{
   config?: PrometheusConfig;
 };
 
