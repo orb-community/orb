@@ -182,12 +182,17 @@ func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		res := agentRes{
-			Name:      saved.Name.String(),
-			ID:        saved.MFThingID,
-			State:     saved.State.String(),
-			Key:       saved.MFKeyID,
-			ChannelID: saved.MFChannelID,
-			created:   true,
+			Name:          saved.Name.String(),
+			ID:            saved.MFThingID,
+			State:         saved.State.String(),
+			Key:           saved.MFKeyID,
+			OrbTags:       saved.OrbTags,
+			AgentTags:     saved.AgentTags,
+			AgentMetadata: saved.AgentMetadata,
+			LastHBData:    saved.LastHBData,
+			TsCreated:     saved.Created,
+			created:       true,
+			ChannelID:     saved.MFChannelID,
 		}
 
 		return res, nil
@@ -335,6 +340,35 @@ func editAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		return res, nil
 
+	}
+}
+
+func validateAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(c context.Context, request interface{}) (interface{}, error) {
+		req := request.(addAgentReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		agent := fleet.Agent{
+			Name:    nID,
+			OrbTags: req.OrbTags,
+		}
+		validated, err := svc.ValidateAgent(c, req.token, agent)
+		if err != nil {
+			return nil, err
+		}
+
+		res := validateAgentRes{
+			Name:    validated.Name.String(),
+			OrbTags: validated.OrbTags,
+		}
+		return res, nil
 	}
 }
 
