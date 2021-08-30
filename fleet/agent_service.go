@@ -133,6 +133,17 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 	return res, nil
 }
 
+func (svc fleetService) ValidateAgent(ctx context.Context, token string, a Agent) (Agent, error) {
+	mfOwnerID, err := svc.identify(token)
+	if err != nil {
+		return Agent{}, err
+	}
+
+	a.MFOwnerID = mfOwnerID
+
+	return a, nil
+}
+
 func (svc fleetService) RemoveAgent(ctx context.Context, token, thingID string) error {
 	ownerID, err := svc.identify(token)
 	if err != nil {
@@ -146,10 +157,12 @@ func (svc fleetService) RemoveAgent(ctx context.Context, token, thingID string) 
 
 	if errT := svc.mfsdk.DeleteThing(res.MFThingID, token); errT != nil {
 		err = errors.Wrap(err, errT)
+		svc.logger.Error("failed to delete thing", zap.Error(errT))
 	}
 
 	if errT := svc.mfsdk.DeleteChannel(res.MFChannelID, token); errT != nil {
 		err = errors.Wrap(err, errT)
+		svc.logger.Error("failed to delete channel", zap.Error(errT))
 	}
 
 	err = svc.agentRepo.Delete(ctx, ownerID, thingID)

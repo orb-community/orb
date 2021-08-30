@@ -94,6 +94,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeAgentUpdate,
 		types.EncodeResponse,
 		opts...))
+	r.Post("/agents/validate", kithttp.NewServer(
+		kitot.TraceServer(tracer, "validate_agent")(validateAgentEndpoint(svc)),
+		decodeAddAgent,
+		types.EncodeResponse,
+		opts...))
 	r.Delete("/agents/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "delete_agent")(removeAgentEndpoint(svc)),
 		decodeView,
