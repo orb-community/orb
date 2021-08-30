@@ -29,6 +29,7 @@ export const MENU: NbMenuItem[] = [
   {
     title: 'Settings',
     icon: 'settings-2-outline',
+    expanded: true,
     children: [
       {
         title: 'Sink Management',
@@ -36,7 +37,7 @@ export const MENU: NbMenuItem[] = [
       },
       {
         title: 'Agent Groups',
-        link: '/pages/agents',
+        link: '/pages/agent-groups',
       },
       {
         title: 'Policy Management',

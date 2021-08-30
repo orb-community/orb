@@ -1,8 +1,15 @@
 /**
  * Base Sink Config Interface
- * for more details:
- * https://github.com/ns1labs/orb/wiki/Architecture:-Sinks
+ *
+ * [Sinks Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Sinks}
+ */
+
+/**
+ * @interface SinkConfig
  */
 export interface SinkConfig<T> {
+  /**
+   * propName {string}: <T>value
+   */
   [propName: string]: T;
 }

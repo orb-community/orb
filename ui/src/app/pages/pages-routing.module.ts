@@ -1,24 +1,23 @@
-import {RouterModule, Routes} from '@angular/router';
-import {NgModule} from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { NgModule } from '@angular/core';
 
-import {PagesComponent} from './pages.component';
-import {DashboardComponent} from './dashboard/dashboard.component';
+import { PagesComponent } from './pages.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
 import { ProfileComponent } from './profile/profile.component';
 import { environment } from 'environments/environment';
 
 // ORB
 // Agent Group Management
-import {AgentsComponent} from 'app/pages/agents/agents.component';
+import { AgentGroupsComponent } from 'app/pages/agent-groups/agent.groups.component';
 // Dataset Explorer
-import {DatasetsComponent} from 'app/pages/datasets/datasets.component';
+import { DatasetsComponent } from 'app/pages/datasets/datasets.component';
 // Fleet Management
-import {FleetsComponent} from 'app/pages/fleets/fleets.component';
+import { FleetsComponent } from 'app/pages/fleets/fleets.component';
 // Sink Management
-import {SinksComponent} from 'app/pages/sinks/sinks.component';
-import {SinksAddComponent} from 'app/pages/sinks/add/sinks.add.component';
-import { AgentAddComponent } from 'app/pages/agents/add/agent.add.component';
-import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
-import {ShowcaseComponent} from 'app/pages/showcase/showcase.component';
+import { SinksComponent } from 'app/pages/sinks/sinks.component';
+import { SinkAddComponent } from 'app/pages/sinks/add/sink.add.component';
+import { AgentGroupAddComponent } from 'app/pages/agent-groups/add/agent.group.add.component';
+import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 
 const children = [
   {
@@ -39,18 +38,18 @@ const children = [
     component: ProfileComponent,
   },
   {
-    path: 'agents',
-    component: AgentsComponent,
+    path: 'agent-groups',
+    component: AgentGroupsComponent,
     data: {breadcrumb: 'Agent Groups'},
   },
   {
-    path: 'agents/add',
-    component: AgentAddComponent,
+    path: 'agent-group/add',
+    component: AgentGroupAddComponent,
     data: {breadcrumb: 'New'},
   },
   {
-    path: 'agents/edit',
-    component: AgentDetailsComponent,
+    path: 'agent-group/edit/:id',
+    component: AgentGroupAddComponent,
     data: {breadcrumb: 'Edit'},
   },
   {
@@ -67,13 +66,13 @@ const children = [
     data: {breadcrumb: 'Sink Management'},
   },
   {
-    path: 'sinks/add',
-    component: SinksAddComponent,
+    path: 'sink/add',
+    component: SinkAddComponent,
     data: {breadcrumb: 'New'},
   },
   {
-    path: 'sinks/edit',
-    component: SinksAddComponent,
+    path: 'sink/edit/:id',
+    component: SinkAddComponent,
     data: {breadcrumb: 'Edit'},
   },
 ];
