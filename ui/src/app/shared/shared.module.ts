@@ -22,6 +22,8 @@ import { MessageValuePipe } from './pipes/message-value.pipe';
 import { ToMillisecsPipe } from './pipes/time.pipe';
 import { TableComponent } from './components/table/table.component';
 import { PaginationComponent } from './components/pagination/pagination.component';
+import { TagChipPipe } from 'app/shared/pipes/tagchip.pipe';
+import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.directive';
 
 @NgModule({
   imports: [
@@ -46,6 +48,8 @@ import { PaginationComponent } from './components/pagination/pagination.componen
     ToMillisecsPipe,
     TableComponent,
     PaginationComponent,
+    TagChipPipe,
+    ValidTagInputDirective,
   ],
   exports: [
     ThemeModule,
@@ -57,10 +61,14 @@ import { PaginationComponent } from './components/pagination/pagination.componen
     MessageMonitorComponent,
     TableComponent,
     PaginationComponent,
+    TagChipPipe,
+    ValidTagInputDirective,
   ],
   providers: [
     MessageValuePipe,
     ToMillisecsPipe,
+    TagChipPipe,
+    ValidTagInputDirective,
   ],
 })
 

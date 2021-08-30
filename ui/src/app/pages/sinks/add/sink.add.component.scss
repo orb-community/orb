@@ -1,0 +1,116 @@
+nb-card {
+  width: 400px;
+}
+
+button {
+  margin: 10px;
+}
+
+textarea {
+  width: 100%;
+  height: 100%;
+}
+
+nb-card-footer {
+  text-align: center;
+}
+
+::ng-deep {
+  .header {
+    align-items: flex-end !important;
+    margin-right: 10px !important;
+    height: calc(100vh - 337px) !important;
+  }
+
+  .label-index {
+    background-color: #969fb9;
+    transition: box-shadow 0.3s 0s ease-in-out;
+    color: #969fb9;
+    border: none !important;
+    //box-shadow: 0 0 8px -2px #ffffff;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDExIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0wLjUgMy45OTY1MUw0LjE4NjgyIDcuNjgzMzNMMTAuODIzMSAxLjA0NzA2TDkuNzgzNDEgMEw0LjE4NjgyIDUuNTk2NTlMMS41Mzk2OCAyLjk1NjgzTDAuNSAzLjk5NjUxWiIgZmlsbD0iIzE1MWEzMCIvPgo8L3N2Zz4K');
+    background-size: 20px 14px;
+    background-repeat: no-repeat;
+    background-position: center;
+    //background-blend-mode: exclusion;
+    z-index: 3;
+    :first-child {
+      visibility: hidden;
+    }
+  }
+
+  .step {
+    flex-direction: row-reverse !important;
+    align-items: start !important;
+  }
+
+  .step.selected {
+    -webkit-text-stroke: rgba(255, 255, 255, 0.15);
+    -webkit-text-stroke-width: 1px;
+    text-shadow: 0 0 20px #ffffff8f;
+
+    & > .label-index {
+        box-shadow: 0 0 12px 1px #df316f;
+        background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDExIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0wLjUgMy45OTY1MUw0LjE4NjgyIDcuNjgzMzNMMTAuODIzMSAxLjA0NzA2TDkuNzgzNDEgMEw0LjE4NjgyIDUuNTk2NTlMMS41Mzk2OCAyLjk1NjgzTDAuNSAzLjk5NjUxWiIgZmlsbD0iI2ZmZiIvPgo8L3N2Zz4K');
+        background-color: #df316f;
+    }
+  }
+
+  .step-content {
+    width: 500px !important;
+  }
+
+  .connector {
+    width: 1px !important;
+    transform: translateX(1px);
+
+    &::after {
+      content: '';
+      height: 40px;
+      transform: translateY(-40px);
+      width: 1px;
+      border-left: solid 1px #969fb9b3;
+      position: absolute;
+      z-index: 1;
+    }
+  }
+
+  .connector.connector-past {
+    transition: background 0.5s 0s ease-in-out;
+    &::after {
+      transition: border 0.5s 0s ease-in-out;
+      border-left: solid 1px #df316f;
+    }
+  }
+}
+
+.required {
+  color: #df316f;
+  padding-left: 2px;
+}
+
+.step-label {
+  width: 214px;
+  text-align: end;
+}
+
+::ng-deep .orb-breadcrumb {
+  align-items: center;
+
+  display: flex;
+
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 12px;
+
+  ::ng-deep .xng-breadcrumb-trail {
+    color: #ffffff !important;
+
+    &::before {
+      color: #969fb9 !important;
+      content: 'Settings / Sink Management /\00a0';
+    }
+  }
+}
