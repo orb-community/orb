@@ -128,7 +128,108 @@ paths:
           description: Missing or invalid content type.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
-
+  /policies/dataset:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List Dataset'
+      operationId: listDatasets
+      tags:
+        - dataset
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Name"
+        - $ref: "#/components/parameters/Order"
+        - $ref: "#/components/parameters/Direction"
+      responses:
+        '200':
+          $ref: "#/components/responses/DatasetPageRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    post:
+      summary: 'Create new Dataset'
+      operationId: createDataset
+      tags:
+        - dataset
+      requestBody:
+        $ref: "#/components/requestBodies/DatasetCreateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/DatasetObjRes"
+        '400':
+          description: Failed due to malformed JSON
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Mising or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /policies/dataset/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/DatasetId"
+    get:
+      summary: 'Get an existing Dataset'
+      operationId: readDataset
+      tags:
+        - policy
+      responses:
+        '201':
+          $ref: "#/components/responses/DatasetObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    put:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: 'Update an existing Dataset'
+      operationId: updateDataset
+      tags:
+        - dataset
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/DatasetUpdateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/DatasetObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '422':
+          description: Databse can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: "Delete an existing Dataset"
+      operationId: deleteDataset
+      tags:
+        - policy
+      responses:
+        '204':
+          description: Dataset removed.
+        '400':
+          description: Failed due to malformed Policy ID.
+        '401':
+          description: Missing or invalid access token provided.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
   requestBodies:
     PolicyCreateReq:
@@ -145,6 +246,20 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/PolicyUpdateReqSchema"
+    DatasetCreateReq:
+      description: JSON-formatted document describing the new Dataset configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DatasetCreateReqSchema"
+    DatasetUpdateReq:
+      description: JSON-formatted document describing the updated Dataset configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DatasetUpdateReqSchema"
   parameters:
     Name:
       name: name
@@ -244,6 +359,18 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/PolicyBackendObjSchema"
+    DatasetObjRes:
+      description: Policy object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DatasetObjSchema"
+    DatasetPageRes:
+      description: Data retrieved.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DatasetPageSchema"
   schemas:
     PolicyUpdateReqSchema:
       type: object
@@ -266,7 +393,6 @@ components:
           type: object
           description: Agent backend specific policy data
           example:
-
     PolicyCreateReqSchema:
       type: object
       required:
@@ -419,6 +545,119 @@ components:
           items:
             items:
               $ref: '#/components/schemas/ConfigEntrySchema'
+    DatasetUpdateReqSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-dataset
+        sink_id:
+          type: string
+          format: uuid
+          description: A unique identifier of a sink
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+    DatasetCreateReqSchema:
+      type: object
+      required:
+        - name
+        - agent_group_id
+        - agent_policy_id
+        - sink_id
+        - valid
+        - tags
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-dataset
+        agent_group_id:
+          type: string
+          format: uuid
+          description: A unique identifier of an agent_group
+        agent_policy_id:
+          type: string
+          format: uuid
+          description: A unique identifier of an agent_policy
+        sink_id:
+          type: string
+          format: uuid
+          description: A unique identifier of a sink
+        valid:
+          type: boolean
+          description: Boolean field indicating whether the dataset is valid
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+    DatasetPageSchema:
+      type: object
+      properties:
+        dataset:
+          type: array
+          minItems: 0
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/DatasetObjSchema"
+        total:
+          type: integer
+          description: Total number of items
+        offset:
+          type: integer
+          description: Number of items to skip during retrieval
+        limit:
+          type: integer
+          description: Maximum number of items to return in one page
+      required:
+        - dataset
+    DatasetObjSchema:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          readOnly: true
+          format: uuid
+          description: Unique identifier (UUID)
+        name:
+          type: string
+          description: A unique name label
+          example: my-dataset
+        agent_group_id:
+          type: string
+          format: uuid
+          description: Unique identifier (UUID) of an agent_group
+        agent_policy_id:
+          type: string
+          format: uuid
+          description: Unique identifier (UUID) of an agent_policy
+        sink_id:
+          type: string
+          format: uuid
+          description: Unique identifier (UUID) of a sink
+        valid:
+          type: boolean
+          readOnly: true
+          description: Boolean field indicating whether the dataset is valid
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+        ts_created:
+          type: string
+          readOnly: true
+          format: date-time
+          description: Timestamp of creation
     Error:
       type: object
       required:
