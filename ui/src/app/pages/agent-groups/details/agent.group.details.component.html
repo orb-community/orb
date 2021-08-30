@@ -10,33 +10,45 @@
   <nb-card-body>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{strings.propNames.selName}}<span class="ns1red">*</span></p>
+        <p class="detail-title">{{strings.propNames.selName}}<span class="ns1red">*</span></p>
         <p>{{ agentGroup.name }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{strings.propNames.selDescription}}</p>
+        <p class="detail-title">{{strings.propNames.selDescription}}</p>
         <p>{{ agentGroup.description }}</p>
       </div>
     </div>
-    <div class="row form-row">
-      <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{strings.propNames.tags}}<span class="ns1red">*</span></p>
-        <mat-chip-list>
-          <mat-chip
-              class="orb-tag-sink "
-              *ngFor="let tag of agentGroup.tags">
-            {{ tag | keyvalue | tagchip}}
-          </mat-chip>
-        </mat-chip-list>
+    <div class="row">
+      <div class="col-6 align-items-start d-flex flex-column">
+        <p class="detail-title">{{strings.propNames.ts_created}}</p>
+        <p>{{ agentGroup.ts_created }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="form-key">{{strings.propNames.matches}}</p>
+        <p class="detail-title">{{strings.propNames.matches}}</p>
         <p>{{ agentGroup.matching_agents.total }} {{strings.match.agents}}</p>
       </div>
     </div>
-    <div class="row form-row">
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.tags}}<span class="ns1red">*</span></p>
+        <div>
+          <mat-chip-list>
+            <mat-chip
+                class="orb-tag-sink "
+                *ngFor="let tag of agentGroup.tags">
+              {{ tag | keyvalue | tagchip}}
+            </mat-chip>
+          </mat-chip-list>
+        </div>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.matches}}</p>
+        <p>{{ agentGroup.matching_agents.total }} {{strings.match.agents}}</p>
+      </div>
+    </div>
+    <div class="row">
       <div class="col-6 align-items-start d-flex flex-column">
-        <p class="form-key">{{strings.propNames.ts_created}}</p>
+        <p class="detail-title">{{strings.propNames.ts_created}}</p>
         <p>{{ agentGroup.ts_created }}</p>
       </div>
     </div>

@@ -76,8 +76,8 @@
   </div>
 </div>
 
-<ng-template #agentGroupTemplateCell let-row="row" let-value="value" let-i="index">
-  <strong> {{ value.length }} </strong>
+<ng-template #agentGroupTemplateCell let-row="row">
+  <strong> {{ row.matching_agents.total }} </strong>
 </ng-template>
 
 <ng-template #agentGroupTagsTemplateCell let-row="row" let-value="value" let-i="index">
