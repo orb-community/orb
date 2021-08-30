@@ -393,6 +393,44 @@ components:
           type: object
           description: Agent backend specific policy data
           example:
+            anycast_dns:
+              description: "base anycast DNS policy"
+              input:
+                tap: anycast
+                type: pcap
+                config:
+                  bpf: "port 53"
+              handlers:
+                config:
+                  periods: 5
+                  max_deep_sample: 50
+                modules:
+                  default_net:
+                    type: net
+                  udp_traffic:
+                    type: net
+                    config:
+                      protocols: [ udp ]
+                    metrics:
+                      enable:
+                        - top_ips
+                  default_dns:
+                    type: dns
+                    config:
+                      max_deep_sample: 75
+                    analyzers:
+                      modules:
+                        nx_attack:
+                          type: dns_random_label
+                  special_domain:
+                    type: dns
+                    require_version: "1.0"
+                    config:
+                      qname_suffix: .mydomain.com
+                    metrics:
+                      disable:
+                        - top_qtypes
+                        - top_udp_ports
     PolicyCreateReqSchema:
       type: object
       required:
@@ -424,6 +462,44 @@ components:
         policy:
           type: object
           example:
+            anycast_dns:
+              description: "base anycast DNS policy"
+              input:
+                tap: anycast
+                type: pcap
+                config:
+                  bpf: "port 53"
+              handlers:
+                config:
+                  periods: 5
+                  max_deep_sample: 50
+                modules:
+                  default_net:
+                    type: net
+                  udp_traffic:
+                    type: net
+                    config:
+                      protocols: [ udp ]
+                    metrics:
+                      enable:
+                        - top_ips
+                  default_dns:
+                    type: dns
+                    config:
+                      max_deep_sample: 75
+                    analyzers:
+                      modules:
+                        nx_attack:
+                          type: dns_random_label
+                  special_domain:
+                    type: dns
+                    require_version: "1.0"
+                    config:
+                      qname_suffix: .mydomain.com
+                    metrics:
+                      disable:
+                        - top_qtypes
+                        - top_udp_ports
           description: Agent backend specific policy data.
     PolicyPageSchema:
       type: object
@@ -510,6 +586,44 @@ components:
         policy:
           type: object
           example:
+            anycast_dns:
+              description: "base anycast DNS policy"
+              input:
+                tap: anycast
+                type: pcap
+                config:
+                  bpf: "port 53"
+              handlers:
+                config:
+                  periods: 5
+                  max_deep_sample: 50
+                modules:
+                  default_net:
+                    type: net
+                  udp_traffic:
+                    type: net
+                    config:
+                      protocols: [ udp ]
+                    metrics:
+                      enable:
+                        - top_ips
+                  default_dns:
+                    type: dns
+                    config:
+                      max_deep_sample: 75
+                    analyzers:
+                      modules:
+                        nx_attack:
+                          type: dns_random_label
+                  special_domain:
+                    type: dns
+                    require_version: "1.0"
+                    config:
+                      qname_suffix: .mydomain.com
+                    metrics:
+                      disable:
+                        - top_qtypes
+                        - top_udp_ports
           description: Agent backend specific policy data.
     PolicyBackendResSchema:
       type: object
@@ -520,7 +634,7 @@ components:
           description: Name and identifier of the policy backend, used when creating new policy
         description:
           type: string
-          example:
+          example: Text field of the description of the agent backend
         config:
           type: array
           description: Backend configuration field details
@@ -538,7 +652,7 @@ components:
           description: Name and identifier of the policy backend, used when creating new policy
         description:
           type: string
-          example:
+          example: Text field of the description of the agent backend
         config:
           type: array
           description: Backend configuration field details
