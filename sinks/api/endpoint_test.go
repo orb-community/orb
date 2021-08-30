@@ -30,12 +30,13 @@ import (
 )
 
 const (
-	contentType  = "application/json"
-	token        = "token"
-	invalidToken = "invalid"
-	email        = "user@example.com"
-	validJson    = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
-	invalidJson  = "{"
+	contentType       = "application/json"
+	token             = "token"
+	invalidToken      = "invalid"
+	email             = "user@example.com"
+	validJson         = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	conflictValidJson = "{\n    \"name\": \"conflict\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	invalidJson       = "{"
 )
 
 var (
@@ -106,6 +107,16 @@ func TestCreateSinks(t *testing.T) {
 	server := newServer(service)
 	defer server.Close()
 
+	// Conflict creation scenario
+	sinkConflict := sink
+	conflictNameID, err := types.NewIdentifier("conflict")
+	if err != nil {
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	}
+	sinkConflict.Name = conflictNameID
+	_, err = service.CreateSink(context.Background(), token, sinkConflict)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
 	cases := map[string]struct {
 		req         string
 		contentType string
@@ -121,7 +132,7 @@ func TestCreateSinks(t *testing.T) {
 			location:    "/sinks",
 		},
 		"add a duplicate sink": {
-			req:         validJson,
+			req:         conflictValidJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusConflict,

@@ -48,6 +48,12 @@ func TestAgentSave(t *testing.T) {
 	nameID, err := types.NewIdentifier("myagent")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	conflictThingID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	conflictNameID, err := types.NewIdentifier("myagent-conflict")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	agent := fleet.Agent{
 		Name:          nameID,
 		MFThingID:     thID.String(),
@@ -58,6 +64,15 @@ func TestAgentSave(t *testing.T) {
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
 
+	// Conflict scenario
+	agentCopy := agent
+	agentCopy.MFThingID = conflictThingID.String()
+
+	agentCopy.Name = conflictNameID
+
+	err = agentRepo.Save(context.Background(), agentCopy)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
 	cases := map[string]struct {
 		agent fleet.Agent
 		err   error
@@ -67,7 +82,7 @@ func TestAgentSave(t *testing.T) {
 			err:   nil,
 		},
 		"create agent that already exist": {
-			agent: agent,
+			agent: agentCopy,
 			err:   errors.ErrConflict,
 		},
 	}

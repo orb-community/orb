@@ -37,11 +37,20 @@ func TestPolicySave(t *testing.T) {
 	nameID, err := types.NewIdentifier("mypolicy")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	conflictNameID, err := types.NewIdentifier("mypolicy-conflict")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	policy := policies.Policy{
 		Name:      nameID,
 		MFOwnerID: oID.String(),
 		OrbTags:   types.Tags{"testkey": "testvalue"},
 	}
+
+	policyCopy := policy
+	policyCopy.Name = conflictNameID
+
+	_, err = repo.SavePolicy(context.Background(), policyCopy)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	cases := map[string]struct {
 		policy policies.Policy
@@ -52,7 +61,7 @@ func TestPolicySave(t *testing.T) {
 			err:    nil,
 		},
 		"create policy that already exist": {
-			policy: policy,
+			policy: policyCopy,
 			err:    errors.ErrConflict,
 		},
 	}

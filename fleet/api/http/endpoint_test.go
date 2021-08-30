@@ -34,16 +34,17 @@ import (
 )
 
 const (
-	contentType  = "application/json"
-	token        = "token"
-	invalidToken = "invalid"
-	email        = "user@example.com"
-	validJson    = "{\n	\"name\": \"eu-agents\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
-	invalidJson  = "{"
-	wrongID      = "9bb1b244-a199-93c2-aa03-28067b431e2c"
-	maxNameSize  = 1024
-	channelsNum  = 3
-	limit        = 10
+	contentType       = "application/json"
+	token             = "token"
+	invalidToken      = "invalid"
+	email             = "user@example.com"
+	validJson         = "{\n	\"name\": \"eu-agents\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	conflictValidJson = "{\n	\"name\": \"eu-agents-conflict\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	invalidJson       = "{"
+	wrongID           = "9bb1b244-a199-93c2-aa03-28067b431e2c"
+	maxNameSize       = 1024
+	channelsNum       = 3
+	limit             = 10
 )
 
 var (
@@ -152,6 +153,9 @@ func TestCreateAgentGroup(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()
 
+	// Conflict scenario
+	createAgentGroup(t, "eu-agents-conflict", &cli)
+
 	cases := map[string]struct {
 		req         string
 		contentType string
@@ -167,7 +171,7 @@ func TestCreateAgentGroup(t *testing.T) {
 			location:    "/agent_groups",
 		},
 		"add a duplicated agent group": {
-			req:         validJson,
+			req:         conflictValidJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusConflict,
