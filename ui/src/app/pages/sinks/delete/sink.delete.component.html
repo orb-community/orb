@@ -1,0 +1,26 @@
+<nb-card size="large" class="nb-card-medium">
+  <nb-card-header>
+    {{strings.delete.header}}
+    <button nbButton
+            ghost="true"
+            size="small"
+            class="orb-close-dialog align-content-end"
+            (click)="onClose()">
+      <span class="nb-close"></span>
+    </button>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row form-row">
+      <p>{{strings.delete.body}}<span class="ns1-red">*</span></p>
+    </div>
+    <p class="ns1-red">{{strings.delete.warning}}</p>
+    <input type="text" nbInput placeholder="{{sink.name}}" [(ngModel)]="userInput">
+  </nb-card-body>
+  <nb-card-footer>
+    <button nbButton
+            class="orb-sink-delete-warning-button"
+            [disabled]="!isEnabled()"
+            (click)="onDelete()">{{strings.delete.delete}}
+    </button>
+  </nb-card-footer>
+</nb-card>

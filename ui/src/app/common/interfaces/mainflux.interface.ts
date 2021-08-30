@@ -122,13 +122,15 @@ export interface PageFilters {
   // mainflux and other components metadata
   metadata?: string;
   type?: string;
+  // orb
+  tags?: Object;
 }
 
 export interface DropdownFilterItem {
   id?: string;
-  name?: string;
-  order?: string;
+  label?: string;
   selected?: boolean;
+  prop?: string;
 }
 
 export interface TableConfig {
