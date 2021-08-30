@@ -21,7 +21,7 @@ paths:
         - $ref: "#/components/parameters/Direction"
       responses:
         '200':
-          $ref: "#/components/responses/PoliciesPageRes"
+          $ref: "#/components/responses/PolicyPageRes"
         '400':
           description: Failed due to malformed query parameters.
         '401':
@@ -39,7 +39,7 @@ paths:
         $ref: "#/components/requestBodies/PolicyCreateReq"
       responses:
         '201':
-          $ref: "#/components/requestBodies/PolicyObjRes"
+          $ref: "#/components/responses/PolicyObjRes"
         '400':
           description: Failed due to malformed JSON
         '401':
@@ -119,7 +119,7 @@ paths:
         $ref: "#/components/requestBodies/PolicyCreateReq"
       responses:
         '200':
-          $ref: "#/components/responses/PolicyValidateObjRes"
+          $ref: "#/components/responses/PolicyObjRes"
         '400':
           description: Failed due to malformed JSON.
         '401':
@@ -339,9 +339,9 @@ components:
           type: string
           description: A description of the use of this configuration field
       example:
-        title:
+        title: Remote host
         type: string
-        name:
+        name: remote_host
         description:
     PolicyObjSchema:
       type: object
