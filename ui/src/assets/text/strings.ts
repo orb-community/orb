@@ -63,6 +63,7 @@ export const STRINGS = {
       header: 'Delete Sink Confirmation',
       body: 'Are you sure you want to delete this sink? This may cause policies which use this sink to become invalid. This action cannot be undone.',
       warning: '*To confirm, type your sink label exactly as it appears',
+      delete: 'I Understand, Delete This Sink',
       close: 'Close',
     },
     // details modal
@@ -98,13 +99,16 @@ export const STRINGS = {
     propNames: {
       id: 'id',
       name: 'Agent Group Name',
-      description: 'Description',
+      selName: 'Selector Name',
+      description: 'Agent Group Description',
+      selDescription: 'Selector Description',
       key: 'Key',
       value: 'Value',
       tags: 'Tags',
       status: 'Status',
       error: 'Error',
       ts_created: 'Date Created',
+      matches: 'Matches Against',
     },
     // matches
     match: {
@@ -132,22 +136,24 @@ export const STRINGS = {
     edit: {
       header: 'Update Agent',
     },
-    // delete modal
+// delete modal
     delete: {
-      header: 'Delete Agent Confirmation',
-      body: 'Are you sure you want to delete this agent?  This action cannot be undone.',
+      header: 'Delete Agent Group Confirmation',
+      body: 'Are you sure you want to delete this Agent Group? This action cannot be undone.',
+      warning: '*To confirm, type the Agent Group label exactly as it appears',
+      delete: 'I Understand, Delete This Agent Group',
       close: 'Close',
     },
     // details modal
     details: {
-      header: 'Agent Details',
+      header: 'Agent Group Details',
       close: 'Close',
     },
     // dashboard page
     list: {
-      header: 'All Agents',
+      header: 'All Agents Groups',
       none: 'There are no agents listed.',
-      agent: 'agent',
+      agentGroup: 'agent',
       total: ['You have', 'total.'],
       error: 'have errors.',
       create: 'New Agent',

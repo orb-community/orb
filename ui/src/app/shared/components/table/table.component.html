@@ -32,6 +32,9 @@
         <div *ngSwitchCase="'time'">
           {{ row[key] | toMillisecs | date:'medium' }}
         </div>
+        <div *ngSwitchCase="'backend'">
+          {{ row[key] | titlecase }}
+        </div>
         <div *ngSwitchCase="'status'">
           <div *ngIf="row[key] === 'active'">
             <i class="fa fa-circle orb-service-active"
@@ -58,7 +61,7 @@
         </div>
         <div class="orb-action-hover-container orb-table-actions"
              *ngSwitchCase="'orb-action-hover'">
-          <div *ngIf="row['isHover']">
+          <div>
             <button nbButton
                     class="orb-action-hover detail-button"
                     (click)="onDetails(row)">

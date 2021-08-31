@@ -8,7 +8,6 @@
  * @interface SinkConfig
  */
 export interface SinkConfig<T> {
-
   /**
    * propName {string}: <T>value
    */

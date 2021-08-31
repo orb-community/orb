@@ -1,13 +1,36 @@
 const ORB = {
   // introduce primitive ORB api versioning '/api/v1/sinks'
+  // TODO not needed at the moment - nginx listens to anything @80
+  // orb-ui app proxy routes * to @80/api/v1/*
   orbApi: {
     version: '1', // ORB api version
     apiUrl: '/api/v', // ORB api url prefix
   },
   servicesUrls: {
     sinksUrl: '/sinks',
+    sinkBackends: '/features/sinks',
     agentsUrl: '/agents',
+    validateAgentsUrl: '/agents/validate',
     agentGroupsUrl: '/agent_groups',
+    validateAgentGroupsUrl: '/agent_groups/validate',
+    usersUrl: '/users',
+    groupsUrl: '/groups',
+    membersUrl: '/members',
+    usersVersionUrl: '/version',
+    requestPassUrl: '/password/reset-request',
+    resetPassUrl: '/password/reset',
+    changePassUrl: '/password',
+    thingsUrl: '/things',
+    twinsUrl: '/twins',
+    statesUrl: '/states',
+    channelsUrl: '/channels',
+    bootstrapConfigsUrl: '/bootstrap/things/configs',
+    bootstrapUrl: '/bootstrap/things/bootstrap',
+    connectUrl: '/connect',
+    browseUrl: '/browse',
+    loginUrl: '/tokens',
+    httpAdapterUrl: '/http',
+    readerUrl: '/reader',
   },
 };
 

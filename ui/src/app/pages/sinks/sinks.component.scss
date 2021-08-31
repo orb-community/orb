@@ -25,16 +25,12 @@ h4 {
   color: #969fb9;
 }
 
-.orb-sink-filter-dropdown {
-  align-items: flex-start;
+.filter-dropdown {
   display: flex;
-  flex-direction: row;
-  float: right;
-  height: 40px;
-  padding: 0;
-  right: 24px;
-  top: 101px;
-  width: 140px;
+  position: absolute;
+  right: 0;
+  padding-right: 50px;
+  transform: translateY(-50px);
 }
 
 .button-new-sink {
@@ -112,4 +108,12 @@ tr div p {
       }
     }
   }
+}
+
+.add-sink-container {
+  position: absolute;
+  right: 0;
+  transform: translate(-100px, 54px);
+  z-index: 10;
+  color: #3089fc !important;
 }
