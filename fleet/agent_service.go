@@ -132,3 +132,14 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 
 	return res, nil
 }
+
+func (svc fleetService) ValidateAgent(ctx context.Context, token string, a Agent) (Agent, error) {
+	mfOwnerID, err := svc.identify(token)
+	if err != nil {
+		return Agent{}, err
+	}
+
+	a.MFOwnerID = mfOwnerID
+
+	return a, nil
+}

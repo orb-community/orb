@@ -77,6 +77,8 @@ type AgentService interface {
 	ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error)
 	// EditAgent
 	EditAgent(ctx context.Context, token string, agent Agent) (Agent, error)
+	// ValidateAgent validates agent
+	ValidateAgent(ctx context.Context, token string, a Agent) (Agent, error)
 }
 
 type AgentRepository interface {
