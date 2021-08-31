@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"math"
 	"testing"
 	"time"
 )
@@ -124,6 +125,125 @@ func TestAgentPolicyDataRetrieve(t *testing.T) {
 	}
 }
 
+func TestMultiPolicyRetrieval(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	wrongID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		nameID, err := types.NewIdentifier(fmt.Sprintf("mypolicy-%d", i))
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+		policy := policies.Policy{
+			Name:      nameID,
+			MFOwnerID: oID.String(),
+			Policy:    types.Metadata{"pkey1": "pvalue1"},
+		}
+		if math.Mod(float64(i), 2) == 0 {
+			policy.OrbTags = types.Tags{"node_type": "dns"}
+		}
+
+		_, err = repo.SavePolicy(context.Background(), policy)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner        string
+		pageMetadata policies.PageMetadata
+		size         uint64
+	}{
+		"retrieve all policies with existing owner": {
+			owner: oID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+			},
+			size: n,
+		},
+		"retrieve subset of policies with existing owner": {
+			owner: oID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: n / 2,
+				Limit:  n,
+				Total:  n,
+			},
+			size: n / 2,
+		},
+		"retrieve policies with no-existing owner": {
+			owner: wrongID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  0,
+			},
+			size: 0,
+		},
+		"retrieve policies with no-existing name": {
+			owner: oID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Name:   "wrong",
+				Total:  0,
+			},
+			size: 0,
+		},
+		"retrieve policies sorted by name ascendent": {
+			owner: oID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Order:  "name",
+				Dir:    "asc",
+			},
+			size: n,
+		},
+		"retrieve policies sorted by name descendent": {
+			owner: oID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Order:  "name",
+				Dir:    "desc",
+			},
+			size: n,
+		},
+		"retrieve policies filtered by tag": {
+			owner: oID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n / 2,
+				Tags:   types.Tags{"node_type": "dns"},
+			},
+			size: n / 2,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			page, err := repo.RetrieveAll(context.Background(), tc.owner, tc.pageMetadata)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s\n", desc, err))
+			size := uint64(len(page.Policies))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
+			assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.pageMetadata.Total, page.Total))
+
+			if size > 0 {
+				testSortPolicies(t, tc.pageMetadata, page.Policies)
+			}
+		})
+	}
+}
+
 func TestAgentPoliciesRetrieveByGroup(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
 	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
@@ -195,5 +315,24 @@ func TestAgentPoliciesRetrieveByGroup(t *testing.T) {
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 		})
+	}
+}
+
+func testSortPolicies(t *testing.T, pm policies.PageMetadata, ags []policies.Policy) {
+	t.Helper()
+	switch pm.Order {
+	case "name":
+		current := ags[0]
+		for _, res := range ags {
+			if pm.Dir == "asc" {
+				assert.GreaterOrEqual(t, res.Name.String(), current.Name.String())
+			}
+			if pm.Dir == "desc" {
+				assert.GreaterOrEqual(t, current.Name.String(), res.Name.String())
+			}
+			current = res
+		}
+	default:
+		break
 	}
 }
