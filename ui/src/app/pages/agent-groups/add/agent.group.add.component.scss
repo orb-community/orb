@@ -78,12 +78,9 @@ nb-card-footer {
     }
   }
 
-  .step-content {
-    width: 90%;
 
-    .stepper-input {
-      width: 50% !important;
-    }
+  .step-content {
+    min-width: 500px !important;
   }
 
   .connector {
@@ -186,5 +183,5 @@ tr div p {
 .tag-table {
   position: relative;
   left: 0;
-  width: 100%;
+  width: 900px;
 }

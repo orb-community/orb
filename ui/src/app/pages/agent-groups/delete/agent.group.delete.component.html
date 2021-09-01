@@ -6,7 +6,7 @@
             size="small"
             class="orb-close-dialog align-content-end"
             (click)="onClose()">
-      <span class="nb-close">{{strings.delete.close}}</span>
+      <span class="nb-close"></span>
     </button>
   </nb-card-header>
   <nb-card-body>
@@ -14,13 +14,13 @@
       <p>{{strings.delete.body}}<span class="ns1-red">*</span></p>
     </div>
     <p class="ns1-red">{{strings.delete.warning}}</p>
-    <input type="text" nbInput placeholder="{{sink.name}}" [(ngModel)]="sinkName">
+    <input type="text" nbInput placeholder="{{name}}" [(ngModel)]="validationInput">
   </nb-card-body>
   <nb-card-footer>
     <button nbButton
             class="orb-sink-delete-warning-button"
             [disabled]="!isEnabled()"
-            (click)="onDelete()">I Understand, Delete This Sink
+            (click)="onDelete()">{{strings.delete.delete}}
     </button>
   </nb-card-footer>
 </nb-card>

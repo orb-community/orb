@@ -33,19 +33,19 @@ import { FleetsComponent } from 'app/pages/fleets/fleets.component';
 import { FleetsAddComponent } from 'app/pages/fleets/add/fleets.add.component';
 import { FleetsDetailsComponent } from 'app/pages/fleets/details/fleets.details.component';
 import { SinksComponent } from 'app/pages/sinks/sinks.component';
-import { SinksAddComponent } from 'app/pages/sinks/add/sinks.add.component';
-import { SinksDetailsComponent } from 'app/pages/sinks/details/sinks.details.component';
-import { SinksDeleteComponent } from 'app/pages/sinks/delete/sinks.delete.component';
+import { SinkAddComponent } from 'app/pages/sinks/add/sink.add.component';
+import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
+import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
 import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { BreadcrumbModule } from 'xng-breadcrumb';
-import { AgentsComponent } from 'app/pages/agents/agents.component';
-import { AgentAddComponent } from 'app/pages/agents/add/agent.add.component';
-import { AgentDetailsComponent } from 'app/pages/agents/details/agent.details.component';
-import { AgentDeleteComponent } from 'app/pages/agents/delete/agent.delete.component';
+import { AgentGroupsComponent } from 'app/pages/agent-groups/agent.groups.component';
+import { AgentGroupAddComponent } from 'app/pages/agent-groups/add/agent.group.add.component';
+import { AgentGroupDetailsComponent } from 'app/pages/agent-groups/details/agent.group.details.component';
+import { AgentGroupDeleteComponent } from 'app/pages/agent-groups/delete/agent.group.delete.component';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
-import {ShowcaseComponent} from 'app/pages/showcase/showcase.component';
+import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 import { DebounceModule } from 'ngx-debounce';
 
 @NgModule({
@@ -89,10 +89,10 @@ import { DebounceModule } from 'ngx-debounce';
     PagesComponent,
     // Orb
     // Agent Group Management
-    AgentsComponent,
-    AgentAddComponent,
-    AgentDetailsComponent,
-    AgentDeleteComponent,
+    AgentGroupsComponent,
+    AgentGroupAddComponent,
+    AgentGroupDetailsComponent,
+    AgentGroupDeleteComponent,
     // Dataset Explorer
     DatasetsComponent,
     DatasetsAddComponent,
@@ -103,9 +103,9 @@ import { DebounceModule } from 'ngx-debounce';
     FleetsDetailsComponent,
     // Sink Management
     SinksComponent,
-    SinksAddComponent,
-    SinksDetailsComponent,
-    SinksDeleteComponent,
+    SinkAddComponent,
+    SinkDetailsComponent,
+    SinkDeleteComponent,
     ShowcaseComponent,
   ],
   providers: [
