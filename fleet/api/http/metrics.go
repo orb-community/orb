@@ -18,6 +18,10 @@ type metricsMiddleware struct {
 	svc     fleet.Service
 }
 
+func (m metricsMiddleware) ViewAgentByIDInternal(ctx context.Context, ownerID string, thingID string) (fleet.Agent, error) {
+	return m.svc.ViewAgentByIDInternal(ctx, ownerID, thingID)
+}
+
 func (m metricsMiddleware) ViewAgentByID(ctx context.Context, token string, thingID string) (fleet.Agent, error) {
 	return m.svc.ViewAgentByID(ctx, token, thingID)
 }

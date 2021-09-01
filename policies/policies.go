@@ -39,25 +39,25 @@ type Page struct {
 }
 
 type Service interface {
-	// CreatePolicy creates new agent Policy
+	// AddPolicy creates new agent Policy
 	AddPolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
 
-	// RetrievePolicyByID retrieving policy by id with token
+	// ViewPolicyByID retrieving policy by id with token
 	ViewPolicyByID(ctx context.Context, token string, policyID string) (Policy, error)
 
-	// RetrieveAll
+	// ListPolicies
 	ListPolicies(ctx context.Context, token string, pm PageMetadata) (Page, error)
 
-	// RetrievePolicyByIDInternal gRPC version of retrieving policy by id with no token
+	// ViewPolicyByIDInternal gRPC version of retrieving policy by id with no token
 	ViewPolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (Policy, error)
 
-	// RetrievePoliciesByGroupIDInternal gRPC version of retrieving list of policies belonging to specified agent group with no token
+	// ListPoliciesByGroupIDInternal gRPC version of retrieving list of policies belonging to specified agent group with no token
 	ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
 
-	// CreateDataset creates new Dataset
+	// AddDataset creates new Dataset
 	AddDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 
-	// InactivateDataSet
+	// InactivateDatasetByGroupID
 	InactivateDatasetByGroupID(ctx context.Context, groupID string, token string) error
 }
 
