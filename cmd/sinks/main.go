@@ -14,7 +14,7 @@ import (
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/sinks"
-	"github.com/ns1labs/orb/sinks/api"
+	http2 "github.com/ns1labs/orb/sinks/api/http"
 	"github.com/ns1labs/orb/sinks/postgres"
 	redisprod "github.com/ns1labs/orb/sinks/redis/producer"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -158,8 +158,8 @@ func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClien
 
 	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
-	svc = api.NewLoggingMiddleware(svc, logger)
-	svc = api.MetricsMiddleware(
+	svc = http2.NewLoggingMiddleware(svc, logger)
+	svc = http2.MetricsMiddleware(
 		svc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "sink",
@@ -211,9 +211,9 @@ func startHTTPServer(tracer opentracing.Tracer, svc sinks.SinkService, cfg confi
 	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Sink service started using https on port %s with cert %s key %s",
 			cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
-		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, api.MakeHandler(tracer, svcName, svc))
+		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, http2.MakeHandler(tracer, svcName, svc))
 		return
 	}
 	logger.Info(fmt.Sprintf("Sink service started using http on port %s", cfg.HttpPort))
-	errs <- http.ListenAndServe(p, api.MakeHandler(tracer, svcName, svc))
+	errs <- http.ListenAndServe(p, http2.MakeHandler(tracer, svcName, svc))
 }
