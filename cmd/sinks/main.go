@@ -14,14 +14,18 @@ import (
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/sinks"
-	http2 "github.com/ns1labs/orb/sinks/api/http"
+	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
+	sinkshttp "github.com/ns1labs/orb/sinks/api/http"
+	"github.com/ns1labs/orb/sinks/pb"
 	"github.com/ns1labs/orb/sinks/postgres"
 	redisprod "github.com/ns1labs/orb/sinks/redis/producer"
 	opentracing "github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/reflection"
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -55,6 +59,7 @@ func main() {
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
+	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 
 	// main logger
 	var logger *zap.Logger
@@ -89,6 +94,7 @@ func main() {
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
+	go startGRPCServer(svc, tracer, sinksGRPCCfg, logger, errs)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -158,8 +164,8 @@ func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClien
 
 	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
-	svc = http2.NewLoggingMiddleware(svc, logger)
-	svc = http2.MetricsMiddleware(
+	svc = sinkshttp.NewLoggingMiddleware(svc, logger)
+	svc = sinkshttp.MetricsMiddleware(
 		svc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "sink",
@@ -211,9 +217,36 @@ func startHTTPServer(tracer opentracing.Tracer, svc sinks.SinkService, cfg confi
 	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Sink service started using https on port %s with cert %s key %s",
 			cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
-		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, http2.MakeHandler(tracer, svcName, svc))
+		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, sinkshttp.MakeHandler(tracer, svcName, svc))
 		return
 	}
 	logger.Info(fmt.Sprintf("Sink service started using http on port %s", cfg.HttpPort))
-	errs <- http.ListenAndServe(p, http2.MakeHandler(tracer, svcName, svc))
+	errs <- http.ListenAndServe(p, sinkshttp.MakeHandler(tracer, svcName, svc))
+}
+
+func startGRPCServer(svc sinks.SinkService, tracer opentracing.Tracer, cfg config.GRPCConfig, logger *zap.Logger, errs chan error) {
+	p := fmt.Sprintf(":%s", cfg.Port)
+	listener, err := net.Listen("tcp", p)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Failed to gRPC listen on port %s: %s", cfg.Port, err))
+		os.Exit(1)
+	}
+
+	var server *grpc.Server
+	if cfg.ServerCert != "" || cfg.ServerKey != "" {
+		creds, err := credentials.NewServerTLSFromFile(cfg.ServerCert, cfg.ServerKey)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Failed to load things certificates: %s", err))
+			os.Exit(1)
+		}
+		logger.Info(fmt.Sprintf("gRPC service started using https on port %s with cert %s key %s",
+			cfg.Port, cfg.ServerCert, cfg.ServerKey))
+		server = grpc.NewServer(grpc.Creds(creds))
+	} else {
+		logger.Info(fmt.Sprintf("gRPC service started using http on port %s", cfg.Port))
+		server = grpc.NewServer()
+	}
+	pb.RegisterSinkServiceServer(server, sinksgrpc.NewServer(tracer, svc))
+	reflection.Register(server)
+	errs <- server.Serve(listener)
 }

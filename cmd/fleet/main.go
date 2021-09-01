@@ -25,6 +25,7 @@ import (
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	opentracing "github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/reflection"
 	"io"
 	"io/ioutil"
 	"log"
@@ -295,5 +296,6 @@ func startGRPCServer(svc fleet.Service, tracer opentracing.Tracer, cfg config.GR
 	}
 
 	pb.RegisterFleetServiceServer(server, fleetgrpc.NewServer(tracer, svc))
+	reflection.Register(server)
 	errs <- server.Serve(listener)
 }
