@@ -23,14 +23,10 @@ export class SinkDetailsComponent {
   }
 
   onOpenEdit(sink: any) {
-    this.dialogRef.close();
-    this.router.navigate(
-      [`pages/sink/edit/${sink.id}`],
-      {state: {sink: sink, edit: true}},
-    );
+    this.dialogRef.close(true);
   }
 
   onClose() {
-    this.dialogRef.close();
+    this.dialogRef.close(false);
   }
 }

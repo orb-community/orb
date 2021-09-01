@@ -2,78 +2,102 @@ import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
 
 import { PagesComponent } from './pages.component';
-import { DashboardComponent } from './dashboard/dashboard.component';
-import { ProfileComponent } from './profile/profile.component';
 import { environment } from 'environments/environment';
 
 // ORB
 // Agent Group Management
-import { AgentGroupsComponent } from 'app/pages/agent-groups/agent.groups.component';
 // Dataset Explorer
 import { DatasetsComponent } from 'app/pages/datasets/datasets.component';
-// Fleet Management
-import { FleetsComponent } from 'app/pages/fleets/fleets.component';
 // Sink Management
-import { SinksComponent } from 'app/pages/sinks/sinks.component';
+import { SinkListComponent } from 'app/pages/sinks/list/sink.list.component';
 import { SinkAddComponent } from 'app/pages/sinks/add/sink.add.component';
-import { AgentGroupAddComponent } from 'app/pages/agent-groups/add/agent.group.add.component';
 import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
+import { AgentListComponent } from 'app/pages/fleet/agents/list/agent.list.component';
+import { AgentAddComponent } from 'app/pages/fleet/agents/add/agent.add.component';
+import { AgentGroupListComponent } from 'app/pages/fleet/groups/list/agent.group.list.component';
+import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.add.component';
 
 const children = [
   {
     path: 'home',
-    component: DashboardComponent,
-  },
-  {
-    path: '',
-    redirectTo: 'home',
-    pathMatch: 'full',
+    redirectTo: 'sinks',
+    // component: DashboardComponent,
   },
   {
     path: 'dev',
     component: ShowcaseComponent,
+    data: {breadcrumb: 'Library Showcase - DEV'},
   },
   {
-    path: 'profile',
-    component: ProfileComponent,
+    path: 'fleet',
+    data: {breadcrumb: 'Fleet Management'},
+    children: [
+      {
+        path: 'agents',
+        children: [
+          {
+            path: '',
+            component: AgentListComponent,
+            data: {breadcrumb: 'Agent List'},
+          },
+          {
+            path: 'add',
+            component: AgentAddComponent,
+            data: {breadcrumb: 'New Agent'},
+          },
+          {
+            path: 'edit/:id',
+            component: AgentAddComponent,
+            data: {breadcrumb: 'Edit Agent'},
+          },
+        ],
+      },
+      {
+        path: 'groups',
+        children: [
+          {
+            path: '',
+            component: AgentGroupListComponent,
+            data: {breadcrumb: 'Agent Groups List'},
+          },
+          {
+            path: 'add',
+            component: AgentGroupAddComponent,
+            data: {breadcrumb: 'New Agent Group'},
+          },
+          {
+            path: 'edit/:id',
+            component: AgentGroupAddComponent,
+            data: {breadcrumb: 'Edit Agent Group'},
+          },
+        ],
+      },
+    ],
   },
   {
-    path: 'agent-groups',
-    component: AgentGroupsComponent,
-    data: {breadcrumb: 'Agent Groups'},
-  },
-  {
-    path: 'agent-group/add',
-    component: AgentGroupAddComponent,
-    data: {breadcrumb: 'New'},
-  },
-  {
-    path: 'agent-group/edit/:id',
-    component: AgentGroupAddComponent,
-    data: {breadcrumb: 'Edit'},
+    path: 'sinks',
+    children: [
+      {
+        path: '',
+        component: SinkListComponent,
+        data: {breadcrumb: 'Sink Management'},
+      },
+      {
+        path: 'add',
+        component: SinkAddComponent,
+        data: {breadcrumb: 'New Sink'},
+      },
+      {
+        path: 'edit/:id',
+        component: SinkAddComponent,
+        data: {breadcrumb: 'Edit Sink'},
+      },
+    ],
   },
   {
     path: 'datasets',
     component: DatasetsComponent,
-  },
-  {
-    path: 'fleets',
-    component: FleetsComponent,
-  },
-  {
-    path: 'sinks',
-    component: SinksComponent,
-    data: {breadcrumb: 'Sink Management'},
-  },
-  {
-    path: 'sink/add',
-    component: SinkAddComponent,
-    data: {breadcrumb: 'New'},
-  },
-  {
-    path: 'sink/edit/:id',
-    component: SinkAddComponent,
-    data: {breadcrumb: 'Edit'},
+    data: {breadcrumb: 'Datasets Management'},
   },
 ];
 
