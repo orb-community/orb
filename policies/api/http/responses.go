@@ -4,7 +4,10 @@
 
 package http
 
-import "net/http"
+import (
+	"github.com/ns1labs/orb/pkg/types"
+	"net/http"
+)
 
 type policyRes struct {
 	ID      string `json:"id"`
@@ -61,13 +64,15 @@ type datasetRes struct {
 }
 
 type policyValidateRes struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Backend string `json:"backend"`
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Backend     string         `json:"backend"`
+	Description string         `json:"description"`
+	Tags        types.Tags     `json:"tags"`
+	Policy      types.Metadata `json:"policy"`
 }
 
 func (s policyValidateRes) Code() int {
-
 	return http.StatusOK
 }
 

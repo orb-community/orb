@@ -165,6 +165,8 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			ID:      validated.ID,
 			Name:    validated.Name.String(),
 			Backend: validated.Backend,
+			Tags:    validated.OrbTags,
+			Policy:  validated.Policy,
 		}
 
 		return res, nil
