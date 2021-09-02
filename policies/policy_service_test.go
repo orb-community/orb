@@ -17,6 +17,7 @@ import (
 
 const (
 	token       = "token"
+	invalidToken = "invalid"
 	email       = "user@example.com"
 	format      = "yaml"
 	policy_data = `version: "1.0"
@@ -66,6 +67,46 @@ func TestRetrievePolicyByID(t *testing.T) {
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		})
 	}
+}
+
+func TestValidatePolicy(t *testing.T) {
+	var nameID, _ = types.NewIdentifier("my-policy")
+	var policy = policies.Policy{
+		Name: nameID,
+		Backend: "pktvisor",
+		OrbTags: map[string]string{"region": "eu", "node_type": "dns"},
+	}
+
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	cases := map[string]struct {
+		policy policies.Policy
+		token  string
+		format string
+		err    error
+	}{
+		"validate a new policy": {
+			policy: policy ,
+			token: token,
+			format: format,
+			err:   nil,
+		},
+		"validate a policy with a invalid token": {
+			policy:  policy,
+			token: invalidToken,
+			format: format,
+			err:   policies.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := svc.ValidatePolicy(context.Background(), tc.token, policy, format, policy_data)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+
 }
 
 func createPolicy(t *testing.T, svc policies.Service, name string) policies.Policy {
