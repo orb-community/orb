@@ -13,9 +13,11 @@ import (
 var _ policies.Repository = (*mockPoliciesRepository)(nil)
 
 type mockPoliciesRepository struct {
-	pdb map[string]policies.Policy
-	ddb map[string]policies.Dataset
-	gdb map[string][]policies.Policy
+	policyCounter  uint64
+	pdb            map[string]policies.Policy
+	dataSetCounter uint64
+	ddb            map[string]policies.Dataset
+	gdb            map[string][]policies.Policy
 }
 
 func NewPoliciesRepository() policies.Repository {
@@ -26,33 +28,65 @@ func NewPoliciesRepository() policies.Repository {
 	}
 }
 
-func (m mockPoliciesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
+func (m *mockPoliciesRepository) RetrieveAll(ctx context.Context, owner string, pm policies.PageMetadata) (policies.Page, error) {
+	first := uint64(pm.Offset)
+	last := first + uint64(pm.Limit)
+
+	var policyList []policies.Policy
+	id := uint64(0)
+	for _, p := range m.pdb {
+		if p.MFOwnerID == owner && id >= first && id < last {
+			policyList = append(policyList, p)
+		}
+		id++
+	}
+
+	policyList = sortPolicies(pm, policyList)
+
+	pagePolicies := policies.Page{
+		PageMetadata: policies.PageMetadata{
+			Total: m.policyCounter,
+		},
+		Policies: policyList,
+	}
+	return pagePolicies, nil
+}
+
+func (m *mockPoliciesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 	ID, _ := uuid.NewV4()
 	policy.ID = ID.String()
 	m.pdb[policy.ID] = policy
+	m.policyCounter++
 	return ID.String(), nil
 }
 
-func (m mockPoliciesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	return m.pdb[policyID], nil
+func (m *mockPoliciesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
+	if _, ok := m.pdb[policyID]; ok {
+		if m.pdb[policyID].MFOwnerID != ownerID {
+			return policies.Policy{}, policies.ErrNotFound
+		}
+		return m.pdb[policyID], nil
+	}
+	return policies.Policy{}, policies.ErrNotFound
 }
 
-func (m mockPoliciesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) (ret []policies.Policy, err error) {
+func (m *mockPoliciesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) (ret []policies.Policy, err error) {
 	for _, d := range groupIDs {
 		ret = append(ret, m.pdb[d])
 	}
 	return ret, nil
 }
 
-func (m mockPoliciesRepository) SaveDataset(ctx context.Context, dataset policies.Dataset) (string, error) {
+func (m *mockPoliciesRepository) SaveDataset(ctx context.Context, dataset policies.Dataset) (string, error) {
 	ID, _ := uuid.NewV4()
 	dataset.ID = ID.String()
 	m.ddb[dataset.ID] = dataset
 	m.gdb[dataset.AgentGroupID] = make([]policies.Policy, 1)
 	m.gdb[dataset.AgentGroupID][0] = m.pdb[dataset.PolicyID]
+	m.dataSetCounter++
 	return ID.String(), nil
 }
 
-func (m mockPoliciesRepository) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
+func (m *mockPoliciesRepository) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
 	panic("implement me")
 }

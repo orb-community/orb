@@ -15,7 +15,7 @@ import (
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/policies"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
-	http2 "github.com/ns1labs/orb/policies/api/http"
+	policieshttp "github.com/ns1labs/orb/policies/api/http"
 	"github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/policies/postgres"
 	rediscon "github.com/ns1labs/orb/policies/redis/consumer"
@@ -93,7 +93,7 @@ func main() {
 	svc := newService(authGRPCClient, db, logger, esClient)
 	errs := make(chan error, 2)
 
-	go startHTTPServer(svc, svcCfg, logger, errs)
+	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 	go startGRPCServer(svc, tracer, policiesGRPCCfg, logger, errs)
 	go subscribeToFleetES(svc, esClient, esCfg, logger)
 
@@ -159,8 +159,8 @@ func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger
 
 	svc := policies.New(auth, thingsRepo)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient, logger)
-	svc = http2.NewLoggingMiddleware(svc, logger)
-	svc = http2.MetricsMiddleware(
+	svc = policieshttp.NewLoggingMiddleware(svc, logger)
+	svc = policieshttp.MetricsMiddleware(
 		svc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "policies",
@@ -207,16 +207,16 @@ func connectToGRPC(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
 	return conn
 }
 
-func startHTTPServer(svc policies.Service, cfg config.BaseSvcConfig, logger *zap.Logger, errs chan error) {
+func startHTTPServer(tracer opentracing.Tracer, svc policies.Service, cfg config.BaseSvcConfig, logger *zap.Logger, errs chan error) {
 	p := fmt.Sprintf(":%s", cfg.HttpPort)
 	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Policies service started using https on port %s with cert %s key %s",
 			cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
-		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, http2.MakeHandler(svcName, svc))
+		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, policieshttp.MakeHandler(tracer, svcName, svc))
 		return
 	}
 	logger.Info(fmt.Sprintf("Policies service started using http on port %s", cfg.HttpPort))
-	errs <- http.ListenAndServe(p, http2.MakeHandler(svcName, svc))
+	errs <- http.ListenAndServe(p, policieshttp.MakeHandler(tracer, svcName, svc))
 }
 
 func startGRPCServer(svc policies.Service, tracer opentracing.Tracer, cfg config.GRPCConfig, logger *zap.Logger, errs chan error) {

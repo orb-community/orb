@@ -33,6 +33,34 @@ type Dataset struct {
 	Created      time.Time
 }
 
+type Page struct {
+	PageMetadata
+	Policies []Policy
+}
+
+type Service interface {
+	// AddPolicy creates new agent Policy
+	AddPolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+
+	// ViewPolicyByID retrieving policy by id with token
+	ViewPolicyByID(ctx context.Context, token string, policyID string) (Policy, error)
+
+	// ListPolicies
+	ListPolicies(ctx context.Context, token string, pm PageMetadata) (Page, error)
+
+	// ViewPolicyByIDInternal gRPC version of retrieving policy by id with no token
+	ViewPolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (Policy, error)
+
+	// ListPoliciesByGroupIDInternal gRPC version of retrieving list of policies belonging to specified agent group with no token
+	ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
+
+	// AddDataset creates new Dataset
+	AddDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
+
+	// InactivateDatasetByGroupID
+	InactivateDatasetByGroupID(ctx context.Context, groupID string, token string) error
+}
+
 type Repository interface {
 	// SavePolicy persists a Policy. Successful operation is indicated by non-nil
 	// error response.
@@ -43,6 +71,9 @@ type Repository interface {
 
 	// RetrievePoliciesByGroupID Retrieve policy list by group id
 	RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
+
+	// RetrieveAll retrieves the subset of Policies owned by the specified user
+	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
 
 	// SaveDataset persists a Dataset. Successful operation is indicated by non-nil
 	// error response.

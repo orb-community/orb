@@ -15,7 +15,9 @@ import (
 	mflog "github.com/mainflux/mainflux/logger"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/api"
+	fleetgrpc "github.com/ns1labs/orb/fleet/api/grpc"
+	fleethttp "github.com/ns1labs/orb/fleet/api/http"
+	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/fleet/postgres"
 	rediscons "github.com/ns1labs/orb/fleet/redis/consumer"
 	redisprod "github.com/ns1labs/orb/fleet/redis/producer"
@@ -26,6 +28,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -62,6 +65,7 @@ func main() {
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
+	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
 
 	// main logger
 	var logger *zap.Logger
@@ -123,6 +127,7 @@ func main() {
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 	go subscribeToPoliciesES(svc, commsSvc, esClient, esCfg, logger)
+	go startGRPCServer(svc, tracer, fleetGRPCCfg, logger, errs)
 
 	err = commsSvc.Start()
 	if err != nil {
@@ -198,8 +203,8 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 
 	svc := fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
-	svc = api.NewLoggingMiddleware(svc, logger)
-	svc = api.MetricsMiddleware(
+	svc = fleethttp.NewLoggingMiddleware(svc, logger)
+	svc = fleethttp.MetricsMiddleware(
 		svc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "fleet",
@@ -251,11 +256,11 @@ func startHTTPServer(tracer opentracing.Tracer, svc fleet.Service, cfg config.Ba
 	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Fleet service started using https on port %s with cert %s key %s",
 			cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
-		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, api.MakeHandler(tracer, svcName, svc))
+		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, fleethttp.MakeHandler(tracer, svcName, svc))
 		return
 	}
 	logger.Info(fmt.Sprintf("Fleet service started using http on port %s", cfg.HttpPort))
-	errs <- http.ListenAndServe(p, api.MakeHandler(tracer, svcName, svc))
+	errs <- http.ListenAndServe(p, fleethttp.MakeHandler(tracer, svcName, svc))
 }
 
 func subscribeToPoliciesES(svc fleet.Service, commsSvc fleet.AgentCommsService, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
@@ -264,4 +269,31 @@ func subscribeToPoliciesES(svc fleet.Service, commsSvc fleet.AgentCommsService, 
 	if err := eventStore.Subscribe(context.Background()); err != nil {
 		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 	}
+}
+
+func startGRPCServer(svc fleet.Service, tracer opentracing.Tracer, cfg config.GRPCConfig, logger *zap.Logger, errs chan error) {
+	p := fmt.Sprintf(":%s", cfg.Port)
+	listener, err := net.Listen("tcp", p)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Failed to gRPC listen on port %s: %s", cfg.Port, err))
+		os.Exit(1)
+	}
+
+	var server *grpc.Server
+	if cfg.ServerCert != "" || cfg.ServerKey != "" {
+		creds, err := credentials.NewServerTLSFromFile(cfg.ServerCert, cfg.ServerKey)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Failed to load things certificates: %s", err))
+			os.Exit(1)
+		}
+		logger.Info(fmt.Sprintf("gRPC service started using https on port %s with cert %s key %s",
+			cfg.Port, cfg.ServerCert, cfg.ServerKey))
+		server = grpc.NewServer(grpc.Creds(creds))
+	} else {
+		logger.Info(fmt.Sprintf("gRPC service started using http on port %s", cfg.Port))
+		server = grpc.NewServer()
+	}
+
+	pb.RegisterFleetServiceServer(server, fleetgrpc.NewServer(tracer, svc))
+	errs <- server.Serve(listener)
 }

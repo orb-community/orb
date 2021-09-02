@@ -34,12 +34,21 @@ func TestAgentGroupSave(t *testing.T) {
 	nameID, err := types.NewIdentifier("my-group")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	conflictNameID, err := types.NewIdentifier("my-group-conflict")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	group := fleet.AgentGroup{
 		Name:        nameID,
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
 		Tags:        types.Tags{"testkey": "testvalue"},
 	}
+
+	groupCopy := group
+	groupCopy.Name = conflictNameID
+
+	_, err = agentGroupRepository.Save(context.Background(), groupCopy)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	cases := map[string]struct {
 		agentGroup fleet.AgentGroup
@@ -49,8 +58,8 @@ func TestAgentGroupSave(t *testing.T) {
 			agentGroup: group,
 			err:        nil,
 		},
-		"create group that already exist": {
-			agentGroup: group,
+		"create a existing group": {
+			agentGroup: groupCopy,
 			err:        errors.ErrConflict,
 		},
 		"create group with invalid name": {
@@ -64,10 +73,11 @@ func TestAgentGroupSave(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		_, err := agentGroupRepository.Save(context.Background(), tc.agentGroup)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			_, err := agentGroupRepository.Save(context.Background(), tc.agentGroup)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
+		})
 	}
-
 }
 
 func TestAgentGroupRetrieve(t *testing.T) {
@@ -114,14 +124,16 @@ func TestAgentGroupRetrieve(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		ag, err := agentGroupRepo.RetrieveByID(context.Background(), tc.groupID, tc.ownerID)
-		if err == nil {
-			assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
-		}
-		if len(tc.tags) > 0 {
-			assert.Equal(t, tc.tags, ag.Tags)
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			ag, err := agentGroupRepo.RetrieveByID(context.Background(), tc.groupID, tc.ownerID)
+			if err == nil {
+				assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+			}
+			if len(tc.tags) > 0 {
+				assert.Equal(t, tc.tags, ag.Tags)
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
 	}
 }
 
@@ -224,15 +236,17 @@ func TestMultiAgentGroupRetrieval(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		page, err := agentGroupRepo.RetrieveAllAgentGroupsByOwner(context.Background(), tc.owner, tc.pageMetadata)
-		require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s\n", desc, err))
-		size := uint64(len(page.AgentGroups))
-		assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
-		assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.pageMetadata.Total, page.Total))
+		t.Run(desc, func(t *testing.T) {
+			page, err := agentGroupRepo.RetrieveAllAgentGroupsByOwner(context.Background(), tc.owner, tc.pageMetadata)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s\n", desc, err))
+			size := uint64(len(page.AgentGroups))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
+			assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.pageMetadata.Total, page.Total))
 
-		if size > 0 {
-			testSortAgentGroups(t, tc.pageMetadata, page.AgentGroups)
-		}
+			if size > 0 {
+				testSortAgentGroups(t, tc.pageMetadata, page.AgentGroups)
+			}
+		})
 	}
 }
 
@@ -299,8 +313,10 @@ func TestAgentGroupUpdate(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		_, err := groupRepo.Update(context.Background(), tc.group.MFOwnerID, tc.group)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			_, err := groupRepo.Update(context.Background(), tc.group.MFOwnerID, tc.group)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
 	}
 }
 
@@ -350,11 +366,13 @@ func TestAgentGroupDelete(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := groupRepo.Delete(context.Background(), tc.ID, tc.ownerID)
-		require.Nil(t, err, fmt.Sprintf("%s: failed to remove agent group due to: %s", desc, err))
+		t.Run(desc, func(t *testing.T) {
+			err := groupRepo.Delete(context.Background(), tc.ID, tc.ownerID)
+			require.Nil(t, err, fmt.Sprintf("%s: failed to remove agent group due to: %s", desc, err))
 
-		_, err = groupRepo.RetrieveByID(context.Background(), tc.ID, tc.ownerID)
-		require.True(t, errors.Contains(err, fleet.ErrNotFound), fmt.Sprintf("%s: expected %s got %s", desc, fleet.ErrNotFound, err))
+			_, err = groupRepo.RetrieveByID(context.Background(), tc.ID, tc.ownerID)
+			require.True(t, errors.Contains(err, fleet.ErrNotFound), fmt.Sprintf("%s: expected %s got %s", desc, fleet.ErrNotFound, err))
+		})
 	}
 }
 
