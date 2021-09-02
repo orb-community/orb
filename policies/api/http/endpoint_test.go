@@ -311,8 +311,9 @@ func TestListPolicies(t *testing.T) {
 }
 
 func TestValidatePolicy(t *testing.T) {
-	var contentType = "application/json"
-	var validYaml = `{
+	var (
+		contentType = "application/json"
+		validYaml = `{
 		"name": "mypktvisorpolicyyaml-3",
 		"backend": "pktvisor",
 		"description": "my pktvisor policy yaml",
@@ -320,9 +321,109 @@ func TestValidatePolicy(t *testing.T) {
 			"region": "eu",
 			"node_type": "dns"
 		},
-		"format": "yaml",
-		"policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+		"policy": {
+  			"version": "1.0",
+  			"visor": {
+    			"taps": {
+      				"anycast": {
+        				"type": "pcap",
+						"config": {
+							"iface": "eth0"
+						}
+      				}
+    			}
+  			}
+		}
 	}`
+		invalidBackendYaml = `{
+		"name": "mypktvisorpolicyyaml-3",
+		"backend": "",
+		"description": "my pktvisor policy yaml",
+		"tags": {
+			"region": "eu",
+			"node_type": "dns"
+		},
+		"policy": {
+  			"version": "1.0",
+  			"visor": {
+    			"taps": {
+      				"anycast": {
+        				"type": "pcap",
+						"config": {
+							"iface": "eth0"
+						}
+      				}
+    			}
+  			}
+		}
+		}`
+		invalidYaml = `{`
+		invalidTagYaml = `{
+		"name": "mypktvisorpolicyyaml-3",
+		"backend": "pktvisor",
+		"description": "my pktvisor policy yaml",
+		"tags": {
+			"invalid"
+		},
+		"policy": {
+  			"version": "1.0",
+  			"visor": {
+    			"taps": {
+      				"anycast": {
+        				"type": "pcap",
+						"config": {
+							"iface": "eth0"
+						}
+      				}
+    			}
+  			}
+		}
+	}`
+		invalidNameYaml = `{
+		"name": "policy//.#",
+		"backend": "pktvisor",
+		"description": "my pktvisor policy yaml",
+		"tags": {
+			"region": "eu",
+			"node_type": "dns"
+		},
+		"policy": {
+  			"version": "1.0",
+  			"visor": {
+    			"taps": {
+      				"anycast": {
+        				"type": "pcap",
+						"config": {
+							"iface": "eth0"
+						}
+      				}
+    			}
+  			}
+		}
+	}`
+		invalidFieldYaml = `{
+		"nname": "policy",
+		"backend": "pktvisor",
+		"description": "my pktvisor policy yaml",
+		"tags": {
+			"region": "eu",
+			"node_type": "dns"
+		},
+		"policy": {
+  			"version": "1.0",
+  			"visor": {
+    			"taps": {
+      				"anycast": {
+        				"type": "pcap",
+						"config": {
+							"iface": "eth0"
+						}
+      				}
+    			}
+  			}
+		}
+	}`
+	)
 	cli := newClientServer(t)
 
 	cases := map[string]struct {
@@ -337,6 +438,62 @@ func TestValidatePolicy(t *testing.T) {
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusOK,
+			location:    "/policies/agent/validate",
+		},
+		"validate a invalid yaml": {
+			req:         invalidYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a invalid backend": {
+			req:         invalidBackendYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a invalid tag": {
+			req:         invalidTagYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a invalid name": {
+			req:         invalidNameYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a invalid field": {
+			req:         invalidFieldYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a invalid token": {
+			req:         validYaml,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a empty token": {
+			req:         validYaml,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a empty content type": {
+			req:         validYaml,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
 			location:    "/policies/agent/validate",
 		},
 	}
