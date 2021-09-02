@@ -30,7 +30,7 @@
       </nb-alert>
 
       <nb-alert *ngIf="showMessages.success && messages?.length && !submitted"
-                outline="success" role="alert">
+                outline="success" $ role="alert">
         <p class="alert-title"><b>Hooray!</b></p>
         <ul class="alert-message-list">
           <li *ngFor="let message of messages" class="alert-message">{{ message }}</li>
@@ -49,7 +49,7 @@
                  name="email"
                  id="input-email"
                  pattern=".+@.+\..+"
-                 placeholder=`example@example.com`
+                 placeholder=`example@exampe.com`
                  fieldSize="large"
                  autofocus
                  [status]="email.dirty ? (email.invalid  ? 'danger' : 'success') : 'basic'"

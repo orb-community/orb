@@ -29,7 +29,10 @@ import { ConfirmationComponent } from 'app/shared/components/confirmation/confir
 import { DatasetsComponent } from 'app/pages/datasets/datasets.component';
 import { DatasetsAddComponent } from 'app/pages/datasets/add/datasets.add.component';
 import { DatasetsDetailsComponent } from 'app/pages/datasets/details/datasets.details.component';
-import { SinkListComponent } from 'app/pages/sinks/list/sink.list.component';
+import { FleetsComponent } from 'app/pages/fleets/fleets.component';
+import { FleetsAddComponent } from 'app/pages/fleets/add/fleets.add.component';
+import { FleetsDetailsComponent } from 'app/pages/fleets/details/fleets.details.component';
+import { SinksComponent } from 'app/pages/sinks/sinks.component';
 import { SinkAddComponent } from 'app/pages/sinks/add/sink.add.component';
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
@@ -37,17 +40,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { BreadcrumbModule } from 'xng-breadcrumb';
+import { AgentGroupsComponent } from 'app/pages/agent-groups/agent.groups.component';
+import { AgentGroupAddComponent } from 'app/pages/agent-groups/add/agent.group.add.component';
+import { AgentGroupDetailsComponent } from 'app/pages/agent-groups/details/agent.group.details.component';
+import { AgentGroupDeleteComponent } from 'app/pages/agent-groups/delete/agent.group.delete.component';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 import { DebounceModule } from 'ngx-debounce';
-import { AgentListComponent } from 'app/pages/fleet/agents/list/agent.list.component';
-import { AgentAddComponent } from 'app/pages/fleet/agents/add/agent.add.component';
-import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete.component';
-import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
-import { AgentGroupListComponent } from 'app/pages/fleet/groups/list/agent.group.list.component';
-import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.add.component';
-import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
-import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 
 @NgModule({
   imports: [
@@ -89,27 +88,24 @@ import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent
   declarations: [
     PagesComponent,
     // Orb
-    // Fleet Management
-    // Agents
-    AgentListComponent,
-    AgentAddComponent,
-    AgentDeleteComponent,
-    AgentDetailsComponent,
-    // Agent Groups
-    AgentGroupListComponent,
+    // Agent Group Management
+    AgentGroupsComponent,
     AgentGroupAddComponent,
-    AgentGroupDeleteComponent,
     AgentGroupDetailsComponent,
+    AgentGroupDeleteComponent,
     // Dataset Explorer
     DatasetsComponent,
     DatasetsAddComponent,
     DatasetsDetailsComponent,
+    // Fleet Management
+    FleetsComponent,
+    FleetsAddComponent,
+    FleetsDetailsComponent,
     // Sink Management
-    SinkListComponent,
+    SinksComponent,
     SinkAddComponent,
     SinkDetailsComponent,
     SinkDeleteComponent,
-    // DEV SHOWCASE
     ShowcaseComponent,
   ],
   providers: [
