@@ -46,6 +46,16 @@ visor:
 )
 
 var (
+	validJson   = `{
+    "name": "mypktvisorpolicyyaml-3",
+    "description": "my pktvisor policy yaml",
+    "tags": {
+        "region": "eu",
+        "node_type": "dns"
+    },
+    "format": "yaml",
+    "policy": "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+}`
 	metadata    = map[string]interface{}{"type": "orb_agent"}
 	invalidName = strings.Repeat("m", maxNameSize+1)
 )
@@ -308,6 +318,44 @@ func TestListPolicies(t *testing.T) {
 			assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
 		})
 	}
+}
+
+func TestPolicyEdition(t *testing.T) {
+	cli := newClientServer(t)
+	policy := createPolicy(t, &cli, "policy")
+
+	cases := map[string]struct {
+		id          string
+		token       string
+		status      int
+		contentType string
+		data        string
+	}{
+		"update a existing policy": {
+			id:     policy.ID,
+			token:  token,
+			status: http.StatusOK,
+			contentType: "application/json",
+			data:   validJson,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPut,
+				url:         fmt.Sprintf("%s/policies/%s", cli.server.URL, tc.id),
+				contentType: tc.contentType,
+				token:       tc.token,
+				body:        strings.NewReader(tc.data),
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+
 }
 
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {

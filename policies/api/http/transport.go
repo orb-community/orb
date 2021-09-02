@@ -11,6 +11,7 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb"
+	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/internal/httputil"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -57,6 +58,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 		decodeList,
 		types.EncodeResponse,
 		opts...))
+	r.Put("/policies/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "edit_policy")(editPoliciyEndpoint(svc)),
+		decodePolicyUpdate,
+		types.EncodeResponse,
+		opts...))
 
 	r.Post("/policies/dataset", kithttp.NewServer(
 		kitot.TraceServer(tracer, "add_dataset")(addDatasetEndpoint(svc)),
@@ -101,6 +107,22 @@ func decodeView(_ context.Context, r *http.Request) (interface{}, error) {
 		token: r.Header.Get("Authorization"),
 		id:    bone.GetValue(r, "id"),
 	}
+	return req, nil
+}
+
+func decodePolicyUpdate(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), contentType) {
+		return nil, errors.ErrUnsupportedContentType
+	}
+
+	req := updatePolicyReq{
+		token: r.Header.Get("Authorization"),
+		id:    bone.GetValue(r, "id"),
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
+	}
+
 	return req, nil
 }
 

@@ -69,7 +69,7 @@ func TestRetrievePolicyByID(t *testing.T) {
 	}
 }
 
-func TestListAgentGroup(t *testing.T) {
+func TestListPolicies(t *testing.T) {
 	users := flmocks.NewAuthService(map[string]string{token: email})
 	svc := newService(users)
 
@@ -173,6 +173,10 @@ func TestListAgentGroup(t *testing.T) {
 		})
 
 	}
+}
+
+func TestEditPolicy(t *testing.T) {
+
 }
 
 func createPolicy(t *testing.T, svc policies.Service, name string) policies.Policy {

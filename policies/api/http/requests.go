@@ -79,6 +79,39 @@ func (req viewResourceReq) validate() error {
 	return nil
 }
 
+type updatePolicyReq struct {
+	id          string
+	token       string
+	Name        string     `json:"name,omitempty"`
+	Description string     `json:"description,omitempty"`
+	Tags        types.Tags `json:"tags,omitempty"`
+	Format      string     `json:"format,omitempty"`
+	Policy      string     `json:"policy,omitempty"`
+}
+
+func (req updatePolicyReq) validate() error {
+
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+	if req.Name == "" {
+		return errors.ErrMalformedEntity
+	}
+	if len(req.Tags) == 0 {
+		return errors.ErrMalformedEntity
+	}
+	if len(req.Policy) == 0 {
+		return errors.ErrMalformedEntity
+	}
+
+	_, err := types.NewIdentifier(req.Name)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return nil
+}
+
 type addDatasetReq struct {
 	Name         string `json:"name"`
 	AgentGroupID string `json:"agent_group_id"`
