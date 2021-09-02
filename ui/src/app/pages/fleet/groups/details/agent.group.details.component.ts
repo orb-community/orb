@@ -23,13 +23,10 @@ export class AgentGroupDetailsComponent {
 
 
   onOpenEdit(agentGroup: any) {
-    this.dialogRef.close();
-    this.router.navigate([`pages/agent-group/edit/${agentGroup.id}`], {
-      state: {agentGroup: agentGroup, edit: true},
-    });
+    this.dialogRef.close(true);
   }
 
   onClose() {
-    this.dialogRef.close();
+    this.dialogRef.close(false);
   }
 }
