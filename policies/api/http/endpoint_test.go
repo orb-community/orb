@@ -310,6 +310,57 @@ func TestListPolicies(t *testing.T) {
 	}
 }
 
+func TestValidatePolicy(t *testing.T) {
+	var contentType = "application/json"
+	var validYaml = `{
+		"name": "mypktvisorpolicyyaml-3",
+		"backend": "pktvisor",
+		"description": "my pktvisor policy yaml",
+		"tags": {
+			"region": "eu",
+			"node_type": "dns"
+		},
+		"format": "yaml",
+		"policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+	}`
+	cli := newClientServer(t)
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"validate a valid policy": {
+			req:         validYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+			location:    "/policies/agent/validate",
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodPost,
+				url:    fmt.Sprintf("%s/policies/agent/validate", cli.server.URL),
+				contentType: tc.contentType,
+				token:  tc.auth,
+				body: strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			if err != nil {
+				require.Nil(t, err, "%s: Unexpected error: %s", desc, err)
+			}
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
