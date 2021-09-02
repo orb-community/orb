@@ -6,7 +6,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package api_test
+package http_test
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	"github.com/mainflux/mainflux/things"
 	thingsapi "github.com/mainflux/mainflux/things/api/things/http"
 	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/api"
+	http2 "github.com/ns1labs/orb/fleet/api/http"
 	flmocks "github.com/ns1labs/orb/fleet/mocks"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/opentracing/opentracing-go/mocktracer"
@@ -34,16 +34,17 @@ import (
 )
 
 const (
-	contentType  = "application/json"
-	token        = "token"
-	invalidToken = "invalid"
-	email        = "user@example.com"
-	validJson    = "{\n	\"name\": \"eu-agents\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
-	invalidJson  = "{"
-	wrongID      = "9bb1b244-a199-93c2-aa03-28067b431e2c"
-	maxNameSize  = 1024
-	channelsNum  = 3
-	limit        = 10
+	contentType       = "application/json"
+	token             = "token"
+	invalidToken      = "invalid"
+	email             = "user@example.com"
+	validJson         = "{\n	\"name\": \"eu-agents\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	conflictValidJson = "{\n	\"name\": \"eu-agents-conflict\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	invalidJson       = "{"
+	wrongID           = "9bb1b244-a199-93c2-aa03-28067b431e2c"
+	maxNameSize       = 1024
+	channelsNum       = 3
+	limit             = 10
 )
 
 var (
@@ -139,7 +140,7 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 }
 
 func newServer(svc fleet.Service) *httptest.Server {
-	mux := api.MakeHandler(mocktracer.New(), "fleet", svc)
+	mux := http2.MakeHandler(mocktracer.New(), "fleet", svc)
 	return httptest.NewServer(mux)
 }
 
@@ -151,6 +152,9 @@ func toJSON(data interface{}) string {
 func TestCreateAgentGroup(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()
+
+	// Conflict scenario
+	createAgentGroup(t, "eu-agents-conflict", &cli)
 
 	cases := map[string]struct {
 		req         string
@@ -167,7 +171,7 @@ func TestCreateAgentGroup(t *testing.T) {
 			location:    "/agent_groups",
 		},
 		"add a duplicated agent group": {
-			req:         validJson,
+			req:         conflictValidJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusConflict,
@@ -197,17 +201,19 @@ func TestCreateAgentGroup(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/agent_groups", cli.server.URL),
-			contentType: tc.contentType,
-			token:       tc.auth,
-			body:        strings.NewReader(tc.req),
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/agent_groups", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 
 }
@@ -247,15 +253,17 @@ func TestViewAgentGroup(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client: cli.server.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
-			token:  tc.auth,
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 
 }
@@ -413,20 +421,22 @@ func TestListAgentGroup(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodGet,
-			url:         fmt.Sprintf(fmt.Sprintf("%s/agent_groups%s", cli.server.URL, tc.url)),
-			contentType: contentType,
-			token:       tc.auth,
-		}
-		res, err := req.make()
-		require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
-		var body agentGroupsPageRes
-		json.NewDecoder(res.Body).Decode(&body)
-		total := uint64(len(body.AgentGroups))
-		assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
-		assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodGet,
+				url:         fmt.Sprintf(fmt.Sprintf("%s/agent_groups%s", cli.server.URL, tc.url)),
+				contentType: contentType,
+				token:       tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var body agentGroupsPageRes
+			json.NewDecoder(res.Body).Decode(&body)
+			total := uint64(len(body.AgentGroups))
+			assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+			assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		})
 	}
 
 }
@@ -530,17 +540,19 @@ func TestUpdateAgentGroup(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodPut,
-			url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
-			contentType: tc.contentType,
-			token:       tc.auth,
-			body:        strings.NewReader(tc.req),
-		}
-		res, err := req.make()
-		require.Nil(t, err, "%s: unexpected error: %s", desc, err)
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPut,
+				url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			require.Nil(t, err, "%s: unexpected error: %s", desc, err)
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 
@@ -578,16 +590,18 @@ func TestDeleteAgentGroup(t *testing.T) {
 		},
 	}
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodDelete,
-			contentType: contentType,
-			url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
-			token:       tc.auth,
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodDelete,
+				contentType: contentType,
+				url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
+				token:       tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 
@@ -667,17 +681,19 @@ func TestValidateAgentGroup(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/agent_groups/validate", cli.server.URL),
-			contentType: tc.contentType,
-			token:       tc.auth,
-			body:        strings.NewReader(tc.req),
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/agent_groups/validate", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 
 }
@@ -716,15 +732,17 @@ func TestViewAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client: cli.server.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
-			token:  tc.auth,
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 
@@ -885,20 +903,22 @@ func TestListAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodGet,
-			url:         fmt.Sprintf(fmt.Sprintf("%s/agents%s", cli.server.URL, tc.url)),
-			contentType: contentType,
-			token:       tc.auth,
-		}
-		res, err := req.make()
-		require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
-		var body agentsPageRes
-		json.NewDecoder(res.Body).Decode(&body)
-		total := uint64(len(body.Agents))
-		assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
-		assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodGet,
+				url:         fmt.Sprintf(fmt.Sprintf("%s/agents%s", cli.server.URL, tc.url)),
+				contentType: contentType,
+				token:       tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var body agentsPageRes
+			json.NewDecoder(res.Body).Decode(&body)
+			total := uint64(len(body.Agents))
+			assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+			assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		})
 	}
 
 }
@@ -1001,17 +1021,19 @@ func TestUpdateAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodPut,
-			url:         fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
-			contentType: tc.contentType,
-			token:       tc.auth,
-			body:        strings.NewReader(tc.req),
-		}
-		res, err := req.make()
-		require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPut,
+				url:         fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 

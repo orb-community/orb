@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package api
+package http
 
 import (
 	"context"
@@ -16,6 +16,10 @@ type metricsMiddleware struct {
 	counter metrics.Counter
 	latency metrics.Histogram
 	svc     fleet.Service
+}
+
+func (m metricsMiddleware) ViewAgentByIDInternal(ctx context.Context, ownerID string, thingID string) (fleet.Agent, error) {
+	return m.svc.ViewAgentByIDInternal(ctx, ownerID, thingID)
 }
 
 func (m metricsMiddleware) ViewAgentByID(ctx context.Context, token string, thingID string) (fleet.Agent, error) {

@@ -11,6 +11,16 @@ package http
 import (
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
+	"github.com/ns1labs/orb/policies"
+)
+
+const (
+	maxLimitSize = 100
+	maxNameSize  = 1024
+	nameOrder    = "name"
+	idOrder      = "id"
+	ascDir       = "asc"
+	descDir      = "desc"
 )
 
 type addPolicyReq struct {
@@ -54,6 +64,21 @@ func (req addPolicyReq) validate() error {
 	return nil
 }
 
+type viewResourceReq struct {
+	token string
+	id    string
+}
+
+func (req viewResourceReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+	if req.id == "" {
+		return errors.ErrMalformedEntity
+	}
+	return nil
+}
+
 type addDatasetReq struct {
 	Name         string `json:"name"`
 	AgentGroupID string `json:"agent_group_id"`
@@ -74,6 +99,41 @@ func (req addDatasetReq) validate() error {
 	_, err := types.NewIdentifier(req.Name)
 	if err != nil {
 		return errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return nil
+}
+
+type listResourcesReq struct {
+	token        string
+	pageMetadata policies.PageMetadata
+}
+
+func (req *listResourcesReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+
+	if req.pageMetadata.Limit == 0 {
+		req.pageMetadata.Limit = defLimit
+	}
+
+	if req.pageMetadata.Limit > maxLimitSize {
+		return errors.ErrMalformedEntity
+	}
+
+	if len(req.pageMetadata.Name) > maxNameSize {
+		return errors.ErrMalformedEntity
+	}
+
+	if req.pageMetadata.Order != "" &&
+		req.pageMetadata.Order != nameOrder && req.pageMetadata.Order != idOrder {
+		return errors.ErrMalformedEntity
+	}
+
+	if req.pageMetadata.Dir != "" &&
+		req.pageMetadata.Dir != ascDir && req.pageMetadata.Dir != descDir {
+		return errors.ErrMalformedEntity
 	}
 
 	return nil

@@ -11,6 +11,8 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -19,6 +21,7 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 
@@ -27,6 +30,65 @@ var _ policies.Repository = (*policiesRepository)(nil)
 type policiesRepository struct {
 	db     Database
 	logger *zap.Logger
+}
+
+func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm policies.PageMetadata) (policies.Page, error) {
+	nameQuery, name := getNameQuery(pm.Name)
+	orderQuery := getOrderQuery(pm.Order)
+	dirQuery := getDirQuery(pm.Dir)
+	tags, tagsQuery, err := getTagsQuery(pm.Tags)
+	if err != nil {
+		return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, orb_tags, backend, version, policy, ts_created 
+			FROM agent_policies
+			WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, orderQuery, dirQuery)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+		"limit":       pm.Limit,
+		"offset":      pm.Offset,
+		"name":        name,
+		"tags":        tags,
+	}
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []policies.Policy
+	for rows.Next() {
+		dbPolicy := dbPolicy{MFOwnerID: owner}
+		if err := rows.StructScan(&dbPolicy); err != nil {
+			return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		policy := toPolicy(dbPolicy)
+		items = append(items, policy)
+	}
+
+	count := fmt.Sprintf(`SELECT count(*)
+			FROM agent_policies
+			WHERE mf_owner_id = :mf_owner_id %s%s;`, nameQuery, tagsQuery)
+
+	total, err := total(ctx, r.db, count, params)
+	if err != nil {
+		return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	page := policies.Page{
+		Policies: items,
+		PageMetadata: policies.PageMetadata{
+			Total:  total,
+			Offset: pm.Offset,
+			Limit:  pm.Limit,
+			Order:  pm.Order,
+			Dir:    pm.Dir,
+		},
+	}
+
+	return page, nil
 }
 
 func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
@@ -292,4 +354,61 @@ func toPolicy(dba dbPolicy) policies.Policy {
 
 	return policy
 
+}
+
+func getNameQuery(name string) (string, string) {
+	if name == "" {
+		return "", ""
+	}
+	name = fmt.Sprintf(`%%%s%%`, strings.ToLower(name))
+	nq := ` AND LOWER(name) LIKE :name`
+	return nq, name
+}
+
+func getOrderQuery(order string) string {
+	switch order {
+	case "name":
+		return "name"
+	default:
+		return "id"
+	}
+}
+
+func getDirQuery(dir string) string {
+	switch dir {
+	case "asc":
+		return "ASC"
+	default:
+		return "DESC"
+	}
+}
+
+func getTagsQuery(m types.Tags) ([]byte, string, error) {
+	mq := ""
+	mb := []byte("{}")
+	if len(m) > 0 {
+		mq = ` AND orb_tags @> :tags`
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, "", err
+		}
+		mb = b
+	}
+	return mb, mq, nil
+}
+
+func total(ctx context.Context, db Database, query string, params interface{}) (uint64, error) {
+	rows, err := db.NamedQueryContext(ctx, query, params)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+	total := uint64(0)
+	if rows.Next() {
+		if err := rows.Scan(&total); err != nil {
+			return 0, err
+		}
+	}
+	return total, nil
 }

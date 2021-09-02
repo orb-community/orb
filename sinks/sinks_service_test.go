@@ -80,9 +80,12 @@ func TestCreateSink(t *testing.T) {
 		},
 	}
 
-	for desc, sinkCase := range cases {
-		_, err := service.CreateSink(context.Background(), sinkCase.token, sink)
-		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s", desc, err, sinkCase.err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := service.CreateSink(context.Background(), tc.token, sink)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
+			t.Log(tc.token)
+		})
 	}
 
 }
@@ -126,8 +129,10 @@ func TestUpdateSink(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := service.UpdateSink(context.Background(), tc.token, tc.sink)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			err := service.UpdateSink(context.Background(), tc.token, tc.sink)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
+		})
 	}
 }
 
@@ -159,13 +164,15 @@ func TestViewSink(t *testing.T) {
 		},
 	}
 
-	for desc, sinkCase := range cases {
-		_, err := service.ViewSink(context.Background(), sinkCase.token, sinkCase.key)
-		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s\n", desc, sinkCase.err, err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := service.ViewSink(context.Background(), tc.token, tc.key)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
 	}
 }
 
-func TestListThings(t *testing.T) {
+func TestListSinks(t *testing.T) {
 	service := newService(map[string]string{token: email})
 	metadata := make(map[string]interface{})
 	metadata["serial"] = "12345"
@@ -271,13 +278,15 @@ func TestListThings(t *testing.T) {
 		},
 	}
 
-	for desc, sinkCase := range cases {
-		page, err := service.ListSinks(context.Background(), sinkCase.token, sinkCase.pageMetadata)
-		size := uint64(len(page.Sinks))
-		assert.Equal(t, sinkCase.size, size, fmt.Sprintf("%s: expected %d got %d\n", desc, sinkCase.size, size))
-		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s", desc, sinkCase.err, err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			page, err := service.ListSinks(context.Background(), tc.token, tc.pageMetadata)
+			size := uint64(len(page.Sinks))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected %d got %d\n", desc, tc.size, size))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 
-		testSortSinks(t, sinkCase.pageMetadata, page.Sinks)
+			testSortSinks(t, tc.pageMetadata, page.Sinks)
+		})
 	}
 
 }
@@ -307,9 +316,11 @@ func TestViewBackends(t *testing.T) {
 		},
 	}
 
-	for desc, sinkCase := range cases {
-		_, err := service.ViewBackend(context.Background(), sinkCase.token, sinkCase.backend)
-		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s", desc, sinkCase.err, err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := service.ViewBackend(context.Background(), tc.token, tc.backend)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
 	}
 
 }
@@ -331,9 +342,11 @@ func TestListBackends(t *testing.T) {
 		},
 	}
 
-	for desc, sinkCase := range cases {
-		_, err := service.ListBackends(context.Background(), sinkCase.token)
-		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s", desc, sinkCase.err, err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := service.ListBackends(context.Background(), tc.token)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
 	}
 
 }
@@ -344,35 +357,33 @@ func TestDeleteSink(t *testing.T) {
 	sk, err := svc.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 
-	cases := []struct {
-		desc  string
+	cases := map[string]struct {
 		id    string
 		token string
 		err   error
 	}{
-		{
-			desc:  "delete existing sink",
+		"delete existing sink": {
 			id:    sk.ID,
 			token: token,
 			err:   nil,
 		},
-		{
-			desc:  "delete non-existent sink",
+		"delete non-existent sink": {
 			id:    wrongID.String(),
 			token: token,
 			err:   nil,
 		},
-		{
-			desc:  "delete sink with wrong credentials",
+		"delete sink with wrong credentials": {
 			id:    sk.ID,
 			token: invalidToken,
 			err:   sinks.ErrUnauthorizedAccess,
 		},
 	}
 
-	for _, sinkCase := range cases {
-		err := svc.DeleteSink(context.Background(), sinkCase.token, sinkCase.id)
-		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s\n", sinkCase.desc, sinkCase.err, err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := svc.DeleteSink(context.Background(), tc.token, tc.id)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
 	}
 }
 
@@ -396,9 +407,11 @@ func TestValidateSink(t *testing.T) {
 		},
 	}
 
-	for desc, sinkCase := range cases {
-		_, err := service.ValidateSink(context.Background(), sinkCase.token, sink)
-		assert.True(t, errors.Contains(err, sinkCase.err), fmt.Sprintf("%s: expected %s got %s", desc, err, sinkCase.err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := service.ValidateSink(context.Background(), tc.token, sink)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
+		})
 	}
 
 }

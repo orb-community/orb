@@ -35,6 +35,10 @@ func (svc fleetService) ViewAgentByID(ctx context.Context, token string, thingID
 	return svc.agentRepo.RetrieveByID(ctx, ownerID, thingID)
 }
 
+func (svc fleetService) ViewAgentByIDInternal(ctx context.Context, ownerID string, id string) (Agent, error) {
+	return svc.agentRepo.RetrieveByID(ctx, ownerID, id)
+}
+
 func (svc fleetService) ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error) {
 	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
