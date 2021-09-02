@@ -126,3 +126,37 @@ func (s policiesService) ViewPolicyByID(ctx context.Context, token string, polic
 	}
 	return res, nil
 }
+
+func (s policiesService) ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error) {
+
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	if !backend.HaveBackend(p.Backend) {
+		return Policy{}, errors.Wrap(ErrCreatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
+	}
+
+	if p.Policy == nil {
+		// if not already in json, make sure the back end can convert it
+		if !backend.GetBackend(p.Backend).SupportsFormat(format) {
+			return Policy{}, errors.Wrap(ErrCreatePolicy,
+				errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", format, p.Backend)))
+		}
+
+		p.Policy, err = backend.GetBackend(p.Backend).ConvertFromFormat(format, policyData)
+		if err != nil {
+			return Policy{}, errors.Wrap(ErrCreatePolicy, err)
+		}
+	}
+
+	err = backend.GetBackend(p.Backend).Validate(p.Policy)
+	if err != nil {
+		return Policy{}, errors.Wrap(ErrCreatePolicy, err)
+	}
+
+	p.MFOwnerID = mfOwnerID
+
+	return p, nil
+}

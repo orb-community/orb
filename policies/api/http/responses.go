@@ -59,3 +59,22 @@ type datasetRes struct {
 	Name    string `json:"name"`
 	created bool
 }
+
+type policyValidateRes struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Backend string `json:"backend"`
+}
+
+func (s policyValidateRes) Code() int {
+
+	return http.StatusOK
+}
+
+func (s policyValidateRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s policyValidateRes) Empty() bool {
+	return false
+}

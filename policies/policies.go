@@ -59,6 +59,9 @@ type Service interface {
 
 	// InactivateDataSet
 	InactivateDatasetByGroupID(ctx context.Context, groupID string, token string) error
+
+	// ValidatePolicy validates an agent Policy without saving
+	ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
 }
 
 type Repository interface {
