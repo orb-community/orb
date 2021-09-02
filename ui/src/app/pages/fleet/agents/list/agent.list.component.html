@@ -2,14 +2,19 @@
   <header>
     <xng-breadcrumb class="orb-breadcrumb">
     </xng-breadcrumb>
-    <h4>{{strings.list.header}}</h4>
+    <h4>All Agents</h4>
   </header>
   <div class="d-flex flex-column mt-4">
     <div class="d-flex justify-content-between mb-2">
       <div class="d-flex">
         <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
            class="sink-info-regular">
-          You have <strong>{{paginationControls.data.filter(filterByActive).length}} groups active</strong>.
+          You have <a><strong>{{paginationControls.data.length}}</strong> agents</a> deployed in
+          <a><strong>{{paginationControls.data.length}}</strong> regions.</a>
+        </p>
+        <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
+           class="ns1red">
+          <a><strong>{{paginationControls.data.length}}</strong> have errors</a>.
         </p>
         <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
            class="sink-info-accent">
@@ -33,7 +38,7 @@
         <nb-form-field *ngIf="filterSelectedIndex =='1'">
           <nb-icon nbPrefix icon="search-outline" pack="eva"></nb-icon>
           <input nbInput
-                 (keyup)="getAgentGroups()"
+                 (keyup)="getAgents()"
                  [placeholder]="searchPlaceholder"
                  type="text"
                  fieldSize="medium"
@@ -42,7 +47,7 @@
         <nb-form-field *ngIf="filterSelectedIndex =='0'">
           <nb-icon nbPrefix icon="search-outline" pack="eva"></nb-icon>
           <input nbInput
-                 (keyup)="getAgentGroups()"
+                 (keyup)="getAgents()"
                  [placeholder]="searchPlaceholder"
                  type="text"
                  fieldSize="medium"
@@ -66,7 +71,7 @@
         [offset]="paginationControls.offset"
         [rows]="paginationControls.data"
         [scrollbarV]="true"
-        (page)='getAgentGroups($event)'
+        (page)='getAgents($event)'
         [columns]="columns"
         [columnMode]="columnMode.flex"
         [headerHeight]="50"
@@ -76,16 +81,27 @@
   </div>
 </div>
 
-<ng-template #agentGroupTemplateCell let-row="row" let-value="value" let-i="index">
-  <strong> {{ value.length }} </strong>
+<ng-template #agentStateTemplateCell let-row="row" let-value="value" let-i="index">
+  <div>
+    <div *ngIf="row.state === 'active'">
+      <i class="fa fa-circle orb-service-active"
+         aria-hidden="true"></i>
+      {{ row.state | titlecase }}
+    </div>
+    <div *ngIf="row.state !== 'active'">
+      <i class="fa fa-circle orb-service-inactive"
+         aria-hidden="true"></i>
+      {{ row.state | titlecase }}
+    </div>
+  </div>
 </ng-template>
 
-<ng-template #agentGroupTagsTemplateCell let-row="row" let-value="value" let-i="index">
+<ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
   <div class="d-flex">
     <mat-chip-list>
       <mat-chip
           class="orb-tag-sink "
-          *ngFor="let tag of value | keyvalue | slice:0:3">
+          *ngFor="let tag of value | keyvalue">
         {{tag.key}}, {{tag.value}}
       </mat-chip>
     </mat-chip-list>
@@ -110,41 +126,6 @@
             ghost
             class="orb-action-hover del-button"
             (click)="openDeleteModal(row)">
-      <nb-icon icon="trash-2-outline"></nb-icon>
-    </button>
-  </div>
-</ng-template>
-
-<ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
-  <div class="d-flex">
-    <mat-chip-list>
-      <mat-chip
-          class="orb-tag-sink "
-          *ngFor="let tag of value | keyvalue | slice:0:3">
-        {{tag.key}}, {{tag.value}}
-      </mat-chip>
-    </mat-chip-list>
-  </div>
-</ng-template>
-
-<ng-template #actionsTemplateCell let-row="row" let-value="value" let-i="index">
-  <div class="d-flex flex-row">
-    <button nbButton
-            ghost
-            class="orb-action-hover detail-button"
-            (click)="openDetailsModal(value)">
-      <nb-icon icon="search-outline"></nb-icon>
-    </button>
-    <button nbButton
-            ghost
-            class="orb-action-hover edit-button"
-            (click)="onOpenEdit(value)">
-      <nb-icon icon="edit-outline"></nb-icon>
-    </button>
-    <button nbButton
-            ghost
-            class="orb-action-hover del-button"
-            (click)="openDeleteModal(value)">
       <nb-icon icon="trash-2-outline"></nb-icon>
     </button>
   </div>

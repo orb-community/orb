@@ -12,11 +12,11 @@ import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 
 
 @Component({
-  selector: 'ngx-agent-group-add-component',
-  templateUrl: './agent.group.add.component.html',
-  styleUrls: ['./agent.group.add.component.scss'],
+  selector: 'ngx-agent-add-component',
+  templateUrl: './agent.add.component.html',
+  styleUrls: ['./agent.add.component.scss'],
 })
-export class AgentGroupAddComponent implements OnInit, AfterViewInit {
+export class AgentAddComponent implements OnInit, AfterViewInit {
   // page vars
   strings = {...STRINGS.agents, stepper: STRINGS.stepper};
 
@@ -59,6 +59,8 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
 
   isLoading = false;
 
+  agentGroupID;
+
   constructor(
     private agentGroupsService: AgentGroupsService,
     private agentsService: AgentsService,
@@ -68,13 +70,12 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   ) {
     this.agentsService.clean();
     this.agentGroup = this.router.getCurrentNavigation().extras.state?.agentGroup as AgentGroup || null;
-    this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
-    const id = this.route.snapshot.paramMap.get('id');
-    !!id && this.agentGroupsService.getAgentGroupById(id).subscribe(resp => {
+    this.agentGroupID = this.route.snapshot.paramMap.get('id');
+    !!this.agentGroupID && this.agentGroupsService.getAgentGroupById(this.agentGroupID).subscribe(resp => {
       this.agentGroup = resp.agentGroup;
       this.isLoading = false;
     });
-    this.isEdit = !!id;
+    this.isEdit = !!this.agentGroupID && this.router.getCurrentNavigation().extras.state?.edit as boolean;
     this.isLoading = this.isEdit;
   }
 
@@ -115,6 +116,8 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
       Object.keys(tags).map(key => ({[key]: tags[key]})));
 
     this.updateTagMatches();
+
+    this.updateMatchingAgents();
 
     this.agentGroupsService.clean();
   }
@@ -173,6 +176,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
         key.reset('');
         value.reset('');
         this.updateTagMatches();
+        this.updateMatchingAgents();
       }
     } else {
       // TODO remove this else clause and error
@@ -187,6 +191,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     if (indexToRemove >= 0) {
       tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
       this.updateTagMatches();
+      this.updateMatchingAgents();
     }
   }
 
@@ -242,7 +247,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     // // remove line bellow
     // console.log(payload)
     if (this.isEdit) {
-      this.agentGroupsService.editAgentGroup(this.agentGroup).subscribe(resp => this.goBack());
+      this.agentGroupsService.editAgentGroup({...payload, id: this.agentGroupID}).subscribe(resp => this.goBack());
     } else {
       this.agentGroupsService.addAgentGroup(payload).subscribe(() => this.goBack());
     }

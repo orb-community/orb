@@ -104,16 +104,14 @@ tr div p {
 
       &::before {
         color: #969fb9 !important;
-        content: 'Settings /\00a0';
       }
     }
   }
 }
 
-.add-sink-container {
+.add-agent-container {
   position: absolute;
   right: 0;
   transform: translate(-100px, 54px);
   z-index: 10;
-  color: #3089fc !important;
 }
