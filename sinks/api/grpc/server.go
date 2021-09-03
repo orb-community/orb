@@ -29,7 +29,7 @@ type grpcServer struct {
 func NewServer(tracer opentracing.Tracer, svc sinks.SinkService) pb.SinkServiceServer {
 	return &grpcServer{
 		retrieveSink: kitgrpc.NewServer(
-			kitot.TraceServer(tracer, "retrieve_policy")(retrieveSinkEndpoint(svc)),
+			kitot.TraceServer(tracer, "retrieve_sink")(retrieveSinkEndpoint(svc)),
 			decodeRetrieveSinkRequest,
 			encodeSinkResponse,
 		),
