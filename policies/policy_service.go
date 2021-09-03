@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies/backend"
-	"go.uber.org/zap"
 )
 
 var (
@@ -84,7 +83,7 @@ func (s policiesService) AddPolicy(ctx context.Context, token string, p Policy, 
 		return Policy{}, err
 	}
 
-	err = validatePolicyBackend(p, format, policyData)
+	err = validatePolicyBackend(&p, format, policyData)
 	if err != nil {
 		return Policy{}, err
 	}
@@ -118,31 +117,44 @@ func (s policiesService) EditPolicy(ctx context.Context, token string, pol Polic
 		return Policy{}, err
 	}
 
+	// Used to get the policy backend and validate it
+	plcy, err := s.repo.RetrievePolicyByID(ctx, pol.ID, ownerID)
+	if err != nil {
+		return Policy{}, err
+	}
+	pol.Backend = plcy.Backend
+	pol.MFOwnerID = ownerID
+
+	err = validatePolicyBackend(&pol, format, policyData)
+
 	err = s.repo.UpdatePolicy(ctx, ownerID, pol)
 	if err != nil {
 		return Policy{}, err
 	}
 
+	// Used to return the updated policy
 	res, err := s.repo.RetrievePolicyByID(ctx, pol.ID, ownerID)
 	if err != nil {
 		return Policy{}, err
 	}
 
-	datasets, err := s.repo.RetrieveDatasetsByPolicyID(ctx, res.ID, ownerID)
+	return res, nil
+}
+
+func (s policiesService) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error) {
+	ownerID, err := s.identify(token)
 	if err != nil {
-		return Policy{}, err
+		return nil, err
 	}
-	for _, ds := range datasets {
-		err := s.policyComms.NotifyDatasetPolicyUpdate(ctx, res, ds)
-		if err != nil {
-			s.logger.Error("error notifying policy change for agent group channel", zap.Error(errors.Wrap(ErrNotifyAgentGroupChannel, err)))
-		}
-		fmt.Sprintf(ds.Name.String())
+
+	res, err := s.repo.RetrieveDatasetsByPolicyID(ctx, policyID, ownerID)
+	if err != nil {
+		return nil, err
 	}
 	return res, nil
 }
 
-func validatePolicyBackend(p Policy, format string, policyData string) (err error) {
+func validatePolicyBackend(p *Policy, format string, policyData string) (err error) {
 	if !backend.HaveBackend(p.Backend) {
 		return errors.Wrap(ErrCreatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
 	}

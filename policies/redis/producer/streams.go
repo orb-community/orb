@@ -28,8 +28,44 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (e eventStore) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]policies.Dataset, error) {
+	return e.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
+}
+
 func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.Policy, format string, policyData string) (policies.Policy, error) {
-	return e.svc.EditPolicy(ctx, token, pol, format, policyData)
+	res, err := e.svc.EditPolicy(ctx, token, pol, format, policyData)
+	if err != nil {
+		return policies.Policy{}, err
+	}
+
+	datasets, err := e.svc.ListDatasetsByPolicyIDInternal(ctx, res.ID, token)
+	if err != nil {
+		return policies.Policy{}, err
+	}
+
+	var groupsIDs []string
+	for _, ds := range datasets {
+		groupsIDs = append(groupsIDs, ds.AgentGroupID)
+	}
+
+	event := updatePolicyEvent{
+		id:       pol.ID,
+		ownerID:  pol.MFOwnerID,
+		groupIDs: groupsIDs,
+		policy:   pol.Policy,
+	}
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+	err = e.client.XAdd(ctx, record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+		return res, err
+	}
+
+	return res, nil
 }
 
 func (e eventStore) AddPolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {

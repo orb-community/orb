@@ -9,6 +9,7 @@
 package producer
 
 import (
+	"github.com/ns1labs/orb/pkg/types"
 	"time"
 )
 
@@ -18,6 +19,7 @@ const (
 	DatasetRemove = DatasetPrefix + "remove"
 	PolicyPrefix  = "policy."
 	PolicyCreate  = PolicyPrefix + "create"
+	PolicyUpdate  = PolicyPrefix + "update"
 )
 
 type event interface {
@@ -27,6 +29,7 @@ type event interface {
 var (
 	_ event = (*createDatasetEvent)(nil)
 	_ event = (*createPolicyEvent)(nil)
+	_ event = (*updatePolicyEvent)(nil)
 )
 
 type createDatasetEvent struct {
@@ -44,6 +47,13 @@ type createPolicyEvent struct {
 	ownerID   string
 	name      string
 	timestamp time.Time
+}
+
+type updatePolicyEvent struct {
+	id       string
+	ownerID  string
+	groupIDs []string
+	policy   types.Metadata
 }
 
 func (cce createDatasetEvent) Encode() map[string]interface{} {
@@ -66,5 +76,15 @@ func (cce createPolicyEvent) Encode() map[string]interface{} {
 		"name":      cce.name,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": PolicyCreate,
+	}
+}
+
+func (cce updatePolicyEvent) Encode() map[string]interface{} {
+	return map[string]interface{}{
+		"id":        cce.id,
+		"owner_id":  cce.ownerID,
+		"groups_id": cce.groupIDs,
+		"policy":    cce.policy,
+		"operation": PolicyUpdate,
 	}
 }

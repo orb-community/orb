@@ -11,7 +11,6 @@ package policies
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"github.com/ns1labs/orb/fleet/pb"
@@ -54,11 +53,6 @@ func (p policiesCommsService) NotifyDatasetPolicyUpdate(ctx context.Context, pol
 		AgentGroupID: dataset.AgentGroupID,
 		OwnerID:      dataset.MFOwnerID,
 	})
-
-	//todo remove befeore pull request
-	if ag != nil {
-		p.logger.Info(fmt.Sprintf(">>>>>>>>>>>>> Got the agent group by gRPC Pass here %s", ag.Name))
-	}
 
 	payload := []DatasetRPCPayload{{
 		ID:            dataset.ID,

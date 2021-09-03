@@ -63,6 +63,9 @@ type Service interface {
 
 	// InactivateDatasetByGroupID
 	InactivateDatasetByGroupID(ctx context.Context, groupID string, token string) error
+
+	// ListDatasetsByPolicyID retrieves the subset of Datasets by policyID owned by the specified user
+	ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error)
 }
 
 type Repository interface {

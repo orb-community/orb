@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
 )
 
@@ -23,6 +24,7 @@ const (
 	datasetCreate = datasetPrefix + "create"
 	policyPrefix  = "policy."
 	policyCreate  = policyPrefix + "create"
+	policyUpdate  = policyPrefix + "update"
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
@@ -75,6 +77,9 @@ func (es eventStore) Subscribe(context context.Context) error {
 			case datasetCreate:
 				rte := decodeDatasetCreate(event)
 				err = es.handleDatasetCreate(context, rte)
+			case policyUpdate:
+				rte := decodePolicyUpadte(event)
+				err = es.handlePolicyUpdate(context, rte)
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
@@ -108,8 +113,50 @@ func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEve
 	return es.commsService.NotifyGroupNewAgentPolicy(ctx, ag, e.policyID, e.ownerID)
 }
 
+func decodePolicyUpadte(event map[string]interface{}) updatePolicyEvent {
+	return updatePolicyEvent{
+		id:        read(event, "id", ""),
+		ownerID:   read(event, "owner_id", ""),
+		agentsIDs: readSlice(event, "agents_ids", make([]string, 1)),
+		policy:    readMetada(event, "policy", types.Metadata{}),
+	}
+}
+
+// the policy service is notifying that a policy has been updated
+// notify all agents in the AgentGroup specified in the dataset about the policy update
+func (es eventStore) handlePolicyUpdate(ctx context.Context, e updatePolicyEvent) error {
+
+	// todo check if it will necessary to create a new comms function to notify a update
+	for _, a := range e.agentsIDs {
+		ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, a, e.ownerID)
+		if err != nil {
+			return err
+		}
+		return es.commsService.NotifyGroupNewAgentPolicy(ctx, ag, e.id, e.ownerID)
+	}
+	return nil
+}
+
 func read(event map[string]interface{}, key, def string) string {
 	val, ok := event[key].(string)
+	if !ok {
+		return def
+	}
+
+	return val
+}
+
+func readSlice(event map[string]interface{}, key string, def []string) []string {
+	val, ok := event[key].([]string)
+	if !ok {
+		return def
+	}
+
+	return val
+}
+
+func readMetada(event map[string]interface{}, key string, def types.Metadata) types.Metadata {
+	val, ok := event[key].(types.Metadata)
 	if !ok {
 		return def
 	}

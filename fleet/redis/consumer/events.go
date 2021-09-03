@@ -8,7 +8,10 @@
 
 package consumer
 
-import "time"
+import (
+	"github.com/ns1labs/orb/pkg/types"
+	"time"
+)
 
 type createDatasetEvent struct {
 	id           string
@@ -18,4 +21,11 @@ type createDatasetEvent struct {
 	policyID     string
 	sinkID       string
 	timestamp    time.Time
+}
+
+type updatePolicyEvent struct {
+	id        string
+	ownerID   string
+	agentsIDs []string
+	policy    types.Metadata
 }
