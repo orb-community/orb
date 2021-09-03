@@ -12,11 +12,30 @@ func retrieveAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
-		agentGroup, err := svc.ViewAgentGroupByIDInternal(ctx, req.OwnerID, req.AgentID)
+		agent, err := svc.ViewAgentByIDInternal(ctx, req.OwnerID, req.AgentID)
 		if err != nil {
 			return nil, err
 		}
 		res := agentRes{
+			id:      agent.MFThingID,
+			name:    agent.Name.String(),
+			channel: agent.MFChannelID,
+		}
+		return res, nil
+	}
+}
+
+func retrieveAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(accessAgByIDReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		agentGroup, err := svc.ViewAgentGroupByIDInternal(ctx, req.AgentGroupID, req.OwnerID)
+		if err != nil {
+			return nil, err
+		}
+		res := agentGroupRes{
 			id:      agentGroup.ID,
 			name:    agentGroup.Name.String(),
 			channel: agentGroup.MFChannelID,

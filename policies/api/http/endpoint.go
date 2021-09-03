@@ -110,7 +110,25 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return policiesPageRes{}, err
 		}
-		return policiesPageRes{}, nil
+
+		nameID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return policies.Policy{}, err
+		}
+		plcy := policies.Policy{
+			ID:          req.id,
+			Name:        nameID,
+			Description: req.Description,
+			OrbTags:     req.Tags,
+			Policy:      req.Policy,
+		}
+
+		res, err := svc.EditPolicy(ctx, req.token, plcy, req.Format, req.PolicyData)
+		if err != nil {
+			return policies.Policy{}, err
+		}
+
+		return res, nil
 	}
 }
 

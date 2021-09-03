@@ -20,6 +20,23 @@ type mockPoliciesRepository struct {
 	gdb            map[string][]policies.Policy
 }
 
+func (m *mockPoliciesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
+	//todo implement when create the unit tests to datasets
+	return nil, nil
+}
+
+func (m *mockPoliciesRepository) UpdatePolicy(ctx context.Context, owner string, pol policies.Policy) error {
+	if _, ok := m.pdb[pol.ID]; ok {
+		if m.pdb[pol.ID].MFOwnerID != owner {
+			return policies.ErrUpdateEntity
+		}
+		pol.MFOwnerID = owner
+		m.pdb[pol.ID] = pol
+		return nil
+	}
+	return policies.ErrNotFound
+}
+
 func NewPoliciesRepository() policies.Repository {
 	return &mockPoliciesRepository{
 		pdb: make(map[string]policies.Policy),

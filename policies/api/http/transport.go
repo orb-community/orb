@@ -43,22 +43,22 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 	}
 	r := bone.New()
 
-	r.Post("/policies/agent", kithttp.NewServer(
+	r.Post("/policies/agents", kithttp.NewServer(
 		kitot.TraceServer(tracer, "add_policy")(addPolicyEndpoint(svc)),
 		decodeAddPolicyRequest,
 		types.EncodeResponse,
 		opts...))
-	r.Get("/policies/:id", kithttp.NewServer(
+	r.Get("/policies/agents/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_policy")(viewPolicyEndpoint(svc)),
 		decodeView,
 		types.EncodeResponse,
 		opts...))
-	r.Get("/policies", kithttp.NewServer(
+	r.Get("/policies/agents", kithttp.NewServer(
 		kitot.TraceServer(tracer, "list_policies")(listPoliciesEndpoint(svc)),
 		decodeList,
 		types.EncodeResponse,
 		opts...))
-	r.Put("/policies/:id", kithttp.NewServer(
+	r.Put("/policies/agents/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "edit_policy")(editPoliciyEndpoint(svc)),
 		decodePolicyUpdate,
 		types.EncodeResponse,

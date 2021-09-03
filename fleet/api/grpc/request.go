@@ -16,3 +16,16 @@ func (req accessByIDReq) validate() error {
 
 	return nil
 }
+
+type accessAgByIDReq struct {
+	AgentGroupID string
+	OwnerID      string
+}
+
+func (req accessAgByIDReq) validate() error {
+	if req.AgentGroupID == "" || req.OwnerID == "" {
+		return fleet.ErrMalformedEntity
+	}
+
+	return nil
+}

@@ -1038,8 +1038,8 @@ func TestUpdateAgent(t *testing.T) {
 }
 
 func TestValidateAgent(t *testing.T) {
-	var validJson   = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
-	var invalidTag  = "{\"name\":\"eu-agents\",\"orb_tags\": {\n\"invalidTag\", \n \"node_type\":\"dns\"}}"
+	var validJson = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+	var invalidTag = "{\"name\":\"eu-agents\",\"orb_tags\": {\n\"invalidTag\", \n \"node_type\":\"dns\"}}"
 	var invalidName = "{\"name\":\",,AGENT 6,\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
 	var invalidField = "{\"nname\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
 
@@ -1109,7 +1109,6 @@ func TestValidateAgent(t *testing.T) {
 			status:      http.StatusBadRequest,
 			location:    "/agents/validate",
 		},
-
 	}
 
 	for desc, tc := range cases {
@@ -1129,10 +1128,14 @@ func TestValidateAgent(t *testing.T) {
 }
 
 func TestCreateAgent(t *testing.T) {
-	var validJson   = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+	var validJson = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+	var conflictValidJson = "{\"name\":\"conflict\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
 
 	cli := newClientServer(t)
 	defer cli.server.Close()
+
+	_, err := createAgent(t, "conflict", &cli)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	cases := map[string]struct {
 		req         string
@@ -1149,7 +1152,7 @@ func TestCreateAgent(t *testing.T) {
 			location:    "/agents",
 		},
 		"add a duplicated agent": {
-			req:         validJson,
+			req:         conflictValidJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusConflict,

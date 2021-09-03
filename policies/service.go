@@ -7,6 +7,7 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies/backend/orb"
 	"github.com/ns1labs/orb/policies/backend/pktvisor"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -24,8 +25,10 @@ type PageMetadata struct {
 var _ Service = (*policiesService)(nil)
 
 type policiesService struct {
-	auth mainflux.AuthServiceClient
-	repo Repository
+	logger      *zap.Logger
+	auth        mainflux.AuthServiceClient
+	policyComms PolicyCommsService
+	repo        Repository
 }
 
 func (s policiesService) identify(token string) (string, error) {
@@ -40,13 +43,15 @@ func (s policiesService) identify(token string) (string, error) {
 	return res.GetId(), nil
 }
 
-func New(auth mainflux.AuthServiceClient, repo Repository) Service {
+func New(logger *zap.Logger, auth mainflux.AuthServiceClient, repo Repository, policyComms PolicyCommsService) Service {
 
 	orb.Register()
 	pktvisor.Register()
 
 	return &policiesService{
-		auth: auth,
-		repo: repo,
+		logger:      logger,
+		auth:        auth,
+		policyComms: policyComms,
+		repo:        repo,
 	}
 }

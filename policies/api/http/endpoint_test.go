@@ -46,7 +46,7 @@ visor:
 )
 
 var (
-	validJson   = `{
+	validJson = `{
     "name": "mypktvisorpolicyyaml-3",
     "description": "my pktvisor policy yaml",
     "tags": {
@@ -54,7 +54,7 @@ var (
         "node_type": "dns"
     },
     "format": "yaml",
-    "policy": "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+    "policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""
 }`
 	metadata    = map[string]interface{}{"type": "orb_agent"}
 	invalidName = strings.Repeat("m", maxNameSize+1)
@@ -90,7 +90,7 @@ func (tr testRequest) make() (*http.Response, error) {
 
 func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
-	return policies.New(auth, policyRepo)
+	return policies.New(nil, auth, policyRepo, nil)
 }
 
 func newServer(svc policies.Service) *httptest.Server {
@@ -139,7 +139,7 @@ func TestViewPolicy(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/policies/%s", cli.server.URL, tc.ID),
+				url:    fmt.Sprintf("%s/policies/agents/%s", cli.server.URL, tc.ID),
 				token:  tc.token,
 			}
 			res, err := req.make()
@@ -306,7 +306,7 @@ func TestListPolicies(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf(fmt.Sprintf("%s/policies%s", cli.server.URL, tc.url)),
+				url:    fmt.Sprintf(fmt.Sprintf("%s/policies/agents%s", cli.server.URL, tc.url)),
 				token:  tc.auth,
 			}
 			res, err := req.make()
@@ -332,11 +332,11 @@ func TestPolicyEdition(t *testing.T) {
 		data        string
 	}{
 		"update a existing policy": {
-			id:     policy.ID,
-			token:  token,
-			status: http.StatusOK,
+			id:          policy.ID,
+			token:       token,
+			status:      http.StatusOK,
 			contentType: "application/json",
-			data:   validJson,
+			data:        validJson,
 		},
 	}
 
@@ -345,7 +345,7 @@ func TestPolicyEdition(t *testing.T) {
 			req := testRequest{
 				client:      cli.server.Client(),
 				method:      http.MethodPut,
-				url:         fmt.Sprintf("%s/policies/%s", cli.server.URL, tc.id),
+				url:         fmt.Sprintf("%s/policies/agents/%s", cli.server.URL, tc.id),
 				contentType: tc.contentType,
 				token:       tc.token,
 				body:        strings.NewReader(tc.data),

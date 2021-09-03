@@ -31,7 +31,7 @@ visor:
 
 func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
-	return policies.New(auth, policyRepo)
+	return policies.New(nil, auth, policyRepo, nil)
 }
 
 func TestRetrievePolicyByID(t *testing.T) {
@@ -176,6 +176,43 @@ func TestListPolicies(t *testing.T) {
 }
 
 func TestEditPolicy(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	policy := createPolicy(t, svc, "policy")
+
+	nameID, err := types.NewIdentifier("new-policy")
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	newPolicy := policies.Policy{
+		ID:        policy.ID,
+		Name:      nameID,
+		MFOwnerID: policy.MFOwnerID,
+	}
+
+	cases := map[string]struct {
+		pol        policies.Policy
+		token      string
+		format     string
+		policyData string
+		err        error
+	}{
+		"update a existing policy": {
+			pol:        newPolicy,
+			token:      token,
+			format:     format,
+			policyData: policy_data,
+			err:        nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			res, err := svc.EditPolicy(context.Background(), tc.token, tc.pol, tc.format, tc.policyData)
+			assert.Equal(t, tc.pol.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.pol.Name.String(), res.Name.String()))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected error %d got %d", desc, tc.err, err))
+		})
+	}
 
 }
 

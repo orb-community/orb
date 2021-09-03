@@ -32,6 +32,10 @@ type policiesRepository struct {
 	logger *zap.Logger
 }
 
+func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, pol policies.Policy) error {
+	return nil
+}
+
 func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm policies.PageMetadata) (policies.Page, error) {
 	nameQuery, name := getNameQuery(pm.Name)
 	orderQuery := getOrderQuery(pm.Order)
@@ -254,6 +258,43 @@ func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Poli
 
 }
 
+func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
+
+	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_id, metadata, ts_created 
+			FROM datasets
+			WHERE valid = TRUE AND agent_policy_id = ? AND mf_owner_id = ?`
+
+	if policyID == "" || ownerID == "" {
+		return nil, errors.ErrMalformedEntity
+	}
+
+	query, args, err := sqlx.In(q, policyID, ownerID)
+	if err != nil {
+		return nil, err
+	}
+
+	query = r.db.Rebind(query)
+
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []policies.Dataset
+	for rows.Next() {
+		dbth := dbDataset{MFOwnerID: ownerID}
+		if err := rows.StructScan(&dbth); err != nil {
+			return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		th := toDataset(dbth)
+		items = append(items, th)
+	}
+
+	return items, nil
+}
+
 type dbPolicy struct {
 	ID        string           `db:"id"`
 	Name      types.Identifier `db:"name"`
@@ -294,6 +335,7 @@ type dbDataset struct {
 	AgentGroupID sql.NullString   `db:"agent_group_id"`
 	PolicyID     sql.NullString   `db:"agent_policy_id"`
 	SinkID       sql.NullString   `db:"sink_id"`
+	TsCreated    time.Time        `db:"ts_created"`
 }
 
 func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
@@ -354,6 +396,22 @@ func toPolicy(dba dbPolicy) policies.Policy {
 
 	return policy
 
+}
+
+func toDataset(dba dbDataset) policies.Dataset {
+	dataset := policies.Dataset{
+		ID:           dba.ID,
+		Name:         dba.Name,
+		MFOwnerID:    dba.MFOwnerID,
+		Valid:        dba.Valid,
+		AgentGroupID: dba.AgentGroupID.String,
+		PolicyID:     dba.PolicyID.String,
+		SinkID:       dba.SinkID.String,
+		Metadata:     types.Metadata(dba.Metadata),
+		Created:      dba.TsCreated,
+	}
+
+	return dataset
 }
 
 func getNameQuery(name string) (string, string) {

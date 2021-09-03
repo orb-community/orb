@@ -28,6 +28,10 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.Policy, format string, policyData string) (policies.Policy, error) {
+	return e.svc.EditPolicy(ctx, token, pol, format, policyData)
+}
+
 func (e eventStore) AddPolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
 	return e.svc.AddPolicy(ctx, token, p, format, policyData)
 }

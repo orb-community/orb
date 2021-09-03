@@ -82,11 +82,12 @@ func (req viewResourceReq) validate() error {
 type updatePolicyReq struct {
 	id          string
 	token       string
-	Name        string     `json:"name,omitempty"`
-	Description string     `json:"description,omitempty"`
-	Tags        types.Tags `json:"tags,omitempty"`
-	Format      string     `json:"format,omitempty"`
-	Policy      string     `json:"policy,omitempty"`
+	Name        string         `json:"name,omitempty"`
+	Description string         `json:"description,omitempty"`
+	Tags        types.Tags     `json:"tags,omitempty"`
+	Format      string         `json:"format,omitempty"`
+	Policy      types.Metadata `json:"policy,omitempty"`
+	PolicyData  string         `json:"policy_data,omitempty"`
 }
 
 func (req updatePolicyReq) validate() error {
@@ -97,11 +98,17 @@ func (req updatePolicyReq) validate() error {
 	if req.Name == "" {
 		return errors.ErrMalformedEntity
 	}
-	if len(req.Tags) == 0 {
-		return errors.ErrMalformedEntity
-	}
-	if len(req.Policy) == 0 {
-		return errors.ErrMalformedEntity
+
+	if req.Policy == nil {
+		// passing policy data blob in the specified format
+		if req.Format == "" || req.PolicyData == "" {
+			return errors.ErrMalformedEntity
+		}
+	} else {
+		// policy is in json, verified by the back ends later
+		if req.Format != "" || req.PolicyData != "" {
+			return errors.ErrMalformedEntity
+		}
 	}
 
 	_, err := types.NewIdentifier(req.Name)
