@@ -229,22 +229,25 @@ func TestValidatePolicy(t *testing.T) {
 	svc := newService(users)
 
 	cases := map[string]struct {
-		policy policies.Policy
-		token  string
-		format string
-		err    error
+		policy     policies.Policy
+		token      string
+		format     string
+		policyData string
+		err        error
 	}{
 		"validate a new policy": {
-			policy: policy ,
-			token: token,
-			format: format,
-			err:   nil,
+			policy:     policy,
+			token:      token,
+			format:     format,
+			policyData: policy_data,
+			err:        nil,
 		},
 		"validate a policy with a invalid token": {
-			policy:  policy,
-			token: invalidToken,
-			format: format,
-			err:   policies.ErrUnauthorizedAccess,
+			policy:     policy,
+			token:      invalidToken,
+			format:     format,
+			policyData: policy_data,
+			err:        policies.ErrUnauthorizedAccess,
 		},
 	}
 
