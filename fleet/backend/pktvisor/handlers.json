@@ -1,0 +1,85 @@
+{
+  "dns": {
+    "1.0": {
+      "config": {
+        "filter_exclude_noerror": {
+          "title": "Filter: Exclude NOERROR",
+          "type": "bool",
+          "description": "Filter out all NOERROR responses"
+        },
+        "filter_only_rcode": {
+          "title": "Filter: Include Only RCode",
+          "type": "integer",
+          "description": "Filter out any queries which are not the given RCODE"
+        },
+        "filter_only_qname_suffix": {
+          "title": "Filter: Include Only QName With Suffix",
+          "type": "array[string]",
+          "description": "Filter out any queries whose QName does not end in a suffix on the list"
+        }
+      },
+      "metrics": {
+      },
+      "metric_groups": {
+        "cardinality": {
+          "title": "Cardinality",
+          "description": "Metrics counting the unique number of items in the stream",
+          "metrics": [
+          ]
+        },
+        "dns_transactions": {
+          "title": "DNS Transactions (Query/Reply pairs)",
+          "description": "Metrics based on tracking queries and their associated replies",
+          "metrics": [
+          ]
+        },
+        "top_dns_wire": {
+          "title": "Top N Metrics (Various)",
+          "description": "Top N metrics across various details from the DNS wire packets",
+          "metrics": [
+          ]
+        },
+        "top_qnames": {
+          "title": "Top N QNames (All)",
+          "description": "Top QNames across all DNS queries in stream",
+          "metrics": [
+          ]
+        },
+        "top_qnames_by_rcode": {
+          "title": "Top N QNames (Failing RCodes) ",
+          "description": "Top QNames across failing result codes",
+          "metrics": [
+          ]
+        }
+      }
+    }
+  },
+  "net": {
+    "1.0": {
+      "config": {
+      },
+      "metrics": {
+      },
+      "metric_groups": {
+        "ip_cardinality": {
+          "title": "IP Address Cardinality",
+          "description": "Unique IP addresses seen in the stream",
+          "metrics": [
+          ]
+        },
+        "top_geo": {
+          "title": "Top Geo",
+          "description": "Top Geo IP and ASN in the stream",
+          "metrics": [
+          ]
+        },
+        "top_ips": {
+          "title": "Top IPs",
+          "description": "Top IP addresses in the stream",
+          "metrics": [
+          ]
+        }
+      }
+    }
+  }
+}

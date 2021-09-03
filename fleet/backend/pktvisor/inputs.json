@@ -1,0 +1,32 @@
+{
+  "pcap": {
+    "1.0": {
+      "config": {
+        "iface": {
+          "required": true,
+          "type": "string",
+          "title": "Interface",
+          "description": "The ethernet interface to capture on"
+        },
+        "bpf": {
+          "required": false,
+          "type": "string",
+          "title": "Filter Expression",
+          "description": "tcpdump compatible filter expression for limiting the traffic examined (with BPF). Example: \"port 53\""
+        },
+        "host_spec": {
+          "required": false,
+          "type": "string",
+          "title": "Host Specification",
+          "description": "Subnets (comma separated) to consider this HOST, in CIDR form. Example: \"10.0.1.0/24,10.0.2.1/32,2001:db8::/64\""
+        },
+        "pcap_source": {
+          "required": false,
+          "type": "string",
+          "title": "Packet Capture Engine",
+          "description": "pcap backend engine to use. Defaults to best for platform."
+        }
+      }
+    }
+  }
+}

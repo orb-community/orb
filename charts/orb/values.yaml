@@ -1,0 +1,223 @@
+# Copyright (c) Mainflux
+# SPDX-License-Identifier: Apache-2.0
+# Adapted for Orb project, modifications licensed under MPL v. 2.0:
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+defaults:
+  logLevel: "info"
+  image:
+    pullPolicy: "Always"
+    repository: "ns1labs"
+    tag: "develop"
+    mfRepository: "mainflux"
+    mfTag: "0.12.1"
+    commitHash: "fba2689"
+  # Replicas of MQTT adapter, NATS, Things, Envoy and Auth
+  replicaCount: 3
+  natsPort: 4222
+  jaegerPort: 6831
+
+ingress:
+  issuer: "letsencrypt-prod"
+  hostname: ""
+  secret: "orb-tls"
+
+mqtt:
+  enabled: true
+  securityContext:
+    runAsUser: 10000
+    runAsGroup: 10000
+    fsGroup: 10000
+  adapter:
+    image: { }
+    mqttPort: 1884
+    wsPort: 8081
+    logLevel: "debug"
+  broker:
+    image: { }
+    mqttPort: 1883
+    wsPort: 8080
+    logLevel: "info"
+    persistentVolume:
+      size: 5Gi
+  redisESPort: 6379
+  redisCachePort: 6379
+
+users:
+  image: { }
+  dbPort: 5432
+  httpPort: 8180
+  admin:
+    secretName: orb-user-service
+    emailSecretKey: adminEmail
+    passwordSecretKey: adminPassword
+
+fleet:
+  image: { }
+  dbPort: 5432
+  dbSSL: "disable"
+  httpPort: 8203
+  redisESPort: 6379
+
+policies:
+  image: { }
+  dbPort: 5432
+  dbSSL: "disable"
+  grpcPort: 8282
+  httpPort: 8202
+  redisESPort: 6379
+
+sinks:
+  image: { }
+  dbPort: 5432
+  dbSSL: "disable"
+  httpPort: 8200
+  redisESPort: 6379
+
+things:
+  image: { }
+  dbPort: 5432
+  httpPort: 8182
+  authGrpcPort: 8183
+  authHttpPort: 8989
+  redisESPort: 6379
+  redisCachePort: 6379
+
+auth:
+  image: { }
+  dbPort: 5432
+  grpcPort: 8181
+  httpPort: 8189
+  jwt:
+    secretName: orb-auth-service
+    secretKey: jwtSecret
+
+ui:
+  image: { }
+  port: 3000
+
+nats:
+  auth:
+    enabled: false
+  clusterAuth:
+    enabled: false
+  maxPayload: 67108864
+  replicaCount: 3
+
+postgresql-users:
+  name: postgresql-users
+  postgresqlUsername: postgres
+  postgresqlPassword: mainflux
+  postgresqlDatabase: users
+  resources:
+    requests:
+      cpu: 25m
+  persistence:
+    size: 1Gi
+
+postgresql-fleet:
+  name: postgresql-fleet
+  image:
+    tag: 13
+  postgresqlUsername: postgres
+  postgresqlPassword: orb
+  postgresqlDatabase: fleet
+  resources:
+    requests:
+      cpu: 25m
+  persistence:
+    size: 1Gi
+
+postgresql-policies:
+  name: postgresql-policies
+  image:
+    tag: 13
+  postgresqlUsername: postgres
+  postgresqlPassword: orb
+  postgresqlDatabase: policies
+  resources:
+    requests:
+      cpu: 25m
+  persistence:
+    size: 1Gi
+
+postgresql-sinks:
+  name: postgresql-sinks
+  image:
+    tag: 13
+  postgresqlUsername: postgres
+  postgresqlPassword: orb
+  postgresqlDatabase: sinks
+  resources:
+    requests:
+      cpu: 25m
+  persistence:
+    size: 1Gi
+
+postgresql-things:
+  name: postgresql-things
+  postgresqlUsername: postgres
+  postgresqlPassword: mainflux
+  postgresqlDatabase: things
+  resources:
+    requests:
+      cpu: 25m
+  persistence:
+    size: 1Gi
+
+postgresql-auth:
+  name: postgresql-auth
+  postgresqlUsername: postgres
+  postgresqlPassword: mainflux
+  postgresqlDatabase: auth
+  resources:
+    requests:
+      cpu: 25m
+  persistence:
+    size: 1Gi
+
+redis-streams:
+  volumePermissions:
+    enabled: true
+  cluster:
+    enabled: false
+  auth:
+    enabled: false
+
+redis-mqtt:
+  volumePermissions:
+    enabled: true
+  cluster:
+    enabled: false
+  auth:
+    enabled: false
+
+redis-auth:
+  cluster:
+    enabled: false
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: false
+
+jaeger-operator:
+  jaeger:
+    create: true
+  rbac:
+    pspEnabled: true
+    clusterRole: true
+
+envoy:
+  image:
+    pullPolicy: "IfNotPresent"
+    repository: "envoyproxy/envoy"
+    tag: "v1.19.1"
+
+nginx_internal:
+  image:
+    pullPolicy: "IfNotPresent"
+    repository: "nginx"
+    tag: "1.21.1"

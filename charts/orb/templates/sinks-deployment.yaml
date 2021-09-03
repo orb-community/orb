@@ -1,0 +1,56 @@
+# Copyright (c) Mainflux
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-sinks
+spec:
+  replicas: {{ .Values.defaults.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      component: sinks
+  template:
+    metadata:
+      annotations:
+        commit_sha: {{ .Values.defaults.image.commitHash }}
+      labels:
+        app: {{ .Release.Name }}
+        component: sinks
+    spec:
+      containers:
+        - env:
+            - name: MF_JAEGER_URL
+              value:
+                {{ .Release.Name }}-jaeger-operator-jaeger-agent:{{ .Values.defaults.jaegerPort }}
+            - name: ORB_SINKS_DB
+              value: {{ index .Values "postgresql-sinks" "postgresqlDatabase" }}
+            - name: ORB_SINKS_DB_HOST
+              value: {{ .Release.Name }}-postgresql-sinks
+            - name: ORB_SINKS_DB_PASS
+              value: {{ index .Values "postgresql-sinks" "postgresqlPassword" }}
+            - name: ORB_SINKS_DB_PORT
+              value: "{{ .Values.sinks.dbPort }}"
+            - name: ORB_SINKS_DB_SSL_MODE
+              value: "{{ .Values.sinks.dbSSL }}"
+            - name: ORB_SINKS_DB_USER
+              value: {{ index .Values "postgresql-sinks" "postgresqlUsername" }}
+            - name: ORB_SINKS_ES_URL
+              value:
+                {{ .Release.Name }}-redis-streams-master:{{ .Values.sinks.redisESPort }}
+            - name: ORB_SINKS_HTTP_PORT
+              value: "{{ .Values.sinks.httpPort }}"
+            - name: ORB_SINKS_LOG_LEVEL
+              value: {{ default .Values.defaults.logLevel .Values.sinks.logLevel }}
+            - name: MF_AUTH_GRPC_URL
+              value:
+                {{ .Release.Name }}-envoy:{{ .Values.auth.grpcPort }}
+          image: "{{ default .Values.defaults.image.repository }}/orb-sinks:{{ default .Values.defaults.image.tag }}"
+          imagePullPolicy: {{ default .Values.defaults.image.pullPolicy .Values.sinks.image.pullPolicy }}
+          name: {{ .Release.Name }}-sinks
+          ports:
+            - containerPort: {{ .Values.sinks.httpPort }}
+              protocol: TCP
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
