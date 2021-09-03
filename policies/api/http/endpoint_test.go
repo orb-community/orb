@@ -30,13 +30,14 @@ import (
 )
 
 const (
-	token       = "token"
-	wrongID     = "9bb1b244-a199-93c2-aa03-28067b431e2c"
-	validJson   = "{ \"name\": \"my-policy\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
-	invalidJson = "{"
-	email       = "user@example.com"
-	format      = "yaml"
-	policy_data = `version: "1.0"
+	token             = "token"
+	wrongID           = "9bb1b244-a199-93c2-aa03-28067b431e2c"
+	validJson         = "{ \"name\": \"my-policy\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
+	conflictValidJson = "{ \"name\": \"my-policy-conflict\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
+	invalidJson       = "{"
+	email             = "user@example.com"
+	format            = "yaml"
+	policy_data       = `version: "1.0"
 visor:
   taps:
     anycast:
@@ -318,6 +319,9 @@ func TestCreatePolicy(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()
 
+	// Conflict scenario
+	createPolicy(t, &cli, "my-policy-conflict")
+
 	cases := map[string]struct {
 		req         string
 		contentType string
@@ -337,6 +341,27 @@ func TestCreatePolicy(t *testing.T) {
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
+			location:    "/policies/agent",
+		},
+		"add a duplicated policy": {
+			req:         conflictValidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusConflict,
+			location:    "/policies/agent",
+		},
+		"add a valid policy with an invalid token": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/policies/agent",
+		},
+		"add a valid policy without a content type": {
+			req:         validJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
 			location:    "/policies/agent",
 		},
 	}

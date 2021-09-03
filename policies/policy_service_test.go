@@ -29,17 +29,6 @@ visor:
         iface: eth0`
 )
 
-var (
-	nameID, _ = types.NewIdentifier("my-policy")
-	policy    = policies.Policy{
-		Name:        nameID,
-		Description: "An example policy",
-		Backend:     "pktvisor",
-		Version:     0,
-		OrbTags:     map[string]string{"region": "eu"},
-	}
-)
-
 func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
 	return policies.New(auth, policyRepo)
@@ -83,6 +72,21 @@ func TestRetrievePolicyByID(t *testing.T) {
 func TestCreatePolicy(t *testing.T) {
 	users := flmocks.NewAuthService(map[string]string{token: email})
 	svc := newService(users)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpect error: %s", err))
+
+	nameID, _ := types.NewIdentifier("my-policy")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policy := policies.Policy{
+		Name:        nameID,
+		MFOwnerID:   ownerID.String(),
+		Description: "An example policy",
+		Backend:     "pktvisor",
+		Version:     0,
+		OrbTags:     map[string]string{"region": "eu"},
+	}
 
 	cases := map[string]struct {
 		policy policies.Policy
