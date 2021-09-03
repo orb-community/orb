@@ -94,7 +94,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeAgentUpdate,
 		types.EncodeResponse,
 		opts...))
-
+	r.Post("/agents/validate", kithttp.NewServer(
+		kitot.TraceServer(tracer, "validate_agent")(validateAgentEndpoint(svc)),
+		decodeAddAgent,
+		types.EncodeResponse,
+		opts...))
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
 

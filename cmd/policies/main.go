@@ -12,10 +12,13 @@ import (
 	"context"
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
+	mflog "github.com/mainflux/mainflux/logger"
+	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
+	fleetgrpc "github.com/ns1labs/orb/fleet/api/grpc"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/policies"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
-	http2 "github.com/ns1labs/orb/policies/api/http"
+	policieshttp "github.com/ns1labs/orb/policies/api/http"
 	"github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/policies/postgres"
 	rediscon "github.com/ns1labs/orb/policies/redis/consumer"
@@ -52,6 +55,7 @@ const (
 
 func main() {
 
+	natsCfg := config.LoadNatsConfig(envPrefix)
 	authGRPCCfg := config.LoadGRPCConfig(mfEnvPrefix, "auth")
 
 	esCfg := config.LoadEsConfig(envPrefix)
@@ -60,8 +64,6 @@ func main() {
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
-
-	fmt.Sprintf(fleetGRPCCfg.Port)
 
 	// todo sinks gRPC
 	// todo fleet mgr gRPC
@@ -75,6 +77,12 @@ func main() {
 	}
 	defer logger.Sync() // flushes buffer, if any
 
+	// only needed for mainflux interfaces
+	mflogger, err := mflog.New(os.Stdout, svcCfg.LogLevel)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
 	db := connectToDB(dbCfg, logger)
 	defer db.Close()
 
@@ -87,18 +95,43 @@ func main() {
 	authGRPCConn := connectToGRPC(authGRPCCfg, logger)
 	defer authGRPCConn.Close()
 
+	fleetGRPCConn := connectToGRPC(fleetGRPCCfg, logger)
+	defer fleetGRPCConn.Close()
+
 	authGRPCTimeout, err := time.ParseDuration(authGRPCCfg.Timeout)
 	if err != nil {
 		log.Fatalf("Invalid %s value: %s", authGRPCCfg.Timeout, err.Error())
 	}
 	authGRPCClient := authapi.NewClient(tracer, authGRPCConn, authGRPCTimeout)
 
-	svc := newService(authGRPCClient, db, logger, esClient)
+	fleetGRPCTimeout, err := time.ParseDuration(fleetGRPCCfg.Timeout)
+	if err != nil {
+		log.Fatalf("Invalid %s value: %s", fleetGRPCCfg.Timeout, err)
+	}
+	fleetGRPCClient := fleetgrpc.NewClient(tracer, fleetGRPCConn, fleetGRPCTimeout)
+
+	pubSub, err := mfnats.NewPubSub(natsCfg.URL, svcName, mflogger)
+	if err != nil {
+		logger.Error("Failed to connect to NATS", zap.Error(err))
+		os.Exit(1)
+	}
+	defer pubSub.Close()
+
+	commsSvc := policies.NewPoliciesCommsService(logger, fleetGRPCClient, pubSub)
+	svc := newService(authGRPCClient, db, logger, esClient, commsSvc)
+	defer commsSvc.Stop()
+
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 	go startGRPCServer(svc, tracer, policiesGRPCCfg, logger, errs)
 	go subscribeToFleetES(svc, esClient, esCfg, logger)
+
+	err = commsSvc.Start()
+	if err != nil {
+		logger.Error("unable to start policy communication", zap.Error(err))
+		os.Exit(1)
+	}
 
 	go func() {
 		c := make(chan os.Signal)
@@ -157,13 +190,13 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client) policies.Service {
+func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, policiesComms policies.PolicyCommsService) policies.Service {
 	thingsRepo := postgres.NewPoliciesRepository(db, logger)
 
-	svc := policies.New(auth, thingsRepo)
+	svc := policies.New(logger, auth, thingsRepo, policiesComms)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient, logger)
-	svc = http2.NewLoggingMiddleware(svc, logger)
-	svc = http2.MetricsMiddleware(
+	svc = policieshttp.NewLoggingMiddleware(svc, logger)
+	svc = policieshttp.MetricsMiddleware(
 		svc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "policies",
@@ -215,11 +248,11 @@ func startHTTPServer(tracer opentracing.Tracer, svc policies.Service, cfg config
 	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Policies service started using https on port %s with cert %s key %s",
 			cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
-		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, http2.MakeHandler(tracer, svcName, svc))
+		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, policieshttp.MakeHandler(tracer, svcName, svc))
 		return
 	}
 	logger.Info(fmt.Sprintf("Policies service started using http on port %s", cfg.HttpPort))
-	errs <- http.ListenAndServe(p, http2.MakeHandler(tracer, svcName, svc))
+	errs <- http.ListenAndServe(p, policieshttp.MakeHandler(tracer, svcName, svc))
 }
 
 func startGRPCServer(svc policies.Service, tracer opentracing.Tracer, cfg config.GRPCConfig, logger *zap.Logger, errs chan error) {

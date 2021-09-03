@@ -18,6 +18,20 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
+func (l loggingMiddleware) EditPolicy(ctx context.Context, token string, pol policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: edit_policy",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: edit_policy",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.EditPolicy(ctx, token, pol, format, policyData)
+}
+
 func (l loggingMiddleware) AddPolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
@@ -43,7 +57,7 @@ func (l loggingMiddleware) ViewPolicyByID(ctx context.Context, token string, pol
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.ViewPolicyByIDInternal(ctx, token, policyID)
+	return l.svc.ViewPolicyByID(ctx, token, policyID)
 }
 
 func (l loggingMiddleware) ListPolicies(ctx context.Context, token string, pm policies.PageMetadata) (_ policies.Page, err error) {
@@ -71,7 +85,7 @@ func (l loggingMiddleware) ViewPolicyByIDInternal(ctx context.Context, policyID 
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.ViewPolicyByID(ctx, policyID, ownerID)
+	return l.svc.ViewPolicyByIDInternal(ctx, policyID, ownerID)
 }
 
 func (l loggingMiddleware) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) (_ []policies.Policy, err error) {

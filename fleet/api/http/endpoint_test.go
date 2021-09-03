@@ -34,16 +34,17 @@ import (
 )
 
 const (
-	contentType  = "application/json"
-	token        = "token"
-	invalidToken = "invalid"
-	email        = "user@example.com"
-	validJson    = "{\n	\"name\": \"eu-agents\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
-	invalidJson  = "{"
-	wrongID      = "9bb1b244-a199-93c2-aa03-28067b431e2c"
-	maxNameSize  = 1024
-	channelsNum  = 3
-	limit        = 10
+	contentType       = "application/json"
+	token             = "token"
+	invalidToken      = "invalid"
+	email             = "user@example.com"
+	validJson         = "{\n	\"name\": \"eu-agents\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	conflictValidJson = "{\n	\"name\": \"eu-agents-conflict\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	invalidJson       = "{"
+	wrongID           = "9bb1b244-a199-93c2-aa03-28067b431e2c"
+	maxNameSize       = 1024
+	channelsNum       = 3
+	limit             = 10
 )
 
 var (
@@ -152,6 +153,9 @@ func TestCreateAgentGroup(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()
 
+	// Conflict scenario
+	createAgentGroup(t, "eu-agents-conflict", &cli)
+
 	cases := map[string]struct {
 		req         string
 		contentType string
@@ -167,7 +171,7 @@ func TestCreateAgentGroup(t *testing.T) {
 			location:    "/agent_groups",
 		},
 		"add a duplicated agent group": {
-			req:         validJson,
+			req:         conflictValidJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusConflict,
@@ -1031,6 +1035,180 @@ func TestUpdateAgent(t *testing.T) {
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 		})
 	}
+}
+
+func TestValidateAgent(t *testing.T) {
+	var validJson = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+	var invalidTag = "{\"name\":\"eu-agents\",\"orb_tags\": {\n\"invalidTag\", \n \"node_type\":\"dns\"}}"
+	var invalidName = "{\"name\":\",,AGENT 6,\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+	var invalidField = "{\"nname\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"validate a valid agent": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+			location:    "/agents/validate",
+		},
+		"validate a agent with invalid json": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents/validate",
+		},
+		"validate a agent with a empty token": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+			location:    "/agents/validate",
+		},
+		"validate a agent without a content type": {
+			req:         validJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/agents/validate",
+		},
+		"validate a agent with a invalid tag": {
+			req:         invalidTag,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents/validate",
+		},
+		"validate a agent with a invalid name": {
+			req:         invalidName,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents/validate",
+		},
+		"validate a agent with a invalid token": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/agents/validate",
+		},
+		"validate a agent with a invalid agent field": {
+			req:         invalidField,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents/validate",
+		},
+	}
+
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      cli.server.Client(),
+			method:      http.MethodPost,
+			url:         fmt.Sprintf("%s/agents/validate", cli.server.URL),
+			contentType: tc.contentType,
+			token:       tc.auth,
+			body:        strings.NewReader(tc.req),
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+	}
+
+}
+
+func TestCreateAgent(t *testing.T) {
+	var validJson = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+	var conflictValidJson = "{\"name\":\"conflict\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	_, err := createAgent(t, "conflict", &cli)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"add a valid agent": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusCreated,
+			location:    "/agents",
+		},
+		"add a duplicated agent": {
+			req:         conflictValidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusConflict,
+			location:    "/agents",
+		},
+		"add a valid agent with invalid token": {
+			req:         validJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/agents",
+		},
+		"add a agent with an invalid json": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents",
+		},
+		"add a agent without a content type": {
+			req:         validJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/agents",
+		},
+		"add a agent with an invalid content type": {
+			req:         validJson,
+			contentType: "invalid",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/agents",
+		},
+		"add a agent with an empty request": {
+			req:         "{}",
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents",
+		},
+	}
+
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      cli.server.Client(),
+			method:      http.MethodPost,
+			url:         fmt.Sprintf("%s/agents", cli.server.URL),
+			contentType: tc.contentType,
+			token:       tc.auth,
+			body:        strings.NewReader(tc.req),
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+	}
+
 }
 
 func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.AgentGroup, error) {

@@ -3,8 +3,8 @@ const ORB = {
   // TODO not needed at the moment - nginx listens to anything @80
   // orb-ui app proxy routes * to @80/api/v1/*
   orbApi: {
-    version: '', // ORB api version
-    apiUrl: '', // ORB api url prefix
+    version: '1', // ORB api version
+    apiUrl: '/api/v', // ORB api url prefix
   },
   servicesUrls: {
     sinksUrl: '/sinks',

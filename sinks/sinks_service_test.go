@@ -84,6 +84,7 @@ func TestCreateSink(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			_, err := service.CreateSink(context.Background(), tc.token, sink)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
+			t.Log(tc.token)
 		})
 	}
 
@@ -171,7 +172,7 @@ func TestViewSink(t *testing.T) {
 	}
 }
 
-func TestListThings(t *testing.T) {
+func TestListSinks(t *testing.T) {
 	service := newService(map[string]string{token: email})
 	metadata := make(map[string]interface{})
 	metadata["serial"] = "12345"

@@ -34,12 +34,21 @@ func TestAgentGroupSave(t *testing.T) {
 	nameID, err := types.NewIdentifier("my-group")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	conflictNameID, err := types.NewIdentifier("my-group-conflict")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	group := fleet.AgentGroup{
 		Name:        nameID,
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
 		Tags:        types.Tags{"testkey": "testvalue"},
 	}
+
+	groupCopy := group
+	groupCopy.Name = conflictNameID
+
+	_, err = agentGroupRepository.Save(context.Background(), groupCopy)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	cases := map[string]struct {
 		agentGroup fleet.AgentGroup
@@ -49,8 +58,8 @@ func TestAgentGroupSave(t *testing.T) {
 			agentGroup: group,
 			err:        nil,
 		},
-		"create group that already exist": {
-			agentGroup: group,
+		"create a existing group": {
+			agentGroup: groupCopy,
 			err:        errors.ErrConflict,
 		},
 		"create group with invalid name": {
@@ -69,7 +78,6 @@ func TestAgentGroupSave(t *testing.T) {
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
 		})
 	}
-
 }
 
 func TestAgentGroupRetrieve(t *testing.T) {

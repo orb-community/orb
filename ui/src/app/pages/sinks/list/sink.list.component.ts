@@ -13,11 +13,11 @@ import { Debounce } from 'app/shared/decorators/utils';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
 
 @Component({
-  selector: 'ngx-sinks-component',
-  templateUrl: './sinks.component.html',
-  styleUrls: ['./sinks.component.scss'],
+  selector: 'ngx-sink-list-component',
+  templateUrl: './sink.list.component.html',
+  styleUrls: ['./sink.list.component.scss'],
 })
-export class SinksComponent implements OnInit, AfterViewInit {
+export class SinkListComponent implements OnInit, AfterViewInit {
   strings = STRINGS.sink;
 
   columnMode = ColumnMode;
@@ -145,14 +145,14 @@ export class SinksComponent implements OnInit, AfterViewInit {
 
   onOpenAdd() {
     this.router.navigate(
-      ['../sink/add'],
+      ['add'],
       {relativeTo: this.route},
     );
   }
 
   onOpenEdit(sink: any) {
     this.router.navigate(
-      [`../sink/edit/${sink.id}`],
+      [`edit/${sink.id}`],
       {
         relativeTo: this.route,
         state: {sink: sink, edit: true},
@@ -184,7 +184,13 @@ export class SinksComponent implements OnInit, AfterViewInit {
       context: {sink: row},
       autoFocus: true,
       closeOnEsc: true,
-    }).onClose.subscribe(() => this.getSinks());
+    }).onClose.subscribe((resp) => {
+      if (resp) {
+        this.onOpenEdit(row);
+      } else {
+        this.getSinks();
+      }
+    });
   }
 
   searchSinkItemByName(input) {

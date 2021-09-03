@@ -77,5 +77,5 @@ func newService(tokens map[string]string) policies.Service {
 	datasetid, _ := repo.SaveDataset(context.Background(), dataset)
 	dataset.ID = datasetid
 
-	return policies.New(auth, repo)
+	return policies.New(nil, auth, repo, nil)
 }

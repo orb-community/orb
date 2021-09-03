@@ -13,16 +13,18 @@ import (
 	"fmt"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies/backend"
+	"go.uber.org/zap"
 )
 
 var (
-	ErrCreatePolicy       = errors.New("failed to create policy")
-	ErrCreateDataset      = errors.New("failed to create dataset")
-	ErrInactivateDataset  = errors.New("failed to inactivate dataset")
-	ErrUpdateEntity       = errors.New("failed to update entity")
-	ErrMalformedEntity    = errors.New("malformed entity")
-	ErrNotFound           = errors.New("non-existent entity")
-	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
+	ErrCreatePolicy            = errors.New("failed to create policy")
+	ErrCreateDataset           = errors.New("failed to create dataset")
+	ErrInactivateDataset       = errors.New("failed to inactivate dataset")
+	ErrUpdateEntity            = errors.New("failed to update entity")
+	ErrMalformedEntity         = errors.New("malformed entity")
+	ErrNotFound                = errors.New("non-existent entity")
+	ErrUnauthorizedAccess      = errors.New("missing or invalid credentials provided")
+	ErrNotifyAgentGroupChannel = errors.New("failed to notify agent group channel")
 )
 
 func (s policiesService) ListPolicies(ctx context.Context, token string, pm PageMetadata) (Page, error) {
@@ -82,26 +84,9 @@ func (s policiesService) AddPolicy(ctx context.Context, token string, p Policy, 
 		return Policy{}, err
 	}
 
-	if !backend.HaveBackend(p.Backend) {
-		return Policy{}, errors.Wrap(ErrCreatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
-	}
-
-	if p.Policy == nil {
-		// if not already in json, make sure the back end can convert it
-		if !backend.GetBackend(p.Backend).SupportsFormat(format) {
-			return Policy{}, errors.Wrap(ErrCreatePolicy,
-				errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", format, p.Backend)))
-		}
-
-		p.Policy, err = backend.GetBackend(p.Backend).ConvertFromFormat(format, policyData)
-		if err != nil {
-			return Policy{}, errors.Wrap(ErrCreatePolicy, err)
-		}
-	}
-
-	err = backend.GetBackend(p.Backend).Validate(p.Policy)
+	err = validatePolicyBackend(p, format, policyData)
 	if err != nil {
-		return Policy{}, errors.Wrap(ErrCreatePolicy, err)
+		return Policy{}, err
 	}
 
 	p.MFOwnerID = mfOwnerID
@@ -125,6 +110,61 @@ func (s policiesService) ViewPolicyByID(ctx context.Context, token string, polic
 		return Policy{}, err
 	}
 	return res, nil
+}
+
+func (s policiesService) EditPolicy(ctx context.Context, token string, pol Policy, format string, policyData string) (Policy, error) {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	err = s.repo.UpdatePolicy(ctx, ownerID, pol)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	res, err := s.repo.RetrievePolicyByID(ctx, pol.ID, ownerID)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	datasets, err := s.repo.RetrieveDatasetsByPolicyID(ctx, res.ID, ownerID)
+	if err != nil {
+		return Policy{}, err
+	}
+	for _, ds := range datasets {
+		err := s.policyComms.NotifyDatasetPolicyUpdate(ctx, res, ds)
+		if err != nil {
+			s.logger.Error("error notifying policy change for agent group channel", zap.Error(errors.Wrap(ErrNotifyAgentGroupChannel, err)))
+		}
+		fmt.Sprintf(ds.Name.String())
+	}
+	return res, nil
+}
+
+func validatePolicyBackend(p Policy, format string, policyData string) (err error) {
+	if !backend.HaveBackend(p.Backend) {
+		return errors.Wrap(ErrCreatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
+	}
+
+	if p.Policy == nil {
+		// if not already in json, make sure the back end can convert it
+		if !backend.GetBackend(p.Backend).SupportsFormat(format) {
+			return errors.Wrap(ErrCreatePolicy,
+				errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", format, p.Backend)))
+		}
+
+		p.Policy, err = backend.GetBackend(p.Backend).ConvertFromFormat(format, policyData)
+		if err != nil {
+			return errors.Wrap(ErrCreatePolicy, err)
+		}
+	}
+
+	err = backend.GetBackend(p.Backend).Validate(p.Policy)
+	if err != nil {
+		return errors.Wrap(ErrCreatePolicy, err)
+	}
+	return nil
 }
 
 func (s policiesService) ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error) {

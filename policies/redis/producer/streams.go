@@ -28,40 +28,32 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.Policy, format string, policyData string) (policies.Policy, error) {
+	return e.svc.EditPolicy(ctx, token, pol, format, policyData)
+}
+
 func (e eventStore) AddPolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
-	panic("implement me")
+	return e.svc.AddPolicy(ctx, token, p, format, policyData)
 }
 
 func (e eventStore) ViewPolicyByID(ctx context.Context, token string, policyID string) (policies.Policy, error) {
-	panic("implement me")
-}
-
-func (e eventStore) ListPolicies(ctx context.Context, token string, pm policies.PageMetadata) (policies.Page, error) {
-	panic("implement me")
-}
-
-func (e eventStore) ViewPolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	panic("implement me")
-}
-
-func (e eventStore) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
-	panic("implement me")
-}
-
-func (e eventStore) AddDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
-	panic("implement me")
-}
-
-func (e eventStore) RetrievePolicyByID(ctx context.Context, token string, policyID string) (policies.Policy, error) {
 	return e.svc.ViewPolicyByID(ctx, token, policyID)
 }
 
-func (e eventStore) RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
+func (e eventStore) ListPolicies(ctx context.Context, token string, pm policies.PageMetadata) (policies.Page, error) {
+	return e.svc.ListPolicies(ctx, token, pm)
+}
+
+func (e eventStore) ViewPolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
+	return e.svc.ViewPolicyByIDInternal(ctx, policyID, ownerID)
+}
+
+func (e eventStore) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
 	return e.svc.ListPoliciesByGroupIDInternal(ctx, groupIDs, ownerID)
 }
 
-func (e eventStore) RetrievePolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	return e.svc.ViewPolicyByIDInternal(ctx, policyID, ownerID)
+func (e eventStore) AddDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
+	return e.svc.AddDataset(ctx, token, d)
 }
 
 func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
@@ -90,10 +82,6 @@ func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.
 	}
 
 	return ds, nil
-}
-
-func (e eventStore) CreatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
-	return e.svc.AddPolicy(ctx, token, p, format, policyData)
 }
 
 func (e eventStore) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {

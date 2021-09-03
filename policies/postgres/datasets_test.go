@@ -41,6 +41,9 @@ func TestDatasetSave(t *testing.T) {
 	nameID, err := types.NewIdentifier("mydataset")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	conflictNameID, err := types.NewIdentifier("mydataset-conflict")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	dataset := policies.Dataset{
 		Name:         nameID,
 		MFOwnerID:    oID.String(),
@@ -52,6 +55,13 @@ func TestDatasetSave(t *testing.T) {
 		Created:      time.Time{},
 	}
 
+	// Conflict scenario
+	datasetCopy := dataset
+	datasetCopy.Name = conflictNameID
+
+	_, err = repo.SaveDataset(context.Background(), datasetCopy)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
 	cases := map[string]struct {
 		dataset policies.Dataset
 		err     error
@@ -61,7 +71,7 @@ func TestDatasetSave(t *testing.T) {
 			err:     nil,
 		},
 		"create dataset that already exist": {
-			dataset: dataset,
+			dataset: datasetCopy,
 			err:     errors.ErrConflict,
 		},
 	}

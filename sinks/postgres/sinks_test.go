@@ -40,6 +40,9 @@ func TestSinkSave(t *testing.T) {
 	nameID, err := types.NewIdentifier("my-sink")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	conflictNameID, err := types.NewIdentifier("my-sink-conflict")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	sink := sinks.Sink{
 		Name:        nameID,
 		Description: "An example prometheus sink",
@@ -53,6 +56,11 @@ func TestSinkSave(t *testing.T) {
 		Tags:        map[string]string{"cloud": "aws"},
 	}
 
+	sinkCopy := sink
+	sinkCopy.Name = conflictNameID
+	_, err = sinkRepo.Save(context.Background(), sinkCopy)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
 	cases := map[string]struct {
 		sink sinks.Sink
 		err  error
@@ -62,7 +70,7 @@ func TestSinkSave(t *testing.T) {
 			err:  nil,
 		},
 		"create a sink that already exist": {
-			sink: sink,
+			sink: sinkCopy,
 			err:  errors.ErrConflict,
 		},
 	}

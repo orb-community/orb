@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FleetServiceClient interface {
 	RetrieveAgent(ctx context.Context, in *AgentByIDReq, opts ...grpc.CallOption) (*AgentRes, error)
+	RetrieveAgentGroup(ctx context.Context, in *AgentGroupByIDReq, opts ...grpc.CallOption) (*AgentGroupRes, error)
 }
 
 type fleetServiceClient struct {
@@ -38,11 +39,21 @@ func (c *fleetServiceClient) RetrieveAgent(ctx context.Context, in *AgentByIDReq
 	return out, nil
 }
 
+func (c *fleetServiceClient) RetrieveAgentGroup(ctx context.Context, in *AgentGroupByIDReq, opts ...grpc.CallOption) (*AgentGroupRes, error) {
+	out := new(AgentGroupRes)
+	err := c.cc.Invoke(ctx, "/fleet.FleetService/RetrieveAgentGroup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FleetServiceServer is the server API for FleetService service.
 // All implementations must embed UnimplementedFleetServiceServer
 // for forward compatibility
 type FleetServiceServer interface {
 	RetrieveAgent(context.Context, *AgentByIDReq) (*AgentRes, error)
+	RetrieveAgentGroup(context.Context, *AgentGroupByIDReq) (*AgentGroupRes, error)
 	mustEmbedUnimplementedFleetServiceServer()
 }
 
@@ -52,6 +63,9 @@ type UnimplementedFleetServiceServer struct {
 
 func (UnimplementedFleetServiceServer) RetrieveAgent(context.Context, *AgentByIDReq) (*AgentRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrieveAgent not implemented")
+}
+func (UnimplementedFleetServiceServer) RetrieveAgentGroup(context.Context, *AgentGroupByIDReq) (*AgentGroupRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RetrieveAgentGroup not implemented")
 }
 func (UnimplementedFleetServiceServer) mustEmbedUnimplementedFleetServiceServer() {}
 
@@ -84,6 +98,24 @@ func _FleetService_RetrieveAgent_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FleetService_RetrieveAgentGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AgentGroupByIDReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FleetServiceServer).RetrieveAgentGroup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fleet.FleetService/RetrieveAgentGroup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FleetServiceServer).RetrieveAgentGroup(ctx, req.(*AgentGroupByIDReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FleetService_ServiceDesc is the grpc.ServiceDesc for FleetService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -95,7 +127,11 @@ var FleetService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "RetrieveAgent",
 			Handler:    _FleetService_RetrieveAgent_Handler,
 		},
+		{
+			MethodName: "RetrieveAgentGroup",
+			Handler:    _FleetService_RetrieveAgentGroup_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "fleet/pb/fleet.proto",
+	Metadata: "sinks/pb/fleet.proto",
 }

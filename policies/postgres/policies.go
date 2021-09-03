@@ -11,14 +11,18 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 
@@ -29,8 +33,96 @@ type policiesRepository struct {
 	logger *zap.Logger
 }
 
+func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, plcy policies.Policy) error {
+	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	plcyDB, err := toDBPolicy(plcy)
+	if err != nil {
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	plcyDB.MFOwnerID = owner
+
+	res, err := r.db.NamedExecContext(ctx, q, plcyDB)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrNotFound
+	}
+
+	return nil
+}
+
 func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm policies.PageMetadata) (policies.Page, error) {
-	return policies.Page{}, nil
+	nameQuery, name := getNameQuery(pm.Name)
+	orderQuery := getOrderQuery(pm.Order)
+	dirQuery := getDirQuery(pm.Dir)
+	tags, tagsQuery, err := getTagsQuery(pm.Tags)
+	if err != nil {
+		return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, orb_tags, backend, version, policy, ts_created 
+			FROM agent_policies
+			WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, orderQuery, dirQuery)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+		"limit":       pm.Limit,
+		"offset":      pm.Offset,
+		"name":        name,
+		"tags":        tags,
+	}
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []policies.Policy
+	for rows.Next() {
+		dbPolicy := dbPolicy{MFOwnerID: owner}
+		if err := rows.StructScan(&dbPolicy); err != nil {
+			return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		policy := toPolicy(dbPolicy)
+		items = append(items, policy)
+	}
+
+	count := fmt.Sprintf(`SELECT count(*)
+			FROM agent_policies
+			WHERE mf_owner_id = :mf_owner_id %s%s;`, nameQuery, tagsQuery)
+
+	total, err := total(ctx, r.db, count, params)
+	if err != nil {
+		return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	page := policies.Page{
+		Policies: items,
+		PageMetadata: policies.PageMetadata{
+			Total:  total,
+			Offset: pm.Offset,
+			Limit:  pm.Limit,
+			Order:  pm.Order,
+			Dir:    pm.Dir,
+		},
+	}
+
+	return page, nil
 }
 
 func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
@@ -196,16 +288,54 @@ func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Poli
 
 }
 
+func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
+
+	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_id, metadata, ts_created 
+			FROM datasets
+			WHERE valid = TRUE AND agent_policy_id = ? AND mf_owner_id = ?`
+
+	if policyID == "" || ownerID == "" {
+		return nil, errors.ErrMalformedEntity
+	}
+
+	query, args, err := sqlx.In(q, policyID, ownerID)
+	if err != nil {
+		return nil, err
+	}
+
+	query = r.db.Rebind(query)
+
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []policies.Dataset
+	for rows.Next() {
+		dbth := dbDataset{MFOwnerID: ownerID}
+		if err := rows.StructScan(&dbth); err != nil {
+			return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		th := toDataset(dbth)
+		items = append(items, th)
+	}
+
+	return items, nil
+}
+
 type dbPolicy struct {
-	ID        string           `db:"id"`
-	Name      types.Identifier `db:"name"`
-	MFOwnerID string           `db:"mf_owner_id"`
-	Backend   string           `db:"backend"`
-	Format    string           `db:"format"`
-	OrbTags   db.Tags          `db:"orb_tags"`
-	Policy    db.Metadata      `db:"policy"`
-	Version   int32            `db:"version"`
-	Created   time.Time        `db:"ts_created"`
+	ID          string           `db:"id"`
+	Name        types.Identifier `db:"name"`
+	MFOwnerID   string           `db:"mf_owner_id"`
+	Backend     string           `db:"backend"`
+	Description string           `db:"description"`
+	Format      string           `db:"format"`
+	OrbTags     db.Tags          `db:"orb_tags"`
+	Policy      db.Metadata      `db:"policy"`
+	Version     int32            `db:"version"`
+	Created     time.Time        `db:"ts_created"`
 }
 
 func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
@@ -217,12 +347,13 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 	}
 
 	return dbPolicy{
-		ID:        policy.ID,
-		Name:      policy.Name,
-		MFOwnerID: uID.String(),
-		Backend:   policy.Backend,
-		OrbTags:   db.Tags(policy.OrbTags),
-		Policy:    db.Metadata(policy.Policy),
+		ID:          policy.ID,
+		Name:        policy.Name,
+		Description: policy.Description,
+		MFOwnerID:   uID.String(),
+		Backend:     policy.Backend,
+		OrbTags:     db.Tags(policy.OrbTags),
+		Policy:      db.Metadata(policy.Policy),
 	}, nil
 
 }
@@ -236,6 +367,7 @@ type dbDataset struct {
 	AgentGroupID sql.NullString   `db:"agent_group_id"`
 	PolicyID     sql.NullString   `db:"agent_policy_id"`
 	SinkID       sql.NullString   `db:"sink_id"`
+	TsCreated    time.Time        `db:"ts_created"`
 }
 
 func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
@@ -284,16 +416,90 @@ func NewPoliciesRepository(db Database, log *zap.Logger) policies.Repository {
 func toPolicy(dba dbPolicy) policies.Policy {
 
 	policy := policies.Policy{
-		ID:        dba.ID,
-		Name:      dba.Name,
-		MFOwnerID: dba.MFOwnerID,
-		Backend:   dba.Backend,
-		Version:   dba.Version,
-		OrbTags:   types.Tags(dba.OrbTags),
-		Policy:    types.Metadata(dba.Policy),
-		Created:   dba.Created,
+		ID:          dba.ID,
+		Name:        dba.Name,
+		Description: dba.Description,
+		MFOwnerID:   dba.MFOwnerID,
+		Backend:     dba.Backend,
+		Version:     dba.Version,
+		OrbTags:     types.Tags(dba.OrbTags),
+		Policy:      types.Metadata(dba.Policy),
+		Created:     dba.Created,
 	}
 
 	return policy
 
+}
+
+func toDataset(dba dbDataset) policies.Dataset {
+	dataset := policies.Dataset{
+		ID:           dba.ID,
+		Name:         dba.Name,
+		MFOwnerID:    dba.MFOwnerID,
+		Valid:        dba.Valid,
+		AgentGroupID: dba.AgentGroupID.String,
+		PolicyID:     dba.PolicyID.String,
+		SinkID:       dba.SinkID.String,
+		Metadata:     types.Metadata(dba.Metadata),
+		Created:      dba.TsCreated,
+	}
+
+	return dataset
+}
+
+func getNameQuery(name string) (string, string) {
+	if name == "" {
+		return "", ""
+	}
+	name = fmt.Sprintf(`%%%s%%`, strings.ToLower(name))
+	nq := ` AND LOWER(name) LIKE :name`
+	return nq, name
+}
+
+func getOrderQuery(order string) string {
+	switch order {
+	case "name":
+		return "name"
+	default:
+		return "id"
+	}
+}
+
+func getDirQuery(dir string) string {
+	switch dir {
+	case "asc":
+		return "ASC"
+	default:
+		return "DESC"
+	}
+}
+
+func getTagsQuery(m types.Tags) ([]byte, string, error) {
+	mq := ""
+	mb := []byte("{}")
+	if len(m) > 0 {
+		mq = ` AND orb_tags @> :tags`
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, "", err
+		}
+		mb = b
+	}
+	return mb, mq, nil
+}
+
+func total(ctx context.Context, db Database, query string, params interface{}) (uint64, error) {
+	rows, err := db.NamedQueryContext(ctx, query, params)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+	total := uint64(0)
+	if rows.Next() {
+		if err := rows.Scan(&total); err != nil {
+			return 0, err
+		}
+	}
+	return total, nil
 }

@@ -11,14 +11,15 @@ import (
 )
 
 type Policy struct {
-	ID        string
-	Name      types.Identifier
-	MFOwnerID string
-	Backend   string
-	Version   int32
-	OrbTags   types.Tags
-	Policy    types.Metadata
-	Created   time.Time
+	ID          string
+	Name        types.Identifier
+	Description string
+	MFOwnerID   string
+	Backend     string
+	Version     int32
+	OrbTags     types.Tags
+	Policy      types.Metadata
+	Created     time.Time
 }
 
 type Dataset struct {
@@ -39,25 +40,28 @@ type Page struct {
 }
 
 type Service interface {
-	// CreatePolicy creates new agent Policy
+	// AddPolicy creates new agent Policy
 	AddPolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
 
-	// RetrievePolicyByID retrieving policy by id with token
+	// ViewPolicyByID retrieving policy by id with token
 	ViewPolicyByID(ctx context.Context, token string, policyID string) (Policy, error)
 
-	// RetrieveAll
+	// ListPolicies
 	ListPolicies(ctx context.Context, token string, pm PageMetadata) (Page, error)
 
-	// RetrievePolicyByIDInternal gRPC version of retrieving policy by id with no token
+	// ViewPolicyByIDInternal gRPC version of retrieving policy by id with no token
 	ViewPolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (Policy, error)
 
-	// RetrievePoliciesByGroupIDInternal gRPC version of retrieving list of policies belonging to specified agent group with no token
+	// ListPoliciesByGroupIDInternal gRPC version of retrieving list of policies belonging to specified agent group with no token
 	ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
 
-	// CreateDataset creates new Dataset
+	// EditPolicy edit a existing policy by id with a valid token
+	EditPolicy(ctx context.Context, token string, pol Policy, format string, policyData string) (Policy, error)
+
+	// AddDataset creates new Dataset
 	AddDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 
-	// InactivateDataSet
+	// InactivateDatasetByGroupID
 	InactivateDatasetByGroupID(ctx context.Context, groupID string, token string) error
 
 	// ValidatePolicy validates an agent Policy without saving
@@ -78,10 +82,16 @@ type Repository interface {
 	// RetrieveAll retrieves the subset of Policies owned by the specified user
 	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
 
+	// UpdatePolicy update a existing policy by id with a valid token
+	UpdatePolicy(ctx context.Context, owner string, pol Policy) error
+
 	// SaveDataset persists a Dataset. Successful operation is indicated by non-nil
 	// error response.
 	SaveDataset(ctx context.Context, dataset Dataset) (string, error)
 
 	// InactivateDatasetByGroupID inactivate a dataset
 	InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error
+
+	// RetrieveDatasetsByPolicyID retrieves the subset of Datasets by policyID owned by the specified user
+	RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]Dataset, error)
 }

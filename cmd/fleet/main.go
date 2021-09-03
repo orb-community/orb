@@ -16,7 +16,7 @@ import (
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"github.com/ns1labs/orb/fleet"
 	fleetgrpc "github.com/ns1labs/orb/fleet/api/grpc"
-	http2 "github.com/ns1labs/orb/fleet/api/http"
+	fleethttp "github.com/ns1labs/orb/fleet/api/http"
 	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/fleet/postgres"
 	rediscons "github.com/ns1labs/orb/fleet/redis/consumer"
@@ -25,6 +25,7 @@ import (
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	opentracing "github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/reflection"
 	"io"
 	"io/ioutil"
 	"log"
@@ -203,8 +204,8 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 
 	svc := fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
-	svc = http2.NewLoggingMiddleware(svc, logger)
-	svc = http2.MetricsMiddleware(
+	svc = fleethttp.NewLoggingMiddleware(svc, logger)
+	svc = fleethttp.MetricsMiddleware(
 		svc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "fleet",
@@ -256,11 +257,11 @@ func startHTTPServer(tracer opentracing.Tracer, svc fleet.Service, cfg config.Ba
 	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
 		logger.Info(fmt.Sprintf("Fleet service started using https on port %s with cert %s key %s",
 			cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
-		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, http2.MakeHandler(tracer, svcName, svc))
+		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, fleethttp.MakeHandler(tracer, svcName, svc))
 		return
 	}
 	logger.Info(fmt.Sprintf("Fleet service started using http on port %s", cfg.HttpPort))
-	errs <- http.ListenAndServe(p, http2.MakeHandler(tracer, svcName, svc))
+	errs <- http.ListenAndServe(p, fleethttp.MakeHandler(tracer, svcName, svc))
 }
 
 func subscribeToPoliciesES(svc fleet.Service, commsSvc fleet.AgentCommsService, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
@@ -295,5 +296,6 @@ func startGRPCServer(svc fleet.Service, tracer opentracing.Tracer, cfg config.GR
 	}
 
 	pb.RegisterFleetServiceServer(server, fleetgrpc.NewServer(tracer, svc))
+	reflection.Register(server)
 	errs <- server.Serve(listener)
 }
