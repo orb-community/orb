@@ -361,116 +361,12 @@ func TestPolicyEdition(t *testing.T) {
 func TestValidatePolicy(t *testing.T) {
 	var (
 		contentType = "application/json"
-		validYaml = `{
-		"name": "mypktvisorpolicyyaml-3",
-		"backend": "pktvisor",
-		"description": "my pktvisor policy yaml",
-		"tags": {
-			"region": "eu",
-			"node_type": "dns"
-		},
-		"policy": {
-  			"version": "1.0",
-  			"visor": {
-    			"taps": {
-      				"anycast": {
-        				"type": "pcap",
-						"config": {
-							"iface": "eth0"
-						}
-      				}
-    			}
-  			}
-		}
-	}`
-		invalidBackendYaml = `{
-		"name": "mypktvisorpolicyyaml-3",
-		"backend": "",
-		"description": "my pktvisor policy yaml",
-		"tags": {
-			"region": "eu",
-			"node_type": "dns"
-		},
-		"policy": {
-  			"version": "1.0",
-  			"visor": {
-    			"taps": {
-      				"anycast": {
-        				"type": "pcap",
-						"config": {
-							"iface": "eth0"
-						}
-      				}
-    			}
-  			}
-		}
-		}`
+		validYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidBackendYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "", "description": "my pktvisor policy yaml", "tags": { "region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
 		invalidYaml = `{`
-		invalidTagYaml = `{
-		"name": "mypktvisorpolicyyaml-3",
-		"backend": "pktvisor",
-		"description": "my pktvisor policy yaml",
-		"tags": {
-			"invalid"
-		},
-		"policy": {
-  			"version": "1.0",
-  			"visor": {
-    			"taps": {
-      				"anycast": {
-        				"type": "pcap",
-						"config": {
-							"iface": "eth0"
-						}
-      				}
-    			}
-  			}
-		}
-	}`
-		invalidNameYaml = `{
-		"name": "policy//.#",
-		"backend": "pktvisor",
-		"description": "my pktvisor policy yaml",
-		"tags": {
-			"region": "eu",
-			"node_type": "dns"
-		},
-		"policy": {
-  			"version": "1.0",
-  			"visor": {
-    			"taps": {
-      				"anycast": {
-        				"type": "pcap",
-						"config": {
-							"iface": "eth0"
-						}
-      				}
-    			}
-  			}
-		}
-	}`
-		invalidFieldYaml = `{
-		"nname": "policy",
-		"backend": "pktvisor",
-		"description": "my pktvisor policy yaml",
-		"tags": {
-			"region": "eu",
-			"node_type": "dns"
-		},
-		"policy": {
-  			"version": "1.0",
-  			"visor": {
-    			"taps": {
-      				"anycast": {
-        				"type": "pcap",
-						"config": {
-							"iface": "eth0"
-						}
-      				}
-    			}
-  			}
-		}
-	}`
+		invalidTagYaml = `{"name": "mypktvisorpolicyyaml-3","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"invalid"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidNameYaml = `{"name": "policy//.#","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidFieldYaml = `{"nname": "policy","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
 	)
 	cli := newClientServer(t)
 

@@ -182,6 +182,7 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Name:    nID,
 			Backend: req.Backend,
 			Policy:  req.Policy,
+			OrbTags: req.Tags,
 		}
 
 		validated, err := svc.ValidatePolicy(ctx, req.token, policy, req.Format, req.PolicyData)

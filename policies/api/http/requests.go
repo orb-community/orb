@@ -27,6 +27,7 @@ type addPolicyReq struct {
 	Name       string         `json:"name"`
 	Backend    string         `json:"backend"`
 	Policy     types.Metadata `json:"policy,omitempty"`
+	Tags       types.Tags     `json:"tags"`
 	Format     string         `json:"format,omitempty"`
 	PolicyData string         `json:"policy_data,omitempty"`
 	token      string
