@@ -39,10 +39,12 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := policyRes{
-			ID:      saved.ID,
-			Name:    saved.Name.String(),
-			Backend: saved.Backend,
-			created: true,
+			ID:          saved.ID,
+			Name:        saved.Name.String(),
+			Description: saved.Description,
+			Backend:     saved.Backend,
+			Policy:      saved.Policy,
+			created:     true,
 		}
 
 		return res, nil

@@ -4,13 +4,20 @@
 
 package http
 
-import "net/http"
+import (
+	"github.com/ns1labs/orb/pkg/types"
+	"net/http"
+)
 
 type policyRes struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Backend string `json:"backend"`
-	created bool
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Backend     string         `json:"backend"`
+	Policy      types.Metadata `json:"policy,omitempty"`
+	Format      string         `json:"format,omitempty"`
+	PolicyData  string         `json:"policy_data,omitempty"`
+	created     bool
 }
 
 func (s policyRes) Code() int {
