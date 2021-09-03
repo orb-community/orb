@@ -52,18 +52,6 @@ func (e eventStore) AddDataset(ctx context.Context, token string, d policies.Dat
 	return e.svc.AddDataset(ctx, token, d)
 }
 
-func (e eventStore) RetrievePolicyByID(ctx context.Context, token string, policyID string) (policies.Policy, error) {
-	return e.svc.ViewPolicyByID(ctx, token, policyID)
-}
-
-func (e eventStore) RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
-	return e.svc.ListPoliciesByGroupIDInternal(ctx, groupIDs, ownerID)
-}
-
-func (e eventStore) RetrievePolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	return e.svc.ViewPolicyByIDInternal(ctx, policyID, ownerID)
-}
-
 func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
 	ds, err := e.svc.AddDataset(ctx, token, d)
 	if err != nil {

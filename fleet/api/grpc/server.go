@@ -28,7 +28,7 @@ func NewServer(tracer opentracing.Tracer, svc fleet.Service) pb.FleetServiceServ
 	}
 }
 
-func (gs *grpcServer) RetrievePolicy(ctx context.Context, req *pb.AgentByIDReq) (*pb.AgentRes, error) {
+func (gs *grpcServer) RetrieveAgent(ctx context.Context, req *pb.AgentByIDReq) (*pb.AgentRes, error) {
 	_, res, err := gs.retrieveAgent.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, encodeError(err)

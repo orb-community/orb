@@ -3,10 +3,9 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from '../../../../environments/environment';
+import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 
 // default filters
@@ -16,10 +15,8 @@ const defDir = 'desc';
 
 @Injectable()
 export class AgentsService {
-  picture = 'assets/images/mainflux-logo.png';
-
   paginationCache: any = {};
-  cache: OrbPagination<AgentGroup>;
+  cache: OrbPagination<Agent>;
 
   constructor(
     private http: HttpClient,
@@ -40,9 +37,9 @@ export class AgentsService {
     this.paginationCache = {};
   }
 
-  addAgentGroup(agentGroupItem: AgentGroup) {
+  addAgent(agentItem: Agent) {
     return this.http.post(environment.agentsUrl,
-      {...agentGroupItem, validate_only: false},
+      {...agentItem, validate_only: false},
       {observe: 'response'})
       .map(
         resp => {
@@ -58,9 +55,9 @@ export class AgentsService {
       );
   }
 
-  validateAgentGroup(agentGroupItem: AgentGroup) {
-    return this.http.post(environment.agentsUrl,
-      {...agentGroupItem, validate_only: true},
+  validateAgent(agentItem: Agent) {
+    return this.http.post(environment.validateAgentsUrl,
+      {...agentItem, validate_only: true},
       {observe: 'response'})
       .map(
         resp => {
@@ -76,7 +73,7 @@ export class AgentsService {
       );
   }
 
-  getAgentGroupById(id: string): any {
+  getAgentById(id: string): any {
     return this.http.get(`${environment.agentsUrl}/${id}`)
       .map(
         resp => {
@@ -92,7 +89,63 @@ export class AgentsService {
       );
   }
 
-  getAgentGroups(pageInfo: NgxDatabalePageInfo, isFilter = false) {
+  editAgent(agent: Agent): any {
+    return this.http.put(`${environment.agentsUrl}/${agent.id}`, agent)
+      .map(
+        resp => {
+          return resp;
+        },
+      )
+      .catch(
+        err => {
+          this.notificationsService.error('Failed to edit Agent',
+            `Error: ${err.status} - ${err.statusText}`);
+          return Observable.throwError(err);
+        },
+      );
+  }
+
+  deleteAgent(agentId: string) {
+    return this.http.delete(`${environment.agentsUrl}/${agentId}`)
+      .map(
+        resp => {
+          return resp;
+        },
+      )
+      .catch(
+        err => {
+          this.notificationsService.error('Failed to Delete Agent',
+            `Error: ${err.status} - ${err.statusText}`);
+          return Observable.throwError(err);
+        },
+      );
+  }
+
+  getMatchingAgents(tagsInfo: any) {
+    const params = new HttpParams()
+      .set('offset', AgentsService.getDefaultPagination().offset.toString())
+      .set('limit', AgentsService.getDefaultPagination().limit.toString())
+      .set('order', AgentsService.getDefaultPagination().order.toString())
+      .set('dir', AgentsService.getDefaultPagination().dir.toString())
+      .set('tags', JSON.stringify(tagsInfo).replace('[', '').replace(']', ''));
+
+    return this.http.get(environment.agentsUrl, {params})
+      .map(
+        (resp: any) => {
+          return resp.agents;
+        },
+      )
+      .catch(
+        err => {
+          this.notificationsService.error('Failed to get Matching Agents',
+            `Error: ${err.status} - ${err.statusText}`);
+          return Observable.throwError(err);
+        },
+      );
+  }
+
+
+  getAgents(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     const offset = pageInfo.offset || this.cache.offset;
     let params = new HttpParams()
       .set('offset', offset.toString())
@@ -141,39 +194,7 @@ export class AgentsService {
       );
   }
 
-  editAgentGroup(agentItem: Agent): any {
-    return this.http.put(`${environment.agentsUrl}/${agentItem.id}`, agentItem)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to edit Agent',
-            `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throwError(err);
-        },
-      );
-  }
-
-  deleteAgentGroup(agentId: string) {
-    return this.http.delete(`${environment.agentsUrl}/${agentId}`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to delete Agent',
-            `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throwError(err);
-        },
-      );
-  }
-
-  public static getDefaultPagination(): OrbPagination<AgentGroup> {
+  public static getDefaultPagination(): OrbPagination<Agent> {
     return {
       limit: defLimit,
       order: defOrder,

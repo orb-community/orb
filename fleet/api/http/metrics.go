@@ -18,6 +18,10 @@ type metricsMiddleware struct {
 	svc     fleet.Service
 }
 
+func (m metricsMiddleware) ViewAgentByIDInternal(ctx context.Context, ownerID string, thingID string) (fleet.Agent, error) {
+	return m.svc.ViewAgentByIDInternal(ctx, ownerID, thingID)
+}
+
 func (m metricsMiddleware) ViewAgentByID(ctx context.Context, token string, thingID string) (fleet.Agent, error) {
 	return m.svc.ViewAgentByID(ctx, token, thingID)
 }
@@ -60,6 +64,10 @@ func (m metricsMiddleware) RemoveAgentGroup(ctx context.Context, token string, g
 
 func (m metricsMiddleware) ValidateAgentGroup(ctx context.Context, token string, s fleet.AgentGroup) (fleet.AgentGroup, error) {
 	return m.svc.ValidateAgentGroup(ctx, token, s)
+}
+
+func (m metricsMiddleware) ValidateAgent(ctx context.Context, token string, a fleet.Agent) (fleet.Agent, error) {
+	return m.svc.ValidateAgent(ctx, token, a)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.

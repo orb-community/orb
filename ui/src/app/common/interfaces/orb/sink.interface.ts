@@ -5,7 +5,7 @@
  */
 
 import { PrometheusConfig } from 'app/common/interfaces/orb/sink.config/prometheus.config.interface';
-import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
+import { AWSConfig } from 'app/common/interfaces/orb/sink.config/aws.config.interface';
 
 /**
  * @interface Sink
@@ -58,14 +58,16 @@ export interface Sink {
    * Sink Config {{[propName: string]: string}}
    * config: object containing sink specific info
    */
-  config?: SinkConfig<string>|any;
+  config?: SinkTypes;
 }
+
+export type SinkTypes = PrometheusConfig|AWSConfig;
 
 /**
  * Prometheus Sink Type
  * @type PromSink
  */
-export type PromSink = Sink | {
+export type PromSink = Sink|{
   config?: PrometheusConfig;
 };
 
