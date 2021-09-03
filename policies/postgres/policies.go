@@ -16,6 +16,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
@@ -32,7 +33,36 @@ type policiesRepository struct {
 	logger *zap.Logger
 }
 
-func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, pol policies.Policy) error {
+func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, plcy policies.Policy) error {
+	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	plcyDB, err := toDBPolicy(plcy)
+	if err != nil {
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	plcyDB.MFOwnerID = owner
+
+	res, err := r.db.NamedExecContext(ctx, q, plcyDB)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrNotFound
+	}
+
 	return nil
 }
 
@@ -296,15 +326,16 @@ func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, poli
 }
 
 type dbPolicy struct {
-	ID        string           `db:"id"`
-	Name      types.Identifier `db:"name"`
-	MFOwnerID string           `db:"mf_owner_id"`
-	Backend   string           `db:"backend"`
-	Format    string           `db:"format"`
-	OrbTags   db.Tags          `db:"orb_tags"`
-	Policy    db.Metadata      `db:"policy"`
-	Version   int32            `db:"version"`
-	Created   time.Time        `db:"ts_created"`
+	ID          string           `db:"id"`
+	Name        types.Identifier `db:"name"`
+	MFOwnerID   string           `db:"mf_owner_id"`
+	Backend     string           `db:"backend"`
+	Description string           `db:"description"`
+	Format      string           `db:"format"`
+	OrbTags     db.Tags          `db:"orb_tags"`
+	Policy      db.Metadata      `db:"policy"`
+	Version     int32            `db:"version"`
+	Created     time.Time        `db:"ts_created"`
 }
 
 func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
@@ -316,12 +347,13 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 	}
 
 	return dbPolicy{
-		ID:        policy.ID,
-		Name:      policy.Name,
-		MFOwnerID: uID.String(),
-		Backend:   policy.Backend,
-		OrbTags:   db.Tags(policy.OrbTags),
-		Policy:    db.Metadata(policy.Policy),
+		ID:          policy.ID,
+		Name:        policy.Name,
+		Description: policy.Description,
+		MFOwnerID:   uID.String(),
+		Backend:     policy.Backend,
+		OrbTags:     db.Tags(policy.OrbTags),
+		Policy:      db.Metadata(policy.Policy),
 	}, nil
 
 }
@@ -384,14 +416,15 @@ func NewPoliciesRepository(db Database, log *zap.Logger) policies.Repository {
 func toPolicy(dba dbPolicy) policies.Policy {
 
 	policy := policies.Policy{
-		ID:        dba.ID,
-		Name:      dba.Name,
-		MFOwnerID: dba.MFOwnerID,
-		Backend:   dba.Backend,
-		Version:   dba.Version,
-		OrbTags:   types.Tags(dba.OrbTags),
-		Policy:    types.Metadata(dba.Policy),
-		Created:   dba.Created,
+		ID:          dba.ID,
+		Name:        dba.Name,
+		Description: dba.Description,
+		MFOwnerID:   dba.MFOwnerID,
+		Backend:     dba.Backend,
+		Version:     dba.Version,
+		OrbTags:     types.Tags(dba.OrbTags),
+		Policy:      types.Metadata(dba.Policy),
+		Created:     dba.Created,
 	}
 
 	return policy

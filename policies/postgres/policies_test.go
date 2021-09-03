@@ -318,6 +318,43 @@ func TestAgentPoliciesRetrieveByGroup(t *testing.T) {
 	}
 }
 
+func TestPolicyUpdate(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("mypolicy")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	policy := policies.Policy{
+		Name:      nameID,
+		MFOwnerID: oID.String(),
+		Policy:    types.Metadata{"pkey1": "pvalue1"},
+	}
+	policyID, err := repo.SavePolicy(context.Background(), policy)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	policy.ID = policyID
+
+	cases := map[string]struct {
+		plcy policies.Policy
+		err  error
+	}{
+		"update a existing policy": {
+			plcy: policy,
+			err:  nil,
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := repo.UpdatePolicy(context.Background(), tc.plcy.MFOwnerID, tc.plcy)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
+	}
+}
+
 func testSortPolicies(t *testing.T, pm policies.PageMetadata, ags []policies.Policy) {
 	t.Helper()
 	switch pm.Order {
