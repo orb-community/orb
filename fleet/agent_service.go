@@ -160,11 +160,11 @@ func (svc fleetService) RemoveAgent(ctx context.Context, token, thingID string) 
 	}
 
 	if errT := svc.mfsdk.DeleteThing(res.MFThingID, token); errT != nil {
-		svc.logger.Error("failed to delete thing", zap.Error(errT))
+		svc.logger.Error("failed to delete thing", zap.Error(errT), zap.String("thing_id", res.MFThingID))
 	}
 
 	if errT := svc.mfsdk.DeleteChannel(res.MFChannelID, token); errT != nil {
-		svc.logger.Error("failed to delete channel", zap.Error(errT))
+		svc.logger.Error("failed to delete channel", zap.Error(errT), zap.String("channel_id", res.MFChannelID))
 	}
 
 	err = svc.agentRepo.Delete(ctx, ownerID, thingID)
