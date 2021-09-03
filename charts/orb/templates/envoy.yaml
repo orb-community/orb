@@ -1,0 +1,230 @@
+# Copyright (c) Mainflux
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+data:
+  envoy-config-yaml: |-
+    static_resources:
+      listeners:
+        - name: mqtt_listener
+          address:
+            socket_address: { address: 0.0.0.0, port_value: 1883 }
+          filter_chains:
+            - filters:
+                - name: envoy.filters.network.tcp_proxy
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+                    stat_prefix: mqtt
+                    cluster: mqtt
+                    access_log:
+                      - name: envoy.access_loggers.stdout
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+        - name: policies_grpc_listener
+          address:
+            socket_address:
+              address: 0.0.0.0
+              port_value: {{ .Values.policies.grpcPort }}
+          filter_chains:
+            - filters:
+                - name: envoy.filters.network.http_connection_manager
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                    access_log:
+                      - name: envoy.access_loggers.stdout
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                    stat_prefix: policies
+                    codec_type: AUTO
+                    route_config:
+                      name: policies_route
+                      virtual_hosts:
+                        - name: policies_service
+                          domains: ["*"]
+                          routes:
+                            - match: { prefix: "/" }
+                              route: { cluster: policies }
+                    http_filters:
+                      - name: envoy.filters.http.grpc_web
+                      - name: envoy.filters.http.router
+        - name: auth_grpc_listener
+          address:
+            socket_address:
+              address: 0.0.0.0
+              port_value: {{ .Values.auth.grpcPort }}
+          filter_chains:
+            - filters:
+                - name: envoy.filters.network.http_connection_manager
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                    access_log:
+                      - name: envoy.access_loggers.stdout
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                    stat_prefix: auth
+                    codec_type: AUTO
+                    route_config:
+                      name: auth_route
+                      virtual_hosts:
+                        - name: auth_service
+                          domains: ["*"]
+                          routes:
+                            - match: { prefix: "/" }
+                              route: { cluster: auth }
+                    http_filters:
+                      - name: envoy.filters.http.grpc_web
+                      - name: envoy.filters.http.router
+        - name: things_grpc_listener
+          address:
+            socket_address:
+              address: 0.0.0.0
+              port_value: {{ .Values.things.authGrpcPort }}
+          filter_chains:
+            - filters:
+                - name: envoy.filters.network.http_connection_manager
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                    access_log:
+                      - name: envoy.access_loggers.stdout
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                    stat_prefix: things
+                    codec_type: AUTO
+                    route_config:
+                      name: things_route
+                      virtual_hosts:
+                        - name: things_service
+                          domains: ["*"]
+                          routes:
+                            - match: { prefix: "/" }
+                              route: { cluster: things }
+                    http_filters:
+                      - name: envoy.filters.http.grpc_web
+                      - name: envoy.filters.http.router
+      clusters:
+      - name: mqtt
+        connect_timeout: 0.25s
+        type: strict_dns
+        lb_policy: round_robin
+        load_assignment:
+          cluster_name: mqtt
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: {{ .Release.Name }}-mqtt
+                    port_value: 1884
+      - name: auth
+        connect_timeout: 0.25s
+        type: strict_dns
+        lb_policy: round_robin
+        http2_protocol_options: {}
+        load_assignment:
+          cluster_name: auth
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: {{ .Release.Name }}-auth-headless
+                    port_value: {{ .Values.auth.grpcPort }}
+      - name: policies
+        connect_timeout: 0.25s
+        type: strict_dns
+        lb_policy: round_robin
+        http2_protocol_options: {}
+        load_assignment:
+          cluster_name: policies
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: {{ .Release.Name }}-policies-headless
+                    port_value: {{ .Values.policies.grpcPort }}
+      - name: things
+        connect_timeout: 0.25s
+        type: strict_dns
+        lb_policy: round_robin
+        http2_protocol_options: {}
+        load_assignment:
+          cluster_name: things
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: {{ .Release.Name }}-things-headless
+                    port_value: {{ .Values.things.authGrpcPort }}
+
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-envoy-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-envoy
+spec:
+  replicas: {{ .Values.defaults.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      component: envoy
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        component: envoy
+    spec:
+      containers:
+        - image: "{{ default .Values.defaults.image.repository .Values.envoy.image.repository }}:{{ default .Values.defaults.image.tag .Values.envoy.image.tag }}"
+          imagePullPolicy: {{ default .Values.defaults.image.pullPolicy .Values.envoy.image.imagePullPolicy}}
+          name: {{ .Release.Name }}-envoy
+          ports:
+            - containerPort: 1883
+              protocol: TCP
+            - containerPort: {{ .Values.auth.grpcPort }}
+              protocol: TCP
+            - containerPort: {{ .Values.policies.grpcPort }}
+              protocol: TCP
+            - containerPort: {{ .Values.things.authGrpcPort }}
+              protocol: TCP
+            - containerPort: 8001
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/envoy
+              name: envoy-config
+      volumes:
+        - configMap:
+            name: {{ .Release.Name }}-envoy-config
+            items:
+              - key: envoy-config-yaml
+                path: envoy.yaml
+          name: envoy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-envoy
+spec:
+  selector:
+    app: {{ .Release.Name }}
+    component: envoy
+  ports:
+    - port: 1883
+      protocol: TCP
+      name: mqtt
+    - port: {{ .Values.auth.grpcPort }}
+      protocol: TCP
+      name: auth-grpc
+    - port: {{ .Values.policies.grpcPort }}
+      protocol: TCP
+      name: policies-grpc
+    - port: {{ .Values.things.authGrpcPort }}
+      protocol: TCP
+      name: things-grpc
+    - port: 8001
+      protocol: TCP
+      name: admin
