@@ -1,0 +1,41 @@
+# Copyright (c) Mainflux
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-things
+spec:
+  selector:
+    app: {{ .Release.Name }}
+    component: things
+  ports:
+    - port: {{ .Values.things.httpPort }}
+      protocol: TCP
+      name: {{ .Release.Name }}-things-{{ .Values.things.httpPort }}
+    - port: {{ .Values.things.authGrpcPort }}
+      protocol: TCP
+      name: {{ .Release.Name }}-things-{{ .Values.things.authGrpcPort }}
+    - port: {{ .Values.things.authHttpPort }}
+      protocol: TCP
+      name: {{ .Release.Name }}-things-{{ .Values.things.authHttpPort }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-things-headless
+spec:
+  selector:
+    app: {{ .Release.Name }}
+    component: things
+  ports:
+    - port: {{ .Values.things.httpPort }}
+      protocol: TCP
+      name: {{ .Release.Name }}-things-{{ .Values.things.httpPort }}
+    - port: {{ .Values.things.authGrpcPort }}
+      protocol: TCP
+      name: {{ .Release.Name }}-things-{{ .Values.things.authGrpcPort }}
+    - port: {{ .Values.things.authHttpPort }}
+      protocol: TCP
+      name: {{ .Release.Name }}-things-{{ .Values.things.authHttpPort }}
+  clusterIP: None
