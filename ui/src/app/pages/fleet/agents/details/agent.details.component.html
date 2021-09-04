@@ -8,21 +8,71 @@
     <div class="d-flex flex-column col-6">
       <!--Agent Information Card-->
       <nb-card size="large" class="nb-card-large">
-
+        <nb-card-header>
+          <p>Agent Information</p>
+          <a [routerLink]=["."]>Manage</a>
+        </nb-card-header>
+        <nb-card-body>
+          <div class="row">
+            <p class="detail-title">Agent Name</p>
+            <p>{{agent.name}}</p>
+          </div>
+          <div class="row">
+            <p class="detail-title">Version</p>
+            <p>!WIP!</p>
+          </div>
+          <div class="row">
+            <p class="detail-title">Location</p>
+            <p>!WIP!</p>
+          </div>
+        </nb-card-body>
       </nb-card>
     </div>
     <div class="d-flex flex-column col-6">
-      <!--Agent Information Card-->
+      <!--Tags/Vitals Card-->
       <nb-card size="large" class="nb-card-large">
-
+        <nb-card-header>
+          <p>Tags/Vitals</p>
+          <a [routerLink]=["."]>Manage</a>
+        </nb-card-header>
+        <nb-card-body>
+          <div class="row">
+            <p class="detail-title">Key Value Pairs</p>
+            <p>!WIP!</p>
+          </div>
+        </nb-card-body>
       </nb-card>
+
       <!--Heartbeat Card-->
       <nb-card size="large" class="nb-card-large">
-
+        <nb-card-header>
+          <p>Heartbeat</p>
+          <a [routerLink]=["."]>View</a>
+        </nb-card-header>
+        <nb-card-body>
+          <div class="row">
+            <p class="detail-title">Last Seen</p>
+            <p>{{agent.ts_lst_hb}}</p>
+          </div>
+          <div class="row">
+            <p class="detail-title">Health Status</p>
+            <p>{{agent.state}}</p>
+          </div>
+        </nb-card-body>
       </nb-card>
+
       <!--Active Datasets Card-->
       <nb-card size="large" class="nb-card-large">
-
+        <nb-card-header>
+          <p>Active Datasets</p>
+          <a [routerLink]=["."]>View</a>
+        </nb-card-header>
+        <nb-card-body>
+          <div class="row">
+            <p class="detail-title">Name</p>
+            <p>!WIP!</p>
+          </div>
+        </nb-card-body>
       </nb-card>
     </div>
   </div>
