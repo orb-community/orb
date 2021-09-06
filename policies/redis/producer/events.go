@@ -9,6 +9,7 @@
 package producer
 
 import (
+	"encoding/json"
 	"github.com/ns1labs/orb/pkg/types"
 	"time"
 )
@@ -50,10 +51,11 @@ type createPolicyEvent struct {
 }
 
 type updatePolicyEvent struct {
-	id       string
-	ownerID  string
-	groupIDs []string
-	policy   types.Metadata
+	id          string
+	ownerID     string
+	groupIDs    string
+	policy      types.Metadata
+	polciy_data string
 }
 
 func (cce createDatasetEvent) Encode() map[string]interface{} {
@@ -80,11 +82,19 @@ func (cce createPolicyEvent) Encode() map[string]interface{} {
 }
 
 func (cce updatePolicyEvent) Encode() map[string]interface{} {
-	return map[string]interface{}{
-		"id":        cce.id,
-		"owner_id":  cce.ownerID,
-		"groups_id": cce.groupIDs,
-		"policy":    cce.policy,
-		"operation": PolicyUpdate,
+	val := map[string]interface{}{
+		"id":         cce.id,
+		"owner_id":   cce.ownerID,
+		"groups_ids": cce.groupIDs,
+		"operation":  PolicyUpdate,
 	}
+
+	if cce.policy != nil {
+		policy, err := json.Marshal(cce.policy)
+		if err != nil {
+			return val
+		}
+		val["policy"] = string(policy)
+	}
+	return val
 }

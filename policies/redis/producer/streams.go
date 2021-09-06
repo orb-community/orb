@@ -10,14 +10,22 @@ package producer
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies"
+	"github.com/ns1labs/orb/policies/backend"
 	"go.uber.org/zap"
+	"strings"
 )
 
 const (
 	streamID  = "orb.policies"
 	streamLen = 1000
+)
+
+var (
+	ErrValidatePolicy = errors.New("failed to validate policy")
 )
 
 var _ policies.Service = (*eventStore)(nil)
@@ -48,10 +56,22 @@ func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.P
 		groupsIDs = append(groupsIDs, ds.AgentGroupID)
 	}
 
+	p, err := e.svc.ViewPolicyByID(ctx, token, pol.ID)
+	if err != nil {
+		return policies.Policy{}, err
+	}
+	pol.Backend = p.Backend
+	pol.MFOwnerID = p.MFOwnerID
+
+	err = validatePolicyBackend(&pol, format, policyData)
+	if err != nil {
+		return policies.Policy{}, err
+	}
+
 	event := updatePolicyEvent{
 		id:       pol.ID,
 		ownerID:  pol.MFOwnerID,
-		groupIDs: groupsIDs,
+		groupIDs: strings.Join(groupsIDs, ","),
 		policy:   pol.Policy,
 	}
 	record := &redis.XAddArgs{
@@ -132,4 +152,29 @@ func NewEventStoreMiddleware(svc policies.Service, client *redis.Client, logger 
 		svc:    svc,
 		client: client,
 	}
+}
+
+func validatePolicyBackend(p *policies.Policy, format string, policyData string) (err error) {
+	if !backend.HaveBackend(p.Backend) {
+		return errors.Wrap(ErrValidatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
+	}
+
+	if p.Policy == nil {
+		// if not already in json, make sure the back end can convert it
+		if !backend.GetBackend(p.Backend).SupportsFormat(format) {
+			return errors.Wrap(ErrValidatePolicy,
+				errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", format, p.Backend)))
+		}
+
+		p.Policy, err = backend.GetBackend(p.Backend).ConvertFromFormat(format, policyData)
+		if err != nil {
+			return errors.Wrap(ErrValidatePolicy, err)
+		}
+	}
+
+	err = backend.GetBackend(p.Backend).Validate(p.Policy)
+	if err != nil {
+		return errors.Wrap(ErrValidatePolicy, err)
+	}
+	return nil
 }

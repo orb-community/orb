@@ -10,10 +10,12 @@ package consumer
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
+	"strings"
 )
 
 const (
@@ -78,7 +80,11 @@ func (es eventStore) Subscribe(context context.Context) error {
 				rte := decodeDatasetCreate(event)
 				err = es.handleDatasetCreate(context, rte)
 			case policyUpdate:
-				rte := decodePolicyUpadte(event)
+				rte, derr := decodePolicyUpadte(event)
+				if derr != nil {
+					err = derr
+					break
+				}
 				err = es.handlePolicyUpdate(context, rte)
 			}
 			if err != nil {
@@ -113,50 +119,43 @@ func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEve
 	return es.commsService.NotifyGroupNewAgentPolicy(ctx, ag, e.policyID, e.ownerID)
 }
 
-func decodePolicyUpadte(event map[string]interface{}) updatePolicyEvent {
-	return updatePolicyEvent{
-		id:        read(event, "id", ""),
-		ownerID:   read(event, "owner_id", ""),
-		agentsIDs: readSlice(event, "agents_ids", make([]string, 1)),
-		policy:    readMetada(event, "policy", types.Metadata{}),
+func decodePolicyUpadte(event map[string]interface{}) (updatePolicyEvent, error) {
+	val := updatePolicyEvent{
+		id:      read(event, "id", ""),
+		ownerID: read(event, "owner_id", ""),
 	}
+
+	strgroups := read(event, "groups_ids", "")
+	val.groupsIDs = strings.Split(strgroups, ",")
+
+	strpolicy := read(event, "policy", "")
+	var policy types.Metadata
+	if err := json.Unmarshal([]byte(strpolicy), &policy); err != nil {
+		return updatePolicyEvent{}, err
+	}
+
+	return val, nil
 }
 
 // the policy service is notifying that a policy has been updated
 // notify all agents in the AgentGroup specified in the dataset about the policy update
 func (es eventStore) handlePolicyUpdate(ctx context.Context, e updatePolicyEvent) error {
-
-	// todo check if it will necessary to create a new comms function to notify a update
-	for _, a := range e.agentsIDs {
+	// todo check if it will be necessary create a new comms function to notify a update
+	for _, a := range e.groupsIDs {
 		ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, a, e.ownerID)
 		if err != nil {
 			return err
 		}
-		return es.commsService.NotifyGroupNewAgentPolicy(ctx, ag, e.id, e.ownerID)
+		err = es.commsService.NotifyGroupNewAgentPolicy(ctx, ag, e.id, e.ownerID)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func read(event map[string]interface{}, key, def string) string {
 	val, ok := event[key].(string)
-	if !ok {
-		return def
-	}
-
-	return val
-}
-
-func readSlice(event map[string]interface{}, key string, def []string) []string {
-	val, ok := event[key].([]string)
-	if !ok {
-		return def
-	}
-
-	return val
-}
-
-func readMetada(event map[string]interface{}, key string, def types.Metadata) types.Metadata {
-	val, ok := event[key].(types.Metadata)
 	if !ok {
 		return def
 	}

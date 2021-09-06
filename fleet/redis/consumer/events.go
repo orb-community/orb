@@ -26,6 +26,6 @@ type createDatasetEvent struct {
 type updatePolicyEvent struct {
 	id        string
 	ownerID   string
-	agentsIDs []string
+	groupsIDs []string
 	policy    types.Metadata
 }

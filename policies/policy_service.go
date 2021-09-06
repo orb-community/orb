@@ -126,6 +126,9 @@ func (s policiesService) EditPolicy(ctx context.Context, token string, pol Polic
 	pol.MFOwnerID = ownerID
 
 	err = validatePolicyBackend(&pol, format, policyData)
+	if err != nil {
+		return Policy{}, err
+	}
 
 	err = s.repo.UpdatePolicy(ctx, ownerID, pol)
 	if err != nil {
