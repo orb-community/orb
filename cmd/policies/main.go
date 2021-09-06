@@ -66,7 +66,6 @@ func main() {
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
 
 	// todo sinks gRPC
-	// todo fleet mgr gRPC
 
 	// main logger
 	var logger *zap.Logger
@@ -119,19 +118,12 @@ func main() {
 
 	commsSvc := policies.NewPoliciesCommsService(logger, fleetGRPCClient, pubSub)
 	svc := newService(authGRPCClient, db, logger, esClient, commsSvc)
-	defer commsSvc.Stop()
 
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 	go startGRPCServer(svc, tracer, policiesGRPCCfg, logger, errs)
 	go subscribeToFleetES(svc, esClient, esCfg, logger)
-
-	err = commsSvc.Start()
-	if err != nil {
-		logger.Error("unable to start policy communication", zap.Error(err))
-		os.Exit(1)
-	}
 
 	go func() {
 		c := make(chan os.Signal)
