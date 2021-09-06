@@ -35,6 +35,7 @@
                        formControlName="name"/>
               </div>
             </nb-form-field>
+            <hr/>
             <nb-form-field>
               <div>
                 <label class="font-weight-bold">Sink Description</label>
@@ -44,6 +45,7 @@
                      fieldSize="medium"
                      formControlName="description"/>
             </nb-form-field>
+            <hr/>
             <nb-form-field>
               <div>
                 <label class="font-weight-bold">Sink Type</label>
@@ -60,6 +62,7 @@
                            [value]="type">{{ type | titlecase }}</nb-option>
               </nb-select>
             </nb-form-field>
+            <hr/>
             <div class="d-flex justify-content-end">
               <button
                   nbButton
@@ -107,6 +110,7 @@
                            [value]="type">{{ type }}</nb-option>
                </nb-select>
               </div>
+              <hr/>
             </nb-form-field>
             <div class="d-flex justify-content-end" *ngIf="secondFormGroup">
               <button
@@ -147,8 +151,9 @@
                 </mat-chip>
               </mat-chip-list>
             </div>
+            <hr/>
             <nb-form-field>
-              <div class="container d-flex row px-0 mx-0" style="width:50%;">
+              <div class="container d-flex row px-0 mx-0" style="width:75%;">
                 <div class="d-flex flex-column col-5 px-0 mx-0">
                   <div>
                     <label class="font-weight-bold">Key</label>
@@ -242,15 +247,7 @@
               </div>
             </div>
           </div>
-          <div class="d-flex">
-            <mat-chip-list>
-              <mat-chip
-                  class="orb-tag-sink "
-                  *ngFor="let tag of thirdFormGroup.controls.tags.value">
-                {{ tag | keyvalue | tagchip}}
-              </mat-chip>
-            </mat-chip-list>
-          </div>
+          <hr/>
           <div class="d-flex row mt-4">
             <div class="col-md-12 col-xl-6" *ngFor="let control of selectedSinkSetting">
               <div>
@@ -259,6 +256,16 @@
                 <p *ngIf="control.type == 'password'">*******</p>
               </div>
             </div>
+          </div>
+          <hr/>
+          <div class="d-flex">
+            <mat-chip-list>
+              <mat-chip
+                  class="orb-tag-sink "
+                  *ngFor="let tag of thirdFormGroup.controls.tags.value">
+                {{ tag | keyvalue | tagchip}}
+              </mat-chip>
+            </mat-chip-list>
           </div>
           <div class="d-flex justify-content-end" *ngIf="thirdFormGroup">
             <button
