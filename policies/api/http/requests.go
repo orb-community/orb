@@ -25,7 +25,8 @@ const (
 
 type addPolicyReq struct {
 	Name        string         `json:"name"`
-	Description string         `json:"description"`
+	Description string         `json:"description,omitempty'"`
+	Tags        types.Tags     `json:"tags"`
 	Backend     string         `json:"backend"`
 	Policy      types.Metadata `json:"policy,omitempty"`
 	Format      string         `json:"format,omitempty"`
