@@ -145,9 +145,7 @@ func TestViewPolicy(t *testing.T) {
 				token:  tc.token,
 			}
 			res, err := req.make()
-			if err != nil {
-				require.Nil(t, err, "%s: Unexpected error: %s", desc, err)
-			}
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected %d got %d", desc, tc.status, res.StatusCode))
 		})
 	}
@@ -437,6 +435,21 @@ func TestPolicyRemoval(t *testing.T) {
 			auth:   token,
 			status: http.StatusNoContent,
 		},
+		"delete non-existent policy": {
+			id:     wrongID,
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+		"delete policy with invalid token": {
+			id:     plcy.ID,
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+		},
+		"delete policy with empty token": {
+			id:     plcy.ID,
+			auth:   "",
+			status: http.StatusUnauthorized,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -459,14 +472,10 @@ func TestPolicyRemoval(t *testing.T) {
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	validName, err := types.NewIdentifier(name)
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	policy := policies.Policy{
 		ID:      ID.String(),
@@ -475,9 +484,7 @@ func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy 
 	}
 
 	res, err := cli.service.AddPolicy(context.Background(), token, policy, format, policy_data)
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 	return res
 }
 

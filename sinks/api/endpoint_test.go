@@ -110,9 +110,8 @@ func TestCreateSinks(t *testing.T) {
 	// Conflict creation scenario
 	sinkConflict := sink
 	conflictNameID, err := types.NewIdentifier("conflict")
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
 	sinkConflict.Name = conflictNameID
 	_, err = service.CreateSink(context.Background(), token, sinkConflict)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))

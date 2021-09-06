@@ -21,7 +21,8 @@ type mockPoliciesRepository struct {
 }
 
 func (m *mockPoliciesRepository) InactivateDatasetByPolicyID(ctx context.Context, policyID string, ownerID string) error {
-	panic("implement me")
+	//todo implement when create unit tests to dataset
+	return nil
 }
 
 func (m *mockPoliciesRepository) DeletePolicy(ctx context.Context, ownerID string, policyID string) error {

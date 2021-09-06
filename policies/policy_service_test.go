@@ -26,7 +26,9 @@ visor:
       type: pcap
       config:
         iface: eth0`
-	limit = 10
+	limit        = 10
+	wrongID      = "28ea82e7-0224-4798-a848-899a75cdc650"
+	invalidToken = "invalidToken"
 )
 
 func newService(auth mainflux.AuthServiceClient) policies.Service {
@@ -185,9 +187,8 @@ func TestEditPolicy(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	wrongOwnerID, err := uuid.NewV4()
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
 	wrongPolicy := policies.Policy{MFOwnerID: wrongOwnerID.String()}
 	newPolicy := policies.Policy{
 		ID:        policy.ID,
@@ -267,11 +268,23 @@ func TestRemovePolicy(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
+		"delete non-existent policy": {
+			id:    wrongID,
+			token: token,
+			err:   nil,
+		},
+		"delete policy with wrong credentials": {
+			id:    plcy.ID,
+			token: invalidToken,
+			err:   policies.ErrUnauthorizedAccess,
+		},
 	}
 
 	for desc, tc := range cases {
-		err := svc.RemovePolicy(context.Background(), tc.token, tc.id)
-		assert.True(t, errors.Contains(tc.err, err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			err := svc.RemovePolicy(context.Background(), tc.token, tc.id)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
 	}
 }
 

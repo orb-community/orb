@@ -148,7 +148,7 @@ func removePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 		err = svc.RemovePolicy(ctx, req.token, req.id)
 		if err != nil {
-			return removeRes{}, nil
+			return removeRes{}, err
 		}
 		return removeRes{}, nil
 	}
