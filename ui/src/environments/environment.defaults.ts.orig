@@ -12,7 +12,9 @@ const ORB = {
     agentsUrl: '/agents',
     validateAgentsUrl: '/agents/validate',
     agentGroupsUrl: '/agent_groups',
+<<<<<<< HEAD
     validateAgentGroupsUrl: '/agent_groups/validate',
+=======
     usersUrl: '/users',
     groupsUrl: '/groups',
     membersUrl: '/members',
@@ -31,6 +33,7 @@ const ORB = {
     loginUrl: '/tokens',
     httpAdapterUrl: '/http',
     readerUrl: '/reader',
+>>>>>>> develop
   },
 };
 

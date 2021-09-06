@@ -29,14 +29,11 @@ export class SinkAddComponent {
 
   sink: Sink;
 
-  sinkID: string;
-
   sinkTypesList = [];
 
   isEdit: boolean;
   isLoading = false;
   sinkLoading = false;
-
   constructor(
     private sinksService: SinksService,
     private notificationsService: NotificationsService,
@@ -46,13 +43,13 @@ export class SinkAddComponent {
   ) {
     this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
-    this.sinkID = this.route.snapshot.paramMap.get('id');
-    !!this.sinkID && sinksService.getSinkById(this.sinkID).subscribe(resp => {
+    const id = this.route.snapshot.paramMap.get('id');
+    !!id && sinksService.getSinkById(id).subscribe(resp => {
       this.sink = resp;
       this.sinkLoading = false;
       this.getSinkBackends();
     });
-    this.isEdit = !!this.sinkID;
+    this.isEdit = !!id;
     this.sinkLoading = this.isEdit;
     !this.sinkLoading && this.getSinkBackends();
   }
@@ -90,7 +87,7 @@ export class SinkAddComponent {
       this.onSinkTypeSelected(backend);
 
       this.thirdFormGroup = this._formBuilder.group({
-        tags: [Object.keys(tags || {}).map(key => ({[key]: tags[key]})),
+        tags: [Object.keys(tags).map(key => ({[key]: tags[key]})),
           Validators.minLength(1)],
         key: [''],
         value: [''],
@@ -129,12 +126,12 @@ export class SinkAddComponent {
     // console.log(payload);
     if (this.isEdit) {
       // updating existing sink
-      this.sinksService.editSink({...payload, id: this.sinkID}).subscribe(() => {
+      this.sinksService.editSink({...payload, id: this.sink.id}).subscribe(resp => {
         this.notificationsService.success('Sink successfully created', '');
         this.goBack();
       });
     } else {
-      this.sinksService.addSink(payload).subscribe(() => {
+      this.sinksService.addSink(payload).subscribe(resp => {
         this.notificationsService.success('Sink successfully created', '');
         this.goBack();
       });
@@ -154,7 +151,8 @@ export class SinkAddComponent {
 
     const dynamicFormControls = this.selectedSinkSetting.reduce((accumulator, curr) => {
       accumulator[curr.prop] = [
-        !!conf && (curr.prop in conf) && conf[curr.prop] ||
+        !!conf && (curr.prop in conf) && curr.prop ||
+        (!!this.sink && this.sink?.config && (curr.prop in this.sink.config) && this.sink.config[curr.prop]) ||
         '',
         curr.required ? Validators.required : null,
       ];
