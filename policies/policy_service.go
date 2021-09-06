@@ -21,6 +21,7 @@ var (
 	ErrCreateDataset           = errors.New("failed to create dataset")
 	ErrInactivateDataset       = errors.New("failed to inactivate dataset")
 	ErrUpdateEntity            = errors.New("failed to update entity")
+	ErrRemoveEntity            = errors.New("failed to remove entity")
 	ErrMalformedEntity         = errors.New("malformed entity")
 	ErrNotFound                = errors.New("non-existent entity")
 	ErrUnauthorizedAccess      = errors.New("missing or invalid credentials provided")
@@ -156,6 +157,24 @@ func (s policiesService) ListDatasetsByPolicyIDInternal(ctx context.Context, pol
 		return nil, err
 	}
 	return res, nil
+}
+
+func (s policiesService) RemovePolicy(ctx context.Context, token string, policyID string) error {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return err
+	}
+	err = s.repo.DeletePolicy(ctx, ownerID, policyID)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.InactivateDatasetByPolicyID(ctx, policyID, ownerID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func validatePolicyBackend(p *Policy, format string, policyData string) (err error) {

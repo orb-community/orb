@@ -36,6 +36,42 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID string) error {
+	if err := e.svc.RemovePolicy(ctx, token, policyID); err != nil {
+		return err
+	}
+
+	datasets, err := e.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
+	if err != nil {
+		return err
+	}
+
+	var groupsIDs []string
+	var ownerID string
+	for _, ds := range datasets {
+		ownerID = ds.MFOwnerID
+		groupsIDs = append(groupsIDs, ds.AgentGroupID)
+	}
+
+	event := removePolicyEvent{
+		id:       policyID,
+		ownerID:  ownerID,
+		groupIDs: strings.Join(groupsIDs, ","),
+	}
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+	err = e.client.XAdd(ctx, record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
 func (e eventStore) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]policies.Dataset, error) {
 	return e.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
 }

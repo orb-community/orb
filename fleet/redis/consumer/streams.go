@@ -27,6 +27,7 @@ const (
 	policyPrefix  = "policy."
 	policyCreate  = policyPrefix + "create"
 	policyUpdate  = policyPrefix + "update"
+	policyRemove  = policyPrefix + "remove"
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
@@ -80,12 +81,15 @@ func (es eventStore) Subscribe(context context.Context) error {
 				rte := decodeDatasetCreate(event)
 				err = es.handleDatasetCreate(context, rte)
 			case policyUpdate:
-				rte, derr := decodePolicyUpadte(event)
+				rte, derr := decodePolicyUpdate(event)
 				if derr != nil {
 					err = derr
 					break
 				}
 				err = es.handlePolicyUpdate(context, rte)
+			case policyRemove:
+				rte := decodePolicyRemove(event)
+				err = es.handlePolicyRemove(context, rte)
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
@@ -119,7 +123,7 @@ func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEve
 	return es.commsService.NotifyGroupNewAgentPolicy(ctx, ag, e.policyID, e.ownerID)
 }
 
-func decodePolicyUpadte(event map[string]interface{}) (updatePolicyEvent, error) {
+func decodePolicyUpdate(event map[string]interface{}) (updatePolicyEvent, error) {
 	val := updatePolicyEvent{
 		id:      read(event, "id", ""),
 		ownerID: read(event, "owner_id", ""),
@@ -147,6 +151,33 @@ func (es eventStore) handlePolicyUpdate(ctx context.Context, e updatePolicyEvent
 			return err
 		}
 		err = es.commsService.NotifyGroupNewAgentPolicy(ctx, ag, e.id, e.ownerID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func decodePolicyRemove(event map[string]interface{}) removePolicyEvent {
+	val := removePolicyEvent{
+		id:      read(event, "id", ""),
+		ownerID: read(event, "owner_id", ""),
+	}
+
+	strgroups := read(event, "groups_ids", "")
+	val.groupsIDs = strings.Split(strgroups, ",")
+	return val
+}
+
+// the policy service is notifying that a policy has been removed
+// notify all agents in the AgentGroup specified in the dataset about the policy removal
+func (es eventStore) handlePolicyRemove(ctx context.Context, e removePolicyEvent) error {
+	for _, a := range e.groupsIDs {
+		ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, a, e.ownerID)
+		if err != nil {
+			return err
+		}
+		err = es.commsService.NotifyPolicyRemoval(ag)
 		if err != nil {
 			return err
 		}

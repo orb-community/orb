@@ -251,6 +251,30 @@ func TestEditPolicy(t *testing.T) {
 
 }
 
+func TestRemovePolicy(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	plcy := createPolicy(t, svc, "policy")
+
+	cases := map[string]struct {
+		id    string
+		token string
+		err   error
+	}{
+		"Remove a existing policy": {
+			id:    plcy.ID,
+			token: token,
+			err:   nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := svc.RemovePolicy(context.Background(), tc.token, tc.id)
+		assert.True(t, errors.Contains(tc.err, err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
 func createPolicy(t *testing.T, svc policies.Service, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()

@@ -140,6 +140,20 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 	}
 }
 
+func removePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return removeRes{}, err
+		}
+		err = svc.RemovePolicy(ctx, req.token, req.id)
+		if err != nil {
+			return removeRes{}, nil
+		}
+		return removeRes{}, nil
+	}
+}
+
 func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addDatasetReq)

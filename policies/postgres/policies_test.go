@@ -372,6 +372,63 @@ func TestPolicyUpdate(t *testing.T) {
 	}
 }
 
+func TestPolicyDelete(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("mypolicy")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	wrongID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	policy := policies.Policy{
+		Name:      nameID,
+		MFOwnerID: oID.String(),
+		Policy:    types.Metadata{"pkey1": "pvalue1"},
+	}
+	policyID, err := repo.SavePolicy(context.Background(), policy)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	policy.ID = policyID
+
+	cases := map[string]struct {
+		id    string
+		owner string
+		err   error
+	}{
+		"delete a existing policy": {
+			id:    policy.ID,
+			owner: policy.MFOwnerID,
+			err:   nil,
+		},
+		"delete a empty policy id": {
+			id:    "",
+			owner: policy.MFOwnerID,
+			err:   policies.ErrMalformedEntity,
+		},
+		"delete a non-existing policy": {
+			id:    wrongID.String(),
+			owner: policy.MFOwnerID,
+			err:   nil,
+		},
+		"delete policy with empty owner": {
+			id:    policy.ID,
+			owner: "",
+			err:   policies.ErrMalformedEntity,
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := repo.DeletePolicy(context.Background(), tc.owner, tc.id)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
+	}
+}
+
 func testSortPolicies(t *testing.T, pm policies.PageMetadata, ags []policies.Policy) {
 	t.Helper()
 	switch pm.Order {

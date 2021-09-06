@@ -63,6 +63,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 		decodePolicyUpdate,
 		types.EncodeResponse,
 		opts...))
+	r.Delete("/policies/agents/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "remove_policy")(removePolicyEndpoint(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...))
 
 	r.Post("/policies/dataset", kithttp.NewServer(
 		kitot.TraceServer(tracer, "add_dataset")(addDatasetEndpoint(svc)),

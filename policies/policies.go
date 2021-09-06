@@ -58,13 +58,16 @@ type Service interface {
 	// EditPolicy edit a existing policy by id with a valid token
 	EditPolicy(ctx context.Context, token string, pol Policy, format string, policyData string) (Policy, error)
 
+	// RemovePolicy remove a existing policy owned by the specified user
+	RemovePolicy(ctx context.Context, token string, policyID string) error
+
 	// AddDataset creates new Dataset
 	AddDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 
-	// InactivateDatasetByGroupID
+	// InactivateDatasetByGroupID inactivate a dataset
 	InactivateDatasetByGroupID(ctx context.Context, groupID string, token string) error
 
-	// ListDatasetsByPolicyID retrieves the subset of Datasets by policyID owned by the specified user
+	// ListDatasetsByPolicyIDInternal retrieves the subset of Datasets by policyID owned by the specified user
 	ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error)
 }
 
@@ -80,10 +83,13 @@ type Repository interface {
 	RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
 
 	// RetrieveAll retrieves the subset of Policies owned by the specified user
-	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
+	RetrieveAll(ctx context.Context, ownerID string, pm PageMetadata) (Page, error)
 
 	// UpdatePolicy update a existing policy by id with a valid token
-	UpdatePolicy(ctx context.Context, owner string, pol Policy) error
+	UpdatePolicy(ctx context.Context, ownerID string, pol Policy) error
+
+	// DeletePolicy a existing policy by id owned by the specified user
+	DeletePolicy(ctx context.Context, ownerID string, policyID string) error
 
 	// SaveDataset persists a Dataset. Successful operation is indicated by non-nil
 	// error response.
@@ -91,6 +97,9 @@ type Repository interface {
 
 	// InactivateDatasetByGroupID inactivate a dataset
 	InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error
+
+	// InactivateDatasetByPolicyID inactivate a dataset by policy id
+	InactivateDatasetByPolicyID(ctx context.Context, policyID string, ownerID string) error
 
 	// RetrieveDatasetsByPolicyID retrieves the subset of Datasets by policyID owned by the specified user
 	RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]Dataset, error)

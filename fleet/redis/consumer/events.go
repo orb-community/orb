@@ -28,4 +28,12 @@ type updatePolicyEvent struct {
 	ownerID   string
 	groupsIDs []string
 	policy    types.Metadata
+	timestamp time.Time
+}
+
+type removePolicyEvent struct {
+	id        string
+	ownerID   string
+	groupsIDs []string
+	timestamp time.Time
 }

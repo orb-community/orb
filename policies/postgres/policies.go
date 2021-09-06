@@ -33,6 +33,24 @@ type policiesRepository struct {
 	logger *zap.Logger
 }
 
+func (r policiesRepository) DeletePolicy(ctx context.Context, ownerID string, policyID string) error {
+	if ownerID == "" || policyID == "" {
+		return policies.ErrMalformedEntity
+	}
+
+	dbsk := dbPolicy{
+		ID:        policyID,
+		MFOwnerID: ownerID,
+	}
+
+	q := `DELETE FROM agent_policies WHERE id = :id AND mf_owner_id = :mf_owner_id;`
+	if _, err := r.db.NamedExecContext(ctx, q, dbsk); err != nil {
+		return errors.Wrap(policies.ErrRemoveEntity, err)
+	}
+
+	return nil
+}
+
 func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, plcy policies.Policy) error {
 	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 	plcyDB, err := toDBPolicy(plcy)
@@ -250,6 +268,37 @@ func (r policiesRepository) InactivateDatasetByGroupID(ctx context.Context, grou
 	return nil
 }
 
+func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, policyID string, ownerID string) error {
+	q := `UPDATE datasets SET valid = false WHERE mf_owner_id = :mf_owner_id and agent_policy_id = :agent_policy_id`
+
+	params := map[string]interface{}{
+		"agent_policy_id": policyID,
+		"mf_owner_id":     ownerID,
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrInactivateDataset
+	}
+	return nil
+}
+
 func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 
 	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags)         
@@ -292,7 +341,7 @@ func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, poli
 
 	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_id, metadata, ts_created 
 			FROM datasets
-			WHERE valid = TRUE AND agent_policy_id = ? AND mf_owner_id = ?`
+			WHERE agent_policy_id = ? AND mf_owner_id = ?`
 
 	if policyID == "" || ownerID == "" {
 		return nil, errors.ErrMalformedEntity

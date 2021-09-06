@@ -420,6 +420,39 @@ func TestPolicyEdition(t *testing.T) {
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 		})
 	}
+}
+
+func TestPolicyRemoval(t *testing.T) {
+	cli := newClientServer(t)
+
+	plcy := createPolicy(t, &cli, "policy")
+
+	cases := map[string]struct {
+		id     string
+		auth   string
+		status int
+	}{
+		"delete a existing policy": {
+			id:     plcy.ID,
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodDelete,
+				url:    fmt.Sprintf("%s/policies/agents/%s", cli.server.URL, tc.id),
+				token:  tc.auth,
+			}
+
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
 
 }
 

@@ -18,6 +18,10 @@ type metricsMiddleware struct {
 	svc     policies.Service
 }
 
+func (m metricsMiddleware) RemovePolicy(ctx context.Context, token string, policyID string) error {
+	return m.svc.RemovePolicy(ctx, token, policyID)
+}
+
 func (m metricsMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]policies.Dataset, error) {
 	return m.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
 }
