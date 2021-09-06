@@ -328,6 +328,9 @@ func TestPolicyUpdate(t *testing.T) {
 	nameID, err := types.NewIdentifier("mypolicy")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	wrongID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
 	policy := policies.Policy{
 		Name:      nameID,
 		MFOwnerID: oID.String(),
@@ -345,6 +348,20 @@ func TestPolicyUpdate(t *testing.T) {
 		"update a existing policy": {
 			plcy: policy,
 			err:  nil,
+		},
+		"update a empty policy": {
+			plcy: policies.Policy{},
+			err:  policies.ErrUpdateEntity,
+		},
+		"update a non-existing policy": {
+			plcy: policies.Policy{
+				ID: wrongID.String(),
+			},
+			err: policies.ErrUpdateEntity,
+		},
+		"update policy with wrong owner": {
+			plcy: policies.Policy{ID: wrongID.String(), MFOwnerID: wrongID.String()},
+			err:  policies.ErrNotFound,
 		},
 	}
 	for desc, tc := range cases {

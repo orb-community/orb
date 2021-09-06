@@ -17,6 +17,7 @@ import (
 
 var (
 	ErrCreatePolicy            = errors.New("failed to create policy")
+	ErrValidatePolicy          = errors.New("failed to validate policy")
 	ErrCreateDataset           = errors.New("failed to create dataset")
 	ErrInactivateDataset       = errors.New("failed to inactivate dataset")
 	ErrUpdateEntity            = errors.New("failed to update entity")
@@ -159,19 +160,19 @@ func (s policiesService) ListDatasetsByPolicyIDInternal(ctx context.Context, pol
 
 func validatePolicyBackend(p *Policy, format string, policyData string) (err error) {
 	if !backend.HaveBackend(p.Backend) {
-		return errors.Wrap(ErrCreatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
+		return errors.Wrap(ErrValidatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
 	}
 
 	if p.Policy == nil {
 		// if not already in json, make sure the back end can convert it
 		if !backend.GetBackend(p.Backend).SupportsFormat(format) {
-			return errors.Wrap(ErrCreatePolicy,
+			return errors.Wrap(ErrValidatePolicy,
 				errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", format, p.Backend)))
 		}
 
 		p.Policy, err = backend.GetBackend(p.Backend).ConvertFromFormat(format, policyData)
 		if err != nil {
-			return errors.Wrap(ErrCreatePolicy, err)
+			return errors.Wrap(ErrValidatePolicy, err)
 		}
 	}
 

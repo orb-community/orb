@@ -184,6 +184,11 @@ func TestEditPolicy(t *testing.T) {
 	nameID, err := types.NewIdentifier("new-policy")
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
+	wrongOwnerID, err := uuid.NewV4()
+	if err != nil {
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	}
+	wrongPolicy := policies.Policy{MFOwnerID: wrongOwnerID.String()}
 	newPolicy := policies.Policy{
 		ID:        policy.ID,
 		Name:      nameID,
@@ -204,12 +209,42 @@ func TestEditPolicy(t *testing.T) {
 			policyData: policy_data,
 			err:        nil,
 		},
+		"update policy with wrong credentials": {
+			pol:        newPolicy,
+			token:      "invalidToken",
+			format:     format,
+			policyData: policy_data,
+			err:        policies.ErrUnauthorizedAccess,
+		},
+		"update a non-existing policy": {
+			pol:        wrongPolicy,
+			token:      token,
+			format:     format,
+			policyData: policy_data,
+			err:        policies.ErrNotFound,
+		},
+		"update a existing policy with invalid format": {
+			pol:        newPolicy,
+			token:      token,
+			format:     "invalid",
+			policyData: policy_data,
+			err:        policies.ErrValidatePolicy,
+		},
+		"update a existing policy with invalid policy_data": {
+			pol:        newPolicy,
+			token:      token,
+			format:     format,
+			policyData: "invalid",
+			err:        policies.ErrValidatePolicy,
+		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			res, err := svc.EditPolicy(context.Background(), tc.token, tc.pol, tc.format, tc.policyData)
-			assert.Equal(t, tc.pol.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.pol.Name.String(), res.Name.String()))
+			if err == nil {
+				assert.Equal(t, tc.pol.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.pol.Name.String(), res.Name.String()))
+			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected error %d got %d", desc, tc.err, err))
 		})
 	}

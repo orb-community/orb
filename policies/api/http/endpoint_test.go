@@ -43,6 +43,8 @@ visor:
 	limit        = 10
 	invalidToken = "invalid"
 	maxNameSize  = 1024
+	contentType  = "application/json"
+	wrongID      = "28ea82e7-0224-4798-a848-899a75cdc650"
 )
 
 var (
@@ -326,17 +328,80 @@ func TestPolicyEdition(t *testing.T) {
 
 	cases := map[string]struct {
 		id          string
-		token       string
-		status      int
 		contentType string
+		auth        string
+		status      int
 		data        string
 	}{
 		"update a existing policy": {
 			id:          policy.ID,
-			token:       token,
-			status:      http.StatusOK,
 			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
 			data:        validJson,
+		},
+		"update policy with a empty json request": {
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data:        "{}",
+		},
+		"update policy with a invalid id": {
+			data:        validJson,
+			id:          "invalid",
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusNotFound,
+		},
+		"update non-existing policy": {
+			data:        validJson,
+			id:          wrongID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusNotFound,
+		},
+		"update policy with invalid user token": {
+			data:        validJson,
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        "invalid",
+			status:      http.StatusUnauthorized,
+		},
+		"update policy with empty user token": {
+			data:        validJson,
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+		},
+		"update policy with invalid content type": {
+			data:        validJson,
+			id:          policy.ID,
+			contentType: "invalid",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+		},
+		"update policy without content type": {
+			data:        validJson,
+			id:          policy.ID,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+		},
+		"update policy with a empty request": {
+			data:        "",
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update policy with a invalid data format": {
+			data:        "{",
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
 		},
 	}
 
@@ -347,7 +412,7 @@ func TestPolicyEdition(t *testing.T) {
 				method:      http.MethodPut,
 				url:         fmt.Sprintf("%s/policies/agents/%s", cli.server.URL, tc.id),
 				contentType: tc.contentType,
-				token:       tc.token,
+				token:       tc.auth,
 				body:        strings.NewReader(tc.data),
 			}
 			res, err := req.make()
