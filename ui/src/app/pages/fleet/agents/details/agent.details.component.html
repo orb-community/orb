@@ -10,7 +10,12 @@
       <nb-card size="large" class="nb-card-large">
         <nb-card-header>
           <p>Agent Information</p>
-          <a [routerLink]=["."]>Manage</a>
+          <button nbButton
+                  ghost="true"
+                  size="small"
+                  class="orb-close-dialog"
+                  (click)="onClose()">Manage
+          </button>
         </nb-card-header>
         <nb-card-body>
           <div class="row">
@@ -33,7 +38,12 @@
       <nb-card size="large" class="nb-card-large">
         <nb-card-header>
           <p>Tags/Vitals</p>
-          <a [routerLink]=["."]>Manage</a>
+          <button nbButton
+                  ghost="true"
+                  size="small"
+                  class="orb-close-dialog"
+                  (click)="onClose()">Manage
+          </button>
         </nb-card-header>
         <nb-card-body>
           <div class="row">
@@ -47,7 +57,12 @@
       <nb-card size="large" class="nb-card-large">
         <nb-card-header>
           <p>Heartbeat</p>
-          <a [routerLink]=["."]>View</a>
+          <button nbButton
+                  ghost="true"
+                  size="small"
+                  class="orb-close-dialog"
+                  (click)="onClose()">View
+          </button>
         </nb-card-header>
         <nb-card-body>
           <div class="row">
@@ -65,7 +80,12 @@
       <nb-card size="large" class="nb-card-large">
         <nb-card-header>
           <p>Active Datasets</p>
-          <a [routerLink]=["."]>View</a>
+          <button nbButton
+                  ghost="true"
+                  size="small"
+                  class="orb-close-dialog"
+                  (click)="onClose()">View
+          </button>
         </nb-card-header>
         <nb-card-body>
           <div class="row">
