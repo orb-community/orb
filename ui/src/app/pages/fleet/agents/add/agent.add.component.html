@@ -133,6 +133,7 @@
                           ghost
                           (click)="onAddTag()"
                           [disabled]="(secondFormGroup.controls['key'].value === '' ||
+                          secondFormGroup.controls['key'].value === 'location' ||
                           secondFormGroup.controls['value'].value === '')"
                           data-orb-qa-id="button#addTag">
                     <nb-icon style="color: #df316f;"

@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -11,7 +11,7 @@ import { AgentsService } from 'app/common/services/agents/agents.service';
   templateUrl: './agent.add.component.html',
   styleUrls: ['./agent.add.component.scss'],
 })
-export class AgentAddComponent implements OnInit {
+export class AgentAddComponent {
   // page vars
   strings = {...STRINGS.agents, stepper: STRINGS.stepper};
 
@@ -32,36 +32,56 @@ export class AgentAddComponent implements OnInit {
 
   agentID;
 
+  agentLocation;
+
   constructor(
     private agentsService: AgentsService,
     private router: Router,
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
+    this.agentLocation = '';
+    this.firstFormGroup = this._formBuilder.group({
+      name: ['', Validators.required],
+      location: [this.agentLocation, Validators.required],
+    });
+
+    // do not include location into tags
+    this.secondFormGroup = this._formBuilder.group({
+      tags: [[], Validators.minLength(1)],
+      key: [''],
+      value: [''],
+    });
+
     this.agentsService.clean();
     this.agent = this.router.getCurrentNavigation().extras.state?.agent as Agent || null;
     this.agentID = this.route.snapshot.paramMap.get('id');
+
     !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
       this.agent = resp.agent;
       this.isLoading = false;
+      this.updateForm();
     });
+
     this.isEdit = !!this.agentID && this.router.getCurrentNavigation().extras.state?.edit as boolean;
     this.isLoading = this.isEdit;
+
   }
 
-  ngOnInit() {
+  updateForm() {
     const {name, orb_tags} = !!this.agent ? this.agent : {
       name: '',
-      location: '',
       orb_tags: {},
     } as Agent;
-    this.firstFormGroup = this._formBuilder.group({
-      name: [name, Validators.required],
-      location: [location],
-    });
 
+    // retrieve location tag if available
+    this.agentLocation = orb_tags.hasKey('location') && orb_tags.location || '';
+
+    this.firstFormGroup.setValue({name, location: this.agentLocation}, {emitEvent: false});
+
+    // do not include location into tags
     this.secondFormGroup = this._formBuilder.group({
-      tags: [Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})) || [],
+      tags: [Object.keys(orb_tags).map(key => key !== 'location' && ({[key]: orb_tags[key]})) || [],
         Validators.minLength(1)],
       key: [''],
       value: [''],
@@ -73,9 +93,9 @@ export class AgentAddComponent implements OnInit {
   resetFormValues() {
     const {name, orb_tags} = !!this.agent ? this.agent : {
       name: '',
-      location: '',
       orb_tags: {},
     } as Agent;
+    this.agentLocation = '';
 
     this.firstFormGroup.setValue({name: name, location: location});
 
@@ -93,7 +113,7 @@ export class AgentAddComponent implements OnInit {
     }
   }
 
-  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
+  // addTag button should be [disabled] = `$sf.controls.key.value !== '' && !== 'location'`
   onAddTag() {
     const {tags, key, value} = this.secondFormGroup.controls;
     // sanitize minimally anyway
