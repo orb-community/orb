@@ -2,9 +2,12 @@
 FROM node:14.15.4 as node
 WORKDIR /app
 COPY package.json /app/
-RUN npm install
+# I'm not sure if yarn is available from this node it imported
+# but it could be installed with npm install -g yarn
+# RUN npm install -g yarn
+RUN yarn install
 COPY ./ /app/
-RUN npm run build:prod
+RUN yarn build:prod
 
 # Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx
 FROM nginx:1.13-alpine
