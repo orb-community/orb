@@ -1,61 +1,61 @@
-# ORB<a href="https://github.com/akveo/nebular">Nebular</a>
+# <a href="https://github.com/ns1labs/orb">Orb</a> UI
 
-## Prerequisites
+> This wiki is targeted at developers looking to build the UI from source, to either
+> run it locally for development purposes or to create a custom UI docker image.
+
+## Development
+
+### Prerequisites
 
 The following are needed to run the UI:
 
-- [Docker](https://docs.docker.com/install/) (version 20.10)
-- [Docker compose](https://docs.docker.com/compose/install/) (version 1.28)
+* [node](https://nodejs.org/en/blog/release/v12.21.0/)
+* [npm](https://github.com/npm/cli/tree/v7.22.0)
 
-## Install
-For a quick setup, pre-built images from Docker Hub can be used.
+*It is recomended to build the UI using [yarn](https://www.npmjs.com/package/yarn)*
 
-First, make sure that `docker` and `docker-compose` are installed. Also, stop existing Mainflux containers if any.
+### Install
 
-Then, use the following instructions:
 ```bash
-git clone https://github.com/mainflux/ui.git
-cd ui
-make run
+# note: if you haven't checked out the full repo yet, and you're only interested in developing 
+# the front end locally, you can do so by checking out only the ui folder.
+# [read more...](
+git clone git@github.com:ns1labs/orb.git --no-checkout --depth 1 ${path}
+
+# however you clone the project
+cd ${path}/ui
+yarn install
 ```
-UI should be now up and running at `http://localhost/`.
 
-*(Note that `http://localhost:3000/` is for internal use only, and is not intended to be used by the end-user.)*
+### Usage
 
-More configuration (port numbers, etc.) can be done by editing the `.env` file before `make run`.
-
-## Usage
 A developer build from the source can be achieved using the following command:
+
 ```bash
-make ui
-```
-Then, to start the Mainflux UI as well as other Mainflux services:
-```bash
-make run
-```
-For more developer tools, run `angular-cli`:
-```bash
-cd ui
-npm install
-npm start
-```
-## Uninstall
-To remove the installed containers and volumes, run:
-```bash
-make clean
+yarn build
 ```
 
-## Preview
+*(Check [package.json](./package.json) file for available tasks.)*
 
-##
-![dashboard][dashboard]
+While developing, it is useful to serve UI locally and have your changes to the code having effect immediately.
 
-##
-![things][things]
+The commands `yarn start` and `yarn start:withmock` will generate a dev build and serve it at `http://localhost:4200/`.
 
-##
-![details][details]
+*(Note that `http://localhost:4200/` is for development use only, and is not intended to be used by the end-user.)*
 
-[dashboard]: https://github.com/mainflux/docs/blob/master/docs/img/ui/dashboard.png
-[things]: https://github.com/mainflux/docs/blob/master/docs/img/ui/things.png
-[details]: https://github.com/mainflux/docs/blob/master/docs/img/ui/details.png
+*([proxy-config.json](./proxy-config.json) re-routes all outbound requests when running local serve task)
+
+---
+
+## Entities Data examples
+
+See [data examples](https://github.com/ns1labs/orb/wiki/Orb-UI---Entities-Data-Examples) for examples of *Orb Entities*
+to aid in UI design , form validation and related info.
+
+
+---
+
+## QA & Testing
+
+Quality Assurance & Test frameworks and scripts are still a *WORK IN PROGRESS*  
+Check our [Wiki](https://github.com/ns1labs/orb/wiki/UI-QA-Automation-Tags) for more information.
