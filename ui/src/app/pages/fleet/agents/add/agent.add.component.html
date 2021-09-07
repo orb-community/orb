@@ -1,6 +1,7 @@
 <div class="container">
-  <header>
-    <xng-breadcrumb class="orb-breadcrumb">
+  <header data-orb-qa-id="agent#add">
+    <xng-breadcrumb class="orb-breadcrumb"
+                    data-orb-qa-id="breadcrumb">
     </xng-breadcrumb>
   </header>
   <div class="d-flex row">
@@ -9,7 +10,8 @@
                   class="stepper w-100 ml-5"
                   disableStepNavigation>
         <nb-step [label]="firstStepTemplate"
-                 [stepControl]="firstFormGroup">
+                 [stepControl]="firstFormGroup"
+                 data-orb-qa-id="step_1">
           <ng-template #firstStepTemplate>
             <div class="step-label d-flex flex-column">
               <strong>{{strings.add.step.title1}}</strong>
@@ -28,18 +30,20 @@
                        autofocus
                        fullWidth="true"
                        fieldSize="medium"
-                       formControlName="name"/>
+                       formControlName="name"
+                       data-orb-qa-id="input#name"/>
               </div>
             </nb-form-field>
             <hr/>
             <nb-form-field>
               <div>
-                <label class="font-weight-bold">{{strings.propNames.description}}</label>
+                <label class="font-weight-bold">Location</label>
               </div>
               <input nbInput
                      fullWidth="true"
                      fieldSize="medium"
-                     formControlName="description"/>
+                     formControlName="location"
+                     data-orb-qa-id="input#location"/>
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
@@ -48,7 +52,8 @@
                   ghost
                   (click)="goBack()"
                   type="button"
-                  status="primary">
+                  status="primary"
+                  data-orb-qa-id="button#previous">
                 {{strings.stepper.back}}
               </button>
               <button class="next-button"
@@ -56,13 +61,16 @@
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="!firstFormGroup.valid" nbStepperNext>
+                      [disabled]="!firstFormGroup.valid"
+                      nbStepperNext
+                      data-orb-qa-id="button#next">
                 {{strings.stepper.next}}
               </button>
             </div>
           </form>
         </nb-step>
-        <nb-step [label]="secondStepLabel">
+        <nb-step [label]="secondStepLabel"
+                 data-orb-qa-id="step_2">
           <ng-template #secondStepLabel>
             <div class="step-label d-flex flex-column">
               <strong>{{strings.add.step.title2}}</strong>
@@ -71,10 +79,11 @@
           </ng-template>
           <form [formGroup]="secondFormGroup">
             <div class="d-flex">
-              <mat-chip-list>
+              <mat-chip-list data-orb-qa-id="orb_tagsList">
                 <mat-chip
                     class="orb-tag-sink "
-                    *ngFor="let tag of secondFormGroup.controls.tags.value">
+                    *ngFor="let tag of secondFormGroup.controls.orb_tags.value; index as i;"
+                    [attr.data-orb-qa-id]="'orb_tag_' + i">
                   {{ tag | keyvalue | tagchip}}
                   <nb-icon style="color: #ffffff; margin-left: 4px;"
                            status="primary"
@@ -97,7 +106,8 @@
                            autofocus
                            fullWidth="true"
                            fieldSize="medium"
-                           formControlName="key"/>
+                           formControlName="key"
+                           data-orb-qa-id="input#orb_tag_key"/>
                   </div>
                 </div>
                 <div class="d-flex justify-content-center align-items-center col-1 mt-4 px-0 mx-0">
@@ -113,7 +123,8 @@
                            autofocus
                            fullWidth="true"
                            fieldSize="medium"
-                           formControlName="value"/>
+                           formControlName="value"
+                           data-orb-qa-id="input#orb_tag_value"/>
                   </div>
                 </div>
                 <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
@@ -122,7 +133,8 @@
                           ghost
                           (click)="onAddTag()"
                           [disabled]="(secondFormGroup.controls['key'].value === '' ||
-                          secondFormGroup.controls['value'].value === '')">
+                          secondFormGroup.controls['value'].value === '')"
+                          data-orb-qa-id="button#addTag">
                     <nb-icon style="color: #df316f;"
                              status="primary"
                              icon="plus-outline"
@@ -133,26 +145,14 @@
               </div>
             </nb-form-field>
             <hr/>
-            <div class="d-flex row">
-              <div class="col-12">
-                <div>
-                  <p *ngIf="tagMatch?.total && tagMatch.total > 0">
-                    {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}.
-                  </p>
-                  <p *ngIf="!tagMatch.total || tagMatch.total === 0">
-                    {{strings.match.matchNone}}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <hr/>
             <div class="d-flex justify-content-end"
                  *ngIf="secondFormGroup">
               <button
                   nbButton
                   ghost
                   status="primary"
-                  nbStepperPrevious>
+                  nbStepperPrevious
+                  data-orb-qa-id="button#back">
                 {{strings.stepper.back}}
               </button>
               <button class="next-button"
@@ -160,77 +160,47 @@
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="!secondFormGroup.valid" nbStepperNext>
+                      [disabled]="!secondFormGroup.valid"
+                      nbStepperNext
+                      data-orb-qa-id="button#next">
                 {{strings.stepper.next}}
               </button>
             </div>
           </form>
         </nb-step>
-        <nb-step [label]="thirdStepLabel">
+        <nb-step [label]="thirdStepLabel"
+                 data-orb-qa-id="step_3">
           <ng-template #thirdStepLabel>
             <div class="step-label d-flex flex-column">
               <strong>{{strings.add.step.title3}}</strong>
             </div>
           </ng-template>
-          <div class="d-flex row" *ngIf="!expanded">
+          <div class="d-flex row">
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">{{strings.propNames.name}}</label>
-                <p>{{firstFormGroup.controls.name.value}}</p>
+                <p data-orb-qa-id="review-name">{{firstFormGroup.controls.name.value}}</p>
               </div>
             </div>
             <hr/>
             <div class="col-md-12 col-xl-6">
               <div>
-                <label class="font-weight-bold">{{strings.propNames.description}}</label>
-                <p>{{firstFormGroup.controls.description.value}}</p>
+                <label class="font-weight-bold">Location</label>
+                <p data-orb-qa-id="review-location">{{firstFormGroup.controls.location.value}}</p>
               </div>
             </div>
           </div>
           <hr/>
           <div class="d-flex row">
             <div class="col-12">
-              <mat-chip-list>
+              <mat-chip-list data-orb-qa-id="review-orb_tagsList">
                 <mat-chip
                     class="orb-tag-sink "
-                    *ngFor="let tag of secondFormGroup.controls.tags.value">
+                    *ngFor="let tag of secondFormGroup.controls.tags.value; index as i;"
+                    [attr.data-orb-qa-id]="'review-tag_' + i">
                   {{ tag | keyvalue | tagchip}}
                 </mat-chip>
               </mat-chip-list>
-            </div>
-          </div>
-          <hr/>
-          <div class="d-flex row">
-            <div class="col-12">
-              <div>
-                <p *ngIf="tagMatch?.total && tagMatch.total > 0">
-                  {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}
-                  .&nbsp;<button nbButton
-                                 class="appearance-ghost size-small status-basic button-expand"
-                                 (click)="toggleExpandMatches()">{{expanded
-                  ? strings.match.collapse
-                  : strings.match.expand}}</button>
-                </p>
-                <p *ngIf="!tagMatch.total || tagMatch.total === 0">
-                  {{strings.match.matchNone}}
-                </p>
-              </div>
-            </div>
-          </div>
-          <hr/>
-          <div class="d-flex row" *ngIf="expanded">
-            <div class="tag-table">
-              <ngx-datatable
-                  class="orb w-100"
-                  style="height: 500px;"
-                  [rows]="matchingAgents"
-                  [scrollbarV]="true"
-                  [columns]="columns"
-                  [columnMode]="columnMode.flex"
-                  [headerHeight]="50"
-                  [footerHeight]="50"
-                  [rowHeight]="50">
-              </ngx-datatable>
             </div>
           </div>
           <hr/>
@@ -240,7 +210,8 @@
                 nbButton
                 ghost
                 status="primary"
-                nbStepperPrevious>
+                nbStepperPrevious
+                data-orb-qa-id="button#back">
               {{strings.stepper.back}}
             </button>
             <button class="next-button"
@@ -248,7 +219,8 @@
                     shape="round"
                     status="primary"
                     (click)="onFormSubmit()"
-                    type="submit">
+                    type="submit"
+                    data-orb-qa-id="button#save">
               {{strings.stepper.save}}
             </button>
           </div>
@@ -257,21 +229,6 @@
     </div>
   </div>
 </div>
-
-<ng-template #agentStateTemplateCell let-row="row" let-value="value" let-i="index">
-  <div>
-    <div *ngIf="row.state === 'active'">
-      <i class="fa fa-circle orb-service-active"
-         aria-hidden="true"></i>
-      {{ row.state | titlecase }}
-    </div>
-    <div *ngIf="row.state !== 'active'">
-      <i class="fa fa-circle orb-service-inactive"
-         aria-hidden="true"></i>
-      {{ row.state | titlecase }}
-    </div>
-  </div>
-</ng-template>
 
 <ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
   <div class="d-flex">
