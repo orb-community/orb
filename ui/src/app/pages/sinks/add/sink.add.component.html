@@ -1,5 +1,5 @@
 <div class="container">
-  <header>
+  <header data-orb-qa-id="@sink#add">
     <xng-breadcrumb class="orb-breadcrumb">
       <ng-container
           *xngBreadcrumbItem="let breadcrumb; let info = info; let first = first">
@@ -14,13 +14,14 @@
                   class="stepper w-100 ml-5"
                   disableStepNavigation>
         <nb-step [label]="firstStepTemplate"
-                 [stepControl]="firstFormGroup">
-           <ng-template #firstStepTemplate>
-                <div class="step-label d-flex flex-column">
-                  <strong>Sink Details</strong>
-                  <p>Provide a name and description for the Sink</p>
-                </div>
-            </ng-template>
+                 [stepControl]="firstFormGroup"
+                 data-orb-qa-id="@sink#add.step_1">
+          <ng-template #firstStepTemplate>
+            <div class="step-label d-flex flex-column">
+              <strong>Sink Details</strong>
+              <p>Provide a name and description for the Sink</p>
+            </div>
+          </ng-template>
           <form [formGroup]="firstFormGroup" (ngSubmit)="onFormSubmit()">
             <nb-form-field>
               <div class="d-flex flex-column">
@@ -76,39 +77,42 @@
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="!firstFormGroup?.valid" nbStepperNext>Next</button>
+                      [disabled]="!firstFormGroup?.valid" nbStepperNext>Next
+              </button>
             </div>
           </form>
         </nb-step>
-        <nb-step [label]="secondStepLabel">
-            <ng-template #secondStepLabel>
-                <div class="step-label d-flex flex-column">
-                  <strong>Sink Destination</strong>
-                  <p>Configure your sink settings</p>
-                </div>
-            </ng-template>
+        <nb-step [label]="secondStepLabel"
+                 data-orb-qa-id="@sink#add.step_2">
+          <ng-template #secondStepLabel>
+            <div class="step-label d-flex flex-column">
+              <strong>Sink Destination</strong>
+              <p>Configure your sink settings</p>
+            </div>
+          </ng-template>
           <form [formGroup]="secondFormGroup">
             <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index">
               <div>
                 <label class="font-weight-bold">{{control.label}}</label>
               </div>
               <div [ngSwitch]="control.input">
-                 <input *ngSwitchCase="'text'"
-                   [autofocus]="i == 0"
-                   nbInput
-                   [type]="control.type"
-                   fullWidth="true"
-                   fieldSize="medium"
-                   [formControlName]="control.prop" />
-               <nb-select *ngSwitchCase="'select'"
-                          appearance="filled"
-                          size="medium"
-                          fullWidth="true"
-                          formControlName="backend"
-                          placeholder="Select backend type">
-                <nb-option *ngFor="let type of control.options"
-                           [value]="type">{{ type }}</nb-option>
-               </nb-select>
+                <input *ngSwitchCase="'text'"
+                       [autofocus]="i == 0"
+                       nbInput
+                       [type]="control.type"
+                       fullWidth="true"
+                       fieldSize="medium"
+                       [formControlName]="control.prop"
+                       data-orb-qa-id="sink.type.select">/>
+                <nb-select *ngSwitchCase="'select'"
+                           appearance="filled"
+                           size="medium"
+                           fullWidth="true"
+                           formControlName="backend"
+                           placeholder="Select backend type">
+                  <nb-option *ngFor="let type of control.options"
+                             [value]="type">{{ type }}</nb-option>
+                </nb-select>
               </div>
               <hr/>
             </nb-form-field>
@@ -129,7 +133,8 @@
             </div>
           </form>
         </nb-step>
-        <nb-step [label]="thirdStepLabel">
+        <nb-step [label]="thirdStepLabel"
+                 data-orb-qa-id="@sink#add.step_3">
           <ng-template #thirdStepLabel>
             <div class="step-label d-flex flex-column">
               <strong>Sink Tags</strong>
@@ -221,7 +226,8 @@
             </div>
           </form>
         </nb-step>
-        <nb-step [label]="fourthStepLabel">
+        <nb-step [label]="fourthStepLabel"
+                 data-orb-qa-id="@sink#add.step_4">
           <ng-template #fourthStepLabel>
             <div class="step-label d-flex flex-column">
               <strong>Review & Confirm</strong>
@@ -262,7 +268,8 @@
             <mat-chip-list>
               <mat-chip
                   class="orb-tag-sink "
-                  *ngFor="let tag of thirdFormGroup.controls.tags.value">
+                  *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i;"
+                  [attr.data-orb-qa-id]="'tag_' + i">
                 {{ tag | keyvalue | tagchip}}
               </mat-chip>
             </mat-chip-list>
@@ -272,14 +279,16 @@
                 nbButton
                 ghost
                 status="primary"
-                nbStepperPrevious>Back
+                nbStepperPrevious
+                data-orb-qa-id="@sink#add.stepper.previous">Back
             </button>
             <button class="next-button"
                     nbButton
                     shape="round"
                     status="primary"
                     (click)="onFormSubmit()"
-                    type="submit">Save
+                    type="submit"
+                    data-orb-qa-id="@sink#add.stepper.next">Save
             </button>
           </div>
         </nb-step>
