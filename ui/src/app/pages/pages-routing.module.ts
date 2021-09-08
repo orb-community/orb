@@ -16,6 +16,7 @@ import { AgentListComponent } from 'app/pages/fleet/agents/list/agent.list.compo
 import { AgentAddComponent } from 'app/pages/fleet/agents/add/agent.add.component';
 import { AgentGroupListComponent } from 'app/pages/fleet/groups/list/agent.group.list.component';
 import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.add.component';
+import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
 
 const children = [
   {
@@ -49,6 +50,11 @@ const children = [
             path: 'edit/:id',
             component: AgentAddComponent,
             data: {breadcrumb: 'Edit Agent'},
+          },
+          {
+            path: 'details/:id',
+            component: AgentDetailsComponent,
+            data: {breadcrumb: 'Agent Detail'},
           },
         ],
       },
