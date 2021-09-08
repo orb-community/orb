@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package sinks;
+option go_package = "sinks/pb";
+
+service SinkService {
+  rpc RetrieveSink(SinkByIDReq) returns (SinkRes) {}
+}
+
+message SinkByIDReq {
+  string sinkID = 1;
+  string ownerID = 2;
+}
+
+message SinkRes {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  bytes tags = 4;
+  string status = 5;
+  string error = 6;
+  string backend = 7;
+  bytes config = 8;
+}
