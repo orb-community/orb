@@ -1,10 +1,7 @@
 # Stage 0, based on Node.js, to build and compile Angular
-FROM node:14.15.4 as node
+FROM node:12.21.0 as node
 WORKDIR /app
 COPY package.json /app/
-# I'm not sure if yarn is available from this node it imported
-# but it could be installed with npm install -g yarn
-# RUN npm install -g yarn
 RUN yarn install
 COPY ./ /app/
 RUN yarn build:prod
