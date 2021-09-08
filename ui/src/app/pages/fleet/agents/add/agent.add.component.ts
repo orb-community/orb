@@ -57,14 +57,15 @@ export class AgentAddComponent {
     this.agent = this.router.getCurrentNavigation().extras.state?.agent as Agent || null;
     this.agentID = this.route.snapshot.paramMap.get('id');
 
+    this.isEdit = !!this.agentID && this.router.getCurrentNavigation().extras.state?.edit as boolean;
+
+    this.isLoading = this.isEdit;
+
     !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
-      this.agent = resp.agent;
+      this.agent = resp;
       this.isLoading = false;
       this.updateForm();
     });
-
-    this.isEdit = !!this.agentID && this.router.getCurrentNavigation().extras.state?.edit as boolean;
-    this.isLoading = this.isEdit;
 
   }
 
@@ -75,16 +76,15 @@ export class AgentAddComponent {
     } as Agent;
 
     // retrieve location tag if available
-    this.agentLocation = orb_tags.hasKey('location') && orb_tags.location || '';
+    this.agentLocation = orb_tags.hasOwnProperty('location') && orb_tags.location || '';
 
-    this.firstFormGroup.setValue({name, location: this.agentLocation}, {emitEvent: false});
+    this.firstFormGroup.patchValue({name: name, location: this.agentLocation}, {emitEvent: false});
 
     // do not include location into tags
-    this.secondFormGroup = this._formBuilder.group({
-      tags: [Object.keys(orb_tags).map(key => key !== 'location' && ({[key]: orb_tags[key]})) || [],
-        Validators.minLength(1)],
-      key: [''],
-      value: [''],
+    this.secondFormGroup.patchValue({
+      tags: Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})).filter(tag => !tag?.location),
+      key: '',
+      value: '',
     });
 
     this.agentsService.clean();
@@ -107,9 +107,9 @@ export class AgentAddComponent {
 
   goBack() {
     if (this.isEdit) {
-      this.router.navigate(['../../../agent'], {relativeTo: this.route});
+      this.router.navigate(['../../'], {relativeTo: this.route});
     } else {
-      this.router.navigate(['../../agent'], {relativeTo: this.route});
+      this.router.navigate(['../'], {relativeTo: this.route});
     }
   }
 
@@ -140,7 +140,7 @@ export class AgentAddComponent {
   }
 
   wrapPayload(validate: boolean) {
-    const {name, description} = this.firstFormGroup.controls;
+    const {name, location} = this.firstFormGroup.controls;
     const {tags: {value: tagsList}} = this.secondFormGroup.controls;
     const tagsObj = tagsList.reduce((prev, curr) => {
       for (const [key, value] of Object.entries(curr)) {
@@ -148,11 +148,10 @@ export class AgentAddComponent {
       }
       return prev;
     }, {});
-
+    tagsObj['location'] = location.value;
     return {
       name: name.value,
-      description: description.value,
-      tags: {...tagsObj},
+      orb_tags: {...tagsObj},
       validate_only: !!validate && validate, // Apparently this guy is required..
     };
   }
