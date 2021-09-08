@@ -6,6 +6,7 @@ package cloud_config
 
 import (
 	"bytes"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -64,10 +65,15 @@ func (cc *cloudConfigManager) migrateDB() error {
 }
 
 func (cc *cloudConfigManager) request(address string, token string, response interface{}, method string, body []byte) error {
-	client := http.Client{
-		Timeout: time.Second * 10,
+	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+	if !cc.config.OrbAgent.TLS.Verify {
+		tlsConfig.InsecureSkipVerify = true
 	}
-
+	transport := &http.Transport{TLSClientConfig: tlsConfig}
+	client := http.Client{
+		Timeout:   time.Second * 10,
+		Transport: transport,
+	}
 	URL := fmt.Sprintf("%s/api/v1/agents", address)
 
 	req, err := http.NewRequest(method, URL, bytes.NewBuffer(body))
