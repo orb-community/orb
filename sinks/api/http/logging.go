@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package api
+package http
 
 import (
 	"context"
@@ -101,6 +101,20 @@ func (l loggingMiddleware) ViewSink(ctx context.Context, token string, key strin
 		}
 	}(time.Now())
 	return l.svc.ViewSink(ctx, token, key)
+}
+
+func (l loggingMiddleware) ViewSinkInternal(ctx context.Context, ownerID string, key string) (_ sinks.Sink, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_sink_internal",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Warn("method call: view_sink_internal",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewSinkInternal(ctx, ownerID, key)
 }
 
 func (l loggingMiddleware) DeleteSink(ctx context.Context, token string, key string) (err error) {

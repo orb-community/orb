@@ -182,6 +182,28 @@ func (s sinksRepository) RetrieveById(ctx context.Context, id string) (sinks.Sin
 	return toSink(dba)
 }
 
+func (s sinksRepository) RetrieveByOwnerAndId(ctx context.Context, ownerID string, id string) (sinks.Sink, error) {
+
+	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, coalesce(status, '') as status, coalesce(error, '') as error
+			FROM sinks where id = $1 and mf_owner_id = $2`
+
+	if ownerID == "" || id == "" {
+		return sinks.Sink{}, errors.ErrSelectEntity
+	}
+
+	dba := dbSink{}
+
+	if err := s.db.QueryRowxContext(ctx, q, id, ownerID).StructScan(&dba); err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if err == sql.ErrNoRows || ok && db.ErrInvalid == pqErr.Code.Name() {
+			return sinks.Sink{}, errors.Wrap(errors.ErrNotFound, err)
+		}
+		return sinks.Sink{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	return toSink(dba)
+}
+
 func (s sinksRepository) Remove(ctx context.Context, owner, id string) error {
 	dbsk := dbSink{
 		ID:        id,
