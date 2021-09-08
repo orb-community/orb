@@ -107,9 +107,9 @@ export class AgentAddComponent {
 
   goBack() {
     if (this.isEdit) {
-      this.router.navigate(['../../../agent'], {relativeTo: this.route});
+      this.router.navigate(['../../'], {relativeTo: this.route});
     } else {
-      this.router.navigate(['../../agent'], {relativeTo: this.route});
+      this.router.navigate(['../'], {relativeTo: this.route});
     }
   }
 
@@ -140,7 +140,7 @@ export class AgentAddComponent {
   }
 
   wrapPayload(validate: boolean) {
-    const {name, description} = this.firstFormGroup.controls;
+    const {name, location} = this.firstFormGroup.controls;
     const {tags: {value: tagsList}} = this.secondFormGroup.controls;
     const tagsObj = tagsList.reduce((prev, curr) => {
       for (const [key, value] of Object.entries(curr)) {
@@ -151,8 +151,7 @@ export class AgentAddComponent {
 
     return {
       name: name.value,
-      description: description.value,
-      tags: {...tagsObj},
+      orb_tags: {...tagsObj, 'location': location.value},
       validate_only: !!validate && validate, // Apparently this guy is required..
     };
   }
