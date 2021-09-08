@@ -82,7 +82,7 @@
               <mat-chip-list data-orb-qa-id="orb_tagsList">
                 <mat-chip
                     class="orb-tag-sink "
-                    *ngFor="let tag of secondFormGroup.controls.orb_tags.value; index as i;"
+                    *ngFor="let tag of secondFormGroup.controls.tags.value; index as i;"
                     [attr.data-orb-qa-id]="'orb_tag_' + i">
                   {{ tag | keyvalue | tagchip}}
                   <nb-icon style="color: #ffffff; margin-left: 4px;"
