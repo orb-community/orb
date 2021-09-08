@@ -238,9 +238,9 @@ func TestValidateAgent(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	validAgent := fleet.Agent{
-		MFOwnerID:   ownerID.String(),
-		Name:        nameID,
-		OrbTags:     make(map[string]string),
+		MFOwnerID: ownerID.String(),
+		Name:      nameID,
+		OrbTags:   make(map[string]string),
 	}
 	validAgent.OrbTags = map[string]string{
 		"region":    "eu",
@@ -280,10 +280,10 @@ func TestCreateAgent(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	validAgent := fleet.Agent{
-		MFOwnerID:   ownerID.String(),
-		Name:        nameID,
-		OrbTags:     make(map[string]string),
-		Created:     time.Time{},
+		MFOwnerID: ownerID.String(),
+		Name:      nameID,
+		OrbTags:   make(map[string]string),
+		Created:   time.Time{},
 	}
 	validAgent.OrbTags = map[string]string{
 		"region":    "eu",
@@ -309,6 +309,43 @@ func TestCreateAgent(t *testing.T) {
 	for desc, tc := range cases {
 		_, err := fleetService.CreateAgent(context.Background(), tc.token, tc.agent)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestRemoveAgent(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ag, err := createAgent(t, "my-agent", fleetService)
+	require.Nil(t, err, fmt.Sprintf("unexpetec error: %s", err))
+
+	cases := map[string]struct {
+		id    string
+		token string
+		err   error
+	}{
+		"remove existing agent": {
+			id:    ag.MFThingID,
+			token: token,
+			err:   nil,
+		},
+		"remove agent with wrong credentials": {
+			id:    ag.MFThingID,
+			token: invalidToken,
+			err:   fleet.ErrUnauthorizedAccess,
+		},
+		"remove non-existing agent": {
+			id:    wrongID,
+			token: token,
+			err:   nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := fleetService.RemoveAgent(context.Background(), tc.token, tc.id)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 	}
 }
 

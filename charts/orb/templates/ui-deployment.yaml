@@ -1,0 +1,35 @@
+# Copyright (c) Mainflux
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-ui
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      component: ui
+  template:
+    metadata:
+      annotations:
+        commit_sha: {{ .Values.defaults.image.commitHash }}
+      labels:
+        app: {{ .Release.Name }}
+        component: ui
+    spec:
+      containers:
+        - env:
+            - name: MF_UI_PORT
+              value: "{{ .Values.ui.port }}"
+          image: "{{ default .Values.defaults.image.repository .Values.ui.image.repository }}/{{ default .Values.ui.image.name }}:{{ default .Values.defaults.image.tag .Values.ui.image.tag }}"
+          imagePullPolicy: {{ default .Values.defaults.image.pullPolicy .Values.ui.image.pullPolicy }}
+          name: ui
+          ports:
+            - containerPort: {{ .Values.ui.port }}
+              protocol: TCP
+          stdin: true
+          tty: true
+
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

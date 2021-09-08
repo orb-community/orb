@@ -89,6 +89,14 @@ func (svc sinkService) ViewSink(ctx context.Context, token string, key string) (
 	return res, nil
 }
 
+func (svc sinkService) ViewSinkInternal(ctx context.Context, ownerID string, key string) (Sink, error) {
+	res, err := svc.sinkRepo.RetrieveByOwnerAndId(ctx, ownerID, key)
+	if err != nil {
+		return Sink{}, errors.Wrap(errors.ErrNotFound, err)
+	}
+	return res, nil
+}
+
 func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error) {
 	res, err := svc.identify(token)
 	if err != nil {

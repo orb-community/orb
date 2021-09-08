@@ -1,0 +1,63 @@
+# Copyright (c) Mainflux
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-things
+spec:
+  replicas: {{ .Values.defaults.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      component: things
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        component: things
+    spec:
+      containers:
+        - env:
+            - name: MF_JAEGER_URL
+              value:
+                {{ .Release.Name }}-jaeger-operator-jaeger-agent:{{ .Values.defaults.jaegerPort }}
+            - name: MF_THINGS_AUTH_GRPC_PORT
+              value: "{{ .Values.things.authGrpcPort }}"
+            - name: MF_THINGS_AUTH_HTTP_PORT
+              value: "{{ .Values.things.authHttpPort }}"
+            - name: MF_THINGS_CACHE_URL
+              value:
+                {{ .Release.Name }}-redis-auth-master:{{ .Values.things.redisCachePort }}
+            - name: MF_THINGS_DB
+              value: {{ index .Values "postgresql-things" "postgresqlDatabase" }}
+            - name: MF_THINGS_DB_HOST
+              value: {{ .Release.Name }}-postgresql-things
+            - name: MF_THINGS_DB_PASS
+              value: {{ index .Values "postgresql-things" "postgresqlPassword" }}
+            - name: MF_THINGS_DB_PORT
+              value: "{{ .Values.things.dbPort }}"
+            - name: MF_THINGS_DB_USER
+              value: {{ index .Values "postgresql-things" "postgresqlUsername" }}
+            - name: MF_THINGS_ES_URL
+              value:
+                {{ .Release.Name }}-redis-streams-master:{{ .Values.things.redisESPort }}
+            - name: MF_THINGS_HTTP_PORT
+              value: "{{ .Values.things.httpPort }}"
+            - name: MF_THINGS_LOG_LEVEL
+              value: {{ default .Values.defaults.logLevel .Values.things.logLevel }}
+            - name: MF_AUTH_GRPC_URL
+              value:
+                {{ .Release.Name }}-envoy:{{ .Values.auth.grpcPort }}
+          image: "{{ default .Values.defaults.image.mfRepository .Values.things.image.repository }}/things:{{ default .Values.defaults.image.mfTag .Values.things.image.tag }}"
+          imagePullPolicy: {{ default .Values.defaults.image.pullPolicy .Values.things.image.pullPolicy }}
+          name: {{ .Release.Name }}-things
+          ports:
+            - containerPort: {{ .Values.things.httpPort }}
+              protocol: TCP
+            - containerPort: {{ .Values.things.authGrpcPort }}
+              protocol: TCP
+            - containerPort: {{ .Values.things.authHttpPort }}
+              protocol: TCP
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

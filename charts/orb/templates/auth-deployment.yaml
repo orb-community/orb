@@ -1,0 +1,55 @@
+# Copyright (c) Mainflux
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-auth
+spec:
+  replicas: {{ .Values.defaults.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      component: auth
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        component: auth
+    spec:
+      containers:
+        - env:
+            - name: MF_JAEGER_URL
+              value:
+                {{ .Release.Name }}-jaeger-operator-jaeger-agent:{{ .Values.defaults.jaegerPort }}
+            - name: MF_AUTH_DB
+              value: {{ index .Values "postgresql-auth" "postgresqlDatabase" }}
+            - name: MF_AUTH_DB_HOST
+              value: {{ .Release.Name }}-postgresql-auth
+            - name: MF_AUTH_DB_PASS
+              value: {{ index .Values "postgresql-auth" "postgresqlPassword" }}
+            - name: MF_AUTH_DB_PORT
+              value: "{{ .Values.auth.dbPort }}"
+            - name: MF_AUTH_DB_USER
+              value: {{ index .Values "postgresql-auth" "postgresqlUsername" }}
+            - name: MF_AUTH_GRPC_PORT
+              value: "{{ .Values.auth.grpcPort }}"
+            - name: MF_AUTH_HTTP_PORT
+              value: "{{ .Values.auth.httpPort }}"
+            - name: MF_AUTH_LOG_LEVEL
+              value: {{ default .Values.defaults.logLevel .Values.users.logLevel }}
+            - name: MF_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.jwt.secretName }}
+                  key: {{ .Values.auth.jwt.secretKey }}
+          image: "{{ default .Values.defaults.image.mfRepository .Values.auth.image.repository }}/auth:{{ default .Values.defaults.image.mfTag .Values.auth.image.tag }}"
+          imagePullPolicy: {{ default .Values.defaults.image.pullPolicy .Values.users.image.pullPolicy }}
+          name: {{ .Release.Name }}-auth
+          ports:
+            - containerPort: {{ .Values.auth.httpPort }}
+              protocol: TCP
+            - containerPort: {{ .Values.auth.grpcPort }}
+              protocol: TCP
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

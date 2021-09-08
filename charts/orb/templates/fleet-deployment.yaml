@@ -1,0 +1,66 @@
+# Copyright (c) Mainflux
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-fleet
+spec:
+  replicas: {{ .Values.defaults.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      component: fleet
+  template:
+    metadata:
+      annotations:
+        commit_sha: {{ .Values.defaults.image.commitHash }}
+      labels:
+        app: {{ .Release.Name }}
+        component: fleet
+    spec:
+      containers:
+        - env:
+            - name: MF_JAEGER_URL
+              value:
+                {{ .Release.Name }}-jaeger-operator-jaeger-agent:{{ .Values.defaults.jaegerPort }}
+            - name: ORB_FLEET_DB
+              value: {{ index .Values "postgresql-fleet" "postgresqlDatabase" }}
+            - name: ORB_FLEET_DB_HOST
+              value: {{ .Release.Name }}-postgresql-fleet
+            - name: ORB_FLEET_DB_PASS
+              value: {{ index .Values "postgresql-fleet" "postgresqlPassword" }}
+            - name: ORB_FLEET_DB_PORT
+              value: "{{ .Values.fleet.dbPort }}"
+            - name: ORB_FLEET_DB_SSL_MODE
+              value: "{{ .Values.fleet.dbSSL }}"
+            - name: ORB_FLEET_DB_USER
+              value: {{ index .Values "postgresql-fleet" "postgresqlUsername" }}
+            - name: ORB_FLEET_ES_URL
+              value:
+                {{ .Release.Name }}-redis-streams-master:{{ .Values.fleet.redisESPort }}
+            - name: ORB_FLEET_HTTP_PORT
+              value: "{{ .Values.fleet.httpPort }}"
+            - name: ORB_FLEET_LOG_LEVEL
+              value: {{ default .Values.defaults.logLevel .Values.fleet.logLevel }}
+            - name: MF_AUTH_GRPC_URL
+              value:
+                {{ .Release.Name }}-envoy:{{ .Values.auth.grpcPort }}
+            - name: ORB_POLICIES_GRPC_URL
+              value:
+                {{ .Release.Name }}-envoy:{{ .Values.policies.grpcPort }}
+            - name: ORB_FLEET_NATS_URL
+              value:
+                nats://{{ .Release.Name }}-nats-client:{{ .Values.defaults.natsPort }}
+            - name: MF_SDK_BASE_URL
+              value:
+                http://{{ .Release.Name }}-things:{{ .Values.things.httpPort }}
+
+          image: "{{ default .Values.defaults.image.repository }}/orb-fleet:{{ default .Values.defaults.image.tag }}"
+          imagePullPolicy: {{ default .Values.defaults.image.pullPolicy .Values.fleet.image.pullPolicy }}
+          name: {{ .Release.Name }}-fleet
+          ports:
+            - containerPort: {{ .Values.fleet.httpPort }}
+              protocol: TCP
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
