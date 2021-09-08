@@ -47,13 +47,15 @@ export class SinkAddComponent {
     this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
     this.sinkID = this.route.snapshot.paramMap.get('id');
+
+    this.isEdit = !!this.sinkID;
+    this.sinkLoading = this.isEdit;
+
     !!this.sinkID && sinksService.getSinkById(this.sinkID).subscribe(resp => {
       this.sink = resp;
       this.sinkLoading = false;
       this.getSinkBackends();
     });
-    this.isEdit = !!this.sinkID;
-    this.sinkLoading = this.isEdit;
     !this.sinkLoading && this.getSinkBackends();
   }
 
@@ -102,9 +104,9 @@ export class SinkAddComponent {
 
   goBack() {
     if (this.isEdit) {
-      this.router.navigate(['../../../sinks'], {relativeTo: this.route});
+      this.router.navigate(['../../'], {relativeTo: this.route});
     } else {
-      this.router.navigate(['../../sinks'], {relativeTo: this.route});
+      this.router.navigate(['../'], {relativeTo: this.route});
     }
   }
 
