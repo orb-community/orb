@@ -25,6 +25,7 @@ import (
 	redisprod "github.com/ns1labs/orb/policies/redis/producer"
 	opentracing "github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/reflection"
 	"io"
 	"io/ioutil"
 	"log"
@@ -271,6 +272,7 @@ func startGRPCServer(svc policies.Service, tracer opentracing.Tracer, cfg config
 	}
 
 	pb.RegisterPolicyServiceServer(server, policiesgrpc.NewServer(tracer, svc))
+	reflection.Register(server)
 	errs <- server.Serve(listener)
 }
 

@@ -1,0 +1,156 @@
+# Copyright (c) Mainflux
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/issuer: {{ .Values.ingress.issuer }}
+  name: {{ .Release.Name }}-nginx-ingress
+spec:
+  rules:
+    - host: {{ required "an ingress.hostname is required!" .Values.ingress.hostname }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-ui
+                port:
+                  number: {{ .Values.ui.port }}
+          - path: /version
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-fleet
+                port:
+                  number: {{ .Values.fleet.httpPort }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.hostname }}
+      secretName: {{ .Values.ingress.secret }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/issuer: {{ .Values.ingress.issuer }}
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  name: {{ .Release.Name }}-nginx-rewrite-ingress
+spec:
+  rules:
+    - host: "{{ .Values.ingress.hostname }}"
+      http:
+        paths:
+          - path: /(users?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-users
+                port:
+                  number: {{ .Values.users.httpPort }}
+          - path: /(password?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-users
+                port:
+                  number: {{ .Values.users.httpPort }}
+          - path: /(tokens)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-users
+                port:
+                  number: {{ .Values.users.httpPort }}
+          - path: /(agents|agent_groups/?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name}}-fleet
+                port:
+                  number: {{ default .Values.fleet.httpPort }}
+          - path: /(sinks/?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name}}-sinks
+                port:
+                  number: {{ default .Values.sinks.httpPort }}
+          - path: /(features/sinks/?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name}}-sinks
+                port:
+                  number: {{ default .Values.sinks.httpPort }}
+          - path: /(policies/?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name}}-policies
+                port:
+                  number: {{ default .Values.policies.httpPort }}
+          - path: /api/v1/(users?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-users
+                port:
+                  number: {{ .Values.users.httpPort }}
+          - path: /api/v1/(password?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-users
+                port:
+                  number: {{ .Values.users.httpPort }}
+          - path: /api/v1/(tokens)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-users
+                port:
+                  number: {{ .Values.users.httpPort }}
+          - path: /api/v1/(keys/?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-auth
+                port:
+                  number: {{ default .Values.auth.httpPort }}
+          - path: /api/v1/(agents|agent_groups/?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name}}-fleet
+                port:
+                  number: {{ default .Values.fleet.httpPort }}
+          - path: /api/v1/(sinks/?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name}}-sinks
+                port:
+                  number: {{ default .Values.sinks.httpPort }}
+          - path: /api/v1/(features/sinks/?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name}}-sinks
+                port:
+                  number: {{ default .Values.sinks.httpPort }}
+          - path: /api/v1/(policies/?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name}}-policies
+                port:
+                  number: {{ default .Values.policies.httpPort }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.hostname }}
+      secretName: {{ .Values.ingress.secret }}

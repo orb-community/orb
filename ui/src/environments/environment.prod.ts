@@ -4,7 +4,7 @@ const {orbApi: {apiUrl, version, urlKeys, servicesUrls}} = defaultEnvironment;
 
 export const environment = {
   production: true,
-
+  GTMID: 'GTM-K44NMJP',
   ...defaultEnvironment,
   // ORB api --prod
   // override all urls prepend /api/v<#>/<service_url>
