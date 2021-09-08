@@ -22,7 +22,7 @@ spec:
         - env:
             - name: MF_UI_PORT
               value: "{{ .Values.ui.port }}"
-          image: "{{ default .Values.defaults.image.repository .Values.ui.image.repository }}/{{ default .Values.ui.image.name }}}:{{ default .Values.defaults.image.tag .Values.ui.image.tag }}"
+          image: "{{ default .Values.defaults.image.repository .Values.ui.image.repository }}/{{ default .Values.ui.image.name }}:{{ default .Values.defaults.image.tag .Values.ui.image.tag }}"
           imagePullPolicy: {{ default .Values.defaults.image.pullPolicy .Values.ui.image.pullPolicy }}
           name: ui
           ports:
