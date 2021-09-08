@@ -64,7 +64,6 @@ type datasetRes struct {
 }
 
 type policyValidateRes struct {
-	ID          string         `json:"id"`
 	Name        string         `json:"name"`
 	Backend     string         `json:"backend"`
 	Description string         `json:"description"`

@@ -183,6 +183,7 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Backend: req.Backend,
 			Policy:  req.Policy,
 			OrbTags: req.Tags,
+			Description: req.Description,
 		}
 
 		validated, err := svc.ValidatePolicy(ctx, req.token, policy, req.Format, req.PolicyData)
@@ -191,11 +192,11 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := policyValidateRes{
-			ID:      validated.ID,
 			Name:    validated.Name.String(),
 			Backend: validated.Backend,
 			Tags:    validated.OrbTags,
 			Policy:  validated.Policy,
+			Description: validated.Description,
 		}
 
 		return res, nil
