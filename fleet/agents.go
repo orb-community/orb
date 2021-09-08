@@ -81,6 +81,8 @@ type AgentService interface {
 	EditAgent(ctx context.Context, token string, agent Agent) (Agent, error)
 	// ValidateAgent validates agent
 	ValidateAgent(ctx context.Context, token string, a Agent) (Agent, error)
+	// RemoveAgent removes an existing agent by owner and id
+	RemoveAgent(ctx context.Context, token string, thingID string) error
 }
 
 type AgentRepository interface {
@@ -103,6 +105,8 @@ type AgentRepository interface {
 	UpdateAgentByID(ctx context.Context, ownerID string, agent Agent) error
 	// RetrieveByID retrieves the Agent having the provided ID and owner
 	RetrieveByID(ctx context.Context, ownerID string, thingID string) (Agent, error)
+	// Delete an existing agent by owner and id
+	Delete(ctx context.Context, ownerID string, thingID string) error
 }
 
 type AgentHeartbeatRepository interface {
