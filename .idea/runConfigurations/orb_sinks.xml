@@ -5,6 +5,10 @@
     <envs>
       <env name="ORB_SINKS_DB_PORT" value="15006" />
       <env name="ORB_SINKS_DB_SSL_MODE" value="disable" />
+      <env name="ORB_SINKS_GRPC_PORT" value="8280" />
+      <env name="ORB_SINKS_GRPC_URL" value="sinks:8280" />
+      <env name="ORB_SINKS_GRPC_TIMEOUT" value="1s" />
+      <env name="MF_AUTH_GRPC_URL" value="localhost:8181" />
     </envs>
     <kind value="FILE" />
     <package value="github.com/ns1labs/orb" />

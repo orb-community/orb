@@ -37,6 +37,7 @@ import { environment } from 'environments/environment';
 import { BreadcrumbModule } from 'xng-breadcrumb';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { ProfileComponent } from 'app/pages/profile/profile.component';
+import { GoogleTagManagerModule } from 'angular-google-tag-manager';
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   connectOnCreate: false,
@@ -82,6 +83,9 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     NbLayoutModule,
     NbAlertModule,
     NbCheckboxModule,
+
+    // GTM
+    GoogleTagManagerModule.forRoot({id: environment.GTMID}),
   ],
   bootstrap: [AppComponent],
   // Mfx dependencies

@@ -28,6 +28,21 @@ type sinkRepositoryMock struct {
 	sinksMock map[string]sinks.Sink
 }
 
+func (s *sinkRepositoryMock) RetrieveByOwnerAndId(ctx context.Context, ownerID string, key string) (sinks.Sink, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if c, ok := s.sinksMock[key]; ok {
+		if s.sinksMock[key].MFOwnerID == ownerID {
+			return c, nil
+		} else {
+			return sinks.Sink{}, sinks.ErrNotFound
+		}
+	}
+
+	return sinks.Sink{}, sinks.ErrNotFound
+}
+
 func NewSinkRepository() sinks.SinkRepository {
 	return &sinkRepositoryMock{
 		sinksMock: make(map[string]sinks.Sink),

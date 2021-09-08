@@ -1129,13 +1129,9 @@ func TestValidateAgent(t *testing.T) {
 
 func TestCreateAgent(t *testing.T) {
 	var validJson = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
-	var conflictValidJson = "{\"name\":\"conflict\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
 
 	cli := newClientServer(t)
 	defer cli.server.Close()
-
-	_, err := createAgent(t, "conflict", &cli)
-	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	cases := map[string]struct {
 		req         string
@@ -1152,7 +1148,7 @@ func TestCreateAgent(t *testing.T) {
 			location:    "/agents",
 		},
 		"add a duplicated agent": {
-			req:         conflictValidJson,
+			req:         validJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusConflict,
@@ -1209,6 +1205,53 @@ func TestCreateAgent(t *testing.T) {
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 	}
 
+}
+
+func TestDeleteAgent(t *testing.T) {
+
+	cli := newClientServer(t)
+
+	ag, err := createAgent(t, "my-agent", &cli)
+	require.Nil(t, err, "unexpected error: %s", err)
+
+	cases := map[string]struct {
+		id     string
+		auth   string
+		status int
+	}{
+		"delete existing agent": {
+			id:     ag.MFThingID,
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+		"delete non-existent agent": {
+			id:     wrongID,
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+		"delete agent with invalid token": {
+			id:     ag.MFThingID,
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+		},
+		"delete agent with empty token": {
+			id:     ag.MFThingID,
+			auth:   "",
+			status: http.StatusUnauthorized,
+		},
+	}
+	for desc, tc := range cases {
+		req := testRequest{
+			client:      cli.server.Client(),
+			method:      http.MethodDelete,
+			contentType: contentType,
+			url:         fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
+			token:       tc.auth,
+		}
+		res, err := req.make()
+		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
+		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+	}
 }
 
 func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.AgentGroup, error) {
