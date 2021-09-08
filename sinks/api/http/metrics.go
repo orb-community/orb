@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package api
+package http
 
 import (
 	"context"
@@ -41,6 +41,10 @@ func (m metricsMiddleware) ViewBackend(ctx context.Context, token string, key st
 
 func (m metricsMiddleware) ViewSink(ctx context.Context, token string, key string) (_ sinks.Sink, err error) {
 	return m.svc.ViewSink(ctx, token, key)
+}
+
+func (m metricsMiddleware) ViewSinkInternal(ctx context.Context, ownerID string, key string) (sinks.Sink, error) {
+	return m.svc.ViewSinkInternal(ctx, ownerID, key)
 }
 
 func (m metricsMiddleware) DeleteSink(ctx context.Context, token string, key string) (err error) {

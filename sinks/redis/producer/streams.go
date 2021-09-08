@@ -27,6 +27,10 @@ type eventStore struct {
 	client *redis.Client
 }
 
+func (es eventStore) ViewSinkInternal(ctx context.Context, ownerID string, key string) (sinks.Sink, error) {
+	return es.svc.ViewSinkInternal(ctx, ownerID, key)
+}
+
 func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
 	return es.svc.CreateSink(ctx, token, s)
 }

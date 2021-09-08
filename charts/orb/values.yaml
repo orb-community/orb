@@ -8,7 +8,7 @@
 defaults:
   logLevel: "info"
   image:
-    pullPolicy: "Always"
+    pullPolicy: "IfNotPresent"
     repository: "ns1labs"
     tag: "develop"
     mfRepository: "mainflux"
@@ -95,7 +95,8 @@ auth:
     secretKey: jwtSecret
 
 ui:
-  image: { }
+  image:
+    name: orb-ui
   port: 3000
 
 nats:

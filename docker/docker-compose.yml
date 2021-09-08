@@ -371,6 +371,9 @@ services:
   sinks:
     image: "ns1labs/orb-sinks:${ORB_RELEASE_TAG}"
     container_name: orb-sinks
+    ports:
+      - ${ORB_SINKS_HTTP_PORT}:${ORB_SINKS_HTTP_PORT}
+      - ${ORB_SINKS_GRPC_PORT}:${ORB_SINKS_GRPC_PORT}
     depends_on:
       - es-redis
       - sinks-db
@@ -386,8 +389,6 @@ services:
       ORB_SINKS_DB: ${ORB_SINKS_DB_DB}
       ORB_SINKS_DB_SSL_MODE: disable
       ORB_SINKS_GRPC_PORT: ${ORB_SINKS_GRPC_PORT}
-      ORB_SINKS_GRPC_URL: ${ORB_SINKS_GRPC_URL}
-      ORB_SINKS_GRPC_TIMEOUT: ${ORB_SINKS_GRPC_TIMEOUT}
       MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
       MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
     #      ORB_SINKS_LOG_LEVEL: debug
