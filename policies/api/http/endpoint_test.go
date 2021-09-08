@@ -30,10 +30,15 @@ import (
 )
 
 const (
-	token       = "token"
-	email       = "user@example.com"
-	format      = "yaml"
-	policy_data = `version: "1.0"
+	token   = "token"
+	wrongID = "9bb1b244-a199-93c2-aa03-28067b431e2c"
+	// validJson         = "{ \"name\": \"my-policy\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
+	conflictValidJson = "{ \"name\": \"my-policy-conflict\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
+	validYaml         = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+	invalidJson       = "{"
+	email             = "user@example.com"
+	format            = "yaml"
+	policy_data       = `version: "1.0"
 visor:
   taps:
     anycast:
@@ -43,6 +48,7 @@ visor:
 	limit        = 10
 	invalidToken = "invalid"
 	maxNameSize  = 1024
+	contentType  = "application/json"
 )
 
 var (
@@ -306,6 +312,74 @@ func TestListPolicies(t *testing.T) {
 			total := uint64(len(body.Policies))
 			assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 			assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		})
+	}
+}
+
+func TestCreatePolicy(t *testing.T) {
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	// Conflict scenario
+	createPolicy(t, &cli, "my-policy-conflict")
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"add a valid policy": {
+			req:         validYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusCreated,
+			location:    "/policies/agent",
+		},
+		"add a policy with an invalid json": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent",
+		},
+		"add a duplicated policy": {
+			req:         conflictValidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusConflict,
+			location:    "/policies/agent",
+		},
+		"add a valid policy with an invalid token": {
+			req:         validYaml,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/policies/agent",
+		},
+		"add a valid policy without a content type": {
+			req:         validYaml,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/policies/agent",
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/policies/agent", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 		})
 	}
 }

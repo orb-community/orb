@@ -11,14 +11,15 @@ import (
 )
 
 type Policy struct {
-	ID        string
-	Name      types.Identifier
-	MFOwnerID string
-	Backend   string
-	Version   int32
-	OrbTags   types.Tags
-	Policy    types.Metadata
-	Created   time.Time
+	ID          string
+	Name        types.Identifier
+	MFOwnerID   string
+	Description string
+	Backend     string
+	Version     int32
+	OrbTags     types.Tags
+	Policy      types.Metadata
+	Created     time.Time
 }
 
 type Dataset struct {
