@@ -20,6 +20,7 @@ import { UserGroupsService } from './services/users/groups.service';
 import { FsService } from './services/fs/fs.service';
 import { IntervalService } from './services/interval/interval.service';
 // Orb
+import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { DatasetsService } from 'app/common/services/datasets/datasets.service';
 import { FleetsService } from 'app/common/services/fleets/fleets.service';
@@ -29,8 +30,6 @@ import { TokenInterceptor } from 'app/auth/auth.token.interceptor.service';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 // Orb mock
-
-import { AgentsMockService } from 'app/common/services/agents/agents.mock.service';
 
 @NgModule({
   providers: [
@@ -49,8 +48,8 @@ import { AgentsMockService } from 'app/common/services/agents/agents.mock.servic
     FsService,
     IntervalService,
     // ORB Services
+    AgentGroupsService,
     AgentsService,
-    AgentsMockService,
     DatasetsService,
     FleetsService,
     SinksService,

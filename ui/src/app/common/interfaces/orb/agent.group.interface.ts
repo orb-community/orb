@@ -47,12 +47,6 @@ export interface AgentGroup {
 
 // #region internal API
   /**
-   * validate rule only?
-   * @ignore
-   */
-  validate_only?: boolean;
-
-  /**
    * save summary of matching agents
    * @ignore
    */
