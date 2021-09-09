@@ -18,7 +18,6 @@ nb-card-footer {
 
 // ORB
 ::ng-deep {
-
   .orb-close-dialog {
     background-color: #23294000;
     border-radius: 4px;
@@ -34,14 +33,11 @@ nb-card-footer {
     }
   }
 
-  button.orb-sink-delete-warning-button {
-    .status-basic :enabled {
-      background-color: #df316f !important;
+  .orb-sink-delete-warning-button {
+    background-color: #df316f;
 
-      .content {
-        color: #ffffff !important;
-      }
-
+    .content {
+      color: #ffffff;
     }
   }
 

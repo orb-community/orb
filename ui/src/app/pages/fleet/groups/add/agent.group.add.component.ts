@@ -18,7 +18,7 @@ import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 })
 export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   // page vars
-  strings = {...STRINGS.agents, stepper: STRINGS.stepper};
+  strings = {...STRINGS.agentGroups, stepper: STRINGS.stepper};
 
   isEdit: boolean;
 

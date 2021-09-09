@@ -135,7 +135,7 @@ export class AgentAddComponent {
     const indexToRemove = tagsList.indexOf(tag);
 
     if (indexToRemove >= 0) {
-      tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
+      tags.patchValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
     }
   }
 
