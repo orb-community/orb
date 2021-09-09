@@ -78,10 +78,11 @@ export class AgentAddComponent {
     // retrieve location tag if available
     this.agentLocation = orb_tags.hasOwnProperty('location') && orb_tags.location || '';
 
-    this.firstFormGroup.patchValue({name: name, location: this.agentLocation}, {emitEvent: false});
+    this.firstFormGroup.controls.name.patchValue(name);
+    this.firstFormGroup.controls.location.patchValue(this.agentLocation);
 
     // do not include location into tags
-    this.secondFormGroup.patchValue({
+    this.secondFormGroup.setValue({
       tags: Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})).filter(tag => !tag?.location),
       key: '',
       value: '',
@@ -100,17 +101,13 @@ export class AgentAddComponent {
     this.firstFormGroup.setValue({name: name, location: location});
 
     this.secondFormGroup.controls.tags.setValue(
-      Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})));
+      Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})).filter(tag => !tag?.location));
 
     this.agentsService.clean();
   }
 
   goBack() {
-    if (this.isEdit) {
-      this.router.navigate(['../../'], {relativeTo: this.route});
-    } else {
-      this.router.navigate(['../'], {relativeTo: this.route});
-    }
+    this.router.navigateByUrl('/pages/fleet/agents');
   }
 
   // addTag button should be [disabled] = `$sf.controls.key.value !== '' && !== 'location'`
@@ -135,7 +132,7 @@ export class AgentAddComponent {
     const indexToRemove = tagsList.indexOf(tag);
 
     if (indexToRemove >= 0) {
-      tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
+      tags.patchValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
     }
   }
 

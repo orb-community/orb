@@ -18,7 +18,7 @@ import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 })
 export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   // page vars
-  strings = {...STRINGS.agents, stepper: STRINGS.stepper};
+  strings = {...STRINGS.agentGroups, stepper: STRINGS.stepper};
 
   isEdit: boolean;
 
@@ -123,11 +123,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   }
 
   goBack() {
-    if (this.isEdit) {
-      this.router.navigate(['../../'], {relativeTo: this.route});
-    } else {
-      this.router.navigate(['../'], {relativeTo: this.route});
-    }
+      this.router.navigateByUrl('/pages/fleet/groups');
   }
 
   ngAfterViewInit() {

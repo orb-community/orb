@@ -161,7 +161,7 @@
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="!secondFormGroup.valid"
+                      [disabled]="secondFormGroup.controls.tags.value.length === 0"
                       nbStepperNext
                       data-orb-qa-id="button#next">
                 {{strings.stepper.next}}

@@ -237,7 +237,7 @@
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="!secondFormGroup.valid"
+                      [disabled]="thirdFormGroup.controls.tags.value.length === 0"
                       nbStepperNext
                       data-orb-qa-id="next">
                 {{strings.stepper.next}}
