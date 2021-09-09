@@ -22,7 +22,7 @@ The platform is open source, extensible, vendor neutral, and cloud native.
 
 We are very interested in hearing about your use cases, feature requests, and other feedback.
 
-* Try it out with [docker compose](docker/docker-compose.yml) or the [helm chart](charts/orb)
+* Try it out with [docker compose](docker/docker-compose.yml) or the [helm chart](https://github.com/ns1labs/orb-helm/tree/main/charts/orb)
 * [View our Wiki](https://github.com/ns1labs/orb/wiki) for technical and architectural information
 * [File an issue](https://github.com/ns1labs/orb/issues/new)
 * Follow our [public work board](https://github.com/ns1labs/orb/projects/2)

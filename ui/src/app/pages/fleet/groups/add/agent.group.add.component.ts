@@ -124,9 +124,9 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
 
   goBack() {
     if (this.isEdit) {
-      this.router.navigate(['../../../agent-groups'], {relativeTo: this.route});
+      this.router.navigate(['../../'], {relativeTo: this.route});
     } else {
-      this.router.navigate(['../../agent-groups'], {relativeTo: this.route});
+      this.router.navigate(['../'], {relativeTo: this.route});
     }
   }
 
