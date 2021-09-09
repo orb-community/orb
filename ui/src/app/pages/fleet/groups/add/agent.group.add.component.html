@@ -160,7 +160,8 @@
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="!secondFormGroup.valid" nbStepperNext>
+                      [disabled]="secondFormGroup.controls.tags.value.length === 0"
+                      nbStepperNext>
                 {{strings.stepper.next}}
               </button>
             </div>
