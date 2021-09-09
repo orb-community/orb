@@ -78,12 +78,11 @@ export class AgentAddComponent {
     // retrieve location tag if available
     this.agentLocation = orb_tags.hasOwnProperty('location') && orb_tags.location || '';
 
-    this.firstFormGroup.patchValue({name: name, location: this.agentLocation}, {emitEvent: false});
     this.firstFormGroup.controls.name.patchValue(name);
     this.firstFormGroup.controls.location.patchValue(this.agentLocation);
 
     // do not include location into tags
-    this.secondFormGroup.patchValue({
+    this.secondFormGroup.setValue({
       tags: Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})).filter(tag => !tag?.location),
       key: '',
       value: '',
