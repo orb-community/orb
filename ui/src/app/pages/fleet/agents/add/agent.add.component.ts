@@ -102,7 +102,7 @@ export class AgentAddComponent {
     this.firstFormGroup.setValue({name: name, location: location});
 
     this.secondFormGroup.controls.tags.setValue(
-      Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})));
+      Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})).filter(tag => !tag?.location));
 
     this.agentsService.clean();
   }
