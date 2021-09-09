@@ -123,11 +123,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   }
 
   goBack() {
-    if (this.isEdit) {
-      this.router.navigate(['../../'], {relativeTo: this.route});
-    } else {
-      this.router.navigate(['../'], {relativeTo: this.route});
-    }
+      this.router.navigateByUrl('/pages/fleet/groups');
   }
 
   ngAfterViewInit() {
