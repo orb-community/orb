@@ -65,7 +65,8 @@ tr div p {
     line-height: 12px;
 
     ::ng-deep .xng-breadcrumb-trail {
-      color: #ffffff !important;
+      color: #ffffff;
+      margin-bottom: 0;
 
       &::before {
         color: #969fb9 !important;
@@ -76,10 +77,11 @@ tr div p {
 
 .add-agent-container {
   position: relative;
+  height: 0;
 
   button {
     float: right;
-    top: 45px;
+    top: 5px;
     position: relative;
     z-index: 2;
     right: 5px;
