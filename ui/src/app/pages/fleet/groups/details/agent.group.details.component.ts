@@ -10,7 +10,7 @@ import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
   styleUrls: ['./agent.group.details.component.scss'],
 })
 export class AgentGroupDetailsComponent {
-  strings = STRINGS.agents;
+  strings = STRINGS.agentGroups;
 
   @Input() agentGroup: AgentGroup = {};
 

@@ -9,7 +9,7 @@ import { STRINGS } from 'assets/text/strings';
 })
 
 export class AgentDeleteComponent {
-  strings = STRINGS.agentGroups;
+  strings = STRINGS.agents;
   @Input() name: string;
 
   validationInput: string = '';

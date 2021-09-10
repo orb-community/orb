@@ -90,7 +90,7 @@ export const STRINGS = {
     },
   },
   // agents
-  agents: {
+  agentGroups: {
     // statuses
     status: {
       active: 'Active',
@@ -167,7 +167,7 @@ export const STRINGS = {
     },
   },
   // agent groups
-  agentGroups: {
+  agents: {
     // statuses
     status: {
       active: 'Active',

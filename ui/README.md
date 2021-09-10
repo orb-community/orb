@@ -45,6 +45,17 @@ The commands `yarn start` and `yarn start:withmock` will generate a dev build an
 
 *([proxy-config.json](./proxy-config.json) re-routes all outbound requests when running local serve task)
 
+
+---
+
+## Entities Data examples
+
+See [data examples](https://github.com/ns1labs/orb/wiki/Orb-UI---Entities-Data-Examples) for examples of *Orb Entities*
+to aid in UI design , form validation and related info.
+
+
+---  
+
 ## QA & Testing
 
 Quality Assurance & Test frameworks and scripts are still a *WORK IN PROGRESS*  
