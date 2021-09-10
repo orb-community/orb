@@ -35,7 +35,7 @@
         <div *ngSwitchCase="'backend'">
           {{ row[key] | titlecase }}
         </div>
-        <div *ngSwitchCase="'status'">
+        <div *ngSwitchCase="'state'">
           <div *ngIf="row[key] === 'active'">
             <i class="fa fa-circle orb-service-active"
                aria-hidden="true"></i>

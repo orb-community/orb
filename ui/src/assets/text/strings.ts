@@ -31,7 +31,7 @@ export const STRINGS = {
   // Sink Pages strings
   sink: {
     // sink statuses
-    status: {
+    state: {
       active: 'Active',
       error: 'Error',
     },
@@ -41,7 +41,7 @@ export const STRINGS = {
       name: 'Name',
       description: 'Description',
       tags: 'Tags',
-      status: 'Status',
+      state: 'Status',
       error: 'Error',
       backend: 'Service Type',
       config: 'Connection Details',
@@ -83,7 +83,7 @@ export const STRINGS = {
         select: 'Filter',
         name: 'Name',
         description: 'Description',
-        status: 'Status',
+        state: 'Status',
         type: 'Type',
         tags: 'Tags',
       },
@@ -92,7 +92,7 @@ export const STRINGS = {
   // agents
   agentGroups: {
     // statuses
-    status: {
+    state: {
       active: 'Active',
       error: 'Error',
     },
@@ -104,7 +104,7 @@ export const STRINGS = {
       key: 'Key',
       value: 'Value',
       tags: 'Tags',
-      status: 'Status',
+      state: 'Status',
       error: 'Error',
       ts_created: 'Date Created',
       matches: 'Matches Against',
@@ -160,7 +160,7 @@ export const STRINGS = {
         select: 'Filter',
         name: 'Name',
         description: 'Description',
-        status: 'Status',
+        state: 'Status',
         type: 'Type',
         tags: 'Tags',
       },
@@ -169,7 +169,7 @@ export const STRINGS = {
   // agent groups
   agents: {
     // statuses
-    status: {
+    state: {
       active: 'Active',
       error: 'Error',
     },
@@ -226,7 +226,7 @@ export const STRINGS = {
         select: 'Filter',
         name: 'Name',
         description: 'Description',
-        status: 'Status',
+        state: 'Status',
         type: 'Type',
         tags: 'Tags',
       },

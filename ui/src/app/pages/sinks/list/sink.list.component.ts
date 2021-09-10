@@ -47,7 +47,7 @@ export class SinkListComponent implements OnInit, AfterViewInit {
 
   // templates
 
-  @ViewChild('sinkStatusTemplateCell') sinkStatusTemplateCell: TemplateRef<any>;
+  @ViewChild('sinkStateTemplateCell') sinkStateTemplateCell: TemplateRef<any>;
   @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
   @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
@@ -92,12 +92,12 @@ export class SinkListComponent implements OnInit, AfterViewInit {
         flexGrow: 1,
       },
       {
-        prop: 'status',
+        prop: 'state',
         name: 'Status',
         resizeable: false,
         minWidth: 100,
         flexGrow: 1,
-        cellTemplate: this.sinkStatusTemplateCell,
+        cellTemplate: this.sinkStateTemplateCell,
       },
       {
         prop: 'tags',
@@ -200,5 +200,5 @@ export class SinkListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  filterByInactive = (sink) => sink.status === 'inactive';
+  filterByInactive = (sink) => sink.state === 'inactive';
 }
