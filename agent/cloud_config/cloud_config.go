@@ -65,7 +65,7 @@ func (cc *cloudConfigManager) migrateDB() error {
 }
 
 func (cc *cloudConfigManager) request(address string, token string, response interface{}, method string, body []byte) error {
-	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+	tlsConfig := &tls.Config{InsecureSkipVerify: false}
 	if !cc.config.OrbAgent.TLS.Verify {
 		tlsConfig.InsecureSkipVerify = true
 	}

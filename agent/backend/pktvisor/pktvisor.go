@@ -224,6 +224,17 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]string
 	return nil
 }
 
+func (p *pktvisorBackend) GetCapabilities() (map[string]interface{}, error) {
+	var taps interface{}
+	err := p.request("taps", &taps, http.MethodGet, nil, "")
+	if err != nil {
+		return nil, err
+	}
+	jsonBody := make(map[string]interface{})
+	jsonBody["taps"] = taps
+	return jsonBody, nil
+}
+
 func Register() bool {
 	backend.Register("pktvisor", &pktvisorBackend{
 		adminAPIHost:     "localhost",
