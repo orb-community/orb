@@ -11,7 +11,7 @@ export const STRINGS = {
   // Login Pages strings
   login: {
     presentation: {
-      description: 'An Open-Source Network observability platform',
+      description: 'An Open-Source dynamic edge observability platform',
       action: 'Unleash the power of small data with dynamic edge observability',
     },
     form: {
