@@ -1,3 +1,5 @@
+@import '../../@theme/styles/themes';
+
 .login-layout {
   background: url('assets/images/login-background.png');
   transform: translateY(-2px);
@@ -74,7 +76,7 @@
   }
 
   .pane {
-    padding: 350px 120px;
+    padding: 0 6rem;
     height: 100%;
     position: absolute;
 
@@ -91,5 +93,13 @@
       font-family: 'Montserrat', serif;
       text-align: left;
     }
+  }
+
+  .password-icon {
+    position: relative;
+    float: right;
+    margin-top: -40px;
+    margin-right: 22px;
+    color: nb-theme(color-basic-600);
   }
 }
