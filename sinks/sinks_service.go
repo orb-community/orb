@@ -49,7 +49,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return err
 	}
 
-	if sink.Backend != "" || sink.Status != "" || sink.Error != "" {
+	if sink.Backend != "" || sink.State != "" || sink.Error != "" {
 		return errors.ErrUpdateEntity
 	}
 
@@ -136,10 +136,10 @@ func validateBackend(sink *Sink) error {
 	if backend.HaveBackend(sink.Backend) {
 		err := backend.GetBackend(sink.Backend).Connect(sink.Config)
 		if err != nil {
-			sink.Status = "not connected"
+			sink.State = "not connected"
 			sink.Error = fmt.Sprint(err)
 		} else {
-			sink.Status = "connected"
+			sink.State = "connected"
 			sink.Error = ""
 		}
 	} else {

@@ -402,13 +402,13 @@ components:
           description: User defined key/values for organization and searching
           example:
             cloud: aws
-        status:
+        state:
           readOnly: true
           enum:
             - active
             - error
           type: string
-          description: Status of this Sink connection to the backend
+          description: State of this Sink connection to the backend
         error:
           readOnly: true
           type: string

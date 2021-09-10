@@ -50,7 +50,7 @@ type Sink struct {
 	Backend     string
 	Config      types.Metadata
 	Tags        types.Tags
-	Status      string
+	State       string
 	Error       string
 	Created     time.Time
 }
