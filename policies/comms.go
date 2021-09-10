@@ -9,7 +9,6 @@
 package policies
 
 import (
-	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"github.com/ns1labs/orb/fleet/pb"
 	"go.uber.org/zap"
 )
@@ -26,7 +25,7 @@ type policiesCommsService struct {
 	fleetClient pb.FleetServiceClient
 }
 
-func NewPoliciesCommsService(logger *zap.Logger, fleetClient pb.FleetServiceClient, policyPubSub mfnats.PubSub) PolicyCommsService {
+func NewPoliciesCommsService(logger *zap.Logger, fleetClient pb.FleetServiceClient) PolicyCommsService {
 	return &policiesCommsService{
 		logger:      logger,
 		fleetClient: fleetClient,

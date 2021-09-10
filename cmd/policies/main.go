@@ -12,8 +12,6 @@ import (
 	"context"
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
-	mflog "github.com/mainflux/mainflux/logger"
-	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	fleetgrpc "github.com/ns1labs/orb/fleet/api/grpc"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/policies"
@@ -56,7 +54,6 @@ const (
 
 func main() {
 
-	natsCfg := config.LoadNatsConfig(envPrefix)
 	authGRPCCfg := config.LoadGRPCConfig(mfEnvPrefix, "auth")
 
 	esCfg := config.LoadEsConfig(envPrefix)
@@ -76,12 +73,6 @@ func main() {
 		logger, _ = zap.NewProduction()
 	}
 	defer logger.Sync() // flushes buffer, if any
-
-	// only needed for mainflux interfaces
-	mflogger, err := mflog.New(os.Stdout, svcCfg.LogLevel)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
 
 	db := connectToDB(dbCfg, logger)
 	defer db.Close()
@@ -110,14 +101,7 @@ func main() {
 	}
 	fleetGRPCClient := fleetgrpc.NewClient(tracer, fleetGRPCConn, fleetGRPCTimeout)
 
-	pubSub, err := mfnats.NewPubSub(natsCfg.URL, svcName, mflogger)
-	if err != nil {
-		logger.Error("Failed to connect to NATS", zap.Error(err))
-		os.Exit(1)
-	}
-	defer pubSub.Close()
-
-	commsSvc := policies.NewPoliciesCommsService(logger, fleetGRPCClient, pubSub)
+	commsSvc := policies.NewPoliciesCommsService(logger, fleetGRPCClient)
 	svc := newService(authGRPCClient, db, logger, esClient, commsSvc)
 
 	errs := make(chan error, 2)
