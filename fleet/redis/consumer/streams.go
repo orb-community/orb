@@ -144,7 +144,6 @@ func decodePolicyUpdate(event map[string]interface{}) (updatePolicyEvent, error)
 // the policy service is notifying that a policy has been updated
 // notify all agents in the AgentGroup specified in the dataset about the policy update
 func (es eventStore) handlePolicyUpdate(ctx context.Context, e updatePolicyEvent) error {
-	// todo check if it will be necessary create a new comms function to notify a update
 	for _, a := range e.groupsIDs {
 		ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, a, e.ownerID)
 		if err != nil {

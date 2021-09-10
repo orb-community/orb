@@ -33,7 +33,7 @@ visor:
 
 func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
-	return policies.New(nil, auth, policyRepo, nil)
+	return policies.New(nil, auth, policyRepo)
 }
 
 func TestRetrievePolicyByID(t *testing.T) {

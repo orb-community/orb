@@ -108,7 +108,6 @@ func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.P
 		id:       pol.ID,
 		ownerID:  pol.MFOwnerID,
 		groupIDs: strings.Join(groupsIDs, ","),
-		policy:   pol.Policy,
 	}
 	record := &redis.XAddArgs{
 		Stream:       streamID,

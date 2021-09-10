@@ -12,7 +12,6 @@ import (
 	"context"
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
-	fleetgrpc "github.com/ns1labs/orb/fleet/api/grpc"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/policies"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
@@ -95,15 +94,7 @@ func main() {
 	}
 	authGRPCClient := authapi.NewClient(tracer, authGRPCConn, authGRPCTimeout)
 
-	fleetGRPCTimeout, err := time.ParseDuration(fleetGRPCCfg.Timeout)
-	if err != nil {
-		log.Fatalf("Invalid %s value: %s", fleetGRPCCfg.Timeout, err)
-	}
-	fleetGRPCClient := fleetgrpc.NewClient(tracer, fleetGRPCConn, fleetGRPCTimeout)
-
-	commsSvc := policies.NewPoliciesCommsService(logger, fleetGRPCClient)
-	svc := newService(authGRPCClient, db, logger, esClient, commsSvc)
-
+	svc := newService(authGRPCClient, db, logger, esClient)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
@@ -167,10 +158,10 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, policiesComms policies.PolicyCommsService) policies.Service {
+func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client) policies.Service {
 	thingsRepo := postgres.NewPoliciesRepository(db, logger)
 
-	svc := policies.New(logger, auth, thingsRepo, policiesComms)
+	svc := policies.New(logger, auth, thingsRepo)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient, logger)
 	svc = policieshttp.NewLoggingMiddleware(svc, logger)
 	svc = policieshttp.MetricsMiddleware(

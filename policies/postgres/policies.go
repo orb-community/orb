@@ -52,7 +52,7 @@ func (r policiesRepository) DeletePolicy(ctx context.Context, ownerID string, po
 }
 
 func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, plcy policies.Policy) error {
-	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy, version = :version WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 	plcyDB, err := toDBPolicy(plcy)
 	if err != nil {
 		return errors.Wrap(policies.ErrUpdateEntity, err)
@@ -399,6 +399,7 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 		ID:          policy.ID,
 		Name:        policy.Name,
 		Description: policy.Description,
+		Version:     policy.Version,
 		MFOwnerID:   uID.String(),
 		Backend:     policy.Backend,
 		OrbTags:     db.Tags(policy.OrbTags),

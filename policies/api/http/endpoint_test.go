@@ -92,7 +92,7 @@ func (tr testRequest) make() (*http.Response, error) {
 
 func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
-	return policies.New(nil, auth, policyRepo, nil)
+	return policies.New(nil, auth, policyRepo)
 }
 
 func newServer(svc policies.Service) *httptest.Server {
@@ -141,7 +141,7 @@ func TestViewPolicy(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/policies/agents/%s", cli.server.URL, tc.ID),
+				url:    fmt.Sprintf("%s/policies/agent/%s", cli.server.URL, tc.ID),
 				token:  tc.token,
 			}
 			res, err := req.make()
@@ -306,7 +306,7 @@ func TestListPolicies(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf(fmt.Sprintf("%s/policies/agents%s", cli.server.URL, tc.url)),
+				url:    fmt.Sprintf(fmt.Sprintf("%s/policies/agent%s", cli.server.URL, tc.url)),
 				token:  tc.auth,
 			}
 			res, err := req.make()
@@ -408,7 +408,7 @@ func TestPolicyEdition(t *testing.T) {
 			req := testRequest{
 				client:      cli.server.Client(),
 				method:      http.MethodPut,
-				url:         fmt.Sprintf("%s/policies/agents/%s", cli.server.URL, tc.id),
+				url:         fmt.Sprintf("%s/policies/agent/%s", cli.server.URL, tc.id),
 				contentType: tc.contentType,
 				token:       tc.auth,
 				body:        strings.NewReader(tc.data),
@@ -457,7 +457,7 @@ func TestPolicyRemoval(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodDelete,
-				url:    fmt.Sprintf("%s/policies/agents/%s", cli.server.URL, tc.id),
+				url:    fmt.Sprintf("%s/policies/agent/%s", cli.server.URL, tc.id),
 				token:  tc.auth,
 			}
 
