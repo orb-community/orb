@@ -35,7 +35,6 @@ const ORB = {
 };
 
 export const environment = {
-  GTMID: 'GTM-K44NMJP',
   usersUrl: '/users',
   groupsUrl: '/groups',
   membersUrl: '/members',
