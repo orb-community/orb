@@ -437,6 +437,13 @@ components:
           description: Agent backend specific policy data
           example:
             value: "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+        policy_data:
+          type: string
+          example: "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+        format:
+          type: string
+          example: yaml
+          description: Policy text format
     PolicyPageSchema:
       type: object
       properties:
