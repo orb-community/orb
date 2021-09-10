@@ -155,7 +155,7 @@ export const STRINGS = {
       agentGroup: 'agent',
       total: ['You have', 'total.'],
       error: 'have errors.',
-      create: 'New Agent',
+      create: 'New Agent Group',
       filters: {
         select: 'Filter',
         name: 'Name',
