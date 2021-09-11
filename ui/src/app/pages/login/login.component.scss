@@ -93,6 +93,24 @@
       font-family: 'Montserrat', serif;
       text-align: left;
     }
+
+    ul {
+      margin: 0;
+      padding: 0;
+
+      li {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+    }
+
+    .alert-error {
+      background: linear-gradient(0deg, rgba(175, 80, 255, 0.25), rgba(175, 80, 255, 0.25)), #313e5d;
+      border: 1px solid #af50ff;
+      box-sizing: border-box;
+      border-radius: 2px;
+    }
   }
 
   .password-icon {

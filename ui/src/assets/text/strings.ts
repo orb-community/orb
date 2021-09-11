@@ -61,8 +61,8 @@ export const STRINGS = {
     // delete modal
     delete: {
       header: 'Delete Sink Confirmation',
-      body: 'Are you sure you want to delete this sink? This may cause policies which use this sink to become invalid. This action cannot be undone.',
-      warning: '*To confirm, type your sink label exactly as it appears',
+      body: 'Are you sure you want to delete this sink? This may cause Datasets which use this sink to become invalid. This action cannot be undone.',
+      warning: '*To confirm, type your Sink name exactly as it appears',
       delete: 'I Understand, Delete This Sink',
       close: 'Close',
     },
@@ -138,8 +138,8 @@ export const STRINGS = {
 // delete modal
     delete: {
       header: 'Delete Agent Group Confirmation',
-      body: 'Are you sure you want to delete this Agent Group? This action cannot be undone.',
-      warning: '*To confirm, type the Agent Group label exactly as it appears',
+      body: 'Are you sure you want to delete this Agent Group? This may cause Datasets which use this Agent Group to become invalid. This action cannot be undone.',
+      warning: '*To confirm, type the Agent Group name exactly as it appears',
       delete: 'I Understand, Delete This Agent Group',
       close: 'Close',
     },
