@@ -30,24 +30,17 @@
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Orb Tags<span class="ns1red">*</span></p>
-        <div>
-          <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
-            <mat-chip
-                class="orb-tag-sink "
-                *ngFor="let tag of agent.orb_tags | keyvalue | tagchip">
-              {{tag}}
-            </mat-chip>
-          </mat-chip-list>
-        </div>
-      </div>
-      <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Agent Tags<span class="ns1red">*</span></p>
+        <p class="detail-title">Tags<span class="ns1red">*</span></p>
         <div>
           <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
             <mat-chip
                 class="orb-tag-sink "
                 *ngFor="let tag of agent.agent_tags | keyvalue | tagchip">
+              {{tag}}
+            </mat-chip>
+            <mat-chip
+                class="orb-tag-sink "
+                *ngFor="let tag of agent.orb_tags | keyvalue | tagchip">
               {{tag}}
             </mat-chip>
           </mat-chip-list>

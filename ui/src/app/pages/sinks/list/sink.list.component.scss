@@ -100,7 +100,8 @@ tr div p {
     line-height: 12px;
 
     ::ng-deep .xng-breadcrumb-trail {
-      color: #ffffff !important;
+      color: #ffffff;
+      margin-bottom: 0;
 
       &::before {
         color: #969fb9 !important;
@@ -110,9 +111,14 @@ tr div p {
 }
 
 .add-sink-container {
-  position: absolute;
-  right: 0;
-  transform: translate(-100px, 54px);
-  z-index: 10;
-  color: #3089fc !important;
+  position: relative;
+  height: 0;
+
+  button {
+    float: right;
+    top: 5px;
+    position: relative;
+    z-index: 2;
+    right: 5px;
+  }
 }
