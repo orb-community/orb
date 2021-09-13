@@ -188,5 +188,5 @@ export class AgentListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  filterByActive = (agent) => agent.status === 'active';
+  filterByActive = (agent) => agent.state === 'active';
 }

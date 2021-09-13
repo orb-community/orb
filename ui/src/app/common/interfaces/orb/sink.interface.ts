@@ -37,9 +37,9 @@ export interface Sink {
   tags?: any;
 
   /**
-   *  Status: {string} = 'active'|'error'
+   *  State: {string} = 'active'|'error'
    */
-  status?: string;
+  state?: string;
 
   /**
    * Error Message: {string}

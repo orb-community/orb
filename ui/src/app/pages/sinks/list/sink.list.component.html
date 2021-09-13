@@ -77,17 +77,17 @@
   </div>
 </div>
 
-<ng-template #sinkStatusTemplateCell let-row="row" let-value="value" let-i="index">
+<ng-template #sinkStateTemplateCell let-row="row" let-value="value" let-i="index">
   <div>
-    <div *ngIf="row.status === 'active'">
+    <div *ngIf="row.state === 'active'">
       <i class="fa fa-circle orb-service-active" style="color: #61f69f;"
          aria-hidden="true"></i>
-      {{ row.status | titlecase }}
+      {{ row.state | titlecase }}
     </div>
-    <div *ngIf="row.status !== 'active'">
+    <div *ngIf="row.state !== 'active'">
       <i class="fa fa-circle orb-service-inactive" style="color: #f2994a;"
          aria-hidden="true"></i>
-      {{ row.status | titlecase }}
+      {{ row.state | titlecase }}
     </div>
   </div>
 </ng-template>
