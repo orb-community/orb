@@ -5,15 +5,15 @@
     <h4>{{strings.list.header}}</h4>
   </header>
   <div class="d-flex flex-column mt-4">
-    <div class="d-flex justify-content-between mb-2">
+    <div class="d-flex justify-content-between align-items-end mb-2">
       <div class="d-flex">
         <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
-           class="sink-info-regular">
+           class="sink-info-regular mb-0">
           {{paginationControls.data.length}} sinks total, {{paginationControls.data.filter(filterByInactive).length}}
           have errors.
         </p>
         <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
-           class="sink-info-accent">
+           class="sink-info-accent mb-0">
           There are no sinks yet.
         </p>
       </div>
@@ -51,7 +51,7 @@
         </nb-form-field>
       </div>
     </div>
-    <div class="d-flex add-sink-container">
+    <div class="add-sink-container">
       <button nbButton
               ghost="true"
               status="primary"
@@ -98,7 +98,7 @@
       <mat-chip
           class="orb-tag-sink "
           *ngFor="let tag of value | keyvalue | slice:0:3">
-        {{tag.key}}, {{tag.value}}
+        {{tag.key}} : {{tag.value}}
       </mat-chip>
     </mat-chip-list>
   </div>

@@ -32,7 +32,8 @@ type OrbAgentInfo struct {
 }
 
 type BackendInfo struct {
-	Version string `json:"version"`
+	Version string                 `json:"version"`
+	Data    map[string]interface{} `json:"data"`
 }
 
 const CurrentCapabilitiesSchemaVersion = "1.0"

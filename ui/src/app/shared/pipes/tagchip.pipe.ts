@@ -12,6 +12,6 @@ export class TagChipPipe implements PipeTransform {
    * @return {<string>[]}
    */
   transform(tagList: {key: string, value: string}[]): string[] {
-    return tagList.map(tag => tag.key !== '' ? `{ ${tag.key}: \'${tag.value || ''}\' }` : ' }');
+    return tagList.map(tag => tag.key !== '' ? `${tag.key} : ${tag.value || ''}` : '');
   }
 }

@@ -12,6 +12,7 @@ type Backend interface {
 	Start() error
 	Stop() error
 
+	GetCapabilities() (map[string]interface{}, error)
 	ApplyPolicy(interface{}) error
 }
 
