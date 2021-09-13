@@ -4,7 +4,10 @@
 
 package http
 
-import "net/http"
+import (
+	"github.com/ns1labs/orb/pkg/types"
+	"net/http"
+)
 
 type policyRes struct {
 	ID      string `json:"id"`
@@ -29,6 +32,26 @@ func (s policyRes) Empty() bool {
 	return false
 }
 
+type policyUpdateRes struct {
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Tags        types.Tags     `json:"tags,omitempty"`
+	Policy      types.Metadata `json:"policy,omitempty"`
+}
+
+func (s policyUpdateRes) Code() int {
+	return http.StatusOK
+}
+
+func (s policyUpdateRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s policyUpdateRes) Empty() bool {
+	return false
+}
+
 type policiesPageRes struct {
 	pageRes
 	Policies []policyRes `json:"data"`
@@ -44,6 +67,20 @@ func (res policiesPageRes) Headers() map[string]string {
 
 func (res policiesPageRes) Empty() bool {
 	return false
+}
+
+type removeRes struct{}
+
+func (res removeRes) Code() int {
+	return http.StatusNoContent
+}
+
+func (res removeRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (res removeRes) Empty() bool {
+	return true
 }
 
 type pageRes struct {

@@ -22,6 +22,8 @@ import (
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
 
+const DefaultBinary = "/usr/local/sbin/pktvisord"
+
 type pktvisorBackend struct {
 	logger     *zap.Logger
 	binary     string

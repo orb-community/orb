@@ -57,7 +57,7 @@ func encodeSinkResponse(_ context.Context, grpcRes interface{}) (interface{}, er
 		Name:        res.name,
 		Description: res.description,
 		Tags:        res.tags,
-		Status:      res.status,
+		State:       res.state,
 		Error:       res.error,
 		Backend:     res.backend,
 		Config:      res.config,

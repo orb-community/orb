@@ -16,6 +16,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
@@ -30,6 +31,57 @@ var _ policies.Repository = (*policiesRepository)(nil)
 type policiesRepository struct {
 	db     Database
 	logger *zap.Logger
+}
+
+func (r policiesRepository) DeletePolicy(ctx context.Context, ownerID string, policyID string) error {
+	if ownerID == "" || policyID == "" {
+		return policies.ErrMalformedEntity
+	}
+
+	dbsk := dbPolicy{
+		ID:        policyID,
+		MFOwnerID: ownerID,
+	}
+
+	q := `DELETE FROM agent_policies WHERE id = :id AND mf_owner_id = :mf_owner_id;`
+	if _, err := r.db.NamedExecContext(ctx, q, dbsk); err != nil {
+		return errors.Wrap(policies.ErrRemoveEntity, err)
+	}
+
+	return nil
+}
+
+func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, plcy policies.Policy) error {
+	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy, version = :version WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	plcyDB, err := toDBPolicy(plcy)
+	if err != nil {
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	plcyDB.MFOwnerID = owner
+
+	res, err := r.db.NamedExecContext(ctx, q, plcyDB)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrNotFound
+	}
+
+	return nil
 }
 
 func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm policies.PageMetadata) (policies.Page, error) {
@@ -130,7 +182,7 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 }
 
 func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	q := `SELECT id, name, mf_owner_id, orb_tags, backend, version, policy, ts_created FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
+	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
 
 	if policyID == "" || ownerID == "" {
 		return policies.Policy{}, errors.ErrMalformedEntity
@@ -216,6 +268,37 @@ func (r policiesRepository) InactivateDatasetByGroupID(ctx context.Context, grou
 	return nil
 }
 
+func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, policyID string, ownerID string) error {
+	q := `UPDATE datasets SET valid = false WHERE mf_owner_id = :mf_owner_id and agent_policy_id = :agent_policy_id`
+
+	params := map[string]interface{}{
+		"agent_policy_id": policyID,
+		"mf_owner_id":     ownerID,
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrInactivateDataset
+	}
+	return nil
+}
+
 func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 
 	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags)         
@@ -254,16 +337,54 @@ func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Poli
 
 }
 
+func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
+
+	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_id, metadata, ts_created 
+			FROM datasets
+			WHERE agent_policy_id = ? AND mf_owner_id = ?`
+
+	if policyID == "" || ownerID == "" {
+		return nil, errors.ErrMalformedEntity
+	}
+
+	query, args, err := sqlx.In(q, policyID, ownerID)
+	if err != nil {
+		return nil, err
+	}
+
+	query = r.db.Rebind(query)
+
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []policies.Dataset
+	for rows.Next() {
+		dbth := dbDataset{MFOwnerID: ownerID}
+		if err := rows.StructScan(&dbth); err != nil {
+			return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		th := toDataset(dbth)
+		items = append(items, th)
+	}
+
+	return items, nil
+}
+
 type dbPolicy struct {
-	ID        string           `db:"id"`
-	Name      types.Identifier `db:"name"`
-	MFOwnerID string           `db:"mf_owner_id"`
-	Backend   string           `db:"backend"`
-	Format    string           `db:"format"`
-	OrbTags   db.Tags          `db:"orb_tags"`
-	Policy    db.Metadata      `db:"policy"`
-	Version   int32            `db:"version"`
-	Created   time.Time        `db:"ts_created"`
+	ID          string           `db:"id"`
+	Name        types.Identifier `db:"name"`
+	MFOwnerID   string           `db:"mf_owner_id"`
+	Backend     string           `db:"backend"`
+	Description string           `db:"description"`
+	Format      string           `db:"format"`
+	OrbTags     db.Tags          `db:"orb_tags"`
+	Policy      db.Metadata      `db:"policy"`
+	Version     int32            `db:"version"`
+	Created     time.Time        `db:"ts_created"`
 }
 
 func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
@@ -275,12 +396,14 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 	}
 
 	return dbPolicy{
-		ID:        policy.ID,
-		Name:      policy.Name,
-		MFOwnerID: uID.String(),
-		Backend:   policy.Backend,
-		OrbTags:   db.Tags(policy.OrbTags),
-		Policy:    db.Metadata(policy.Policy),
+		ID:          policy.ID,
+		Name:        policy.Name,
+		Description: policy.Description,
+		Version:     policy.Version,
+		MFOwnerID:   uID.String(),
+		Backend:     policy.Backend,
+		OrbTags:     db.Tags(policy.OrbTags),
+		Policy:      db.Metadata(policy.Policy),
 	}, nil
 
 }
@@ -294,6 +417,7 @@ type dbDataset struct {
 	AgentGroupID sql.NullString   `db:"agent_group_id"`
 	PolicyID     sql.NullString   `db:"agent_policy_id"`
 	SinkID       sql.NullString   `db:"sink_id"`
+	TsCreated    time.Time        `db:"ts_created"`
 }
 
 func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
@@ -342,18 +466,35 @@ func NewPoliciesRepository(db Database, log *zap.Logger) policies.Repository {
 func toPolicy(dba dbPolicy) policies.Policy {
 
 	policy := policies.Policy{
-		ID:        dba.ID,
-		Name:      dba.Name,
-		MFOwnerID: dba.MFOwnerID,
-		Backend:   dba.Backend,
-		Version:   dba.Version,
-		OrbTags:   types.Tags(dba.OrbTags),
-		Policy:    types.Metadata(dba.Policy),
-		Created:   dba.Created,
+		ID:          dba.ID,
+		Name:        dba.Name,
+		Description: dba.Description,
+		MFOwnerID:   dba.MFOwnerID,
+		Backend:     dba.Backend,
+		Version:     dba.Version,
+		OrbTags:     types.Tags(dba.OrbTags),
+		Policy:      types.Metadata(dba.Policy),
+		Created:     dba.Created,
 	}
 
 	return policy
 
+}
+
+func toDataset(dba dbDataset) policies.Dataset {
+	dataset := policies.Dataset{
+		ID:           dba.ID,
+		Name:         dba.Name,
+		MFOwnerID:    dba.MFOwnerID,
+		Valid:        dba.Valid,
+		AgentGroupID: dba.AgentGroupID.String,
+		PolicyID:     dba.PolicyID.String,
+		SinkID:       dba.SinkID.String,
+		Metadata:     types.Metadata(dba.Metadata),
+		Created:      dba.TsCreated,
+	}
+
+	return dataset
 }
 
 func getNameQuery(name string) (string, string) {

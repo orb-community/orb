@@ -15,7 +15,8 @@ var _ pb.FleetServiceServer = (*grpcServer)(nil)
 
 type grpcServer struct {
 	pb.UnimplementedFleetServiceServer
-	retrieveAgent kitgrpc.Handler
+	retrieveAgent      kitgrpc.Handler
+	retrieveAgentGroup kitgrpc.Handler
 }
 
 func NewServer(tracer opentracing.Tracer, svc fleet.Service) pb.FleetServiceServer {
@@ -24,6 +25,11 @@ func NewServer(tracer opentracing.Tracer, svc fleet.Service) pb.FleetServiceServ
 			kitot.TraceServer(tracer, "retrieve_agent")(retrieveAgentEndpoint(svc)),
 			decodeRetrieveAgentRequest,
 			encodeAgentResponse,
+		),
+		retrieveAgentGroup: kitgrpc.NewServer(
+			kitot.TraceServer(tracer, "retrieve_agent_group")(retrieveAgentGroupEndpoint(svc)),
+			decodeRetrieveAgentGroupRequest,
+			encodeAgentGroupResponse,
 		),
 	}
 }
@@ -37,6 +43,15 @@ func (gs *grpcServer) RetrieveAgent(ctx context.Context, req *pb.AgentByIDReq) (
 	return res.(*pb.AgentRes), nil
 }
 
+func (gs *grpcServer) RetrieveAgentGroup(ctx context.Context, req *pb.AgentGroupByIDReq) (*pb.AgentGroupRes, error) {
+	_, res, err := gs.retrieveAgentGroup.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, encodeError(err)
+	}
+
+	return res.(*pb.AgentGroupRes), nil
+}
+
 func decodeRetrieveAgentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.AgentByIDReq)
 	return accessByIDReq{AgentID: req.AgentID, OwnerID: req.OwnerID}, nil
@@ -45,6 +60,20 @@ func decodeRetrieveAgentRequest(_ context.Context, grpcReq interface{}) (interfa
 func encodeAgentResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(agentRes)
 	return &pb.AgentRes{
+		Id:      res.id,
+		Name:    res.name,
+		Channel: res.channel,
+	}, nil
+}
+
+func decodeRetrieveAgentGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.AgentGroupByIDReq)
+	return accessAgByIDReq{AgentGroupID: req.AgentGroupID, OwnerID: req.OwnerID}, nil
+}
+
+func encodeAgentGroupResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(agentGroupRes)
+	return &pb.AgentGroupRes{
 		Id:      res.id,
 		Name:    res.name,
 		Channel: res.channel,

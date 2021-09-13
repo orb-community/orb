@@ -18,6 +18,8 @@ const (
 	DatasetRemove = DatasetPrefix + "remove"
 	PolicyPrefix  = "policy."
 	PolicyCreate  = PolicyPrefix + "create"
+	PolicyUpdate  = PolicyPrefix + "update"
+	PolicyRemove  = PolicyPrefix + "remove"
 )
 
 type event interface {
@@ -27,6 +29,8 @@ type event interface {
 var (
 	_ event = (*createDatasetEvent)(nil)
 	_ event = (*createPolicyEvent)(nil)
+	_ event = (*updatePolicyEvent)(nil)
+	_ event = (*removePolicyEvent)(nil)
 )
 
 type createDatasetEvent struct {
@@ -43,6 +47,20 @@ type createPolicyEvent struct {
 	id        string
 	ownerID   string
 	name      string
+	timestamp time.Time
+}
+
+type updatePolicyEvent struct {
+	id        string
+	ownerID   string
+	groupIDs  string
+	timestamp time.Time
+}
+
+type removePolicyEvent struct {
+	id        string
+	ownerID   string
+	groupIDs  string
 	timestamp time.Time
 }
 
@@ -66,5 +84,25 @@ func (cce createPolicyEvent) Encode() map[string]interface{} {
 		"name":      cce.name,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": PolicyCreate,
+	}
+}
+
+func (cce updatePolicyEvent) Encode() map[string]interface{} {
+	return map[string]interface{}{
+		"id":         cce.id,
+		"owner_id":   cce.ownerID,
+		"groups_ids": cce.groupIDs,
+		"timestamp":  cce.timestamp.Unix(),
+		"operation":  PolicyUpdate,
+	}
+}
+
+func (cce removePolicyEvent) Encode() map[string]interface{} {
+	return map[string]interface{}{
+		"id":         cce.id,
+		"owner_id":   cce.ownerID,
+		"groups_ids": cce.groupIDs,
+		"timestamp":  cce.timestamp.Unix(),
+		"operation":  PolicyRemove,
 	}
 }

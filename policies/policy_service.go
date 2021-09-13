@@ -16,13 +16,16 @@ import (
 )
 
 var (
-	ErrCreatePolicy       = errors.New("failed to create policy")
-	ErrCreateDataset      = errors.New("failed to create dataset")
-	ErrInactivateDataset  = errors.New("failed to inactivate dataset")
-	ErrUpdateEntity       = errors.New("failed to update entity")
-	ErrMalformedEntity    = errors.New("malformed entity")
-	ErrNotFound           = errors.New("non-existent entity")
-	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
+	ErrCreatePolicy            = errors.New("failed to create policy")
+	ErrValidatePolicy          = errors.New("failed to validate policy")
+	ErrCreateDataset           = errors.New("failed to create dataset")
+	ErrInactivateDataset       = errors.New("failed to inactivate dataset")
+	ErrUpdateEntity            = errors.New("failed to update entity")
+	ErrRemoveEntity            = errors.New("failed to remove entity")
+	ErrMalformedEntity         = errors.New("malformed entity")
+	ErrNotFound                = errors.New("non-existent entity")
+	ErrUnauthorizedAccess      = errors.New("missing or invalid credentials provided")
+	ErrNotifyAgentGroupChannel = errors.New("failed to notify agent group channel")
 )
 
 func (s policiesService) ListPolicies(ctx context.Context, token string, pm PageMetadata) (Page, error) {
@@ -82,26 +85,9 @@ func (s policiesService) AddPolicy(ctx context.Context, token string, p Policy, 
 		return Policy{}, err
 	}
 
-	if !backend.HaveBackend(p.Backend) {
-		return Policy{}, errors.Wrap(ErrCreatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
-	}
-
-	if p.Policy == nil {
-		// if not already in json, make sure the back end can convert it
-		if !backend.GetBackend(p.Backend).SupportsFormat(format) {
-			return Policy{}, errors.Wrap(ErrCreatePolicy,
-				errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", format, p.Backend)))
-		}
-
-		p.Policy, err = backend.GetBackend(p.Backend).ConvertFromFormat(format, policyData)
-		if err != nil {
-			return Policy{}, errors.Wrap(ErrCreatePolicy, err)
-		}
-	}
-
-	err = backend.GetBackend(p.Backend).Validate(p.Policy)
+	err = validatePolicyBackend(&p, format, policyData)
 	if err != nil {
-		return Policy{}, errors.Wrap(ErrCreatePolicy, err)
+		return Policy{}, err
 	}
 
 	p.MFOwnerID = mfOwnerID
@@ -125,4 +111,94 @@ func (s policiesService) ViewPolicyByID(ctx context.Context, token string, polic
 		return Policy{}, err
 	}
 	return res, nil
+}
+
+func (s policiesService) EditPolicy(ctx context.Context, token string, pol Policy, format string, policyData string) (Policy, error) {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	// Used to get the policy backend and validate it
+	plcy, err := s.repo.RetrievePolicyByID(ctx, pol.ID, ownerID)
+	if err != nil {
+		return Policy{}, err
+	}
+	pol.Backend = plcy.Backend
+	pol.MFOwnerID = ownerID
+	pol.Version = plcy.Version
+
+	err = validatePolicyBackend(&pol, format, policyData)
+	if err != nil {
+		return Policy{}, err
+	}
+	pol.Version++
+	err = s.repo.UpdatePolicy(ctx, ownerID, pol)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	// Used to return the updated policy
+	res, err := s.repo.RetrievePolicyByID(ctx, pol.ID, ownerID)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	return res, nil
+}
+
+func (s policiesService) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error) {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := s.repo.RetrieveDatasetsByPolicyID(ctx, policyID, ownerID)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (s policiesService) RemovePolicy(ctx context.Context, token string, policyID string) error {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return err
+	}
+	err = s.repo.DeletePolicy(ctx, ownerID, policyID)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.InactivateDatasetByPolicyID(ctx, policyID, ownerID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validatePolicyBackend(p *Policy, format string, policyData string) (err error) {
+	if !backend.HaveBackend(p.Backend) {
+		return errors.Wrap(ErrValidatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
+	}
+
+	if p.Policy == nil {
+		// if not already in json, make sure the back end can convert it
+		if !backend.GetBackend(p.Backend).SupportsFormat(format) {
+			return errors.Wrap(ErrValidatePolicy,
+				errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", format, p.Backend)))
+		}
+
+		p.Policy, err = backend.GetBackend(p.Backend).ConvertFromFormat(format, policyData)
+		if err != nil {
+			return errors.Wrap(ErrValidatePolicy, err)
+		}
+	}
+
+	err = backend.GetBackend(p.Backend).Validate(p.Policy)
+	if err != nil {
+		return errors.Wrap(ErrCreatePolicy, err)
+	}
+	return nil
 }

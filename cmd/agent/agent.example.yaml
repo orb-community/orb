@@ -1,0 +1,43 @@
+version: "1.0"
+
+# this section is used by pktvisor
+# see https://github.com/ns1labs/pktvisor/blob/develop/RFCs/2021-04-16-75-taps.md
+visor:
+  taps:
+    mydefault:
+      input_type: pcap
+      config:
+        iface: "eth0"
+
+# this section is used orb-agent
+# most sections and keys are optional
+orb:
+  # these are arbitrary key value pairs used for organization in the control plane and UI
+  tags:
+    region: EU
+    pop: ams02
+    node_type: dns
+  cloud:
+    config:
+      # optionally specify an agent name to use during auto provisioning
+      # hostname will be used if it's not specified here
+      agent_name: my-agent1
+      auto_provision: true
+    api:
+      address: https://api.orb.live
+      # if auto provisioning, specify API token here (or pass on the command line)
+      token: TOKEN
+    mqtt:
+      address: tls://127.0.0.1:8883
+      # if not auto provisioning, specify agent connection details here
+#      id: "f420a133-7651-412d-852a-6141fafeaea5"
+#      key: "14ae65ae-092f-4fdc-be6a-0cfb378119dc"
+#      channel_id: "9610b0a4-b05f-46e5-a32d-000d8a2ec1fd"
+#  tls:
+#    verify: true
+#  db:
+#    file: "/usr/local/orb/orb-agent.db"
+#  backends:
+#    pktvisor:
+#      binary: "/usr/local/sbin/pktvisord"
+#      config_file: "/usr/local/orb/etc/orb-agent.yaml"
