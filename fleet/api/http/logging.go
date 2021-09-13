@@ -7,6 +7,7 @@ package http
 import (
 	"context"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
 	"time"
 )
@@ -16,6 +17,62 @@ var _ fleet.Service = (*loggingMiddleware)(nil)
 type loggingMiddleware struct {
 	logger *zap.Logger
 	svc    fleet.Service
+}
+
+func (l loggingMiddleware) ViewAgentBackendInput(ctx context.Context, token string, name string) (_ types.Metadata, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_agent_backend_input",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_agent_backend_input",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewAgentBackendInput(ctx, token, name)
+}
+
+func (l loggingMiddleware) ViewAgentBackendHandler(ctx context.Context, token string, name string) (_ types.Metadata, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_agent_backend_handler",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_agent_backend_handler",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewAgentBackendHandler(ctx, token, name)
+}
+
+func (l loggingMiddleware) ViewAgentBackend(ctx context.Context, token string, name string) (_ interface{}, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_agent_backend",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_agent_backend",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewAgentBackend(ctx, token, name)
+}
+
+func (l loggingMiddleware) ListAgentBackends(ctx context.Context, token string) (_ []string, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: list_agent_backends",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: list_agent_backends",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ListAgentBackends(ctx, token)
 }
 
 func (l loggingMiddleware) ViewAgentByIDInternal(ctx context.Context, ownerID string, thingID string) (_ fleet.Agent, err error) {

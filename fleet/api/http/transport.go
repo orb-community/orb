@@ -104,6 +104,21 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeView,
 		types.EncodeResponse,
 		opts...))
+	r.Get("/backends/agents", kithttp.NewServer(
+		kitot.TraceServer(tracer, "list_backends")(listAgentBackendsEndpoint(svc)),
+		decodeListBackends,
+		types.EncodeResponse,
+		opts...))
+	r.Get("/backends/agents/:id/handler", kithttp.NewServer(
+		kitot.TraceServer(tracer, "view_agent_backend_handler")(viewAgentBackendHandlerEndpoint(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...))
+	r.Get("/backends/agents/:id/input", kithttp.NewServer(
+		kitot.TraceServer(tracer, "view_agent_backend_input")(viewAgentBackendInputEndpoint(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...))
 
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
@@ -173,6 +188,11 @@ func decodeAgentUpdate(_ context.Context, r *http.Request) (interface{}, error) 
 		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
 	}
 
+	return req, nil
+}
+
+func decodeListBackends(_ context.Context, r *http.Request) (interface{}, error) {
+	req := listAgentBackendsReq{token: r.Header.Get("Authorization")}
 	return req, nil
 }
 

@@ -386,3 +386,48 @@ func removeAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		return removeRes{}, nil
 	}
 }
+
+func listAgentBackendsEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(listAgentBackendsReq)
+		if err := req.validate(); err != nil {
+			return agentBackendsRes{}, err
+		}
+		backends, err := svc.ListAgentBackends(ctx, req.token)
+		if err != nil {
+			return agentBackendsRes{}, err
+		}
+		var res []interface{}
+		for _, be := range backends {
+			mt, err := svc.ViewAgentBackend(ctx, req.token, be)
+			if err != nil {
+				return agentBackendsRes{}, err
+			}
+			res = append(res, mt)
+		}
+
+		return agentBackendsRes{
+			Backends: res,
+		}, nil
+	}
+}
+
+func viewAgentBackendHandlerEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		return svc.ViewAgentBackendHandler(ctx, req.token, req.id)
+	}
+}
+
+func viewAgentBackendInputEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		return svc.ViewAgentBackendInput(ctx, req.token, req.id)
+	}
+}
