@@ -78,7 +78,8 @@
   .pane {
     padding: 0 6rem;
     height: 100%;
-    position: absolute;
+    position: relative;
+    z-index: 3;
 
     span {
       font-family: 'Montserrat', serif;
