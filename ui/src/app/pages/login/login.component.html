@@ -19,9 +19,8 @@
       <form (ngSubmit)="login()" #form="ngForm" aria-labelledby="title">
 
         <nb-alert *ngIf="showMessages.error && errors?.length && !submitted"
-                outline="danger"
-                role="alert">
-          <p class="alert-title"><b>Oh snap!</b></p>
+                role="alert"
+                class="alert-error">
           <ul class="alert-message-list">
             <li *ngFor="let error of errors"
                 class="alert-message">{{ error }}</li>
