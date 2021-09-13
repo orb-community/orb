@@ -6,10 +6,13 @@ package pktvisor
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ns1labs/orb/fleet/backend"
 	"github.com/ns1labs/orb/pkg/types"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
@@ -20,25 +23,25 @@ type pktvisorBackend struct {
 }
 
 func (p pktvisorBackend) Metadata() interface{} {
-	return pktvisorBackend{
-		Backend:     "pktvisor",
-		Description: "pktvisor observability agent from pktvisor.dev",
-	}
+	return p
 }
 
 func Register() bool {
-	backend.Register("pktvisor", &pktvisorBackend{})
+	backend.Register("pktvisor", &pktvisorBackend{
+		Backend:     "pktvisor",
+		Description: "pktvisor observability agent from pktvisor.dev",
+	})
 	return true
 }
 
 func (p pktvisorBackend) Handlers() (_ types.Metadata, err error) {
-	jsonFile, err := os.Open("fleet/backend/pktvisor/handlers.json")
+	wd := getWorkDirectory()
+	jsonFile, err := ioutil.ReadFile(fmt.Sprintf("%s/fleet/backend/pktvisor/handlers.json", wd))
 	if err != nil {
 		return nil, err
 	}
-	byteValue, _ := ioutil.ReadAll(jsonFile)
 	var handlers types.Metadata
-	err = json.Unmarshal(byteValue, &handlers)
+	err = json.Unmarshal([]byte(jsonFile), &handlers)
 	if err != nil {
 		return nil, err
 	}
@@ -46,15 +49,25 @@ func (p pktvisorBackend) Handlers() (_ types.Metadata, err error) {
 }
 
 func (p pktvisorBackend) Inputs() (_ types.Metadata, err error) {
-	jsonFile, err := os.Open("fleet/backend/pktvisor/inputs.json")
+	wd := getWorkDirectory()
+	jsonFile, err := ioutil.ReadFile(fmt.Sprintf("%s/fleet/backend/pktvisor/inputs.json", wd))
 	if err != nil {
 		return nil, err
 	}
-	byteValue, _ := ioutil.ReadAll(jsonFile)
 	var handlers types.Metadata
-	err = json.Unmarshal(byteValue, &handlers)
+	err = json.Unmarshal([]byte(jsonFile), &handlers)
 	if err != nil {
 		return nil, err
 	}
 	return handlers, nil
+}
+
+func getWorkDirectory() string {
+	// When you works with tests, the path it's different from the prod running
+	// So here I'm getting the right working directory, no matter if its test or prod
+	wd, _ := os.Getwd()
+	for !strings.HasSuffix(wd, "orb") {
+		wd = filepath.Dir(wd)
+	}
+	return wd
 }

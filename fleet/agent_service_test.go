@@ -349,6 +349,106 @@ func TestRemoveAgent(t *testing.T) {
 	}
 }
 
+func TestListBackends(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	cases := map[string]struct {
+		token string
+		err   error
+	}{
+		"Retrieve a list of backends": {
+			token: token,
+			err:   nil,
+		},
+		"Retrieve a list of backends with a invalid token": {
+			token: invalidToken,
+			err:   fleet.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.ListAgentBackends(context.Background(), tc.token)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
+func TestAgentBackendHandler(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	cases := map[string]struct {
+		token   string
+		backend string
+		err     error
+	}{
+		"Retrieve a handler by a provided backend": {
+			token:   token,
+			backend: "pktvisor",
+			err:     nil,
+		},
+		"Retrieve a handler by a provided backend with a invalid token": {
+			token:   invalidToken,
+			backend: "pktvisor",
+			err:     fleet.ErrUnauthorizedAccess,
+		},
+		"Retrieve a backend handler with a non-existing backend": {
+			token:   token,
+			backend: "orb",
+			err:     fleet.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.ViewAgentBackendHandler(context.Background(), tc.token, tc.backend)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
+func TestAgentBackendInput(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	cases := map[string]struct {
+		token   string
+		backend string
+		err     error
+	}{
+		"Retrieve a input by a provided backend": {
+			token:   token,
+			backend: "pktvisor",
+			err:     nil,
+		},
+		"Retrieve a input by a provided backend with a invalid token": {
+			token:   invalidToken,
+			backend: "pktvisor",
+			err:     fleet.ErrUnauthorizedAccess,
+		},
+		"Retrieve a backend input with a non-existing backend": {
+			token:   token,
+			backend: "orb",
+			err:     fleet.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.ViewAgentBackendInput(context.Background(), tc.token, tc.backend)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
 func createAgent(t *testing.T, name string, svc fleet.Service) (fleet.Agent, error) {
 	t.Helper()
 	aCopy := agent
