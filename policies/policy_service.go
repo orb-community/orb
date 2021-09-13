@@ -211,6 +211,9 @@ func (s policiesService) ValidatePolicy(ctx context.Context, token string, p Pol
 	}
 
 	err = validatePolicyBackend(&p, format, policyData)
+	if err != nil {
+		return p, errors.Wrap(ErrCreatePolicy, err)
+	}
 
 	p.MFOwnerID = mfOwnerID
 
