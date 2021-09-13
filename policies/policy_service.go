@@ -202,3 +202,14 @@ func validatePolicyBackend(p *Policy, format string, policyData string) (err err
 	}
 	return nil
 }
+
+func (s policiesService) ValidateDataset(ctx context.Context, token string, d Dataset) (Dataset, error) {
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return Dataset{}, err
+	}
+
+	d.MFOwnerID = mfOwnerID
+
+	return d, nil
+}

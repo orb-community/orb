@@ -288,6 +288,42 @@ func TestRemovePolicy(t *testing.T) {
 	}
 }
 
+
+func TestValidateDataset(t *testing.T) {
+	var nameID, _ = types.NewIdentifier("my-dataset")
+	var dataset = policies.Dataset{
+		Name: nameID,
+		Tags: map[string]string{"region": "eu", "node_type": "dns"},
+		AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db",
+		PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b",
+		SinkID: "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f",
+	}
+
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	cases := map[string]struct {
+		dataset  policies.Dataset
+		token    string
+		valid    bool
+		err      error
+	}{
+		"validate a new dataset": {
+			dataset: dataset,
+			token:   token,
+			valid:   true,
+			err:     nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := svc.ValidateDataset(context.Background(), tc.token, dataset)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
 func createPolicy(t *testing.T, svc policies.Service, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()

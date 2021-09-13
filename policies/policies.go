@@ -32,6 +32,7 @@ type Dataset struct {
 	SinkID       string
 	Metadata     types.Metadata
 	Created      time.Time
+	Tags         types.Tags
 }
 
 type Page struct {
@@ -69,6 +70,9 @@ type Service interface {
 
 	// ListDatasetsByPolicyIDInternal retrieves the subset of Datasets by policyID owned by the specified user
 	ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error)
+
+	// ValidateDataset validates a new Dataset without saving it
+	ValidateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 }
 
 type Repository interface {

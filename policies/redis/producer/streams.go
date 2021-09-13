@@ -213,3 +213,7 @@ func validatePolicyBackend(p *policies.Policy, format string, policyData string)
 	}
 	return nil
 }
+
+func (e eventStore) ValidateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
+	return e.svc.ValidateDataset(ctx, token, d)
+}
