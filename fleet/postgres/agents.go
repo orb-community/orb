@@ -499,7 +499,6 @@ func getOrbOrAgentTagsQuery(m types.Tags) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {
-		// todo add in orb tags
 		mq = ` AND (agent_tags @> :tags OR orb_tags @> :tags)`
 
 		b, err := json.Marshal(m)

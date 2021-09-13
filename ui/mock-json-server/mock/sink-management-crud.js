@@ -41,7 +41,7 @@ const deleteSinkManagementItem = (sinkItem) => {
 const createSinkManagement = (name = null, config = {
     description: null,
     tags: null,
-    status: null,
+    state: null,
     error: null,
     backend: null,
     config: null, // {remote_host: null, username: null}
@@ -57,7 +57,7 @@ const createSinkManagement = (name = null, config = {
             Faker.hacker.adjective(),
             Faker.hacker.noun()],
         backend: config.type ? config.type : Faker.hacker.ingverb(),
-        status: config.status ? config.status : ['active', 'error'][Math.floor(
+        state: config.state ? config.state : ['active', 'error'][Math.floor(
           Math.random() * 100) % 2],
         config: config.config ? config.config : {
             remote_host: Faker.internet.domainName(),

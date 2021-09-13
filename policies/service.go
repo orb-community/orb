@@ -25,10 +25,9 @@ type PageMetadata struct {
 var _ Service = (*policiesService)(nil)
 
 type policiesService struct {
-	logger      *zap.Logger
-	auth        mainflux.AuthServiceClient
-	policyComms PolicyCommsService
-	repo        Repository
+	logger *zap.Logger
+	auth   mainflux.AuthServiceClient
+	repo   Repository
 }
 
 func (s policiesService) identify(token string) (string, error) {
@@ -43,15 +42,14 @@ func (s policiesService) identify(token string) (string, error) {
 	return res.GetId(), nil
 }
 
-func New(logger *zap.Logger, auth mainflux.AuthServiceClient, repo Repository, policyComms PolicyCommsService) Service {
+func New(logger *zap.Logger, auth mainflux.AuthServiceClient, repo Repository) Service {
 
 	orb.Register()
 	pktvisor.Register()
 
 	return &policiesService{
-		logger:      logger,
-		auth:        auth,
-		policyComms: policyComms,
-		repo:        repo,
+		logger: logger,
+		auth:   auth,
+		repo:   repo,
 	}
 }

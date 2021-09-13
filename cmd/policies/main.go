@@ -12,9 +12,6 @@ import (
 	"context"
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
-	mflog "github.com/mainflux/mainflux/logger"
-	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
-	fleetgrpc "github.com/ns1labs/orb/fleet/api/grpc"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/policies"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
@@ -56,7 +53,6 @@ const (
 
 func main() {
 
-	natsCfg := config.LoadNatsConfig(envPrefix)
 	authGRPCCfg := config.LoadGRPCConfig(mfEnvPrefix, "auth")
 
 	esCfg := config.LoadEsConfig(envPrefix)
@@ -67,7 +63,6 @@ func main() {
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
 
 	// todo sinks gRPC
-	// todo fleet mgr gRPC
 
 	// main logger
 	var logger *zap.Logger
@@ -77,12 +72,6 @@ func main() {
 		logger, _ = zap.NewProduction()
 	}
 	defer logger.Sync() // flushes buffer, if any
-
-	// only needed for mainflux interfaces
-	mflogger, err := mflog.New(os.Stdout, svcCfg.LogLevel)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
 
 	db := connectToDB(dbCfg, logger)
 	defer db.Close()
@@ -105,34 +94,12 @@ func main() {
 	}
 	authGRPCClient := authapi.NewClient(tracer, authGRPCConn, authGRPCTimeout)
 
-	fleetGRPCTimeout, err := time.ParseDuration(fleetGRPCCfg.Timeout)
-	if err != nil {
-		log.Fatalf("Invalid %s value: %s", fleetGRPCCfg.Timeout, err)
-	}
-	fleetGRPCClient := fleetgrpc.NewClient(tracer, fleetGRPCConn, fleetGRPCTimeout)
-
-	pubSub, err := mfnats.NewPubSub(natsCfg.URL, svcName, mflogger)
-	if err != nil {
-		logger.Error("Failed to connect to NATS", zap.Error(err))
-		os.Exit(1)
-	}
-	defer pubSub.Close()
-
-	commsSvc := policies.NewPoliciesCommsService(logger, fleetGRPCClient, pubSub)
-	svc := newService(authGRPCClient, db, logger, esClient, commsSvc)
-	defer commsSvc.Stop()
-
+	svc := newService(authGRPCClient, db, logger, esClient)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 	go startGRPCServer(svc, tracer, policiesGRPCCfg, logger, errs)
 	go subscribeToFleetES(svc, esClient, esCfg, logger)
-
-	err = commsSvc.Start()
-	if err != nil {
-		logger.Error("unable to start policy communication", zap.Error(err))
-		os.Exit(1)
-	}
 
 	go func() {
 		c := make(chan os.Signal)
@@ -191,10 +158,10 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, policiesComms policies.PolicyCommsService) policies.Service {
+func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client) policies.Service {
 	thingsRepo := postgres.NewPoliciesRepository(db, logger)
 
-	svc := policies.New(logger, auth, thingsRepo, policiesComms)
+	svc := policies.New(logger, auth, thingsRepo)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient, logger)
 	svc = policieshttp.NewLoggingMiddleware(svc, logger)
 	svc = policieshttp.MetricsMiddleware(

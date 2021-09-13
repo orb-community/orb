@@ -328,6 +328,9 @@ func TestPolicyUpdate(t *testing.T) {
 	nameID, err := types.NewIdentifier("mypolicy")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	wrongID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
 	policy := policies.Policy{
 		Name:      nameID,
 		MFOwnerID: oID.String(),
@@ -346,10 +349,81 @@ func TestPolicyUpdate(t *testing.T) {
 			plcy: policy,
 			err:  nil,
 		},
+		"update a empty policy": {
+			plcy: policies.Policy{},
+			err:  policies.ErrUpdateEntity,
+		},
+		"update a non-existing policy": {
+			plcy: policies.Policy{
+				ID: wrongID.String(),
+			},
+			err: policies.ErrUpdateEntity,
+		},
+		"update policy with wrong owner": {
+			plcy: policies.Policy{ID: wrongID.String(), MFOwnerID: wrongID.String()},
+			err:  policies.ErrNotFound,
+		},
 	}
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			err := repo.UpdatePolicy(context.Background(), tc.plcy.MFOwnerID, tc.plcy)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
+	}
+}
+
+func TestPolicyDelete(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("mypolicy")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	wrongID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	policy := policies.Policy{
+		Name:      nameID,
+		MFOwnerID: oID.String(),
+		Policy:    types.Metadata{"pkey1": "pvalue1"},
+	}
+	policyID, err := repo.SavePolicy(context.Background(), policy)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	policy.ID = policyID
+
+	cases := map[string]struct {
+		id    string
+		owner string
+		err   error
+	}{
+		"delete a existing policy": {
+			id:    policy.ID,
+			owner: policy.MFOwnerID,
+			err:   nil,
+		},
+		"delete a empty policy id": {
+			id:    "",
+			owner: policy.MFOwnerID,
+			err:   policies.ErrMalformedEntity,
+		},
+		"delete a non-existing policy": {
+			id:    wrongID.String(),
+			owner: policy.MFOwnerID,
+			err:   nil,
+		},
+		"delete policy with empty owner": {
+			id:    policy.ID,
+			owner: "",
+			err:   policies.ErrMalformedEntity,
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := repo.DeletePolicy(context.Background(), tc.owner, tc.id)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 		})
 	}

@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+const HeartbeatFreq = 60 * time.Second
+
 func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
 	a.logger.Debug("heartbeat")

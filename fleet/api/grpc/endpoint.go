@@ -17,9 +17,8 @@ func retrieveAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			return nil, err
 		}
 		res := agentRes{
-			id:      agent.MFThingID,
-			name:    agent.Name.String(),
-			channel: agent.MFChannelID,
+			id:   agent.MFThingID,
+			name: agent.Name.String(),
 		}
 		return res, nil
 	}

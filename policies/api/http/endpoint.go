@@ -108,12 +108,12 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(updatePolicyReq)
 		if err := req.validate(); err != nil {
-			return policiesPageRes{}, err
+			return policyUpdateRes{}, err
 		}
 
 		nameID, err := types.NewIdentifier(req.Name)
 		if err != nil {
-			return policies.Policy{}, err
+			return policyUpdateRes{}, err
 		}
 		plcy := policies.Policy{
 			ID:          req.id,
@@ -125,10 +125,32 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 
 		res, err := svc.EditPolicy(ctx, req.token, plcy, req.Format, req.PolicyData)
 		if err != nil {
-			return policies.Policy{}, err
+			return policyUpdateRes{}, err
 		}
 
-		return res, nil
+		plcyRes := policyUpdateRes{
+			ID:          res.ID,
+			Name:        res.Name.String(),
+			Description: res.Description,
+			Tags:        res.OrbTags,
+			Policy:      res.Policy,
+		}
+
+		return plcyRes, nil
+	}
+}
+
+func removePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return removeRes{}, err
+		}
+		err = svc.RemovePolicy(ctx, req.token, req.id)
+		if err != nil {
+			return removeRes{}, err
+		}
+		return removeRes{}, nil
 	}
 }
 

@@ -20,6 +20,20 @@ type mockPoliciesRepository struct {
 	gdb            map[string][]policies.Policy
 }
 
+func (m *mockPoliciesRepository) InactivateDatasetByPolicyID(ctx context.Context, policyID string, ownerID string) error {
+	//todo implement when create unit tests to dataset
+	return nil
+}
+
+func (m *mockPoliciesRepository) DeletePolicy(ctx context.Context, ownerID string, policyID string) error {
+	if _, ok := m.pdb[policyID]; ok {
+		if m.pdb[policyID].MFOwnerID != ownerID {
+			delete(m.gdb, policyID)
+		}
+	}
+	return nil
+}
+
 func (m *mockPoliciesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
 	//todo implement when create the unit tests to datasets
 	return nil, nil

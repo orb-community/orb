@@ -1,19 +1,28 @@
 nb-card {
-  width: 400px;
-}
-
-
-button {
-  margin: 10px;
-}
-
-textarea {
-  width: 100%;
-  height: 100%;
-}
-
-nb-card-footer {
-  text-align: center;
+  max-width: 38rem;
+  
+  nb-card-header {
+    background: #232940;
+    color: #969fb9;
+  }
+  
+  nb-card-body {
+    margin: 2rem 3rem;
+    padding: 0;
+  
+    p {
+      color: #969fb9;
+    }
+  
+    .ns1-red {
+      color: #df316f;
+    }
+  }
+  
+  nb-card-footer {
+    text-align: center;
+    padding: 1.5rem;
+  }
 }
 
 // ORB
@@ -26,29 +35,14 @@ nb-card-footer {
 
     > span {
       float: right;
-      padding-top: 0.3rem;
-      font-size: large;
+      font-size: 1.5rem;
       color: #3089fc;
       font-weight: 900;
     }
   }
 
-  .orb-sink-delete-warning-button {
-    background-color: #df316f;
-
-    .content {
-      color: #ffffff;
-    }
+  .orb-sink-delete-warning-button:not(.btn-disabled) {
+    background-color: #df316f !important;
+    color: #ffffff !important;
   }
-
-  .nb-card-header {
-    background: #232940 !important;
-    color: #232940 !important;
-    fill: #232940;
-
-    .p {
-      color: #969fb9;
-    }
-  }
-
 }

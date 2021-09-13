@@ -17,7 +17,7 @@ message SinkRes {
   string name = 2;
   string description = 3;
   bytes tags = 4;
-  string status = 5;
+  string state = 5;
   string error = 6;
   string backend = 7;
   bytes config = 8;

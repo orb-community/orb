@@ -23,24 +23,26 @@ export const MENU: NbMenuItem[] = [
     ],
   },
   {
-    title: 'Sink Management',
-    icon: 'layers-outline',
-    link: 'sinks',
-  },
-  {
     title: 'Dataset Explorer',
     icon: 'layers-outline',
-    link: 'datasets',
-  },
-  {
-    title: 'Settings',
-    icon: 'settings-2-outline',
     children: [
+      {
+        title: 'Datasets',
+      },
       {
         title: 'Policy Management',
         link: 'policies',
       },
     ],
+  },
+  {
+    title: 'Sink Management',
+    icon: 'layers-outline',
+    link: 'sinks',
+  },
+  {
+    title: 'Settings',
+    icon: 'settings-2-outline',
   },
 ];
 

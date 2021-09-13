@@ -17,7 +17,6 @@ import (
 
 const (
 	token       = "token"
-	invalidToken = "invalid"
 	email       = "user@example.com"
 	format      = "yaml"
 	policy_data = `version: "1.0"
@@ -27,12 +26,14 @@ visor:
       type: pcap
       config:
         iface: eth0`
-	limit = 10
+	limit        = 10
+	wrongID      = "28ea82e7-0224-4798-a848-899a75cdc650"
+	invalidToken = "invalidToken"
 )
 
 func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
-	return policies.New(nil, auth, policyRepo, nil)
+	return policies.New(nil, auth, policyRepo)
 }
 
 func TestRetrievePolicyByID(t *testing.T) {
@@ -185,6 +186,10 @@ func TestEditPolicy(t *testing.T) {
 	nameID, err := types.NewIdentifier("new-policy")
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
+	wrongOwnerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	wrongPolicy := policies.Policy{MFOwnerID: wrongOwnerID.String()}
 	newPolicy := policies.Policy{
 		ID:        policy.ID,
 		Name:      nameID,
@@ -205,16 +210,82 @@ func TestEditPolicy(t *testing.T) {
 			policyData: policy_data,
 			err:        nil,
 		},
+		"update policy with wrong credentials": {
+			pol:        newPolicy,
+			token:      "invalidToken",
+			format:     format,
+			policyData: policy_data,
+			err:        policies.ErrUnauthorizedAccess,
+		},
+		"update a non-existing policy": {
+			pol:        wrongPolicy,
+			token:      token,
+			format:     format,
+			policyData: policy_data,
+			err:        policies.ErrNotFound,
+		},
+		"update a existing policy with invalid format": {
+			pol:        newPolicy,
+			token:      token,
+			format:     "invalid",
+			policyData: policy_data,
+			err:        policies.ErrValidatePolicy,
+		},
+		"update a existing policy with invalid policy_data": {
+			pol:        newPolicy,
+			token:      token,
+			format:     format,
+			policyData: "invalid",
+			err:        policies.ErrValidatePolicy,
+		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			res, err := svc.EditPolicy(context.Background(), tc.token, tc.pol, tc.format, tc.policyData)
-			assert.Equal(t, tc.pol.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.pol.Name.String(), res.Name.String()))
+			if err == nil {
+				assert.Equal(t, tc.pol.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.pol.Name.String(), res.Name.String()))
+			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected error %d got %d", desc, tc.err, err))
 		})
 	}
 
+}
+
+func TestRemovePolicy(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	plcy := createPolicy(t, svc, "policy")
+
+	cases := map[string]struct {
+		id    string
+		token string
+		err   error
+	}{
+		"Remove a existing policy": {
+			id:    plcy.ID,
+			token: token,
+			err:   nil,
+		},
+		"delete non-existent policy": {
+			id:    wrongID,
+			token: token,
+			err:   nil,
+		},
+		"delete policy with wrong credentials": {
+			id:    plcy.ID,
+			token: invalidToken,
+			err:   policies.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := svc.RemovePolicy(context.Background(), tc.token, tc.id)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
 }
 
 func TestValidatePolicy(t *testing.T) {
