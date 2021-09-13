@@ -96,3 +96,25 @@ type datasetRes struct {
 	Name    string `json:"name"`
 	created bool
 }
+
+type validateDatasetRes struct {
+	ID           string
+	Name         string
+	AgentGroupID string
+	PolicyID     string
+	SinkID       string
+	Valid        bool
+	Tags         types.Tags
+}
+
+func (s validateDatasetRes) Code() int {
+	return http.StatusOK
+}
+
+func (s validateDatasetRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s validateDatasetRes) Empty() bool {
+	return false
+}

@@ -469,6 +469,47 @@ func TestPolicyRemoval(t *testing.T) {
 
 }
 
+func TestDatasetValidation(t *testing.T){
+	var (
+		validYaml = `{"name": "mydatasetyaml-3", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
+		//testvalidJson         = "{\n    \"name\": \"mydatasetyaml-3\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+	)
+	cli := newClientServer(t)
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"Validate a valid dataset": {
+			req:         validYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+			location:    "/policies/dataset/validate",
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/policies/dataset/validate", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			if err != nil {
+				require.Nil(t, err, "%s: Unexpected error: %s", desc, err)
+			}
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
