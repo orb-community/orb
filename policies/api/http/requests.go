@@ -124,6 +124,7 @@ type addDatasetReq struct {
 	AgentGroupID string `json:"agent_group_id"`
 	PolicyID     string `json:"agent_policy_id"`
 	SinkID       string `json:"sink_id"`
+	Tags         types.Tags `json:"tags"`
 	token        string
 }
 

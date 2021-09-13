@@ -205,6 +205,7 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			AgentGroupID: req.AgentGroupID,
 			PolicyID:     req.PolicyID,
 			SinkID:       req.SinkID,
+			Tags:         req.Tags,
 		}
 
 		validated, err := svc.ValidateDataset(ctx, req.token, d)

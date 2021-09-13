@@ -472,7 +472,11 @@ func TestPolicyRemoval(t *testing.T) {
 func TestDatasetValidation(t *testing.T){
 	var (
 		validYaml = `{"name": "mydatasetyaml-3", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
+		invalidJson = `{`
 		//testvalidJson         = "{\n    \"name\": \"mydatasetyaml-3\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+		invalidNameYaml = `{"name": "9...DATASET", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
+		invalidTagYaml = `{"name": "mydatasetyaml-3", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": "invalidTag"}`
+		invalidFieldYaml = `{"naamme": "mydatasetyaml-3", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
 	)
 	cli := newClientServer(t)
 
@@ -488,6 +492,55 @@ func TestDatasetValidation(t *testing.T){
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusOK,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a invalid yaml": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset with a empty token": {
+			req:         validYaml,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset with a invalid token": {
+			req:         validYaml,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset without a content type": {
+			req:         validYaml,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset with a invalid name value": {
+			req:         invalidNameYaml,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusBadRequest,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset with a invalid tag value": {
+			req:         invalidTagYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset with a invalid field": {
+			req:         invalidFieldYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
 			location:    "/policies/dataset/validate",
 		},
 	}
