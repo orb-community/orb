@@ -634,7 +634,7 @@ func TestViewSink(t *testing.T) {
 		Backend:     sk.Backend,
 		Config:      sk.Config,
 		Tags:        sk.Tags,
-		Status:      sk.Status,
+		State:       sk.State,
 		Error:       sk.Error,
 		TsCreated:   sk.Created,
 	})
