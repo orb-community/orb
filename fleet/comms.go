@@ -37,6 +37,8 @@ type AgentCommsService interface {
 	NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 	// NotifyGroupRemoval unsubscribe the agent membership when delete a agent group
 	NotifyGroupRemoval(ag AgentGroup) error
+	// NotifyPolicyRemoval stop agent policy utilization after policy removal
+	NotifyPolicyRemoval(ag AgentGroup) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -256,6 +258,31 @@ func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          GroupRemovedRPCFunc,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   ag.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (svc fleetCommsService) NotifyPolicyRemoval(ag AgentGroup) error {
+
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          PolicyRemovedRPCFunc,
 	}
 
 	body, err := json.Marshal(data)
