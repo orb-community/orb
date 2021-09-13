@@ -84,7 +84,7 @@
             </nb-icon>
           </span>
           <ng-container *ngIf="password.invalid && password.touched ">
-            <p class="caption status-danger mt-2" *ngIf="password.errors?.required">
+            <p class="caption status-danger" *ngIf="password.errors?.required">
               Password is required!
             </p>
             <p class="caption status-danger" *ngIf="password.errors?.minlength || password.errors?.maxlength">
