@@ -392,6 +392,34 @@ func (r agentRepository) Delete(ctx context.Context, ownerID string, thingID str
 	return nil
 }
 
+func (r agentRepository) RetrieveAgentTapsByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error) {
+	q := `SELECT agent_metadata
+		FROM agents
+		CROSS JOIN LATERAL jsonb_each_text(agent_metadata)
+		WHERE mf_owner_id = :mf_owner_id
+		GROUP BY agent_metadata;`
+
+	params := map[string]interface{}{
+		"mf_owner_id": ownerID,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []types.Metadata
+	for rows.Next() {
+		dbmd := dbAgent{}
+		if err := rows.StructScan(&dbmd); err != nil {
+			return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		items = append(items, types.Metadata(dbmd.AgentMetadata))
+	}
+	return items, nil
+}
+
 type dbAgent struct {
 	Name          types.Identifier `db:"name"`
 	MFOwnerID     string           `db:"mf_owner_id"`

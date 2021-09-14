@@ -449,6 +449,30 @@ func TestAgentBackendInput(t *testing.T) {
 	}
 }
 
+func TestAgentBackendTaps(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	cases := map[string]struct {
+		token   string
+		backend string
+		err     error
+	}{
+		"Retrieve taps by a provided backend": {
+			token:   token,
+			backend: "pktvisor",
+			err:     nil,
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.ViewAgentBackendTaps(context.Background(), tc.token, tc.backend)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
 func createAgent(t *testing.T, name string, svc fleet.Service) (fleet.Agent, error) {
 	t.Helper()
 	aCopy := agent

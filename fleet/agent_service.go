@@ -225,3 +225,35 @@ func (svc fleetService) ViewAgentBackendInput(ctx context.Context, token string,
 	}
 	return nil, errors.ErrNotFound
 }
+
+func (svc fleetService) ViewAgentBackendTaps(ctx context.Context, token string, name string) ([]BackendTaps, error) {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return nil, err
+	}
+	if !backend.HaveBackend(name) {
+		return nil, errors.ErrNotFound
+	}
+	metadataList, err := svc.agentRepo.RetrieveAgentTapsByOwner(ctx, ownerID)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []types.Metadata
+	for _, mt := range metadataList {
+		test(mt, &list)
+	}
+	return []BackendTaps{}, nil
+}
+
+func test(mt map[string]interface{}, list *[]types.Metadata) {
+	for k, v := range mt {
+		if k == "taps" {
+			m, _ := v.(map[string]interface{})
+			*list = append(*list, m)
+		} else {
+			m, _ := v.(map[string]interface{})
+			test(m, list)
+		}
+	}
+}

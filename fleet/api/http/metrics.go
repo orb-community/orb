@@ -19,6 +19,10 @@ type metricsMiddleware struct {
 	svc     fleet.Service
 }
 
+func (m metricsMiddleware) ViewAgentBackendTaps(ctx context.Context, token string, name string) ([]fleet.BackendTaps, error) {
+	return m.svc.ViewAgentBackendTaps(ctx, token, name)
+}
+
 func (m metricsMiddleware) ViewAgentBackendInput(ctx context.Context, token string, name string) (types.Metadata, error) {
 	return m.svc.ViewAgentBackendInput(ctx, token, name)
 }

@@ -119,6 +119,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeView,
 		types.EncodeResponse,
 		opts...))
+	r.Get("/backends/agents/:id/taps", kithttp.NewServer(
+		kitot.TraceServer(tracer, "view_agent_backend_taps")(viewAgentBackendTapsEndpoint(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...))
 
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())

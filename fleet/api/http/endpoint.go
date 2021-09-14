@@ -431,3 +431,17 @@ func viewAgentBackendInputEndpoint(svc fleet.Service) endpoint.Endpoint {
 		return svc.ViewAgentBackendInput(ctx, req.token, req.id)
 	}
 }
+
+func viewAgentBackendTapsEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		res, err := svc.ViewAgentBackendTaps(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	}
+}

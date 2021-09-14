@@ -1109,7 +1109,6 @@ func TestValidateAgent(t *testing.T) {
 			status:      http.StatusBadRequest,
 			location:    "/agents/validate",
 		},
-
 	}
 
 	for desc, tc := range cases {
@@ -1370,6 +1369,36 @@ func TestAgentBackendInput(t *testing.T) {
 			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: Expected status %d got %d", desc, tc.status, res.StatusCode))
 
+		})
+	}
+}
+
+func TestAgentBackendTaps(t *testing.T) {
+	cli := newClientServer(t)
+
+	cases := map[string]struct {
+		token   string
+		backend string
+		status  int
+	}{
+		"Retrieve taps by a provided backend": {
+			token:   token,
+			backend: "pktvisor",
+			status:  http.StatusOK,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/backends/agents/%s/taps", cli.server.URL, tc.backend),
+				token:  tc.token,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: Expected status %d got %d", desc, tc.status, res.StatusCode))
 		})
 	}
 }

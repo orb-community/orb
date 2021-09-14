@@ -66,6 +66,13 @@ type Page struct {
 	Agents []Agent
 }
 
+type BackendTaps struct {
+	Name             string
+	InputType        string
+	ConfigPredefined []string
+	MatchingAgents   uint64
+}
+
 // AgentService Agent CRUD interface
 type AgentService interface {
 	// CreateAgent creates new agent
@@ -91,6 +98,8 @@ type AgentService interface {
 	ViewAgentBackendHandler(ctx context.Context, token string, name string) (types.Metadata, error)
 	// ViewAgentBackendInput
 	ViewAgentBackendInput(ctx context.Context, token string, name string) (types.Metadata, error)
+	// ViewAgentBackendTaps retrieves a list of taps by owner and backend
+	ViewAgentBackendTaps(ctx context.Context, token string, name string) ([]BackendTaps, error)
 }
 
 type AgentRepository interface {
@@ -115,6 +124,8 @@ type AgentRepository interface {
 	RetrieveByID(ctx context.Context, ownerID string, thingID string) (Agent, error)
 	// Delete an existing agent by owner and id
 	Delete(ctx context.Context, ownerID string, thingID string) error
+	// RetrieveAgentTapsByOwner
+	RetrieveAgentTapsByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error)
 }
 
 type AgentHeartbeatRepository interface {

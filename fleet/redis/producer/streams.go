@@ -29,6 +29,10 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (es eventStore) ViewAgentBackendTaps(ctx context.Context, token string, name string) ([]fleet.BackendTaps, error) {
+	return es.svc.ViewAgentBackendTaps(ctx, token, name)
+}
+
 func (es eventStore) ViewAgentBackendInput(ctx context.Context, token string, name string) (types.Metadata, error) {
 	return es.svc.ViewAgentBackendInput(ctx, token, name)
 }
