@@ -472,7 +472,7 @@ func TestPolicyRemoval(t *testing.T) {
 func TestDatasetValidation(t *testing.T){
 	var (
 		validYaml = `{"name": "mydatasetyaml-3", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
-		invalidJson = `{`
+		invalidYaml = `{`
 		//testvalidJson         = "{\n    \"name\": \"mydatasetyaml-3\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
 		invalidNameYaml = `{"name": "9...DATASET", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
 		invalidTagYaml = `{"name": "mydatasetyaml-3", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": "invalidTag"}`
@@ -495,7 +495,7 @@ func TestDatasetValidation(t *testing.T){
 			location:    "/policies/dataset/validate",
 		},
 		"Validate a invalid yaml": {
-			req:         invalidJson,
+			req:         invalidYaml,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
