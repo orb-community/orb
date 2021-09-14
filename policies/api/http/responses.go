@@ -98,7 +98,6 @@ type datasetRes struct {
 }
 
 type validateDatasetRes struct {
-	ID           string
 	Name         string
 	AgentGroupID string
 	PolicyID     string

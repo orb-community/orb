@@ -214,9 +214,12 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := validateDatasetRes{
-			ID:    validated.ID,
-			Name:  validated.Name.String(),
-			Valid: true,
+			Name:         validated.Name.String(),
+			Valid:        true,
+			Tags:         validated.Tags,
+			AgentGroupID: validated.AgentGroupID,
+			PolicyID:     validated.PolicyID,
+			SinkID:       validated.SinkID,
 		}
 
 		return res, nil
