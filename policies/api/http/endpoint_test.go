@@ -30,15 +30,14 @@ import (
 )
 
 const (
-	token   = "token"
-	wrongID = "9bb1b244-a199-93c2-aa03-28067b431e2c"
-	// validJson         = "{ \"name\": \"my-policy\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
-	conflictValidJson = "{ \"name\": \"my-policy-conflict\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
-	validYaml         = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
-	invalidJson       = "{"
-	email             = "user@example.com"
-	format            = "yaml"
-	policy_data       = `version: "1.0"
+	token = "token"
+	// validPolicyDataJson         = "{ \"name\": \"my-policy\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
+	conflictValidJson   = "{ \"name\": \"my-policy-conflict\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
+	validPolicyDataYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+	invalidJson         = "{"
+	email               = "user@example.com"
+	format              = "yaml"
+	policy_data         = `version: "1.0"
 visor:
   taps:
     anycast:
@@ -331,7 +330,7 @@ func TestCreatePolicy(t *testing.T) {
 		location    string
 	}{
 		"add a valid policy": {
-			req:         validYaml,
+			req:         validPolicyDataYaml,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusCreated,
@@ -352,14 +351,14 @@ func TestCreatePolicy(t *testing.T) {
 			location:    "/policies/agent",
 		},
 		"add a valid policy with an invalid token": {
-			req:         validYaml,
+			req:         validPolicyDataYaml,
 			contentType: contentType,
 			auth:        invalidToken,
 			status:      http.StatusUnauthorized,
 			location:    "/policies/agent",
 		},
 		"add a valid policy without a content type": {
-			req:         validYaml,
+			req:         validPolicyDataYaml,
 			contentType: "",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
