@@ -77,7 +77,7 @@
 </div>
 
 <ng-template #agentGroupTemplateCell let-row="row">
-  <strong> {{ row.matching_agents.total }} </strong>
+  <button (click)="onMatchingAgentsModal(row)"><strong> {{ row.matching_agents.total }} </strong></button>
 </ng-template>
 
 <ng-template #agentGroupTagsTemplateCell let-row="row" let-value="value" let-i="index">

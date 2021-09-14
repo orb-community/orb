@@ -48,6 +48,7 @@ import { AgentGroupListComponent } from 'app/pages/fleet/groups/list/agent.group
 import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.add.component';
 import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
+import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 
 @NgModule({
   imports: [
@@ -95,6 +96,7 @@ import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent
     AgentAddComponent,
     AgentDeleteComponent,
     AgentDetailsComponent,
+    AgentMatchComponent,
     // Agent Groups
     AgentGroupListComponent,
     AgentGroupAddComponent,

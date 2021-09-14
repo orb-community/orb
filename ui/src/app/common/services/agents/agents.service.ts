@@ -132,7 +132,7 @@ export class AgentsService {
     return this.http.get(environment.agentsUrl, {params})
       .map(
         (resp: any) => {
-          return resp.agents;
+          return resp.matchingAgents;
         },
       )
       .catch(
@@ -174,7 +174,7 @@ export class AgentsService {
           // This is the position to insert the new data
           const start = pageInfo.offset * resp.limit;
           const newData = [...this.cache.data];
-          newData.splice(start, resp.limit, ...resp.agents);
+          newData.splice(start, resp.limit, ...resp.matchingAgents);
           this.cache = {
             ...this.cache,
             total: resp.total,

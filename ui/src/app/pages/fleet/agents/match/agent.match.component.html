@@ -1,0 +1,15 @@
+<div class="d-flex row">
+  <div class="tag-table">
+    <ngx-datatable
+        class="orb w-100"
+        style="height: 500px;"
+        [rows]="matchingAgents"
+        [scrollbarV]="true"
+        [columns]="columns"
+        [columnMode]="columnMode.flex"
+        [headerHeight]="50"
+        [footerHeight]="50"
+        [rowHeight]="50">
+    </ngx-datatable>
+  </div>
+</div>

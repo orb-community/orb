@@ -11,6 +11,7 @@ import { AgentGroupsService } from 'app/common/services/agents/agent.groups.serv
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
+import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 
 
 @Component({
@@ -177,6 +178,16 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit {
       } else {
         this.getAgentGroups();
       }
+    });
+  }
+
+  onMatchingAgentsModal(row: any) {
+    this.dialogService.open(AgentMatchComponent, {
+      context: {agentGroup: row},
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe(_ => {
+      this.getAgentGroups();
     });
   }
 
