@@ -374,6 +374,24 @@ func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, poli
 	return items, nil
 }
 
+func (r policiesRepository) RetrieveDatasetByID(ctx context.Context, datasetID string, ownerID string) (policies.Dataset, error) {
+	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
+
+	if datasetID == "" || ownerID == "" {
+		return policies.Dataset{}, errors.ErrMalformedEntity
+	}
+
+	var dba dbDataset
+	if err := r.db.QueryRowxContext(ctx, q, datasetID, ownerID).StructScan(&dba); err != nil {
+		if err == sql.ErrNoRows {
+			return policies.Dataset{}, errors.Wrap(errors.ErrNotFound, err)
+		}
+		return policies.Dataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	return toDataset(dba), nil
+}
+
 type dbPolicy struct {
 	ID          string           `db:"id"`
 	Name        types.Identifier `db:"name"`

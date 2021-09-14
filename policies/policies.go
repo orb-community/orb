@@ -69,6 +69,9 @@ type Service interface {
 
 	// ListDatasetsByPolicyIDInternal retrieves the subset of Datasets by policyID owned by the specified user
 	ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error)
+
+	// ViewDatasetByID retrieving dataset by id with token
+	ViewDatasetByID(ctx context.Context, token string, datasetID string) (Dataset, error)
 }
 
 type Repository interface {
@@ -103,4 +106,7 @@ type Repository interface {
 
 	// RetrieveDatasetsByPolicyID retrieves the subset of Datasets by policyID owned by the specified user
 	RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]Dataset, error)
+
+	// RetrieveDatasetByID Retrieves dataset by id
+	RetrieveDatasetByID(ctx context.Context, datasetID string, ownerID string) (Dataset, error)
 }

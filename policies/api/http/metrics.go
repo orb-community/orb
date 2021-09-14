@@ -58,6 +58,10 @@ func (m metricsMiddleware) InactivateDatasetByGroupID(ctx context.Context, group
 	return m.svc.InactivateDatasetByGroupID(ctx, groupID, ownerID)
 }
 
+func (m metricsMiddleware) ViewDatasetByID(ctx context.Context, token string, datasetID string) (policies.Dataset, error) {
+	return m.svc.ViewDatasetByID(ctx, token, datasetID)
+}
+
 // MetricsMiddleware instruments core service by tracking request count and latency.
 func MetricsMiddleware(svc policies.Service, counter metrics.Counter, latency metrics.Histogram) policies.Service {
 	return &metricsMiddleware{

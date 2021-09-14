@@ -187,3 +187,23 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func viewDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		dataset, err := svc.ViewDatasetByID(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+
+		res := datasetRes{
+			ID:   dataset.ID,
+			Name: dataset.Name.String(),
+		}
+		return res, nil
+	}
+}

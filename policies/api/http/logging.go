@@ -158,6 +158,20 @@ func (l loggingMiddleware) InactivateDatasetByGroupID(ctx context.Context, group
 	return l.svc.InactivateDatasetByGroupID(ctx, groupID, token)
 }
 
+func (l loggingMiddleware) ViewDatasetByID(ctx context.Context, token string, datasetID string) (_ policies.Dataset, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_dataset_by_id",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_dataset_by_id",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewDatasetByID(ctx, token, datasetID)
+}
+
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {
 	return &loggingMiddleware{logger, svc}
 }

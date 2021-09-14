@@ -469,6 +469,53 @@ func TestPolicyRemoval(t *testing.T) {
 
 }
 
+func TestViewDataset(t *testing.T) {
+	cli := newClientServer(t)
+	policy := createDataset(t, &cli, "dataset")
+
+	cases := map[string]struct {
+		ID     string
+		token  string
+		status int
+	}{
+		"view a existing policy": {
+			ID:     policy.ID,
+			token:  token,
+			status: http.StatusOK,
+		},
+		"view a non-existing policy": {
+			ID:     "d0967904-8824-4ed1-b11c-9a92f9e4e43c",
+			token:  token,
+			status: http.StatusNotFound,
+		},
+		"view a policy with a invalid token": {
+			ID:     policy.ID,
+			token:  "invalid",
+			status: http.StatusUnauthorized,
+		},
+		"view a policy with a empty token": {
+			ID:     policy.ID,
+			token:  "",
+			status: http.StatusUnauthorized,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/policies/dataset/%s", cli.server.URL, tc.ID),
+				token:  tc.token,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
@@ -485,6 +532,25 @@ func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy 
 
 	res, err := cli.service.AddPolicy(context.Background(), token, policy, format, policy_data)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	return res
+}
+
+func createDataset(t *testing.T, cli *clientServer, name string) policies.Dataset {
+	t.Helper()
+	ID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	validName, err := types.NewIdentifier(name)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		ID:   ID.String(),
+		Name: validName,
+	}
+
+	res, err := cli.service.AddDataset(context.Background(), token, dataset)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
 	return res
 }
 

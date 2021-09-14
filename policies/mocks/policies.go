@@ -118,6 +118,16 @@ func (m *mockPoliciesRepository) SaveDataset(ctx context.Context, dataset polici
 	return ID.String(), nil
 }
 
+func (m *mockPoliciesRepository) RetrieveDatasetByID(ctx context.Context, datasetID string, ownerID string) (policies.Dataset, error) {
+	if _, ok := m.ddb[datasetID]; ok {
+		if m.ddb[datasetID].MFOwnerID != ownerID {
+			return policies.Dataset{}, policies.ErrNotFound
+		}
+		return m.ddb[datasetID], nil
+	}
+	return policies.Dataset{}, policies.ErrNotFound
+}
+
 func (m *mockPoliciesRepository) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
 	panic("implement me")
 }
