@@ -1,0 +1,78 @@
+
+
+name: Update Docker Hub Description
+on:
+  push:
+    branches: [ develop, main ]
+    paths: [ README.md, .github/workflows/dockerhub-description.yml ]
+  pull_request:    
+    branches: [ develop, main ]
+    paths: [ README.md, .github/workflows/dockerhub-description.yml ]
+  
+
+  
+jobs:
+  # There is no support for yaml anchor on Github_actions
+  # https://github.com/actions/runner/issues/1182 
+  dockerHubDescription:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Docker Hub Description agent
+      uses: peter-evans/dockerhub-description@v2
+      # The default readme is in the root of the repository but any file 
+      # can be used, example: readme-filepath: ./path/to/README.md
+      with: 
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        repository: ns1labs/orb-agent
+        short-description: ${{ github.event.repository.description }}
+
+    - name: Docker Hub Description - ns1labs/orb-fleet
+      uses: peter-evans/dockerhub-description@v2
+      with: 
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        repository: ns1labs/orb-fleet
+        short-description: ${{ github.event.repository.description }}
+    
+    - name: Docker Hub Description - ns1labs/orb-policies
+      uses: peter-evans/dockerhub-description@v2
+      with: 
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        repository: ns1labs/orb-policies
+        short-description: ${{ github.event.repository.description }}
+    
+    - name: Docker Hub Description - ns1labs/orb-sinks
+      uses: peter-evans/dockerhub-description@v2
+      with: 
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        repository: ns1labs/orb-sinks
+        short-description: ${{ github.event.repository.description }}
+
+    - name: Docker Hub Description - ns1labs/orb-prom-sink
+      uses: peter-evans/dockerhub-description@v2
+      with: 
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        repository: ns1labs/orb-prom-sink
+        short-description: ${{ github.event.repository.description }}
+    
+    - name: Docker Hub Description - ns1labs/orb-ui
+      uses: peter-evans/dockerhub-description@v2
+      with: 
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        repository: ns1labs/orb-ui
+        short-description: ${{ github.event.repository.description }}
+
+    
+
+    
+    
+
+    
+        
