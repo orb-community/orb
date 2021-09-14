@@ -30,8 +30,8 @@ import (
 )
 
 const (
-	token = "token"
-	// validPolicyDataJson         = "{ \"name\": \"my-policy\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
+	token               = "token"
+	validPolicyDataJson = "{ \"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"policy\": { \"version\": \"1.0\", \"visor\": { \"policies\": { \"mydefault\": { \"input\": {\"tap\": \"mydefault\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"},\"default_dns\": {\"type\": \"dns\"}}}}}}}}"
 	conflictValidJson   = "{ \"name\": \"my-policy-conflict\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
 	validPolicyDataYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
 	invalidJson         = "{"
@@ -487,8 +487,15 @@ func TestCreatePolicy(t *testing.T) {
 		status      int
 		location    string
 	}{
-		"add a valid policy": {
+		"add a valid yaml policy": {
 			req:         validPolicyDataYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusCreated,
+			location:    "/policies/agent",
+		},
+		"add a valid json policy": {
+			req:         validPolicyDataJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusCreated,
@@ -508,14 +515,14 @@ func TestCreatePolicy(t *testing.T) {
 			status:      http.StatusConflict,
 			location:    "/policies/agent",
 		},
-		"add a valid policy with an invalid token": {
+		"add a valid yaml policy with an invalid token": {
 			req:         validPolicyDataYaml,
 			contentType: contentType,
 			auth:        invalidToken,
 			status:      http.StatusUnauthorized,
 			location:    "/policies/agent",
 		},
-		"add a valid policy without a content type": {
+		"add a valid yaml policy without a content type": {
 			req:         validPolicyDataYaml,
 			contentType: "",
 			auth:        token,
