@@ -27,9 +27,8 @@ visor:
       type: pcap
       config:
         iface: eth0`
-	limit        = 10
-	wrongID      = "28ea82e7-0224-4798-a848-899a75cdc650"
-	invalidToken = "invalidToken"
+	limit   = 10
+	wrongID = "28ea82e7-0224-4798-a848-899a75cdc650"
 )
 
 func newService(auth mainflux.AuthServiceClient) policies.Service {
