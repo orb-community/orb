@@ -75,11 +75,12 @@ func decodeRetrievePoliciesByGroupRequest(_ context.Context, grpcReq interface{}
 func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(policyRes)
 	return &pb.PolicyRes{
-		Id:      res.id,
-		Name:    res.name,
-		Backend: res.backend,
-		Version: res.version,
-		Data:    res.data,
+		Id:        res.id,
+		Name:      res.name,
+		Backend:   res.backend,
+		Version:   res.version,
+		Data:      res.data,
+		DatasetId: "",
 	}, nil
 }
 
@@ -88,7 +89,7 @@ func encodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface
 
 	plist := make([]*pb.PolicyRes, len(res.policies))
 	for i, p := range res.policies {
-		plist[i] = &pb.PolicyRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version}
+		plist[i] = &pb.PolicyRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version, DatasetId: p.datasetID}
 	}
 	return &pb.PolicyListRes{Policies: plist}, nil
 }

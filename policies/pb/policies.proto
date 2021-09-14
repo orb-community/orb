@@ -24,6 +24,7 @@ message PolicyRes {
   string backend = 3;
   int32 version = 4;
   bytes data = 5;
+  string dataset_id = 6;
 }
 
 message PolicyListRes {

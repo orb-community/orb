@@ -45,7 +45,7 @@ func (client grpcClient) RetrievePoliciesByGroups(ctx context.Context, in *pb.Po
 
 	plist := make([]*pb.PolicyRes, len(ir.policies))
 	for i, p := range ir.policies {
-		plist[i] = &pb.PolicyRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version}
+		plist[i] = &pb.PolicyRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version, DatasetId: p.datasetID}
 	}
 	return &pb.PolicyListRes{Policies: plist}, nil
 }
@@ -64,7 +64,7 @@ func (client grpcClient) RetrievePolicy(ctx context.Context, in *pb.PolicyByIDRe
 	}
 
 	ir := res.(policyRes)
-	return &pb.PolicyRes{Id: ir.id, Name: ir.name, Data: ir.data, Backend: ir.backend, Version: ir.version}, nil
+	return &pb.PolicyRes{Id: ir.id, Name: ir.name, Data: ir.data, Backend: ir.backend, Version: ir.version, DatasetId: ""}, nil
 }
 
 // NewClient returns new gRPC client instance.
@@ -99,7 +99,7 @@ func encodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interf
 
 func decodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*pb.PolicyRes)
-	return policyRes{id: res.GetId(), name: res.GetName(), data: res.GetData(), version: res.GetVersion(), backend: res.GetBackend()}, nil
+	return policyRes{id: res.GetId(), name: res.GetName(), data: res.GetData(), version: res.GetVersion(), backend: res.GetBackend(), datasetID: ""}, nil
 }
 
 func encodeRetrievePoliciesByGroupsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -111,7 +111,7 @@ func decodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface
 	res := grpcRes.(*pb.PolicyListRes)
 	policies := make([]policyRes, len(res.Policies))
 	for i, p := range res.Policies {
-		policies[i] = policyRes{id: p.GetId(), name: p.GetName(), data: p.GetData(), version: p.GetVersion(), backend: p.GetBackend()}
+		policies[i] = policyRes{id: p.GetId(), name: p.GetName(), data: p.GetData(), version: p.GetVersion(), backend: p.GetBackend(), datasetID: p.GetDatasetId()}
 	}
 	return policyListRes{policies: policies}, nil
 }
