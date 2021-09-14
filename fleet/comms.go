@@ -403,6 +403,11 @@ func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, p
 func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 
 	// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
+	// Given security context is that to get this far we know mainflux MQTT proxy has authenticated a
+	// username/password/channelID combination (thingID/thingKey/thingChannel which are all UUIDv4)
+	// channelID is globally unique across all owners and things, and can therefore substitute for an ownerID (which we do not have here)
+	// mainflux will not allow a thing to communicate on a channelID it does not belong to - thus it is not possible
+	// to brute force a channelID from another tenant without brute forcing all three UUIDs which is a lot of entropy
 
 	var payload map[string]interface{}
 	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
