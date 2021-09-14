@@ -471,12 +471,11 @@ func TestPolicyRemoval(t *testing.T) {
 
 func TestDatasetValidation(t *testing.T){
 	var (
-		validYaml = `{"name": "mydatasetyaml-3", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
-		invalidYaml = `{`
-		//testvalidJson         = "{\n    \"name\": \"mydatasetyaml-3\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
-		invalidNameYaml = `{"name": "9...DATASET", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
-		invalidTagYaml = `{"name": "mydatasetyaml-3", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": "invalidTag"}`
-		invalidFieldYaml = `{"naamme": "mydatasetyaml-3", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
+		invalidJson = `{`
+		validJson         = "{\n    \"name\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+		invalidNameJson = "{\n    \"name\": \"9...DATASET\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+		invalidTagJson = "{\n    \"name\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": \"invalidTag\"}"
+		invalidFieldJson = "{\n    \"naamme\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
 	)
 	cli := newClientServer(t)
 
@@ -488,56 +487,56 @@ func TestDatasetValidation(t *testing.T){
 		location    string
 	}{
 		"Validate a valid dataset": {
-			req:         validYaml,
+			req:         validJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusOK,
 			location:    "/policies/dataset/validate",
 		},
 		"Validate a invalid yaml": {
-			req:         invalidYaml,
+			req:         invalidJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/policies/dataset/validate",
 		},
 		"Validate a dataset with a empty token": {
-			req:         validYaml,
+			req:         validJson,
 			contentType: contentType,
 			auth:        "",
 			status:      http.StatusUnauthorized,
 			location:    "/policies/dataset/validate",
 		},
 		"Validate a dataset with a invalid token": {
-			req:         validYaml,
+			req:         validJson,
 			contentType: contentType,
 			auth:        invalidToken,
 			status:      http.StatusUnauthorized,
 			location:    "/policies/dataset/validate",
 		},
 		"Validate a dataset without a content type": {
-			req:         validYaml,
+			req:         validJson,
 			contentType: "",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
 			location:    "/policies/dataset/validate",
 		},
 		"Validate a dataset with a invalid name value": {
-			req:         invalidNameYaml,
+			req:         invalidNameJson,
 			contentType: contentType,
 			auth:        invalidToken,
 			status:      http.StatusBadRequest,
 			location:    "/policies/dataset/validate",
 		},
 		"Validate a dataset with a invalid tag value": {
-			req:         invalidTagYaml,
+			req:         invalidTagJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/policies/dataset/validate",
 		},
 		"Validate a dataset with a invalid field": {
-			req:         invalidFieldYaml,
+			req:         invalidFieldJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
