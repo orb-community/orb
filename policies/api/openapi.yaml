@@ -421,10 +421,20 @@ components:
             region: eu
             node_type: dns
         policy:
-          type: string
-          description: Agent backend specific policy data
+          type: object
+          description: Agent backend specific policy data in json format
           example:
-            value: "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+            version: 1.0
+            visor:
+              foo: bar
+        policy_data:
+          type: string
+          description: Agent backend specific policy data in yaml format
+          example: "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+        format:
+          type: string
+          example: yaml
+          description: Policy text format needed to specify when a policy is a yaml
     PolicyCreateReqSchema:
       type: object
       required:
@@ -432,7 +442,6 @@ components:
         - backend
         - description
         - version
-        - policy
         - tags
       properties:
         name:
@@ -454,17 +463,20 @@ components:
           example: pktvisor
           description: Agent backend this policy is for. Cannot change once created.
         policy:
-          type: string
-          description: Agent backend specific policy data
+          type: object
+          description: Agent backend specific policy data in json format
           example:
-            value: "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+              version: 1.0
+              visor:
+                foo: bar
         policy_data:
           type: string
+          description: Agent backend specific policy data in yaml format
           example: "version: \"1.0\"\nvisor:\n    foo: \"bar\""
         format:
           type: string
           example: yaml
-          description: Policy text format
+          description: Policy text format needed to specify when a policy is a yaml
     PolicyPageSchema:
       type: object
       properties:
