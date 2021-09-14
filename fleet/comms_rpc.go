@@ -50,6 +50,8 @@ type AgentPolicyRPCPayload struct {
 
 const GroupRemovedRPCFunc = "group_removed"
 
+const PolicyRemovedRPCFunc = "policy_removed"
+
 // Edge -> Core
 
 const GroupMembershipReqRPCFunc = "group_membership_req"

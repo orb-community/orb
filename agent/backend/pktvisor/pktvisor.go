@@ -22,6 +22,8 @@ import (
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
 
+const DefaultBinary = "/usr/local/sbin/pktvisord"
+
 type pktvisorBackend struct {
 	logger     *zap.Logger
 	binary     string
@@ -222,6 +224,17 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]string
 		return errors.New("you must specify pktvisor configuration file")
 	}
 	return nil
+}
+
+func (p *pktvisorBackend) GetCapabilities() (map[string]interface{}, error) {
+	var taps interface{}
+	err := p.request("taps", &taps, http.MethodGet, nil, "")
+	if err != nil {
+		return nil, err
+	}
+	jsonBody := make(map[string]interface{})
+	jsonBody["taps"] = taps
+	return jsonBody, nil
 }
 
 func Register() bool {

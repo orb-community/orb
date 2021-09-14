@@ -11,7 +11,7 @@ export const STRINGS = {
   // Login Pages strings
   login: {
     presentation: {
-      description: 'An Open-Source Network observability platform',
+      description: 'An Open-Source dynamic edge observability platform',
       action: 'Unleash the power of small data with dynamic edge observability',
     },
     form: {
@@ -31,7 +31,7 @@ export const STRINGS = {
   // Sink Pages strings
   sink: {
     // sink statuses
-    status: {
+    state: {
       active: 'Active',
       error: 'Error',
     },
@@ -41,7 +41,7 @@ export const STRINGS = {
       name: 'Name',
       description: 'Description',
       tags: 'Tags',
-      status: 'Status',
+      state: 'Status',
       error: 'Error',
       backend: 'Service Type',
       config: 'Connection Details',
@@ -61,8 +61,8 @@ export const STRINGS = {
     // delete modal
     delete: {
       header: 'Delete Sink Confirmation',
-      body: 'Are you sure you want to delete this sink? This may cause policies which use this sink to become invalid. This action cannot be undone.',
-      warning: '*To confirm, type your sink label exactly as it appears',
+      body: 'Are you sure you want to delete this sink? This may cause Datasets which use this sink to become invalid. This action cannot be undone.',
+      warning: '*To confirm, type your Sink name exactly as it appears',
       delete: 'I Understand, Delete This Sink',
       close: 'Close',
     },
@@ -83,16 +83,16 @@ export const STRINGS = {
         select: 'Filter',
         name: 'Name',
         description: 'Description',
-        status: 'Status',
+        state: 'Status',
         type: 'Type',
         tags: 'Tags',
       },
     },
   },
   // agents
-  agents: {
+  agentGroups: {
     // statuses
-    status: {
+    state: {
       active: 'Active',
       error: 'Error',
     },
@@ -104,7 +104,7 @@ export const STRINGS = {
       key: 'Key',
       value: 'Value',
       tags: 'Tags',
-      status: 'Status',
+      state: 'Status',
       error: 'Error',
       ts_created: 'Date Created',
       matches: 'Matches Against',
@@ -138,8 +138,8 @@ export const STRINGS = {
 // delete modal
     delete: {
       header: 'Delete Agent Group Confirmation',
-      body: 'Are you sure you want to delete this Agent Group? This action cannot be undone.',
-      warning: '*To confirm, type the Agent Group label exactly as it appears',
+      body: 'Are you sure you want to delete this Agent Group? This may cause Datasets which use this Agent Group to become invalid. This action cannot be undone.',
+      warning: '*To confirm, type the Agent Group name exactly as it appears',
       delete: 'I Understand, Delete This Agent Group',
       close: 'Close',
     },
@@ -155,21 +155,21 @@ export const STRINGS = {
       agentGroup: 'agent',
       total: ['You have', 'total.'],
       error: 'have errors.',
-      create: 'New Agent',
+      create: 'New Agent Group',
       filters: {
         select: 'Filter',
         name: 'Name',
         description: 'Description',
-        status: 'Status',
+        state: 'Status',
         type: 'Type',
         tags: 'Tags',
       },
     },
   },
   // agent groups
-  agentGroups: {
+  agents: {
     // statuses
-    status: {
+    state: {
       active: 'Active',
       error: 'Error',
     },
@@ -226,7 +226,7 @@ export const STRINGS = {
         select: 'Filter',
         name: 'Name',
         description: 'Description',
-        status: 'Status',
+        state: 'Status',
         type: 'Type',
         tags: 'Tags',
       },

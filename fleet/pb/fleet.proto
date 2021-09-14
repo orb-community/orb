@@ -5,6 +5,7 @@ option go_package = "fleet/pb";
 
 service FleetService {
   rpc RetrieveAgent(AgentByIDReq) returns (AgentRes) {}
+  rpc RetrieveAgentGroup(AgentGroupByIDReq) returns (AgentGroupRes) {}
 }
 
 message AgentByIDReq {
@@ -13,6 +14,17 @@ message AgentByIDReq {
 }
 
 message AgentRes {
+  string id = 1;
+  string name = 2;
+  string channel = 3;
+}
+
+message AgentGroupByIDReq {
+  string agentGroupID = 1;
+  string ownerID = 2;
+}
+
+message AgentGroupRes {
   string id = 1;
   string name = 2;
   string channel = 3;

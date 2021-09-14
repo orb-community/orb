@@ -48,9 +48,20 @@ visor:
 	invalidToken = "invalid"
 	maxNameSize  = 1024
 	contentType  = "application/json"
+	wrongID      = "28ea82e7-0224-4798-a848-899a75cdc650"
 )
 
 var (
+	validJson = `{
+    "name": "mypktvisorpolicyyaml-3",
+    "description": "my pktvisor policy yaml",
+    "tags": {
+        "region": "eu",
+        "node_type": "dns"
+    },
+    "format": "yaml",
+    "policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+}`
 	metadata    = map[string]interface{}{"type": "orb_agent"}
 	invalidName = strings.Repeat("m", maxNameSize+1)
 )
@@ -85,7 +96,7 @@ func (tr testRequest) make() (*http.Response, error) {
 
 func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
-	return policies.New(auth, policyRepo)
+	return policies.New(nil, auth, policyRepo)
 }
 
 func newServer(svc policies.Service) *httptest.Server {
@@ -134,13 +145,11 @@ func TestViewPolicy(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/policies/%s", cli.server.URL, tc.ID),
+				url:    fmt.Sprintf("%s/policies/agent/%s", cli.server.URL, tc.ID),
 				token:  tc.token,
 			}
 			res, err := req.make()
-			if err != nil {
-				require.Nil(t, err, "%s: Unexpected error: %s", desc, err)
-			}
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected %d got %d", desc, tc.status, res.StatusCode))
 		})
 	}
@@ -301,7 +310,7 @@ func TestListPolicies(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf(fmt.Sprintf("%s/policies%s", cli.server.URL, tc.url)),
+				url:    fmt.Sprintf(fmt.Sprintf("%s/policies/agent%s", cli.server.URL, tc.url)),
 				token:  tc.auth,
 			}
 			res, err := req.make()
@@ -313,6 +322,155 @@ func TestListPolicies(t *testing.T) {
 			assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
 		})
 	}
+}
+
+func TestPolicyEdition(t *testing.T) {
+	cli := newClientServer(t)
+	policy := createPolicy(t, &cli, "policy")
+
+	cases := map[string]struct {
+		id          string
+		contentType string
+		auth        string
+		status      int
+		data        string
+	}{
+		"update a existing policy": {
+			id:          policy.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
+			data:        validJson,
+		},
+		"update policy with a empty json request": {
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data:        "{}",
+		},
+		"update policy with a invalid id": {
+			data:        validJson,
+			id:          "invalid",
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusNotFound,
+		},
+		"update non-existing policy": {
+			data:        validJson,
+			id:          wrongID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusNotFound,
+		},
+		"update policy with invalid user token": {
+			data:        validJson,
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        "invalid",
+			status:      http.StatusUnauthorized,
+		},
+		"update policy with empty user token": {
+			data:        validJson,
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+		},
+		"update policy with invalid content type": {
+			data:        validJson,
+			id:          policy.ID,
+			contentType: "invalid",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+		},
+		"update policy without content type": {
+			data:        validJson,
+			id:          policy.ID,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+		},
+		"update policy with a empty request": {
+			data:        "",
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update policy with a invalid data format": {
+			data:        "{",
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPut,
+				url:         fmt.Sprintf("%s/policies/agent/%s", cli.server.URL, tc.id),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.data),
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
+func TestPolicyRemoval(t *testing.T) {
+	cli := newClientServer(t)
+
+	plcy := createPolicy(t, &cli, "policy")
+
+	cases := map[string]struct {
+		id     string
+		auth   string
+		status int
+	}{
+		"delete a existing policy": {
+			id:     plcy.ID,
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+		"delete non-existent policy": {
+			id:     wrongID,
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+		"delete policy with invalid token": {
+			id:     plcy.ID,
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+		},
+		"delete policy with empty token": {
+			id:     plcy.ID,
+			auth:   "",
+			status: http.StatusUnauthorized,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodDelete,
+				url:    fmt.Sprintf("%s/policies/agent/%s", cli.server.URL, tc.id),
+				token:  tc.auth,
+			}
+
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+
 }
 
 func TestCreatePolicy(t *testing.T) {
@@ -386,14 +544,10 @@ func TestCreatePolicy(t *testing.T) {
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	validName, err := types.NewIdentifier(name)
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	policy := policies.Policy{
 		ID:      ID.String(),
@@ -402,9 +556,7 @@ func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy 
 	}
 
 	res, err := cli.service.AddPolicy(context.Background(), token, policy, format, policy_data)
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 	return res
 }
 

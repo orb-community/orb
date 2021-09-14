@@ -5,19 +5,18 @@
     <h4>All Agents</h4>
   </header>
   <div class="d-flex flex-column mt-4">
-    <div class="d-flex justify-content-between mb-2">
+    <div class="d-flex justify-content-between align-items-end mb-2">
       <div class="d-flex">
         <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
-           class="sink-info-regular">
-          You have <a><strong>{{paginationControls.data.length}}</strong> agents</a> deployed in
-          <a><strong>{{paginationControls.data.length}}</strong> regions.</a>
+           class="sink-info-regular mb-0">
+          You have <a><strong>{{paginationControls.data.length}}</strong> agents and</a>
         </p>
         <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
            class="ns1red">
-          <a><strong>{{paginationControls.data.length}}</strong> have errors</a>.
+          &nbsp;<a><strong>{{paginationControls.data.length}}</strong> of them  have errors</a>.
         </p>
         <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
-           class="sink-info-accent">
+           class="sink-info-accent mb-0">
           There are no agents yet.
         </p>
       </div>
@@ -55,7 +54,7 @@
         </nb-form-field>
       </div>
     </div>
-    <div class="d-flex add-agent-container">
+    <div class="add-agent-container">
       <button nbButton
               ghost="true"
               status="primary"
@@ -101,8 +100,13 @@
     <mat-chip-list>
       <mat-chip
           class="orb-tag-sink "
-          *ngFor="let tag of value | keyvalue">
-        {{tag.key}}, {{tag.value}}
+          *ngFor="let tag of row.agent_tags | keyvalue">
+        {{tag.key}} : {{tag.value}}
+      </mat-chip>
+      <mat-chip
+          class="orb-tag-sink "
+          *ngFor="let tag of row.orb_tags | keyvalue">
+        {{tag.key}} : {{tag.value}}
       </mat-chip>
     </mat-chip-list>
   </div>

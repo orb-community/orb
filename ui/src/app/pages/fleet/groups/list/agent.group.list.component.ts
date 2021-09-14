@@ -19,7 +19,7 @@ import { Debounce } from 'app/shared/decorators/utils';
   styleUrls: ['./agent.group.list.component.scss'],
 })
 export class AgentGroupListComponent implements OnInit, AfterViewInit {
-  strings = STRINGS.agents;
+  strings = STRINGS.agentGroups;
 
   columnMode = ColumnMode;
   columns: TableColumn[];
@@ -187,5 +187,5 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  filterByActive = (agent) => agent.status === 'active';
+  filterByActive = (agent) => agent.state === 'active';
 }

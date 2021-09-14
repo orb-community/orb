@@ -1,99 +1,55 @@
-<div class="container">
-  <header>
-    <xng-breadcrumb class="orb-breadcrumb">
-    </xng-breadcrumb>
-    <h4>Agent Detail</h4>
-  </header>
-  <div class="d-flex flex-row">
-    <div class="d-flex flex-column col-6">
-      <!--Agent Information Card-->
-      <nb-card size="large" class="nb-card-large">
-        <nb-card-header>
-          <p>Agent Information</p>
-          <button nbButton
-                  ghost="true"
-                  size="small"
-                  class="orb-close-dialog"
-                  (click)="onClose()">Manage
-          </button>
-        </nb-card-header>
-        <nb-card-body>
-          <div class="row">
-            <p class="detail-title">Agent Name</p>
-            <p>{{agent.name}}</p>
-          </div>
-          <div class="row">
-            <p class="detail-title">Version</p>
-            <p>!WIP!</p>
-          </div>
-          <div class="row">
-            <p class="detail-title">Location</p>
-            <p>!WIP!</p>
-          </div>
-        </nb-card-body>
-      </nb-card>
+<nb-card size="large" class="nb-card-medium">
+  <nb-card-header>
+    {{strings.details.header}}
+    <button nbButton
+            ghost="true"
+            size="small"
+            class="orb-close-dialog"
+            (click)="onClose()">
+      <span class="nb-close"></span>
+    </button>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.name}}<span class="ns1red">*</span></p>
+        <p>{{ agent.name }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Channel ID</p>
+        <p>{{ agent?.channel_id }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Created on</p>
+        <p>{{ agent?.ts_created | date }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Status</p>
+        <p>{{ agent?.state }}</p>
+      </div>
     </div>
-    <div class="d-flex flex-column col-6">
-      <!--Tags/Vitals Card-->
-      <nb-card size="large" class="nb-card-large">
-        <nb-card-header>
-          <p>Tags/Vitals</p>
-          <button nbButton
-                  ghost="true"
-                  size="small"
-                  class="orb-close-dialog"
-                  (click)="onClose()">Manage
-          </button>
-        </nb-card-header>
-        <nb-card-body>
-          <div class="row">
-            <p class="detail-title">Key Value Pairs</p>
-            <p>!WIP!</p>
-          </div>
-        </nb-card-body>
-      </nb-card>
-
-      <!--Heartbeat Card-->
-      <nb-card size="large" class="nb-card-large">
-        <nb-card-header>
-          <p>Heartbeat</p>
-          <button nbButton
-                  ghost="true"
-                  size="small"
-                  class="orb-close-dialog"
-                  (click)="onClose()">View
-          </button>
-        </nb-card-header>
-        <nb-card-body>
-          <div class="row">
-            <p class="detail-title">Last Seen</p>
-            <p>{{agent.ts_lst_hb}}</p>
-          </div>
-          <div class="row">
-            <p class="detail-title">Health Status</p>
-            <p>{{agent.state}}</p>
-          </div>
-        </nb-card-body>
-      </nb-card>
-
-      <!--Active Datasets Card-->
-      <nb-card size="large" class="nb-card-large">
-        <nb-card-header>
-          <p>Active Datasets</p>
-          <button nbButton
-                  ghost="true"
-                  size="small"
-                  class="orb-close-dialog"
-                  (click)="onClose()">View
-          </button>
-        </nb-card-header>
-        <nb-card-body>
-          <div class="row">
-            <p class="detail-title">Name</p>
-            <p>!WIP!</p>
-          </div>
-        </nb-card-body>
-      </nb-card>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Tags<span class="ns1red">*</span></p>
+        <div>
+          <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
+            <mat-chip
+                class="orb-tag-sink "
+                *ngFor="let tag of agent.agent_tags | keyvalue | tagchip">
+              {{tag}}
+            </mat-chip>
+            <mat-chip
+                class="orb-tag-sink "
+                *ngFor="let tag of agent.orb_tags | keyvalue | tagchip">
+              {{tag}}
+            </mat-chip>
+          </mat-chip-list>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(agent)">Edit</button>
+  </nb-card-footer>
+</nb-card>

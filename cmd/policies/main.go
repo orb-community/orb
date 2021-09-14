@@ -59,10 +59,10 @@ func main() {
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
+	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
 
 	// todo sinks gRPC
-	// todo fleet mgr gRPC
 
 	// main logger
 	var logger *zap.Logger
@@ -84,6 +84,9 @@ func main() {
 
 	authGRPCConn := connectToGRPC(authGRPCCfg, logger)
 	defer authGRPCConn.Close()
+
+	fleetGRPCConn := connectToGRPC(fleetGRPCCfg, logger)
+	defer fleetGRPCConn.Close()
 
 	authGRPCTimeout, err := time.ParseDuration(authGRPCCfg.Timeout)
 	if err != nil {
@@ -158,7 +161,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client) policies.Service {
 	thingsRepo := postgres.NewPoliciesRepository(db, logger)
 
-	svc := policies.New(auth, thingsRepo)
+	svc := policies.New(logger, auth, thingsRepo)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient, logger)
 	svc = policieshttp.NewLoggingMiddleware(svc, logger)
 	svc = policieshttp.MetricsMiddleware(

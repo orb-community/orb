@@ -22,8 +22,6 @@ type Agent interface {
 	Stop()
 }
 
-const HeartbeatFreq = 60 * time.Second
-
 type orbAgent struct {
 	logger   *zap.Logger
 	config   config.Config

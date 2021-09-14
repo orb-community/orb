@@ -36,7 +36,7 @@ func retrieveSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			name:        sink.Name.String(),
 			description: sink.Description,
 			tags:        tagData,
-			status:      sink.Status,
+			state:       sink.State,
 			error:       sink.Error,
 			backend:     sink.Backend,
 			config:      configData,

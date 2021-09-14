@@ -25,11 +25,17 @@ func (a *orbAgent) sendCapabilities() error {
 	for name, be := range a.backends {
 		ver, err := be.Version()
 		if err != nil {
-			a.logger.Error("backend failed to retrieve version", zap.String("backend", name), zap.Error(err))
+			a.logger.Error("backend failed to retrieve version, skipping", zap.String("backend", name), zap.Error(err))
+			continue
+		}
+		cp, err := be.GetCapabilities()
+		if err != nil {
+			a.logger.Error("backend failed to retrieve capabilities, skipping", zap.String("backend", name), zap.Error(err))
 			continue
 		}
 		capabilities.Backends[name] = fleet.BackendInfo{
 			Version: ver,
+			Data:    cp,
 		}
 	}
 
@@ -38,6 +44,7 @@ func (a *orbAgent) sendCapabilities() error {
 		return err
 	}
 
+	a.logger.Info("sending capabilities", zap.ByteString("value", body))
 	if token := a.client.Publish(a.capabilitiesTopic, 1, false, body); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}

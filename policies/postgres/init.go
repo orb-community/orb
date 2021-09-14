@@ -46,6 +46,7 @@ func migrateDB(db *sqlx.DB) error {
 
 						name           TEXT NOT NULL,
 						mf_owner_id    UUID NOT NULL,
+						description    TEXT NOT NULL DEFAULT '',
 
 						orb_tags       JSONB NOT NULL DEFAULT '{}',
 

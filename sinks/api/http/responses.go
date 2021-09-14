@@ -15,7 +15,7 @@ type sinkRes struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 	Tags        types.Tags     `json:"tags,omitempty"`
-	Status      string         `json:"status,omitempty"`
+	State       string         `json:"state,omitempty"`
 	Error       string         `json:"error,omitempty"`
 	Backend     string         `json:"backend,omitempty"`
 	Config      types.Metadata `json:"config,omitempty"`
@@ -119,7 +119,7 @@ type validateSinkRes struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 	Tags        types.Tags     `json:"tags,omitempty"`
-	Status      string         `json:"status,omitempty"`
+	State       string         `json:"state,omitempty"`
 	Error       string         `json:"error,omitempty"`
 	Backend     string         `json:"backend,omitempty"`
 	Config      types.Metadata `json:"config,omitempty"`

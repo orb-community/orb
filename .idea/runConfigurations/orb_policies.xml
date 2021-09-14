@@ -9,6 +9,8 @@
       <env name="ORB_POLICIES_GRPC_URL" value="policies:8282" />
       <env name="ORB_POLICIES_GRPC_TIMEOUT" value="1s" />
       <env name="MF_AUTH_GRPC_URL" value="localhost:8181" />
+      <env name="ORB_FLEET_GRPC_URL" value="localhost:8283" />
+      <env name="ORB_FLEET_GRPC_TIMEOUT" value="1s" />
     </envs>
     <kind value="FILE" />
     <package value="github.com/ns1labs/orb" />

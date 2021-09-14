@@ -73,16 +73,8 @@ export class AgentListComponent implements OnInit, AfterViewInit {
         prop: 'name',
         name: 'Name',
         resizeable: false,
-        flexGrow: 1,
+        flexGrow: 3,
         minWidth: 90,
-      },
-      {
-        prop: 'agent_tags',
-        name: 'Agent Tags',
-        resizeable: false,
-        minWidth: 90,
-        flexGrow: 2,
-        cellTemplate: this.agentTagsTemplateCell,
       },
       {
         prop: 'state',
@@ -94,16 +86,16 @@ export class AgentListComponent implements OnInit, AfterViewInit {
       },
       {
         prop: 'orb_tags',
-        name: 'Orb Tags',
+        name: 'Tags',
         minWidth: 90,
-        flexGrow: 3,
+        flexGrow: 4,
         cellTemplate: this.agentTagsTemplateCell,
       },
       {
         prop: 'ts_lst_hb',
         name: 'Last Activity',
         minWidth: 90,
-        flexGrow: 3,
+        flexGrow: 2,
         resizeable: false,
         sortable: false,
       },
@@ -113,7 +105,7 @@ export class AgentListComponent implements OnInit, AfterViewInit {
         minWidth: 130,
         resizeable: false,
         sortable: false,
-        flexGrow: 1,
+        flexGrow: 2,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
@@ -196,5 +188,5 @@ export class AgentListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  filterByActive = (agent) => agent.status === 'active';
+  filterByActive = (agent) => agent.state === 'active';
 }

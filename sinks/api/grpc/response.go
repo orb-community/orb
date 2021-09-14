@@ -13,7 +13,7 @@ type sinkRes struct {
 	name        string
 	description string
 	tags        []byte
-	status      string
+	state       string
 	error       string
 	backend     string
 	config      []byte
