@@ -313,7 +313,7 @@ func TestCreateDataset(t *testing.T) {
 			token:   token,
 			err:     nil,
 		},
-		"create a policy with an invalid token": {
+		"create a dataset with an invalid token": {
 			dataset: dataset,
 			token:   invalidToken,
 			err:     policies.ErrUnauthorizedAccess,
