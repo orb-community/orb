@@ -232,6 +232,27 @@ paths:
           description: Missing or invalid access token provided.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /policies/dataset/validate:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    post:
+      summary: 'Validate a Policy Dataset configuration without saving it'
+      operationId: validateDataset
+      tags:
+        - dataset
+      requestBody:
+        $ref: "#/components/requestBodies/DatasetCreateReq"
+      responses:
+        '200':
+          $ref: "#/components/responses/DatasetObjRes"
+        '400':
+          description: Failed due to malformed JSON
+        '401':
+          description: Missing or invalid access token provided..
+        '415':
+          description: Mising or invalid content type.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
   requestBodies:
     PolicyCreateReq:
