@@ -306,7 +306,6 @@ func TestValidateDataset(t *testing.T) {
 	cases := map[string]struct {
 		dataset  policies.Dataset
 		token    string
-		valid    bool
 		err      error
 	}{
 		"validate a new dataset": {
