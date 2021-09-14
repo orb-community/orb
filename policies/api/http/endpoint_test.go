@@ -48,6 +48,8 @@ visor:
 	invalidJson              = "{"
 	conflictValidDatasetJson = "{\n    \"name\": \"my-dataset-conflict\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": f5b2d342-211d-a9ab-1233-63199a3fc16f\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
 	validDatasetJson         = "{\n    \"name\": \"mydataset\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": f5b2d342-211d-a9ab-1233-63199a3fc16f\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+	validDatasetYaml         = `{"name": "mydataset", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
+	conflictValidDatasetYaml = `{"name": "my-dataset-conflict", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
 )
 
 var (
@@ -486,35 +488,35 @@ func TestCreateDataset(t *testing.T) {
 		status      int
 		location    string
 	}{
-		"add a valid policy": {
-			req:         validDatasetJson,
+		"add a valid dataset": {
+			req:         validDatasetYaml,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusCreated,
 			location:    "/policies/dataset",
 		},
-		"add a policy with an invalid json": {
+		"add a dataset with an invalid json": {
 			req:         invalidJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/policies/dataset",
 		},
-		"add a duplicated policy": {
-			req:         conflictValidDatasetJson,
+		"add a duplicated dataset": {
+			req:         conflictValidDatasetYaml,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusConflict,
 			location:    "/policies/dataset",
 		},
-		"add a valid policy with an invalid token": {
-			req:         validDatasetJson,
+		"add a valid dataset with an invalid token": {
+			req:         validDatasetYaml,
 			contentType: contentType,
 			auth:        invalidToken,
 			status:      http.StatusUnauthorized,
 			location:    "/policies/dataset",
 		},
-		"add a valid policy without a content type": {
+		"add a valid dataset without a content type": {
 			req:         validDatasetJson,
 			contentType: "",
 			auth:        token,

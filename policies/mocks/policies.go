@@ -7,6 +7,7 @@ package mocks
 import (
 	"context"
 	"github.com/gofrs/uuid"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies"
 )
 
@@ -109,6 +110,12 @@ func (m *mockPoliciesRepository) RetrievePoliciesByGroupID(ctx context.Context, 
 }
 
 func (m *mockPoliciesRepository) SaveDataset(ctx context.Context, dataset policies.Dataset) (string, error) {
+	for _, d := range m.ddb {
+		if d.Name == dataset.Name && d.MFOwnerID == dataset.MFOwnerID {
+			return "", errors.ErrConflict
+		}
+	}
+
 	ID, _ := uuid.NewV4()
 	dataset.ID = ID.String()
 	m.ddb[dataset.ID] = dataset
