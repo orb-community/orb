@@ -297,6 +297,7 @@ func TestValidateDataset(t *testing.T) {
 		AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db",
 		PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b",
 		SinkID: "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f",
+		Valid: true,
 	}
 
 	users := flmocks.NewAuthService(map[string]string{token: email})
@@ -311,8 +312,12 @@ func TestValidateDataset(t *testing.T) {
 		"validate a new dataset": {
 			dataset: dataset,
 			token:   token,
-			valid:   true,
 			err:     nil,
+		},
+		"validate a dataset with a invalid token": {
+			dataset: dataset,
+			token:   invalidToken,
+			err:     policies.ErrUnauthorizedAccess,
 		},
 	}
 
