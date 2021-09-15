@@ -91,6 +91,9 @@ func TestMultiDatasetRetrieval(t *testing.T) {
 	oID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	wrongID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	n := uint64(10)
 	for i := uint64(0); i < n; i++ {
 		nameID, err := types.NewIdentifier(fmt.Sprintf("mydataset-%d", i))
@@ -116,6 +119,56 @@ func TestMultiDatasetRetrieval(t *testing.T) {
 				Offset: 0,
 				Limit:  n,
 				Total:  n,
+			},
+			size: n,
+		},
+		"retrieve subset of datasets with existing owner": {
+			owner: oID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: n / 2,
+				Limit:  n,
+				Total:  n,
+			},
+			size: n / 2,
+		},
+		"retrieve datasets with no-existing owner": {
+			owner: wrongID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  0,
+			},
+			size: 0,
+		},
+		"retrieve datasets with no-existing name": {
+			owner: oID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Name:   "wrong",
+				Total:  0,
+			},
+			size: 0,
+		},
+		"retrieve datasets sorted by name ascendent": {
+			owner: oID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Order:  "name",
+				Dir:    "asc",
+			},
+			size: n,
+		},
+		"retrieve policies sorted by name descendent": {
+			owner: oID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Order:  "name",
+				Dir:    "desc",
 			},
 			size: n,
 		},
