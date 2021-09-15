@@ -31,7 +31,7 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
 	ps := make(map[string]fleet.PolicyStateInfo)
 	pdata, err := a.policyManager.GetPolicyState()
-	if err != nil {
+	if err == nil {
 		for _, pd := range pdata {
 			ps[pd.ID] = fleet.PolicyStateInfo{
 				State: pd.State.String(),
