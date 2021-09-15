@@ -100,13 +100,15 @@
     <mat-chip-list>
       <mat-chip
           class="orb-tag-sink "
-          *ngFor="let tag of row.agent_tags | keyvalue">
-        {{tag.key}} : {{tag.value}}
+          *ngFor="let tag of row.agent_tags | keyvalue | tagchip"
+          [style.background-color]="tag | tagchipcolor">
+        {{tag}}
       </mat-chip>
       <mat-chip
-          class="orb-tag-sink "
-          *ngFor="let tag of row.orb_tags | keyvalue">
-        {{tag.key}} : {{tag.value}}
+          class="orb-tag-sink"
+          *ngFor="let tag of row.orb_tags | keyvalue | tagchip"
+          [style.background-color]="tag | tagchipcolor">
+        {{tag}}
       </mat-chip>
     </mat-chip-list>
   </div>
