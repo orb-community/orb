@@ -464,6 +464,16 @@ func TestAgentBackendTaps(t *testing.T) {
 			backend: "pktvisor",
 			err:     nil,
 		},
+		"Retrieve taps by a non-existing backend": {
+			token:   token,
+			backend: "orb",
+			err:     fleet.ErrNotFound,
+		},
+		"Retrieve taps by a provided backend with invalid token": {
+			token:   invalidToken,
+			backend: "pktvisor",
+			err:     fleet.ErrUnauthorizedAccess,
+		},
 	}
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
