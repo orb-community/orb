@@ -108,6 +108,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
         name: 'Tags',
         minWidth: 90,
         flexGrow: 3,
+        cellClass: Object,
         cellTemplate: this.agentGroupTagsTemplateCell,
       },
       {
