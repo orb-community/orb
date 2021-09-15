@@ -112,9 +112,10 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit {
     this.cdr.detectChanges();
   }
 
-  @Debounce(400)
+  @Debounce(500)
   getAgentGroups(pageInfo: NgxDatabalePageInfo = null): void {
-    const isFilter = pageInfo === null;
+    const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
+
     if (isFilter) {
       pageInfo = {
         offset: this.paginationControls.offset,
@@ -128,7 +129,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit {
     this.agentGroupsService.getAgentGroups(pageInfo, isFilter).subscribe(
       (resp: OrbPagination<AgentGroup>) => {
         this.paginationControls = resp;
-        this.paginationControls.offset = pageInfo.offset;
+
         this.loading = false;
       },
     );
