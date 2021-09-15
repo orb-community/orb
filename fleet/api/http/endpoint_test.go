@@ -1386,6 +1386,16 @@ func TestAgentBackendTaps(t *testing.T) {
 			backend: "pktvisor",
 			status:  http.StatusOK,
 		},
+		"Retrieve taps by a non-existing backend": {
+			token:   token,
+			backend: "orb",
+			status:  http.StatusNotFound,
+		},
+		"Retrieve taps by a provided backend with a invalid token": {
+			token:   invalidToken,
+			backend: "pktvisor",
+			status:  http.StatusUnauthorized,
+		},
 	}
 
 	for desc, tc := range cases {
