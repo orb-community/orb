@@ -1,10 +1,10 @@
-<div class="container">
+<div>
   <header>
     <xng-breadcrumb class="orb-breadcrumb">
     </xng-breadcrumb>
     <h4>All Agents</h4>
   </header>
-  <div class="d-flex flex-column mt-4">
+  <div #tableWrapper class="d-flex flex-column mt-4">
     <div class="d-flex justify-content-between align-items-end mb-2">
       <div class="d-flex">
         <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
@@ -62,7 +62,8 @@
         <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
     </div>
     <ngx-datatable
-        class="orb w-100"
+        #table
+        class="orb"
         style="height: calc(100vh - 300px)"
         [loadingIndicator]="loading"
         [externalPaging]="true"
