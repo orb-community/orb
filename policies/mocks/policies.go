@@ -131,3 +131,27 @@ func (m *mockPoliciesRepository) RetrieveDatasetByID(ctx context.Context, datase
 func (m *mockPoliciesRepository) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
 	panic("implement me")
 }
+
+func (m *mockPoliciesRepository) RetrieveAllDatasetByOwner(ctx context.Context, owner string, pm policies.PageMetadata) (policies.PageDataset, error) {
+	first := uint64(pm.Offset)
+	last := first + uint64(pm.Limit)
+
+	var datasetList []policies.Dataset
+	id := uint64(0)
+	for _, p := range m.ddb {
+		if p.MFOwnerID == owner && id >= first && id < last {
+			datasetList = append(datasetList, p)
+		}
+		id++
+	}
+
+	datasetList = sortDataset(pm, datasetList)
+
+	pageDataset := policies.PageDataset{
+		PageMetadata: policies.PageMetadata{
+			Total: m.policyCounter,
+		},
+		Datasets: datasetList,
+	}
+	return pageDataset, nil
+}
