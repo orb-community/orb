@@ -37,6 +37,9 @@ yarn build
 
 *(Check [package.json](./package.json) file for available tasks.)*
 
+
+### Development  
+
 While developing, it is useful to serve UI locally and have your changes to the code having effect immediately.
 
 The commands `yarn start` and `yarn start:withmock` will generate a dev build and serve it at `http://localhost:4200/`.
@@ -45,6 +48,19 @@ The commands `yarn start` and `yarn start:withmock` will generate a dev build an
 
 *([proxy-config.json](./proxy-config.json) re-routes all outbound requests when running local serve task)
 
+> When running develop builds locally with ng serve, it might be necessary to run the following commands to be able to watch the sum of files required.
+> [stackoverflow inotify](https://stackoverflow.com/a/55763478)  
+
+```sh
+# insert the new value into the system config
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+
+# check that the new value was applied
+cat /proc/sys/fs/inotify/max_user_watches
+
+# config variable name (not runnable)
+fs.inotify.max_user_watches=524288
+```
 
 ---
 
