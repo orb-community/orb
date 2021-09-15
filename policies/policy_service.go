@@ -215,3 +215,11 @@ func validatePolicyBackend(p *Policy, format string, policyData string) (err err
 	}
 	return nil
 }
+
+func (s policiesService) ListDataset(ctx context.Context, token string, pm PageMetadata) (PageDataset, error) {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return PageDataset{}, err
+	}
+	return s.repo.RetrieveAllDatasetByOwner(ctx, ownerID, pm)
+}

@@ -288,6 +288,54 @@ func TestRemovePolicy(t *testing.T) {
 	}
 }
 
+func TestListDataset(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	var datasetList []policies.Dataset
+	for i := 0; i < limit; i++ {
+		pl := createDataset(t, svc, fmt.Sprintf("dataset-%d", i))
+		datasetList = append(datasetList, pl)
+	}
+
+	cases := map[string]struct {
+		token string
+		pm    policies.PageMetadata
+		size  uint64
+		err   error
+	}{
+		"retrieve a list of datasets": {
+			token: token,
+			pm: policies.PageMetadata{
+				Limit:  limit,
+				Offset: 0,
+			},
+			size: limit,
+			err:  nil,
+		},
+		"list half": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: limit / 2,
+				Limit:  limit,
+			},
+			size: limit / 2,
+			err:  nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			page, err := svc.ListDataset(context.Background(), tc.token, tc.pm)
+			size := uint64(len(page.Datasets))
+			assert.Equal(t, size, tc.size, fmt.Sprintf("%s: expected %d got %d", desc, tc.size, size))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+			testSortDataset(t, tc.pm, page.Datasets)
+		})
+
+	}
+}
+
 func createPolicy(t *testing.T, svc policies.Service, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
@@ -313,7 +361,50 @@ func createPolicy(t *testing.T, svc policies.Service, name string) policies.Poli
 	return res
 }
 
+func createDataset(t *testing.T, svc policies.Service, name string) policies.Dataset {
+	t.Helper()
+	ID, err := uuid.NewV4()
+	if err != nil {
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	}
+
+	validName, err := types.NewIdentifier(name)
+	if err != nil {
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	}
+
+	dataset := policies.Dataset{
+		ID:      ID.String(),
+		Name:    validName,
+	}
+
+	res, err := svc.AddDataset(context.Background(), token, dataset)
+	if err != nil {
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	}
+	return res
+}
+
 func testSortPolicies(t *testing.T, pm policies.PageMetadata, ags []policies.Policy) {
+	t.Helper()
+	switch pm.Order {
+	case "name":
+		current := ags[0]
+		for _, res := range ags {
+			if pm.Dir == "asc" {
+				assert.GreaterOrEqual(t, res.Name.String(), current.Name.String())
+			}
+			if pm.Dir == "desc" {
+				assert.GreaterOrEqual(t, current.Name.String(), res.Name.String())
+			}
+			current = res
+		}
+	default:
+		break
+	}
+}
+
+func testSortDataset(t *testing.T, pm policies.PageMetadata, ags []policies.Dataset) {
 	t.Helper()
 	switch pm.Order {
 	case "name":
