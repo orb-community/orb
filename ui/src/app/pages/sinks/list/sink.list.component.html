@@ -63,7 +63,9 @@
       style="height: calc(100vh - 300px)"
       [loadingIndicator]="loading"
       [externalPaging]="true"
+      [externalSorting]="true"
       [count]="paginationControls.total"
+      [limit]="paginationControls.limit"
       [offset]="paginationControls.offset"
       [rows]="paginationControls.data"
       [scrollbarV]="true"
@@ -97,8 +99,9 @@
     <mat-chip-list>
       <mat-chip
           class="orb-tag-sink "
-          *ngFor="let tag of value | keyvalue | slice:0:3">
-        {{tag.key}} : {{tag.value}}
+          *ngFor="let tag of value | keyvalue | slice:0:3 | tagchip"
+          [style.background-color]="tag | tagchipcolor">
+          {{tag}}
       </mat-chip>
     </mat-chip-list>
   </div>

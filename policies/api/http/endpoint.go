@@ -192,3 +192,40 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(addPolicyReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		policy := policies.Policy{
+			Name:    nID,
+			Backend: req.Backend,
+			Policy:  req.Policy,
+			OrbTags: req.Tags,
+			Description: req.Description,
+		}
+
+		validated, err := svc.ValidatePolicy(ctx, req.token, policy, req.Format, req.PolicyData)
+		if err != nil {
+			return nil, err
+		}
+
+		res := policyValidateRes{
+			Name:    validated.Name.String(),
+			Backend: validated.Backend,
+			Tags:    validated.OrbTags,
+			Policy:  validated.Policy,
+			Description: validated.Description,
+		}
+
+		return res, nil
+	}
+}

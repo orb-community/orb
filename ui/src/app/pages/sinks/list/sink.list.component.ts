@@ -11,6 +11,7 @@ import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pa
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
+import { Sink } from 'app/common/interfaces/orb/sink.interface';
 
 @Component({
   selector: 'ngx-sink-list-component',
@@ -30,6 +31,11 @@ export class SinkListComponent implements OnInit, AfterViewInit {
   searchPlaceholder = 'Search by name';
   filterSelectedIndex = '0';
 
+  // templates
+  @ViewChild('sinkStateTemplateCell') sinkStateTemplateCell: TemplateRef<any>;
+  @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
+  @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+
   tableFilters: DropdownFilterItem[] = [
     {
       id: '0',
@@ -44,13 +50,6 @@ export class SinkListComponent implements OnInit, AfterViewInit {
       selected: false,
     },
   ];
-
-  // templates
-
-  @ViewChild('sinkStateTemplateCell') sinkStateTemplateCell: TemplateRef<any>;
-  @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
-  @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
-
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -121,9 +120,10 @@ export class SinkListComponent implements OnInit, AfterViewInit {
   }
 
 
-  @Debounce(400)
+  @Debounce(500)
   getSinks(pageInfo: NgxDatabalePageInfo = null): void {
-    const isFilter = pageInfo === null;
+    const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
+
     if (isFilter) {
       pageInfo = {
         offset: this.paginationControls.offset,
@@ -135,9 +135,9 @@ export class SinkListComponent implements OnInit, AfterViewInit {
 
     this.loading = true;
     this.sinkService.getSinks(pageInfo, isFilter).subscribe(
-      (resp: OrbPagination<AgentGroup>) => {
+      (resp: OrbPagination<Sink>) => {
         this.paginationControls = resp;
-        this.paginationControls.offset = pageInfo.offset;
+
         this.loading = false;
       },
     );

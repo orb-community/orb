@@ -473,6 +473,110 @@ func TestPolicyRemoval(t *testing.T) {
 
 }
 
+func TestValidatePolicy(t *testing.T) {
+	var (
+		contentType = "application/json"
+		validYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidBackendYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "", "description": "my pktvisor policy yaml", "tags": { "region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidYaml = `{`
+		invalidTagYaml = `{"name": "mypktvisorpolicyyaml-3","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"invalid"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidNameYaml = `{"name": "policy//.#","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidFieldYaml = `{"nname": "policy","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+	)
+	cli := newClientServer(t)
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"validate a valid policy": {
+			req:         validYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+			location:    "/policies/agent/validate",
+		},
+		"validate a invalid yaml": {
+			req:         invalidYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a invalid backend": {
+			req:         invalidBackendYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a invalid tag": {
+			req:         invalidTagYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a invalid name": {
+			req:         invalidNameYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a invalid field": {
+			req:         invalidFieldYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a invalid token": {
+			req:         validYaml,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a empty token": {
+			req:         validYaml,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+			location:    "/policies/agent/validate",
+		},
+		"validate a policy with a empty content type": {
+			req:         validYaml,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/policies/agent/validate",
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodPost,
+				url:    fmt.Sprintf("%s/policies/agent/validate", cli.server.URL),
+				contentType: tc.contentType,
+				token:  tc.auth,
+				body: strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			if err != nil {
+				require.Nil(t, err, "%s: Unexpected error: %s", desc, err)
+			}
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+
+}
+
 func TestCreatePolicy(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()

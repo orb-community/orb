@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { of } from 'rxjs';
 import 'rxjs/add/observable/empty';
 import 'rxjs/add/observable/of';
 
@@ -41,7 +41,7 @@ const getAgentList = (size) => {
 };
 
 const genGroupList = () => {
-  const agents = getAgentList(Faker.datatype.number({min: 3, max: 9}));
+  const agents = getAgentList(Faker.datatype.number({ min: 3, max: 9 }));
   return ({
     id: uuid.v4(),
     name: Faker.company.companyName(),
@@ -52,7 +52,7 @@ const genGroupList = () => {
     ts_created: getTimeStamp(),
     matching_agents: {
       total: agents.length,
-      online: Faker.datatype.number({min: agents.length / 3, max: agents.length}),
+      online: Faker.datatype.number({ min: agents.length / 3, max: agents.length }),
     },
     agents: agents,
   });
@@ -88,8 +88,7 @@ const addAgentGroupItem = (agentItem: AgentGroup) => {
 @Injectable()
 export class AgentsMockService {
 
-  constructor(
-  ) {
+  constructor() {
     for (let i = 0; i < 10; i++) {
       const group = genGroupList();
       agentGroupList.push(group);
@@ -99,12 +98,12 @@ export class AgentsMockService {
   addAgentGroup(agentItem: AgentGroup) {
     addAgentGroupItem(agentItem);
 
-    return Observable.of(agentItem);
+    return of(agentItem);
   }
 
   getAgentGroupById(agentId: string): any {
     const agent = getAgentGroupById(agentId);
-    return Observable.of(agent);
+    return of(agent);
   }
 
   getAgentGroups(filters: PageFilters) {
@@ -116,7 +115,7 @@ export class AgentsMockService {
       limit: filters.limit || defLimit,
     };
 
-    return Observable.of(reply);
+    return of(reply);
   }
 
   checkAgents(args) {
@@ -132,17 +131,17 @@ export class AgentsMockService {
       agents: [],
     };
 
-    return Observable.of(newAgentgroup);
+    return of(newAgentgroup);
   }
 
   editAgentGroup(agentItem: Agent): any {
     const agent = updateAgentGroupItem(agentItem);
-    return Observable.of(agent);
+    return of(agent);
   }
 
   deleteAgentGroup(agentId: string) {
     const agent = getAgentGroupById(agentId);
     deleteAgentGroupItem(agentId);
-    return Observable.of(agent);
+    return of(agent);
   }
 }
