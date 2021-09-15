@@ -110,11 +110,12 @@ func (p *pktvisorBackend) checkAlive() (bool, error) {
 	return true, nil
 }
 
-func (p *pktvisorBackend) ApplyPolicy(policy interface{}) error {
+func (p *pktvisorBackend) ApplyPolicy(policyID string, policyData interface{}) error {
 
-	p.logger.Info("pktvisor policy", zap.Any("data", policy))
+	p.logger.Info("pktvisor policy", zap.Any("data", policyData))
 
-	pyaml, err := yaml.Marshal(policy)
+	// TODO add header with policyID
+	pyaml, err := yaml.Marshal(policyData)
 	if err != nil {
 		return err
 	}
@@ -123,6 +124,17 @@ func (p *pktvisorBackend) ApplyPolicy(policy interface{}) error {
 	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(pyaml), "application/x-yaml")
 	if err != nil {
 		p.logger.Debug("yaml policy failure", zap.ByteString("policy", pyaml))
+		return err
+	}
+
+	return nil
+
+}
+
+func (p *pktvisorBackend) RemovePolicy(policyID string) error {
+	var resp interface{}
+	err := p.request(fmt.Sprintf("policies/%s", policyID), &resp, http.MethodDelete, nil, "")
+	if err != nil {
 		return err
 	}
 

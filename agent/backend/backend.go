@@ -13,7 +13,9 @@ type Backend interface {
 	Stop() error
 
 	GetCapabilities() (map[string]interface{}, error)
-	ApplyPolicy(interface{}) error
+
+	ApplyPolicy(policyID string, policyData interface{}) error
+	RemovePolicy(policyID string) error
 }
 
 var registry = make(map[string]Backend)
