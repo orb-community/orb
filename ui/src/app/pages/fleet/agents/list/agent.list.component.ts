@@ -190,5 +190,11 @@ export class AgentListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  filterByError = (agent) => agent.error_state;
+  filterByError = (agent) => !!agent && agent?.error_state && agent.error_state;
+  mapRegion = (agent) =>  !!agent && agent?.orb_tags && !!agent.orb_tags['region'] && agent.orb_tags['region'];
+  filterValid = (value) => !!value && typeof value === 'string';
+  countUnique = (value, index, self) => {
+    return self.indexOf(value) === index;
+  }
+
 }

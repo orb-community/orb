@@ -7,9 +7,9 @@
   <div class="d-flex flex-column mt-4">
     <div class="d-flex justify-content-between align-items-end mb-2">
       <div class="d-flex">
-        <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
+        <p *ngIf="paginationControls.data && paginationControls.data.length> 0"
            class="sink-info-regular mb-0">
-          You have <strong>{{paginationControls.data.length}} groups</strong>.
+          You have <strong>{{paginationControls.total}} groups</strong>.
         </p>
         <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
            class="sink-info-accent mb-0">
