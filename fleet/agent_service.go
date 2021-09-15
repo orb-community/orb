@@ -241,19 +241,56 @@ func (svc fleetService) ViewAgentBackendTaps(ctx context.Context, token string, 
 
 	var list []types.Metadata
 	for _, mt := range metadataList {
-		test(mt, &list)
+		extractTaps(mt, &list)
 	}
-	return []BackendTaps{}, nil
+
+	res, err := toBackendTaps(list)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
-func test(mt map[string]interface{}, list *[]types.Metadata) {
+func extractTaps(mt map[string]interface{}, list *[]types.Metadata) {
 	for k, v := range mt {
 		if k == "taps" {
 			m, _ := v.(map[string]interface{})
 			*list = append(*list, m)
 		} else {
 			m, _ := v.(map[string]interface{})
-			test(m, list)
+			extractTaps(m, list)
 		}
 	}
+}
+
+func toBackendTaps(list []types.Metadata) ([]BackendTaps, error) {
+	var bkTaps []BackendTaps
+	for _, tc := range list {
+		bkTap := BackendTaps{}
+		var idx int
+		for k, v := range tc {
+			bkTap.Name = k
+			m, ok := v.(map[string]interface{})
+			if !ok {
+				return nil, errors.New("Error to group taps")
+			}
+			for k, v := range m {
+				if k == "config" {
+					m, ok := v.(map[string]interface{})
+					if !ok {
+						return nil, errors.New("Error to group taps")
+					}
+					for k, _ := range m {
+						bkTap.ConfigPredefined = append(bkTap.ConfigPredefined, []string{k}...)
+					}
+				} else {
+					bkTap.InputType = k
+				}
+			}
+			idx++
+			bkTap.MatchingAgents += uint64(idx)
+			bkTaps = append(bkTaps, bkTap)
+		}
+	}
+	return bkTaps, nil
 }

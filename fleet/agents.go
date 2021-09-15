@@ -73,6 +73,38 @@ type BackendTaps struct {
 	MatchingAgents   uint64
 }
 
+/*[
+  {"name": "anycast_dns",
+   "input_type": "pcap",
+   "config_predefined": [ "iface" ],
+   "agents": {
+     "total": 12
+   }
+  }
+]*/
+
+//"agent_metadata": {
+//    "backends": {
+//        "pktvisor": {
+//            "data": {
+//                "taps": {
+//                    "mydefault": {
+//                        "config": {
+//                            "iface": "en0"
+//                        },
+//                        "input_type": "pcap",
+//                        "interface": "visor.module.input/1.0"
+//                    }
+//                }
+//            },
+//            "version": "3.3.0-develop"
+//        }
+//    },
+//    "orb_agent": {
+//        "version": "1.0.0-develop"
+//    }
+//},
+
 // AgentService Agent CRUD interface
 type AgentService interface {
 	// CreateAgent creates new agent
