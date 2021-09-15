@@ -158,6 +158,20 @@ func (l loggingMiddleware) InactivateDatasetByGroupID(ctx context.Context, group
 	return l.svc.InactivateDatasetByGroupID(ctx, groupID, token)
 }
 
+func (l loggingMiddleware) ValidatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: validate_policy",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: validate_policy",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ValidatePolicy(ctx, token, p, format, policyData)
+}
+
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {
 	return &loggingMiddleware{logger, svc}
 }
