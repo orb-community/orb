@@ -11,7 +11,6 @@ import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pa
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
 
 @Component({
   selector: 'ngx-sink-list-component',
@@ -137,7 +136,8 @@ export class SinkListComponent implements OnInit, AfterViewInit {
     this.sinkService.getSinks(pageInfo, isFilter).subscribe(
       (resp: OrbPagination<Sink>) => {
         this.paginationControls = resp;
-
+        this.paginationControls.offset = pageInfo.offset;
+        this.paginationControls.total = resp.total;
         this.loading = false;
       },
     );
