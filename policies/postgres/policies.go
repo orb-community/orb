@@ -392,6 +392,65 @@ func (r policiesRepository) RetrieveDatasetByID(ctx context.Context, datasetID s
 	return toDataset(dba), nil
 }
 
+func (r policiesRepository) RetrieveAllDatasetByOwner(ctx context.Context, owner string, pm policies.PageMetadata) (policies.PageDataset, error) {
+	nameQuery, name := getNameQuery(pm.Name)
+	orderQuery := getOrderQuery(pm.Order)
+	dirQuery := getDirQuery(pm.Dir)
+	tags, tagsQuery, err := getTagsQuery(pm.Tags)
+	if err != nil {
+		return policies.PageDataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_id, metadata, ts_created 
+			FROM datasets
+			WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, orderQuery, dirQuery)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+		"limit":       pm.Limit,
+		"offset":      pm.Offset,
+		"name":        name,
+		"tags":        tags,
+	}
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return policies.PageDataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []policies.Dataset
+	for rows.Next() {
+		dbDataset := dbDataset{MFOwnerID: owner}
+		if err := rows.StructScan(&dbDataset); err != nil {
+			return policies.PageDataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		dataset := toDataset(dbDataset)
+		items = append(items, dataset)
+	}
+
+	count := fmt.Sprintf(`SELECT count(*)
+			FROM datasets
+			WHERE mf_owner_id = :mf_owner_id %s%s;`, nameQuery, tagsQuery)
+
+	total, err := total(ctx, r.db, count, params)
+	if err != nil {
+		return policies.PageDataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	page := policies.PageDataset{
+		Datasets: items,
+		PageMetadata: policies.PageMetadata{
+			Total:  total,
+			Offset: pm.Offset,
+			Limit:  pm.Limit,
+			Order:  pm.Order,
+			Dir:    pm.Dir,
+		},
+	}
+
+	return page, nil
+}
+
 type dbPolicy struct {
 	ID          string           `db:"id"`
 	Name        types.Identifier `db:"name"`

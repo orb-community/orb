@@ -83,3 +83,74 @@ func TestDatasetSave(t *testing.T) {
 		})
 	}
 }
+
+func TestMultiDatasetRetrieval(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		nameID, err := types.NewIdentifier(fmt.Sprintf("mydataset-%d", i))
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+		dataset := policies.Dataset{
+			Name:      nameID,
+			MFOwnerID: oID.String(),
+		}
+
+		_, err = repo.SaveDataset(context.Background(), dataset)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner        string
+		pageMetadata policies.PageMetadata
+		size         uint64
+	}{
+		"retrieve all datasets with existing owner": {
+			owner: oID.String(),
+			pageMetadata: policies.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+			},
+			size: n,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			pageDataset, err := repo.RetrieveAllDatasetByOwner(context.Background(), tc.owner, tc.pageMetadata)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s\n", desc, err))
+			size := uint64(len(pageDataset.Datasets))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
+			assert.Equal(t, tc.pageMetadata.Total, pageDataset.Total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.pageMetadata.Total, pageDataset.Total))
+
+			if size > 0 {
+				testSortDataset(t, tc.pageMetadata, pageDataset.Datasets)
+			}
+		})
+	}
+}
+
+func testSortDataset(t *testing.T, pm policies.PageMetadata, ags []policies.Dataset) {
+	t.Helper()
+	switch pm.Order {
+	case "name":
+		current := ags[0]
+		for _, res := range ags {
+			if pm.Dir == "asc" {
+				assert.GreaterOrEqual(t, res.Name.String(), current.Name.String())
+			}
+			if pm.Dir == "desc" {
+				assert.GreaterOrEqual(t, current.Name.String(), res.Name.String())
+			}
+			current = res
+		}
+	default:
+		break
+	}
+}
