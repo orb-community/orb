@@ -9,6 +9,14 @@
 package grpc
 
 type policyRes struct {
+	id      string
+	name    string
+	backend string
+	version int32
+	data    []byte
+}
+
+type policyInDSRes struct {
 	id        string
 	name      string
 	backend   string
@@ -17,8 +25,8 @@ type policyRes struct {
 	datasetID string
 }
 
-type policyListRes struct {
-	policies []policyRes
+type policyInDSListRes struct {
+	policies []policyInDSRes
 }
 
 type emptyRes struct {

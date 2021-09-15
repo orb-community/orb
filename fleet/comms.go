@@ -31,13 +31,13 @@ type AgentCommsService interface {
 	NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error
 	// NotifyAgentGroupMembership RPC Core -> Agent: Notify Agent of all AgentGroup memberships
 	NotifyAgentGroupMembership(a Agent) error
-	// NotifyAgentPolicies RPC Core -> Agent: Notify Agent of all AgentPolicy it should currently run based on group membership
-	NotifyAgentPolicies(a Agent) error
-	// NotifyGroupNewAgentPolicy RPC Core -> AgentGroup
-	NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
+	// NotifyAgentAllDatasets RPC Core -> Agent: Notify Agent of all Policy it should currently run based on group membership and current Datasets
+	NotifyAgentAllDatasets(a Agent) error
+	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
+	NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 	// NotifyGroupRemoval unsubscribe the agent membership when delete a agent group
 	NotifyGroupRemoval(ag AgentGroup) error
-	// NotifyPolicyRemoval stop agent policy utilization after policy removal
+	// NotifyPolicyRemoval stop agent policy utilization after Policy removal
 	NotifyPolicyRemoval(ag AgentGroup) error
 }
 
@@ -59,7 +59,7 @@ type fleetCommsService struct {
 	agentPubSub mfnats.PubSub
 }
 
-func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error {
+func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error {
 	p, err := svc.policyClient.RetrievePolicy(ctx, &pb.PolicyByIDReq{PolicyID: policyID, OwnerID: ownerID})
 	if err != nil {
 		return err
@@ -71,11 +71,12 @@ func (svc fleetCommsService) NotifyGroupNewAgentPolicy(ctx context.Context, ag A
 	}
 
 	payload := []AgentPolicyRPCPayload{{
-		ID:      policyID,
-		Name:    p.Name,
-		Backend: p.Backend,
-		Version: p.Version,
-		Data:    pdata,
+		ID:        policyID,
+		Name:      p.Name,
+		Backend:   p.Backend,
+		Version:   p.Version,
+		Data:      pdata,
+		DatasetID: datasetID,
 	}}
 
 	data := RPC{
@@ -135,7 +136,7 @@ func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGrou
 
 }
 
-func (svc fleetCommsService) NotifyAgentPolicies(a Agent) error {
+func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
@@ -175,11 +176,12 @@ func (svc fleetCommsService) NotifyAgentPolicies(a Agent) error {
 		}
 
 		payload[i] = AgentPolicyRPCPayload{
-			ID:      policy.Id,
-			Name:    policy.Name,
-			Backend: policy.Backend,
-			Version: policy.Version,
-			Data:    pdata,
+			ID:        policy.Id,
+			Name:      policy.Name,
+			Backend:   policy.Backend,
+			Version:   policy.Version,
+			Data:      pdata,
+			DatasetID: policy.DatasetId,
 		}
 
 	}
@@ -387,7 +389,7 @@ func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, p
 			return nil
 		}
 	case AgentPoliciesReqRPCFunc:
-		if err := svc.NotifyAgentPolicies(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
+		if err := svc.NotifyAgentAllDatasets(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
 			svc.logger.Error("notify agent policies failure", zap.Error(err))
 			return nil
 		}
