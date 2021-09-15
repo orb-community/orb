@@ -36,6 +36,14 @@ type pktvisorBackend struct {
 	adminAPIProtocol string
 }
 
+func (p *pktvisorBackend) GetState() (backend.State, string, error) {
+	_, err := p.checkAlive()
+	if err != nil {
+		return backend.Unknown, "", err
+	}
+	return backend.Running, "", nil
+}
+
 // AppMetrics represents server application information
 type AppMetrics struct {
 	App struct {

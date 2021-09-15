@@ -6,6 +6,7 @@ package agent
 
 import (
 	"encoding/json"
+	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"time"
@@ -17,10 +18,21 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
 	a.logger.Debug("heartbeat")
 
+	bes := make(map[string]fleet.BackendStateInfo)
+	for name, be := range a.backends {
+		state, errmsg, err := be.GetState()
+		if err != nil {
+			a.logger.Error("failed to retrieve backend state", zap.String("backend", name))
+			bes[name] = fleet.BackendStateInfo{State: backend.AgentError.String(), Error: err.Error()}
+			continue
+		}
+		bes[name] = fleet.BackendStateInfo{State: state.String(), Error: errmsg}
+	}
+
 	hbData := fleet.Heartbeat{
 		SchemaVersion: fleet.CurrentHeartbeatSchemaVersion,
 		TimeStamp:     t,
-		State:         state,
+		BackendState:  bes,
 	}
 
 	body, err := json.Marshal(hbData)

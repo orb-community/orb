@@ -6,6 +6,33 @@ package backend
 
 import "go.uber.org/zap"
 
+const (
+	Unknown State = iota
+	Running
+	BackendError
+	AgentError
+)
+
+type State int
+
+var stateMap = [...]string{
+	"unknown",
+	"running",
+	"backend_error",
+	"agent_error",
+}
+
+var stateRevMap = map[string]State{
+	"unknown":       Unknown,
+	"running":       Running,
+	"backend_error": BackendError,
+	"agent_error":   AgentError,
+}
+
+func (s State) String() string {
+	return stateMap[s]
+}
+
 type Backend interface {
 	Configure(*zap.Logger, map[string]string) error
 	Version() (string, error)
@@ -13,6 +40,7 @@ type Backend interface {
 	Stop() error
 
 	GetCapabilities() (map[string]interface{}, error)
+	GetState() (State, string, error)
 
 	ApplyPolicy(policyID string, policyData interface{}) error
 	RemovePolicy(policyID string) error

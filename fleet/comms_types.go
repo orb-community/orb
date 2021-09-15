@@ -47,8 +47,20 @@ type Capabilities struct {
 
 const CurrentHeartbeatSchemaVersion = "1.0"
 
+type BackendStateInfo struct {
+	State string `json:"state"`
+	Error string `json:"error"`
+}
+
+type PolicyStateInfo struct {
+	State string `json:"state"`
+	Error string `json:"error"`
+}
+
 type Heartbeat struct {
-	SchemaVersion string    `json:"schema_version"`
-	TimeStamp     time.Time `json:"ts"`
-	State         State     `json:"state"`
+	SchemaVersion string                      `json:"schema_version"`
+	TimeStamp     time.Time                   `json:"ts"`
+	State         State                       `json:"state"`
+	BackendState  map[string]BackendStateInfo `json:"backend_state"`
+	PolicyState   map[string]PolicyStateInfo  `json:"policy_state"`
 }
