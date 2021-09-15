@@ -322,6 +322,64 @@ func TestListDataset(t *testing.T) {
 			size: limit / 2,
 			err:  nil,
 		},
+		"list last dataset": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: limit - 1,
+				Limit:  limit,
+			},
+			size: 1,
+			err:  nil,
+		},
+		"list empty set": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: limit + 1,
+				Limit:  limit,
+			},
+			size: 0,
+			err:  nil,
+		},
+		"list with zero limit": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: 1,
+				Limit:  0,
+			},
+			size: 0,
+			err:  nil,
+		},
+		"list with wrong credentials": {
+			token: "wrong",
+			pm: policies.PageMetadata{
+				Offset: 0,
+				Limit:  0,
+			},
+			size: 0,
+			err:  policies.ErrUnauthorizedAccess,
+		},
+		"list all datasets sorted by name ascendent": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: 0,
+				Limit:  limit,
+				Order:  "name",
+				Dir:    "asc",
+			},
+			size: limit,
+			err:  nil,
+		},
+		"list all dataset sorted by name descendent": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: 0,
+				Limit:  limit,
+				Order:  "name",
+				Dir:    "desc",
+			},
+			size: limit,
+			err:  nil,
+		},
 	}
 
 	for desc, tc := range cases {
