@@ -6,7 +6,7 @@ import 'rxjs/add/observable/empty';
 import { environment } from 'environments/environment';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 
 // default filters
 const defLimit: number = 20;
