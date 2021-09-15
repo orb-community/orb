@@ -9,7 +9,7 @@
       <div class="d-flex">
         <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
            class="sink-info-regular mb-0">
-          You have <strong>{{paginationControls.data.filter(filterByActive).length}} groups</strong>.
+          You have <strong>{{paginationControls.data.length}} groups</strong>.
         </p>
         <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
            class="sink-info-accent mb-0">
@@ -62,7 +62,9 @@
         style="height: calc(100vh - 300px)"
         [loadingIndicator]="loading"
         [externalPaging]="true"
+        [externalSorting]="true"
         [count]="paginationControls.total"
+        [limit]="paginationControls.limit"
         [offset]="paginationControls.offset"
         [rows]="paginationControls.data"
         [scrollbarV]="true"
