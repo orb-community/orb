@@ -16,15 +16,16 @@ import (
 
 const (
 	Unknown State = iota
-	Applied
+	Running
 	Failed
+	Ended
 )
 
 type State int
 
 type policyData struct {
 	ID         string
-	Datasets   []string
+	Datasets   map[string]bool
 	Name       string
 	Backend    string
 	Version    int32
@@ -35,14 +36,16 @@ type policyData struct {
 
 var stateMap = [...]string{
 	"unknown",
-	"applied",
+	"running",
 	"failed",
+	"ended",
 }
 
 var stateRevMap = map[string]State{
 	"unknown": Unknown,
-	"applied": Applied,
+	"running": Running,
 	"failed":  Failed,
+	"ended":   Ended,
 }
 
 func (s State) String() string {
@@ -61,13 +64,16 @@ var _ PolicyManager = (*policyManager)(nil)
 type policyManager struct {
 	logger *zap.Logger
 	config config.Config
-	db     *sqlx.DB
 
 	repo PolicyRepo
 }
 
 func New(logger *zap.Logger, c config.Config, db *sqlx.DB) (PolicyManager, error) {
-	return &policyManager{logger: logger, config: c, db: db}, nil
+	repo, err := NewMemRepo(logger)
+	if err != nil {
+		return nil, err
+	}
+	return &policyManager{logger: logger, config: c, repo: repo}, nil
 }
 
 func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
@@ -96,12 +102,13 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			}
 		} else {
 			pd := policyData{
-				ID:      payload.ID,
-				Name:    payload.Name,
-				Backend: payload.Backend,
-				Version: payload.Version,
-				Data:    payload.Data,
-				State:   Unknown,
+				ID:       payload.ID,
+				Name:     payload.Name,
+				Backend:  payload.Backend,
+				Version:  payload.Version,
+				Data:     payload.Data,
+				State:    Unknown,
+				Datasets: map[string]bool{payload.DatasetID: true},
 			}
 			err := be.ApplyPolicy(payload.ID, payload.Data)
 			if err != nil {
@@ -109,13 +116,9 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 				pd.State = Failed
 				pd.BackendErr = err.Error()
 			} else {
-				pd.State = Applied
+				pd.State = Running
 			}
 			a.repo.Add(pd)
-			err = a.repo.EnsureDataset(payload.ID, payload.DatasetID)
-			if err != nil {
-				a.logger.Warn("policy failed to ensure dataset id", zap.String("id", payload.ID), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
-			}
 		}
 		return
 	case "remove":

@@ -5,7 +5,7 @@
 package policies
 
 import (
-	"github.com/jmoiron/sqlx"
+	"errors"
 	"go.uber.org/zap"
 )
 
@@ -20,31 +20,57 @@ type PolicyRepo interface {
 
 type policyMemRepo struct {
 	logger *zap.Logger
-	db     *sqlx.DB
+
+	db map[string]policyData
+}
+
+func NewMemRepo(logger *zap.Logger) (PolicyRepo, error) {
+	r := &policyMemRepo{
+		logger: logger,
+		db:     make(map[string]policyData),
+	}
+	return r, nil
 }
 
 func (p policyMemRepo) EnsureDataset(policyID string, datasetID string) error {
-	panic("implement me")
+	policy, ok := p.db[policyID]
+	if !ok {
+		return errors.New("unknown policy ID")
+	}
+	policy.Datasets[datasetID] = true
+	return nil
 }
 
 func (p policyMemRepo) Exists(policyID string) bool {
-	panic("implement me")
+	_, ok := p.db[policyID]
+	return ok
 }
 
 func (p policyMemRepo) Get(policyID string) (policyData, error) {
-	panic("implement me")
+	policy, ok := p.db[policyID]
+	if !ok {
+		return policyData{}, errors.New("unknown policy ID")
+	}
+	return policy, nil
 }
 
 func (p policyMemRepo) Remove(policyID string) error {
-	panic("implement me")
+	delete(p.db, policyID)
+	return nil
 }
 
 func (p policyMemRepo) Add(data policyData) error {
-	panic("implement me")
+	p.db[data.ID] = data
+	return nil
 }
 
-func (p policyMemRepo) GetAll() ([]policyData, error) {
-	panic("implement me")
+func (p policyMemRepo) GetAll() (ret []policyData, err error) {
+	ret = make([]policyData, len(p.db))
+	for _, v := range p.db {
+		ret = append(ret, v)
+	}
+	err = nil
+	return ret, err
 }
 
 var _ PolicyRepo = (*policyMemRepo)(nil)
