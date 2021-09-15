@@ -22,17 +22,31 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 	for name, be := range a.backends {
 		state, errmsg, err := be.GetState()
 		if err != nil {
-			a.logger.Error("failed to retrieve backend state", zap.String("backend", name))
+			a.logger.Error("failed to retrieve backend state", zap.String("backend", name), zap.Error(err))
 			bes[name] = fleet.BackendStateInfo{State: backend.AgentError.String(), Error: err.Error()}
 			continue
 		}
 		bes[name] = fleet.BackendStateInfo{State: state.String(), Error: errmsg}
 	}
 
+	ps := make(map[string]fleet.PolicyStateInfo)
+	pdata, err := a.policyManager.GetPolicyState()
+	if err != nil {
+		for _, pd := range pdata {
+			ps[pd.ID] = fleet.PolicyStateInfo{
+				State: pd.State.String(),
+				Error: pd.BackendErr,
+			}
+		}
+	} else {
+		a.logger.Error("unable to retrieved policy state", zap.Error(err))
+	}
+
 	hbData := fleet.Heartbeat{
 		SchemaVersion: fleet.CurrentHeartbeatSchemaVersion,
 		TimeStamp:     t,
 		BackendState:  bes,
+		PolicyState:   ps,
 	}
 
 	body, err := json.Marshal(hbData)

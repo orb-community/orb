@@ -49,12 +49,12 @@ const CurrentHeartbeatSchemaVersion = "1.0"
 
 type BackendStateInfo struct {
 	State string `json:"state"`
-	Error string `json:"error"`
+	Error string `json:"error,omitempty"`
 }
 
 type PolicyStateInfo struct {
 	State string `json:"state"`
-	Error string `json:"error"`
+	Error string `json:"error,omitempty"`
 }
 
 type Heartbeat struct {

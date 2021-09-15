@@ -57,6 +57,7 @@ func (s State) Value() (driver.Value, error)  { return s.String(), nil }
 
 type PolicyManager interface {
 	ManagePolicy(payload fleet.AgentPolicyRPCPayload)
+	GetPolicyState() ([]policyData, error)
 }
 
 var _ PolicyManager = (*policyManager)(nil)
@@ -66,6 +67,10 @@ type policyManager struct {
 	config config.Config
 
 	repo PolicyRepo
+}
+
+func (a *policyManager) GetPolicyState() ([]policyData, error) {
+	return a.repo.GetAll()
 }
 
 func New(logger *zap.Logger, c config.Config, db *sqlx.DB) (PolicyManager, error) {
