@@ -70,7 +70,7 @@ type BackendTaps struct {
 	Name             string
 	InputType        string
 	ConfigPredefined []string
-	MatchingAgents   uint64
+	TotalAgents      uint64
 }
 
 /*[

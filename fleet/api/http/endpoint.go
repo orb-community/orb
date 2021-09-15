@@ -438,10 +438,21 @@ func viewAgentBackendTapsEndpoint(svc fleet.Service) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
-		res, err := svc.ViewAgentBackendTaps(ctx, req.token, req.id)
+		taps, err := svc.ViewAgentBackendTaps(ctx, req.token, req.id)
 		if err != nil {
 			return nil, err
 		}
+
+		var res []agentBackendTapsRes
+		for _, v := range taps {
+			res = append(res, agentBackendTapsRes{
+				Name:             v.Name,
+				InputType:        v.InputType,
+				ConfigPredefined: v.ConfigPredefined,
+				TotalAgents:      totalAgents{Total: v.TotalAgents},
+			})
+		}
+
 		return res, nil
 	}
 }

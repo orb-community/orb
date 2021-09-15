@@ -205,3 +205,26 @@ func (s agentBackendsRes) Headers() map[string]string {
 func (s agentBackendsRes) Empty() bool {
 	return false
 }
+
+type totalAgents struct {
+	Total uint64 `json:"total"`
+}
+
+type agentBackendTapsRes struct {
+	Name             string      `json:"name"`
+	InputType        string      `json:"input_type"`
+	ConfigPredefined []string    `json:"config_predefined"`
+	TotalAgents      totalAgents `json:"agents"`
+}
+
+func (res agentBackendTapsRes) Code() int {
+	return http.StatusOK
+}
+
+func (res agentBackendTapsRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (res agentBackendTapsRes) Empty() bool {
+	return true
+}

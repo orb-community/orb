@@ -10,6 +10,7 @@ package fleet
 
 import (
 	"context"
+	"fmt"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/fleet/backend"
@@ -248,9 +249,12 @@ func (svc fleetService) ViewAgentBackendTaps(ctx context.Context, token string, 
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
+	tapsGroup := groupTaps(res)
+
+	return tapsGroup, nil
 }
 
+// Used to get the taps from policy json
 func extractTaps(mt map[string]interface{}, list *[]types.Metadata) {
 	for k, v := range mt {
 		if k == "taps" {
@@ -263,6 +267,7 @@ func extractTaps(mt map[string]interface{}, list *[]types.Metadata) {
 	}
 }
 
+// Used to cast the map[string]interface for a concrete struct
 func toBackendTaps(list []types.Metadata) ([]BackendTaps, error) {
 	var bkTaps []BackendTaps
 	for _, tc := range list {
@@ -288,9 +293,38 @@ func toBackendTaps(list []types.Metadata) ([]BackendTaps, error) {
 				}
 			}
 			idx++
-			bkTap.MatchingAgents += uint64(idx)
+			bkTap.TotalAgents += uint64(idx)
 			bkTaps = append(bkTaps, bkTap)
 		}
 	}
 	return bkTaps, nil
+}
+
+// Used to aggregate and sumarize the taps and return a slice of BackendTaps
+func groupTaps(taps []BackendTaps) []BackendTaps {
+	tapsMap := make(map[string]BackendTaps)
+	for _, tap := range taps {
+		key := key(tap.Name, tap.InputType)
+		if v, ok := tapsMap[key]; ok {
+			v.ConfigPredefined = append(v.ConfigPredefined, tap.ConfigPredefined...)
+			v.TotalAgents += 1
+			tapsMap[key] = v
+		} else {
+			tapsMap[key] = BackendTaps{
+				Name:             tap.Name,
+				InputType:        tap.InputType,
+				ConfigPredefined: tap.ConfigPredefined,
+				TotalAgents:      tap.TotalAgents,
+			}
+		}
+	}
+	var bkTaps []BackendTaps
+	for _, v := range tapsMap {
+		bkTaps = append(bkTaps, v)
+	}
+	return bkTaps
+}
+
+func key(name string, inputType string) string {
+	return fmt.Sprintf("%s-%s", name, inputType)
 }
