@@ -32,7 +32,9 @@ func New(logger *zap.Logger, c config.Config, db *sqlx.DB) (PolicyManager, error
 func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 
 	a.logger.Info("managing agent policy from core",
+		zap.String("action", payload.Action),
 		zap.String("name", payload.Name),
+		zap.String("dataset", payload.DatasetID),
 		zap.String("backend", payload.Backend),
 		zap.String("id", payload.ID),
 		zap.Int32("version", payload.Version))
@@ -43,6 +45,8 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 	}
 
 	be := backend.GetBackend(payload.Backend)
+
+	// TODO check Action
 	err := be.ApplyPolicy(payload.Data)
 	if err != nil {
 		a.logger.Warn("policy failed to apply", zap.String("id", payload.ID), zap.Error(err))

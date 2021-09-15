@@ -9,7 +9,7 @@ var _ fleet.AgentCommsService = (*agentCommsServiceMock)(nil)
 
 type agentCommsServiceMock struct{}
 
-func (ac agentCommsServiceMock) NotifyPolicyRemoval(ag fleet.AgentGroup) error {
+func (ac agentCommsServiceMock) NotifyPolicyRemoval(policyID string, ag fleet.AgentGroup) error {
 	return nil
 }
 

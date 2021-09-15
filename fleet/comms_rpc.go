@@ -41,6 +41,7 @@ type AgentPolicyRPC struct {
 }
 
 type AgentPolicyRPCPayload struct {
+	Action    string      `json:"action"`
 	ID        string      `json:"id"`
 	DatasetID string      `json:"dataset_id"`
 	Name      string      `json:"name"`
@@ -50,8 +51,6 @@ type AgentPolicyRPCPayload struct {
 }
 
 const GroupRemovedRPCFunc = "group_removed"
-
-const PolicyRemovedRPCFunc = "policy_removed"
 
 // Edge -> Core
 

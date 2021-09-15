@@ -38,7 +38,7 @@ type AgentCommsService interface {
 	// NotifyGroupRemoval unsubscribe the agent membership when delete a agent group
 	NotifyGroupRemoval(ag AgentGroup) error
 	// NotifyPolicyRemoval stop agent policy utilization after Policy removal
-	NotifyPolicyRemoval(ag AgentGroup) error
+	NotifyPolicyRemoval(policyID string, ag AgentGroup) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -71,6 +71,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 	}
 
 	payload := []AgentPolicyRPCPayload{{
+		Action:    "manage",
 		ID:        policyID,
 		Name:      p.Name,
 		Backend:   p.Backend,
@@ -176,6 +177,7 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 		}
 
 		payload[i] = AgentPolicyRPCPayload{
+			Action:    "manage",
 			ID:        policy.Id,
 			Name:      policy.Name,
 			Backend:   policy.Backend,
@@ -280,11 +282,17 @@ func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
 	return nil
 }
 
-func (svc fleetCommsService) NotifyPolicyRemoval(ag AgentGroup) error {
+func (svc fleetCommsService) NotifyPolicyRemoval(policyID string, ag AgentGroup) error {
+
+	payload := AgentPolicyRPCPayload{
+		Action: "remove",
+		ID:     policyID,
+	}
 
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
-		Func:          PolicyRemovedRPCFunc,
+		Func:          AgentPolicyRPCFunc,
+		Payload:       payload,
 	}
 
 	body, err := json.Marshal(data)

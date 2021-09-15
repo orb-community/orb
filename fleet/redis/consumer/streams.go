@@ -176,7 +176,7 @@ func (es eventStore) handlePolicyRemove(ctx context.Context, e removePolicyEvent
 		if err != nil {
 			return err
 		}
-		err = es.commsService.NotifyPolicyRemoval(ag)
+		err = es.commsService.NotifyPolicyRemoval(e.id, ag)
 		if err != nil {
 			return err
 		}
