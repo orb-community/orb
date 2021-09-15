@@ -1,10 +1,10 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
-import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
+import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
@@ -18,7 +18,7 @@ import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.deta
   templateUrl: './agent.list.component.html',
   styleUrls: ['./agent.list.component.scss'],
 })
-export class AgentListComponent implements OnInit, AfterViewInit {
+export class AgentListComponent implements OnInit, AfterViewInit, AfterViewChecked {
   strings = STRINGS.agents;
 
   columnMode = ColumnMode;
@@ -60,6 +60,18 @@ export class AgentListComponent implements OnInit, AfterViewInit {
   ) {
     this.agentService.clean();
     this.paginationControls = AgentsService.getDefaultPagination();
+  }
+
+  @ViewChild('tableWrapper') tableWrapper;
+  @ViewChild(DatatableComponent) table: DatatableComponent;
+  private currentComponentWidth;
+  ngAfterViewChecked() {
+    if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
+      this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
+      this.table.recalculate();
+      this.cdr.detectChanges();
+      window.dispatchEvent(new Event('resize'));
+    }
   }
 
   ngOnInit() {

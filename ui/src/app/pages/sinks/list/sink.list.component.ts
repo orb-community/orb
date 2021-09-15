@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
@@ -6,7 +6,7 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
-import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
+import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
@@ -18,7 +18,7 @@ import { Sink } from 'app/common/interfaces/orb/sink.interface';
   templateUrl: './sink.list.component.html',
   styleUrls: ['./sink.list.component.scss'],
 })
-export class SinkListComponent implements OnInit, AfterViewInit {
+export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecked {
   strings = STRINGS.sink;
 
   columnMode = ColumnMode;
@@ -60,6 +60,18 @@ export class SinkListComponent implements OnInit, AfterViewInit {
   ) {
     this.sinkService.clean();
     this.paginationControls = SinksService.getDefaultPagination();
+  }
+
+  @ViewChild('tableWrapper') tableWrapper;
+  @ViewChild(DatatableComponent) table: DatatableComponent;
+  private currentComponentWidth;
+  ngAfterViewChecked() {
+    if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
+      this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
+      this.table.recalculate();
+      this.cdr.detectChanges();
+      window.dispatchEvent(new Event('resize'));
+    }
   }
 
   ngOnInit() {
