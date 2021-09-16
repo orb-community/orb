@@ -17,7 +17,7 @@
     <div class="pane d-flex flex-column justify-content-center">
 
     <form (ngSubmit)="register()" #form="ngForm" aria-labelledby="title">
-      <h1 id="title" class="title">Create and account</h1>
+      <h1 id="title" class="title">Create an account</h1>
 
       <nb-alert *ngIf="showMessages.error && errors?.length && !submitted" outline="danger" role="alert">
         <p class="alert-title"><b>Oh snap!</b></p>
