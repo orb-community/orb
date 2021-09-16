@@ -11,6 +11,7 @@ import { AgentGroupsService } from 'app/common/services/agents/agent.groups.serv
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 
 @Component({
@@ -55,6 +56,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
     private agentGroupsService: AgentGroupsService,
+    private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
   ) {
@@ -156,26 +158,29 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
   }
 
   onOpenEdit(agentGroup: any) {
-    this.router.navigate([`edit/${agentGroup.id}`], {
-      state: {agentGroup: agentGroup, edit: true},
+    this.router.navigate([`edit/${ agentGroup.id }`], {
+      state: { agentGroup: agentGroup, edit: true },
       relativeTo: this.route,
     });
   }
 
   onFilterSelected(selectedIndex) {
-    this.searchPlaceholder = `Search by ${this.tableFilters[selectedIndex].label}`;
+    this.searchPlaceholder = `Search by ${ this.tableFilters[selectedIndex].label }`;
   }
 
   openDeleteModal(row: any) {
-    const {name, id} = row;
+    const { name, id } = row;
     this.dialogService.open(AgentGroupDeleteComponent, {
-      context: {name},
+      context: { name },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.agentGroupsService.deleteAgentGroup(id).subscribe(() => this.getAgentGroups());
+          this.agentGroupsService.deleteAgentGroup(id).subscribe(() => {
+            this.notificationsService.success('Agent Group successfully deleted', '');
+            this.getAgentGroups();
+          });
         }
       },
     );
@@ -183,7 +188,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
 
   openDetailsModal(row: any) {
     this.dialogService.open(AgentGroupDetailsComponent, {
-      context: {agentGroup: row},
+      context: { agentGroup: row },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe((resp) => {
@@ -201,5 +206,4 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
       [this.tableFilters[this.filterSelectedIndex].prop]: input,
     });
   }
-
 }
