@@ -35,8 +35,14 @@ func (m *mockPoliciesRepository) DeletePolicy(ctx context.Context, ownerID strin
 }
 
 func (m *mockPoliciesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
-	//todo implement when create the unit tests to datasets
-	return nil, nil
+	var datasetList []policies.Dataset
+	for _, d := range m.ddb{
+		if d.PolicyID == policyID && d.MFOwnerID == ownerID{
+			datasetList = append(datasetList, d)
+		}
+	}
+
+	return datasetList, nil
 }
 
 func (m *mockPoliciesRepository) UpdatePolicy(ctx context.Context, owner string, pol policies.Policy) error {
@@ -149,7 +155,10 @@ func (m *mockPoliciesRepository) RetrieveAllDatasetByOwner(ctx context.Context, 
 
 	pageDataset := policies.PageDataset{
 		PageMetadata: policies.PageMetadata{
-			Total: m.policyCounter,
+			Total:  m.dataSetCounter,
+			Offset: pm.Offset,
+			Limit:  pm.Limit,
+			Dir:    pm.Dir,
 		},
 		Datasets: datasetList,
 	}
