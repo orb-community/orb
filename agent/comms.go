@@ -45,6 +45,7 @@ func (a *orbAgent) nameAgentRPCTopics(channelId string) {
 	a.capabilitiesTopic = fmt.Sprintf("%s/%s", base, fleet.CapabilitiesTopic)
 	a.heartbeatsTopic = fmt.Sprintf("%s/%s", base, fleet.HeartbeatsTopic)
 	a.logTopic = fmt.Sprintf("%s/%s", base, fleet.LogTopic)
+	a.baseTopic = base
 
 }
 
@@ -66,6 +67,10 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 	}
 
 	a.nameAgentRPCTopics(config.ChannelID)
+
+	for name, be := range a.backends {
+		be.SetCommsClient(&a.client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
+	}
 
 	if token := a.client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
 		a.logger.Error("failed to subscribe to RPC topic", zap.String("topic", a.rpcFromCoreTopic), zap.Error(token.Error()))

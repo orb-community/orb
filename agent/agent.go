@@ -33,6 +33,7 @@ type orbAgent struct {
 	hbDone   chan bool
 
 	// Agent RPC channel, configured from command line
+	baseTopic         string
 	rpcToCoreTopic    string
 	rpcFromCoreTopic  string
 	capabilitiesTopic string

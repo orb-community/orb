@@ -4,7 +4,10 @@
 
 package backend
 
-import "go.uber.org/zap"
+import (
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"go.uber.org/zap"
+)
 
 const (
 	Unknown State = iota
@@ -35,6 +38,7 @@ func (s State) String() string {
 
 type Backend interface {
 	Configure(*zap.Logger, map[string]string) error
+	SetCommsClient(*mqtt.Client, string)
 	Version() (string, error)
 	Start() error
 	Stop() error

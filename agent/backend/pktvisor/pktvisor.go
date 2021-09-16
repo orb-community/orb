@@ -9,7 +9,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-cmd/cmd"
+	"github.com/go-co-op/gocron"
 	"github.com/ns1labs/orb/agent/backend"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -31,9 +33,18 @@ type pktvisorBackend struct {
 	proc       *cmd.Cmd
 	statusChan <-chan cmd.Status
 
+	mqttClient *mqtt.Client
+	jsonTopic  string
+	scraper    *gocron.Scheduler
+
 	adminAPIHost     string
 	adminAPIPort     uint16
 	adminAPIProtocol string
+}
+
+func (p *pktvisorBackend) SetCommsClient(client *mqtt.Client, baseTopic string) {
+	p.mqttClient = client
+	p.jsonTopic = fmt.Sprintf("%s/m/json", baseTopic)
 }
 
 func (p *pktvisorBackend) GetState() (backend.State, string, error) {
@@ -122,8 +133,19 @@ func (p *pktvisorBackend) ApplyPolicy(policyID string, policyData interface{}) e
 
 	p.logger.Info("pktvisor policy", zap.Any("data", policyData))
 
-	// TODO add header with policyID
-	pyaml, err := yaml.Marshal(policyData)
+	// add header with "p_policyID" as policy name
+	// note pktvisor doesn't allow policy names to start with a number, thus the prefix
+	pktvisorPolicyName := fmt.Sprintf("p_%s", policyID)
+	fullPolicy := map[string]interface{}{
+		"version": "1.0",
+		"visor": map[string]interface{}{
+			"policies": map[string]interface{}{
+				pktvisorPolicyName: policyData,
+			},
+		},
+	}
+
+	pyaml, err := yaml.Marshal(fullPolicy)
 	if err != nil {
 		return err
 	}
@@ -134,6 +156,14 @@ func (p *pktvisorBackend) ApplyPolicy(policyID string, policyData interface{}) e
 		p.logger.Debug("yaml policy failure", zap.ByteString("policy", pyaml))
 		return err
 	}
+
+	_, _ = p.scraper.Every(1).Minute().Tag(policyID).Do(func() {
+		metrics, err := p.scrapeMetrics(policyID, 0)
+		if err != nil {
+			p.logger.Error("scrape failed", zap.String("policy_id", policyID), zap.Error(err))
+		}
+		p.logger.Debug("scrape", zap.Any("m", metrics))
+	})
 
 	return nil
 
@@ -218,6 +248,9 @@ func (p *pktvisorBackend) Start() error {
 
 	p.logger.Info("pktvisor process started", zap.Int("pid", status.PID))
 
+	p.scraper = gocron.NewScheduler(time.UTC)
+	p.scraper.StartAsync()
+
 	return nil
 }
 
@@ -229,6 +262,7 @@ func (p *pktvisorBackend) Stop() error {
 		p.logger.Error("pktvisor shutdown error", zap.Error(err))
 		return err
 	}
+	p.scraper.Stop()
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
 	return nil
 }
@@ -244,6 +278,15 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]string
 		return errors.New("you must specify pktvisor configuration file")
 	}
 	return nil
+}
+
+func (p *pktvisorBackend) scrapeMetrics(policyID string, period uint) (map[string]interface{}, error) {
+	var metrics map[string]interface{}
+	err := p.request(fmt.Sprintf("policies/p_%s/metrics/bucket/%d", policyID, period), &metrics, http.MethodGet, nil, "")
+	if err != nil {
+		return nil, err
+	}
+	return metrics, nil
 }
 
 func (p *pktvisorBackend) GetCapabilities() (map[string]interface{}, error) {
