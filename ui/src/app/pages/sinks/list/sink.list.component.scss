@@ -99,11 +99,17 @@ tr div p {
     font-size: 12px;
     line-height: 12px;
 
-    ::ng-deep .xng-breadcrumb-trail {
-      color: #ffffff;
-      margin-bottom: 0;
-
-      &::before {
+    ::ng-deep {
+      .xng-breadcrumb-trail {
+        color: #ffffff;
+        margin-bottom: 0;
+      }
+      .xng-breadcrumb-link {
+        text-decoration: none !important;
+        color: #969fb9 !important;
+      }
+     .xng-breadcrumb-separator {
+        text-decoration: none !important;
         color: #969fb9 !important;
       }
     }
