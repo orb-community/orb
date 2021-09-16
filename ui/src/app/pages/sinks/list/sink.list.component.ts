@@ -7,11 +7,12 @@ import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.compo
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
   selector: 'ngx-sink-list-component',
@@ -54,6 +55,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
+    private notificationsService: NotificationsService,
     private sinkService: SinksService,
     private route: ActivatedRoute,
     private router: Router,
@@ -149,7 +151,8 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     this.sinkService.getSinks(pageInfo, isFilter).subscribe(
       (resp: OrbPagination<Sink>) => {
         this.paginationControls = resp;
-
+        this.paginationControls.offset = pageInfo.offset;
+        this.paginationControls.total = resp.total;
         this.loading = false;
       },
     );
@@ -185,7 +188,10 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.sinkService.deleteSink(id).subscribe(() => this.getSinks());
+          this.sinkService.deleteSink(id).subscribe(() => {
+            this.getSinks();
+            this.notificationsService.success('Sink successfully deleted', '');
+          });
         }
       },
     );

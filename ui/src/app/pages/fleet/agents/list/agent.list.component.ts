@@ -5,12 +5,13 @@ import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete.component';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 
 @Component({
@@ -55,6 +56,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
     private agentService: AgentsService,
+    private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
   ) {
@@ -142,7 +144,8 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     this.agentService.getAgents(pageInfo, isFilter).subscribe(
       (resp: OrbPagination<Agent>) => {
         this.paginationControls = resp;
-
+        this.paginationControls.offset = pageInfo.offset;
+        this.paginationControls.total = resp.total;
         this.loading = false;
       },
     );
@@ -174,7 +177,10 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.agentService.deleteAgent(id).subscribe(() => this.getAgents());
+          this.agentService.deleteAgent(id).subscribe(() => {
+            this.getAgents();
+            this.notificationsService.success('Agent successfully deleted', '');
+          });
         }
       },
     );
@@ -201,5 +207,11 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     });
   }
 
-  filterByActive = (agent) => agent.state === 'active';
+  filterByError = (agent) => !!agent && agent?.error_state && agent.error_state;
+  mapRegion = (agent) =>  !!agent && agent?.orb_tags && !!agent.orb_tags['region'] && agent.orb_tags['region'];
+  filterValid = (value) => !!value && typeof value === 'string';
+  countUnique = (value, index, self) => {
+    return self.indexOf(value) === index;
+  }
+
 }
