@@ -54,7 +54,7 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 		policies := make([]policyInDSRes, len(plist))
 		for i, policy := range plist {
-			data, err := json.Marshal(policy.Policy)
+			data, err := json.Marshal(policy.Policy.Policy)
 			if err != nil {
 				return policyInDSListRes{}, err
 			}
