@@ -393,7 +393,7 @@ func TestListDataset(t *testing.T) {
 			size: 0,
 			err:  policies.ErrUnauthorizedAccess,
 		},
-		"list all datasets sorted by name ascendent": {
+		"list all datasets sorted by name ascendant": {
 			token: token,
 			pm: policies.PageMetadata{
 				Offset: 0,
