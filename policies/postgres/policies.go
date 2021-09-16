@@ -375,7 +375,7 @@ func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, poli
 }
 
 func (r policiesRepository) RetrieveDatasetByID(ctx context.Context, datasetID string, ownerID string) (policies.Dataset, error) {
-	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
+	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_id, metadata, ts_created FROM datasets WHERE id = $1 AND mf_owner_id = $2`
 
 	if datasetID == "" || ownerID == "" {
 		return policies.Dataset{}, errors.ErrMalformedEntity

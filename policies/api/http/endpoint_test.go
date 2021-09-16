@@ -471,15 +471,15 @@ func TestPolicyRemoval(t *testing.T) {
 
 func TestViewDataset(t *testing.T) {
 	cli := newClientServer(t)
-	policy := createDataset(t, &cli, "dataset")
+	dataset := createDataset(t, &cli, "dataset")
 
 	cases := map[string]struct {
 		ID     string
 		token  string
 		status int
 	}{
-		"view a existing policy": {
-			ID:     policy.ID,
+		"view a existing dataset": {
+			ID:     dataset.ID,
 			token:  token,
 			status: http.StatusOK,
 		},
@@ -489,12 +489,12 @@ func TestViewDataset(t *testing.T) {
 			status: http.StatusNotFound,
 		},
 		"view a policy with a invalid token": {
-			ID:     policy.ID,
+			ID:     dataset.ID,
 			token:  "invalid",
 			status: http.StatusUnauthorized,
 		},
 		"view a policy with a empty token": {
-			ID:     policy.ID,
+			ID:     dataset.ID,
 			token:  "",
 			status: http.StatusUnauthorized,
 		},

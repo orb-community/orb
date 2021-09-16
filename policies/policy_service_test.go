@@ -288,6 +288,41 @@ func TestRemovePolicy(t *testing.T) {
 	}
 }
 
+func TestRetrieveDatasetByID(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	dataset := createDataset(t, svc, "dataset")
+
+	cases := map[string]struct {
+		id    string
+		token string
+		err   error
+	}{
+		"view an existing dataset": {
+			id:    dataset.ID,
+			token: token,
+			err:   nil,
+		},
+		"view policy with wrong credentials": {
+			id:    dataset.ID,
+			token: "wrong",
+			err:   policies.ErrUnauthorizedAccess,
+		},
+		"view non-existing policy": {
+			id:    "9bb1b244-a199-93c2-aa03-28067b431e2c",
+			token: token,
+			err:   policies.ErrNotFound,
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := svc.ViewDatasetByID(context.Background(), tc.token, tc.id)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
 func TestListDataset(t *testing.T) {
 	users := flmocks.NewAuthService(map[string]string{token: email})
 	svc := newService(users)
@@ -422,24 +457,19 @@ func createPolicy(t *testing.T, svc policies.Service, name string) policies.Poli
 func createDataset(t *testing.T, svc policies.Service, name string) policies.Dataset {
 	t.Helper()
 	ID, err := uuid.NewV4()
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	validName, err := types.NewIdentifier(name)
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	dataset := policies.Dataset{
-		ID:      ID.String(),
-		Name:    validName,
+		ID:   ID.String(),
+		Name: validName,
 	}
 
 	res, err := svc.AddDataset(context.Background(), token, dataset)
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
 	return res
 }
 

@@ -84,6 +84,52 @@ func TestDatasetSave(t *testing.T) {
 	}
 }
 
+func TestDatasetRetrieveByID(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("mypolicy")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		Name:      nameID,
+		MFOwnerID: oID.String(),
+	}
+
+	id, err := repo.SaveDataset(context.Background(), dataset)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	cases := map[string]struct {
+		datasetID string
+		ownerID   string
+		err       error
+	}{
+		"retrieve existing policy by ID and ownerID": {
+			datasetID: id,
+			ownerID:   dataset.MFOwnerID,
+			err:       nil,
+		},
+		"retrieve non-existent policy by ID and ownerID": {
+			datasetID: dataset.MFOwnerID,
+			ownerID:   id,
+			err:       errors.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			tcd, err := repo.RetrieveDatasetByID(context.Background(), tc.datasetID, tc.ownerID)
+			if err == nil {
+				assert.Equal(t, dataset.Name, tcd.Name, fmt.Sprintf("%s: unexpected name change expected %s got %s", desc, dataset.Name, tcd.Name))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
+	}
+}
+
 func TestMultiDatasetRetrieval(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
 	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
