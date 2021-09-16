@@ -166,7 +166,7 @@ export class AgentAddComponent {
       });
     } else {
       this.agentsService.addAgent(payload).subscribe(() => {
-        this.notificationsService.success('Sink successfully created', '');
+        this.notificationsService.success('Agent successfully created', '');
         this.goBack();
       });
     }
