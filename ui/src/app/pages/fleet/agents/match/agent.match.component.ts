@@ -1,4 +1,4 @@
-import { Component, Input, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
 import { STRINGS } from 'assets/text/strings';
 import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
@@ -14,23 +14,25 @@ import { AgentsService } from 'app/common/services/agents/agents.service';
   styleUrls: ['./agent.match.component.scss'],
 })
 
-export class AgentMatchComponent {
+export class AgentMatchComponent implements OnInit, AfterViewInit {
   strings = STRINGS.agents;
 
   @Input()
   agentGroup: AgentGroup;
 
-  matchingAgents: Agent[];
+  agents: Agent[];
 
-  tagMatch: TagMatch;
+  matchingAgents: TagMatch;
 
   isLoading = false;
 
   columnMode = ColumnMode;
+
   columns: TableColumn[];
 
   // templates
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
+
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
@@ -54,9 +56,54 @@ export class AgentMatchComponent {
   ) {
   }
 
+  ngOnInit() {
+    const { matching_agents, agents } = !!this.agentGroup && this.agentGroup || {
+      matching_agents: { total: 0, online: 0 },
+      agents: [],
+    };
+
+    this.agents = agents;
+    this.matchingAgents = matching_agents;
+  }
+
+  ngAfterViewInit() {
+    this.columns = [
+      {
+        prop: 'name',
+        name: 'Agent Name',
+        resizeable: false,
+        flexGrow: 1,
+        minWidth: 90,
+      },
+      {
+        prop: 'orb_tags',
+        name: 'Tags',
+        resizeable: false,
+        minWidth: 100,
+        flexGrow: 2,
+        cellTemplate: this.agentTagsTemplateCell,
+      },
+      {
+        prop: 'state',
+        name: 'Status',
+        minWidth: 90,
+        flexGrow: 1,
+        cellTemplate: this.agentStateTemplateRef,
+      },
+      {
+        name: 'Last Activity',
+        prop: 'ts_last_hb',
+        minWidth: 130,
+        resizeable: false,
+        sortable: false,
+        flexGrow: 1,
+      },
+    ];
+  }
+
   updateMatchingAgents() {
-    const {tags} = this.agentGroup;
-    const tagsList = Object.keys(tags).map(key => ({[key]: tags[key]}));
+    const { tags } = this.agentGroup;
+    const tagsList = Object.keys(tags).map(key => ({ [key]: tags[key] }));
     this.agentsService.getMatchingAgents(tagsList).subscribe(
       resp => {
         this.matchingAgents = resp;
