@@ -13,6 +13,8 @@ const ORB = {
     validateAgentsUrl: '/agents/validate',
     agentGroupsUrl: '/agent_groups',
     validateAgentGroupsUrl: '/agent_groups/validate',
+    agentPoliciesUrl: '/policies/agent',
+    datasetPoliciesUrl: '/policies/dataset',
     usersUrl: '/users',
     groupsUrl: '/groups',
     membersUrl: '/members',

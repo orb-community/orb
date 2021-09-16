@@ -22,12 +22,13 @@ import { IntervalService } from './services/interval/interval.service';
 // Orb
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 import { AgentsService } from 'app/common/services/agents/agents.service';
-import { DatasetsService } from 'app/common/services/datasets/datasets.service';
+import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
 import { FleetsService } from 'app/common/services/fleets/fleets.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 
 import { TokenInterceptor } from 'app/auth/auth.token.interceptor.service';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 
 // Orb mock
 
@@ -48,9 +49,10 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     FsService,
     IntervalService,
     // ORB Services
+    AgentPoliciesService,
     AgentGroupsService,
     AgentsService,
-    DatasetsService,
+    DatasetPoliciesService,
     FleetsService,
     SinksService,
     {
