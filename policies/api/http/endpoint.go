@@ -207,3 +207,36 @@ func viewDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(listResourcesReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		page, err := svc.ListDataset(ctx, req.token, req.pageMetadata)
+		if err != nil {
+			return nil, err
+		}
+
+		res := datasetPageRes{
+			pageRes: pageRes{
+				Total:  page.Total,
+				Offset: page.Offset,
+				Limit:  page.Limit,
+				Order:  page.Order,
+				Dir:    page.Dir,
+			},
+			Dataset: []datasetRes{},
+		}
+		for _, ag := range page.Datasets {
+			view := datasetRes{
+				ID:      ag.ID,
+				Name:    ag.Name.String(),
+			}
+			res.Dataset = append(res.Dataset, view)
+		}
+		return res, nil
+	}
+}

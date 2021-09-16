@@ -516,6 +516,54 @@ func TestViewDataset(t *testing.T) {
 
 }
 
+func TestListDataset(t *testing.T) {
+	cli := newClientServer(t)
+
+	var data []datasetRes
+	for i := 0; i < limit; i++ {
+		p := createDataset(t, &cli, fmt.Sprintf("datsets-%d", i))
+		data = append(data, datasetRes{
+			ID:      p.ID,
+			Name:    p.Name.String(),
+			created: true,
+		})
+	}
+
+	cases := map[string]struct {
+		auth   string
+		status int
+		url    string
+		res    []datasetRes
+		total  uint64
+	}{
+		"retrieve a list of datasets": {
+			auth:   token,
+			status: http.StatusOK,
+			url:    fmt.Sprintf("?offset=%d&limit=%d", 0, limit),
+			res:    data[0:limit],
+			total:  limit,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf(fmt.Sprintf("%s/policies/dataset%s", cli.server.URL, tc.url)),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var body datasetPageRes
+			json.NewDecoder(res.Body).Decode(&body)
+			total := uint64(len(body.Dataset))
+			assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+			assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		})
+	}
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
@@ -579,4 +627,17 @@ type policiesPageRes struct {
 	Offset   uint64      `json:"offset"`
 	Limit    uint64      `json:"limit"`
 	Policies []policyRes `json:"data"`
+}
+
+type datasetRes struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	created bool
+}
+
+type datasetPageRes struct {
+	Total   uint64       `json:"total"`
+	Offset  uint64       `json:"offset"`
+	Limit   uint64       `json:"limit"`
+	Dataset []datasetRes `json:"dataset"`
 }

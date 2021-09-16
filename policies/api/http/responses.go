@@ -97,6 +97,38 @@ type datasetRes struct {
 	created bool
 }
 
+func (s datasetRes) Code() int {
+	if s.created {
+		return http.StatusCreated
+	}
+
+	return http.StatusOK
+}
+
+func (s datasetRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s datasetRes) Empty() bool {
+	return false
+}
+
+type datasetPageRes struct {
+	pageRes
+	Dataset []datasetRes `json:"dataset"`
+}
+
+func (res datasetPageRes) Code() int {
+	return http.StatusOK
+}
+
+func (res datasetPageRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (res datasetPageRes) Empty() bool {
+	return false
+}
 //func (s datasetRes) Code() int {
 //	if s.created {
 //		return http.StatusCreated

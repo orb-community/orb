@@ -78,6 +78,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 		decodeView,
 		types.EncodeResponse,
 		opts...))
+	r.Get("/policies/dataset", kithttp.NewServer(
+		kitot.TraceServer(tracer, "list_dataset")(listDatasetEndpoint(svc)),
+		decodeList,
+		types.EncodeResponse,
+		opts...))
 
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
