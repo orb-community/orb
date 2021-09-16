@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
@@ -6,9 +6,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
-import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
+import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 
@@ -18,7 +18,7 @@ import { Debounce } from 'app/shared/decorators/utils';
   templateUrl: './agent.group.list.component.html',
   styleUrls: ['./agent.group.list.component.scss'],
 })
-export class AgentGroupListComponent implements OnInit, AfterViewInit {
+export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterViewChecked {
   strings = STRINGS.agentGroups;
 
   columnMode = ColumnMode;
@@ -62,6 +62,18 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit {
     this.paginationControls = AgentGroupsService.getDefaultPagination();
   }
 
+  @ViewChild('tableWrapper') tableWrapper;
+  @ViewChild(DatatableComponent) table: DatatableComponent;
+  private currentComponentWidth;
+  ngAfterViewChecked() {
+    if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
+      this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
+      this.table.recalculate();
+      this.cdr.detectChanges();
+      window.dispatchEvent(new Event('resize'));
+    }
+  }
+
   ngOnInit() {
     this.agentGroupsService.clean();
     this.getAgentGroups();
@@ -96,6 +108,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit {
         name: 'Tags',
         minWidth: 90,
         flexGrow: 3,
+        cellClass: Object,
         cellTemplate: this.agentGroupTagsTemplateCell,
       },
       {
@@ -112,9 +125,10 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit {
     this.cdr.detectChanges();
   }
 
-  @Debounce(400)
+  @Debounce(500)
   getAgentGroups(pageInfo: NgxDatabalePageInfo = null): void {
-    const isFilter = pageInfo === null;
+    const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
+
     if (isFilter) {
       pageInfo = {
         offset: this.paginationControls.offset,
@@ -129,6 +143,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit {
       (resp: OrbPagination<AgentGroup>) => {
         this.paginationControls = resp;
         this.paginationControls.offset = pageInfo.offset;
+        this.paginationControls.total = resp.total;
         this.loading = false;
       },
     );
@@ -187,5 +202,4 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  filterByActive = (agent) => agent.state === 'active';
 }

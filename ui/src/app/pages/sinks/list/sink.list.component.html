@@ -1,15 +1,15 @@
-<div class="container">
+<div>
   <header>
     <xng-breadcrumb class="orb-breadcrumb">
     </xng-breadcrumb>
     <h4>{{strings.list.header}}</h4>
   </header>
-  <div class="d-flex flex-column mt-4">
+  <div class="d-flex flex-column mt-4" #tableWrapper>
     <div class="d-flex justify-content-between align-items-end mb-2">
       <div class="d-flex">
         <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
            class="sink-info-regular mb-0">
-          {{paginationControls.data.length}} sinks total, {{paginationControls.data.filter(filterByInactive).length}}
+          {{paginationControls.total}} sinks total, {{paginationControls.data.filter(filterByInactive).length}}
           have errors.
         </p>
         <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
@@ -59,11 +59,14 @@
         <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
     </div>
     <ngx-datatable
-      class="orb w-100"
+      #table
+      class="orb"
       style="height: calc(100vh - 300px)"
       [loadingIndicator]="loading"
       [externalPaging]="true"
+      [externalSorting]="true"
       [count]="paginationControls.total"
+      [limit]="paginationControls.limit"
       [offset]="paginationControls.offset"
       [rows]="paginationControls.data"
       [scrollbarV]="true"

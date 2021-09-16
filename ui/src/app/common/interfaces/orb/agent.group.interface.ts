@@ -6,22 +6,12 @@
 
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
+import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
 
 /**
  * @interface AgentGroup
  */
-export interface AgentGroup {
-// #region public API
-  /**
-   *  ID {string} UUIDv4 (read only)
-   */
-  id?: string;
-
-  /**
-   * Name {string} [a-zA-Z_:][a-zA-Z0-9_]*
-   */
-  name?: string;
-
+export interface AgentGroup extends OrbEntity {
   /**
    * Description {string}
    */
@@ -43,9 +33,7 @@ export interface AgentGroup {
    * Tags {{[propName: string]: string}}
    */
   tags?: any;
-// #endregion
 
-// #region internal API
   /**
    * save summary of matching agents
    * @ignore
@@ -57,5 +45,5 @@ export interface AgentGroup {
    * @ignore
    */
   agents?: Agent[];
-// #endregion
+
 }
