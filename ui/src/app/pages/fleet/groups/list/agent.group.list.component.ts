@@ -8,7 +8,7 @@ import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.g
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 
@@ -108,6 +108,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
         name: 'Tags',
         minWidth: 90,
         flexGrow: 3,
+        cellClass: Object,
         cellTemplate: this.agentGroupTagsTemplateCell,
       },
       {
@@ -141,7 +142,8 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
     this.agentGroupsService.getAgentGroups(pageInfo, isFilter).subscribe(
       (resp: OrbPagination<AgentGroup>) => {
         this.paginationControls = resp;
-
+        this.paginationControls.offset = pageInfo.offset;
+        this.paginationControls.total = resp.total;
         this.loading = false;
       },
     );
@@ -200,5 +202,4 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
     });
   }
 
-  filterByActive = (agent) => agent.state === 'active';
 }

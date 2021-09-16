@@ -7,7 +7,7 @@ import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.compo
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
@@ -151,7 +151,8 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     this.sinkService.getSinks(pageInfo, isFilter).subscribe(
       (resp: OrbPagination<Sink>) => {
         this.paginationControls = resp;
-
+        this.paginationControls.offset = pageInfo.offset;
+        this.paginationControls.total = resp.total;
         this.loading = false;
       },
     );
