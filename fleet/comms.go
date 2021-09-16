@@ -361,7 +361,8 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 	}
 	agent := Agent{MFThingID: thingID, MFChannelID: channelID}
 	agent.LastHBData = make(map[string]interface{})
-	agent.LastHBData["ts"] = hb.TimeStamp.UnixNano()
+	agent.LastHBData["backend_state"] = hb.BackendState
+	agent.LastHBData["policy_state"] = hb.PolicyState
 	// accept "offline" state request to indicate agent is going offline
 	if hb.State == Offline {
 		agent.State = Offline

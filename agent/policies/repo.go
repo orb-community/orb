@@ -66,8 +66,10 @@ func (p policyMemRepo) Add(data policyData) error {
 
 func (p policyMemRepo) GetAll() (ret []policyData, err error) {
 	ret = make([]policyData, len(p.db))
+	i := 0
 	for _, v := range p.db {
-		ret = append(ret, v)
+		ret[i] = v
+		i++
 	}
 	err = nil
 	return ret, err

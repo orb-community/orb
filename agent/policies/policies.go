@@ -17,8 +17,7 @@ import (
 const (
 	Unknown State = iota
 	Running
-	Failed
-	Ended
+	FailedToApply
 )
 
 type State int
@@ -37,15 +36,13 @@ type policyData struct {
 var stateMap = [...]string{
 	"unknown",
 	"running",
-	"failed",
-	"ended",
+	"failed_to_apply",
 }
 
 var stateRevMap = map[string]State{
-	"unknown": Unknown,
-	"running": Running,
-	"failed":  Failed,
-	"ended":   Ended,
+	"unknown":         Unknown,
+	"running":         Running,
+	"failed_to_apply": FailedToApply,
 }
 
 func (s State) String() string {
@@ -70,7 +67,8 @@ type policyManager struct {
 }
 
 func (a *policyManager) GetPolicyState() ([]policyData, error) {
-	return a.repo.GetAll()
+	d, e := a.repo.GetAll()
+	return d, e
 }
 
 func New(logger *zap.Logger, c config.Config, db *sqlx.DB) (PolicyManager, error) {
@@ -101,6 +99,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 	switch payload.Action {
 	case "manage":
 		if a.repo.Exists(payload.ID) {
+			a.logger.Info("policy already exists, ensuring dataset", zap.String("id", payload.ID), zap.String("dataset_id", payload.DatasetID))
 			err := a.repo.EnsureDataset(payload.ID, payload.DatasetID)
 			if err != nil {
 				a.logger.Warn("policy failed to ensure dataset id", zap.String("id", payload.ID), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
@@ -118,7 +117,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			err := be.ApplyPolicy(payload.ID, payload.Data)
 			if err != nil {
 				a.logger.Warn("policy failed to apply", zap.String("id", payload.ID), zap.Error(err))
-				pd.State = Failed
+				pd.State = FailedToApply
 				pd.BackendErr = err.Error()
 			} else {
 				pd.State = Running
