@@ -12,6 +12,7 @@ import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
   selector: 'ngx-sink-list-component',
@@ -54,6 +55,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
+    private notificationsService: NotificationsService,
     private sinkService: SinksService,
     private route: ActivatedRoute,
     private router: Router,
@@ -185,7 +187,10 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.sinkService.deleteSink(id).subscribe(() => this.getSinks());
+          this.sinkService.deleteSink(id).subscribe(() => {
+            this.getSinks();
+            this.notificationsService.success('Sink successfully deleted', '');
+          });
         }
       },
     );
