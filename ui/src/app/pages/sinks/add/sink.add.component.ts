@@ -128,7 +128,7 @@ export class SinkAddComponent {
     if (this.isEdit) {
       // updating existing sink
       this.sinksService.editSink({...payload, id: this.sinkID}).subscribe(() => {
-        this.notificationsService.success('Sink successfully created', '');
+        this.notificationsService.success('Sink successfully edited', '');
         this.goBack();
       });
     } else {
