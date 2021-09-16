@@ -35,13 +35,15 @@
           <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
             <mat-chip
                 class="orb-tag-sink "
-                *ngFor="let tag of agent.agent_tags | keyvalue | tagchip">
-              {{tag}}
+                *ngFor="let tag of agent.agent_tags | keyvalue | tagchip"
+                [style.background-color]="tag | tagchipcolor">
+                {{tag}}
             </mat-chip>
             <mat-chip
                 class="orb-tag-sink "
-                *ngFor="let tag of agent.orb_tags | keyvalue | tagchip">
-              {{tag}}
+                *ngFor="let tag of agent.orb_tags | keyvalue | tagchip"
+                [style.background-color]="tag | tagchipcolor">
+                {{tag}}
             </mat-chip>
           </mat-chip-list>
         </div>

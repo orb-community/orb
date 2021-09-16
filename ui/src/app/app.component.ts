@@ -6,6 +6,7 @@
 import { Component, OnInit } from '@angular/core';
 import { GoogleTagManagerService } from 'angular-google-tag-manager';
 import { NavigationEnd, Router } from '@angular/router';
+import { environment } from 'environments/environment';
 
 @Component({
   selector: 'ngx-app',
@@ -26,7 +27,7 @@ export class AppComponent implements OnInit {
      * angular-google-tag-manager module might still be dropped out
      * in favor of analyticsService that came bundled with mainfluxUI codebase
      */
-    this.router.events.forEach(item => {
+    !!environment.production && this.router.events.forEach(item => {
       if (item instanceof NavigationEnd) {
         const gtmTag = {
           event: 'page',

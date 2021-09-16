@@ -288,6 +288,49 @@ func TestRemovePolicy(t *testing.T) {
 	}
 }
 
+func TestValidatePolicy(t *testing.T) {
+	var nameID, _ = types.NewIdentifier("my-policy")
+	var policy = policies.Policy{
+		Name: nameID,
+		Backend: "pktvisor",
+		OrbTags: map[string]string{"region": "eu", "node_type": "dns"},
+	}
+
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	cases := map[string]struct {
+		policy     policies.Policy
+		token      string
+		format     string
+		policyData string
+		err        error
+	}{
+		"validate a new policy": {
+			policy:     policy,
+			token:      token,
+			format:     format,
+			policyData: policy_data,
+			err:        nil,
+		},
+		"validate a policy with a invalid token": {
+			policy:     policy,
+			token:      invalidToken,
+			format:     format,
+			policyData: policy_data,
+			err:        policies.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := svc.ValidatePolicy(context.Background(), tc.token, policy, format, policy_data)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+
+}
+
 func createPolicy(t *testing.T, svc policies.Service, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()

@@ -42,7 +42,7 @@ export class AgentAddComponent {
   ) {
     this.agentLocation = '';
     this.firstFormGroup = this._formBuilder.group({
-      name: ['', Validators.required],
+      name: ['', [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
       location: [this.agentLocation, Validators.required],
     });
 
