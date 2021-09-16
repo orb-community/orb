@@ -74,6 +74,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 		decodeAddDatasetRequest,
 		types.EncodeResponse,
 		opts...))
+	r.Post("/policies/agent/validate", kithttp.NewServer(
+		kitot.TraceServer(tracer, "validate_policy")(validatePolicyEndpoint(svc)),
+		decodeAddPolicyRequest,
+		types.EncodeResponse,
+		opts...))
 
 	r.Post("/policies/dataset/validate", kithttp.NewServer(
 		kitot.TraceServer(tracer, "validate_dataset")(validateDatasetEndpoint(svc)),

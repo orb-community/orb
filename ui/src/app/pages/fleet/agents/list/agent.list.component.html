@@ -1,19 +1,19 @@
-<div class="container">
+<div>
   <header>
     <xng-breadcrumb class="orb-breadcrumb">
     </xng-breadcrumb>
     <h4>All Agents</h4>
   </header>
-  <div class="d-flex flex-column mt-4">
+  <div #tableWrapper class="d-flex flex-column mt-4">
     <div class="d-flex justify-content-between align-items-end mb-2">
       <div class="d-flex">
         <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
            class="sink-info-regular mb-0">
-          You have <a><strong>{{paginationControls.data.length}}</strong> agents and</a>
+          You have <a><strong>{{paginationControls.total}}</strong> agents</a> deployed in <a>{{paginationControls.data.map(mapRegion).filter(filterValid).filter(countUnique).length}} regions.</a>
         </p>
-        <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
+        <p *ngIf=" paginationControls.data && paginationControls.data.filter(filterByError).length > 0 "
            class="ns1red">
-          &nbsp;<a><strong>{{paginationControls.data.length}}</strong> of them  have errors</a>.
+          &nbsp;<a><strong> {{paginationControls.data.filter(filterByError).length}}</strong> of them  have errors</a>.
         </p>
         <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
            class="sink-info-accent mb-0">
@@ -62,11 +62,14 @@
         <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
     </div>
     <ngx-datatable
-        class="orb w-100"
+        #table
+        class="orb"
         style="height: calc(100vh - 300px)"
         [loadingIndicator]="loading"
         [externalPaging]="true"
+        [externalSorting]="true"
         [count]="paginationControls.total"
+        [limit]="paginationControls.limit"
         [offset]="paginationControls.offset"
         [rows]="paginationControls.data"
         [scrollbarV]="true"
@@ -100,13 +103,15 @@
     <mat-chip-list>
       <mat-chip
           class="orb-tag-sink "
-          *ngFor="let tag of row.agent_tags | keyvalue">
-        {{tag.key}} : {{tag.value}}
+          *ngFor="let tag of row.agent_tags | keyvalue | tagchip"
+          [style.background-color]="tag | tagchipcolor">
+        {{tag}}
       </mat-chip>
       <mat-chip
-          class="orb-tag-sink "
-          *ngFor="let tag of row.orb_tags | keyvalue">
-        {{tag.key}} : {{tag.value}}
+          class="orb-tag-sink"
+          *ngFor="let tag of row.orb_tags | keyvalue | tagchip"
+          [style.background-color]="tag | tagchipcolor">
+        {{tag}}
       </mat-chip>
     </mat-chip-list>
   </div>

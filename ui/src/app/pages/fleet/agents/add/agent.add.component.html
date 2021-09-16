@@ -1,4 +1,4 @@
-<div class="container">
+<div>
   <header data-orb-qa-id="agent#add">
     <xng-breadcrumb class="orb-breadcrumb"
                     data-orb-qa-id="breadcrumb">
@@ -83,13 +83,13 @@
                 <mat-chip
                     class="orb-tag-sink "
                     *ngFor="let tag of secondFormGroup.controls.tags.value; index as i;"
-                    [attr.data-orb-qa-id]="'orb_tag_' + i">
-                  {{ tag | keyvalue | tagchip}}
-                  <nb-icon style="color: #ffffff; margin-left: 4px;"
-                           status="primary"
+                    [attr.data-orb-qa-id]="'orb_tag_' + i"
+                    [style.background-color]="tag | keyvalue | tagchip | tagchipcolor">
+                    {{tag | keyvalue | tagchip}}
+                  <nb-icon class="ml-1"
                            (click)="onRemoveTag(tag)"
-                           icon="close-circle-outline"
-                           size="14"></nb-icon>
+                           icon="close-outline"
+                           size="12"></nb-icon>
                 </mat-chip>
               </mat-chip-list>
             </div>
@@ -198,8 +198,9 @@
                 <mat-chip
                     class="orb-tag-sink "
                     *ngFor="let tag of secondFormGroup.controls.tags.value; index as i;"
-                    [attr.data-orb-qa-id]="'review-tag_' + i">
-                  {{ tag | keyvalue | tagchip}}
+                    [attr.data-orb-qa-id]="'review-tag_' + i"
+                    [style.background-color]="tag | keyvalue | tagchip | tagchipcolor">
+                    {{tag | keyvalue | tagchip}}
                 </mat-chip>
               </mat-chip-list>
             </div>
@@ -230,15 +231,3 @@
     </div>
   </div>
 </div>
-
-<ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
-  <div class="d-flex">
-    <mat-chip-list>
-      <mat-chip
-          class="orb-tag-sink "
-          *ngFor="let tag of value | keyvalue">
-        {{tag.key}}, {{tag.value}}
-      </mat-chip>
-    </mat-chip-list>
-  </div>
-</ng-template>

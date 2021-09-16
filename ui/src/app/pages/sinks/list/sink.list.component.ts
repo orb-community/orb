@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
@@ -6,18 +6,20 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
-import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
+import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
   selector: 'ngx-sink-list-component',
   templateUrl: './sink.list.component.html',
   styleUrls: ['./sink.list.component.scss'],
 })
-export class SinkListComponent implements OnInit, AfterViewInit {
+export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecked {
   strings = STRINGS.sink;
 
   columnMode = ColumnMode;
@@ -29,6 +31,11 @@ export class SinkListComponent implements OnInit, AfterViewInit {
 
   searchPlaceholder = 'Search by name';
   filterSelectedIndex = '0';
+
+  // templates
+  @ViewChild('sinkStateTemplateCell') sinkStateTemplateCell: TemplateRef<any>;
+  @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
+  @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
     {
@@ -45,22 +52,28 @@ export class SinkListComponent implements OnInit, AfterViewInit {
     },
   ];
 
-  // templates
-
-  @ViewChild('sinkStateTemplateCell') sinkStateTemplateCell: TemplateRef<any>;
-  @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
-  @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
-
-
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
+    private notificationsService: NotificationsService,
     private sinkService: SinksService,
     private route: ActivatedRoute,
     private router: Router,
   ) {
     this.sinkService.clean();
     this.paginationControls = SinksService.getDefaultPagination();
+  }
+
+  @ViewChild('tableWrapper') tableWrapper;
+  @ViewChild(DatatableComponent) table: DatatableComponent;
+  private currentComponentWidth;
+  ngAfterViewChecked() {
+    if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
+      this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
+      this.table.recalculate();
+      this.cdr.detectChanges();
+      window.dispatchEvent(new Event('resize'));
+    }
   }
 
   ngOnInit() {
@@ -121,9 +134,10 @@ export class SinkListComponent implements OnInit, AfterViewInit {
   }
 
 
-  @Debounce(400)
+  @Debounce(500)
   getSinks(pageInfo: NgxDatabalePageInfo = null): void {
-    const isFilter = pageInfo === null;
+    const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
+
     if (isFilter) {
       pageInfo = {
         offset: this.paginationControls.offset,
@@ -135,9 +149,10 @@ export class SinkListComponent implements OnInit, AfterViewInit {
 
     this.loading = true;
     this.sinkService.getSinks(pageInfo, isFilter).subscribe(
-      (resp: OrbPagination<AgentGroup>) => {
+      (resp: OrbPagination<Sink>) => {
         this.paginationControls = resp;
         this.paginationControls.offset = pageInfo.offset;
+        this.paginationControls.total = resp.total;
         this.loading = false;
       },
     );
@@ -173,7 +188,10 @@ export class SinkListComponent implements OnInit, AfterViewInit {
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.sinkService.deleteSink(id).subscribe(() => this.getSinks());
+          this.sinkService.deleteSink(id).subscribe(() => {
+            this.getSinks();
+            this.notificationsService.success('Sink successfully deleted', '');
+          });
         }
       },
     );

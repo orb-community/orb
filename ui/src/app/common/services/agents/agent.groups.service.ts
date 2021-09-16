@@ -1,11 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import {Observable, of} from 'rxjs';
 import 'rxjs/add/observable/empty';
 
 import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 
 // default filters
@@ -23,6 +23,17 @@ export class AgentGroupsService {
     private notificationsService: NotificationsService,
   ) {
     this.clean();
+  }
+
+  public static getDefaultPagination(): OrbPagination<AgentGroup> {
+    return {
+      limit: defLimit,
+      order: defOrder,
+      dir: defDir,
+      offset: 0,
+      total: 0,
+      data: null,
+    };
   }
 
   clean() {
@@ -91,9 +102,10 @@ export class AgentGroupsService {
 
   getAgentGroups(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     const offset = pageInfo.offset || this.cache.offset;
+    const limit = pageInfo.limit || this.cache.limit;
     let params = new HttpParams()
-      .set('offset', offset.toString())
-      .set('limit', (pageInfo.limit || this.cache.limit).toString())
+      .set('offset', (offset * limit).toString())
+      .set('limit', limit.toString())
       .set('order', this.cache.order)
       .set('dir', this.cache.dir);
 
@@ -108,7 +120,7 @@ export class AgentGroupsService {
     }
 
     if (this.paginationCache[pageInfo.offset]) {
-      return Observable.of(this.cache);
+      return of(this.cache);
     }
 
     return this.http.get(environment.agentGroupsUrl, {params})
@@ -116,11 +128,12 @@ export class AgentGroupsService {
         (resp: any) => {
           this.paginationCache[pageInfo.offset] = true;
           // This is the position to insert the new data
-          const start = pageInfo.offset * resp.limit;
+          const start = pageInfo.offset;
           const newData = [...this.cache.data];
           newData.splice(start, resp.limit, ...resp.agentGroups);
           this.cache = {
             ...this.cache,
+            offset: Math.floor(resp.offset / resp.limit),
             total: resp.total,
             data: newData,
           };
@@ -168,16 +181,5 @@ export class AgentGroupsService {
           return Observable.throwError(err);
         },
       );
-  }
-
-  public static getDefaultPagination(): OrbPagination<AgentGroup> {
-    return {
-      limit: defLimit,
-      order: defOrder,
-      dir: defDir,
-      offset: 0,
-      total: 0,
-      data: null,
-    };
   }
 }

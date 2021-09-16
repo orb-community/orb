@@ -97,6 +97,26 @@ type datasetRes struct {
 	created bool
 }
 
+type policyValidateRes struct {
+	Name        string         `json:"name"`
+	Backend     string         `json:"backend"`
+	Description string         `json:"description"`
+	Tags        types.Tags     `json:"tags"`
+	Policy      types.Metadata `json:"policy"`
+}
+
+func (s policyValidateRes) Code() int {
+	return http.StatusOK
+}
+
+func (s policyValidateRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s policyValidateRes) Empty() bool {
+	return false
+}
+
 type validateDatasetRes struct {
 	Name         string
 	AgentGroupID string
