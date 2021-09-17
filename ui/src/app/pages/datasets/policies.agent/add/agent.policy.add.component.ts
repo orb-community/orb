@@ -9,7 +9,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
 
 @Component({
-  selector: 'ngx-agent-policyadd-component',
+  selector: 'ngx-agent-policy-add-component',
   templateUrl: './agent.policy.add.component.html',
   styleUrls: ['./agent.policy.add.component.scss'],
 })

@@ -28,10 +28,11 @@ export const MENU: NbMenuItem[] = [
     children: [
       {
         title: 'Datasets',
+        link: 'datasets',
       },
       {
         title: 'Policy Management',
-        link: 'policies',
+        link: 'datasets/policies',
       },
     ],
   },

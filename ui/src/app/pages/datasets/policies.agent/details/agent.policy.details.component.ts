@@ -5,17 +5,17 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 
 @Component({
-  selector: 'ngx-dataset-policydetails-component',
-  templateUrl: './dataset.policy.details.component.html',
-  styleUrls: ['./dataset.policy.details.component.scss'],
+  selector: 'ngx-agent-policy-details-component',
+  templateUrl: './agent.policy.details.component.html',
+  styleUrls: ['./agent.policy.details.component.scss'],
 })
-export class DatasetDetailsComponent {
+export class AgentPolicyDetailsComponent {
   strings = STRINGS.sink;
 
   @Input() sink: Sink = {};
 
   constructor(
-    protected dialogRef: NbDialogRef<DatasetDetailsComponent>,
+    protected dialogRef: NbDialogRef<AgentPolicyDetailsComponent>,
     protected route: ActivatedRoute,
     protected router: Router,
   ) {

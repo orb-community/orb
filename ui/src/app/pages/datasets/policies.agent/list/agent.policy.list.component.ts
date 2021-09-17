@@ -15,11 +15,11 @@ import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
-  selector: 'ngx-dataset-policylist-component',
-  templateUrl: './dataset.policy.list.component.html',
-  styleUrls: ['./dataset.policy.list.component.scss'],
+  selector: 'ngx-agent-policy-list-component',
+  templateUrl: './agent.policy.list.component.html',
+  styleUrls: ['./agent.policy.list.component.scss'],
 })
-export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChecked {
+export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterViewChecked {
   strings = STRINGS.sink;
 
   columnMode = ColumnMode;
