@@ -58,6 +58,10 @@ func (m metricsMiddleware) InactivateDatasetByGroupID(ctx context.Context, group
 	return m.svc.InactivateDatasetByGroupID(ctx, groupID, ownerID)
 }
 
+func (m metricsMiddleware) ValidatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
+	return m.svc.ValidatePolicy(ctx, token, p, format, policyData)
+}
+
 func (m metricsMiddleware) ViewDatasetByID(ctx context.Context, token string, datasetID string) (policies.Dataset, error) {
 	return m.svc.ViewDatasetByID(ctx, token, datasetID)
 }

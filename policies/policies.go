@@ -75,6 +75,9 @@ type Service interface {
 	// ListDatasetsByPolicyIDInternal retrieves the subset of Datasets by policyID owned by the specified user
 	ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error)
 
+	// ValidatePolicy validates an agent Policy without saving
+	ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+
 	// ViewDatasetByID retrieving dataset by id with token
 	ViewDatasetByID(ctx context.Context, token string, datasetID string) (Dataset, error)
 

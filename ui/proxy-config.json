@@ -83,5 +83,13 @@
   "/agent_groups/*": {
     "target": "http://localhost:80/api/v1",
     "secure": false
+  },
+  "/policies/agent/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/policies/dataset/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
   }
 }

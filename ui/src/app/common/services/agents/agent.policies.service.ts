@@ -6,7 +6,7 @@ import 'rxjs/add/observable/empty';
 import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -14,9 +14,9 @@ const defOrder: string = 'name';
 const defDir = 'desc';
 
 @Injectable()
-export class AgentsService {
+export class AgentPoliciesService {
   paginationCache: any = {};
-  cache: OrbPagination<Agent>;
+  cache: OrbPagination<AgentPolicy>;
 
   constructor(
     private http: HttpClient,
@@ -25,7 +25,7 @@ export class AgentsService {
     this.clean();
   }
 
-  public static getDefaultPagination(): OrbPagination<Agent> {
+  public static getDefaultPagination(): OrbPagination<AgentPolicy> {
     return {
       limit: defLimit,
       order: defOrder,
@@ -48,9 +48,9 @@ export class AgentsService {
     this.paginationCache = {};
   }
 
-  addAgent(agentItem: Agent) {
-    return this.http.post(environment.agentsUrl,
-      { ...agentItem, validate_only: false },
+  addAgentPolicy(agentPolicyItem: AgentPolicy) {
+    return this.http.post(environment.agentPoliciesUrl,
+      { ...agentPolicyItem, validate_only: false },
       { observe: 'response' })
       .map(
         resp => {
@@ -59,17 +59,15 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to create Agent',
+          this.notificationsService.error('Failed to create Agent Policy',
             `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
           return Observable.throwError(err);
         },
       );
   }
 
-  validateAgent(agentItem: Agent) {
-    return this.http.post(environment.validateAgentsUrl,
-      { ...agentItem, validate_only: true },
-      { observe: 'response' })
+  getAgentPolicyById(id: string): any {
+    return this.http.get(`${ environment.agentPoliciesUrl }/${ id }`)
       .map(
         resp => {
           return resp;
@@ -77,15 +75,15 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to Validate Agent',
-            `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
+          this.notificationsService.error('Failed to fetch Agent Policy',
+            `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
       );
   }
 
-  getAgentById(id: string): any {
-    return this.http.get(`${ environment.agentsUrl }/${ id }`)
+  editAgentPolicy(agentPolicy: AgentPolicy): any {
+    return this.http.put(`${ environment.agentPoliciesUrl }/${ agentPolicy.id }`, agentPolicy)
       .map(
         resp => {
           return resp;
@@ -93,15 +91,15 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to fetch Agent',
+          this.notificationsService.error('Failed to edit Agent Policy',
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
       );
   }
 
-  editAgent(agent: Agent): any {
-    return this.http.put(`${ environment.agentsUrl }/${ agent.id }`, agent)
+  deleteAgentPolicy(agentPoliciesId: string) {
+    return this.http.delete(`${ environment.agentPoliciesUrl }/${ agentPoliciesId }`)
       .map(
         resp => {
           return resp;
@@ -109,53 +107,14 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to edit Agent',
+          this.notificationsService.error('Failed to Delete Agent Policies',
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
       );
   }
 
-  deleteAgent(agentId: string) {
-    return this.http.delete(`${ environment.agentsUrl }/${ agentId }`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to Delete Agent',
-            `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
-        },
-      );
-  }
-
-  getMatchingAgents(tagsInfo: any) {
-    const params = new HttpParams()
-      .set('offset', AgentsService.getDefaultPagination().offset.toString())
-      .set('limit', AgentsService.getDefaultPagination().limit.toString())
-      .set('order', AgentsService.getDefaultPagination().order.toString())
-      .set('dir', AgentsService.getDefaultPagination().dir.toString())
-      .set('tags', JSON.stringify(tagsInfo).replace('[', '').replace(']', ''));
-
-    return this.http.get(environment.agentsUrl, { params })
-      .map(
-        (resp: any) => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to get Matching Agents',
-            `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
-        },
-      );
-  }
-
-  getAgents(pageInfo: NgxDatabalePageInfo, isFilter = false) {
+  getAgentPolicies(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     const offset = pageInfo.offset || this.cache.offset;
     const limit = pageInfo.limit || this.cache.limit;
     let params = new HttpParams()
@@ -178,14 +137,15 @@ export class AgentsService {
       return of(this.cache);
     }
 
-    return this.http.get(environment.agentsUrl, { params })
+    return this.http.get(environment.agentPoliciesUrl, { params })
       .map(
         (resp: any) => {
           this.paginationCache[pageInfo.offset] = true;
           // This is the position to insert the new data
           const start = resp.offset;
           const newData = [...this.cache.data];
-          newData.splice(start, resp.limit, ...resp.agents);
+          // TODO figure out what field name for object data in response...
+          newData.splice(start, resp.limit, ...resp.data);
           this.cache = {
             ...this.cache,
             offset: Math.floor(resp.offset / resp.limit),
@@ -199,7 +159,7 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to get Agents',
+          this.notificationsService.error('Failed to get Agent Policies',
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },

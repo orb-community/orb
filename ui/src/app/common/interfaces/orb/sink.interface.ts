@@ -6,22 +6,13 @@
 
 import { PrometheusConfig } from 'app/common/interfaces/orb/sink.config/prometheus.config.interface';
 import { AWSConfig } from 'app/common/interfaces/orb/sink.config/aws.config.interface';
+import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
 
 /**
  * @interface Sink
  */
-export interface Sink {
-  /**
-   *  ID {string} UUIDv4 (read only)
-   */
-  id?: string;
-
-  /**
-   * Name {string} [a-zA-Z_:][a-zA-Z0-9_]*
-   */
-  name?: string;
-
-  /**
+export interface Sink extends OrbEntity {
+    /**
    * Description {string}
    */
   description?: string;

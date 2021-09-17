@@ -9,6 +9,7 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 
 @Component({
@@ -64,6 +65,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   constructor(
     private agentGroupsService: AgentGroupsService,
     private agentsService: AgentsService,
+    private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
@@ -86,7 +88,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
       tags: {},
     } as AgentGroup;
     this.firstFormGroup = this._formBuilder.group({
-      name: [name, Validators.required],
+      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
       description: [description],
     });
 
@@ -207,7 +209,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     const tags = this.secondFormGroup.controls.tags.value;
     this.agentsService.getMatchingAgents(tags).subscribe(
       resp => {
-        this.matchingAgents = resp;
+        this.matchingAgents = resp.agents;
       },
     );
   }
@@ -243,9 +245,15 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     // // remove line bellow
     // console.log(payload)
     if (this.isEdit) {
-      this.agentGroupsService.editAgentGroup({...payload, id: this.agentGroupID}).subscribe(resp => this.goBack());
+      this.agentGroupsService.editAgentGroup({...payload, id: this.agentGroupID}).subscribe(() => {
+        this.notificationsService.success('Agent Group successfully updated', '');
+        this.goBack();
+      });
     } else {
-      this.agentGroupsService.addAgentGroup(payload).subscribe(() => this.goBack());
+      this.agentGroupsService.addAgentGroup(payload).subscribe(() => {
+        this.notificationsService.success('Agent Group successfully created', '');
+        this.goBack();
+      });
     }
   }
 

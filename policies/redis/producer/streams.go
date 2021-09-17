@@ -179,6 +179,10 @@ func (e eventStore) InactivateDatasetByGroupID(ctx context.Context, groupID stri
 	return e.svc.InactivateDatasetByGroupID(ctx, groupID, ownerID)
 }
 
+func (e eventStore) ValidatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
+	return e.svc.ValidatePolicy(ctx, token, p, format, policyData)
+}
+
 // NewEventStoreMiddleware returns wrapper around policies service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc policies.Service, client *redis.Client, logger *zap.Logger) policies.Service {

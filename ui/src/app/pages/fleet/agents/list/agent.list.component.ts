@@ -1,16 +1,17 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
-import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete.component';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 
 @Component({
@@ -18,7 +19,7 @@ import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.deta
   templateUrl: './agent.list.component.html',
   styleUrls: ['./agent.list.component.scss'],
 })
-export class AgentListComponent implements OnInit, AfterViewInit {
+export class AgentListComponent implements OnInit, AfterViewInit, AfterViewChecked {
   strings = STRINGS.agents;
 
   columnMode = ColumnMode;
@@ -55,11 +56,24 @@ export class AgentListComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
     private agentService: AgentsService,
+    private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
   ) {
     this.agentService.clean();
     this.paginationControls = AgentsService.getDefaultPagination();
+  }
+
+  @ViewChild('tableWrapper') tableWrapper;
+  @ViewChild(DatatableComponent) table: DatatableComponent;
+  private currentComponentWidth;
+  ngAfterViewChecked() {
+    if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
+      this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
+      this.table.recalculate();
+      this.cdr.detectChanges();
+      window.dispatchEvent(new Event('resize'));
+    }
   }
 
   ngOnInit() {
@@ -113,9 +127,10 @@ export class AgentListComponent implements OnInit, AfterViewInit {
     this.cdr.detectChanges();
   }
 
-  @Debounce(400)
+  @Debounce(500)
   getAgents(pageInfo: NgxDatabalePageInfo = null): void {
-    const isFilter = pageInfo === null;
+    const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
+
     if (isFilter) {
       pageInfo = {
         offset: this.paginationControls.offset,
@@ -130,6 +145,7 @@ export class AgentListComponent implements OnInit, AfterViewInit {
       (resp: OrbPagination<Agent>) => {
         this.paginationControls = resp;
         this.paginationControls.offset = pageInfo.offset;
+        this.paginationControls.total = resp.total;
         this.loading = false;
       },
     );
@@ -161,7 +177,10 @@ export class AgentListComponent implements OnInit, AfterViewInit {
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.agentService.deleteAgent(id).subscribe(() => this.getAgents());
+          this.agentService.deleteAgent(id).subscribe(() => {
+            this.getAgents();
+            this.notificationsService.success('Agent successfully deleted', '');
+          });
         }
       },
     );
@@ -188,5 +207,11 @@ export class AgentListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  filterByActive = (agent) => agent.state === 'active';
+  filterByError = (agent) => !!agent && agent?.error_state && agent.error_state;
+  mapRegion = (agent) =>  !!agent && agent?.orb_tags && !!agent.orb_tags['region'] && agent.orb_tags['region'];
+  filterValid = (value) => !!value && typeof value === 'string';
+  countUnique = (value, index, self) => {
+    return self.indexOf(value) === index;
+  }
+
 }

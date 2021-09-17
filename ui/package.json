@@ -50,7 +50,6 @@
     "@nebular/security": "5.0.0",
     "@nebular/theme": "5.0.0",
     "@swimlane/ngx-charts": "^13.0.2",
-    "angular-google-tag-manager": "^1.4.2",
     "angular2-chartjs": "0.4.1",
     "bootstrap": "4.3.1",
     "chart.js": "2.7.1",

@@ -4,6 +4,7 @@ import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 
 @Component({
@@ -36,13 +37,14 @@ export class AgentAddComponent {
 
   constructor(
     private agentsService: AgentsService,
+    private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
     this.agentLocation = '';
     this.firstFormGroup = this._formBuilder.group({
-      name: ['', Validators.required],
+      name: ['', [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
       location: [this.agentLocation, Validators.required],
     });
 
@@ -158,9 +160,15 @@ export class AgentAddComponent {
     const payload = this.wrapPayload(false);
 
     if (this.isEdit) {
-      this.agentsService.editAgent({...payload, id: this.agentID}).subscribe(resp => this.goBack());
+      this.agentsService.editAgent({...payload, id: this.agentID}).subscribe(() => {
+        this.notificationsService.success('Agent successfully updated', '');
+        this.goBack();
+      });
     } else {
-      this.agentsService.addAgent(payload).subscribe(() => this.goBack());
+      this.agentsService.addAgent(payload).subscribe(() => {
+        this.notificationsService.success('Agent successfully created', '');
+        this.goBack();
+      });
     }
   }
 
