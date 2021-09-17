@@ -143,7 +143,7 @@ export class AgentsService {
     return this.http.get(environment.agentsUrl, { params })
       .map(
         (resp: any) => {
-          return resp.agents;
+          return resp;
         },
       )
       .catch(
