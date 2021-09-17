@@ -162,7 +162,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 		return err
 	}
 
-	job, err := p.scraper.Every(1).Minute().WaitForSchedule(nt).Tag(data.ID).Do(func() {
+	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Tag(data.ID).Do(func() {
 		metrics, err := p.scrapeMetrics(data.ID, 1)
 		if err != nil {
 			p.logger.Error("scrape failed", zap.String("policy_id", data.ID), zap.Error(err))
