@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
-import { STRINGS } from 'assets/text/strings';
 
 @Component({
   selector: 'ngx-agent-policy-delete-component',
@@ -9,11 +8,9 @@ import { STRINGS } from 'assets/text/strings';
 })
 
 export class AgentPolicyDeleteComponent {
-  @Input() sink;
+  @Input() name: string;
 
-  strings = STRINGS.sink;
-
-  userInput: string = '';
+  validationInput: string = '';
 
   constructor(
     protected dialogRef: NbDialogRef<AgentPolicyDeleteComponent>,
@@ -29,6 +26,6 @@ export class AgentPolicyDeleteComponent {
   }
 
   isEnabled(): boolean {
-    return this.userInput === this.sink.name;
+    return this.validationInput.toLowerCase() === this.name.toLowerCase();
   }
 }

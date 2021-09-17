@@ -13,27 +13,27 @@
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.name}}<span class="ns1red">*</span></p>
-        <p>{{ sink.name }}</p>
+        <p>{{ agentPolicy.name }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.description}}</p>
-        <p>{{ sink.description }}</p>
+        <p>{{ agentPolicy.description }}</p>
       </div>
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.backend}}<span class="ns1red">*</span></p>
-        <p>{{ sink.backend }}</p>
+        <p>{{ agentPolicy.backend }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.config_remote_host}}<span class="ns1red">*</span></p>
-        <p>{{ sink.config.remote_host }}</p>
+        <p>{{ agentPolicy.config.remote_host }}</p>
       </div>
     </div>
     <div class="row">
       <div class="col-6 align-items-start d-flex flex-column">
         <p class="detail-title">{{strings.propNames.ts_created}}</p>
-        <p>{{ sink.ts_created }}</p>
+        <p>{{ agentPolicy.ts_created }}</p>
       </div>
     </div>
     <div class="row">
@@ -43,7 +43,7 @@
           <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
             <mat-chip
                 class="orb-tag-sink "
-                *ngFor="let tag of sink.tags | keyvalue | tagchip"
+                *ngFor="let tag of agentPolicy.tags | keyvalue | tagchip"
                 [style.background-color]="tag | tagchipcolor">
                 {{tag}}
             </mat-chip>
@@ -54,6 +54,6 @@
   </nb-card-body>
 
   <nb-card-footer>
-    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(sink)">Edit</button>
+    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(agentPolicy)">Edit</button>
   </nb-card-footer>
 </nb-card>

@@ -1,8 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
-import { STRINGS } from 'assets/text/strings';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 
 @Component({
   selector: 'ngx-agent-policy-details-component',
@@ -10,19 +9,17 @@ import { Sink } from 'app/common/interfaces/orb/sink.interface';
   styleUrls: ['./agent.policy.details.component.scss'],
 })
 export class AgentPolicyDetailsComponent {
-  strings = STRINGS.sink;
-
-  @Input() sink: Sink = {};
+  @Input() agentPolicy: AgentPolicy = {};
 
   constructor(
     protected dialogRef: NbDialogRef<AgentPolicyDetailsComponent>,
     protected route: ActivatedRoute,
     protected router: Router,
   ) {
-    !this.sink.tags ? this.sink.tags = {} : null;
+    !this.agentPolicy.tags ? this.agentPolicy.tags = {} : null;
   }
 
-  onOpenEdit(sink: any) {
+  onOpenEdit(agentPolicy: any) {
     this.dialogRef.close(true);
   }
 

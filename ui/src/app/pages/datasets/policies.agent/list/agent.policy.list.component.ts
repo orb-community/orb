@@ -1,18 +1,24 @@
-import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { NbDialogService } from '@nebular/theme';
-
-import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
-import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
-import { ActivatedRoute, Router } from '@angular/router';
-import { STRINGS } from 'assets/text/strings';
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
+import { STRINGS } from '../../../../../assets/text/strings';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { Debounce } from 'app/shared/decorators/utils';
-import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
+import { NbDialogService } from '@nebular/theme';
+import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Debounce } from 'app/shared/decorators/utils';
+import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
+import { AgentPolicyDetailsComponent } from 'app/pages/datasets/policies.agent/details/agent.policy.details.component';
 
 @Component({
   selector: 'ngx-agent-policy-list-component',
@@ -20,22 +26,21 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
   styleUrls: ['./agent.policy.list.component.scss'],
 })
 export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterViewChecked {
-  strings = STRINGS.sink;
+  strings = STRINGS.agents;
 
   columnMode = ColumnMode;
+
   columns: TableColumn[];
 
   loading = false;
 
-  paginationControls: OrbPagination<AgentGroup>;
+  paginationControls: OrbPagination<AgentPolicy>;
 
   searchPlaceholder = 'Search by name';
+
   filterSelectedIndex = '0';
 
-  // templates
-  @ViewChild('sinkStateTemplateCell') sinkStateTemplateCell: TemplateRef<any>;
-  @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
-  @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+  @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
     {
@@ -46,27 +51,30 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
     },
     {
       id: '1',
-      label: 'Tags',
-      prop: 'tags',
+      label: 'Version',
+      prop: 'version',
       selected: false,
     },
   ];
 
+  @ViewChild('tableWrapper') tableWrapper;
+
+  @ViewChild(DatatableComponent) table: DatatableComponent;
+
+  private currentComponentWidth;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
+    private agentPoliciesService: AgentPoliciesService,
     private notificationsService: NotificationsService,
-    private sinkService: SinksService,
     private route: ActivatedRoute,
     private router: Router,
   ) {
-    this.sinkService.clean();
-    this.paginationControls = SinksService.getDefaultPagination();
+    this.agentPoliciesService.clean();
+    this.paginationControls = AgentPoliciesService.getDefaultPagination();
   }
 
-  @ViewChild('tableWrapper') tableWrapper;
-  @ViewChild(DatatableComponent) table: DatatableComponent;
-  private currentComponentWidth;
   ngAfterViewChecked() {
     if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
@@ -77,55 +85,48 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
   }
 
   ngOnInit() {
-    this.sinkService.clean();
-    this.getSinks();
+    this.agentPoliciesService.clean();
+    this.getAgentsPolicies();
   }
 
   ngAfterViewInit() {
     this.columns = [
       {
         prop: 'name',
-        name: 'Name',
+        name: 'Policy Name',
         resizeable: false,
-        flexGrow: 1,
+        flexGrow: 3,
         minWidth: 90,
       },
       {
         prop: 'description',
         name: 'Description',
         resizeable: false,
-        minWidth: 100,
-        flexGrow: 2,
+        flexGrow: 4,
+        minWidth: 180,
       },
       {
-        prop: 'backend',
-        name: 'Type',
+        prop: 'version',
+        name: 'Version',
         resizeable: false,
-        minWidth: 100,
         flexGrow: 1,
+        minWidth: 60,
       },
       {
-        prop: 'state',
-        name: 'Status',
-        resizeable: false,
-        minWidth: 100,
-        flexGrow: 1,
-        cellTemplate: this.sinkStateTemplateCell,
-      },
-      {
-        prop: 'tags',
-        name: 'Tags',
+        prop: 'ts_created',
+        name: 'Last Modified',
         minWidth: 90,
-        flexGrow: 3,
-        cellTemplate: this.sinkTagsTemplateCell,
+        flexGrow: 2,
+        resizeable: false,
+        sortable: false,
       },
       {
         name: '',
         prop: 'actions',
-        minWidth: 150,
+        minWidth: 130,
         resizeable: false,
         sortable: false,
-        flexGrow: 1,
+        flexGrow: 2,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
@@ -133,9 +134,8 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
     this.cdr.detectChanges();
   }
 
-
   @Debounce(500)
-  getSinks(pageInfo: NgxDatabalePageInfo = null): void {
+  getAgentsPolicies(pageInfo: NgxDatabalePageInfo = null): void {
     const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
 
     if (isFilter) {
@@ -148,8 +148,8 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
     }
 
     this.loading = true;
-    this.sinkService.getSinks(pageInfo, isFilter).subscribe(
-      (resp: OrbPagination<Sink>) => {
+    this.agentPoliciesService.getAgentsPolicies(pageInfo, isFilter).subscribe(
+      (resp: OrbPagination<AgentPolicy>) => {
         this.paginationControls = resp;
         this.paginationControls.offset = pageInfo.offset;
         this.paginationControls.total = resp.total;
@@ -159,64 +159,58 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
   }
 
   onOpenAdd() {
-    this.router.navigate(
-      ['add'],
-      {relativeTo: this.route},
-    );
+    this.router.navigate(['add'], {
+      relativeTo: this.route,
+    });
   }
 
-  onOpenEdit(sink: any) {
-    this.router.navigate(
-      [`edit/${sink.id}`],
-      {
-        relativeTo: this.route,
-        state: {sink: sink, edit: true},
-      },
-    );
+  onOpenEdit(agentPolicy: any) {
+    this.router.navigate([`edit/${ agentPolicy.id }`], {
+      state: { agent: agentPolicy, edit: true },
+      relativeTo: this.route,
+    });
   }
 
   onFilterSelected(selectedIndex) {
-    this.searchPlaceholder = `Search by ${this.tableFilters[selectedIndex].label}`;
+    this.searchPlaceholder = `Search by ${ this.tableFilters[selectedIndex].label }`;
   }
 
   openDeleteModal(row: any) {
-    const {id} = row;
-    this.dialogService.open(SinkDeleteComponent, {
-      context: {sink: row},
+    const { name, id } = row as AgentPolicy;
+    this.dialogService.open(AgentPolicyDeleteComponent, {
+      context: { name },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.sinkService.deleteSink(id).subscribe(() => {
-            this.getSinks();
-            this.notificationsService.success('Sink successfully deleted', '');
+          this.agentPoliciesService.deleteAgentPolicy(id).subscribe(() => {
+            this.getAgentsPolicies();
+            this.notificationsService.success('Agent Policy successfully deleted', '');
           });
         }
       },
     );
   }
 
-  openDetailsModal(row: any) {
-    this.dialogService.open(SinkDetailsComponent, {
-      context: {sink: row},
+  openDetailsModal(agentPolicy: any) {
+    this.dialogService.open(AgentPolicyDetailsComponent, {
+      context: { agentPolicy: agentPolicy },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe((resp) => {
       if (resp) {
-        this.onOpenEdit(row);
+        this.onOpenEdit(agentPolicy);
       } else {
-        this.getSinks();
+        this.getAgentsPolicies();
       }
     });
   }
 
-  searchSinkItemByName(input) {
-    this.getSinks({
+  searchAgentByName(input) {
+    this.getAgentsPolicies({
       ...this.paginationControls,
       [this.tableFilters[this.filterSelectedIndex].prop]: input,
     });
   }
-
-  filterByInactive = (sink) => sink.state === 'inactive';
 }
