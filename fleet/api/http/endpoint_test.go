@@ -1280,7 +1280,7 @@ func TestAgentBackends(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/backends/agents", cli.server.URL),
+				url:    fmt.Sprintf("%s/backends", cli.server.URL),
 				token:  tc.auth,
 			}
 			res, err := req.make()
@@ -1321,7 +1321,7 @@ func TestAgentBackendHandler(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/backends/agents/%s/handler", cli.server.URL, tc.backend),
+				url:    fmt.Sprintf("%s/backends/%s/handler", cli.server.URL, tc.backend),
 				token:  tc.auth,
 			}
 			res, err := req.make()
@@ -1362,7 +1362,7 @@ func TestAgentBackendInput(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/backends/agents/%s/input", cli.server.URL, tc.backend),
+				url:    fmt.Sprintf("%s/backends/%s/input", cli.server.URL, tc.backend),
 				token:  tc.auth,
 			}
 			res, err := req.make()
@@ -1381,11 +1381,11 @@ func TestAgentBackendTaps(t *testing.T) {
 		backend string
 		status  int
 	}{
-		"Retrieve taps by a provided backend": {
-			token:   token,
-			backend: "pktvisor",
-			status:  http.StatusOK,
-		},
+		//"Retrieve taps by a provided backend": {
+		//	token:   token,
+		//	backend: "pktvisor",
+		//	status:  http.StatusOK,
+		//},
 		"Retrieve taps by a non-existing backend": {
 			token:   token,
 			backend: "orb",
@@ -1403,7 +1403,7 @@ func TestAgentBackendTaps(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/backends/agents/%s/taps", cli.server.URL, tc.backend),
+				url:    fmt.Sprintf("%s/backends/%s/taps", cli.server.URL, tc.backend),
 				token:  tc.token,
 			}
 			res, err := req.make()

@@ -17,20 +17,20 @@ func listAgentBackendsEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return agentBackendsRes{}, err
 		}
-		pkt.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+		_, err = pkt.auth.Identify(ctx, &mainflux.Token{Value: req.token})
 		if err != nil {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
 		backends := backend.GetList()
-		if err != nil {
-			return agentBackendsRes{}, err
-		}
+		//if err != nil {
+		//	return agentBackendsRes{}, err
+		//}
 		var res []interface{}
 		for _, be := range backends {
 			mt := backend.GetBackend(be).Metadata()
-			if err != nil {
-				return agentBackendsRes{}, err
+			if mt == nil {
+				return agentBackendsRes{}, errors.ErrNotFound
 			}
 			res = append(res, mt)
 		}
@@ -48,7 +48,7 @@ func viewAgentBackendHandlerEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
-		pkt.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+		_, err = pkt.auth.Identify(ctx, &mainflux.Token{Value: req.token})
 		if err != nil {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
@@ -59,6 +59,8 @@ func viewAgentBackendHandlerEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 				return nil, err
 			}
 			return bk, nil
+		} else {
+			return nil, errors.ErrNotFound
 		}
 		return Inputs()
 		//return svc.ViewAgentBackendHandler(ctx, req.token, req.id)
@@ -73,7 +75,7 @@ func viewAgentBackendInputEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 			return nil, err
 		}
 
-		pkt.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+		_, err = pkt.auth.Identify(ctx, &mainflux.Token{Value: req.token})
 		if err != nil {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
@@ -84,6 +86,8 @@ func viewAgentBackendInputEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 				return nil, err
 			}
 			return bk, nil
+		} else {
+			return nil, errors.ErrNotFound
 		}
 		return Inputs()
 		//return svc.ViewAgentBackendInput(ctx, req.token, req.id)
@@ -102,7 +106,7 @@ func viewAgentBackendTapsEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		if !backend.HaveBackend("pktvisor") {
+		if !backend.HaveBackend(req.id) {
 			return nil, errors.ErrNotFound
 		}
 		metadataList, err := RetrieveAgentMetadataByOwner(ctx, r.Id, pkt.db)

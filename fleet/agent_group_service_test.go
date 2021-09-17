@@ -87,7 +87,7 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
+	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, nil)
 }
 
 func TestCreateAgentGroup(t *testing.T) {
