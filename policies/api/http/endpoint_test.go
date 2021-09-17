@@ -33,11 +33,12 @@ const (
 	token               = "token"
 	validPolicyDataJson = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
 	conflictValidJson   = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
-	validPolicyDataYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "handlers:\n modules:\n default_dns:\n type: \"dns\"\n default_net:\n type: \"net\"\ninput:\n input_type: \"pcap\"\n tap: \"mydefault\"\n kind: \"collection\""}`
-	invalidJson         = "{"
-	email               = "user@example.com"
-	format              = "yaml"
-	policy_data         = `version: "1.0"
+	validPolicyDataYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
+	//validPolicyDataYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n  foo: \"bar\""}`
+	invalidJson = "{"
+	email       = "user@example.com"
+	format      = "yaml"
+	policy_data = `version: "1.0"
 visor:
   taps:
     anycast:
@@ -582,7 +583,7 @@ func TestCreatePolicy(t *testing.T) {
 	defer cli.server.Close()
 
 	// Conflict scenario
-	createPolicy(t, &cli, "my-policy-conflict")
+	//createPolicy(t, &cli, "my-policy-conflict")
 
 	cases := map[string]struct {
 		req         string
