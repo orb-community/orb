@@ -40,7 +40,6 @@ export interface Agent extends OrbEntity {
    */
   agent_metadata?: any;
 
-  // TODO why not go with status as Sink?
   /**
    * State {string} = 'new'|'online'|'offline'|'stale'|'removed'
    * Current Status of the Agent's Connection

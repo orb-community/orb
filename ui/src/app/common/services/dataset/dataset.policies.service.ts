@@ -6,7 +6,8 @@ import 'rxjs/add/observable/empty';
 import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { DatasetPolicy } from 'app/common/interfaces/orb/dataset.policy.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -14,9 +15,9 @@ const defOrder: string = 'name';
 const defDir = 'desc';
 
 @Injectable()
-export class AgentsService {
+export class DatasetPoliciesService {
   paginationCache: any = {};
-  cache: OrbPagination<Agent>;
+  cache: OrbPagination<AgentPolicy>;
 
   constructor(
     private http: HttpClient,
@@ -25,7 +26,7 @@ export class AgentsService {
     this.clean();
   }
 
-  public static getDefaultPagination(): OrbPagination<Agent> {
+  public static getDefaultPagination(): OrbPagination<DatasetPolicy> {
     return {
       limit: defLimit,
       order: defOrder,
@@ -48,9 +49,9 @@ export class AgentsService {
     this.paginationCache = {};
   }
 
-  addAgent(agentItem: Agent) {
-    return this.http.post(environment.agentsUrl,
-      { ...agentItem, validate_only: false },
+  addDatasetPolicy(datasetItem: DatasetPolicy) {
+    return this.http.post(environment.datasetPoliciesUrl,
+      { ...datasetItem, validate_only: false },
       { observe: 'response' })
       .map(
         resp => {
@@ -59,17 +60,15 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to create Agent',
+          this.notificationsService.error('Failed to create Dataset Policy',
             `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
           return Observable.throwError(err);
         },
       );
   }
 
-  validateAgent(agentItem: Agent) {
-    return this.http.post(environment.validateAgentsUrl,
-      { ...agentItem, validate_only: true },
-      { observe: 'response' })
+  getDatasetPolicyById(id: string): any {
+    return this.http.get(`${ environment.datasetPoliciesUrl }/${ id }`)
       .map(
         resp => {
           return resp;
@@ -77,15 +76,15 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to Validate Agent',
-            `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
+          this.notificationsService.error('Failed to fetch Dataset Policy',
+            `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
       );
   }
 
-  getAgentById(id: string): any {
-    return this.http.get(`${ environment.agentsUrl }/${ id }`)
+  editDatasetPolicy(datasetItem: DatasetPolicy): any {
+    return this.http.put(`${ environment.datasetPoliciesUrl }/${ datasetItem.id }`, datasetItem)
       .map(
         resp => {
           return resp;
@@ -93,15 +92,15 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to fetch Agent',
+          this.notificationsService.error('Failed to edit Dataset Policy',
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
       );
   }
 
-  editAgent(agent: Agent): any {
-    return this.http.put(`${ environment.agentsUrl }/${ agent.id }`, agent)
+  deleteDatasetPolicy(id: string) {
+    return this.http.delete(`${ environment.datasetPoliciesUrl }/${ id }`)
       .map(
         resp => {
           return resp;
@@ -109,53 +108,14 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to edit Agent',
+          this.notificationsService.error('Failed to Delete Dataset Policies',
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
       );
   }
 
-  deleteAgent(agentId: string) {
-    return this.http.delete(`${ environment.agentsUrl }/${ agentId }`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to Delete Agent',
-            `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
-        },
-      );
-  }
-
-  getMatchingAgents(tagsInfo: any) {
-    const params = new HttpParams()
-      .set('offset', AgentsService.getDefaultPagination().offset.toString())
-      .set('limit', AgentsService.getDefaultPagination().limit.toString())
-      .set('order', AgentsService.getDefaultPagination().order.toString())
-      .set('dir', AgentsService.getDefaultPagination().dir.toString())
-      .set('tags', JSON.stringify(tagsInfo).replace('[', '').replace(']', ''));
-
-    return this.http.get(environment.agentsUrl, { params })
-      .map(
-        (resp: any) => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to get Matching Agents',
-            `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
-        },
-      );
-  }
-
-  getAgents(pageInfo: NgxDatabalePageInfo, isFilter = false) {
+  getDatasetPolicies(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     const offset = pageInfo.offset || this.cache.offset;
     const limit = pageInfo.limit || this.cache.limit;
     let params = new HttpParams()
@@ -178,14 +138,15 @@ export class AgentsService {
       return of(this.cache);
     }
 
-    return this.http.get(environment.agentsUrl, { params })
+    return this.http.get(environment.datasetPoliciesUrl, { params })
       .map(
         (resp: any) => {
           this.paginationCache[pageInfo.offset] = true;
           // This is the position to insert the new data
           const start = resp.offset;
           const newData = [...this.cache.data];
-          newData.splice(start, resp.limit, ...resp.agents);
+          // TODO find out the field name for data in response json
+          newData.splice(start, resp.limit, ...resp.datasets);
           this.cache = {
             ...this.cache,
             offset: Math.floor(resp.offset / resp.limit),
@@ -199,7 +160,7 @@ export class AgentsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to get Agents',
+          this.notificationsService.error('Failed to get Dataset Policies',
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },

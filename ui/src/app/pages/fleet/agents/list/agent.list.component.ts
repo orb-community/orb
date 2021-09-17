@@ -11,6 +11,7 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete.component';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 
 @Component({
@@ -55,6 +56,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
     private agentService: AgentsService,
+    private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
   ) {
@@ -175,7 +177,10 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.agentService.deleteAgent(id).subscribe(() => this.getAgents());
+          this.agentService.deleteAgent(id).subscribe(() => {
+            this.getAgents();
+            this.notificationsService.success('Agent successfully deleted', '');
+          });
         }
       },
     );
