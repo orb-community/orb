@@ -65,3 +65,19 @@ const AgentPoliciesReqRPCFunc = "agent_policies_req"
 type AgentPoliciesReqRPCPayload struct {
 	// empty
 }
+
+const AgentMetricsRPCFunc = "agent_metrics"
+
+type AgentMetricsRPC struct {
+	SchemaVersion string                   `json:"schema_version"`
+	Func          string                   `json:"func"`
+	Payload       []AgentMetricsRPCPayload `json:"payload"`
+}
+
+type AgentMetricsRPCPayload struct {
+	PolicyID  string      `json:"policy_id"`
+	Datasets  []string    `json:"datasets"`
+	Format    string      `json:"format"`
+	BEVersion string      `json:"be_version"`
+	Data      interface{} `json:"data"`
+}

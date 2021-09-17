@@ -51,7 +51,7 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
 	body, err := json.Marshal(hbData)
 	if err != nil {
-		a.logger.Error("error creating heartbeat data", zap.Error(err))
+		a.logger.Error("error marshalling heartbeat", zap.Error(err))
 		return
 	}
 

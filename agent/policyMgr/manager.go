@@ -2,59 +2,20 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package policies
+package manager
 
 import (
-	"database/sql/driver"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/config"
+	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 )
 
-const (
-	Unknown State = iota
-	Running
-	FailedToApply
-)
-
-type State int
-
-type policyData struct {
-	ID         string
-	Datasets   map[string]bool
-	Name       string
-	Backend    string
-	Version    int32
-	Data       interface{}
-	State      State
-	BackendErr string
-}
-
-var stateMap = [...]string{
-	"unknown",
-	"running",
-	"failed_to_apply",
-}
-
-var stateRevMap = map[string]State{
-	"unknown":         Unknown,
-	"running":         Running,
-	"failed_to_apply": FailedToApply,
-}
-
-func (s State) String() string {
-	return stateMap[s]
-}
-
-func (s *State) Scan(value interface{}) error { *s = stateRevMap[string(value.([]byte))]; return nil }
-func (s State) Value() (driver.Value, error)  { return s.String(), nil }
-
 type PolicyManager interface {
 	ManagePolicy(payload fleet.AgentPolicyRPCPayload)
-	GetPolicyState() ([]policyData, error)
+	GetPolicyState() ([]policies.PolicyData, error)
 }
 
 var _ PolicyManager = (*policyManager)(nil)
@@ -63,16 +24,16 @@ type policyManager struct {
 	logger *zap.Logger
 	config config.Config
 
-	repo PolicyRepo
+	repo policies.PolicyRepo
 }
 
-func (a *policyManager) GetPolicyState() ([]policyData, error) {
+func (a *policyManager) GetPolicyState() ([]policies.PolicyData, error) {
 	d, e := a.repo.GetAll()
 	return d, e
 }
 
 func New(logger *zap.Logger, c config.Config, db *sqlx.DB) (PolicyManager, error) {
-	repo, err := NewMemRepo(logger)
+	repo, err := policies.NewMemRepo(logger)
 	if err != nil {
 		return nil, err
 	}
@@ -105,22 +66,22 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 				a.logger.Warn("policy failed to ensure dataset id", zap.String("id", payload.ID), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
 			}
 		} else {
-			pd := policyData{
+			pd := policies.PolicyData{
 				ID:       payload.ID,
 				Name:     payload.Name,
 				Backend:  payload.Backend,
 				Version:  payload.Version,
 				Data:     payload.Data,
-				State:    Unknown,
+				State:    policies.Unknown,
 				Datasets: map[string]bool{payload.DatasetID: true},
 			}
-			err := be.ApplyPolicy(payload.ID, payload.Data)
+			err := be.ApplyPolicy(pd)
 			if err != nil {
 				a.logger.Warn("policy failed to apply", zap.String("id", payload.ID), zap.Error(err))
-				pd.State = FailedToApply
+				pd.State = policies.FailedToApply
 				pd.BackendErr = err.Error()
 			} else {
-				pd.State = Running
+				pd.State = policies.Running
 			}
 			a.repo.Add(pd)
 		}

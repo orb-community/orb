@@ -6,47 +6,48 @@ package backend
 
 import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/ns1labs/orb/agent/policies"
 	"go.uber.org/zap"
 )
 
 const (
-	Unknown State = iota
+	Unknown BackendState = iota
 	Running
 	BackendError
 	AgentError
 )
 
-type State int
+type BackendState int
 
-var stateMap = [...]string{
+var backendStateMap = [...]string{
 	"unknown",
 	"running",
 	"backend_error",
 	"agent_error",
 }
 
-var stateRevMap = map[string]State{
+var backendStateRevMap = map[string]BackendState{
 	"unknown":       Unknown,
 	"running":       Running,
 	"backend_error": BackendError,
 	"agent_error":   AgentError,
 }
 
-func (s State) String() string {
-	return stateMap[s]
+func (s BackendState) String() string {
+	return backendStateMap[s]
 }
 
 type Backend interface {
 	Configure(*zap.Logger, map[string]string) error
-	SetCommsClient(*mqtt.Client, string)
+	SetCommsClient(mqtt.Client, string)
 	Version() (string, error)
 	Start() error
 	Stop() error
 
 	GetCapabilities() (map[string]interface{}, error)
-	GetState() (State, string, error)
+	GetState() (BackendState, string, error)
 
-	ApplyPolicy(policyID string, policyData interface{}) error
+	ApplyPolicy(data policies.PolicyData) error
 	RemovePolicy(policyID string) error
 }
 

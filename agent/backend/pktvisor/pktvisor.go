@@ -9,10 +9,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-cmd/cmd"
 	"github.com/go-co-op/gocron"
 	"github.com/ns1labs/orb/agent/backend"
+	"github.com/ns1labs/orb/agent/policies"
+	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"io"
@@ -27,27 +29,28 @@ var _ backend.Backend = (*pktvisorBackend)(nil)
 const DefaultBinary = "/usr/local/sbin/pktvisord"
 
 type pktvisorBackend struct {
-	logger     *zap.Logger
-	binary     string
-	configFile string
-	proc       *cmd.Cmd
-	statusChan <-chan cmd.Status
+	logger          *zap.Logger
+	binary          string
+	configFile      string
+	pktvisorVersion string
+	proc            *cmd.Cmd
+	statusChan      <-chan cmd.Status
 
-	mqttClient *mqtt.Client
-	jsonTopic  string
-	scraper    *gocron.Scheduler
+	mqttClient   mqtt.Client
+	metricsTopic string
+	scraper      *gocron.Scheduler
 
 	adminAPIHost     string
 	adminAPIPort     uint16
 	adminAPIProtocol string
 }
 
-func (p *pktvisorBackend) SetCommsClient(client *mqtt.Client, baseTopic string) {
+func (p *pktvisorBackend) SetCommsClient(client mqtt.Client, baseTopic string) {
 	p.mqttClient = client
-	p.jsonTopic = fmt.Sprintf("%s/m/json", baseTopic)
+	p.metricsTopic = fmt.Sprintf("%s/m", baseTopic)
 }
 
-func (p *pktvisorBackend) GetState() (backend.State, string, error) {
+func (p *pktvisorBackend) GetState() (backend.BackendState, string, error) {
 	_, err := p.checkAlive()
 	if err != nil {
 		return backend.Unknown, "", err
@@ -63,6 +66,7 @@ type AppMetrics struct {
 	} `json:"app"`
 }
 
+// note this needs to be stateless because it is calledfor multiple go routines
 func (p *pktvisorBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string) error {
 	client := http.Client{
 		Timeout: time.Second * 5,
@@ -129,41 +133,77 @@ func (p *pktvisorBackend) checkAlive() (bool, error) {
 	return true, nil
 }
 
-func (p *pktvisorBackend) ApplyPolicy(policyID string, policyData interface{}) error {
+func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 
-	p.logger.Info("pktvisor policy", zap.Any("data", policyData))
+	p.logger.Debug("pktvisor policy apply", zap.String("policy_id", data.ID), zap.Any("data", data.Data))
 
-	// add header with "p_policyID" as policy name
+	// add header with "p_data.ID" as policy name
 	// note pktvisor doesn't allow policy names to start with a number, thus the prefix
-	pktvisorPolicyName := fmt.Sprintf("p_%s", policyID)
+	pktvisorPolicyName := fmt.Sprintf("p_%s", data.ID)
 	fullPolicy := map[string]interface{}{
 		"version": "1.0",
 		"visor": map[string]interface{}{
 			"policies": map[string]interface{}{
-				pktvisorPolicyName: policyData,
+				pktvisorPolicyName: data.Data,
 			},
 		},
 	}
 
 	pyaml, err := yaml.Marshal(fullPolicy)
 	if err != nil {
+		p.logger.Warn("yaml policy marshal failure", zap.String("policy_id", data.ID), zap.Any("policy", fullPolicy))
 		return err
 	}
 
 	var resp map[string]interface{}
 	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(pyaml), "application/x-yaml")
 	if err != nil {
-		p.logger.Debug("yaml policy failure", zap.ByteString("policy", pyaml))
+		p.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", pyaml))
 		return err
 	}
 
-	_, _ = p.scraper.Every(1).Minute().Tag(policyID).Do(func() {
-		metrics, err := p.scrapeMetrics(policyID, 0)
+	job, err := p.scraper.Every(1).Minute().WaitForSchedule(nt).Tag(data.ID).Do(func() {
+		metrics, err := p.scrapeMetrics(data.ID, 1)
 		if err != nil {
-			p.logger.Error("scrape failed", zap.String("policy_id", policyID), zap.Error(err))
+			p.logger.Error("scrape failed", zap.String("policy_id", data.ID), zap.Error(err))
+			return
 		}
-		p.logger.Debug("scrape", zap.Any("m", metrics))
+		payloadData, err := json.Marshal(metrics)
+		if err != nil {
+			p.logger.Error("error marshalling scraped metric json", zap.String("policy_id", data.ID), zap.Error(err))
+			return
+		}
+		metricPayload := fleet.AgentMetricsRPCPayload{
+			PolicyID:  data.ID,
+			Datasets:  data.GetDatasetIDs(),
+			Format:    "json",
+			BEVersion: p.pktvisorVersion,
+			Data:      payloadData,
+		}
+
+		topic := fmt.Sprintf("%s/%c", p.metricsTopic, data.ID[0])
+		body, err := json.Marshal(metricPayload)
+		if err != nil {
+			p.logger.Error("error marshalling metric rpc payload", zap.String("policy_id", data.ID), zap.Error(err))
+			return
+		}
+
+		if token := p.mqttClient.Publish(topic, 1, false, body); token.Wait() && token.Error() != nil {
+			p.logger.Error("error sending metrics RPC", zap.String("topic", topic), zap.Error(token.Error()))
+		}
+		p.logger.Info("scrapped and published metrics", zap.String("policy_id", data.ID), zap.String("topic", topic), zap.Int("payload_size", len(payloadData)))
+
 	})
+	job.SingletonMode()
+
+	if err != nil {
+		p.logger.Warn("application succeeded but scraper creation failed, attempting remove policy", zap.String("policy_id", data.ID))
+		rerr := p.RemovePolicy(data.ID)
+		if rerr != nil {
+			p.logger.Error("policy removal failed", zap.String("policy_id", data.ID), zap.Error(rerr))
+		}
+		return err
+	}
 
 	return nil
 
@@ -172,6 +212,11 @@ func (p *pktvisorBackend) ApplyPolicy(policyID string, policyData interface{}) e
 func (p *pktvisorBackend) RemovePolicy(policyID string) error {
 	var resp interface{}
 	err := p.request(fmt.Sprintf("policies/%s", policyID), &resp, http.MethodDelete, nil, "")
+	if err != nil {
+		return err
+	}
+
+	err = p.scraper.RemoveByTag(policyID)
 	if err != nil {
 		return err
 	}
@@ -186,6 +231,7 @@ func (p *pktvisorBackend) Version() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	p.pktvisorVersion = appMetrics.App.Version
 	return appMetrics.App.Version, nil
 }
 

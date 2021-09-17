@@ -11,23 +11,23 @@ import (
 
 type PolicyRepo interface {
 	Exists(policyID string) bool
-	Get(policyID string) (policyData, error)
+	Get(policyID string) (PolicyData, error)
 	Remove(policyID string) error
-	Add(data policyData) error
-	GetAll() ([]policyData, error)
+	Add(data PolicyData) error
+	GetAll() ([]PolicyData, error)
 	EnsureDataset(policyID string, datasetID string) error
 }
 
 type policyMemRepo struct {
 	logger *zap.Logger
 
-	db map[string]policyData
+	db map[string]PolicyData
 }
 
 func NewMemRepo(logger *zap.Logger) (PolicyRepo, error) {
 	r := &policyMemRepo{
 		logger: logger,
-		db:     make(map[string]policyData),
+		db:     make(map[string]PolicyData),
 	}
 	return r, nil
 }
@@ -46,10 +46,10 @@ func (p policyMemRepo) Exists(policyID string) bool {
 	return ok
 }
 
-func (p policyMemRepo) Get(policyID string) (policyData, error) {
+func (p policyMemRepo) Get(policyID string) (PolicyData, error) {
 	policy, ok := p.db[policyID]
 	if !ok {
-		return policyData{}, errors.New("unknown policy ID")
+		return PolicyData{}, errors.New("unknown policy ID")
 	}
 	return policy, nil
 }
@@ -59,13 +59,13 @@ func (p policyMemRepo) Remove(policyID string) error {
 	return nil
 }
 
-func (p policyMemRepo) Add(data policyData) error {
+func (p policyMemRepo) Add(data PolicyData) error {
 	p.db[data.ID] = data
 	return nil
 }
 
-func (p policyMemRepo) GetAll() (ret []policyData, err error) {
-	ret = make([]policyData, len(p.db))
+func (p policyMemRepo) GetAll() (ret []PolicyData, err error) {
+	ret = make([]PolicyData, len(p.db))
 	i := 0
 	for _, v := range p.db {
 		ret[i] = v
