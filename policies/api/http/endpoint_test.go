@@ -582,7 +582,7 @@ func TestCreatePolicy(t *testing.T) {
 	defer cli.server.Close()
 
 	// Conflict scenario
-	//createPolicy(t, &cli, "my-policy-conflict")
+	createPolicy(t, &cli, "my-policy-conflict")
 
 	cases := map[string]struct {
 		req         string
