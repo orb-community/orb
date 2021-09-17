@@ -9,11 +9,11 @@
       <div class="d-flex">
         <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
            class="sink-info-regular mb-0">
-          You have <a><strong>{{paginationControls.data.length}}</strong> agents and</a>
+          You have <a><strong>{{paginationControls.total}}</strong> agents</a> deployed in <a>{{paginationControls.data.map(mapRegion).filter(filterValid).filter(countUnique).length}} regions.</a>
         </p>
-        <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
+        <p *ngIf=" paginationControls.data && paginationControls.data.filter(filterByError).length > 0 "
            class="ns1red">
-          &nbsp;<a><strong>{{paginationControls.data.length}}</strong> of them  have errors</a>.
+          &nbsp;<a><strong> {{paginationControls.data.filter(filterByError).length}}</strong> of them  have errors</a>.
         </p>
         <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
            class="sink-info-accent mb-0">

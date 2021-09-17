@@ -4,25 +4,12 @@
  * [Agent Policy Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Policies-and-Datasets}
  */
 
+import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
+
 /**
  * @interface AgentPolicy
  */
-export interface AgentPolicy {
-  /**
-   *  Tenant owner {string} UUIDv4 (read only)
-   */
-  mf_owner_id?: string;
-
-  /**
-   *  ID {string} UUIDv4 (read only)
-   */
-  id?: string;
-
-  /**
-   * Name {string} [a-zA-Z_:][a-zA-Z0-9_]*
-   */
-  name?: string;
-
+export interface AgentPolicy extends OrbEntity {
   /**
    * Description {string}
    */
@@ -56,4 +43,5 @@ export interface AgentPolicy {
    * Policy Metadata {{[propName: string]: string}}
    */
   policy_metadata?: any;
+
 }

@@ -8,10 +8,11 @@ import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.g
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
 import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 
 @Component({
@@ -56,6 +57,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
     private agentGroupsService: AgentGroupsService,
+    private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
   ) {
@@ -109,6 +111,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
         name: 'Tags',
         minWidth: 90,
         flexGrow: 3,
+        cellClass: Object,
         cellTemplate: this.agentGroupTagsTemplateCell,
       },
       {
@@ -142,7 +145,8 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
     this.agentGroupsService.getAgentGroups(pageInfo, isFilter).subscribe(
       (resp: OrbPagination<AgentGroup>) => {
         this.paginationControls = resp;
-
+        this.paginationControls.offset = pageInfo.offset;
+        this.paginationControls.total = resp.total;
         this.loading = false;
       },
     );
@@ -155,26 +159,29 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
   }
 
   onOpenEdit(agentGroup: any) {
-    this.router.navigate([`edit/${agentGroup.id}`], {
-      state: {agentGroup: agentGroup, edit: true},
+    this.router.navigate([`edit/${ agentGroup.id }`], {
+      state: { agentGroup: agentGroup, edit: true },
       relativeTo: this.route,
     });
   }
 
   onFilterSelected(selectedIndex) {
-    this.searchPlaceholder = `Search by ${this.tableFilters[selectedIndex].label}`;
+    this.searchPlaceholder = `Search by ${ this.tableFilters[selectedIndex].label }`;
   }
 
   openDeleteModal(row: any) {
-    const {name, id} = row;
+    const { name, id } = row;
     this.dialogService.open(AgentGroupDeleteComponent, {
-      context: {name},
+      context: { name },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
       confirm => {
         if (confirm) {
-          this.agentGroupsService.deleteAgentGroup(id).subscribe(() => this.getAgentGroups());
+          this.agentGroupsService.deleteAgentGroup(id).subscribe(() => {
+            this.notificationsService.success('Agent Group successfully deleted', '');
+            this.getAgentGroups();
+          });
         }
       },
     );
@@ -182,7 +189,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
 
   openDetailsModal(row: any) {
     this.dialogService.open(AgentGroupDetailsComponent, {
-      context: {agentGroup: row},
+      context: { agentGroup: row },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe((resp) => {
@@ -210,6 +217,4 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
       [this.tableFilters[this.filterSelectedIndex].prop]: input,
     });
   }
-
-  filterByActive = (agent) => agent.state === 'active';
 }

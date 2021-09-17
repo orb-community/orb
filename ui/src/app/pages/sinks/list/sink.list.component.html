@@ -9,7 +9,7 @@
       <div class="d-flex">
         <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
            class="sink-info-regular mb-0">
-          {{paginationControls.data.length}} sinks total, {{paginationControls.data.filter(filterByInactive).length}}
+          {{paginationControls.total}} sinks total, {{paginationControls.data.filter(filterByInactive).length}}
           have errors.
         </p>
         <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
