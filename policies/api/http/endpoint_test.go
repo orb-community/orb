@@ -31,9 +31,9 @@ import (
 
 const (
 	token               = "token"
-	validPolicyDataJson = "{ \"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"policy\": { \"version\": \"1.0\", \"visor\": { \"policies\": { \"mydefault\": { \"input\": {\"tap\": \"mydefault\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"},\"default_dns\": {\"type\": \"dns\"}}}}}}}}"
-	conflictValidJson   = "{ \"name\": \"my-policy-conflict\", \"description\": \"A policy example\", \"tags\": { \"region\": \"eu\", \"node_type\": \"dns\" }, \"backend\": \"pktvisor\", \"policy\": {\n  \"version\": \"1.0\",\n  \"visor\": {\n    \"taps\": {\n      \"anycast\": {\n        \"type\": \"pcap\",\n        \"config\": {\n          \"iface\": \"eth0\"\n        }\n      }\n    }\n  }\n}}"
-	validPolicyDataYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+	validPolicyDataJson = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
+	conflictValidJson   = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
+	validPolicyDataYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "handlers:\n modules:\n default_dns:\n type: \"dns\"\n default_net:\n type: \"net\"\ninput:\n input_type: \"pcap\"\n tap: \"mydefault\"\n kind: \"collection\""}`
 	invalidJson         = "{"
 	email               = "user@example.com"
 	format              = "yaml"
@@ -475,13 +475,13 @@ func TestPolicyRemoval(t *testing.T) {
 
 func TestValidatePolicy(t *testing.T) {
 	var (
-		contentType = "application/json"
-		validYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		contentType        = "application/json"
+		validYaml          = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
 		invalidBackendYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "", "description": "my pktvisor policy yaml", "tags": { "region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
-		invalidYaml = `{`
-		invalidTagYaml = `{"name": "mypktvisorpolicyyaml-3","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"invalid"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
-		invalidNameYaml = `{"name": "policy//.#","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
-		invalidFieldYaml = `{"nname": "policy","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidYaml        = `{`
+		invalidTagYaml     = `{"name": "mypktvisorpolicyyaml-3","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"invalid"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidNameYaml    = `{"name": "policy//.#","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidFieldYaml   = `{"nname": "policy","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
 	)
 	cli := newClientServer(t)
 
@@ -560,12 +560,12 @@ func TestValidatePolicy(t *testing.T) {
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			req := testRequest{
-				client: cli.server.Client(),
-				method: http.MethodPost,
-				url:    fmt.Sprintf("%s/policies/agent/validate", cli.server.URL),
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/policies/agent/validate", cli.server.URL),
 				contentType: tc.contentType,
-				token:  tc.auth,
-				body: strings.NewReader(tc.req),
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
 			if err != nil {
