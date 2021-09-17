@@ -1,6 +1,6 @@
 <nb-card size="large" class="nb-card-medium">
   <nb-card-header>
-    {{strings.details.header}}
+    Policy Details
     <button nbButton
             ghost="true"
             size="small"
@@ -12,33 +12,33 @@
   <nb-card-body>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">{{strings.propNames.name}}<span class="ns1red">*</span></p>
+        <p class="detail-title">Policy Name<span class="ns1red">*</span></p>
         <p>{{ agentPolicy.name }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">{{strings.propNames.description}}</p>
+        <p class="detail-title">Policy Description</p>
         <p>{{ agentPolicy.description }}</p>
       </div>
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">{{strings.propNames.backend}}<span class="ns1red">*</span></p>
+        <p class="detail-title">Backend<span class="ns1red">*</span></p>
         <p>{{ agentPolicy.backend }}</p>
-      </div>
-      <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">{{strings.propNames.config_remote_host}}<span class="ns1red">*</span></p>
-        <p>{{ agentPolicy.config.remote_host }}</p>
       </div>
     </div>
     <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Version<span class="ns1red">*</span></p>
+        <p>{{ agentPolicy.version }}</p>
+      </div>
       <div class="col-6 align-items-start d-flex flex-column">
-        <p class="detail-title">{{strings.propNames.ts_created}}</p>
+        <p class="detail-title">Last Modified</p>
         <p>{{ agentPolicy.ts_created }}</p>
       </div>
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">{{strings.propNames.tags}}<span class="ns1red">*</span></p>
+        <p class="detail-title">Tags<span class="ns1red">*</span></p>
         <div>
           <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
             <mat-chip

@@ -108,7 +108,7 @@ const children = [
     data: {breadcrumb: 'Datasets Explorer'},
     children: [
       {
-        path: '',
+        path: 'list',
         component: DatasetListComponent,
         data: {breadcrumb: 'List'},
       },
