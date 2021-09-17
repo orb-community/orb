@@ -124,8 +124,8 @@ type AgentRepository interface {
 	RetrieveByID(ctx context.Context, ownerID string, thingID string) (Agent, error)
 	// Delete an existing agent by owner and id
 	Delete(ctx context.Context, ownerID string, thingID string) error
-	// RetrieveAgentTapsByOwner
-	RetrieveAgentTapsByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error)
+	// RetrieveAgentMetadataByOwner retrieves the Metadata having the OwnerID
+	RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error)
 }
 
 type AgentHeartbeatRepository interface {

@@ -14,6 +14,7 @@ import (
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/fleet/backend"
+	"github.com/ns1labs/orb/fleet/backend/pktvisor"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
@@ -203,7 +204,7 @@ func (svc fleetService) ViewAgentBackendHandler(ctx context.Context, token strin
 		return nil, err
 	}
 	if backend.HaveBackend(name) {
-		bk, err := backend.GetBackend(name).Handlers()
+		bk, err := pktvisor.Handlers()
 		if err != nil {
 			return nil, err
 		}
@@ -218,7 +219,7 @@ func (svc fleetService) ViewAgentBackendInput(ctx context.Context, token string,
 		return nil, err
 	}
 	if backend.HaveBackend(name) {
-		bk, err := backend.GetBackend(name).Inputs()
+		bk, err := pktvisor.Inputs()
 		if err != nil {
 			return nil, err
 		}
@@ -235,7 +236,7 @@ func (svc fleetService) ViewAgentBackendTaps(ctx context.Context, token string, 
 	if !backend.HaveBackend(name) {
 		return nil, errors.ErrNotFound
 	}
-	metadataList, err := svc.agentRepo.RetrieveAgentTapsByOwner(ctx, ownerID)
+	metadataList, err := svc.agentRepo.RetrieveAgentMetadataByOwner(ctx, ownerID)
 	if err != nil {
 		return nil, err
 	}
@@ -302,6 +303,7 @@ func toBackendTaps(list []types.Metadata) ([]BackendTaps, error) {
 
 // Used to aggregate and sumarize the taps and return a slice of BackendTaps
 func groupTaps(taps []BackendTaps) []BackendTaps {
+	//TODO sort taps before group
 	tapsMap := make(map[string]BackendTaps)
 	for _, tap := range taps {
 		key := key(tap.Name, tap.InputType)

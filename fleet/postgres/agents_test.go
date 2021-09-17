@@ -638,7 +638,7 @@ func TestAgentBackendTapsRetrieve(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			ag, err := agentRepo.RetrieveAgentTapsByOwner(context.Background(), tc.ownerID)
+			ag, err := agentRepo.RetrieveAgentMetadataByOwner(context.Background(), tc.ownerID)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 			assert.Equal(t, tc.total, len(ag), fmt.Sprintf("%s: expected %d got %d", desc, tc.total, len(ag)))
 		})

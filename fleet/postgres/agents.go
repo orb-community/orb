@@ -392,7 +392,7 @@ func (r agentRepository) Delete(ctx context.Context, ownerID string, thingID str
 	return nil
 }
 
-func (r agentRepository) RetrieveAgentTapsByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error) {
+func (r agentRepository) RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error) {
 	q := `SELECT agent_metadata
 		FROM agents
 		CROSS JOIN LATERAL jsonb_each_text(agent_metadata)

@@ -12,6 +12,7 @@ require (
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/golang/protobuf v1.5.0
 	github.com/jmoiron/sqlx v1.3.4
+	github.com/kisielk/godepgraph v0.0.0-20190626013829-57a7e4a651a9 // indirect
 	github.com/lib/pq v1.7.0
 	github.com/mainflux/mainflux v0.12.0
 	github.com/mattn/go-sqlite3 v1.14.6

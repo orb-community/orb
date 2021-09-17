@@ -12,6 +12,7 @@ import (
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/fleet/backend"
 	"github.com/ns1labs/orb/internal/httputil"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -104,26 +105,13 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeView,
 		types.EncodeResponse,
 		opts...))
-	r.Get("/backends/agents", kithttp.NewServer(
-		kitot.TraceServer(tracer, "list_backends")(listAgentBackendsEndpoint(svc)),
-		decodeListBackends,
-		types.EncodeResponse,
-		opts...))
-	r.Get("/backends/agents/:id/handler", kithttp.NewServer(
-		kitot.TraceServer(tracer, "view_agent_backend_handler")(viewAgentBackendHandlerEndpoint(svc)),
-		decodeView,
-		types.EncodeResponse,
-		opts...))
-	r.Get("/backends/agents/:id/input", kithttp.NewServer(
-		kitot.TraceServer(tracer, "view_agent_backend_input")(viewAgentBackendInputEndpoint(svc)),
-		decodeView,
-		types.EncodeResponse,
-		opts...))
-	r.Get("/backends/agents/:id/taps", kithttp.NewServer(
-		kitot.TraceServer(tracer, "view_agent_backend_taps")(viewAgentBackendTapsEndpoint(svc)),
-		decodeView,
-		types.EncodeResponse,
-		opts...))
+
+	bks := backend.GetList()
+	if len(bks) > 0 {
+		for _, v := range bks {
+			backend.GetBackend(v).MakeHandler(tracer, opts, r)
+		}
+	}
 
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
@@ -193,11 +181,6 @@ func decodeAgentUpdate(_ context.Context, r *http.Request) (interface{}, error) 
 		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
 	}
 
-	return req, nil
-}
-
-func decodeListBackends(_ context.Context, r *http.Request) (interface{}, error) {
-	req := listAgentBackendsReq{token: r.Header.Get("Authorization")}
 	return req, nil
 }
 

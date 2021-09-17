@@ -4,12 +4,15 @@
 
 package backend
 
-import "github.com/ns1labs/orb/pkg/types"
+import (
+	kithttp "github.com/go-kit/kit/transport/http"
+	"github.com/go-zoo/bone"
+	"github.com/opentracing/opentracing-go"
+)
 
 type Backend interface {
-	Handlers() (types.Metadata, error)
-	Inputs() (types.Metadata, error)
 	Metadata() interface{}
+	MakeHandler(tracer opentracing.Tracer, opts []kithttp.ServerOption, r *bone.Mux)
 }
 
 type ConfigFeature struct {

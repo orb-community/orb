@@ -143,17 +143,6 @@ func (req viewResourceReq) validate() error {
 	return nil
 }
 
-type listAgentBackendsReq struct {
-	token string
-}
-
-func (req *listAgentBackendsReq) validate() error {
-	if req.token == "" {
-		return errors.ErrUnauthorizedAccess
-	}
-	return nil
-}
-
 type listResourcesReq struct {
 	token        string
 	pageMetadata fleet.PageMetadata

@@ -13,7 +13,7 @@ type agentRepositoryMock struct {
 	agentsMock map[string]fleet.Agent
 }
 
-func (a agentRepositoryMock) RetrieveAgentTapsByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error) {
+func (a agentRepositoryMock) RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error) {
 	var taps []types.Metadata
 	return taps, nil
 }
