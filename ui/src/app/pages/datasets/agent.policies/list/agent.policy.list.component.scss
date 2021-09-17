@@ -1,0 +1,130 @@
+h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.sink-summary {
+  .sink-info-regular {
+    color: #ffffff;
+
+    &::before {
+      content: 'You have\00a0';
+      color: #969fb9;
+    }
+  }
+
+  .sink-info-accent {
+    color: #969fb9;
+  }
+}
+
+.summary-accent {
+  color: #969fb9;
+}
+
+.filter-dropdown {
+  display: flex;
+  position: absolute;
+  right: 0;
+  padding-right: 50px;
+  transform: translateY(-50px);
+}
+
+.button-new-sink {
+  width: 155px;
+  height: 236px;
+  border: 1px solid #969fb9;
+  background: #232940;
+  box-sizing: border-box;
+  justify-content: flex-end;
+
+  &::ng-deep div {
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
+
+  &:hover {
+    background: #232940;
+    border: 1px solid #3089fc;
+    box-sizing: border-box;
+    border-radius: 4px;
+  }
+
+  &:active {
+    background: #232940;
+    border: 1px solid #3089fc;
+    box-sizing: border-box;
+    border-radius: 4px;
+  }
+
+  &:default {
+    background: #232940;
+    border: 1px solid #969fb9;
+    box-sizing: border-box;
+    border-radius: 4px;
+  }
+}
+
+tr div p {
+  :hover {
+    color: #2a64f6;
+  }
+}
+
+::ng-deep {
+  header p {
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px !important;
+    line-height: 20px;
+
+    width: 250px;
+    height: 20px;
+    margin-left: 16px;
+    margin-top: 24px;
+
+    display: flex;
+    align-items: center;
+  }
+
+  .orb-breadcrumb {
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 12px;
+
+    ::ng-deep {
+      .xng-breadcrumb-trail {
+        color: #ffffff;
+        margin-bottom: 0;
+      }
+      .xng-breadcrumb-link {
+        text-decoration: none !important;
+        color: #969fb9 !important;
+      }
+     .xng-breadcrumb-separator {
+        text-decoration: none !important;
+        color: #969fb9 !important;
+      }
+    }
+  }
+}
+
+.add-sink-container {
+  position: relative;
+  height: 0;
+
+  button {
+    float: right;
+    top: 5px;
+    position: relative;
+    z-index: 2;
+    right: 5px;
+  }
+}

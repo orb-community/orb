@@ -1,0 +1,48 @@
+nb-card {
+  max-width: 38rem;
+  
+  nb-card-header {
+    background: #232940;
+    color: #969fb9;
+  }
+  
+  nb-card-body {
+    margin: 2rem 3rem;
+    padding: 0;
+  
+    p {
+      color: #969fb9;
+    }
+  
+    .ns1-red {
+      color: #df316f;
+    }
+  }
+  
+  nb-card-footer {
+    text-align: center;
+    padding: 1.5rem;
+  }
+}
+
+// ORB
+::ng-deep {
+  .orb-close-dialog {
+    background-color: #23294000;
+    border-radius: 4px;
+    display: contents;
+    float: right;
+
+    > span {
+      float: right;
+      font-size: 1.5rem;
+      color: #3089fc;
+      font-weight: 900;
+    }
+  }
+
+  .orb-sink-delete-warning-button:not(.btn-disabled) {
+    background-color: #df316f !important;
+    color: #ffffff !important;
+  }
+}

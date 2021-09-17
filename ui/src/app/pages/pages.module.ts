@@ -26,9 +26,6 @@ import { CommonModule } from 'app/common/common.module';
 import { ConfirmationComponent } from 'app/shared/components/confirmation/confirmation.component';
 
 // ORB
-import { DatasetsComponent } from 'app/pages/datasets/datasets.component';
-import { DatasetsAddComponent } from 'app/pages/datasets/add/datasets.add.component';
-import { DatasetsDetailsComponent } from 'app/pages/datasets/details/datasets.details.component';
 import { SinkListComponent } from 'app/pages/sinks/list/sink.list.component';
 import { SinkAddComponent } from 'app/pages/sinks/add/sink.add.component';
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
@@ -49,6 +46,14 @@ import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.a
 import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
+import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.policy.add.component';
+import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.policy.delete.component';
+import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.policy.details.component';
+import { DatasetListComponent } from 'app/pages/datasets/list/dataset.policy.list.component';
+import { AgentPolicyAddComponent } from 'app/pages/datasets/agent.policies/add/agent.policy.add.component';
+import { AgentPolicyDeleteComponent } from 'app/pages/datasets/agent.policies/delete/agent.policy.delete.component';
+import { AgentPolicyDetailsComponent } from 'app/pages/datasets/agent.policies/details/agent.policy.details.component';
+import { AgentPolicyListComponent } from 'app/pages/datasets/agent.policies/list/agent.policy.list.component';
 
 @NgModule({
   imports: [
@@ -91,21 +96,27 @@ import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.co
     PagesComponent,
     // Orb
     // Fleet Management
-    // Agents
+    // Fleet - Agents
     AgentListComponent,
     AgentAddComponent,
     AgentDeleteComponent,
     AgentDetailsComponent,
     AgentMatchComponent,
-    // Agent Groups
+    // Fleet - Agent Groups
     AgentGroupListComponent,
     AgentGroupAddComponent,
     AgentGroupDeleteComponent,
     AgentGroupDetailsComponent,
     // Dataset Explorer
-    DatasetsComponent,
-    DatasetsAddComponent,
-    DatasetsDetailsComponent,
+    DatasetAddComponent,
+    DatasetDeleteComponent,
+    DatasetDetailsComponent,
+    DatasetListComponent,
+    // Dataset Explorer - Agent Policies
+    AgentPolicyAddComponent,
+    AgentPolicyDeleteComponent,
+    AgentPolicyDetailsComponent,
+    AgentPolicyListComponent,
     // Sink Management
     SinkListComponent,
     SinkAddComponent,
