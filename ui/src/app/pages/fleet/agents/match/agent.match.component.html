@@ -1,5 +1,17 @@
-<div class="d-flex row">
-  <div class="tag-table">
+<nb-card>
+  <nb-card-header
+      data-orb-qa-id="agent#delete">
+    Matching Agents
+    <button nbButton
+            ghost="true"
+            size="small"
+            class="orb-close-dialog align-content-end"
+            (click)="onClose()"
+            data-orb-qa-id="button#close">
+      <span class="nb-close"></span>
+    </button>
+  </nb-card-header>
+  <nb-card-body>
     <ngx-datatable
         class="orb w-100"
         style="height: 500px;"
@@ -11,5 +23,33 @@
         [footerHeight]="50"
         [rowHeight]="50">
     </ngx-datatable>
+  </nb-card-body>
+</nb-card>
+
+<ng-template #agentStateTemplateCell let-row="row" let-value="value" let-i="index">
+  <div>
+    <div *ngIf="row.state === 'active'">
+      <i class="fa fa-circle orb-service-active"
+         aria-hidden="true"></i>
+      {{ row.state | titlecase }}
+    </div>
+    <div *ngIf="row.state !== 'active'">
+      <i class="fa fa-circle orb-service-inactive"
+         aria-hidden="true"></i>
+      {{ row.state | titlecase }}
+    </div>
   </div>
-</div>
+</ng-template>
+
+<ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
+  <div class="d-flex">
+    <mat-chip-list>
+      <mat-chip
+          class="orb-tag-sink "
+          *ngFor="let tag of value | keyvalue | tagchip"
+          [style.background-color]="tag | tagchipcolor">
+          {{tag}}
+      </mat-chip>
+    </mat-chip-list>
+  </div>
+</ng-template>

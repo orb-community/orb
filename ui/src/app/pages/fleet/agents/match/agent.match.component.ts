@@ -5,7 +5,6 @@ import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 
 @Component({
@@ -21,8 +20,6 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
   agentGroup: AgentGroup;
 
   agents: Agent[];
-
-  matchingAgents: TagMatch;
 
   isLoading = false;
 
@@ -57,13 +54,8 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    const { matching_agents, agents } = !!this.agentGroup && this.agentGroup || {
-      matching_agents: { total: 0, online: 0 },
-      agents: [],
-    };
-
-    this.agents = agents;
-    this.matchingAgents = matching_agents;
+    this.agents = [];
+    this.updateMatchingAgents();
   }
 
   ngAfterViewInit() {
@@ -106,7 +98,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
     const tagsList = Object.keys(tags).map(key => ({ [key]: tags[key] }));
     this.agentsService.getMatchingAgents(tagsList).subscribe(
       resp => {
-        this.matchingAgents = resp;
+        this.agents = resp.agents;
       },
     );
   }

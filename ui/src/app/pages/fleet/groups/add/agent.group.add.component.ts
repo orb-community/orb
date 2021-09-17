@@ -209,7 +209,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     const tags = this.secondFormGroup.controls.tags.value;
     this.agentsService.getMatchingAgents(tags).subscribe(
       resp => {
-        this.matchingAgents = resp.matchingAgents;
+        this.matchingAgents = resp.agents;
       },
     );
   }

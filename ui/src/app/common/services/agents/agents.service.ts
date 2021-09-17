@@ -143,7 +143,7 @@ export class AgentsService {
     return this.http.get(environment.agentsUrl, { params })
       .map(
         (resp: any) => {
-          return resp.matchingAgents;
+          return resp;
         },
       )
       .catch(
@@ -185,7 +185,7 @@ export class AgentsService {
           // This is the position to insert the new data
           const start = resp.offset;
           const newData = [...this.cache.data];
-          newData.splice(start, resp.limit, ...resp.matchingAgents);
+          newData.splice(start, resp.limit, ...resp.agents);
           this.cache = {
             ...this.cache,
             offset: Math.floor(resp.offset / resp.limit),
