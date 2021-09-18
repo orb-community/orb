@@ -109,7 +109,7 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
         prop: 'version',
         name: 'Version',
         resizeable: false,
-        flexGrow: 1,
+        flexGrow: 2,
         minWidth: 60,
       },
       {
@@ -118,7 +118,6 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
         minWidth: 90,
         flexGrow: 2,
         resizeable: false,
-        sortable: false,
       },
       {
         name: '',
