@@ -35,17 +35,6 @@
               </div>
             </nb-form-field>
             <hr/>
-            <nb-form-field>
-              <div>
-                <label class="font-weight-bold">Location</label>
-              </div>
-              <input nbInput
-                     fullWidth="true"
-                     fieldSize="medium"
-                     formControlName="location"
-                     data-orb-qa-id="input#location"/>
-            </nb-form-field>
-            <hr/>
             <div class="d-flex justify-content-end">
               <button
                   nbButton
@@ -133,7 +122,6 @@
                           ghost
                           (click)="onAddTag()"
                           [disabled]="(secondFormGroup.controls['key'].value === '' ||
-                          secondFormGroup.controls['key'].value === 'location' ||
                           secondFormGroup.controls['value'].value === '')"
                           data-orb-qa-id="button#addTag">
                     <nb-icon style="color: #df316f;"
@@ -177,23 +165,17 @@
             </div>
           </ng-template>
           <div class="d-flex row">
-            <div class="col-md-12 col-xl-6">
+            <div class="col-12">
               <div>
                 <label class="font-weight-bold">{{strings.propNames.name}}</label>
                 <p data-orb-qa-id="review-name">{{firstFormGroup.controls.name.value}}</p>
-              </div>
-            </div>
-            <hr/>
-            <div class="col-md-12 col-xl-6">
-              <div>
-                <label class="font-weight-bold">Location</label>
-                <p data-orb-qa-id="review-location">{{firstFormGroup.controls.location.value}}</p>
               </div>
             </div>
           </div>
           <hr/>
           <div class="d-flex row">
             <div class="col-12">
+              <label class="font-weight-bold">Orb Tags</label>
               <mat-chip-list data-orb-qa-id="review-orb_tagsList">
                 <mat-chip
                     class="orb-tag-sink "
