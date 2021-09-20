@@ -53,8 +53,9 @@ type BackendStateInfo struct {
 }
 
 type PolicyStateInfo struct {
-	State string `json:"state"`
-	Error string `json:"error,omitempty"`
+	Datasets []string `json:"datasets"`
+	State    string   `json:"state"`
+	Error    string   `json:"error,omitempty"`
 }
 
 type Heartbeat struct {

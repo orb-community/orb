@@ -9,6 +9,7 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"time"
 )
 
 func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
@@ -28,6 +29,9 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload) {
 	for _, payload := range rpc {
 		a.policyManager.ManagePolicy(payload)
 	}
+
+	// heart beat with new policy status after application
+	a.sendSingleHeartbeat(time.Now(), fleet.Online)
 
 }
 
