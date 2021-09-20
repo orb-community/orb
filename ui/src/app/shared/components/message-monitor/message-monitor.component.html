@@ -1,0 +1,112 @@
+<nb-card size="large">
+  <nb-card-header class="card-header">
+    <div class="row">
+      <div class="col-2">
+        Messages Reader:
+      </div>
+      <div *ngIf="mode == 'json'" class="col-1 form-key">
+        Prefix:
+      </div>
+      <div *ngIf="mode == 'json'" class="col-2">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='readerUrl.prefix'>
+      </div>
+      <div *ngIf="mode == 'json'" class="col-1 form-key">
+        Suffix:
+      </div>
+      <div *ngIf="mode == 'json'" class="col-2">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='readerUrl.suffix'>
+      </div>
+      <div class="col">
+        <nb-select class="right" [(selected)]="mode" size="tiny">
+          <nb-option *ngFor="let mode of this.modes" [value]="mode">{{mode}}</nb-option>
+        </nb-select>
+      </div>
+    </div>
+  </nb-card-header>
+  <nb-card-body style="height:100%">
+    <div [ngSwitch]="mode">
+      <div *ngSwitchCase="'table'">
+        <ngx-table-component [config]="tableConfig"
+                             [page]="messagesPage">
+        </ngx-table-component>
+      </div>
+      <div *ngSwitchCase="'json'">
+        <pre  *ngFor="let message of messagesPage.rows">{{ message | json }}</pre>
+      </div>
+      <div *ngSwitchCase="'chart'" style="height:100%">
+        <div *ngIf="messagesPage.total != 0">
+          <ngx-chart [msgDatasets]="msgDatasets"></ngx-chart>
+        </div>
+      </div>
+    </div>
+  </nb-card-body>
+  <nb-card-footer>
+    <div>
+      <ngx-pagination-component [page]="messagesPage"
+                                (changeLimitEvent)=onChangeLimit($event)
+                                (changePageEvent)=onChangePage($event)>
+      </ngx-pagination-component>
+    </div>
+    <div class="row form-row">
+      <div class="col-1 form-key">
+        Channels:
+      </div>
+      <div class="col-4">
+        <nb-select fullWidth [(selected)]="chanID" size="tiny" (selectedChange)="getChannelMessages()">
+          <nb-option *ngFor="let ch of channels" [value]="ch.id">{{ch.id}}</nb-option>
+        </nb-select>
+      </div>
+      <div class="col-1 form-key">
+        Subtopic:
+      </div>
+      <div class="col-2">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='filters.subtopic'>
+      </div>
+      <div class="col-1 form-key">
+        Time:
+      </div>
+      <div class="col-2">
+        <input nbInput placeholder="Pick up date" [nbDatepicker]="rangepicker" fullWidth fieldSize="tiny">
+        <nb-rangepicker #rangepicker (rangeChange)="getRangeDate($event)"></nb-rangepicker>
+      </div>
+    </div>
+    <div class="row form-row">
+      <div class="col-1 form-key">
+        Publisher:
+      </div>
+      <div class="col-4">
+        <nb-select fullWidth [(selected)]="filters.publisher" size="tiny" (selectedChange)="getChannelMessages()">
+          <nb-option *ngFor="let pub of publishers" [value]="pub.id">{{pub.id}}</nb-option>
+        </nb-select>
+      </div>
+      <div class="col-1 form-key">
+        Name:
+      </div>
+      <div class="col-2">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='filters.name'>
+      </div>
+      <div class="col-1 form-key">
+        Value:
+      </div>
+      <div class="col-2">
+        <input nbInput fullWidth fieldSize="tiny"
+               [(ngModel)]='httpAdaptVal'>
+      </div>
+      <div class="col-1">
+        <nb-select class="right" [(selected)]="httpAdaptType" size="tiny">
+          <nb-option *ngFor="let type of this.httpAdaptTypes" [value]="type">{{type}}</nb-option>
+        </nb-select>
+      </div>
+    </div>
+    <div class="right">
+      <button nbButton size="tiny" class="button-green"
+              (click)="getChannelMessages()">
+        Filter
+      </button>
+    </div>
+  </nb-card-footer>
+</nb-card>
