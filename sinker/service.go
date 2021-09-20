@@ -68,18 +68,9 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 		return ErrPayloadTooBig
 	}
 
-	// dispatch
-	switch msg.Subtopic {
-	case BackendMetricsTopic:
-		if err := svc.handleMetrics(msg.Publisher, msg.Channel, msg.Subtopic, msg.Payload); err != nil {
-			svc.logger.Error("metrics processing failure", zap.Error(err))
-			return err
-		}
-	default:
-		svc.logger.Warn("unsupported/unhandled agent subtopic, ignoring",
-			zap.String("subtopic", msg.Subtopic),
-			zap.String("thing_id", msg.Publisher),
-			zap.String("channel_id", msg.Channel))
+	if err := svc.handleMetrics(msg.Publisher, msg.Channel, msg.Subtopic, msg.Payload); err != nil {
+		svc.logger.Error("metrics processing failure", zap.Error(err))
+		return err
 	}
 
 	return nil
