@@ -1,0 +1,15 @@
+{
+  "name": "orb_tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "nightwatch"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "chromedriver": "^93.0.1",
+    "nightwatch": "^1.7.8"
+  }
+}

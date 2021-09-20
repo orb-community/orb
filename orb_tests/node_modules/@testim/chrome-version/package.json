@@ -1,0 +1,16 @@
+{
+  "name": "@testim/chrome-version",
+  "version": "1.0.7",
+  "description": "Finds the version of Chrome that is installed on your machine",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint *.js --fix"
+  },
+  "author": "Elad Katz",
+  "license": "MIT",
+  "homepage": "https://github.com/testimio/chrome-version",
+  "keywords": ["chrome", "version" ],
+  "devDependencies": {
+    "eslint": "^6.4.0"
+  }
+}

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="0"
+            failures="0"
+            tests="7">
+
+  <testsuite name="example"
+    errors="0" failures="0" hostname="" id="" package="example" skipped="0"
+    tests="7" time="11.50" timestamp="">
+  
+    <testcase name="Create an account" classname="example" time="2.184" assertions="7">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Login with correct email and password" classname="example" time="1.300" assertions="7">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Duplicate sink creation" classname="example" time="2.982" assertions="32">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Sink Visualization" classname="example" time="2.049" assertions="20">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Sink Visualization and Edit" classname="example" time="2.967" assertions="23">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Sink Edit" classname="example" time="0.01200" assertions="0">
+    </testcase>
+  
+    <testcase name="Sink Delete" classname="example" time="0.01000" assertions="0">
+    </testcase>
+  
+
+  
+
+    
+
+  
+  </testsuite>
+</testsuites>
