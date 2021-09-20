@@ -165,4 +165,17 @@ export class AgentPoliciesService {
         },
       );
   }
+
+  getTapsList() {
+    return this.http.get(environment.agentTapsUrl)
+      .map((resp: any) => {
+        return resp.taps;
+      }).catch(
+        err => {
+          this.notificationsService.error('Failed to get Sink Backends',
+            `Error: ${ err.status } - ${ err.statusText }`);
+          return Observable.throwError(err);
+        },
+      );
+  }
 }

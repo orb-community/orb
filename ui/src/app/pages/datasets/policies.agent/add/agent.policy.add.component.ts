@@ -1,12 +1,10 @@
 import { Component } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
-import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 
 @Component({
   selector: 'ngx-agent-policy-add-component',
@@ -14,8 +12,6 @@ import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.in
   styleUrls: ['./agent.policy.add.component.scss'],
 })
 export class AgentPolicyAddComponent {
-  strings = STRINGS;
-
   // stepper vars
   firstFormGroup: FormGroup;
 
@@ -23,49 +19,49 @@ export class AgentPolicyAddComponent {
 
   thirdFormGroup: FormGroup;
 
-  customSinkSettings: {};
+  customPolicySettings: {};
 
-  selectedSinkSetting: any[];
+  selectedTap: any[];
 
-  sink: Sink;
+  agentPolicy: AgentPolicy;
 
-  sinkID: string;
+  agentPolicyID: string;
 
-  sinkTypesList = [];
+  tapList = [];
 
   isEdit: boolean;
   isLoading = false;
-  sinkLoading = false;
+  agentPolicyLoading = false;
 
   constructor(
-    private sinksService: SinksService,
+    private agentPoliciesService: AgentPoliciesService,
     private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
+    this.agentPolicy = this.router.getCurrentNavigation().extras.state?.agentPolicy as AgentPolicy || null;
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
-    this.sinkID = this.route.snapshot.paramMap.get('id');
+    this.agentPolicyID = this.route.snapshot.paramMap.get('id');
 
-    this.isEdit = !!this.sinkID;
-    this.sinkLoading = this.isEdit;
+    this.isEdit = !!this.agentPolicyID;
+    this.agentPolicyLoading = this.isEdit;
 
-    !!this.sinkID && sinksService.getSinkById(this.sinkID).subscribe(resp => {
-      this.sink = resp;
-      this.sinkLoading = false;
-      this.getSinkBackends();
+    !!this.agentPolicyID && agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(resp => {
+      this.agentPolicy = resp;
+      this.agentPolicyLoading = false;
+      this.getTapsList();
     });
-    !this.sinkLoading && this.getSinkBackends();
+    !this.agentPolicyLoading && this.getTapsList();
   }
 
-  getSinkBackends() {
+  getTapsList() {
     this.isLoading = true;
-    this.sinksService.getSinkBackends().subscribe(backends => {
-      this.sinkTypesList = backends.map(entry => entry.backend);
-      this.customSinkSettings = this.sinkTypesList.reduce((accumulator, curr) => {
-        const index = backends.findIndex(entry => entry.backend === curr);
-        accumulator[curr] = backends[index].config.map(entry => ({
+    this.agentPoliciesService.getTapsList().subscribe(taps => {
+      this.tapList = taps.map(entry => entry.backend);
+      this.customPolicySettings = this.tapList.reduce((accumulator, curr) => {
+        const index = taps.findIndex(entry => entry.backend === curr);
+        accumulator[curr] = taps[index].config.map(entry => ({
           type: entry.type,
           label: entry.title,
           prop: entry.name,
@@ -74,12 +70,12 @@ export class AgentPolicyAddComponent {
         }));
         return accumulator;
       }, {});
-      const {name, description, backend, tags} = !!this.sink ? this.sink : {
+      const {name, description, backend, tags} = !!this.agentPolicy ? this.agentPolicy : {
         name: '',
         description: '',
-        backend: 'prometheus', // default sink
+        backend: 'dns', // default sink
         tags: {},
-      } as Sink;
+      } as AgentPolicy;
       this.firstFormGroup = this._formBuilder.group({
         name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
         description: [description],
@@ -89,7 +85,7 @@ export class AgentPolicyAddComponent {
       this.isEdit && this.firstFormGroup.controls.backend.disable();
 
       // builds secondFormGroup
-      this.onSinkTypeSelected(backend);
+      this.onTapTypeSelected(backend);
 
       this.thirdFormGroup = this._formBuilder.group({
         tags: [Object.keys(tags || {}).map(key => ({[key]: tags[key]})),
@@ -103,7 +99,7 @@ export class AgentPolicyAddComponent {
   }
 
   goBack() {
-    this.router.navigateByUrl('/pages/sinks');
+    this.router.navigateByUrl('/pages/datasets/policies');
   }
 
   onFormSubmit() {
@@ -111,7 +107,7 @@ export class AgentPolicyAddComponent {
       name: this.firstFormGroup.controls.name.value,
       backend: this.firstFormGroup.controls.backend.value,
       description: this.firstFormGroup.controls.description.value,
-      config: this.selectedSinkSetting.reduce((accumulator, current) => {
+      config: this.selectedTap.reduce((accumulator, current) => {
         accumulator[current.prop] = this.secondFormGroup.controls[current.prop].value;
         return accumulator;
       }, {}),
@@ -127,30 +123,30 @@ export class AgentPolicyAddComponent {
     // console.log(payload);
     if (this.isEdit) {
       // updating existing sink
-      this.sinksService.editSink({...payload, id: this.sinkID}).subscribe(() => {
-        this.notificationsService.success('Sink successfully updated', '');
+      this.agentPoliciesService.editAgentPolicy({...payload, id: this.agentPolicyID}).subscribe(() => {
+        this.notificationsService.success('Agent Policy successfully updated', '');
         this.goBack();
       });
     } else {
-      this.sinksService.addSink(payload).subscribe(() => {
-        this.notificationsService.success('Sink successfully created', '');
+      this.agentPoliciesService.addAgentPolicy(payload).subscribe(() => {
+        this.notificationsService.success('Agent Policy successfully created', '');
         this.goBack();
       });
     }
 
   }
 
-  onSinkTypeSelected(selectedValue) {
+  onTapTypeSelected(selectedValue) {
     // SinkConfig<string> being the generic of all other `sinkTypes`.
-    const conf = !!this.sink &&
+    const conf = !!this.agentPolicy &&
       this.isEdit &&
-      (selectedValue === this.sink.backend) &&
-      this.sink?.config &&
-      this.sink.config as SinkConfig<string> || null;
+      (selectedValue === this.agentPolicy.backend) &&
+      this.agentPolicy?.config &&
+      this.agentPolicy.config as SinkConfig<string> || null;
 
-    this.selectedSinkSetting = this.customSinkSettings[selectedValue];
+    this.selectedTap = this.customPolicySettings[selectedValue];
 
-    const dynamicFormControls = this.selectedSinkSetting.reduce((accumulator, curr) => {
+    const dynamicFormControls = this.selectedTap.reduce((accumulator, curr) => {
       accumulator[curr.prop] = [
         !!conf && (curr.prop in conf) && conf[curr.prop] ||
         '',

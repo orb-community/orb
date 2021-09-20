@@ -83,7 +83,7 @@ export class SinksService {
     }
 
     getSinkBackends() {
-        return this.http.get(environment.sinkBackends)
+        return this.http.get(environment.sinkBackendsUrl)
             .map((resp: any) => {
                 return resp.backends;
             }).catch(

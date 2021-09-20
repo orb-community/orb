@@ -25,6 +25,24 @@
           </ng-template>
           <form [formGroup]="firstFormGroup" (ngSubmit)="onFormSubmit()">
             <nb-form-field>
+              <div>
+                <label class="font-weight-bold">Tap</label>
+                <span class="required">*</span>
+              </div>
+              <nb-select size="medium"
+                         (selectedChange)="onTapTypeSelected($event)"
+                         fullWidth="true"
+                         formControlName="backend"
+                         appearance="filled"
+                         placeholder="Select backend type"
+                         data-orb-qa-id="backend"
+              >
+                <nb-option *ngFor="let type of tapList"
+                           [value]="type">{{ type | titlecase }}</nb-option>
+              </nb-select>
+            </nb-form-field>
+            <hr/>
+            <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
                   <label class="font-weight-bold">Name Label</label>
@@ -48,24 +66,6 @@
                      fieldSize="medium"
                      formControlName="description"
                      data-orb-qa-id="description"/>
-            </nb-form-field>
-            <hr/>
-            <nb-form-field>
-              <div>
-                <label class="font-weight-bold">Sink Type</label>
-                <span class="required">*</span>
-              </div>
-              <nb-select size="medium"
-                         (selectedChange)="onSinkTypeSelected($event)"
-                         fullWidth="true"
-                         formControlName="backend"
-                         appearance="filled"
-                         placeholder="Select backend type"
-                         data-orb-qa-id="backend"
-              >
-                <nb-option *ngFor="let type of sinkTypesList"
-                           [value]="type">{{ type | titlecase }}</nb-option>
-              </nb-select>
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
@@ -98,7 +98,7 @@
             </div>
           </ng-template>
           <form [formGroup]="secondFormGroup">
-            <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index">
+            <nb-form-field *ngFor="let control of selectedTap;let i = index">
               <div>
                 <label class="font-weight-bold">{{control.label}}</label>
               </div>
@@ -274,7 +274,7 @@
           </div>
           <hr/>
           <div class="d-flex row mt-4">
-            <div class="col-md-12 col-xl-6" *ngFor="let control of selectedSinkSetting">
+            <div class="col-md-12 col-xl-6" *ngFor="let control of selectedTap">
               <div>
                 <label class="font-weight-bold">{{control.label}}</label>
                 <p *ngIf="control.type != 'password'"
