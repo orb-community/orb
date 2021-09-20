@@ -16,6 +16,7 @@
     "start:withmock": "ng serve --proxy-config=proxy-config-mock.json & nodemon mock-json-server/mock-server.js --ignore 'mock-json-server/mock/sinks.json'",
     "build": "ng build",
     "build:prod": "npm run build -- --configuration production --aot",
+    "build:prod:beta": "npm run build -- --configuration beta --aot",
     "test": "ng test",
     "test:coverage": "rimraf coverage && npm run test -- --code-coverage",
     "lint": "ng lint",

@@ -35,6 +35,10 @@ func (svc fleetService) ViewAgentByID(ctx context.Context, token string, thingID
 	return svc.agentRepo.RetrieveByID(ctx, ownerID, thingID)
 }
 
+func (svc fleetService) ViewAgentByIDInternal(ctx context.Context, ownerID string, id string) (Agent, error) {
+	return svc.agentRepo.RetrieveByID(ctx, ownerID, id)
+}
+
 func (svc fleetService) ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error) {
 	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
@@ -131,4 +135,42 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 	}
 
 	return res, nil
+}
+
+func (svc fleetService) ValidateAgent(ctx context.Context, token string, a Agent) (Agent, error) {
+	mfOwnerID, err := svc.identify(token)
+	if err != nil {
+		return Agent{}, err
+	}
+
+	a.MFOwnerID = mfOwnerID
+
+	return a, nil
+}
+
+func (svc fleetService) RemoveAgent(ctx context.Context, token, thingID string) error {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return err
+	}
+
+	res, err := svc.agentRepo.RetrieveByID(ctx, ownerID, thingID)
+	if err != nil {
+		return nil
+	}
+
+	if errT := svc.mfsdk.DeleteThing(res.MFThingID, token); errT != nil {
+		svc.logger.Error("failed to delete thing", zap.Error(errT), zap.String("thing_id", res.MFThingID))
+	}
+
+	if errT := svc.mfsdk.DeleteChannel(res.MFChannelID, token); errT != nil {
+		svc.logger.Error("failed to delete channel", zap.Error(errT), zap.String("channel_id", res.MFChannelID))
+	}
+
+	err = svc.agentRepo.Delete(ctx, ownerID, thingID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

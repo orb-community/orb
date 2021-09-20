@@ -11,6 +11,7 @@ package fleet_test
 import (
 	"context"
 	"fmt"
+	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet"
 	flmocks "github.com/ns1labs/orb/fleet/mocks"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -70,8 +71,10 @@ func TestViewAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		_, err := fleetService.ViewAgentByID(context.Background(), tc.token, tc.id)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.ViewAgentByID(context.Background(), tc.token, tc.id)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
 	}
 }
 
@@ -173,11 +176,13 @@ func TestListAgents(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		page, err := fleetService.ListAgents(context.Background(), tc.token, tc.pm)
-		size := uint64(len(page.Agents))
-		assert.Equal(t, size, tc.size, fmt.Sprintf("%s: expected %d got %d", desc, tc.size, size))
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
-		testSortAgents(t, tc.pm, page.Agents)
+		t.Run(desc, func(t *testing.T) {
+			page, err := fleetService.ListAgents(context.Background(), tc.token, tc.pm)
+			size := uint64(len(page.Agents))
+			assert.Equal(t, size, tc.size, fmt.Sprintf("%s: expected %d got %d", desc, tc.size, size))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+			testSortAgents(t, tc.pm, page.Agents)
+		})
 
 	}
 }
@@ -215,8 +220,132 @@ func TestUpdateAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		_, err := fleetService.EditAgent(context.Background(), tc.token, tc.group)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.EditAgent(context.Background(), tc.token, tc.group)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
+		})
+	}
+}
+
+func TestValidateAgent(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	nameID, err := types.NewIdentifier("eu-agents")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	validAgent := fleet.Agent{
+		MFOwnerID: ownerID.String(),
+		Name:      nameID,
+		OrbTags:   make(map[string]string),
+	}
+	validAgent.OrbTags = map[string]string{
+		"region":    "eu",
+		"node_type": "dns",
+	}
+	cases := map[string]struct {
+		agent fleet.Agent
+		token string
+		err   error
+	}{
+		"validate a valid agent": {
+			agent: validAgent,
+			token: token,
+			err:   nil,
+		},
+		"validate a valid agent with an invalid token": {
+			agent: validAgent,
+			token: invalidToken,
+			err:   fleet.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		_, err := fleetService.ValidateAgent(context.Background(), tc.token, tc.agent)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestCreateAgent(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	nameID, err := types.NewIdentifier("eu-agents")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	validAgent := fleet.Agent{
+		MFOwnerID: ownerID.String(),
+		Name:      nameID,
+		OrbTags:   make(map[string]string),
+		Created:   time.Time{},
+	}
+	validAgent.OrbTags = map[string]string{
+		"region":    "eu",
+		"node_type": "dns",
+	}
+	cases := map[string]struct {
+		agent fleet.Agent
+		token string
+		err   error
+	}{
+		"add a valid agent": {
+			agent: validAgent,
+			token: token,
+			err:   nil,
+		},
+		"add a valid agent with an invalid token": {
+			agent: validAgent,
+			token: invalidToken,
+			err:   fleet.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		_, err := fleetService.CreateAgent(context.Background(), tc.token, tc.agent)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestRemoveAgent(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ag, err := createAgent(t, "my-agent", fleetService)
+	require.Nil(t, err, fmt.Sprintf("unexpetec error: %s", err))
+
+	cases := map[string]struct {
+		id    string
+		token string
+		err   error
+	}{
+		"remove existing agent": {
+			id:    ag.MFThingID,
+			token: token,
+			err:   nil,
+		},
+		"remove agent with wrong credentials": {
+			id:    ag.MFThingID,
+			token: invalidToken,
+			err:   fleet.ErrUnauthorizedAccess,
+		},
+		"remove non-existing agent": {
+			id:    wrongID,
+			token: token,
+			err:   nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := fleetService.RemoveAgent(context.Background(), tc.token, tc.id)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 	}
 }
 

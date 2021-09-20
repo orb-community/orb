@@ -363,12 +363,17 @@ services:
       ORB_POLICIES_GRPC_PORT: ${ORB_POLICIES_GRPC_PORT}
       MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
       MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
+      ORB_FLEET_GRPC_URL: ${ORB_FLEET_GRPC_URL}
+      ORB_FLEET_GRPC_TIMEOUT: ${ORB_FLEET_GRPC_TIMEOUT}
     networks:
       - orb-base-net
 
   sinks:
     image: "ns1labs/orb-sinks:${ORB_RELEASE_TAG}"
     container_name: orb-sinks
+    ports:
+      - ${ORB_SINKS_HTTP_PORT}:${ORB_SINKS_HTTP_PORT}
+      - ${ORB_SINKS_GRPC_PORT}:${ORB_SINKS_GRPC_PORT}
     depends_on:
       - es-redis
       - sinks-db
@@ -383,6 +388,7 @@ services:
       ORB_SINKS_DB_PASS: ${ORB_SINKS_DB_PASS}
       ORB_SINKS_DB: ${ORB_SINKS_DB_DB}
       ORB_SINKS_DB_SSL_MODE: disable
+      ORB_SINKS_GRPC_PORT: ${ORB_SINKS_GRPC_PORT}
       MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
       MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
     #      ORB_SINKS_LOG_LEVEL: debug
@@ -392,6 +398,9 @@ services:
   fleet:
     image: "ns1labs/orb-fleet:${ORB_RELEASE_TAG}"
     container_name: orb-fleet
+    ports:
+      - ${ORB_FLEET_HTTP_PORT}:${ORB_FLEET_HTTP_PORT}
+      - ${ORB_FLEET_GRPC_PORT}:${ORB_FLEET_GRPC_PORT}
     depends_on:
       - es-redis
       - nats
@@ -399,25 +408,23 @@ services:
       - auth
       - jaeger
       - things
-      #- policies
+    #      - policies
     restart: on-failure
-    ports:
-      - 8203:8203
     environment:
       ORB_FLEET_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
       ORB_FLEET_NATS_URL: ${MF_NATS_URL}
-      ORB_FLEET_HTTP_PORT: ${ORB_FLEET_HTTP_PORT}
       ORB_FLEET_DB_HOST: fleet-db
       ORB_FLEET_DB_USER: ${ORB_FLEET_DB_USER}
       ORB_FLEET_DB_PASS: ${ORB_FLEET_DB_PASS}
       ORB_FLEET_DB: ${ORB_FLEET_DB_DB}
       ORB_FLEET_DB_SSL_MODE: disable
+      ORB_FLEET_GRPC_PORT: ${ORB_FLEET_GRPC_PORT}
       MF_SDK_BASE_URL: http://things:${MF_THINGS_HTTP_PORT}
       MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
       MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
-      ORB_FLEET_LOG_LEVEL: debug
       ORB_POLICIES_GRPC_URL: ${ORB_POLICIES_GRPC_URL}
       ORB_POLICIES_GRPC_TIMEOUT: ${ORB_POLICIES_GRPC_TIMEOUT}
+      ORB_FLEET_LOG_LEVEL: debug
     networks:
       - orb-base-net
 

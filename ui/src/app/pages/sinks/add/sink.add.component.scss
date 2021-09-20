@@ -15,6 +15,10 @@ nb-card-footer {
   text-align: center;
 }
 
+mat-chip nb-icon {
+  font-size: 1rem;
+}
+
 ::ng-deep {
   .header {
     align-items: flex-end !important;
@@ -110,7 +114,6 @@ nb-card-footer {
 
     &::before {
       color: #969fb9 !important;
-      content: 'Settings / Sink Management /\00a0';
     }
   }
 }

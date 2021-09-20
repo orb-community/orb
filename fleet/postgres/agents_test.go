@@ -48,6 +48,12 @@ func TestAgentSave(t *testing.T) {
 	nameID, err := types.NewIdentifier("myagent")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	conflictThingID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	conflictNameID, err := types.NewIdentifier("myagent-conflict")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	agent := fleet.Agent{
 		Name:          nameID,
 		MFThingID:     thID.String(),
@@ -58,26 +64,34 @@ func TestAgentSave(t *testing.T) {
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
 
-	cases := []struct {
-		desc  string
+	// Conflict scenario
+	agentCopy := agent
+	agentCopy.MFThingID = conflictThingID.String()
+
+	agentCopy.Name = conflictNameID
+
+	err = agentRepo.Save(context.Background(), agentCopy)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	cases := map[string]struct {
 		agent fleet.Agent
 		err   error
 	}{
-		{
-			desc:  "create new agent",
+		"create new agent": {
 			agent: agent,
 			err:   nil,
 		},
-		{
-			desc:  "create agent that already exist",
-			agent: agent,
+		"create agent that already exist": {
+			agent: agentCopy,
 			err:   errors.ErrConflict,
 		},
 	}
 
-	for _, tc := range cases {
-		err := agentRepo.Save(context.Background(), tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", tc.desc, tc.err, err))
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := agentRepo.Save(context.Background(), tc.agent)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
+		})
 	}
 }
 
@@ -130,15 +144,17 @@ func TestAgentRetrieve(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.thingID, tc.channelID)
-		if err == nil {
-			assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
-		}
-		if len(tc.tags) > 0 {
-			assert.Equal(t, tc.tags, ag.OrbTags)
-			assert.Equal(t, tc.tags, ag.AgentTags)
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.thingID, tc.channelID)
+			if err == nil {
+				assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+			}
+			if len(tc.tags) > 0 {
+				assert.Equal(t, tc.tags, ag.OrbTags)
+				assert.Equal(t, tc.tags, ag.AgentTags)
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
 	}
 }
 
@@ -194,13 +210,15 @@ func TestAgentUpdateData(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err = agentRepo.UpdateDataByIDWithChannel(context.Background(), tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
-		if err == nil {
-			ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.agent.MFThingID, tc.agent.MFChannelID)
-			assert.Nil(t, err)
-			assert.Equal(t, tc.agent.AgentMetadata, ag.AgentMetadata, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
-		}
+		t.Run(desc, func(t *testing.T) {
+			err = agentRepo.UpdateDataByIDWithChannel(context.Background(), tc.agent)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+			if err == nil {
+				ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.agent.MFThingID, tc.agent.MFChannelID)
+				assert.Nil(t, err)
+				assert.Equal(t, tc.agent.AgentMetadata, ag.AgentMetadata, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+			}
+		})
 	}
 }
 
@@ -254,13 +272,15 @@ func TestAgentUpdateHeartbeat(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err = agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
-		if err == nil {
-			ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.agent.MFThingID, tc.agent.MFChannelID)
-			assert.Nil(t, err)
-			assert.Equal(t, tc.agent.LastHBData, ag.LastHBData, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
-		}
+		t.Run(desc, func(t *testing.T) {
+			err = agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), tc.agent)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+			if err == nil {
+				ag, err := agentRepo.RetrieveByIDWithChannel(context.Background(), tc.agent.MFThingID, tc.agent.MFChannelID)
+				assert.Nil(t, err)
+				assert.Equal(t, tc.agent.LastHBData, ag.LastHBData, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+			}
+		})
 	}
 }
 
@@ -428,16 +448,18 @@ func TestMultiAgentRetrieval(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		page, err := agentRepo.RetrieveAll(context.Background(), tc.owner, tc.pageMetadata)
-		size := uint64(len(page.Agents))
-		assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d\n", desc, tc.size, size))
-		assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d\n", desc, tc.pageMetadata.Total, page.Total))
-		assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
+		t.Run(desc, func(t *testing.T) {
+			page, err := agentRepo.RetrieveAll(context.Background(), tc.owner, tc.pageMetadata)
+			size := uint64(len(page.Agents))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d\n", desc, tc.size, size))
+			assert.Equal(t, tc.pageMetadata.Total, page.Total, fmt.Sprintf("%s: expected total %d got %d\n", desc, tc.pageMetadata.Total, page.Total))
+			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
 
-		// Check if Agents list have been sorted properly
-		if size > 0 {
-			testSortAgents(t, tc.pageMetadata, page.Agents)
-		}
+			// Check if Agents list have been sorted properly
+			if size > 0 {
+				testSortAgents(t, tc.pageMetadata, page.Agents)
+			}
+		})
 	}
 }
 
@@ -498,13 +520,70 @@ func TestAgentUpdate(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err = agentRepo.UpdateAgentByID(context.Background(), tc.agent.MFOwnerID, tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
-		if err == nil {
-			ag, err := agentRepo.RetrieveByID(context.Background(), tc.agent.MFOwnerID, tc.agent.MFThingID)
-			assert.Nil(t, err)
-			assert.Equal(t, tc.agent.OrbTags, ag.OrbTags, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
-		}
+		t.Run(desc, func(t *testing.T) {
+			err = agentRepo.UpdateAgentByID(context.Background(), tc.agent.MFOwnerID, tc.agent)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+			if err == nil {
+				ag, err := agentRepo.RetrieveByID(context.Background(), tc.agent.MFOwnerID, tc.agent.MFThingID)
+				assert.Nil(t, err)
+				assert.Equal(t, tc.agent.OrbTags, ag.OrbTags, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+			}
+		})
+	}
+}
+
+func TestDeleteAgent(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	thID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	invalidID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("my-agent")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	ag := fleet.Agent{
+		Name:          nameID,
+		MFThingID:     thID.String(),
+		MFOwnerID:     oID.String(),
+		MFChannelID:   chID.String(),
+		OrbTags:       types.Tags{"testkey": "testvalue"},
+		AgentTags:     types.Tags{"testkey": "testvalue"},
+		AgentMetadata: types.Metadata{"testkey": "testvalue"},
+	}
+
+	err = agentRepo.Save(context.Background(), ag)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	cases := map[string]struct {
+		ID      string
+		ownerID string
+		err     error
+	}{
+		"remove existing agent": {
+			ID:      ag.MFThingID,
+			ownerID: ag.MFOwnerID,
+			err:     nil,
+		},
+		"remove a non-existing agent": {
+			ID:      invalidID.String(),
+			ownerID: ag.MFOwnerID,
+			err:     nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := agentRepo.Delete(context.Background(), tc.ownerID, tc.ID)
+		require.Nil(t, err, fmt.Sprintf("%s: failed to remove agent due to: %s", desc, err))
 	}
 }
 

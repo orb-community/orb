@@ -7,7 +7,6 @@
           <img alt="ORB logo"
                src="assets/images/orb_logo_original.png">
           <p>{{strings.presentation.description}}</p>
-          <strong>{{strings.presentation.action}}</strong>
         </div>
       </div>
     </div>
@@ -15,29 +14,21 @@
 
   <div class="form-pane">
     <div class="bg"></div>
-    <div class="pane">
-      <strong id="title"
-              class="label big">{{strings.form.title}}</strong>
-
-      <nb-alert *ngIf="showMessages.error && errors?.length && !submitted"
-                outline="danger"
-                role="alert">
-        <p class="alert-title"><b>Oh snap!</b></p>
-        <ul class="alert-message-list">
-          <li *ngFor="let error of errors"
-              class="alert-message">{{ error }}</li>
-        </ul>
-      </nb-alert>
-
-      <nb-alert *ngIf="showMessages.success && messages?.length && !submitted"
-                outline="success" $ role="alert">
-        <p class="alert-title"><b>Hooray!</b></p>
-        <ul class="alert-message-list">
-          <li *ngFor="let message of messages" class="alert-message">{{ message }}</li>
-        </ul>
-      </nb-alert>
+    <div class="pane d-flex flex-column justify-content-center">
 
       <form (ngSubmit)="login()" #form="ngForm" aria-labelledby="title">
+
+        <nb-alert *ngIf="showMessages.error && errors?.length && !submitted"
+                role="alert"
+                class="alert-error">
+          <ul class="alert-message-list">
+            <li *ngFor="let error of errors"
+                class="alert-message">{{ error }}</li>
+          </ul>
+        </nb-alert>
+        
+        <h2 id="title"
+        class="label big">{{strings.form.title}}</h2>
 
         <div class="form-control-group mt-3">
           <label class="label" for="input-email"></label>
@@ -49,7 +40,7 @@
                  name="email"
                  id="input-email"
                  pattern=".+@.+\..+"
-                 placeholder=`example@exampe.com`
+                 placeholder="example@example.com"
                  fieldSize="large"
                  autofocus
                  [status]="email.dirty ? (email.invalid  ? 'danger' : 'success') : 'basic'"
@@ -74,7 +65,7 @@
                  [(ngModel)]="user.password"
                  #password="ngModel"
                  name="password"
-                 type="password"
+                 [type]="getInputType()"
                  id="input-password"
                  placeholder="Password"
                  fieldSize="large"
@@ -83,8 +74,17 @@
                  [minlength]="getConfigValue('forms.validation.password.minLength')"
                  [maxlength]="getConfigValue('forms.validation.password.maxLength')"
                  [attr.aria-invalid]="password.invalid && password.touched ? true : null">
+          <span nbSuffix 
+                ghost 
+                (click)="toggleShowPassword()" 
+                class="password-icon">
+            <nb-icon [icon]="showPassword ? 'eye-outline' : 'eye-off-2-outline'"
+                      pack="eva"
+                      [attr.aria-label]="showPassword ? 'hide password' : 'show password'">
+            </nb-icon>
+          </span>
           <ng-container *ngIf="password.invalid && password.touched ">
-            <p class="caption status-danger mt-2" *ngIf="password.errors?.required">
+            <p class="caption status-danger" *ngIf="password.errors?.required">
               Password is required!
             </p>
             <p class="caption status-danger" *ngIf="password.errors?.minlength || password.errors?.maxlength">
@@ -109,14 +109,15 @@
                 [class.btn-pulse]="submitted">
           Log In
         </button>
-      </form>
 
-      <span class="another-action label"
-            aria-label="Register">
-          {{strings.form.nonuser}}
-        <a class="text-link"
-           routerLink="../register">{{strings.form.register}}</a>
-      </span>
+        <span class="another-action label"
+              aria-label="Register">
+            {{strings.form.nonuser}}
+          <a class="text-link"
+             routerLink="../register">{{strings.form.register}}</a>
+        </span>
+      </form>
     </div>
   </div>
 </div>
+<nb-layout style="display: none"></nb-layout>

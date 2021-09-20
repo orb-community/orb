@@ -32,8 +32,8 @@ type sinksRepository struct {
 }
 
 func (s sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, error) {
-	q := `INSERT INTO sinks (name, mf_owner_id, metadata, description, backend, tags, status, error)         
-			  VALUES (:name, :mf_owner_id, :metadata, :description, :backend, :tags, :status, :error) RETURNING id`
+	q := `INSERT INTO sinks (name, mf_owner_id, metadata, description, backend, tags, state, error)         
+			  VALUES (:name, :mf_owner_id, :metadata, :description, :backend, :tags, :state, :error) RETURNING id`
 
 	if !sink.Name.IsValid() || sink.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -112,7 +112,7 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, coalesce(status, '') as status, coalesce(error, '') as error, backend, metadata, ts_created
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, coalesce(state, '') as state, coalesce(error, '') as error, backend, metadata, ts_created
 								FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tagsQuery, metadataQuery, nameQuery, orderQuery, dirQuery)
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
@@ -166,12 +166,34 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 
 func (s sinksRepository) RetrieveById(ctx context.Context, id string) (sinks.Sink, error) {
 
-	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, coalesce(status, '') as status, coalesce(error, '') as error
+	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, coalesce(state, '') as state, coalesce(error, '') as error
 			FROM sinks where id = $1`
 
 	dba := dbSink{}
 
 	if err := s.db.QueryRowxContext(ctx, q, id).StructScan(&dba); err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if err == sql.ErrNoRows || ok && db.ErrInvalid == pqErr.Code.Name() {
+			return sinks.Sink{}, errors.Wrap(errors.ErrNotFound, err)
+		}
+		return sinks.Sink{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	return toSink(dba)
+}
+
+func (s sinksRepository) RetrieveByOwnerAndId(ctx context.Context, ownerID string, id string) (sinks.Sink, error) {
+
+	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, coalesce(state, '') as state, coalesce(error, '') as error
+			FROM sinks where id = $1 and mf_owner_id = $2`
+
+	if ownerID == "" || id == "" {
+		return sinks.Sink{}, errors.ErrSelectEntity
+	}
+
+	dba := dbSink{}
+
+	if err := s.db.QueryRowxContext(ctx, q, id, ownerID).StructScan(&dba); err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if err == sql.ErrNoRows || ok && db.ErrInvalid == pqErr.Code.Name() {
 			return sinks.Sink{}, errors.Wrap(errors.ErrNotFound, err)
@@ -205,7 +227,7 @@ type dbSink struct {
 	Description string           `db:"description"`
 	Created     time.Time        `db:"ts_created"`
 	Tags        db.Tags          `db:"tags"`
-	Status      string           `db:"status"`
+	State       string           `db:"state"`
 	Error       string           `db:"error"`
 }
 
@@ -224,7 +246,7 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 		Metadata:    db.Metadata(sink.Config),
 		Backend:     sink.Backend,
 		Description: sink.Description,
-		Status:      sink.Status,
+		State:       sink.State,
 		Error:       sink.Error,
 		Tags:        db.Tags(sink.Tags),
 	}, nil
@@ -238,7 +260,7 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 		MFOwnerID:   dba.MFOwnerID,
 		Backend:     dba.Backend,
 		Description: dba.Description,
-		Status:      dba.Status,
+		State:       dba.State,
 		Error:       dba.Error,
 		Config:      types.Metadata(dba.Metadata),
 		Created:     dba.Created,

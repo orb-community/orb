@@ -18,63 +18,133 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
-func (l loggingMiddleware) RetrievePoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) (_ []policies.Policy, err error) {
+func (l loggingMiddleware) RemovePolicy(ctx context.Context, token string, policyID string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: retrieve_policies_by_groups",
+			l.logger.Warn("method call: remove_policy",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: retrieve_policies_by_groups",
+			l.logger.Info("method call: remove_policy",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.RetrievePoliciesByGroupIDInternal(ctx, groupIDs, ownerID)
+	return l.svc.RemovePolicy(ctx, token, policyID)
 }
 
-func (l loggingMiddleware) RetrievePolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (_ policies.Policy, err error) {
+func (l loggingMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) (_ []policies.Dataset, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: retrieve_policy_by_id",
+			l.logger.Warn("method call: list_dataset_by_policy_id",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: retrieve_policy_by_id",
+			l.logger.Info("method call: list_dataset_by_policy_id",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.RetrievePolicyByIDInternal(ctx, policyID, ownerID)
+	return l.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
 }
 
-func (l loggingMiddleware) CreateDataset(ctx context.Context, token string, d policies.Dataset) (_ policies.Dataset, err error) {
+func (l loggingMiddleware) EditPolicy(ctx context.Context, token string, pol policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: create_dataset",
+			l.logger.Warn("method call: edit_policy",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: create_dataset",
+			l.logger.Info("method call: edit_policy",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.CreateDataset(ctx, token, d)
+	return l.svc.EditPolicy(ctx, token, pol, format, policyData)
 }
 
-func (l loggingMiddleware) CreatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
+func (l loggingMiddleware) AddPolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: create_policy",
+			l.logger.Warn("method call: add_policy",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: create_policy",
+			l.logger.Info("method call: add_policy",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.CreatePolicy(ctx, token, p, format, policyData)
+	return l.svc.AddPolicy(ctx, token, p, format, policyData)
 }
 
-func (l loggingMiddleware) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) (err error) {
+func (l loggingMiddleware) ViewPolicyByID(ctx context.Context, token string, policyID string) (_ policies.Policy, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_policy_by_id",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_policy_by_id",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewPolicyByID(ctx, token, policyID)
+}
+
+func (l loggingMiddleware) ListPolicies(ctx context.Context, token string, pm policies.PageMetadata) (_ policies.Page, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: list_policies",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: list_policies",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ListPolicies(ctx, token, pm)
+}
+
+func (l loggingMiddleware) ViewPolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (_ policies.Policy, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_policy_by_id_internal",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_policy_by_id_internal",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewPolicyByIDInternal(ctx, policyID, ownerID)
+}
+
+func (l loggingMiddleware) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) (_ []policies.PolicyInDataset, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: list_policies_by_groups",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: list_policies_by_groups",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ListPoliciesByGroupIDInternal(ctx, groupIDs, ownerID)
+}
+
+func (l loggingMiddleware) AddDataset(ctx context.Context, token string, d policies.Dataset) (_ policies.Dataset, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: add_dataset",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: add_dataset",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.AddDataset(ctx, token, d)
+}
+
+func (l loggingMiddleware) InactivateDatasetByGroupID(ctx context.Context, groupID string, token string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: inactivate_dataset",
@@ -85,7 +155,21 @@ func (l loggingMiddleware) InactivateDatasetByGroupID(ctx context.Context, group
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.InactivateDatasetByGroupID(ctx, groupID, ownerID)
+	return l.svc.InactivateDatasetByGroupID(ctx, groupID, token)
+}
+
+func (l loggingMiddleware) ValidatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: validate_policy",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: validate_policy",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ValidatePolicy(ctx, token, p, format, policyData)
 }
 
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {

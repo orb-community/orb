@@ -37,6 +37,7 @@ import { environment } from 'environments/environment';
 import { BreadcrumbModule } from 'xng-breadcrumb';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { ProfileComponent } from 'app/pages/profile/profile.component';
+import { GoogleAnalyticsService } from './common/services/analytics/google-service-analytics.service';
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   connectOnCreate: false,
@@ -85,7 +86,10 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   ],
   bootstrap: [AppComponent],
   // Mfx dependencies
-  providers: [MqttService],
+  providers: [
+    MqttService,
+    GoogleAnalyticsService,
+  ],
 })
 export class AppModule {
 }

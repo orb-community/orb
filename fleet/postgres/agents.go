@@ -377,6 +377,21 @@ func (r agentRepository) RetrieveByID(ctx context.Context, ownerID string, thing
 	return toAgent(dba)
 }
 
+func (r agentRepository) Delete(ctx context.Context, ownerID string, thingID string) error {
+	params := map[string]interface{}{
+		"id":    thingID,
+		"owner": ownerID,
+	}
+
+	q := `DELETE FROM agents WHERE mf_thing_id = :id AND mf_owner_id = :owner;`
+
+	if _, err := r.db.NamedQueryContext(ctx, q, params); err != nil {
+		return errors.Wrap(fleet.ErrRemoveEntity, err)
+	}
+
+	return nil
+}
+
 type dbAgent struct {
 	Name          types.Identifier `db:"name"`
 	MFOwnerID     string           `db:"mf_owner_id"`
@@ -484,7 +499,6 @@ func getOrbOrAgentTagsQuery(m types.Tags) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {
-		// todo add in orb tags
 		mq = ` AND (agent_tags @> :tags OR orb_tags @> :tags)`
 
 		b, err := json.Marshal(m)

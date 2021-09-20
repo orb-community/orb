@@ -41,11 +41,13 @@ type AgentPolicyRPC struct {
 }
 
 type AgentPolicyRPCPayload struct {
-	ID      string      `json:"id"`
-	Name    string      `json:"name"`
-	Backend string      `json:"backend"`
-	Version int32       `json:"version"`
-	Data    interface{} `json:"data"`
+	Action    string      `json:"action"`
+	ID        string      `json:"id"`
+	DatasetID string      `json:"dataset_id"`
+	Name      string      `json:"name"`
+	Backend   string      `json:"backend"`
+	Version   int32       `json:"version"`
+	Data      interface{} `json:"data"`
 }
 
 const GroupRemovedRPCFunc = "group_removed"
@@ -62,4 +64,20 @@ const AgentPoliciesReqRPCFunc = "agent_policies_req"
 
 type AgentPoliciesReqRPCPayload struct {
 	// empty
+}
+
+const AgentMetricsRPCFunc = "agent_metrics"
+
+type AgentMetricsRPC struct {
+	SchemaVersion string                   `json:"schema_version"`
+	Func          string                   `json:"func"`
+	Payload       []AgentMetricsRPCPayload `json:"payload"`
+}
+
+type AgentMetricsRPCPayload struct {
+	PolicyID  string      `json:"policy_id"`
+	Datasets  []string    `json:"datasets"`
+	Format    string      `json:"format"`
+	BEVersion string      `json:"be_version"`
+	Data      interface{} `json:"data"`
 }

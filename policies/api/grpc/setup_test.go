@@ -46,7 +46,10 @@ func TestMain(m *testing.M) {
 
 func startServer() {
 	svc = newService(map[string]string{token: email})
-	listener, _ := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		panic(err)
+	}
 	server := grpc.NewServer()
 	pb.RegisterPolicyServiceServer(server, policiesgrpc.NewServer(mocktracer.New(), svc))
 	go server.Serve(listener)
@@ -77,5 +80,5 @@ func newService(tokens map[string]string) policies.Service {
 	datasetid, _ := repo.SaveDataset(context.Background(), dataset)
 	dataset.ID = datasetid
 
-	return policies.New(auth, repo)
+	return policies.New(nil, auth, repo)
 }

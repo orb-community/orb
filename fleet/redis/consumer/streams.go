@@ -10,9 +10,12 @@ package consumer
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
+	"strings"
 )
 
 const (
@@ -23,6 +26,8 @@ const (
 	datasetCreate = datasetPrefix + "create"
 	policyPrefix  = "policy."
 	policyCreate  = policyPrefix + "create"
+	policyUpdate  = policyPrefix + "update"
+	policyRemove  = policyPrefix + "remove"
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
@@ -75,6 +80,16 @@ func (es eventStore) Subscribe(context context.Context) error {
 			case datasetCreate:
 				rte := decodeDatasetCreate(event)
 				err = es.handleDatasetCreate(context, rte)
+			case policyUpdate:
+				rte, derr := decodePolicyUpdate(event)
+				if derr != nil {
+					err = derr
+					break
+				}
+				err = es.handlePolicyUpdate(context, rte)
+			case policyRemove:
+				rte := decodePolicyRemove(event)
+				err = es.handlePolicyRemove(context, rte)
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
@@ -105,7 +120,68 @@ func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEve
 		return err
 	}
 
-	return es.commsService.NotifyGroupNewAgentPolicy(ctx, ag, e.policyID, e.ownerID)
+	return es.commsService.NotifyGroupNewDataset(ctx, ag, "", e.policyID, e.ownerID)
+}
+
+func decodePolicyUpdate(event map[string]interface{}) (updatePolicyEvent, error) {
+	val := updatePolicyEvent{
+		id:      read(event, "id", ""),
+		ownerID: read(event, "owner_id", ""),
+	}
+
+	strgroups := read(event, "groups_ids", "")
+	val.groupsIDs = strings.Split(strgroups, ",")
+
+	strpolicy := read(event, "policy", "")
+	var policy types.Metadata
+	if err := json.Unmarshal([]byte(strpolicy), &policy); err != nil {
+		return updatePolicyEvent{}, err
+	}
+
+	return val, nil
+}
+
+// the policy service is notifying that a policy has been updated
+// notify all agents in the AgentGroup specified in the dataset about the policy update
+func (es eventStore) handlePolicyUpdate(ctx context.Context, e updatePolicyEvent) error {
+	for _, a := range e.groupsIDs {
+		ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, a, e.ownerID)
+		if err != nil {
+			return err
+		}
+		err = es.commsService.NotifyGroupNewDataset(ctx, ag, "", e.id, e.ownerID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func decodePolicyRemove(event map[string]interface{}) removePolicyEvent {
+	val := removePolicyEvent{
+		id:      read(event, "id", ""),
+		ownerID: read(event, "owner_id", ""),
+	}
+
+	strgroups := read(event, "groups_ids", "")
+	val.groupsIDs = strings.Split(strgroups, ",")
+	return val
+}
+
+// the policy service is notifying that a policy has been removed
+// notify all agents in the AgentGroup specified in the dataset about the policy removal
+func (es eventStore) handlePolicyRemove(ctx context.Context, e removePolicyEvent) error {
+	for _, a := range e.groupsIDs {
+		ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, a, e.ownerID)
+		if err != nil {
+			return err
+		}
+		err = es.commsService.NotifyPolicyRemoval(e.id, ag)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func read(event map[string]interface{}, key, def string) string {

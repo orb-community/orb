@@ -9,12 +9,13 @@ export const routes: Routes = [
     path: 'pages',
     loadChildren: () => import('./pages/pages.module')
       .then(m => m.PagesModule),
-       data: {breadcrumb: {skip: true}},
+    data: {breadcrumb: {skip: true}},
   },
   {
     path: 'auth',
     loadChildren: () => import('./auth/auth.module')
       .then(m => m.AuthModule),
+    data: {breadcrumb: {skip: true}},
   },
   {path: '', redirectTo: 'pages', pathMatch: 'full'},
   {path: '**', redirectTo: 'pages'},

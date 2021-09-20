@@ -5,45 +5,44 @@ export const MENU: NbMenuItem[] = [
   {
     title: 'Home',
     icon: 'layout-outline',
-    link: '/home',
+    link: 'home',
     home: true,
   },
   {
     title: 'Fleet Management',
     icon: 'cube-outline',
-    link: '/pages/fleets',
     children: [
       {
-        title: 'List View',
+        title: 'Agents',
+        link: 'fleet/agents',
       },
       {
-        title: 'Metric View',
+        title: 'Agent Groups',
+        link: 'fleet/groups',
       },
     ],
   },
   {
     title: 'Dataset Explorer',
     icon: 'layers-outline',
-    link: '/pages/datasets',
+    children: [
+      {
+        title: 'Datasets',
+      },
+      {
+        title: 'Policy Management',
+        link: 'policies',
+      },
+    ],
+  },
+  {
+    title: 'Sink Management',
+    icon: 'layers-outline',
+    link: 'sinks',
   },
   {
     title: 'Settings',
     icon: 'settings-2-outline',
-    expanded: true,
-    children: [
-      {
-        title: 'Sink Management',
-        link: '/pages/sinks',
-      },
-      {
-        title: 'Agent Groups',
-        link: '/pages/agent-groups',
-      },
-      {
-        title: 'Policy Management',
-        link: '/pages/policies',
-      },
-    ],
   },
 ];
 

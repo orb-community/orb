@@ -1,4 +1,4 @@
-<nb-card size="large" class="nb-card-medium">
+<nb-card>
   <nb-card-header>
     {{strings.delete.header}}
     <button nbButton
@@ -10,14 +10,13 @@
     </button>
   </nb-card-header>
   <nb-card-body>
-    <div class="row form-row">
-      <p>{{strings.delete.body}}<span class="ns1-red">*</span></p>
-    </div>
+    <p>{{strings.delete.body}}<span class="ns1-red">*</span></p>
     <p class="ns1-red">{{strings.delete.warning}}</p>
-    <input type="text" nbInput placeholder="{{sink.name}}" [(ngModel)]="userInput">
+    <input type="text" nbInput fullWidth placeholder="{{sink.name}}" [(ngModel)]="userInput">
   </nb-card-body>
   <nb-card-footer>
     <button nbButton
+            shape="round"
             class="orb-sink-delete-warning-button"
             [disabled]="!isEnabled()"
             (click)="onDelete()">{{strings.delete.delete}}

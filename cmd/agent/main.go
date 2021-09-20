@@ -5,7 +5,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
 	config2 "github.com/ns1labs/orb/agent/config"
@@ -55,6 +54,15 @@ func Run(cmd *cobra.Command, args []string) {
 	}
 
 	config.Debug = Debug
+
+	// include pktvisor backend by default if binary is at default location
+	_, err = os.Stat(pktvisor.DefaultBinary)
+	if err == nil && config.OrbAgent.Backends == nil {
+		config.OrbAgent.Backends = make(map[string]map[string]string)
+		config.OrbAgent.Backends["pktvisor"] = make(map[string]string)
+		config.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
+		config.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
+	}
 
 	// new agent
 	a, err := agent.New(logger, config)
@@ -132,7 +140,6 @@ func mergeOrError(path string) {
 			cobra.CheckErr("Config file version mismatch in: " + path)
 		}
 	}
-	fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed())
 
 	cobra.CheckErr(viper.MergeConfigMap(v.AllSettings()))
 }

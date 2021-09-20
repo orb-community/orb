@@ -28,24 +28,134 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		policy := policies.Policy{
-			Name:    nID,
-			Backend: req.Backend,
-			Policy:  req.Policy,
+			Name:        nID,
+			Backend:     req.Backend,
+			Policy:      req.Policy,
+			Description: req.Description,
+			OrbTags:     req.Tags,
 		}
 
-		saved, err := svc.CreatePolicy(ctx, req.token, policy, req.Format, req.PolicyData)
+		saved, err := svc.AddPolicy(ctx, req.token, policy, req.Format, req.PolicyData)
 		if err != nil {
 			return nil, err
 		}
 
 		res := policyRes{
-			ID:      saved.ID,
-			Name:    saved.Name.String(),
-			Backend: saved.Backend,
-			created: true,
+			ID:          saved.ID,
+			Name:        saved.Name.String(),
+			Description: saved.Description,
+			Tags:        saved.OrbTags,
+			Backend:     saved.Backend,
+			Policy:      saved.Policy,
+			created:     true,
 		}
 
 		return res, nil
+	}
+}
+
+func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		policy, err := svc.ViewPolicyByID(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+
+		res := policyRes{
+			ID:      policy.ID,
+			Name:    policy.Name.String(),
+			Backend: policy.Backend,
+		}
+		return res, nil
+	}
+}
+
+func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(listResourcesReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		page, err := svc.ListPolicies(ctx, req.token, req.pageMetadata)
+		if err != nil {
+			return nil, err
+		}
+
+		res := policiesPageRes{
+			pageRes: pageRes{
+				Total:  page.Total,
+				Offset: page.Offset,
+				Limit:  page.Limit,
+				Order:  page.Order,
+				Dir:    page.Dir,
+			},
+			Policies: []policyRes{},
+		}
+		for _, ag := range page.Policies {
+			view := policyRes{
+				ID:      ag.ID,
+				Name:    ag.Name.String(),
+				Backend: ag.Backend,
+			}
+			res.Policies = append(res.Policies, view)
+		}
+		return res, nil
+	}
+}
+
+func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(updatePolicyReq)
+		if err := req.validate(); err != nil {
+			return policyUpdateRes{}, err
+		}
+
+		nameID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return policyUpdateRes{}, err
+		}
+		plcy := policies.Policy{
+			ID:          req.id,
+			Name:        nameID,
+			Description: req.Description,
+			OrbTags:     req.Tags,
+			Policy:      req.Policy,
+		}
+
+		res, err := svc.EditPolicy(ctx, req.token, plcy, req.Format, req.PolicyData)
+		if err != nil {
+			return policyUpdateRes{}, err
+		}
+
+		plcyRes := policyUpdateRes{
+			ID:          res.ID,
+			Name:        res.Name.String(),
+			Description: res.Description,
+			Tags:        res.OrbTags,
+			Policy:      res.Policy,
+		}
+
+		return plcyRes, nil
+	}
+}
+
+func removePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return removeRes{}, err
+		}
+		err = svc.RemovePolicy(ctx, req.token, req.id)
+		if err != nil {
+			return removeRes{}, err
+		}
+		return removeRes{}, nil
 	}
 }
 
@@ -68,7 +178,7 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			SinkID:       req.SinkID,
 		}
 
-		saved, err := svc.CreateDataset(ctx, req.token, d)
+		saved, err := svc.AddDataset(ctx, req.token, d)
 		if err != nil {
 			return nil, err
 		}
@@ -77,6 +187,43 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			ID:      saved.ID,
 			Name:    saved.Name.String(),
 			created: true,
+		}
+
+		return res, nil
+	}
+}
+
+func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(addPolicyReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		policy := policies.Policy{
+			Name:    nID,
+			Backend: req.Backend,
+			Policy:  req.Policy,
+			OrbTags: req.Tags,
+			Description: req.Description,
+		}
+
+		validated, err := svc.ValidatePolicy(ctx, req.token, policy, req.Format, req.PolicyData)
+		if err != nil {
+			return nil, err
+		}
+
+		res := policyValidateRes{
+			Name:    validated.Name.String(),
+			Backend: validated.Backend,
+			Tags:    validated.OrbTags,
+			Policy:  validated.Policy,
+			Description: validated.Description,
 		}
 
 		return res, nil
