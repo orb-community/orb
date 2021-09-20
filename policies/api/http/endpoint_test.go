@@ -44,15 +44,13 @@ visor:
       type: pcap
       config:
         iface: eth0`
-	limit                    = 10
-	invalidToken             = "invalid"
-	maxNameSize              = 1024
-	contentType              = "application/json"
-	wrongID                  = "28ea82e7-0224-4798-a848-899a75cdc650"
-	invalidJson              = "{"
-	validDatasetJson         = "{\n    \"name\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
-	validDatasetYaml         = `{"name": "my-dataset-yaml", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
-	conflictValidDatasetYaml = `{"name": "my-dataset-conflict", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
+	limit                = 10
+	invalidToken         = "invalid"
+	maxNameSize          = 1024
+	contentType          = "application/json"
+	wrongID              = "28ea82e7-0224-4798-a848-899a75cdc650"
+	validDataset         = "{\n    \"name\": \"my-dataset\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+	conflictValidDataset = "{\n    \"name\": \"my-dataset-conflict\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
 )
 
 var (
@@ -670,15 +668,8 @@ func TestCreateDataset(t *testing.T) {
 		status      int
 		location    string
 	}{
-		"add a valid yaml dataset": {
-			req:         validDatasetYaml,
-			contentType: contentType,
-			auth:        token,
-			status:      http.StatusCreated,
-			location:    "/policies/dataset",
-		},
-		"add a valid json dataset": {
-			req:         validDatasetJson,
+		"add a valid dataset": {
+			req:         validDataset,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusCreated,
@@ -692,21 +683,21 @@ func TestCreateDataset(t *testing.T) {
 			location:    "/policies/dataset",
 		},
 		"add a duplicated dataset": {
-			req:         conflictValidDatasetYaml,
+			req:         conflictValidDataset,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusConflict,
 			location:    "/policies/dataset",
 		},
 		"add a valid dataset with an invalid token": {
-			req:         validDatasetYaml,
+			req:         validDataset,
 			contentType: contentType,
 			auth:        invalidToken,
 			status:      http.StatusUnauthorized,
 			location:    "/policies/dataset",
 		},
 		"add a valid dataset without a content type": {
-			req:         validDatasetJson,
+			req:         validDataset,
 			contentType: "",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
