@@ -261,14 +261,18 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/PolicyCreateReqSchema"
+            oneOf:
+              - $ref: "#/components/schemas/PolicyCreateReqSchemaJson"
+              - $ref: "#/components/schemas/PolicyCreateReqSchemaYaml"
     PolicyUpdateReq:
       description: JSON-formatted document describing the updated Policy configuration
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/PolicyUpdateReqSchema"
+            oneOf:
+              - $ref: "#/components/schemas/PolicyUpdateReqSchemaJson"
+              - $ref: "#/components/schemas/PolicyUpdateReqSchemaYaml"
     DatasetCreateReq:
       description: JSON-formatted document describing the new Dataset configuration
       required: true
@@ -403,7 +407,7 @@ components:
           schema:
             $ref: "#/components/schemas/DatasetPageSchema"
   schemas:
-    PolicyUpdateReqSchema:
+    PolicyUpdateReqSchemaJson:
       type: object
       properties:
         name:
@@ -427,6 +431,23 @@ components:
             version: 1.0
             visor:
               foo: bar
+    PolicyUpdateReqSchemaYaml:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-policy
+        description:
+          type: string
+          description: User description of this Policy
+          example: A policy example
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
         policy_data:
           type: string
           description: Agent backend specific policy data in yaml format
@@ -435,14 +456,14 @@ components:
           type: string
           example: yaml
           description: Policy text format needed to specify when a policy is a yaml
-    PolicyCreateReqSchema:
+    PolicyCreateReqSchemaJson:
       type: object
       required:
         - name
         - backend
         - description
-        - version
         - tags
+        - policy
       properties:
         name:
           type: string
@@ -469,6 +490,34 @@ components:
               version: 1.0
               visor:
                 foo: bar
+    PolicyCreateReqSchemaYaml:
+      type: object
+      required:
+        - name
+        - backend
+        - description
+        - tags
+        - policy_data
+        - format
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-policy
+        description:
+          type: string
+          description: User description of this Policy
+          example: A policy example
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+        backend:
+          type: string
+          example: pktvisor
+          description: Agent backend this policy is for. Cannot change once created.
         policy_data:
           type: string
           description: Agent backend specific policy data in yaml format
