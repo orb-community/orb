@@ -82,10 +82,18 @@ var commands = {
         .assert.containsText('.nb-card-medium > nb-card-header:nth-child(1)', 'Sink Details')
     },
 
+    sinkEdit: function() {
+        return this.assert.not.elementPresent('.cdk-overlay-backdrop')
+        .assert.attributeEquals('button.orb-action-hover:nth-child(2)', 'aria-disabled', 'false')
+        .click('button.orb-action-hover:nth-child(2)')
+        .sinkEditPage()
+
+    }, 
+
     sinkEditPage: function() {
         return this.assert.containsText('.xng-breadcrumb-trail', 'Edit Sink')
         .assert.containsText('ngx-sink-add-component.ng-star-inserted > div:nth-child(1) > header:nth-child(1)', 'Update Sink')
-        .assert.containsText('div.step:nth-child(1) > div:nth-child(2) > div:nth-child(1)', 'Sink Details')
+        .assert.containsText('@editSinkHeader', 'Sink Details')
         .assert.containsText('@editSinkHeader', 'Provide a name and description for the Sink')
         .assert.containsText('@editSinkHeader', 'Sink Destination')
         .assert.containsText('@editSinkHeader', 'Configure your sink settings')
@@ -98,13 +106,26 @@ var commands = {
 
     },
 
-    sinkEditDescription: function(description) {
-        return this.waitForElementVisible('@sinkDescription')
-        .setValue('@sinkDescription', description)
+    sinkEditAttribute: function(attribute, value) {
+        return this.assert.attributeEquals('@sinkNext','aria-disabled', 'false')
+        .waitForElementVisible(attribute)
+        .setValue(attribute, value)
         .assert.attributeEquals('@sinkNext','aria-disabled', 'false')
 
     },
-    
+
+    sinkEditTags: function(key, value, key_value, value_value) {
+        return this.waitForElementVisible(key)
+        .waitForElementVisible(value)
+        .setValue(key, key_value)
+        .setValue(value, value_value)
+        .waitForElementVisible('@addTag')
+        .click('@addTag')
+        .assert.attributeEquals('@sinkNext','aria-disabled', 'false')
+
+    },
+
+
     sinkDelete: function() {
         return this.assert.attributeEquals('button.orb-action-hover:nth-child(3)', 'aria-disabled', 'false')
         .click('button.orb-action-hover:nth-child(3)')
@@ -116,6 +137,13 @@ var commands = {
         .assert.containsText('.empty-row', 'No data to display')
 
     },
+
+    sinkCheckEdition: function(value) {
+        return this.sinkVisualization()	
+        .assert.containsText('ngx-sink-details-component.ng-star-inserted',value)
+        .click('.nb-close')
+        .sinkManagementPage()
+    }
 
 };
 
