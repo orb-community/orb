@@ -6,6 +6,7 @@ package agent
 
 import (
 	"encoding/json"
+	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"time"
@@ -17,15 +18,42 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
 	a.logger.Debug("heartbeat")
 
+	bes := make(map[string]fleet.BackendStateInfo)
+	for name, be := range a.backends {
+		state, errmsg, err := be.GetState()
+		if err != nil {
+			a.logger.Error("failed to retrieve backend state", zap.String("backend", name), zap.Error(err))
+			bes[name] = fleet.BackendStateInfo{State: backend.AgentError.String(), Error: err.Error()}
+			continue
+		}
+		bes[name] = fleet.BackendStateInfo{State: state.String(), Error: errmsg}
+	}
+
+	ps := make(map[string]fleet.PolicyStateInfo)
+	pdata, err := a.policyManager.GetPolicyState()
+	if err == nil {
+		for _, pd := range pdata {
+			ps[pd.ID] = fleet.PolicyStateInfo{
+				State:    pd.State.String(),
+				Error:    pd.BackendErr,
+				Datasets: pd.GetDatasetIDs(),
+			}
+		}
+	} else {
+		a.logger.Error("unable to retrieved policy state", zap.Error(err))
+	}
+
 	hbData := fleet.Heartbeat{
 		SchemaVersion: fleet.CurrentHeartbeatSchemaVersion,
-		TimeStamp:     t,
 		State:         state,
+		TimeStamp:     t,
+		BackendState:  bes,
+		PolicyState:   ps,
 	}
 
 	body, err := json.Marshal(hbData)
 	if err != nil {
-		a.logger.Error("error creating heartbeat data", zap.Error(err))
+		a.logger.Error("error marshalling heartbeat", zap.Error(err))
 		return
 	}
 

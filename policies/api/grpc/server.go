@@ -39,18 +39,18 @@ func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyService
 		retrievePoliciesByGroups: kitgrpc.NewServer(
 			kitot.TraceServer(tracer, "retrieve_policies_by_groups")(retrievePoliciesByGroupsEndpoint(svc)),
 			decodeRetrievePoliciesByGroupRequest,
-			encodePolicyListResponse,
+			encodePolicyInDSListResponse,
 		),
 	}
 }
 
-func (gs *grpcServer) RetrievePoliciesByGroups(ctx context.Context, req *pb.PoliciesByGroupsReq) (*pb.PolicyListRes, error) {
+func (gs *grpcServer) RetrievePoliciesByGroups(ctx context.Context, req *pb.PoliciesByGroupsReq) (*pb.PolicyInDSListRes, error) {
 	_, res, err := gs.retrievePoliciesByGroups.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, encodeError(err)
 	}
 
-	return res.(*pb.PolicyListRes), nil
+	return res.(*pb.PolicyInDSListRes), nil
 }
 
 func (gs *grpcServer) RetrievePolicy(ctx context.Context, req *pb.PolicyByIDReq) (*pb.PolicyRes, error) {
@@ -83,14 +83,14 @@ func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, 
 	}, nil
 }
 
-func encodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	res := grpcRes.(policyListRes)
+func encodePolicyInDSListResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(policyInDSListRes)
 
-	plist := make([]*pb.PolicyRes, len(res.policies))
+	plist := make([]*pb.PolicyInDSRes, len(res.policies))
 	for i, p := range res.policies {
-		plist[i] = &pb.PolicyRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version}
+		plist[i] = &pb.PolicyInDSRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version, DatasetId: p.datasetID}
 	}
-	return &pb.PolicyListRes{Policies: plist}, nil
+	return &pb.PolicyInDSListRes{Policies: plist}, nil
 }
 
 func encodeError(err error) error {
