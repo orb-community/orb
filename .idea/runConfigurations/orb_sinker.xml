@@ -1,12 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="orb-prom-sink" type="GoApplicationRunConfiguration" factoryName="Go Application">
+  <configuration default="false" name="orb-sinker" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="orb" />
     <working_directory value="$PROJECT_DIR$" />
     <sudo value="true" />
     <kind value="FILE" />
     <package value="github.com/ns1labs/orb" />
     <directory value="$PROJECT_DIR$" />
-    <filePath value="$PROJECT_DIR$/cmd/prom-sink/main.go" />
+    <filePath value="$PROJECT_DIR$/cmd/sinker/main.go" />
     <output_directory value="$PROJECT_DIR$/build" />
     <method v="2" />
   </configuration>
