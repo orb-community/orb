@@ -122,10 +122,10 @@ func (req updatePolicyReq) validate() error {
 }
 
 type addDatasetReq struct {
-	Name         string `json:"name"`
-	AgentGroupID string `json:"agent_group_id"`
-	PolicyID     string `json:"agent_policy_id"`
-	SinkID       string `json:"sink_id"`
+	Name         string     `json:"name"`
+	AgentGroupID string     `json:"agent_group_id"`
+	PolicyID     string     `json:"agent_policy_id"`
+	SinkID       string     `json:"sink_id"`
 	Tags         types.Tags `json:"tags"`
 	token        string
 }
