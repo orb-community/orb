@@ -11,7 +11,7 @@ import (
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/cloud_config"
 	"github.com/ns1labs/orb/agent/config"
-	"github.com/ns1labs/orb/agent/policies"
+	"github.com/ns1labs/orb/agent/policyMgr"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"time"
@@ -33,6 +33,7 @@ type orbAgent struct {
 	hbDone   chan bool
 
 	// Agent RPC channel, configured from command line
+	baseTopic         string
 	rpcToCoreTopic    string
 	rpcFromCoreTopic  string
 	capabilitiesTopic string
@@ -42,7 +43,7 @@ type orbAgent struct {
 	// AgentGroup channels sent from core
 	groupChannels []string
 
-	policyManager policies.PolicyManager
+	policyManager manager.PolicyManager
 }
 
 var _ Agent = (*orbAgent)(nil)
@@ -54,7 +55,7 @@ func New(logger *zap.Logger, c config.Config) (Agent, error) {
 		return nil, err
 	}
 
-	pm, err := policies.New(logger, c, db)
+	pm, err := manager.New(logger, c, db)
 	if err != nil {
 		return nil, err
 	}

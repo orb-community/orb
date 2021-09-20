@@ -9,6 +9,7 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"time"
 )
 
 func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
@@ -28,6 +29,9 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload) {
 	for _, payload := range rpc {
 		a.policyManager.ManagePolicy(payload)
 	}
+
+	// heart beat with new policy status after application
+	a.sendSingleHeartbeat(time.Now(), fleet.Online)
 
 }
 
@@ -100,6 +104,10 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			return
 		}
 		a.handleAgentPolicies(r.Payload)
+	case fleet.GroupRemovedRPCFunc:
+		// TODO group removed
+		a.logger.Error("FIXME: handle group removed, ignoring")
+		return
 	default:
 		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
 			zap.String("func", rpc.Func),
