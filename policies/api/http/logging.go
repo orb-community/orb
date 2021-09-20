@@ -116,7 +116,7 @@ func (l loggingMiddleware) ViewPolicyByIDInternal(ctx context.Context, policyID 
 	return l.svc.ViewPolicyByIDInternal(ctx, policyID, ownerID)
 }
 
-func (l loggingMiddleware) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) (_ []policies.Policy, err error) {
+func (l loggingMiddleware) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) (_ []policies.PolicyInDataset, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: list_policies_by_groups",

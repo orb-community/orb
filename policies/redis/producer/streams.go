@@ -139,7 +139,7 @@ func (e eventStore) ViewPolicyByIDInternal(ctx context.Context, policyID string,
 	return e.svc.ViewPolicyByIDInternal(ctx, policyID, ownerID)
 }
 
-func (e eventStore) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
+func (e eventStore) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.PolicyInDataset, error) {
 	return e.svc.ListPoliciesByGroupIDInternal(ctx, groupIDs, ownerID)
 }
 

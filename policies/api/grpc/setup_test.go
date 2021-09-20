@@ -46,7 +46,10 @@ func TestMain(m *testing.M) {
 
 func startServer() {
 	svc = newService(map[string]string{token: email})
-	listener, _ := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		panic(err)
+	}
 	server := grpc.NewServer()
 	pb.RegisterPolicyServiceServer(server, policiesgrpc.NewServer(mocktracer.New(), svc))
 	go server.Serve(listener)
