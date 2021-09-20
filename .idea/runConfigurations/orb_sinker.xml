@@ -2,6 +2,9 @@
   <configuration default="false" name="orb-sinker" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="orb" />
     <working_directory value="$PROJECT_DIR$" />
+    <envs>
+      <env name="ORB_SINKER_LOG_LEVEL" value="debug" />
+    </envs>
     <sudo value="true" />
     <kind value="FILE" />
     <package value="github.com/ns1labs/orb" />

@@ -72,14 +72,17 @@ func main() {
 	// todo fleet grpc
 	// todo sink grpc
 
-	zlog, _ := zap.NewProduction()
-	svc := sinker.New(zlog, pubSub, esClient)
+	svc := sinker.New(logger, pubSub, esClient)
 	defer svc.Stop()
 
 	errs := make(chan error, 2)
 
 	go startHTTPServer(svcCfg.HttpPort, errs, logger)
-	go svc.Start()
+	err = svc.Start()
+	if err != nil {
+		logger.Error("unable to start agent metric consumption", zap.Error(err))
+		os.Exit(1)
+	}
 
 	go func() {
 		c := make(chan os.Signal)
@@ -88,7 +91,7 @@ func main() {
 	}()
 
 	err = <-errs
-	logger.Error("sinker writer service terminated", zap.Error(err))
+	logger.Error("sinker service terminated", zap.Error(err))
 }
 
 func makeHandler(svcName string) http.Handler {
@@ -100,7 +103,7 @@ func makeHandler(svcName string) http.Handler {
 
 func startHTTPServer(port string, errs chan error, logger *zap.Logger) {
 	p := fmt.Sprintf(":%s", port)
-	logger.Info("sinker writer service started, exposed port", zap.String("port", port))
+	logger.Info("sinker service started, exposed port", zap.String("port", port))
 	errs <- http.ListenAndServe(p, makeHandler(svcName))
 }
 

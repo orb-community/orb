@@ -436,6 +436,7 @@ services:
       - es-redis
     restart: on-failure
     environment:
+      ORB_SINKER_LOG_LEVEL: debug
       ORB_SINKER_NATS_URL: ${MF_NATS_URL}
       ORB_SINKER_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
     networks:

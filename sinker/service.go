@@ -11,11 +11,15 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
+	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/sinker/backend"
+	"github.com/ns1labs/orb/sinker/backend/pktvisor"
 	"go.uber.org/zap"
+	"strings"
 )
 
 const (
-	BackendMetricsTopic = "be.*.m.*"
+	BackendMetricsTopic = "be.*.m.>"
 	MaxMsgPayloadSize   = 1024 * 100
 )
 
@@ -39,12 +43,35 @@ type sinkerService struct {
 }
 
 func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopic string, payload []byte) error {
-	svc.logger.Debug("received metrics",
-		zap.Any("payload", payload),
-		zap.String("subtopic", subtopic),
-		zap.String("channel_id", channelID),
-		zap.String("thing_id", thingID))
-	return nil
+	// find backend to send it to
+	s := strings.Split(subtopic, ".")
+	if len(s) < 3 || s[0] != "be" || s[2] != "m" {
+		return errors.New(fmt.Sprintf("invalid subtopic, ignoring: %s", subtopic))
+	}
+	if !backend.HaveBackend(s[1]) {
+		return errors.New(fmt.Sprintf("unknown agent backend, ignoring: %s", s[1]))
+	}
+	be := backend.GetBackend(s[1])
+	// unpack metrics RPC
+	var versionCheck fleet.SchemaVersionCheck
+	if err := json.Unmarshal(payload, &versionCheck); err != nil {
+		return fleet.ErrSchemaMalformed
+	}
+	if versionCheck.SchemaVersion != fleet.CurrentRPCSchemaVersion {
+		return fleet.ErrSchemaVersion
+	}
+	var rpc fleet.RPC
+	if err := json.Unmarshal(payload, &rpc); err != nil {
+		return fleet.ErrSchemaMalformed
+	}
+	if rpc.Func != fleet.AgentMetricsRPCFunc {
+		return errors.New(fmt.Sprintf("unexpected RPC function: %s", rpc.Func))
+	}
+	var metricsRPC fleet.AgentMetricsRPC
+	if err := json.Unmarshal(payload, &metricsRPC); err != nil {
+		return fleet.ErrSchemaMalformed
+	}
+	return be.ProcessMetrics(thingID, channelID, s, metricsRPC.Payload)
 }
 
 func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
@@ -77,6 +104,9 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 }
 
 func (svc sinkerService) Start() error {
+
+	pktvisor.Register(svc.logger)
+
 	topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
 	if err := svc.pubSub.Subscribe(topic, svc.handleMsgFromAgent); err != nil {
 		return err
