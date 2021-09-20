@@ -291,7 +291,7 @@ func TestRemovePolicy(t *testing.T) {
 func TestValidatePolicy(t *testing.T) {
 	var nameID, _ = types.NewIdentifier("my-policy")
 	var policy = policies.Policy{
-		Name: nameID,
+		Name:    nameID,
 		Backend: "pktvisor",
 		OrbTags: map[string]string{"region": "eu", "node_type": "dns"},
 	}
@@ -378,17 +378,88 @@ func TestCreatePolicy(t *testing.T) {
 	}
 }
 
+func TestEditDataset(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	policy := createDataset(t, svc, "policy")
+
+	nameID, err := types.NewIdentifier("new-policy")
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	wrongOwnerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	wrongPolicy := policies.Dataset{MFOwnerID: wrongOwnerID.String()}
+	newPolicy := policies.Dataset{
+		ID:        policy.ID,
+		Name:      nameID,
+		MFOwnerID: policy.MFOwnerID,
+	}
+
+	cases := map[string]struct {
+		ds         policies.Dataset
+		token      string
+		format     string
+		policyData string
+		err        error
+	}{
+		"update a existing policy": {
+			ds:         newPolicy,
+			token:      token,
+			format:     format,
+			policyData: policy_data,
+			err:        nil,
+		},
+		"update policy with wrong credentials": {
+			ds:         newPolicy,
+			token:      "invalidToken",
+			format:     format,
+			policyData: policy_data,
+			err:        policies.ErrUnauthorizedAccess,
+		},
+		"update a non-existing policy": {
+			ds:         wrongPolicy,
+			token:      token,
+			format:     format,
+			policyData: policy_data,
+			err:        policies.ErrNotFound,
+		},
+		"update a existing policy with invalid format": {
+			ds:         newPolicy,
+			token:      token,
+			format:     "invalid",
+			policyData: policy_data,
+			err:        policies.ErrValidatePolicy,
+		},
+		"update a existing policy with invalid policy_data": {
+			ds:         newPolicy,
+			token:      token,
+			format:     format,
+			policyData: "invalid",
+			err:        policies.ErrValidatePolicy,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			res, err := svc.EditDataset(context.Background(), tc.token, tc.ds)
+			if err == nil {
+				assert.Equal(t, tc.ds.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.ds.Name.String(), res.Name.String()))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected error %d got %d", desc, tc.err, err))
+		})
+	}
+
+}
+
 func createPolicy(t *testing.T, svc policies.Service, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	validName, err := types.NewIdentifier(name)
-	if err != nil {
-		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-	}
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	policy := policies.Policy{
 		ID:      ID.String(),
@@ -397,6 +468,36 @@ func createPolicy(t *testing.T, svc policies.Service, name string) policies.Poli
 	}
 
 	res, err := svc.AddPolicy(context.Background(), token, policy, format, policy_data)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	return res
+}
+
+func createDataset(t *testing.T, svc policies.Service, name string) policies.Dataset {
+	t.Helper()
+	ID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	agentGroupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	sinkID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	validName, err := types.NewIdentifier(name)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		ID:           ID.String(),
+		Name:         validName,
+		PolicyID:     policyID.String(),
+		AgentGroupID: agentGroupID.String(),
+		SinkID:       sinkID.String(),
+	}
+
+	res, err := svc.AddDataset(context.Background(), token, dataset)
 	if err != nil {
 		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 	}

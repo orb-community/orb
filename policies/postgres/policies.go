@@ -199,6 +199,39 @@ func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID str
 	return toPolicy(dbp), nil
 }
 
+func (r policiesRepository) UpdateDataset(ctx context.Context, ownerID string, ds policies.Dataset) error {
+	q := `UPDATE datasets SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy, version = :version WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	plcyDB, err := toDBPolicy(plcy)
+	if err != nil {
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	plcyDB.MFOwnerID = owner
+
+	res, err := r.db.NamedExecContext(ctx, q, plcyDB)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrNotFound
+	}
+
+	return nil
+}
+
 func (r policiesRepository) SaveDataset(ctx context.Context, dataset policies.Dataset) (string, error) {
 
 	q := `INSERT INTO datasets (name, mf_owner_id, metadata, valid, agent_group_id, agent_policy_id, sink_id)         

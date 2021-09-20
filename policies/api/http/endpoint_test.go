@@ -652,6 +652,106 @@ func TestCreatePolicy(t *testing.T) {
 	}
 }
 
+func TestDatasetEdition(t *testing.T) {
+	cli := newClientServer(t)
+	dataset := createDataset(t, &cli, "policy")
+
+	cases := map[string]struct {
+		id          string
+		contentType string
+		auth        string
+		status      int
+		data        string
+	}{
+		"update a existing dataset": {
+			id:          dataset.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
+			data:        validJson,
+		},
+		"update dataset with a empty json request": {
+			id:          dataset.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data:        "{}",
+		},
+		"update dataset with a invalid id": {
+			data:        validJson,
+			id:          "invalid",
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusNotFound,
+		},
+		"update non-existing dataset": {
+			data:        validJson,
+			id:          wrongID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusNotFound,
+		},
+		"update dataset with invalid user token": {
+			data:        validJson,
+			id:          dataset.ID,
+			contentType: contentType,
+			auth:        "invalid",
+			status:      http.StatusUnauthorized,
+		},
+		"update dataset with empty user token": {
+			data:        validJson,
+			id:          dataset.ID,
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+		},
+		"update dataset with invalid content type": {
+			data:        validJson,
+			id:          dataset.ID,
+			contentType: "invalid",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+		},
+		"update dataset without content type": {
+			data:        validJson,
+			id:          dataset.ID,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+		},
+		"update dataset with a empty request": {
+			data:        "",
+			id:          dataset.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update dataset with a invalid data format": {
+			data:        "{",
+			id:          dataset.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPut,
+				url:         fmt.Sprintf("%s/policies/dataset/%s", cli.server.URL, tc.id),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.data),
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
@@ -668,6 +768,25 @@ func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy 
 
 	res, err := cli.service.AddPolicy(context.Background(), token, policy, format, policy_data)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	return res
+}
+
+func createDataset(t *testing.T, cli *clientServer, name string) policies.Dataset {
+	t.Helper()
+	ID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	validName, err := types.NewIdentifier(name)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		ID:   ID.String(),
+		Name: validName,
+	}
+
+	res, err := cli.service.AddDataset(context.Background(), token, dataset)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
 	return res
 }
 
