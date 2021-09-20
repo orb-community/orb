@@ -334,14 +334,15 @@ func TestValidatePolicy(t *testing.T) {
 
 func TestValidateDataset(t *testing.T) {
 	var nameID, _ = types.NewIdentifier("my-dataset")
-	var dataset = policies.Dataset{
-		Name: nameID,
-		Tags: map[string]string{"region": "eu", "node_type": "dns"},
-		AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db",
-		PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b",
-		SinkID: "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f",
-		Valid: true,
-	}
+	var (
+		dataset                    = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", SinkID: "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", Valid: true}
+		datasetEmptySinkID         = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", SinkID: "", Valid: true}
+		datasetEmptyPolicyID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "", SinkID: "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", Valid: true}
+		datasetEmptyAgentGroupID   = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "", PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", SinkID: "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", Valid: true}
+		datasetInvalidSinkID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", SinkID: "invalid", Valid: true}
+		datasetInvalidPolicyID     = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "invalid", SinkID: "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", Valid: true}
+		datasetInvalidAgentGroupID = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "invalid", PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", SinkID: "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", Valid: true}
+	)
 
 	users := flmocks.NewAuthService(map[string]string{token: email})
 	svc := newService(users)
@@ -361,11 +362,41 @@ func TestValidateDataset(t *testing.T) {
 			token:   invalidToken,
 			err:     policies.ErrUnauthorizedAccess,
 		},
+		"validate a dataset with a empty sink ID": {
+			dataset: datasetEmptySinkID,
+			token:   token,
+			err:     policies.ErrMalformedEntity,
+		},
+		"validate a dataset with a empty policy ID": {
+			dataset: datasetEmptyPolicyID,
+			token:   token,
+			err:     policies.ErrMalformedEntity,
+		},
+		"validate a dataset with a empty agent group ID": {
+			dataset: datasetEmptyAgentGroupID,
+			token:   token,
+			err:     policies.ErrMalformedEntity,
+		},
+		"validate a dataset with a invalid sink ID": {
+			dataset: datasetInvalidSinkID,
+			token:   token,
+			err:     policies.ErrMalformedEntity,
+		},
+		"validate a dataset with a invalid policy ID": {
+			dataset: datasetInvalidPolicyID,
+			token:   token,
+			err:     policies.ErrMalformedEntity,
+		},
+		"validate a dataset with a invalid agent group ID": {
+			dataset: datasetInvalidAgentGroupID,
+			token:   token,
+			err:     policies.ErrMalformedEntity,
+		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := svc.ValidateDataset(context.Background(), tc.token, dataset)
+			_, err := svc.ValidateDataset(context.Background(), tc.token, tc.dataset)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		})
 	}
