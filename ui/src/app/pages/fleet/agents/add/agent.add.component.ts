@@ -33,8 +33,6 @@ export class AgentAddComponent {
 
   agentID;
 
-  agentLocation;
-
   constructor(
     private agentsService: AgentsService,
     private notificationsService: NotificationsService,
@@ -42,13 +40,10 @@ export class AgentAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.agentLocation = '';
     this.firstFormGroup = this._formBuilder.group({
       name: ['', [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
-      location: [this.agentLocation, Validators.required],
     });
 
-    // do not include location into tags
     this.secondFormGroup = this._formBuilder.group({
       tags: [[], Validators.minLength(1)],
       key: [''],
@@ -77,15 +72,10 @@ export class AgentAddComponent {
       orb_tags: {},
     } as Agent;
 
-    // retrieve location tag if available
-    this.agentLocation = orb_tags.hasOwnProperty('location') && orb_tags.location || '';
-
     this.firstFormGroup.controls.name.patchValue(name);
-    this.firstFormGroup.controls.location.patchValue(this.agentLocation);
 
-    // do not include location into tags
     this.secondFormGroup.setValue({
-      tags: Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})).filter(tag => !tag?.location),
+      tags: Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})),
       key: '',
       value: '',
     });
@@ -98,12 +88,12 @@ export class AgentAddComponent {
       name: '',
       orb_tags: {},
     } as Agent;
-    this.agentLocation = '';
 
-    this.firstFormGroup.setValue({name: name, location: location});
+    this.firstFormGroup.setValue({name: name});
 
     this.secondFormGroup.controls.tags.setValue(
-      Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})).filter(tag => !tag?.location));
+      Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})),
+    );
 
     this.agentsService.clean();
   }
@@ -112,7 +102,6 @@ export class AgentAddComponent {
     this.router.navigateByUrl('/pages/fleet/agents');
   }
 
-  // addTag button should be [disabled] = `$sf.controls.key.value !== '' && !== 'location'`
   onAddTag() {
     const {tags, key, value} = this.secondFormGroup.controls;
     // sanitize minimally anyway
@@ -139,7 +128,7 @@ export class AgentAddComponent {
   }
 
   wrapPayload(validate: boolean) {
-    const {name, location} = this.firstFormGroup.controls;
+    const {name} = this.firstFormGroup.controls;
     const {tags: {value: tagsList}} = this.secondFormGroup.controls;
     const tagsObj = tagsList.reduce((prev, curr) => {
       for (const [key, value] of Object.entries(curr)) {
@@ -147,7 +136,6 @@ export class AgentAddComponent {
       }
       return prev;
     }, {});
-    tagsObj['location'] = location.value;
     return {
       name: name.value,
       orb_tags: {...tagsObj},

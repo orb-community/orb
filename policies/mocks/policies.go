@@ -7,6 +7,7 @@ package mocks
 import (
 	"context"
 	"github.com/gofrs/uuid"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies"
 )
 
@@ -84,6 +85,12 @@ func (m *mockPoliciesRepository) RetrieveAll(ctx context.Context, owner string, 
 }
 
 func (m *mockPoliciesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
+	for _, p := range m.pdb {
+		if p.Name == policy.Name && p.MFOwnerID == policy.MFOwnerID {
+			return "", errors.ErrConflict
+		}
+	}
+
 	ID, _ := uuid.NewV4()
 	policy.ID = ID.String()
 	m.pdb[policy.ID] = policy

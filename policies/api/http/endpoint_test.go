@@ -30,10 +30,14 @@ import (
 )
 
 const (
-	token       = "token"
-	email       = "user@example.com"
-	format      = "yaml"
-	policy_data = `version: "1.0"
+	token               = "token"
+	validPolicyDataJson = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
+	conflictValidJson   = "{\"name\": \"conflict-simple_dns\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
+	validPolicyDataYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
+	invalidJson         = "{"
+	email               = "user@example.com"
+	format              = "yaml"
+	policy_data         = `version: "1.0"
 visor:
   taps:
     anycast:
@@ -471,13 +475,13 @@ func TestPolicyRemoval(t *testing.T) {
 
 func TestValidatePolicy(t *testing.T) {
 	var (
-		contentType = "application/json"
-		validYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		contentType        = "application/json"
+		validYaml          = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
 		invalidBackendYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "", "description": "my pktvisor policy yaml", "tags": { "region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
-		invalidYaml = `{`
-		invalidTagYaml = `{"name": "mypktvisorpolicyyaml-3","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"invalid"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
-		invalidNameYaml = `{"name": "policy//.#","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
-		invalidFieldYaml = `{"nname": "policy","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidYaml        = `{`
+		invalidTagYaml     = `{"name": "mypktvisorpolicyyaml-3","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"invalid"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidNameYaml    = `{"name": "policy//.#","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
+		invalidFieldYaml   = `{"nname": "policy","backend": "pktvisor","description": "my pktvisor policy yaml","tags": {"region": "eu","node_type": "dns"},"format": "yaml","policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""}`
 	)
 	cli := newClientServer(t)
 
@@ -556,12 +560,12 @@ func TestValidatePolicy(t *testing.T) {
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			req := testRequest{
-				client: cli.server.Client(),
-				method: http.MethodPost,
-				url:    fmt.Sprintf("%s/policies/agent/validate", cli.server.URL),
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/policies/agent/validate", cli.server.URL),
 				contentType: tc.contentType,
-				token:  tc.auth,
-				body: strings.NewReader(tc.req),
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
 			if err != nil {
@@ -571,6 +575,81 @@ func TestValidatePolicy(t *testing.T) {
 		})
 	}
 
+}
+
+func TestCreatePolicy(t *testing.T) {
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	// Conflict scenario
+	createPolicy(t, &cli, "conflict-simple_dns")
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"add a valid yaml policy": {
+			req:         validPolicyDataYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusCreated,
+			location:    "/policies/agent",
+		},
+		"add a valid json policy": {
+			req:         validPolicyDataJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusCreated,
+			location:    "/policies/agent",
+		},
+		"add a policy with an invalid json": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent",
+		},
+		"add a duplicated policy": {
+			req:         conflictValidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusConflict,
+			location:    "/policies/agent",
+		},
+		"add a valid yaml policy with an invalid token": {
+			req:         validPolicyDataYaml,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/policies/agent",
+		},
+		"add a valid yaml policy without a content type": {
+			req:         validPolicyDataYaml,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/policies/agent",
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/policies/agent", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
 }
 
 func TestDatasetValidation(t *testing.T){
