@@ -378,6 +378,47 @@ func TestCreatePolicy(t *testing.T) {
 	}
 }
 
+func TestCreateDataset(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpect error: %s", err))
+
+	nameID, _ := types.NewIdentifier("my-policy")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		Name:      nameID,
+		MFOwnerID: ownerID.String(),
+	}
+
+	cases := map[string]struct {
+		dataset policies.Dataset
+		token   string
+		err     error
+	}{
+		"create a new dataset": {
+			dataset: dataset,
+			token:   token,
+			err:     nil,
+		},
+		"create a dataset with an invalid token": {
+			dataset: dataset,
+			token:   invalidToken,
+			err:     policies.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := svc.AddDataset(context.Background(), tc.token, tc.dataset)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
+			t.Log(tc.token)
+		})
+	}
+}
+
 func createPolicy(t *testing.T, svc policies.Service, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()

@@ -44,11 +44,15 @@ visor:
       type: pcap
       config:
         iface: eth0`
-	limit        = 10
-	invalidToken = "invalid"
-	maxNameSize  = 1024
-	contentType  = "application/json"
-	wrongID      = "28ea82e7-0224-4798-a848-899a75cdc650"
+	limit                    = 10
+	invalidToken             = "invalid"
+	maxNameSize              = 1024
+	contentType              = "application/json"
+	wrongID                  = "28ea82e7-0224-4798-a848-899a75cdc650"
+	invalidJson              = "{"
+	validDatasetJson         = "{\n    \"name\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+	validDatasetYaml         = `{"name": "my-dataset-yaml", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
+	conflictValidDatasetYaml = `{"name": "my-dataset-conflict", "agent_group_id": "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", "agent_policy_id": "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", "sink_id": "urn:uuid:f5b2d342-211d-a9ab-1233-63199a3fc16f", "tags": {"region": "eu", "node_type": "dns"}}`
 )
 
 var (
@@ -652,6 +656,81 @@ func TestCreatePolicy(t *testing.T) {
 	}
 }
 
+func TestCreateDataset(t *testing.T) {
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	// Conflict scenario
+	createDataset(t, &cli, "my-dataset-conflict")
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"add a valid yaml dataset": {
+			req:         validDatasetYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusCreated,
+			location:    "/policies/dataset",
+		},
+		"add a valid json dataset": {
+			req:         validDatasetJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusCreated,
+			location:    "/policies/dataset",
+		},
+		"add a dataset with an invalid json": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/dataset",
+		},
+		"add a duplicated dataset": {
+			req:         conflictValidDatasetYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusConflict,
+			location:    "/policies/dataset",
+		},
+		"add a valid dataset with an invalid token": {
+			req:         validDatasetYaml,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/policies/dataset",
+		},
+		"add a valid dataset without a content type": {
+			req:         validDatasetJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/policies/dataset",
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/policies/dataset", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
@@ -668,6 +747,25 @@ func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy 
 
 	res, err := cli.service.AddPolicy(context.Background(), token, policy, format, policy_data)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	return res
+}
+
+func createDataset(t *testing.T, cli *clientServer, name string) policies.Dataset {
+	t.Helper()
+	ID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	validName, err := types.NewIdentifier(name)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		ID:   ID.String(),
+		Name: validName,
+	}
+
+	res, err := cli.service.AddDataset(context.Background(), token, dataset)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
 	return res
 }
 
