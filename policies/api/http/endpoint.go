@@ -28,9 +28,11 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		policy := policies.Policy{
-			Name:    nID,
-			Backend: req.Backend,
-			Policy:  req.Policy,
+			Name:        nID,
+			Backend:     req.Backend,
+			Policy:      req.Policy,
+			Description: req.Description,
+			OrbTags:     req.Tags,
 		}
 
 		saved, err := svc.AddPolicy(ctx, req.token, policy, req.Format, req.PolicyData)
@@ -39,10 +41,13 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := policyRes{
-			ID:      saved.ID,
-			Name:    saved.Name.String(),
-			Backend: saved.Backend,
-			created: true,
+			ID:          saved.ID,
+			Name:        saved.Name.String(),
+			Description: saved.Description,
+			Tags:        saved.OrbTags,
+			Backend:     saved.Backend,
+			Policy:      saved.Policy,
+			created:     true,
 		}
 
 		return res, nil
