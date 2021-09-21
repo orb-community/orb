@@ -83,6 +83,12 @@
   </div>
 </div>
 
+<ng-template #agentNameTemplateCell let-row="row" let-value="value" let-i="index">
+  <div class="agent-name" (click)="onOpenView(row)">
+    {{ value }}
+  </div>
+</ng-template>
+
 <ng-template #agentStateTemplateCell let-row="row" let-value="value" let-i="index">
   <div>
     <div *ngIf="row.state === 'active'">
@@ -91,7 +97,7 @@
       {{ row.state | titlecase }}
     </div>
     <div *ngIf="row.state !== 'active'">
-      <i class="fa fa-circle orb-service-inactive"
+      <i class="fa fa-circle orb-service-{{row.state}}"
          aria-hidden="true"></i>
       {{ row.state | titlecase }}
     </div>
@@ -114,6 +120,12 @@
         {{tag}}
       </mat-chip>
     </mat-chip-list>
+  </div>
+</ng-template>
+
+<ng-template #agentLastActivityTemplateCell let-row="row" let-value="value" let-i="index">
+  <div class="d-flex">
+    {{ value | date:'short' }}
   </div>
 </ng-template>
 
