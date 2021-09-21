@@ -36,6 +36,11 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string) error {
+	// TODO procude a comms event on dataset removal
+	return e.svc.RemoveDataset(ctx, token, dsID)
+}
+
 func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.Dataset) (policies.Dataset, error) {
 	return e.svc.EditDataset(ctx, token, ds)
 }

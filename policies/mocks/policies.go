@@ -21,6 +21,15 @@ type mockPoliciesRepository struct {
 	gdb            map[string][]policies.PolicyInDataset
 }
 
+func (m *mockPoliciesRepository) DeleteDataset(ctx context.Context, ownerID string, dsID string) error {
+	if _, ok := m.ddb[dsID]; ok {
+		if m.ddb[dsID].MFOwnerID != ownerID {
+			delete(m.ddb, dsID)
+		}
+	}
+	return nil
+}
+
 func (m *mockPoliciesRepository) UpdateDataset(ctx context.Context, ownerID string, ds policies.Dataset) error {
 	if _, ok := m.ddb[ds.ID]; ok {
 		if m.ddb[ds.ID].MFOwnerID != ownerID {

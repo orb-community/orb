@@ -175,8 +175,7 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Name:         nID,
 			AgentGroupID: req.AgentGroupID,
 			PolicyID:     req.PolicyID,
-			SinkID:       req.SinkID,
-			SinkIDs:      req.SinkIDs,
+			SinkID:       req.SinkIDs,
 		}
 
 		saved, err := svc.AddDataset(ctx, req.token, d)
@@ -202,9 +201,9 @@ func editDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		dataset := policies.Dataset{
-			ID:      req.id,
-			Tags:    req.Tags,
-			SinkIDs: req.SinkIDs,
+			ID:     req.id,
+			Tags:   req.Tags,
+			SinkID: req.SinkIDs,
 		}
 
 		ds, err := svc.EditDataset(ctx, req.token, dataset)
@@ -249,5 +248,18 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		return res, nil
+	}
+}
+
+func removeDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		if err := svc.RemoveDataset(ctx, req.token, req.id); err != nil {
+			return nil, err
+		}
+		return nil, nil
 	}
 }

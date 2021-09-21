@@ -18,6 +18,20 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
+func (l loggingMiddleware) RemoveDataset(ctx context.Context, token string, dsID string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: remove_dataset",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: remove_dataset",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.RemoveDataset(ctx, token, dsID)
+}
+
 func (l loggingMiddleware) EditDataset(ctx context.Context, token string, ds policies.Dataset) (_ policies.Dataset, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

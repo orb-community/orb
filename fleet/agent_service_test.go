@@ -264,8 +264,10 @@ func TestValidateAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		_, err := fleetService.ValidateAgent(context.Background(), tc.token, tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.ValidateAgent(context.Background(), tc.token, tc.agent)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
 	}
 }
 
@@ -307,8 +309,10 @@ func TestCreateAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		_, err := fleetService.CreateAgent(context.Background(), tc.token, tc.agent)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.CreateAgent(context.Background(), tc.token, tc.agent)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
 	}
 }
 
@@ -344,8 +348,10 @@ func TestRemoveAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := fleetService.RemoveAgent(context.Background(), tc.token, tc.id)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		t.Run(desc, func(t *testing.T) {
+			err := fleetService.RemoveAgent(context.Background(), tc.token, tc.id)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
 	}
 }
 

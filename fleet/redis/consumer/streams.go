@@ -101,14 +101,16 @@ func (es eventStore) Subscribe(context context.Context) error {
 }
 
 func decodeDatasetCreate(event map[string]interface{}) createDatasetEvent {
-	return createDatasetEvent{
+	val := createDatasetEvent{
 		id:           read(event, "id", ""),
 		ownerID:      read(event, "owner_id", ""),
 		name:         read(event, "name", ""),
 		agentGroupID: read(event, "group_id", ""),
 		policyID:     read(event, "policy_id", ""),
-		sinkID:       read(event, "sink_id", ""),
 	}
+	strsinks := read(event, "sink_id", "")
+	val.sinkID = strings.Split(strsinks, ",")
+	return val
 }
 
 // the policy service is notifying that a new dataset has been created

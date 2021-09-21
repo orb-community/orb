@@ -81,6 +81,8 @@ type Service interface {
 
 	// EditDataset edit a existing dataset by id with a valid token
 	EditDataset(ctx context.Context, token string, ds Dataset) (Dataset, error)
+	// RemoveDataset remove a dataset by id with a valid token
+	RemoveDataset(ctx context.Context, token string, dsID string) error
 }
 
 type Repository interface {
@@ -118,4 +120,7 @@ type Repository interface {
 
 	// UpdateDataset update a existing dataset by id with a valid token
 	UpdateDataset(ctx context.Context, ownerID string, ds Dataset) error
+
+	//DeleteDataset delete a existing dataset by id by ownerID
+	DeleteDataset(ctx context.Context, ownerID string, dsID string) error
 }
