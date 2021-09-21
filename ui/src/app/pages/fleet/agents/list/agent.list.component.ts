@@ -33,9 +33,11 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
   filterSelectedIndex = '0';
 
   // templates
+  @ViewChild('agentNameTemplateCell') agentNameTemplateCell: TemplateRef<any>;
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+  @ViewChild('agentLastActivityTemplateCell') agentLastActivityTemplateCell: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
     {
@@ -89,6 +91,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
         resizeable: false,
         flexGrow: 3,
         minWidth: 90,
+        cellTemplate: this.agentNameTemplateCell,
       },
       {
         prop: 'state',
@@ -106,12 +109,13 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
         cellTemplate: this.agentTagsTemplateCell,
       },
       {
-        prop: 'ts_lst_hb',
+        prop: 'ts_last_hb',
         name: 'Last Activity',
         minWidth: 90,
         flexGrow: 2,
         resizeable: false,
         sortable: false,
+        cellTemplate: this.agentLastActivityTemplateCell,
       },
       {
         name: '',
@@ -149,6 +153,12 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
         this.loading = false;
       },
     );
+  }
+
+  onOpenView(agent: any) {
+    this.router.navigate([`view/${agent.id}`], {
+      relativeTo: this.route,
+    });
   }
 
   onOpenAdd() {

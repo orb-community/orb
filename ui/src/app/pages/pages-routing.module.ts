@@ -17,6 +17,7 @@ import { AgentAddComponent } from 'app/pages/fleet/agents/add/agent.add.componen
 import { AgentGroupListComponent } from 'app/pages/fleet/groups/list/agent.group.list.component';
 import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.add.component';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
+import { AgentViewComponent } from './fleet/agents/view/agent.view.component';
 
 const children = [
   {
@@ -55,6 +56,11 @@ const children = [
             path: 'details/:id',
             component: AgentDetailsComponent,
             data: {breadcrumb: 'Agent Detail'},
+          },
+          {
+            path: 'view/:id',
+            component: AgentViewComponent,
+            data: {breadcrumb: 'Agent View'},
           },
         ],
       },
