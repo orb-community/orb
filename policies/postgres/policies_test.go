@@ -281,24 +281,27 @@ func TestAgentPoliciesRetrieveByGroup(t *testing.T) {
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
-	_, err = repo.SaveDataset(context.Background(), dataset)
+	dsID, err := repo.SaveDataset(context.Background(), dataset)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 
 	cases := map[string]struct {
 		groupID []string
 		ownerID string
+		dsID    string
 		results int
 		err     error
 	}{
 		"retrieve existing policies by group ID and ownerID": {
 			groupID: []string{groupID.String()},
 			ownerID: policy.MFOwnerID,
+			dsID:    dsID,
 			results: 1,
 			err:     nil,
 		},
 		"retrieve non existing policies by group ID and ownerID": {
 			groupID: []string{policy.MFOwnerID},
 			ownerID: policy.MFOwnerID,
+			dsID:    dsID,
 			results: 0,
 			err:     nil,
 		},
@@ -311,6 +314,7 @@ func TestAgentPoliciesRetrieveByGroup(t *testing.T) {
 				assert.Equal(t, tc.results, len(plist), fmt.Sprintf("%s: expected %d got %d\n", desc, tc.results, len(plist)))
 				if tc.results > 0 {
 					assert.Equal(t, policy.Name.String(), plist[0].Name.String(), fmt.Sprintf("%s: expected %s got %s\n", desc, policy.Name.String(), plist[0].Name.String()))
+					assert.Equal(t, dsID, plist[0].DatasetID, fmt.Sprintf("%s: expected %s got %s\n", desc, policy.Name.String(), plist[0].Name.String()))
 				}
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))

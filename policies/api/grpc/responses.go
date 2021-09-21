@@ -16,8 +16,17 @@ type policyRes struct {
 	data    []byte
 }
 
-type policyListRes struct {
-	policies []policyRes
+type policyInDSRes struct {
+	id        string
+	name      string
+	backend   string
+	version   int32
+	data      []byte
+	datasetID string
+}
+
+type policyInDSListRes struct {
+	policies []policyInDSRes
 }
 
 type emptyRes struct {
