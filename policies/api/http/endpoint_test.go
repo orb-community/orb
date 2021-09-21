@@ -62,6 +62,13 @@ var (
     "format": "yaml",
     "policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""
 }`
+	validDatasetJson = `{
+    "name": "myorbpolicy1",
+    "agent_group_id": "b1c1a014-9725-4b7b-abb1-968501190a90",
+    "agent_policy_id": "bfa9351d-8075-444f-9a4c-228f9a476a0d",
+    "sink_ids": ["03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"],
+	"tags":{}
+}`
 	metadata    = map[string]interface{}{"type": "orb_agent"}
 	invalidName = strings.Repeat("m", maxNameSize+1)
 )
@@ -668,52 +675,45 @@ func TestDatasetEdition(t *testing.T) {
 			contentType: "application/json",
 			auth:        token,
 			status:      http.StatusOK,
-			data:        validJson,
-		},
-		"update dataset with a empty json request": {
-			id:          dataset.ID,
-			contentType: contentType,
-			auth:        token,
-			status:      http.StatusBadRequest,
-			data:        "{}",
+			data:        validDatasetJson,
 		},
 		"update dataset with a invalid id": {
-			data:        validJson,
+			data:        validDatasetJson,
 			id:          "invalid",
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusNotFound,
 		},
 		"update non-existing dataset": {
-			data:        validJson,
+			data:        validDatasetJson,
 			id:          wrongID,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusNotFound,
 		},
 		"update dataset with invalid user token": {
-			data:        validJson,
+			data:        validDatasetJson,
 			id:          dataset.ID,
 			contentType: contentType,
 			auth:        "invalid",
 			status:      http.StatusUnauthorized,
 		},
 		"update dataset with empty user token": {
-			data:        validJson,
+			data:        validDatasetJson,
 			id:          dataset.ID,
 			contentType: contentType,
 			auth:        "",
 			status:      http.StatusUnauthorized,
 		},
 		"update dataset with invalid content type": {
-			data:        validJson,
+			data:        validDatasetJson,
 			id:          dataset.ID,
 			contentType: "invalid",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
 		},
 		"update dataset without content type": {
-			data:        validJson,
+			data:        validDatasetJson,
 			id:          dataset.ID,
 			contentType: "",
 			auth:        token,
@@ -739,7 +739,7 @@ func TestDatasetEdition(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			req := testRequest{
 				client:      cli.server.Client(),
-				method:      http.MethodPut,
+				method:      http.MethodPatch,
 				url:         fmt.Sprintf("%s/policies/dataset/%s", cli.server.URL, tc.id),
 				contentType: tc.contentType,
 				token:       tc.auth,

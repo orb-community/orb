@@ -398,46 +398,24 @@ func TestEditDataset(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		ds         policies.Dataset
-		token      string
-		format     string
-		policyData string
-		err        error
+		ds    policies.Dataset
+		token string
+		err   error
 	}{
-		"update a existing policy": {
-			ds:         newPolicy,
-			token:      token,
-			format:     format,
-			policyData: policy_data,
-			err:        nil,
+		"update a existing dataset": {
+			ds:    newPolicy,
+			token: token,
+			err:   nil,
 		},
-		"update policy with wrong credentials": {
-			ds:         newPolicy,
-			token:      "invalidToken",
-			format:     format,
-			policyData: policy_data,
-			err:        policies.ErrUnauthorizedAccess,
+		"update dataset with wrong credentials": {
+			ds:    newPolicy,
+			token: "invalidToken",
+			err:   policies.ErrUnauthorizedAccess,
 		},
-		"update a non-existing policy": {
-			ds:         wrongPolicy,
-			token:      token,
-			format:     format,
-			policyData: policy_data,
-			err:        policies.ErrNotFound,
-		},
-		"update a existing policy with invalid format": {
-			ds:         newPolicy,
-			token:      token,
-			format:     "invalid",
-			policyData: policy_data,
-			err:        policies.ErrValidatePolicy,
-		},
-		"update a existing policy with invalid policy_data": {
-			ds:         newPolicy,
-			token:      token,
-			format:     format,
-			policyData: "invalid",
-			err:        policies.ErrValidatePolicy,
+		"update a non-existing dataset": {
+			ds:    wrongPolicy,
+			token: token,
+			err:   policies.ErrNotFound,
 		},
 	}
 

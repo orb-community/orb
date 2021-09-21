@@ -219,3 +219,17 @@ func (s policiesService) ValidatePolicy(ctx context.Context, token string, p Pol
 
 	return p, nil
 }
+
+func (s policiesService) EditDataset(ctx context.Context, token string, ds Dataset) (Dataset, error) {
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return Dataset{}, err
+	}
+	ds.MFOwnerID = mfOwnerID
+	err = s.repo.UpdateDataset(ctx, mfOwnerID, ds)
+	if err != nil {
+		return Dataset{}, err
+	}
+	// TODO after merge the other branches retrieve a dataset by id
+	return ds, nil
+}

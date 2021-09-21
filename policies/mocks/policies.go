@@ -23,7 +23,7 @@ type mockPoliciesRepository struct {
 
 func (m *mockPoliciesRepository) UpdateDataset(ctx context.Context, ownerID string, ds policies.Dataset) error {
 	if _, ok := m.ddb[ds.ID]; ok {
-		if m.pdb[ds.ID].MFOwnerID != ownerID {
+		if m.ddb[ds.ID].MFOwnerID != ownerID {
 			return policies.ErrUpdateEntity
 		}
 		ds.MFOwnerID = ownerID

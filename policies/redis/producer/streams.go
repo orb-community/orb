@@ -36,6 +36,10 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.Dataset) (policies.Dataset, error) {
+	return e.svc.EditDataset(ctx, token, ds)
+}
+
 func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID string) error {
 	if err := e.svc.RemovePolicy(ctx, token, policyID); err != nil {
 		return err
