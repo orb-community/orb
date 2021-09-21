@@ -22,6 +22,7 @@ import { PagesRoutingModule } from './pages-routing.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 // Mainflux - Common and Shared
 import { SharedModule } from 'app/shared/shared.module';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 import { CommonModule } from 'app/common/common.module';
 import { ConfirmationComponent } from 'app/shared/components/confirmation/confirmation.component';
 
@@ -46,6 +47,7 @@ import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.a
 import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
+import { AgentViewComponent } from './fleet/agents/view/agent.view.component';
 import { AgentPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/agent.policy.add.component';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
 import { AgentPolicyDetailsComponent } from 'app/pages/datasets/policies.agent/details/agent.policy.details.component';
@@ -59,6 +61,7 @@ import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.compo
     NbMenuModule,
     DashboardModule,
     SharedModule,
+    ClipboardModule,
     CommonModule,
     FormsModule,
     NbButtonModule,
@@ -99,6 +102,8 @@ import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.compo
     AgentDeleteComponent,
     AgentDetailsComponent,
     AgentMatchComponent,
+    AgentViewComponent,
+
     // Fleet - Agent Groups
     AgentGroupListComponent,
     AgentGroupAddComponent,

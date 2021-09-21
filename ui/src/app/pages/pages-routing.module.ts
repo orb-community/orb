@@ -6,7 +6,9 @@ import { environment } from 'environments/environment';
 
 // ORB
 // Dataset Explorer
+import { AgentPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/agent.policy.add.component';
 import { AgentPolicyListComponent } from 'app/pages/datasets/policies.agent/list/agent.policy.list.component';
+import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.component';
 // Sink Management
 import { SinkListComponent } from 'app/pages/sinks/list/sink.list.component';
 import { SinkAddComponent } from 'app/pages/sinks/add/sink.add.component';
@@ -14,12 +16,11 @@ import { SinkAddComponent } from 'app/pages/sinks/add/sink.add.component';
 import { AgentListComponent } from 'app/pages/fleet/agents/list/agent.list.component';
 import { AgentAddComponent } from 'app/pages/fleet/agents/add/agent.add.component';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
+import { AgentViewComponent } from './fleet/agents/view/agent.view.component';
 import { AgentGroupListComponent } from 'app/pages/fleet/groups/list/agent.group.list.component';
 import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.add.component';
 // DEV
 import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
-import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.component';
-import { AgentPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/agent.policy.add.component';
 
 const children = [
   {
@@ -58,6 +59,11 @@ const children = [
             path: 'details/:id',
             component: AgentDetailsComponent,
             data: {breadcrumb: 'Agent Detail'},
+          },
+          {
+            path: 'view/:id',
+            component: AgentViewComponent,
+            data: {breadcrumb: 'Agent View'},
           },
         ],
       },
