@@ -34,6 +34,11 @@ export interface AgentPolicy extends OrbEntity {
   ts_created?: string;
 
   /**
+   * Agent backend specific policy data {{[propName: string]: string}}
+   */
+  policy?: any;
+
+  /**
    * Tags {{[propName: string]: string}}
    * User defined tags
    */
