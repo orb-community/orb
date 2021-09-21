@@ -2,40 +2,55 @@ h4 {
   font-family: 'Montserrat', sans-serif;
   font-style: normal;
   font-weight: normal;
-  font-size: 24px;
-  line-height: 32px;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  line-height: 2rem;
 }
 
-.sink-summary {
-  .sink-info-regular {
-    color: #ffffff;
-
-    &::before {
-      content: 'You have\00a0';
+nb-card {
+  border: transparent;
+  border-radius: 0.5rem;
+  
+  nb-card-header {
+    background-color: #232940;
+    color: #969fb9;
+    padding: 0.5rem 1rem;
+    border-bottom: transparent;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+  }
+  
+  nb-card-body {
+    label {
       color: #969fb9;
     }
-  }
 
-  .sink-info-accent {
-    color: #969fb9;
-  }
-}
+    .active-dataset {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
 
-.summary-accent {
-  color: #969fb9;
-}
+    pre {
+      background: #1c2339;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      white-space: pre-line;
 
-.filter-dropdown {
-  display: flex;
-  position: absolute;
-  right: 0;
-  padding-right: 50px;
-  transform: translateY(-50px);
-}
+      button {
+        background: transparent;
+        border: 0 transparent;
+        color: #969fb9;
+        position: relative;
+        top: -0.25rem;
+        float: right;
+        right: -0.5rem;
+      }
 
-tr div p {
-  :hover {
-    color: #2a64f6;
+      code {
+        color: #ffffff;
+      }
+    }
   }
 }
 
@@ -78,44 +93,5 @@ tr div p {
         color: #969fb9 !important;
       }
     }
-  }
-}
-
-.add-agent-container {
-  position: relative;
-  height: 0;
-
-  button {
-    float: right;
-    top: 5px;
-    position: relative;
-    z-index: 2;
-    right: 5px;
-  }
-}
-
-.ns1red {
-  color: #df316f;
-}
-
-.agent-name {
-  cursor: pointer;
-}
-
-.orb-service- {
-  &new {
-    color: #9b51e0;
-  }
-  &online {
-    color: #6fcf97;
-  }
-  &stale {
-    color: #f2994a;
-  }
-  &error {
-    color: #df316f;
-  }
-  &offline {
-    color: #969fb9;
   }
 }
