@@ -1,5 +1,5 @@
 <div>
-  <header data-orb-qa-id="sink#add">
+  <header data-orb-qa-id="agentpolicy#add">
     <xng-breadcrumb class="orb-breadcrumb"
                     data-orb-qa-id="breadcrumb">
       <ng-container
@@ -11,14 +11,57 @@
   </header>
   <div class="d-flex row" *ngIf="!isLoading">
     <div class="d-flex col-12 mt-5">
-      <form [formGroup]="firstFormGroup" (ngSubmit)="onFormSubmit()">
+      <form [formGroup]="backendFormGroup" (ngSubmit)="onFormSubmit()">
         <nb-form-field>
           <div>
             <label class="font-weight-bold">Tap</label>
             <span class="required">*</span>
           </div>
           <nb-select size="medium"
-                     (selectedChange)="onTapTypeSelected($event)"
+                     (selectedChange)="onBackendSelected($event)"
+                     fullWidth="true"
+                     formControlName="backend"
+                     appearance="filled"
+                     placeholder="Select backend type"
+                     data-orb-qa-id="backend">
+            <nb-option *ngFor="let type of availableBackends"
+                       [value]="type">{{ type | titlecase }}</nb-option>
+          </nb-select>
+        </nb-form-field>
+      </form>
+      <hr/>
+      <form [formGroup]="tapFormGroup" (ngSubmit)="onFormSubmit()">
+        <nb-form-field>
+          <div>
+            <label class="font-weight-bold">Tap</label>
+            <span class="required">*</span>
+          </div>
+          <nb-select size="medium"
+                     (selectedChange)="onTapSelected($event)"
+                     fullWidth="true"
+                     formControlName="backend"
+                     appearance="filled"
+                     placeholder="Select backend type"
+                     data-orb-qa-id="backend">
+            <nb-option *ngFor="let type of availableTaps"
+                       [value]="type">{{ type | titlecase }}</nb-option>
+          </nb-select>
+        </nb-form-field>
+      </form>
+      <hr/>
+      <form [formGroup]="configFormGroup" (ngSubmit)="onFormSubmit()" *ngIf="configFormGroup">
+        <nb-form-field>
+
+        </nb-form-field>
+      </form>
+      <form [formGroup]="handlersFormGroup" (ngSubmit)="onFormSubmit()">
+        <nb-form-field>
+          <div>
+            <label class="font-weight-bold">Tap</label>
+            <span class="required">*</span>
+          </div>
+          <nb-select size="medium"
+                     (selectedChange)="onTapSelected($event)"
                      fullWidth="true"
                      formControlName="backend"
                      appearance="filled"
@@ -28,8 +71,23 @@
                        [value]="type">{{ type | titlecase }}</nb-option>
           </nb-select>
         </nb-form-field>
-        <hr/>
-      </form>
+        <div class="d-flex justify-content-end" *ngIf="thirdFormGroup">
+          <button
+            nbButton
+            ghost
+            status="primary"
+            nbStepperPrevious
+            data-orb-qa-id="previous">Back
+          </button>
+          <button class="next-button"
+                  nbButton
+                  shape="round"
+                  status="primary"
+                  (click)="onFormSubmit()"
+                  type="submit"
+                  data-orb-qa-id="next">Save
+          </button>
+        </div>
+
     </div>
   </div>
-</div>

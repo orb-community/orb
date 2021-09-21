@@ -166,26 +166,51 @@ export class AgentPoliciesService {
       );
   }
 
+  getAvailableBackends() {
+    // return this.http.get(environment.agentsBackendUrl)
+    //   .map((resp: any) => {
+    //     return resp.backend;
+    //   }).catch(
+    //     err => {
+    //       this.notificationsService.error('Failed to get Available Backends',
+    //         `Error: ${ err.status } - ${ err.statusText }`);
+    //       return Observable.throwError(err);
+    //     },
+    //   );
+    // TODO remove mock and uncomment http request
+    return new Observable(subscriber => {
+      subscriber.next([
+        'pktvisor',
+      ]);
+    });
+  }
+
   getPktVisorTaps() {
-    return this.http.get(environment.pktvisorTapsUrl)
-      .map((resp: any) => {
-        return resp.taps;
-      }).catch(
-        err => {
-          this.notificationsService.error('Failed to get Taps Configurations',
-            `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
-        },
-      );
+    // return this.http.get(environment.pktvisorTapsUrl)
+    //   .map((resp: any) => {
+    //     return resp.tap;
+    //   }).catch(
+    //     err => {
+    //       this.notificationsService.error('Failed to get PKTVisor Taps',
+    //         `Error: ${ err.status } - ${ err.statusText }`);
+    //       return Observable.throwError(err);
+    //     },
+    //   );
+    // TODO remove mock and uncomment http request
+    return new Observable(subscriber => {
+      subscriber.next([
+        {},
+      ]);
+    });
   }
 
   getPktVisorInputs() {
     return this.http.get(environment.pktvisorTapsUrl)
       .map((resp: any) => {
-        return resp.taps;
+        return resp.input;
       }).catch(
         err => {
-          this.notificationsService.error('Failed to get Taps Configurations',
+          this.notificationsService.error('Failed to get PKTVisor Inputs',
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
@@ -195,7 +220,7 @@ export class AgentPoliciesService {
   getPktVisorHandlers() {
     return this.http.get(environment.pktvisorTapsUrl)
       .map((resp: any) => {
-        return resp.taps;
+        return resp.handler;
       }).catch(
         err => {
           this.notificationsService.error('Failed to get Taps Configurations',

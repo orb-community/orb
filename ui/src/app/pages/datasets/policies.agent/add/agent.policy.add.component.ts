@@ -14,19 +14,21 @@ import { TapConfig } from 'app/common/interfaces/orb/policy/config/tap.config.in
 })
 export class AgentPolicyAddComponent {
   // stepper vars
-  firstFormGroup: FormGroup;
+  backendFormGroup: FormGroup;
 
-  secondFormGroup: FormGroup;
+  tapFormGroup: FormGroup;
 
-  thirdFormGroup: FormGroup;
+  configFormGroup: FormGroup;
 
-  availableTaps: [];
+  handlersFormGroup: FormGroup;
+
+  availableBackends: string[];
+
+  availableTaps: {[propName: string]: string}[];
 
   selectedTap: any;
 
-  availableInputs: [];
-
-  selectedInput: any;
+  tapConfig: any[];
 
   availableHandlers: [];
 
@@ -35,8 +37,6 @@ export class AgentPolicyAddComponent {
   agentPolicy: AgentPolicy;
 
   agentPolicyID: string;
-
-  tapList = [];
 
   isEdit: boolean;
   isLoading = false;
@@ -64,11 +64,54 @@ export class AgentPolicyAddComponent {
     !this.agentPolicyLoading && this.getTapsList();
   }
 
+  getBackendsList() {
+    this.isLoading = true;
+    this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
+      this.availableBackends = backends as string[];
+      this.availableTaps = this.availableTaps.reduce((accumulator, curr) => {
+        const index = backends.findIndex(entry => entry.backend === curr);
+        accumulator[curr] = backends[index].config.map(entry => ({
+          type: entry.type,
+          label: entry.title,
+          prop: entry.name,
+          input: entry.input,
+          required: entry.required,
+        }));
+        return accumulator;
+      }, {});
+      const {name, description, backend, tags} = !!this.agentPolicy ? this.agentPolicy : {
+        name: '',
+        description: '',
+        backend: 'dns', // default sink
+        tags: {},
+      } as AgentPolicy;
+      this.backendFormGroup = this._formBuilder.group({
+        name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
+        description: [description],
+        backend: [backend, Validators.required],
+      });
+
+      this.isEdit && this.backendFormGroup.controls.backend.disable();
+
+      // builds secondFormGroup
+      this.onTapSelected(backend);
+
+      this.thirdFormGroup = this._formBuilder.group({
+        tags: [Object.keys(tags || {}).map(key => ({[key]: tags[key]})),
+          Validators.minLength(1)],
+        key: [''],
+        value: [''],
+      });
+
+      this.isLoading = false;
+    });
+  }
+
   getTapsList() {
     this.isLoading = true;
     this.agentPoliciesService.getPktVisorTaps().subscribe(taps => {
-      this.tapList = taps.map(entry => entry.backend);
-      this.availableTaps = this.tapList.reduce((accumulator, curr) => {
+      this.availableTaps = taps.map(entry => entry.backend);
+      this.availableTaps = this.availableTaps.reduce((accumulator, curr) => {
         const index = taps.findIndex(entry => entry.backend === curr);
         accumulator[curr] = taps[index].config.map(entry => ({
           type: entry.type,
@@ -85,16 +128,16 @@ export class AgentPolicyAddComponent {
         backend: 'dns', // default sink
         tags: {},
       } as AgentPolicy;
-      this.firstFormGroup = this._formBuilder.group({
+      this.backendFormGroup = this._formBuilder.group({
         name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
         description: [description],
         backend: [backend, Validators.required],
       });
 
-      this.isEdit && this.firstFormGroup.controls.backend.disable();
+      this.isEdit && this.backendFormGroup.controls.backend.disable();
 
       // builds secondFormGroup
-      this.onTapTypeSelected(backend);
+      this.onTapSelected(backend);
 
       this.thirdFormGroup = this._formBuilder.group({
         tags: [Object.keys(tags || {}).map(key => ({[key]: tags[key]})),
@@ -113,11 +156,11 @@ export class AgentPolicyAddComponent {
 
   onFormSubmit() {
     const payload = {
-      name: this.firstFormGroup.controls.name.value,
-      backend: this.firstFormGroup.controls.backend.value,
-      description: this.firstFormGroup.controls.description.value,
+      name: this.backendFormGroup.controls.name.value,
+      backend: this.backendFormGroup.controls.backend.value,
+      description: this.backendFormGroup.controls.description.value,
       config: this.selectedTap.reduce((accumulator, current) => {
-        accumulator[current.prop] = this.secondFormGroup.controls[current.prop].value;
+        accumulator[current.prop] = this.tapFormGroup.controls[current.prop].value;
         return accumulator;
       }, {}),
       tags: this.thirdFormGroup.controls.tags.value.reduce((prev, curr) => {
@@ -145,7 +188,7 @@ export class AgentPolicyAddComponent {
 
   }
 
-  onTapTypeSelected(selectedValue) {
+  onTapSelected(selectedValue) {
     // SinkConfig<string> being the generic of all other `sinkTypes`.
     const conf = !!this.agentPolicy &&
       this.isEdit &&
@@ -164,7 +207,7 @@ export class AgentPolicyAddComponent {
       return accumulator;
     }, {});
 
-    this.secondFormGroup = this._formBuilder.group(dynamicFormControls);
+    this.tapFormGroup = this._formBuilder.group(dynamicFormControls);
   }
 
   // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
