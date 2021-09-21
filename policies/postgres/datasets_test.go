@@ -35,8 +35,12 @@ func TestDatasetSave(t *testing.T) {
 	policyID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
-	sinkID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	sinkIDs := make([]string, 2)
+	for i := 0; i < 2; i++ {
+		sinkID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		sinkIDs[i] = sinkID.String()
+	}
 
 	nameID, err := types.NewIdentifier("mydataset")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
@@ -50,7 +54,7 @@ func TestDatasetSave(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkID:       sinkID.String(),
+		SinkID:       sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -97,10 +101,7 @@ func TestDatasetUpdate(t *testing.T) {
 	policyID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
-	sinkID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-
-	var sinkIDs = make([]string, 2)
+	sinkIDs := make([]string, 2)
 	for i := 0; i < 2; i++ {
 		sinkID, err := uuid.NewV4()
 		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
@@ -116,14 +117,15 @@ func TestDatasetUpdate(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkID:       sinkID.String(),
+		SinkID:       sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
-		SinkIDs:      sinkIDs,
 	}
 
-	_, err = repo.SaveDataset(context.Background(), dataset)
+	dsID, err := repo.SaveDataset(context.Background(), dataset)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset.ID = dsID
 
 	cases := map[string]struct {
 		dataset policies.Dataset
