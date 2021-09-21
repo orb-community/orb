@@ -180,9 +180,14 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 			BEVersion: p.pktvisorVersion,
 			Data:      payloadData,
 		}
+		rpc := fleet.AgentMetricsRPC{
+			SchemaVersion: fleet.CurrentRPCSchemaVersion,
+			Func:          fleet.AgentMetricsRPCFunc,
+			Payload:       []fleet.AgentMetricsRPCPayload{metricPayload},
+		}
 
 		topic := fmt.Sprintf("%s/%c", p.metricsTopic, data.ID[0])
-		body, err := json.Marshal(metricPayload)
+		body, err := json.Marshal(rpc)
 		if err != nil {
 			p.logger.Error("error marshalling metric rpc payload", zap.String("policy_id", data.ID), zap.Error(err))
 			return

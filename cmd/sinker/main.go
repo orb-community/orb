@@ -14,8 +14,7 @@ import (
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/pkg/config"
-	natconsume "github.com/ns1labs/orb/sinks/writer/consumer"
-	"github.com/ns1labs/orb/sinks/writer/prom"
+	"github.com/ns1labs/orb/sinker"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"log"
@@ -25,18 +24,14 @@ import (
 	"strconv"
 	"syscall"
 
-	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
-	mfwriters "github.com/mainflux/mainflux/consumers/writers/api"
 	mflog "github.com/mainflux/mainflux/logger"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
-	stdprometheus "github.com/prometheus/client_golang/prometheus"
 )
 
 const (
-	svcName     = "prom_sink"
-	fullSvcName = "orb-prom-sink"
-	envPrefix   = "orb_prom_sink"
-	httpPort    = "8201"
+	svcName   = "sinker"
+	envPrefix = "orb_sinker"
+	httpPort  = "8201"
 )
 
 func main() {
@@ -46,6 +41,7 @@ func main() {
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 
 	// todo sinks gRPC
+	// todo policies mgr gRPC
 	// todo fleet mgr gRPC
 
 	// main logger
@@ -76,30 +72,17 @@ func main() {
 	// todo fleet grpc
 	// todo sink grpc
 
-	zlog, _ := zap.NewProduction()
-	consumerSvc := natconsume.New(zlog)
-	consumerSvc = mfwriters.LoggingMiddleware(consumerSvc, mflogger)
-	consumerSvc = mfwriters.MetricsMiddleware(
-		consumerSvc,
-		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-			Namespace: svcName,
-			Subsystem: "message_writer",
-			Name:      "request_count",
-			Help:      "Number of requests received.",
-		}, []string{"method"}),
-		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
-			Namespace: svcName,
-			Subsystem: "message_writer",
-			Name:      "request_latency_microseconds",
-			Help:      "Total duration of requests in microseconds.",
-		}, []string{"method"}),
-	)
-	svc := prom.New(zlog, mflogger, consumerSvc, pubSub, esClient, svcName)
+	svc := sinker.New(logger, pubSub, esClient)
+	defer svc.Stop()
 
 	errs := make(chan error, 2)
 
 	go startHTTPServer(svcCfg.HttpPort, errs, logger)
-	go svc.Run()
+	err = svc.Start()
+	if err != nil {
+		logger.Error("unable to start agent metric consumption", zap.Error(err))
+		os.Exit(1)
+	}
 
 	go func() {
 		c := make(chan os.Signal)
@@ -108,7 +91,7 @@ func main() {
 	}()
 
 	err = <-errs
-	logger.Error("promsink writer service terminated", zap.Error(err))
+	logger.Error("sinker service terminated", zap.Error(err))
 }
 
 func makeHandler(svcName string) http.Handler {
@@ -120,7 +103,7 @@ func makeHandler(svcName string) http.Handler {
 
 func startHTTPServer(port string, errs chan error, logger *zap.Logger) {
 	p := fmt.Sprintf(":%s", port)
-	logger.Info("promsink writer service started, exposed port", zap.String("port", port))
+	logger.Info("sinker service started, exposed port", zap.String("port", port))
 	errs <- http.ListenAndServe(p, makeHandler(svcName))
 }
 
