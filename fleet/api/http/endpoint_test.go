@@ -1280,7 +1280,7 @@ func TestAgentBackends(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/backends", cli.server.URL),
+				url:    fmt.Sprintf("%s/backends/agents", cli.server.URL),
 				token:  tc.auth,
 			}
 			res, err := req.make()
