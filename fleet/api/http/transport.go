@@ -105,6 +105,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeView,
 		types.EncodeResponse,
 		opts...))
+	r.Get("/backends/agents", kithttp.NewServer(
+		kitot.TraceServer(tracer, "list_backends")(listAgentBackendsEndpoint(svc)),
+		decodeListBackends,
+		types.EncodeResponse,
+		opts...))
 
 	bks := backend.GetList()
 	if len(bks) > 0 {
@@ -181,6 +186,11 @@ func decodeAgentUpdate(_ context.Context, r *http.Request) (interface{}, error) 
 		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
 	}
 
+	return req, nil
+}
+
+func decodeListBackends(_ context.Context, r *http.Request) (interface{}, error) {
+	req := listAgentBackendsReq{token: r.Header.Get("Authorization")}
 	return req, nil
 }
 

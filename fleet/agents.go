@@ -94,12 +94,6 @@ type AgentService interface {
 	ListAgentBackends(ctx context.Context, token string) ([]string, error)
 	// ViewAgentBackend retrieves a Backend by provided backend name
 	ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error)
-	// ViewAgentBackendHandler retrieves a static json for a handler by provided backend name
-	ViewAgentBackendHandler(ctx context.Context, token string, name string) (types.Metadata, error)
-	// ViewAgentBackendInput
-	ViewAgentBackendInput(ctx context.Context, token string, name string) (types.Metadata, error)
-	// ViewAgentBackendTaps retrieves a list of taps by owner and backend
-	ViewAgentBackendTaps(ctx context.Context, token string, name string) ([]BackendTaps, error)
 }
 
 type AgentRepository interface {

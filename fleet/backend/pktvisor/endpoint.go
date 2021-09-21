@@ -5,44 +5,11 @@ import (
 	"fmt"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/mainflux/mainflux"
-	"github.com/ns1labs/orb/fleet/backend"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 )
 
-func listAgentBackendsEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
-	//svc := isvc.(fleet.Service)
-	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(listAgentBackendsReq)
-		if err := req.validate(); err != nil {
-			return agentBackendsRes{}, err
-		}
-		_, err = pkt.auth.Identify(ctx, &mainflux.Token{Value: req.token})
-		if err != nil {
-			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
-		}
-
-		backends := backend.GetList()
-		//if err != nil {
-		//	return agentBackendsRes{}, err
-		//}
-		var res []interface{}
-		for _, be := range backends {
-			mt := backend.GetBackend(be).Metadata()
-			if mt == nil {
-				return agentBackendsRes{}, errors.ErrNotFound
-			}
-			res = append(res, mt)
-		}
-
-		return agentBackendsRes{
-			Backends: res,
-		}, nil
-	}
-}
-
 func viewAgentBackendHandlerEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
-	//svc := isvc.(fleet.Service)
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 		if err := req.validate(); err != nil {
@@ -53,22 +20,15 @@ func viewAgentBackendHandlerEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		if backend.HaveBackend(req.id) {
-			bk, err := Handlers()
-			if err != nil {
-				return nil, err
-			}
-			return bk, nil
-		} else {
-			return nil, errors.ErrNotFound
+		bk, err := Handlers()
+		if err != nil {
+			return nil, err
 		}
-		return Inputs()
-		//return svc.ViewAgentBackendHandler(ctx, req.token, req.id)
+		return bk, nil
 	}
 }
 
 func viewAgentBackendInputEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
-	//svc := isvc.(fleet.Service)
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 		if err := req.validate(); err != nil {
@@ -80,22 +40,15 @@ func viewAgentBackendInputEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		if backend.HaveBackend(req.id) {
-			bk, err := Inputs()
-			if err != nil {
-				return nil, err
-			}
-			return bk, nil
-		} else {
-			return nil, errors.ErrNotFound
+		bk, err := Inputs()
+		if err != nil {
+			return nil, err
 		}
-		return Inputs()
-		//return svc.ViewAgentBackendInput(ctx, req.token, req.id)
+		return bk, nil
 	}
 }
 
 func viewAgentBackendTapsEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
-	//svc := isvc.(fleet.Service)
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 		if err := req.validate(); err != nil {
@@ -106,9 +59,6 @@ func viewAgentBackendTapsEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		if !backend.HaveBackend(req.id) {
-			return nil, errors.ErrNotFound
-		}
 		metadataList, err := RetrieveAgentMetadataByOwner(ctx, r.Id, pkt.db)
 		if err != nil {
 			return nil, err

@@ -8,7 +8,6 @@ import (
 	"context"
 	"github.com/go-kit/kit/metrics"
 	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/types"
 )
 
 var _ fleet.Service = (*metricsMiddleware)(nil)
@@ -17,18 +16,6 @@ type metricsMiddleware struct {
 	counter metrics.Counter
 	latency metrics.Histogram
 	svc     fleet.Service
-}
-
-func (m metricsMiddleware) ViewAgentBackendTaps(ctx context.Context, token string, name string) ([]fleet.BackendTaps, error) {
-	return m.svc.ViewAgentBackendTaps(ctx, token, name)
-}
-
-func (m metricsMiddleware) ViewAgentBackendInput(ctx context.Context, token string, name string) (types.Metadata, error) {
-	return m.svc.ViewAgentBackendInput(ctx, token, name)
-}
-
-func (m metricsMiddleware) ViewAgentBackendHandler(ctx context.Context, token string, name string) (types.Metadata, error) {
-	return m.svc.ViewAgentBackendHandler(ctx, token, name)
 }
 
 func (m metricsMiddleware) ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error) {

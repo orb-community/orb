@@ -7,7 +7,6 @@ package http
 import (
 	"context"
 	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
 	"time"
 )
@@ -17,48 +16,6 @@ var _ fleet.Service = (*loggingMiddleware)(nil)
 type loggingMiddleware struct {
 	logger *zap.Logger
 	svc    fleet.Service
-}
-
-func (l loggingMiddleware) ViewAgentBackendTaps(ctx context.Context, token string, name string) (_ []fleet.BackendTaps, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			l.logger.Warn("method call: view_agent_backend_input",
-				zap.Error(err),
-				zap.Duration("duration", time.Since(begin)))
-		} else {
-			l.logger.Info("method call: view_agent_backend_input",
-				zap.Duration("duration", time.Since(begin)))
-		}
-	}(time.Now())
-	return l.svc.ViewAgentBackendTaps(ctx, token, name)
-}
-
-func (l loggingMiddleware) ViewAgentBackendInput(ctx context.Context, token string, name string) (_ types.Metadata, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			l.logger.Warn("method call: view_agent_backend_input",
-				zap.Error(err),
-				zap.Duration("duration", time.Since(begin)))
-		} else {
-			l.logger.Info("method call: view_agent_backend_input",
-				zap.Duration("duration", time.Since(begin)))
-		}
-	}(time.Now())
-	return l.svc.ViewAgentBackendInput(ctx, token, name)
-}
-
-func (l loggingMiddleware) ViewAgentBackendHandler(ctx context.Context, token string, name string) (_ types.Metadata, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			l.logger.Warn("method call: view_agent_backend_handler",
-				zap.Error(err),
-				zap.Duration("duration", time.Since(begin)))
-		} else {
-			l.logger.Info("method call: view_agent_backend_handler",
-				zap.Duration("duration", time.Since(begin)))
-		}
-	}(time.Now())
-	return l.svc.ViewAgentBackendHandler(ctx, token, name)
 }
 
 func (l loggingMiddleware) ViewAgentBackend(ctx context.Context, token string, name string) (_ interface{}, err error) {

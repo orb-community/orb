@@ -8,22 +8,6 @@ import (
 	"net/http"
 )
 
-type agentBackendsRes struct {
-	Backends []interface{} `json:"backends,omitempty"`
-}
-
-func (s agentBackendsRes) Code() int {
-	return http.StatusOK
-}
-
-func (s agentBackendsRes) Headers() map[string]string {
-	return map[string]string{}
-}
-
-func (s agentBackendsRes) Empty() bool {
-	return false
-}
-
 type totalAgents struct {
 	Total uint64 `json:"total"`
 }

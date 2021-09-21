@@ -12,7 +12,6 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
 )
 
@@ -27,18 +26,6 @@ type eventStore struct {
 	svc    fleet.Service
 	client *redis.Client
 	logger *zap.Logger
-}
-
-func (es eventStore) ViewAgentBackendTaps(ctx context.Context, token string, name string) ([]fleet.BackendTaps, error) {
-	return es.svc.ViewAgentBackendTaps(ctx, token, name)
-}
-
-func (es eventStore) ViewAgentBackendInput(ctx context.Context, token string, name string) (types.Metadata, error) {
-	return es.svc.ViewAgentBackendInput(ctx, token, name)
-}
-
-func (es eventStore) ViewAgentBackendHandler(ctx context.Context, token string, name string) (types.Metadata, error) {
-	return es.svc.ViewAgentBackendHandler(ctx, token, name)
 }
 
 func (es eventStore) ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error) {

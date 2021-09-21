@@ -14,24 +14,9 @@ import (
 
 type viewResourceReq struct {
 	token string
-	id    string
 }
 
 func (req viewResourceReq) validate() error {
-	if req.token == "" {
-		return errors.ErrUnauthorizedAccess
-	}
-	if req.id == "" {
-		return errors.ErrMalformedEntity
-	}
-	return nil
-}
-
-type listAgentBackendsReq struct {
-	token string
-}
-
-func (req *listAgentBackendsReq) validate() error {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
 	}
