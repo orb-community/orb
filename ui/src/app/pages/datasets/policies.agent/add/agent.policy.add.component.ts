@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
+import { TapConfig } from 'app/common/interfaces/orb/policy/config/tap.config.interface';
 
 @Component({
   selector: 'ngx-agent-policy-add-component',
@@ -19,9 +20,17 @@ export class AgentPolicyAddComponent {
 
   thirdFormGroup: FormGroup;
 
-  customPolicySettings: {};
+  availableTaps: [];
 
-  selectedTap: any[];
+  selectedTap: any;
+
+  availableInputs: [];
+
+  selectedInput: any;
+
+  availableHandlers: [];
+
+  selectedHandlers: [];
 
   agentPolicy: AgentPolicy;
 
@@ -57,9 +66,9 @@ export class AgentPolicyAddComponent {
 
   getTapsList() {
     this.isLoading = true;
-    this.agentPoliciesService.getTapsList().subscribe(taps => {
+    this.agentPoliciesService.getPktVisorTaps().subscribe(taps => {
       this.tapList = taps.map(entry => entry.backend);
-      this.customPolicySettings = this.tapList.reduce((accumulator, curr) => {
+      this.availableTaps = this.tapList.reduce((accumulator, curr) => {
         const index = taps.findIndex(entry => entry.backend === curr);
         accumulator[curr] = taps[index].config.map(entry => ({
           type: entry.type,
@@ -141,10 +150,10 @@ export class AgentPolicyAddComponent {
     const conf = !!this.agentPolicy &&
       this.isEdit &&
       (selectedValue === this.agentPolicy.backend) &&
-      this.agentPolicy?.config &&
-      this.agentPolicy.config as SinkConfig<string> || null;
+      this.agentPolicy?.policy &&
+      this.agentPolicy.policy as TapConfig || null;
 
-    this.selectedTap = this.customPolicySettings[selectedValue];
+    this.selectedTap = this.availableTaps[selectedValue];
 
     const dynamicFormControls = this.selectedTap.reduce((accumulator, curr) => {
       accumulator[curr.prop] = [

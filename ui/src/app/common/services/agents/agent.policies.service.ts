@@ -166,16 +166,43 @@ export class AgentPoliciesService {
       );
   }
 
-  getTapsList() {
-    return this.http.get(environment.agentTapsUrl)
+  getPktVisorTaps() {
+    return this.http.get(environment.pktvisorTapsUrl)
       .map((resp: any) => {
         return resp.taps;
       }).catch(
         err => {
-          this.notificationsService.error('Failed to get Sink Backends',
+          this.notificationsService.error('Failed to get Taps Configurations',
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
       );
   }
+
+  getPktVisorInputs() {
+    return this.http.get(environment.pktvisorTapsUrl)
+      .map((resp: any) => {
+        return resp.taps;
+      }).catch(
+        err => {
+          this.notificationsService.error('Failed to get Taps Configurations',
+            `Error: ${ err.status } - ${ err.statusText }`);
+          return Observable.throwError(err);
+        },
+      );
+  }
+
+  getPktVisorHandlers() {
+    return this.http.get(environment.pktvisorTapsUrl)
+      .map((resp: any) => {
+        return resp.taps;
+      }).catch(
+        err => {
+          this.notificationsService.error('Failed to get Taps Configurations',
+            `Error: ${ err.status } - ${ err.statusText }`);
+          return Observable.throwError(err);
+        },
+      );
+  }
+
 }

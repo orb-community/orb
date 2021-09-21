@@ -6,18 +6,14 @@
  */
 
 /**
- * @interface Tap
+ * @interface TapConfig
  */
-export interface Tap {
+export interface TapConfig {
   /**
    * input_type field {string} -- backend
    */
   inputType?: string;
 
-  config?: TapConfig;
-}
-
-interface TapConfig {
-  [propName: string]: string;
+  config?: {[propName: string]: string};
 }
 
