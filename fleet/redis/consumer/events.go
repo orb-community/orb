@@ -19,7 +19,7 @@ type createDatasetEvent struct {
 	name         string
 	agentGroupID string
 	policyID     string
-	sinkID       string
+	sinkID       []string
 	timestamp    time.Time
 }
 

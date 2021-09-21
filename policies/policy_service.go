@@ -233,3 +233,15 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 	// TODO after merge the other branches retrieve a dataset by id
 	return ds, nil
 }
+
+func (s policiesService) RemoveDataset(ctx context.Context, token string, dsID string) error {
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return err
+	}
+	err = s.repo.DeleteDataset(ctx, mfOwnerID, dsID)
+	if err != nil {
+		return err
+	}
+	return nil
+}

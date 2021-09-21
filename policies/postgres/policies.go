@@ -233,6 +233,38 @@ func (r policiesRepository) UpdateDataset(ctx context.Context, ownerID string, d
 	return nil
 }
 
+func (r policiesRepository) DeleteDataset(ctx context.Context, ownerID string, dsID string) error {
+	q := `DELETE FROM datasets WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+
+	params := map[string]interface{}{
+		"mf_owner_id": ownerID,
+		"id":          dsID,
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(fleet.ErrRemoveEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrNotFound
+	}
+
+	return nil
+}
+
 func (r policiesRepository) SaveDataset(ctx context.Context, dataset policies.Dataset) (string, error) {
 
 	q := `INSERT INTO datasets (name, mf_owner_id, metadata, valid, agent_group_id, agent_policy_id, sink_id, tags)         

@@ -752,6 +752,55 @@ func TestDatasetEdition(t *testing.T) {
 	}
 }
 
+func TestDatasetRemoval(t *testing.T) {
+	cli := newClientServer(t)
+
+	plcy := createDataset(t, &cli, "dataset")
+
+	cases := map[string]struct {
+		id     string
+		auth   string
+		status int
+	}{
+		"delete a existing dataset": {
+			id:     plcy.ID,
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+		"delete non-existent dataset": {
+			id:     wrongID,
+			auth:   token,
+			status: http.StatusNoContent,
+		},
+		"delete dataset with invalid token": {
+			id:     plcy.ID,
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+		},
+		"delete dataset with empty token": {
+			id:     plcy.ID,
+			auth:   "",
+			status: http.StatusUnauthorized,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodDelete,
+				url:    fmt.Sprintf("%s/policies/dataset/%s", cli.server.URL, tc.id),
+				token:  tc.auth,
+			}
+
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
