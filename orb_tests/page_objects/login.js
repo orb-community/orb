@@ -130,6 +130,10 @@ var commands = {
         return this.assert.attributeEquals('button.orb-action-hover:nth-child(3)', 'aria-disabled', 'false')
         .click('button.orb-action-hover:nth-child(3)')
         .assert.attributeEquals('@deleteSink','aria-disabled', 'true')
+        .assert.visible('@sinkDeleteModal')
+        .assert.containsText('ngx-sink-delete-component.ng-star-inserted > nb-card:nth-child(1) > nb-card-header:nth-child(1)', 'Delete Sink Confirmation')
+        .assert.containsText('@sinkDeleteModal', 'Are you sure you want to delete this sink? This may cause Datasets which use this sink to become invalid. This action cannot be undone.')
+        .assert.containsText('@sinkDeleteModal', 'To confirm, type your Sink name exactly as it appears')
         .getAttribute('.input-full-width', 'placeholder',  function(result) {this.setValue('.input-full-width', result.value) })
         .assert.attributeEquals('@deleteSink','aria-disabled', 'false')
         .click('@deleteSink')
@@ -173,7 +177,8 @@ module.exports = {
         back: 'button[data-orb-qa-id=back]',
         previous: 'button[data-orb-qa-id=previous]',
         editSinkHeader: '.header',
-        editSinkForm: 'form.ng-pristine'
+        editSinkForm: 'form.ng-pristine',
+        sinkDeleteModal: 'ngx-sink-delete-component.ng-star-inserted > nb-card:nth-child(1)'
     },
     commands: [commands]
 };

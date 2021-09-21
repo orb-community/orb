@@ -1,4 +1,6 @@
 module.exports = {
+
+
 'Create an account' : function(browser) {
 	var login = browser.page.login()
 	login
