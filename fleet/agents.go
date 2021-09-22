@@ -66,13 +66,6 @@ type Page struct {
 	Agents []Agent
 }
 
-type BackendTaps struct {
-	Name             string
-	InputType        string
-	ConfigPredefined []string
-	TotalAgents      uint64
-}
-
 // AgentService Agent CRUD interface
 type AgentService interface {
 	// CreateAgent creates new agent
