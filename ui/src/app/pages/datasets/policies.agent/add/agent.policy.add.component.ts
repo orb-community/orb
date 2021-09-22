@@ -21,37 +21,16 @@ export class AgentPolicyAddComponent {
     // agent policy general information
   detailsFormGroup: FormGroup;
 
-  // !!!
-  // all form groups from here on should be dynamic, not
-  // even declared like this
-  // hey, I'm walking here
-  // this is input/taps which come
-  tapFormGroup: FormGroup;
-
-  // with conf objects, hence tapConfigForm
-  tapConfigFormGroup: FormGroup;
-
-  // pktvisors configure handlers when iface is set
-  handlersFormGroup: FormGroup;
-
-  // !!!
-
   // Refactor while coding :)
   backendConfigForms: { [propName: string]: FormGroup };
 
   availableBackends: { [propName: string]: any };
 
-  backend: any;
+  backend: { [propName: string]: any };
 
-  availableTaps: { [propName: string]: any };
+  tap: { [propName: string]: any };
 
-  selectedTap: any;
-
-  tapConfig: { [propName: string]: any };
-
-  availableHandlers: { [propName: string]: any };
-
-  selectedHandlers: any;
+  handlers: [];
 
   agentPolicy: AgentPolicy;
 
@@ -108,7 +87,7 @@ export class AgentPolicyAddComponent {
       this.isEdit && this.detailsFormGroup.controls.backend.disable();
 
       // builds secondFormGroup
-      this.onBackendSelected(this.detailsFormGroup.controls.backend.value);
+      this.onBackendSelected('pktvisor');
 
       this.isLoading = false;
     });
@@ -120,65 +99,18 @@ export class AgentPolicyAddComponent {
     //   (selectedBackend === this.agentPolicy.backend) &&
     //   this.agentPolicy?.policy &&
     //   this.agentPolicy.policy as TapConfig || null;
-
     this.backend = this.availableBackends[selectedBackend];
-    this.getBackendConfig();
-  }
 
-  getBackendConfig() {
-    // at this point I'm going to start hardcoding this whole api discovery I'm mocking
-    // and at the same time creating the dynamic forms.
-    // lets finish the forms and deliver.
-    // it is very likely frontend will just get one single json with all
-    // possible configs to build the forms instead of querying and doing the discovery itself
-    // but it would go like
-    // last argument being array inside array really
-    // this.agentsPoliciesService.discover([this.agentsBackendUrl, selectedBackend.name, Object.keys(selectedBackend)])
-    this.getTapsList();
-  }
+    this.backendConfigForms = Object.keys(this.backend)
+      .reduce((formGroups, groupName, groupIndex) => {
+        formGroups[groupName] = this._formBuilder.group({ groupName: ['', Validators.required]});
+        return formGroups;
+      }, {});
 
-  getTapsList() {
-    // this.isLoading = true;
-    // this.agentPoliciesService.getPktVisorInputs().subscribe((taps) => {
-    //   this.availableBackends['pktvisor']['taps'] = taps;
-    //   this.backend['inputs'] = taps;
-    const { taps } = this.availableBackends['pktvisor'];
-    this.backendConfigForms['taps'] = this._formBuilder
-      .group(Object.keys(taps['config'])
-        .reduce((accumulator, curr) => {
-          accumulator[curr] = Object.keys(taps['config'])
-            .map(entry => ({
-              type: taps['config'][entry].type,
-              label: taps['config'][entry].title,
-              prop: taps['config'][entry].name,
-              input: taps['config'][entry].input,
-              required: taps['config'][entry].required,
-            }));
-          return accumulator;
-        }, {}));
-
-    this.getHandlersList();
   }
 
   onTapSelected(selectedTap) {
-    // const dynamicFormControls = this.selectedTap.reduce((accumulator, curr) => {
-    // accumulator[curr.prop] = [
-    //   !!conf && (curr.prop in conf) && conf[curr.prop] ||
-    //   '',
-    //   curr.required ? Validators.required : null,
-    // ];
-    // return accumulator;
-    // }, {});
 
-    // this.tapFormGroup = this._formBuilder.group(dynamicFormControls);
-  }
-
-  getHandlersList() {
-    this.isLoading = true;
-    this.agentPoliciesService.getPktVisorHandlers().subscribe((handlers) => {
-      this.availableHandlers = handlers;
-      this.isLoading = false;
-    });
   }
 
   onHandlerSelected(selectedHandler) {

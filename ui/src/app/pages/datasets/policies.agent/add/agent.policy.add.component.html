@@ -27,7 +27,6 @@
                    data-orb-qa-id="name"/>
           </div>
         </nb-form-field>
-        <hr/>
         <nb-form-field>
           <div>
             <label for="description" class="font-weight-bold">Policy Description</label>
@@ -39,6 +38,7 @@
                  formControlName="description"
                  data-orb-qa-id="description"/>
         </nb-form-field>
+        <hr/>
         <nb-form-field>
           <div>
             <label for="backend" class="font-weight-bold">Backend</label>
@@ -59,19 +59,57 @@
       </form>
       <hr/>
       <!-- wip -->
-      <div *ngFor="let config of backend | keyvalue">
-        <form *ngIf="config.key === 'taps'" [formGroup]="config.key">
-          <nb-form-field *ngFor="let control of backend[config.key] | keyvalue; let i = index">
+      <!-- a form for each aspect [taps, handlers, input] -->
+      <form
+        *ngFor="let aspect of backend | keyvalue; index as i;"
+        [formGroup]="backendConfigForms[aspect.value]"
+        (ngSubmit)="onFormSubmit()"
+      >
+        <nb-select *ngIf="aspect.key!== 'handlers'"
+                   appearance="filled"
+                   size="medium"
+                   fullWidth="true"
+                   [formControlName]="aspect.key"
+                   [placeholder]="'Select' + aspect.key + ''"
+                   required="true"
+                   [attr.data-orb-qa-id]="aspect.key">
+          <nb-option *ngFor="let option of aspect.value | keyvalue"
+                     [value]="option.key"
+                     [attr.data-orb-qa-id]="option.key">{{ option.key }}</nb-option>
+        </nb-select>
+        <div *ngIf="backendConfigForms[aspect.key].controls[aspect.key].valid">
+          <nb-form-field *ngFor="let control of aspect.value.config | keyvalue; let i = index">
             <div>
-              <label [htmlFor]="control.key" class="font-weight-bold">control.key</label>
+              <label class="font-weight-bold">{{control.value.title}}</label>
             </div>
+            <div [ngSwitch]="control.value.input">
+              <input *ngSwitchCase="'text'"
+                     [autofocus]="i == 0"
+                     nbInput
+                     [type]="control.value.type"
+                     fullWidth="true"
+                     fieldSize="medium"
+                     [formControlName]="control.value.prop"
+                     [attr.data-orb-qa-id]="control.value.prop">
+              <input *ngSwitchCase="'number'"
+                     [autofocus]="i == 0"
+                     nbInput
+                     [type]="control.value.type"
+                     fullWidth="true"
+                     fieldSize="medium"
+                     [min]="control.value.min"
+                     [max]="control.value.max"
+                     [step]="control.value.step"
+                     [formControlName]="control.value.prop"
+                     [attr.data-orb-qa-id]="control.value.prop">
               <nb-select *ngSwitchCase="'select'"
-                         nbInput
+                         appearance="filled"
+                         size="medium"
                          fullWidth="true"
-                         [id]="control.key"
-                         [formControlName]="control.key"
-                         [attr.data-orb-qa-id]="control.key">
-                <nb-option *ngFor="let type of control.options"
+                         formControlName="backend"
+                         placeholder="Select backend type"
+                         data-orb-qa-id="backend">
+                <nb-option *ngFor="let type of control.value.options"
                            [value]="type"
                            [attr.data-orb-qa-id]="type">{{ type }}</nb-option>
               </nb-select>
@@ -79,9 +117,8 @@
             </div>
             <hr/>
           </nb-form-field>
-        </form>
-      </div>
-
+        </div>
+      </form>
       <!-- end of dynamic form based on discovery -->
       <div class="d-flex justify-content-end" *ngIf="backendConfigForms">
         <button
