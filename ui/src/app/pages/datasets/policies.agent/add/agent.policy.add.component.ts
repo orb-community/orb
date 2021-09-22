@@ -81,7 +81,7 @@ export class AgentPolicyAddComponent {
   getBackendsList() {
     this.isLoading = true;
     this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
-      this.availableBackends = { backends };
+      this.availableBackends = backends;
 
       this.isEdit && this.detailsFormGroup.controls.backend.disable();
 
