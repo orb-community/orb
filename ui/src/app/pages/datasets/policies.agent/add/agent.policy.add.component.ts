@@ -44,7 +44,7 @@ export class AgentPolicyAddComponent {
 
   availableBackends: { [propName: string]: any };
 
-  selectedBackend: any;
+  backend: any;
 
   availableTaps: { [propName: string]: any };
 
@@ -52,9 +52,9 @@ export class AgentPolicyAddComponent {
 
   tapConfig: { [propName: string]: any };
 
-  availableHandlers: [];
+  availableHandlers: { [propName: string]: any };
 
-  selectedHandlers: [];
+  selectedHandlers: any;
 
   agentPolicy: AgentPolicy;
 
@@ -109,7 +109,7 @@ export class AgentPolicyAddComponent {
   getBackendsList() {
     this.isLoading = true;
     this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
-      this.availableBackends = backends;
+      this.availableBackends = { backends };
 
       this.isEdit && this.backendFormGroup.controls.backend.disable();
 
@@ -121,87 +121,60 @@ export class AgentPolicyAddComponent {
   }
 
   onBackendSelected(selectedBackend) {
-    const conf = !!this.agentPolicy &&
-      this.isEdit &&
-      (selectedBackend === this.agentPolicy.backend) &&
-      this.agentPolicy?.policy &&
-      this.agentPolicy.policy as TapConfig || null;
+    // const conf = !!this.agentPolicy &&
+    //   this.isEdit &&
+    //   (selectedBackend === this.agentPolicy.backend) &&
+    //   this.agentPolicy?.policy &&
+    //   this.agentPolicy.policy as TapConfig || null;
 
-    const backendConf = this.availableBackends[selectedBackend];
+    this.backend = this.availableBackends[selectedBackend];
+    this.getBackendConfig();
+  }
 
-    const dynamicFormControls = this.selectedTap.reduce((accumulator, curr) => {
-      accumulator[curr.prop] = [
-        !!conf && (curr.prop in conf) && conf[curr.prop] ||
-        '',
-        curr.required ? Validators.required : null,
-      ];
-      return accumulator;
-    }, {});
-
-    this.tapFormGroup = this._formBuilder.group(dynamicFormControls);
+  getBackendConfig() {
+    // at this point I'm going to start hardcoding this whole api discovery I'm mocking
+    // and at the same time creating the dynamic forms.
+    // lets finish the forms and deliver.
+    // it is very likely frontend will just get one single json with all
+    // possible configs to build the forms instead of querying and doing the discovery itself
+    // but it would go like
+    // last argument being array inside array really
+    // this.agentsPoliciesService.discover([this.agentsBackendUrl, selectedBackend.name, Object.keys(selectedBackend)])
+    this.getTapsList();
   }
 
   getTapsList() {
     this.isLoading = true;
-    this.agentPoliciesService.getPktVisorTaps().subscribe(taps => {
-      this.availableTaps = taps.map(entry => entry.backend);
-      this.availableTaps = this.availableTaps.reduce((accumulator, curr) => {
-        const index = taps.findIndex(entry => entry.backend === curr);
-        accumulator[curr] = taps[index].config.map(entry => ({
-          type: entry.type,
-          label: entry.title,
-          prop: entry.name,
-          input: entry.input,
-          required: entry.required,
-        }));
-        return accumulator;
-      }, {});
-      const { name, description, backend, tags } = !!this.agentPolicy ? this.agentPolicy : {
-        name: '',
-        description: '',
-        backend: 'pktvisor', // default sink
-        tags: {},
-      } as AgentPolicy;
-      this.backendFormGroup = this._formBuilder.group({
-        name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
-        description: [description],
-        backend: [backend, Validators.required],
-      });
-
-      this.isEdit && this.backendFormGroup.controls.backend.disable();
-
-      // builds secondFormGroup
-      this.onBackendSelected(backend);
-
-      this.thirdFormGroup = this._formBuilder.group({
-        tags: [Object.keys(tags || {}).map(key => ({ [key]: tags[key] })),
-          Validators.minLength(1)],
-        key: [''],
-        value: [''],
-      });
-
-      this.isLoading = false;
+    this.agentPoliciesService.getPktVisorInputs().subscribe((taps) => {
+      this.availableTaps = taps;
+      this.getHandlersList();
     });
   }
 
   onTapSelected(selectedTap) {
-    const conf = !!this.agentPolicy &&
-      this.isEdit &&
-      this.agentPolicy?.policy &&
-      this.agentPolicy.policy['tap'] as TapConfig || null;
+    // const dynamicFormControls = this.selectedTap.reduce((accumulator, curr) => {
+      // accumulator[curr.prop] = [
+      //   !!conf && (curr.prop in conf) && conf[curr.prop] ||
+      //   '',
+      //   curr.required ? Validators.required : null,
+      // ];
+      // return accumulator;
+    // }, {});
 
-    const backendConf = this.availableBackends[selectedTap];
+    // this.tapFormGroup = this._formBuilder.group(dynamicFormControls);
 
-    const dynamicFormControls = this.selectedTap.reduce((accumulator, curr) => {
-      accumulator[curr.prop] = [
-        !!conf && (curr.prop in conf) && conf[curr.prop] ||
-        '',
-        curr.required ? Validators.required : null,
-      ];
-      return accumulator;
-    }, {});
+  }
 
-    this.tapFormGroup = this._formBuilder.group(dynamicFormControls);
+  getHandlersList() {
+    this.isLoading = true;
+    this.agentPoliciesService.getPktVisorHandlers().subscribe((handlers) => {
+      this.availableHandlers = handlers;
+      this.isLoading = false;
+    });
+  }
+
+  onHandlerSelected(selectedHandler) {
+
   }
 
   goBack() {
@@ -211,22 +184,15 @@ export class AgentPolicyAddComponent {
   onFormSubmit() {
     const payload = {
       name: this.backendFormGroup.controls.name.value,
-      backend: this.backendFormGroup.controls.backend.value,
       description: this.backendFormGroup.controls.description.value,
-      config: this.selectedTap.reduce((accumulator, current) => {
-        accumulator[current.prop] = this.tapFormGroup.controls[current.prop].value;
-        return accumulator;
-      }, {}),
-      tags: this.thirdFormGroup.controls.tags.value.reduce((prev, curr) => {
-        for (const [key, value] of Object.entries(curr)) {
-          prev[key] = value;
-        }
-        return prev;
-      }, {}),
+      backend: this.backendFormGroup.controls.backend.value,
+      // config: this.selectedTap.reduce((accumulator, current) => {
+      //   accumulator[current.prop] = this.tapFormGroup.controls[current.prop].value;
+      //   return accumulator;
+      // }, {}),
       validate_only: false, // Apparently this guy is required..
     };
-    // TODO Check this out
-    // console.log(payload);
+
     if (this.isEdit) {
       // updating existing sink
       this.agentPoliciesService.editAgentPolicy({ ...payload, id: this.agentPolicyID }).subscribe(() => {
@@ -238,33 +204,6 @@ export class AgentPolicyAddComponent {
         this.notificationsService.success('Agent Policy successfully created', '');
         this.goBack();
       });
-    }
-
-  }
-
-  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
-  onAddTag() {
-    const { tags, key, value } = this.thirdFormGroup.controls;
-    // sanitize minimally anyway
-    if (key?.value && key.value !== '') {
-      if (value?.value && value.value !== '') {
-        // key and value fields
-        tags.reset([{ [key.value]: value.value }].concat(tags.value));
-        key.reset('');
-        value.reset('');
-      }
-    } else {
-      // TODO remove this else clause and error
-      console.error('This shouldn\'t be happening');
-    }
-  }
-
-  onRemoveTag(tag: any) {
-    const { tags, tags: { value: tagsList } } = this.thirdFormGroup.controls;
-    const indexToRemove = tagsList.indexOf(tag);
-
-    if (indexToRemove >= 0) {
-      tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
     }
   }
 }

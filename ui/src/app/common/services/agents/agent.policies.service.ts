@@ -487,4 +487,34 @@ export class AgentPoliciesService {
     });
   }
 
+  discoverBackend(backend) {
+    return this.http.get(`agents/backend/${backend.name}`, { params })
+      .map(
+        (resp: any) => {
+          this.paginationCache[pageInfo.offset] = true;
+          // This is the position to insert the new data
+          const start = resp.offset;
+          const newData = [...this.cache.data];
+          // TODO figure out what field name for object data in response...
+          newData.splice(start, resp.limit, ...resp.data);
+          this.cache = {
+            ...this.cache,
+            offset: Math.floor(resp.offset / resp.limit),
+            total: resp.total,
+            data: newData,
+          };
+          if (pageInfo.name) this.cache.name = pageInfo.name;
+          if (pageInfo.tags) this.cache.tags = pageInfo.tags;
+          return this.cache;
+        },
+      )
+      .catch(
+        err => {
+          this.notificationsService.error('Failed to get Agent Policies',
+            `Error: ${ err.status } - ${ err.statusText }`);
+          return Observable.throwError(err);
+        },
+      );
+  }
+
 }

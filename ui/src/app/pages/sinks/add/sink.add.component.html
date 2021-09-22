@@ -111,6 +111,17 @@
                        fieldSize="medium"
                        [formControlName]="control.prop"
                        [attr.data-orb-qa-id]="control.prop">
+                <input *ngSwitchCase="'number'"
+                       [autofocus]="i == 0"
+                       nbInput
+                       [type]="control.type"
+                       fullWidth="true"
+                       fieldSize="medium"
+                       [min]="control.min"
+                       [max]="control.max"
+                       [step]="control.step"
+                       [formControlName]="control.prop"
+                       [attr.data-orb-qa-id]="control.prop">
                 <nb-select *ngSwitchCase="'select'"
                            appearance="filled"
                            size="medium"
@@ -119,8 +130,10 @@
                            placeholder="Select backend type"
                            data-orb-qa-id="backend">
                   <nb-option *ngFor="let type of control.options"
-                             [value]="type">{{ type }}</nb-option>
+                             [value]="type"
+                             [attr.data-orb-qa-id]="type">{{ type }}</nb-option>
                 </nb-select>
+
               </div>
               <hr/>
             </nb-form-field>
