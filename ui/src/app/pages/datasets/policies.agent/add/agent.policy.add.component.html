@@ -24,8 +24,8 @@
                      appearance="filled"
                      placeholder="Select backend type"
                      data-orb-qa-id="backend">
-            <nb-option *ngFor="let type of availableBackends"
-                       [value]="type">{{ type | titlecase }}</nb-option>
+            <nb-option *ngFor="let entry of availableBackends | keyvalue"
+                       [value]="entry.key">{{ entry.key | titlecase }}</nb-option>
           </nb-select>
         </nb-form-field>
       </form>
@@ -37,7 +37,7 @@
             <span class="required">*</span>
           </div>
           <nb-select size="medium"
-                     (selectedChange)="onBackendSelected($event)"
+                     (selectedChange)="onTapSelected($event)"
                      fullWidth="true"
                      formControlName="backend"
                      appearance="filled"
@@ -49,7 +49,7 @@
         </nb-form-field>
       </form>
       <hr/>
-      <form [formGroup]="configFormGroup" (ngSubmit)="onFormSubmit()" *ngIf="configFormGroup">
+      <form [formGroup]="tapConfigFormGroup" (ngSubmit)="onFormSubmit()" *ngIf="tapConfigFormGroup">
         <nb-form-field>
 
         </nb-form-field>
@@ -67,7 +67,7 @@
                      appearance="filled"
                      placeholder="Select backend type"
                      data-orb-qa-id="backend">
-            <nb-option *ngFor="let type of tapList"
+            <nb-option *ngFor="let type of availableBackends"
                        [value]="type">{{ type | titlecase }}</nb-option>
           </nb-select>
         </nb-form-field>

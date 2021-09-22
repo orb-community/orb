@@ -181,7 +181,7 @@ export class AgentPoliciesService {
     // TODO remove mock and uncomment http request
     return new Observable(subscriber => {
       subscriber.next({
-        'pktvisor': {},
+        'pktvisor': ['inputs', 'handlers'],
       });
     });
   }
@@ -203,34 +203,39 @@ export class AgentPoliciesService {
         'pcap': {
           'version': '1.0',
           'info': {
-            'available_iface': {
-              'eth0': {},
-              'eth1': {},
-            },
+            'available_iface': [ 'eth0', 'eth1' ],
           },
           'config': {
             'iface': {
               'required': true,
               'type': 'string',
+              'input': 'string',
               'title': 'Interface',
+              'iface': 'string',
               'description': 'The ethernet interface to capture on',
             },
             'bpf': {
               'required': false,
               'type': 'string',
+              'input': 'string',
               'title': 'Filter Expression',
+              'bpf': 'string',
               'description': 'tcpdump compatible filter expression for limiting the traffic examined (with BPF). Example: "port 53"',
             },
             'host_spec': {
               'required': false,
               'type': 'string',
+              'input': 'string',
               'title': 'Host Specification',
+              'host_spec': 'string',
               'description': 'Subnets (comma separated) to consider this HOST, in CIDR form. Example: "10.0.1.0/24,10.0.2.1/32,2001:db8::/64"',
             },
             'pcap_source': {
               'required': false,
               'type': 'string',
+              'input': 'string',
               'title': 'pcap Engine',
+              'pcap_source': 'string',
               'description': 'pcap backend engine to use. Defaults to best for platform.',
             },
           },
@@ -242,6 +247,7 @@ export class AgentPoliciesService {
               'type': 'text',
               'input': 'select',
               'title': 'Type',
+              'name': 'Type',
               'options': [
                 'AUTH_QUERY',
                 'AUTH_RESPONSE',
@@ -258,6 +264,7 @@ export class AgentPoliciesService {
               'type': 'text',
               'input': 'select',
               'title': 'Socket Family',
+              'name': 'Socket Family',
               'options': ['INET', 'INET6'],
               'required': true,
               'description': 'INET, INET6',
@@ -266,6 +273,7 @@ export class AgentPoliciesService {
               'type': 'text',
               'input': 'select',
               'title': 'Socket Protocol',
+              'name': 'Socket Protocol',
               'options': ['UDP', 'TCP'],
               'required': true,
               'description': 'UDP, TCP',
@@ -274,6 +282,7 @@ export class AgentPoliciesService {
               'type': 'text',
               'input': 'text',
               'title': 'Query Address',
+              'name': 'Query Address',
               'required': false,
               'description': '',
             },
@@ -281,6 +290,7 @@ export class AgentPoliciesService {
               'type': 'text',
               'input': 'text',
               'title': 'Query Port',
+              'name': 'Query Port',
               'required': false,
               'description': '',
             },
@@ -288,6 +298,7 @@ export class AgentPoliciesService {
               'type': 'text',
               'input': 'text',
               'title': 'Response Address',
+              'name': 'Response Address',
               'required': false,
               'description': '',
             },
@@ -316,44 +327,88 @@ export class AgentPoliciesService {
           'config': {
             'filter_exclude_noerror': {
               'title': 'Filter: Exclude NOERROR',
-              'type': 'bool',
+              'name': 'filter_exclude_noerror',
+              'type': 'checkbox',
+              'input': 'checkbox',
               'description': 'Filter out all NOERROR responses',
             },
             'filter_only_rcode': {
               'title': 'Filter: Include Only RCode',
-              'type': 'integer',
+              'name': 'filter_only_rcode',
+              'type': 'number',
+              'input': 'number',
               'description': 'Filter out any queries which are not the given RCODE',
+              'min': 0,
+              'max': 65536,
+              'step': 1,
             },
             'filter_only_qname_suffix': {
               'title': 'Filter: Include Only QName With Suffix',
-              'type': 'array[string]',
+              'name': 'filter_only_qname_suffix',
+              'type': 'text',
+              'input': 'text',
+              'pattern': '(\w+);',
               'description': 'Filter out any queries whose QName does not end in a suffix on the list',
             },
-          },
-          'metrics': {
-            'cardinality.qname': {
-              'type': 'cardinality',
-              'description': '...',
-            },
-            'in': {
-              'type': 'counter',
-              'description': '...',
-            },
-            'xact.counts.timed_out': {
-              'type': 'integer',
-              'description': '...',
-            },
-            'xact.counts.total': {
-              'type': 'integer',
-              'description': '...',
-            },
-            'xact.in.top_slow': {
-              'type': 'top_n',
-              'description': '...',
+            'metric_groups': {
+              'input': 'checkgroup',
+              'title': 'Metric Groups',
+              'name': 'metric_groups',
+              'cardinality': {
+                'input': 'checkbox',
+                'type': 'checkbox',
+                'name': 'cardinality',
+                'title': 'Cardinality',
+                'description': 'Metrics counting the unique number of items in the stream',
+                'metrics': [
+                  'cardinality.qname',
+                ],
+              },
+              'dns_transactions': {
+                'input': 'checkbox',
+                'type': 'checkbox',
+                'name': 'dns_transactions',
+                'title': 'DNS Transactions (Query/Reply pairs)',
+                'description': 'Metrics based on tracking queries and their associated replies',
+                'metrics': [
+                  'xact.counts.timed_out',
+                  'xact.counts.total',
+                  'xact.in.top_slow',
+                ],
+              },
+              'top_dns_wire': {
+                'input': 'checkbox',
+                'type': 'checkbox',
+                'name': 'top_dns_wire',
+                'title': 'Top N Metrics (Various)',
+                'description': 'Top N metrics across various details from the DNS wire packets',
+                'metrics': [],
+              },
+              'top_qnames': {
+                'input': 'checkbox',
+                'type': 'checkbox',
+                'name': 'top_qnames',
+                'title': 'Top N QNames (All)',
+                'description': 'Top QNames across all DNS queries in stream',
+                'metrics': [],
+              },
+              'top_qnames_by_rcode': {
+                'input': 'checkbox',
+                'type': 'checkbox',
+                'name': 'top_qnames_by_rcode',
+                'title': 'Top N QNames (Failing RCodes) ',
+                'description': 'Top QNames across failing result codes',
+                'metrics': [],
+              },
             },
           },
           'metric_groups': {
+            'title': 'Metric Groups',
+            'name': 'metric_groups',
             'cardinality': {
+              'input': 'checkbox',
+              'type': 'checkbox',
+              'name': 'cardinality',
               'title': 'Cardinality',
               'description': 'Metrics counting the unique number of items in the stream',
               'metrics': [
@@ -361,6 +416,9 @@ export class AgentPoliciesService {
               ],
             },
             'dns_transactions': {
+              'input': 'checkbox',
+              'type': 'checkbox',
+              'name': 'dns_transactions',
               'title': 'DNS Transactions (Query/Reply pairs)',
               'description': 'Metrics based on tracking queries and their associated replies',
               'metrics': [
@@ -370,16 +428,25 @@ export class AgentPoliciesService {
               ],
             },
             'top_dns_wire': {
+              'input': 'checkbox',
+              'type': 'checkbox',
+              'name': 'top_dns_wire',
               'title': 'Top N Metrics (Various)',
               'description': 'Top N metrics across various details from the DNS wire packets',
               'metrics': [],
             },
             'top_qnames': {
+              'input': 'checkbox',
+              'type': 'checkbox',
+              'name': 'top_qnames',
               'title': 'Top N QNames (All)',
               'description': 'Top QNames across all DNS queries in stream',
               'metrics': [],
             },
             'top_qnames_by_rcode': {
+              'input': 'checkbox',
+              'type': 'checkbox',
+              'name': 'top_qnames_by_rcode',
               'title': 'Top N QNames (Failing RCodes) ',
               'description': 'Top QNames across failing result codes',
               'metrics': [],
@@ -389,28 +456,6 @@ export class AgentPoliciesService {
         'net': {
           'version': '1.0',
           'config': {},
-          'metrics': {
-            'cardinality.dst_ips_out': {
-              'type': 'cardinality',
-              'description': '...',
-            },
-            'cardinality.src_ips_in': {
-              'type': 'cardinality',
-              'description': '...',
-            },
-            'in': {
-              'type': 'counter',
-              'description': '...',
-            },
-            'rates.pps_in': {
-              'type': 'rate',
-              'description': '...',
-            },
-            'top_ASN': {
-              'type': 'top_k',
-              'description': '...',
-            },
-          },
           'metric_groups': {
             'ip_cardinality': {
               'title': 'IP Address Cardinality',

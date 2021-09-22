@@ -10,10 +10,18 @@
  */
 export interface TapConfig {
   /**
-   * input_type field {string} -- backend
+   * version {string}
    */
-  inputType?: string;
+  version?: string;
 
-  config?: {[propName: string]: string};
+  /**
+   * info reserved
+   */
+  info?: any;
+
+  /**
+   * json object with configs
+   */
+  config?: {[propName: string]: any};
 }
 
