@@ -144,7 +144,7 @@ func (es eventStore) handleDatasetRemove(ctx context.Context, e removeDatasetEve
 		return err
 	}
 
-	return es.commsService.NotifyPolicyRemoval(ag.ID, ag)
+	return es.commsService.NofityDatasetRemoval(ag)
 }
 
 func decodePolicyUpdate(event map[string]interface{}) (updatePolicyEvent, error) {
