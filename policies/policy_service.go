@@ -36,7 +36,7 @@ func (s policiesService) ListPolicies(ctx context.Context, token string, pm Page
 	return s.repo.RetrieveAll(ctx, ownerID, pm)
 }
 
-func (s policiesService) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error) {
+func (s policiesService) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]PolicyInDataset, error) {
 	if len(groupIDs) == 0 || ownerID == "" {
 		return nil, ErrMalformedEntity
 	}

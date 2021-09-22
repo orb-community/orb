@@ -428,17 +428,17 @@ services:
     networks:
       - orb-base-net
 
-  prom-sink:
-    image: "ns1labs/orb-prom-sink:${ORB_RELEASE_TAG}"
-    container_name: orb-prom-sink
+  sinker:
+    image: "ns1labs/orb-sinker:${ORB_RELEASE_TAG}"
+    container_name: orb-sinker
     depends_on:
       - nats
       - es-redis
-      - sinks
     restart: on-failure
     environment:
-      ORB_PROM_SINK_NATS_URL: ${MF_NATS_URL}
-      ORB_PROM_SINK_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
+      ORB_SINKER_LOG_LEVEL: debug
+      ORB_SINKER_NATS_URL: ${MF_NATS_URL}
+      ORB_SINKER_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
     networks:
       - orb-base-net
 

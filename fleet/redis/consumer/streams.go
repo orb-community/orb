@@ -120,7 +120,7 @@ func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEve
 		return err
 	}
 
-	return es.commsService.NotifyGroupNewAgentPolicy(ctx, ag, e.policyID, e.ownerID)
+	return es.commsService.NotifyGroupNewDataset(ctx, ag, "", e.policyID, e.ownerID)
 }
 
 func decodePolicyUpdate(event map[string]interface{}) (updatePolicyEvent, error) {
@@ -149,7 +149,7 @@ func (es eventStore) handlePolicyUpdate(ctx context.Context, e updatePolicyEvent
 		if err != nil {
 			return err
 		}
-		err = es.commsService.NotifyGroupNewAgentPolicy(ctx, ag, e.id, e.ownerID)
+		err = es.commsService.NotifyGroupNewDataset(ctx, ag, "", e.id, e.ownerID)
 		if err != nil {
 			return err
 		}
@@ -176,7 +176,7 @@ func (es eventStore) handlePolicyRemove(ctx context.Context, e removePolicyEvent
 		if err != nil {
 			return err
 		}
-		err = es.commsService.NotifyPolicyRemoval(ag)
+		err = es.commsService.NotifyPolicyRemoval(e.id, ag)
 		if err != nil {
 			return err
 		}
