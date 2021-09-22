@@ -33,6 +33,41 @@ h4 {
   transform: translateY(-50px);
 }
 
+.button-new-sink {
+  width: 155px;
+  height: 236px;
+  border: 1px solid #969fb9;
+  background: #232940;
+  box-sizing: border-box;
+  justify-content: flex-end;
+
+  &::ng-deep div {
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
+
+  &:hover {
+    background: #232940;
+    border: 1px solid #3089fc;
+    box-sizing: border-box;
+    border-radius: 4px;
+  }
+
+  &:active {
+    background: #232940;
+    border: 1px solid #3089fc;
+    box-sizing: border-box;
+    border-radius: 4px;
+  }
+
+  &:default {
+    background: #232940;
+    border: 1px solid #969fb9;
+    box-sizing: border-box;
+    border-radius: 4px;
+  }
+}
+
 tr div p {
   :hover {
     color: #2a64f6;
@@ -81,7 +116,7 @@ tr div p {
   }
 }
 
-.add-agent-container {
+.add-sink-container {
   position: relative;
   height: 0;
 
@@ -91,31 +126,5 @@ tr div p {
     position: relative;
     z-index: 2;
     right: 5px;
-  }
-}
-
-.ns1red {
-  color: #df316f;
-}
-
-.agent-name {
-  cursor: pointer;
-}
-
-.orb-service- {
-  &new {
-    color: #9b51e0;
-  }
-  &online {
-    color: #6fcf97;
-  }
-  &stale {
-    color: #f2994a;
-  }
-  &error {
-    color: #df316f;
-  }
-  &offline {
-    color: #969fb9;
   }
 }
