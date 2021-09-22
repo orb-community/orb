@@ -33,10 +33,11 @@ export class AgentPolicyAddComponent {
 
   // pktvisors configure handlers when iface is set
   handlersFormGroup: FormGroup;
+
   // !!!
 
   // Refactor while coding :)
-  backendConfigForms: {[propName: string]: FormGroup};
+  backendConfigForms: { [propName: string]: FormGroup };
 
   availableBackends: { [propName: string]: any };
 
@@ -137,36 +138,36 @@ export class AgentPolicyAddComponent {
   }
 
   getTapsList() {
-    this.isLoading = true;
-    this.agentPoliciesService.getPktVisorInputs().subscribe((taps) => {
-      this.availableBackends['pktvisor']['taps'] = taps;
-      this.backend['inputs'] = taps;
-      this.backendConfigForms['inputs'] = this._formBuilder
-        .group(Object.keys(taps['config'])
-          .reduce((accumulator, curr) => {
-            accumulator[curr] = Object.keys(taps['config'])
-              .map(entry => ({
-                type: taps['config'][entry].type,
-                label: taps['config'][entry].title,
-                prop: taps['config'][entry].name,
-                input: taps['config'][entry].input,
-                required: taps['config'][entry].required,
-              }));
-            return accumulator;
-          }, {}));
+    // this.isLoading = true;
+    // this.agentPoliciesService.getPktVisorInputs().subscribe((taps) => {
+    //   this.availableBackends['pktvisor']['taps'] = taps;
+    //   this.backend['inputs'] = taps;
+    const { taps } = this.availableBackends['pktvisor'];
+    this.backendConfigForms['taps'] = this._formBuilder
+      .group(Object.keys(taps['config'])
+        .reduce((accumulator, curr) => {
+          accumulator[curr] = Object.keys(taps['config'])
+            .map(entry => ({
+              type: taps['config'][entry].type,
+              label: taps['config'][entry].title,
+              prop: taps['config'][entry].name,
+              input: taps['config'][entry].input,
+              required: taps['config'][entry].required,
+            }));
+          return accumulator;
+        }, {}));
 
-      this.getHandlersList();
-    });
+    this.getHandlersList();
   }
 
   onTapSelected(selectedTap) {
     // const dynamicFormControls = this.selectedTap.reduce((accumulator, curr) => {
-      // accumulator[curr.prop] = [
-      //   !!conf && (curr.prop in conf) && conf[curr.prop] ||
-      //   '',
-      //   curr.required ? Validators.required : null,
-      // ];
-      // return accumulator;
+    // accumulator[curr.prop] = [
+    //   !!conf && (curr.prop in conf) && conf[curr.prop] ||
+    //   '',
+    //   curr.required ? Validators.required : null,
+    // ];
+    // return accumulator;
     // }, {});
 
     // this.tapFormGroup = this._formBuilder.group(dynamicFormControls);
