@@ -5,7 +5,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
-import { TapConfig } from 'app/common/interfaces/orb/policy/config/tap.config.interface';
 
 @Component({
   selector: 'ngx-agent-policy-add-component',
