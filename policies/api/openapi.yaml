@@ -609,10 +609,12 @@ components:
           example: 0
           description: A monotonically increasing counter starting at 0 on creation and increasing with each policy update.
         policy:
-          type: string
+          type: object
+          description: Agent backend specific policy data in json format
           example:
-            value: "version: \"1.0\"\nvisor:\n    foo: \"bar\""
-          description: Agent backend specific policy data.
+            version: 1.0
+            visor:
+              foo: bar
     PolicyBackendResSchema:
       type: object
       properties:
@@ -655,9 +657,13 @@ components:
           description: A unique name label
           example: my-dataset
         sink_id:
-          type: string
-          format: uuid
-          description: A unique identifier of a sink
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          uniqueItems: true
+          description: An array of one or more sink unique identifier
         tags:
           type: object
           description: User defined key/values for organization and searching
@@ -671,7 +677,6 @@ components:
         - agent_group_id
         - agent_policy_id
         - sink_id
-        - valid
         - tags
       properties:
         name:
@@ -687,12 +692,12 @@ components:
           format: uuid
           description: A unique identifier of an agent_policy
         sink_id:
-          type: string
-          format: uuid
-          description: A unique identifier of a sink
-        valid:
-          type: boolean
-          description: Boolean field indicating whether the dataset is valid
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          description: An array of one or more sink unique identifier
         tags:
           type: object
           description: User defined key/values for organization and searching
@@ -742,9 +747,12 @@ components:
           format: uuid
           description: Unique identifier (UUID) of an agent_policy
         sink_id:
-          type: string
-          format: uuid
-          description: Unique identifier (UUID) of a sink
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          description: An array of one or more sink unique identifier
         valid:
           type: boolean
           readOnly: true
