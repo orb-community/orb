@@ -125,7 +125,7 @@ type addDatasetReq struct {
 	Name         string     `json:"name"`
 	AgentGroupID string     `json:"agent_group_id"`
 	PolicyID     string     `json:"agent_policy_id"`
-	SinkID       string     `json:"sink_id"`
+	SinkIDs      []string   `json:"sink_ids"`
 	Tags         types.Tags `json:"tags"`
 	token        string
 }
@@ -135,7 +135,7 @@ func (req addDatasetReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 
-	if req.Name == "" || req.AgentGroupID == "" || req.PolicyID == "" || req.SinkID == "" {
+	if req.Name == "" || req.AgentGroupID == "" || req.PolicyID == "" || req.SinkIDs == nil {
 		return errors.ErrMalformedEntity
 	}
 

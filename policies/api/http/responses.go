@@ -126,7 +126,7 @@ type validateDatasetRes struct {
 	Name         string
 	AgentGroupID string
 	PolicyID     string
-	SinkID       string
+	SinkIDs      []string
 	Valid        bool
 	Tags         types.Tags
 }

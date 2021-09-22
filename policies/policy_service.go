@@ -228,10 +228,15 @@ func (s policiesService) ValidateDataset(ctx context.Context, token string, d Da
 
 	d.MFOwnerID = mfOwnerID
 
-	_, err = uuid.FromString(d.SinkID)
-	if err != nil {
-		fmt.Println("invalid sink id")
+	if len(d.SinkID) == 0{
 		return Dataset{}, ErrMalformedEntity
+	}
+	for _, i := range d.SinkID {
+		_, err = uuid.FromString(i)
+		if err != nil {
+			fmt.Println("invalid sink id")
+			return Dataset{}, ErrMalformedEntity
+		}
 	}
 
 	_, err = uuid.FromString(d.PolicyID)

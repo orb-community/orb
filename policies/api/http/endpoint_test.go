@@ -655,10 +655,10 @@ func TestCreatePolicy(t *testing.T) {
 func TestDatasetValidation(t *testing.T){
 	var (
 		invalidJson = `{`
-		validJson         = "{\n    \"name\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
-		invalidNameJson = "{\n    \"name\": \"9...DATASET\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
-		invalidTagJson = "{\n    \"name\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": \"invalidTag\"}"
-		invalidFieldJson = "{\n    \"naamme\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+		validJson         = "{\n    \"name\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_ids\": [\"03679425-aa69-4574-bf62-e0fe71b80939\", \"03679425-aa69-4574-bf62-e0fe71b80939\"],\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+		invalidNameJson = "{\n    \"name\": \"9...DATASET\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_ids\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+		invalidTagJson = "{\n    \"name\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_ids\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": \"invalidTag\"}"
+		invalidFieldJson = "{\n    \"naamme\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_ids\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
 	)
 	cli := newClientServer(t)
 

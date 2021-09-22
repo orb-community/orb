@@ -29,7 +29,7 @@ type Dataset struct {
 	Valid        bool
 	AgentGroupID string
 	PolicyID     string
-	SinkID       string
+	SinkID       []string
 	Metadata     types.Metadata
 	Created      time.Time
 	Tags         types.Tags

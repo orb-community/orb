@@ -175,7 +175,7 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Name:         nID,
 			AgentGroupID: req.AgentGroupID,
 			PolicyID:     req.PolicyID,
-			SinkID:       req.SinkID,
+			SinkID:       req.SinkIDs,
 		}
 
 		saved, err := svc.AddDataset(ctx, req.token, d)
@@ -246,7 +246,7 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Name:         nID,
 			AgentGroupID: req.AgentGroupID,
 			PolicyID:     req.PolicyID,
-			SinkID:       req.SinkID,
+			SinkID:       req.SinkIDs,
 			Tags:         req.Tags,
 		}
 
@@ -261,7 +261,7 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Tags:         validated.Tags,
 			AgentGroupID: validated.AgentGroupID,
 			PolicyID:     validated.PolicyID,
-			SinkID:       validated.SinkID,
+			SinkIDs:       validated.SinkID,
 		}
 
 		return res, nil
