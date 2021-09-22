@@ -21,9 +21,6 @@ export class AgentPolicyAddComponent {
     // agent policy general information
   detailsFormGroup: FormGroup;
 
-  // this is backend: pktvisor, etc
-  backendFormGroup: FormGroup;
-
   // !!!
   // all form groups from here on should be dynamic, not
   // even declared like this
@@ -36,11 +33,10 @@ export class AgentPolicyAddComponent {
 
   // pktvisors configure handlers when iface is set
   handlersFormGroup: FormGroup;
-
   // !!!
 
   // Refactor while coding :)
-  backendConfigForms: FormGroup[];
+  backendConfigForms: {[propName: string]: FormGroup};
 
   availableBackends: { [propName: string]: any };
 
@@ -90,16 +86,13 @@ export class AgentPolicyAddComponent {
       this.agentPolicyLoading = false;
     });
 
-    const { name, description, backend, tags } = this.agentPolicy;
+    const { name, description, backend } = this.agentPolicy;
 
-    this.backendConfigForms = [];
+    this.backendConfigForms = {};
 
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
       description: [description, Validators.required],
-    });
-
-    this.backendFormGroup = this._formBuilder.group({
       backend: [backend, Validators.required],
     });
 
@@ -111,10 +104,10 @@ export class AgentPolicyAddComponent {
     this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
       this.availableBackends = { backends };
 
-      this.isEdit && this.backendFormGroup.controls.backend.disable();
+      this.isEdit && this.detailsFormGroup.controls.backend.disable();
 
       // builds secondFormGroup
-      this.onBackendSelected(this.backendFormGroup.controls.backend.value);
+      this.onBackendSelected(this.detailsFormGroup.controls.backend.value);
 
       this.isLoading = false;
     });
@@ -146,7 +139,22 @@ export class AgentPolicyAddComponent {
   getTapsList() {
     this.isLoading = true;
     this.agentPoliciesService.getPktVisorInputs().subscribe((taps) => {
-      this.availableTaps = taps;
+      this.availableBackends['pktvisor']['taps'] = taps;
+      this.backend['inputs'] = taps;
+      this.backendConfigForms['inputs'] = this._formBuilder
+        .group(Object.keys(taps['config'])
+          .reduce((accumulator, curr) => {
+            accumulator[curr] = Object.keys(taps['config'])
+              .map(entry => ({
+                type: taps['config'][entry].type,
+                label: taps['config'][entry].title,
+                prop: taps['config'][entry].name,
+                input: taps['config'][entry].input,
+                required: taps['config'][entry].required,
+              }));
+            return accumulator;
+          }, {}));
+
       this.getHandlersList();
     });
   }
@@ -162,7 +170,6 @@ export class AgentPolicyAddComponent {
     // }, {});
 
     // this.tapFormGroup = this._formBuilder.group(dynamicFormControls);
-
   }
 
   getHandlersList() {
@@ -177,15 +184,23 @@ export class AgentPolicyAddComponent {
 
   }
 
+  onHandlerAdded() {
+
+  }
+
+  onHandlerRemoved(selectedHandler) {
+
+  }
+
   goBack() {
     this.router.navigateByUrl('/pages/datasets/policies');
   }
 
   onFormSubmit() {
     const payload = {
-      name: this.backendFormGroup.controls.name.value,
-      description: this.backendFormGroup.controls.description.value,
-      backend: this.backendFormGroup.controls.backend.value,
+      name: this.detailsFormGroup.controls.name.value,
+      description: this.detailsFormGroup.controls.description.value,
+      backend: this.detailsFormGroup.controls.backend.value,
       // config: this.selectedTap.reduce((accumulator, current) => {
       //   accumulator[current.prop] = this.tapFormGroup.controls[current.prop].value;
       //   return accumulator;
