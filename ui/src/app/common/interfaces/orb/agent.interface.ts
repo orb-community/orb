@@ -54,11 +54,14 @@ export interface Agent extends OrbEntity {
   /**
    * Last Heartbeat timestamp {string}
    */
-  ts_lst_hb?: string;
+  ts_last_hb?: string;
 
   /**
    * Boolean which indicates whether the agent is in an error state or not.
    * Heartbeat data contains error information.
    */
   error_state?: boolean;
+
+  key?: string;
+
 }

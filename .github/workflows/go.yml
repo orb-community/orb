@@ -31,7 +31,9 @@ jobs:
             sinks:
               - 'sinks/**'
               - 'cmd/sinks/**'
-              - 'cmd/prom-sinks/**'
+            sinker:
+              - 'sinker/**'
+              - 'cmd/sinker/**'
             ui:
               - 'ui/**'
 
@@ -78,7 +80,9 @@ jobs:
             sinks:
               - 'sinks/**'
               - 'cmd/sinks/**'
-              - 'cmd/prom-sinks/**'
+            sinker:
+              - 'sinker/**'
+              - 'cmd/sinker/**'
             ui:
               - 'ui/**'
 
@@ -116,7 +120,7 @@ jobs:
           docker push ns1labs/orb-fleet:${{ env.REF_TAG }}
           docker push ns1labs/orb-policies:${{ env.REF_TAG }}
           docker push ns1labs/orb-sinks:${{ env.REF_TAG }}
-          docker push ns1labs/orb-prom-sink:${{ env.REF_TAG }}
+          docker push ns1labs/orb-sinker:${{ env.REF_TAG }}
 
       - name: Build + push orb-agent
         if: steps.filter.outputs.agent == 'true'
