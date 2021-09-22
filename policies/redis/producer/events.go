@@ -28,6 +28,7 @@ type event interface {
 
 var (
 	_ event = (*createDatasetEvent)(nil)
+	_ event = (*removeDatasetEvent)(nil)
 	_ event = (*createPolicyEvent)(nil)
 	_ event = (*updatePolicyEvent)(nil)
 	_ event = (*removePolicyEvent)(nil)
@@ -40,6 +41,13 @@ type createDatasetEvent struct {
 	agentGroupID string
 	policyID     string
 	sinkID       []string
+	timestamp    time.Time
+}
+
+type removeDatasetEvent struct {
+	id           string
+	ownerID      string
+	agentGroupID string
 	timestamp    time.Time
 }
 
@@ -74,6 +82,16 @@ func (cce createDatasetEvent) Encode() map[string]interface{} {
 		"sink_id":   cce.sinkID,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": DatasetCreate,
+	}
+}
+
+func (cce removeDatasetEvent) Encode() map[string]interface{} {
+	return map[string]interface{}{
+		"id":        cce.id,
+		"owner_id":  cce.ownerID,
+		"group_id":  cce.agentGroupID,
+		"timestamp": cce.timestamp.Unix(),
+		"operation": DatasetRemove,
 	}
 }
 

@@ -36,9 +36,32 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
-func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string) error {
-	// TODO procude a comms event on dataset removal
-	return e.svc.RemoveDataset(ctx, token, dsID)
+func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string) (err error) {
+	if err := e.svc.RemoveDataset(ctx, token, dsID); err != nil {
+		return err
+	}
+
+	// TODO wait for the merge to use the function that retrieve a ds by id
+	ds := policies.Dataset{}
+
+	event := removeDatasetEvent{
+		id:           dsID,
+		ownerID:      ds.MFOwnerID,
+		agentGroupID: ds.AgentGroupID,
+	}
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+
+	err = e.client.XAdd(ctx, record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+		return err
+	}
+
+	return nil
 }
 
 func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.Dataset) (policies.Dataset, error) {
