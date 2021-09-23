@@ -119,11 +119,14 @@ export class AgentPolicyAddComponent {
     Object.keys(this.input.config).forEach(key => {
       inputs.addControl(key, this._formBuilder.control('', [Validators.required]));
     });
-
   }
 
   onTapSelected(selectedTap) {
-
+    this.tap = this.backend['taps'][selectedTap];
+    const { taps } = this.backendConfigForms;
+    Object.keys(this.input.config).forEach(key => {
+      taps.addControl(key, this._formBuilder.control('', [Validators.required]));
+    });
   }
 
   onHandlerSelected(selectedHandler) {

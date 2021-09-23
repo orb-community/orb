@@ -10,7 +10,7 @@
     <h4>{{ isEdit ? 'Edit Agent Policy' : 'Create Agent Policy'}}</h4>
   </header>
   <div *ngIf="!isLoading" class="row">
-    <div>
+    <div class="col-6">
       <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFormGroup">
         <nb-form-field>
           <div class="d-flex flex-column">
@@ -157,6 +157,50 @@
                            [value]="option.key">{{ option.key }}</nb-option>
               </nb-select>
             </nb-form-field>
+            <div *ngIf="tap">
+              <nb-form-field *ngFor="let control of tap['config'] | keyvalue; let i = index"
+                             [formGroup]="formPiece.value">
+                <div>
+                  <label class="font-weight-bold">{{control.value.title}}</label>
+                </div>
+                <div [ngSwitch]="control.value.input">
+                  <input *ngSwitchCase="'text'"
+                         [attr.data-orb-qa-id]="control.value.name"
+                         [autofocus]="i == 0"
+                         [formControlName]="control.value.name"
+                         [type]="control.value.type"
+                         fieldSize="medium"
+                         fullWidth="true"
+                         nbInput>
+                  <input *ngSwitchCase="'number'"
+                         [attr.data-orb-qa-id]="control.value.name"
+                         [autofocus]="i == 0"
+                         [formControlName]="control.value.name"
+                         [max]="control.value.max"
+                         [min]="control.value.min"
+                         [step]="control.value.step"
+                         [type]="control.value.type"
+                         fieldSize="medium"
+                         fullWidth="true"
+                         nbInput>
+                  <!-- todo this select is going to take a bit longer than planned -->
+                  <!--                  <nb-select (selectedChange)="onInputSelected($event)"-->
+                  <!--                             [attr.data-orb-qa-id]="formPiece.key"-->
+                  <!--                             [formControlName]="formPiece.key"-->
+                  <!--                             appearance="filled"-->
+                  <!--                             fullWidth="true"-->
+                  <!--                             nbInput="{{ formPiece.key }}"-->
+                  <!--                             placeholder="Select Tap"-->
+                  <!--                             required="true"-->
+                  <!--                             size="medium">-->
+                  <!--                    <nb-option *ngFor="let option of backend[formPiece.key] | keyvalue"-->
+                  <!--                               [attr.data-orb-qa-id]="option.key"-->
+                  <!--                               [value]="option.key">{{ option.key }}</nb-option>-->
+                  <!--                  </nb-select>-->
+                </div>
+                <hr/>
+              </nb-form-field>
+            </div>
           </div>
         </form>
       </div>
