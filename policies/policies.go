@@ -32,6 +32,7 @@ type Dataset struct {
 	SinkID       string
 	Metadata     types.Metadata
 	Created      time.Time
+	Tags         types.Tags
 }
 
 type PolicyInDataset struct {
@@ -77,6 +78,9 @@ type Service interface {
 
 	// ValidatePolicy validates an agent Policy without saving
 	ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+
+	// ValidateDataset validates a new Dataset without saving it
+	ValidateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 }
 
 type Repository interface {

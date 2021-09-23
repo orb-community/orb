@@ -80,6 +80,12 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 		types.EncodeResponse,
 		opts...))
 
+	r.Post("/policies/dataset/validate", kithttp.NewServer(
+		kitot.TraceServer(tracer, "validate_dataset")(validateDatasetEndpoint(svc)),
+		decodeAddDatasetRequest,
+		types.EncodeResponse,
+		opts...))
+
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
 

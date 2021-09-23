@@ -11,6 +11,7 @@ package policies
 import (
 	"context"
 	"fmt"
+	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies/backend"
 )
@@ -218,4 +219,32 @@ func (s policiesService) ValidatePolicy(ctx context.Context, token string, p Pol
 	p.MFOwnerID = mfOwnerID
 
 	return p, nil
+}
+func (s policiesService) ValidateDataset(ctx context.Context, token string, d Dataset) (Dataset, error) {
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return Dataset{}, err
+	}
+
+	d.MFOwnerID = mfOwnerID
+
+	_, err = uuid.FromString(d.SinkID)
+	if err != nil {
+		fmt.Println("invalid sink id")
+		return Dataset{}, ErrMalformedEntity
+	}
+
+	_, err = uuid.FromString(d.PolicyID)
+	if err != nil {
+		fmt.Println("invalid policy id")
+		return Dataset{}, ErrMalformedEntity
+	}
+
+	_, err = uuid.FromString(d.AgentGroupID)
+	if err != nil {
+		fmt.Println("invalid agent group id")
+		return Dataset{}, ErrMalformedEntity
+	}
+
+	return d, nil
 }

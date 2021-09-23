@@ -123,3 +123,24 @@ func (s policyValidateRes) Headers() map[string]string {
 func (s policyValidateRes) Empty() bool {
 	return false
 }
+
+type validateDatasetRes struct {
+	Name         string
+	AgentGroupID string
+	PolicyID     string
+	SinkID       string
+	Valid        bool
+	Tags         types.Tags
+}
+
+func (s validateDatasetRes) Code() int {
+	return http.StatusOK
+}
+
+func (s validateDatasetRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s validateDatasetRes) Empty() bool {
+	return false
+}
