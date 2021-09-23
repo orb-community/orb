@@ -38,7 +38,7 @@ export const MENU: NbMenuItem[] = [
   },
   {
     title: 'Sink Management',
-    icon: 'layers-outline',
+    icon: 'cloud-upload-outline',
     link: 'sinks',
   },
   {

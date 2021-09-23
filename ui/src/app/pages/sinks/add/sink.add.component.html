@@ -32,6 +32,7 @@
                 </div>
                 <input nbInput
                        autofocus
+                       [disabled]="isEdit"
                        fullWidth="true"
                        fieldSize="medium"
                        formControlName="name"
@@ -94,13 +95,14 @@
           <ng-template #secondStepLabel>
             <div class="step-label d-flex flex-column">
               <strong>Sink Destination</strong>
-              <p>Configure your sink settings</p>
+              <p>Configure your Sink settings</p>
             </div>
           </ng-template>
           <form [formGroup]="secondFormGroup">
             <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index">
               <div>
                 <label class="font-weight-bold">{{control.label}}</label>
+                <span class="required" *ngIf="control.required">*</span>
               </div>
               <div [ngSwitch]="control.input">
                 <input *ngSwitchCase="'text'"
@@ -150,7 +152,7 @@
           <ng-template #thirdStepLabel>
             <div class="step-label d-flex flex-column">
               <strong>Sink Tags</strong>
-              <p>Enter tags for this sink</p>
+              <p>Enter tags for this Sink</p>
             </div>
           </ng-template>
           <form [formGroup]="thirdFormGroup">
@@ -285,16 +287,19 @@
             </div>
           </div>
           <hr/>
-          <div class="d-flex">
-            <mat-chip-list data-orb-qaid="review-tagList">
-              <mat-chip
-                  class="orb-tag-sink "
-                  *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i;"
-                  [attr.data-orb-qa-id]="'review-tag_' + i"
-                  [style.background-color]="tag | keyvalue | tagchip | tagchipcolor">
-                  {{tag | keyvalue | tagchip}}
-              </mat-chip>
-            </mat-chip-list>
+          <div class="d-flex row">
+            <div class="col-12">
+              <label class="font-weight-bold">Sink Tags</label>
+              <mat-chip-list data-orb-qaid="review-tagList">
+                <mat-chip
+                    class="orb-tag-sink "
+                    *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i;"
+                    [attr.data-orb-qa-id]="'review-tag_' + i"
+                    [style.background-color]="tag | keyvalue | tagchip | tagchipcolor">
+                    {{tag | keyvalue | tagchip}}
+                </mat-chip>
+              </mat-chip-list>
+            </div>
           </div>
           <div class="d-flex justify-content-end" *ngIf="thirdFormGroup">
             <button
