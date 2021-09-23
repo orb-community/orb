@@ -2,6 +2,7 @@
   <header>
     <xng-breadcrumb class="orb-breadcrumb">
     </xng-breadcrumb>
+    <h4>{{strings[isEdit ? 'edit' : 'add']['header']}}</h4>
   </header>
   <div class="d-flex row">
     <div class="d-flex col-12 mt-5">
@@ -49,7 +50,7 @@
                   (click)="goBack()"
                   type="button"
                   status="primary">
-                {{strings.stepper.back}}
+                {{strings.stepper.cancel}}
               </button>
               <button class="next-button"
                       nbButton

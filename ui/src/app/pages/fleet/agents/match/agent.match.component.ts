@@ -82,14 +82,6 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
         flexGrow: 1,
         cellTemplate: this.agentStateTemplateRef,
       },
-      {
-        name: 'Last Activity',
-        prop: 'ts_last_hb',
-        minWidth: 130,
-        resizeable: false,
-        sortable: false,
-        flexGrow: 1,
-      },
     ];
   }
 
