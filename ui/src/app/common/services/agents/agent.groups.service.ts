@@ -59,7 +59,7 @@ export class AgentGroupsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to create Agent',
+          this.notificationsService.error('Failed to create Agent Group',
             `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
           return Observable.throwError(err);
         },
@@ -77,7 +77,7 @@ export class AgentGroupsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to Validate Agent',
+          this.notificationsService.error('Failed to Validate Agent Group',
             `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
           return Observable.throwError(err);
         },
@@ -93,7 +93,7 @@ export class AgentGroupsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to fetch Agent',
+          this.notificationsService.error('Failed to fetch Agent Group',
             `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
@@ -144,7 +144,7 @@ export class AgentGroupsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to get Agents',
+          this.notificationsService.error('Failed to get Agent Groups',
             `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
@@ -160,7 +160,7 @@ export class AgentGroupsService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to edit Agent',
+          this.notificationsService.error('Failed to edit Agent Group',
             `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },

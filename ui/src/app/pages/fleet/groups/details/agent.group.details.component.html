@@ -21,7 +21,7 @@
     <div class="row">
       <div class="col-6 align-items-start d-flex flex-column">
         <p class="detail-title">{{strings.propNames.ts_created}}</p>
-        <p>{{ agentGroup.ts_created }}</p>
+        <p>{{ agentGroup.ts_created | date:'short' }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.matches}}</p>
@@ -35,22 +35,12 @@
           <mat-chip-list>
             <mat-chip
                 class="orb-tag-sink "
-                *ngFor="let tag of agentGroup.tags"
+                *ngFor="let tag of agentGroup.tags | keyvalue | tagchip"
                 [style.background-color]="tag | tagchipcolor">
                 {{tag}}
             </mat-chip>
           </mat-chip-list>
         </div>
-      </div>
-      <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">{{strings.propNames.matches}}</p>
-        <p>{{ agentGroup.matching_agents.total }} {{strings.match.agents}}</p>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-6 align-items-start d-flex flex-column">
-        <p class="detail-title">{{strings.propNames.ts_created}}</p>
-        <p>{{ agentGroup.ts_created }}</p>
       </div>
     </div>
   </nb-card-body>
