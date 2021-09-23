@@ -133,7 +133,7 @@ export const STRINGS = {
     },
     // edit page
     edit: {
-      header: 'Update Agent',
+      header: 'Edit Agent Group',
     },
 // delete modal
     delete: {
@@ -235,6 +235,7 @@ export const STRINGS = {
   // stepper cues
   stepper: {
     back: 'Back',
+    cancel: 'Cancel',
     next: 'Next',
     save: 'Save',
   },
