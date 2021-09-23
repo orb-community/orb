@@ -52,16 +52,16 @@ export const STRINGS = {
     },
     // add page
     add: {
-      header: 'Sink Creation',
+      header: 'New Sink',
     },
     // edit page
     edit: {
-      header: 'Update Sink',
+      header: 'Edit Sink',
     },
     // delete modal
     delete: {
       header: 'Delete Sink Confirmation',
-      body: 'Are you sure you want to delete this sink? This may cause Datasets which use this sink to become invalid. This action cannot be undone.',
+      body: 'Are you sure you want to delete this Sink? This may cause Datasets which use this Sink to become invalid. This action cannot be undone.',
       warning: '*To confirm, type your Sink name exactly as it appears',
       delete: 'I Understand, Delete This Sink',
       close: 'Close',
@@ -133,7 +133,7 @@ export const STRINGS = {
     },
     // edit page
     edit: {
-      header: 'Update Agent',
+      header: 'Edit Agent Group',
     },
 // delete modal
     delete: {
@@ -235,6 +235,7 @@ export const STRINGS = {
   // stepper cues
   stepper: {
     back: 'Back',
+    cancel: 'Cancel',
     next: 'Next',
     save: 'Save',
   },
