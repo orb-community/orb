@@ -46,6 +46,10 @@ func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID str
 		return err
 	}
 
+	if len(datasets) == 0 {
+		return nil
+	}
+
 	var groupsIDs []string
 	var ownerID string
 	for _, ds := range datasets {

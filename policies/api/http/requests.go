@@ -31,6 +31,7 @@ type addPolicyReq struct {
 	Format      string         `json:"format,omitempty"`
 	PolicyData  string         `json:"policy_data,omitempty"`
 	Description string         `json:"description"`
+	Version     int32          `json:"version"`
 	token       string
 }
 

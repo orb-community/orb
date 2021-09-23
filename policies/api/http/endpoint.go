@@ -33,6 +33,7 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Policy:      req.Policy,
 			Description: req.Description,
 			OrbTags:     req.Tags,
+			Version:     req.Version,
 		}
 
 		saved, err := svc.AddPolicy(ctx, req.token, policy, req.Format, req.PolicyData)
@@ -47,6 +48,7 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Tags:        saved.OrbTags,
 			Backend:     saved.Backend,
 			Policy:      saved.Policy,
+			Version:     saved.Version,
 			created:     true,
 		}
 
@@ -67,9 +69,13 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := policyRes{
-			ID:      policy.ID,
-			Name:    policy.Name.String(),
-			Backend: policy.Backend,
+			ID:          policy.ID,
+			Name:        policy.Name.String(),
+			Description: policy.Description,
+			Tags:        policy.OrbTags,
+			Backend:     policy.Backend,
+			Policy:      policy.Policy,
+			Version:     policy.Version,
 		}
 		return res, nil
 	}
@@ -139,6 +145,7 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Description: res.Description,
 			Tags:        res.OrbTags,
 			Policy:      res.Policy,
+			Version:     res.Version,
 		}
 
 		return plcyRes, nil
@@ -206,10 +213,10 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		policy := policies.Policy{
-			Name:    nID,
-			Backend: req.Backend,
-			Policy:  req.Policy,
-			OrbTags: req.Tags,
+			Name:        nID,
+			Backend:     req.Backend,
+			Policy:      req.Policy,
+			OrbTags:     req.Tags,
 			Description: req.Description,
 		}
 
@@ -219,10 +226,10 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := policyValidateRes{
-			Name:    validated.Name.String(),
-			Backend: validated.Backend,
-			Tags:    validated.OrbTags,
-			Policy:  validated.Policy,
+			Name:        validated.Name.String(),
+			Backend:     validated.Backend,
+			Tags:        validated.OrbTags,
+			Policy:      validated.Policy,
 			Description: validated.Description,
 		}
 
