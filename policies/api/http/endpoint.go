@@ -191,7 +191,7 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			PolicyID:     saved.PolicyID,
 			SinkID:       saved.SinkID,
 			Metadata:     saved.Metadata,
-			TsCreated:    saved.TsCreated,
+			TsCreated:    saved.Created,
 			Tags:         saved.Tags,
 			created:      true,
 		}

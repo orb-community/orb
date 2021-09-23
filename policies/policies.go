@@ -33,7 +33,6 @@ type Dataset struct {
 	Metadata     types.Metadata
 	Created      time.Time
 	Tags         types.Tags
-	TsCreated    time.Time
 }
 
 type PolicyInDataset struct {
