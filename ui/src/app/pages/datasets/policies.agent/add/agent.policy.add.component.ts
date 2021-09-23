@@ -102,7 +102,7 @@ export class AgentPolicyAddComponent {
     // reconfig dynamic forms based on backend selected
     this.backendConfigForms = Object.keys(this.availableBackends[selectedBackend])
       .reduce((formGroups, groupName, groupIndex) => {
-        formGroups[groupName] = this._formBuilder.group({ groupName: ['', Validators.required] });
+        formGroups[groupName] = this._formBuilder.group({ [groupName]: ['', Validators.required] });
         return formGroups;
       }, {});
 
