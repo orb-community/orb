@@ -45,7 +45,8 @@ func (g grpcClient) RetrieveAgent(ctx context.Context, in *pb.AgentByIDReq, opts
 }
 
 func (g grpcClient) RetrieveAgentGroup(ctx context.Context, in *pb.AgentGroupByIDReq, opts ...grpc.CallOption) (*pb.AgentGroupRes, error) {
-	ctx, cancel := context.WithTimeout(ctx, g.timeout)
+	//ctx, cancel := context.WithTimeout(ctx, g.timeout)
+	ctx, cancel := context.WithTimeout(ctx, 1000 * time.Second)
 	defer cancel()
 
 	ar := accessAgByIDReq{

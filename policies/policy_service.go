@@ -12,8 +12,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/gofrs/uuid"
+	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies/backend"
+	sinkpb "github.com/ns1labs/orb/sinks/pb"
 )
 
 var (
@@ -234,16 +236,37 @@ func (s policiesService) ValidateDataset(ctx context.Context, token string, d Da
 		return Dataset{}, ErrMalformedEntity
 	}
 
+	_, err = s.sinksGrpcClient.RetrieveSink(ctx, &sinkpb.SinkByIDReq{
+		SinkID:  d.SinkID,
+		OwnerID: mfOwnerID,
+	})
+	if err != nil {
+		return Dataset{}, err
+	}
+
 	_, err = uuid.FromString(d.PolicyID)
 	if err != nil {
 		fmt.Println("invalid policy id")
 		return Dataset{}, ErrMalformedEntity
 	}
 
+	_, err = s.repo.RetrievePolicyByID(ctx, d.PolicyID, mfOwnerID)
+	if err != nil {
+		return Dataset{}, err
+	}
+
 	_, err = uuid.FromString(d.AgentGroupID)
 	if err != nil {
 		fmt.Println("invalid agent group id")
 		return Dataset{}, ErrMalformedEntity
+	}
+
+	_, err = s.fleetGrpcClient.RetrieveAgentGroup(ctx, &pb.AgentGroupByIDReq{
+		AgentGroupID: d.AgentGroupID,
+		OwnerID:      mfOwnerID,
+	})
+	if err != nil {
+		return Dataset{}, err
 	}
 
 	return d, nil
