@@ -49,8 +49,8 @@ visor:
 	maxNameSize          = 1024
 	contentType          = "application/json"
 	wrongID              = "28ea82e7-0224-4798-a848-899a75cdc650"
-	validDataset         = "{\n    \"name\": \"my-dataset\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
-	conflictValidDataset = "{\n    \"name\": \"my-dataset-conflict\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+	validDataset         = "{\n    \"name\": \"my-dataset\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": [\"f5b2d342-211d-a9ab-1233-63199a3fc16f\",\"f5b2d342-211d-a9ab-1233-63199a3fc16f\"]\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+	conflictValidDataset = "{\n    \"name\": \"my-dataset-conflict\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_id\": [\"f5b2d342-211d-a9ab-1233-63199a3fc16f\",\"f5b2d342-211d-a9ab-1233-63199a3fc16f\"]\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
 )
 
 var (

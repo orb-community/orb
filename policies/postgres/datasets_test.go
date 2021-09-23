@@ -35,8 +35,12 @@ func TestDatasetSave(t *testing.T) {
 	policyID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
-	sinkID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	sinkID := make([]string, 2)
+	for k, _ := range sinkID {
+		ID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		sinkID[k] = ID.String()
+	}
 
 	nameID, err := types.NewIdentifier("mydataset")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
@@ -50,7 +54,7 @@ func TestDatasetSave(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkID:       sinkID.String(),
+		SinkID:       sinkID,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}

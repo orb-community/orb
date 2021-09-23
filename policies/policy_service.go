@@ -62,6 +62,7 @@ func (s policiesService) AddDataset(ctx context.Context, token string, d Dataset
 	if err != nil {
 		return Dataset{}, errors.Wrap(ErrCreateDataset, err)
 	}
+	//TODO create a function to retrieve a dataset by id
 	d.ID = id
 	return d, nil
 }

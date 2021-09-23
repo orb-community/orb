@@ -184,9 +184,16 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := datasetRes{
-			ID:      saved.ID,
-			Name:    saved.Name.String(),
-			created: true,
+			ID:           saved.ID,
+			Name:         saved.Name.String(),
+			Valid:        saved.Valid,
+			AgentGroupID: saved.AgentGroupID,
+			PolicyID:     saved.PolicyID,
+			SinkID:       saved.SinkID,
+			Metadata:     saved.Metadata,
+			TsCreated:    saved.TsCreated,
+			Tags:         saved.Tags,
+			created:      true,
 		}
 
 		return res, nil

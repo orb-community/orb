@@ -201,8 +201,8 @@ func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID str
 
 func (r policiesRepository) SaveDataset(ctx context.Context, dataset policies.Dataset) (string, error) {
 
-	q := `INSERT INTO datasets (name, mf_owner_id, metadata, valid, agent_group_id, agent_policy_id, sink_id)         
-			  VALUES (:name, :mf_owner_id, :metadata, :valid, :agent_group_id, :agent_policy_id, :sink_id) RETURNING id`
+	q := `INSERT INTO datasets (name, mf_owner_id, metadata, valid, agent_group_id, agent_policy_id, sink_id, tags)         
+			  VALUES (:name, :mf_owner_id, :metadata, :valid, :agent_group_id, :agent_policy_id, :sink_ids_str, :tags) RETURNING id`
 
 	if !dataset.Name.IsValid() || dataset.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -417,8 +417,10 @@ type dbDataset struct {
 	Valid        bool             `db:"valid"`
 	AgentGroupID sql.NullString   `db:"agent_group_id"`
 	PolicyID     sql.NullString   `db:"agent_policy_id"`
-	SinkID       sql.NullString   `db:"sink_id"`
 	TsCreated    time.Time        `db:"ts_created"`
+	Tags         db.Tags          `db:"tags"`
+	SinkID       []string         `db:"sink_id"`
+	SinksIDsStr  interface{}      `db:"sink_ids_str"`
 }
 
 func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
@@ -430,10 +432,12 @@ func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
 	}
 
 	d := dbDataset{
-		ID:        dataset.ID,
-		Name:      dataset.Name,
-		MFOwnerID: uID.String(),
-		Metadata:  db.Metadata(dataset.Metadata),
+		ID:          dataset.ID,
+		Name:        dataset.Name,
+		MFOwnerID:   uID.String(),
+		Metadata:    db.Metadata(dataset.Metadata),
+		Tags:        db.Tags(dataset.Tags),
+		SinksIDsStr: pq.Array(dataset.SinkID),
 	}
 
 	d.Valid = true
@@ -447,12 +451,6 @@ func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
 		d.PolicyID = sql.NullString{String: dataset.PolicyID, Valid: true}
 	} else {
 		d.PolicyID = sql.NullString{Valid: false}
-		d.Valid = false
-	}
-	if dataset.SinkID != "" {
-		d.SinkID = sql.NullString{String: dataset.SinkID, Valid: true}
-	} else {
-		d.SinkID = sql.NullString{Valid: false}
 		d.Valid = false
 	}
 
@@ -490,7 +488,7 @@ func toDataset(dba dbDataset) policies.Dataset {
 		Valid:        dba.Valid,
 		AgentGroupID: dba.AgentGroupID.String,
 		PolicyID:     dba.PolicyID.String,
-		SinkID:       dba.SinkID.String,
+		SinkID:       dba.SinkID,
 		Metadata:     types.Metadata(dba.Metadata),
 		Created:      dba.TsCreated,
 	}

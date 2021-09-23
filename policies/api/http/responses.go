@@ -7,6 +7,7 @@ package http
 import (
 	"github.com/ns1labs/orb/pkg/types"
 	"net/http"
+	"time"
 )
 
 type policyRes struct {
@@ -97,9 +98,16 @@ type pageRes struct {
 }
 
 type datasetRes struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	created bool
+	ID           string         `json:"id"`
+	Name         string         `json:"name"`
+	Valid        bool           `json:"valid"`
+	AgentGroupID string         `json:"agent_group_id"`
+	PolicyID     string         `json:"policy_id"`
+	SinkID       []string       `json:"sink_id"`
+	Metadata     types.Metadata `json:"metadata"`
+	TsCreated    time.Time      `json:"ts_created"`
+	Tags         types.Tags     `json:"tags"`
+	created      bool
 }
 
 func (s datasetRes) Code() int {
