@@ -70,7 +70,7 @@
           <!-- input form -->
           <!-- select input -->
           <div [ngSwitch]="formPiece.key">
-            <div *ngSwitchCase="'inputs'">
+            <div *ngSwitchCase="'inputs'" [formGroup]="backendConfigForms['inputs']">
               <nb-form-field>
                 <div>
                   <label [htmlFor]="" class="font-weight-bold">Input</label>
@@ -150,7 +150,8 @@
                          nbInput="{{ formPiece.key }}"
                          placeholder="Select Tap"
                          required="true"
-                         size="medium">
+                         size="medium"
+              >
                 <nb-option *ngFor="let option of backend[formPiece.key] | keyvalue"
                            [attr.data-orb-qa-id]="option.key"
                            [value]="option.key">{{ option.key }}</nb-option>

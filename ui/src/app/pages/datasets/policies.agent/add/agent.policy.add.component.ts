@@ -116,7 +116,7 @@ export class AgentPolicyAddComponent {
   onInputSelected(selectedInput) {
     this.input = this.backend['inputs'][selectedInput];
     const { inputs } = this.backendConfigForms;
-    Object.keys(this.input).forEach(key => {
+    Object.keys(this.input.config).forEach(key => {
       inputs.addControl(key, this._formBuilder.control('', [Validators.required]));
     });
 
