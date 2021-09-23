@@ -7,7 +7,7 @@ import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { DatasetPolicy } from 'app/common/interfaces/orb/dataset.policy.interface';
+import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -26,7 +26,7 @@ export class DatasetPoliciesService {
     this.clean();
   }
 
-  public static getDefaultPagination(): OrbPagination<DatasetPolicy> {
+  public static getDefaultPagination(): OrbPagination<Dataset> {
     return {
       limit: defLimit,
       order: defOrder,
@@ -49,7 +49,7 @@ export class DatasetPoliciesService {
     this.paginationCache = {};
   }
 
-  addDatasetPolicy(datasetItem: DatasetPolicy) {
+  addDataset(datasetItem: Dataset) {
     return this.http.post(environment.datasetPoliciesUrl,
       { ...datasetItem, validate_only: false },
       { observe: 'response' })
@@ -67,7 +67,7 @@ export class DatasetPoliciesService {
       );
   }
 
-  getDatasetPolicyById(id: string): any {
+  getDatasetById(id: string): any {
     return this.http.get(`${ environment.datasetPoliciesUrl }/${ id }`)
       .map(
         resp => {
@@ -83,7 +83,7 @@ export class DatasetPoliciesService {
       );
   }
 
-  editDatasetPolicy(datasetItem: DatasetPolicy): any {
+  editDataset(datasetItem: Dataset): any {
     return this.http.put(`${ environment.datasetPoliciesUrl }/${ datasetItem.id }`, datasetItem)
       .map(
         resp => {
@@ -99,7 +99,7 @@ export class DatasetPoliciesService {
       );
   }
 
-  deleteDatasetPolicy(id: string) {
+  deleteDataset(id: string) {
     return this.http.delete(`${ environment.datasetPoliciesUrl }/${ id }`)
       .map(
         resp => {

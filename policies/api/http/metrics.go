@@ -38,7 +38,7 @@ func (m metricsMiddleware) ViewPolicyByID(ctx context.Context, token string, pol
 	return m.svc.ViewPolicyByID(ctx, token, policyID)
 }
 
-func (m metricsMiddleware) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
+func (m metricsMiddleware) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.PolicyInDataset, error) {
 	return m.svc.ListPoliciesByGroupIDInternal(ctx, groupIDs, ownerID)
 }
 

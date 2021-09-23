@@ -76,6 +76,9 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     !!this.agentGroupID && this.agentGroupsService.getAgentGroupById(this.agentGroupID).subscribe(resp => {
       this.agentGroup = resp.agentGroup;
       this.isLoading = false;
+
+      this.updateTagMatches();
+      this.updateMatchingAgents();
     });
     this.isEdit = !!this.agentGroupID && this.router.getCurrentNavigation().extras.state?.edit as boolean;
     this.isLoading = this.isEdit;
@@ -185,9 +188,9 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   onRemoveTag(tag: any) {
     const {tags, tags: {value: tagsList}} = this.secondFormGroup.controls;
     const indexToRemove = tagsList.indexOf(tag);
+    tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
 
-    if (indexToRemove >= 0) {
-      tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
+    if (tags.value.length > 0) {
       this.updateTagMatches();
       this.updateMatchingAgents();
     }

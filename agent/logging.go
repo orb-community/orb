@@ -40,10 +40,10 @@ func (a *agentLoggerDebug) Printf(format string, v ...interface{}) {
 	a.a.logger.Debug("mqtt log", zap.Any("payload", v))
 }
 func (a *agentLoggerCritical) Println(v ...interface{}) {
-	a.a.logger.Panic("mqtt log", zap.Any("payload", v))
+	a.a.logger.Error("CRITICAL mqtt log", zap.Any("payload", v))
 }
 func (a *agentLoggerCritical) Printf(format string, v ...interface{}) {
-	a.a.logger.Panic("mqtt log", zap.Any("payload", v))
+	a.a.logger.Error("CRITICAL mqtt log", zap.Any("payload", v))
 }
 func (a *agentLoggerError) Println(v ...interface{}) {
 	a.a.logger.Error("mqtt log", zap.Any("payload", v))

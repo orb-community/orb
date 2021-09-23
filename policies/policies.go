@@ -34,6 +34,11 @@ type Dataset struct {
 	Created      time.Time
 }
 
+type PolicyInDataset struct {
+	Policy
+	DatasetID string
+}
+
 type Page struct {
 	PageMetadata
 	Policies []Policy
@@ -58,7 +63,7 @@ type Service interface {
 	ViewPolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (Policy, error)
 
 	// ListPoliciesByGroupIDInternal gRPC version of retrieving list of policies belonging to specified agent group with no token
-	ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
+	ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]PolicyInDataset, error)
 
 	// EditPolicy edit a existing policy by id with a valid token
 	EditPolicy(ctx context.Context, token string, pol Policy, format string, policyData string) (Policy, error)
@@ -94,7 +99,7 @@ type Repository interface {
 	RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (Policy, error)
 
 	// RetrievePoliciesByGroupID Retrieve policy list by group id
-	RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
+	RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]PolicyInDataset, error)
 
 	// RetrieveAll retrieves the subset of Policies owned by the specified user
 	RetrieveAll(ctx context.Context, ownerID string, pm PageMetadata) (Page, error)

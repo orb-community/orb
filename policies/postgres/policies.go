@@ -143,9 +143,9 @@ func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm po
 	return page, nil
 }
 
-func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
+func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]policies.PolicyInDataset, error) {
 
-	q := `SELECT agent_policies.id AS id, agent_policies.name AS name, agent_policies.mf_owner_id, orb_tags, backend, version, policy, agent_policies.ts_created 
+	q := `SELECT agent_policies.id AS id, datasets.id AS dataset_id, agent_policies.name AS name, agent_policies.mf_owner_id, orb_tags, backend, version, policy, agent_policies.ts_created 
 			FROM agent_policies, datasets
 			WHERE agent_policies.id = datasets.agent_policy_id AND agent_policies.mf_owner_id = datasets.mf_owner_id AND valid = TRUE AND
 				agent_group_id IN (?) AND agent_policies.mf_owner_id = ?`
@@ -167,7 +167,7 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 	}
 	defer rows.Close()
 
-	var items []policies.Policy
+	var items []policies.PolicyInDataset
 	for rows.Next() {
 		dbth := dbPolicy{MFOwnerID: ownerID}
 		if err := rows.StructScan(&dbth); err != nil {
@@ -175,7 +175,7 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 		}
 
 		th := toPolicy(dbth)
-		items = append(items, th)
+		items = append(items, policies.PolicyInDataset{Policy: th, DatasetID: dbth.DataSetID})
 	}
 
 	return items, nil
@@ -276,7 +276,7 @@ func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, pol
 		"mf_owner_id":     ownerID,
 	}
 
-	res, err := r.db.NamedExecContext(ctx, q, params)
+	_, err := r.db.NamedExecContext(ctx, q, params)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
@@ -287,22 +287,13 @@ func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, pol
 		}
 		return errors.Wrap(policies.ErrUpdateEntity, err)
 	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return errors.Wrap(policies.ErrUpdateEntity, err)
-	}
-
-	if count == 0 {
-		return policies.ErrInactivateDataset
-	}
 	return nil
 }
 
 func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 
-	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags)         
-			  VALUES (:name, :mf_owner_id, :backend, :policy, :orb_tags) RETURNING id`
+	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags, description)         
+			  VALUES (:name, :mf_owner_id, :backend, :policy, :orb_tags, :description) RETURNING id`
 
 	if !policy.Name.IsValid() || policy.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -452,11 +443,11 @@ type dbPolicy struct {
 	MFOwnerID   string           `db:"mf_owner_id"`
 	Backend     string           `db:"backend"`
 	Description string           `db:"description"`
-	Format      string           `db:"format"`
 	OrbTags     db.Tags          `db:"orb_tags"`
 	Policy      db.Metadata      `db:"policy"`
 	Version     int32            `db:"version"`
 	Created     time.Time        `db:"ts_created"`
+	DataSetID   string           `db:"dataset_id"`
 }
 
 func toDBPolicy(policy policies.Policy) (dbPolicy, error) {

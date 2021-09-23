@@ -21,7 +21,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'      
+                $ref: '#/components/schemas/Error'
     post:
       summary: 'Create new Policy'
       operationId: createPolicy
@@ -52,13 +52,13 @@ paths:
               schema:
                 type: object
                 properties:
-                    id:
-                        type: string
-                        format: uuid
-                    name:
-                        type: string
-                    backend:
-                        type: string
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  backend:
+                    type: string
         default:
           description: Unexpected error
           content:

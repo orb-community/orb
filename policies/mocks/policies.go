@@ -7,6 +7,7 @@ package mocks
 import (
 	"context"
 	"github.com/gofrs/uuid"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies"
 )
 
@@ -17,7 +18,7 @@ type mockPoliciesRepository struct {
 	pdb            map[string]policies.Policy
 	dataSetCounter uint64
 	ddb            map[string]policies.Dataset
-	gdb            map[string][]policies.Policy
+	gdb            map[string][]policies.PolicyInDataset
 }
 
 func (m *mockPoliciesRepository) InactivateDatasetByPolicyID(ctx context.Context, policyID string, ownerID string) error {
@@ -61,7 +62,7 @@ func NewPoliciesRepository() policies.Repository {
 	return &mockPoliciesRepository{
 		pdb: make(map[string]policies.Policy),
 		ddb: make(map[string]policies.Dataset),
-		gdb: make(map[string][]policies.Policy),
+		gdb: make(map[string][]policies.PolicyInDataset),
 	}
 }
 
@@ -90,6 +91,12 @@ func (m *mockPoliciesRepository) RetrieveAll(ctx context.Context, owner string, 
 }
 
 func (m *mockPoliciesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
+	for _, p := range m.pdb {
+		if p.Name == policy.Name && p.MFOwnerID == policy.MFOwnerID {
+			return "", errors.ErrConflict
+		}
+	}
+
 	ID, _ := uuid.NewV4()
 	policy.ID = ID.String()
 	m.pdb[policy.ID] = policy
@@ -107,9 +114,9 @@ func (m *mockPoliciesRepository) RetrievePolicyByID(ctx context.Context, policyI
 	return policies.Policy{}, policies.ErrNotFound
 }
 
-func (m *mockPoliciesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) (ret []policies.Policy, err error) {
+func (m *mockPoliciesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) (ret []policies.PolicyInDataset, err error) {
 	for _, d := range groupIDs {
-		ret = append(ret, m.pdb[d])
+		ret = append(ret, m.gdb[d][0])
 	}
 	return ret, nil
 }
@@ -118,8 +125,8 @@ func (m *mockPoliciesRepository) SaveDataset(ctx context.Context, dataset polici
 	ID, _ := uuid.NewV4()
 	dataset.ID = ID.String()
 	m.ddb[dataset.ID] = dataset
-	m.gdb[dataset.AgentGroupID] = make([]policies.Policy, 1)
-	m.gdb[dataset.AgentGroupID][0] = m.pdb[dataset.PolicyID]
+	m.gdb[dataset.AgentGroupID] = make([]policies.PolicyInDataset, 1)
+	m.gdb[dataset.AgentGroupID][0] = policies.PolicyInDataset{Policy: m.pdb[dataset.PolicyID], DatasetID: dataset.ID}
 	m.dataSetCounter++
 	return ID.String(), nil
 }

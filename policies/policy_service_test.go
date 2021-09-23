@@ -16,19 +16,19 @@ import (
 )
 
 const (
-	token       = "token"
-	email       = "user@example.com"
-	format      = "yaml"
-	policy_data = `version: "1.0"
+	token        = "token"
+	invalidToken = "invalid"
+	email        = "user@example.com"
+	format       = "yaml"
+	policy_data  = `version: "1.0"
 visor:
   taps:
     anycast:
       type: pcap
       config:
         iface: eth0`
-	limit        = 10
-	wrongID      = "28ea82e7-0224-4798-a848-899a75cdc650"
-	invalidToken = "invalidToken"
+	limit   = 10
+	wrongID = "28ea82e7-0224-4798-a848-899a75cdc650"
 )
 
 func newService(auth mainflux.AuthServiceClient) policies.Service {
@@ -329,6 +329,53 @@ func TestValidatePolicy(t *testing.T) {
 		})
 	}
 
+}
+
+func TestCreatePolicy(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpect error: %s", err))
+
+	nameID, _ := types.NewIdentifier("my-policy")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policy := policies.Policy{
+		Name:        nameID,
+		MFOwnerID:   ownerID.String(),
+		Description: "An example policy",
+		Backend:     "pktvisor",
+		Version:     0,
+		OrbTags:     map[string]string{"region": "eu"},
+	}
+
+	cases := map[string]struct {
+		policy policies.Policy
+		format string
+		token  string
+		err    error
+	}{
+		"create a new policy": {
+			policy: policy,
+			format: format,
+			token:  token,
+			err:    nil,
+		},
+		"create a policy with an invalid token": {
+			policy: policy,
+			token:  invalidToken,
+			err:    policies.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := svc.AddPolicy(context.Background(), tc.token, tc.policy, tc.format, policy_data)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
+			t.Log(tc.token)
+		})
+	}
 }
 
 func TestRetrieveDatasetByID(t *testing.T) {
