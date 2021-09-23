@@ -276,7 +276,7 @@ func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, pol
 		"mf_owner_id":     ownerID,
 	}
 
-	res, err := r.db.NamedExecContext(ctx, q, params)
+	_, err := r.db.NamedExecContext(ctx, q, params)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
@@ -287,22 +287,13 @@ func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, pol
 		}
 		return errors.Wrap(policies.ErrUpdateEntity, err)
 	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return errors.Wrap(policies.ErrUpdateEntity, err)
-	}
-
-	if count == 0 {
-		return policies.ErrInactivateDataset
-	}
 	return nil
 }
 
 func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 
-	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags)         
-			  VALUES (:name, :mf_owner_id, :backend, :policy, :orb_tags) RETURNING id`
+	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags, description)         
+			  VALUES (:name, :mf_owner_id, :backend, :policy, :orb_tags, :description) RETURNING id`
 
 	if !policy.Name.IsValid() || policy.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -380,7 +371,6 @@ type dbPolicy struct {
 	MFOwnerID   string           `db:"mf_owner_id"`
 	Backend     string           `db:"backend"`
 	Description string           `db:"description"`
-	Format      string           `db:"format"`
 	OrbTags     db.Tags          `db:"orb_tags"`
 	Policy      db.Metadata      `db:"policy"`
 	Version     int32            `db:"version"`
