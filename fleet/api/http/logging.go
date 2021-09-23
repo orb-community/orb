@@ -214,6 +214,9 @@ func (l loggingMiddleware) RemoveAgent(ctx context.Context, token, thingID strin
 			l.logger.Warn("method call: delete_agent",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: delete_agent",
+				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
 
