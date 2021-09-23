@@ -9,8 +9,8 @@
     </xng-breadcrumb>
     <h4>{{ isEdit ? 'Edit Agent Policy' : 'Create Agent Policy'}}</h4>
   </header>
-  <div *ngIf="!isLoading" class="d-flex row">
-    <div class="d-flex col-12 mt-5">
+  <div *ngIf="!isLoading" class="row">
+    <div>
       <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFormGroup">
         <nb-form-field>
           <div class="d-flex flex-column">
