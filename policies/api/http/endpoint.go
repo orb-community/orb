@@ -33,7 +33,6 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Policy:      req.Policy,
 			Description: req.Description,
 			OrbTags:     req.Tags,
-			Version:     req.Version,
 		}
 
 		saved, err := svc.AddPolicy(ctx, req.token, policy, req.Format, req.PolicyData)

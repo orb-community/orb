@@ -292,8 +292,8 @@ func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, pol
 
 func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 
-	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags, description, version)         
-			  VALUES (:name, :mf_owner_id, :backend, :policy, :orb_tags, :description, :version) RETURNING id`
+	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags, description)         
+			  VALUES (:name, :mf_owner_id, :backend, :policy, :orb_tags, :description) RETURNING id`
 
 	if !policy.Name.IsValid() || policy.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
