@@ -76,6 +76,9 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     !!this.agentGroupID && this.agentGroupsService.getAgentGroupById(this.agentGroupID).subscribe(resp => {
       this.agentGroup = resp.agentGroup;
       this.isLoading = false;
+
+      this.updateTagMatches();
+      this.updateMatchingAgents();
     });
     this.isEdit = !!this.agentGroupID && this.router.getCurrentNavigation().extras.state?.edit as boolean;
     this.isLoading = this.isEdit;
