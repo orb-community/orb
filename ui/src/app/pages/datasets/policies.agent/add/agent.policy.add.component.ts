@@ -54,8 +54,8 @@ export class AgentPolicyAddComponent {
       tags: {},
       backend: 'pktvisor',
     };
-    this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
+    this.agentPolicy = this.route.snapshot.paramMap.get('agentPolicy') as AgentPolicy;
 
     this.isEdit = !!this.agentPolicyID;
     this.agentPolicyLoading = this.isEdit;
@@ -65,7 +65,7 @@ export class AgentPolicyAddComponent {
       this.agentPolicyLoading = false;
     });
 
-    const { name, description, backend } = this.agentPolicy;
+    const { name, description, backend } = this.agentPolicy || { name: '', description: '', backend: '' };
 
     this.backendConfigForms = {};
 
@@ -83,10 +83,10 @@ export class AgentPolicyAddComponent {
     this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
       this.availableBackends = backends;
 
-      this.isEdit && this.detailsFormGroup.controls.backend.disable();
-
-      // builds secondFormGroup
-      this.onBackendSelected('pktvisor');
+      if (this.isEdit) {
+        this.detailsFormGroup.controls.backend.disable();
+        this.onBackendSelected(this.agentPolicy.backend);
+      }
 
       this.isLoading = false;
     });
@@ -98,14 +98,15 @@ export class AgentPolicyAddComponent {
     //   (selectedBackend === this.agentPolicy.backend) &&
     //   this.agentPolicy?.policy &&
     //   this.agentPolicy.policy as TapConfig || null;
-    this.backend = this.availableBackends[selectedBackend];
 
-    this.backendConfigForms = Object.keys(this.backend)
+    // reconfig dynamic forms based on backend selected
+    this.backendConfigForms = Object.keys(this.availableBackends[selectedBackend])
       .reduce((formGroups, groupName, groupIndex) => {
-        formGroups[groupName] = this._formBuilder.group({ groupName: ['', Validators.required]});
+        formGroups[groupName] = this._formBuilder.group({ groupName: ['', Validators.required] });
         return formGroups;
       }, {});
 
+    this.backend = this.availableBackends[selectedBackend];
   }
 
   onTapSelected(selectedTap) {

@@ -165,7 +165,7 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
 
   onOpenEdit(agentPolicy: any) {
     this.router.navigate([`edit/${ agentPolicy.id }`], {
-      state: { agent: agentPolicy, edit: true },
+      state: { agentPolicy: agentPolicy, edit: true },
       relativeTo: this.route,
     });
   }
