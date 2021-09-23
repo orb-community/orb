@@ -99,25 +99,25 @@ export class AgentPolicyAddComponent {
     //   ([selectedBackend] === [this.agentPolicy.backend]) &&
     //   this.agentPolicy?.policy &&
     //   // this is purely based on
-    //   // [this config file](https://github.com/ns1labs/pktvisor/blob/develop/RFCs/2021-04-16-76-collection-policies.md)
-    //   this.agentPolicy.policy['input']['input_type'] === [selectedBackend] &&
-    //   this.agentPolicy.policy['input']['input_type'][selectedBackend]['config'];
+    //   // [this config
+    // file](https://github.com/ns1labs/pktvisor/blob/develop/RFCs/2021-04-16-76-collection-policies.md)
+    // this.agentPolicy.policy['input']['input_type'] === [selectedBackend] &&
+    // this.agentPolicy.policy['input']['input_type'][selectedBackend]['config'];
 
+    this.backend = this.availableBackends[selectedBackend];
     // reconfig dynamic forms based on backend selected
     this.backendConfigForms = Object.keys(this.availableBackends[selectedBackend])
       .reduce((formGroups, groupName, groupIndex) => {
         formGroups[groupName] = this._formBuilder.group({ [groupName]: ['', Validators.required] });
         return formGroups;
       }, {});
-
-    this.backend = this.availableBackends[selectedBackend];
   }
 
   onInputSelected(selectedInput) {
     this.input = this.backend['inputs'][selectedInput];
     const { inputs } = this.backendConfigForms;
     Object.keys(this.input).forEach(key => {
-      inputs.addControl(key, this._formBuilder.control('',))
+      inputs.addControl(key, this._formBuilder.control('', [Validators.required]));
     });
 
   }

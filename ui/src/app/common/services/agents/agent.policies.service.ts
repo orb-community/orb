@@ -195,7 +195,7 @@ export class AgentPoliciesService {
                 'iface': {
                   'required': true,
                   'type': 'string',
-                  'input': 'string',
+                  'input': 'text',
                   'title': 'Interface',
                   'name': 'iface',
                   'description': 'The ethernet interface to capture on',
@@ -203,7 +203,7 @@ export class AgentPoliciesService {
                 'bpf': {
                   'required': false,
                   'type': 'string',
-                  'input': 'string',
+                  'input': 'text',
                   'title': 'Filter Expression',
                   'name': 'bpf',
                   'description': 'tcpdump compatible filter expression for limiting the traffic examined (with BPF). Example: "port 53"',
@@ -211,7 +211,7 @@ export class AgentPoliciesService {
                 'host_spec': {
                   'required': false,
                   'type': 'string',
-                  'input': 'string',
+                  'input': 'text',
                   'title': 'Host Specification',
                   'name': 'host_spec',
                   'description': 'Subnets (comma separated) to consider this HOST, in CIDR form. Example: "10.0.1.0/24,10.0.2.1/32,2001:db8::/64"',
@@ -219,7 +219,7 @@ export class AgentPoliciesService {
                 'pcap_source': {
                   'required': false,
                   'type': 'string',
-                  'input': 'string',
+                  'input': 'text',
                   'title': 'pcap Engine',
                   'name': 'pcap_source',
                   'description': 'pcap backend engine to use. Defaults to best for platform.',
@@ -230,7 +230,7 @@ export class AgentPoliciesService {
               'version': '1.0',
               'config': {
                 'type': {
-                  'type': 'text',
+                  'type': 'string',
                   'input': 'select',
                   'title': 'Type',
                   'name': 'type',
@@ -247,7 +247,7 @@ export class AgentPoliciesService {
                     'RESOLVER_RESPONSE, ..., TOOL_QUERY, TOOL_RESPONSE',
                 },
                 'socket_family': {
-                  'type': 'text',
+                  'type': 'string',
                   'input': 'select',
                   'title': 'Socket Family',
                   'name': 'socket_family',
@@ -256,7 +256,7 @@ export class AgentPoliciesService {
                   'description': 'INET, INET6',
                 },
                 'socket_protocol': {
-                  'type': 'text',
+                  'type': 'string',
                   'input': 'select',
                   'title': 'Socket Protocol',
                   'name': 'socket_protocol',
@@ -265,7 +265,7 @@ export class AgentPoliciesService {
                   'description': 'UDP, TCP',
                 },
                 'query_address': {
-                  'type': 'text',
+                  'type': 'string',
                   'input': 'text',
                   'title': 'Query Address',
                   'name': 'query_address',
@@ -273,7 +273,7 @@ export class AgentPoliciesService {
                   'description': '',
                 },
                 'query_port': {
-                  'type': 'text',
+                  'type': 'string',
                   'input': 'text',
                   'title': 'Query Port',
                   'name': 'query_port',
@@ -281,7 +281,7 @@ export class AgentPoliciesService {
                   'description': '',
                 },
                 'response_address': {
-                  'type': 'text',
+                  'type': 'string',
                   'input': 'text',
                   'title': 'Response Address',
                   'name': 'response_address',
@@ -348,13 +348,12 @@ export class AgentPoliciesService {
                 'filter_only_qname_suffix': {
                   'title': 'Filter: Include Only QName With Suffix',
                   'name': 'filter_only_qname_suffix',
-                  'type': 'text',
+                  'type': 'string',
                   'input': 'text',
                   'pattern': '(\w+);',
                   'description': 'Filter out any queries whose QName does not end in a suffix on the list',
                 },
                 'metric_groups': {
-                  'input': 'checkgroup',
                   'title': 'Metric Groups',
                   'name': 'metric_groups',
                   'cardinality': {
