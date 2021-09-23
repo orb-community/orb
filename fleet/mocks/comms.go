@@ -9,6 +9,10 @@ var _ fleet.AgentCommsService = (*agentCommsServiceMock)(nil)
 
 type agentCommsServiceMock struct{}
 
+func (ac agentCommsServiceMock) NofityDatasetRemoval(ag fleet.AgentGroup) error {
+	return nil
+}
+
 func (ac agentCommsServiceMock) NotifyPolicyRemoval(policyID string, ag fleet.AgentGroup) error {
 	return nil
 }
