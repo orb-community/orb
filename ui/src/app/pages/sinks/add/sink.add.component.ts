@@ -86,7 +86,10 @@ export class SinkAddComponent {
         backend: [backend, Validators.required],
       });
 
-      this.isEdit && this.firstFormGroup.controls.backend.disable();
+      if (this.isEdit) {
+        this.firstFormGroup.controls.backend.disable();
+        this.firstFormGroup.controls.name.disable();
+      }
 
       // builds secondFormGroup
       this.onSinkTypeSelected(backend);
