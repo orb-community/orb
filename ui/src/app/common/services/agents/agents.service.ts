@@ -16,6 +16,7 @@ const defDir = 'desc';
 @Injectable()
 export class AgentsService {
   paginationCache: any = {};
+
   cache: OrbPagination<Agent>;
 
   constructor(
@@ -50,8 +51,8 @@ export class AgentsService {
 
   addAgent(agentItem: Agent) {
     return this.http.post(environment.agentsUrl,
-      { ...agentItem, validate_only: false },
-      { observe: 'response' })
+        { ...agentItem, validate_only: false },
+        { observe: 'response' })
       .map(
         resp => {
           return resp;
@@ -68,8 +69,8 @@ export class AgentsService {
 
   validateAgent(agentItem: Agent) {
     return this.http.post(environment.validateAgentsUrl,
-      { ...agentItem, validate_only: true },
-      { observe: 'response' })
+        { ...agentItem, validate_only: true },
+        { observe: 'response' })
       .map(
         resp => {
           return resp;
