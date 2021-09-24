@@ -6,67 +6,768 @@ servers:
   - url: 'http://localhost:8202'
 paths:
   /policies/agent:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
     get:
       summary: 'List Agent Policies'
       operationId: listPolicies
       tags:
         - policy
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Name"
+        - $ref: "#/components/parameters/Order"
+        - $ref: "#/components/parameters/Direction"
+        - $ref: "#/components/parameters/Tags"
       responses:
         '200':
-          description: 'One page of Policy details'
-          content:
-            application/json:
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: "#/components/responses/PolicyPageRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
     post:
-      summary: 'Create new Policy'
+      summary: 'Create new Agent Policy'
       operationId: createPolicy
       tags:
         - policy
       requestBody:
+        $ref: "#/components/requestBodies/PolicyCreateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/PolicyObjRes"
+        '400':
+          description: Failed due to malformed JSON
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Mising or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /policies/agent/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/PolicyId"
+    get:
+      summary: 'Get an existing Agent Policy'
+      operationId: readPolicy
+      tags:
+        - policy
+      responses:
+        '201':
+          $ref: "#/components/responses/PolicyObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    put:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: 'Update an existing Agent Policy'
+      operationId: updatePolicy
+      tags:
+        - policy
+      requestBody:
         required: true
-        content:
-            application/json:
-                schema:
-                    type: object
-                    properties:
-                        name:
-                            type: string
-                        backend:
-                            type: string
-                        policy:
-                            type: object
-                        format:
-                            type: string
-                        policy_data:
-                            type: string
+        $ref: "#/components/requestBodies/PolicyUpdateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/PolicyObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '422':
+          description: Databse can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: "Delete an existing Agent Policy"
+      operationId: deletePolicy
+      tags:
+        - policy
+      responses:
+        '204':
+          description: Policy removed.
+        '400':
+          description: Failed due to malformed Policy ID.
+        '401':
+          description: Missing or invalid access token provided.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /policies/agent/validate:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    post:
+      summary: 'Validate an Agent Policy configuration without saving it'
+      operationId: validatePolicy
+      tags:
+        - policy
+      requestBody:
+        $ref: "#/components/requestBodies/PolicyCreateReq"
       responses:
         '200':
-          description: 'Policy add details'
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uuid
-                  name:
-                    type: string
-                  backend:
-                    type: string
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: "#/components/responses/PolicyObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '415':
+          description: Missing or invalid content type.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /policies/dataset:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List Dataset'
+      operationId: listDatasets
+      tags:
+        - dataset
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Name"
+        - $ref: "#/components/parameters/Order"
+        - $ref: "#/components/parameters/Direction"
+        - $ref: "#/components/parameters/Tags"
+      responses:
+        '200':
+          $ref: "#/components/responses/DatasetPageRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    post:
+      summary: 'Create new Dataset'
+      operationId: createDataset
+      tags:
+        - dataset
+      requestBody:
+        $ref: "#/components/requestBodies/DatasetCreateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/DatasetObjRes"
+        '400':
+          description: Failed due to malformed JSON
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Mising or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /policies/dataset/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/DatasetId"
+    get:
+      summary: 'Get an existing Dataset'
+      operationId: readDataset
+      tags:
+        - dataset
+      responses:
+        '201':
+          $ref: "#/components/responses/DatasetObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    put:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: 'Update an existing Dataset'
+      operationId: updateDataset
+      tags:
+        - dataset
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/DatasetUpdateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/DatasetObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '422':
+          description: Databse can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      summary: "Delete an existing Dataset"
+      operationId: deleteDataset
+      tags:
+        - dataset
+      responses:
+        '204':
+          description: Dataset removed.
+        '400':
+          description: Failed due to malformed Policy ID.
+        '401':
+          description: Missing or invalid access token provided.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /policies/dataset/validate:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    post:
+      summary: 'Validate a Policy Dataset configuration without saving it'
+      operationId: validateDataset
+      tags:
+        - dataset
+      requestBody:
+        $ref: "#/components/requestBodies/DatasetCreateReq"
+      responses:
+        '200':
+          $ref: "#/components/responses/DatasetObjRes"
+        '400':
+          description: Failed due to malformed JSON
+        '401':
+          description: Missing or invalid access token provided..
+        '415':
+          description: Mising or invalid content type.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
+  requestBodies:
+    PolicyCreateReq:
+      description: JSON-formatted document describing the new Policy configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/PolicyCreateReqSchemaJson"
+              - $ref: "#/components/schemas/PolicyCreateReqSchemaYaml"
+    PolicyUpdateReq:
+      description: JSON-formatted document describing the updated Policy configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/PolicyUpdateReqSchemaJson"
+              - $ref: "#/components/schemas/PolicyUpdateReqSchemaYaml"
+    DatasetCreateReq:
+      description: JSON-formatted document describing the new Dataset configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DatasetCreateReqSchema"
+    DatasetUpdateReq:
+      description: JSON-formatted document describing the updated Dataset configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DatasetUpdateReqSchema"
+  parameters:
+    Name:
+      name: name
+      description: Name filter. Filtering is performed as a case-insensitive partial match.
+      in: query
+      schema:
+        type: string
+      required: false
+    Order:
+      name: order
+      description: Order type.
+      in: query
+      schema:
+        type: string
+        default: id
+        enum:
+          - name
+          - id
+      required: false
+    Direction:
+      name: dir
+      description: Order direction.
+      in: query
+      schema:
+        type: string
+        default: desc
+        enum:
+          - asc
+          - desc
+      required: false
+    Limit:
+      name: limit
+      description: Size of the subset to retrieve.
+      in: query
+      schema:
+        type: integer
+        default: 10
+        maximum: 100
+        minimum: 1
+      required: false
+    Offset:
+      name: offset
+      description: Number of items to skip during retrieval.
+      in: query
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+      required: false
+    Tags:
+      name: tags
+      description: Tags filter. Filtering is performed as a case-insensitive partial key value match.
+      in: query
+      schema:
+        type: string
+        default: "{\"key\":\"value\"}"
+      required: false
+    Authorization:
+      name: Authorization
+      description: User's access token.
+      in: header
+      schema:
+        type: string
+        format: jwt
+      required: true
+    PolicyId:
+      name: id
+      description: Unique Agent Policy identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    DatasetId:
+      name: id
+      description: Unique Dataset identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+  responses:
+    PolicyObjRes:
+      description: Policy object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyObjSchema"
+    PolicyPageRes:
+      description: Data retrieved.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyPageSchema"
+    ServiceErrorRes:
+      description: Unexpected server-side error occurred.
+      content:
+        application/json:
+          schema:
+            type: string
+            format: byte
+    PolicyBackendObjRes:
+      description: Backend object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyBackendObjSchema"
+    DatasetObjRes:
+      description: Policy object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DatasetObjSchema"
+    DatasetPageRes:
+      description: Data retrieved.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DatasetPageSchema"
   schemas:
+    PolicyUpdateReqSchemaJson:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-policy
+        description:
+          type: string
+          description: User description of this Policy
+          example: A policy example
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+        policy:
+          type: object
+          description: Agent backend specific policy data in json format
+          example:
+            version: 1.0
+            visor:
+              foo: bar
+    PolicyUpdateReqSchemaYaml:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-policy
+        description:
+          type: string
+          description: User description of this Policy
+          example: A policy example
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+        policy_data:
+          type: string
+          description: Agent backend specific policy data in yaml format
+          example: "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+        format:
+          type: string
+          example: yaml
+          description: Policy text format needed to specify when a policy is a yaml
+    PolicyCreateReqSchemaJson:
+      type: object
+      required:
+        - name
+        - backend
+        - description
+        - tags
+        - policy
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-policy
+        description:
+          type: string
+          description: User description of this Policy
+          example: A policy example
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+        backend:
+          type: string
+          example: pktvisor
+          description: Agent backend this policy is for. Cannot change once created.
+        policy:
+          type: object
+          description: Agent backend specific policy data in json format
+          example:
+              version: 1.0
+              visor:
+                foo: bar
+    PolicyCreateReqSchemaYaml:
+      type: object
+      required:
+        - name
+        - backend
+        - description
+        - tags
+        - policy_data
+        - format
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-policy
+        description:
+          type: string
+          description: User description of this Policy
+          example: A policy example
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+        backend:
+          type: string
+          example: pktvisor
+          description: Agent backend this policy is for. Cannot change once created.
+        policy_data:
+          type: string
+          description: Agent backend specific policy data in yaml format
+          example: "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+        format:
+          type: string
+          example: yaml
+          description: Policy text format needed to specify when a policy is a yaml
+    PolicyPageSchema:
+      type: object
+      properties:
+        policy:
+          type: array
+          minItems: 0
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/PolicyObjSchema"
+        total:
+          type: integer
+          description: Total number of items.
+        offset:
+          type: integer
+          description: Number of items to skip during retrieval.
+        limit:
+          type: integer
+          description: Maximum number of items to return in one page.
+      required:
+        - policy
+    ConfigEntrySchema:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Visual title of the config item shown in UI
+        type:
+          type: string
+          description: "Data field type"
+          enum:
+            - string
+            - password
+            - int
+        name:
+          type: string
+          description: The field label used in the JSON config object for this field
+        description:
+          type: string
+          description: A description of the use of this configuration field
+      example:
+        title: Remote host
+        type: string
+        name: remote_host
+        description:
+    PolicyObjSchema:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          readOnly: true
+          format: uuid
+          description: Unique identifier (UUID)
+        name:
+          type: string
+          description: A unique name label
+          example: my-policy
+        description:
+          type: string
+          description: User description of this Policy
+          example: An example policy
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+        backend:
+          type: string
+          example: pktvisor
+          description: The policy backend to use. Cannot change once created.
+        ts_created:
+          type: string
+          readOnly: true
+          format: date-time
+          description: Timestamp of creation
+        version:
+          type: integer
+          readOnly: true
+          example: 0
+          description: A monotonically increasing counter starting at 0 on creation and increasing with each policy update.
+        policy:
+          type: object
+          description: Agent backend specific policy data in json format
+          example:
+            version: 1.0
+            visor:
+              foo: bar
+    PolicyBackendResSchema:
+      type: object
+      properties:
+        backend:
+          type: string
+          example: pktvisor
+          description: Name and identifier of the policy backend, used when creating new policy
+        description:
+          type: string
+          example: Text field of the description of the agent backend
+        config:
+          type: array
+          description: Backend configuration field details
+          items:
+            items:
+              $ref: '#/components/schemas/ConfigEntrySchema'
+    PolicyBackendObjSchema:
+      type: object
+      required:
+        - id
+      properties:
+        backend:
+          type: string
+          example: pktvisor
+          description: Name and identifier of the policy backend, used when creating new policy
+        description:
+          type: string
+          example: Text field of the description of the agent backend
+        config:
+          type: array
+          description: Backend configuration field details
+          items:
+            items:
+              $ref: '#/components/schemas/ConfigEntrySchema'
+    DatasetUpdateReqSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-dataset
+        sink_id:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          uniqueItems: true
+          description: An array of one or more sink unique identifier
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+    DatasetCreateReqSchema:
+      type: object
+      required:
+        - name
+        - agent_group_id
+        - agent_policy_id
+        - sink_id
+        - tags
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-dataset
+        agent_group_id:
+          type: string
+          format: uuid
+          description: A unique identifier of an agent_group
+        agent_policy_id:
+          type: string
+          format: uuid
+          description: A unique identifier of an agent_policy
+        sink_id:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          description: An array of one or more sink unique identifier
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+    DatasetPageSchema:
+      type: object
+      properties:
+        dataset:
+          type: array
+          minItems: 0
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/DatasetObjSchema"
+        total:
+          type: integer
+          description: Total number of items
+        offset:
+          type: integer
+          description: Number of items to skip during retrieval
+        limit:
+          type: integer
+          description: Maximum number of items to return in one page
+      required:
+        - dataset
+    DatasetObjSchema:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          readOnly: true
+          format: uuid
+          description: Unique identifier (UUID)
+        name:
+          type: string
+          description: A unique name label
+          example: my-dataset
+        agent_group_id:
+          type: string
+          format: uuid
+          description: Unique identifier (UUID) of an agent_group
+        agent_policy_id:
+          type: string
+          format: uuid
+          description: Unique identifier (UUID) of an agent_policy
+        sink_id:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          description: An array of one or more sink unique identifier
+        valid:
+          type: boolean
+          readOnly: true
+          description: Boolean field indicating whether the dataset is valid
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            region: eu
+            node_type: dns
+        ts_created:
+          type: string
+          readOnly: true
+          format: date-time
+          description: Timestamp of creation
     Error:
       type: object
       required:

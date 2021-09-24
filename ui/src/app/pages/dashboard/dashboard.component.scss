@@ -1,55 +1,68 @@
-nb-card-body {
-  text-align: center;
+nb-card {
+  nb-card-header {
+    text-align: center;
+    background: #232940;
+    color: #969fb9;
+  }
+
+  nb-card-body {
+    margin: 2rem 3rem;
+    padding: 0;
+
+    p {
+      color: #969fb9;
+    }
+  }
 }
 
-nb-card-header {
-  text-align: center;
+h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 32px;
 }
 
-nb-icon {
-  font-size: 6rem;
+::ng-deep {
+  header p {
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px !important;
+    line-height: 20px;
+
+    width: 250px;
+    height: 20px;
+    margin-left: 16px;
+    margin-top: 24px;
+
+    display: flex;
+    align-items: center;
+  }
+
+  .orb-breadcrumb {
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 12px;
+
+    ::ng-deep {
+      .xng-breadcrumb-trail {
+        color: #ffffff;
+        margin-bottom: 0;
+      }
+      .xng-breadcrumb-link {
+        text-decoration: none !important;
+        color: #969fb9 !important;
+      }
+      .xng-breadcrumb-separator {
+        text-decoration: none !important;
+        color: #969fb9 !important;
+      }
+    }
+  }
 }
 
-a {
-  background-color: #5e8ecf;
-  color: white;
-  display: inline-block;
-  font-size: 15px;
-  padding: 10px;
-  text-decoration: none;
-  width: 200px;
-}
 
-a:hover {
-  color: #3b3c4f;
-  text-decoration: none;
-}
-
-.dash-top {
-  background-color: #3b3c4f;
-  margin-left: 0;
-  margin-right: 0;
-  margin-top: 0;
-}
-
-.dash-top-text {
-  color: #dfdee9;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 700px;
-}
-
-.dash-top-button {
-  margin-top: 30px;
-}
-
-.dash-bottom-text {
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 300px;
-  vertical-align: middle;
-}
-
-.dash-bottom-button {
-  margin-top: 60px;
-}
