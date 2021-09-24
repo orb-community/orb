@@ -32,17 +32,19 @@ export class AgentViewComponent implements OnInit {
     this.agentID = this.route.snapshot.paramMap.get('id');
     this.command2copy = '';
 
-    this.agent = { orb_tags: {}, agent_tags: {} };
-
     !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
       this.agent = resp;
-      this.command2copy = `docker run --rm --net=host\\
+      this.makeCommand2Copy();
+      this.isLoading = !!this.agent?.id ? false : this.isLoading;
+    });
+  }
+  makeCommand2Copy() {
+    this.command2copy = `docker run --rm --net=host\\
       \r-e ORB_CLOUD_ADDRESS=${document.location.protocol}://${document.location.hostname}/\\
       \r-e ORB_CLOUD_MQTT_ID='${this.agent.id}'\\
       \r-e ORB_CLOUD_MQTT_CHANNEL_ID='${this.agent.channel_id}'\\
       \r-e ORB_BACKENDS_PKTVISOR_IFACE=[ETH-INTERFACE]\\
       \r-e ORB_CLOUD_MQTT_KEY=[AGENT-KEY]\\
       \rns1labs/orb-agent`;
-    });
   }
 }
