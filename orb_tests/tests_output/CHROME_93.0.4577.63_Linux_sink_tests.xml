@@ -5,9 +5,9 @@
 
   <testsuite name="sink_tests"
     errors="1" failures="1" hostname="" id="" package="sink_tests" skipped="0"
-    tests="17" time="52.83" timestamp="">
+    tests="17" time="70.74" timestamp="">
   
-    <testcase name="Create an account" classname="sink_tests" time="2.261" assertions="7">
+    <testcase name="Create an account" classname="sink_tests" time="8.786" assertions="7">
 
     
 
@@ -24,7 +24,7 @@
     
     </testcase>
   
-    <testcase name="Login with correct email and password" classname="sink_tests" time="1.348" assertions="7">
+    <testcase name="Login with correct email and password" classname="sink_tests" time="1.451" assertions="7">
 
     
 
@@ -41,74 +41,7 @@
     
     </testcase>
   
-    <testcase name="Sink Creation" classname="sink_tests" time="3.812" assertions="30">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    </testcase>
-  
-    <testcase name="Duplicate sink creation" classname="sink_tests" time="3.762" assertions="32">
-
-    
-
-    
+    <testcase name="Sink Creation" classname="sink_tests" time="3.972" assertions="30">
 
     
 
@@ -171,50 +104,7 @@
     
     </testcase>
   
-    <testcase name="Sink Visualization" classname="sink_tests" time="1.679" assertions="20">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    </testcase>
-  
-    <testcase name="Sink Visualization and Edit Description" classname="sink_tests" time="3.254" assertions="32">
+    <testcase name="Duplicate sink creation" classname="sink_tests" time="3.077" assertions="32">
 
     
 
@@ -281,7 +171,50 @@
     
     </testcase>
   
-    <testcase name="Sink Visualization and Edit Remote Host" classname="sink_tests" time="3.351" assertions="32">
+    <testcase name="Sink Visualization" classname="sink_tests" time="3.106" assertions="20">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Sink Visualization and Edit Description" classname="sink_tests" time="4.737" assertions="32">
 
     
 
@@ -348,129 +281,7 @@
     
     </testcase>
   
-    <testcase name="Sink Visualization and Edit Username" classname="sink_tests" time="3.233" assertions="24">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    </testcase>
-  
-    <testcase name="Sink Visualization and Edit Password" classname="sink_tests" time="1.862" assertions="24">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    </testcase>
-  
-    <testcase name="Sink Visualization and Edit Tags" classname="sink_tests" time="4.342" assertions="42">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
+    <testcase name="Sink Visualization and Edit Remote Host" classname="sink_tests" time="4.217" assertions="32">
 
     
 
@@ -537,66 +348,7 @@
     
     </testcase>
   
-    <testcase name="Sink Edit Description" classname="sink_tests" time="2.509" assertions="26">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    </testcase>
-  
-    <testcase name="Sink Edit Remote Host" classname="sink_tests" time="2.407" assertions="26">
-
-    
-
-    
+    <testcase name="Sink Visualization and Edit Username" classname="sink_tests" time="3.453" assertions="24">
 
     
 
@@ -647,109 +399,7 @@
     
     </testcase>
   
-    <testcase name="Sink Edit Username" classname="sink_tests" time="1.631" assertions="18">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    </testcase>
-  
-    <testcase name="Sink Edit Password" classname="sink_tests" time="1.550" assertions="18">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    </testcase>
-  
-    <testcase name="Sink Edit Tags" classname="sink_tests" time="3.533" assertions="36">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
+    <testcase name="Sink Visualization and Edit Password" classname="sink_tests" time="3.400" assertions="24">
 
     
 
@@ -800,51 +450,7 @@
     
     </testcase>
   
-    <testcase name="Sink Edit Description, Remote Host, Username, Password and Keys" classname="sink_tests" time="6.010" assertions="64">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
+    <testcase name="Sink Visualization and Edit Tags" classname="sink_tests" time="5.175" assertions="42">
 
     
 
@@ -931,7 +537,7 @@
     
     </testcase>
   
-    <testcase name="Sink Delete" classname="sink_tests" time="6.284" assertions="10">
+    <testcase name="Sink Edit Description" classname="sink_tests" time="3.400" assertions="26">
 
     
 
@@ -949,11 +555,405 @@
 
     
 
-      <failure message="Testing if element &lt;.empty-row&gt; contains text &#39;No data to display&#39; in 5000ms - expected &#34;contains text &#39;No data to display&#39;&#34; but got: &#34;element could not be located&#34; (5313ms)">    at Page.sinkDelete (/media/arodrigues/HD_disk1/nodejs_test/orb_tests/page_objects/login.js:141:17)
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Sink Edit Remote Host" classname="sink_tests" time="3.368" assertions="26">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Sink Edit Username" classname="sink_tests" time="2.663" assertions="18">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Sink Edit Password" classname="sink_tests" time="1.991" assertions="18">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Sink Edit Tags" classname="sink_tests" time="5.014" assertions="36">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Sink Edit Description, Remote Host, Username, Password and Keys" classname="sink_tests" time="6.787" assertions="64">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="Sink Delete" classname="sink_tests" time="6.141" assertions="10">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+      <failure message="Testing if element &lt;.empty-row&gt; contains text &#39;No data to display&#39; in 5000ms - expected &#34;contains text &#39;No data to display&#39;&#34; but got: &#34;element could not be located&#34; (5125ms)">    at Page.sinkDelete (/media/arodrigues/HD_disk1/nodejs_test/orb_tests/page_objects/login.js:141:17)
     at Object.Sink Delete (/media/arodrigues/HD_disk1/nodejs_test/orb_tests/tests/sink_tests.js:272:3)</failure>
 
     
-    <error message="Error while running &#34;containsText&#34; command: Testing if element [0;33m&lt;.empty-row&gt;[0m contains text [0;33m&#39;No data to display&#39;[0m in 5000ms - expected [0;32m&#34;contains text &#39;No data to display&#39;&#34;[0m but got: [0;31m&#34;element could not be located&#34;[0m [0;90m(5313ms)[0m" type="error"><![CDATA[
+    <error message="Error while running &#34;containsText&#34; command: Testing if element [0;33m&lt;.empty-row&gt;[0m contains text [0;33m&#39;No data to display&#39;[0m in 5000ms - expected [0;32m&#34;contains text &#39;No data to display&#39;&#34;[0m but got: [0;31m&#34;element could not be located&#34;[0m [0;90m(5125ms)[0m" type="error"><![CDATA[
         at Page.sinkDelete (/media/arodrigues/HD_disk1/nodejs_test/orb_tests/page_objects/login.js:141:17)
     at Object.Sink Delete (/media/arodrigues/HD_disk1/nodejs_test/orb_tests/tests/sink_tests.js:272:3)
     ]]></error>
@@ -964,7 +964,7 @@
   
     <system-err>
         NoSuchElementError: An error occurred while running .getText() command on &lt;.empty-row&gt;: 
-   {&#34;sessionId&#34;:&#34;de94570824653cb8389419390ae6672c&#34;,&#34;status&#34;:0,&#34;value&#34;:[]}
+   {&#34;sessionId&#34;:&#34;bd3b4e03968ff9d15629c9d1278ee598&#34;,&#34;status&#34;:0,&#34;value&#34;:[]}
        at runMicrotasks (&lt;anonymous&gt;)
        at processTicksAndRejections (internal/process/task_queues.js:97:5)
     </system-err>

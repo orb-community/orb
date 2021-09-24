@@ -5,9 +5,9 @@
 
   <testsuite name="agent_groups_tests"
     errors="0" failures="0" hostname="" id="" package="agent_groups_tests" skipped="0"
-    tests="4" time="7.693" timestamp="">
+    tests="4" time="6.745" timestamp="">
   
-    <testcase name="Login with correct email and password" classname="agent_groups_tests" time="1.837" assertions="7">
+    <testcase name="Login with correct email and password" classname="agent_groups_tests" time="2.322" assertions="7">
 
     
 
@@ -24,7 +24,7 @@
     
     </testcase>
   
-    <testcase name="Agent Group Page" classname="agent_groups_tests" time="1.460" assertions="6">
+    <testcase name="Agent Group Page" classname="agent_groups_tests" time="1.490" assertions="6">
 
     
 
@@ -39,33 +39,7 @@
     
     </testcase>
   
-    <testcase name="Agent Group Creation - without description" classname="agent_groups_tests" time="1.968" assertions="25">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
+    <testcase name="Agent Group Visualization" classname="agent_groups_tests" time="1.754" assertions="12">
 
     
 
@@ -92,33 +66,7 @@
     
     </testcase>
   
-    <testcase name="Agent Group Creation - with description" classname="agent_groups_tests" time="2.428" assertions="25">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
+    <testcase name="Agent groups delete" classname="agent_groups_tests" time="1.179" assertions="12">
 
     
 

@@ -22,7 +22,6 @@ module.exports = {
         .waitForElementVisible('xpath', '/html/body/ngx-app/ngx-pages/ngx-one-column-layout/nb-layout/div/div/div/nb-sidebar/div/div/nb-menu/ul/li[2]/ul/li[2]/a')
         .click('xpath','/html/body/ngx-app/ngx-pages/ngx-one-column-layout/nb-layout/div/div/div/nb-sidebar/div/div/nb-menu/ul/li[2]/ul/li[2]/a')
         .agentGroupsPage()
-        
 
         },
 
@@ -37,18 +36,42 @@ module.exports = {
         .assert.containsText('.page-count', '1 total')
     },
 
-    'Agent Group Creation - with description' : function(browser){
+    // 'Agent Group Creation - with description' : function(browser){
+    //     var agent_groups = browser.page.agent_groups()
+    //     agent_groups
+    //     .agentGroupsPage()
+    //     .assert.containsText('.page-count', '1 total')
+    //     .click('@agentGroupCreation')
+    //     .agentGroupCreationPage()
+    //     .agentGroupCreation('nam3', "some_description", "key", "value", "Agent Group successfully created")
+    //     .agentGroupsPage()
+    //     .assert.containsText('.page-count', '2 total')
+
+
+    // },
+
+    'Agent Group Visualization': function(browser){
         var agent_groups = browser.page.agent_groups()
         agent_groups
+        .agentGroupVisualization()
+        .click('@close')
         .agentGroupsPage()
-        .assert.containsText('.page-count', '1 total')
-        .click('@agentGroupCreation')
-        .agentGroupCreationPage()
-        .agentGroupCreation('nam3', "some_description", "key", "value", "Agent Group successfully created")
-        .agentGroupsPage()
-        .assert.containsText('.page-count', '2 total')
+        .agentGroupVisualization()
+        .click('@edit')
+        .click('.appearance-ghost')
+
     },
 
+    'Agent groups delete' : function(browser){
 
+        var agent_groups = browser.page.agent_groups()
+        agent_groups
+        .agentGroupsDelete()
+        .agentGroupsPage()
+        // need to insert count page
+
+    }
     
 }
+
+

@@ -152,7 +152,7 @@ var commands = {
 };
 
 module.exports = {
-    url: 'http://localhost:4200',
+    url: 'https://beta.orb.live/pages/sinks',
     elements: {
         username: 'input[id=input-email]',
         pwd: 'input[id=input-password]',
