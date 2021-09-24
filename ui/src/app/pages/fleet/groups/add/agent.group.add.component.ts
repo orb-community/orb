@@ -91,7 +91,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
       tags: {},
     } as AgentGroup;
     this.firstFormGroup = this._formBuilder.group({
-      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
+      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
     });
 
