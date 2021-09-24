@@ -15,7 +15,7 @@ import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { NbDialogService } from '@nebular/theme';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { ActivatedRoute, Router } from '@angular/router';
+// import { ActivatedRoute, Router } from '@angular/router';
 import { Debounce } from 'app/shared/decorators/utils';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
 import { AgentPolicyDetailsComponent } from 'app/pages/datasets/policies.agent/details/agent.policy.details.component';
@@ -68,8 +68,8 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
     private dialogService: NbDialogService,
     private agentPoliciesService: AgentPoliciesService,
     private notificationsService: NotificationsService,
-    private route: ActivatedRoute,
-    private router: Router,
+    // private route: ActivatedRoute,
+    // private router: Router,
   ) {
     this.agentPoliciesService.clean();
     this.paginationControls = AgentPoliciesService.getDefaultPagination();
@@ -158,16 +158,16 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
   }
 
   onOpenAdd() {
-    this.router.navigate(['add'], {
-      relativeTo: this.route,
-    });
+    // this.router.navigate(['add'], {
+    //   relativeTo: this.route,
+    // });
   }
 
   onOpenEdit(agentPolicy: any) {
-    this.router.navigate([`edit/${ agentPolicy.id }`], {
-      state: { agent: agentPolicy, edit: true },
-      relativeTo: this.route,
-    });
+    // this.router.navigate([`edit/${ agentPolicy.id }`], {
+    //   state: { agent: agentPolicy, edit: true },
+    //   relativeTo: this.route,
+    // });
   }
 
   onFilterSelected(selectedIndex) {
