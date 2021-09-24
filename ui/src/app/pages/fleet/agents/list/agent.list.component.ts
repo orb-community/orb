@@ -157,6 +157,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
 
   onOpenView(agent: any) {
     this.router.navigate([`view/${agent.id}`], {
+      state: { agent: agent },
       relativeTo: this.route,
     });
   }
