@@ -54,7 +54,7 @@ func TestDatasetSave(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkID:       sinkIDs,
+		SinkIDs:      sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -117,7 +117,7 @@ func TestDatasetUpdate(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkID:       sinkIDs,
+		SinkIDs:      sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -174,7 +174,7 @@ func TestDatasetDelete(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkID:       sinkIDs,
+		SinkIDs:      sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}

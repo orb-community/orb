@@ -32,7 +32,7 @@ type Dataset struct {
 	Metadata     types.Metadata
 	Created      time.Time
 	Tags         types.Tags
-	SinkID       []string
+	SinkIDs      []string
 }
 
 type PolicyInDataset struct {

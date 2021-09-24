@@ -48,6 +48,7 @@ type removeDatasetEvent struct {
 	id           string
 	ownerID      string
 	agentGroupID string
+	datasetID    string
 	timestamp    time.Time
 }
 
@@ -87,11 +88,12 @@ func (cce createDatasetEvent) Encode() map[string]interface{} {
 
 func (cce removeDatasetEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
-		"id":        cce.id,
-		"owner_id":  cce.ownerID,
-		"group_id":  cce.agentGroupID,
-		"timestamp": cce.timestamp.Unix(),
-		"operation": DatasetRemove,
+		"id":         cce.id,
+		"owner_id":   cce.ownerID,
+		"group_id":   cce.agentGroupID,
+		"dataset_id": cce.datasetID,
+		"timestamp":  cce.timestamp.Unix(),
+		"operation":  DatasetRemove,
 	}
 }
 
