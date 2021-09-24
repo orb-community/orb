@@ -200,12 +200,12 @@ func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID str
 }
 
 func (r policiesRepository) UpdateDataset(ctx context.Context, ownerID string, ds policies.Dataset) error {
-	q := `UPDATE datasets SET tags = :tags, sink_id = :sink_id WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE datasets SET tags = :tags, sink_ids = :sink_ids WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 
 	params := map[string]interface{}{
 		"mf_owner_id": ds.MFOwnerID,
 		"tags":        db.Tags(ds.Tags),
-		"sink_id":     pq.Array(ds.SinkID),
+		"sink_ids":    pq.Array(ds.SinkIDs),
 		"id":          ds.ID,
 	}
 
@@ -267,7 +267,7 @@ func (r policiesRepository) DeleteDataset(ctx context.Context, ownerID string, d
 
 func (r policiesRepository) SaveDataset(ctx context.Context, dataset policies.Dataset) (string, error) {
 
-	q := `INSERT INTO datasets (name, mf_owner_id, metadata, valid, agent_group_id, agent_policy_id, sink_id, tags)         
+	q := `INSERT INTO datasets (name, mf_owner_id, metadata, valid, agent_group_id, agent_policy_id, sink_ids, tags)         
 			  VALUES (:name, :mf_owner_id, :metadata, :valid, :agent_group_id, :agent_policy_id, :sink_ids_str, :tags) RETURNING id`
 
 	if !dataset.Name.IsValid() || dataset.MFOwnerID == "" {
@@ -405,7 +405,7 @@ func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Poli
 
 func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
 
-	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_id, metadata, ts_created 
+	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_ids, metadata, ts_created 
 			FROM datasets
 			WHERE agent_policy_id = ? AND mf_owner_id = ?`
 
@@ -485,7 +485,7 @@ type dbDataset struct {
 	PolicyID     sql.NullString   `db:"agent_policy_id"`
 	TsCreated    time.Time        `db:"ts_created"`
 	Tags         db.Tags          `db:"tags"`
-	SinkID       []string         `db:"sink_id"`
+	SinkID       []string         `db:"sink_ids"`
 	SinksIDsStr  interface{}      `db:"sink_ids_str"`
 }
 
@@ -503,7 +503,7 @@ func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
 		MFOwnerID:   uID.String(),
 		Metadata:    db.Metadata(dataset.Metadata),
 		Tags:        db.Tags(dataset.Tags),
-		SinksIDsStr: pq.Array(dataset.SinkID),
+		SinksIDsStr: pq.Array(dataset.SinkIDs),
 	}
 
 	d.Valid = true
@@ -554,7 +554,7 @@ func toDataset(dba dbDataset) policies.Dataset {
 		Valid:        dba.Valid,
 		AgentGroupID: dba.AgentGroupID.String,
 		PolicyID:     dba.PolicyID.String,
-		SinkID:       dba.SinkID,
+		SinkIDs:      dba.SinkID,
 		Metadata:     types.Metadata(dba.Metadata),
 		Created:      dba.TsCreated,
 		Tags:         types.Tags(dba.Tags),

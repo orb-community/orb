@@ -48,6 +48,7 @@ func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string
 		id:           dsID,
 		ownerID:      ds.MFOwnerID,
 		agentGroupID: ds.AgentGroupID,
+		datasetID:    ds.ID,
 	}
 	record := &redis.XAddArgs{
 		Stream:       streamID,
@@ -191,7 +192,7 @@ func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.
 		name:         ds.Name.String(),
 		agentGroupID: ds.AgentGroupID,
 		policyID:     ds.PolicyID,
-		sinkID:       ds.SinkID,
+		sinkID:       ds.SinkIDs,
 	}
 	record := &redis.XAddArgs{
 		Stream:       streamID,

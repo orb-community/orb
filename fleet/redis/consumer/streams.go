@@ -114,7 +114,7 @@ func decodeDatasetCreate(event map[string]interface{}) createDatasetEvent {
 		policyID:     read(event, "policy_id", ""),
 	}
 	strsinks := read(event, "sink_id", "")
-	val.sinkID = strings.Split(strsinks, ",")
+	val.sinkIDs = strings.Split(strsinks, ",")
 	return val
 }
 
@@ -135,6 +135,7 @@ func decodeDatasetRemove(event map[string]interface{}) removeDatasetEvent {
 		id:           read(event, "id", ""),
 		ownerID:      read(event, "owner_id", ""),
 		agentGroupID: read(event, "group_id", ""),
+		datasetID:    read(event, "dataset_id", ""),
 	}
 }
 
@@ -144,7 +145,7 @@ func (es eventStore) handleDatasetRemove(ctx context.Context, e removeDatasetEve
 		return err
 	}
 
-	return es.commsService.NofityDatasetRemoval(ag)
+	return es.commsService.NofityDatasetRemoval(ag, e.datasetID)
 }
 
 func decodePolicyUpdate(event map[string]interface{}) (updatePolicyEvent, error) {

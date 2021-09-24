@@ -40,7 +40,7 @@ type AgentCommsService interface {
 	// NotifyPolicyRemoval stop agent policy utilization after Policy removal
 	NotifyPolicyRemoval(policyID string, ag AgentGroup) error
 	// NotifyDatasetRemoval usubscribe the agent membership when delete a dataset
-	NofityDatasetRemoval(ag AgentGroup) error
+	NofityDatasetRemoval(ag AgentGroup, dsID string) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -315,10 +315,14 @@ func (svc fleetCommsService) NotifyPolicyRemoval(policyID string, ag AgentGroup)
 	return nil
 }
 
-func (svc fleetCommsService) NofityDatasetRemoval(ag AgentGroup) error {
+func (svc fleetCommsService) NofityDatasetRemoval(ag AgentGroup, dsID string) error {
+
+	payload := DatasetRemovedRPCPayload{DatasetID: dsID}
+
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          DatasetRemovedRPCFunc,
+		Payload:       payload,
 	}
 
 	body, err := json.Marshal(data)
