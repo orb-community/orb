@@ -20,7 +20,7 @@ func viewAgentBackendHandlerEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		bk, err := Handlers()
+		bk, err := pkt.handlers()
 		if err != nil {
 			return nil, err
 		}
@@ -40,7 +40,7 @@ func viewAgentBackendInputEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		bk, err := Inputs()
+		bk, err := pkt.inputs()
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +59,7 @@ func viewAgentBackendTapsEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		metadataList, err := RetrieveAgentMetadataByOwner(ctx, r.Id, pkt.db)
+		metadataList, err := pkt.retrieveAgentMetadataByOwner(ctx, r.Id, pkt.db)
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +137,6 @@ func toBackendTaps(list []types.Metadata) ([]BackendTaps, error) {
 
 // Used to aggregate and sumarize the taps and return a slice of BackendTaps
 func groupTaps(taps []BackendTaps) []BackendTaps {
-	//TODO sort taps before group
 	tapsMap := make(map[string]BackendTaps)
 	for _, tap := range taps {
 		key := key(tap.Name, tap.InputType)
@@ -155,7 +154,16 @@ func groupTaps(taps []BackendTaps) []BackendTaps {
 		}
 	}
 	var bkTaps []BackendTaps
+	keys := make(map[string]bool)
 	for _, v := range tapsMap {
+		list := []string{}
+		for _ ,config := range v.ConfigPredefined  {
+			if _, ok := keys[config]; !ok {
+				keys[config] = true
+				list = append(list, config)
+			}
+		}
+		v.ConfigPredefined = list
 		bkTaps = append(bkTaps, v)
 	}
 	return bkTaps

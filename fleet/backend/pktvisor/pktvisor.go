@@ -47,7 +47,7 @@ func (p pktvisorBackend) MakeHandler(tracer opentracing.Tracer, opts []kithttp.S
 	MakePktvisorHandler(tracer, p, opts, r)
 }
 
-func Handlers() (_ types.Metadata, err error) {
+func (p pktvisorBackend) handlers() (_ types.Metadata, err error) {
 
 	wd := getWorkDirectory()
 	jsonFile, err := ioutil.ReadFile(fmt.Sprintf("%s/fleet/backend/pktvisor/handlers.json", wd))
@@ -62,7 +62,7 @@ func Handlers() (_ types.Metadata, err error) {
 	return handlers, nil
 }
 
-func Inputs() (_ types.Metadata, err error) {
+func (p pktvisorBackend) inputs() (_ types.Metadata, err error) {
 	wd := getWorkDirectory()
 	jsonFile, err := ioutil.ReadFile(fmt.Sprintf("%s/fleet/backend/pktvisor/inputs.json", wd))
 	if err != nil {
@@ -76,12 +76,10 @@ func Inputs() (_ types.Metadata, err error) {
 	return handlers, nil
 }
 
-func RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string, db *sqlx.DB) ([]types.Metadata, error) {
+func (p pktvisorBackend) retrieveAgentMetadataByOwner(ctx context.Context, ownerID string, db *sqlx.DB) ([]types.Metadata, error) {
 	q := `SELECT agent_metadata
 		FROM agents
-		CROSS JOIN LATERAL jsonb_each_text(agent_metadata)
-		WHERE mf_owner_id = :mf_owner_id
-		GROUP BY agent_metadata;`
+		WHERE mf_owner_id = :mf_owner_id;`
 
 	params := map[string]interface{}{
 		"mf_owner_id": ownerID,
