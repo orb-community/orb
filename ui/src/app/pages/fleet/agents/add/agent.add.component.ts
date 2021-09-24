@@ -41,7 +41,7 @@ export class AgentAddComponent {
     private _formBuilder: FormBuilder,
   ) {
     this.firstFormGroup = this._formBuilder.group({
-      name: ['', [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
+      name: ['', [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
     });
 
     this.secondFormGroup = this._formBuilder.group({

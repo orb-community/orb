@@ -28,7 +28,7 @@ export const MENU: NbMenuItem[] = [
     children: [
       {
         title: 'Datasets',
-        link: 'datasets/list',
+        // link: 'datasets/list',
       },
       {
         title: 'Policy Management',
