@@ -158,9 +158,9 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
   }
 
   onOpenAdd() {
-    this.router.navigate(['add'], {
-      relativeTo: this.route,
-    });
+    // this.router.navigate(['add'], {
+    //   relativeTo: this.route,
+    // });
   }
 
   onOpenEdit(agentPolicy: any) {
