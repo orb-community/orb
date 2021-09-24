@@ -171,6 +171,7 @@ export class AgentGroupsService {
     return this.http.delete(`${environment.agentGroupsUrl}/${agentGroupId}`)
       .map(
         resp => {
+          this.cache.data.splice(this.cache.data.map(ag => ag.id).indexOf(agentGroupId), 1);
           return resp;
         },
       )

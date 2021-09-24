@@ -120,6 +120,7 @@ export class AgentsService {
     return this.http.delete(`${ environment.agentsUrl }/${ agentId }`)
       .map(
         resp => {
+          this.cache.data.splice(this.cache.data.map(a => a.id).indexOf(agentId), 1);
           return resp;
         },
       )
