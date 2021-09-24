@@ -86,11 +86,6 @@ export class AgentsService {
 
   getAgentById(id: string): any {
     return this.http.get(`${ environment.agentsUrl }/${ id }`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
       .catch(
         err => {
           this.notificationsService.error('Failed to fetch Agent',

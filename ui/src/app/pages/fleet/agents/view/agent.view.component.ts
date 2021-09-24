@@ -36,6 +36,7 @@ export class AgentViewComponent implements OnInit {
 
     !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
       this.agent = resp;
+
       this.command2copy = `docker run --rm --net=host\\
       \r-e ORB_CLOUD_ADDRESS=${document.location.protocol}://${document.location.hostname}/\\
       \r-e ORB_CLOUD_MQTT_ID='${this.agent.id}'\\
