@@ -52,9 +52,9 @@ func New(logger *zap.Logger, auth mainflux.AuthServiceClient, repo Repository, f
 	pktvisor.Register()
 
 	return &policiesService{
-		logger: logger,
-		auth:   auth,
-		repo:   repo,
+		logger:          logger,
+		auth:            auth,
+		repo:            repo,
 		fleetGrpcClient: fleetGrpcClient,
 		sinksGrpcClient: sinksGrpcclient,
 	}

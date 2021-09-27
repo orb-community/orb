@@ -260,20 +260,21 @@ func (s policiesService) ValidateDataset(ctx context.Context, token string, d Da
 	if len(d.SinkIDs) == 0{
 		return Dataset{}, ErrMalformedEntity
 	}
-	for _, i := range d.SinkIDs {
-		_, err = uuid.FromString(i)
+	for _, sinkID := range d.SinkIDs {
+		_, err = uuid.FromString(sinkID)
 		if err != nil {
 			fmt.Println("invalid sink id")
 			return Dataset{}, ErrMalformedEntity
 		}
-	}
 
-	_, err = s.sinksGrpcClient.RetrieveSink(ctx, &sinkpb.SinkByIDReq{
-		SinkID:  d.SinkID,
-		OwnerID: mfOwnerID,
-	})
-	if err != nil {
-		return Dataset{}, err
+		_, err = s.sinksGrpcClient.RetrieveSink(ctx, &sinkpb.SinkByIDReq{
+			SinkID:  sinkID,
+			OwnerID: mfOwnerID,
+		})
+		if err != nil {
+			fmt.Println("sink id does not exist")
+			return Dataset{}, err
+		}
 	}
 
 	_, err = uuid.FromString(d.PolicyID)
@@ -284,6 +285,7 @@ func (s policiesService) ValidateDataset(ctx context.Context, token string, d Da
 
 	_, err = s.repo.RetrievePolicyByID(ctx, d.PolicyID, mfOwnerID)
 	if err != nil {
+		fmt.Println("policy id does not exist")
 		return Dataset{}, err
 	}
 
@@ -298,6 +300,7 @@ func (s policiesService) ValidateDataset(ctx context.Context, token string, d Da
 		OwnerID:      mfOwnerID,
 	})
 	if err != nil {
+		fmt.Println("agent group id does not exist")
 		return Dataset{}, err
 	}
 

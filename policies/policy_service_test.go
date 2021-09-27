@@ -10,6 +10,7 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	policies "github.com/ns1labs/orb/policies"
 	plmocks "github.com/ns1labs/orb/policies/mocks"
+	sinkmocks "github.com/ns1labs/orb/sinks/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -33,7 +34,10 @@ visor:
 
 func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
-	return policies.New(nil, auth, policyRepo)
+	fleetGrpcClient := flmocks.NewClient()
+	SinkServiceClient := sinkmocks.NewClient()
+
+	return policies.New(nil, auth, policyRepo, fleetGrpcClient, SinkServiceClient)
 }
 
 func TestRetrievePolicyByID(t *testing.T) {
@@ -468,20 +472,21 @@ func TestRemoveDataset(t *testing.T) {
 
 
 func TestValidateDataset(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	policy := createPolicy(t, svc, "policy")
 	var nameID, _ = types.NewIdentifier("my-dataset")
 	var (
 		sinkIDsArray = []string{"f5b2d342-211d-a9ab-1233-63199a3fc16f", "03679425-aa69-4574-bf62-e0fe71b80939"}
-		dataset                    = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", SinkIDs: sinkIDsArray, Valid: true}
-		datasetEmptySinkID         = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", SinkIDs: []string{}, Valid: true}
+		dataset                    = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: sinkIDsArray, Valid: true}
+		datasetEmptySinkID         = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: []string{}, Valid: true}
 		datasetEmptyPolicyID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "", SinkIDs: sinkIDsArray, Valid: true}
-		datasetEmptyAgentGroupID   = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "", PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", SinkIDs: sinkIDsArray, Valid: true}
-		datasetInvalidSinkID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", SinkIDs: []string{"invalid"}, Valid: true}
+		datasetEmptyAgentGroupID   = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "", PolicyID: policy.ID, SinkIDs: sinkIDsArray, Valid: true}
+		datasetInvalidSinkID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: []string{"invalid"}, Valid: true}
 		datasetInvalidPolicyID     = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "invalid", SinkIDs: sinkIDsArray, Valid: true}
-		datasetInvalidAgentGroupID = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "invalid", PolicyID: "86b7b412-1b7f-f5bc-c78b-f79087d6e49b", SinkIDs: sinkIDsArray, Valid: true}
+		datasetInvalidAgentGroupID = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "invalid", PolicyID: policy.ID, SinkIDs: sinkIDsArray, Valid: true}
 	)
-
-	users := flmocks.NewAuthService(map[string]string{token: email})
-	svc := newService(users)
 
 	cases := map[string]struct {
 		dataset  policies.Dataset
