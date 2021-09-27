@@ -1109,21 +1109,22 @@ func TestValidateAgent(t *testing.T) {
 			status:      http.StatusBadRequest,
 			location:    "/agents/validate",
 		},
-
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/agents/validate", cli.server.URL),
-			contentType: tc.contentType,
-			token:       tc.auth,
-			body:        strings.NewReader(tc.req),
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/agents/validate", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 
 }
@@ -1197,17 +1198,19 @@ func TestCreateAgent(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/agents", cli.server.URL),
-			contentType: tc.contentType,
-			token:       tc.auth,
-			body:        strings.NewReader(tc.req),
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/agents", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 
 }
@@ -1246,16 +1249,18 @@ func TestDeleteAgent(t *testing.T) {
 		},
 	}
 	for desc, tc := range cases {
-		req := testRequest{
-			client:      cli.server.Client(),
-			method:      http.MethodDelete,
-			contentType: contentType,
-			url:         fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
-			token:       tc.auth,
-		}
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodDelete,
+				contentType: contentType,
+				url:         fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
+				token:       tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
 	}
 }
 
