@@ -93,7 +93,7 @@ func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm po
 		return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, orb_tags, backend, version, policy, ts_created 
+	q := fmt.Sprintf(`SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created 
 			FROM agent_policies
 			WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, orderQuery, dirQuery)
 

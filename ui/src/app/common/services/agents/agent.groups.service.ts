@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import {Observable, of} from 'rxjs';
+import { Observable, of } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
 import { environment } from 'environments/environment';
@@ -16,6 +16,7 @@ const defDir = 'desc';
 @Injectable()
 export class AgentGroupsService {
   paginationCache: any = {};
+
   cache: OrbPagination<AgentGroup>;
 
   constructor(
@@ -50,8 +51,8 @@ export class AgentGroupsService {
 
   addAgentGroup(agentGroupItem: AgentGroup) {
     return this.http.post(environment.agentGroupsUrl,
-      {...agentGroupItem, validate_only: false},
-      {observe: 'response'})
+        { ...agentGroupItem, validate_only: false },
+        { observe: 'response' })
       .map(
         resp => {
           return resp;
@@ -60,7 +61,7 @@ export class AgentGroupsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to create Agent Group',
-            `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
+            `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
           return Observable.throwError(err);
         },
       );
@@ -68,8 +69,8 @@ export class AgentGroupsService {
 
   validateAgentGroup(agentGroupItem: AgentGroup) {
     return this.http.post(environment.validateAgentGroupsUrl,
-      {...agentGroupItem, validate_only: true},
-      {observe: 'response'})
+        { ...agentGroupItem, validate_only: true },
+        { observe: 'response' })
       .map(
         resp => {
           return resp;
@@ -78,14 +79,14 @@ export class AgentGroupsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to Validate Agent Group',
-            `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
+            `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
           return Observable.throwError(err);
         },
       );
   }
 
   getAgentGroupById(id: string): any {
-    return this.http.get(`${environment.agentGroupsUrl}/${id}`)
+    return this.http.get(`${ environment.agentGroupsUrl }/${ id }`)
       .map(
         resp => {
           return resp;
@@ -94,7 +95,7 @@ export class AgentGroupsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to fetch Agent Group',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
       );
@@ -123,7 +124,7 @@ export class AgentGroupsService {
       return of(this.cache);
     }
 
-    return this.http.get(environment.agentGroupsUrl, {params})
+    return this.http.get(environment.agentGroupsUrl, { params })
       .map(
         (resp: any) => {
           this.paginationCache[pageInfo.offset] = true;
@@ -145,14 +146,14 @@ export class AgentGroupsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to get Agent Groups',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
       );
   }
 
   editAgentGroup(agentGroup: AgentGroup): any {
-    return this.http.put(`${environment.agentGroupsUrl}/${agentGroup.id}`, agentGroup)
+    return this.http.put(`${ environment.agentGroupsUrl }/${ agentGroup.id }`, agentGroup)
       .map(
         resp => {
           return resp;
@@ -161,23 +162,24 @@ export class AgentGroupsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to edit Agent Group',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
       );
   }
 
   deleteAgentGroup(agentGroupId: string) {
-    return this.http.delete(`${environment.agentGroupsUrl}/${agentGroupId}`)
+    return this.http.delete(`${ environment.agentGroupsUrl }/${ agentGroupId }`)
       .map(
         resp => {
+          this.cache.data.splice(this.cache.data.map(ag => ag.id).indexOf(agentGroupId), 1);
           return resp;
         },
       )
       .catch(
         err => {
           this.notificationsService.error('Failed to Delete Agent Group',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
       );

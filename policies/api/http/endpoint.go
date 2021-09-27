@@ -104,9 +104,11 @@ func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 		for _, ag := range page.Policies {
 			view := policyRes{
-				ID:      ag.ID,
-				Name:    ag.Name.String(),
-				Backend: ag.Backend,
+				ID:          ag.ID,
+				Name:        ag.Name.String(),
+				Description: ag.Description,
+				Version:     ag.Version,
+				Backend:     ag.Backend,
 			}
 			res.Policies = append(res.Policies, view)
 		}

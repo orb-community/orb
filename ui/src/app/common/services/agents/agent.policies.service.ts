@@ -105,6 +105,7 @@ export class AgentPoliciesService {
     return this.http.delete(`${ environment.agentPoliciesUrl }/${ agentPoliciesId }`)
       .map(
         resp => {
+          this.cache.data.splice(this.cache.data.map(ap => ap.id).indexOf(agentPoliciesId), 1);
           return resp;
         },
       )
