@@ -134,7 +134,6 @@
               </nb-form-field>
             </div>
           </div>
-
           <!-- input form -->
           <!-- select input -->
           <div *ngIf="input && formPiece.key === 'inputs'" [formGroup]="backendConfigForms['inputs']">
@@ -177,6 +176,45 @@
                        nbInput>
               </div>
               <hr/>
+            </nb-form-field>
+          </div>
+          <!-- handlers form -->
+          <!-- select handlers -->
+          <div *ngIf="formPiece.key === 'handlers'" [formGroup]="backendConfigForms['handlers']">
+            <!-- todo here goes a list of selected handlers -->
+<!--            <list>-->
+<!--              <handler>-->
+<!--                <button>remove me</button>-->
+<!--              </handler>-->
+<!--            </list>-->
+            <!-- form for handler input -->
+            <nb-form-field>
+              <nb-select (selectedChange)="onHandlerSelected($event)"
+                         [attr.data-orb-qa-id]="formPiece.key + '_current'"
+                         [formControlName]="'current'"
+                         [id]="formPiece.key + '_current'"
+                         appearance="filled"
+                         fullWidth="true"
+                         nbInput="current"
+                         size="medium">{{ formPiece.key }}
+                <nb-option *ngFor="let option of backend['handlers'] | keyvalue"
+                           [attr.data-orb-qa-id]="option.key"
+                           [value]="option.key">{{ option.key }}</nb-option>
+              </nb-select>
+
+
+              <!-- add button -->
+              <button nbButton
+                      ghost
+                      (click)="onHandlerAdded()"
+                      [disabled]="backendConfigForms['handlers'].controls['current'].value === ''"
+                      data-orb-qa-id="addTag">
+                <nb-icon style="color: #df316f;"
+                         status="primary"
+                         icon="plus-outline"
+                         size="14">
+                </nb-icon>
+              </button>
             </nb-form-field>
           </div>
         </form>
