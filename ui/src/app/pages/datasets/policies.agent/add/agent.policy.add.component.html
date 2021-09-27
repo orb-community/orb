@@ -66,17 +66,17 @@
         <form
           (ngSubmit)="onFormSubmit()"
           *ngFor="let formPiece of backendConfigForms | keyvalue; index as i;"
-          [formGroup]="formPiece.value">
-          <!-- input form -->
-          <!-- select input -->
+        [formGroup]="formPiece.value">
           <div [ngSwitch]="formPiece.key">
-            <div *ngSwitchCase="'inputs'" [formGroup]="backendConfigForms['inputs']">
+            <!-- tap form -->
+            <!-- select tap -->
+            <div *ngSwitchCase="'taps'" [formGroup]="backendConfigForms['taps']">
               <nb-form-field>
                 <div>
-                  <label [htmlFor]="" class="font-weight-bold">Input</label>
+                  <label [htmlFor]="" class="font-weight-bold">Tap</label>
                   <span class="required">*</span>
                 </div>
-                <nb-select (selectedChange)="onInputSelected($event)"
+                <nb-select (selectedChange)="onTapSelected($event)"
                            [attr.data-orb-qa-id]="formPiece.key"
                            [formControlName]="formPiece.key"
                            appearance="filled"
@@ -90,6 +90,53 @@
                              [value]="option.key">{{ option.key }}</nb-option>
                 </nb-select>
               </nb-form-field>
+              <div *ngIf="tap">
+                <nb-form-field *ngFor="let control of tap['config'] | keyvalue; let i = index"
+                               [formGroup]="formPiece.value">
+                  <div>
+                    <label class="font-weight-bold">{{control.value.title}}</label>
+                  </div>
+                  <div [ngSwitch]="control.value.input">
+                    <input *ngSwitchCase="'text'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.value.name"
+                           [type]="control.value.type"
+                           fieldSize="medium"
+                           fullWidth="true"
+                           nbInput>
+                    <input *ngSwitchCase="'number'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.value.name"
+                           [max]="control.value.max"
+                           [min]="control.value.min"
+                           [step]="control.value.step"
+                           [type]="control.value.type"
+                           fieldSize="medium"
+                           fullWidth="true"
+                           nbInput>
+                    <nb-select *ngSwitchCase="'select'"
+                               (selectedChange)="onInputSelected($event)"
+                               [attr.data-orb-qa-id]="formPiece.key"
+                               [formControlName]="formPiece.key"
+                               [id]="formPiece.key"
+                               appearance="filled"
+                               fullWidth="true"
+                               nbInput="{{ formPiece.key }}"
+                               size="medium">{{ formPiece.key + " " + control.value.options }}
+                      <nb-option *ngFor="let option of control.value.options"
+                                 [attr.data-orb-qa-id]="option"
+                                 [value]="option">{{ option }}</nb-option>
+                    </nb-select>
+                  </div>
+                  <hr/>
+                </nb-form-field>
+              </div>
+            </div>
+            <!-- input form -->
+            <!-- select input -->
+            <div *ngSwitchCase="'inputs'" [formGroup]="backendConfigForms['inputs']">
               <div *ngIf="input">
                 <nb-form-field *ngFor="let control of input['config'] | keyvalue; let i = index"
                                [formGroup]="formPiece.value">
@@ -116,90 +163,22 @@
                            fieldSize="medium"
                            fullWidth="true"
                            nbInput>
-                    <!-- todo this select is going to take a bit longer than planned -->
-                    <!--                  <nb-select (selectedChange)="onInputSelected($event)"-->
-                    <!--                             [attr.data-orb-qa-id]="formPiece.key"-->
-                    <!--                             [formControlName]="formPiece.key"-->
-                    <!--                             appearance="filled"-->
-                    <!--                             fullWidth="true"-->
-                    <!--                             nbInput="{{ formPiece.key }}"-->
-                    <!--                             placeholder="Select Tap"-->
-                    <!--                             required="true"-->
-                    <!--                             size="medium">-->
-                    <!--                    <nb-option *ngFor="let option of backend[formPiece.key] | keyvalue"-->
-                    <!--                               [attr.data-orb-qa-id]="option.key"-->
-                    <!--                               [value]="option.key">{{ option.key }}</nb-option>-->
-                    <!--                  </nb-select>-->
+                    <nb-select *ngSwitchCase="'select'"
+                               [attr.data-orb-qa-id]="formPiece.key"
+                               [formControlName]="formPiece.key"
+                               [id]="formPiece.key"
+                               appearance="filled"
+                               fullWidth="true"
+                               nbInput="{{ formPiece.key }}"
+                               size="medium">{{ formPiece.key + " " + control.value.options }}
+                      <nb-option *ngFor="let option of control.value.options"
+                                 [attr.data-orb-qa-id]="option"
+                                 [value]="option">{{ option }}</nb-option>
+                    </nb-select>
                   </div>
                   <hr/>
                 </nb-form-field>
               </div>
-            </div>
-            <!-- tap form -->
-            <!-- select tap -->
-            <nb-form-field *ngSwitchCase="'taps'">
-              <div>
-                <label [htmlFor]="" class="font-weight-bold">Tap</label>
-                <span class="required">*</span>
-              </div>
-              <nb-select (selectedChange)="onTapSelected($event)"
-                         [attr.data-orb-qa-id]="formPiece.key"
-                         [formControlName]="formPiece.key"
-                         appearance="filled"
-                         fullWidth="true"
-                         nbInput="{{ formPiece.key }}"
-                         placeholder="Select Tap"
-                         required="true"
-                         size="medium"
-              >
-                <nb-option *ngFor="let option of backend[formPiece.key] | keyvalue"
-                           [attr.data-orb-qa-id]="option.key"
-                           [value]="option.key">{{ option.key }}</nb-option>
-              </nb-select>
-            </nb-form-field>
-            <div *ngIf="tap">
-              <nb-form-field *ngFor="let control of tap['config'] | keyvalue; let i = index"
-                             [formGroup]="formPiece.value">
-                <div>
-                  <label class="font-weight-bold">{{control.value.title}}</label>
-                </div>
-                <div [ngSwitch]="control.value.input">
-                  <input *ngSwitchCase="'text'"
-                         [attr.data-orb-qa-id]="control.value.name"
-                         [autofocus]="i == 0"
-                         [formControlName]="control.value.name"
-                         [type]="control.value.type"
-                         fieldSize="medium"
-                         fullWidth="true"
-                         nbInput>
-                  <input *ngSwitchCase="'number'"
-                         [attr.data-orb-qa-id]="control.value.name"
-                         [autofocus]="i == 0"
-                         [formControlName]="control.value.name"
-                         [max]="control.value.max"
-                         [min]="control.value.min"
-                         [step]="control.value.step"
-                         [type]="control.value.type"
-                         fieldSize="medium"
-                         fullWidth="true"
-                         nbInput>
-                  <!-- todo this select is going to take a bit longer than planned -->
-                  <!--                  <nb-select (selectedChange)="onInputSelected($event)"-->
-                  <!--                             [attr.data-orb-qa-id]="formPiece.key"-->
-                  <!--                             [formControlName]="formPiece.key"-->
-                  <!--                             appearance="filled"-->
-                  <!--                             fullWidth="true"-->
-                  <!--                             nbInput="{{ formPiece.key }}"-->
-                  <!--                             placeholder="Select Tap"-->
-                  <!--                             required="true"-->
-                  <!--                             size="medium">-->
-                  <!--                    <nb-option *ngFor="let option of backend[formPiece.key] | keyvalue"-->
-                  <!--                               [attr.data-orb-qa-id]="option.key"-->
-                  <!--                               [value]="option.key">{{ option.key }}</nb-option>-->
-                  <!--                  </nb-select>-->
-                </div>
-                <hr/>
-              </nb-form-field>
             </div>
           </div>
         </form>

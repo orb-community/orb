@@ -19,9 +19,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Debounce } from 'app/shared/decorators/utils';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
 
-// import { AgentPolicyDetailsComponent } from
-// 'app/pages/datasets/policies.agent/details/agent.policy.details.component';
-
 @Component({
   selector: 'ngx-agent-policy-list-component',
   templateUrl: './agent.policy.list.component.html',
@@ -160,9 +157,9 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
   }
 
   onOpenAdd() {
-    // this.router.navigate(['add'], {
-    //   relativeTo: this.route,
-    // });
+    this.router.navigate(['add'], {
+      relativeTo: this.route,
+    });
   }
 
   onOpenEdit(agentPolicy: any) {

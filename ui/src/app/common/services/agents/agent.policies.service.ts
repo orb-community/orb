@@ -186,6 +186,39 @@ export class AgentPoliciesService {
       // TODO continue this format in future
       const resp = {
         'pktvisor': {
+          'taps': {
+            'anycast': {
+              'version': '1.0',
+              'info': {
+                'available_iface': ['eth0', 'eth1'],
+              },
+              'config': {
+                'input_type': {
+                  'required': true,
+                  'type': 'string',
+                  'input': 'select',
+                  'options': ['pcap', 'dnstap'],
+                  'title': 'Input Type',
+                  'name': 'inputs',
+                  'description': 'pcap | dnstap',
+                },
+              },
+            },
+            'trex_tap': {
+              'version': '1.0',
+              'config': {
+                'input_type': {
+                  'required': true,
+                  'type': 'string',
+                  'input': 'select',
+                  'options': ['pcap', 'dnstap'],
+                  'title': 'Input Type',
+                  'name': 'input_type',
+                  'description': 'pcap | dnstap',
+                },
+              },
+            },
+          },
           'inputs': {
             'pcap': {
               'version': '1.0',
@@ -288,39 +321,6 @@ export class AgentPoliciesService {
                   'name': 'response_address',
                   'required': false,
                   'description': '',
-                },
-              },
-            },
-          },
-          'taps': {
-            'anycast': {
-              'version': '1.0',
-              'info': {
-                'available_iface': ['eth0', 'eth1'],
-              },
-              'config': {
-                'input_type': {
-                  'required': true,
-                  'type': 'string',
-                  'input': 'select',
-                  'options': ['pcap', 'dnstap'],
-                  'title': 'Input Type',
-                  'name': 'inputs',
-                  'description': 'pcap | dnstap',
-                },
-              },
-            },
-            'trex_tap': {
-              'version': '1.0',
-              'config': {
-                'input_type': {
-                  'required': true,
-                  'type': 'string',
-                  'input': 'select',
-                  'options': ['pcap', 'dnstap'],
-                  'title': 'Input Type',
-                  'name': 'input_type',
-                  'description': 'pcap | dnstap',
                 },
               },
             },
