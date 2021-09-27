@@ -28,7 +28,7 @@ export const MENU: NbMenuItem[] = [
     children: [
       {
         title: 'Datasets',
-        link: 'datasets/list',
+        // link: 'datasets/list',
       },
       {
         title: 'Policy Management',
@@ -38,7 +38,7 @@ export const MENU: NbMenuItem[] = [
   },
   {
     title: 'Sink Management',
-    icon: 'layers-outline',
+    icon: 'cloud-upload-outline',
     link: 'sinks',
   },
   {

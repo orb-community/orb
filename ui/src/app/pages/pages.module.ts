@@ -103,7 +103,6 @@ import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.compo
     AgentDetailsComponent,
     AgentMatchComponent,
     AgentViewComponent,
-    
     // Fleet - Agent Groups
     AgentGroupListComponent,
     AgentGroupAddComponent,

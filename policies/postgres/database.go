@@ -26,6 +26,7 @@ func (dm database) Rebind(s string) string {
 // Database provides a database interface
 type Database interface {
 	NamedExecContext(context.Context, string, interface{}) (sql.Result, error)
+	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
 	QueryRowxContext(context.Context, string, ...interface{}) *sqlx.Row
 	QueryxContext(context.Context, string, ...interface{}) (*sqlx.Rows, error)
 	NamedQueryContext(context.Context, string, interface{}) (*sqlx.Rows, error)
@@ -39,6 +40,11 @@ func NewDatabase(db *sqlx.DB) Database {
 	return &database{
 		db: db,
 	}
+}
+
+func (dm database) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	addSpanTags(ctx, query)
+	return dm.db.ExecContext(ctx, query, args)
 }
 
 func (dm database) NamedExecContext(ctx context.Context, query string, args interface{}) (sql.Result, error) {

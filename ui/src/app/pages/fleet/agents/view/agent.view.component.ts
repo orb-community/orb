@@ -24,21 +24,24 @@ export class AgentViewComponent {
     protected route: ActivatedRoute,
     protected router: Router,
   ) {
-    this.agentsService.clean();
     this.agent = this.router.getCurrentNavigation().extras.state?.agent as Agent || null;
     this.agentID = this.route.snapshot.paramMap.get('id');
+    this.command2copy = '';
 
     !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
       this.agent = resp;
+      this.makeCommand2Copy();
       this.isLoading = false;
-      this.command2copy = `docker run --rm --net=host\\
+    });
+  }
+
+  makeCommand2Copy() {
+    this.command2copy = `docker run --rm --net=host\\
       \r-e ORB_CLOUD_ADDRESS=${document.location.protocol}://${document.location.hostname}/\\
       \r-e ORB_CLOUD_MQTT_ID='${this.agent.id}'\\
       \r-e ORB_CLOUD_MQTT_CHANNEL_ID='${this.agent.channel_id}'\\
       \r-e ORB_BACKENDS_PKTVISOR_IFACE=[ETH-INTERFACE]\\
       \r-e ORB_CLOUD_MQTT_KEY=[AGENT-KEY]\\
       \rns1labs/orb-agent`;
-    });
   }
-
 }

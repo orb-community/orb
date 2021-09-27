@@ -19,6 +19,7 @@ type policyRes struct {
 	Policy      types.Metadata `json:"policy,omitempty"`
 	Format      string         `json:"format,omitempty"`
 	PolicyData  string         `json:"policy_data,omitempty"`
+	Version     int32          `json:"version,omitempty"`
 	created     bool
 }
 
@@ -44,6 +45,7 @@ type policyUpdateRes struct {
 	Description string         `json:"description"`
 	Tags        types.Tags     `json:"tags,omitempty"`
 	Policy      types.Metadata `json:"policy,omitempty"`
+	Version     int32          `json:"version,omitempty"`
 }
 
 func (s policyUpdateRes) Code() int {
