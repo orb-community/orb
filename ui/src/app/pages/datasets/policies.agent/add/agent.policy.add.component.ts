@@ -95,14 +95,18 @@ export class AgentPolicyAddComponent {
   }
 
   onBackendSelected(selectedBackend) {
-    // const conf = !!this.agentPolicy && this.isEdit &&
-    //   ([selectedBackend] === [this.agentPolicy.backend]) &&
-    //   this.agentPolicy?.policy &&
-    //   // this is purely based on
-    //   // [this config
-    // file](https://github.com/ns1labs/pktvisor/blob/develop/RFCs/2021-04-16-76-collection-policies.md)
-    // this.agentPolicy.policy['input']['input_type'] === [selectedBackend] &&
-    // this.agentPolicy.policy['input']['input_type'][selectedBackend]['config'];
+    if (this.backend) {
+      if (this.availableBackends[selectedBackend] === this.backend) {
+        return;
+      }
+      Object.keys(this.backend.config).forEach(key => {
+        Object.keys(this.backendConfigForms[key].controls).forEach(controlKey => {
+          this.backendConfigForms[key].removeControl(controlKey);
+        });
+        delete this.backendConfigForms[key];
+      });
+      delete this.backend;
+    }
 
     this.backend = this.availableBackends[selectedBackend];
     // reconfig dynamic forms based on backend selected
@@ -113,19 +117,41 @@ export class AgentPolicyAddComponent {
       }, {});
   }
 
+  onTapSelected(selectedTap) {
+    if (this.tap) {
+      Object.keys(this.tap.config).forEach(key => {
+        this.backendConfigForms['taps'].removeControl(key);
+      });
+      if (this.input) {
+        Object.keys(this.input.config).forEach(key => {
+          this.backendConfigForms['inputs'].removeControl(key);
+        });
+        delete this.input;
+      }
+      delete this.tap;
+      // this.input = undefined;
+      // this.tap = undefined;
+    }
+    this.tap = this.backend['taps'][selectedTap];
+    const { taps } = this.backendConfigForms;
+    Object.keys(this.tap.config).forEach(key => {
+      taps.addControl(key, this._formBuilder.control('', [Validators.required]));
+    });
+  }
+
   onInputSelected(selectedInput) {
+    if (this.input) {
+      Object.keys(this.input.config).forEach(key => {
+        this.backendConfigForms['inputs'].removeControl(key);
+      });
+      // this.input = undefined;
+      delete this.input;
+    }
+
     this.input = this.backend['inputs'][selectedInput];
     const { inputs } = this.backendConfigForms;
     Object.keys(this.input.config).forEach(key => {
       inputs.addControl(key, this._formBuilder.control('', [Validators.required]));
-    });
-  }
-
-  onTapSelected(selectedTap) {
-    this.tap = this.backend['taps'][selectedTap];
-    const { taps } = this.backendConfigForms;
-    Object.keys(this.input.config).forEach(key => {
-      taps.addControl(key, this._formBuilder.control('', [Validators.required]));
     });
   }
 
