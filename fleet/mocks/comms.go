@@ -9,7 +9,11 @@ var _ fleet.AgentCommsService = (*agentCommsServiceMock)(nil)
 
 type agentCommsServiceMock struct{}
 
-func (ac agentCommsServiceMock) NotifyPolicyRemoval(ag fleet.AgentGroup) error {
+func (ac agentCommsServiceMock) NofityDatasetRemoval(ag fleet.AgentGroup, dsID string) error {
+	return nil
+}
+
+func (ac agentCommsServiceMock) NotifyPolicyRemoval(policyID string, ag fleet.AgentGroup) error {
 	return nil
 }
 
@@ -33,11 +37,11 @@ func (ac agentCommsServiceMock) NotifyAgentGroupMembership(a fleet.Agent) error 
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyAgentPolicies(a fleet.Agent) error {
+func (ac agentCommsServiceMock) NotifyAgentAllDatasets(a fleet.Agent) error {
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyGroupNewAgentPolicy(ctx context.Context, ag fleet.AgentGroup, policyID string, ownerID string) error {
+func (ac agentCommsServiceMock) NotifyGroupNewDataset(ctx context.Context, ag fleet.AgentGroup, datasetID string, policyID string, ownerID string) error {
 	return nil
 }
 

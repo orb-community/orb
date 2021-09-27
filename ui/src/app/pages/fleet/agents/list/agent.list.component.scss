@@ -97,3 +97,25 @@ tr div p {
 .ns1red {
   color: #df316f;
 }
+
+.agent-name {
+  cursor: pointer;
+}
+
+.orb-service- {
+  &new {
+    color: #9b51e0;
+  }
+  &online {
+    color: #6fcf97;
+  }
+  &stale {
+    color: #f2994a;
+  }
+  &error {
+    color: #df316f;
+  }
+  &offline {
+    color: #969fb9;
+  }
+}

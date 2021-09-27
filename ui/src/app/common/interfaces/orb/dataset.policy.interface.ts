@@ -7,9 +7,9 @@
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
 
 /**
- * @interface DatasetPolicy
+ * @interface Dataset
  */
-export interface DatasetPolicy extends OrbEntity {
+export interface Dataset extends OrbEntity {
   /**
    *  Agent Group ID {string} UUIDv4 (read only)
    */

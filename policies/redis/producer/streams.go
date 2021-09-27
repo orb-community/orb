@@ -36,6 +36,39 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string) (err error) {
+	if err := e.svc.RemoveDataset(ctx, token, dsID); err != nil {
+		return err
+	}
+
+	// TODO wait for the merge to use the function that retrieve a ds by id
+	ds := policies.Dataset{}
+
+	event := removeDatasetEvent{
+		id:           dsID,
+		ownerID:      ds.MFOwnerID,
+		agentGroupID: ds.AgentGroupID,
+		datasetID:    ds.ID,
+	}
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+
+	err = e.client.XAdd(ctx, record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
+func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.Dataset) (policies.Dataset, error) {
+	return e.svc.EditDataset(ctx, token, ds)
+}
+
 func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID string) error {
 	if err := e.svc.RemovePolicy(ctx, token, policyID); err != nil {
 		return err
@@ -44,6 +77,10 @@ func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID str
 	datasets, err := e.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
 	if err != nil {
 		return err
+	}
+
+	if len(datasets) == 0 {
+		return nil
 	}
 
 	var groupsIDs []string
@@ -139,7 +176,7 @@ func (e eventStore) ViewPolicyByIDInternal(ctx context.Context, policyID string,
 	return e.svc.ViewPolicyByIDInternal(ctx, policyID, ownerID)
 }
 
-func (e eventStore) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
+func (e eventStore) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.PolicyInDataset, error) {
 	return e.svc.ListPoliciesByGroupIDInternal(ctx, groupIDs, ownerID)
 }
 
@@ -159,7 +196,7 @@ func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.
 		name:         ds.Name.String(),
 		agentGroupID: ds.AgentGroupID,
 		policyID:     ds.PolicyID,
-		sinkID:       ds.SinkID,
+		sinkID:       ds.SinkIDs,
 	}
 	record := &redis.XAddArgs{
 		Stream:       streamID,

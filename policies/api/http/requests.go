@@ -135,7 +135,7 @@ func (req addDatasetReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 
-	if req.Name == "" || req.AgentGroupID == "" || req.PolicyID == "" || req.SinkIDs == nil {
+	if req.Name == "" || req.AgentGroupID == "" || req.PolicyID == "" || len(req.SinkIDs) == 0 {
 		return errors.ErrMalformedEntity
 	}
 
@@ -177,6 +177,24 @@ func (req *listResourcesReq) validate() error {
 	if req.pageMetadata.Dir != "" &&
 		req.pageMetadata.Dir != ascDir && req.pageMetadata.Dir != descDir {
 		return errors.ErrMalformedEntity
+	}
+
+	return nil
+}
+
+type updateDatasetReq struct {
+	id      string
+	token   string
+	Tags    types.Tags `json:"tags,omitempty"`
+	SinkIDs []string   `json:"sink_ids,omitempty"`
+}
+
+func (req updateDatasetReq) validate() error {
+	if req.id == "" {
+		return errors.ErrMalformedEntity
+	}
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
 	}
 
 	return nil

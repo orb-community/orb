@@ -19,7 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PolicyServiceClient interface {
 	RetrievePolicy(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*PolicyRes, error)
-	RetrievePoliciesByGroups(ctx context.Context, in *PoliciesByGroupsReq, opts ...grpc.CallOption) (*PolicyListRes, error)
+	RetrievePoliciesByGroups(ctx context.Context, in *PoliciesByGroupsReq, opts ...grpc.CallOption) (*PolicyInDSListRes, error)
 }
 
 type policyServiceClient struct {
@@ -39,8 +39,8 @@ func (c *policyServiceClient) RetrievePolicy(ctx context.Context, in *PolicyByID
 	return out, nil
 }
 
-func (c *policyServiceClient) RetrievePoliciesByGroups(ctx context.Context, in *PoliciesByGroupsReq, opts ...grpc.CallOption) (*PolicyListRes, error) {
-	out := new(PolicyListRes)
+func (c *policyServiceClient) RetrievePoliciesByGroups(ctx context.Context, in *PoliciesByGroupsReq, opts ...grpc.CallOption) (*PolicyInDSListRes, error) {
+	out := new(PolicyInDSListRes)
 	err := c.cc.Invoke(ctx, "/policies.PolicyService/RetrievePoliciesByGroups", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (c *policyServiceClient) RetrievePoliciesByGroups(ctx context.Context, in *
 // for forward compatibility
 type PolicyServiceServer interface {
 	RetrievePolicy(context.Context, *PolicyByIDReq) (*PolicyRes, error)
-	RetrievePoliciesByGroups(context.Context, *PoliciesByGroupsReq) (*PolicyListRes, error)
+	RetrievePoliciesByGroups(context.Context, *PoliciesByGroupsReq) (*PolicyInDSListRes, error)
 	mustEmbedUnimplementedPolicyServiceServer()
 }
 
@@ -64,7 +64,7 @@ type UnimplementedPolicyServiceServer struct {
 func (UnimplementedPolicyServiceServer) RetrievePolicy(context.Context, *PolicyByIDReq) (*PolicyRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrievePolicy not implemented")
 }
-func (UnimplementedPolicyServiceServer) RetrievePoliciesByGroups(context.Context, *PoliciesByGroupsReq) (*PolicyListRes, error) {
+func (UnimplementedPolicyServiceServer) RetrievePoliciesByGroups(context.Context, *PoliciesByGroupsReq) (*PolicyInDSListRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrievePoliciesByGroups not implemented")
 }
 func (UnimplementedPolicyServiceServer) mustEmbedUnimplementedPolicyServiceServer() {}

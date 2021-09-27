@@ -28,16 +28,17 @@ export const MENU: NbMenuItem[] = [
     children: [
       {
         title: 'Datasets',
+        // link: 'datasets/list',
       },
       {
         title: 'Policy Management',
-        link: 'policies',
+        link: 'datasets/policies',
       },
     ],
   },
   {
     title: 'Sink Management',
-    icon: 'layers-outline',
+    icon: 'cloud-upload-outline',
     link: 'sinks',
   },
   {

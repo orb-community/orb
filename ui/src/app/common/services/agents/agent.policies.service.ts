@@ -16,6 +16,7 @@ const defDir = 'desc';
 @Injectable()
 export class AgentPoliciesService {
   paginationCache: any = {};
+
   cache: OrbPagination<AgentPolicy>;
 
   constructor(
@@ -50,8 +51,8 @@ export class AgentPoliciesService {
 
   addAgentPolicy(agentPolicyItem: AgentPolicy) {
     return this.http.post(environment.agentPoliciesUrl,
-      { ...agentPolicyItem, validate_only: false },
-      { observe: 'response' })
+        { ...agentPolicyItem, validate_only: false },
+        { observe: 'response' })
       .map(
         resp => {
           return resp;
@@ -102,6 +103,7 @@ export class AgentPoliciesService {
     return this.http.delete(`${ environment.agentPoliciesUrl }/${ agentPoliciesId }`)
       .map(
         resp => {
+          this.cache.data.splice(this.cache.data.map(ap => ap.id).indexOf(agentPoliciesId), 1);
           return resp;
         },
       )
@@ -114,7 +116,7 @@ export class AgentPoliciesService {
       );
   }
 
-  getAgentPolicies(pageInfo: NgxDatabalePageInfo, isFilter = false) {
+  getAgentsPolicies(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     const offset = pageInfo.offset || this.cache.offset;
     const limit = pageInfo.limit || this.cache.limit;
     let params = new HttpParams()

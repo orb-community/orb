@@ -93,7 +93,7 @@ func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm po
 		return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, orb_tags, backend, version, policy, ts_created 
+	q := fmt.Sprintf(`SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created 
 			FROM agent_policies
 			WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, orderQuery, dirQuery)
 
@@ -143,9 +143,9 @@ func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm po
 	return page, nil
 }
 
-func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Policy, error) {
+func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]policies.PolicyInDataset, error) {
 
-	q := `SELECT agent_policies.id AS id, agent_policies.name AS name, agent_policies.mf_owner_id, orb_tags, backend, version, policy, agent_policies.ts_created 
+	q := `SELECT agent_policies.id AS id, datasets.id AS dataset_id, agent_policies.name AS name, agent_policies.mf_owner_id, orb_tags, backend, version, policy, agent_policies.ts_created 
 			FROM agent_policies, datasets
 			WHERE agent_policies.id = datasets.agent_policy_id AND agent_policies.mf_owner_id = datasets.mf_owner_id AND valid = TRUE AND
 				agent_group_id IN (?) AND agent_policies.mf_owner_id = ?`
@@ -167,7 +167,7 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 	}
 	defer rows.Close()
 
-	var items []policies.Policy
+	var items []policies.PolicyInDataset
 	for rows.Next() {
 		dbth := dbPolicy{MFOwnerID: ownerID}
 		if err := rows.StructScan(&dbth); err != nil {
@@ -175,7 +175,7 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 		}
 
 		th := toPolicy(dbth)
-		items = append(items, th)
+		items = append(items, policies.PolicyInDataset{Policy: th, DatasetID: dbth.DataSetID})
 	}
 
 	return items, nil
@@ -199,10 +199,76 @@ func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID str
 	return toPolicy(dbp), nil
 }
 
+func (r policiesRepository) UpdateDataset(ctx context.Context, ownerID string, ds policies.Dataset) error {
+	q := `UPDATE datasets SET tags = :tags, sink_ids = :sink_ids WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+
+	params := map[string]interface{}{
+		"mf_owner_id": ds.MFOwnerID,
+		"tags":        db.Tags(ds.Tags),
+		"sink_ids":    pq.Array(ds.SinkIDs),
+		"id":          ds.ID,
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrNotFound
+	}
+
+	return nil
+}
+
+func (r policiesRepository) DeleteDataset(ctx context.Context, ownerID string, dsID string) error {
+	q := `DELETE FROM datasets WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+
+	params := map[string]interface{}{
+		"mf_owner_id": ownerID,
+		"id":          dsID,
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(fleet.ErrRemoveEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrNotFound
+	}
+
+	return nil
+}
+
 func (r policiesRepository) SaveDataset(ctx context.Context, dataset policies.Dataset) (string, error) {
 
-	q := `INSERT INTO datasets (name, mf_owner_id, metadata, valid, agent_group_id, agent_policy_id, sink_id)         
-			  VALUES (:name, :mf_owner_id, :metadata, :valid, :agent_group_id, :agent_policy_id, :sink_id) RETURNING id`
+	q := `INSERT INTO datasets (name, mf_owner_id, metadata, valid, agent_group_id, agent_policy_id, sink_ids, tags)         
+			  VALUES (:name, :mf_owner_id, :metadata, :valid, :agent_group_id, :agent_policy_id, :sink_ids_str, :tags) RETURNING id`
 
 	if !dataset.Name.IsValid() || dataset.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -276,7 +342,7 @@ func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, pol
 		"mf_owner_id":     ownerID,
 	}
 
-	res, err := r.db.NamedExecContext(ctx, q, params)
+	_, err := r.db.NamedExecContext(ctx, q, params)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
@@ -287,22 +353,13 @@ func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, pol
 		}
 		return errors.Wrap(policies.ErrUpdateEntity, err)
 	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return errors.Wrap(policies.ErrUpdateEntity, err)
-	}
-
-	if count == 0 {
-		return policies.ErrInactivateDataset
-	}
 	return nil
 }
 
 func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 
-	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags)         
-			  VALUES (:name, :mf_owner_id, :backend, :policy, :orb_tags) RETURNING id`
+	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags, description)         
+			  VALUES (:name, :mf_owner_id, :backend, :policy, :orb_tags, :description) RETURNING id`
 
 	if !policy.Name.IsValid() || policy.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -339,7 +396,7 @@ func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Poli
 
 func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
 
-	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_id, metadata, ts_created 
+	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_ids, metadata, ts_created 
 			FROM datasets
 			WHERE agent_policy_id = ? AND mf_owner_id = ?`
 
@@ -380,11 +437,11 @@ type dbPolicy struct {
 	MFOwnerID   string           `db:"mf_owner_id"`
 	Backend     string           `db:"backend"`
 	Description string           `db:"description"`
-	Format      string           `db:"format"`
 	OrbTags     db.Tags          `db:"orb_tags"`
 	Policy      db.Metadata      `db:"policy"`
 	Version     int32            `db:"version"`
 	Created     time.Time        `db:"ts_created"`
+	DataSetID   string           `db:"dataset_id"`
 }
 
 func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
@@ -416,8 +473,10 @@ type dbDataset struct {
 	Valid        bool             `db:"valid"`
 	AgentGroupID sql.NullString   `db:"agent_group_id"`
 	PolicyID     sql.NullString   `db:"agent_policy_id"`
-	SinkID       sql.NullString   `db:"sink_id"`
 	TsCreated    time.Time        `db:"ts_created"`
+	Tags         db.Tags          `db:"tags"`
+	SinkID       []string         `db:"sink_ids"`
+	SinksIDsStr  interface{}      `db:"sink_ids_str"`
 }
 
 func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
@@ -429,10 +488,12 @@ func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
 	}
 
 	d := dbDataset{
-		ID:        dataset.ID,
-		Name:      dataset.Name,
-		MFOwnerID: uID.String(),
-		Metadata:  db.Metadata(dataset.Metadata),
+		ID:          dataset.ID,
+		Name:        dataset.Name,
+		MFOwnerID:   uID.String(),
+		Metadata:    db.Metadata(dataset.Metadata),
+		Tags:        db.Tags(dataset.Tags),
+		SinksIDsStr: pq.Array(dataset.SinkIDs),
 	}
 
 	d.Valid = true
@@ -446,12 +507,6 @@ func toDBDataset(dataset policies.Dataset) (dbDataset, error) {
 		d.PolicyID = sql.NullString{String: dataset.PolicyID, Valid: true}
 	} else {
 		d.PolicyID = sql.NullString{Valid: false}
-		d.Valid = false
-	}
-	if dataset.SinkID != "" {
-		d.SinkID = sql.NullString{String: dataset.SinkID, Valid: true}
-	} else {
-		d.SinkID = sql.NullString{Valid: false}
 		d.Valid = false
 	}
 
@@ -489,9 +544,10 @@ func toDataset(dba dbDataset) policies.Dataset {
 		Valid:        dba.Valid,
 		AgentGroupID: dba.AgentGroupID.String,
 		PolicyID:     dba.PolicyID.String,
-		SinkID:       dba.SinkID.String,
+		SinkIDs:      dba.SinkID,
 		Metadata:     types.Metadata(dba.Metadata),
 		Created:      dba.TsCreated,
+		Tags:         types.Tags(dba.Tags),
 	}
 
 	return dataset

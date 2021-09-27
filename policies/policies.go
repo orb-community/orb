@@ -29,10 +29,15 @@ type Dataset struct {
 	Valid        bool
 	AgentGroupID string
 	PolicyID     string
-	SinkID       []string
 	Metadata     types.Metadata
 	Created      time.Time
 	Tags         types.Tags
+	SinkIDs      []string
+}
+
+type PolicyInDataset struct {
+	Policy
+	DatasetID string
 }
 
 type Page struct {
@@ -54,7 +59,7 @@ type Service interface {
 	ViewPolicyByIDInternal(ctx context.Context, policyID string, ownerID string) (Policy, error)
 
 	// ListPoliciesByGroupIDInternal gRPC version of retrieving list of policies belonging to specified agent group with no token
-	ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
+	ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]PolicyInDataset, error)
 
 	// EditPolicy edit a existing policy by id with a valid token
 	EditPolicy(ctx context.Context, token string, pol Policy, format string, policyData string) (Policy, error)
@@ -74,6 +79,11 @@ type Service interface {
 	// ValidatePolicy validates an agent Policy without saving
 	ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
 
+	// EditDataset edit a existing dataset by id with a valid token
+	EditDataset(ctx context.Context, token string, ds Dataset) (Dataset, error)
+	// RemoveDataset remove a dataset by id with a valid token
+	RemoveDataset(ctx context.Context, token string, dsID string) error
+
 	// ValidateDataset validates a new Dataset without saving it
 	ValidateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 }
@@ -87,7 +97,7 @@ type Repository interface {
 	RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (Policy, error)
 
 	// RetrievePoliciesByGroupID Retrieve policy list by group id
-	RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]Policy, error)
+	RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]PolicyInDataset, error)
 
 	// RetrieveAll retrieves the subset of Policies owned by the specified user
 	RetrieveAll(ctx context.Context, ownerID string, pm PageMetadata) (Page, error)
@@ -110,4 +120,10 @@ type Repository interface {
 
 	// RetrieveDatasetsByPolicyID retrieves the subset of Datasets by policyID owned by the specified user
 	RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]Dataset, error)
+
+	// UpdateDataset update a existing dataset by id with a valid token
+	UpdateDataset(ctx context.Context, ownerID string, ds Dataset) error
+
+	//DeleteDataset delete a existing dataset by id by ownerID
+	DeleteDataset(ctx context.Context, ownerID string, dsID string) error
 }

@@ -18,6 +18,34 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
+func (l loggingMiddleware) RemoveDataset(ctx context.Context, token string, dsID string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: remove_dataset",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: remove_dataset",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.RemoveDataset(ctx, token, dsID)
+}
+
+func (l loggingMiddleware) EditDataset(ctx context.Context, token string, ds policies.Dataset) (_ policies.Dataset, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: edit_dataset",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: edit_dataset",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.EditDataset(ctx, token, ds)
+}
+
 func (l loggingMiddleware) RemovePolicy(ctx context.Context, token string, policyID string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {
@@ -116,7 +144,7 @@ func (l loggingMiddleware) ViewPolicyByIDInternal(ctx context.Context, policyID 
 	return l.svc.ViewPolicyByIDInternal(ctx, policyID, ownerID)
 }
 
-func (l loggingMiddleware) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) (_ []policies.Policy, err error) {
+func (l loggingMiddleware) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) (_ []policies.PolicyInDataset, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: list_policies_by_groups",

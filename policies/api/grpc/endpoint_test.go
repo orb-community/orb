@@ -30,8 +30,8 @@ func TestRetrievePolicy(t *testing.T) {
 	usersAddr := fmt.Sprintf("localhost:%d", port)
 	conn, err := grpc.Dial(usersAddr, grpc.WithInsecure())
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
-	cli := policiesgrpc.NewClient(mocktracer.New(), conn, time.Second)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	cli := policiesgrpc.NewClient(mocktracer.New(), conn, time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	cases := map[string]struct {
@@ -65,8 +65,8 @@ func TestRetrievePoliciesByGroups(t *testing.T) {
 	usersAddr := fmt.Sprintf("localhost:%d", port)
 	conn, err := grpc.Dial(usersAddr, grpc.WithInsecure())
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
-	cli := policiesgrpc.NewClient(mocktracer.New(), conn, time.Second)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	cli := policiesgrpc.NewClient(mocktracer.New(), conn, time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	cases := map[string]struct {
@@ -91,6 +91,7 @@ func TestRetrievePoliciesByGroups(t *testing.T) {
 			OwnerID:  policy.MFOwnerID,
 		})
 		e, ok := status.FromError(err)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 		assert.True(t, ok, "OK expected to be true")
 		assert.Equal(t, tc.results, len(plist.Policies), fmt.Sprintf("%s: expected %d got %d", desc, tc.results, len(plist.Policies)))
 		assert.Equal(t, tc.code, e.Code(), fmt.Sprintf("%s: expected %s got %s", desc, tc.code, e.Code()))

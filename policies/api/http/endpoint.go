@@ -47,6 +47,7 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Tags:        saved.OrbTags,
 			Backend:     saved.Backend,
 			Policy:      saved.Policy,
+			Version:     saved.Version,
 			created:     true,
 		}
 
@@ -67,9 +68,13 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := policyRes{
-			ID:      policy.ID,
-			Name:    policy.Name.String(),
-			Backend: policy.Backend,
+			ID:          policy.ID,
+			Name:        policy.Name.String(),
+			Description: policy.Description,
+			Tags:        policy.OrbTags,
+			Backend:     policy.Backend,
+			Policy:      policy.Policy,
+			Version:     policy.Version,
 		}
 		return res, nil
 	}
@@ -99,9 +104,11 @@ func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 		for _, ag := range page.Policies {
 			view := policyRes{
-				ID:      ag.ID,
-				Name:    ag.Name.String(),
-				Backend: ag.Backend,
+				ID:          ag.ID,
+				Name:        ag.Name.String(),
+				Description: ag.Description,
+				Version:     ag.Version,
+				Backend:     ag.Backend,
 			}
 			res.Policies = append(res.Policies, view)
 		}
@@ -139,6 +146,7 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Description: res.Description,
 			Tags:        res.OrbTags,
 			Policy:      res.Policy,
+			Version:     res.Version,
 		}
 
 		return plcyRes, nil
@@ -175,7 +183,7 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Name:         nID,
 			AgentGroupID: req.AgentGroupID,
 			PolicyID:     req.PolicyID,
-			SinkID:       req.SinkIDs,
+			SinkIDs:      req.SinkIDs,
 		}
 
 		saved, err := svc.AddDataset(ctx, req.token, d)
@@ -193,6 +201,27 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 	}
 }
 
+func editDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(updateDatasetReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		dataset := policies.Dataset{
+			ID:      req.id,
+			Tags:    req.Tags,
+			SinkIDs: req.SinkIDs,
+		}
+
+		ds, err := svc.EditDataset(ctx, req.token, dataset)
+		if err != nil {
+			return nil, err
+		}
+		return ds, nil
+	}
+}
+
 func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addPolicyReq)
@@ -206,10 +235,10 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		policy := policies.Policy{
-			Name:    nID,
-			Backend: req.Backend,
-			Policy:  req.Policy,
-			OrbTags: req.Tags,
+			Name:        nID,
+			Backend:     req.Backend,
+			Policy:      req.Policy,
+			OrbTags:     req.Tags,
 			Description: req.Description,
 		}
 
@@ -219,14 +248,27 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := policyValidateRes{
-			Name:    validated.Name.String(),
-			Backend: validated.Backend,
-			Tags:    validated.OrbTags,
-			Policy:  validated.Policy,
+			Name:        validated.Name.String(),
+			Backend:     validated.Backend,
+			Tags:        validated.OrbTags,
+			Policy:      validated.Policy,
 			Description: validated.Description,
 		}
 
 		return res, nil
+	}
+}
+
+func removeDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return removeRes{}, err
+		}
+		if err := svc.RemoveDataset(ctx, req.token, req.id); err != nil {
+			return removeRes{}, err
+		}
+		return removeRes{}, nil
 	}
 }
 
