@@ -288,7 +288,7 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Name:         nID,
 			AgentGroupID: req.AgentGroupID,
 			PolicyID:     req.PolicyID,
-			SinkID:       req.SinkIDs,
+			SinkIDs:       req.SinkIDs,
 			Tags:         req.Tags,
 		}
 
@@ -303,7 +303,7 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Tags:         validated.Tags,
 			AgentGroupID: validated.AgentGroupID,
 			PolicyID:     validated.PolicyID,
-			SinkIDs:       validated.SinkID,
+			SinkIDs:       validated.SinkIDs,
 		}
 
 		return res, nil
