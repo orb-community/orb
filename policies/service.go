@@ -3,10 +3,12 @@ package policies
 import (
 	"context"
 	"github.com/mainflux/mainflux"
+	fleetpb "github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies/backend/orb"
 	"github.com/ns1labs/orb/policies/backend/pktvisor"
+	sinkpb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 	"time"
 )
@@ -25,9 +27,11 @@ type PageMetadata struct {
 var _ Service = (*policiesService)(nil)
 
 type policiesService struct {
-	logger *zap.Logger
-	auth   mainflux.AuthServiceClient
-	repo   Repository
+	logger          *zap.Logger
+	auth            mainflux.AuthServiceClient
+	fleetGrpcClient fleetpb.FleetServiceClient
+	sinksGrpcClient sinkpb.SinkServiceClient
+	repo            Repository
 }
 
 func (s policiesService) identify(token string) (string, error) {
@@ -42,14 +46,16 @@ func (s policiesService) identify(token string) (string, error) {
 	return res.GetId(), nil
 }
 
-func New(logger *zap.Logger, auth mainflux.AuthServiceClient, repo Repository) Service {
+func New(logger *zap.Logger, auth mainflux.AuthServiceClient, repo Repository, fleetGrpcClient fleetpb.FleetServiceClient, sinksGrpcclient sinkpb.SinkServiceClient) Service {
 
 	orb.Register()
 	pktvisor.Register()
 
 	return &policiesService{
-		logger: logger,
-		auth:   auth,
-		repo:   repo,
+		logger:          logger,
+		auth:            auth,
+		repo:            repo,
+		fleetGrpcClient: fleetGrpcClient,
+		sinksGrpcClient: sinksGrpcclient,
 	}
 }

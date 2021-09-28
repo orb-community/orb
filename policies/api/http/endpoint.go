@@ -271,3 +271,41 @@ func removeDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		return removeRes{}, nil
 	}
 }
+
+func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(addDatasetReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		d := policies.Dataset{
+			Name:         nID,
+			AgentGroupID: req.AgentGroupID,
+			PolicyID:     req.PolicyID,
+			SinkIDs:       req.SinkIDs,
+			Tags:         req.Tags,
+		}
+
+		validated, err := svc.ValidateDataset(ctx, req.token, d)
+		if err != nil {
+			return nil, err
+		}
+
+		res := validateDatasetRes{
+			Name:         validated.Name.String(),
+			Valid:        true,
+			Tags:         validated.Tags,
+			AgentGroupID: validated.AgentGroupID,
+			PolicyID:     validated.PolicyID,
+			SinkIDs:       validated.SinkIDs,
+		}
+
+		return res, nil
+	}
+}
