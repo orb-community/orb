@@ -12,7 +12,7 @@ export class TagChipPipe implements PipeTransform {
    * @return {<string>[]}
    */
   transform(tagList: {key: string, value: string}[]): string[] {
-    return tagList.map(tag => tag.key !== '' ? `${tag.key}: ${tag.value || ''}` : '');
+    return tagList?.map(tag => tag.key !== '' ? `${tag.key}: ${tag.value || ''}` : '');
   }
 }
 
@@ -29,11 +29,13 @@ export class TagChipPipe implements PipeTransform {
     */
 
    transform(tag: string): string {
-    const h = Math.abs(
-                `${tag}}`
-                .split('')
-                .map(v => v.charCodeAt(0))
-                .reduce((a, v) => a + ((a << 7) + (a << 3)) ^ v) % 360);
-    return `hsl(${h}, 90%, 65%)`;
+    if (tag !== '') {
+      const h = Math.abs(
+                  `${tag}}`
+                  .split('')
+                  .map(v => v.charCodeAt(0))
+                  .reduce((a, v) => a + ((a << 7) + (a << 3)) ^ v) % 360);
+      return `hsl(${h}, 90%, 65%)`;
+    } else return 'transparent';
   }
  }

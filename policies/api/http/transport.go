@@ -68,14 +68,25 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 		decodeView,
 		types.EncodeResponse,
 		opts...))
+	r.Post("/policies/agent/validate", kithttp.NewServer(
+		kitot.TraceServer(tracer, "validate_policy")(validatePolicyEndpoint(svc)),
+		decodeAddPolicyRequest,
+		types.EncodeResponse,
+		opts...))
+
 	r.Post("/policies/dataset", kithttp.NewServer(
 		kitot.TraceServer(tracer, "add_dataset")(addDatasetEndpoint(svc)),
 		decodeAddDatasetRequest,
 		types.EncodeResponse,
 		opts...))
-	r.Post("/policies/agent/validate", kithttp.NewServer(
-		kitot.TraceServer(tracer, "validate_policy")(validatePolicyEndpoint(svc)),
-		decodeAddPolicyRequest,
+	r.Patch("/policies/dataset/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "edit_dataset")(editDatasetEndpoint(svc)),
+		decodeDatasetUpdate,
+		types.EncodeResponse,
+		opts...))
+	r.Delete("/policies/dataset/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "remove_dataset")(removeDatasetEndpoint(svc)),
+		decodeView,
 		types.EncodeResponse,
 		opts...))
 	r.Get("/policies/dataset/:id", kithttp.NewServer(
@@ -135,6 +146,22 @@ func decodePolicyUpdate(_ context.Context, r *http.Request) (interface{}, error)
 	}
 
 	req := updatePolicyReq{
+		token: r.Header.Get("Authorization"),
+		id:    bone.GetValue(r, "id"),
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
+	}
+
+	return req, nil
+}
+
+func decodeDatasetUpdate(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), contentType) {
+		return nil, errors.ErrUnsupportedContentType
+	}
+
+	req := updateDatasetReq{
 		token: r.Header.Get("Authorization"),
 		id:    bone.GetValue(r, "id"),
 	}

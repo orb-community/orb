@@ -21,12 +21,13 @@ import { AgentGroupListComponent } from 'app/pages/fleet/groups/list/agent.group
 import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.add.component';
 // DEV
 import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
+import { DashboardComponent } from 'app/pages/dashboard/dashboard.component';
 
 const children = [
   {
     path: 'home',
-    redirectTo: 'sinks',
-    // component: DashboardComponent,
+    data: {breadcrumb: 'Home'},
+    component: DashboardComponent,
   },
   {
     path: 'dev',

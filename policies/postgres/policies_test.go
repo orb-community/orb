@@ -265,8 +265,12 @@ func TestAgentPoliciesRetrieveByGroup(t *testing.T) {
 	groupID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
-	sinkID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	sinkIDs := make([]string, 2)
+	for i := 0; i < 2; i++ {
+		sinkID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		sinkIDs[i] = sinkID.String()
+	}
 
 	dsnameID, err := types.NewIdentifier("mydataset")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
@@ -277,7 +281,7 @@ func TestAgentPoliciesRetrieveByGroup(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID,
-		SinkID:       sinkID.String(),
+		SinkIDs:      sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
