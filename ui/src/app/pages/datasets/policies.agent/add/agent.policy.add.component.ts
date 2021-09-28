@@ -106,16 +106,22 @@ export class AgentPolicyAddComponent {
         delete this.backendConfigForms[key];
       });
       delete this.backend;
+      delete this.handlers;
     }
 
     this.backend = this.availableBackends[selectedBackend];
+
     // reconfig dynamic forms based on backend selected
     this.backendConfigForms = Object.keys(this.availableBackends[selectedBackend])
       .reduce((formGroups, groupName, groupIndex) => {
         formGroups[groupName] = this._formBuilder.group({ [groupName]: ['', Validators.required] });
         return formGroups;
       }, {});
+
+    this.backendConfigForms['handlers'].addControl('current', this._formBuilder.control('', []));
+
   }
+
 
   onTapSelected(selectedTap) {
     if (this.tap) {
