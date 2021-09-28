@@ -18,6 +18,7 @@ import (
 	thingsapi "github.com/mainflux/mainflux/things/api/things/http"
 	"github.com/ns1labs/orb/fleet"
 	http2 "github.com/ns1labs/orb/fleet/api/http"
+	"github.com/ns1labs/orb/fleet/backend/pktvisor"
 	flmocks "github.com/ns1labs/orb/fleet/mocks"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/opentracing/opentracing-go/mocktracer"
@@ -136,6 +137,7 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
+	pktvisor.Register(auth, agentRepo)
 	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, nil)
 }
 
