@@ -214,9 +214,28 @@ func TestDatasetRetrieveByID(t *testing.T) {
 	nameID, err := types.NewIdentifier("mypolicy")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	groupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sinkIDs := make([]string, 2)
+	for i := 0; i < 2; i++ {
+		sinkID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		sinkIDs[i] = sinkID.String()
+	}
+
 	dataset := policies.Dataset{
-		Name:      nameID,
-		MFOwnerID: oID.String(),
+		Name:         nameID,
+		MFOwnerID:    oID.String(),
+		Valid:        true,
+		AgentGroupID: groupID.String(),
+		PolicyID:     policyID.String(),
+		SinkIDs:      sinkIDs,
+		Metadata:     types.Metadata{"testkey": "testvalue"},
+		Created:      time.Time{},
 	}
 
 	id, err := repo.SaveDataset(context.Background(), dataset)
@@ -227,12 +246,12 @@ func TestDatasetRetrieveByID(t *testing.T) {
 		ownerID   string
 		err       error
 	}{
-		"retrieve existing policy by ID and ownerID": {
+		"retrieve existing dataset by ID and ownerID": {
 			datasetID: id,
 			ownerID:   dataset.MFOwnerID,
 			err:       nil,
 		},
-		"retrieve non-existent policy by ID and ownerID": {
+		"retrieve non-existent dataset by ID and ownerID": {
 			datasetID: dataset.MFOwnerID,
 			ownerID:   id,
 			err:       errors.ErrNotFound,

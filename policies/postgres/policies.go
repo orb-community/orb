@@ -547,7 +547,7 @@ type dbDataset struct {
 	PolicyID     sql.NullString   `db:"agent_policy_id"`
 	TsCreated    time.Time        `db:"ts_created"`
 	Tags         db.Tags          `db:"tags"`
-	SinkID       []string         `db:"sink_ids"`
+	SinkIDs       pq.StringArray         `db:"sink_ids"`
 	SinksIDsStr  interface{}      `db:"sink_ids_str"`
 }
 
@@ -616,7 +616,7 @@ func toDataset(dba dbDataset) policies.Dataset {
 		Valid:        dba.Valid,
 		AgentGroupID: dba.AgentGroupID.String,
 		PolicyID:     dba.PolicyID.String,
-		SinkIDs:      dba.SinkID,
+		SinkIDs:      dba.SinkIDs,
 		Metadata:     types.Metadata(dba.Metadata),
 		Created:      dba.TsCreated,
 		Tags:         types.Tags(dba.Tags),
