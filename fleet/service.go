@@ -10,7 +10,6 @@ package fleet
 
 import (
 	"context"
-	"github.com/jmoiron/sqlx"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -93,7 +92,7 @@ func (svc fleetService) thing(token, id string, name string, md map[string]inter
 	return thing, nil
 }
 
-func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, agentComms AgentCommsService, mfsdk mfsdk.SDK, db *sqlx.DB) Service {
+func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, agentComms AgentCommsService, mfsdk mfsdk.SDK) Service {
 
 	return &fleetService{
 		logger:               logger,

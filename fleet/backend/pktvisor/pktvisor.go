@@ -10,7 +10,6 @@ import (
 	"fmt"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
-	"github.com/jmoiron/sqlx"
 	"github.com/mainflux/mainflux"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/fleet/backend"
@@ -27,7 +26,6 @@ var _ backend.Backend = (*pktvisorBackend)(nil)
 
 type pktvisorBackend struct {
 	auth        mainflux.AuthServiceClient
-	db          *sqlx.DB
 	agentRepo   fleet.AgentRepository
 	Backend     string
 	Description string

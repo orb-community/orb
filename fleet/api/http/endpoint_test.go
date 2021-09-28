@@ -138,7 +138,7 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 
 	mfsdk := mfsdk.NewSDK(config)
 	pktvisor.Register(auth, agentRepo)
-	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, nil)
+	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
 }
 
 func newServer(svc fleet.Service) *httptest.Server {
@@ -1323,7 +1323,7 @@ func TestAgentBackendHandler(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/backends/%s/handler", cli.server.URL, tc.backend),
+				url:    fmt.Sprintf("%s/backends/%s/handlers", cli.server.URL, tc.backend),
 				token:  tc.auth,
 			}
 			res, err := req.make()
@@ -1364,7 +1364,7 @@ func TestAgentBackendInput(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/backends/%s/input", cli.server.URL, tc.backend),
+				url:    fmt.Sprintf("%s/backends/%s/inputs", cli.server.URL, tc.backend),
 				token:  tc.auth,
 			}
 			res, err := req.make()
