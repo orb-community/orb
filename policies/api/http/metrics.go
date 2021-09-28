@@ -70,6 +70,10 @@ func (m metricsMiddleware) ValidatePolicy(ctx context.Context, token string, p p
 	return m.svc.ValidatePolicy(ctx, token, p, format, policyData)
 }
 
+func (m metricsMiddleware) ValidateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
+	return m.svc.ValidateDataset(ctx, token, d)
+}
+
 func (m metricsMiddleware) ViewDatasetByID(ctx context.Context, token string, datasetID string) (policies.Dataset, error) {
 	return m.svc.ViewDatasetByID(ctx, token, datasetID)
 }

@@ -255,6 +255,9 @@ func validatePolicyBackend(p *policies.Policy, format string, policyData string)
 	return nil
 }
 
+func (e eventStore) ValidateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
+	return e.svc.ValidateDataset(ctx, token, d)
+}
 func (e eventStore) ListDataset(ctx context.Context, token string, pm policies.PageMetadata) (policies.PageDataset, error) {
 	return e.svc.ListDataset(ctx, token, pm)
 }

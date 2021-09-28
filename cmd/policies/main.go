@@ -12,6 +12,8 @@ import (
 	"context"
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
+	fleetgrpc "github.com/ns1labs/orb/fleet/api/grpc"
+	fleetpb "github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/policies"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
@@ -20,6 +22,8 @@ import (
 	"github.com/ns1labs/orb/policies/postgres"
 	rediscon "github.com/ns1labs/orb/policies/redis/consumer"
 	redisprod "github.com/ns1labs/orb/policies/redis/producer"
+	sinkgrpc "github.com/ns1labs/orb/sinks/api/grpc"
+	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	opentracing "github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/reflection"
@@ -61,8 +65,7 @@ func main() {
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
-
-	// todo sinks gRPC
+	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 
 	// main logger
 	var logger *zap.Logger
@@ -85,16 +88,33 @@ func main() {
 	authGRPCConn := connectToGRPC(authGRPCCfg, logger)
 	defer authGRPCConn.Close()
 
-	fleetGRPCConn := connectToGRPC(fleetGRPCCfg, logger)
-	defer fleetGRPCConn.Close()
-
 	authGRPCTimeout, err := time.ParseDuration(authGRPCCfg.Timeout)
 	if err != nil {
 		log.Fatalf("Invalid %s value: %s", authGRPCCfg.Timeout, err.Error())
 	}
 	authGRPCClient := authapi.NewClient(tracer, authGRPCConn, authGRPCTimeout)
 
-	svc := newService(authGRPCClient, db, logger, esClient)
+	fleetGRPCConn := connectToGRPC(fleetGRPCCfg, logger)
+	defer fleetGRPCConn.Close()
+
+	fleetGRPCTimeout, err := time.ParseDuration(fleetGRPCCfg.Timeout)
+	if err != nil {
+		log.Fatalf("Invalid %s value: %s", fleetGRPCCfg.Timeout, err.Error())
+	}
+
+	fleetGRPCClient := fleetgrpc.NewClient(tracer, fleetGRPCConn, fleetGRPCTimeout)
+
+	sinksGRPCConn := connectToGRPC(sinksGRPCCfg, logger)
+	defer fleetGRPCConn.Close()
+
+	sinksGRPCTimeout, err := time.ParseDuration(sinksGRPCCfg.Timeout)
+	if err != nil {
+		log.Fatalf("Invalid %s value: %s", sinksGRPCCfg.Timeout, err.Error())
+	}
+
+	sinksGRPCClient := sinkgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
+
+	svc := newService(authGRPCClient, db, logger, esClient, fleetGRPCClient, sinksGRPCClient)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
@@ -158,10 +178,10 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client) policies.Service {
+func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, fleetGrpcClient fleetpb.FleetServiceClient, sinksGrpcClient sinkspb.SinkServiceClient) policies.Service {
 	thingsRepo := postgres.NewPoliciesRepository(db, logger)
 
-	svc := policies.New(logger, auth, thingsRepo)
+	svc := policies.New(logger, auth, thingsRepo, fleetGrpcClient, sinksGrpcClient)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient, logger)
 	svc = policieshttp.NewLoggingMiddleware(svc, logger)
 	svc = policieshttp.MetricsMiddleware(
