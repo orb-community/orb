@@ -13,6 +13,11 @@ type agentRepositoryMock struct {
 	agentsMock map[string]fleet.Agent
 }
 
+func (a agentRepositoryMock) RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error) {
+	var taps []types.Metadata
+	return taps, nil
+}
+
 func (a agentRepositoryMock) RetrieveByID(ctx context.Context, ownerID string, thingID string) (fleet.Agent, error) {
 	if _, ok := a.agentsMock[thingID]; ok {
 		if a.agentsMock[thingID].MFOwnerID != ownerID {
