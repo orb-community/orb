@@ -12,8 +12,11 @@ import (
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"github.com/ns1labs/orb/fleet"
+	fleetpb "github.com/ns1labs/orb/fleet/pb"
+	policiespb "github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/sinker/backend"
 	"github.com/ns1labs/orb/sinker/backend/pktvisor"
+	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 	"strings"
 )
@@ -40,6 +43,10 @@ type sinkerService struct {
 	esclient *redis.Client
 
 	logger *zap.Logger
+
+	policiesClient policiespb.PolicyServiceClient
+	fleetClient fleetpb.FleetServiceClient
+	sinksClient sinkspb.SinkServiceClient
 }
 
 func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopic string, payload []byte) error {
@@ -125,10 +132,12 @@ func (svc sinkerService) Stop() error {
 }
 
 // New instantiates the sinker service implementation.
-func New(logger *zap.Logger, pubSub mfnats.PubSub, esclient *redis.Client) Service {
+func New(logger *zap.Logger, pubSub mfnats.PubSub, esclient *redis.Client, policiesClient policiespb.PolicyServiceClient, fleetClient fleetpb.FleetServiceClient) Service {
 	return &sinkerService{
 		logger:   logger,
 		pubSub:   pubSub,
 		esclient: esclient,
+		policiesClient: policiesClient,
+		fleetClient: fleetClient,
 	}
 }
