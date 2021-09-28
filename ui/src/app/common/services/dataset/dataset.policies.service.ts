@@ -6,7 +6,6 @@ import 'rxjs/add/observable/empty';
 import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 
 // default filters
@@ -17,7 +16,7 @@ const defDir = 'desc';
 @Injectable()
 export class DatasetPoliciesService {
   paginationCache: any = {};
-  cache: OrbPagination<AgentPolicy>;
+  cache: OrbPagination<Dataset>;
 
   constructor(
     private http: HttpClient,

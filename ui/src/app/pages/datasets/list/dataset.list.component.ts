@@ -1,18 +1,20 @@
-import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { NbDialogService } from '@nebular/theme';
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
-import { ActivatedRoute, Router } from '@angular/router';
-import { STRINGS } from 'assets/text/strings';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Debounce } from 'app/shared/decorators/utils';
-import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
 
 @Component({
   selector: 'ngx-dataset-list-component',
@@ -20,22 +22,20 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
   styleUrls: ['./dataset.list.component.scss'],
 })
 export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChecked {
-  strings = STRINGS.sink;
-
   columnMode = ColumnMode;
+
   columns: TableColumn[];
 
   loading = false;
 
-  paginationControls: OrbPagination<AgentGroup>;
+  paginationControls: OrbPagination<Dataset>;
 
   searchPlaceholder = 'Search by name';
+
   filterSelectedIndex = '0';
 
   // templates
-  @ViewChild('sinkStateTemplateCell') sinkStateTemplateCell: TemplateRef<any>;
-  @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
-  @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+  @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
     {
@@ -52,21 +52,20 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
     },
   ];
 
+  @ViewChild('tableWrapper') tableWrapper;
+
+  @ViewChild(DatatableComponent) table: DatatableComponent;
+
+  private currentComponentWidth;
+
   constructor(
     private cdr: ChangeDetectorRef,
-    private dialogService: NbDialogService,
-    private notificationsService: NotificationsService,
-    private sinkService: SinksService,
-    private route: ActivatedRoute,
-    private router: Router,
+    private datasetPoliciesService: DatasetPoliciesService,
   ) {
-    this.sinkService.clean();
+    this.datasetPoliciesService.clean();
     this.paginationControls = SinksService.getDefaultPagination();
   }
 
-  @ViewChild('tableWrapper') tableWrapper;
-  @ViewChild(DatatableComponent) table: DatatableComponent;
-  private currentComponentWidth;
   ngAfterViewChecked() {
     if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
@@ -77,8 +76,8 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
   }
 
   ngOnInit() {
-    this.sinkService.clean();
-    this.getSinks();
+    this.datasetPoliciesService.clean();
+    this.getDatasets();
   }
 
   ngAfterViewInit() {
@@ -98,26 +97,18 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
         flexGrow: 2,
       },
       {
-        prop: 'backend',
-        name: 'Type',
-        resizeable: false,
-        minWidth: 100,
-        flexGrow: 1,
-      },
-      {
-        prop: 'state',
-        name: 'Status',
-        resizeable: false,
-        minWidth: 100,
-        flexGrow: 1,
-        cellTemplate: this.sinkStateTemplateCell,
-      },
-      {
-        prop: 'tags',
-        name: 'Tags',
+        prop: 'ts_created',
+        name: 'Date Created',
         minWidth: 90,
-        flexGrow: 3,
-        cellTemplate: this.sinkTagsTemplateCell,
+        flexGrow: 2,
+        resizeable: false,
+      },
+      {
+        prop: 'ts_created',
+        name: 'Date Last Received',
+        minWidth: 90,
+        flexGrow: 2,
+        resizeable: false,
       },
       {
         name: '',
@@ -135,7 +126,7 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
 
 
   @Debounce(500)
-  getSinks(pageInfo: NgxDatabalePageInfo = null): void {
+  getDatasets(pageInfo: NgxDatabalePageInfo = null): void {
     const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
 
     if (isFilter) {
@@ -148,8 +139,8 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
     }
 
     this.loading = true;
-    this.sinkService.getSinks(pageInfo, isFilter).subscribe(
-      (resp: OrbPagination<Sink>) => {
+    this.datasetPoliciesService.getDatasetPolicies(pageInfo, isFilter).subscribe(
+      (resp: OrbPagination<Dataset>) => {
         this.paginationControls = resp;
         this.paginationControls.offset = pageInfo.offset;
         this.paginationControls.total = resp.total;
@@ -159,60 +150,23 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
   }
 
   onOpenAdd() {
-    this.router.navigate(
-      ['add'],
-      {relativeTo: this.route},
-    );
   }
 
-  onOpenEdit(sink: any) {
-    this.router.navigate(
-      [`edit/${sink.id}`],
-      {
-        relativeTo: this.route,
-        state: {sink: sink, edit: true},
-      },
-    );
+  onOpenEdit(dataset: any) {
   }
 
   onFilterSelected(selectedIndex) {
-    this.searchPlaceholder = `Search by ${this.tableFilters[selectedIndex].label}`;
+    this.searchPlaceholder = `Search by ${ this.tableFilters[selectedIndex].label }`;
   }
 
   openDeleteModal(row: any) {
-    const {id} = row;
-    this.dialogService.open(SinkDeleteComponent, {
-      context: {sink: row},
-      autoFocus: true,
-      closeOnEsc: true,
-    }).onClose.subscribe(
-      confirm => {
-        if (confirm) {
-          this.sinkService.deleteSink(id).subscribe(() => {
-            this.getSinks();
-            this.notificationsService.success('Sink successfully deleted', '');
-          });
-        }
-      },
-    );
   }
 
   openDetailsModal(row: any) {
-    this.dialogService.open(SinkDetailsComponent, {
-      context: {sink: row},
-      autoFocus: true,
-      closeOnEsc: true,
-    }).onClose.subscribe((resp) => {
-      if (resp) {
-        this.onOpenEdit(row);
-      } else {
-        this.getSinks();
-      }
-    });
   }
 
-  searchSinkItemByName(input) {
-    this.getSinks({
+  searchDatasetItemByName(input) {
+    this.getDatasets({
       ...this.paginationControls,
       [this.tableFilters[this.filterSelectedIndex].prop]: input,
     });
