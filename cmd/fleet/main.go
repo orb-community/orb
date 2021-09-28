@@ -17,6 +17,7 @@ import (
 	"github.com/ns1labs/orb/fleet"
 	fleetgrpc "github.com/ns1labs/orb/fleet/api/grpc"
 	fleethttp "github.com/ns1labs/orb/fleet/api/http"
+	"github.com/ns1labs/orb/fleet/backend/pktvisor"
 	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/fleet/postgres"
 	rediscons "github.com/ns1labs/orb/fleet/redis/consumer"
@@ -201,6 +202,8 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
+
+	pktvisor.Register(auth, agentRepo)
 
 	svc := fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, db)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)

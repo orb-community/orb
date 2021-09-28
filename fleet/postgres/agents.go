@@ -395,9 +395,7 @@ func (r agentRepository) Delete(ctx context.Context, ownerID string, thingID str
 func (r agentRepository) RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error) {
 	q := `SELECT agent_metadata
 		FROM agents
-		CROSS JOIN LATERAL jsonb_each_text(agent_metadata)
-		WHERE mf_owner_id = :mf_owner_id
-		GROUP BY agent_metadata;`
+		WHERE mf_owner_id = :mf_owner_id;`
 
 	params := map[string]interface{}{
 		"mf_owner_id": ownerID,

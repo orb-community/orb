@@ -12,9 +12,9 @@ import (
 	"github.com/go-zoo/bone"
 	"github.com/jmoiron/sqlx"
 	"github.com/mainflux/mainflux"
+	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/fleet/backend"
 	"github.com/ns1labs/orb/pkg/db"
-	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/opentracing/opentracing-go"
 	"io/ioutil"
@@ -28,6 +28,7 @@ var _ backend.Backend = (*pktvisorBackend)(nil)
 type pktvisorBackend struct {
 	auth        mainflux.AuthServiceClient
 	db          *sqlx.DB
+	agentRepo   fleet.AgentRepository
 	Backend     string
 	Description string
 }
@@ -76,30 +77,13 @@ func (p pktvisorBackend) inputs() (_ types.Metadata, err error) {
 	return handlers, nil
 }
 
-func (p pktvisorBackend) retrieveAgentMetadataByOwner(ctx context.Context, ownerID string, db *sqlx.DB) ([]types.Metadata, error) {
-	q := `SELECT agent_metadata
-		FROM agents
-		WHERE mf_owner_id = :mf_owner_id;`
+func (p pktvisorBackend) taps(ctx context.Context, ownerID string) ([]types.Metadata, error) {
 
-	params := map[string]interface{}{
-		"mf_owner_id": ownerID,
-	}
-
-	rows, err := db.NamedQueryContext(ctx, q, params)
+	taps, err := p.agentRepo.RetrieveAgentMetadataByOwner(ctx, ownerID)
 	if err != nil {
-		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		return nil, err
 	}
-	defer rows.Close()
-
-	var items []types.Metadata
-	for rows.Next() {
-		dbmd := dbAgent{}
-		if err := rows.StructScan(&dbmd); err != nil {
-			return nil, errors.Wrap(errors.ErrSelectEntity, err)
-		}
-		items = append(items, types.Metadata(dbmd.AgentMetadata))
-	}
-	return items, nil
+	return taps, nil
 }
 
 type dbAgent struct {
@@ -116,12 +100,12 @@ func getWorkDirectory() string {
 	return wd
 }
 
-func Register(auth mainflux.AuthServiceClient, db *sqlx.DB) bool {
+func Register(auth mainflux.AuthServiceClient, agentRepo fleet.AgentRepository) bool {
 	backend.Register("pktvisor", &pktvisorBackend{
 		Backend:     "pktvisor",
 		Description: "pktvisor observability agent from pktvisor.dev",
 		auth:        auth,
-		db:          db,
+		agentRepo:   agentRepo,
 	})
 	return true
 }

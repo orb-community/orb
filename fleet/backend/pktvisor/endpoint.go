@@ -59,7 +59,7 @@ func viewAgentBackendTapsEndpoint(pkt pktvisorBackend) endpoint.Endpoint {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		metadataList, err := pkt.retrieveAgentMetadataByOwner(ctx, r.Id, pkt.db)
+		metadataList, err := pkt.taps(ctx, r.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +157,7 @@ func groupTaps(taps []BackendTaps) []BackendTaps {
 	keys := make(map[string]bool)
 	for _, v := range tapsMap {
 		list := []string{}
-		for _ ,config := range v.ConfigPredefined  {
+		for _, config := range v.ConfigPredefined {
 			if _, ok := keys[config]; !ok {
 				keys[config] = true
 				list = append(list, config)
