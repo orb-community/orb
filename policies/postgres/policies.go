@@ -432,7 +432,7 @@ func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, poli
 }
 
 func (r policiesRepository) RetrieveDatasetByID(ctx context.Context, datasetID string, ownerID string) (policies.Dataset, error) {
-	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_id, metadata, ts_created FROM datasets WHERE id = $1 AND mf_owner_id = $2`
+	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_ids, metadata, ts_created FROM datasets WHERE id = $1 AND mf_owner_id = $2`
 
 	if datasetID == "" || ownerID == "" {
 		return policies.Dataset{}, errors.ErrMalformedEntity
@@ -454,7 +454,7 @@ func (r policiesRepository) RetrieveAllDatasetByOwner(ctx context.Context, owner
 	orderQuery := getOrderQuery(pm.Order)
 	dirQuery := getDirQuery(pm.Dir)
 
-	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_id, metadata, ts_created 
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_ids, metadata, ts_created 
 			FROM datasets
 			WHERE mf_owner_id = :mf_owner_id %s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, orderQuery, dirQuery)
 
