@@ -547,7 +547,7 @@ type dbDataset struct {
 	PolicyID     sql.NullString   `db:"agent_policy_id"`
 	TsCreated    time.Time        `db:"ts_created"`
 	Tags         db.Tags          `db:"tags"`
-	SinkIDs       pq.StringArray         `db:"sink_ids"`
+	SinkIDs      pq.StringArray   `db:"sink_ids"`
 	SinksIDsStr  interface{}      `db:"sink_ids_str"`
 }
 
