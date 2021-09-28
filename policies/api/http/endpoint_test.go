@@ -45,11 +45,11 @@ visor:
       type: pcap
       config:
         iface: eth0`
-	limit        = 10
-	invalidToken = "invalid"
-	maxNameSize  = 1024
-	contentType  = "application/json"
-	wrongID      = "28ea82e7-0224-4798-a848-899a75cdc650"
+	limit                = 10
+	invalidToken         = "invalid"
+	maxNameSize          = 1024
+	contentType          = "application/json"
+	wrongID              = "28ea82e7-0224-4798-a848-899a75cdc650"
 )
 
 var (
@@ -64,7 +64,14 @@ var (
     "policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""
 }`
 	validDatasetJson = `{
-    "name": "myorbpolicy1",
+    "name": "my-dataset",
+    "agent_group_id": "b1c1a014-9725-4b7b-abb1-968501190a90",
+    "agent_policy_id": "bfa9351d-8075-444f-9a4c-228f9a476a0d",
+    "sink_ids": ["03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"],
+	"tags":{}
+}`
+	conflictValidDatasetJson = `{
+    "name": "my-dataset-conflict",
     "agent_group_id": "b1c1a014-9725-4b7b-abb1-968501190a90",
     "agent_policy_id": "bfa9351d-8075-444f-9a4c-228f9a476a0d",
     "sink_ids": ["03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"],
@@ -652,6 +659,74 @@ func TestCreatePolicy(t *testing.T) {
 				client:      cli.server.Client(),
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/policies/agent", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
+func TestCreateDataset(t *testing.T) {
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	// Conflict scenario
+	createDataset(t, &cli, "my-dataset-conflict")
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"add a valid dataset": {
+			req:         validDatasetJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusCreated,
+			location:    "/policies/dataset",
+		},
+		"add a dataset with an invalid json": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/dataset",
+		},
+		"add a duplicated dataset": {
+			req:         conflictValidDatasetJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusConflict,
+			location:    "/policies/dataset",
+		},
+		"add a valid dataset with an invalid token": {
+			req:         validDatasetJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/policies/dataset",
+		},
+		"add a valid dataset without a content type": {
+			req:         validDatasetJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/policies/dataset",
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/policies/dataset", cli.server.URL),
 				contentType: tc.contentType,
 				token:       tc.auth,
 				body:        strings.NewReader(tc.req),
