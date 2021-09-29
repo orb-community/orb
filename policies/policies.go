@@ -83,6 +83,9 @@ type Service interface {
 	EditDataset(ctx context.Context, token string, ds Dataset) (Dataset, error)
 	// RemoveDataset remove a dataset by id with a valid token
 	RemoveDataset(ctx context.Context, token string, dsID string) error
+
+	// ValidateDataset validates a new Dataset without saving it
+	ValidateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
 }
 
 type Repository interface {

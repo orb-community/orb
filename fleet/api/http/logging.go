@@ -18,6 +18,34 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
+func (l loggingMiddleware) ViewAgentBackend(ctx context.Context, token string, name string) (_ interface{}, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_agent_backend",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_agent_backend",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewAgentBackend(ctx, token, name)
+}
+
+func (l loggingMiddleware) ListAgentBackends(ctx context.Context, token string) (_ []string, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: list_agent_backends",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: list_agent_backends",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ListAgentBackends(ctx, token)
+}
+
 func (l loggingMiddleware) ViewAgentByIDInternal(ctx context.Context, ownerID string, thingID string) (_ fleet.Agent, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
