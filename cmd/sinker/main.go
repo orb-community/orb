@@ -17,6 +17,7 @@ import (
 	"github.com/ns1labs/orb/pkg/config"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	"github.com/ns1labs/orb/sinker"
+	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	jconfig "github.com/uber/jaeger-client-go/config"
@@ -51,9 +52,7 @@ func main() {
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
-	//sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
-
-	// todo sinks gRPC
+	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 
 	// main logger
 	var logger *zap.Logger
@@ -101,18 +100,16 @@ func main() {
 	}
 	fleetGRPCClient := fleetgrpc.NewClient(tracer, fleetGRPCConn, fleetGRPCTimeout)
 
-	//sinksGRPCConn := connectToGRPC(policiesGRPCCfg, logger)
-	//defer sinksGRPCConn.Close()
-	//
-	//sinksGRPCTimeout, err := time.ParseDuration(policiesGRPCCfg.Timeout)
-	//if err != nil {
-	//	log.Fatalf("Invalid %s value: %s", policiesGRPCCfg.Timeout, err.Error())
-	//}
-	//sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
+	sinksGRPCConn := connectToGRPC(sinksGRPCCfg, logger)
+	defer sinksGRPCConn.Close()
 
-	// todo sink grpc
+	sinksGRPCTimeout, err := time.ParseDuration(sinksGRPCCfg.Timeout)
+	if err != nil {
+		log.Fatalf("Invalid %s value: %s", sinksGRPCCfg.Timeout, err.Error())
+	}
+	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
 
-	svc := sinker.New(logger, pubSub, esClient, policiesGRPCClient, fleetGRPCClient)
+	svc := sinker.New(logger, pubSub, esClient, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient)
 	defer svc.Stop()
 
 	errs := make(chan error, 2)

@@ -132,12 +132,13 @@ func (svc sinkerService) Stop() error {
 }
 
 // New instantiates the sinker service implementation.
-func New(logger *zap.Logger, pubSub mfnats.PubSub, esclient *redis.Client, policiesClient policiespb.PolicyServiceClient, fleetClient fleetpb.FleetServiceClient) Service {
+func New(logger *zap.Logger, pubSub mfnats.PubSub, esclient *redis.Client, policiesClient policiespb.PolicyServiceClient, fleetClient fleetpb.FleetServiceClient, sinksClient sinkspb.SinkServiceClient) Service {
 	return &sinkerService{
 		logger:   logger,
 		pubSub:   pubSub,
 		esclient: esclient,
 		policiesClient: policiesClient,
 		fleetClient: fleetClient,
+		sinksClient: sinksClient,
 	}
 }
