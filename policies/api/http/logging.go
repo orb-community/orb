@@ -18,6 +18,34 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
+func (l loggingMiddleware) RemoveDataset(ctx context.Context, token string, dsID string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: remove_dataset",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: remove_dataset",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.RemoveDataset(ctx, token, dsID)
+}
+
+func (l loggingMiddleware) EditDataset(ctx context.Context, token string, ds policies.Dataset) (_ policies.Dataset, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: edit_dataset",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: edit_dataset",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.EditDataset(ctx, token, ds)
+}
+
 func (l loggingMiddleware) RemovePolicy(ctx context.Context, token string, policyID string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {
@@ -170,6 +198,20 @@ func (l loggingMiddleware) ValidatePolicy(ctx context.Context, token string, p p
 		}
 	}(time.Now())
 	return l.svc.ValidatePolicy(ctx, token, p, format, policyData)
+}
+
+func (l loggingMiddleware) ValidateDataset(ctx context.Context, token string, d policies.Dataset) (_ policies.Dataset, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: validate_dataset",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: validate_dataset",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ValidateDataset(ctx, token, d)
 }
 
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {

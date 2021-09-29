@@ -18,6 +18,14 @@ type metricsMiddleware struct {
 	svc     fleet.Service
 }
 
+func (m metricsMiddleware) ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error) {
+	return m.svc.ViewAgentBackend(ctx, token, name)
+}
+
+func (m metricsMiddleware) ListAgentBackends(ctx context.Context, token string) ([]string, error) {
+	return m.svc.ListAgentBackends(ctx, token)
+}
+
 func (m metricsMiddleware) ViewAgentByIDInternal(ctx context.Context, ownerID string, thingID string) (fleet.Agent, error) {
 	return m.svc.ViewAgentByIDInternal(ctx, ownerID, thingID)
 }

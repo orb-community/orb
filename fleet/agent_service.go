@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
+	"github.com/ns1labs/orb/fleet/backend"
 	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -173,4 +174,23 @@ func (svc fleetService) RemoveAgent(ctx context.Context, token, thingID string) 
 	}
 
 	return nil
+}
+
+func (svc fleetService) ListAgentBackends(ctx context.Context, token string) ([]string, error) {
+	_, err := svc.identify(token)
+	if err != nil {
+		return nil, err
+	}
+	return backend.GetList(), nil
+}
+
+func (svc fleetService) ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error) {
+	_, err := svc.identify(token)
+	if err != nil {
+		return nil, err
+	}
+	if backend.HaveBackend(name) {
+		return backend.GetBackend(name).Metadata(), nil
+	}
+	return nil, errors.ErrNotFound
 }

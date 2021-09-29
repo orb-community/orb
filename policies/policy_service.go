@@ -11,8 +11,11 @@ package policies
 import (
 	"context"
 	"fmt"
+	"github.com/gofrs/uuid"
+	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies/backend"
+	sinkpb "github.com/ns1labs/orb/sinks/pb"
 )
 
 var (
@@ -218,4 +221,82 @@ func (s policiesService) ValidatePolicy(ctx context.Context, token string, p Pol
 	p.MFOwnerID = mfOwnerID
 
 	return p, nil
+}
+
+func (s policiesService) EditDataset(ctx context.Context, token string, ds Dataset) (Dataset, error) {
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return Dataset{}, err
+	}
+	ds.MFOwnerID = mfOwnerID
+	err = s.repo.UpdateDataset(ctx, mfOwnerID, ds)
+	if err != nil {
+		return Dataset{}, err
+	}
+	// TODO after merge the other branches retrieve a dataset by id
+	return ds, nil
+}
+
+func (s policiesService) RemoveDataset(ctx context.Context, token string, dsID string) error {
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return err
+	}
+	err = s.repo.DeleteDataset(ctx, mfOwnerID, dsID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s policiesService) ValidateDataset(ctx context.Context, token string, d Dataset) (Dataset, error) {
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return Dataset{}, err
+	}
+
+	d.MFOwnerID = mfOwnerID
+
+	if len(d.SinkIDs) == 0 {
+		return Dataset{}, errors.Wrap(ErrMalformedEntity, err)
+	}
+	for _, sinkID := range d.SinkIDs {
+		_, err = uuid.FromString(sinkID)
+		if err != nil {
+			return Dataset{}, errors.Wrap(errors.New("invalid sink id"), ErrMalformedEntity)
+		}
+
+		_, err = s.sinksGrpcClient.RetrieveSink(ctx, &sinkpb.SinkByIDReq{
+			SinkID:  sinkID,
+			OwnerID: mfOwnerID,
+		})
+		if err != nil {
+			return Dataset{}, errors.Wrap(errors.New("sink id does not exist"), err)
+		}
+	}
+
+	_, err = uuid.FromString(d.PolicyID)
+	if err != nil {
+		return Dataset{}, errors.Wrap(errors.New("invalid policy id"), ErrMalformedEntity)
+	}
+
+	_, err = s.repo.RetrievePolicyByID(ctx, d.PolicyID, mfOwnerID)
+	if err != nil {
+		return Dataset{}, errors.Wrap(errors.New("policy id does not exist"), err)
+	}
+
+	_, err = uuid.FromString(d.AgentGroupID)
+	if err != nil {
+		return Dataset{}, errors.Wrap(errors.New("invalid agent group id"), ErrMalformedEntity)
+	}
+
+	_, err = s.fleetGrpcClient.RetrieveAgentGroup(ctx, &pb.AgentGroupByIDReq{
+		AgentGroupID: d.AgentGroupID,
+		OwnerID:      mfOwnerID,
+	})
+	if err != nil {
+		return Dataset{}, errors.Wrap(errors.New("agent group id does not exist"), err)
+	}
+
+	return d, nil
 }

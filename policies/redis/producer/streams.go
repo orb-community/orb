@@ -36,6 +36,39 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string) (err error) {
+	if err := e.svc.RemoveDataset(ctx, token, dsID); err != nil {
+		return err
+	}
+
+	// TODO wait for the merge to use the function that retrieve a ds by id
+	ds := policies.Dataset{}
+
+	event := removeDatasetEvent{
+		id:           dsID,
+		ownerID:      ds.MFOwnerID,
+		agentGroupID: ds.AgentGroupID,
+		datasetID:    ds.ID,
+	}
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+
+	err = e.client.XAdd(ctx, record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
+func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.Dataset) (policies.Dataset, error) {
+	return e.svc.EditDataset(ctx, token, ds)
+}
+
 func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID string) error {
 	if err := e.svc.RemovePolicy(ctx, token, policyID); err != nil {
 		return err
@@ -163,7 +196,7 @@ func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.
 		name:         ds.Name.String(),
 		agentGroupID: ds.AgentGroupID,
 		policyID:     ds.PolicyID,
-		sinkID:       ds.SinkID,
+		sinkID:       ds.SinkIDs,
 	}
 	record := &redis.XAddArgs{
 		Stream:       streamID,
@@ -220,4 +253,8 @@ func validatePolicyBackend(p *policies.Policy, format string, policyData string)
 		return errors.Wrap(ErrValidatePolicy, err)
 	}
 	return nil
+}
+
+func (e eventStore) ValidateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
+	return e.svc.ValidateDataset(ctx, token, d)
 }

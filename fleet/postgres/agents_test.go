@@ -587,6 +587,64 @@ func TestDeleteAgent(t *testing.T) {
 	}
 }
 
+func TestAgentBackendTapsRetrieve(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	thID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	invalidID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("my-agent")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	ag := fleet.Agent{
+		Name:          nameID,
+		MFThingID:     thID.String(),
+		MFOwnerID:     oID.String(),
+		MFChannelID:   chID.String(),
+		OrbTags:       types.Tags{"testkey": "testvalue"},
+		AgentTags:     types.Tags{"testkey": "testvalue"},
+		AgentMetadata: types.Metadata{"testkey": "testvalue"},
+	}
+
+	err = agentRepo.Save(context.Background(), ag)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	cases := map[string]struct {
+		ownerID string
+		total   int
+		err     error
+	}{
+		"retrieve a list of taps by ownerID": {
+			ownerID: ag.MFOwnerID,
+			total:   1,
+			err:     nil,
+		},
+		"retrieve a list of taps by a wrong ownerID": {
+			ownerID: invalidID.String(),
+			total:   0,
+			err:     nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			ag, err := agentRepo.RetrieveAgentMetadataByOwner(context.Background(), tc.ownerID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+			assert.Equal(t, tc.total, len(ag), fmt.Sprintf("%s: expected %d got %d", desc, tc.total, len(ag)))
+		})
+	}
+}
+
 func testSortAgents(t *testing.T, pm fleet.PageMetadata, ths []fleet.Agent) {
 	switch pm.Order {
 	case "name":

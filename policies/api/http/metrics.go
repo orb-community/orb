@@ -18,6 +18,14 @@ type metricsMiddleware struct {
 	svc     policies.Service
 }
 
+func (m metricsMiddleware) RemoveDataset(ctx context.Context, token string, dsID string) error {
+	return m.svc.RemoveDataset(ctx, token, dsID)
+}
+
+func (m metricsMiddleware) EditDataset(ctx context.Context, token string, ds policies.Dataset) (policies.Dataset, error) {
+	return m.svc.EditDataset(ctx, token, ds)
+}
+
 func (m metricsMiddleware) RemovePolicy(ctx context.Context, token string, policyID string) error {
 	return m.svc.RemovePolicy(ctx, token, policyID)
 }
@@ -60,6 +68,10 @@ func (m metricsMiddleware) InactivateDatasetByGroupID(ctx context.Context, group
 
 func (m metricsMiddleware) ValidatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
 	return m.svc.ValidatePolicy(ctx, token, p, format, policyData)
+}
+
+func (m metricsMiddleware) ValidateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
+	return m.svc.ValidateDataset(ctx, token, d)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.
