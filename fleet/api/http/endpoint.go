@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 )
 
@@ -384,5 +385,35 @@ func removeAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			return nil, err
 		}
 		return removeRes{}, nil
+	}
+}
+
+func listAgentBackendsEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(listAgentBackendsReq)
+		if err := req.validate(); err != nil {
+			return agentBackendsRes{}, err
+		}
+
+		bks, err := svc.ListAgentBackends(ctx, req.token)
+		if err != nil {
+			return agentBackendsRes{}, err
+		}
+
+		var res []interface{}
+		for _, be := range bks {
+			mt, err := svc.ViewAgentBackend(ctx, req.token, be)
+			if err != nil {
+				return agentBackendsRes{}, err
+			}
+			if mt == nil {
+				return agentBackendsRes{}, errors.ErrNotFound
+			}
+			res = append(res, mt)
+		}
+
+		return agentBackendsRes{
+			Backends: res,
+		}, nil
 	}
 }

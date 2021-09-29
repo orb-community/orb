@@ -29,6 +29,7 @@ type grpcClient struct {
 func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, opts ...grpc.CallOption) (*pb.SinkRes, error) {
 	ctx, cancel := context.WithTimeout(ctx, client.timeout)
 	defer cancel()
+
 	ar := accessByIDReq{
 		SinkID:  in.SinkID,
 		OwnerID: in.OwnerID,

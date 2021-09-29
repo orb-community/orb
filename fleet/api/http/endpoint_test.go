@@ -18,6 +18,7 @@ import (
 	thingsapi "github.com/mainflux/mainflux/things/api/things/http"
 	"github.com/ns1labs/orb/fleet"
 	http2 "github.com/ns1labs/orb/fleet/api/http"
+	"github.com/ns1labs/orb/fleet/backend/pktvisor"
 	flmocks "github.com/ns1labs/orb/fleet/mocks"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/opentracing/opentracing-go/mocktracer"
@@ -136,6 +137,7 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
+	pktvisor.Register(auth, agentRepo)
 	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
 }
 
@@ -1260,6 +1262,161 @@ func TestDeleteAgent(t *testing.T) {
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
+func TestAgentBackends(t *testing.T) {
+	cli := newClientServer(t)
+
+	cases := map[string]struct {
+		auth   string
+		status int
+	}{
+		"Return a list of available backends": {
+			auth:   token,
+			status: http.StatusOK,
+		},
+		"Return a list of available backends with invalid token": {
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/backends/agents", cli.server.URL),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status %d got %d", desc, tc.status, res.StatusCode))
+
+		})
+	}
+}
+
+func TestAgentBackendHandler(t *testing.T) {
+	cli := newClientServer(t)
+
+	cases := map[string]struct {
+		backend string
+		auth    string
+		status  int
+	}{
+		"Retrieve backend handler": {
+			backend: "pktvisor",
+			auth:    token,
+			status:  http.StatusOK,
+		},
+		"Retrieve a handler with a non-existing backend": {
+			backend: "orb",
+			auth:    token,
+			status:  http.StatusNotFound,
+		},
+		"Retrieve a handler with a invalid token": {
+			backend: "pktvisor",
+			auth:    invalidToken,
+			status:  http.StatusUnauthorized,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/backends/%s/handlers", cli.server.URL, tc.backend),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: Expected status %d got %d", desc, tc.status, res.StatusCode))
+
+		})
+	}
+}
+
+func TestAgentBackendInput(t *testing.T) {
+	cli := newClientServer(t)
+
+	cases := map[string]struct {
+		backend string
+		auth    string
+		status  int
+	}{
+		"Retrieve backend input": {
+			backend: "pktvisor",
+			auth:    token,
+			status:  http.StatusOK,
+		},
+		"Retrieve a backend input with a non-existing backend": {
+			backend: "orb",
+			auth:    token,
+			status:  http.StatusNotFound,
+		},
+		"Retrieve a backend input with a invalid token": {
+			backend: "pktvisor",
+			auth:    invalidToken,
+			status:  http.StatusUnauthorized,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/backends/%s/inputs", cli.server.URL, tc.backend),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: Expected status %d got %d", desc, tc.status, res.StatusCode))
+
+		})
+	}
+}
+
+func TestAgentBackendTaps(t *testing.T) {
+	cli := newClientServer(t)
+
+	cases := map[string]struct {
+		token   string
+		backend string
+		status  int
+	}{
+		//"Retrieve taps by a provided backend": {
+		//	token:   token,
+		//	backend: "pktvisor",
+		//	status:  http.StatusOK,
+		//},
+		"Retrieve taps by a non-existing backend": {
+			token:   token,
+			backend: "orb",
+			status:  http.StatusNotFound,
+		},
+		"Retrieve taps by a provided backend with a invalid token": {
+			token:   invalidToken,
+			backend: "pktvisor",
+			status:  http.StatusUnauthorized,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/backends/%s/taps", cli.server.URL, tc.backend),
+				token:  tc.token,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: Expected status %d got %d", desc, tc.status, res.StatusCode))
 		})
 	}
 }
