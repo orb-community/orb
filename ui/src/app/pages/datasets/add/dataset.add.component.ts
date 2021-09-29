@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
@@ -52,6 +52,15 @@ export class DatasetAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
+    this.firstFormGroup = this._formBuilder.group({
+      agent_group_id: ['', [Validators.required]],
+    });
+    this.secondFormGroup = this._formBuilder.group({
+      agent_policy_id: ['', [Validators.required]],
+    });
+    this.thirdFormGroup = this._formBuilder.group({
+      selected_sink: ['', [Validators.required]],
+    });
     this.dataset = this.router.getCurrentNavigation().extras.state?.dataset as Dataset || null;
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
     this.datasetID = this.route.snapshot.paramMap.get('id');
@@ -76,7 +85,7 @@ export class DatasetAddComponent {
   getAvailableAgentGroups() {
     this.isLoading = true;
     // todo how to request with infinite limit?
-    const pageInfo = { ...AgentGroupsService.getDefaultPagination(), limit: 999 };
+    const pageInfo = { ...AgentGroupsService.getDefaultPagination(), limit: 100 };
     // todo check if any filter should be applied for available Agent Groups
     this.agentGroupsService
       .getAgentGroups(pageInfo, false)
@@ -89,7 +98,7 @@ export class DatasetAddComponent {
   getAvailableAgentPolicies() {
     this.isLoading = true;
     // todo how to request with infinite limit?
-    const pageInfo = { ...AgentGroupsService.getDefaultPagination(), limit: 999 };
+    const pageInfo = { ...AgentPoliciesService.getDefaultPagination(), limit: 100 };
     // todo check if any filter should be applied for available Agent Groups
     this.agentPoliciesService
       .getAgentsPolicies(pageInfo, false)
@@ -102,10 +111,10 @@ export class DatasetAddComponent {
   getAvailableSinks() {
     this.isLoading = true;
     // todo how to request with infinite limit?
-    const pageInfo = { ...AgentGroupsService.getDefaultPagination(), limit: 999 };
+    const pageInfo = { ...SinksService.getDefaultPagination(), limit: 100 };
     // todo check if any filter should be applied for available Agent Groups
-    this.agentPoliciesService
-      .getAgentsPolicies(pageInfo, false)
+    this.sinksService
+      .getSinks(pageInfo, false)
       .subscribe((resp: OrbPagination<Sink>) => {
         this.availableSinks = resp.data;
         this.isLoading = false;
@@ -120,11 +129,19 @@ export class DatasetAddComponent {
 
   }
 
-  onAgentGroupSelected(selectedValue) {
+  onAgentGroupSelected(agentGroup: any) {
+    this.firstFormGroup.controls.agent_group_id.patchValue(agentGroup);
+  }
+
+  onAgentPolicySelected(policy: any) {
 
   }
 
   onAddSink() {
+
+  }
+
+  onSinkSelected(sink: any) {
 
   }
 

@@ -154,7 +154,7 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
 
   onOpenAdd() {
     this.router.navigate(['add'], {
-      relativeTo: this.route,
+      relativeTo: this.route.parent,
     });
   }
 

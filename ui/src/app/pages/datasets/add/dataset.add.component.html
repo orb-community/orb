@@ -38,7 +38,7 @@
                          size="medium"
               >
                 <nb-option *ngFor="let agentGroup of availableAgentGroups"
-                           [value]="agentGroup">{{ agentGroup | titlecase }}</nb-option>
+                           [value]="agentGroup.id">{{ agentGroup.name | titlecase }}</nb-option>
               </nb-select>
             </nb-form-field>
             <hr/>
@@ -77,7 +77,7 @@
                 <label class="font-weight-bold">What</label>
                 <span class="required">*</span>
               </div>
-              <nb-select (selectedChange)="onPolicySelected($event)"
+              <nb-select (selectedChange)="onAgentPolicySelected($event)"
                          appearance="filled"
                          data-orb-qa-id="agent_policy_id"
                          formControlName="agent_policy_id"
@@ -86,7 +86,7 @@
                          size="medium"
               >
                 <nb-option *ngFor="let agentPolicy of availableAgentPolicies"
-                           [value]="agentPolicy">{{ agentPolicy | titlecase }}</nb-option>
+                           [value]="agentPolicy.id">{{ agentPolicy.name | titlecase }}</nb-option>
               </nb-select>
             </nb-form-field>
             <hr/>
@@ -138,7 +138,7 @@
                          size="medium"
               >
                 <nb-option *ngFor="let sink of availableSinks"
-                           [value]="sink">{{ sink | titlecase }}</nb-option>
+                           [value]="sink.id">{{ sink.name | titlecase }}</nb-option>
               </nb-select>
               <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
                    style="transform: translateY(14px);">
@@ -164,9 +164,9 @@
                 nbButton
                 nbStepperPrevious
                 status="primary">
-                {{strings.stepper.back}}
+                Back
               </button>
-              <button [disabled]="thirdFormGroup.controls.tags.value.length === 0"
+              <button [disabled]="thirdFormGroup.controls.selected_sink.value.length === 0"
                       class="next-button"
                       data-orb-qa-id="next"
                       nbButton
@@ -174,7 +174,7 @@
                       shape="round"
                       status="primary"
                       type="submit">
-                {{strings.stepper.next}}
+                Next
               </button>
             </div>
           </form>
@@ -203,13 +203,6 @@
               <div>
                 <label class="font-weight-bold">Sinks</label>
                 <div class="d-flex row mt-4">
-                  <div *ngFor="let control of selectedSinkSetting" class="col-md-12 col-xl-6">
-                    <div>
-                      <label class="font-weight-bold">{{control.label}}</label>
-                      <p
-                        [attr.data-orb-qa-id]="'review-' + control.prop">{{secondFormGroup.controls[control.prop].value}}</p>
-                    </div>
-                  </div>
                 </div>
                 <p data-orb-qa-id="review-sinks">List sinks here!</p>
               </div>
