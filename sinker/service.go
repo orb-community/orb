@@ -78,6 +78,10 @@ func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopi
 	if err := json.Unmarshal(payload, &metricsRPC); err != nil {
 		return fleet.ErrSchemaMalformed
 	}
+	//Todo use channelID to get owner id on fleet grpc server
+	//Todo use metricsRPC.Payload[0].Datasets[] to retrieve the sinkID from policy grpc server
+	//Todo use the retrieve sinkID to get the backend config
+
 	return be.ProcessMetrics(thingID, channelID, s, metricsRPC.Payload)
 }
 
