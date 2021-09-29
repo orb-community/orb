@@ -19,6 +19,7 @@ import (
 	"github.com/ns1labs/orb/policies"
 	api "github.com/ns1labs/orb/policies/api/http"
 	plmocks "github.com/ns1labs/orb/policies/mocks"
+	sinkmocks "github.com/ns1labs/orb/sinks/mocks"
 	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -44,11 +45,11 @@ visor:
       type: pcap
       config:
         iface: eth0`
-	limit        = 10
-	invalidToken = "invalid"
-	maxNameSize  = 1024
-	contentType  = "application/json"
-	wrongID      = "28ea82e7-0224-4798-a848-899a75cdc650"
+	limit                = 10
+	invalidToken         = "invalid"
+	maxNameSize          = 1024
+	contentType          = "application/json"
+	wrongID              = "28ea82e7-0224-4798-a848-899a75cdc650"
 )
 
 var (
@@ -63,7 +64,14 @@ var (
     "policy_data": "version: \"1.0\"\nvisor:\n    foo: \"bar\""
 }`
 	validDatasetJson = `{
-    "name": "myorbpolicy1",
+    "name": "my-dataset",
+    "agent_group_id": "b1c1a014-9725-4b7b-abb1-968501190a90",
+    "agent_policy_id": "bfa9351d-8075-444f-9a4c-228f9a476a0d",
+    "sink_ids": ["03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"],
+	"tags":{}
+}`
+	conflictValidDatasetJson = `{
+    "name": "my-dataset-conflict",
     "agent_group_id": "b1c1a014-9725-4b7b-abb1-968501190a90",
     "agent_policy_id": "bfa9351d-8075-444f-9a4c-228f9a476a0d",
     "sink_ids": ["03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"],
@@ -103,7 +111,10 @@ func (tr testRequest) make() (*http.Response, error) {
 
 func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
-	return policies.New(nil, auth, policyRepo)
+	fleetGrpcClient := flmocks.NewClient()
+	SinkServiceClient := sinkmocks.NewClient()
+
+	return policies.New(nil, auth, policyRepo, fleetGrpcClient, SinkServiceClient)
 }
 
 func newServer(svc policies.Service) *httptest.Server {
@@ -659,6 +670,74 @@ func TestCreatePolicy(t *testing.T) {
 	}
 }
 
+func TestCreateDataset(t *testing.T) {
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	// Conflict scenario
+	createDataset(t, &cli, "my-dataset-conflict")
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"add a valid dataset": {
+			req:         validDatasetJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusCreated,
+			location:    "/policies/dataset",
+		},
+		"add a dataset with an invalid json": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/dataset",
+		},
+		"add a duplicated dataset": {
+			req:         conflictValidDatasetJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusConflict,
+			location:    "/policies/dataset",
+		},
+		"add a valid dataset with an invalid token": {
+			req:         validDatasetJson,
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/policies/dataset",
+		},
+		"add a valid dataset without a content type": {
+			req:         validDatasetJson,
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/policies/dataset",
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/policies/dataset", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
 func TestDatasetEdition(t *testing.T) {
 	cli := newClientServer(t)
 	dataset := createDataset(t, &cli, "policy")
@@ -801,6 +880,118 @@ func TestDatasetRemoval(t *testing.T) {
 
 }
 
+func TestDatasetValidation(t *testing.T){
+	cli := newClientServer(t)
+
+	policy := createPolicy(t, &cli, "my-policy")
+
+	dataset := addDatasetReq{
+		Name:         "my-dataset-json",
+		AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db",
+		PolicyID:     policy.ID,
+		SinkIDs:      []string{"f5b2d342-211d-a9ab-1233-63199a3fc16f", "03679425-aa69-4574-bf62-e0fe71b80939"},
+		Tags:         map[string]string{"region": "eu", "node_type": "dns"},
+	}
+	validDataset, _ := json.Marshal(dataset)
+
+	invalidNameDataset := addDatasetReq{
+		Name:         "9...DATASET",
+		AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db",
+		PolicyID:     policy.ID,
+		SinkIDs:      []string{"f5b2d342-211d-a9ab-1233-63199a3fc16f", "03679425-aa69-4574-bf62-e0fe71b80939"},
+		Tags:         map[string]string{"region": "eu", "node_type": "dns"},
+	}
+	invalidNameJson, _ := json.Marshal(invalidNameDataset)
+
+	var (
+		invalidJson = `{`
+		invalidTagJson = "{\n    \"name\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_ids\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": \"invalidTag\"}"
+		invalidFieldJson = "{\n    \"naamme\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_ids\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
+	)
+
+	cases := map[string]struct {
+		req         string
+		contentType string
+		auth        string
+		status      int
+		location    string
+	}{
+		"Validate a valid dataset": {
+			req: string(validDataset),
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a invalid yaml": {
+			req:         invalidJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset with a empty token": {
+			req:         string(validDataset),
+			contentType: contentType,
+			auth:        "",
+			status:      http.StatusUnauthorized,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset with a invalid token": {
+			req:         string(validDataset),
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset without a content type": {
+			req:         string(validDataset),
+			contentType: "",
+			auth:        token,
+			status:      http.StatusUnsupportedMediaType,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset with a invalid name value": {
+			req:         string(invalidNameJson),
+			contentType: contentType,
+			auth:        invalidToken,
+			status:      http.StatusBadRequest,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset with a invalid tag value": {
+			req:         invalidTagJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/dataset/validate",
+		},
+		"Validate a dataset with a invalid field": {
+			req:         invalidFieldJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/dataset/validate",
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/policies/dataset/validate", cli.server.URL),
+				contentType: tc.contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			if err != nil {
+				require.Nil(t, err, "%s: Unexpected error: %s", desc, err)
+			}
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
@@ -864,4 +1055,13 @@ type policiesPageRes struct {
 	Offset   uint64      `json:"offset"`
 	Limit    uint64      `json:"limit"`
 	Policies []policyRes `json:"data"`
+}
+
+type addDatasetReq struct {
+	Name         string     `json:"name"`
+	AgentGroupID string     `json:"agent_group_id"`
+	PolicyID     string     `json:"agent_policy_id"`
+	SinkIDs      []string   `json:"sink_ids"`
+	Tags         types.Tags `json:"tags"`
+	token        string
 }
