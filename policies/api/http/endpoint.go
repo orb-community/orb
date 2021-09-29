@@ -197,7 +197,7 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Valid:        saved.Valid,
 			AgentGroupID: saved.AgentGroupID,
 			PolicyID:     saved.PolicyID,
-			SinkIDs:       saved.SinkIDs,
+			SinkIDs:      saved.SinkIDs,
 			Metadata:     saved.Metadata,
 			TsCreated:    saved.Created,
 			Tags:         saved.Tags,
@@ -295,7 +295,7 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Name:         nID,
 			AgentGroupID: req.AgentGroupID,
 			PolicyID:     req.PolicyID,
-			SinkIDs:       req.SinkIDs,
+			SinkIDs:      req.SinkIDs,
 			Tags:         req.Tags,
 		}
 
@@ -310,7 +310,7 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Tags:         validated.Tags,
 			AgentGroupID: validated.AgentGroupID,
 			PolicyID:     validated.PolicyID,
-			SinkIDs:       validated.SinkIDs,
+			SinkIDs:      validated.SinkIDs,
 		}
 
 		return res, nil
@@ -330,8 +330,11 @@ func viewDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := datasetRes{
-			ID:   dataset.ID,
-			Name: dataset.Name.String(),
+			ID:           dataset.ID,
+			Name:         dataset.Name.String(),
+			PolicyID:     dataset.PolicyID,
+			SinkIDs:      dataset.SinkIDs,
+			AgentGroupID: dataset.AgentGroupID,
 		}
 		return res, nil
 	}
@@ -359,10 +362,13 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			},
 			Dataset: []datasetRes{},
 		}
-		for _, ag := range page.Datasets {
+		for _, dataset := range page.Datasets {
 			view := datasetRes{
-				ID:      ag.ID,
-				Name:    ag.Name.String(),
+				ID:           dataset.ID,
+				Name:         dataset.Name.String(),
+				PolicyID:     dataset.PolicyID,
+				SinkIDs:      dataset.SinkIDs,
+				AgentGroupID: dataset.AgentGroupID,
 			}
 			res.Dataset = append(res.Dataset, view)
 		}

@@ -91,27 +91,6 @@ func (res removeRes) Empty() bool {
 	return true
 }
 
-type pageRes struct {
-	Total  uint64 `json:"total"`
-	Offset uint64 `json:"offset"`
-	Limit  uint64 `json:"limit"`
-	Order  string `json:"order"`
-	Dir    string `json:"direction"`
-}
-
-type datasetRes struct {
-	ID           string         `json:"id"`
-	Name         string         `json:"name"`
-	Valid        bool           `json:"valid"`
-	AgentGroupID string         `json:"agent_group_id"`
-	PolicyID     string         `json:"policy_id"`
-	SinkIDs       []string       `json:"sink_ids"`
-	Metadata     types.Metadata `json:"metadata"`
-	TsCreated    time.Time      `json:"ts_created"`
-	Tags         types.Tags     `json:"tags"`
-	created      bool
-}
-
 type policyValidateRes struct {
 	Name        string         `json:"name"`
 	Backend     string         `json:"backend"`
@@ -152,6 +131,20 @@ func (s validateDatasetRes) Headers() map[string]string {
 func (s validateDatasetRes) Empty() bool {
 	return false
 }
+
+type datasetRes struct {
+	ID           string         `json:"id"`
+	Name         string         `json:"name"`
+	Valid        bool           `json:"valid"`
+	AgentGroupID string         `json:"agent_group_id"`
+	PolicyID     string         `json:"policy_id"`
+	SinkIDs      []string       `json:"sink_ids"`
+	Metadata     types.Metadata `json:"metadata"`
+	TsCreated    time.Time      `json:"ts_created"`
+	Tags         types.Tags     `json:"tags"`
+	created      bool
+}
+
 func (s datasetRes) Code() int {
 	if s.created {
 		return http.StatusCreated
@@ -184,18 +177,11 @@ func (res datasetPageRes) Headers() map[string]string {
 func (res datasetPageRes) Empty() bool {
 	return false
 }
-//func (s datasetRes) Code() int {
-//	if s.created {
-//		return http.StatusCreated
-//	}
-//
-//	return http.StatusOK
-//}
-//
-//func (s datasetRes) Headers() map[string]string {
-//	return map[string]string{}
-//}
-//
-//func (s datasetRes) Empty() bool {
-//	return false
-//}
+
+type pageRes struct {
+	Total  uint64 `json:"total"`
+	Offset uint64 `json:"offset"`
+	Limit  uint64 `json:"limit"`
+	Order  string `json:"order"`
+	Dir    string `json:"direction"`
+}

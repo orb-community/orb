@@ -45,11 +45,11 @@ visor:
       type: pcap
       config:
         iface: eth0`
-	limit                = 10
-	invalidToken         = "invalid"
-	maxNameSize          = 1024
-	contentType          = "application/json"
-	wrongID              = "28ea82e7-0224-4798-a848-899a75cdc650"
+	limit        = 10
+	invalidToken = "invalid"
+	maxNameSize  = 1024
+	contentType  = "application/json"
+	wrongID      = "28ea82e7-0224-4798-a848-899a75cdc650"
 )
 
 var (
@@ -880,7 +880,7 @@ func TestDatasetRemoval(t *testing.T) {
 
 }
 
-func TestDatasetValidation(t *testing.T){
+func TestDatasetValidation(t *testing.T) {
 	cli := newClientServer(t)
 
 	policy := createPolicy(t, &cli, "my-policy")
@@ -904,8 +904,8 @@ func TestDatasetValidation(t *testing.T){
 	invalidNameJson, _ := json.Marshal(invalidNameDataset)
 
 	var (
-		invalidJson = `{`
-		invalidTagJson = "{\n    \"name\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_ids\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": \"invalidTag\"}"
+		invalidJson      = `{`
+		invalidTagJson   = "{\n    \"name\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_ids\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": \"invalidTag\"}"
 		invalidFieldJson = "{\n    \"naamme\": \"my-dataset-json\",\n    \"agent_group_id\": \"8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db\",\n    \"agent_policy_id\": \"86b7b412-1b7f-f5bc-c78b-f79087d6e49b\",\n    \"sink_ids\": \"f5b2d342-211d-a9ab-1233-63199a3fc16f\"\n,\n    \"tags\": {\n        \"region\": \"eu\",\n        \"node_type\": \"dns\"\n    }}"
 	)
 
@@ -917,7 +917,7 @@ func TestDatasetValidation(t *testing.T){
 		location    string
 	}{
 		"Validate a valid dataset": {
-			req: string(validDataset),
+			req:         string(validDataset),
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusOK,
@@ -1044,11 +1044,14 @@ func TestListDataset(t *testing.T) {
 
 	var data []datasetRes
 	for i := 0; i < limit; i++ {
-		p := createDataset(t, &cli, fmt.Sprintf("datsets-%d", i))
+		d := createDataset(t, &cli, fmt.Sprintf("datsets-%d", i))
 		data = append(data, datasetRes{
-			ID:      p.ID,
-			Name:    p.Name.String(),
-			created: true,
+			ID:           d.ID,
+			Name:         d.Name.String(),
+			PolicyID:     d.PolicyID,
+			SinkIDs:      d.SinkIDs,
+			AgentGroupID: d.AgentGroupID,
+			created:      true,
 		})
 	}
 
@@ -1279,10 +1282,14 @@ type addDatasetReq struct {
 	Tags         types.Tags `json:"tags"`
 	token        string
 }
+
 type datasetRes struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	created bool
+	ID           string   `json:"id"`
+	Name         string   `json:"name"`
+	AgentGroupID string   `json:"agent_group_id"`
+	PolicyID     string   `json:"policy_id"`
+	SinkIDs      []string `json:"sink_ids"`
+	created      bool
 }
 
 type datasetPageRes struct {
