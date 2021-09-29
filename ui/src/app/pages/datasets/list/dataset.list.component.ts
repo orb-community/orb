@@ -15,6 +15,7 @@ import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pa
 import { Debounce } from 'app/shared/decorators/utils';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'ngx-dataset-list-component',
@@ -60,6 +61,8 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
 
   constructor(
     private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private router: Router,
     private datasetPoliciesService: DatasetPoliciesService,
   ) {
     this.datasetPoliciesService.clean();
@@ -150,6 +153,9 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
   }
 
   onOpenAdd() {
+    this.router.navigate(['add'], {
+      relativeTo: this.route,
+    });
   }
 
   onOpenEdit(dataset: any) {
