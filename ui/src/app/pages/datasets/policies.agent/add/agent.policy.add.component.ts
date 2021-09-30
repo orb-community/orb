@@ -33,6 +33,8 @@ export class AgentPolicyAddComponent {
 
   handlers: { [propName: string]: any }[];
 
+  selectedHandlers: { [propName: string]: any }[] = [];
+
   agentPolicy: AgentPolicy;
 
   agentPolicyID: string;
