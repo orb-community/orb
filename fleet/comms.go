@@ -39,7 +39,9 @@ type AgentCommsService interface {
 	NotifyGroupRemoval(ag AgentGroup) error
 	// NotifyPolicyRemoval stop agent policy utilization after Policy removal
 	NotifyPolicyRemoval(policyID string, ag AgentGroup) error
-	// NotifyDatasetRemoval usubscribe the agent membership when delete a dataset
+	// NotifyGroupPolicyUpdate apply a new policy on agent
+	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
+	// NofityDatasetRemoval usubscribe the agent membership when delete a dataset
 	NofityDatasetRemoval(ag AgentGroup, dsID string) error
 }
 
@@ -74,6 +76,52 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 
 	payload := []AgentPolicyRPCPayload{{
 		Action:    "manage",
+		ID:        policyID,
+		Name:      p.Name,
+		Backend:   p.Backend,
+		Version:   p.Version,
+		Data:      pdata,
+		DatasetID: datasetID,
+	}}
+
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentPolicyRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   ag.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error {
+	p, err := svc.policyClient.RetrievePolicy(ctx, &pb.PolicyByIDReq{PolicyID: policyID, OwnerID: ownerID})
+	if err != nil {
+		return err
+	}
+
+	var pdata interface{}
+	if err := json.Unmarshal(p.Data, &pdata); err != nil {
+		return err
+	}
+
+	payload := []AgentPolicyRPCPayload{{
+		Action:    "update",
 		ID:        policyID,
 		Name:      p.Name,
 		Backend:   p.Backend,

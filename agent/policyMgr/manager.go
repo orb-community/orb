@@ -92,6 +92,30 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			a.logger.Warn("policy failed to remove", zap.String("id", payload.ID), zap.Error(err))
 		}
 		break
+	case "update":
+		if a.repo.Exists(payload.ID) {
+			pd := policies.PolicyData{
+				ID:       payload.ID,
+				Name:     payload.Name,
+				Backend:  payload.Backend,
+				Version:  payload.Version,
+				Data:     payload.Data,
+				State:    policies.Unknown,
+				Datasets: map[string]bool{payload.DatasetID: true},
+			}
+			err := be.ApplyPolicy(pd)
+			if err != nil {
+				a.logger.Warn("policy failed to apply", zap.String("id", payload.ID), zap.Error(err))
+				pd.State = policies.FailedToApply
+				pd.BackendErr = err.Error()
+			} else {
+				pd.State = policies.Running
+			}
+			a.repo.Add(pd)
+		} else {
+			a.logger.Info("failed to update, policy not found on agent", zap.String("id", payload.ID), zap.String("dataset_id", payload.DatasetID))
+		}
+		return
 	default:
 		a.logger.Error("unknown policy action, ignored", zap.String("action", payload.Action))
 	}

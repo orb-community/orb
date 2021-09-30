@@ -10,10 +10,8 @@ package consumer
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
 	"strings"
 )
@@ -157,12 +155,6 @@ func decodePolicyUpdate(event map[string]interface{}) (updatePolicyEvent, error)
 	strgroups := read(event, "groups_ids", "")
 	val.groupsIDs = strings.Split(strgroups, ",")
 
-	strpolicy := read(event, "policy", "")
-	var policy types.Metadata
-	if err := json.Unmarshal([]byte(strpolicy), &policy); err != nil {
-		return updatePolicyEvent{}, err
-	}
-
 	return val, nil
 }
 
@@ -174,7 +166,7 @@ func (es eventStore) handlePolicyUpdate(ctx context.Context, e updatePolicyEvent
 		if err != nil {
 			return err
 		}
-		err = es.commsService.NotifyGroupNewDataset(ctx, ag, "", e.id, e.ownerID)
+		err = es.commsService.NotifyGroupPolicyUpdate(ctx, ag, "", e.id, e.ownerID)
 		if err != nil {
 			return err
 		}

@@ -181,10 +181,6 @@ func (e eventStore) ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs 
 }
 
 func (e eventStore) AddDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
-	return e.svc.AddDataset(ctx, token, d)
-}
-
-func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
 	ds, err := e.svc.AddDataset(ctx, token, d)
 	if err != nil {
 		return ds, err
@@ -196,7 +192,7 @@ func (e eventStore) CreateDataset(ctx context.Context, token string, d policies.
 		name:         ds.Name.String(),
 		agentGroupID: ds.AgentGroupID,
 		policyID:     ds.PolicyID,
-		sinkID:       ds.SinkIDs,
+		sinkIDs:      strings.Join(ds.SinkIDs, ","),
 	}
 	record := &redis.XAddArgs{
 		Stream:       streamID,
