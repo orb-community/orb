@@ -645,6 +645,69 @@ func TestAgentBackendTapsRetrieve(t *testing.T) {
 	}
 }
 
+func TestAgentsStatesRetrieval(t *testing.T) {
+	var summary []fleet.AgentStates
+
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	name := "agent_name"
+	tagsStr := `{"region": "EU", "node_type": "dns"}`
+	metaStr := `{"field1":"value1","field2":{"subfield11":"value2","subfield12":{"subfield121":"value3","subfield122":"value4"}}}`
+
+	metadata := types.Metadata{}
+	json.Unmarshal([]byte(metaStr), &metadata)
+
+	tags := types.Tags{}
+	json.Unmarshal([]byte(tagsStr), &tags)
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		thID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		chID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th := fleet.Agent{
+			MFOwnerID:   oID.String(),
+			MFThingID:   thID.String(),
+			MFChannelID: chID.String(),
+		}
+
+		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, i))
+		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th.AgentMetadata = metadata
+		th.AgentTags = tags
+
+		err = agentRepo.Save(context.Background(), th)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner        string
+		summary      []fleet.AgentStates
+	}{
+		"retrieve all agents states summary": {
+			owner: oID.String(),
+			summary: append(summary, fleet.AgentStates{
+				State: 0,
+				Count: 10,
+			}),
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			summary, err := agentRepo.RetrieveAllStatesSummary(context.Background(), tc.owner)
+			assert.Equal(t, tc.summary, summary, fmt.Sprintf("%s: expected summary %d got %d\n", desc, tc.summary,summary))
+			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
+		})
+	}
+}
+
 func testSortAgents(t *testing.T, pm fleet.PageMetadata, ths []fleet.Agent) {
 	switch pm.Order {
 	case "name":

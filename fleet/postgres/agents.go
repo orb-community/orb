@@ -418,6 +418,37 @@ func (r agentRepository) RetrieveAgentMetadataByOwner(ctx context.Context, owner
 	return items, nil
 }
 
+func (r agentRepository) RetrieveAllStatesSummary(ctx context.Context, owner string) ([]fleet.AgentStates, error) {
+	q := fmt.Sprintf(`SELECT count(*), state FROM agents WHERE mf_owner_id = :mf_owner_id GROUP BY state`)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+
+	if err != nil {
+		return []fleet.AgentStates{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+
+	var summary []fleet.AgentStates
+	for rows.Next() {
+		db := dbStates{}
+		if err := rows.StructScan(&db); err != nil {
+			return []fleet.AgentStates{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		state, err := toStates(db)
+		if err != nil {
+			return []fleet.AgentStates{}, errors.Wrap(errors.ErrViewEntity, err)
+		}
+		summary = append(summary, state)
+	}
+
+	return summary, nil
+}
+
 type dbAgent struct {
 	Name          types.Identifier `db:"name"`
 	MFOwnerID     string           `db:"mf_owner_id"`
@@ -434,6 +465,22 @@ type dbAgent struct {
 
 type dbMatchingAgent struct {
 	MatchingAgents db.Metadata `db:"matching_agents"`
+}
+
+func toStates(dba dbStates) (fleet.AgentStates, error) {
+
+	state := fleet.AgentStates{
+		State: dba.State,
+		Count: dba.Count,
+	}
+
+	return state, nil
+
+}
+
+type dbStates struct {
+	State fleet.State `db:"state"`
+	Count int         `db:"count"`
 }
 
 func toDBAgent(agent fleet.Agent) (dbAgent, error) {

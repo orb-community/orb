@@ -59,6 +59,11 @@ type Agent struct {
 	LastHB        time.Time
 }
 
+type AgentStates struct {
+	State State
+	Count int
+}
+
 // Page contains page related metadata as well as list of agents that
 // belong to this page.
 type Page struct {
@@ -113,6 +118,8 @@ type AgentRepository interface {
 	Delete(ctx context.Context, ownerID string, thingID string) error
 	// RetrieveAgentMetadataByOwner retrieves the Metadata having the OwnerID
 	RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error)
+	// RetrieveAll retrieves the subset of Agents owned by the specified user
+	RetrieveAllStatesSummary(ctx context.Context, owner string) ([]AgentStates, error)
 }
 
 type AgentHeartbeatRepository interface {
