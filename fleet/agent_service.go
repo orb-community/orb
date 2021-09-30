@@ -194,3 +194,12 @@ func (svc fleetService) ViewAgentBackend(ctx context.Context, token string, name
 	}
 	return nil, errors.ErrNotFound
 }
+
+func (svc fleetService) AllStatesSummary(ctx context.Context, token string) ([]AgentStates, error) {
+	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return []AgentStates{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+
+	return svc.agentRepo.RetrieveAllStatesSummary(ctx, res.GetId())
+}

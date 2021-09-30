@@ -92,6 +92,8 @@ type AgentService interface {
 	ListAgentBackends(ctx context.Context, token string) ([]string, error)
 	// ViewAgentBackend retrieves a Backend by provided backend name
 	ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error)
+	// AllStatesSummary summarises agents states
+	AllStatesSummary(ctx context.Context, token string) ([]AgentStates, error)
 }
 
 type AgentRepository interface {
@@ -118,7 +120,7 @@ type AgentRepository interface {
 	Delete(ctx context.Context, ownerID string, thingID string) error
 	// RetrieveAgentMetadataByOwner retrieves the Metadata having the OwnerID
 	RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error)
-	// RetrieveAll retrieves the subset of Agents owned by the specified user
+	// RetrieveAllStatesSummary summarises agents states
 	RetrieveAllStatesSummary(ctx context.Context, owner string) ([]AgentStates, error)
 }
 

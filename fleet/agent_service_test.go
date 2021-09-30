@@ -383,6 +383,46 @@ func TestListBackends(t *testing.T) {
 	}
 }
 
+func TestAllStatesSummary(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	var agents []fleet.Agent
+	for i := 0; i < limit; i++ {
+		ag, err := createAgent(t, fmt.Sprintf("my-agent-%d", i), fleetService)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+		agents = append(agents, ag)
+	}
+
+	var agSummary []fleet.AgentStates
+
+	cases := map[string]struct {
+		token   string
+		summary []fleet.AgentStates
+		err     error
+	}{
+		"retrieve all agents states summary": {
+			token: token,
+			summary: append(agSummary, fleet.AgentStates{
+				State: 0,
+				Count: 10,
+			}),
+			err: nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			summary, err := fleetService.AllStatesSummary(context.Background(), tc.token)
+			assert.Equal(t, summary, tc.summary, fmt.Sprintf("%s: expected %d got %d", desc, tc.summary, summary))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+
+	}
+}
+
 func createAgent(t *testing.T, name string, svc fleet.Service) (fleet.Agent, error) {
 	t.Helper()
 	aCopy := agent
