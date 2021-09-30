@@ -20,7 +20,7 @@
           <ng-template #firstStepTemplate>
             <div class="step-label d-flex flex-column">
               <strong>Agent Policy Details</strong>
-              <p>Provide a name and description for the Agent Policy</p>
+              <p>Provide a name, a description summary and a supported backend for the Agent Policy</p>
             </div>
           </ng-template>
             <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFormGroup">
@@ -64,8 +64,8 @@
                            id="backend"
                            placeholder="Select backend type"
                            size="medium">
-                  <nb-option *ngFor="let entry of availableBackends | keyvalue"
-                             [value]="entry.key">{{ entry.key | titlecase }}</nb-option>
+                  <nb-option *ngFor="let entry of availableBackends"
+                             [value]="entry.backend">{{ entry.backend | titlecase }}</nb-option>
                 </nb-select>
               </nb-form-field>
             </form>
@@ -95,8 +95,8 @@
                  data-orb-qa-id="step_2">
           <ng-template #secondStepTemplate>
             <div class="step-label d-flex flex-column">
-              <strong>Select a Tap</strong>
-              <p>Select and configure a tap</p>
+              <strong>Tap Setup</strong>
+              <p>Create and configure tap</p>
             </div>
           </ng-template>
           <nb-form-field>
@@ -175,7 +175,7 @@
             <div class="d-flex">
               <mat-chip-list data-orb-qa-id="handlers-list">
                 <mat-chip
-                  *ngFor="let handler of selectedHandlers; index as i"
+                  *ngFor="let handler of handlers; index as i"
                   [attr.data-orb-qa-id]="'handler_' + i"
                   [style.background-color]="handler.keys()[0] | tagchipcolor"
                   class="orb-selected-handler ">
@@ -271,7 +271,7 @@
                 status="primary">
                 Back
               </button>
-              <button [disabled]="selectedHandlers.length === 0"
+              <button [disabled]="handlers.length === 0"
                       class="next-button"
                       data-orb-qa-id="next"
                       nbButton

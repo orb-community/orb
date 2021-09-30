@@ -189,6 +189,8 @@ export class AgentPoliciesService {
           {
             'backend': 'pktvisor',
             'description': 'pktvisor observability agent from pktvisor.dev',
+            // todo I could use some meta like this
+            'config': ['taps', 'input', 'handlers'],
           },
         ],
       };
@@ -196,4 +198,39 @@ export class AgentPoliciesService {
     });
   }
 
+  // todo from this point on I have to assume pktvisor hardcoded steps
+  // tap -> which will have a predefined input
+  // fill input config form, will be dynamic to some extent
+  // from there on, select handlers
+  // ${backend}/${config[i]}/ // pktvisor/[taps,inputs,handlers]
+  getBackendConfig(route: string[]) {
+    const final = route.join('/');
+    // return this.http.get(`${environment.agentsBackendUrl}/${final})
+    //   .map((resp: any) => {
+    //     return resp.backend;
+    //   }).catch(
+    //     err => {
+    //       this.notificationsService.error('Failed to get Available Backends',
+    //         `Error: ${ err.status } - ${ err.statusText }`);
+    //       return Observable.throwError(err);
+    //     },
+    //   );
+    // TODO remove mock and uncomment http request
+
+    let resp;
+    switch (final) {
+      case 'pktvisor/taps':
+        resp = {};
+        break;
+      case 'pktvisor/inputs':
+        resp = {};
+        break;
+      case 'pktvisor/handlers':
+        resp = {};
+        break;
+      default:
+        resp = 'error';
+    }
+
+  }
 }

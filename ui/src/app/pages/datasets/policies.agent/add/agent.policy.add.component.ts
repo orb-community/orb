@@ -23,7 +23,7 @@ export class AgentPolicyAddComponent {
   // Refactor while coding :)
   backendConfigForms: { [propName: string]: FormGroup };
 
-  availableBackends: { [propName: string]: any };
+  availableBackends: { [propName: string]: any }[];
 
   backend: { [propName: string]: any };
 
@@ -31,9 +31,7 @@ export class AgentPolicyAddComponent {
 
   input: { [propName: string]: any };
 
-  handlers: { [propName: string]: any }[];
-
-  selectedHandlers: { [propName: string]: any }[] = [];
+  handlers: { [propName: string]: any }[] = [];
 
   agentPolicy: AgentPolicy;
 
@@ -85,7 +83,7 @@ export class AgentPolicyAddComponent {
   getBackendsList() {
     this.isLoading = true;
     this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
-      this.availableBackends = backends;
+      this.availableBackends = !!backends['data'] && backends['data'] || [];
 
       if (this.isEdit) {
         this.detailsFormGroup.controls.backend.disable();
@@ -98,7 +96,7 @@ export class AgentPolicyAddComponent {
 
   onBackendSelected(selectedBackend) {
     if (this.backend) {
-      if (this.availableBackends[selectedBackend] === this.backend) {
+      if (selectedBackend === this.backend) {
         return;
       }
       Object.keys(this.backend.config).forEach(key => {
