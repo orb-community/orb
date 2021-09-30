@@ -138,12 +138,8 @@ export class DatasetPoliciesService {
       return of(this.cache);
     }
 
-    // return this.http.get(environment.datasetPoliciesUrl, { params })
-    // todo 405 on policies/dataset service
-    return new Observable(subscriber => {
-      subscriber.next({ datasets: [], limit: 999, offset: 0 });
-    }).map(
-        (resp: any) => {
+    return this.http.get(environment.datasetPoliciesUrl, { params })
+      .map((resp: any) => {
           this.paginationCache[pageInfo.offset] = true;
           // This is the position to insert the new data
           const start = resp.offset;
