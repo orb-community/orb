@@ -22,7 +22,7 @@ export class DatasetAddComponent {
   // stepper vars
   detailsFormGroup: FormGroup;
 
-  agentGroupFormGroup: FormGroup;
+  agentFormGroup: FormGroup;
 
   policyFormGroup: FormGroup;
 
@@ -56,18 +56,6 @@ export class DatasetAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.detailsFormGroup = this._formBuilder.group({
-      name: ['', [Validators.required]],
-    });
-    this.agentGroupFormGroup = this._formBuilder.group({
-      agent_group_id: ['', [Validators.required]],
-    });
-    this.policyFormGroup = this._formBuilder.group({
-      agent_policy_id: ['', [Validators.required]],
-    });
-    this.sinkFormGroup = this._formBuilder.group({
-      selected_sink: ['', [Validators.required]],
-    });
     this.dataset = this.router.getCurrentNavigation().extras.state?.dataset as Dataset || null;
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
     this.datasetID = this.route.snapshot.paramMap.get('id');
@@ -80,11 +68,35 @@ export class DatasetAddComponent {
       this.datasetLoading = false;
     });
 
+    const { name, agent_group_id, agent_policy_id, sink_id } = !!this.dataset ? this.dataset : {
+      name: '',
+      agent_group_id: { name: '', id: '' },
+      agent_policy_id: { name: '', id: '' },
+      sink_id: [],
+    };
+
+    this.selectedSinks = sink_id;
+
+    this.detailsFormGroup = this._formBuilder.group({
+      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
+    });
+    this.agentFormGroup = this._formBuilder.group({
+      agent_group_id: [agent_group_id, [Validators.required]],
+    });
+    this.policyFormGroup = this._formBuilder.group({
+      agent_policy_id: [agent_policy_id, [Validators.required]],
+    });
+    this.sinkFormGroup = this._formBuilder.group({
+      selected_sink: ['', [Validators.required]],
+    });
     // when editing, do not change agent group or policy
     if (!this.isEdit) {
       this.getAvailableAgentGroups();
       this.getAvailableAgentPolicies();
       this.getAvailableSinks();
+    } else {
+      this.agentFormGroup.controls.agent_group_id.disable();
+      this.policyFormGroup.controls.agent_policy_id.disable();
     }
 
   }
@@ -117,7 +129,8 @@ export class DatasetAddComponent {
     this.sinksService
       .getSinks(pageInfo, false)
       .subscribe((resp: OrbPagination<Sink>) => {
-        this.availableSinks = resp.data.filter(sink => !this.selectedSinks.includes(sink));
+        const sinkIDMap = this.selectedSinks.map(sink => sink.id);
+        this.availableSinks = resp.data.filter(sink => !sinkIDMap.includes(sink.id));
         this.isLoading = false;
       });
   }
@@ -127,7 +140,7 @@ export class DatasetAddComponent {
   }
 
   onAgentGroupSelected(agentGroup: any) {
-    this.agentGroupFormGroup.controls.agent_group_id.patchValue(agentGroup);
+    this.agentFormGroup.controls.agent_group_id.patchValue(agentGroup);
   }
 
   onAddSink() {
@@ -143,6 +156,24 @@ export class DatasetAddComponent {
   }
 
   onFormSubmit() {
-
+    const payload = {
+      name: this.detailsFormGroup.controls.name.value,
+      agent_group_id: this.agentFormGroup.controls.agent_group_id.value.id,
+      agent_policy_id: this.policyFormGroup.controls.agent_policy_id.value.id,
+      sink_id: this.selectedSinks.map(sink => sink.id),
+      validate_only: false,
+    };
+    if (this.isEdit) {
+      // updating existing dataset
+      this.datasetPoliciesService.editDataset({ ...payload, id: this.datasetID }).subscribe(() => {
+        this.notificationsService.success('Dataset successfully updated', '');
+        this.goBack();
+      });
+    } else {
+      this.datasetPoliciesService.addDataset(payload).subscribe(() => {
+        this.notificationsService.success('Dataset successfully created', '');
+        this.goBack();
+      });
+    }
   }
 }
