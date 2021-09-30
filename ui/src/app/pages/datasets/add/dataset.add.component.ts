@@ -20,11 +20,13 @@ import { Sink } from 'app/common/interfaces/orb/sink.interface';
 })
 export class DatasetAddComponent {
   // stepper vars
-  firstFormGroup: FormGroup;
+  detailsFormGroup: FormGroup;
 
-  secondFormGroup: FormGroup;
+  agentGroupFormGroup: FormGroup;
 
-  thirdFormGroup: FormGroup;
+  policyFormGroup: FormGroup;
+
+  sinkFormGroup: FormGroup;
 
   dataset: Dataset;
 
@@ -35,6 +37,8 @@ export class DatasetAddComponent {
   availableAgentPolicies = [];
 
   availableSinks = [];
+
+  selectedSinks = [];
 
   isEdit: boolean;
 
@@ -52,13 +56,16 @@ export class DatasetAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.firstFormGroup = this._formBuilder.group({
+    this.detailsFormGroup = this._formBuilder.group({
+      name: ['', [Validators.required]],
+    });
+    this.agentGroupFormGroup = this._formBuilder.group({
       agent_group_id: ['', [Validators.required]],
     });
-    this.secondFormGroup = this._formBuilder.group({
+    this.policyFormGroup = this._formBuilder.group({
       agent_policy_id: ['', [Validators.required]],
     });
-    this.thirdFormGroup = this._formBuilder.group({
+    this.sinkFormGroup = this._formBuilder.group({
       selected_sink: ['', [Validators.required]],
     });
     this.dataset = this.router.getCurrentNavigation().extras.state?.dataset as Dataset || null;
@@ -84,9 +91,7 @@ export class DatasetAddComponent {
 
   getAvailableAgentGroups() {
     this.isLoading = true;
-    // todo how to request with infinite limit?
     const pageInfo = { ...AgentGroupsService.getDefaultPagination(), limit: 100 };
-    // todo check if any filter should be applied for available Agent Groups
     this.agentGroupsService
       .getAgentGroups(pageInfo, false)
       .subscribe((resp: OrbPagination<AgentGroup>) => {
@@ -97,9 +102,7 @@ export class DatasetAddComponent {
 
   getAvailableAgentPolicies() {
     this.isLoading = true;
-    // todo how to request with infinite limit?
     const pageInfo = { ...AgentPoliciesService.getDefaultPagination(), limit: 100 };
-    // todo check if any filter should be applied for available Agent Groups
     this.agentPoliciesService
       .getAgentsPolicies(pageInfo, false)
       .subscribe((resp: OrbPagination<AgentPolicy>) => {
@@ -110,13 +113,11 @@ export class DatasetAddComponent {
 
   getAvailableSinks() {
     this.isLoading = true;
-    // todo how to request with infinite limit?
     const pageInfo = { ...SinksService.getDefaultPagination(), limit: 100 };
-    // todo check if any filter should be applied for available Agent Groups
     this.sinksService
       .getSinks(pageInfo, false)
       .subscribe((resp: OrbPagination<Sink>) => {
-        this.availableSinks = resp.data;
+        this.availableSinks = resp.data.filter(sink => !this.selectedSinks.includes(sink));
         this.isLoading = false;
       });
   }
@@ -125,27 +126,23 @@ export class DatasetAddComponent {
     this.router.navigateByUrl('/pages/datasets/list');
   }
 
-  onFormSubmit() {
-
-  }
-
   onAgentGroupSelected(agentGroup: any) {
-    this.firstFormGroup.controls.agent_group_id.patchValue(agentGroup);
-  }
-
-  onAgentPolicySelected(policy: any) {
-
+    this.agentGroupFormGroup.controls.agent_group_id.patchValue(agentGroup);
   }
 
   onAddSink() {
-
-  }
-
-  onSinkSelected(sink: any) {
-
+    const sink = this.sinkFormGroup.controls.selected_sink.value;
+    this.selectedSinks.push(sink);
+    this.sinkFormGroup.controls.selected_sink.reset('');
+    this.getAvailableSinks();
   }
 
   onRemoveSink(sink: any) {
+    this.selectedSinks.splice(this.selectedSinks.indexOf(sink), 1);
+    this.getAvailableSinks();
+  }
+
+  onFormSubmit() {
 
   }
 }
