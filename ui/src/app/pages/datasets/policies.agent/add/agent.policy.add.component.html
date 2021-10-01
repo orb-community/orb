@@ -100,68 +100,85 @@
               <p>Create and configure tap</p>
             </div>
           </ng-template>
-          <div *ngIf="tap">
-            <nb-form-field>
-              <div>
-                <label class="font-weight-bold">Tap</label>
-                <span class="required">*</span>
-              </div>
-              <nb-select (selectedChange)="onTapSelected($event)"
-                         appearance="filled"
-                         data-orb-qa-id="taps"
-                         formControlName="taps"
-                         fullWidth="true"
-                         nbInput="taps"
-                         placeholder="Select Tap"
-                         required="true"
-                         size="medium">
-                <nb-option *ngFor="let option of backend['taps'] | keyvalue"
-                           [attr.data-orb-qa-id]="option.key"
-                           [value]="option.key">{{ option.key }}</nb-option>
-              </nb-select>
-            </nb-form-field>
-
-            <nb-form-field *ngFor="let control of tap['config'] | keyvalue; let i = index"
-                           [formGroup]="backendConfigForms['taps']">
-              <div>
-                <label class="font-weight-bold">{{control.value.title}}</label>
-              </div>
-              <div [formGroup]="backendConfigForms['taps']" [ngSwitch]="control.value.input">
-                <input *ngSwitchCase="'text'"
-                       [attr.data-orb-qa-id]="control.value.name"
-                       [autofocus]="i == 0"
-                       [formControlName]="control.value.name"
-                       [type]="control.value.type"
-                       fieldSize="medium"
-                       fullWidth="true"
-                       nbInput>
-                <input *ngSwitchCase="'number'"
-                       [attr.data-orb-qa-id]="control.value.name"
-                       [autofocus]="i == 0"
-                       [formControlName]="control.value.name"
-                       [max]="control.value.max"
-                       [min]="control.value.min"
-                       [step]="control.value.step"
-                       [type]="control.value.type"
-                       fieldSize="medium"
-                       fullWidth="true"
-                       nbInput>
+          <div *ngIf="availableTaps">
+            <form (ngSubmit)="onFormSubmit()" [formGroup]="backendConfigForms['taps']">
+              <nb-form-field>
+                <div>
+                  <label class="font-weight-bold">Tap</label>
+                  <span class="required">*</span>
+                </div>
+                <nb-select (selectedChange)="onTapSelected($event)"
+                           appearance="filled"
+                           data-orb-qa-id="taps"
+                           formControlName="tap"
+                           fullWidth="true"
+                           nbInput
+                           placeholder="Select Tap"
+                           required="true"
+                           size="medium">
+                  <nb-option *ngFor="let option of availableTaps; index as i"
+                             [attr.data-orb-qa-id]="option.key"
+                             [value]="i">{{ option.tap }}</nb-option>
+                </nb-select>
+              </nb-form-field>
+              <nb-form-field *ngIf="tap">
                 <nb-select (selectedChange)="onInputSelected($event)"
-                           *ngSwitchCase="'select'"
-                           [attr.data-orb-qa-id]="control.value.name"
-                           [formControlName]="control.value.name"
-                           [id]="control.value.name"
+                           [attr.data-orb-qa-id]="input"
+                           formControlName="input_type"
+                           id="input_type"
                            appearance="filled"
                            fullWidth="true"
-                           nbInput="{{ control.value.name }}"
-                           size="medium">{{ control.value.name + "-" + control.value.options }}
-                  <nb-option *ngFor="let option of control.value.options"
-                             [attr.data-orb-qa-id]="option"
-                             [value]="option">{{ option }}</nb-option>
+                           nbInput
+                           size="medium">
+                  <nb-option *ngFor="let option of availableInputs | keyvalue"
+                             [attr.data-orb-qa-id]="option.key"
+                             [value]="option.key">{{ option.key | titlecase }}</nb-option>
                 </nb-select>
+              </nb-form-field>
+              <div *ngIf="input">
+                <nb-form-field *ngFor="let control of input['config'] | keyvalue; let i = index"
+                               [formGroup]="backendConfigForms['taps']">
+                  <div>
+                    <label class="font-weight-bold">{{control.value.title}}</label>
+                  </div>
+                  <div [formGroup]="backendConfigForms['inputs']" [ngSwitch]="control.value.input">
+                    <input *ngSwitchCase="'text'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.value.name"
+                           [type]="control.value.type"
+                           fieldSize="medium"
+                           fullWidth="true"
+                           nbInput>
+                    <input *ngSwitchCase="'number'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.value.name"
+                           [max]="control.value.max"
+                           [min]="control.value.min"
+                           [step]="control.value.step"
+                           [type]="control.value.type"
+                           fieldSize="medium"
+                           fullWidth="true"
+                           nbInput>
+                  </div>
+                  <nb-select (selectedChange)="onInputSelected($event)"
+                             *ngSwitchCase="'select'"
+                             [attr.data-orb-qa-id]="control.value.name"
+                             [formControlName]="control.value.name"
+                             [id]="control.value.name"
+                             appearance="filled"
+                             fullWidth="true"
+                             nbInput
+                             size="medium">{{ control.value.name + "-" + control.value.options }}
+                    <nb-option *ngFor="let option of control.value.options"
+                               [attr.data-orb-qa-id]="option"
+                               [value]="option">{{ option }}</nb-option>
+                  </nb-select>
+                  <hr/>
+                </nb-form-field>
               </div>
-              <hr/>
-            </nb-form-field>
+            </form>
           </div>
         </nb-step>
         <nb-step [label]="thirdStepTemplate"
@@ -174,118 +191,118 @@
             </div>
           </ng-template>
           <div *ngIf="backendConfigForms['handlers']">
-          <form [formGroup]="backendConfigForms['handlers']">
-            <div class="d-flex">
-              <mat-chip-list data-orb-qa-id="handlers-list">
-                <mat-chip
-                  *ngFor="let handler of handlers; index as i"
-                  [attr.data-orb-qa-id]="'handler_' + i"
-                  [style.background-color]="handler.keys()[0] | tagchipcolor"
-                  class="orb-selected-handler ">
-                  {{ handler }}
-                  <nb-icon (click)="onHandlerRemoved(handler)"
-                           class="ml-1"
-                           icon="close-outline"
-                           size="12"></nb-icon>
-                </mat-chip>
-              </mat-chip-list>
-            </div>
-            <hr/>
-            <nb-form-field>
-              <div>
-                <label class="font-weight-bold">Handler</label>
-                <span class="required">*</span>
+            <form [formGroup]="backendConfigForms['handlers']">
+              <div class="d-flex">
+                <mat-chip-list data-orb-qa-id="handlers-list">
+                  <mat-chip
+                    *ngFor="let handler of handlers; index as i"
+                    [attr.data-orb-qa-id]="'handler_' + i"
+                    [style.background-color]="handler.keys()[0] | tagchipcolor"
+                    class="orb-selected-handler ">
+                    {{ handler }}
+                    <nb-icon (click)="onHandlerRemoved(handler)"
+                             class="ml-1"
+                             icon="close-outline"
+                             size="12"></nb-icon>
+                  </mat-chip>
+                </mat-chip-list>
               </div>
-              <nb-select appearance="filled"
-                         data-orb-qa-id="sink_selector"
-                         formControlName="selected_handler"
-                         fullWidth="true"
-                         placeholder="Sink Name"
-                         size="medium"
-              >
-                <nb-option *ngFor="let handler of handlers"
-                           [attr.data-orb-qa-id]="'available_handler: '+handler.id" [id]="handler.id"
-                           [value]="handler">{{ handler.name | titlecase }}</nb-option>
-              </nb-select>
-            </nb-form-field>
-            <button (click)="onHandlerAdded()"
-                    [disabled]="(backendConfigForms['handlers'].controls['selected_handler'].value === '')"
-                    data-orb-qa-id="addHandler"
-                    ghost
-                    nbButton>
-              <nb-icon icon="plus-outline"
-                       size="14"
-                       status="primary"
-                       style="color: #df316f;">
-              </nb-icon>
-            </button>
-            <hr/>
-            <!--TODO dynamic handler config goes in here-->
-            <div *ngIf="tap">
-              <nb-form-field *ngFor="let control of tap['config'] | keyvalue; let i = index"
-                             [formGroup]="backendConfigForms['taps']">
+              <hr/>
+              <nb-form-field>
                 <div>
-                  <label class="font-weight-bold">{{control.value.title}}</label>
+                  <label class="font-weight-bold">Handler</label>
+                  <span class="required">*</span>
                 </div>
-                <div [formGroup]="backendConfigForms['taps']" [ngSwitch]="control.value.input">
-                  <input *ngSwitchCase="'text'"
-                         [attr.data-orb-qa-id]="control.value.name"
-                         [autofocus]="i == 0"
-                         [formControlName]="control.value.name"
-                         [type]="control.value.type"
-                         fieldSize="medium"
-                         fullWidth="true"
-                         nbInput>
-                  <input *ngSwitchCase="'number'"
-                         [attr.data-orb-qa-id]="control.value.name"
-                         [autofocus]="i == 0"
-                         [formControlName]="control.value.name"
-                         [max]="control.value.max"
-                         [min]="control.value.min"
-                         [step]="control.value.step"
-                         [type]="control.value.type"
-                         fieldSize="medium"
-                         fullWidth="true"
-                         nbInput>
-                  <nb-select (selectedChange)="onInputSelected($event)"
-                             *ngSwitchCase="'select'"
-                             [attr.data-orb-qa-id]="control.value.name"
-                             [formControlName]="control.value.name"
-                             [id]="control.value.name"
-                             appearance="filled"
-                             fullWidth="true"
-                             nbInput="{{ control.value.name }}"
-                             size="medium">{{ control.value.name + "-" + control.value.options }}
-                    <nb-option *ngFor="let option of control.value.options"
-                               [attr.data-orb-qa-id]="option"
-                               [value]="option">{{ option }}</nb-option>
-                  </nb-select>
-                </div>
-                <hr/>
+                <nb-select appearance="filled"
+                           data-orb-qa-id="sink_selector"
+                           formControlName="selected_handler"
+                           fullWidth="true"
+                           placeholder="Sink Name"
+                           size="medium"
+                >
+                  <nb-option *ngFor="let handler of handlers"
+                             [attr.data-orb-qa-id]="'available_handler: '+handler.id" [id]="handler.id"
+                             [value]="handler">{{ handler.name | titlecase }}</nb-option>
+                </nb-select>
               </nb-form-field>
-            </div>
-            <div *ngIf="backendConfigForms['handlers']" class="d-flex justify-content-start"
-                 style="padding-left: 35%;">
-              <button
-                data-orb-qa-id="back"
-                ghost
-                nbButton
-                nbStepperPrevious
-                status="primary">
-                Back
+              <button (click)="onHandlerAdded()"
+                      [disabled]="(backendConfigForms['handlers'].controls['selected_handler'].value === '')"
+                      data-orb-qa-id="addHandler"
+                      ghost
+                      nbButton>
+                <nb-icon icon="plus-outline"
+                         size="14"
+                         status="primary"
+                         style="color: #df316f;">
+                </nb-icon>
               </button>
-              <button [disabled]="handlers.length === 0"
-                      class="next-button"
-                      data-orb-qa-id="next"
-                      nbButton
-                      nbStepperNext
-                      shape="round"
-                      status="primary"
-                      type="submit">
-                Next
-              </button>
-            </div>
-          </form>
+              <hr/>
+              <!--TODO dynamic handler config goes in here-->
+              <div *ngIf="tap">
+                <nb-form-field *ngFor="let control of tap['config'] | keyvalue; let i = index"
+                               [formGroup]="backendConfigForms['taps']">
+                  <div>
+                    <label class="font-weight-bold">{{control.value.title}}</label>
+                  </div>
+                  <div [formGroup]="backendConfigForms['taps']" [ngSwitch]="control.value.input">
+                    <input *ngSwitchCase="'text'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.value.name"
+                           [type]="control.value.type"
+                           fieldSize="medium"
+                           fullWidth="true"
+                           nbInput>
+                    <input *ngSwitchCase="'number'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.value.name"
+                           [max]="control.value.max"
+                           [min]="control.value.min"
+                           [step]="control.value.step"
+                           [type]="control.value.type"
+                           fieldSize="medium"
+                           fullWidth="true"
+                           nbInput>
+                    <nb-select (selectedChange)="onInputSelected($event)"
+                               *ngSwitchCase="'select'"
+                               [attr.data-orb-qa-id]="control.value.name"
+                               [formControlName]="control.value.name"
+                               [id]="control.value.name"
+                               appearance="filled"
+                               fullWidth="true"
+                               nbInput
+                               size="medium">{{ control.value.name + "-" + control.value.options }}
+                      <nb-option *ngFor="let option of control.value.options"
+                                 [attr.data-orb-qa-id]="option"
+                                 [value]="option">{{ option }}</nb-option>
+                    </nb-select>
+                  </div>
+                  <hr/>
+                </nb-form-field>
+              </div>
+              <div *ngIf="backendConfigForms['handlers']" class="d-flex justify-content-start"
+                   style="padding-left: 35%;">
+                <button
+                  data-orb-qa-id="back"
+                  ghost
+                  nbButton
+                  nbStepperPrevious
+                  status="primary">
+                  Back
+                </button>
+                <button [disabled]="handlers.length === 0"
+                        class="next-button"
+                        data-orb-qa-id="next"
+                        nbButton
+                        nbStepperNext
+                        shape="round"
+                        status="primary"
+                        type="submit">
+                  Next
+                </button>
+              </div>
+            </form>
           </div>
         </nb-step>
       </nb-stepper>

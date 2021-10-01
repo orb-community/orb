@@ -25,6 +25,12 @@ export class AgentPolicyAddComponent {
 
   availableBackends: { [propName: string]: any }[];
 
+  availableTaps: { [propName: string]: any }[];
+
+  availableInputs: { [propName: string]: any };
+
+  availableHandlers: { [propName: string]: any }[];
+
   backend: { [propName: string]: any };
 
   tap: { [propName: string]: any };
@@ -115,59 +121,43 @@ export class AgentPolicyAddComponent {
     this.isLoading = true;
     this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
       .subscribe(taps => {
-        this.backend.config['taps'] = !!taps['data'] && taps['data'] || {};
+        this.availableTaps = !!taps['data'] && taps['data'] || [];
 
         this.backendConfigForms['taps'] = this._formBuilder.group({
           'tap': ['', [Validators.required]], // tap name
-          'input': ['', [Validators.required]],
         });
 
         this.isLoading = false;
       });
-  }
-
-  onTapSelected(selectedTap) {
-    if (this.tap) {
-      Object.keys(this.tap.config).forEach(key => {
-        this.backendConfigForms['taps'].removeControl(key);
-      });
-      if (this.input) {
-        Object.keys(this.input.config).forEach(key => {
-          this.backendConfigForms['inputs'].removeControl(key);
-        });
-        delete this.input;
-      }
-      delete this.tap;
-      // this.input = undefined;
-      // this.tap = undefined;
-    }
-    this.tap = this.backend['taps'][selectedTap];
-    const { taps } = this.backendConfigForms;
-    Object.keys(this.tap.config).forEach(key => {
-      taps.addControl(key, this._formBuilder.control('', [Validators.required]));
-    });
   }
 
   getInputs() {
     this.isLoading = true;
     this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
       .subscribe(inputs => {
-        this.backend.config['inputs'] = !!inputs['data'] && inputs['data'] || {};
+        this.availableInputs = !!inputs['data'] && inputs['data'] || {};
+        this.backend.config['inputs'] = this.availableInputs;
 
         this.isLoading = false;
       });
   }
 
-  onInputSelected(selectedInput) {
-    if (this.input) {
-      Object.keys(this.input.config).forEach(key => {
-        this.backendConfigForms['inputs'].removeControl(key);
-      });
-      // this.input = undefined;
-      delete this.input;
-    }
+  onTapSelected(selectedTap) {
+    this.tap = this.availableTaps[selectedTap];
+    const { taps } = this.backendConfigForms;
+    Object.keys(this.tap.config).forEach(key => {
+      taps.addControl(key, this._formBuilder.control('', [Validators.required]));
+    });
 
-    this.input = this.backend['inputs'][selectedInput];
+    this.backendConfigForms['inputs'] = this._formBuilder.group({
+      'input_type': [this.tap.input_type, [Validators.required]],
+    });
+
+    this.onInputSelected(this.tap.input_type);
+  }
+
+  onInputSelected(selectedInput) {
+    this.input = this.availableInputs[selectedInput];
     const { inputs } = this.backendConfigForms;
     Object.keys(this.input.config).forEach(key => {
       inputs.addControl(key, this._formBuilder.control('', [Validators.required]));
