@@ -6,8 +6,8 @@ h4 {
   line-height: 32px;
 }
 
-.sink-summary {
-  .sink-info-regular {
+.dataset-summary {
+  .dataset-info-regular {
     color: #ffffff;
 
     &::before {
@@ -16,7 +16,7 @@ h4 {
     }
   }
 
-  .sink-info-accent {
+  .dataset-info-accent {
     color: #969fb9;
   }
 }
@@ -33,7 +33,7 @@ h4 {
   transform: translateY(-50px);
 }
 
-.button-new-sink {
+.button-new-dataset {
   width: 155px;
   height: 236px;
   border: 1px solid #969fb9;
@@ -116,7 +116,7 @@ tr div p {
   }
 }
 
-.add-sink-container {
+.add-dataset-container {
   position: relative;
   height: 0;
 
