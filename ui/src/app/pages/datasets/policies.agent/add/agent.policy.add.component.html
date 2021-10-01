@@ -11,9 +11,9 @@
   </header>
   <div *ngIf="!isLoading" class="d-flex row">
     <div class="d-flex col-12 mt-5">
-      <nb-stepper orientation="vertical"
-                  class="stepper w-100 ml-5"
-                  disableStepNavigation>
+      <nb-stepper class="stepper w-100 ml-5"
+                  disableStepNavigation
+                  orientation="vertical">
         <nb-step [label]="firstStepTemplate"
                  [stepControl]="detailsFormGroup"
                  data-orb-qa-id="step_1">
@@ -23,70 +23,71 @@
               <p>Provide a name, a description summary and a supported backend for the Agent Policy</p>
             </div>
           </ng-template>
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFormGroup">
-              <nb-form-field>
-                <div class="d-flex flex-column">
-                  <div>
-                    <label class="font-weight-bold" for="name">Name Label</label>
-                    <span class="required">*</span>
-                  </div>
-                  <input autofocus
-                         data-orb-qa-id="name"
-                         fieldSize="medium"
-                         formControlName="name"
-                         fullWidth="true"
-                         id="name"
-                         nbInput/>
-                </div>
-              </nb-form-field>
-              <nb-form-field>
+          <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFormGroup">
+            <nb-form-field>
+              <div class="d-flex flex-column">
                 <div>
-                  <label class="font-weight-bold" for="description">Policy Description</label>
-                </div>
-                <input data-orb-qa-id="description"
-                       fieldSize="medium"
-                       formControlName="description"
-                       fullWidth="true"
-                       id="description"
-                       nbInput/>
-              </nb-form-field>
-              <hr/>
-              <nb-form-field>
-                <div>
-                  <label class="font-weight-bold" for="backend">Backend</label>
+                  <label class="font-weight-bold" for="name">Name Label</label>
                   <span class="required">*</span>
                 </div>
-                <nb-select (selectedChange)="onBackendSelected($event)"
-                           appearance="filled"
-                           data-orb-qa-id="backend"
-                           formControlName="backend"
-                           fullWidth="true"
-                           id="backend"
-                           placeholder="Select backend type"
-                           size="medium">
-                  <nb-option *ngFor="let entry of availableBackends"
-                             [value]="entry.backend">{{ entry.backend | titlecase }}</nb-option>
-                </nb-select>
-              </nb-form-field>
-            </form>
+                <input autofocus
+                       data-orb-qa-id="name"
+                       fieldSize="medium"
+                       formControlName="name"
+                       fullWidth="true"
+                       id="name"
+                       nbInput/>
+              </div>
+            </nb-form-field>
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold" for="description">Policy Description</label>
+              </div>
+              <input [formGroup]="detailsFormGroup"
+                     data-orb-qa-id="description"
+                     fieldSize="medium"
+                     formControlName="description"
+                     fullWidth="true"
+                     id="description"
+                     nbInput/>
+            </nb-form-field>
             <hr/>
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold" for="backend">Backend</label>
+                <span class="required">*</span>
+              </div>
+              <nb-select (selectedChange)="onBackendSelected($event)"
+                         appearance="filled"
+                         data-orb-qa-id="backend"
+                         formControlName="backend"
+                         fullWidth="true"
+                         id="backend"
+                         placeholder="Select backend type"
+                         size="medium">
+                <nb-option *ngFor="let entry of availableBackends; index as i"
+                           [value]="i">{{ entry.backend | titlecase }}</nb-option>
+              </nb-select>
+            </nb-form-field>
+          </form>
+          <hr/>
           <div class="d-flex justify-content-end">
             <button
-              nbButton
-              ghost
               (click)="goBack()"
-              type="button"
+              data-orb-qa-id="cancel"
+              ghost
+              nbButton
               status="primary"
-              data-orb-qa-id="cancel">Cancel
+              type="button">Cancel
             </button>
-            <button class="next-button"
+            <button [disabled]="!detailsFormGroup?.valid"
+                    class="next-button"
+                    data-orb-qa-id="next"
                     nbButton
+                    nbStepperNext
                     shape="round"
                     status="primary"
-                    type="submit"
-                    [disabled]="!detailsFormGroup?.valid"
-                    nbStepperNext
-                    data-orb-qa-id="next">Next
+                    type="submit">Next
             </button>
           </div>
         </nb-step>
@@ -99,26 +100,27 @@
               <p>Create and configure tap</p>
             </div>
           </ng-template>
-          <nb-form-field>
-            <div>
-              <label class="font-weight-bold">Tap</label>
-              <span class="required">*</span>
-            </div>
-            <nb-select (selectedChange)="onTapSelected($event)"
-                       data-orb-qa-id="taps"
-                       formControlName="taps"
-                       appearance="filled"
-                       fullWidth="true"
-                       nbInput="taps"
-                       placeholder="Select Tap"
-                       required="true"
-                       size="medium">
-              <nb-option *ngFor="let option of backend['taps'] | keyvalue"
-                         [attr.data-orb-qa-id]="option.key"
-                         [value]="option.key">{{ option.key }}</nb-option>
-            </nb-select>
-          </nb-form-field>
           <div *ngIf="tap">
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold">Tap</label>
+                <span class="required">*</span>
+              </div>
+              <nb-select (selectedChange)="onTapSelected($event)"
+                         appearance="filled"
+                         data-orb-qa-id="taps"
+                         formControlName="taps"
+                         fullWidth="true"
+                         nbInput="taps"
+                         placeholder="Select Tap"
+                         required="true"
+                         size="medium">
+                <nb-option *ngFor="let option of backend['taps'] | keyvalue"
+                           [attr.data-orb-qa-id]="option.key"
+                           [value]="option.key">{{ option.key }}</nb-option>
+              </nb-select>
+            </nb-form-field>
+
             <nb-form-field *ngFor="let control of tap['config'] | keyvalue; let i = index"
                            [formGroup]="backendConfigForms['taps']">
               <div>
@@ -171,6 +173,7 @@
               <p>Setup any number of handlers</p>
             </div>
           </ng-template>
+          <div *ngIf="backendConfigForms['handlers']">
           <form [formGroup]="backendConfigForms['handlers']">
             <div class="d-flex">
               <mat-chip-list data-orb-qa-id="handlers-list">
@@ -195,7 +198,7 @@
               </div>
               <nb-select appearance="filled"
                          data-orb-qa-id="sink_selector"
-                         formControlName="selected_sink"
+                         formControlName="selected_handler"
                          fullWidth="true"
                          placeholder="Sink Name"
                          size="medium"
@@ -283,28 +286,9 @@
               </button>
             </div>
           </form>
+          </div>
         </nb-step>
       </nb-stepper>
-    </div>
-    <div class="col-6">
-      <hr/>
-      <!-- end of dynamic form based on discovery -->
-      <div *ngIf="backendConfigForms" class="d-flex justify-content-end">
-        <button
-          data-orb-qa-id="previous"
-          ghost
-          nbButton
-          status="primary">Back
-        </button>
-        <button (click)="onFormSubmit()"
-                class="next-button"
-                data-orb-qa-id="next"
-                nbButton
-                shape="round"
-                status="primary"
-                type="submit">Save
-        </button>
-      </div>
     </div>
   </div>
 </div>

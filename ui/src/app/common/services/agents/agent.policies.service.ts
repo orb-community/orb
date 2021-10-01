@@ -190,7 +190,7 @@ export class AgentPoliciesService {
             'backend': 'pktvisor',
             'description': 'pktvisor observability agent from pktvisor.dev',
             // todo I could use some meta like this
-            'config': ['taps', 'input', 'handlers'],
+            // 'config': ['taps', 'input', 'handlers'],
           },
         ],
       };
@@ -216,21 +216,186 @@ export class AgentPoliciesService {
     //     },
     //   );
     // TODO remove mock and uncomment http request
-
     let resp;
     switch (final) {
       case 'pktvisor/taps':
-        resp = {};
+        resp = {
+          data: [
+            {
+              'tap': 'anycast',
+              'version': '1.0',
+              'input_type': 'pcap',
+              'config': {
+                'iface': 'eth0',
+              },
+            },
+            {
+              'tap': 'trex_tap',
+              'version': '1.0',
+              'input_type': 'dnstap',
+              'config': {
+                'socket': '/var/dns.sock',
+              },
+            },
+          ],
+        };
         break;
       case 'pktvisor/inputs':
-        resp = {};
+        resp = {
+          data: {
+            'pcap': {
+              'version': '1.0',
+              'config': {
+                'iface': {
+                  'required': true,
+                  'type': 'string',
+                  'input': 'text',
+                  'title': 'Interface',
+                  'name': 'iface',
+                  'description': 'The ethernet interface to capture on',
+                },
+                'bpf': {
+                  'required': false,
+                  'type': 'string',
+                  'input': 'text',
+                  'title': 'Filter Expression',
+                  'name': 'bpf',
+                  'description': 'tcpdump compatible filter expression for limiting the traffic examined (with BPF). Example: "port 53"',
+                },
+                'host_spec': {
+                  'required': false,
+                  'type': 'string',
+                  'input': 'text',
+                  'title': 'Host Specification',
+                  'name': 'host_spec',
+                  'description': 'Subnets (comma separated) to consider this HOST, in CIDR form. Example: "10.0.1.0/24,10.0.2.1/32,2001:db8::/64"',
+                },
+                'pcap_source': {
+                  'required': false,
+                  'type': 'string',
+                  'input': 'text',
+                  'title': 'pcap Engine',
+                  'name': 'pcap_source',
+                  'description': 'pcap backend engine to use. Defaults to best for platform.',
+                },
+              },
+            },
+            'dnstap': {
+              'version': '1.0',
+              'config': {
+                'type': {
+                  'type': 'string',
+                  'input': 'select',
+                  'title': 'Type',
+                  'name': 'type',
+                  'options': [
+                    'AUTH_QUERY',
+                    'AUTH_RESPONSE',
+                    'RESOLVER_QUERY',
+                    'RESOLVER_RESPONSE',
+                    'TOOL_QUERY',
+                    'TOOL_RESPONSE',
+                  ],
+                  'required': true,
+                  'description': 'AUTH_QUERY, AUTH_RESPONSE, RESOLVER_QUERY, RESOLVER_RESPONSE, ..., TOOL_QUERY, TOOL_RESPONSE',
+                },
+                'socket_family': {
+                  'type': 'string',
+                  'input': 'select',
+                  'title': 'Socket Family',
+                  'name': 'socket_family',
+                  'options': ['INET', 'INET6'],
+                  'required': true,
+                  'description': 'INET, INET6',
+                },
+                'socket_protocol': {
+                  'type': 'string',
+                  'input': 'select',
+                  'title': 'Socket Protocol',
+                  'name': 'socket_protocol',
+                  'options': ['UDP', 'TCP'],
+                  'required': true,
+                  'description': 'UDP, TCP',
+                },
+                'query_address':
+                  {
+                    'type': 'string',
+                    'input': 'text',
+                    'title': 'Query Address',
+                    'name': 'query_address',
+                    'required': false,
+                    'description': '',
+                  },
+                'query_port': {
+                  'type': 'string',
+                  'input': 'text',
+                  'title': 'Query Port',
+                  'name': 'query_port',
+                  'required': false,
+                  'description': '',
+                },
+                'response_address': {
+                  'type': 'string',
+                  'input': 'text',
+                  'title': 'Response Address',
+                  'name': 'response_address',
+                  'required': false,
+                  'description': '',
+                },
+              },
+            },
+          },
+        };
         break;
       case 'pktvisor/handlers':
-        resp = {};
+        resp = {
+          'data': {
+            'dns': {
+              'version': '1.0',
+              'config': {
+                'filter_exclude_noerror': {
+                  'title': 'Filter: Exclude NOERROR',
+                  'name': 'filter_exclude_noerror',
+                  'type': 'checkbox',
+                  'input': 'checkbox',
+                  'description': 'Filter out all NOERROR responses',
+                },
+                'filter_only_rcode': {
+                  'title': 'Filter: Include Only RCode',
+                  'name': 'filter_only_rcode',
+                  'type': 'number',
+                  'input': 'number',
+                  'description': 'Filter out any queries which are not the given RCODE',
+                  'min': 0,
+                  'max': 65536,
+                  'step': 1,
+                },
+                'filter_only_qname_suffix': {
+                  'title': 'Filter: Include Only QName With Suffix',
+                  'name': 'filter_only_qname_suffix',
+                  'type': 'string',
+                  'input': 'text',
+                  'pattern': '(\w+);',
+                  'description': 'Filter out any queries whose QName does not end in a suffix on the list',
+                },
+              },
+            },
+            'pcap': {
+              'version': '1.0',
+              'config': {},
+            },
+            'net': {
+              'version': '1.0',
+              'config': {},
+            },
+          },
+        };
         break;
       default:
         resp = 'error';
     }
-
+    return new Observable(subscriber => {
+      subscriber.next(resp);
+    });
   }
 }

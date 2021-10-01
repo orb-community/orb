@@ -95,33 +95,36 @@ export class AgentPolicyAddComponent {
   }
 
   onBackendSelected(selectedBackend) {
-    if (this.backend) {
-      if (selectedBackend === this.backend) {
-        return;
-      }
-      Object.keys(this.backend.config).forEach(key => {
-        Object.keys(this.backendConfigForms[key].controls).forEach(controlKey => {
-          this.backendConfigForms[key].removeControl(controlKey);
-        });
-        delete this.backendConfigForms[key];
-      });
-      delete this.backend;
-      delete this.handlers;
-    }
-
     this.backend = this.availableBackends[selectedBackend];
-
+    this.backend.config = {};
     // reconfig dynamic forms based on backend selected
-    this.backendConfigForms = Object.keys(this.availableBackends[selectedBackend])
-      .reduce((formGroups, groupName, groupIndex) => {
-        formGroups[groupName] = this._formBuilder.group({ [groupName]: ['', Validators.required] });
-        return formGroups;
-      }, {});
+    // this.backendConfigForms = Object.keys(this.backend.config)
+    //   .reduce((formGroups, groupName, groupIndex) => {
+    //     formGroups[groupName] = this._formBuilder.group({ [groupName]: ['', Validators.required] });
+    //     return formGroups;
+    //   }, {});
 
-    this.backendConfigForms['handlers'].addControl('current', this._formBuilder.control('', []));
+    // todo hardcoded for pktvisor
+    this.getTaps();
+    this.getInputs();
+    this.getHandlers();
 
   }
 
+  getTaps() {
+    this.isLoading = true;
+    this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
+      .subscribe(taps => {
+        this.backend.config['taps'] = !!taps['data'] && taps['data'] || {};
+
+        this.backendConfigForms['taps'] = this._formBuilder.group({
+          'tap': ['', [Validators.required]], // tap name
+          'input': ['', [Validators.required]],
+        });
+
+        this.isLoading = false;
+      });
+  }
 
   onTapSelected(selectedTap) {
     if (this.tap) {
@@ -145,6 +148,16 @@ export class AgentPolicyAddComponent {
     });
   }
 
+  getInputs() {
+    this.isLoading = true;
+    this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
+      .subscribe(inputs => {
+        this.backend.config['inputs'] = !!inputs['data'] && inputs['data'] || {};
+
+        this.isLoading = false;
+      });
+  }
+
   onInputSelected(selectedInput) {
     if (this.input) {
       Object.keys(this.input.config).forEach(key => {
@@ -160,6 +173,19 @@ export class AgentPolicyAddComponent {
       inputs.addControl(key, this._formBuilder.control('', [Validators.required]));
     });
   }
+
+  getHandlers() {
+    this.isLoading = true;
+    this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
+      .subscribe(handlers => {
+        this.backend.config['handlers'] = !!handlers['data'] && handlers['data'] || {};
+
+        this.backendConfigForms['handlers'] = this._formBuilder.group({'selected_handler': ['', []]});
+
+        this.isLoading = false;
+      });
+  }
+
 
   onHandlerSelected(selectedHandler) {
 
