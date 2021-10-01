@@ -119,7 +119,7 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 
 func (svc sinkerService) Start() error {
 
-	pktvisor.Register(svc.logger)
+	pktvisor.Register(svc.logger, svc.promClient)
 
 	topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
 	if err := svc.pubSub.Subscribe(topic, svc.handleMsgFromAgent); err != nil {
