@@ -137,7 +137,7 @@
               </nb-form-field>
               <div *ngIf="input">
                 <nb-form-field *ngFor="let control of input['config'] | keyvalue; let i = index"
-                               [formGroup]="backendConfigForms['taps']">
+                               [formGroup]="backendConfigForms['inputs']">
                   <div>
                     <label class="font-weight-bold">{{control.value.title}}</label>
                   </div>

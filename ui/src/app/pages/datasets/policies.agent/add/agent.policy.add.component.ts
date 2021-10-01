@@ -149,19 +149,22 @@ export class AgentPolicyAddComponent {
       taps.addControl(key, this._formBuilder.control('', [Validators.required]));
     });
 
-    this.backendConfigForms['inputs'] = this._formBuilder.group({
-      'input_type': [this.tap.input_type, [Validators.required]],
-    });
+    this.backendConfigForms['taps'].addControl(
+      'input_type',
+      this._formBuilder.control([this.tap.input_type, [Validators.required]]),
+    );
 
     this.onInputSelected(this.tap.input_type);
+    this.backendConfigForms['taps'].controls.input_type.disable();
   }
 
   onInputSelected(selectedInput) {
     this.input = this.availableInputs[selectedInput];
-    const { inputs } = this.backendConfigForms;
+    const inputs = this._formBuilder.group({});
     Object.keys(this.input.config).forEach(key => {
       inputs.addControl(key, this._formBuilder.control('', [Validators.required]));
     });
+    this.backendConfigForms['inputs'] = inputs;
   }
 
   getHandlers() {
