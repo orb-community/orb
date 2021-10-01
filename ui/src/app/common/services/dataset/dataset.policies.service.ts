@@ -16,6 +16,7 @@ const defDir = 'desc';
 @Injectable()
 export class DatasetPoliciesService {
   paginationCache: any = {};
+
   cache: OrbPagination<Dataset>;
 
   constructor(
@@ -50,8 +51,8 @@ export class DatasetPoliciesService {
 
   addDataset(datasetItem: Dataset) {
     return this.http.post(environment.datasetPoliciesUrl,
-      { ...datasetItem, validate_only: false },
-      { observe: 'response' })
+        { ...datasetItem, validate_only: false },
+        { observe: 'response' })
       .map(
         resp => {
           return resp;
@@ -138,8 +139,7 @@ export class DatasetPoliciesService {
     }
 
     return this.http.get(environment.datasetPoliciesUrl, { params })
-      .map(
-        (resp: any) => {
+      .map((resp: any) => {
           this.paginationCache[pageInfo.offset] = true;
           // This is the position to insert the new data
           const start = resp.offset;

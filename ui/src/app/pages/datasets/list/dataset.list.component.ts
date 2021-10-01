@@ -15,6 +15,10 @@ import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pa
 import { Debounce } from 'app/shared/decorators/utils';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
+import { NbDialogService } from '@nebular/theme';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
   selector: 'ngx-dataset-list-component',
@@ -60,6 +64,10 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
 
   constructor(
     private cdr: ChangeDetectorRef,
+    private dialogService: NbDialogService,
+    private notificationsService: NotificationsService,
+    private route: ActivatedRoute,
+    private router: Router,
     private datasetPoliciesService: DatasetPoliciesService,
   ) {
     this.datasetPoliciesService.clean();
@@ -150,9 +158,19 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
   }
 
   onOpenAdd() {
+    this.router.navigate(['add'], {
+      relativeTo: this.route.parent,
+    });
   }
 
   onOpenEdit(dataset: any) {
+    this.router.navigate(
+      [`edit/${dataset.id}`],
+      {
+        relativeTo: this.route.parent,
+        state: {dataset: dataset, edit: true},
+      },
+    );
   }
 
   onFilterSelected(selectedIndex) {
@@ -160,6 +178,21 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
   }
 
   openDeleteModal(row: any) {
+    const {id} = row;
+    this.dialogService.open(DatasetDeleteComponent, {
+      context: {name: row.name},
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe(
+      confirm => {
+        if (confirm) {
+          this.datasetPoliciesService.deleteDataset(id).subscribe(() => {
+            this.getDatasets();
+            this.notificationsService.success('Dataset successfully deleted', '');
+          });
+        }
+      },
+    );
   }
 
   openDetailsModal(row: any) {
@@ -171,6 +204,4 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
       [this.tableFilters[this.filterSelectedIndex].prop]: input,
     });
   }
-
-  filterByInactive = (sink) => sink.state === 'inactive';
 }
