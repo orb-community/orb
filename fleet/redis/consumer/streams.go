@@ -166,7 +166,7 @@ func (es eventStore) handlePolicyUpdate(ctx context.Context, e updatePolicyEvent
 		if err != nil {
 			return err
 		}
-		err = es.commsService.NotifyGroupPolicyUpdate(ctx, ag, "", e.id, e.ownerID)
+		err = es.commsService.NotifyGroupNewDataset(ctx, ag, "", e.id, e.ownerID)
 		if err != nil {
 			return err
 		}

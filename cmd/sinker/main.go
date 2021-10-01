@@ -9,6 +9,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/go-zoo/bone"
@@ -17,6 +18,7 @@ import (
 	"github.com/ns1labs/orb/pkg/config"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	"github.com/ns1labs/orb/sinker"
+	"github.com/ns1labs/orb/sinker/prometheus"
 	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -46,6 +48,9 @@ const (
 
 func main() {
 
+	var writeURLFlag string
+	flag.StringVar(&writeURLFlag, "u", prometheus.DefaultRemoteWrite, "remote write endpoint")
+
 	natsCfg := config.LoadNatsConfig(envPrefix)
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
@@ -53,6 +58,15 @@ func main() {
 	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
 	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
+
+	cfg := prometheus.NewConfig(
+		prometheus.WriteURLOption(writeURLFlag),
+	)
+
+	promClient, err := prometheus.NewClient(cfg)
+	if err != nil {
+		log.Fatal(fmt.Errorf("unable to construct client: %v", err))
+	}
 
 	// main logger
 	var logger *zap.Logger
@@ -109,7 +123,7 @@ func main() {
 	}
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
 
-	svc := sinker.New(logger, pubSub, esClient, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient)
+	svc := sinker.New(logger, pubSub, esClient, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, promClient)
 	defer svc.Stop()
 
 	errs := make(chan error, 2)

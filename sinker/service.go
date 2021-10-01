@@ -16,6 +16,7 @@ import (
 	policiespb "github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/sinker/backend"
 	"github.com/ns1labs/orb/sinker/backend/pktvisor"
+	"github.com/ns1labs/orb/sinker/prometheus"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 	"strings"
@@ -43,6 +44,8 @@ type sinkerService struct {
 	esclient *redis.Client
 
 	logger *zap.Logger
+
+	promClient prometheus.Client
 
 	policiesClient policiespb.PolicyServiceClient
 	fleetClient fleetpb.FleetServiceClient
@@ -136,7 +139,13 @@ func (svc sinkerService) Stop() error {
 }
 
 // New instantiates the sinker service implementation.
-func New(logger *zap.Logger, pubSub mfnats.PubSub, esclient *redis.Client, policiesClient policiespb.PolicyServiceClient, fleetClient fleetpb.FleetServiceClient, sinksClient sinkspb.SinkServiceClient) Service {
+func New(logger *zap.Logger,
+	pubSub mfnats.PubSub,
+	esclient *redis.Client,
+	policiesClient policiespb.PolicyServiceClient,
+	fleetClient fleetpb.FleetServiceClient,
+	sinksClient sinkspb.SinkServiceClient,
+	promClient prometheus.Client) Service {
 	return &sinkerService{
 		logger:   logger,
 		pubSub:   pubSub,
@@ -144,5 +153,7 @@ func New(logger *zap.Logger, pubSub mfnats.PubSub, esclient *redis.Client, polic
 		policiesClient: policiesClient,
 		fleetClient: fleetClient,
 		sinksClient: sinksClient,
+		promClient: promClient,
+
 	}
 }
