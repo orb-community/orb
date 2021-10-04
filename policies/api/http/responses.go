@@ -163,7 +163,7 @@ func (s datasetRes) Empty() bool {
 
 type datasetPageRes struct {
 	pageRes
-	Dataset []datasetRes `json:"dataset"`
+	Datasets []datasetRes `json:"datasets"`
 }
 
 func (res datasetPageRes) Code() int {

@@ -449,7 +449,7 @@ func (r policiesRepository) RetrieveDatasetByID(ctx context.Context, datasetID s
 	return toDataset(dba), nil
 }
 
-func (r policiesRepository) RetrieveAllDatasetByOwner(ctx context.Context, owner string, pm policies.PageMetadata) (policies.PageDataset, error) {
+func (r policiesRepository) RetrieveAllDatasetsByOwner(ctx context.Context, owner string, pm policies.PageMetadata) (policies.PageDataset, error) {
 	nameQuery, name := getNameQuery(pm.Name)
 	orderQuery := getOrderQuery(pm.Order)
 	dirQuery := getDirQuery(pm.Dir)

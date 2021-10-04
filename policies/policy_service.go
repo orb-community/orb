@@ -314,10 +314,10 @@ func (s policiesService) ValidateDataset(ctx context.Context, token string, d Da
 	return d, nil
 }
 
-func (s policiesService) ListDataset(ctx context.Context, token string, pm PageMetadata) (PageDataset, error) {
+func (s policiesService) ListDatasets(ctx context.Context, token string, pm PageMetadata) (PageDataset, error) {
 	ownerID, err := s.identify(token)
 	if err != nil {
 		return PageDataset{}, err
 	}
-	return s.repo.RetrieveAllDatasetByOwner(ctx, ownerID, pm)
+	return s.repo.RetrieveAllDatasetsByOwner(ctx, ownerID, pm)
 }

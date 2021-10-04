@@ -1202,7 +1202,7 @@ func TestListDataset(t *testing.T) {
 			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
 			var body datasetPageRes
 			json.NewDecoder(res.Body).Decode(&body)
-			total := uint64(len(body.Dataset))
+			total := uint64(len(body.Datasets))
 			assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 			assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
 		})
@@ -1293,8 +1293,8 @@ type datasetRes struct {
 }
 
 type datasetPageRes struct {
-	Total   uint64       `json:"total"`
-	Offset  uint64       `json:"offset"`
-	Limit   uint64       `json:"limit"`
-	Dataset []datasetRes `json:"dataset"`
+	Total    uint64       `json:"total"`
+	Offset   uint64       `json:"offset"`
+	Limit    uint64       `json:"limit"`
+	Datasets []datasetRes `json:"datasets"`
 }

@@ -172,7 +172,7 @@ func (m *mockPoliciesRepository) InactivateDatasetByGroupID(ctx context.Context,
 	panic("implement me")
 }
 
-func (m *mockPoliciesRepository) RetrieveAllDatasetByOwner(ctx context.Context, owner string, pm policies.PageMetadata) (policies.PageDataset, error) {
+func (m *mockPoliciesRepository) RetrieveAllDatasetsByOwner(ctx context.Context, owner string, pm policies.PageMetadata) (policies.PageDataset, error) {
 	first := uint64(pm.Offset)
 	last := first + uint64(pm.Limit)
 

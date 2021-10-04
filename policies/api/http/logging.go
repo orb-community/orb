@@ -228,7 +228,7 @@ func (l loggingMiddleware) ViewDatasetByID(ctx context.Context, token string, da
 	return l.svc.ViewDatasetByID(ctx, token, datasetID)
 }
 
-func (l loggingMiddleware) ListDataset(ctx context.Context, token string, pm policies.PageMetadata) (_ policies.PageDataset, err error) {
+func (l loggingMiddleware) ListDatasets(ctx context.Context, token string, pm policies.PageMetadata) (_ policies.PageDataset, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: list_dataset",
@@ -239,23 +239,9 @@ func (l loggingMiddleware) ListDataset(ctx context.Context, token string, pm pol
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.ListDataset(ctx, token, pm)
+	return l.svc.ListDatasets(ctx, token, pm)
 }
 
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {
 	return &loggingMiddleware{logger, svc}
-}
-
-func (l loggingMiddleware) ListDatasetByPolicyIDInternal(ctx context.Context, policyID string, ownerID string) (_ []policies.Dataset, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			l.logger.Warn("method call: list_dataset_by_groups",
-				zap.Error(err),
-				zap.Duration("duration", time.Since(begin)))
-		} else {
-			l.logger.Info("method call: list_dataset_by_groups",
-				zap.Duration("duration", time.Since(begin)))
-		}
-	}(time.Now())
-	return l.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, ownerID)
 }

@@ -361,7 +361,7 @@ func TestMultiDatasetRetrieval(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			pageDataset, err := repo.RetrieveAllDatasetByOwner(context.Background(), tc.owner, tc.pageMetadata)
+			pageDataset, err := repo.RetrieveAllDatasetsByOwner(context.Background(), tc.owner, tc.pageMetadata)
 			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s\n", desc, err))
 			size := uint64(len(pageDataset.Datasets))
 			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))

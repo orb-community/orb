@@ -95,8 +95,8 @@ type Service interface {
 	// ViewDatasetByID retrieving dataset by id with token
 	ViewDatasetByID(ctx context.Context, token string, datasetID string) (Dataset, error)
 
-	// ListDataset retrieve a list of Dataset by owner
-	ListDataset(ctx context.Context, token string, pm PageMetadata) (PageDataset, error)
+	// ListDatasets retrieve a list of Dataset by owner
+	ListDatasets(ctx context.Context, token string, pm PageMetadata) (PageDataset, error)
 }
 
 type Repository interface {
@@ -141,6 +141,6 @@ type Repository interface {
 	// RetrieveDatasetByID Retrieves dataset by id
 	RetrieveDatasetByID(ctx context.Context, datasetID string, ownerID string) (Dataset, error)
 
-	// RetrieveAllDatasetByOwner retrieves the subset of Datasets owned by the specified user
-	RetrieveAllDatasetByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageDataset, error)
+	// RetrieveAllDatasetsByOwner retrieves the subset of Datasets owned by the specified user
+	RetrieveAllDatasetsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageDataset, error)
 }

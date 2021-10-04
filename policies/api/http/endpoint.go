@@ -347,7 +347,7 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		page, err := svc.ListDataset(ctx, req.token, req.pageMetadata)
+		page, err := svc.ListDatasets(ctx, req.token, req.pageMetadata)
 		if err != nil {
 			return nil, err
 		}
@@ -360,7 +360,7 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 				Order:  page.Order,
 				Dir:    page.Dir,
 			},
-			Dataset: []datasetRes{},
+			Datasets: []datasetRes{},
 		}
 		for _, dataset := range page.Datasets {
 			view := datasetRes{
@@ -370,7 +370,7 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 				SinkIDs:      dataset.SinkIDs,
 				AgentGroupID: dataset.AgentGroupID,
 			}
-			res.Dataset = append(res.Dataset, view)
+			res.Datasets = append(res.Datasets, view)
 		}
 		return res, nil
 	}

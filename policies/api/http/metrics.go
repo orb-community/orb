@@ -78,8 +78,8 @@ func (m metricsMiddleware) ViewDatasetByID(ctx context.Context, token string, da
 	return m.svc.ViewDatasetByID(ctx, token, datasetID)
 }
 
-func (m metricsMiddleware) ListDataset(ctx context.Context, token string, pm policies.PageMetadata) (policies.PageDataset, error) {
-	return m.svc.ListDataset(ctx, token, pm)
+func (m metricsMiddleware) ListDatasets(ctx context.Context, token string, pm policies.PageMetadata) (policies.PageDataset, error) {
+	return m.svc.ListDatasets(ctx, token, pm)
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.
