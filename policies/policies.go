@@ -45,6 +45,11 @@ type Page struct {
 	Policies []Policy
 }
 
+type PageDataset struct {
+	PageMetadata
+	Datasets []Dataset
+}
+
 type Service interface {
 	// AddPolicy creates new agent Policy
 	AddPolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
@@ -86,6 +91,12 @@ type Service interface {
 
 	// ValidateDataset validates a new Dataset without saving it
 	ValidateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
+
+	// ViewDatasetByID retrieving dataset by id with token
+	ViewDatasetByID(ctx context.Context, token string, datasetID string) (Dataset, error)
+
+	// ListDatasets retrieve a list of Dataset by owner
+	ListDatasets(ctx context.Context, token string, pm PageMetadata) (PageDataset, error)
 }
 
 type Repository interface {
@@ -126,4 +137,10 @@ type Repository interface {
 
 	//DeleteDataset delete a existing dataset by id by ownerID
 	DeleteDataset(ctx context.Context, ownerID string, dsID string) error
+
+	// RetrieveDatasetByID Retrieves dataset by id
+	RetrieveDatasetByID(ctx context.Context, datasetID string, ownerID string) (Dataset, error)
+
+	// RetrieveAllDatasetsByOwner retrieves the subset of Datasets owned by the specified user
+	RetrieveAllDatasetsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageDataset, error)
 }
