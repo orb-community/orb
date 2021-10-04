@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -11,40 +11,55 @@ import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.
   templateUrl: './agent.policy.add.component.html',
   styleUrls: ['./agent.policy.add.component.scss'],
 })
-export class AgentPolicyAddComponent {
-
-  /**
-   * Forms
-   * //NOTE: refactor to be all dynamic
-   */
-    // agent policy general information
+export class AgentPolicyAddComponent implements OnInit {
+  // #forms
+  // agent policy general information - name, desc, backend
   detailsFormGroup: FormGroup;
 
-  // Refactor while coding :)
-  backendConfigForms: { [propName: string]: FormGroup };
+  // selected tap, input_type
+  tapFormGroup: FormGroup;
 
+  // dynamic input config
+  inputFormGroup: FormGroup;
+
+  // handlers
+  handlerFormGroup: FormGroup;
+
+  // #key inputs holders
+  // selected backend object
+  backend: { [propName: string]: any };
+
+  // selected tap object
+  tap: { [propName: string]: any };
+
+  // selected input object
+  input: { [propName: string]: any };
+
+  // holds selected handler conf.
+  // handler template currently selected, to be edited by user and then added to the handlers list or discarded
+  liveHandler: { [propName: string]: any };
+
+  // holds all handlers added by user
+  handlers: { [propName: string]: any }[] = [];
+
+  // #services responses
+  // hold info retrieved
   availableBackends: { [propName: string]: any }[];
 
   availableTaps: { [propName: string]: any }[];
 
   availableInputs: { [propName: string]: any };
 
-  availableHandlers: { [propName: string]: any }[];
+  availableHandlers: { [propName: string]: any };
 
-  backend: { [propName: string]: any };
-
-  tap: { [propName: string]: any };
-
-  input: { [propName: string]: any };
-
-  handlers: { [propName: string]: any }[] = [];
-
+  // #if edit
   agentPolicy: AgentPolicy;
 
   agentPolicyID: string;
 
   isEdit: boolean;
 
+  // #load controls
   isLoading = false;
 
   agentPolicyLoading = false;
@@ -73,17 +88,22 @@ export class AgentPolicyAddComponent {
       this.agentPolicyLoading = false;
     });
 
-    const { name, description, backend } = this.agentPolicy || { name: '', description: '', backend: '' };
+    this.getBackendsList();
+  }
 
-    this.backendConfigForms = {};
+  ngOnInit() {
+    const { name, description, backend } = this.agentPolicy || { name: '', description: '', backend: '' };
 
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
-      description: [description, Validators.required],
+      description: [description],
       backend: [backend, Validators.required],
     });
-
-    this.getBackendsList();
+    this.tapFormGroup = this._formBuilder.group({
+      'selected_tap': ['', Validators.required],
+      'input_type': ['', Validators.required],
+    });
+    this.handlerFormGroup = this._formBuilder.group({ 'selected_handler': [''] });
   }
 
   getBackendsList() {
@@ -103,12 +123,6 @@ export class AgentPolicyAddComponent {
   onBackendSelected(selectedBackend) {
     this.backend = this.availableBackends[selectedBackend];
     this.backend.config = {};
-    // reconfig dynamic forms based on backend selected
-    // this.backendConfigForms = Object.keys(this.backend.config)
-    //   .reduce((formGroups, groupName, groupIndex) => {
-    //     formGroups[groupName] = this._formBuilder.group({ [groupName]: ['', Validators.required] });
-    //     return formGroups;
-    //   }, {});
 
     // todo hardcoded for pktvisor
     this.getTaps();
@@ -123,10 +137,6 @@ export class AgentPolicyAddComponent {
       .subscribe(taps => {
         this.availableTaps = !!taps['data'] && taps['data'] || [];
 
-        this.backendConfigForms['taps'] = this._formBuilder.group({
-          'tap': ['', [Validators.required]], // tap name
-        });
-
         this.isLoading = false;
       });
   }
@@ -136,7 +146,6 @@ export class AgentPolicyAddComponent {
     this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
       .subscribe(inputs => {
         this.availableInputs = !!inputs['data'] && inputs['data'] || {};
-        this.backend.config['inputs'] = this.availableInputs;
 
         this.isLoading = false;
       });
@@ -144,27 +153,40 @@ export class AgentPolicyAddComponent {
 
   onTapSelected(selectedTap) {
     this.tap = this.availableTaps[selectedTap];
-    const { taps } = this.backendConfigForms;
-    Object.keys(this.tap.config).forEach(key => {
-      taps.addControl(key, this._formBuilder.control('', [Validators.required]));
-    });
-
-    this.backendConfigForms['taps'].addControl(
-      'input_type',
-      this._formBuilder.control([this.tap.input_type, [Validators.required]]),
-    );
-
-    this.onInputSelected(this.tap.input_type);
-    this.backendConfigForms['taps'].controls.input_type.disable();
+    const { input_type } = this.tap;
+    if (input_type) {
+      this.onInputSelected(input_type);
+      this.tapFormGroup.controls.input_type.disable();
+    } else {
+      this.input = null;
+      this.tapFormGroup.controls.input_type.enable();
+      this.tapFormGroup.controls.input_type.reset('');
+    }
   }
 
   onInputSelected(selectedInput) {
     this.input = this.availableInputs[selectedInput];
-    const inputs = this._formBuilder.group({});
-    Object.keys(this.input.config).forEach(key => {
-      inputs.addControl(key, this._formBuilder.control('', [Validators.required]));
-    });
-    this.backendConfigForms['inputs'] = inputs;
+    this.tapFormGroup.controls.input_type.setValue(selectedInput);
+    const { config } = this.input;
+    const dynamicFormControls = Object.keys(config || {})
+      .reduce((acc, key) => {
+        acc[key] = [
+          // TODO predef conf below can come from editing existing policy or from tap ->pre-conf<-(!has!precedence!)
+          '', // or predefined conf when editing.
+          config[key].required ? Validators.required : null,
+        ];
+        return acc;
+      }, {});
+
+    this.inputFormGroup = this._formBuilder.group(dynamicFormControls);
+
+    // reconfig dynamic forms based on backend selected
+    // this.backendConfigForms = Object.keys(this.backend.config)
+    //   .reduce((formGroups, groupName, groupIndex) => {
+    //     formGroups[groupName] = this._formBuilder.group({ [groupName]: ['', Validators.required] });
+    //     return formGroups;
+    //   }, {});
+
   }
 
   getHandlers() {
@@ -173,7 +195,9 @@ export class AgentPolicyAddComponent {
       .subscribe(handlers => {
         this.backend.config['handlers'] = !!handlers['data'] && handlers['data'] || {};
 
-        this.backendConfigForms['handlers'] = this._formBuilder.group({'selected_handler': ['', []]});
+        this.handlerFormGroup = this._formBuilder.group({
+          'selected_handler': ['', []],
+        });
 
         this.isLoading = false;
       });
