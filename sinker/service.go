@@ -5,6 +5,7 @@
 package sinker
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,7 +19,9 @@ import (
 	"github.com/ns1labs/orb/sinker/backend/pktvisor"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
+	"github.com/prometheus/common/log"
 	"go.uber.org/zap"
+	"os"
 	"strings"
 )
 
@@ -48,8 +51,8 @@ type sinkerService struct {
 	promClient prometheus.Client
 
 	policiesClient policiespb.PolicyServiceClient
-	fleetClient fleetpb.FleetServiceClient
-	sinksClient sinkspb.SinkServiceClient
+	fleetClient    fleetpb.FleetServiceClient
+	sinksClient    sinkspb.SinkServiceClient
 }
 
 func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopic string, payload []byte) error {
@@ -85,7 +88,14 @@ func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopi
 	//Todo use metricsRPC.Payload[0].Datasets[] to retrieve the sinkID from policy grpc server
 	//Todo use the retrieve sinkID to get the backend config
 
-	return be.ProcessMetrics(thingID, channelID, s, metricsRPC.Payload)
+	tsList, err := be.ProcessMetrics(thingID, channelID, s, metricsRPC.Payload)
+	if err != nil {
+		return err
+	}
+
+	svc.remoteWriteToPrometheus(tsList)
+
+	return nil
 }
 
 func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
@@ -117,9 +127,40 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	return nil
 }
 
-func (svc sinkerService) Start() error {
+func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList) {
 
-	pktvisor.Register(svc.logger, svc.promClient)
+	svc.logger.Info("writing to", zap.String("url", prometheus.DefaultRemoteWrite))
+
+	result, writeErr := svc.promClient.WriteTimeSeries(context.Background(), tsList,
+		prometheus.WriteOptions{})
+	if err := error(writeErr); err != nil {
+		json.NewEncoder(os.Stdout).Encode(struct {
+			Success    bool   `json:"success"`
+			Error      string `json:"error"`
+			StatusCode int    `json:"statusCode"`
+		}{
+			Success:    false,
+			Error:      err.Error(),
+			StatusCode: writeErr.StatusCode(),
+		})
+		os.Stdout.Sync()
+
+		log.Fatal("write error", err)
+	}
+
+	json.NewEncoder(os.Stdout).Encode(struct {
+		Success    bool `json:"success"`
+		StatusCode int  `json:"statusCode"`
+	}{
+		Success:    true,
+		StatusCode: result.StatusCode,
+	})
+	os.Stdout.Sync()
+
+	svc.logger.Info("write success")
+}
+
+func (svc sinkerService) Start() error {
 
 	topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
 	if err := svc.pubSub.Subscribe(topic, svc.handleMsgFromAgent); err != nil {
@@ -146,14 +187,15 @@ func New(logger *zap.Logger,
 	fleetClient fleetpb.FleetServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
 	promClient prometheus.Client) Service {
-	return &sinkerService{
-		logger:   logger,
-		pubSub:   pubSub,
-		esclient: esclient,
-		policiesClient: policiesClient,
-		fleetClient: fleetClient,
-		sinksClient: sinksClient,
-		promClient: promClient,
 
+	pktvisor.Register(logger)
+	return &sinkerService{
+		logger:         logger,
+		pubSub:         pubSub,
+		esclient:       esclient,
+		policiesClient: policiesClient,
+		fleetClient:    fleetClient,
+		sinksClient:    sinksClient,
+		promClient:     promClient,
 	}
 }
