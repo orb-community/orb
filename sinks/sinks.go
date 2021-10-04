@@ -62,6 +62,11 @@ type Page struct {
 	Sinks []Sink
 }
 
+type SinksStatistics struct {
+	State string
+	Count int
+}
+
 // SinkService Sink CRUD interface
 type SinkService interface {
 	// CreateSink creates new data sink
@@ -99,4 +104,6 @@ type SinkRepository interface {
 	RetrieveByOwnerAndId(ctx context.Context, ownerID string, key string) (Sink, error)
 	// Remove a existing Sink by id
 	Remove(ctx context.Context, owner string, key string) error
+	// RetrieveSinksStatistics
+	RetrieveSinksStatistics(ctx context.Context, owner string) ([]SinksStatistics, error)
 }

@@ -218,6 +218,38 @@ func (s sinksRepository) Remove(ctx context.Context, owner, id string) error {
 	return nil
 }
 
+func (s sinksRepository) RetrieveSinksStatistics(ctx context.Context, owner string) ([]sinks.SinksStatistics, error) {
+	q := fmt.Sprintf(`SELECT count(*), state FROM sinks WHERE mf_owner_id = :mf_owner_id`)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+	}
+
+	rows, err := s.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return []sinks.SinksStatistics{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var summary []sinks.SinksStatistics
+
+	for rows.Next() {
+		db := dbSinksStatistics{}
+		if err := rows.StructScan(&db); err != nil {
+			return []sinks.SinksStatistics{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		statistics, err := toStatistics(db)
+		if err != nil {
+			return []sinks.SinksStatistics{}, errors.Wrap(errors.ErrViewEntity, err)
+		}
+
+		summary = append(summary, statistics)
+	}
+
+	return summary, nil
+}
+
 type dbSink struct {
 	ID          string           `db:"id"`
 	Name        types.Identifier `db:"name"`
@@ -267,6 +299,22 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 		Tags:        types.Tags(dba.Tags),
 	}
 	return sink, nil
+}
+
+type dbSinksStatistics struct {
+	State string `db:"state"`
+	Count int    `db:"count"`
+}
+
+func toStatistics(dbs dbSinksStatistics) (sinks.SinksStatistics, error) {
+
+	statistics := sinks.SinksStatistics{
+		State: dbs.State,
+		Count: dbs.Count,
+	}
+
+	return statistics, nil
+
 }
 
 func getNameQuery(name string) (string, string) {
