@@ -449,6 +449,31 @@ func (r agentRepository) RetrieveAllStatesSummary(ctx context.Context, owner str
 	return summary, nil
 }
 
+func (r agentRepository) RetrieveTotalAgentsByOwner(ctx context.Context, owner string) (int, error) {
+	q := fmt.Sprintf(`SELECT COUNT(*) FROM agents WHERE mf_owner_id = :mf_owner_id;`)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return 0, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var count int
+
+	for rows.Next() {
+		err := rows.Scan(&count)
+		if err != nil {
+			return 0, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+	}
+
+	return count, nil
+}
+
 type dbAgent struct {
 	Name          types.Identifier `db:"name"`
 	MFOwnerID     string           `db:"mf_owner_id"`
