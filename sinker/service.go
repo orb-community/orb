@@ -19,7 +19,6 @@ import (
 	"github.com/ns1labs/orb/sinker/backend/pktvisor"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
-	"github.com/prometheus/common/log"
 	"go.uber.org/zap"
 	"os"
 	"strings"
@@ -85,6 +84,8 @@ func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopi
 		return fleet.ErrSchemaMalformed
 	}
 	//Todo use channelID to get owner id on fleet grpc server
+	ownerID, err := svc.fleetClient.RetrieveOwnerByChannelID(context.Background(), &fleetpb.OwnerByChannelIDReq{Channel: channelID})
+	fmt.Printf("Got this owner %s by this channel: %s", ownerID, channelID)
 	//Todo use metricsRPC.Payload[0].Datasets[] to retrieve the sinkID from policy grpc server
 	//Todo use the retrieve sinkID to get the backend config
 
@@ -145,7 +146,7 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList) {
 		})
 		os.Stdout.Sync()
 
-		log.Fatal("write error", err)
+		svc.logger.Error("remote write error", zap.Error(err))
 	}
 
 	json.NewEncoder(os.Stdout).Encode(struct {

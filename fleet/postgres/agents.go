@@ -418,6 +418,27 @@ func (r agentRepository) RetrieveAgentMetadataByOwner(ctx context.Context, owner
 	return items, nil
 }
 
+func (r agentRepository) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (string, error) {
+	q := `select mf_owner_id from agents where mf_channel_id = :mf_channel_id group by mf_owner_id`
+
+	params := map[string]interface{}{
+		"mf_channel_id": channelID,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return "", err
+	}
+
+	var ownerScan = dbAgent{}
+	if rows.Next() {
+		if err := rows.StructScan(&ownerScan); err != nil {
+			return "", errors.Wrap(errors.ErrSelectEntity, err)
+		}
+	}
+	return ownerScan.MFOwnerID, nil
+}
+
 type dbAgent struct {
 	Name          types.Identifier `db:"name"`
 	MFOwnerID     string           `db:"mf_owner_id"`

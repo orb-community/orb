@@ -194,3 +194,11 @@ func (svc fleetService) ViewAgentBackend(ctx context.Context, token string, name
 	}
 	return nil, errors.ErrNotFound
 }
+
+func (svc fleetService) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (string, error) {
+	res, err := svc.agentRepo.RetrieveOwnerByChannelID(ctx, channelID)
+	if err != nil {
+		return "", err
+	}
+	return res, nil
+}
