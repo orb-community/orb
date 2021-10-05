@@ -96,7 +96,7 @@ func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.Agen
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Got this owner %s by this channel: %s", ownerID, channelID)
+	fmt.Printf("Got this owner %s by this channel: %s\n", ownerID, channelID)
 	//Todo use metricsRPC.Payload[0].Datasets[] to retrieve the sinkID from policy grpc server
 	//var mapDataset = map[string][]string{}
 	for _, m := range metrics {
@@ -113,11 +113,29 @@ func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.Agen
 			if err != nil {
 				return err
 			}
-			fmt.Printf("got this sinkid %v by this datasetid %s", sinkID.SinkIds, ds)
+			fmt.Printf("got this sinkid %v by this datasetid %s\n", sinkID.SinkIds, ds)
+			for _, sid := range sinkID.SinkIds {
+				//Todo use the retrieve sinkID to get the backend config
+				sink, err := svc.sinksClient.RetrieveSink(context.Background(), &sinkspb.SinkByIDReq{
+					SinkID:  sid,
+					OwnerID: ownerID.OwnerID,
+				})
+				if err != nil {
+					return err
+				}
+
+				var data config.SinkConfig
+				if err := json.Unmarshal(sink.Config, &data); err != nil {
+					return err
+				}
+
+				data.SinkID = sid
+				data.OwnerID = ownerID.OwnerID
+				svc.configRepo.Add(data)
+				fmt.Printf("got this sink config by this sink id %s\n", sid)
+			}
 		}
 	}
-
-	//Todo use the retrieve sinkID to get the backend config
 
 	return nil
 }
