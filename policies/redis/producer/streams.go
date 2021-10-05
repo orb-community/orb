@@ -36,6 +36,10 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (e eventStore) ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (policies.Dataset, error) {
+	return e.svc.ViewDatasetByIDInternal(ctx, ownerID, datasetID)
+}
+
 func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string) (err error) {
 	if err := e.svc.RemoveDataset(ctx, token, dsID); err != nil {
 		return err

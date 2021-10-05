@@ -63,8 +63,7 @@ func (g grpcClient) RetrieveAgentGroup(ctx context.Context, in *pb.AgentGroupByI
 }
 
 func (g grpcClient) RetrieveOwnerByChannelID(ctx context.Context, in *pb.OwnerByChannelIDReq, opts ...grpc.CallOption) (*pb.OwnerRes, error) {
-	//ctx, cancel := context.WithTimeout(ctx, g.timeout)
-	ctx, cancel := context.WithTimeout(ctx, 10000*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, g.timeout)
 	defer cancel()
 
 	ar := accessOwnerByChannelIDReq{ChannelID: in.Channel}

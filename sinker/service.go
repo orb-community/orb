@@ -102,8 +102,18 @@ func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.Agen
 	for _, m := range metrics {
 		//var sinkIDs []string
 		for _, ds := range m.Datasets {
+			if ds == "" {
+				continue
+			}
 			fmt.Sprintf(ds)
-			//sinkID, err := svc.policiesClient.
+			sinkID, err := svc.policiesClient.RetrieveDataset(context.Background(), &policiespb.DatasetByIDReq{
+				DatasetID: ds,
+				OwnerID:   ownerID.OwnerID,
+			})
+			if err != nil {
+				return err
+			}
+			fmt.Printf("got this sinkid %v by this datasetid %s", sinkID.SinkIds, ds)
 		}
 	}
 

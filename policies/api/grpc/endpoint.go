@@ -78,7 +78,7 @@ func retrieveDatasetEnpoint(svc policies.Service) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
-		dataset, err := svc.ViewDatasetByID(ctx, req.ownerID, req.datasetID)
+		dataset, err := svc.ViewDatasetByIDInternal(ctx, req.ownerID, req.datasetID)
 		if err != nil {
 			return nil, err
 		}
