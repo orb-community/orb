@@ -23,7 +23,9 @@ export class AgentPolicyAddComponent implements OnInit {
   inputFormGroup: FormGroup;
 
   // handlers
-  handlerFormGroup: FormGroup;
+  handlerSelectorFormGroup: FormGroup;
+
+  dynamicHandlerConfigFormGroup: FormGroup;
 
   // #key inputs holders
   // selected backend object
@@ -103,7 +105,7 @@ export class AgentPolicyAddComponent implements OnInit {
       'selected_tap': ['', Validators.required],
       'input_type': ['', Validators.required],
     });
-    this.handlerFormGroup = this._formBuilder.group({ 'selected_handler': [''] });
+    this.handlerSelectorFormGroup = this._formBuilder.group({ 'selected_handler': [''] });
   }
 
   getBackendsList() {
@@ -193,9 +195,9 @@ export class AgentPolicyAddComponent implements OnInit {
     this.isLoading = true;
     this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
       .subscribe(handlers => {
-        this.backend.config['handlers'] = !!handlers['data'] && handlers['data'] || {};
+        this.availableHandlers = !!handlers['data'] && handlers['data'] || {};
 
-        this.handlerFormGroup = this._formBuilder.group({
+        this.handlerSelectorFormGroup = this._formBuilder.group({
           'selected_handler': ['', []],
         });
 
@@ -205,15 +207,26 @@ export class AgentPolicyAddComponent implements OnInit {
 
 
   onHandlerSelected(selectedHandler) {
+    this.liveHandler = this.availableHandlers[selectedHandler];
+    const {config} = this.liveHandler;
+    const dynamicControls = Object.keys(config).reduce((acc, key) => {
+      acc[key] = [
+        '',
+        config[key].required ? Validators.required : null,
+      ];
+      return acc;
+    }, {});
 
+    this.dynamicHandlerConfigFormGroup = this._formBuilder.group(dynamicControls);
   }
 
   onHandlerAdded() {
-
+    const { label: { value } } = this.dynamicHandlerConfigFormGroup.controls;
+    this.handlers[value] = this.dynamicHandlerConfigFormGroup.value;
   }
 
   onHandlerRemoved(selectedHandler) {
-
+    delete this.handlers[selectedHandler];
   }
 
   goBack() {
