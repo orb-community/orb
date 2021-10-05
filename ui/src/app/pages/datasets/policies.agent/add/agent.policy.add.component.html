@@ -215,7 +215,7 @@
                 <mat-chip
                   *ngFor="let handler of handlers; index as i"
                   [attr.data-orb-qa-id]="'handler_' + i"
-                  [style.background-color]="handler.keys()[0] | tagchipcolor"
+                  [style.background-color]="handler.label | tagchipcolor"
                   [value]="i"
                   class="orb-selected-handler ">
                   {{ handler }}
