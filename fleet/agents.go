@@ -64,6 +64,11 @@ type AgentStates struct {
 	Count int
 }
 
+type AgentsStatistics struct {
+	StatesSummary []AgentStates
+	TotalAgents   int
+}
+
 // Page contains page related metadata as well as list of agents that
 // belong to this page.
 type Page struct {
@@ -92,8 +97,8 @@ type AgentService interface {
 	ListAgentBackends(ctx context.Context, token string) ([]string, error)
 	// ViewAgentBackend retrieves a Backend by provided backend name
 	ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error)
-	// AllStatesSummary summarises agents states
-	AllStatesSummary(ctx context.Context, token string) ([]AgentStates, error)
+	// AgentsStatistics summarises agents states and retrieve total agents by owner
+	AgentsStatistics(ctx context.Context, token string) (AgentsStatistics, error)
 }
 
 type AgentRepository interface {
@@ -122,6 +127,8 @@ type AgentRepository interface {
 	RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error)
 	// RetrieveAllStatesSummary summarises agents states
 	RetrieveAllStatesSummary(ctx context.Context, owner string) ([]AgentStates, error)
+	// RetrieveTotalAgentsByOwner retrieves total of agents by owner
+	RetrieveTotalAgentsByOwner(ctx context.Context, owner string) (int, error)
 }
 
 type AgentHeartbeatRepository interface {

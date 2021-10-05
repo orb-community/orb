@@ -397,26 +397,30 @@ func TestAllStatesSummary(t *testing.T) {
 	}
 
 	var agSummary []fleet.AgentStates
+	agSummary = append(agSummary, fleet.AgentStates{
+		State: 0,
+		Count: 10,
+	})
 
 	cases := map[string]struct {
-		token   string
-		summary []fleet.AgentStates
-		err     error
+		token      string
+		statistics fleet.AgentsStatistics
+		err        error
 	}{
 		"retrieve all agents states summary": {
 			token: token,
-			summary: append(agSummary, fleet.AgentStates{
-				State: 0,
-				Count: 10,
-			}),
+			statistics: fleet.AgentsStatistics{
+				StatesSummary: agSummary,
+				TotalAgents: 10,
+			},
 			err: nil,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			summary, err := fleetService.AllStatesSummary(context.Background(), tc.token)
-			assert.Equal(t, summary, tc.summary, fmt.Sprintf("%s: expected %d got %d", desc, tc.summary, summary))
+			statistics, err := fleetService.AgentsStatistics(context.Background(), tc.token)
+			assert.Equal(t, statistics, tc.statistics, fmt.Sprintf("%s: expected %d got %d", desc, tc.statistics, statistics))
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		})
 
