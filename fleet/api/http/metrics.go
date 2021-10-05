@@ -82,6 +82,10 @@ func (m metricsMiddleware) RemoveAgent(ctx context.Context, token string, thingI
 	return m.svc.RemoveAgent(ctx, token, thingID)
 }
 
+func (m metricsMiddleware) AgentsStatistics(ctx context.Context, token string) (fleet.AgentsStatistics, error) {
+	return m.svc.AgentsStatistics(ctx, token)
+}
+
 // MetricsMiddleware instruments core service by tracking request count and latency.
 func MetricsMiddleware(svc fleet.Service, counter metrics.Counter, latency metrics.Histogram) fleet.Service {
 	return &metricsMiddleware{

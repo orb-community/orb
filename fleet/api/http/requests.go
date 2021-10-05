@@ -188,3 +188,14 @@ func (req *listAgentBackendsReq) validate() error {
 	}
 	return nil
 }
+
+type agentsStatisticsReq struct {
+	token string
+}
+
+func (req *agentsStatisticsReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+	return nil
+}

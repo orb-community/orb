@@ -5,6 +5,7 @@
 package http
 
 import (
+	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/types"
 	"net/http"
 	"time"
@@ -203,5 +204,22 @@ func (s agentBackendsRes) Headers() map[string]string {
 }
 
 func (s agentBackendsRes) Empty() bool {
+	return false
+}
+
+type agentStatisticsRes struct {
+	StatesSummary []fleet.AgentStates `json:"states_summary"`
+	TotalAgents   int                 `json:"total_agents"`
+}
+
+func (s agentStatisticsRes) Code() int {
+	return http.StatusOK
+}
+
+func (s agentStatisticsRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s agentStatisticsRes) Empty() bool {
 	return false
 }

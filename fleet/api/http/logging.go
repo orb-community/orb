@@ -251,6 +251,20 @@ func (l loggingMiddleware) RemoveAgent(ctx context.Context, token, thingID strin
 	return l.svc.RemoveAgent(ctx, token, thingID)
 }
 
+func (l loggingMiddleware) AgentsStatistics(ctx context.Context, token string) (_ fleet.AgentsStatistics, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: agents_statistics",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: agents_statistics",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.AgentsStatistics(ctx, token)
+}
+
 func NewLoggingMiddleware(svc fleet.Service, logger *zap.Logger) fleet.Service {
 	return &loggingMiddleware{logger, svc}
 }

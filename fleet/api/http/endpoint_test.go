@@ -1421,6 +1421,50 @@ func TestAgentBackendTaps(t *testing.T) {
 	}
 }
 
+func TestAgentStatistics(t *testing.T) {
+	cli := newClientServer(t)
+
+	for i := 0; i < limit; i++ {
+		_, err := createAgent(t, fmt.Sprintf("my-agent-%d", i), &cli)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	}
+
+	var agSummary []fleet.AgentStates
+	agSummary = append(agSummary, fleet.AgentStates{
+		State: 0,
+		Count: limit,
+	})
+
+	cases := map[string]struct {
+		status int
+		res    fleet.AgentsStatistics
+	}{
+		"retrieve all agents states summary": {
+			status: http.StatusOK,
+			res: fleet.AgentsStatistics{
+				StatesSummary: agSummary,
+				TotalAgents:   limit,
+			},
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodGet,
+				url:         fmt.Sprintf("%s/agents/statistics", cli.server.URL),
+				token:       token,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var body agentsStatisticsRes
+			json.NewDecoder(res.Body).Decode(&body)
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
 func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.AgentGroup, error) {
 	t.Helper()
 	agCopy := agentGroup
@@ -1511,4 +1555,9 @@ type updateAgentReq struct {
 	token string
 	Name  string     `json:"name,omitempty"`
 	Tags  types.Tags `json:"orb_tags"`
+}
+
+type agentsStatisticsRes struct {
+	StatesSummary []fleet.AgentStates `json:"states_summary"`
+	TotalAgents   int                 `json:"total_agents"`
 }

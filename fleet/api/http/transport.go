@@ -110,6 +110,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeListBackends,
 		types.EncodeResponse,
 		opts...))
+	r.Get("/agents/statistics", kithttp.NewServer(
+		kitot.TraceServer(tracer, "agents_statistics")(AgentsStatisticsEndpoint(svc)),
+		decodeAgentStatistics,
+		types.EncodeResponse,
+		opts...))
 
 	bks := backend.GetList()
 	if len(bks) > 0 {
@@ -300,4 +305,9 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func decodeAgentStatistics(_ context.Context, r *http.Request) (interface{}, error) {
+	req := agentsStatisticsReq{token: r.Header.Get("Authorization")}
+	return req, nil
 }

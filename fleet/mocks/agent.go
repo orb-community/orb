@@ -13,6 +13,17 @@ type agentRepositoryMock struct {
 	agentsMock map[string]fleet.Agent
 }
 
+func (a agentRepositoryMock) RetrieveTotalAgentsByOwner(ctx context.Context, owner string) (int, error) {
+
+	var count int
+	for _, v := range a.agentsMock {
+		if v.MFOwnerID == owner {
+			count += 1
+		}
+	}
+	return count, nil
+}
+
 func (a agentRepositoryMock) RetrieveAllStatesSummary(ctx context.Context, owner string) ([]fleet.AgentStates, error) {
 
 	var (
