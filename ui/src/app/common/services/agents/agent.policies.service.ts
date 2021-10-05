@@ -373,7 +373,7 @@ export class AgentPoliciesService {
                 'filter_only_qname_suffix': {
                   'title': 'Filter: Include Only QName With Suffix',
                   'name': 'filter_only_qname_suffix',
-                  'type': 'string',
+                  'type': 'text',
                   'input': 'text',
                   'pattern': '(\w+);',
                   'description': 'Filter out any queries whose QName does not end in a suffix on the list',

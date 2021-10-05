@@ -210,9 +210,10 @@ export class AgentPolicyAddComponent implements OnInit {
   onHandlerSelected(selectedHandler) {
     const {config} = this.availableHandlers[selectedHandler];
     const dynamicControls = Object.keys(config).reduce((acc, key) => {
-      acc[key] = [
+      const field = config[key];
+      acc[field.name] = [
         '',
-        config[key].required ? Validators.required : null,
+        field.required ? Validators.required : null,
       ];
       return acc;
     }, {});
