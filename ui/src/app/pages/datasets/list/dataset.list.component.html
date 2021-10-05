@@ -2,20 +2,20 @@
   <header>
     <xng-breadcrumb class="orb-breadcrumb">
     </xng-breadcrumb>
-    <h4>{{strings.list.header}}</h4>
+    <h4>All Datasets</h4>
   </header>
   <div class="d-flex flex-column mt-4" #tableWrapper>
     <div class="d-flex justify-content-between align-items-end mb-2">
       <div class="d-flex">
         <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
-           class="sink-info-regular mb-0">
-          {{paginationControls.total}} sinks total, {{paginationControls.data.filter(filterByInactive).length}}
-          have errors.
+           class="dataset-info-regular mb-0">
+          You have {{paginationControls.total}} datasets initialized.
         </p>
         <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
-           class="sink-info-accent mb-0">
-          There are no sinks yet.
+           class="dataset-info-accent mb-0">
+          You have no datasets.
         </p>
+        <p>Last updated Tuesday, Blah Blah</p>
       </div>
       <div class="d-flex">
         <div class="mr-3">
@@ -34,7 +34,7 @@
         <nb-form-field *ngIf="filterSelectedIndex =='1'">
           <nb-icon nbPrefix icon="search-outline" pack="eva"></nb-icon>
           <input nbInput
-                 (keyup)="getSinks()"
+                 (keyup)="getDatasets()"
                  [placeholder]="searchPlaceholder"
                  type="text"
                  fieldSize="medium"
@@ -43,7 +43,7 @@
         <nb-form-field *ngIf="filterSelectedIndex =='0'">
           <nb-icon nbPrefix icon="search-outline" pack="eva"></nb-icon>
           <input nbInput
-                 (keyup)="getSinks()"
+                 (keyup)="getDatasets()"
                  [placeholder]="searchPlaceholder"
                  type="text"
                  fieldSize="medium"
@@ -51,12 +51,12 @@
         </nb-form-field>
       </div>
     </div>
-    <div class="add-sink-container">
+    <div class="add-dataset-container">
       <button nbButton
               ghost="true"
               status="primary"
               (click)="onOpenAdd()">
-        <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
+        <i class="fa fa-plus">&nbsp;</i>New Set</button>
     </div>
     <ngx-datatable
       #table
@@ -70,7 +70,7 @@
       [offset]="paginationControls.offset"
       [rows]="paginationControls.data"
       [scrollbarV]="true"
-      (page)='getSinks($event)'
+      (page)='getDatasets($event)'
       [columns]="columns"
       [columnMode]="columnMode.flex"
       [headerHeight]="50"
@@ -80,35 +80,7 @@
   </div>
 </div>
 
-<ng-template #sinkStateTemplateCell let-row="row" let-value="value" let-i="index">
-  <div>
-    <div *ngIf="row.state === 'active'">
-      <i class="fa fa-circle orb-service-active" style="color: #61f69f;"
-         aria-hidden="true"></i>
-      {{ row.state | titlecase }}
-    </div>
-    <div *ngIf="row.state !== 'active'">
-      <i class="fa fa-circle orb-service-inactive" style="color: #f2994a;"
-         aria-hidden="true"></i>
-      {{ row.state | titlecase }}
-    </div>
-  </div>
-</ng-template>
-
-<ng-template #sinkTagsTemplateCell let-row="row" let-value="value" let-i="index">
-  <div class="d-flex">
-    <mat-chip-list>
-      <mat-chip
-          class="orb-tag-sink "
-          *ngFor="let tag of value | keyvalue | slice:0:3 | tagchip"
-          [style.background-color]="tag | tagchipcolor">
-          {{tag}}
-      </mat-chip>
-    </mat-chip-list>
-  </div>
-</ng-template>
-
-<ng-template #sinkActionsTemplateCell let-row="row" let-value="value" let-i="index">
+<ng-template #actionsTemplateCell let-row="row" let-value="value" let-i="index">
 
   <div class="d-flex flex-row">
     <button nbButton
