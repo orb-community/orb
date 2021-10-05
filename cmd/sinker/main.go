@@ -18,6 +18,7 @@ import (
 	"github.com/ns1labs/orb/pkg/config"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	"github.com/ns1labs/orb/sinker"
+	config2 "github.com/ns1labs/orb/sinker/config"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
 	"github.com/opentracing/opentracing-go"
@@ -123,7 +124,9 @@ func main() {
 	}
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
 
-	svc := sinker.New(logger, pubSub, esClient, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, promClient)
+	configRepo, err := config2.NewMemRepo(logger)
+
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, promClient)
 	defer svc.Stop()
 
 	errs := make(chan error, 2)

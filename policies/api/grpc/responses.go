@@ -29,6 +29,13 @@ type policyInDSListRes struct {
 	policies []policyInDSRes
 }
 
+type datasetRes struct {
+	id           string
+	agentGroupID string
+	policyID     string
+	sinkIDs      []string
+}
+
 type emptyRes struct {
 	err error
 }

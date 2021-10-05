@@ -71,3 +71,18 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 		return policyInDSListRes{policies: policies}, nil
 	}
 }
+
+func retrieveDatasetEnpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(accessDatasetByIDReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		return datasetRes{
+			id:           "",
+			agentGroupID: "",
+			policyID:     "",
+			sinkIDs:      nil,
+		}, nil
+	}
+}
