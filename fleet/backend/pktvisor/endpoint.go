@@ -124,7 +124,7 @@ func toBackendTaps(list []types.Metadata) ([]BackendTaps, error) {
 						bkTap.ConfigPredefined = append(bkTap.ConfigPredefined, []string{k}...)
 					}
 				case "input_type":
-					bkTap.InputType = k
+					bkTap.InputType = fmt.Sprintf("%v", v)
 				}
 			}
 			idx++

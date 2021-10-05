@@ -78,11 +78,15 @@ func retrieveDatasetEnpoint(svc policies.Service) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
+		dataset, err := svc.ViewDatasetByID(ctx, req.ownerID, req.datasetID)
+		if err != nil {
+			return nil, err
+		}
 		return datasetRes{
-			id:           "",
-			agentGroupID: "",
-			policyID:     "",
-			sinkIDs:      nil,
+			id:           dataset.ID,
+			agentGroupID: dataset.AgentGroupID,
+			policyID:     dataset.PolicyID,
+			sinkIDs:      dataset.SinkIDs,
 		}, nil
 	}
 }

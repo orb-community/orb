@@ -431,6 +431,78 @@ func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, poli
 	return items, nil
 }
 
+func (r policiesRepository) RetrieveDatasetByID(ctx context.Context, datasetID string, ownerID string) (policies.Dataset, error) {
+	q := `SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_ids, metadata, ts_created FROM datasets WHERE id = $1 AND mf_owner_id = $2`
+
+	if datasetID == "" || ownerID == "" {
+		return policies.Dataset{}, errors.ErrMalformedEntity
+	}
+
+	var dba dbDataset
+	if err := r.db.QueryRowxContext(ctx, q, datasetID, ownerID).StructScan(&dba); err != nil {
+		if err == sql.ErrNoRows {
+			return policies.Dataset{}, errors.Wrap(errors.ErrNotFound, err)
+		}
+		return policies.Dataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	return toDataset(dba), nil
+}
+
+func (r policiesRepository) RetrieveAllDatasetsByOwner(ctx context.Context, owner string, pm policies.PageMetadata) (policies.PageDataset, error) {
+	nameQuery, name := getNameQuery(pm.Name)
+	orderQuery := getOrderQuery(pm.Order)
+	dirQuery := getDirQuery(pm.Dir)
+
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_ids, metadata, ts_created 
+			FROM datasets
+			WHERE mf_owner_id = :mf_owner_id %s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, orderQuery, dirQuery)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+		"limit":       pm.Limit,
+		"offset":      pm.Offset,
+		"name":        name,
+	}
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return policies.PageDataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []policies.Dataset
+	for rows.Next() {
+		dbDataset := dbDataset{MFOwnerID: owner}
+		if err := rows.StructScan(&dbDataset); err != nil {
+			return policies.PageDataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		dataset := toDataset(dbDataset)
+		items = append(items, dataset)
+	}
+
+	count := fmt.Sprintf(`SELECT count(*)
+			FROM datasets
+			WHERE mf_owner_id = :mf_owner_id %s;`, nameQuery)
+
+	total, err := total(ctx, r.db, count, params)
+	if err != nil {
+		return policies.PageDataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	pageDataset := policies.PageDataset{
+		Datasets: items,
+		PageMetadata: policies.PageMetadata{
+			Total:  total,
+			Offset: pm.Offset,
+			Limit:  pm.Limit,
+			Order:  pm.Order,
+			Dir:    pm.Dir,
+		},
+	}
+
+	return pageDataset, nil
+}
+
 type dbPolicy struct {
 	ID          string           `db:"id"`
 	Name        types.Identifier `db:"name"`

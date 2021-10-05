@@ -254,3 +254,10 @@ func validatePolicyBackend(p *policies.Policy, format string, policyData string)
 func (e eventStore) ValidateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
 	return e.svc.ValidateDataset(ctx, token, d)
 }
+func (e eventStore) ListDatasets(ctx context.Context, token string, pm policies.PageMetadata) (policies.PageDataset, error) {
+	return e.svc.ListDatasets(ctx, token, pm)
+}
+
+func (e eventStore) ViewDatasetByID(ctx context.Context, token string, datasetID string) (policies.Dataset, error) {
+	return e.svc.ViewDatasetByID(ctx, token, datasetID)
+}
