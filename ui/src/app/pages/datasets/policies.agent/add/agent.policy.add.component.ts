@@ -106,6 +106,7 @@ export class AgentPolicyAddComponent implements OnInit {
       'input_type': ['', Validators.required],
     });
     this.handlerSelectorFormGroup = this._formBuilder.group({ 'selected_handler': [''] });
+    this.dynamicHandlerConfigFormGroup = this._formBuilder.group({});
   }
 
   getBackendsList() {
@@ -207,8 +208,7 @@ export class AgentPolicyAddComponent implements OnInit {
 
 
   onHandlerSelected(selectedHandler) {
-    this.liveHandler = this.availableHandlers[selectedHandler];
-    const {config} = this.liveHandler;
+    const {config} = this.availableHandlers[selectedHandler];
     const dynamicControls = Object.keys(config).reduce((acc, key) => {
       acc[key] = [
         '',
@@ -216,13 +216,14 @@ export class AgentPolicyAddComponent implements OnInit {
       ];
       return acc;
     }, {});
-
+    dynamicControls['label'] = ['', Validators.required];
     this.dynamicHandlerConfigFormGroup = this._formBuilder.group(dynamicControls);
+    this.liveHandler = this.availableHandlers[selectedHandler];
   }
 
   onHandlerAdded() {
     const { label: { value } } = this.dynamicHandlerConfigFormGroup.controls;
-    this.handlers[value] = this.dynamicHandlerConfigFormGroup.value;
+    this.handlers.push(value);
   }
 
   onHandlerRemoved(selectedHandler) {

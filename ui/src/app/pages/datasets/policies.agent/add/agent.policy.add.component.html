@@ -227,7 +227,8 @@
                   *ngFor="let handler of handlers; index as i"
                   [attr.data-orb-qa-id]="'handler_' + i"
                   [style.background-color]="handler.keys()[0] | tagchipcolor"
-                  class="orb-selected-handler ">
+                  class="orb-selected-handler "
+                  [value]="i">
                   {{ handler }}
                   <nb-icon (click)="onHandlerRemoved(handler)"
                            class="ml-1"
@@ -249,8 +250,7 @@
                          formControlName="selected_handler"
                          fullWidth="true"
                          placeholder="Sink Name"
-                         size="medium"
-              >
+                         size="medium">
                 <nb-option *ngFor="let handler of availableHandlers | keyvalue"
                            [attr.data-orb-qa-id]="'available_handler: '+handler.key" [id]="handler.key"
                            [value]="handler.key">{{ handler.key | titlecase }}</nb-option>
@@ -258,9 +258,20 @@
             </nb-form-field>
           </form>
           <hr/>
+          <!--Dynamic Handler Config-->
           <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFormGroup">
-            <!--Dynamic Handler Config-->
-            <div *ngIf="liveHandler">
+            <div *ngIf="liveHandler && liveHandler?.config">
+              <nb-form-field>
+                <div>
+                  <label class="font-weight-bold" for="description">Handler Label</label>
+                </div>
+                <input data-orb-qa-id="handler-label"
+                       fieldSize="medium"
+                       formControlName="label"
+                       fullWidth="true"
+                       id="label"
+                       nbInput/>
+              </nb-form-field>
               <nb-form-field *ngFor="let control of liveHandler.config | keyvalue; let i = index">
                 <div>
                   <label class="font-weight-bold">{{control.value.title}}</label>
@@ -285,56 +296,60 @@
                          fieldSize="medium"
                          fullWidth="true"
                          nbInput>
-                  <nb-select (selectedChange)="onInputSelected($event)"
-                             *ngSwitchCase="'select'"
+                  <nb-select *ngSwitchCase="'select'"
                              [attr.data-orb-qa-id]="control.value.name"
                              [formControlName]="control.value.name"
                              [id]="control.value.name"
                              appearance="filled"
                              fullWidth="true"
-                             nbInput
                              size="medium">{{ control.value.name + "-" + control.value.options }}
                     <nb-option *ngFor="let option of control.value.options"
                                [attr.data-orb-qa-id]="option"
                                [value]="option">{{ option }}</nb-option>
                   </nb-select>
+                  <nb-checkbox *ngSwitchCase="'checkbox'"
+                               [attr.data-orb-qa-id]="control.value.name"
+                               [formControlName]="control.value.name"
+                               [id]="control.value.name">
+                    {{control.value.name}}
+                  </nb-checkbox>
                 </div>
                 <hr/>
               </nb-form-field>
-              <button (click)="onHandlerAdded()"
-                      [disabled]="(handlerSelectorFormGroup.controls['selected_handler'].value === '')"
-                      data-orb-qa-id="addHandler"
-                      ghost
-                      nbButton>
-                <nb-icon icon="plus-outline"
-                         size="14"
-                         status="primary"
-                         style="color: #df316f;">
-                </nb-icon>
-              </button>
-            </div>
-            <div class="d-flex justify-content-start"
-                 style="padding-left: 35%;">
-              <button
-                data-orb-qa-id="back"
-                ghost
-                nbButton
-                nbStepperPrevious
-                status="primary">
-                Back
-              </button>
-              <button [disabled]="handlers.length === 0"
-                      class="next-button"
-                      data-orb-qa-id="next"
-                      nbButton
-                      nbStepperNext
-                      shape="round"
-                      status="primary"
-                      type="submit">
-                Next
-              </button>
             </div>
           </form>
+          <button (click)="onHandlerAdded()"
+                  [disabled]="!liveHandler"
+                  data-orb-qa-id="addHandler"
+                  ghost
+                  nbButton>
+            <nb-icon icon="plus-outline"
+                     size="14"
+                     status="primary"
+                     style="color: #df316f;">
+            </nb-icon>
+          </button>
+          <div class="d-flex justify-content-start"
+               style="padding-left: 35%;">
+            <button
+              data-orb-qa-id="back"
+              ghost
+              nbButton
+              nbStepperPrevious
+              status="primary">
+              Back
+            </button>
+            <button [disabled]="handlers.length === 0"
+                    class="next-button"
+                    data-orb-qa-id="next"
+                    nbButton
+                    nbStepperNext
+                    shape="round"
+                    status="primary"
+                    type="submit">
+              Next
+            </button>
+          </div>
         </nb-step>
       </nb-stepper>
     </div>
