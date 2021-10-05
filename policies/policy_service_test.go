@@ -584,6 +584,147 @@ func TestValidateDataset(t *testing.T) {
 	}
 }
 
+func TestRetrieveDatasetByID(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	dataset := createDataset(t, svc, "dataset")
+
+	cases := map[string]struct {
+		id    string
+		token string
+		err   error
+	}{
+		"view an existing dataset": {
+			id:    dataset.ID,
+			token: token,
+			err:   nil,
+		},
+		"view policy with wrong credentials": {
+			id:    dataset.ID,
+			token: "wrong",
+			err:   policies.ErrUnauthorizedAccess,
+		},
+		"view non-existing policy": {
+			id:    "9bb1b244-a199-93c2-aa03-28067b431e2c",
+			token: token,
+			err:   policies.ErrNotFound,
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := svc.ViewDatasetByID(context.Background(), tc.token, tc.id)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
+func TestListDataset(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	var datasetList []policies.Dataset
+	for i := 0; i < limit; i++ {
+		pl := createDataset(t, svc, fmt.Sprintf("dataset-%d", i))
+		datasetList = append(datasetList, pl)
+	}
+
+	cases := map[string]struct {
+		token string
+		pm    policies.PageMetadata
+		size  uint64
+		err   error
+	}{
+		"retrieve a list of datasets": {
+			token: token,
+			pm: policies.PageMetadata{
+				Limit:  limit,
+				Offset: 0,
+			},
+			size: limit,
+			err:  nil,
+		},
+		"list half": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: limit / 2,
+				Limit:  limit,
+			},
+			size: limit / 2,
+			err:  nil,
+		},
+		"list last dataset": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: limit - 1,
+				Limit:  limit,
+			},
+			size: 1,
+			err:  nil,
+		},
+		"list empty set": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: limit + 1,
+				Limit:  limit,
+			},
+			size: 0,
+			err:  nil,
+		},
+		"list with zero limit": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: 1,
+				Limit:  0,
+			},
+			size: 0,
+			err:  nil,
+		},
+		"list with wrong credentials": {
+			token: "wrong",
+			pm: policies.PageMetadata{
+				Offset: 0,
+				Limit:  0,
+			},
+			size: 0,
+			err:  policies.ErrUnauthorizedAccess,
+		},
+		"list all datasets sorted by name ascendant": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: 0,
+				Limit:  limit,
+				Order:  "name",
+				Dir:    "asc",
+			},
+			size: limit,
+			err:  nil,
+		},
+		"list all dataset sorted by name descendent": {
+			token: token,
+			pm: policies.PageMetadata{
+				Offset: 0,
+				Limit:  limit,
+				Order:  "name",
+				Dir:    "desc",
+			},
+			size: limit,
+			err:  nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			page, err := svc.ListDatasets(context.Background(), tc.token, tc.pm)
+			size := uint64(len(page.Datasets))
+			assert.Equal(t, size, tc.size, fmt.Sprintf("%s: expected %d got %d", desc, tc.size, size))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+			testSortDataset(t, tc.pm, page.Datasets)
+		})
+
+	}
+}
+
 func createPolicy(t *testing.T, svc policies.Service, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
@@ -640,6 +781,25 @@ func createDataset(t *testing.T, svc policies.Service, name string) policies.Dat
 }
 
 func testSortPolicies(t *testing.T, pm policies.PageMetadata, ags []policies.Policy) {
+	t.Helper()
+	switch pm.Order {
+	case "name":
+		current := ags[0]
+		for _, res := range ags {
+			if pm.Dir == "asc" {
+				assert.GreaterOrEqual(t, res.Name.String(), current.Name.String())
+			}
+			if pm.Dir == "desc" {
+				assert.GreaterOrEqual(t, current.Name.String(), res.Name.String())
+			}
+			current = res
+		}
+	default:
+		break
+	}
+}
+
+func testSortDataset(t *testing.T, pm policies.PageMetadata, ags []policies.Dataset) {
 	t.Helper()
 	switch pm.Order {
 	case "name":
