@@ -22,12 +22,12 @@ type sinkConfigMemRepo struct {
 	mu     sync.Mutex
 }
 
-func NewMemRepo(logger *zap.Logger) (ConfigRepo, error) {
+func NewMemRepo(logger *zap.Logger) ConfigRepo {
 	repo := &sinkConfigMemRepo{
 		logger: logger,
 		db:     make(map[string]SinkConfig),
 	}
-	return repo, nil
+	return repo
 }
 
 func (s sinkConfigMemRepo) Exists(sinkID string) bool {
