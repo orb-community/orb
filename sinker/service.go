@@ -57,12 +57,17 @@ type sinkerService struct {
 	sinksClient    sinkspb.SinkServiceClient
 }
 
-func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList) {
+func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkID string) {
+	config, err := svc.configRepo.Get(sinkID)
+	if err != nil {
+		return
+	}
+	svc.logger.Info("writing to", zap.String("url", config.Url))
 
-	svc.logger.Info("writing to", zap.String("url", prometheus.DefaultRemoteWrite))
-
+	var headers = make(map[string]string)
+	headers["Authorization"] = config.Password
 	result, writeErr := svc.promClient.WriteTimeSeries(context.Background(), tsList,
-		prometheus.WriteOptions{})
+		prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
 		json.NewEncoder(os.Stdout).Encode(struct {
 			Success    bool   `json:"success"`
@@ -90,54 +95,56 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList) {
 	svc.logger.Info("write success")
 }
 
-func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.AgentMetricsRPCPayload) error {
-	//Todo use channelID to get owner id on fleet grpc server
+func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.AgentMetricsRPCPayload) ([]string, error) {
+	//Use channelID to get owner id on fleet grpc server
 	ownerID, err := svc.fleetClient.RetrieveOwnerByChannelID(context.Background(), &fleetpb.OwnerByChannelIDReq{Channel: channelID})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	fmt.Printf("Got this owner %s by this channel: %s\n", ownerID, channelID)
-	//Todo use metricsRPC.Payload[0].Datasets[] to retrieve the sinkID from policy grpc server
-	//var mapDataset = map[string][]string{}
+	//fmt.Printf("Got this owner %s by this channel: %s\n", ownerID, channelID)
+	//Use metricsRPC.Payload[0].Datasets[] to retrieve the sinkID from policy grpc server
+	var sinkIDsList []string
 	for _, m := range metrics {
-		//var sinkIDs []string
 		for _, ds := range m.Datasets {
 			if ds == "" {
 				continue
 			}
-			fmt.Sprintf(ds)
+			//fmt.Sprintf(ds)
 			sinkID, err := svc.policiesClient.RetrieveDataset(context.Background(), &policiespb.DatasetByIDReq{
 				DatasetID: ds,
 				OwnerID:   ownerID.OwnerID,
 			})
 			if err != nil {
-				return err
+				return nil, err
 			}
-			fmt.Printf("got this sinkid %v by this datasetid %s\n", sinkID.SinkIds, ds)
+			//fmt.Printf("got this sinkid %v by this datasetid %s\n", sinkID.SinkIds, ds)
 			for _, sid := range sinkID.SinkIds {
-				//Todo use the retrieve sinkID to get the backend config
-				sink, err := svc.sinksClient.RetrieveSink(context.Background(), &sinkspb.SinkByIDReq{
-					SinkID:  sid,
-					OwnerID: ownerID.OwnerID,
-				})
-				if err != nil {
-					return err
-				}
+				if !svc.configRepo.Exists(sid) {
+					//Use the retrieved sinkID to get the backend config
+					sink, err := svc.sinksClient.RetrieveSink(context.Background(), &sinkspb.SinkByIDReq{
+						SinkID:  sid,
+						OwnerID: ownerID.OwnerID,
+					})
+					if err != nil {
+						return nil, err
+					}
 
-				var data config.SinkConfig
-				if err := json.Unmarshal(sink.Config, &data); err != nil {
-					return err
-				}
+					var data config.SinkConfig
+					if err := json.Unmarshal(sink.Config, &data); err != nil {
+						return nil, err
+					}
 
-				data.SinkID = sid
-				data.OwnerID = ownerID.OwnerID
-				svc.configRepo.Add(data)
-				fmt.Printf("got this sink config by this sink id %s\n", sid)
+					data.SinkID = sid
+					data.OwnerID = ownerID.OwnerID
+					svc.configRepo.Add(data)
+					//fmt.Printf("got this sink config by this sink id %s\n", sid)
+				}
+				sinkIDsList = append(sinkIDsList, sid)
 			}
 		}
 	}
 
-	return nil
+	return sinkIDsList, nil
 }
 
 func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopic string, payload []byte) error {
@@ -170,7 +177,8 @@ func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopi
 		return fleet.ErrSchemaMalformed
 	}
 
-	if err := svc.handleSinkConfig(channelID, metricsRPC.Payload); err != nil {
+	sinkIDs, err := svc.handleSinkConfig(channelID, metricsRPC.Payload)
+	if err != nil {
 		return err
 	}
 
@@ -179,7 +187,9 @@ func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopi
 		return err
 	}
 
-	svc.remoteWriteToPrometheus(tsList)
+	for _, id := range sinkIDs {
+		svc.remoteWriteToPrometheus(tsList, id)
+	}
 
 	return nil
 }

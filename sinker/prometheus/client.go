@@ -235,7 +235,7 @@ func (c *client) WriteProto(
 	req.Header.Set("Content-Encoding", "snappy")
 	req.Header.Set("User-Agent", c.userAgent)
 	req.Header.Set("X-Prometheus-Remote-Write-Version", "0.1.0")
-	req.Header.Set("Authorization", "Basic MjE3NzgzOmV5SnJJam9pTW1Oak5tWmpNek5rTkRSalpETmlZekV6TnpWbE5UZGpNVFF3TVdRek9UYzNNakF3TWpnd05pSXNJbTRpT2lKRVlXNXBaV3dnUTJGaWNtRnNJaXdpYVdRaU9qVTBPRE15TlgwPQ==")
+	//req.Header.Set("Authorization", "Basic MjE3NzgzOmV5SnJJam9pTW1Oak5tWmpNek5rTkRSalpETmlZekV6TnpWbE5UZGpNVFF3TVdRek9UYzNNakF3TWpnd05pSXNJbTRpT2lKRVlXNXBaV3dnUTJGaWNtRnNJaXdpYVdRaU9qVTBPRE15TlgwPQ==")
 	if opts.Headers != nil {
 		for k, v := range opts.Headers {
 			req.Header.Set(k, v)

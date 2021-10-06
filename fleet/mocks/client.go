@@ -18,6 +18,10 @@ var _ pb.FleetServiceClient = (*fleetGrpcClientMock)(nil)
 
 type fleetGrpcClientMock struct{}
 
+func (g fleetGrpcClientMock) RetrieveOwnerByChannelID(ctx context.Context, in *pb.OwnerByChannelIDReq, opts ...grpc.CallOption) (*pb.OwnerRes, error) {
+	return &pb.OwnerRes{}, nil
+}
+
 func (g fleetGrpcClientMock) RetrieveAgent(ctx context.Context, in *pb.AgentByIDReq, opts ...grpc.CallOption) (*pb.AgentRes, error) {
 	return &pb.AgentRes{}, nil
 }
