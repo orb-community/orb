@@ -176,8 +176,7 @@ export class AgentPoliciesService {
     //     return resp.backend;
     //   }).catch(
     //     err => {
-    //       this.notificationsService.error('Failed to get Available Backends',
-    //         `Error: ${ err.status } - ${ err.statusText }`);
+    //       this.notificationsService.error('Failed to get Availab//         `Error: ${ err.status } - ${ err.statusText }`);
     //       return Observable.throwError(err);
     //     },
     //   );

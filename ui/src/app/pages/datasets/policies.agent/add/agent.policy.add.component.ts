@@ -62,7 +62,7 @@ export class AgentPolicyAddComponent implements OnInit {
   isEdit: boolean;
 
   // #load controls
-  isLoading = false;
+  isLoading = { 'taps': false, 'backend': false, 'inputs': false, 'handlers': false };
 
   agentPolicyLoading = false;
 
@@ -110,7 +110,7 @@ export class AgentPolicyAddComponent implements OnInit {
   }
 
   getBackendsList() {
-    this.isLoading = true;
+    this.isLoading['backend'] = true;
     this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
       this.availableBackends = !!backends['data'] && backends['data'] || [];
 
@@ -119,7 +119,7 @@ export class AgentPolicyAddComponent implements OnInit {
         this.onBackendSelected(this.agentPolicy.backend);
       }
 
-      this.isLoading = false;
+      this.isLoading['backend'] = false;
     });
   }
 
@@ -135,22 +135,22 @@ export class AgentPolicyAddComponent implements OnInit {
   }
 
   getTaps() {
-    this.isLoading = true;
+    this.isLoading['taps'] = true;
     this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
       .subscribe(taps => {
         this.availableTaps = !!taps['data'] && taps['data'] || [];
 
-        this.isLoading = false;
+        this.isLoading['taps'] = false;
       });
   }
 
   getInputs() {
-    this.isLoading = true;
+    this.isLoading['inputs'] = true;
     this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
       .subscribe(inputs => {
         this.availableInputs = !!inputs['data'] && inputs['data'] || {};
 
-        this.isLoading = false;
+        this.isLoading['inputs'] = false;
       });
   }
 
@@ -179,18 +179,18 @@ export class AgentPolicyAddComponent implements OnInit {
     // input type config model
     const { config: inputConfig } = this.input;
     // if editing, some values might not be overrideable any longer, all should be prefilled in form
-    const agentConfig = this.agentPolicy.policy?.config || {};
+    const agentConfig = !!this.isEdit && this.agentPolicy.policy?.config || null;
     // tap config values, cannot be overridden if set
-    const preConfig = this.tap.config_predefined;
+    const preConfig = this.tap.config;
     // assemble config obj with a three way merge of sorts
     // TODO this is under revision
-    const finalConfig = { ...inputConfig, ...agentConfig, ...preConfig };
+    const finalConfig = { ...agentConfig, ...preConfig };
 
     // populate form controls
     const dynamicFormControls = Object.keys(inputConfig || {})
       .reduce((acc, key) => {
-        const value = !!finalConfig[key] && finalConfig[key] || '';
-        const disabled = !!preConfig[key];
+        const value = !!finalConfig?.[key] && finalConfig[key] || '';
+        const disabled = !!preConfig?.[key];
         acc[key] = [
           { value, disabled },
           inputConfig[key].required ? Validators.required : null,
@@ -210,17 +210,18 @@ export class AgentPolicyAddComponent implements OnInit {
   }
 
   getHandlers() {
-    this.isLoading = true;
+    this.isLoading['handlers'] = true;
 
     this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
       .subscribe(handlers => {
         this.availableHandlers = !!handlers['data'] && handlers['data'] || {};
 
         this.handlerSelectorFormGroup = this._formBuilder.group({
-          'selected_handler': ['', []],
+          'selected_handler': ['', [Validators.required]],
+          'label': ['', [Validators.required]],
         });
 
-        this.isLoading = false;
+        this.isLoading['handlers'] = false;
       });
   }
 
@@ -237,7 +238,7 @@ export class AgentPolicyAddComponent implements OnInit {
       return acc;
     }, {});
 
-    dynamicControls['label'] = ['', Validators.required];
+    this.handlerSelectorFormGroup.controls.label.setValue('');
 
     this.dynamicHandlerConfigFormGroup = this._formBuilder.group(dynamicControls);
 
@@ -245,8 +246,14 @@ export class AgentPolicyAddComponent implements OnInit {
   }
 
   onHandlerAdded() {
-    const { label: { value } } = this.dynamicHandlerConfigFormGroup.controls;
-    this.handlers.push(value);
+    const handlerName = this.handlerSelectorFormGroup.controls.label.value;
+    this.handlers.push({
+      [handlerName]: {
+        type: this.handlerSelectorFormGroup.controls.selected_handler.value,
+        config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
+          .map(control => ({[control]: this.dynamicHandlerConfigFormGroup.controls[control].value}))
+      },
+    });
   }
 
   onHandlerRemoved(selectedHandler) {
@@ -263,24 +270,29 @@ export class AgentPolicyAddComponent implements OnInit {
       description: this.detailsFormGroup.controls.description.value,
       backend: this.detailsFormGroup.controls.backend.value,
       tags: {},
-      version: !!this.agentPolicy.version && this.agentPolicy.version || 1,
+      version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
       policy: {
         kind: 'collection',
         input: {
           tap: this.tapFormGroup.controls.selected_tap.value,
-          config: this.input.config.reduce((acc, curr) => {
-            const value = this.inputFormGroup.controls[curr].value;
-            if (this.isEdit &&
-              this.agentPolicy.policy.input.config[curr] !== value ||
-              this.inputFormGroup.controls[curr].value !== '') {
-              acc[curr] = value;
-            }
-          }, {}),
           input_type: this.tapFormGroup.controls.input_type.value,
+          config: Object.keys(this.inputFormGroup.controls)
+            .map(key => ({ [key]: this.inputFormGroup.controls[key].value }))
+            .reduce((acc, curr) => {
+              for (const [key, value] of Object.entries(curr)) {
+                acc[key] = value;
+              }
+              return acc;
+            }, {}),
         },
       },
       handlers: {
-
+        modules: this.handlers.reduce((acc, curr) => {
+          for (const [key, value] of Object.entries(curr)) {
+            acc[key] = value;
+          }
+          return acc;
+        }, {}),
       },
       window_config: {
         num_periods: 5,

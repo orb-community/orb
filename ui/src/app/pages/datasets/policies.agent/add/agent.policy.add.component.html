@@ -9,7 +9,7 @@
     </xng-breadcrumb>
     <h4>{{ isEdit ? 'Edit Agent Policy' : 'Create Agent Policy'}}</h4>
   </header>
-  <div *ngIf="!isLoading" class="d-flex row">
+  <div *ngIf="!isLoading['backend'] && !isLoading['taps'] && !isLoading['inputs'] && !isLoading['handlers']" class="d-flex row">
     <div class="d-flex col-12 mt-5">
       <nb-stepper class="stepper w-100 ml-5"
                   disableStepNavigation
@@ -243,23 +243,21 @@
                          [value]="handler.key">{{ handler.key }}</nb-option>
             </nb-select>
 
+            <div>
+              <label class="font-weight-bold" for="description">Handler Label</label>
+            </div>
+            <input data-orb-qa-id="handler-label"
+                   fieldSize="medium"
+                   formControlName="label"
+                   fullWidth="true"
+                   id="label"
+                   nbInput/>
           </form>
           <hr/>
           <!--Dynamic Handler Config-->
           <div *ngIf="dynamicHandlerConfigFormGroup">
             <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFormGroup">
               <div *ngIf="liveHandler && liveHandler?.config">
-
-                <div>
-                  <label class="font-weight-bold" for="description">Handler Label</label>
-                </div>
-                <input data-orb-qa-id="handler-label"
-                       fieldSize="medium"
-                       formControlName="label"
-                       fullWidth="true"
-                       id="label"
-                       nbInput/>
-
                 <div *ngFor="let control of liveHandler.config | keyvalue; let i = index">
                   <div>
                     <label class="font-weight-bold">{{control.value.title}}</label>
@@ -328,6 +326,7 @@
             <button [disabled]="handlers.length === 0"
                     class="next-button"
                     data-orb-qa-id="next"
+                    (click)="onFormSubmit()"
                     nbButton
                     nbStepperNext
                     shape="round"
