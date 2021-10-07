@@ -71,38 +71,7 @@ func parseToProm(stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
 	convertToPromParticle(statsMap, "", &tsList)
-	//for _, v := range stats.DNS.TopUDPPorts {
-	//
-	//	test := reflect.ValueOf(v)
-	//	fmt.Println(test.Type().Field(0).Name)
-	//	fmt.Println(test.Type().Name())
-	//	fmt.Println(test.Type().String())
-	//	fmt.Println(test.String())
-	//
-	//	var dpFlag dp
-	//	var labelsListFlag labelList
-	//	labelsListFlag.Set("__name__:dns_top_udp_ports")
-	//	labelsListFlag.Set("instance:gw")
-	//	labelsListFlag.Set(fmt.Sprintf("name:%s", v.Name))
-	//	dpFlag.Set(fmt.Sprintf("now,%d", v.Estimate))
-	//	tsList = append(tsList, prometheus.TimeSeries{
-	//		Labels:    []prometheus.Label(labelsListFlag),
-	//		Datapoint: prometheus.Datapoint(dpFlag),
-	//	})
-	//}
-	//
-	//for _, v := range stats.DNS.TopQname2 {
-	//	var dpFlag dp
-	//	var labelsListFlag labelList
-	//	labelsListFlag.Set("__name__:dns_top_qname2")
-	//	labelsListFlag.Set("instance:gw")
-	//	labelsListFlag.Set(fmt.Sprintf("name:%s", v.Name))
-	//	dpFlag.Set(fmt.Sprintf("now,%d", v.Estimate))
-	//	tsList = append(tsList, prometheus.TimeSeries{
-	//		Labels:    []prometheus.Label(labelsListFlag),
-	//		Datapoint: prometheus.Datapoint(dpFlag),
-	//	})
-	//}
+	fmt.Print(tsList)
 	return tsList
 }
 
@@ -113,17 +82,14 @@ func convertToPromParticle(m map[string]interface{}, label string, tsList *prome
 			convertToPromParticle(c, label+k, tsList)
 		case int64:
 			{
-				var dpFlag dp
-				var labelsListFlag labelList
-				labelsListFlag.Set(fmt.Sprintf("__name__:%s", camelToSnake(label)))
-				labelsListFlag.Set("instance:gw")
-				labelsListFlag.Set(fmt.Sprintf("name:%s", k))
-				dpFlag.Set(fmt.Sprintf("now,%d", v))
-				*tsList = append(*tsList, prometheus.TimeSeries{
-					Labels:    []prometheus.Label(labelsListFlag),
-					Datapoint: prometheus.Datapoint(dpFlag),
-				})
-				fmt.Printf("%s{intance=%q name:%s} %d\n", camelToSnake(label), "gw", k, v)
+				var matchFirstQuantile = regexp.MustCompile("^([P-p])+[0-9]")
+				if ok := matchFirstQuantile.MatchString(k); ok {
+					tsList = makePromParticle(label, k, v, tsList, ok)
+					fmt.Printf("%s{intance=%q name:%q} %d\n", camelToSnake(label), "gw", k, v)
+				} else {
+					tsList = makePromParticle(label+k, "", v, tsList, false)
+					fmt.Printf("%s{intance=%q} %d\n", camelToSnake(label+k), "gw", v)
+				}
 			}
 		case []interface{}:
 			{
@@ -133,7 +99,7 @@ func convertToPromParticle(m map[string]interface{}, label string, tsList *prome
 						return
 					}
 					var lbl string
-					var dtpt int64
+					var dtpt interface{}
 					for k, v := range m {
 						switch k {
 						case "Name":
@@ -142,25 +108,44 @@ func convertToPromParticle(m map[string]interface{}, label string, tsList *prome
 							}
 						case "Estimate":
 							{
-								dtpt = v.(int64)
+								dtpt = v
 							}
 						}
 					}
-					var dpFlag dp
-					var labelsListFlag labelList
-					labelsListFlag.Set(fmt.Sprintf("__name__:%s", camelToSnake(label)))
-					labelsListFlag.Set("instance:gw")
-					labelsListFlag.Set(fmt.Sprintf("name:%s", lbl))
-					dpFlag.Set(fmt.Sprintf("now,%d", dtpt))
-					*tsList = append(*tsList, prometheus.TimeSeries{
-						Labels:    []prometheus.Label(labelsListFlag),
-						Datapoint: prometheus.Datapoint(dpFlag),
-					})
-					fmt.Printf("%s{intance=%q name:%s} %d\n", camelToSnake(label+k), "gw", lbl, dtpt)
+					tsList = makePromParticle(label+k, lbl, dtpt, tsList, false)
+					fmt.Printf("%s{intance=%q name:%q} %d\n", camelToSnake(label+k), "gw", lbl, dtpt)
 				}
 			}
 		}
 	}
+}
+
+func makePromParticle(label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool) *prometheus.TSList {
+	mapQuantiles := make(map[string]float64)
+	mapQuantiles["P50"] = 0.50
+	mapQuantiles["P90"] = 0.90
+	mapQuantiles["P95"] = 0.95
+	mapQuantiles["P99"] = 0.99
+
+	var dpFlag dp
+	var labelsListFlag labelList
+	labelsListFlag.Set(fmt.Sprintf("__name__:%s", camelToSnake(label)))
+	labelsListFlag.Set("instance:gw")
+	if k != "" {
+		if quantile {
+			if value, ok := mapQuantiles[k]; ok {
+				labelsListFlag.Set(fmt.Sprintf("quantile:%.2f", value))
+			}
+		} else {
+			labelsListFlag.Set(fmt.Sprintf("name:%s", k))
+		}
+	}
+	dpFlag.Set(fmt.Sprintf("now,%d", v))
+	*tsList = append(*tsList, prometheus.TimeSeries{
+		Labels:    []prometheus.Label(labelsListFlag),
+		Datapoint: prometheus.Datapoint(dpFlag),
+	})
+	return tsList
 }
 
 func camelToSnake(s string) string {

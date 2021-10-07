@@ -46,12 +46,6 @@ func (p *PrometheusState) Scan(value interface{}) error {
 	return nil
 }
 
-func (p PrometheusState) Valeu() (driver.Value, error) {
+func (p PrometheusState) Value() (driver.Value, error) {
 	return p.String(), nil
-}
-
-type SinksConfig struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Host     string `json:"remote_host"`
 }
