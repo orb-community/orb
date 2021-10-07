@@ -251,7 +251,7 @@ export class AgentPolicyAddComponent implements OnInit {
       [handlerName]: {
         type: this.handlerSelectorFormGroup.controls.selected_handler.value,
         config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
-          .map(control => ({[control]: this.dynamicHandlerConfigFormGroup.controls[control].value}))
+          .map(control => ({ [control]: this.dynamicHandlerConfigFormGroup.controls[control].value })),
       },
     });
   }
@@ -268,37 +268,47 @@ export class AgentPolicyAddComponent implements OnInit {
     const payload = {
       name: this.detailsFormGroup.controls.name.value,
       description: this.detailsFormGroup.controls.description.value,
-      backend: this.detailsFormGroup.controls.backend.value,
+      backend: this.availableBackends[this.detailsFormGroup.controls.backend.value].backend,
       tags: {},
       version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
       policy: {
         kind: 'collection',
         input: {
-          tap: this.tapFormGroup.controls.selected_tap.value,
+          tap: this.availableTaps[this.tapFormGroup.controls.selected_tap.value],
           input_type: this.tapFormGroup.controls.input_type.value,
           config: Object.keys(this.inputFormGroup.controls)
             .map(key => ({ [key]: this.inputFormGroup.controls[key].value }))
             .reduce((acc, curr) => {
               for (const [key, value] of Object.entries(curr)) {
-                acc[key] = value;
+                if (!!value && value !== '') acc[key] = value;
               }
               return acc;
             }, {}),
         },
       },
       handlers: {
-        modules: this.handlers.reduce((acc, curr) => {
-          for (const [key, value] of Object.entries(curr)) {
-            acc[key] = value;
+        modules: this.handlers.reduce((prev, handler) => {
+          for (const [key, value] of Object.entries(handler)) {
+            prev[key] = {
+              version: '1.0',
+              config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
+                .map(_key => ({ [_key]: this.dynamicHandlerConfigFormGroup.controls[_key].value }))
+                .reduce((acc, curr) => {
+                  for (const config of Object.entries(curr)) {
+                    if (!!config['value'] && config['value'] !== '') acc[config['key']] = config['value'];
+                  }
+                  return acc;
+                }, {}),
+            };
           }
-          return acc;
+          return prev;
         }, {}),
       },
       window_config: {
         num_periods: 5,
         deep_sample_rate: 100,
       },
-      validate_only: false, // Apparently this guy is required..
+      validate_only: false,
     };
 
     if (this.isEdit) {
