@@ -62,7 +62,7 @@
                        placeholder="Select backend type"
                        size="medium">
               <nb-option *ngFor="let entry of availableBackends; index as i"
-                         [value]="i">{{ entry.backend | titlecase }}</nb-option>
+                         [value]="i">{{ entry.backend }}</nb-option>
             </nb-select>
           </form>
           <hr/>
@@ -131,7 +131,7 @@
                            size="medium">
                   <nb-option *ngFor="let option of availableInputs | keyvalue"
                              [attr.data-orb-qa-id]="option.key"
-                             [value]="option.key">{{ option.key | titlecase }}</nb-option>
+                             [value]="option.key">{{ option.key }}</nb-option>
                 </nb-select>
               </div>
             </form>
@@ -160,9 +160,7 @@
                          [max]="control.value.max"
                          [min]="control.value.min"
                          [step]="control.value.step"
-                         [type]="control.value.type"
-                         fieldSize="medium"
-                         fullWidth="true">
+                         [type]="control.value.type">
                   <nb-select *ngSwitchCase="'select'"
                              [attr.data-orb-qa-id]="control.value.name"
                              [formControlName]="control.value.name"
@@ -242,7 +240,7 @@
                        size="medium">
               <nb-option *ngFor="let handler of availableHandlers | keyvalue"
                          [attr.data-orb-qa-id]="'available_handler: '+handler.key" [id]="handler.key"
-                         [value]="handler.key">{{ handler.key | titlecase }}</nb-option>
+                         [value]="handler.key">{{ handler.key }}</nb-option>
             </nb-select>
 
           </form>

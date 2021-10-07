@@ -94,7 +94,7 @@ export class AgentPolicyAddComponent implements OnInit {
   }
 
   ngOnInit() {
-    const { name, description, backend } = this.agentPolicy || { name: '', description: '', backend: '' };
+    const { name, description, backend } = this.agentPolicy || { name: '', description: '', backend: 'pktvisor' };
 
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
@@ -156,7 +156,11 @@ export class AgentPolicyAddComponent implements OnInit {
 
   onTapSelected(selectedTap) {
     this.tap = this.availableTaps[selectedTap];
+
+    if (!this.tap?.config) this.tap['config'] = {};
+
     const { input_type } = this.tap;
+
     if (input_type) {
       this.onInputSelected(input_type);
       this.tapFormGroup.controls.input_type.disable();
@@ -169,14 +173,27 @@ export class AgentPolicyAddComponent implements OnInit {
 
   onInputSelected(selectedInput) {
     this.input = this.availableInputs[selectedInput];
+
     this.tapFormGroup.controls.input_type.setValue(selectedInput);
-    const { config } = this.input;
-    const dynamicFormControls = Object.keys(config || {})
+
+    // input type config model
+    const { config: inputConfig } = this.input;
+    // if editing, some values might not be overrideable any longer, all should be prefilled in form
+    const agentConfig = this.agentPolicy.policy?.config || {};
+    // tap config values, cannot be overridden if set
+    const preConfig = this.tap.config_predefined;
+    // assemble config obj with a three way merge of sorts
+    // TODO this is under revision
+    const finalConfig = { ...inputConfig, ...agentConfig, ...preConfig };
+
+    // populate form controls
+    const dynamicFormControls = Object.keys(inputConfig || {})
       .reduce((acc, key) => {
+        const value = !!finalConfig[key] && finalConfig[key] || '';
+        const disabled = !!preConfig[key];
         acc[key] = [
-          // TODO predef conf below can come from editing existing policy or from tap ->pre-conf<-(!has!precedence!)
-          '', // or predefined conf when editing.
-          config[key].required ? Validators.required : null,
+          { value, disabled },
+          inputConfig[key].required ? Validators.required : null,
         ];
         return acc;
       }, {});
@@ -194,6 +211,7 @@ export class AgentPolicyAddComponent implements OnInit {
 
   getHandlers() {
     this.isLoading = true;
+
     this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
       .subscribe(handlers => {
         this.availableHandlers = !!handlers['data'] && handlers['data'] || {};
@@ -208,7 +226,8 @@ export class AgentPolicyAddComponent implements OnInit {
 
 
   onHandlerSelected(selectedHandler) {
-    const {config} = this.availableHandlers[selectedHandler];
+    const { config } = this.availableHandlers[selectedHandler];
+
     const dynamicControls = Object.keys(config).reduce((acc, key) => {
       const field = config[key];
       acc[field.name] = [
@@ -217,8 +236,11 @@ export class AgentPolicyAddComponent implements OnInit {
       ];
       return acc;
     }, {});
+
     dynamicControls['label'] = ['', Validators.required];
+
     this.dynamicHandlerConfigFormGroup = this._formBuilder.group(dynamicControls);
+
     this.liveHandler = this.availableHandlers[selectedHandler];
   }
 
@@ -240,10 +262,30 @@ export class AgentPolicyAddComponent implements OnInit {
       name: this.detailsFormGroup.controls.name.value,
       description: this.detailsFormGroup.controls.description.value,
       backend: this.detailsFormGroup.controls.backend.value,
-      // config: this.selectedTap.reduce((accumulator, current) => {
-      //   accumulator[current.prop] = this.tapFormGroup.controls[current.prop].value;
-      //   return accumulator;
-      // }, {}),
+      tags: {},
+      version: !!this.agentPolicy.version && this.agentPolicy.version || 1,
+      policy: {
+        kind: 'collection',
+        input: {
+          tap: this.tapFormGroup.controls.selected_tap.value,
+          config: this.input.config.reduce((acc, curr) => {
+            const value = this.inputFormGroup.controls[curr].value;
+            if (this.isEdit &&
+              this.agentPolicy.policy.input.config[curr] !== value ||
+              this.inputFormGroup.controls[curr].value !== '') {
+              acc[curr] = value;
+            }
+          }, {}),
+          input_type: this.tapFormGroup.controls.input_type.value,
+        },
+      },
+      handlers: {
+
+      },
+      window_config: {
+        num_periods: 5,
+        deep_sample_rate: 100,
+      },
       validate_only: false, // Apparently this guy is required..
     };
 
