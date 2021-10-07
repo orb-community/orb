@@ -288,7 +288,7 @@ export class AgentPolicyAddComponent implements OnInit {
       },
       handlers: {
         modules: this.handlers.reduce((prev, handler) => {
-          for (const [key, value] of Object.entries(handler)) {
+          for (const [key] of Object.entries(handler)) {
             prev[key] = {
               version: '1.0',
               config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
