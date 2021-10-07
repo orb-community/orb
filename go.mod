@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.2.0
+	github.com/fatih/structs v1.1.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-cmd/cmd v1.3.0
 	github.com/go-co-op/gocron v1.9.0
@@ -21,7 +22,6 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/ory/dockertest/v3 v3.6.0
 	github.com/prometheus/client_golang v1.7.1
-	github.com/prometheus/common v0.10.0
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/rubenv/sql-migrate v0.0.0-20200616145509-8d140a17f351
 	github.com/spf13/cobra v1.1.3

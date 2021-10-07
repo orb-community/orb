@@ -7,11 +7,14 @@ package pktvisor
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/sinker/backend"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	"go.uber.org/zap"
+	"regexp"
+	"strings"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
@@ -65,44 +68,108 @@ func (p pktvisorBackend) ProcessMetrics(thingID string, channelID string, subtop
 }
 
 func parseToProm(stats StatSnapshot) prometheus.TSList {
-	//var headerListFlag headerList
-	//var headers map[string]string
-	//if len(headerListFlag) > 0 {
-	//	log.Println("with headers", headerListFlag.String())
-	//	headers = make(map[string]string, len(headerListFlag))
-	//	for _, header := range headerListFlag {
-	//		headers[header.name] = header.value
-	//	}
-	//}
-
 	var tsList = prometheus.TSList{}
-	for _, v := range stats.DNS.TopUDPPorts {
-		var dpFlag dp
-		var labelsListFlag labelList
-		labelsListFlag.Set("__name__:dns_top_udp_ports")
-		labelsListFlag.Set("instance:gw")
-		labelsListFlag.Set(fmt.Sprintf("name:%s", v.Name))
-		dpFlag.Set(fmt.Sprintf("now,%d", v.Estimate))
-		tsList = append(tsList, prometheus.TimeSeries{
-			Labels:    []prometheus.Label(labelsListFlag),
-			Datapoint: prometheus.Datapoint(dpFlag),
-		})
-	}
-
-	for _, v := range stats.DNS.TopQname2 {
-		var dpFlag dp
-		var labelsListFlag labelList
-		labelsListFlag.Set("__name__:dns_top_qname2")
-		labelsListFlag.Set("instance:gw")
-		labelsListFlag.Set(fmt.Sprintf("name:%s", v.Name))
-		dpFlag.Set(fmt.Sprintf("now,%d", v.Estimate))
-		tsList = append(tsList, prometheus.TimeSeries{
-			Labels:    []prometheus.Label(labelsListFlag),
-			Datapoint: prometheus.Datapoint(dpFlag),
-		})
-	}
-
+	statsMap := structs.Map(stats)
+	convertToPromParticle(statsMap, "", &tsList)
+	//for _, v := range stats.DNS.TopUDPPorts {
+	//
+	//	test := reflect.ValueOf(v)
+	//	fmt.Println(test.Type().Field(0).Name)
+	//	fmt.Println(test.Type().Name())
+	//	fmt.Println(test.Type().String())
+	//	fmt.Println(test.String())
+	//
+	//	var dpFlag dp
+	//	var labelsListFlag labelList
+	//	labelsListFlag.Set("__name__:dns_top_udp_ports")
+	//	labelsListFlag.Set("instance:gw")
+	//	labelsListFlag.Set(fmt.Sprintf("name:%s", v.Name))
+	//	dpFlag.Set(fmt.Sprintf("now,%d", v.Estimate))
+	//	tsList = append(tsList, prometheus.TimeSeries{
+	//		Labels:    []prometheus.Label(labelsListFlag),
+	//		Datapoint: prometheus.Datapoint(dpFlag),
+	//	})
+	//}
+	//
+	//for _, v := range stats.DNS.TopQname2 {
+	//	var dpFlag dp
+	//	var labelsListFlag labelList
+	//	labelsListFlag.Set("__name__:dns_top_qname2")
+	//	labelsListFlag.Set("instance:gw")
+	//	labelsListFlag.Set(fmt.Sprintf("name:%s", v.Name))
+	//	dpFlag.Set(fmt.Sprintf("now,%d", v.Estimate))
+	//	tsList = append(tsList, prometheus.TimeSeries{
+	//		Labels:    []prometheus.Label(labelsListFlag),
+	//		Datapoint: prometheus.Datapoint(dpFlag),
+	//	})
+	//}
 	return tsList
+}
+
+func convertToPromParticle(m map[string]interface{}, label string, tsList *prometheus.TSList) {
+	for k, v := range m {
+		switch c := v.(type) {
+		case map[string]interface{}:
+			convertToPromParticle(c, label+k, tsList)
+		case int64:
+			{
+				var dpFlag dp
+				var labelsListFlag labelList
+				labelsListFlag.Set(fmt.Sprintf("__name__:%s", camelToSnake(label)))
+				labelsListFlag.Set("instance:gw")
+				labelsListFlag.Set(fmt.Sprintf("name:%s", k))
+				dpFlag.Set(fmt.Sprintf("now,%d", v))
+				*tsList = append(*tsList, prometheus.TimeSeries{
+					Labels:    []prometheus.Label(labelsListFlag),
+					Datapoint: prometheus.Datapoint(dpFlag),
+				})
+				fmt.Printf("%s{intance=%q name:%s} %d\n", camelToSnake(label), "gw", k, v)
+			}
+		case []interface{}:
+			{
+				for _, value := range c {
+					m, ok := value.(map[string]interface{})
+					if !ok {
+						return
+					}
+					var lbl string
+					var dtpt int64
+					for k, v := range m {
+						switch k {
+						case "Name":
+							{
+								lbl = fmt.Sprintf("%v", v)
+							}
+						case "Estimate":
+							{
+								dtpt = v.(int64)
+							}
+						}
+					}
+					var dpFlag dp
+					var labelsListFlag labelList
+					labelsListFlag.Set(fmt.Sprintf("__name__:%s", camelToSnake(label)))
+					labelsListFlag.Set("instance:gw")
+					labelsListFlag.Set(fmt.Sprintf("name:%s", lbl))
+					dpFlag.Set(fmt.Sprintf("now,%d", dtpt))
+					*tsList = append(*tsList, prometheus.TimeSeries{
+						Labels:    []prometheus.Label(labelsListFlag),
+						Datapoint: prometheus.Datapoint(dpFlag),
+					})
+					fmt.Printf("%s{intance=%q name:%s} %d\n", camelToSnake(label+k), "gw", lbl, dtpt)
+				}
+			}
+		}
+	}
+}
+
+func camelToSnake(s string) string {
+	var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+	snake := matchFirstCap.ReplaceAllString(s, "${1}_${2}")
+	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
+	lower := strings.ToLower(snake)
+	return lower
 }
 
 func Register(logger *zap.Logger) bool {
