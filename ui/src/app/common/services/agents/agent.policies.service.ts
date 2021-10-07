@@ -171,16 +171,31 @@ export class AgentPoliciesService {
   }
 
   getAvailableBackends() {
-    return this.http.get(environment.agentsBackendUrl)
-      .map((resp: any) => {
-        return resp.backend;
-      }).catch(
-        err => {
-          this.notificationsService.error('Failed to get Available Backends',
-            `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
-        },
-      );
+    // return this.http.get(environment.agentsBackendUrl)
+    //   .map((resp: any) => {
+    //     return resp.backend;
+    //   }).catch(
+    //     err => {
+    //       this.notificationsService.error('Failed to get Available Backends',
+    //         `Error: ${ err.status } - ${ err.statusText }`);
+    //       return Observable.throwError(err);
+    //     },
+    //   );
+    // TODO remove mock and uncomment http request
+    return new Observable(subscriber => {
+      // TODO continue this format in future
+      const resp = {
+        data: [
+          {
+            'backend': 'pktvisor',
+            'description': 'pktvisor observability agent from pktvisor.dev',
+            // todo I could use some meta like this
+            // 'config': ['taps', 'input', 'handlers'],
+          },
+        ],
+      };
+      subscriber.next(resp);
+    });
   }
 
   // todo from this point on I have to assume pktvisor hardcoded steps

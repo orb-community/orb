@@ -38,7 +38,7 @@ export interface AgentPolicy extends OrbEntity {
   /**
    * Agent backend specific policy data {{[propName: string]: string}}
    */
-  policy?: {[inputType: string]: TapConfig};
+  policy?: {[inputType: string]: TapConfig | any} | any;
 
   /**
    * Tags {{[propName: string]: string}}
@@ -50,5 +50,7 @@ export interface AgentPolicy extends OrbEntity {
    * Policy Metadata {{[propName: string]: string}}
    */
   policy_metadata?: any;
+
+  window_config?: any;
 
 }
