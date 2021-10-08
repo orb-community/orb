@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "nightwatch"
+    "test": "nightwatch",
+    "test:beta": "nightwatch --env=beta",
+    "test:ci": "nightwatch --env=headless"
   },
   "author": "",
   "license": "ISC",

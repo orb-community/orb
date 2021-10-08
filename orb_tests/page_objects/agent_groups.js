@@ -1,12 +1,21 @@
 var commands = {
 
-    agentGroupsPage: function() {
-        return this.assert.containsText('@agentGroupList','Agent Groups List')
-        .assert.containsText('@agentGroupAll', 'All Agents Groups')
-        .assert.visible('.flex-column')
-        .assert.visible('.status-primary')
+  new: function() {
+    return this.navigate()
+    .waitForElementVisible('@newButton', 10000)
+    .click('@newButton')
+  },
 
-    },
+  fillInput: function (selector, data) {
+    return this.setValue(selector, data)
+  },
+
+  listView: function() {
+    return this.assert.containsText('@agentGroupList','Agent Groups List')
+    .assert.containsText('@agentGroupAll', 'All Agents Groups')
+    .assert.visible('.flex-column')
+    .assert.visible('.status-primary')
+  },
 
     agentGroupCreationPage: function() {
         return this.assert.containsText('.header', 'Agent Group Details')
@@ -81,13 +90,26 @@ var commands = {
 };
 
 module.exports = {
-    url: 'http://localhost:4200',
+    url: '/pages/fleet/groups',
     elements: {
+        newButton: '.add-agent-container button',
+        newHeading: 'header h4',
+        activeBreadcrumb: '.xng-breadcrumb-item:last-child .xng-breadcrumb-trail',
+        selectedStep: '.selected span',
+        completedStep: '.completed span',
+        stepLabel: '.step-label strong',
+        stepCaption: '.step-label p',
+        detailsLabels: '.nb-form-control-container div:not(.d-flex)',
+        newNameInput: '[formcontrolname="name"]',
+        newDescriptionInput: '[formcontrolname="description"]',
+        tagLabels: '.nb-form-control-container div div div',
+        keyInput: '[formcontrolname="key"]',
+        valueInput: '[formcontrolname="value"]',
+        addTagButton: 'button [icon="plus-outline"]', 
+        tagChip: '.mat-chip',
+        tagChipDelete: '.mat-chip [icon="close-outline"]',
         agentGroupList: 'xng-breadcrumb.orb-breadcrumb',
         agentGroupAll: 'ngx-agent-group-list-component.ng-star-inserted > div:nth-child(1) > header:nth-child(1) > h4:nth-child(2)',
-        agentGroupCreation: '.appearance-ghost',
-        agentGroupName: 'input.ng-invalid',
-        agentGroupDescription: '.ng-pristine',
         key: 'div.col-5:nth-child(1) > div:nth-child(2) > input:nth-child(1)',
         value: 'div.d-flex:nth-child(3) > div:nth-child(2) > input:nth-child(1)',
         addTag: 'button.status-basic',
