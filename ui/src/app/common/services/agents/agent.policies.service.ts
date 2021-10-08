@@ -215,25 +215,22 @@ export class AgentPoliciesService {
     //     },
     //   );
     // TODO remove mock and uncomment http request
+    // if (final === 'pktvisor/taps') {
+    //
+    // } else {
     let resp;
     switch (final) {
       case 'pktvisor/taps':
         resp = {
           data: [
             {
-              'tap': 'anycast',
-              'version': '1.0',
+              'name': 'ethernet',
               'input_type': 'pcap',
-              'config': {
-                'iface': 'eth0',
-              },
-            },
-            {
-              'tap': 'trex_tap',
-              'version': '1.0',
-              'input_type': 'dnstap',
-              'config': {
-                'socket': '/var/dns.sock',
+              'config_predefined': [
+                'iface',
+              ],
+              'agents': {
+                'total': 1,
               },
             },
           ],
@@ -396,5 +393,6 @@ export class AgentPoliciesService {
     return new Observable(subscriber => {
       subscriber.next(resp);
     });
+    // }
   }
 }

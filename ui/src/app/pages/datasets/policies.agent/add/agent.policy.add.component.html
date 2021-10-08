@@ -111,8 +111,8 @@
                          required="true"
                          size="medium">
                 <nb-option *ngFor="let option of availableTaps; index as i"
-                           [attr.data-orb-qa-id]="option.key"
-                           [value]="i">{{ option.tap }}</nb-option>
+                           [attr.data-orb-qa-id]="option.name"
+                           [value]="i">{{ option.name }}</nb-option>
               </nb-select>
               <hr/>
               <!-- Input selector -->
@@ -245,6 +245,7 @@
             <div *ngIf="handlerSelectorFormGroup.controls.selected_handler.value !== ''">
             <div>
               <label class="font-weight-bold" for="description">Handler Label</label>
+              <span class="required"></span>
             </div>
             <input data-orb-qa-id="handler-label"
                    fieldSize="medium"
@@ -256,7 +257,7 @@
           </form>
           <hr/>
           <!--Dynamic Handler Config-->
-          <div *ngIf="dynamicHandlerConfigFormGroup">
+          <div *ngIf="dynamicHandlerConfigFormGroup && handlerSelectorFormGroup">
             <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFormGroup">
               <div *ngIf="liveHandler && liveHandler?.config">
                 <div *ngFor="let control of liveHandler.config | keyvalue; let i = index">
@@ -302,18 +303,18 @@
                 </div>
               </div>
             </form>
+            <button (click)="onHandlerAdded()"
+                    [disabled]="!liveHandler && handlerSelectorFormGroup.controls.label.value"
+                    data-orb-qa-id="addHandler"
+                    ghost
+                    nbButton>
+              <nb-icon icon="plus-outline"
+                       size="14"
+                       status="primary"
+                       style="color: #df316f;">
+              </nb-icon>
+            </button>
           </div>
-          <button (click)="onHandlerAdded()"
-                  [disabled]="!liveHandler"
-                  data-orb-qa-id="addHandler"
-                  ghost
-                  nbButton>
-            <nb-icon icon="plus-outline"
-                     size="14"
-                     status="primary"
-                     style="color: #df316f;">
-            </nb-icon>
-          </button>
           <div class="d-flex justify-content-start"
                style="padding-left: 35%;">
             <button
