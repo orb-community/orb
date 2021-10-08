@@ -1,190 +1,327 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
-import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 
 @Component({
   selector: 'ngx-agent-policy-add-component',
   templateUrl: './agent.policy.add.component.html',
   styleUrls: ['./agent.policy.add.component.scss'],
 })
-export class AgentPolicyAddComponent {
-  strings = STRINGS;
+export class AgentPolicyAddComponent implements OnInit {
+  // #forms
+  // agent policy general information - name, desc, backend
+  detailsFormGroup: FormGroup;
 
-  // stepper vars
-  firstFormGroup: FormGroup;
+  // selected tap, input_type
+  tapFormGroup: FormGroup;
 
-  secondFormGroup: FormGroup;
+  // dynamic input config
+  inputFormGroup: FormGroup;
 
-  thirdFormGroup: FormGroup;
+  // handlers
+  handlerSelectorFormGroup: FormGroup;
 
-  customSinkSettings: {};
+  dynamicHandlerConfigFormGroup: FormGroup;
 
-  selectedSinkSetting: any[];
+  // #key inputs holders
+  // selected backend object
+  backend: { [propName: string]: any };
 
-  sink: Sink;
+  // selected tap object
+  tap: { [propName: string]: any };
 
-  sinkID: string;
+  // selected input object
+  input: { [propName: string]: any };
 
-  sinkTypesList = [];
+  // holds selected handler conf.
+  // handler template currently selected, to be edited by user and then added to the handlers list or discarded
+  liveHandler: { [propName: string]: any };
+
+  // holds all handlers added by user
+  handlers: { [propName: string]: any }[] = [];
+
+  // #services responses
+  // hold info retrieved
+  availableBackends: { [propName: string]: any }[];
+
+  availableTaps: { [propName: string]: any }[];
+
+  availableInputs: { [propName: string]: any };
+
+  availableHandlers: { [propName: string]: any };
+
+  // #if edit
+  agentPolicy: AgentPolicy;
+
+  agentPolicyID: string;
 
   isEdit: boolean;
-  isLoading = false;
-  sinkLoading = false;
+
+  // #load controls
+  isLoading = { 'taps': false, 'backend': false, 'inputs': false, 'handlers': false };
+
+  agentPolicyLoading = false;
 
   constructor(
-    private sinksService: SinksService,
+    private agentPoliciesService: AgentPoliciesService,
     private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
-    this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
-    this.sinkID = this.route.snapshot.paramMap.get('id');
+    this.agentPolicy = this.router.getCurrentNavigation().extras.state?.agentPolicy as AgentPolicy || {
+      name: '',
+      description: '',
+      tags: {},
+      backend: 'pktvisor',
+    };
+    this.agentPolicyID = this.route.snapshot.paramMap.get('id');
+    this.agentPolicy = this.route.snapshot.paramMap.get('agentPolicy') as AgentPolicy;
 
-    this.isEdit = !!this.sinkID;
-    this.sinkLoading = this.isEdit;
+    this.isEdit = !!this.agentPolicyID;
+    this.agentPolicyLoading = this.isEdit;
 
-    !!this.sinkID && sinksService.getSinkById(this.sinkID).subscribe(resp => {
-      this.sink = resp;
-      this.sinkLoading = false;
-      this.getSinkBackends();
+    !!this.agentPolicyID && agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(resp => {
+      this.agentPolicy = resp;
+      this.agentPolicyLoading = false;
     });
-    !this.sinkLoading && this.getSinkBackends();
+
+    this.getBackendsList();
   }
 
-  getSinkBackends() {
-    this.isLoading = true;
-    this.sinksService.getSinkBackends().subscribe(backends => {
-      this.sinkTypesList = backends.map(entry => entry.backend);
-      this.customSinkSettings = this.sinkTypesList.reduce((accumulator, curr) => {
-        const index = backends.findIndex(entry => entry.backend === curr);
-        accumulator[curr] = backends[index].config.map(entry => ({
-          type: entry.type,
-          label: entry.title,
-          prop: entry.name,
-          input: entry.input,
-          required: entry.required,
-        }));
-        return accumulator;
-      }, {});
-      const {name, description, backend, tags} = !!this.sink ? this.sink : {
-        name: '',
-        description: '',
-        backend: 'prometheus', // default sink
-        tags: {},
-      } as Sink;
-      this.firstFormGroup = this._formBuilder.group({
-        name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
-        description: [description],
-        backend: [backend, Validators.required],
-      });
+  ngOnInit() {
+    const { name, description, backend } = this.agentPolicy || { name: '', description: '', backend: 'pktvisor' };
 
-      this.isEdit && this.firstFormGroup.controls.backend.disable();
-
-      // builds secondFormGroup
-      this.onSinkTypeSelected(backend);
-
-      this.thirdFormGroup = this._formBuilder.group({
-        tags: [Object.keys(tags || {}).map(key => ({[key]: tags[key]})),
-          Validators.minLength(1)],
-        key: [''],
-        value: [''],
-      });
-
-      this.isLoading = false;
+    this.detailsFormGroup = this._formBuilder.group({
+      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
+      description: [description],
+      backend: [backend, Validators.required],
     });
+    this.tapFormGroup = this._formBuilder.group({
+      'selected_tap': ['', Validators.required],
+      'input_type': ['', Validators.required],
+    });
+    this.handlerSelectorFormGroup = this._formBuilder.group({ 'selected_handler': [''] });
+    this.dynamicHandlerConfigFormGroup = this._formBuilder.group({});
+  }
+
+  getBackendsList() {
+    this.isLoading['backend'] = true;
+    this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
+      this.availableBackends = !!backends['data'] && backends['data'] || [];
+
+      if (this.isEdit) {
+        this.detailsFormGroup.controls.backend.disable();
+        this.onBackendSelected(this.agentPolicy.backend);
+      }
+
+      this.isLoading['backend'] = false;
+    });
+  }
+
+  onBackendSelected(selectedBackend) {
+    this.backend = this.availableBackends[selectedBackend];
+    this.backend.config = {};
+
+    // todo hardcoded for pktvisor
+    this.getTaps();
+    this.getInputs();
+    this.getHandlers();
+
+  }
+
+  getTaps() {
+    this.isLoading['taps'] = true;
+    this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
+      .subscribe(taps => {
+        this.availableTaps = !!taps['data'] && taps['data'] || [];
+
+        this.isLoading['taps'] = false;
+      });
+  }
+
+  getInputs() {
+    this.isLoading['inputs'] = true;
+    this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
+      .subscribe(inputs => {
+        this.availableInputs = !!inputs['data'] && inputs['data'] || {};
+
+        this.isLoading['inputs'] = false;
+      });
+  }
+
+  onTapSelected(selectedTap) {
+    this.tap = this.availableTaps[selectedTap];
+
+    if (!this.tap?.config) this.tap['config'] = {};
+
+    const { input_type } = this.tap;
+
+    if (input_type) {
+      this.onInputSelected(input_type);
+      this.tapFormGroup.controls.input_type.disable();
+    } else {
+      this.input = null;
+      this.tapFormGroup.controls.input_type.enable();
+      this.tapFormGroup.controls.input_type.reset('');
+    }
+  }
+
+  onInputSelected(selectedInput) {
+    this.input = this.availableInputs[selectedInput];
+
+    this.tapFormGroup.controls.input_type.setValue(selectedInput);
+
+    // input type config model
+    const { config: inputConfig } = this.input;
+    // if editing, some values might not be overrideable any longer, all should be prefilled in form
+    const agentConfig = !!this.isEdit && this.agentPolicy.policy?.config || null;
+    // tap config values, cannot be overridden if set
+    const preConfig = this.tap.config;
+    // assemble config obj with a three way merge of sorts
+    // TODO this is under revision
+    const finalConfig = { ...agentConfig, ...preConfig };
+
+    // populate form controls
+    const dynamicFormControls = Object.keys(inputConfig || {})
+      .reduce((acc, key) => {
+        const value = !!finalConfig?.[key] && finalConfig[key] || '';
+        const disabled = !!preConfig?.[key];
+        acc[key] = [
+          { value, disabled },
+          inputConfig[key].required ? Validators.required : null,
+        ];
+        return acc;
+      }, {});
+
+    this.inputFormGroup = this._formBuilder.group(dynamicFormControls);
+
+    // reconfig dynamic forms based on backend selected
+    // this.backendConfigForms = Object.keys(this.backend.config)
+    //   .reduce((formGroups, groupName, groupIndex) => {
+    //     formGroups[groupName] = this._formBuilder.group({ [groupName]: ['', Validators.required] });
+    //     return formGroups;
+    //   }, {});
+
+  }
+
+  getHandlers() {
+    this.isLoading['handlers'] = true;
+
+    this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
+      .subscribe(handlers => {
+        this.availableHandlers = !!handlers['data'] && handlers['data'] || {};
+
+        this.handlerSelectorFormGroup = this._formBuilder.group({
+          'selected_handler': ['', [Validators.required]],
+          'label': ['', [Validators.required]],
+        });
+
+        this.isLoading['handlers'] = false;
+      });
+  }
+
+
+  onHandlerSelected(selectedHandler) {
+    const { config } = this.availableHandlers[selectedHandler];
+
+    const dynamicControls = Object.keys(config).reduce((acc, key) => {
+      const field = config[key];
+      acc[field.name] = [
+        '',
+        field.required ? Validators.required : null,
+      ];
+      return acc;
+    }, {});
+
+    this.handlerSelectorFormGroup.controls.label.setValue('');
+
+    this.dynamicHandlerConfigFormGroup = this._formBuilder.group(dynamicControls);
+
+    this.liveHandler = this.availableHandlers[selectedHandler];
+  }
+
+  onHandlerAdded() {
+    const handlerName = this.handlerSelectorFormGroup.controls.label.value;
+    this.handlers.push({
+      [handlerName]: {
+        type: this.handlerSelectorFormGroup.controls.selected_handler.value,
+        config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
+          .map(control => ({ [control]: this.dynamicHandlerConfigFormGroup.controls[control].value })),
+      },
+    });
+  }
+
+  onHandlerRemoved(selectedHandler) {
+    delete this.handlers[selectedHandler];
   }
 
   goBack() {
-    this.router.navigateByUrl('/pages/sinks');
+    this.router.navigateByUrl('/pages/datasets/policies');
   }
 
   onFormSubmit() {
     const payload = {
-      name: this.firstFormGroup.controls.name.value,
-      backend: this.firstFormGroup.controls.backend.value,
-      description: this.firstFormGroup.controls.description.value,
-      config: this.selectedSinkSetting.reduce((accumulator, current) => {
-        accumulator[current.prop] = this.secondFormGroup.controls[current.prop].value;
-        return accumulator;
-      }, {}),
-      tags: this.thirdFormGroup.controls.tags.value.reduce((prev, curr) => {
-        for (const [key, value] of Object.entries(curr)) {
-          prev[key] = value;
-        }
-        return prev;
-      }, {}),
-      validate_only: false, // Apparently this guy is required..
+      name: this.detailsFormGroup.controls.name.value,
+      description: this.detailsFormGroup.controls.description.value,
+      backend: this.availableBackends[this.detailsFormGroup.controls.backend.value].backend,
+      tags: {},
+      version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
+      policy: {
+        kind: 'collection',
+        input: {
+          tap: this.availableTaps[this.tapFormGroup.controls.selected_tap.value],
+          input_type: this.tapFormGroup.controls.input_type.value,
+          config: Object.keys(this.inputFormGroup.controls)
+            .map(key => ({ [key]: this.inputFormGroup.controls[key].value }))
+            .reduce((acc, curr) => {
+              for (const [key, value] of Object.entries(curr)) {
+                if (!!value && value !== '') acc[key] = value;
+              }
+              return acc;
+            }, {}),
+        },
+      },
+      handlers: {
+        modules: this.handlers.reduce((prev, handler) => {
+          for (const [key] of Object.entries(handler)) {
+            prev[key] = {
+              version: '1.0',
+              config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
+                .map(_key => ({ [_key]: this.dynamicHandlerConfigFormGroup.controls[_key].value }))
+                .reduce((acc, curr) => {
+                  for (const config of Object.entries(curr)) {
+                    if (!!config['value'] && config['value'] !== '') acc[config['key']] = config['value'];
+                  }
+                  return acc;
+                }, {}),
+            };
+          }
+          return prev;
+        }, {}),
+      },
+      window_config: {
+        num_periods: 5,
+        deep_sample_rate: 100,
+      },
+      validate_only: false,
     };
-    // TODO Check this out
-    // console.log(payload);
+
     if (this.isEdit) {
       // updating existing sink
-      this.sinksService.editSink({...payload, id: this.sinkID}).subscribe(() => {
-        this.notificationsService.success('Sink successfully updated', '');
+      this.agentPoliciesService.editAgentPolicy({ ...payload, id: this.agentPolicyID }).subscribe(() => {
+        this.notificationsService.success('Agent Policy successfully updated', '');
         this.goBack();
       });
     } else {
-      this.sinksService.addSink(payload).subscribe(() => {
-        this.notificationsService.success('Sink successfully created', '');
+      this.agentPoliciesService.addAgentPolicy(payload).subscribe(() => {
+        this.notificationsService.success('Agent Policy successfully created', '');
         this.goBack();
       });
-    }
-
-  }
-
-  onSinkTypeSelected(selectedValue) {
-    // SinkConfig<string> being the generic of all other `sinkTypes`.
-    const conf = !!this.sink &&
-      this.isEdit &&
-      (selectedValue === this.sink.backend) &&
-      this.sink?.config &&
-      this.sink.config as SinkConfig<string> || null;
-
-    this.selectedSinkSetting = this.customSinkSettings[selectedValue];
-
-    const dynamicFormControls = this.selectedSinkSetting.reduce((accumulator, curr) => {
-      accumulator[curr.prop] = [
-        !!conf && (curr.prop in conf) && conf[curr.prop] ||
-        '',
-        curr.required ? Validators.required : null,
-      ];
-      return accumulator;
-    }, {});
-
-    this.secondFormGroup = this._formBuilder.group(dynamicFormControls);
-  }
-
-  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
-  onAddTag() {
-    const {tags, key, value} = this.thirdFormGroup.controls;
-    // sanitize minimally anyway
-    if (key?.value && key.value !== '') {
-      if (value?.value && value.value !== '') {
-        // key and value fields
-        tags.reset([{[key.value]: value.value}].concat(tags.value));
-        key.reset('');
-        value.reset('');
-      }
-    } else {
-      // TODO remove this else clause and error
-      console.error('This shouldn\'t be happening');
-    }
-  }
-
-  onRemoveTag(tag: any) {
-    const {tags, tags: {value: tagsList}} = this.thirdFormGroup.controls;
-    const indexToRemove = tagsList.indexOf(tag);
-
-    if (indexToRemove >= 0) {
-      tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
     }
   }
 }
