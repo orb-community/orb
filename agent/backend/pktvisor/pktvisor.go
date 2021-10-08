@@ -254,10 +254,16 @@ func (p *pktvisorBackend) Start() error {
 		return err
 	}
 
+	pvOptions := []string{
+		"--admin-api",
+	}
+	if len(p.configFile) > 0 {
+		pvOptions = append(pvOptions, "--config", p.configFile)
+	}
 	p.proc = cmd.NewCmdOptions(cmd.Options{
 		Buffered:  false,
 		Streaming: true,
-	}, p.binary, "--admin-api", "--config", p.configFile)
+	}, p.binary, pvOptions...)
 	p.statusChan = p.proc.Start()
 
 	// log STDOUT and STDERR lines streaming from Cmd
@@ -326,7 +332,7 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]string
 		return errors.New("you must specify pktvisor binary")
 	}
 	if p.configFile, prs = config["config_file"]; !prs {
-		return errors.New("you must specify pktvisor configuration file")
+		p.configFile = ""
 	}
 	return nil
 }

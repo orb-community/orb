@@ -24,14 +24,13 @@ const (
 var (
 	cfgFiles []string
 	Debug    bool
-
-	rootCmd = &cobra.Command{
-		Use:   "orb-agent",
-		Short: "orb-agent connects to orb control plane",
-		Long:  "orb-agent connects to orb control plane",
-		Run:   Run,
-	}
 )
+
+func init() {
+
+	pktvisor.Register()
+
+}
 
 func Run(cmd *cobra.Command, args []string) {
 
@@ -44,6 +43,8 @@ func Run(cmd *cobra.Command, args []string) {
 		logger, err = zap.NewProduction()
 	}
 	cobra.CheckErr(err)
+
+	initConfig()
 
 	// configuration
 	var config config2.Config
@@ -61,7 +62,9 @@ func Run(cmd *cobra.Command, args []string) {
 		config.OrbAgent.Backends = make(map[string]map[string]string)
 		config.OrbAgent.Backends["pktvisor"] = make(map[string]string)
 		config.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
-		config.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
+		if len(cfgFiles) > 0 {
+			config.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
+		}
 	}
 
 	// new agent
@@ -92,23 +95,13 @@ func Run(cmd *cobra.Command, args []string) {
 
 }
 
-func Execute() {
-	cobra.CheckErr(rootCmd.Execute())
-}
-
-func init() {
-
-	pktvisor.Register()
-
-	cobra.OnInitialize(initConfig)
-	rootCmd.Flags().StringSliceVarP(&cfgFiles, "config", "c", []string{}, "Path to config files (may be specified multiple times)")
-	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "d", false, "verbose debug output")
-}
-
 func mergeOrError(path string) {
+
 	v := viper.New()
-	v.SetConfigFile(path)
-	v.SetConfigType("yaml")
+	if len(path) > 0 {
+		v.SetConfigFile(path)
+		v.SetConfigType("yaml")
+	}
 
 	v.AutomaticEnv()
 	replacer := strings.NewReplacer(".", "_")
@@ -126,7 +119,9 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.db.file", "./orb-agent.db")
 	v.SetDefault("orb.tls.verify", true)
 
-	cobra.CheckErr(v.ReadInConfig())
+	if len(path) > 0 {
+		cobra.CheckErr(v.ReadInConfig())
+	}
 
 	var fZero float64
 
@@ -147,8 +142,12 @@ func mergeOrError(path string) {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 
+	// set defaults first
+	mergeOrError("")
 	if len(cfgFiles) == 0 {
-		mergeOrError(defaultConfig)
+		if _, err := os.Stat(defaultConfig); !os.IsNotExist(err) {
+			mergeOrError(defaultConfig)
+		}
 	} else {
 		for _, conf := range cfgFiles {
 			mergeOrError(conf)
@@ -157,5 +156,21 @@ func initConfig() {
 }
 
 func main() {
+
+	rootCmd := &cobra.Command{
+		Use: "orb-agent",
+	}
+
+	runCmd := &cobra.Command{
+		Use:   "run",
+		Short: "Run orb-agent",
+		Long:  `Run orb-agent`,
+		Run:   Run,
+	}
+
+	runCmd.Flags().StringSliceVarP(&cfgFiles, "config", "c", []string{}, "Path to config files (may be specified multiple times)")
+	runCmd.PersistentFlags().BoolVarP(&Debug, "debug", "d", false, "Enable verbose (debug level) output")
+
+	rootCmd.AddCommand(runCmd)
 	rootCmd.Execute()
 }
