@@ -42,7 +42,7 @@ export class AgentPolicyAddComponent implements OnInit {
   liveHandler: { [propName: string]: any };
 
   // holds all handlers added by user
-  handlers: { [propName: string]: any }[] = [];
+  handlers: { name: string, handler: {[propName: string]: any }}[] = [];
 
   // #services responses
   // hold info retrieved
@@ -248,7 +248,8 @@ export class AgentPolicyAddComponent implements OnInit {
   onHandlerAdded() {
     const handlerName = this.handlerSelectorFormGroup.controls.label.value;
     this.handlers.push({
-      [handlerName]: {
+      name: handlerName,
+      handler: {
         type: this.handlerSelectorFormGroup.controls.selected_handler.value,
         config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
           .map(control => ({ [control]: this.dynamicHandlerConfigFormGroup.controls[control].value })),
@@ -257,7 +258,7 @@ export class AgentPolicyAddComponent implements OnInit {
   }
 
   onHandlerRemoved(selectedHandler) {
-    delete this.handlers[selectedHandler];
+    this.handlers.splice(selectedHandler, 1);
   }
 
   goBack() {

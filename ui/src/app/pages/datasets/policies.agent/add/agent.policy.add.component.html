@@ -213,10 +213,10 @@
                 <mat-chip
                   *ngFor="let handler of handlers; index as i"
                   [attr.data-orb-qa-id]="'handler_' + i"
-                  [style.background-color]="handler.label | tagchipcolor"
+                  [style.background-color]="handler.name | tagchipcolor"
                   [value]="i"
                   class="orb-selected-handler ">
-                  {{ handler }}
+                  {{ handler.name }}
                   <nb-icon (click)="onHandlerRemoved(handler)"
                            class="ml-1"
                            icon="close-outline"
@@ -242,7 +242,7 @@
                          [attr.data-orb-qa-id]="'available_handler: '+handler.key" [id]="handler.key"
                          [value]="handler.key">{{ handler.key }}</nb-option>
             </nb-select>
-
+            <div *ngIf="handlerSelectorFormGroup.controls.selected_handler.value !== ''">
             <div>
               <label class="font-weight-bold" for="description">Handler Label</label>
             </div>
@@ -252,6 +252,7 @@
                    fullWidth="true"
                    id="label"
                    nbInput/>
+            </div>
           </form>
           <hr/>
           <!--Dynamic Handler Config-->
