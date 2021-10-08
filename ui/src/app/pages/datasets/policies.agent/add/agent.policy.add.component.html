@@ -242,11 +242,13 @@
                          [attr.data-orb-qa-id]="'available_handler: '+handler.key" [id]="handler.key"
                          [value]="handler.key">{{ handler.key }}</nb-option>
             </nb-select>
+            <hr/>
             <div *ngIf="handlerSelectorFormGroup.controls.selected_handler.value !== ''">
             <div>
               <label class="font-weight-bold" for="description">Handler Label</label>
               <span class="required"></span>
             </div>
+
             <input data-orb-qa-id="handler-label"
                    fieldSize="medium"
                    formControlName="label"

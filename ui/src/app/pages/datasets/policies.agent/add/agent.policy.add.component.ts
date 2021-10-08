@@ -99,7 +99,7 @@ export class AgentPolicyAddComponent implements OnInit {
 
     const { input, handlers: {modules: handlers} } = policy;
     const { tap, input_type } = input;
-    this.handlers = !!handlers && Object.entries(handlers).map(([key, value]) => ({name: key, handler: value}));
+    this.handlers = Object.entries(handlers).map(([key, value]) => ({name: key, handler: value}));
 
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
