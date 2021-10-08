@@ -161,7 +161,6 @@ export class DatasetAddComponent {
       agent_group_id: this.agentFormGroup.controls.agent_group_id.value.id,
       agent_policy_id: this.policyFormGroup.controls.agent_policy_id.value.id,
       sink_id: this.selectedSinks.map(sink => sink.id),
-      validate_only: false,
     };
     if (this.isEdit) {
       // updating existing dataset

@@ -95,6 +95,7 @@ export class AgentPolicyAddComponent implements OnInit {
 
   ngOnInit() {
     const { name, description, backend } = this.agentPolicy || { name: '', description: '', backend: 'pktvisor' };
+    this.handlers = Object.entries(handlers).map(([key, value]) => ({name: key, handler: value}));
 
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
