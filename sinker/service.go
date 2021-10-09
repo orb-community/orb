@@ -6,6 +6,7 @@ package sinker
 
 import (
 	"context"
+	b64 "encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -62,11 +63,23 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 	if err != nil {
 		return
 	}
-	svc.logger.Info("writing to", zap.String("url", config.Url))
+	svc.logger.Info("writing to", zap.String("url", config.Url), zap.String("user", config.User))
+
+	//var writeURLFlag string
+	//flag.StringVar(&writeURLFlag, "u", config.Url, "remote write endpoint")
+	cfg := prometheus.NewConfig(
+		prometheus.WriteURLOption(config.Url),
+	)
+
+	promClient, err := prometheus.NewClient(cfg)
+	if err != nil {
+		svc.logger.Error("unable to construct client", zap.Error(err))
+	}
 
 	var headers = make(map[string]string)
-	headers["Authorization"] = config.Password
-	result, writeErr := svc.promClient.WriteTimeSeries(context.Background(), tsList,
+	headers["Authorization"] = encodeBase64(config.User, config.Password)
+	//prometheus.WriteURLOption(config.Url)
+	result, writeErr := promClient.WriteTimeSeries(context.Background(), tsList,
 		prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
 		json.NewEncoder(os.Stdout).Encode(struct {
@@ -93,6 +106,11 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 	os.Stdout.Sync()
 
 	svc.logger.Info("write success")
+}
+
+func encodeBase64(user string, password string) string {
+	sEnc := b64.URLEncoding.EncodeToString([]byte(user + ":" + password))
+	return fmt.Sprintf("Basic %s", sEnc)
 }
 
 func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.AgentMetricsRPCPayload) ([]string, error) {
@@ -143,7 +161,6 @@ func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.Agen
 			}
 		}
 	}
-
 	return sinkIDsList, nil
 }
 
@@ -250,7 +267,8 @@ func New(logger *zap.Logger,
 	policiesClient policiespb.PolicyServiceClient,
 	fleetClient fleetpb.FleetServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
-	promClient prometheus.Client) Service {
+	//promClient prometheus.Client
+) Service {
 
 	pktvisor.Register(logger)
 	return &sinkerService{
@@ -261,6 +279,6 @@ func New(logger *zap.Logger,
 		policiesClient: policiesClient,
 		fleetClient:    fleetClient,
 		sinksClient:    sinksClient,
-		promClient:     promClient,
+		//promClient:     promClient,
 	}
 }

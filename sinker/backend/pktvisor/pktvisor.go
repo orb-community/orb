@@ -71,7 +71,7 @@ func parseToProm(stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
 	convertToPromParticle(statsMap, "", &tsList)
-	fmt.Print(tsList)
+	//fmt.Print(tsList)
 	return tsList
 }
 
@@ -85,10 +85,10 @@ func convertToPromParticle(m map[string]interface{}, label string, tsList *prome
 				var matchFirstQuantile = regexp.MustCompile("^([P-p])+[0-9]")
 				if ok := matchFirstQuantile.MatchString(k); ok {
 					tsList = makePromParticle(label, k, v, tsList, ok)
-					fmt.Printf("%s{intance=%q name:%q} %d\n", camelToSnake(label), "gw", k, v)
+					//fmt.Printf("%s{intance=%q name:%q} %d\n", camelToSnake(label), "gw", k, v)
 				} else {
 					tsList = makePromParticle(label+k, "", v, tsList, false)
-					fmt.Printf("%s{intance=%q} %d\n", camelToSnake(label+k), "gw", v)
+					//fmt.Printf("%s{intance=%q} %d\n", camelToSnake(label+k), "gw", v)
 				}
 			}
 		case []interface{}:
@@ -113,7 +113,7 @@ func convertToPromParticle(m map[string]interface{}, label string, tsList *prome
 						}
 					}
 					tsList = makePromParticle(label+k, lbl, dtpt, tsList, false)
-					fmt.Printf("%s{intance=%q name:%q} %d\n", camelToSnake(label+k), "gw", lbl, dtpt)
+					//fmt.Printf("%s{intance=%q name:%q} %d\n", camelToSnake(label+k), "gw", lbl, dtpt)
 				}
 			}
 		}

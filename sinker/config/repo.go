@@ -5,6 +5,7 @@
 package config
 
 import (
+	b64 "encoding/base64"
 	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
 	"sync"
@@ -48,4 +49,9 @@ func (s sinkConfigMemRepo) Get(sinkID string) (SinkConfig, error) {
 		return SinkConfig{}, errors.New("unknown sink ID")
 	}
 	return config, nil
+}
+
+func encodeBase64(user string, password string) string {
+	sEnc := b64.StdEncoding.EncodeToString([]byte(user + "+" + password))
+	return sEnc
 }
