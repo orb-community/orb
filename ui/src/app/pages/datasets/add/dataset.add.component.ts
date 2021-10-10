@@ -75,7 +75,7 @@ export class DatasetAddComponent {
       sink_ids: [],
     };
 
-    this.selectedSinks = sink_id;
+    this.selectedSinks = sink_ids;
 
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
