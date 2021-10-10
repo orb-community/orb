@@ -32,7 +32,7 @@ export class AgentPolicyAddComponent implements OnInit {
   backend: { [propName: string]: any };
 
   // selected tap object
-  tap: { [propName: string]: any };
+  tap: { name: string, input_type: string, config_predefined: string[], agents: { total: number } };
 
   // selected input object
   input: { [propName: string]: any };
@@ -42,17 +42,17 @@ export class AgentPolicyAddComponent implements OnInit {
   liveHandler: { [propName: string]: any };
 
   // holds all handlers added by user
-  handlers: { [propName: string]: any }[] = [];
+  handlers: { name: string, handler: { [propName: string]: any } }[] = [];
 
   // #services responses
   // hold info retrieved
   availableBackends: { [propName: string]: any }[];
 
-  availableTaps: { [propName: string]: any }[];
+  availableTaps: { name: string, input_type: string, config_predefined: string[], agents: { total: 1 } }[];
 
-  availableInputs: { [propName: string]: any };
+  availableInputs: { [propName: string]: { version: string, config: any } };
 
-  availableHandlers: { [propName: string]: any };
+  availableHandlers: { [propName: string]: { version: string, config: any } };
 
   // #if edit
   agentPolicy: AgentPolicy;
@@ -94,7 +94,24 @@ export class AgentPolicyAddComponent implements OnInit {
   }
 
   ngOnInit() {
-    const { name, description, backend } = this.agentPolicy || { name: '', description: '', backend: 'pktvisor' };
+    const { name, description, backend, policy } = this.agentPolicy
+    || {
+      name: '',
+      description: '',
+      backend: 'pktvisor',
+      policy: {
+        input: {
+            tap: '',
+            input_type: '',
+            config_predefined: {},
+          },
+          handlers: {},
+        },
+    };
+
+    const { input } = policy;
+    const { tap, input_type } = input;
+    this.handlers = Object.entries(policy.handlers.modules).map(([key, value]) => ({name: key, handler: value}));
 
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
@@ -102,10 +119,13 @@ export class AgentPolicyAddComponent implements OnInit {
       backend: [backend, Validators.required],
     });
     this.tapFormGroup = this._formBuilder.group({
-      'selected_tap': ['', Validators.required],
-      'input_type': ['', Validators.required],
+      'selected_tap': [tap, Validators.required],
+      'input_type': [input_type, Validators.required],
     });
-    this.handlerSelectorFormGroup = this._formBuilder.group({ 'selected_handler': [''] });
+    this.handlerSelectorFormGroup = this._formBuilder.group({
+      'selected_handler': ['', [Validators.required]],
+      'label': ['', [Validators.required]],
+    });
     this.dynamicHandlerConfigFormGroup = this._formBuilder.group({});
   }
 
@@ -157,7 +177,7 @@ export class AgentPolicyAddComponent implements OnInit {
   onTapSelected(selectedTap) {
     this.tap = this.availableTaps[selectedTap];
 
-    if (!this.tap?.config) this.tap['config'] = {};
+    if (!this.tap?.config_predefined) this.tap['config_predefined'] = [];
 
     const { input_type } = this.tap;
 
@@ -180,14 +200,15 @@ export class AgentPolicyAddComponent implements OnInit {
     const { config: inputConfig } = this.input;
     // if editing, some values might not be overrideable any longer, all should be prefilled in form
     const agentConfig = !!this.isEdit && this.agentPolicy.policy?.config || null;
-    // tap config values, cannot be overridden if set
-    const preConfig = this.tap.config;
+    // tap config values, cannot be overridden if set -- scratch that
+    // only fields in config_predefined should be available for editing;
+    const preConfig = this.tap.config_predefined;
     // assemble config obj with a three way merge of sorts
     // TODO this is under revision
     const finalConfig = { ...agentConfig, ...preConfig };
 
     // populate form controls
-    const dynamicFormControls = Object.keys(inputConfig || {})
+    const dynamicFormControls = preConfig
       .reduce((acc, key) => {
         const value = !!finalConfig?.[key] && finalConfig[key] || '';
         const disabled = !!preConfig?.[key];
@@ -200,13 +221,6 @@ export class AgentPolicyAddComponent implements OnInit {
 
     this.inputFormGroup = this._formBuilder.group(dynamicFormControls);
 
-    // reconfig dynamic forms based on backend selected
-    // this.backendConfigForms = Object.keys(this.backend.config)
-    //   .reduce((formGroups, groupName, groupIndex) => {
-    //     formGroups[groupName] = this._formBuilder.group({ [groupName]: ['', Validators.required] });
-    //     return formGroups;
-    //   }, {});
-
   }
 
   getHandlers() {
@@ -215,11 +229,6 @@ export class AgentPolicyAddComponent implements OnInit {
     this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
       .subscribe(handlers => {
         this.availableHandlers = !!handlers['data'] && handlers['data'] || {};
-
-        this.handlerSelectorFormGroup = this._formBuilder.group({
-          'selected_handler': ['', [Validators.required]],
-          'label': ['', [Validators.required]],
-        });
 
         this.isLoading['handlers'] = false;
       });
@@ -248,7 +257,8 @@ export class AgentPolicyAddComponent implements OnInit {
   onHandlerAdded() {
     const handlerName = this.handlerSelectorFormGroup.controls.label.value;
     this.handlers.push({
-      [handlerName]: {
+      name: handlerName,
+      handler: {
         type: this.handlerSelectorFormGroup.controls.selected_handler.value,
         config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
           .map(control => ({ [control]: this.dynamicHandlerConfigFormGroup.controls[control].value })),
@@ -257,7 +267,7 @@ export class AgentPolicyAddComponent implements OnInit {
   }
 
   onHandlerRemoved(selectedHandler) {
-    delete this.handlers[selectedHandler];
+    this.handlers.splice(selectedHandler, 1);
   }
 
   goBack() {
@@ -274,7 +284,7 @@ export class AgentPolicyAddComponent implements OnInit {
       policy: {
         kind: 'collection',
         input: {
-          tap: this.availableTaps[this.tapFormGroup.controls.selected_tap.value],
+          tap: this.availableTaps[this.tapFormGroup.controls.selected_tap.value].name,
           input_type: this.tapFormGroup.controls.input_type.value,
           config: Object.keys(this.inputFormGroup.controls)
             .map(key => ({ [key]: this.inputFormGroup.controls[key].value }))
