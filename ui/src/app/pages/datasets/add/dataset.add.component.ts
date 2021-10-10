@@ -68,11 +68,11 @@ export class DatasetAddComponent {
       this.datasetLoading = false;
     });
 
-    const { name, agent_group_id, agent_policy_id, sink_id } = !!this.dataset ? this.dataset : {
+    const { name, agent_group_id, agent_policy_id, sink_ids } = !!this.dataset ? this.dataset : {
       name: '',
       agent_group_id: { name: '', id: '' },
       agent_policy_id: { name: '', id: '' },
-      sink_id: [],
+      sink_ids: [],
     };
 
     this.selectedSinks = sink_id;
@@ -160,8 +160,8 @@ export class DatasetAddComponent {
       name: this.detailsFormGroup.controls.name.value,
       agent_group_id: this.agentFormGroup.controls.agent_group_id.value.id,
       agent_policy_id: this.policyFormGroup.controls.agent_policy_id.value.id,
-      sink_id: this.selectedSinks.map(sink => sink.id),
-    };
+      sink_ids: this.selectedSinks.map(sink => sink.id),
+    } as Dataset;
     if (this.isEdit) {
       // updating existing dataset
       this.datasetPoliciesService.editDataset({ ...payload, id: this.datasetID }).subscribe(() => {
