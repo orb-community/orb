@@ -51,7 +51,7 @@ export class DatasetPoliciesService {
 
   addDataset(datasetItem: Dataset) {
     return this.http.post(environment.datasetPoliciesUrl,
-        { ...datasetItem, validate_only: false },
+        { ...datasetItem},
         { observe: 'response' })
       .map(
         resp => {
