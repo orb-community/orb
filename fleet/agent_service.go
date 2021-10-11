@@ -201,8 +201,15 @@ func (svc fleetService) AgentsStatistics(ctx context.Context, token string) (Age
 		return AgentsStatistics{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
 	}
 
-	statesSummary, _ := svc.agentRepo.RetrieveAllStatesSummary(ctx, res.GetId())
-	total, _ := svc.agentRepo.RetrieveTotalAgentsByOwner(ctx, res.GetId())
+	statesSummary, err := svc.agentRepo.RetrieveAllStatesSummary(ctx, res.GetId())
+	if err != nil{
+		return AgentsStatistics{}, err
+	}
+
+	total, err := svc.agentRepo.RetrieveTotalAgentsByOwner(ctx, res.GetId())
+	if err != nil{
+		return AgentsStatistics{}, err
+	}
 
 	statistic := AgentsStatistics{
 		StatesSummary: statesSummary,

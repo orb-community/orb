@@ -383,7 +383,7 @@ func TestListBackends(t *testing.T) {
 	}
 }
 
-func TestAllStatesSummary(t *testing.T) {
+func TestAgentsStatistics(t *testing.T) {
 	users := flmocks.NewAuthService(map[string]string{token: email})
 
 	thingsServer := newThingsServer(newThingsService(users))
@@ -397,10 +397,6 @@ func TestAllStatesSummary(t *testing.T) {
 	}
 
 	var agSummary []fleet.AgentStates
-	agSummary = append(agSummary, fleet.AgentStates{
-		State: 0,
-		Count: 10,
-	})
 
 	cases := map[string]struct {
 		token      string
@@ -410,10 +406,18 @@ func TestAllStatesSummary(t *testing.T) {
 		"retrieve all agents states summary": {
 			token: token,
 			statistics: fleet.AgentsStatistics{
-				StatesSummary: agSummary,
-				TotalAgents: 10,
+				StatesSummary: append(agSummary, fleet.AgentStates{
+					State: 0,
+					Count: limit,
+				}),
+				TotalAgents: limit,
 			},
 			err: nil,
+		},
+		"retrieve all agents states summary with a invalid token": {
+			token: invalidToken,
+			statistics: fleet.AgentsStatistics{},
+			err: fleet.ErrUnauthorizedAccess,
 		},
 	}
 
