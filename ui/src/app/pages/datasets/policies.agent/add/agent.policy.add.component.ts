@@ -102,7 +102,7 @@ export class AgentPolicyAddComponent {
           input_type: '',
           config_predefined: {},
         },
-        handlers: { modules: {}},
+        handlers: { modules: {} },
       },
     };
 
@@ -113,7 +113,7 @@ export class AgentPolicyAddComponent {
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_:][a-zA-Z0-9_]*$')]],
       description: [description],
-      backend: [{value: backend}, Validators.required],
+      backend: [{ value: backend }, Validators.required],
     });
 
     this.handlerSelectorFormGroup = this._formBuilder.group({
@@ -138,7 +138,7 @@ export class AgentPolicyAddComponent {
   }
 
   onBackendSelected(selectedBackend) {
-    this.backend = this.availableBackends[selectedBackend] || {backend: 'pktvisor'};
+    this.backend = this.availableBackends[selectedBackend] || { backend: 'pktvisor' };
     this.backend.config = {};
 
     // todo hardcoded for pktvisor
@@ -155,7 +155,7 @@ export class AgentPolicyAddComponent {
         this.availableTaps = !!taps['data'] && taps['data'] || [];
 
         const { input } = this.agentPolicy.policy;
-        const { tap, input_type} = input;
+        const { tap, input_type } = input;
 
         this.tapFormGroup = this._formBuilder.group({
           'selected_tap': [tap, Validators.required],
@@ -218,12 +218,15 @@ export class AgentPolicyAddComponent {
     const preConfig = this.tap.config_predefined;
     // assemble config obj with a three way merge of sorts
     // TODO this is under revision
-    const finalConfig = { ...agentConfig, ...preConfig };
+    const finalConfig = { ...agentConfig, ...preConfig.reduce((acc, curr) => {
+      acc[curr] = '';
+      return acc;
+    }, {}) };
 
     // populate form controls
     const dynamicFormControls = Object.keys(finalConfig)
       .reduce((acc, key) => {
-        const value = !!finalConfig?.[key] && finalConfig[key] || '';
+        const value = finalConfig?.[key] || '';
         // const disabled = !!preConfig?.[key];
         const disabled = false;
         acc[key] = [
@@ -293,7 +296,6 @@ export class AgentPolicyAddComponent {
       description: this.detailsFormGroup.controls.description.value,
       backend: this.availableBackends[this.detailsFormGroup.controls.backend.value].backend,
       tags: {},
-      version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
       policy: {
         kind: 'collection',
         input: {
@@ -310,10 +312,10 @@ export class AgentPolicyAddComponent {
         },
         handlers: {
           modules: this.handlers.reduce((prev, handler) => {
-              prev[handler.name] = {
-                version: '1.0',
-                config: handler.handler,
-              };
+            prev[handler.name] = {
+              version: '1.0',
+              config: handler.handler,
+            };
             return prev;
           }, {}),
         },

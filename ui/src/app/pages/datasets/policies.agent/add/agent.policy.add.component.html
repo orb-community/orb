@@ -9,7 +9,8 @@
     </xng-breadcrumb>
     <h4>{{ isEdit ? 'Edit Agent Policy' : 'Create Agent Policy'}}</h4>
   </header>
-  <div *ngIf="!isLoading['backend'] && !isLoading['taps'] && !isLoading['inputs'] && !isLoading['handlers']" class="d-flex row">
+  <div *ngIf="!isLoading['backend'] && !isLoading['taps'] && !isLoading['inputs'] && !isLoading['handlers']"
+       class="d-flex row">
     <div class="d-flex col-12 mt-5">
       <nb-stepper class="stepper w-100 ml-5"
                   disableStepNavigation
@@ -141,39 +142,41 @@
             <!-- Dynamic Input Form -->
             <form (ngSubmit)="onFormSubmit()" [formGroup]="inputFormGroup">
               <div *ngFor="let control of input['config'] | keyvalue; index as i;">
-                <div>
-                  <label class="font-weight-bold">{{control.value.title}}</label>
+                <div *ngIf="inputFormGroup.controls.hasOwnProperty(control.value.name)">
+                  <div>
+                    <label class="font-weight-bold">{{control.value.title}}</label>
+                  </div>
+                  <div [ngSwitch]="control.value.input">
+                    <input *ngSwitchCase="'text'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.value.name"
+                           [type]="control.value.type"
+                           fieldSize="medium"
+                           fullWidth="true"
+                           nbInput>
+                    <input *ngSwitchCase="'number'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.value.name"
+                           [max]="control.value.max"
+                           [min]="control.value.min"
+                           [step]="control.value.step"
+                           [type]="control.value.type">
+                    <nb-select *ngSwitchCase="'select'"
+                               [attr.data-orb-qa-id]="control.value.name"
+                               [formControlName]="control.value.name"
+                               [id]="control.value.name"
+                               appearance="filled"
+                               fullWidth="true"
+                               size="medium">{{ control.value.name + "-" + control.value.options }}
+                      <nb-option *ngFor="let option of control.value.options"
+                                 [attr.data-orb-qa-id]="option"
+                                 [value]="option">{{ option }}</nb-option>
+                    </nb-select>
+                  </div>
+                  <hr/>
                 </div>
-                <div [ngSwitch]="control.value.input">
-                  <input *ngSwitchCase="'text'"
-                         [attr.data-orb-qa-id]="control.value.name"
-                         [autofocus]="i == 0"
-                         [formControlName]="control.value.name"
-                         [type]="control.value.type"
-                         fieldSize="medium"
-                         fullWidth="true"
-                         nbInput>
-                  <input *ngSwitchCase="'number'"
-                         [attr.data-orb-qa-id]="control.value.name"
-                         [autofocus]="i == 0"
-                         [formControlName]="control.value.name"
-                         [max]="control.value.max"
-                         [min]="control.value.min"
-                         [step]="control.value.step"
-                         [type]="control.value.type">
-                  <nb-select *ngSwitchCase="'select'"
-                             [attr.data-orb-qa-id]="control.value.name"
-                             [formControlName]="control.value.name"
-                             [id]="control.value.name"
-                             appearance="filled"
-                             fullWidth="true"
-                             size="medium">{{ control.value.name + "-" + control.value.options }}
-                    <nb-option *ngFor="let option of control.value.options"
-                               [attr.data-orb-qa-id]="option"
-                               [value]="option">{{ option }}</nb-option>
-                  </nb-select>
-                </div>
-                <hr/>
               </div>
             </form>
           </div>
@@ -244,17 +247,17 @@
             </nb-select>
             <hr/>
             <div *ngIf="handlerSelectorFormGroup.controls.selected_handler.value !== ''">
-            <div>
-              <label class="font-weight-bold" for="description">Handler Label</label>
-              <span class="required"></span>
-            </div>
+              <div>
+                <label class="font-weight-bold" for="description">Handler Label</label>
+                <span class="required"></span>
+              </div>
 
-            <input data-orb-qa-id="handler-label"
-                   fieldSize="medium"
-                   formControlName="label"
-                   fullWidth="true"
-                   id="label"
-                   nbInput/>
+              <input data-orb-qa-id="handler-label"
+                     fieldSize="medium"
+                     formControlName="label"
+                     fullWidth="true"
+                     id="label"
+                     nbInput/>
             </div>
           </form>
           <hr/>
@@ -327,10 +330,10 @@
               status="primary">
               Back
             </button>
-            <button [disabled]="handlers.length === 0"
+            <button (click)="onFormSubmit()"
+                    [disabled]="handlers.length === 0"
                     class="next-button"
                     data-orb-qa-id="next"
-                    (click)="onFormSubmit()"
                     nbButton
                     nbStepperNext
                     shape="round"
