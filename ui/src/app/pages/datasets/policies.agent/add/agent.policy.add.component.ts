@@ -277,7 +277,10 @@ export class AgentPolicyAddComponent {
       handler: {
         type: this.handlerSelectorFormGroup.controls.selected_handler.value,
         config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
-          .map(control => ({ [control]: this.dynamicHandlerConfigFormGroup.controls[control].value })),
+          .reduce((acc, control) => {
+            acc[control] = this.dynamicHandlerConfigFormGroup.controls[control].value;
+            return acc;
+            }, {}),
       },
     });
   }
@@ -313,8 +316,8 @@ export class AgentPolicyAddComponent {
         handlers: {
           modules: this.handlers.reduce((prev, handler) => {
             prev[handler.name] = {
-              version: '1.0',
-              config: handler.handler,
+              type: handler.handler?.['type'] || '',
+              config: handler.handler?.['config'] || {},
             };
             return prev;
           }, {}),

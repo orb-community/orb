@@ -214,6 +214,19 @@ export class AgentPoliciesService {
     //     },
     //   );
     // TODO remove mock and uncomment http request
+    // if (final === 'pktvisor/taps') {
+    //   return this.http.get(`${environment.agentsBackendUrl}/${final}`)
+    //   .map((response: any) => {
+    //     return response.backend;
+    //   }).catch(
+    //     err => {
+    //       this.notificationsService.error('Failed to get Available Backends',
+    //         `Error: ${ err.status } - ${ err.statusText }`);
+    //       return Observable.throwError(err);
+    //     },
+    //   );
+    // }
+
     let resp;
     switch (final) {
       case 'pktvisor/taps':
