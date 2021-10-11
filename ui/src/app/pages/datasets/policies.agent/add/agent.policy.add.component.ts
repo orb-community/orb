@@ -321,11 +321,11 @@ export class AgentPolicyAddComponent {
             };
             return prev;
           }, {}),
+          window_config: {
+            num_periods: 5,
+            deep_sample_rate: 100,
+          },
         },
-      },
-      window_config: {
-        num_periods: 5,
-        deep_sample_rate: 100,
       },
     };
 
