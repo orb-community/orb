@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
-import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { Debounce } from 'app/shared/decorators/utils';
@@ -72,7 +71,7 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
     private datasetPoliciesService: DatasetPoliciesService,
   ) {
     this.datasetPoliciesService.clean();
-    this.paginationControls = SinksService.getDefaultPagination();
+    this.paginationControls = DatasetPoliciesService.getDefaultPagination();
   }
 
   ngAfterViewChecked() {

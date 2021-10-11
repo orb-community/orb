@@ -173,6 +173,17 @@ export class AgentPolicyAddComponent {
         this.availableInputs = !!inputs['data'] && inputs['data'] || {};
 
         this.isLoading['inputs'] = false;
+
+        const input_type = !!this.tap ? this.tap : null;
+
+        if (input_type) {
+          this.onInputSelected(input_type);
+          this.tapFormGroup.controls.input_type.disable();
+        } else {
+          this.input = null;
+          this.tapFormGroup.controls.input_type.enable();
+          this.tapFormGroup.controls.input_type.reset('');
+        }
       });
   }
 
@@ -183,7 +194,7 @@ export class AgentPolicyAddComponent {
 
     const { input_type } = this.tap;
 
-    if (input_type) {
+    if (input_type && !!this.availableInputs) {
       this.onInputSelected(input_type);
       this.tapFormGroup.controls.input_type.disable();
     } else {
@@ -210,14 +221,14 @@ export class AgentPolicyAddComponent {
     const finalConfig = { ...agentConfig, ...preConfig };
 
     // populate form controls
-    const dynamicFormControls = finalConfig
+    const dynamicFormControls = Object.keys(finalConfig)
       .reduce((acc, key) => {
         const value = !!finalConfig?.[key] && finalConfig[key] || '';
         // const disabled = !!preConfig?.[key];
         const disabled = false;
         acc[key] = [
           { value, disabled },
-          inputConfig[key].required ? Validators.required : null,
+          !!inputConfig?.[key]?.required ? Validators.required : null,
         ];
         return acc;
       }, {});
