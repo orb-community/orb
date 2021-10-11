@@ -19,7 +19,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
 import { NbDialogService } from '@nebular/theme';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.details.component';
 
 @Component({

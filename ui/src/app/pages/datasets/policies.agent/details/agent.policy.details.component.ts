@@ -1,8 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
-import { STRINGS } from 'assets/text/strings';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 
 @Component({
