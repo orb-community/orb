@@ -179,12 +179,12 @@
           </div>
           <div class="d-flex justify-content-end">
             <button
-              (click)="goBack()"
+              nbStepperPrevious
               data-orb-qa-id="cancel"
               ghost
               nbButton
               status="primary"
-              type="button">Cancel
+              type="button">Back
             </button>
             <button [disabled]="!tapFormGroup?.valid"
                     class="next-button"
