@@ -308,24 +308,15 @@ export class AgentPolicyAddComponent {
               return acc;
             }, {}),
         },
-      },
-      handlers: {
-        modules: this.handlers.reduce((prev, handler) => {
-          for (const [key] of Object.entries(handler)) {
-            prev[key] = {
-              version: '1.0',
-              config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
-                .map(_key => ({ [_key]: this.dynamicHandlerConfigFormGroup.controls[_key].value }))
-                .reduce((acc, curr) => {
-                  for (const config of Object.entries(curr)) {
-                    if (!!config['value'] && config['value'] !== '') acc[config['key']] = config['value'];
-                  }
-                  return acc;
-                }, {}),
-            };
-          }
-          return prev;
-        }, {}),
+        handlers: {
+          modules: this.handlers.reduce((prev, handler) => {
+              prev[handler.name] = {
+                version: '1.0',
+                config: handler.handler,
+              };
+            return prev;
+          }, {}),
+        },
       },
       window_config: {
         num_periods: 5,
