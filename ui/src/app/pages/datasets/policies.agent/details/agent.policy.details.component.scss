@@ -68,7 +68,10 @@ nb-tabset {
 .row {
   display: flex;
   flex-wrap: wrap;
-  margin: 15px 32px 15px 6px;
+  margin-right: 32px;
+  margin-left: 6px;
+  margin-top: 15px;
+  margin-bottom: 15px;
 
   div > p {
     margin-top: 0;

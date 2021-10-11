@@ -1,6 +1,6 @@
 <nb-card size="large" class="nb-card-medium">
   <nb-card-header>
-    Policy Details
+    Agent Policy Details
     <button nbButton
             ghost="true"
             size="small"
@@ -22,23 +22,27 @@
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Backend<span class="ns1red">*</span></p>
+        <p class="detail-title">Policy Backend<span class="ns1red">*</span></p>
         <p>{{ agentPolicy.backend }}</p>
       </div>
-    </div>
-    <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Version<span class="ns1red">*</span></p>
+        <p class="detail-title">Policy Version<span class="ns1red">*</span></p>
         <p>{{ agentPolicy.version }}</p>
       </div>
+    </div>
+    <div class="row">
       <div class="col-6 align-items-start d-flex flex-column">
-        <p class="detail-title">Last Modified</p>
-        <p>{{ agentPolicy.ts_created }}</p>
+        <p class="detail-title">Date Created:</p>
+        <p>{{ agentPolicy.ts_created | date:'short' }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Policy Config<span class="ns1red">*</span></p>
+        <p>{{ agentPolicy.policy | json }}</p>
       </div>
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Tags<span class="ns1red">*</span></p>
+        <p class="detail-title">Policy Tags<span class="ns1red">*</span></p>
         <div>
           <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
             <mat-chip
@@ -54,6 +58,6 @@
   </nb-card-body>
 
   <nb-card-footer>
-    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(agentPolicy)">Edit</button>
+    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(sink)">Edit</button>
   </nb-card-footer>
 </nb-card>
