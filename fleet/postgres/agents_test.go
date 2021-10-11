@@ -654,12 +654,11 @@ func TestAgentsStatesRetrieval(t *testing.T) {
 	oID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	invalidID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	name := "agent_name"
 	tagsStr := `{"region": "EU", "node_type": "dns"}`
-	metaStr := `{"field1":"value1","field2":{"subfield11":"value2","subfield12":{"subfield121":"value3","subfield122":"value4"}}}`
-
-	metadata := types.Metadata{}
-	json.Unmarshal([]byte(metaStr), &metadata)
 
 	tags := types.Tags{}
 	json.Unmarshal([]byte(tagsStr), &tags)
@@ -679,7 +678,6 @@ func TestAgentsStatesRetrieval(t *testing.T) {
 		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, i))
 		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
 		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-		th.AgentMetadata = metadata
 		th.AgentTags = tags
 
 		err = agentRepo.Save(context.Background(), th)
@@ -696,6 +694,10 @@ func TestAgentsStatesRetrieval(t *testing.T) {
 				State: 0,
 				Count: 10,
 			}),
+		},
+		"retrieve all agents states summary with a wrong owner": {
+			owner: invalidID.String(),
+			summary: summary,
 		},
 	}
 
@@ -716,12 +718,11 @@ func TestTotalAgentsRetrieval(t *testing.T) {
 	oID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	invalidID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	name := "agent_name"
 	tagsStr := `{"region": "EU", "node_type": "dns"}`
-	metaStr := `{"field1":"value1","field2":{"subfield11":"value2","subfield12":{"subfield121":"value3","subfield122":"value4"}}}`
-
-	metadata := types.Metadata{}
-	json.Unmarshal([]byte(metaStr), &metadata)
 
 	tags := types.Tags{}
 	json.Unmarshal([]byte(tagsStr), &tags)
@@ -741,7 +742,6 @@ func TestTotalAgentsRetrieval(t *testing.T) {
 		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, i))
 		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
 		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-		th.AgentMetadata = metadata
 		th.AgentTags = tags
 
 		err = agentRepo.Save(context.Background(), th)
@@ -753,8 +753,12 @@ func TestTotalAgentsRetrieval(t *testing.T) {
 		totalAgents int
 	}{
 		"retrieve total agents by owner": {
-			owner: oID.String(),
+			owner:       oID.String(),
 			totalAgents: 10,
+		},
+		"retrieve total agents with wrong owner": {
+			owner:       invalidID.String(),
+			totalAgents: 0,
 		},
 	}
 
