@@ -327,7 +327,6 @@ export class AgentPolicyAddComponent {
         num_periods: 5,
         deep_sample_rate: 100,
       },
-      validate_only: false,
     };
 
     if (this.isEdit) {
