@@ -83,7 +83,7 @@
               >
                 <nb-option *ngFor="let agentGroup of availableAgentGroups"
                            [attr.data-orb-qa-id]="'available_agent_group: '+agentGroup.id" [id]="agentGroup.id"
-                           [value]="agentGroup">{{ agentGroup.name | titlecase }}</nb-option>
+                           [value]="agentGroup">{{ agentGroup.name }}</nb-option>
               </nb-select>
             </nb-form-field>
             <hr/>
@@ -131,7 +131,7 @@
               >
                 <nb-option *ngFor="let agentPolicy of availableAgentPolicies"
                            [attr.data-orb-qa-id]="'available_agent_policy: '+agentPolicy.id" [id]="agentPolicy.id"
-                           [value]="agentPolicy">{{ agentPolicy.name | titlecase }}</nb-option>
+                           [value]="agentPolicy">{{ agentPolicy.name }}</nb-option>
               </nb-select>
             </nb-form-field>
             <hr/>
@@ -195,7 +195,7 @@
               >
                 <nb-option *ngFor="let sink of availableSinks"
                            [attr.data-orb-qa-id]="'available_sink: '+sink.id" [id]="sink.id"
-                           [value]="sink">{{ sink.name | titlecase }}</nb-option>
+                           [value]="sink">{{ sink.name }}</nb-option>
               </nb-select>
             </nb-form-field>
             <button (click)="onAddSink()"

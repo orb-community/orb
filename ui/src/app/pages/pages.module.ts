@@ -56,6 +56,7 @@ import { AgentPolicyListComponent } from 'app/pages/datasets/policies.agent/list
 import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.component';
 import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
 import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.component';
+import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.details.component';
 
 @NgModule({
   imports: [
@@ -116,6 +117,7 @@ import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.componen
     DatasetAddComponent,
     DatasetListComponent,
     DatasetDeleteComponent,
+    DatasetDetailsComponent,
     // Dataset Explorer - Agent Policies
     AgentPolicyAddComponent,
     AgentPolicyDeleteComponent,

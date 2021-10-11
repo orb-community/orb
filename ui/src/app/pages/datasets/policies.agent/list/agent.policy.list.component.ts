@@ -18,6 +18,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 import { ActivatedRoute, Router } from '@angular/router';
 import { Debounce } from 'app/shared/decorators/utils';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
+import { AgentPolicyDetailsComponent } from 'app/pages/datasets/policies.agent/details/agent.policy.details.component';
 
 @Component({
   selector: 'ngx-agent-policy-list-component',
@@ -192,17 +193,17 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
   }
 
   openDetailsModal(agentPolicy: any) {
-    // this.dialogService.open(AgentPolicyDetailsComponent, {
-    //   context: { agentPolicy: agentPolicy },
-    //   autoFocus: true,
-    //   closeOnEsc: true,
-    // }).onClose.subscribe((resp) => {
-    //   if (resp) {
-    //     this.onOpenEdit(agentPolicy);
-    //   } else {
-    //     this.getAgentsPolicies();
-    //   }
-    // });
+    this.dialogService.open(AgentPolicyDetailsComponent, {
+      context: { agentPolicy: agentPolicy },
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe((resp) => {
+      if (resp) {
+        this.onOpenEdit(agentPolicy);
+      } else {
+        this.getAgentsPolicies();
+      }
+    });
   }
 
   searchAgentByName(input) {

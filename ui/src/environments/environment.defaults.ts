@@ -15,6 +15,7 @@ const ORB = {
     validateAgentGroupsUrl: '/agent_groups/validate',
     agentPoliciesUrl: '/policies/agent',
     agentsBackendUrl: 'backends/agents',
+    baseBackendComposeUrl: 'agents/backends',
     pktvisorTapsUrl: 'agents/backends/pktvisor/taps',
     pktvisorInputsUrl: 'agents/backends/pktvisor/inputs',
     pktvisorHandlersUrl: 'agents/backends/pktvisor/handlers',

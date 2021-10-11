@@ -174,13 +174,12 @@ export class AgentPoliciesService {
     // return this.http.get(environment.agentsBackendUrl)
     //   .map((resp: any) => {
     //     return resp.backend;
-    //   }).catch(
-    //     err => {
-    //       this.notificationsService.error('Failed to get Availab//         `Error: ${ err.status } - ${ err.statusText }`);
+    //   }).catch(err => {
+    //       this.notificationsService.error('Failed to get Available Backends',
+    //         `Error: ${ err.status } - ${ err.statusText }`);
     //       return Observable.throwError(err);
-    //     },
-    //   );
-    // TODO remove mock and uncomment http request
+    //     });
+    // TODO uncomment mock above
     return new Observable(subscriber => {
       // TODO continue this format in future
       const resp = {
@@ -215,25 +214,32 @@ export class AgentPoliciesService {
     //     },
     //   );
     // TODO remove mock and uncomment http request
+    // if (final === 'pktvisor/taps') {
+    //   return this.http.get(`${environment.agentsBackendUrl}/${final}`)
+    //   .map((response: any) => {
+    //     return response.backend;
+    //   }).catch(
+    //     err => {
+    //       this.notificationsService.error('Failed to get Available Backends',
+    //         `Error: ${ err.status } - ${ err.statusText }`);
+    //       return Observable.throwError(err);
+    //     },
+    //   );
+    // }
+
     let resp;
     switch (final) {
       case 'pktvisor/taps':
         resp = {
           data: [
             {
-              'tap': 'anycast',
-              'version': '1.0',
+              'name': 'ethernet',
               'input_type': 'pcap',
-              'config': {
-                'iface': 'eth0',
-              },
-            },
-            {
-              'tap': 'trex_tap',
-              'version': '1.0',
-              'input_type': 'dnstap',
-              'config': {
-                'socket': '/var/dns.sock',
+              'config_predefined': [
+                'iface',
+              ],
+              'agents': {
+                'total': 1,
               },
             },
           ],
@@ -397,4 +403,5 @@ export class AgentPoliciesService {
       subscriber.next(resp);
     });
   }
+
 }
