@@ -163,8 +163,8 @@ func main() {
 
 	runCmd := &cobra.Command{
 		Use:   "run",
-		Short: "Run orb-agent",
-		Long:  `Run orb-agent`,
+		Short: "Run orb-agent and connect to Orb control plane",
+		Long:  `Run orb-agent and connect to Orb control plane`,
 		Run:   Run,
 	}
 
