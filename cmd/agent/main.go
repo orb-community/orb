@@ -119,6 +119,11 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.db.file", "./orb-agent.db")
 	v.SetDefault("orb.tls.verify", true)
 
+	v.SetDefault("orb.backends.pktvisor.binary", "")
+	v.SetDefault("orb.backends.pktvisor.config_file", "")
+	v.SetDefault("orb.backends.pktvisor.api_host", "localhost")
+	v.SetDefault("orb.backends.pktvisor.api_port", "10853")
+
 	if len(path) > 0 {
 		cobra.CheckErr(v.ReadInConfig())
 	}

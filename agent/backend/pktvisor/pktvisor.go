@@ -41,7 +41,7 @@ type pktvisorBackend struct {
 	scraper      *gocron.Scheduler
 
 	adminAPIHost     string
-	adminAPIPort     uint16
+	adminAPIPort     string
 	adminAPIProtocol string
 }
 
@@ -77,7 +77,7 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 		return err
 	}
 
-	URL := fmt.Sprintf("%s://%s:%d/api/v1/%s", p.adminAPIProtocol, p.adminAPIHost, p.adminAPIPort, url)
+	URL := fmt.Sprintf("%s://%s:%s/api/v1/%s", p.adminAPIProtocol, p.adminAPIHost, p.adminAPIPort, url)
 
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
@@ -246,7 +246,6 @@ func (p *pktvisorBackend) Write(payload []byte) (n int, err error) {
 }
 
 func (p *pktvisorBackend) Start() error {
-	p.logger.Info("pktvisor starting")
 
 	_, err := exec.LookPath(p.binary)
 	if err != nil {
@@ -256,10 +255,15 @@ func (p *pktvisorBackend) Start() error {
 
 	pvOptions := []string{
 		"--admin-api",
+		"-l",
+		p.adminAPIHost,
+		"-p",
+		p.adminAPIPort,
 	}
 	if len(p.configFile) > 0 {
 		pvOptions = append(pvOptions, "--config", p.configFile)
 	}
+	p.logger.Info("pktvisor startup", zap.Strings("arguments", pvOptions))
 	p.proc = cmd.NewCmdOptions(cmd.Options{
 		Buffered:  false,
 		Streaming: true,
@@ -334,6 +338,13 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]string
 	if p.configFile, prs = config["config_file"]; !prs {
 		p.configFile = ""
 	}
+	if p.adminAPIHost, prs = config["api_host"]; !prs {
+		return errors.New("you must specify pktvisor admin API host")
+	}
+	if p.adminAPIPort, prs = config["api_port"]; !prs {
+		return errors.New("you must specify pktvisor admin API port")
+	}
+
 	return nil
 }
 
@@ -359,8 +370,6 @@ func (p *pktvisorBackend) GetCapabilities() (map[string]interface{}, error) {
 
 func Register() bool {
 	backend.Register("pktvisor", &pktvisorBackend{
-		adminAPIHost:     "localhost",
-		adminAPIPort:     10853,
 		adminAPIProtocol: "http",
 	})
 	return true
