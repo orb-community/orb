@@ -35,7 +35,7 @@ import (
 )
 
 const (
-	// DefaultRemoteWrite is the default Prom remote write endpoint in m3coordinator.
+	// DefaultRemoteWrite is the default Prom remote write endpoint in grafana.
 	DefaultRemoteWrite = "https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push"
 
 	defaulHTTPClientTimeout = 30 * time.Second
@@ -71,7 +71,6 @@ type Datapoint struct {
 }
 
 // Client is used to write timeseries data to a Prom remote write endpoint
-// such as the one in m3coordinator.
 type Client interface {
 	// WriteProto writes the Prom proto WriteRequest to the specified endpoint.
 	WriteProto(
@@ -108,7 +107,7 @@ type WriteError interface {
 
 // Config defines the configuration used to construct a client.
 type Config struct {
-	// WriteURL is the URL which the client uses to write to m3coordinator.
+	// WriteURL is the URL which the client uses to write to prometheus.
 	WriteURL string `yaml:"writeURL"`
 
 	//HTTPClientTimeout is the timeout that is set for the client.
@@ -150,7 +149,7 @@ func (c Config) validate() error {
 	return nil
 }
 
-// WriteURLOption sets the URL which the client uses to write to m3coordinator.
+// WriteURLOption sets the URL which the client uses to write to prometheus.
 func WriteURLOption(writeURL string) ConfigOption {
 	return func(c *Config) {
 		c.WriteURL = writeURL

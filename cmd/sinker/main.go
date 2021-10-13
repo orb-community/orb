@@ -55,17 +55,6 @@ func main() {
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
 	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 
-	////var writeURLFlag string
-	////flag.StringVar(&writeURLFlag, "u", prometheus.DefaultRemoteWrite, "remote write endpoint")
-	//cfg := prometheus.NewConfig(
-	//	//prometheus.WriteURLOption(),
-	//)
-	//
-	//promClient, err := prometheus.NewClient(cfg)
-	//if err != nil {
-	//	log.Fatal(fmt.Errorf("unable to construct client: %v", err))
-	//}
-
 	// main logger
 	var logger *zap.Logger
 	if svcCfg.LogLevel == "debug" {

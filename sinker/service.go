@@ -65,8 +65,6 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 	}
 	svc.logger.Info("writing to", zap.String("url", config.Url), zap.String("user", config.User))
 
-	//var writeURLFlag string
-	//flag.StringVar(&writeURLFlag, "u", config.Url, "remote write endpoint")
 	cfg := prometheus.NewConfig(
 		prometheus.WriteURLOption(config.Url),
 	)
@@ -78,7 +76,6 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 
 	var headers = make(map[string]string)
 	headers["Authorization"] = encodeBase64(config.User, config.Password)
-	//prometheus.WriteURLOption(config.Url)
 	result, writeErr := promClient.WriteTimeSeries(context.Background(), tsList,
 		prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
@@ -114,13 +111,10 @@ func encodeBase64(user string, password string) string {
 }
 
 func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.AgentMetricsRPCPayload) ([]string, error) {
-	//Use channelID to get owner id on fleet grpc server
 	ownerID, err := svc.fleetClient.RetrieveOwnerByChannelID(context.Background(), &fleetpb.OwnerByChannelIDReq{Channel: channelID})
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Printf("Got this owner %s by this channel: %s\n", ownerID, channelID)
-	//Use metricsRPC.Payload[0].Datasets[] to retrieve the sinkID from policy grpc server
 	var sinkIDsList []string
 	for _, m := range metrics {
 		for _, ds := range m.Datasets {
@@ -135,7 +129,6 @@ func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.Agen
 			if err != nil {
 				return nil, err
 			}
-			//fmt.Printf("got this sinkid %v by this datasetid %s\n", sinkID.SinkIds, ds)
 			for _, sid := range sinkID.SinkIds {
 				if !svc.configRepo.Exists(sid) {
 					//Use the retrieved sinkID to get the backend config
@@ -155,7 +148,6 @@ func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.Agen
 					data.SinkID = sid
 					data.OwnerID = ownerID.OwnerID
 					svc.configRepo.Add(data)
-					//fmt.Printf("got this sink config by this sink id %s\n", sid)
 				}
 				sinkIDsList = append(sinkIDsList, sid)
 			}
@@ -267,7 +259,6 @@ func New(logger *zap.Logger,
 	policiesClient policiespb.PolicyServiceClient,
 	fleetClient fleetpb.FleetServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
-	//promClient prometheus.Client
 ) Service {
 
 	pktvisor.Register(logger)
@@ -279,6 +270,5 @@ func New(logger *zap.Logger,
 		policiesClient: policiesClient,
 		fleetClient:    fleetClient,
 		sinksClient:    sinksClient,
-		//promClient:     promClient,
 	}
 }
