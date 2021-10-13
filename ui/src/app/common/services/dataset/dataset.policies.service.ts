@@ -6,7 +6,6 @@ import 'rxjs/add/observable/empty';
 import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 
 // default filters
@@ -17,7 +16,8 @@ const defDir = 'desc';
 @Injectable()
 export class DatasetPoliciesService {
   paginationCache: any = {};
-  cache: OrbPagination<AgentPolicy>;
+
+  cache: OrbPagination<Dataset>;
 
   constructor(
     private http: HttpClient,
@@ -51,8 +51,8 @@ export class DatasetPoliciesService {
 
   addDataset(datasetItem: Dataset) {
     return this.http.post(environment.datasetPoliciesUrl,
-      { ...datasetItem, validate_only: false },
-      { observe: 'response' })
+        { ...datasetItem},
+        { observe: 'response' })
       .map(
         resp => {
           return resp;
@@ -139,8 +139,7 @@ export class DatasetPoliciesService {
     }
 
     return this.http.get(environment.datasetPoliciesUrl, { params })
-      .map(
-        (resp: any) => {
+      .map((resp: any) => {
           this.paginationCache[pageInfo.offset] = true;
           // This is the position to insert the new data
           const start = resp.offset;

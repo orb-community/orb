@@ -23,7 +23,7 @@ export interface Dataset extends OrbEntity {
   /**
    *  Array of Sink ID {<string>[]} UUIDv4 (read only)
    */
-  sink_id?: string[];
+  sink_ids?: string[];
 
   /**
    * Indicates whether dataset is valid or not {boolean}

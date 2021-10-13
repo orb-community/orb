@@ -45,3 +45,36 @@ func sortPolicies(pm policies.PageMetadata, ags []policies.Policy) []policies.Po
 
 	return ags
 }
+
+func sortDataset(pm policies.PageMetadata, ags []policies.Dataset) []policies.Dataset {
+	switch pm.Order {
+	case "name":
+		if pm.Dir == "asc" {
+			sort.SliceStable(ags, func(i, j int) bool {
+				return ags[i].Name.String() < ags[j].Name.String()
+			})
+		}
+		if pm.Dir == "desc" {
+			sort.SliceStable(ags, func(i, j int) bool {
+				return ags[i].Name.String() > ags[j].Name.String()
+			})
+		}
+	case "id":
+		if pm.Dir == "asc" {
+			sort.SliceStable(ags, func(i, j int) bool {
+				return ags[i].ID < ags[j].ID
+			})
+		}
+		if pm.Dir == "desc" {
+			sort.SliceStable(ags, func(i, j int) bool {
+				return ags[i].ID > ags[j].ID
+			})
+		}
+	default:
+		sort.SliceStable(ags, func(i, j int) bool {
+			return ags[i].ID < ags[j].ID
+		})
+	}
+
+	return ags
+}

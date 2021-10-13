@@ -1,0 +1,313 @@
+<div>
+  <header data-orb-qa-id="dataset#add">
+    <xng-breadcrumb class="orb-breadcrumb"
+                    data-orb-qa-id="breadcrumb">
+      <ng-container
+        *xngBreadcrumbItem="let breadcrumb; let info = info; let first = first">
+        <ng-container [ngClass]="{'my_class': first === ''}">{{ breadcrumb }}</ng-container>
+      </ng-container>
+    </xng-breadcrumb>
+    <h4>{{isEdit ? 'Edit Dataset' : 'New Dataset'}}</h4>
+  </header>
+  <div *ngIf="!isLoading" class="d-flex row">
+    <div class="d-flex col-12 mt-5">
+      <nb-stepper class="stepper w-100 ml-5"
+                  disableStepNavigation
+                  orientation="vertical">
+        <nb-step [label]="firstStepTemplate"
+                 [stepControl]="detailsFormGroup"
+                 data-orb-qa-id="step_1">
+          <ng-template #firstStepTemplate>
+            <div class="step-label d-flex flex-column">
+              <strong>Create Dataset</strong>
+              <p>Provide a name for the Dataset</p>
+            </div>
+          </ng-template>
+          <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFormGroup">
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold">Name Label</label>
+                <span class="required">*</span>
+              </div>
+              <input autofocus
+                     data-orb-qa-id="name"
+                     fieldSize="medium"
+                     formControlName="name"
+                     fullWidth="true"
+                     nbInput/>
+            </nb-form-field>
+            <hr/>
+            <div class="d-flex justify-content-end">
+              <button
+                (click)="goBack()"
+                data-orb-qa-id="cancel"
+                ghost
+                nbButton
+                status="primary"
+                type="button">Cancel
+              </button>
+              <button [disabled]="!detailsFormGroup?.valid"
+                      class="next-button"
+                      data-orb-qa-id="next"
+                      nbButton
+                      nbStepperNext
+                      shape="round"
+                      status="primary"
+                      type="submit">Next
+              </button>
+            </div>
+          </form>
+        </nb-step>
+        <nb-step [label]="secondStepTemplate"
+                 [stepControl]="agentFormGroup"
+                 data-orb-qa-id="step_2">
+          <ng-template #secondStepTemplate>
+            <div class="step-label d-flex flex-column">
+              <strong>Define Agent Group</strong>
+              <p>Create dynamic groups to filter your data by matching against your tags</p>
+            </div>
+          </ng-template>
+          <form (ngSubmit)="onFormSubmit()" [formGroup]="agentFormGroup">
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold">Who</label>
+                <span class="required">*</span>
+              </div>
+              <nb-select (selectedChange)="onAgentGroupSelected($event)"
+                         appearance="filled"
+                         data-orb-qa-id="agent_group_id"
+                         formControlName="agent_group_id"
+                         fullWidth="true"
+                         placeholder="Agent Group Name"
+                         size="medium"
+              >
+                <nb-option *ngFor="let agentGroup of availableAgentGroups"
+                           [attr.data-orb-qa-id]="'available_agent_group: '+agentGroup.id" [id]="agentGroup.id"
+                           [value]="agentGroup">{{ agentGroup.name }}</nb-option>
+              </nb-select>
+            </nb-form-field>
+            <hr/>
+            <div class="d-flex justify-content-end">
+              <button
+                nbStepperPrevious
+                data-orb-qa-id="cancel"
+                ghost
+                nbButton
+                status="primary"
+                type="button">Back
+              </button>
+              <button [disabled]="!agentFormGroup?.valid"
+                      class="next-button"
+                      data-orb-qa-id="next"
+                      nbButton
+                      nbStepperNext
+                      shape="round"
+                      status="primary"
+                      type="submit">Next
+              </button>
+            </div>
+          </form>
+        </nb-step>
+        <nb-step [label]="thirdStepTemplate"
+                 data-orb-qa-id="step_3">
+          <ng-template #thirdStepTemplate>
+            <div class="step-label d-flex flex-column">
+              <strong>Collection Policy</strong>
+              <p>Define how to map your data; view the available collection paths based on your Selectors</p>
+            </div>
+          </ng-template>
+          <form [formGroup]="policyFormGroup">
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold">What</label>
+                <span class="required">*</span>
+              </div>
+              <nb-select appearance="filled"
+                         data-orb-qa-id="agent_policy_id"
+                         formControlName="agent_policy_id"
+                         fullWidth="true"
+                         placeholder="Policy"
+                         size="medium"
+              >
+                <nb-option *ngFor="let agentPolicy of availableAgentPolicies"
+                           [attr.data-orb-qa-id]="'available_agent_policy: '+agentPolicy.id" [id]="agentPolicy.id"
+                           [value]="agentPolicy">{{ agentPolicy.name }}</nb-option>
+              </nb-select>
+            </nb-form-field>
+            <hr/>
+            <div *ngIf="policyFormGroup" class="d-flex justify-content-end">
+              <button
+                data-orb-qa-id="cancel"
+                ghost
+                nbButton
+                nbStepperPrevious
+                status="primary"
+              >Back
+              </button>
+              <button [disabled]="!policyFormGroup?.valid"
+                      class="next-button"
+                      data-orb-qa-id="next"
+                      nbButton
+                      nbStepperNext
+                      shape="round"
+                      status="primary"
+                      type="submit">Next
+              </button>
+            </div>
+          </form>
+        </nb-step>
+        <nb-step [label]="fourthStepTemplate"
+                 data-orb-qa-id="step_4">
+          <ng-template #fourthStepTemplate>
+            <div class="step-label d-flex flex-column">
+              <strong>Define Sinks</strong>
+              <p>Where do you want to sink your data?</p>
+            </div>
+          </ng-template>
+          <form [formGroup]="sinkFormGroup">
+            <div class="d-flex">
+              <mat-chip-list data-orb-qa-id="sinkList">
+                <mat-chip
+                  *ngFor="let sink of selectedSinks; index as i"
+                  [attr.data-orb-qa-id]="'sink_' + i"
+                  [style.background-color]="sink | tagchipcolor"
+                  class="orb-selected-sink ">
+                  {{ sink.id |slice:0:8 }}: {{sink.name}}
+                  <nb-icon (click)="onRemoveSink(sink)"
+                           class="ml-1"
+                           icon="close-outline"
+                           size="12"></nb-icon>
+                </mat-chip>
+              </mat-chip-list>
+            </div>
+            <hr/>
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold">Where</label>
+                <span class="required">*</span>
+              </div>
+              <nb-select appearance="filled"
+                         data-orb-qa-id="sink_selector"
+                         formControlName="selected_sink"
+                         fullWidth="true"
+                         placeholder="Sink Name"
+                         size="medium"
+              >
+                <nb-option *ngFor="let sink of availableSinks"
+                           [attr.data-orb-qa-id]="'available_sink: '+sink.id" [id]="sink.id"
+                           [value]="sink">{{ sink.name }}</nb-option>
+              </nb-select>
+            </nb-form-field>
+            <button (click)="onAddSink()"
+                    [disabled]="(sinkFormGroup.controls['selected_sink'].value === '')"
+                    data-orb-qa-id="addSink"
+                    ghost
+                    nbButton>
+              <nb-icon icon="plus-outline"
+                       size="14"
+                       status="primary"
+                       style="color: #df316f;">
+              </nb-icon>
+            </button>
+            <hr/>
+            <div *ngIf="sinkFormGroup" class="d-flex justify-content-start"
+                 style="padding-left: 35%;">
+              <button
+                data-orb-qa-id="back"
+                ghost
+                nbButton
+                nbStepperPrevious
+                status="primary">
+                Back
+              </button>
+              <button [disabled]="selectedSinks.length === 0"
+                      class="next-button"
+                      data-orb-qa-id="next"
+                      nbButton
+                      nbStepperNext
+                      shape="round"
+                      status="primary"
+                      type="submit">
+                Next
+              </button>
+            </div>
+          </form>
+        </nb-step>
+        <nb-step [label]="fifthStepTemplate"
+                 data-orb-qa-id="step_5">
+          <ng-template #fifthStepTemplate>
+            <div class="step-label d-flex flex-column">
+              <strong>Review & Confirm</strong>
+            </div>
+          </ng-template>
+          <div class="d-flex row">
+            <div class="col-md-12 col-xl-12">
+              <div>
+                <label class="font-weight-bold">Dataset Name</label>
+                <p data-orb-qa-id="review-agent-group">{{detailsFormGroup?.controls.name.value}}</p>
+              </div>
+            </div>
+            <div class="col-md-12 col-xl-6">
+              <div>
+                <label class="font-weight-bold">Agent Group Name</label>
+                <p data-orb-qa-id="review-agent-group">{{agentFormGroup?.controls.agent_group_id.value.name}}</p>
+              </div>
+            </div>
+            <div class="col-md-12 col-xl-6">
+              <div>
+                <label class="font-weight-bold">Agent Group ID</label>
+                <p data-orb-qa-id="review-agent-group">{{agentFormGroup?.controls.agent_group_id.value.id}}</p>
+              </div>
+            </div>
+            <div class="col-md-12 col-xl-6">
+              <div>
+                <label class="font-weight-bold">Agent Policy Name</label>
+                <p data-orb-qa-id="review-agent-policy">{{policyFormGroup?.controls.agent_policy_id.value.name}}</p>
+              </div>
+            </div>
+            <div class="col-md-12 col-xl-6">
+              <div>
+                <label class="font-weight-bold">Agent Policy ID</label>
+                <p data-orb-qa-id="review-agent-policy">{{policyFormGroup?.controls.agent_policy_id.value.id}}</p>
+              </div>
+            </div>
+            <div class="col-md-12 col-xl-6">
+              <div>
+                <label class="font-weight-bold">Sinks</label>
+                <div class="d-flex row mt-4">
+                  <mat-chip-list data-orb-qa-id="sinkList">
+                    <mat-chip
+                      *ngFor="let sink of selectedSinks; index as i"
+                      [attr.data-orb-qa-id]="'sink_' + i"
+                      [style.background-color]="sink | tagchipcolor"
+                      class="orb-selected-sink ">
+                      {{ sink.id |slice:0:8 }}: {{sink.name}}
+                    </mat-chip>
+                  </mat-chip-list>
+                </div>
+              </div>
+            </div>
+          </div>
+          <hr/>
+          <div *ngIf="sinkFormGroup" class="d-flex justify-content-end">
+            <button
+              data-orb-qa-id="previous"
+              ghost
+              nbButton
+              nbStepperPrevious
+              status="primary">Back
+            </button>
+            <button (click)="onFormSubmit()"
+                    class="next-button"
+                    data-orb-qa-id="next"
+                    nbButton
+                    shape="round"
+                    status="primary"
+                    type="submit">Save
+            </button>
+          </div>
+        </nb-step>
+      </nb-stepper>
+    </div>
+  </div>
+</div>

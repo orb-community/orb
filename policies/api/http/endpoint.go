@@ -197,7 +197,7 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Valid:        saved.Valid,
 			AgentGroupID: saved.AgentGroupID,
 			PolicyID:     saved.PolicyID,
-			SinkIDs:       saved.SinkIDs,
+			SinkIDs:      saved.SinkIDs,
 			Metadata:     saved.Metadata,
 			TsCreated:    saved.Created,
 			Tags:         saved.Tags,
@@ -295,7 +295,7 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Name:         nID,
 			AgentGroupID: req.AgentGroupID,
 			PolicyID:     req.PolicyID,
-			SinkIDs:       req.SinkIDs,
+			SinkIDs:      req.SinkIDs,
 			Tags:         req.Tags,
 		}
 
@@ -310,9 +310,68 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Tags:         validated.Tags,
 			AgentGroupID: validated.AgentGroupID,
 			PolicyID:     validated.PolicyID,
-			SinkIDs:       validated.SinkIDs,
+			SinkIDs:      validated.SinkIDs,
 		}
 
+		return res, nil
+	}
+}
+
+func viewDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		dataset, err := svc.ViewDatasetByID(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+
+		res := datasetRes{
+			ID:           dataset.ID,
+			Name:         dataset.Name.String(),
+			PolicyID:     dataset.PolicyID,
+			SinkIDs:      dataset.SinkIDs,
+			AgentGroupID: dataset.AgentGroupID,
+		}
+		return res, nil
+	}
+}
+
+func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(listResourcesReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		page, err := svc.ListDatasets(ctx, req.token, req.pageMetadata)
+		if err != nil {
+			return nil, err
+		}
+
+		res := datasetPageRes{
+			pageRes: pageRes{
+				Total:  page.Total,
+				Offset: page.Offset,
+				Limit:  page.Limit,
+				Order:  page.Order,
+				Dir:    page.Dir,
+			},
+			Datasets: []datasetRes{},
+		}
+		for _, dataset := range page.Datasets {
+			view := datasetRes{
+				ID:           dataset.ID,
+				Name:         dataset.Name.String(),
+				PolicyID:     dataset.PolicyID,
+				SinkIDs:      dataset.SinkIDs,
+				AgentGroupID: dataset.AgentGroupID,
+			}
+			res.Datasets = append(res.Datasets, view)
+		}
 		return res, nil
 	}
 }
