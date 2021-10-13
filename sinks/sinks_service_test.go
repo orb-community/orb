@@ -416,6 +416,48 @@ func TestValidateSink(t *testing.T) {
 
 }
 
+func TestSinksStatisticsSummary(t *testing.T) {
+	service := newService(map[string]string{token: email})
+
+	var sks []sinks.Sink
+	for i := 0; i < 10; i++ {
+		sink.Name, _ = types.NewIdentifier(fmt.Sprintf("my-sink-%d", i))
+		sink.State = "active"
+		sk, err := service.CreateSink(context.Background(), token, sink)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+		sks = append(sks, sk)
+	}
+
+	var skSummary []sinks.SinkStates
+	skSummary = append(skSummary, sinks.SinkStates{
+		State: "active",
+		Count: 10,
+	})
+
+	cases := map[string]struct{
+		token string
+		statistics sinks.SinksStatistics
+		err error
+	}{
+		"retrieve all sinks statistics summary": {
+			token: token,
+			statistics: sinks.SinksStatistics{
+				StatesSummary: skSummary,
+				TotalSinks: 10,
+			},
+			err: nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			statistics, err := service.SinksStatistics(context.Background(), tc.token)
+			assert.Equal(t, statistics, tc.statistics, fmt.Sprintf("%s: expected %+v got %+v", desc, tc.statistics, statistics))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
 func testSortSinks(t *testing.T, pm sinks.PageMetadata, sks []sinks.Sink) {
 	switch pm.Order {
 	case "name":

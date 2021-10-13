@@ -55,6 +55,10 @@ func (m metricsMiddleware) ValidateSink(ctx context.Context, token string, s sin
 	return m.svc.ValidateSink(ctx, token, s)
 }
 
+func (m metricsMiddleware) SinksStatistics(ctx context.Context, token string) (sinks.SinksStatistics, error) {
+	return m.svc.SinksStatistics(ctx, token)
+}
+
 // MetricsMiddleware instruments core service by tracking request count and latency.
 func MetricsMiddleware(svc sinks.SinkService, counter metrics.Counter, latency metrics.Histogram) sinks.SinkService {
 	return &metricsMiddleware{

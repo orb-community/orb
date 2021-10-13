@@ -62,9 +62,14 @@ type Page struct {
 	Sinks []Sink
 }
 
-type SinksStatistics struct {
+type SinkStates struct {
 	State string
 	Count int
+}
+
+type SinksStatistics struct {
+	StatesSummary []SinkStates
+	TotalSinks int
 }
 
 // SinkService Sink CRUD interface
@@ -87,6 +92,8 @@ type SinkService interface {
 	DeleteSink(ctx context.Context, token string, key string) error
 	// ValidateSink validate a sink configuration without saving
 	ValidateSink(ctx context.Context, token string, sink Sink) (Sink, error)
+	// AllStatisticsSummary summarises sinks states and retrieve total sinks by owner
+	SinksStatistics(ctx context.Context, owner string) (SinksStatistics, error)
 }
 
 type SinkRepository interface {
@@ -105,5 +112,7 @@ type SinkRepository interface {
 	// Remove a existing Sink by id
 	Remove(ctx context.Context, owner string, key string) error
 	// RetrieveSinksStatistics
-	RetrieveSinksStatistics(ctx context.Context, owner string) ([]SinksStatistics, error)
+	RetrieveSinksStatistics(ctx context.Context, owner string) ([]SinkStates, error)
+	// RetrieveTotalSinksByOwner
+	RetrieveTotalSinksByOwner(ctx context.Context, owner string) (int, error)
 }

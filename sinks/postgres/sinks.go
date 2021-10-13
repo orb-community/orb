@@ -218,8 +218,8 @@ func (s sinksRepository) Remove(ctx context.Context, owner, id string) error {
 	return nil
 }
 
-func (s sinksRepository) RetrieveSinksStatistics(ctx context.Context, owner string) ([]sinks.SinksStatistics, error) {
-	q := fmt.Sprintf(`SELECT count(*), state FROM sinks WHERE mf_owner_id = :mf_owner_id`)
+func (s sinksRepository) RetrieveSinksStatistics(ctx context.Context, owner string) ([]sinks.SinkStates, error) {
+	q := fmt.Sprintf(`SELECT count(*), state FROM sinks WHERE mf_owner_id = :mf_owner_id GROUP BY state`)
 
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
@@ -227,27 +227,52 @@ func (s sinksRepository) RetrieveSinksStatistics(ctx context.Context, owner stri
 
 	rows, err := s.db.NamedQueryContext(ctx, q, params)
 	if err != nil {
-		return []sinks.SinksStatistics{}, errors.Wrap(errors.ErrSelectEntity, err)
+		return []sinks.SinkStates{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 	defer rows.Close()
 
-	var summary []sinks.SinksStatistics
+	var summary []sinks.SinkStates
 
 	for rows.Next() {
-		db := dbSinksStatistics{}
+		db := dbSinkStates{}
 		if err := rows.StructScan(&db); err != nil {
-			return []sinks.SinksStatistics{}, errors.Wrap(errors.ErrSelectEntity, err)
+			return []sinks.SinkStates{}, errors.Wrap(errors.ErrSelectEntity, err)
 		}
 
-		statistics, err := toStatistics(db)
+		statistics, err := toState(db)
 		if err != nil {
-			return []sinks.SinksStatistics{}, errors.Wrap(errors.ErrViewEntity, err)
+			return []sinks.SinkStates{}, errors.Wrap(errors.ErrViewEntity, err)
 		}
 
 		summary = append(summary, statistics)
 	}
 
 	return summary, nil
+}
+
+func (s sinksRepository) RetrieveTotalSinksByOwner(ctx context.Context, owner string) (int, error) {
+	q := fmt.Sprintf(`SELECT count(*) FROM sinks WHERE mf_owner_id = :mf_owner_id`)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+	}
+
+	rows, err := s.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return 0, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var count int
+
+	for rows.Next() {
+		err := rows.Scan(&count)
+		if err != nil {
+			return 0, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+	}
+
+	return count, nil
 }
 
 type dbSink struct {
@@ -301,14 +326,14 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 	return sink, nil
 }
 
-type dbSinksStatistics struct {
+type dbSinkStates struct {
 	State string `db:"state"`
 	Count int    `db:"count"`
 }
 
-func toStatistics(dbs dbSinksStatistics) (sinks.SinksStatistics, error) {
+func toState(dbs dbSinkStates) (sinks.SinkStates, error) {
 
-	statistics := sinks.SinksStatistics{
+	statistics := sinks.SinkStates{
 		State: dbs.State,
 		Count: dbs.Count,
 	}

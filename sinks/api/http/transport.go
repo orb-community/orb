@@ -88,6 +88,12 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.SinkServic
 		types.EncodeResponse,
 		opts...,
 	))
+	r.Get("/sinks/statistics", kithttp.NewServer(
+		kitot.TraceServer(tracer, "sink_statistics")(sinksStatisticsEndpoint(svc)),
+		decodeSinksStatistics,
+		types.EncodeResponse,
+		opts...,
+	))
 
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
@@ -202,6 +208,11 @@ func decodeValidateRequest(_ context.Context, r *http.Request) (interface{}, err
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
+	return req, nil
+}
+
+func decodeSinksStatistics(_ context.Context, r *http.Request) (interface{}, error) {
+	req := sinksStatisticsReq{token: r.Header.Get("Authorization")}
 	return req, nil
 }
 

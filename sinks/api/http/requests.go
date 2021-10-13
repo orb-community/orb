@@ -178,3 +178,15 @@ func (req validateReq) validate() error {
 
 	return nil
 }
+
+type sinksStatisticsReq struct {
+	token string
+}
+
+func (req sinksStatisticsReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+
+	return nil
+}

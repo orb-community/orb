@@ -6,6 +6,7 @@ package http
 
 import (
 	"github.com/ns1labs/orb/pkg/types"
+	"github.com/ns1labs/orb/sinks"
 	"net/http"
 	"time"
 )
@@ -134,5 +135,22 @@ func (s validateSinkRes) Headers() map[string]string {
 }
 
 func (s validateSinkRes) Empty() bool {
+	return false
+}
+
+type sinksStatisticsRes struct {
+	StatesSummary []sinks.SinkStates `json:"states_summary"`
+	TotalSinks int `json:"total_sinks"`
+}
+
+func (s sinksStatisticsRes) Code() int {
+	return http.StatusOK
+}
+
+func (s sinksStatisticsRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s sinksStatisticsRes) Empty() bool {
 	return false
 }

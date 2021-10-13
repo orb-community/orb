@@ -11,6 +11,7 @@ package sinks
 import (
 	"context"
 	"fmt"
+	"github.com/mainflux/mainflux"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/sinks/backend"
 )
@@ -146,4 +147,21 @@ func validateBackend(sink *Sink) error {
 		return ErrInvalidBackend
 	}
 	return nil
+}
+
+func (svc sinkService) SinksStatistics(ctx context.Context, token string) (SinksStatistics, error) {
+	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return SinksStatistics{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+
+	statisticsSummary, _ := svc.sinkRepo.RetrieveSinksStatistics(ctx, res.GetId())
+	total, _ := svc.sinkRepo.RetrieveTotalSinksByOwner(ctx, res.GetId())
+
+	statistics := SinksStatistics{
+		StatesSummary: statisticsSummary,
+		TotalSinks: total,
+	}
+
+	return statistics, nil
 }

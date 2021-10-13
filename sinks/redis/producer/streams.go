@@ -79,6 +79,10 @@ func (es eventStore) ValidateSink(ctx context.Context, token string, sink sinks.
 	return es.svc.ValidateSink(ctx, token, sink)
 }
 
+func (es eventStore) SinksStatistics(ctx context.Context, token string) (sinks.SinksStatistics, error) {
+	return es.svc.SinksStatistics(ctx, token)
+}
+
 // NewEventStoreMiddleware returns wrapper around sinks service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc sinks.SinkService, client *redis.Client) sinks.SinkService {

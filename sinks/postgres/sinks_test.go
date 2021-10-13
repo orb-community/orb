@@ -364,6 +364,55 @@ func TestSinkRemoval(t *testing.T) {
 	}
 }
 
+func TestRetrieveSinkStates(t *testing.T) {
+	var summary []sinks.SinkStates
+	dbMiddleware := postgres.NewDatabase(db)
+	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	for i := 0; i < 10; i ++ {
+		sk := sinks.Sink{
+			Description: "An example prometheus sink",
+			Backend:     "prometheus",
+			Created:     time.Now(),
+			MFOwnerID:   oID.String(),
+			State:       "active",
+			Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+			Tags:        map[string]string{"cloud": "aws"},
+		}
+
+		sk.Name, err = types.NewIdentifier(fmt.Sprintf("sink-%d", i))
+		require.True(t, sk.Name.IsValid(), "invalid Identifier name: %s")
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+		_, err = sinkRepo.Save(context.Background(), sk)
+		require.Nil(t, err, fmt.Sprintf("unexpected error; %s\n", err))
+	}
+
+	cases := map[string]struct{
+		owner string
+		summary []sinks.SinkStates
+	}{
+		"retrieve all sinks states summary": {
+			owner: oID.String(),
+			summary: append(summary, sinks.SinkStates{
+				State: "active",
+				Count: 10,
+			}),
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			summary, err := sinkRepo.RetrieveSinksStatistics(context.Background(), tc.owner)
+			assert.Equal(t, tc.summary, summary, fmt.Sprintf("%s: expected summary %+v got %+v\n", desc, tc.summary, summary))
+			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
+		})
+	}
+}
+
 func testSortSinks(t *testing.T, pm sinks.PageMetadata, sks []sinks.Sink) {
 	t.Helper()
 	switch pm.Order {

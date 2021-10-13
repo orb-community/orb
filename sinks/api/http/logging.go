@@ -145,6 +145,20 @@ func (l loggingMiddleware) ValidateSink(ctx context.Context, token string, s sin
 	return l.svc.ValidateSink(ctx, token, s)
 }
 
+func (l loggingMiddleware) SinksStatistics(ctx context.Context, token string) (_ sinks.SinksStatistics, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: sinks_statistics",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: sinks_statistics",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.SinksStatistics(ctx, token)
+}
+
 func NewLoggingMiddleware(svc sinks.SinkService, logger *zap.Logger) sinks.SinkService {
 	return &loggingMiddleware{logger, svc}
 }

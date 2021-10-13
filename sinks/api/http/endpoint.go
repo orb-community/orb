@@ -257,3 +257,22 @@ func validateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		return res, err
 	}
 }
+
+func sinksStatisticsEndpoint(svc sinks.SinkService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(sinksStatisticsReq)
+		if err := req.validate(); err != nil {
+			return sinksStatisticsRes{}, err
+		}
+
+		statistics, err := svc.SinksStatistics(ctx, req.token)
+		if err != nil {
+			return sinksStatisticsRes{}, err
+		}
+
+		return sinksStatisticsRes{
+			StatesSummary: statistics.StatesSummary,
+			TotalSinks: statistics.TotalSinks,
+		}, nil
+	}
+}

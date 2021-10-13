@@ -848,3 +848,51 @@ func TestValidateSink(t *testing.T) {
 		})
 	}
 }
+
+func TestSinksStatistics(t *testing.T) {
+	service := newService(map[string]string{token: email})
+	server := newServer(service)
+	defer server.Close()
+
+	var sks []sinks.Sink
+	for i := 0; i < 10; i++ {
+		sink.Name, _ = types.NewIdentifier(fmt.Sprintf("my-sink-%d", i))
+		sink.State = "active"
+		sk, err := service.CreateSink(context.Background(), token, sink)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+		sks = append(sks, sk)
+	}
+
+	var skSummary []sinks.SinkStates
+	skSummary = append(skSummary, sinks.SinkStates{
+		State: "active",
+		Count: 10,
+	})
+
+	cases := map[string]struct {
+		status int
+		res    sinks.SinksStatistics
+	}{
+		"retrieve all sinks states summary": {
+			status: http.StatusOK,
+			res: sinks.SinksStatistics{
+				StatesSummary: skSummary,
+				TotalSinks:   10,
+			},
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/sinks/statistics", server.URL),
+				token:  token,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}

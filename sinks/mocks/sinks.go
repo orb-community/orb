@@ -28,6 +28,42 @@ type sinkRepositoryMock struct {
 	sinksMock map[string]sinks.Sink
 }
 
+func (s *sinkRepositoryMock) RetrieveTotalSinksByOwner(ctx context.Context, owner string) (int, error) {
+	var count int
+
+	for _, v := range s.sinksMock {
+		if v.MFOwnerID == owner {
+			count += 1
+		}
+	}
+
+	return count, nil
+}
+
+func (s *sinkRepositoryMock) RetrieveSinksStatistics(ctx context.Context, owner string) ([]sinks.SinkStates, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var (
+		summary []sinks.SinkStates
+		count int
+	)
+
+	for _, v := range s.sinksMock {
+		if v.MFOwnerID == owner {
+			count += 1
+		}
+	}
+
+	state := sinks.SinkStates{
+		State: "active",
+		Count : count,
+	}
+	summary = append(summary, state)
+
+	return summary, nil
+}
+
 func (s *sinkRepositoryMock) RetrieveByOwnerAndId(ctx context.Context, ownerID string, key string) (sinks.Sink, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
