@@ -13,6 +13,10 @@ type agentRepositoryMock struct {
 	agentsMock map[string]fleet.Agent
 }
 
+func (a agentRepositoryMock) RetrieveAgentsFailing(ctx context.Context, ownerID string) ([]fleet.AgentsFailing, error) {
+	panic("implement me")
+}
+
 func (a agentRepositoryMock) RetrieveTotalAgentsByOwner(ctx context.Context, owner string) (int, error) {
 
 	var count int

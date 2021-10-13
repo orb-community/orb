@@ -474,6 +474,57 @@ func (r agentRepository) RetrieveTotalAgentsByOwner(ctx context.Context, owner s
 	return count, nil
 }
 
+func (r agentRepository) RetrieveAgentsFailing(ctx context.Context, ownerID string) ([]fleet.AgentsFailing, error) {
+	q := `SELECT
+    		mf_thing_id, key, value
+		FROM
+    		agents,
+    		jsonb_each(last_hb_data->'policy_state')
+		WHERE value->>'state' = 'failed_to_apply' AND mf_owner_id = :mf_owner_id;`
+
+	params := map[string]interface{}{
+		"mf_owner_id": ownerID,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []fleet.AgentsFailing
+	for rows.Next() {
+		db := dbFailing{}
+		if err := rows.StructScan(&db); err != nil {
+			return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		agFailing, err := toFailing(db)
+		if err != nil {
+			return []fleet.AgentsFailing{}, errors.Wrap(errors.ErrViewEntity, err)
+		}
+		items = append(items, agFailing)
+	}
+	return items, nil
+}
+
+type dbFailing struct {
+	MFThingID  string      `db:"mf_thing_id"`
+	PolicyID   string      `db:"key"`
+	PolicyInfo string      `db:"value"`
+}
+
+func toFailing(dba dbFailing) (fleet.AgentsFailing, error) {
+
+	agFailing := fleet.AgentsFailing{
+		MFThingID:  dba.MFThingID,
+		PolicyID:   dba.PolicyID,
+		PolicyInfo: dba.PolicyInfo,
+	}
+
+	return agFailing, nil
+
+}
+
 type dbAgent struct {
 	Name          types.Identifier `db:"name"`
 	MFOwnerID     string           `db:"mf_owner_id"`

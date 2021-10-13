@@ -771,6 +771,72 @@ func TestTotalAgentsRetrieval(t *testing.T) {
 	}
 }
 
+func TestAgentsFailingRetrieval(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	invalidID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	name := "agent_name"
+	tagsStr := `{"region": "EU", "node_type": "dns"}`
+
+	tags := types.Tags{}
+	json.Unmarshal([]byte(tagsStr), &tags)
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		thID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		chID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th := fleet.Agent{
+			MFOwnerID:   oID.String(),
+			MFThingID:   thID.String(),
+			MFChannelID: chID.String(),
+		}
+
+		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, i))
+		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th.AgentTags = tags
+
+		err = agentRepo.Save(context.Background(), th)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+		err = mockHbData(agentRepo, context.Background(), th)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		ownerID string
+		total   int
+		err     error
+	}{
+		"retrieve a list of agents failing to apply a policy": {
+			ownerID: oID.String(),
+			total:   10,
+			err:     nil,
+		},
+		"retrieve a list of agents failing with a wrong ID": {
+			ownerID: invalidID.String(),
+			total:   0,
+			err:     nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			ag, err := agentRepo.RetrieveAgentsFailing(context.Background(), tc.ownerID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+			assert.Equal(t, tc.total, len(ag), fmt.Sprintf("%s: expected %d got %d", desc, tc.total, len(ag)))
+		})
+	}
+}
+
 func testSortAgents(t *testing.T, pm fleet.PageMetadata, ths []fleet.Agent) {
 	switch pm.Order {
 	case "name":
@@ -787,4 +853,20 @@ func testSortAgents(t *testing.T, pm fleet.PageMetadata, ths []fleet.Agent) {
 	default:
 		break
 	}
+}
+
+func mockHbData(agentRepo fleet.AgentRepository, ctx context.Context, agent fleet.Agent) error {
+	hbDataStr := `{"policy_state": {"d8078334-6874-4ab7-a905-c4e5da1687b1": {"state": "running", "datasets": ["e585fc29-d32a-4c11-bea0-1cb0005ee813"]}, "fca6d682-3da7-4b47-839d-3d9c8bba9dcb": {"error": "500 policy [p_fca6d682-3da7-4b47-839d-3d9c8bba9dcb] failed to start: Packet capture failed to start", "state": "failed_to_apply", "datasets": ["9f6e5cf0-fe53-4e8c-98c4-5a38ecfdc55c"]}}, "backend_state": {"pktvisor": {"state": "running"}}}`
+
+	hbData := types.Metadata{}
+	json.Unmarshal([]byte(hbDataStr), &hbData)
+
+	agent.LastHBData = hbData
+
+	err := agentRepo.UpdateHeartbeatByIDWithChannel(ctx, agent)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

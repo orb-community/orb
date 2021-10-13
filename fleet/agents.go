@@ -69,6 +69,12 @@ type AgentsStatistics struct {
 	TotalAgents   int
 }
 
+type AgentsFailing struct {
+	MFThingID  string
+	PolicyID   string
+	PolicyInfo string
+}
+
 // Page contains page related metadata as well as list of agents that
 // belong to this page.
 type Page struct {
@@ -129,6 +135,8 @@ type AgentRepository interface {
 	RetrieveAllStatesSummary(ctx context.Context, owner string) ([]AgentStates, error)
 	// RetrieveTotalAgentsByOwner retrieves total of agents by owner
 	RetrieveTotalAgentsByOwner(ctx context.Context, owner string) (int, error)
+	// RetrieveAgentsFailing retrieves a list of agents failing to apply a policy
+	RetrieveAgentsFailing(ctx context.Context, ownerID string) ([]AgentsFailing, error)
 }
 
 type AgentHeartbeatRepository interface {
