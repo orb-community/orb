@@ -211,9 +211,15 @@ func (svc fleetService) AgentsStatistics(ctx context.Context, token string) (Age
 		return AgentsStatistics{}, err
 	}
 
+	agFailing, err := svc.agentRepo.RetrieveAgentsFailing(ctx, res.GetId())
+	if err != nil{
+		return AgentsStatistics{}, err
+	}
+
 	statistic := AgentsStatistics{
 		StatesSummary: statesSummary,
 		TotalAgents:   total,
+		AgentsFailing: agFailing,
 	}
 
 	return statistic, nil

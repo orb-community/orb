@@ -67,6 +67,7 @@ type AgentStates struct {
 type AgentsStatistics struct {
 	StatesSummary []AgentStates
 	TotalAgents   int
+	AgentsFailing []AgentsFailing
 }
 
 type AgentsFailing struct {

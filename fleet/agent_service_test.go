@@ -411,6 +411,7 @@ func TestAgentsStatistics(t *testing.T) {
 					Count: limit,
 				}),
 				TotalAgents: limit,
+				AgentsFailing: nil,
 			},
 			err: nil,
 		},
@@ -424,7 +425,7 @@ func TestAgentsStatistics(t *testing.T) {
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			statistics, err := fleetService.AgentsStatistics(context.Background(), tc.token)
-			assert.Equal(t, statistics, tc.statistics, fmt.Sprintf("%s: expected %d got %d", desc, tc.statistics, statistics))
+			assert.Equal(t, statistics, tc.statistics, fmt.Sprintf("%s: expected %v got %v", desc, tc.statistics, statistics))
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		})
 
