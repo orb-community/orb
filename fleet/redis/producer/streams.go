@@ -113,7 +113,7 @@ func (es eventStore) RemoveAgent(ctx context.Context, token, thingID string) (er
 	return es.svc.RemoveAgent(ctx, token, thingID)
 }
 
-func (es eventStore) AgentsStatistics(ctx context.Context, token string) ([]fleet.AgentStates, error) {
+func (es eventStore) AgentsStatistics(ctx context.Context, token string) (fleet.AgentsStatistics, error) {
 	return es.svc.AgentsStatistics(ctx, token)
 }
 
