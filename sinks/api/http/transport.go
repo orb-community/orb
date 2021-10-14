@@ -88,7 +88,7 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.SinkServic
 		types.EncodeResponse,
 		opts...,
 	))
-	r.Get("/sinks/statistics", kithttp.NewServer(
+	r.Get("/sinks/statistics/", kithttp.NewServer(
 		kitot.TraceServer(tracer, "sink_statistics")(sinksStatisticsEndpoint(svc)),
 		decodeSinksStatistics,
 		types.EncodeResponse,

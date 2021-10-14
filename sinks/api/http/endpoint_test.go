@@ -877,7 +877,7 @@ func TestSinksStatistics(t *testing.T) {
 			status: http.StatusOK,
 			res: sinks.SinksStatistics{
 				StatesSummary: skSummary,
-				TotalSinks:   10,
+				TotalSinks:    10,
 			},
 		},
 	}
@@ -887,7 +887,7 @@ func TestSinksStatistics(t *testing.T) {
 			req := testRequest{
 				client: server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/sinks/statistics", server.URL),
+				url:    fmt.Sprintf("%s/sinks/statistics/", server.URL),
 				token:  token,
 			}
 			res, err := req.make()
