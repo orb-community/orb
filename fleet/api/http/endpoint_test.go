@@ -1437,13 +1437,25 @@ func TestAgentStatistics(t *testing.T) {
 
 	cases := map[string]struct {
 		status int
+		auth   string
 		res    fleet.AgentsStatistics
 	}{
-		"retrieve all agents states summary": {
+		"retrieve agents statistics by owner": {
 			status: http.StatusOK,
+			auth:   token,
 			res: fleet.AgentsStatistics{
 				StatesSummary: agSummary,
 				TotalAgents:   limit,
+				AgentsFailing: []fleet.AgentsFailing{},
+			},
+		},
+		"retrieve agents statistics with invalid token": {
+			status: http.StatusUnauthorized,
+			auth:   invalidToken,
+			res: fleet.AgentsStatistics{
+				StatesSummary: agSummary,
+				TotalAgents:   limit,
+				AgentsFailing: []fleet.AgentsFailing{},
 			},
 		},
 	}
@@ -1453,8 +1465,8 @@ func TestAgentStatistics(t *testing.T) {
 			req := testRequest{
 				client:      cli.server.Client(),
 				method:      http.MethodGet,
-				url:         fmt.Sprintf("%s/agents/statistics", cli.server.URL),
-				token:       token,
+				url:         fmt.Sprintf("%s/agents/statistics/", cli.server.URL),
+				token:       tc.auth,
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
@@ -1558,6 +1570,7 @@ type updateAgentReq struct {
 }
 
 type agentsStatisticsRes struct {
-	StatesSummary []fleet.AgentStates `json:"states_summary"`
-	TotalAgents   int                 `json:"total_agents"`
+	StatesSummary []fleet.AgentStates   `json:"states_summary"`
+	TotalAgents   int                   `json:"total_agents"`
+	AgentsFailing []fleet.AgentsFailing `json:"agents_failing"`
 }

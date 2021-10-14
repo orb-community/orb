@@ -208,8 +208,9 @@ func (s agentBackendsRes) Empty() bool {
 }
 
 type agentStatisticsRes struct {
-	StatesSummary []fleet.AgentStates `json:"states_summary"`
-	TotalAgents   int                 `json:"total_agents"`
+	StatesSummary []fleet.AgentStates   `json:"states_summary"`
+	TotalAgents   int                   `json:"total_agents"`
+	AgentsFailing []fleet.AgentsFailing `json:"agents_failing"`
 }
 
 func (s agentStatisticsRes) Code() int {
