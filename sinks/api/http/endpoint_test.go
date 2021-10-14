@@ -871,10 +871,20 @@ func TestSinksStatistics(t *testing.T) {
 
 	cases := map[string]struct {
 		status int
+		auth   string
 		res    sinks.SinksStatistics
 	}{
 		"retrieve all sinks states summary": {
 			status: http.StatusOK,
+			auth:   token,
+			res: sinks.SinksStatistics{
+				StatesSummary: skSummary,
+				TotalSinks:    10,
+			},
+		},
+		"retrieve agents statistics with invalid token": {
+			status: http.StatusUnauthorized,
+			auth:   invalidToken,
 			res: sinks.SinksStatistics{
 				StatesSummary: skSummary,
 				TotalSinks:    10,
@@ -888,7 +898,7 @@ func TestSinksStatistics(t *testing.T) {
 				client: server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/sinks/statistics/", server.URL),
-				token:  token,
+				token:  tc.auth,
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
