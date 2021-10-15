@@ -46,7 +46,7 @@ export class AgentPolicyAddComponent {
 
   // #services responses
   // hold info retrieved
-  availableBackends: { [propName: string]: any }[];
+  availableBackends: { [propName: string]: {backend: string, description: string} };
 
   availableTaps: { [propName: string]: any }[];
 
@@ -77,6 +77,7 @@ export class AgentPolicyAddComponent {
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.route.snapshot.paramMap.get('agentPolicy') as AgentPolicy;
 
+    this.isEdit = !!this.agentPolicyID;
     !!this.agentPolicyID && agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(resp => {
       this.agentPolicy = resp;
       this.agentPolicyLoading = false;
@@ -101,7 +102,6 @@ export class AgentPolicyAddComponent {
     this.handlerSelectorFormGroup = this._formBuilder.group({ 'selected_handler': [''] });
     this.dynamicHandlerConfigFormGroup = this._formBuilder.group({});
 
-    this.isEdit = !!this.agentPolicyID;
     this.agentPolicyLoading = this.isEdit;
 
     this.getBackendsList();
@@ -110,9 +110,12 @@ export class AgentPolicyAddComponent {
   getBackendsList() {
     this.isLoading['backend'] = true;
     this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
-      this.availableBackends = !!backends['data'] && backends['data'] || [];
+      this.availableBackends = !!backends['data'] && backends['data'].reduce((acc, curr) => {
+        acc[curr.backend] = curr;
+        return acc;
+      }, {}) || {};
 
-      if (this.isEdit) {
+      if (this.isEdit && this.agentPolicy) {
         this.detailsFormGroup.controls.backend.disable();
         this.onBackendSelected(this.agentPolicy.backend);
       }
@@ -265,7 +268,7 @@ export class AgentPolicyAddComponent {
     const payload = {
       name: this.detailsFormGroup.controls.name.value,
       description: this.detailsFormGroup.controls.description.value,
-      backend: this.availableBackends[this.detailsFormGroup.controls.backend.value].backend,
+      backend: this.detailsFormGroup.controls.backend.value,
       tags: {},
       version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
       policy: {

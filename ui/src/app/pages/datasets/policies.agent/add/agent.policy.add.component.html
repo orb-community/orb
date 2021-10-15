@@ -62,8 +62,8 @@
                        id="backend"
                        placeholder="Select backend type"
                        size="medium">
-              <nb-option *ngFor="let entry of availableBackends; index as i"
-                         [value]="i">{{ entry.backend }}</nb-option>
+              <nb-option *ngFor="let entry of availableBackends | keyvalue; index as i"
+                         [value]="entry.key">{{ entry.key }}</nb-option>
             </nb-select>
           </form>
           <hr/>
