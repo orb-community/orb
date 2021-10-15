@@ -239,7 +239,7 @@
                        data-orb-qa-id="sink_selector"
                        formControlName="selected_handler"
                        fullWidth="true"
-                       placeholder="Sink Name"
+                       placeholder="Handler type"
                        size="medium">
               <nb-option *ngFor="let handler of availableHandlers | keyvalue"
                          [attr.data-orb-qa-id]="'available_handler: '+handler.key" [id]="handler.key"
@@ -309,7 +309,7 @@
               </div>
             </form>
             <button (click)="onHandlerAdded()"
-                    [disabled]="!liveHandler && handlerSelectorFormGroup.controls.label.value"
+                    [disabled]="!liveHandler && handlerSelectorFormGroup.controls?.label &&  handlerSelectorFormGroup.controls.label.value"
                     data-orb-qa-id="addHandler"
                     ghost
                     nbButton>

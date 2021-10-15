@@ -102,7 +102,7 @@ export class AgentGroupsService {
   }
 
   getAgentGroups(pageInfo: NgxDatabalePageInfo, isFilter = false) {
-    const offset = pageInfo.offset || this.cache.offset;
+    const offset = !!pageInfo ? pageInfo.offset : this.cache.offset;
     const limit = pageInfo.limit || this.cache.limit;
     let params = new HttpParams()
       .set('offset', (offset * limit).toString())

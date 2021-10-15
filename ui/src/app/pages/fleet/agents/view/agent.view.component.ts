@@ -36,7 +36,7 @@ export class AgentViewComponent {
   }
 
   makeCommand2Copy() {
-    this.command2copy = `docker run --rm --net=host\\
+    this.command2copy = `docker run --rm --net=host
       \r-e ORB_CLOUD_ADDRESS=${document.location.protocol}://${document.location.hostname}/\\
       \r-e ORB_CLOUD_MQTT_ID='${this.agent.id}'\\
       \r-e ORB_CLOUD_MQTT_CHANNEL_ID='${this.agent.channel_id}'\\
