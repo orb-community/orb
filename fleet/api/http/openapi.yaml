@@ -250,6 +250,25 @@ paths:
           description: Missing or invalid content type.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /agents/statistics/:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'Get all Agents statistics'
+      operationId: agentsStatistics
+      tags:
+        - agents
+      responses:
+        '200':
+          $ref: "#/components/responses/AgentStatisticsObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
   requestBodies:
     AgentGroupCreateReq:
@@ -384,6 +403,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AgentPageSchema"
+    AgentStatisticsObjRes:
+      description: Agents Statistics object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentsStatisticsObjSchema"
     ServiceErrorRes:
       description: Unexpected server-side error occurred.
       content:
@@ -620,3 +645,50 @@ components:
           example:
             region: eu
             node_type: dns
+    AgentsStatisticsObjSchema:
+      type: object
+      properties:
+        states_summary:
+          type: array
+          items:
+            type: object
+            properties:
+              state:
+                type: string
+                example: new
+                description: connection status
+              count:
+                type: integer
+                description: number of agents currentily in this state
+        total_agents:
+          type: integer
+          description: Total of agents of the user
+        agents_failing:
+          type: array
+          items:
+            type: object
+            properties:
+              ID:
+                type: string
+                format: uuid
+                description: Unique identifier (UUID) of the agent
+              PolicyID:
+                type: string
+                format: uuid
+                description: Unique identifier (UUID) of the policy
+              PolicyInfo:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "500 policy [p_fca6d682-3da7-4b47-839d-3d9c8bba9dcb] failed to start: Packet capture failed to start"
+                  states:
+                    type: string
+                    example: "failed_to_apply"
+                  datasets:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+                      description: Unique identifier (UUID) of dataset
+          description: Describes each agent which is failing to apply a policy by the agent id, policy id and the error mensage

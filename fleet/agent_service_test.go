@@ -403,7 +403,7 @@ func TestAgentsStatistics(t *testing.T) {
 		statistics fleet.AgentsStatistics
 		err        error
 	}{
-		"retrieve all agents states summary": {
+		"retrieve agents statistics": {
 			token: token,
 			statistics: fleet.AgentsStatistics{
 				StatesSummary: append(agSummary, fleet.AgentStates{
@@ -415,7 +415,7 @@ func TestAgentsStatistics(t *testing.T) {
 			},
 			err: nil,
 		},
-		"retrieve all agents states summary with a invalid token": {
+		"retrieve agents statistics with a invalid token": {
 			token: invalidToken,
 			statistics: fleet.AgentsStatistics{},
 			err: fleet.ErrUnauthorizedAccess,
