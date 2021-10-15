@@ -10,7 +10,6 @@ package sinks
 
 import (
 	"context"
-	"fmt"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/sinks/backend"
 )
@@ -138,14 +137,7 @@ func (svc sinkService) ChangeSinkStateInternal(ctx context.Context, sinkID strin
 
 func validateBackend(sink *Sink) error {
 	if backend.HaveBackend(sink.Backend) {
-		err := backend.GetBackend(sink.Backend).Connect(sink.Config)
-		if err != nil {
-			sink.State = Error
-			sink.Error = fmt.Sprint(err)
-		} else {
-			sink.State = Connected
-			sink.Error = ""
-		}
+		sink.State = Unknown
 	} else {
 		return ErrInvalidBackend
 	}

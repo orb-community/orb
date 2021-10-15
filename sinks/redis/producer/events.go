@@ -16,10 +16,11 @@ const (
 	SinkPrefix = "sinks."
 	SinkCreate = SinkPrefix + "create"
 	SinkDelete = SinkPrefix + "delete"
+	SinkUpdate = SinkPrefix + "update"
 )
 
 type event interface {
-	encode() map[string]interface{}
+	Encode() map[string]interface{}
 }
 
 var (
@@ -34,7 +35,7 @@ type createSinkEvent struct {
 	timestamp time.Time
 }
 
-func (cce createSinkEvent) encode() map[string]interface{} {
+func (cce createSinkEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
 		"thing_id":  cce.mfThing,
 		"owner":     cce.owner,
@@ -53,5 +54,25 @@ func (dse deleteSinkEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
 		"id":        dse.id,
 		"operation": SinkDelete,
+	}
+}
+
+type updateSinkEvent struct {
+	sinkID     string
+	owner      string
+	username   string
+	password   string
+	remoteHost string
+	timestamp  time.Time
+}
+
+func (cce updateSinkEvent) Encode() map[string]interface{} {
+	return map[string]interface{}{
+		"sink_id":    cce.sinkID,
+		"owner":      cce.owner,
+		"username":   cce.username,
+		"password":   cce.password,
+		"remoteHost": cce.timestamp.Unix(),
+		"operation":  SinkUpdate,
 	}
 }

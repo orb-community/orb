@@ -10,6 +10,7 @@ package producer
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/backend"
@@ -40,7 +41,41 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 }
 
 func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink) (err error) {
-	return es.svc.UpdateSink(ctx, token, s)
+	if err := es.svc.UpdateSink(ctx, token, s); err != nil {
+		return err
+	}
+
+	var username string
+	var password string
+	var remoteHost string
+	for k, v := range s.Config {
+		switch k {
+		case "username":
+			username = fmt.Sprint(v)
+		case "password":
+			password = fmt.Sprint(v)
+		case "remote_host":
+			remoteHost = fmt.Sprint(v)
+		}
+	}
+
+	event := updateSinkEvent{
+		sinkID:     s.ID,
+		owner:      s.MFOwnerID,
+		username:   username,
+		password:   password,
+		remoteHost: remoteHost,
+	}
+
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+
+	es.client.XAdd(ctx, record).Err()
+
+	return nil
 }
 
 func (es eventStore) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (sinks.Page, error) {
