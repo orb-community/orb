@@ -132,6 +132,10 @@ func (svc sinkService) ValidateSink(ctx context.Context, token string, sink Sink
 	return sink, nil
 }
 
+func (svc sinkService) ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state State) error {
+	return svc.sinkRepo.UpdateSinkState(ctx, sinkID, msg, ownerID, state)
+}
+
 func validateBackend(sink *Sink) error {
 	if backend.HaveBackend(sink.Backend) {
 		err := backend.GetBackend(sink.Backend).Connect(sink.Config)

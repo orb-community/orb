@@ -121,6 +121,8 @@ type SinkService interface {
 	DeleteSink(ctx context.Context, token string, key string) error
 	// ValidateSink validate a sink configuration without saving
 	ValidateSink(ctx context.Context, token string, sink Sink) (Sink, error)
+	// ChangeState
+	ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state State) error
 }
 
 type SinkRepository interface {
@@ -138,4 +140,6 @@ type SinkRepository interface {
 	RetrieveByOwnerAndId(ctx context.Context, ownerID string, key string) (Sink, error)
 	// Remove a existing Sink by id
 	Remove(ctx context.Context, owner string, key string) error
+	// UpdateSinkState
+	UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state State) error
 }

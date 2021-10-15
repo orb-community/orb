@@ -218,6 +218,21 @@ func (s sinksRepository) Remove(ctx context.Context, owner, id string) error {
 	return nil
 }
 
+func (s sinksRepository) UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
+	dbsk := dbSink{
+		ID:        sinkID,
+		MFOwnerID: ownerID,
+		State:     state,
+		Error:     msg,
+	}
+
+	q := "update sinks set state = :state, error = :error where mf_owner_id = :mf_owner_id and id = :id"
+	if _, err := s.db.NamedExecContext(ctx, q, dbsk); err != nil {
+		return errors.Wrap(sinks.ErrUpdateEntity, err)
+	}
+	return nil
+}
+
 type dbSink struct {
 	ID          string           `db:"id"`
 	Name        types.Identifier `db:"name"`

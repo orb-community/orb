@@ -9,6 +9,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
@@ -18,6 +19,7 @@ import (
 	sinkshttp "github.com/ns1labs/orb/sinks/api/http"
 	"github.com/ns1labs/orb/sinks/pb"
 	"github.com/ns1labs/orb/sinks/postgres"
+	rediscons "github.com/ns1labs/orb/sinks/redis/consumer"
 	redisprod "github.com/ns1labs/orb/sinks/redis/producer"
 	opentracing "github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
@@ -95,6 +97,7 @@ func main() {
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 	go startGRPCServer(svc, tracer, sinksGRPCCfg, logger, errs)
+	go subscribeToSinkerES(svc, esClient, esCfg, logger)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -249,4 +252,12 @@ func startGRPCServer(svc sinks.SinkService, tracer opentracing.Tracer, cfg confi
 	pb.RegisterSinkServiceServer(server, sinksgrpc.NewServer(tracer, svc))
 	reflection.Register(server)
 	errs <- server.Serve(listener)
+}
+
+func subscribeToSinkerES(svc sinks.SinkService, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
+	eventStore := rediscons.NewEventStore(svc, client, cfg.Consumer, logger)
+	logger.Info("Subscribed to Redis Event Store for sinker")
+	if err := eventStore.Subscribe(context.Background()); err != nil {
+		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
+	}
 }

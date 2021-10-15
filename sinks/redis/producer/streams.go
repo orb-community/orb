@@ -27,6 +27,10 @@ type eventStore struct {
 	client *redis.Client
 }
 
+func (es eventStore) ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
+	return es.svc.ChangeSinkStateInternal(ctx, sinkID, msg, ownerID, state)
+}
+
 func (es eventStore) ViewSinkInternal(ctx context.Context, ownerID string, key string) (sinks.Sink, error) {
 	return es.svc.ViewSinkInternal(ctx, ownerID, key)
 }
