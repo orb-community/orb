@@ -49,7 +49,7 @@ func migrateDB(db *sqlx.DB) error {
 						description    TEXT NOT NULL,
 						tags           JSONB NOT NULL DEFAULT '{}',
 
-						state          sinks_state NOT NULL DEFAULT 'unknown',,
+						state          sinks_state NOT NULL DEFAULT 'unknown',
 
 						error          TEXT,
 						backend        TEXT NOT NULL,

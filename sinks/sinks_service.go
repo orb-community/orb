@@ -49,7 +49,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return err
 	}
 
-	if sink.Backend != "" || sink.State.String() != "" || sink.Error != "" {
+	if sink.Backend != "" || sink.Error != "" {
 		return errors.ErrUpdateEntity
 	}
 
