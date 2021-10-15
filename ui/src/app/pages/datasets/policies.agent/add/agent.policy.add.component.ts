@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
+import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface';
 
 @Component({
   selector: 'ngx-agent-policy-add-component',
@@ -32,7 +33,7 @@ export class AgentPolicyAddComponent {
   backend: { [propName: string]: any };
 
   // selected tap object
-  tap: { [propName: string]: any };
+  tap: PolicyTap;
 
   // selected input object
   input: { [propName: string]: any };
@@ -42,13 +43,13 @@ export class AgentPolicyAddComponent {
   liveHandler: { [propName: string]: any };
 
   // holds all handlers added by user
-  handlers: { name: string, type: string, config: {[propName: string]: any }}[] = [];
+  handlers: { name: string, type: string, config: { [propName: string]: any } }[] = [];
 
   // #services responses
   // hold info retrieved
-  availableBackends: { [propName: string]: {backend: string, description: string} };
+  availableBackends: { [propName: string]: { backend: string, description: string } };
 
-  availableTaps: { [propName: string]: any }[];
+  availableTaps: { [propName: string]: PolicyTap };
 
   availableInputs: { [propName: string]: any };
 
@@ -113,9 +114,9 @@ export class AgentPolicyAddComponent {
       this.availableBackends = !!backends['data'] && backends['data'].reduce((acc, curr) => {
         acc[curr.backend] = curr;
         return acc;
-      }, {}) || {};
+      }, {});
 
-      if (this.isEdit && this.agentPolicy) {
+      if (this.availableBackends && this.isEdit && this.agentPolicy) {
         this.detailsFormGroup.controls.backend.disable();
         this.onBackendSelected(this.agentPolicy.backend);
       }
@@ -129,47 +130,73 @@ export class AgentPolicyAddComponent {
     this.backend.config = {};
 
     // todo hardcoded for pktvisor
-    this.getTaps();
-    this.getInputs();
-    this.getHandlers();
+    this.getBackendData();
+  }
 
+  getBackendData() {
+    Promise.all([this.getTaps(), this.getInputs(), this.getHandlers()])
+      .then((value) => {
+        if (this.isEdit && this.agentPolicy) {
+          this.tapFormGroup.controls.selected_tap.disable();
+          this.onTapSelected(this.agentPolicy.policy.tap);
+        }
+      })
+      .catch((error) => console.log(error));
   }
 
   getTaps() {
-    this.isLoading['taps'] = true;
-    this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
-      .subscribe(taps => {
-        this.availableTaps = !!taps['data'] && taps['data'] || [];
+    return new Promise((resolve) => {
+      this.isLoading['taps'] = true;
+      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
+        .subscribe(taps => {
+          this.availableTaps = !!taps['data'] && taps['data'].reduce((acc, curr) => {
+            acc[curr.name] = curr;
+            return acc;
+          }, {});
 
-        this.isLoading['taps'] = false;
-      });
-  }
+          this.isLoading['taps'] = false;
 
-  getInputs() {
-    this.isLoading['inputs'] = true;
-    this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
-      .subscribe(inputs => {
-        this.availableInputs = !!inputs['data'] && inputs['data'] || {};
-
-        this.isLoading['inputs'] = false;
-      });
+          resolve();
+        });
+    });
   }
 
   onTapSelected(selectedTap) {
     this.tap = this.availableTaps[selectedTap];
 
-    if (!this.tap?.config) this.tap['config'] = {};
+    const { input } = this.agentPolicy.policy;
+    const { input_type, config_predefined } = this.tap;
 
-    const { input_type } = this.tap;
+    this.tap['config'] = {
+      ...config_predefined.reduce(
+        (acc, curr) => {
+          acc[curr] = '';
+          return acc;
+        }, {}),
+      ...input.config,
+    };
 
     if (input_type) {
       this.onInputSelected(input_type);
-      this.tapFormGroup.controls.input_type.disable();
     } else {
       this.input = null;
-      this.tapFormGroup.controls.input_type.enable();
       this.tapFormGroup.controls.input_type.reset('');
     }
+  }
+
+  getInputs() {
+    return new Promise((resolve) => {
+      this.isLoading['inputs'] = true;
+      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
+        .subscribe(inputs => {
+          this.availableInputs = !!inputs['data'] && inputs['data'];
+
+          this.isLoading['inputs'] = false;
+
+          resolve();
+        });
+    });
+
   }
 
   onInputSelected(selectedInput) {
@@ -182,7 +209,7 @@ export class AgentPolicyAddComponent {
     // if editing, some values might not be overrideable any longer, all should be prefilled in form
     const agentConfig = !!this.isEdit && this.agentPolicy.policy?.config || null;
     // tap config values, cannot be overridden if set
-    const preConfig = this.tap.config;
+    const preConfig = this.tap.config_predefined;
     // assemble config obj with a three way merge of sorts
     // TODO this is under revision
     const finalConfig = { ...agentConfig, ...preConfig };
@@ -200,30 +227,25 @@ export class AgentPolicyAddComponent {
       }, {});
 
     this.inputFormGroup = this._formBuilder.group(dynamicFormControls);
-
-    // reconfig dynamic forms based on backend selected
-    // this.backendConfigForms = Object.keys(this.backend.config)
-    //   .reduce((formGroups, groupName, groupIndex) => {
-    //     formGroups[groupName] = this._formBuilder.group({ [groupName]: ['', Validators.required] });
-    //     return formGroups;
-    //   }, {});
-
   }
 
   getHandlers() {
-    this.isLoading['handlers'] = true;
+    return new Promise((reject, resolve) => {
+      this.isLoading['handlers'] = true;
 
-    this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
-      .subscribe(handlers => {
-        this.availableHandlers = !!handlers['data'] && handlers['data'] || {};
+      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
+        .subscribe(handlers => {
+          this.availableHandlers = !!handlers['data'] && handlers['data'];
 
-        this.handlerSelectorFormGroup = this._formBuilder.group({
-          'selected_handler': ['', [Validators.required]],
-          'label': ['', [Validators.required]],
+          this.handlerSelectorFormGroup = this._formBuilder.group({
+            'selected_handler': ['', [Validators.required]],
+            'label': ['', [Validators.required]],
+          });
+
+          this.isLoading['handlers'] = false;
+          resolve();
         });
-
-        this.isLoading['handlers'] = false;
-      });
+    });
   }
 
 

@@ -111,9 +111,9 @@
                          placeholder="Select Tap"
                          required="true"
                          size="medium">
-                <nb-option *ngFor="let option of availableTaps; index as i"
-                           [attr.data-orb-qa-id]="option.name"
-                           [value]="i">{{ option.name }}</nb-option>
+                <nb-option *ngFor="let option of availableTaps | keyvalue; index as i"
+                           [attr.data-orb-qa-id]="option.key"
+                           [value]="option.key">{{ option.key }}</nb-option>
               </nb-select>
               <hr/>
               <!-- Input selector -->
