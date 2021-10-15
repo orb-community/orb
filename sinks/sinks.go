@@ -6,6 +6,7 @@ package sinks
 
 import (
 	"context"
+	"database/sql/driver"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
@@ -42,6 +43,44 @@ var (
 	ErrInvalidBackend = errors.New("No available backends")
 )
 
+const (
+	Unknown State = iota
+	Connected
+	Error
+)
+
+type State int
+
+var stateMap = [...]string{
+	"unknown",
+	"connected",
+	"error",
+}
+
+var stateRevMap = map[string]State{
+	"unknown":   Unknown,
+	"connected": Connected,
+	"error":     Error,
+}
+
+func (s State) String() string {
+	return stateMap[s]
+}
+
+func (s *State) Scan(value interface{}) error {
+	asString, ok := value.(string)
+	if !ok {
+		asBytes, ok := value.([]byte)
+		if !ok {
+			return errors.New("Scan source is not []byte")
+		}
+		asString = string(asBytes)
+	}
+	*s = stateRevMap[string(asString)]
+	return nil
+}
+func (s State) Value() (driver.Value, error) { return s.String(), nil }
+
 type Sink struct {
 	ID          string
 	Name        types.Identifier
@@ -50,7 +89,7 @@ type Sink struct {
 	Backend     string
 	Config      types.Metadata
 	Tags        types.Tags
-	State       string
+	State       State
 	Error       string
 	Created     time.Time
 }
