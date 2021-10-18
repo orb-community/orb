@@ -137,13 +137,14 @@ export class AgentPolicyAddComponent {
     Promise.all([this.getTaps(), this.getInputs(), this.getHandlers()])
       .then(value => {
         if (this.isEdit && this.agentPolicy) {
-          this.tapFormGroup.controls.selected_tap.reset(this.agentPolicy.policy.tap);
+          const selected_tap = this.agentPolicy.policy.input.tap.name;
+          this.tapFormGroup.patchValue({ selected_tap });
           this.tapFormGroup.controls.selected_tap.disable();
-          this.onTapSelected(this.agentPolicy.policy.tap);
+          this.onTapSelected(this.agentPolicy.policy.input.tap.name);
         }
-      }, reason => console.warn(`reject reason? ${JSON.parse(reason)}`))
+      }, reason => console.warn(`reject reason? ${ JSON.parse(reason) }`))
       .catch(reason => {
-        console.warn(`catch reason? ${JSON.parse(reason)}`);
+        console.warn(`catch reason? ${ JSON.parse(reason) }`);
       })
       .finally(() => {
         console.warn('finally!');
