@@ -41,6 +41,11 @@ export interface AgentPolicy extends OrbEntity {
   policy?: TapConfig | any;
 
   /**
+   * handlers object with configs
+   */
+  handlers?: {[propName: string]: any};
+
+  /**
    * Tags {{[propName: string]: string}}
    * User defined tags
    */

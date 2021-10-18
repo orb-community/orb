@@ -6,7 +6,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface';
-import { reduce } from 'rxjs/operators';
 
 @Component({
   selector: 'ngx-agent-policy-add-component',
@@ -142,6 +141,7 @@ export class AgentPolicyAddComponent {
           this.tapFormGroup.patchValue({ selected_tap });
           this.tapFormGroup.controls.selected_tap.disable();
           this.onTapSelected(selected_tap);
+          this.availableHandlers = this.agentPolicy.handlers.modules;
         }
       }, reason => console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`))
       .catch(reason => {
@@ -215,8 +215,9 @@ export class AgentPolicyAddComponent {
     const agentConfig = !!this.isEdit && this.agentPolicy.policy?.input?.config || null;
     // tap config values, cannot be overridden if set
     const preConfig = this.tap.config_predefined;
-    // assemble config obj with a three way merge of sorts
     // TODO this is under revision
+    // TODO make code readable again
+    // merge preconfigurations
     const finalConfig = {
       ...preConfig.reduce((acc, value) => {
         acc[value] = '';
