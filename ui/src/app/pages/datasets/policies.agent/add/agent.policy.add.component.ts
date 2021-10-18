@@ -6,6 +6,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface';
+import { reduce } from 'rxjs/operators';
 
 @Component({
   selector: 'ngx-agent-policy-add-component',
@@ -94,7 +95,7 @@ export class AgentPolicyAddComponent {
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
-      backend: [backend, Validators.required],
+      backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFormGroup = this._formBuilder.group({
       'selected_tap': ['', Validators.required],
@@ -140,14 +141,11 @@ export class AgentPolicyAddComponent {
           const selected_tap = this.agentPolicy.policy.input.tap.name;
           this.tapFormGroup.patchValue({ selected_tap });
           this.tapFormGroup.controls.selected_tap.disable();
-          this.onTapSelected(this.agentPolicy.policy.input.tap.name);
+          this.onTapSelected(selected_tap);
         }
-      }, reason => console.warn(`reject reason? ${ JSON.parse(reason) }`))
+      }, reason => console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`))
       .catch(reason => {
-        console.warn(`catch reason? ${ JSON.parse(reason) }`);
-      })
-      .finally(() => {
-        console.warn('finally!');
+        console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`);
       });
   }
 
@@ -206,25 +204,31 @@ export class AgentPolicyAddComponent {
 
   }
 
-  onInputSelected(selectedInput) {
-    this.input = this.availableInputs[selectedInput];
+  onInputSelected(input_type) {
+    this.input = this.availableInputs[input_type];
 
-    this.tapFormGroup.controls.input_type.setValue(selectedInput);
+    this.tapFormGroup.patchValue({ input_type });
 
     // input type config model
     const { config: inputConfig } = this.input;
     // if editing, some values might not be overrideable any longer, all should be prefilled in form
-    const agentConfig = !!this.isEdit && this.agentPolicy.policy?.config || null;
+    const agentConfig = !!this.isEdit && this.agentPolicy.policy?.input?.config || null;
     // tap config values, cannot be overridden if set
     const preConfig = this.tap.config_predefined;
     // assemble config obj with a three way merge of sorts
     // TODO this is under revision
-    const finalConfig = { ...agentConfig, ...preConfig };
+    const finalConfig = {
+      ...preConfig.reduce((acc, value) => {
+        acc[value] = '';
+        return acc;
+      }, {}),
+      ...agentConfig,
+    };
 
     // populate form controls
     const dynamicFormControls = Object.keys(inputConfig || {})
       .reduce((acc, key) => {
-        const value = !!finalConfig?.[key] && finalConfig[key] || '';
+        const value = !!finalConfig?.[key] ? finalConfig[key] : '';
         const disabled = !!preConfig?.[key];
         acc[key] = [
           { value, disabled },
