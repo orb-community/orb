@@ -309,7 +309,7 @@
               </div>
             </form>
             <button (click)="onHandlerAdded()"
-                    [disabled]="!liveHandler && handlerSelectorFormGroup.controls?.label &&  handlerSelectorFormGroup.controls.label.value"
+                    [disabled]="!liveHandler && handlerSelectorFormGroup.controls?.label && handlerSelectorFormGroup.controls.label.value !== ''"
                     data-orb-qa-id="addHandler"
                     ghost
                     nbButton>

@@ -135,12 +135,13 @@ export class AgentPolicyAddComponent {
 
   getBackendData() {
     Promise.all([this.getTaps(), this.getInputs(), this.getHandlers()])
-      .then((value) => {
+      .then(_ => {
         if (this.isEdit && this.agentPolicy) {
+          this.tapFormGroup.controls.selected_tap.reset(this.agentPolicy.policy.tap);
           this.tapFormGroup.controls.selected_tap.disable();
           this.onTapSelected(this.agentPolicy.policy.tap);
         }
-      })
+      }, error => console.log(error))
       .catch((error) => console.log(error));
   }
 
@@ -156,7 +157,7 @@ export class AgentPolicyAddComponent {
 
           this.isLoading['taps'] = false;
 
-          resolve();
+          resolve(true);
         });
     });
   }
@@ -193,7 +194,7 @@ export class AgentPolicyAddComponent {
 
           this.isLoading['inputs'] = false;
 
-          resolve();
+          resolve(true);
         });
     });
 
@@ -243,7 +244,7 @@ export class AgentPolicyAddComponent {
           });
 
           this.isLoading['handlers'] = false;
-          resolve();
+          resolve(true);
         });
     });
   }
