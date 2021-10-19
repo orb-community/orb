@@ -166,6 +166,25 @@ paths:
           description: Database can't process request.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /sinks/statistics/:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'Get all sinks statistics'
+      operationId: sinksStatistics
+      tags:
+        - sinks
+      responses:
+        '200':
+          $ref: "#/components/responses/SinksStatisticsObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 
 components:
   requestBodies:
@@ -282,6 +301,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/SinkBackendObjSchema"
+    SinksStatisticsObjRes:
+      description: Sinks statistics object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SinksStatisticsObjSchema"
   schemas:
     SinkUpdateReqSchema:
       type: object
@@ -462,3 +487,21 @@ components:
           items:
             items:
               $ref: '#/components/schemas/ConfigEntrySchema'
+    SinksStatisticsObjSchema:
+      type: object
+      properties:
+        states_summary:
+          type: array
+          items:
+            type: object
+            properties:
+              state:
+                type: string
+                example: active or error
+                description: state of the sinks
+              count:
+                type: integer
+                description: number of sinks currently in this state
+        total_sinks:
+          type: integer
+          description: Total sinks of an user
