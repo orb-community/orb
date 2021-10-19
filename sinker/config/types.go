@@ -22,7 +22,7 @@ type SinkConfig struct {
 
 const (
 	Unknown PrometheusState = iota
-	Connected
+	Active
 	Error
 	Idle
 )
@@ -31,16 +31,16 @@ type PrometheusState int
 
 var promStateMap = [...]string{
 	"unknown",
-	"connected",
+	"active",
 	"error",
 	"idle",
 }
 
 var promStateRevMap = map[string]PrometheusState{
-	"unknown":   Unknown,
-	"connected": Connected,
-	"error":     Error,
-	"idle":      Idle,
+	"unknown": Unknown,
+	"active":  Active,
+	"error":   Error,
+	"idle":    Idle,
 }
 
 func (p PrometheusState) String() string {

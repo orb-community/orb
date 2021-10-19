@@ -184,7 +184,7 @@ func (s sinksRepository) RetrieveById(ctx context.Context, id string) (sinks.Sin
 
 func (s sinksRepository) RetrieveByOwnerAndId(ctx context.Context, ownerID string, id string) (sinks.Sink, error) {
 
-	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, coalesce(state, '') as state, coalesce(error, '') as error
+	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, state, coalesce(error, '') as error
 			FROM sinks where id = $1 and mf_owner_id = $2`
 
 	if ownerID == "" || id == "" {

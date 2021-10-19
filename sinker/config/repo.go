@@ -5,7 +5,6 @@
 package config
 
 import (
-	b64 "encoding/base64"
 	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
 	"sync"
@@ -15,6 +14,7 @@ type ConfigRepo interface {
 	Exists(sinkID string) bool
 	Add(config SinkConfig) error
 	Get(sinkID string) (SinkConfig, error)
+	Edit(config SinkConfig) error
 	GetAll() ([]SinkConfig, error)
 }
 
@@ -44,6 +44,13 @@ func (s *sinkConfigMemRepo) Add(config SinkConfig) error {
 	return nil
 }
 
+func (s *sinkConfigMemRepo) Edit(config SinkConfig) error {
+	if _, ok := s.db[config.SinkID]; ok {
+		s.db[config.SinkID] = config
+	}
+	return nil
+}
+
 func (s sinkConfigMemRepo) Get(sinkID string) (SinkConfig, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -64,9 +71,4 @@ func (s sinkConfigMemRepo) GetAll() ([]SinkConfig, error) {
 		configs = append(configs, v)
 	}
 	return configs, nil
-}
-
-func encodeBase64(user string, password string) string {
-	sEnc := b64.StdEncoding.EncodeToString([]byte(user + "+" + password))
-	return sEnc
 }

@@ -87,14 +87,16 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 		cfgRepo.State = config.Error
 		cfgRepo.Msg = fmt.Sprint(err)
 		cfgRepo.LastRemoteWrite = time.Now()
+		svc.configRepo.Edit(cfgRepo)
 
 		svc.logger.Error("remote write error", zap.Error(err))
 		return err
 	}
 
-	cfgRepo.State = config.Connected
+	cfgRepo.State = config.Active
 	cfgRepo.Msg = ""
 	cfgRepo.LastRemoteWrite = time.Now()
+	svc.configRepo.Edit(cfgRepo)
 
 	svc.logger.Info("write success")
 	return nil
@@ -249,6 +251,10 @@ func (svc sinkerService) Stop() error {
 		return err
 	}
 	svc.logger.Info("unsubscribed from agent metrics")
+
+	svc.hbTicker.Stop()
+	svc.hbDone <- true
+
 	return nil
 }
 
