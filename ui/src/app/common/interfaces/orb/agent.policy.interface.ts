@@ -43,7 +43,7 @@ export interface AgentPolicy extends OrbEntity {
   /**
    * handlers object with configs
    */
-  handlers?: {[propName: string]: any};
+  handlers?: { modules?: { [propName: string]: any } };
 
   /**
    * Tags {{[propName: string]: string}}

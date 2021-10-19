@@ -45,6 +45,9 @@ export class AgentPolicyAddComponent {
   // holds all handlers added by user
   handlers: { name: string, type: string, config: { [propName: string]: any } }[] = [];
 
+  // hold handler selected config
+  selected_handler_config: any;
+
   // #services responses
   // hold info retrieved
   availableBackends: { [propName: string]: { backend: string, description: string } };
@@ -141,7 +144,8 @@ export class AgentPolicyAddComponent {
           this.tapFormGroup.patchValue({ selected_tap });
           this.tapFormGroup.controls.selected_tap.disable();
           this.onTapSelected(selected_tap);
-          this.availableHandlers = this.agentPolicy.handlers.modules;
+          this.handlers = Object.entries(this.agentPolicy.handlers.modules)
+            .map(([key, handler]) => ({...handler, name: key, type: handler.config.type}));
         }
       }, reason => console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`))
       .catch(reason => {
@@ -251,6 +255,7 @@ export class AgentPolicyAddComponent {
 
           this.handlerSelectorFormGroup = this._formBuilder.group({
             'selected_handler': ['', [Validators.required]],
+            'selected_handler_config': ['', [Validators.required]],
             'label': ['', [Validators.required]],
           });
 
@@ -280,7 +285,13 @@ export class AgentPolicyAddComponent {
     this.liveHandler = this.availableHandlers[selectedHandler];
   }
 
+  onHandlerConfigSelected(selectedHandlerConfig) {
+    this.selected_handler_config = selectedHandlerConfig;
+  }
+
   onHandlerAdded() {
+    this.dynamicHandlerConfigFormGroup.reset('')
+    ;
     const handlerName = this.handlerSelectorFormGroup.controls.label.value;
     this.handlers.push({
       name: handlerName,
