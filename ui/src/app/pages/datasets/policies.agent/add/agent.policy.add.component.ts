@@ -290,8 +290,7 @@ export class AgentPolicyAddComponent {
   }
 
   onHandlerAdded() {
-    this.dynamicHandlerConfigFormGroup.reset('')
-    ;
+    this.dynamicHandlerConfigFormGroup.reset('');
     const handlerName = this.handlerSelectorFormGroup.controls.label.value;
     this.handlers.push({
       name: handlerName,
@@ -348,12 +347,11 @@ export class AgentPolicyAddComponent {
           }
           return prev;
         }, {}),
+        config: {
+          num_periods: 5,
+          deep_sample_rate: 100,
+        },
       },
-      window_config: {
-        num_periods: 5,
-        deep_sample_rate: 100,
-      },
-      validate_only: false,
     };
 
     if (this.isEdit) {
