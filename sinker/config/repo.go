@@ -15,6 +15,7 @@ type ConfigRepo interface {
 	Exists(sinkID string) bool
 	Add(config SinkConfig) error
 	Get(sinkID string) (SinkConfig, error)
+	GetAll() ([]SinkConfig, error)
 }
 
 type sinkConfigMemRepo struct {
@@ -44,11 +45,25 @@ func (s *sinkConfigMemRepo) Add(config SinkConfig) error {
 }
 
 func (s sinkConfigMemRepo) Get(sinkID string) (SinkConfig, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	config, ok := s.db[sinkID]
 	if !ok {
 		return SinkConfig{}, errors.New("unknown sink ID")
 	}
 	return config, nil
+}
+
+func (s sinkConfigMemRepo) GetAll() ([]SinkConfig, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	configs := []SinkConfig{}
+	for _, v := range s.db {
+		configs = append(configs, v)
+	}
+	return configs, nil
 }
 
 func encodeBase64(user string, password string) string {

@@ -22,8 +22,8 @@ import (
 	"github.com/ns1labs/orb/sinker/prometheus"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
-	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -46,8 +46,10 @@ type sinkerService struct {
 	pubSub mfnats.PubSub
 
 	esclient *redis.Client
+	logger   *zap.Logger
 
-	logger *zap.Logger
+	hbTicker *time.Ticker
+	hbDone   chan bool
 
 	configRepo config.ConfigRepo
 
@@ -58,51 +60,44 @@ type sinkerService struct {
 	sinksClient    sinkspb.SinkServiceClient
 }
 
-func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkID string) {
-	config, err := svc.configRepo.Get(sinkID)
+func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkID string) error {
+	cfgRepo, err := svc.configRepo.Get(sinkID)
 	if err != nil {
-		return
+		svc.logger.Error("unable to retrieve the sink config", zap.Error(err))
+		return err
 	}
-	svc.logger.Info("writing to", zap.String("url", config.Url), zap.String("user", config.User))
+	svc.logger.Info("writing to", zap.String("url", cfgRepo.Url), zap.String("user", cfgRepo.User))
 
 	cfg := prometheus.NewConfig(
-		prometheus.WriteURLOption(config.Url),
+		prometheus.WriteURLOption(cfgRepo.Url),
 	)
 
 	promClient, err := prometheus.NewClient(cfg)
 	if err != nil {
 		svc.logger.Error("unable to construct client", zap.Error(err))
+		return err
 	}
 
 	var headers = make(map[string]string)
-	headers["Authorization"] = encodeBase64(config.User, config.Password)
-	result, writeErr := promClient.WriteTimeSeries(context.Background(), tsList,
+	headers["Authorization"] = encodeBase64(cfgRepo.User, cfgRepo.Password)
+	_, writeErr := promClient.WriteTimeSeries(context.Background(), tsList,
 		prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
-		json.NewEncoder(os.Stdout).Encode(struct {
-			Success    bool   `json:"success"`
-			Error      string `json:"error"`
-			StatusCode int    `json:"statusCode"`
-		}{
-			Success:    false,
-			Error:      err.Error(),
-			StatusCode: writeErr.StatusCode(),
-		})
-		os.Stdout.Sync()
+
+		cfgRepo.State = config.Error
+		cfgRepo.Msg = fmt.Sprint(err)
+		cfgRepo.LastRemoteWrite = time.Now()
 
 		svc.logger.Error("remote write error", zap.Error(err))
+		return err
 	}
 
-	json.NewEncoder(os.Stdout).Encode(struct {
-		Success    bool `json:"success"`
-		StatusCode int  `json:"statusCode"`
-	}{
-		Success:    true,
-		StatusCode: result.StatusCode,
-	})
-	os.Stdout.Sync()
+	cfgRepo.State = config.Connected
+	cfgRepo.Msg = ""
+	cfgRepo.LastRemoteWrite = time.Now()
 
 	svc.logger.Info("write success")
+	return nil
 }
 
 func encodeBase64(user string, password string) string {
@@ -118,38 +113,36 @@ func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.Agen
 	var sinkIDsList []string
 	for _, m := range metrics {
 		for _, ds := range m.Datasets {
-			if ds == "" {
-				continue
-			}
-			//fmt.Sprintf(ds)
-			sinkID, err := svc.policiesClient.RetrieveDataset(context.Background(), &policiespb.DatasetByIDReq{
-				DatasetID: ds,
-				OwnerID:   ownerID.OwnerID,
-			})
-			if err != nil {
-				return nil, err
-			}
-			for _, sid := range sinkID.SinkIds {
-				if !svc.configRepo.Exists(sid) {
-					//Use the retrieved sinkID to get the backend config
-					sink, err := svc.sinksClient.RetrieveSink(context.Background(), &sinkspb.SinkByIDReq{
-						SinkID:  sid,
-						OwnerID: ownerID.OwnerID,
-					})
-					if err != nil {
-						return nil, err
-					}
-
-					var data config.SinkConfig
-					if err := json.Unmarshal(sink.Config, &data); err != nil {
-						return nil, err
-					}
-
-					data.SinkID = sid
-					data.OwnerID = ownerID.OwnerID
-					svc.configRepo.Add(data)
+			if ds != "" {
+				sinkID, err := svc.policiesClient.RetrieveDataset(context.Background(), &policiespb.DatasetByIDReq{
+					DatasetID: ds,
+					OwnerID:   ownerID.OwnerID,
+				})
+				if err != nil {
+					return nil, err
 				}
-				sinkIDsList = append(sinkIDsList, sid)
+				for _, sid := range sinkID.SinkIds {
+					if !svc.configRepo.Exists(sid) {
+						// Use the retrieved sinkID to get the backend config
+						sink, err := svc.sinksClient.RetrieveSink(context.Background(), &sinkspb.SinkByIDReq{
+							SinkID:  sid,
+							OwnerID: ownerID.OwnerID,
+						})
+						if err != nil {
+							return nil, err
+						}
+
+						var data config.SinkConfig
+						if err := json.Unmarshal(sink.Config, &data); err != nil {
+							return nil, err
+						}
+
+						data.SinkID = sid
+						data.OwnerID = ownerID.OwnerID
+						svc.configRepo.Add(data)
+					}
+					sinkIDsList = append(sinkIDsList, sid)
+				}
 			}
 		}
 	}
@@ -197,7 +190,10 @@ func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopi
 	}
 
 	for _, id := range sinkIDs {
-		svc.remoteWriteToPrometheus(tsList, id)
+		err = svc.remoteWriteToPrometheus(tsList, id)
+		if err != nil {
+			svc.logger.Warn(fmt.Sprintf("unable to remote write to sinkID: %s", id), zap.Error(err))
+		}
 	}
 
 	return nil
@@ -239,6 +235,11 @@ func (svc sinkerService) Start() error {
 		return err
 	}
 	svc.logger.Info("started metrics consumer", zap.String("topic", topic))
+
+	svc.hbTicker = time.NewTicker(HeartbeatFreq)
+	svc.hbDone = make(chan bool)
+	go svc.sendHeartbeats()
+
 	return nil
 }
 

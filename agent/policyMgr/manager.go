@@ -100,6 +100,8 @@ func applyPolicy(payload fleet.AgentPolicyRPCPayload, be backend.Backend, a *pol
 	err := be.ApplyPolicy(pd)
 	if err != nil {
 		a.logger.Warn("policy failed to apply", zap.String("id", payload.ID), zap.Error(err))
+		pd.State = policies.FailedToApply
+		pd.BackendErr = err.Error()
 		return pd, err
 	} else {
 		pd.State = policies.Running

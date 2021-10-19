@@ -6,21 +6,25 @@ package config
 
 import (
 	"database/sql/driver"
+	"time"
 )
 
 type SinkConfig struct {
-	SinkID   string          `json:"sink_id"`
-	OwnerID  string          `json:"owner_id"`
-	Url      string          `json:"remote_host"`
-	User     string          `json:"username"`
-	Password string          `json:"password"`
-	State    PrometheusState `json:"state"`
+	SinkID          string          `json:"sink_id"`
+	OwnerID         string          `json:"owner_id"`
+	Url             string          `json:"remote_host"`
+	User            string          `json:"username"`
+	Password        string          `json:"password"`
+	State           PrometheusState `json:"state,omitempty"`
+	Msg             string          `json:"msg,omitempty"`
+	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
 }
 
 const (
 	Unknown PrometheusState = iota
 	Connected
-	FailedToConnect
+	Error
+	Idle
 )
 
 type PrometheusState int
@@ -28,13 +32,15 @@ type PrometheusState int
 var promStateMap = [...]string{
 	"unknown",
 	"connected",
-	"failed_to_connect",
+	"error",
+	"idle",
 }
 
 var promStateRevMap = map[string]PrometheusState{
-	"unknown":           Unknown,
-	"connected":         Connected,
-	"failed_to_connect": FailedToConnect,
+	"unknown":   Unknown,
+	"connected": Connected,
+	"error":     Error,
+	"idle":      Idle,
 }
 
 func (p PrometheusState) String() string {

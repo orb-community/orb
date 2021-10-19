@@ -35,16 +35,12 @@ import (
 )
 
 const (
-	// DefaultRemoteWrite is the default Prom remote write endpoint in grafana.
-	DefaultRemoteWrite = "https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push"
-
 	defaulHTTPClientTimeout = 30 * time.Second
-	defaultUserAgent        = "promremote-go/1.0.0"
+	defaultUserAgent        = "orb-promremote-go/1.0.0"
 )
 
 // DefaultConfig represents the default configuration used to construct a client.
 var DefaultConfig = Config{
-	WriteURL:          DefaultRemoteWrite,
 	HTTPClientTimeout: defaulHTTPClientTimeout,
 	UserAgent:         defaultUserAgent,
 }
@@ -136,10 +132,6 @@ func NewConfig(opts ...ConfigOption) Config {
 func (c Config) validate() error {
 	if c.HTTPClientTimeout <= 0 {
 		return fmt.Errorf("http client timeout should be greater than 0: %d", c.HTTPClientTimeout)
-	}
-
-	if c.WriteURL == "" {
-		return errors.New("remote write URL should not be blank")
 	}
 
 	if c.UserAgent == "" {
@@ -234,7 +226,6 @@ func (c *client) WriteProto(
 	req.Header.Set("Content-Encoding", "snappy")
 	req.Header.Set("User-Agent", c.userAgent)
 	req.Header.Set("X-Prometheus-Remote-Write-Version", "0.1.0")
-	//req.Header.Set("Authorization", "Basic MjE3NzgzOmV5SnJJam9pTW1Oak5tWmpNek5rTkRSalpETmlZekV6TnpWbE5UZGpNVFF3TVdRek9UYzNNakF3TWpnd05pSXNJbTRpT2lKRVlXNXBaV3dnUTJGaWNtRnNJaXdpYVdRaU9qVTBPRE15TlgwPQ==")
 	if opts.Headers != nil {
 		for k, v := range opts.Headers {
 			req.Header.Set(k, v)
