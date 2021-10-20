@@ -2,7 +2,7 @@ module.exports = {
   beforeEach: (browser) => {
     const login = browser.page.login();
     const topbar = browser.page.topbar();
-    const email = 'imelo@daitan.com';
+    const email = 'tester@email.com';
     const pwd = '12345678';
 
     const maximizeWindowCallback = () => {
@@ -58,7 +58,7 @@ module.exports = {
       .verify.containsText({selector: '@tagLabels', index: 0}, 'Key*')
       .verify.containsText({selector: '@tagLabels', index: 2}, 'Value*')
       .verify.not.enabled('@next')
-      .verify.enabled('@back')
+      .verify.enabled('button.status-primary:nth-child(1)')
     
     data.step2.forEach((tag, i) => {
       agentGroup.setValue('@keyInput', tag.key)

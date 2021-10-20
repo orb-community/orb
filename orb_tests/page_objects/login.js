@@ -2,7 +2,7 @@ var loginActions = {
   with: function (email, pass) {
     return this
       .navigate()
-      .waitForElementVisible('@form', 10000)
+      .waitForElementVisible('@form', 10000, "Login form is visible")
       .setValue('@emailInput', email)
       .setValue('@pwdInput', pass)
       .click('@loginButton');

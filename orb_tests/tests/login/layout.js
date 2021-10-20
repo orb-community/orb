@@ -9,12 +9,12 @@ module.exports = {
 
     login
       .navigate()
-      .waitForElementVisible('@orbLogo', 10000)
-      .assert.containsText('@orbCaption', 'An Open-Source dynamic edge observability platform')
-      .assert.containsText('@forgotPwdLink', 'Forgot Password?')
-      .assert.attributeEquals('@forgotPwdLink', 'href', forgotPwdLink)
-      .assert.containsText('@registerLink', 'Register')
-      .assert.attributeEquals('@registerLink', 'href', registerLink)
-      .assert.not.enabled('@loginButton');
+      .waitForElementVisible('@orbLogo', 10000, "Orb logo is being displayed")
+      .assert.containsText('@orbCaption', 'An Open-Source dynamic edge observability platform', "Message 'An Open-Source dynamic edge observability platform' is being displayed")
+      .assert.containsText('@forgotPwdLink', 'Forgot Password?', "'Forgot Password' option is being displayed")
+      .assert.attributeEquals('@forgotPwdLink', 'href', forgotPwdLink, "'Forgot Password' is clickable")
+      .assert.containsText('@registerLink', 'Register', "'Register' option is being displayed")
+      .assert.attributeEquals('@registerLink', 'href', registerLink, "'Register' is clickable")
+      .assert.not.enabled('@loginButton', "Login button is not enabled");
   }
 }

@@ -1,10 +1,10 @@
 module.exports = {
   '@disabled': false,
 
-  'successful login': function (browser) {
+  'Login with registered email and correct password': function (browser) {
     const login = browser.page.login();
     const topbar = browser.page.topbar();
-    const email = 'imelo@daitan.com';
+    const email = 'tester@email.com';
     const pwd = '12345678';
 
     const maximizeWindowCallback = () => {

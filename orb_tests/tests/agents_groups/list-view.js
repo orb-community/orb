@@ -4,7 +4,7 @@ module.exports = {
   before: (browser, done) => {
     const login = browser.page.login();
     const topbar = browser.page.topbar();
-    const email = 'imelo@daitan.com';
+    const email = 'tester@email.com';
     const pwd = '12345678';
 
     login.with(email, pwd);
