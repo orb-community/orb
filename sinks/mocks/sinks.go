@@ -28,6 +28,10 @@ type sinkRepositoryMock struct {
 	sinksMock map[string]sinks.Sink
 }
 
+func (s *sinkRepositoryMock) UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
+	return nil
+}
+
 func (s *sinkRepositoryMock) RetrieveByOwnerAndId(ctx context.Context, ownerID string, key string) (sinks.Sink, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
