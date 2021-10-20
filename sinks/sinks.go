@@ -45,22 +45,25 @@ var (
 
 const (
 	Unknown State = iota
-	Connected
+	Active
 	Error
+	Idle
 )
 
 type State int
 
 var stateMap = [...]string{
 	"unknown",
-	"connected",
+	"active",
 	"error",
+	"idle",
 }
 
 var stateRevMap = map[string]State{
-	"unknown":   Unknown,
-	"connected": Connected,
-	"error":     Error,
+	"unknown": Unknown,
+	"active":  Active,
+	"error":   Error,
+	"idle":    Idle,
 }
 
 func (s State) String() string {
