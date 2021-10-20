@@ -24,30 +24,30 @@ func (svc *sinkerService) sendSingleHeartbeat(t time.Time) {
 	svc.logger.Info("heartbeat")
 	configs, err := svc.configRepo.GetAll()
 	if err != nil {
-		svc.logger.Error("unable to retrieved policy state", zap.Error(err))
+		svc.logger.Error("unable to retrieve policy state", zap.Error(err))
 		return
 	}
 	for _, cfg := range configs {
 		// Set idle if the sinker is more then 30 minutes not been sending metrics
 		if cfg.LastRemoteWrite.Add(DefaultTimeout).Before(time.Now()) {
 			cfg.State = config.Idle
-		}
-		event := producer.ChangeSinkerStateEvent{
-			SinkID:    cfg.SinkID,
-			Owner:     cfg.OwnerID,
-			State:     cfg.State.String(),
-			Msg:       cfg.Msg,
-			Timestamp: t,
-		}
-		record := &redis.XAddArgs{
-			Stream:       streamID,
-			MaxLenApprox: streamLen,
-			Values:       event.Encode(),
-		}
-		err = svc.esclient.XAdd(context.Background(), record).Err()
-		if err != nil {
-			svc.logger.Error("error sending event to event store", zap.Error(err))
-			continue
+			event := producer.ChangeSinkerStateEvent{
+				SinkID:    cfg.SinkID,
+				Owner:     cfg.OwnerID,
+				State:     cfg.State.String(),
+				Msg:       cfg.Msg,
+				Timestamp: t,
+			}
+			record := &redis.XAddArgs{
+				Stream:       streamID,
+				MaxLenApprox: streamLen,
+				Values:       event.Encode(),
+			}
+			err = svc.esclient.XAdd(context.Background(), record).Err()
+			if err != nil {
+				svc.logger.Error("error sending event to event store", zap.Error(err))
+				continue
+			}
 		}
 	}
 }

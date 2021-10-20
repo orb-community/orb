@@ -18,6 +18,7 @@ import (
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	"github.com/ns1labs/orb/sinker"
 	sinkerconfig "github.com/ns1labs/orb/sinker/config"
+	"github.com/ns1labs/orb/sinker/redis/producer"
 	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -111,6 +112,7 @@ func main() {
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
 
 	configRepo := sinkerconfig.NewMemRepo(logger)
+	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient)
 	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient)
 	defer svc.Stop()
 

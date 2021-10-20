@@ -83,20 +83,23 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 	_, writeErr := promClient.WriteTimeSeries(context.Background(), tsList,
 		prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
-
-		cfgRepo.State = config.Error
-		cfgRepo.Msg = fmt.Sprint(err)
-		cfgRepo.LastRemoteWrite = time.Now()
-		svc.configRepo.Edit(cfgRepo)
+		if cfgRepo.State != config.Error || cfgRepo.Msg != fmt.Sprint(err) {
+			cfgRepo.State = config.Error
+			cfgRepo.Msg = fmt.Sprint(err)
+			cfgRepo.LastRemoteWrite = time.Now()
+			svc.configRepo.Edit(cfgRepo)
+		}
 
 		svc.logger.Error("remote write error", zap.Error(err))
 		return err
 	}
 
-	cfgRepo.State = config.Active
-	cfgRepo.Msg = ""
-	cfgRepo.LastRemoteWrite = time.Now()
-	svc.configRepo.Edit(cfgRepo)
+	if cfgRepo.State != config.Active {
+		cfgRepo.State = config.Active
+		cfgRepo.Msg = ""
+		cfgRepo.LastRemoteWrite = time.Now()
+		svc.configRepo.Edit(cfgRepo)
+	}
 
 	svc.logger.Info("write success")
 	return nil

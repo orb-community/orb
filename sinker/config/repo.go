@@ -45,6 +45,9 @@ func (s *sinkConfigMemRepo) Add(config SinkConfig) error {
 }
 
 func (s *sinkConfigMemRepo) Edit(config SinkConfig) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if _, ok := s.db[config.SinkID]; ok {
 		s.db[config.SinkID] = config
 	}
