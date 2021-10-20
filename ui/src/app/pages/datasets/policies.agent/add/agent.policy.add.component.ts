@@ -51,7 +51,7 @@ export class AgentPolicyAddComponent {
   liveHandler: { [propName: string]: any };
 
   // holds all handlers added by user
-  handlers: { name: string, type: string, config: { [propName: string]: any } }[] = [];
+  handlers: { name: string, type: string, config: { [propName: string]: {} | any } }[] = [];
 
   // hold handler selected config
   selected_handler_config: any;
@@ -124,6 +124,9 @@ export class AgentPolicyAddComponent {
       ...this.agentPolicy,
     };
 
+    this.handlers = Object.entries(this.agentPolicy.handlers.modules)
+      .map(([key, handler]) => ({ ...handler, name: key, type: handler.config.type }));
+
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
@@ -133,6 +136,7 @@ export class AgentPolicyAddComponent {
       'selected_tap': ['', Validators.required],
       'input_type': ['', Validators.required],
     });
+
     this.handlerSelectorFormGroup = this._formBuilder.group({ 'selected_handler': [''] });
     this.dynamicHandlerConfigFormGroup = this._formBuilder.group({});
 
@@ -258,7 +262,7 @@ export class AgentPolicyAddComponent {
     };
 
     if (this.isEdit === false) {
-      this.agentPolicy.policy = {input: '', config: ''};
+      this.agentPolicy.policy = { input: '', config: '' };
     }
     // populate form controls
     const dynamicControls = Object.keys(inputConfig)
@@ -321,12 +325,17 @@ export class AgentPolicyAddComponent {
   }
 
   onHandlerAdded() {
-    !!this.dynamicHandlerConfigFormGroup && this.dynamicHandlerConfigFormGroup.reset('');
+    let controls = {};
+    if (this.dynamicHandlerConfigFormGroup !== null) {
+      controls = this.dynamicHandlerConfigFormGroup.controls;
+      this.dynamicHandlerConfigFormGroup.reset('');
+    }
+
     const handlerName = this.handlerSelectorFormGroup.controls.label.value;
     this.handlers.push({
       name: handlerName,
       type: this.handlerSelectorFormGroup.controls.selected_handler.value,
-      config: Object.keys(this.dynamicHandlerConfigFormGroup.controls || {})
+      config: Object.keys(controls)
         .map(control => ({ [control]: this.dynamicHandlerConfigFormGroup.controls[control].value })),
     });
   }
@@ -366,8 +375,8 @@ export class AgentPolicyAddComponent {
           for (const [key] of Object.entries(handler)) {
             prev[key] = {
               version: '1.0',
-              config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
-                .map(_key => ({ [_key]: this.dynamicHandlerConfigFormGroup.controls[_key].value }))
+              config: Object.entries(handler.config)
+                .map((handler_key, handler_value) => ({ handler_key: handler_value }))
                 .reduce((acc, curr) => {
                   for (const config of Object.entries(curr)) {
                     if (!!config['value'] && config['value'] !== '') acc[config['key']] = config['value'];
