@@ -138,7 +138,7 @@
             </form>
             <hr/>
           </div>
-          <div *ngIf="inputFormGroup && input">
+          <div *ngIf="!!inputFormGroup">
             <!-- Dynamic Input Form -->
             <form (ngSubmit)="onFormSubmit()" [formGroup]="inputFormGroup">
               <div *ngFor="let control of input['config'] | keyvalue; index as i;">

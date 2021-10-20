@@ -253,7 +253,7 @@ export class AgentPolicyAddComponent {
     };
 
     // populate form controls
-    const dynamicFormControls = Object.keys(inputConfig || {})
+    const dynamicFormControls = Object.keys(inputConfig)
       .reduce((acc, key) => {
         const value = !!finalConfig?.[key] ? finalConfig[key] : '';
         const disabled = !!preConfig?.[key];
@@ -264,7 +264,7 @@ export class AgentPolicyAddComponent {
         return acc;
       }, {});
 
-    this.inputFormGroup = this._formBuilder.group(dynamicFormControls);
+    this.inputFormGroup = Object.keys(dynamicFormControls).length > 0 ? this._formBuilder.group(dynamicFormControls) : null;
   }
 
   getHandlers() {
