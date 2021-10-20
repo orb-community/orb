@@ -261,7 +261,7 @@ export class AgentPolicyAddComponent {
       this.agentPolicy.policy = {input: '', config: ''};
     }
     // populate form controls
-    const dynamicFormControls = Object.keys(inputConfig)
+    const dynamicControls = Object.keys(inputConfig)
       .reduce((acc, key) => {
         const value = !!finalConfig?.[key] ? finalConfig[key] : '';
         const disabled = !!preConfig?.[key];
@@ -273,7 +273,7 @@ export class AgentPolicyAddComponent {
         return acc;
       }, {});
 
-    this.inputFormGroup = Object.keys(dynamicFormControls).length > 0 ? this._formBuilder.group(dynamicFormControls) : null;
+    this.inputFormGroup = Object.keys(dynamicControls).length > 0 ? this._formBuilder.group(dynamicControls) : null;
   }
 
   getHandlers() {
@@ -311,22 +311,22 @@ export class AgentPolicyAddComponent {
       return acc;
     }, {});
 
-    this.dynamicHandlerConfigFormGroup = this._formBuilder.group(dynamicControls);
+    this.dynamicHandlerConfigFormGroup = Object.keys(dynamicControls).length > 0 ? this._formBuilder.group(dynamicControls) : null;
 
-    this.liveHandler = this.availableHandlers[selectedHandler];
+    this.liveHandler = !!this.availableHandlers[selectedHandler] ? this.availableHandlers[selectedHandler] : null;
   }
 
   onHandlerConfigSelected(selectedHandlerConfig) {
-    this.selected_handler_config = selectedHandlerConfig;
+    this.selected_handler_config = selectedHandlerConfig !== '' ? selectedHandlerConfig : null;
   }
 
   onHandlerAdded() {
-    this.dynamicHandlerConfigFormGroup.reset('');
+    !!this.dynamicHandlerConfigFormGroup && this.dynamicHandlerConfigFormGroup.reset('');
     const handlerName = this.handlerSelectorFormGroup.controls.label.value;
     this.handlers.push({
       name: handlerName,
       type: this.handlerSelectorFormGroup.controls.selected_handler.value,
-      config: Object.keys(this.dynamicHandlerConfigFormGroup.controls)
+      config: Object.keys(this.dynamicHandlerConfigFormGroup.controls || {})
         .map(control => ({ [control]: this.dynamicHandlerConfigFormGroup.controls[control].value })),
     });
   }

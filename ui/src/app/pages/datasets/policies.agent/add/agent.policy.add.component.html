@@ -228,7 +228,6 @@
               </mat-chip-list>
             </div>
             <hr/>
-
             <div>
               <label class="font-weight-bold">Handler</label>
               <span class="required">*</span>
@@ -246,7 +245,7 @@
                          [value]="handler.key">{{ handler.key }}</nb-option>
             </nb-select>
             <hr/>
-            <div *ngIf="handlerSelectorFormGroup.controls.selected_handler.value !== ''">
+            <div *ngIf="!!liveHandler">
               <div>
                 <label class="font-weight-bold" for="description">Handler Label</label>
                 <span class="required"></span>
@@ -262,7 +261,7 @@
           </form>
           <hr/>
           <!--Dynamic Handler Config-->
-          <div *ngIf="dynamicHandlerConfigFormGroup && handlerSelectorFormGroup">
+          <div *ngIf="!!liveHandler && !!dynamicHandlerConfigFormGroup">
             <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFormGroup">
               <div *ngIf="liveHandler && liveHandler?.config">
                 <nb-select (selectedChange)="onHandlerConfigSelected($event)"
@@ -319,18 +318,18 @@
                 </div>
               </div>
             </form>
-            <button (click)="onHandlerAdded()"
-                    [disabled]="!liveHandler && handlerSelectorFormGroup.controls?.label && handlerSelectorFormGroup.controls.label.value !== ''"
-                    data-orb-qa-id="addHandler"
-                    ghost
-                    nbButton>
-              <nb-icon icon="plus-outline"
-                       size="14"
-                       status="primary"
-                       style="color: #df316f;">
-              </nb-icon>
-            </button>
           </div>
+          <button (click)="onHandlerAdded()"
+                  [disabled]="!liveHandler || (!!liveHandler && dynamicHandlerConfigFormGroup === null && !!selected_handler_config)"
+                  data-orb-qa-id="addHandler"
+                  ghost
+                  nbButton>
+            <nb-icon icon="plus-outline"
+                     size="14"
+                     status="primary"
+                     style="color: #df316f;">
+            </nb-icon>
+          </button>
           <div class="d-flex justify-content-start"
                style="padding-left: 35%;">
             <button
