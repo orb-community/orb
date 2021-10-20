@@ -9,6 +9,8 @@
 package producer
 
 import (
+	"encoding/json"
+	"github.com/ns1labs/orb/pkg/types"
 	"time"
 )
 
@@ -58,21 +60,23 @@ func (dse deleteSinkEvent) Encode() map[string]interface{} {
 }
 
 type updateSinkEvent struct {
-	sinkID     string
-	owner      string
-	username   string
-	password   string
-	remoteHost string
-	timestamp  time.Time
+	sinkID    string
+	owner     string
+	config    types.Metadata
+	timestamp time.Time
 }
 
-func (cce updateSinkEvent) Encode() map[string]interface{} {
-	return map[string]interface{}{
-		"sink_id":    cce.sinkID,
-		"owner":      cce.owner,
-		"username":   cce.username,
-		"password":   cce.password,
-		"remoteHost": cce.timestamp.Unix(),
-		"operation":  SinkUpdate,
+func (cce updateSinkEvent) Encode() (map[string]interface{}, error) {
+	config, err := json.Marshal(cce.config)
+	if err != nil {
+		return nil, err
 	}
+	return map[string]interface{}{
+		"sink_id":   cce.sinkID,
+		"owner":     cce.owner,
+		"config":    config,
+		"timestamp": cce.timestamp.Unix(),
+		"operation": SinkUpdate,
+	}, nil
+
 }

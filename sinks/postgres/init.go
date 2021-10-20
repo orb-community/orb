@@ -41,7 +41,7 @@ func migrateDB(db *sqlx.DB) error {
 			{
 				Id: "sinks_1",
 				Up: []string{
-					`CREATE TYPE sinks_state as enum ('unknown', 'connected', 'error');`,
+					`CREATE TYPE sinks_state as enum ('unknown', 'active', 'error', 'idle');`,
 					`CREATE TABLE IF NOT EXISTS sinks (
 						id			   UUID NOT NULL DEFAULT gen_random_uuid(),
 						name           TEXT NOT NULL,

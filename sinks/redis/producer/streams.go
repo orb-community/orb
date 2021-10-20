@@ -10,10 +10,10 @@ package producer
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/backend"
+	"go.uber.org/zap"
 )
 
 const (
@@ -26,6 +26,7 @@ var _ sinks.SinkService = (*eventStore)(nil)
 type eventStore struct {
 	svc    sinks.SinkService
 	client *redis.Client
+	logger *zap.Logger
 }
 
 func (es eventStore) ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
@@ -45,36 +46,29 @@ func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink)
 		return err
 	}
 
-	var username string
-	var password string
-	var remoteHost string
-	for k, v := range s.Config {
-		switch k {
-		case "username":
-			username = fmt.Sprint(v)
-		case "password":
-			password = fmt.Sprint(v)
-		case "remote_host":
-			remoteHost = fmt.Sprint(v)
-		}
+	event := updateSinkEvent{
+		sinkID: s.ID,
+		owner:  s.MFOwnerID,
+		config: s.Config,
 	}
 
-	event := updateSinkEvent{
-		sinkID:     s.ID,
-		owner:      s.MFOwnerID,
-		username:   username,
-		password:   password,
-		remoteHost: remoteHost,
+	encode, err := event.Encode()
+	if err != nil {
+		es.logger.Error("error encoding object", zap.Error(err))
+		return err
 	}
 
 	record := &redis.XAddArgs{
 		Stream:       streamID,
 		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Values:       encode,
 	}
 
-	es.client.XAdd(ctx, record).Err()
-
+	err = es.client.XAdd(ctx, record).Err()
+	if err != nil {
+		es.logger.Error("error sending event to event store", zap.Error(err))
+		return err
+	}
 	return nil
 }
 
@@ -94,7 +88,7 @@ func (es eventStore) ViewSink(ctx context.Context, token string, key string) (_ 
 	return es.svc.ViewSink(ctx, token, key)
 }
 
-func (es eventStore) DeleteSink(ctx context.Context, token, id string) error {
+func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err error) {
 	if err := es.svc.DeleteSink(ctx, token, id); err != nil {
 		return err
 	}
@@ -109,8 +103,11 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) error {
 		Values:       event.Encode(),
 	}
 
-	es.client.XAdd(ctx, record).Err()
-
+	err = es.client.XAdd(ctx, record).Err()
+	if err != nil {
+		es.logger.Error("error sending event to event store", zap.Error(err))
+		return err
+	}
 	return nil
 }
 
