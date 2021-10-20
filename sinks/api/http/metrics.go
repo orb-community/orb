@@ -19,6 +19,10 @@ type metricsMiddleware struct {
 	svc     sinks.SinkService
 }
 
+func (m metricsMiddleware) ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
+	return m.svc.ChangeSinkStateInternal(ctx, sinkID, msg, ownerID, state)
+}
+
 func (m metricsMiddleware) CreateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
 	return m.svc.CreateSink(ctx, token, s)
 }
