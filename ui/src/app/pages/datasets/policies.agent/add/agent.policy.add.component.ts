@@ -111,6 +111,11 @@ export class AgentPolicyAddComponent {
       version: 1,
       policy: {
         kind: 'collection',
+        input: {
+          config: {},
+          tap: '',
+          input_type: '',
+        },
       },
       handlers: {
         modules: {},
@@ -238,7 +243,7 @@ export class AgentPolicyAddComponent {
     // input type config model
     const { config: inputConfig } = this.input;
     // if editing, some values might not be overrideable any longer, all should be prefilled in form
-    const agentConfig = !!this.isEdit && this.agentPolicy.policy?.input?.config || null;
+    const agentConfig = !!this.isEdit ? this.agentPolicy.policy?.input?.config : null;
     // tap config values, cannot be overridden if set
     const preConfig = this.tap.config_predefined;
     // TODO this is under revision
@@ -252,6 +257,9 @@ export class AgentPolicyAddComponent {
       ...agentConfig,
     };
 
+    if (this.isEdit === false) {
+      this.agentPolicy.policy = {input: '', config: ''};
+    }
     // populate form controls
     const dynamicFormControls = Object.keys(inputConfig)
       .reduce((acc, key) => {
@@ -261,6 +269,7 @@ export class AgentPolicyAddComponent {
           { value, disabled },
           inputConfig[key].required ? Validators.required : null,
         ];
+
         return acc;
       }, {});
 
@@ -291,6 +300,8 @@ export class AgentPolicyAddComponent {
   onHandlerSelected(selectedHandler) {
     const { config } = this.availableHandlers[selectedHandler];
 
+    this.handlerSelectorFormGroup.controls.label.setValue('');
+
     const dynamicControls = Object.keys(config).reduce((acc, key) => {
       const field = config[key];
       acc[field.name] = [
@@ -299,8 +310,6 @@ export class AgentPolicyAddComponent {
       ];
       return acc;
     }, {});
-
-    this.handlerSelectorFormGroup.controls.label.setValue('');
 
     this.dynamicHandlerConfigFormGroup = this._formBuilder.group(dynamicControls);
 
