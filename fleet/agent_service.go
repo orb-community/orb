@@ -196,24 +196,24 @@ func (svc fleetService) ViewAgentBackend(ctx context.Context, token string, name
 }
 
 func (svc fleetService) AgentsStatistics(ctx context.Context, token string) (AgentsStatistics, error) {
-	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	ownerID, err := svc.identify(token)
 	if err != nil {
 		return AgentsStatistics{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
 	}
 
-	statesSummary, err := svc.agentRepo.RetrieveAllStatesSummary(ctx, res.GetId())
+	statesSummary, err := svc.agentRepo.RetrieveAllStatesSummary(ctx, ownerID)
 	if err != nil{
-		return AgentsStatistics{}, err
+		return AgentsStatistics{}, errors.Wrap(errors.New("Failed to retrieve the state of all agents"), err)
 	}
 
-	total, err := svc.agentRepo.RetrieveTotalAgentsByOwner(ctx, res.GetId())
+	total, err := svc.agentRepo.RetrieveTotalAgentsByOwner(ctx, ownerID)
 	if err != nil{
-		return AgentsStatistics{}, err
+		return AgentsStatistics{}, errors.Wrap(errors.New("Failed to retrieve total agents"), err)
 	}
 
-	agFailing, err := svc.agentRepo.RetrieveAgentsFailing(ctx, res.GetId())
+	agFailing, err := svc.agentRepo.RetrieveAgentsFailing(ctx, ownerID)
 	if err != nil{
-		return AgentsStatistics{}, err
+		return AgentsStatistics{}, errors.Wrap(errors.New("Failed to retrieve agents failing to apply a policy"), err)
 	}
 
 	statistic := AgentsStatistics{

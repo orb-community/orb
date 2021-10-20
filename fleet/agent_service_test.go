@@ -407,7 +407,7 @@ func TestAgentsStatistics(t *testing.T) {
 			token: token,
 			statistics: fleet.AgentsStatistics{
 				StatesSummary: append(agSummary, fleet.AgentStates{
-					State: 0,
+					State: fleet.New,
 					Count: limit,
 				}),
 				TotalAgents: limit,
