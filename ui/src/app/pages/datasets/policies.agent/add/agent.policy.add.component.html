@@ -263,7 +263,7 @@
           <!--Dynamic Handler Config-->
           <div *ngIf="!!liveHandler && !!dynamicHandlerConfigFormGroup">
             <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFormGroup">
-              <div *ngIf="liveHandler && liveHandler?.config">
+              <div *ngIf="!!liveHandler.config">
                 <nb-select (selectedChange)="onHandlerConfigSelected($event)"
                            appearance="filled"
                            data-orb-qa-id="sink_selector"
@@ -275,7 +275,7 @@
                              [attr.data-orb-qa-id]="'available_handler_config: '+control.key" [id]="control.key"
                              [value]="control.value">{{ control.key }}</nb-option>
                 </nb-select>
-                <div *ngIf="selected_handler_config">
+                <div *ngIf="!!selected_handler_config && selected_handler_config !== ''">
                   <div>
                     <label class="font-weight-bold">{{selected_handler_config.title}}</label>
                   </div>

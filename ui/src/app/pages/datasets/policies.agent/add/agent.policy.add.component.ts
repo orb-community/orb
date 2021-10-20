@@ -290,7 +290,6 @@ export class AgentPolicyAddComponent {
 
           this.handlerSelectorFormGroup = this._formBuilder.group({
             'selected_handler': ['', [Validators.required]],
-            'selected_handler_config': ['', [Validators.required]],
             'label': ['', [Validators.required]],
           });
 
@@ -313,11 +312,12 @@ export class AgentPolicyAddComponent {
         field.required ? Validators.required : null,
       ];
       return acc;
-    }, {});
+    }, Object.keys(config).length > 0 ? { 'selected_handler_config': ['', [Validators.required]] } : {});
 
     this.dynamicHandlerConfigFormGroup = Object.keys(dynamicControls).length > 0 ? this._formBuilder.group(dynamicControls) : null;
 
-    this.liveHandler = !!this.availableHandlers[selectedHandler] ? this.availableHandlers[selectedHandler] : null;
+    this.liveHandler = !!this.availableHandlers[selectedHandler] ?
+      { ...this.availableHandlers[selectedHandler], type: selectedHandler } : null;
   }
 
   onHandlerConfigSelected(selectedHandlerConfig) {
@@ -325,18 +325,18 @@ export class AgentPolicyAddComponent {
   }
 
   onHandlerAdded() {
-    let controls = {};
+    let config = {};
+
     if (this.dynamicHandlerConfigFormGroup !== null) {
-      controls = this.dynamicHandlerConfigFormGroup.controls;
-      this.dynamicHandlerConfigFormGroup.reset('');
+      config = this.dynamicHandlerConfigFormGroup.controls;
     }
 
     const handlerName = this.handlerSelectorFormGroup.controls.label.value;
     this.handlers.push({
       name: handlerName,
-      type: this.handlerSelectorFormGroup.controls.selected_handler.value,
-      config: Object.keys(controls)
-        .map(control => ({ [control]: this.dynamicHandlerConfigFormGroup.controls[control].value })),
+      type: this.liveHandler.type,
+      config: Object.keys(config)
+        .map(control => ({ [control]: config[control].value })),
     });
   }
 
