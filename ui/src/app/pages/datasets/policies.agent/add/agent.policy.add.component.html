@@ -320,7 +320,7 @@
             </form>
           </div>
           <button (click)="onHandlerAdded()"
-                  [disabled]="handlerSelectorFormGroup.controls.label.value.valid
+                  [disabled]="handlerSelectorFormGroup.controls.label.value !== ''
                   && !liveHandler
                   || (!!liveHandler && dynamicHandlerConfigFormGroup === null && !!selected_handler_config)"
                   data-orb-qa-id="addHandler"

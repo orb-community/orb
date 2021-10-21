@@ -328,15 +328,16 @@ export class AgentPolicyAddComponent {
     let config = {};
 
     if (this.dynamicHandlerConfigFormGroup !== null) {
-      config = this.dynamicHandlerConfigFormGroup.controls;
+      config = {
+        [this.selected_handler_config]: this.dynamicHandlerConfigFormGroup.controls[this.selected_handler_config].value
+      };
     }
 
     const handlerName = this.handlerSelectorFormGroup.controls.label.value;
     this.handlers.push({
       name: handlerName,
       type: this.liveHandler.type,
-      config: Object.keys(config)
-        .map(control => ({ [control]: config[control].value })),
+      config,
     });
   }
 
