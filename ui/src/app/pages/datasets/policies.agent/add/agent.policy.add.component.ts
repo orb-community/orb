@@ -262,7 +262,7 @@ export class AgentPolicyAddComponent {
     };
 
     if (this.isEdit === false) {
-      this.agentPolicy.policy = { input: {config: {}}};
+      this.agentPolicy.policy = { input: { config: {} } };
     }
     // populate form controls
     const dynamicControls = Object.keys(inputConfig)
@@ -301,27 +301,29 @@ export class AgentPolicyAddComponent {
 
 
   onHandlerSelected(selectedHandler) {
-    const { config } = this.availableHandlers[selectedHandler];
+    this.selected_handler_config = null;
+    if (this.dynamicHandlerConfigFormGroup) {
+      this.dynamicHandlerConfigFormGroup = null;
+    }
+
+    this.liveHandler = selectedHandler !== '' && !!this.availableHandlers[selectedHandler] ?
+      { ...this.availableHandlers[selectedHandler], type: selectedHandler } : null;
+
+    const { config } = !!this.liveHandler ? this.liveHandler : {config: {}};
 
     this.handlerSelectorFormGroup.controls.label.setValue('');
 
-    const dynamicControls = Object.keys(config).reduce((acc, key) => {
-      const field = config[key];
-      acc[field.name] = [
-        '',
-        field.required ? Validators.required : null,
-      ];
-      return acc;
-    }, Object.keys(config).length > 0 ? { 'selected_handler_config': ['', [Validators.required]] } : {});
+    const dynamicControls = Object.keys(config).length > 0 ? { 'selected_handler_config': ['', [Validators.required]] } : {};
 
     this.dynamicHandlerConfigFormGroup = Object.keys(dynamicControls).length > 0 ? this._formBuilder.group(dynamicControls) : null;
+    if (this.dynamicHandlerConfigFormGroup !== null) this.selected_handler_config = '';
 
-    this.liveHandler = !!this.availableHandlers[selectedHandler] ?
-      { ...this.availableHandlers[selectedHandler], type: selectedHandler } : null;
   }
 
   onHandlerConfigSelected(selectedHandlerConfig) {
-    this.selected_handler_config = selectedHandlerConfig !== '' ? selectedHandlerConfig : null;
+    if (selectedHandlerConfig !== '')
+      this.dynamicHandlerConfigFormGroup.addControl(selectedHandlerConfig, this._formBuilder.control(''));
+    this.selected_handler_config = selectedHandlerConfig;
   }
 
   onHandlerAdded() {
@@ -339,6 +341,12 @@ export class AgentPolicyAddComponent {
       type: this.liveHandler.type,
       config,
     });
+
+    this.handlerSelectorFormGroup.reset({
+      selected_handler: { value: '', disabled: false },
+      label: { value: '', disabled: false },
+    });
+    this.onHandlerSelected('');
   }
 
   onHandlerRemoved(selectedHandler) {
@@ -374,7 +382,7 @@ export class AgentPolicyAddComponent {
           modules: this.handlers.reduce((acc, handler) => {
             acc[handler.name] = {
               version: '1.0',
-              ...(Object.keys(handler.config).length > 0 ? {config: handler.config} : {}),
+              ...(Object.keys(handler.config).length > 0 ? { config: handler.config } : {}),
               type: handler.type,
             };
             return acc;
