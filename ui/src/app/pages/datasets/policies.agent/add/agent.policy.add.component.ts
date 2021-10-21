@@ -371,21 +371,13 @@ export class AgentPolicyAddComponent {
         },
       },
       handlers: {
-        modules: this.handlers.reduce((prev, handler) => {
-          for (const [key] of Object.entries(handler)) {
-            prev[key] = {
-              version: '1.0',
-              config: Object.entries(handler.config)
-                .map((handler_key, handler_value) => ({ handler_key: handler_value }))
-                .reduce((acc, curr) => {
-                  for (const config of Object.entries(curr)) {
-                    if (!!config['value'] && config['value'] !== '') acc[config['key']] = config['value'];
-                  }
-                  return acc;
-                }, {}),
-            };
-          }
-          return prev;
+        modules: this.handlers.reduce((acc, handler) => {
+          acc[handler.name] = {
+            version: '1.0',
+            config: handler.config,
+            type: handler.type,
+          };
+          return acc;
         }, {}),
         config: {
           num_periods: 5,
