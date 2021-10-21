@@ -5,6 +5,8 @@
  * [Agent Taps](https://github.com/ns1labs/pktvisor/blob/develop/RFCs/2021-04-16-75-taps.md)
  */
 
+import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface';
+
 /**
  * @interface PolicyConfig
  */
@@ -20,26 +22,21 @@ export interface PolicyConfig {
   version?: string;
 
   /**
-   * tap name {string}
-   */
-  tap?: string;
-
-  /**
    * input type
    */
-  input_type?: string;
-
-  /**
-   * json object with configs
-   */
-  config?: {[propName: string]: any};
+  input?: PolicyTap;
 
   /**
    * handlers object with configs
    */
   handlers?: {
-    modules?: { [propName: string]: any },
-    config?: { [propName: string]: any },
+    modules?: {
+      [propName: string]: {
+        config: { [propName: string]: any },
+        type: string,
+        [propName: string]: any,
+      } | string | any,
+    },
   };
 }
 

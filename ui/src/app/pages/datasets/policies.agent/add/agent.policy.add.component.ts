@@ -118,14 +118,14 @@ export class AgentPolicyAddComponent {
         },
         handlers: {
           modules: {},
-          config: {},
+
         },
       },
       ...this.agentPolicy,
-    };
+    } as AgentPolicy;
 
     this.handlers = Object.entries(this.agentPolicy.policy.handlers.modules)
-      .map(([key, handler]) => ({ ...handler, name: key, type: handler.config.type }));
+      .map(([key, handler]) => ({ name: key, type: handler.config.type, ...handler }));
 
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
@@ -171,7 +171,7 @@ export class AgentPolicyAddComponent {
     Promise.all([this.getTaps(), this.getInputs(), this.getHandlers()])
       .then(value => {
         if (this.isEdit && this.agentPolicy) {
-          const selected_tap = this.agentPolicy.policy.input.tap.name;
+          const selected_tap = this.agentPolicy.policy.input.tap;
           this.tapFormGroup.patchValue({ selected_tap });
           this.tapFormGroup.controls.selected_tap.disable();
           this.onTapSelected(selected_tap);
@@ -262,7 +262,7 @@ export class AgentPolicyAddComponent {
     };
 
     if (this.isEdit === false) {
-      this.agentPolicy.policy = { input: '', config: '' };
+      this.agentPolicy.policy = { input: {config: {}}};
     }
     // populate form controls
     const dynamicControls = Object.keys(inputConfig)
@@ -379,13 +379,9 @@ export class AgentPolicyAddComponent {
             };
             return acc;
           }, {}),
-          config: {
-            num_periods: 5,
-            deep_sample_rate: 100,
-          },
         },
       },
-    };
+    } as AgentPolicy;
 
     if (this.isEdit) {
       // updating existing sink
