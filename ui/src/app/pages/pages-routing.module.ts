@@ -22,6 +22,7 @@ import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.a
 // DEV
 import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 import { DashboardComponent } from 'app/pages/dashboard/dashboard.component';
+import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.component';
 
 const children = [
   {
@@ -44,7 +45,7 @@ const children = [
           {
             path: '',
             component: AgentListComponent,
-            data: {breadcrumb: 'Agent List'},
+            data: {breadcrumb: 'Agents List'},
           },
           {
             path: 'add',
@@ -118,6 +119,11 @@ const children = [
         path: 'list',
         component: DatasetListComponent,
         data: {breadcrumb: 'List'},
+      },
+      {
+        path: 'add',
+        component: DatasetAddComponent,
+        data: {breadcrumb: 'New Dataset'},
       },
       {
         path: 'policies',

@@ -13,10 +13,12 @@ import (
 	"fmt"
 	"github.com/gofrs/uuid"
 	thmocks "github.com/mainflux/mainflux/things/mocks"
+	flmocks "github.com/ns1labs/orb/fleet/mocks"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies"
 	"github.com/ns1labs/orb/policies/mocks"
 	"github.com/ns1labs/orb/policies/pb"
+	sinkmocks "github.com/ns1labs/orb/sinks/mocks"
 	"net"
 	"os"
 	"testing"
@@ -80,5 +82,8 @@ func newService(tokens map[string]string) policies.Service {
 	datasetid, _ := repo.SaveDataset(context.Background(), dataset)
 	dataset.ID = datasetid
 
-	return policies.New(nil, auth, repo)
+	fleetGrpcClient := flmocks.NewClient()
+	SinkServiceClient := sinkmocks.NewClient()
+
+	return policies.New(nil, auth, repo, fleetGrpcClient, SinkServiceClient)
 }

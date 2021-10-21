@@ -67,9 +67,10 @@ func migrateDB(db *sqlx.DB) error {
 						valid			 BOOLEAN,
 						agent_group_id	 UUID,
 						agent_policy_id  UUID,
-						sink_id			 UUID,
+						sink_ids	     UUID[],
 						
 						metadata       JSONB NOT NULL DEFAULT '{}',
+						tags		   JSONB NOT NULL DEFAULT '{}',
 
                         ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
 						PRIMARY KEY (name, mf_owner_id),

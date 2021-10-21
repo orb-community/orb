@@ -1518,13 +1518,6 @@ amdefine@>=0.0.4:
   resolved "https://registry.yarnpkg.com/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
   integrity sha1-SlKCrBZHKek2Gbz9OtFR+BfOkfU=
 
-angular-google-tag-manager@^1.4.2:
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/angular-google-tag-manager/-/angular-google-tag-manager-1.4.2.tgz#2a9928f4faa826cd6f00a6c05b05849a8e6fbd72"
-  integrity sha512-V39aJtfUVxrxlk3GeG0YDjSSzAlKQ5Y5TqLxara3I4sZpCJXfhOWzTV+iFZJiMpKQpNENLsWg/sCgh/6I52jyA==
-  dependencies:
-    tslib "^2.1.0"
-
 angular2-chartjs@0.4.1:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/angular2-chartjs/-/angular2-chartjs-0.4.1.tgz#fd8915cc892d83c1be434d85d698e2d9b6be1934"

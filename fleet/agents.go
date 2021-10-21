@@ -72,17 +72,21 @@ type AgentService interface {
 	CreateAgent(ctx context.Context, token string, a Agent) (Agent, error)
 	// ViewAgentByID retrieves a Agent by provided thingID
 	ViewAgentByID(ctx context.Context, token string, thingID string) (Agent, error)
-	// ViewAgentGroupByIDInternal retrieves a Agent by provided thingID
+	// ViewAgentByIDInternal retrieves a Agent by provided thingID
 	ViewAgentByIDInternal(ctx context.Context, ownerID string, thingID string) (Agent, error)
 	// ListAgents retrieves data about subset of agents that belongs to the
 	// user identified by the provided key.
 	ListAgents(ctx context.Context, token string, pm PageMetadata) (Page, error)
-	// EditAgent
+	// EditAgent edit a Agent by provided thingID
 	EditAgent(ctx context.Context, token string, agent Agent) (Agent, error)
 	// ValidateAgent validates agent
 	ValidateAgent(ctx context.Context, token string, a Agent) (Agent, error)
 	// RemoveAgent removes an existing agent by owner and id
 	RemoveAgent(ctx context.Context, token string, thingID string) error
+	// ListAgentBackends List the available backends from fleet agents
+	ListAgentBackends(ctx context.Context, token string) ([]string, error)
+	// ViewAgentBackend retrieves a Backend by provided backend name
+	ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error)
 }
 
 type AgentRepository interface {
@@ -107,6 +111,8 @@ type AgentRepository interface {
 	RetrieveByID(ctx context.Context, ownerID string, thingID string) (Agent, error)
 	// Delete an existing agent by owner and id
 	Delete(ctx context.Context, ownerID string, thingID string) error
+	// RetrieveAgentMetadataByOwner retrieves the Metadata having the OwnerID
+	RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error)
 }
 
 type AgentHeartbeatRepository interface {

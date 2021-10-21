@@ -19,7 +19,15 @@ type createDatasetEvent struct {
 	name         string
 	agentGroupID string
 	policyID     string
-	sinkID       string
+	sinkIDs      []string
+	timestamp    time.Time
+}
+
+type removeDatasetEvent struct {
+	id           string
+	ownerID      string
+	agentGroupID string
+	datasetID    string
 	timestamp    time.Time
 }
 
