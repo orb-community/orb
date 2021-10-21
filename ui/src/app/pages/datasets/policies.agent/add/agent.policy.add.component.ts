@@ -374,7 +374,7 @@ export class AgentPolicyAddComponent {
           modules: this.handlers.reduce((acc, handler) => {
             acc[handler.name] = {
               version: '1.0',
-              [Object.keys(handler.config).length > 0 ? 'config' : undefined]: handler.config,
+              ...(Object.keys(handler.config).length > 0 ? {config: handler.config} : {}),
               type: handler.type,
             };
             return acc;
