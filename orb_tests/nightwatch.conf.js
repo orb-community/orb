@@ -46,7 +46,7 @@ module.exports = {
     },
 
     beta: {
-      launch_url: "http://beta.orb.live"
+      launch_url: "https://beta.orb.live"
     }
   }
 }

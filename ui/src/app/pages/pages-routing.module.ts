@@ -45,7 +45,7 @@ const children = [
           {
             path: '',
             component: AgentListComponent,
-            data: {breadcrumb: 'Agent List'},
+            data: {breadcrumb: 'Agents List'},
           },
           {
             path: 'add',

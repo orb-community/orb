@@ -150,7 +150,7 @@ export const STRINGS = {
     },
     // dashboard page
     list: {
-      header: 'All Agents Groups',
+      header: 'All Agent Groups',
       none: 'There are no Agents listed.',
       agentGroup: 'agent',
       total: ['You have', 'total.'],
