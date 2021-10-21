@@ -116,15 +116,15 @@ export class AgentPolicyAddComponent {
           tap: '',
           input_type: '',
         },
-      },
-      handlers: {
-        modules: {},
-        config: {},
+        handlers: {
+          modules: {},
+          config: {},
+        },
       },
       ...this.agentPolicy,
     };
 
-    this.handlers = Object.entries(this.agentPolicy.handlers.modules)
+    this.handlers = Object.entries(this.agentPolicy.policy.handlers.modules)
       .map(([key, handler]) => ({ ...handler, name: key, type: handler.config.type }));
 
     this.detailsFormGroup = this._formBuilder.group({
@@ -175,7 +175,7 @@ export class AgentPolicyAddComponent {
           this.tapFormGroup.patchValue({ selected_tap });
           this.tapFormGroup.controls.selected_tap.disable();
           this.onTapSelected(selected_tap);
-          this.handlers = Object.entries(this.agentPolicy.handlers.modules)
+          this.handlers = Object.entries(this.agentPolicy.policy.handlers.modules)
             .map(([key, handler]) => ({ ...handler, name: key, type: handler.config.type }));
         }
       }, reason => console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`))
