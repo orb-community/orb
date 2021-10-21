@@ -309,7 +309,7 @@ export class AgentPolicyAddComponent {
     this.liveHandler = selectedHandler !== '' && !!this.availableHandlers[selectedHandler] ?
       { ...this.availableHandlers[selectedHandler], type: selectedHandler } : null;
 
-    const { config } = !!this.liveHandler ? this.liveHandler : {config: {}};
+    const { config } = !!this.liveHandler ? this.liveHandler : { config: {} };
 
     this.handlerSelectorFormGroup.controls.label.setValue('');
 
