@@ -14,7 +14,7 @@ module.exports = {
       login.with(email, pwd);
       topbar.expectLoggedUser(email);
     },
-    
+
     'Sink Edit Remote Host': (browser) => {
     const sinks = browser.page.sinks();
 
@@ -28,7 +28,7 @@ module.exports = {
 	.click('@sinkNext')
 	.click('@sinkNext')
 	.click('@sinkNext')
-	.verify.containsText('span.title', 'Sink successfully updated')
+	.verify.containsText('span.title', 'Sink successfully updated', "Confirmation message is being correctly displayed")
 	.sinkCheckEdition('_n3w_rm')
 
 }}

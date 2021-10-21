@@ -32,7 +32,7 @@ module.exports = {
 	.click('@sinkNext')
 	.click('@sinkNext')
 	.click('@sinkNext')
-	.verify.containsText('span.title', 'Sink successfully updated')
+	.verify.containsText('span.title', 'Sink successfully updated', "Confirmation message is being correctly displayed")
 	//BUG
 	//.sinkCheckEdition('_new_usr')
 
