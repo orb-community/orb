@@ -359,7 +359,7 @@ export class AgentPolicyAddComponent {
       policy: {
         kind: 'collection',
         input: {
-          tap: this.availableTaps[this.tapFormGroup.controls.selected_tap.value],
+          tap: this.tapFormGroup.controls.selected_tap.value,
           input_type: this.tapFormGroup.controls.input_type.value,
           config: Object.keys(this.inputFormGroup.controls)
             .map(key => ({ [key]: this.inputFormGroup.controls[key].value }))
