@@ -6,23 +6,18 @@
  */
 
 /**
- * @interface TapConfig
+ * @interface PolicyTap
  */
-export interface TapConfig {
+export interface PolicyTap {
   /**
    * info reserved
    */
-  kind?: string;
+  name?: string;
 
   /**
-   * version {string}
+   * agents
    */
-  version?: string;
-
-  /**
-   * tap name {string}
-   */
-  tap?: string;
+  agents?: {total?: number};
 
   /**
    * input type
@@ -30,8 +25,9 @@ export interface TapConfig {
   input_type?: string;
 
   /**
-   * json object with configs
+   * array with configs fields that are predefined,
+   * without their predefined value
    */
-  config?: {[propName: string]: any};
+  config_predefined?: string[];
 }
 
