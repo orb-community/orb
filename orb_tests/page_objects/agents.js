@@ -2,10 +2,11 @@ var loginActions = {
     AgentsPage: function () {
         return this
         .waitForElementVisible('@path', "Agents path is visible")
-        .assert.containsText('@agentPath', 'Fleet Management', "Agents is inherited from Fleet Management")
-        .assert.containsText('@view', 'Agent List', "Agent view is named 'Agent List'")
-        .assert.containsText('@header', "All Agents", "Agents Header is 'All Agents'")
-        .waitForElementVisible('@table', "Agent table is visible")
+        .verify.containsText('@agentPath', 'Fleet Management', "Agents is inherited from Fleet Management")
+        .verify.containsText('@view', 'Agents List', "Agent view is named 'Agents List'")
+        .verify.containsText('@header', "All Agents", "Agents Header is 'All Agents'")
+        .waitForElementVisible('.flex-column', "Agent Groups table view is visible")
+        .waitForElementVisible('@table', "Agent table view is visible")
         .waitForElementVisible("@new", "New Agent button is visible")
         .waitForElementVisible("@filter", "Filter type is visible")
         .waitForElementVisible("@search", "Search by filter is visible")

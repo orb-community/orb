@@ -1,4 +1,8 @@
 module.exports = {
+  '@disabled': true,
+
+
+
   beforeEach: (browser) => {
     const login = browser.page.login();
     const topbar = browser.page.topbar();
