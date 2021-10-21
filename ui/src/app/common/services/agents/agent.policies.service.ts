@@ -53,7 +53,7 @@ export class AgentPoliciesService {
 
   addAgentPolicy(agentPolicyItem: AgentPolicy) {
     return this.http.post(environment.agentPoliciesUrl,
-        { ...agentPolicyItem, validate_only: false },
+        { ...agentPolicyItem },
         { observe: 'response' })
       .map(
         resp => {
