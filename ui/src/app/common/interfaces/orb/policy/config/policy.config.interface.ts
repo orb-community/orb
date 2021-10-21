@@ -6,9 +6,9 @@
  */
 
 /**
- * @interface TapConfig
+ * @interface PolicyConfig
  */
-export interface TapConfig {
+export interface PolicyConfig {
   /**
    * info reserved
    */
@@ -33,5 +33,13 @@ export interface TapConfig {
    * json object with configs
    */
   config?: {[propName: string]: any};
+
+  /**
+   * handlers object with configs
+   */
+  handlers?: {
+    modules?: { [propName: string]: any },
+    config?: { [propName: string]: any },
+  };
 }
 

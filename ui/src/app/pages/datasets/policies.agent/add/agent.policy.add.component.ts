@@ -370,19 +370,19 @@ export class AgentPolicyAddComponent {
               return acc;
             }, {}),
         },
-      },
-      handlers: {
-        modules: this.handlers.reduce((acc, handler) => {
-          acc[handler.name] = {
-            version: '1.0',
-            config: handler.config,
-            type: handler.type,
-          };
-          return acc;
-        }, {}),
-        config: {
-          num_periods: 5,
-          deep_sample_rate: 100,
+        handlers: {
+          modules: this.handlers.reduce((acc, handler) => {
+            acc[handler.name] = {
+              version: '1.0',
+              [Object.keys(handler.config).length > 0 ? 'config' : undefined]: handler.config,
+              type: handler.type,
+            };
+            return acc;
+          }, {}),
+          config: {
+            num_periods: 5,
+            deep_sample_rate: 100,
+          },
         },
       },
     };
