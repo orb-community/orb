@@ -38,7 +38,7 @@ module.exports = {
         if (result.value == "0 total") {
             browser.expect.elements('datatable-row-wrapper').count.to.equal(parseInt(result.value))
           
-            browser.verify.containsText('.sink-info-accent', 'There are no agents yet.', "Info message of Agents count is correctly displayed")
+            browser.verify.containsText('.sink-info-accent', 'There are no Agents yet.', "Info message of Agents count is correctly displayed")
             browser.verify.containsText('.empty-row', 'No data to display', "View table info message is correctly displayed")
         } else {
             browser.expect.elements('datatable-row-wrapper').count.to.equal(parseInt(result.value))
