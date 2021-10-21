@@ -329,7 +329,7 @@ export class AgentPolicyAddComponent {
 
     if (this.dynamicHandlerConfigFormGroup !== null) {
       config = {
-        [this.selected_handler_config]: this.dynamicHandlerConfigFormGroup.controls[this.selected_handler_config].value
+        [this.selected_handler_config]: this.dynamicHandlerConfigFormGroup.controls[this.selected_handler_config].value,
       };
     }
 
