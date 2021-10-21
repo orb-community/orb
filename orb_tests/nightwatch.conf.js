@@ -1,6 +1,6 @@
 const chromedriver = require('chromedriver');
 
-const testUrl = 'http://localhost';
+const testUrl = 'http://localhost:4200';
 const defaultTimeout = 15000;
 
 module.exports = {
@@ -46,7 +46,7 @@ module.exports = {
     },
 
     beta: {
-      launch_url: "http://beta.orb.live"
+      launch_url: "https://beta.orb.live"
     }
   }
 }

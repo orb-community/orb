@@ -19,7 +19,9 @@ var registerCommands = {
         .waitForElementVisible('@submit', "'Register' button is visible")
         .verify.containsText('@submit', "REGISTER", "'REGISTER' text is correctly written")
         .verify.attributeEquals('@submit','aria-disabled', 'false', "'Register' button is clickable")
+        .pause(2000)
         .click('@submit')
+        .pause(2000)
 
     },
 }

@@ -100,13 +100,13 @@ var commands = {
         if (result.value == "0 total") {
             browser.expect.elements('datatable-row-wrapper').count.to.equal(parseInt(result.value))
           
-            browser.verify.containsText('.sink-info-accent', 'There are no agent groups yet.', "Info message of Agent Groups count is correctly displayed")
+            browser.verify.containsText('.sink-info-accent', 'There are no Agent Groups yet.', "Info message of Agent Groups count is correctly displayed")
             browser.verify.containsText('.empty-row', 'No data to display', "View table info message is correctly displayed")
         } else {
             browser.expect.elements('datatable-row-wrapper').count.to.equal(parseInt(result.value))
             browser.verify.containsText('.justify-content-between > div:nth-child(1)', 'You have', "Beginning of info message is correctly displayed")
             browser.verify.containsText('.justify-content-between > div:nth-child(1)', parseInt(result.value), "Number of Agents is correctly displayed")
-            browser.verify.containsText('.justify-content-between > div:nth-child(1)', 'agent groups deployed in', "End of info message is correctly displayed")
+            browser.verify.containsText('.justify-content-between > div:nth-child(1)', 'Agent Groups.', "End of info message is correctly displayed")
         }
       })
 

@@ -29,7 +29,7 @@ module.exports = {
 	.sinkEditTags('@key', '@value', '_n3w_key', '_n3w_value')
 	.click('@sinkNext')
 	.click('@sinkNext')
-	.verify.containsText('span.title', 'Sink successfully updated')
+	.verify.containsText('span.title', 'Sink successfully updated', "Confirmation message is being correctly displayed")
 	.sinkCheckEdition('_n3w_key')
 	.sinkCheckEdition('_n3w_value')
 }}
