@@ -42,6 +42,7 @@ import { AgentListComponent } from 'app/pages/fleet/agents/list/agent.list.compo
 import { AgentAddComponent } from 'app/pages/fleet/agents/add/agent.add.component';
 import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete.component';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
+import { AgentKeyComponent } from 'app/pages/fleet/agents/key/agent.key.component';
 import { AgentGroupListComponent } from 'app/pages/fleet/groups/list/agent.group.list.component';
 import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.add.component';
 import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
@@ -53,6 +54,9 @@ import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/de
 import { AgentPolicyDetailsComponent } from 'app/pages/datasets/policies.agent/details/agent.policy.details.component';
 import { AgentPolicyListComponent } from 'app/pages/datasets/policies.agent/list/agent.policy.list.component';
 import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.component';
+import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
+import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.component';
+import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.details.component';
 
 @NgModule({
   imports: [
@@ -101,6 +105,7 @@ import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.compo
     AgentAddComponent,
     AgentDeleteComponent,
     AgentDetailsComponent,
+    AgentKeyComponent,
     AgentMatchComponent,
     AgentViewComponent,
     // Fleet - Agent Groups
@@ -109,7 +114,10 @@ import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.compo
     AgentGroupDeleteComponent,
     AgentGroupDetailsComponent,
     // Dataset Explorer
+    DatasetAddComponent,
     DatasetListComponent,
+    DatasetDeleteComponent,
+    DatasetDetailsComponent,
     // Dataset Explorer - Agent Policies
     AgentPolicyAddComponent,
     AgentPolicyDeleteComponent,

@@ -1,4 +1,12 @@
-import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
@@ -23,6 +31,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
   strings = STRINGS.agents;
 
   columnMode = ColumnMode;
+
   columns: TableColumn[];
 
   loading = false;
@@ -30,13 +39,18 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
   paginationControls: OrbPagination<Agent>;
 
   searchPlaceholder = 'Search by name';
+
   filterSelectedIndex = '0';
 
   // templates
   @ViewChild('agentNameTemplateCell') agentNameTemplateCell: TemplateRef<any>;
+
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
+
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
+
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+
   @ViewChild('agentLastActivityTemplateCell') agentLastActivityTemplateCell: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
@@ -54,6 +68,12 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     },
   ];
 
+  @ViewChild('tableWrapper') tableWrapper;
+
+  @ViewChild(DatatableComponent) table: DatatableComponent;
+
+  private currentComponentWidth;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -66,9 +86,6 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     this.paginationControls = AgentsService.getDefaultPagination();
   }
 
-  @ViewChild('tableWrapper') tableWrapper;
-  @ViewChild(DatatableComponent) table: DatatableComponent;
-  private currentComponentWidth;
   ngAfterViewChecked() {
     if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
@@ -156,7 +173,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
   }
 
   onOpenView(agent: any) {
-    this.router.navigate([`view/${agent.id}`], {
+    this.router.navigate([`view/${ agent.id }`], {
       state: { agent: agent },
       relativeTo: this.route,
     });
@@ -169,20 +186,20 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
   }
 
   onOpenEdit(agent: any) {
-    this.router.navigate([`edit/${agent.id}`], {
-      state: {agent: agent, edit: true},
+    this.router.navigate([`edit/${ agent.id }`], {
+      state: { agent: agent, edit: true },
       relativeTo: this.route,
     });
   }
 
   onFilterSelected(selectedIndex) {
-    this.searchPlaceholder = `Search by ${this.tableFilters[selectedIndex].label}`;
+    this.searchPlaceholder = `Search by ${ this.tableFilters[selectedIndex].label }`;
   }
 
   openDeleteModal(row: any) {
-    const {name, id} = row;
+    const { name, id } = row;
     this.dialogService.open(AgentDeleteComponent, {
-      context: {name},
+      context: { name },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
@@ -199,7 +216,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
 
   openDetailsModal(row: any) {
     this.dialogService.open(AgentDetailsComponent, {
-      context: {agent: row},
+      context: { agent: row },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe((resp) => {
@@ -219,10 +236,12 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
   }
 
   filterByError = (agent) => !!agent && agent?.error_state && agent.error_state;
-  mapRegion = (agent) =>  !!agent && agent?.orb_tags && !!agent.orb_tags['region'] && agent.orb_tags['region'];
+
+  mapRegion = (agent) => !!agent && agent?.orb_tags && !!agent.orb_tags['region'] && agent.orb_tags['region'];
+
   filterValid = (value) => !!value && typeof value === 'string';
+
   countUnique = (value, index, self) => {
     return self.indexOf(value) === index;
   }
-
 }

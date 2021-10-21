@@ -29,9 +29,10 @@ type Dataset struct {
 	Valid        bool
 	AgentGroupID string
 	PolicyID     string
-	SinkID       string
 	Metadata     types.Metadata
 	Created      time.Time
+	Tags         types.Tags
+	SinkIDs      []string
 }
 
 type PolicyInDataset struct {
@@ -42,6 +43,11 @@ type PolicyInDataset struct {
 type Page struct {
 	PageMetadata
 	Policies []Policy
+}
+
+type PageDataset struct {
+	PageMetadata
+	Datasets []Dataset
 }
 
 type Service interface {
@@ -77,6 +83,20 @@ type Service interface {
 
 	// ValidatePolicy validates an agent Policy without saving
 	ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+
+	// EditDataset edit a existing dataset by id with a valid token
+	EditDataset(ctx context.Context, token string, ds Dataset) (Dataset, error)
+	// RemoveDataset remove a dataset by id with a valid token
+	RemoveDataset(ctx context.Context, token string, dsID string) error
+
+	// ValidateDataset validates a new Dataset without saving it
+	ValidateDataset(ctx context.Context, token string, d Dataset) (Dataset, error)
+
+	// ViewDatasetByID retrieving dataset by id with token
+	ViewDatasetByID(ctx context.Context, token string, datasetID string) (Dataset, error)
+
+	// ListDatasets retrieve a list of Dataset by owner
+	ListDatasets(ctx context.Context, token string, pm PageMetadata) (PageDataset, error)
 }
 
 type Repository interface {
@@ -111,4 +131,16 @@ type Repository interface {
 
 	// RetrieveDatasetsByPolicyID retrieves the subset of Datasets by policyID owned by the specified user
 	RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]Dataset, error)
+
+	// UpdateDataset update a existing dataset by id with a valid token
+	UpdateDataset(ctx context.Context, ownerID string, ds Dataset) error
+
+	//DeleteDataset delete a existing dataset by id by ownerID
+	DeleteDataset(ctx context.Context, ownerID string, dsID string) error
+
+	// RetrieveDatasetByID Retrieves dataset by id
+	RetrieveDatasetByID(ctx context.Context, datasetID string, ownerID string) (Dataset, error)
+
+	// RetrieveAllDatasetsByOwner retrieves the subset of Datasets owned by the specified user
+	RetrieveAllDatasetsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageDataset, error)
 }

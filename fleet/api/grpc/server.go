@@ -86,6 +86,8 @@ func encodeError(err error) error {
 		return nil
 	case fleet.ErrMalformedEntity:
 		return status.Error(codes.InvalidArgument, "received invalid can access request")
+	case fleet.ErrNotFound:
+		return status.Error(codes.NotFound, "not found")
 	default:
 		return status.Error(codes.Internal, "internal server error")
 	}
