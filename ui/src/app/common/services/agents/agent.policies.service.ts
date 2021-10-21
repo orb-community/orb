@@ -215,7 +215,7 @@ export class AgentPoliciesService {
     //   );
     // TODO remove mock and uncomment http request
     // if (final === 'pktvisor/taps') {
-    //   return this.http.get(`${environment.agentsBackendUrl}/${final}`)
+    //   return this.http.get(`${environment.baseBackendComposeUrl}/${final}`)
     //   .map((response: any) => {
     //     return response.backend;
     //   }).catch(
