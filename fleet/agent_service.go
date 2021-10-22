@@ -14,6 +14,7 @@ import (
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/fleet/backend"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/policies/pb"
 	"go.uber.org/zap"
 )
 
@@ -214,6 +215,17 @@ func (svc fleetService) AgentsStatistics(ctx context.Context, token string) (Age
 	agFailing, err := svc.agentRepo.RetrieveAgentsFailing(ctx, ownerID)
 	if err != nil{
 		return AgentsStatistics{}, errors.Wrap(errors.New("Failed to retrieve agents failing to apply a policy"), err)
+	}
+
+	for i := range agFailing{
+		policyGrp := fleetCommsService{}
+
+		pl, err := policyGrp.policyClient.RetrievePolicy(ctx, &pb.PolicyByIDReq{PolicyID: agFailing[i].PolicyID, OwnerID: ownerID})
+		if err != nil {
+			return AgentsStatistics{}, errors.Wrap(errors.New("Failed to retrieve policy name"), err)
+		}
+
+		agFailing[i].PolicyName = pl.Name
 	}
 
 	statistic := AgentsStatistics{

@@ -389,11 +389,9 @@ func TestAgentsStatistics(t *testing.T) {
 	thingsServer := newThingsServer(newThingsService(users))
 	fleetService := newService(users, thingsServer.URL)
 
-	var agents []fleet.Agent
 	for i := 0; i < limit; i++ {
-		ag, err := createAgent(t, fmt.Sprintf("my-agent-%d", i), fleetService)
+		_, err := createAgent(t, fmt.Sprintf("my-agent-%d", i), fleetService)
 		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-		agents = append(agents, ag)
 	}
 
 	var agSummary []fleet.AgentStates
