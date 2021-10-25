@@ -26,16 +26,16 @@ type DNSPayload struct {
 		NxDomain int64 `mapstructure:"nxdomain"`
 		SrvFail  int64 `mapstructure:"srvfail"`
 		Refused  int64 `mapstructure:"refused"`
-		Rates    struct {
-			Total struct {
-				Live int64 `mapstructure:"live"`
-				P50  int64 `mapstructure:"p50"`
-				P90  int64 `mapstructure:"p90"`
-				P95  int64 `mapstructure:"p95"`
-				P99  int64 `mapstructure:"p99"`
-			} `mapstructure:"total"`
-		} `mapstructure:"rates"`
 	} `mapstructure:"wire_packets"`
+	Rates struct {
+		Total struct {
+			Live int64 `mapstructure:"live"`
+			P50  int64 `mapstructure:"p50"`
+			P90  int64 `mapstructure:"p90"`
+			P95  int64 `mapstructure:"p95"`
+			P99  int64 `mapstructure:"p99"`
+		} `mapstructure:"total"`
+	} `mapstructure:"rates"`
 	Cardinality struct {
 		Qname int64 `mapstructure:"qname"`
 	} `mapstructure:"cardinality"`

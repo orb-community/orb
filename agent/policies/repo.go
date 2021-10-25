@@ -14,6 +14,7 @@ type PolicyRepo interface {
 	Get(policyID string) (PolicyData, error)
 	Remove(policyID string) error
 	Add(data PolicyData) error
+	Edit(data PolicyData) error
 	GetAll() ([]PolicyData, error)
 	EnsureDataset(policyID string, datasetID string) error
 }
@@ -73,6 +74,11 @@ func (p policyMemRepo) GetAll() (ret []PolicyData, err error) {
 	}
 	err = nil
 	return ret, err
+}
+
+func (p policyMemRepo) Edit(data PolicyData) error {
+	p.db[data.ID] = data
+	return nil
 }
 
 var _ PolicyRepo = (*policyMemRepo)(nil)

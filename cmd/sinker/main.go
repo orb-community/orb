@@ -13,16 +13,28 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb"
+	fleetgrpc "github.com/ns1labs/orb/fleet/api/grpc"
 	"github.com/ns1labs/orb/pkg/config"
+	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	"github.com/ns1labs/orb/sinker"
+	sinkerconfig "github.com/ns1labs/orb/sinker/config"
+	"github.com/ns1labs/orb/sinker/redis/producer"
+	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
+	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	jconfig "github.com/uber/jaeger-client-go/config"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	mflog "github.com/mainflux/mainflux/logger"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
@@ -39,10 +51,10 @@ func main() {
 	natsCfg := config.LoadNatsConfig(envPrefix)
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
-
-	// todo sinks gRPC
-	// todo policies mgr gRPC
-	// todo fleet mgr gRPC
+	jCfg := config.LoadJaegerConfig(envPrefix)
+	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
+	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
+	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 
 	// main logger
 	var logger *zap.Logger
@@ -62,6 +74,9 @@ func main() {
 	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
 	defer esClient.Close()
 
+	tracer, tracerCloser := initJaeger(svcName, jCfg.URL, logger)
+	defer tracerCloser.Close()
+
 	pubSub, err := mfnats.NewPubSub(natsCfg.URL, svcName, mflogger)
 	if err != nil {
 		logger.Error("Failed to connect to NATS", zap.Error(err))
@@ -69,10 +84,36 @@ func main() {
 	}
 	defer pubSub.Close()
 
-	// todo fleet grpc
-	// todo sink grpc
+	policiesGRPCConn := connectToGRPC(policiesGRPCCfg, logger)
+	defer policiesGRPCConn.Close()
 
-	svc := sinker.New(logger, pubSub, esClient)
+	policiesGRPCTimeout, err := time.ParseDuration(policiesGRPCCfg.Timeout)
+	if err != nil {
+		log.Fatalf("Invalid %s value: %s", policiesGRPCCfg.Timeout, err.Error())
+	}
+	policiesGRPCClient := policiesgrpc.NewClient(tracer, policiesGRPCConn, policiesGRPCTimeout)
+
+	fleetGRPCConn := connectToGRPC(fleetGRPCCfg, logger)
+	defer fleetGRPCConn.Close()
+
+	fleetGRPCTimeout, err := time.ParseDuration(fleetGRPCCfg.Timeout)
+	if err != nil {
+		log.Fatalf("Invalid %s value: %s", fleetGRPCCfg.Timeout, err.Error())
+	}
+	fleetGRPCClient := fleetgrpc.NewClient(tracer, fleetGRPCConn, fleetGRPCTimeout)
+
+	sinksGRPCConn := connectToGRPC(sinksGRPCCfg, logger)
+	defer sinksGRPCConn.Close()
+
+	sinksGRPCTimeout, err := time.ParseDuration(sinksGRPCCfg.Timeout)
+	if err != nil {
+		log.Fatalf("Invalid %s value: %s", sinksGRPCCfg.Timeout, err.Error())
+	}
+	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
+
+	configRepo := sinkerconfig.NewMemRepo(logger)
+	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient)
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient)
 	defer svc.Stop()
 
 	errs := make(chan error, 2)
@@ -119,4 +160,57 @@ func connectToRedis(URL, pass string, cacheDB string, logger *zap.Logger) *redis
 		Password: pass,
 		DB:       db,
 	})
+}
+
+func connectToGRPC(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
+	var opts []grpc.DialOption
+	tls, err := strconv.ParseBool(cfg.ClientTLS)
+	if err != nil {
+		tls = false
+	}
+	if tls {
+		if cfg.CaCerts != "" {
+			tpc, err := credentials.NewClientTLSFromFile(cfg.CaCerts, "")
+			if err != nil {
+				logger.Error(fmt.Sprintf("Failed to create tls credentials: %s", err))
+				os.Exit(1)
+			}
+			opts = append(opts, grpc.WithTransportCredentials(tpc))
+		}
+	} else {
+		opts = append(opts, grpc.WithInsecure())
+	}
+
+	conn, err := grpc.Dial(cfg.URL, opts...)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Failed to dial to gRPC service %s: %s", cfg.URL, err))
+		os.Exit(1)
+	}
+	logger.Info(fmt.Sprintf("Dialed to gRPC service %s at %s, TLS? %t", cfg.Service, cfg.URL, tls))
+
+	return conn
+}
+
+func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io.Closer) {
+	if url == "" {
+		return opentracing.NoopTracer{}, ioutil.NopCloser(nil)
+	}
+
+	tracer, closer, err := jconfig.Configuration{
+		ServiceName: svcName,
+		Sampler: &jconfig.SamplerConfig{
+			Type:  "const",
+			Param: 1,
+		},
+		Reporter: &jconfig.ReporterConfig{
+			LocalAgentHostPort: url,
+			LogSpans:           true,
+		},
+	}.NewTracer()
+	if err != nil {
+		logger.Error("Failed to init Jaeger client", zap.Error(err))
+		os.Exit(1)
+	}
+
+	return tracer, closer
 }
