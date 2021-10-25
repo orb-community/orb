@@ -4,6 +4,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { DynamicFormConfig } from 'app/common/interfaces/orb/dynamic.form.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface';
 
@@ -44,7 +45,10 @@ export class AgentPolicyAddComponent {
   tap: PolicyTap;
 
   // selected input object
-  input: { [propName: string]: any };
+  input: {
+    version?: string,
+    config?: DynamicFormConfig,
+  };
 
   // holds selected handler conf.
   // handler template currently selected, to be edited by user and then added to the handlers list or discarded
@@ -53,16 +57,16 @@ export class AgentPolicyAddComponent {
   // holds all handlers added by user
   handlers: { name: string, type: string, config: { [propName: string]: {} | any } }[] = [];
 
-  // hold handler selected config
-  selected_handler_config: any;
-
   // #services responses
   // hold info retrieved
   availableBackends: { [propName: string]: { backend: string, description: string } };
 
   availableTaps: { [propName: string]: PolicyTap };
 
-  availableInputs: { [propName: string]: any };
+  availableInputs: { [propName: string]: {
+      version?: string,
+      config?: DynamicFormConfig,
+    } };
 
   availableHandlers: { [propName: string]: any };
 
@@ -208,11 +212,7 @@ export class AgentPolicyAddComponent {
     const { input_type, config_predefined } = this.tap;
 
     this.tap['config'] = {
-      ...config_predefined.reduce(
-        (acc, curr) => {
-          acc[curr] = '';
-          return acc;
-        }, {}),
+      ...config_predefined,
       ...input.config,
     };
 
@@ -254,10 +254,7 @@ export class AgentPolicyAddComponent {
     // TODO make code readable again
     // merge preconfigurations
     const finalConfig = {
-      ...preConfig.reduce((acc, value) => {
-        acc[value] = '';
-        return acc;
-      }, {}),
+      ...preConfig,
       ...agentConfig,
     };
 
@@ -265,13 +262,13 @@ export class AgentPolicyAddComponent {
       this.agentPolicy.policy = { input: { config: {} } };
     }
     // populate form controls
-    const dynamicControls = Object.keys(inputConfig)
-      .reduce((acc, key) => {
+    const dynamicControls = Object.entries(inputConfig)
+      .reduce((acc, [key, input]) => {
         const value = !!finalConfig?.[key] ? finalConfig[key] : '';
         const disabled = !!preConfig?.[key];
         acc[key] = [
           { value, disabled },
-          inputConfig[key].required ? Validators.required : null,
+          input?.required ? Validators.required : null,
         ];
 
         return acc;
@@ -301,7 +298,6 @@ export class AgentPolicyAddComponent {
 
 
   onHandlerSelected(selectedHandler) {
-    this.selected_handler_config = null;
     if (this.dynamicHandlerConfigFormGroup) {
       this.dynamicHandlerConfigFormGroup = null;
     }
@@ -311,28 +307,23 @@ export class AgentPolicyAddComponent {
 
     const { config } = !!this.liveHandler ? this.liveHandler : { config: {} };
 
-    this.handlerSelectorFormGroup.controls.label.setValue('');
+    // this.handlerSelectorFormGroup.controls.label.setValue('');
 
-    const dynamicControls = Object.keys(config).length > 0 ? { 'selected_handler_config': ['', [Validators.required]] } : {};
+    const dynamicControls = Object.entries(config).reduce((controls, [key, value]) => {
+      controls[key] = ['', [Validators.required]];
+      return controls;
+    }, {});
+    // { 'selected_handler_config': ['', [Validators.required]] } : {};
 
     this.dynamicHandlerConfigFormGroup = Object.keys(dynamicControls).length > 0 ? this._formBuilder.group(dynamicControls) : null;
-    if (this.dynamicHandlerConfigFormGroup !== null) this.selected_handler_config = '';
 
-  }
-
-  onHandlerConfigSelected(selectedHandlerConfig) {
-    if (selectedHandlerConfig !== '')
-      this.dynamicHandlerConfigFormGroup.addControl(selectedHandlerConfig, this._formBuilder.control(''));
-    this.selected_handler_config = selectedHandlerConfig;
   }
 
   onHandlerAdded() {
     let config = {};
 
     if (this.dynamicHandlerConfigFormGroup !== null) {
-      config = {
-        [this.selected_handler_config]: this.dynamicHandlerConfigFormGroup.controls[this.selected_handler_config].value,
-      };
+      config = {};
     }
 
     const handlerName = this.handlerSelectorFormGroup.controls.label.value;

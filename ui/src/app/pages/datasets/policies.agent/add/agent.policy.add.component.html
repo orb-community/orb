@@ -144,7 +144,7 @@
               <div *ngFor="let control of input['config'] | keyvalue; index as i;">
                 <div *ngIf="inputFormGroup.controls.hasOwnProperty(control.value.name)">
                   <div>
-                    <label class="font-weight-bold">{{control.value.title}}</label>
+                    <label class="font-weight-bold">{{control.value.label}}</label>
                   </div>
                   <div [ngSwitch]="control.value.input">
                     <input *ngSwitchCase="'text'"
@@ -264,54 +264,43 @@
           <div *ngIf="!!liveHandler && !!dynamicHandlerConfigFormGroup">
             <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFormGroup">
               <div *ngIf="!!liveHandler.config">
-                <nb-select (selectedChange)="onHandlerConfigSelected($event)"
-                           appearance="filled"
-                           data-orb-qa-id="sink_selector"
-                           formControlName="selected_handler_config"
-                           fullWidth="true"
-                           placeholder="Handler Configuration"
-                           size="medium">
-                  <nb-option *ngFor="let control of liveHandler.config | keyvalue; let i = index"
-                             [attr.data-orb-qa-id]="'available_handler_config: '+control.key" [id]="control.key"
-                             [value]="control.key">{{ control.key }}</nb-option>
-                </nb-select>
-                <div *ngIf="!!liveHandler.config && selected_handler_config && selected_handler_config !== ''">
+                <div *ngFor="let config of liveHandler.config | keyvalue">
                   <div>
-                    <label class="font-weight-bold">{{liveHandler.config[selected_handler_config].title}}</label>
+                    <label class="font-weight-bold">{{config.value.label}}</label>
                   </div>
-                  <div [ngSwitch]="liveHandler.config[selected_handler_config].input">
+                  <div [ngSwitch]="config.value.input">
                     <input *ngSwitchCase="'text'"
-                           [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
+                           [attr.data-orb-qa-id]="config.value.name"
                            [autofocus]="true"
-                           [formControlName]="liveHandler.config[selected_handler_config].name"
-                           [type]="liveHandler.config[selected_handler_config].type"
+                           [formControlName]="config.value.name"
+                           [type]="config.value.type"
                            fieldSize="medium"
                            fullWidth="true"
                            nbInput>
                     <input *ngSwitchCase="'number'"
-                           [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
+                           [attr.data-orb-qa-id]="config.value.name"
                            [autofocus]="true"
-                           [formControlName]="liveHandler.config[selected_handler_config].name"
-                           [max]="liveHandler.config[selected_handler_config].max"
-                           [min]="liveHandler.config[selected_handler_config].min"
-                           [step]="liveHandler.config[selected_handler_config].step"
-                           [type]="liveHandler.config[selected_handler_config].type">
+                           [formControlName]="config.value.name"
+                           [max]="config.value.max"
+                           [min]="config.value.min"
+                           [step]="config.value.step"
+                           [type]="config.value.type">
                     <nb-select *ngSwitchCase="'select'"
-                               [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
-                               [formControlName]="liveHandler.config[selected_handler_config].name"
-                               [id]="liveHandler.config[selected_handler_config].name"
+                               [attr.data-orb-qa-id]="config.value.name"
+                               [formControlName]="config.value.name"
+                               [id]="config.value.name"
                                appearance="filled"
                                fullWidth="true"
-                               size="medium">{{ liveHandler.config[selected_handler_config].name + "-" + liveHandler.config[selected_handler_config].options }}
-                      <nb-option *ngFor="let option of liveHandler.config[selected_handler_config].options"
+                               size="medium">{{ config.value.name + "-" + config.value.options }}
+                      <nb-option *ngFor="let option of config.value.options"
                                  [attr.data-orb-qa-id]="option"
                                  [value]="option">{{ option }}</nb-option>
                     </nb-select>
                     <nb-checkbox *ngSwitchCase="'checkbox'"
-                                 [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
-                                 [formControlName]="liveHandler.config[selected_handler_config].name"
-                                 [id]="liveHandler.config[selected_handler_config].name">
-                      {{liveHandler.config[selected_handler_config].name}}
+                                 [attr.data-orb-qa-id]="config.value.name"
+                                 [formControlName]="config.value.name"
+                                 [id]="config.value.name">
+                      {{config.value.name}}
                     </nb-checkbox>
                   </div>
                   <hr/>
@@ -321,7 +310,7 @@
           </div>
           <button (click)="onHandlerAdded()"
                   [disabled]="handlerSelectorFormGroup.controls['label'].value === ''
-                  || (!!liveHandler.config && selected_handler_config === '')"
+                  || (!!liveHandler.config)"
                   data-orb-qa-id="addHandler"
                   ghost
                   nbButton>

@@ -235,9 +235,9 @@ export class AgentPoliciesService {
             {
               'name': 'ethernet',
               'input_type': 'pcap',
-              'config_predefined': [
-                'iface',
-              ],
+              'config_predefined': {
+                'iface': 'eth0',
+              },
               'agents': {
                 'total': 1,
               },
@@ -255,7 +255,7 @@ export class AgentPoliciesService {
                   'required': true,
                   'type': 'string',
                   'input': 'text',
-                  'title': 'Interface',
+                  'label': 'Interface',
                   'name': 'iface',
                   'description': 'The ethernet interface to capture on',
                 },
@@ -263,7 +263,7 @@ export class AgentPoliciesService {
                   'required': false,
                   'type': 'string',
                   'input': 'text',
-                  'title': 'Filter Expression',
+                  'label': 'Filter Expression',
                   'name': 'bpf',
                   'description': 'tcpdump compatible filter expression for limiting the traffic examined (with BPF). Example: "port 53"',
                 },
@@ -271,7 +271,7 @@ export class AgentPoliciesService {
                   'required': false,
                   'type': 'string',
                   'input': 'text',
-                  'title': 'Host Specification',
+                  'label': 'Host Specification',
                   'name': 'host_spec',
                   'description': 'Subnets (comma separated) to consider this HOST, in CIDR form. Example: "10.0.1.0/24,10.0.2.1/32,2001:db8::/64"',
                 },
@@ -279,7 +279,7 @@ export class AgentPoliciesService {
                   'required': false,
                   'type': 'string',
                   'input': 'text',
-                  'title': 'pcap Engine',
+                  'label': 'pcap Engine',
                   'name': 'pcap_source',
                   'description': 'pcap backend engine to use. Defaults to best for platform.',
                 },
@@ -291,7 +291,7 @@ export class AgentPoliciesService {
                 'type': {
                   'type': 'string',
                   'input': 'select',
-                  'title': 'Type',
+                  'label': 'Type',
                   'name': 'type',
                   'options': [
                     'AUTH_QUERY',
@@ -307,7 +307,7 @@ export class AgentPoliciesService {
                 'socket_family': {
                   'type': 'string',
                   'input': 'select',
-                  'title': 'Socket Family',
+                  'label': 'Socket Family',
                   'name': 'socket_family',
                   'options': ['INET', 'INET6'],
                   'required': true,
@@ -316,7 +316,7 @@ export class AgentPoliciesService {
                 'socket_protocol': {
                   'type': 'string',
                   'input': 'select',
-                  'title': 'Socket Protocol',
+                  'label': 'Socket Protocol',
                   'name': 'socket_protocol',
                   'options': ['UDP', 'TCP'],
                   'required': true,
@@ -326,7 +326,7 @@ export class AgentPoliciesService {
                   {
                     'type': 'string',
                     'input': 'text',
-                    'title': 'Query Address',
+                    'label': 'Query Address',
                     'name': 'query_address',
                     'required': false,
                     'description': '',
@@ -334,7 +334,7 @@ export class AgentPoliciesService {
                 'query_port': {
                   'type': 'string',
                   'input': 'text',
-                  'title': 'Query Port',
+                  'label': 'Query Port',
                   'name': 'query_port',
                   'required': false,
                   'description': '',
@@ -342,7 +342,7 @@ export class AgentPoliciesService {
                 'response_address': {
                   'type': 'string',
                   'input': 'text',
-                  'title': 'Response Address',
+                  'label': 'Response Address',
                   'name': 'response_address',
                   'required': false,
                   'description': '',
@@ -359,14 +359,14 @@ export class AgentPoliciesService {
               'version': '1.0',
               'config': {
                 'filter_exclude_noerror': {
-                  'title': 'Filter: Exclude NOERROR',
+                  'label': 'Filter: Exclude NOERROR',
                   'name': 'filter_exclude_noerror',
                   'type': 'checkbox',
                   'input': 'checkbox',
                   'description': 'Filter out all NOERROR responses',
                 },
                 'filter_only_rcode': {
-                  'title': 'Filter: Include Only RCode',
+                  'label': 'Filter: Include Only RCode',
                   'name': 'filter_only_rcode',
                   'type': 'number',
                   'input': 'number',
@@ -376,7 +376,7 @@ export class AgentPoliciesService {
                   'step': 1,
                 },
                 'filter_only_qname_suffix': {
-                  'title': 'Filter: Include Only QName With Suffix',
+                  'label': 'Filter: Include Only QName With Suffix',
                   'name': 'filter_only_qname_suffix',
                   'type': 'text',
                   'input': 'text',
