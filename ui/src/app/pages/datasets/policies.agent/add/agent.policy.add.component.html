@@ -154,6 +154,7 @@
                            [type]="control.value.type"
                            fieldSize="medium"
                            fullWidth="true"
+                           nbTooltip="{{ control.value.description }}"
                            nbInput>
                     <input *ngSwitchCase="'number'"
                            [attr.data-orb-qa-id]="control.value.name"
@@ -162,14 +163,17 @@
                            [max]="control.value.props.max"
                            [min]="control.value.props.min"
                            [step]="control.value.props.step"
-                           [type]="control.value.type">
+                           [type]="control.value.type"
+                           nbTooltip="{{ control.value.description }}">
                     <nb-select *ngSwitchCase="'select'"
                                [attr.data-orb-qa-id]="control.value.name"
                                [formControlName]="control.value.name"
                                [id]="control.value.name"
                                appearance="filled"
                                fullWidth="true"
-                               size="medium">{{ control.value.name + "-" + control.value.props.options }}
+                               size="medium"
+                               nbTooltip="{{ control.value.description }}"
+                    >{{ control.value.name + "-" + control.value.props.options }}
                       <nb-option *ngFor="let option of control.value.props.options | keyvalue"
                                  [attr.data-orb-qa-id]="option.value"
                                  [value]="option.key">{{ option.value }}</nb-option>
@@ -264,43 +268,48 @@
           <div *ngIf="!!liveHandler && !!dynamicHandlerConfigFormGroup">
             <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFormGroup">
               <div *ngIf="!!liveHandler.config">
-                <div *ngFor="let config of liveHandler.config | keyvalue">
+                <div *ngFor="let control of liveHandler.config | keyvalue">
                   <div>
-                    <label class="font-weight-bold">{{config.value.label}}</label>
+                    <label class="font-weight-bold">{{control.value.label}}</label>
                   </div>
-                  <div [ngSwitch]="config.value.input">
+                  <div [ngSwitch]="control.value.input">
                     <input *ngSwitchCase="'text'"
-                           [attr.data-orb-qa-id]="config.value.name"
+                           [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="true"
-                           [formControlName]="config.value.name"
-                           [type]="config.value.type"
+                           [formControlName]="control.value.name"
+                           [type]="control.value.type"
                            fieldSize="medium"
                            fullWidth="true"
-                           nbInput>
+                           nbInput
+                           nbTooltip="{{ control.value.description }}">
                     <input *ngSwitchCase="'number'"
-                           [attr.data-orb-qa-id]="config.value.name"
+                           [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="true"
-                           [formControlName]="config.value.name"
-                           [max]="config.value.props.max"
-                           [min]="config.value.props.min"
-                           [step]="config.value.props.step"
-                           [type]="config.value.props.type">
+                           [formControlName]="control.value.name"
+                           [max]="control.value.props.max"
+                           [min]="control.value.props.min"
+                           [step]="control.value.props.step"
+                           [type]="control.value.props.type"
+                           nbTooltip="{{ control.value.description }}">
                     <nb-select *ngSwitchCase="'select'"
-                               [attr.data-orb-qa-id]="config.value.name"
-                               [formControlName]="config.value.name"
-                               [id]="config.value.name"
+                               [attr.data-orb-qa-id]="control.value.name"
+                               [formControlName]="control.value.name"
+                               [id]="control.value.name"
                                appearance="filled"
                                fullWidth="true"
-                               size="medium">{{ config.value.name + "-" + config.value.props.options }}
-                      <nb-option *ngFor="let option of config.value.props.options | keyvalue"
+                               size="medium"
+                               nbTooltip="{{ control.value.description }}">
+                      {{ control.value.name + "-" + control.value.props.options }}
+                      <nb-option *ngFor="let option of control.value.props.options | keyvalue"
                                  [attr.data-orb-qa-id]="option.key"
                                  [value]="option.value">{{ option.value }}</nb-option>
                     </nb-select>
                     <nb-checkbox *ngSwitchCase="'checkbox'"
-                                 [attr.data-orb-qa-id]="config.value.name"
-                                 [formControlName]="config.value.name"
-                                 [id]="config.value.name">
-                      {{config.value.name}}
+                                 [attr.data-orb-qa-id]="control.value.name"
+                                 [formControlName]="control.value.name"
+                                 [id]="control.value.name"
+                                 nbTooltip="{{ control.value.description }}">
+                      {{control.value.name}}
                     </nb-checkbox>
                   </div>
                   <hr/>
@@ -312,7 +321,8 @@
                   [disabled]="handlerSelectorFormGroup.controls['label'].value === ''"
                   data-orb-qa-id="addHandler"
                   ghost
-                  nbButton>
+                  nbButton
+                  nbTooltip="Click to Add Handler">
             <nb-icon icon="plus-outline"
                      size="14"
                      status="primary"
