@@ -31,7 +31,7 @@ func (e eventStore) Add(config config.SinkConfig) error {
 		return err
 	}
 
-	event := ChangeSinkerStateEvent{
+	event := SinkerUpdateEvent{
 		SinkID:    config.SinkID,
 		Owner:     config.OwnerID,
 		State:     config.State.String(),
@@ -60,7 +60,7 @@ func (e eventStore) Edit(config config.SinkConfig) error {
 		return err
 	}
 
-	event := ChangeSinkerStateEvent{
+	event := SinkerUpdateEvent{
 		SinkID:    config.SinkID,
 		Owner:     config.OwnerID,
 		State:     config.State.String(),
