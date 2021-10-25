@@ -182,10 +182,10 @@
           </div>
           <div class="d-flex justify-content-end">
             <button
-              nbStepperPrevious
               data-orb-qa-id="cancel"
               ghost
               nbButton
+              nbStepperPrevious
               status="primary"
               type="button">Back
             </button>
@@ -273,45 +273,45 @@
                            size="medium">
                   <nb-option *ngFor="let control of liveHandler.config | keyvalue; let i = index"
                              [attr.data-orb-qa-id]="'available_handler_config: '+control.key" [id]="control.key"
-                             [value]="control.value">{{ control.key }}</nb-option>
+                             [value]="control.key">{{ control.key }}</nb-option>
                 </nb-select>
-                <div *ngIf="!!selected_handler_config && selected_handler_config !== ''">
+                <div *ngIf="!!liveHandler.config && selected_handler_config && selected_handler_config !== ''">
                   <div>
-                    <label class="font-weight-bold">{{selected_handler_config.title}}</label>
+                    <label class="font-weight-bold">{{liveHandler.config[selected_handler_config].title}}</label>
                   </div>
-                  <div [ngSwitch]="selected_handler_config.input">
+                  <div [ngSwitch]="liveHandler.config[selected_handler_config].input">
                     <input *ngSwitchCase="'text'"
-                           [attr.data-orb-qa-id]="selected_handler_config.name"
+                           [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
                            [autofocus]="true"
-                           [formControlName]="selected_handler_config.name"
-                           [type]="selected_handler_config.type"
+                           [formControlName]="liveHandler.config[selected_handler_config].name"
+                           [type]="liveHandler.config[selected_handler_config].type"
                            fieldSize="medium"
                            fullWidth="true"
                            nbInput>
                     <input *ngSwitchCase="'number'"
-                           [attr.data-orb-qa-id]="selected_handler_config.name"
+                           [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
                            [autofocus]="true"
-                           [formControlName]="selected_handler_config.name"
-                           [max]="selected_handler_config.max"
-                           [min]="selected_handler_config.min"
-                           [step]="selected_handler_config.step"
-                           [type]="selected_handler_config.type">
+                           [formControlName]="liveHandler.config[selected_handler_config].name"
+                           [max]="liveHandler.config[selected_handler_config].max"
+                           [min]="liveHandler.config[selected_handler_config].min"
+                           [step]="liveHandler.config[selected_handler_config].step"
+                           [type]="liveHandler.config[selected_handler_config].type">
                     <nb-select *ngSwitchCase="'select'"
-                               [attr.data-orb-qa-id]="selected_handler_config.name"
-                               [formControlName]="selected_handler_config.name"
-                               [id]="selected_handler_config.name"
+                               [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
+                               [formControlName]="liveHandler.config[selected_handler_config].name"
+                               [id]="liveHandler.config[selected_handler_config].name"
                                appearance="filled"
                                fullWidth="true"
-                               size="medium">{{ selected_handler_config.name + "-" + selected_handler_config.options }}
-                      <nb-option *ngFor="let option of selected_handler_config.options"
+                               size="medium">{{ liveHandler.config[selected_handler_config].name + "-" + liveHandler.config[selected_handler_config].options }}
+                      <nb-option *ngFor="let option of liveHandler.config[selected_handler_config].options"
                                  [attr.data-orb-qa-id]="option"
                                  [value]="option">{{ option }}</nb-option>
                     </nb-select>
                     <nb-checkbox *ngSwitchCase="'checkbox'"
-                                 [attr.data-orb-qa-id]="selected_handler_config.name"
-                                 [formControlName]="selected_handler_config.name"
-                                 [id]="selected_handler_config.name">
-                      {{selected_handler_config.name}}
+                                 [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
+                                 [formControlName]="liveHandler.config[selected_handler_config].name"
+                                 [id]="liveHandler.config[selected_handler_config].name">
+                      {{liveHandler.config[selected_handler_config].name}}
                     </nb-checkbox>
                   </div>
                   <hr/>
@@ -320,7 +320,8 @@
             </form>
           </div>
           <button (click)="onHandlerAdded()"
-                  [disabled]="!liveHandler || (!!liveHandler && dynamicHandlerConfigFormGroup === null && !!selected_handler_config)"
+                  [disabled]="handlerSelectorFormGroup.controls['label'].value === ''
+                  || (!!liveHandler.config && selected_handler_config === '')"
                   data-orb-qa-id="addHandler"
                   ghost
                   nbButton>

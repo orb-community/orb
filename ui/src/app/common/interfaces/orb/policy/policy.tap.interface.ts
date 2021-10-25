@@ -15,6 +15,11 @@ export interface PolicyTap {
   name?: string;
 
   /**
+   * tap name {string}
+   */
+  tap?: string;
+
+  /**
    * agents
    */
   agents?: {total?: number};
@@ -23,6 +28,11 @@ export interface PolicyTap {
    * input type
    */
   input_type?: string;
+
+  /**
+   * json object with configs
+   */
+  config?: { [propName: string]: any };
 
   /**
    * array with configs fields that are predefined,
