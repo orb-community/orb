@@ -12,8 +12,8 @@ const (
 	stream = "orb.sinker"
 	group  = "orb.sinks"
 
-	statePrefix = "state."
-	stateUpdate = statePrefix + "update"
+	sinkerPrefix = "sinker."
+	sinkerUpdate = sinkerPrefix + "update"
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
@@ -60,7 +60,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 
 			var err error
 			switch event["operation"] {
-			case stateUpdate:
+			case sinkerUpdate:
 				rte := decodeSinkerStateUpdate(event)
 				err = es.handleSinkerStateUpdate(context, rte)
 			}
