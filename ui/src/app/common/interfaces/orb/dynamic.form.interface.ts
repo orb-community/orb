@@ -22,7 +22,7 @@ export interface DynamicInput {
   required?: boolean;
 
   // dynamic properties list for different types of inputs and configs
-  props?: any; // {[propName: string]: [] | {} | any}
+  props?: { [propName: string]: string[]|number[]|string|number|any }; // {[propName: string]: [] | {} | any}
 }
 
 /**
