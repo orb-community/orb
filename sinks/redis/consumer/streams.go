@@ -12,8 +12,8 @@ const (
 	stream = "orb.sinker"
 	group  = "orb.sinks"
 
-	sinkerPrefix         = "sinker."
-	sinkerConnectionLost = sinkerPrefix + "connection_lost"
+	statePrefix = "state."
+	stateUpdate = statePrefix + "update"
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
@@ -60,9 +60,9 @@ func (es eventStore) Subscribe(context context.Context) error {
 
 			var err error
 			switch event["operation"] {
-			case sinkerConnectionLost:
-				rte := decodeSinkerConnectionLost(event)
-				err = es.handleSinkerConnectionLost(context, rte)
+			case stateUpdate:
+				rte := decodeSinkerStateUpdate(event)
+				err = es.handleSinkerStateUpdate(context, rte)
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
@@ -73,20 +73,23 @@ func (es eventStore) Subscribe(context context.Context) error {
 	}
 }
 
-func (es eventStore) handleSinkerConnectionLost(ctx context.Context, event connectionLostEvent) error {
-	err := es.sinkService.ChangeSinkStateInternal(ctx, event.sinkID, event.error, event.ownerID, sinks.Error)
+func (es eventStore) handleSinkerStateUpdate(ctx context.Context, event stateUpdateEvent) error {
+	err := es.sinkService.ChangeSinkStateInternal(ctx, event.sinkID, event.msg, event.ownerID, event.state)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func decodeSinkerConnectionLost(event map[string]interface{}) connectionLostEvent {
-	return connectionLostEvent{
-		ownerID:   read(event, "owner_id", ""),
+func decodeSinkerStateUpdate(event map[string]interface{}) stateUpdateEvent {
+	val := stateUpdateEvent{
+		ownerID:   read(event, "owner", ""),
 		sinkID:    read(event, "sink_id", ""),
+		msg:       read(event, "msg", ""),
 		timestamp: time.Time{},
 	}
+	val.state.Scan(event["state"])
+	return val
 }
 
 func read(event map[string]interface{}, key, def string) string {

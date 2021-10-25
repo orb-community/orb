@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	SinkerPrefix = "sinker."
-	ChangeState  = SinkerPrefix + "change_state"
+	StatePrefix = "state."
+	StateUpdate  = StatePrefix + "update"
 )
 
 type event interface {
@@ -32,6 +32,6 @@ func (cse ChangeSinkerStateEvent) Encode() map[string]interface{} {
 		"state":     cse.State,
 		"msg":       cse.Msg,
 		"timestamp": cse.Timestamp.Unix(),
-		"operation": ChangeState,
+		"operation": StateUpdate,
 	}
 }

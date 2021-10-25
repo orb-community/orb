@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	streamID  = "orb.fleet"
+	streamID  = "orb.sinker"
 	streamLen = 1000
 )
 
