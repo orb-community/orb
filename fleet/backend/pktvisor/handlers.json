@@ -10,12 +10,14 @@
         "filter_only_rcode": {
           "title": "Filter: Include Only RCode",
           "type": "integer",
-          "description": "Filter out any queries which are not the given RCODE"
+          "description": "Filter out any queries which are not the given RCODE (see https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-6)",
+          "example": "3"
         },
         "filter_only_qname_suffix": {
           "title": "Filter: Include Only QName With Suffix",
-          "type": "array[string]",
-          "description": "Filter out any queries whose QName does not end in a suffix on the list"
+          "type": "string_list",
+          "description": "Filter out any queries whose QName does not end in a suffix on the list",
+          "example": ".foo.com,.example.com"
         }
       },
       "metrics": {

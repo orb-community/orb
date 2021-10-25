@@ -6,25 +6,31 @@
           "required": true,
           "type": "string",
           "title": "Interface",
-          "description": "The ethernet interface to capture on"
+          "description": "The ethernet interface to capture on",
+          "example": "eth0"
         },
         "bpf": {
           "required": false,
           "type": "string",
           "title": "Filter Expression",
-          "description": "tcpdump compatible filter expression for limiting the traffic examined (with BPF). Example: \"port 53\""
+          "description": "tcpdump compatible filter expression for limiting the traffic examined (with BPF). See https://www.tcpdump.org/manpages/tcpdump.1.html",
+          "example": "udp port 53 and host 127.0.0.1"
         },
         "host_spec": {
           "required": false,
           "type": "string",
           "title": "Host Specification",
-          "description": "Subnets (comma separated) to consider this HOST, in CIDR form. Example: \"10.0.1.0/24,10.0.2.1/32,2001:db8::/64\""
+          "description": "Subnets (comma separated) to consider this HOST, in CIDR form",
+          "advanced": true,
+          "example": "10.0.1.0/24,10.0.2.1/32,2001:db8::/64"
         },
         "pcap_source": {
           "required": false,
           "type": "string",
           "title": "Packet Capture Engine",
-          "description": "pcap backend engine to use. Defaults to best for platform."
+          "advanced": true,
+          "description": "pcap backend engine to use. Defaults to best for platform.",
+          "example": "libpcap"
         }
       }
     }
