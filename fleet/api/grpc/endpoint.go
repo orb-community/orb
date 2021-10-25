@@ -42,3 +42,18 @@ func retrieveAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func retrieveOwnerByChannelIDEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(accessOwnerByChannelIDReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		ownerID, err := svc.ViewOwnerByChannelIDInternal(ctx, req.ChannelID)
+		if err != nil {
+			return nil, err
+		}
+		res := ownerRes{ownerID: ownerID}
+		return res, nil
+	}
+}

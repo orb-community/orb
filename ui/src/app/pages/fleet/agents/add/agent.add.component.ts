@@ -1,10 +1,12 @@
 import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { NbDialogService } from '@nebular/theme';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { AgentKeyComponent } from '../key/agent.key.component';
 
 
 @Component({
@@ -35,6 +37,7 @@ export class AgentAddComponent {
 
   constructor(
     private agentsService: AgentsService,
+    private dialogService: NbDialogService,
     private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
@@ -143,6 +146,17 @@ export class AgentAddComponent {
     };
   }
 
+  openKeyModal(row: any) {
+    this.dialogService.open(AgentKeyComponent, {
+      context: { agent: row },
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe((resp) => {
+      this.notificationsService.success('Agent successfully created', '');
+      this.goBack();
+    });
+  }
+
   // saves current agent group
   onFormSubmit() {
     const payload = this.wrapPayload(false);
@@ -153,9 +167,8 @@ export class AgentAddComponent {
         this.goBack();
       });
     } else {
-      this.agentsService.addAgent(payload).subscribe(() => {
-        this.notificationsService.success('Agent successfully created', '');
-        this.goBack();
+      this.agentsService.addAgent(payload).subscribe((resp) => {
+        this.openKeyModal(resp.body);
       });
     }
   }

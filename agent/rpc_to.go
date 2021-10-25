@@ -41,6 +41,7 @@ func (a *orbAgent) sendCapabilities() error {
 
 	body, err := json.Marshal(capabilities)
 	if err != nil {
+		a.logger.Error("backend failed to marshal capabilities, skipping", zap.Error(err))
 		return err
 	}
 

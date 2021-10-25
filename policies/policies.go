@@ -95,6 +95,9 @@ type Service interface {
 	// ViewDatasetByID retrieving dataset by id with token
 	ViewDatasetByID(ctx context.Context, token string, datasetID string) (Dataset, error)
 
+	// ViewDatasetByIDInternal retrieving dataset by id with provided ownerID
+	ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (Dataset, error)
+
 	// ListDatasets retrieve a list of Dataset by owner
 	ListDatasets(ctx context.Context, token string, pm PageMetadata) (PageDataset, error)
 }

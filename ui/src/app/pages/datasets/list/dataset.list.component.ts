@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
-import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { Debounce } from 'app/shared/decorators/utils';
@@ -19,6 +18,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
 import { NbDialogService } from '@nebular/theme';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.details.component';
 
 @Component({
   selector: 'ngx-dataset-list-component',
@@ -71,7 +71,7 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
     private datasetPoliciesService: DatasetPoliciesService,
   ) {
     this.datasetPoliciesService.clean();
-    this.paginationControls = SinksService.getDefaultPagination();
+    this.paginationControls = DatasetPoliciesService.getDefaultPagination();
   }
 
   ngAfterViewChecked() {
@@ -196,6 +196,17 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
   }
 
   openDetailsModal(row: any) {
+    this.dialogService.open(DatasetDetailsComponent, {
+      context: {dataset: row},
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe((resp) => {
+      if (resp) {
+        this.onOpenEdit(row);
+      } else {
+        this.getDatasets();
+      }
+    });
   }
 
   searchDatasetItemByName(input) {

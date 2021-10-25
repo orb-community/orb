@@ -91,5 +91,13 @@
   "/policies/dataset/*": {
     "target": "http://localhost:80/api/v1",
     "secure": false
+  },
+  "/agents/backends/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/backends/agents/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
   }
 }

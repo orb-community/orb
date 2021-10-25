@@ -28,6 +28,10 @@ type sinkRepositoryMock struct {
 	sinksMock map[string]sinks.Sink
 }
 
+func (s *sinkRepositoryMock) UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
+	return nil
+}
+
 func (s *sinkRepositoryMock) RetrieveTotalSinksByOwner(ctx context.Context, owner string) (int, error) {
 	var count int
 

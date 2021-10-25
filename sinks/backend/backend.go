@@ -6,7 +6,6 @@ package backend
 
 type Backend interface {
 	Metadata() interface{}
-	Connect(map[string]interface{}) error
 	CreateFeatureConfig() []ConfigFeature
 }
 

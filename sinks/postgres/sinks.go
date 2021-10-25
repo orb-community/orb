@@ -112,7 +112,7 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, coalesce(state, '') as state, coalesce(error, '') as error, backend, metadata, ts_created
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, state, coalesce(error, '') as error, backend, metadata, ts_created
 								FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tagsQuery, metadataQuery, nameQuery, orderQuery, dirQuery)
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
@@ -166,7 +166,7 @@ func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks
 
 func (s sinksRepository) RetrieveById(ctx context.Context, id string) (sinks.Sink, error) {
 
-	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, coalesce(state, '') as state, coalesce(error, '') as error
+	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, state, coalesce(error, '') as error
 			FROM sinks where id = $1`
 
 	dba := dbSink{}
@@ -184,7 +184,7 @@ func (s sinksRepository) RetrieveById(ctx context.Context, id string) (sinks.Sin
 
 func (s sinksRepository) RetrieveByOwnerAndId(ctx context.Context, ownerID string, id string) (sinks.Sink, error) {
 
-	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, coalesce(state, '') as state, coalesce(error, '') as error
+	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, state, coalesce(error, '') as error
 			FROM sinks where id = $1 and mf_owner_id = $2`
 
 	if ownerID == "" || id == "" {
@@ -215,6 +215,21 @@ func (s sinksRepository) Remove(ctx context.Context, owner, id string) error {
 		return errors.Wrap(sinks.ErrRemoveEntity, err)
 	}
 
+	return nil
+}
+
+func (s sinksRepository) UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
+	dbsk := dbSink{
+		ID:        sinkID,
+		MFOwnerID: ownerID,
+		State:     state,
+		Error:     msg,
+	}
+
+	q := "update sinks set state = :state, error = :error where mf_owner_id = :mf_owner_id and id = :id"
+	if _, err := s.db.NamedExecContext(ctx, q, dbsk); err != nil {
+		return errors.Wrap(sinks.ErrUpdateEntity, err)
+	}
 	return nil
 }
 
@@ -284,7 +299,7 @@ type dbSink struct {
 	Description string           `db:"description"`
 	Created     time.Time        `db:"ts_created"`
 	Tags        db.Tags          `db:"tags"`
-	State       string           `db:"state"`
+	State       sinks.State      `db:"state"`
 	Error       string           `db:"error"`
 }
 

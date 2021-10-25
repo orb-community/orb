@@ -38,7 +38,7 @@ var (
 		Name:        nameID,
 		Description: "An example prometheus sink",
 		Backend:     "prometheus",
-		State:       "",
+		State:       sinks.Unknown,
 		Error:       "",
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
@@ -96,7 +96,7 @@ func TestUpdateSink(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	sk.Backend = ""
-	sk.State = ""
+	sk.State = sinks.Unknown
 	sk.Error = ""
 	wrongSink := sinks.Sink{ID: wrongID.String()}
 	sink.ID = sk.ID

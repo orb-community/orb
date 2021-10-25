@@ -5,6 +5,8 @@
  */
 
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
+import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.config.interface';
+
 
 /**
  * @interface AgentPolicy
@@ -36,17 +38,11 @@ export interface AgentPolicy extends OrbEntity {
   /**
    * Agent backend specific policy data {{[propName: string]: string}}
    */
-  policy?: any;
+  policy?: PolicyConfig;
 
   /**
    * Tags {{[propName: string]: string}}
    * User defined tags
    */
-  tags?: any;
-
-  /**
-   * Policy Metadata {{[propName: string]: string}}
-   */
-  policy_metadata?: any;
-
+  tags?: { [propName: string]: any } | any;
 }

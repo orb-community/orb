@@ -13,7 +13,7 @@ import (
 	"net/http"
 )
 
-const version string = "1.0.0-develop"
+const version string = "0.9.0-develop"
 
 func GetVersion() string {
 	return version

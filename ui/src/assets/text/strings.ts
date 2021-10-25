@@ -150,8 +150,8 @@ export const STRINGS = {
     },
     // dashboard page
     list: {
-      header: 'All Agents Groups',
-      none: 'There are no agents listed.',
+      header: 'All Agent Groups',
+      none: 'There are no Agents listed.',
       agentGroup: 'agent',
       total: ['You have', 'total.'],
       error: 'have errors.',
@@ -192,7 +192,7 @@ export const STRINGS = {
         title1: 'Agent Details',
         desc1: 'This is how you will be able to easily identify your Agent',
         title2: 'Orb Tags',
-        desc2: 'Set the tags that will be used to filter your agent',
+        desc2: 'Set the tags that will be used to filter your Agent',
         title3: 'Review & Confirm',
       },
       success: 'Agent successfully created',
@@ -217,7 +217,7 @@ export const STRINGS = {
     // dashboard page
     list: {
       header: 'All Agents',
-      none: 'There are no agents listed.',
+      none: 'There are no Agents listed.',
       agentGroup: 'agent',
       total: ['You have', 'total.'],
       error: 'have errors.',

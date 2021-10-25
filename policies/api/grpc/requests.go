@@ -35,3 +35,15 @@ func (req accessByGroupIDReq) validate() error {
 
 	return nil
 }
+
+type accessDatasetByIDReq struct {
+	datasetID string
+	ownerID   string
+}
+
+func (req accessDatasetByIDReq) validate() error {
+	if req.datasetID == "" || req.ownerID == "" {
+		return policies.ErrMalformedEntity
+	}
+	return nil
+}

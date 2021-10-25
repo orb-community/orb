@@ -50,7 +50,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return err
 	}
 
-	if sink.Backend != "" || sink.State != "" || sink.Error != "" {
+	if sink.Backend != "" || sink.Error != "" {
 		return errors.ErrUpdateEntity
 	}
 
@@ -133,16 +133,13 @@ func (svc sinkService) ValidateSink(ctx context.Context, token string, sink Sink
 	return sink, nil
 }
 
+func (svc sinkService) ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state State) error {
+	return svc.sinkRepo.UpdateSinkState(ctx, sinkID, msg, ownerID, state)
+}
+
 func validateBackend(sink *Sink) error {
 	if backend.HaveBackend(sink.Backend) {
-		err := backend.GetBackend(sink.Backend).Connect(sink.Config)
-		if err != nil {
-			sink.State = "not connected"
-			sink.Error = fmt.Sprint(err)
-		} else {
-			sink.State = "connected"
-			sink.Error = ""
-		}
+		sink.State = Unknown
 	} else {
 		return ErrInvalidBackend
 	}

@@ -16,7 +16,7 @@ import (
 
 var _ pb.SinkServiceClient = (*grpcClient)(nil)
 
-type grpcClient struct {}
+type grpcClient struct{}
 
 func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, opts ...grpc.CallOption) (*pb.SinkRes, error) {
 	return &pb.SinkRes{}, nil

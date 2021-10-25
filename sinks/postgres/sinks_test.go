@@ -50,7 +50,7 @@ func TestSinkSave(t *testing.T) {
 		ID:          skID.String(),
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
-		State:       "active",
+		State:       sinks.Unknown,
 		Error:       "",
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
