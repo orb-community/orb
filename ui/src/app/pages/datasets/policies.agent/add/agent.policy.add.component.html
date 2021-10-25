@@ -281,20 +281,20 @@
                            [attr.data-orb-qa-id]="config.value.name"
                            [autofocus]="true"
                            [formControlName]="config.value.name"
-                           [max]="config.value.max"
-                           [min]="config.value.min"
-                           [step]="config.value.step"
-                           [type]="config.value.type">
+                           [max]="config.value.props.max"
+                           [min]="config.value.props.min"
+                           [step]="config.value.props.step"
+                           [type]="config.value.props.type">
                     <nb-select *ngSwitchCase="'select'"
                                [attr.data-orb-qa-id]="config.value.name"
                                [formControlName]="config.value.name"
                                [id]="config.value.name"
                                appearance="filled"
                                fullWidth="true"
-                               size="medium">{{ config.value.name + "-" + config.value.options }}
-                      <nb-option *ngFor="let option of config.value.options"
-                                 [attr.data-orb-qa-id]="option"
-                                 [value]="option">{{ option }}</nb-option>
+                               size="medium">{{ config.value.name + "-" + config.value.props.options }}
+                      <nb-option *ngFor="let option of config.value.props.options | keyvalue"
+                                 [attr.data-orb-qa-id]="option.key"
+                                 [value]="option.value">{{ option.value }}</nb-option>
                     </nb-select>
                     <nb-checkbox *ngSwitchCase="'checkbox'"
                                  [attr.data-orb-qa-id]="config.value.name"
@@ -309,8 +309,7 @@
             </form>
           </div>
           <button (click)="onHandlerAdded()"
-                  [disabled]="handlerSelectorFormGroup.controls['label'].value === ''
-                  || (!!liveHandler.config)"
+                  [disabled]="handlerSelectorFormGroup.controls['label'].value === ''"
                   data-orb-qa-id="addHandler"
                   ghost
                   nbButton>

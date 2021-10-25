@@ -52,23 +52,43 @@ export class AgentPolicyAddComponent {
 
   // holds selected handler conf.
   // handler template currently selected, to be edited by user and then added to the handlers list or discarded
-  liveHandler: { [propName: string]: any };
+  liveHandler: {
+    version?: string,
+    config?: DynamicFormConfig,
+    type?: string,
+  };
 
   // holds all handlers added by user
-  handlers: { name: string, type: string, config: { [propName: string]: {} | any } }[] = [];
+  handlers: {
+    name: string,
+    type: string,
+    config: { [propName: string]: {} | any },
+  }[] = [];
 
   // #services responses
   // hold info retrieved
-  availableBackends: { [propName: string]: { backend: string, description: string } };
+  availableBackends: {
+    [propName: string]: {
+      backend: string,
+      description: string,
+    },
+  };
 
   availableTaps: { [propName: string]: PolicyTap };
 
-  availableInputs: { [propName: string]: {
+  availableInputs: {
+    [propName: string]: {
       version?: string,
       config?: DynamicFormConfig,
-    } };
+    },
+  };
 
-  availableHandlers: { [propName: string]: any };
+  availableHandlers: {
+    [propName: string]: {
+      version?: string,
+      config?: DynamicFormConfig,
+    },
+  };
 
   // #if edit
   agentPolicy: AgentPolicy;
@@ -78,10 +98,11 @@ export class AgentPolicyAddComponent {
   isEdit: boolean;
 
   // #load controls
-  isLoading = Object.entries(CONFIG).reduce((acc, [value]) => {
-    acc[value] = false;
-    return acc;
-  }, {});
+  isLoading = Object.entries(CONFIG)
+    .reduce((acc, [value]) => {
+      acc[value] = false;
+      return acc;
+    }, {});
 
   constructor(
     private agentPoliciesService: AgentPoliciesService,
@@ -122,7 +143,6 @@ export class AgentPolicyAddComponent {
         },
         handlers: {
           modules: {},
-
         },
       },
       ...this.agentPolicy,
@@ -296,7 +316,6 @@ export class AgentPolicyAddComponent {
     });
   }
 
-
   onHandlerSelected(selectedHandler) {
     if (this.dynamicHandlerConfigFormGroup) {
       this.dynamicHandlerConfigFormGroup = null;
@@ -307,23 +326,23 @@ export class AgentPolicyAddComponent {
 
     const { config } = !!this.liveHandler ? this.liveHandler : { config: {} };
 
-    // this.handlerSelectorFormGroup.controls.label.setValue('');
-
     const dynamicControls = Object.entries(config).reduce((controls, [key, value]) => {
       controls[key] = ['', [Validators.required]];
       return controls;
     }, {});
-    // { 'selected_handler_config': ['', [Validators.required]] } : {};
 
     this.dynamicHandlerConfigFormGroup = Object.keys(dynamicControls).length > 0 ? this._formBuilder.group(dynamicControls) : null;
-
   }
 
   onHandlerAdded() {
     let config = {};
 
     if (this.dynamicHandlerConfigFormGroup !== null) {
-      config = {};
+      config = Object.entries(this.dynamicHandlerConfigFormGroup.controls)
+        .reduce((acc, [key, control]) => {
+          acc[key] = control.value;
+          return acc;
+        }, {});
     }
 
     const handlerName = this.handlerSelectorFormGroup.controls.label.value;

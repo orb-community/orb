@@ -293,14 +293,16 @@ export class AgentPoliciesService {
                   'input': 'select',
                   'label': 'Type',
                   'name': 'type',
-                  'options': [
-                    'AUTH_QUERY',
-                    'AUTH_RESPONSE',
-                    'RESOLVER_QUERY',
-                    'RESOLVER_RESPONSE',
-                    'TOOL_QUERY',
-                    'TOOL_RESPONSE',
-                  ],
+                  'props': {
+                    'options': {
+                      'AUTH_QUERY': 'AUTH_QUERY',
+                      'AUTH_RESPONSE': 'AUTH_RESPONSE',
+                      'RESOLVER_QUERY': 'RESOLVER_QUERY',
+                      'RESOLVER_RESPONSE': 'RESOLVER_RESPONSE',
+                      'TOOL_QUERY': 'TOOL_QUERY',
+                      'TOOL_RESPONSE': 'TOOL_RESPONSE',
+                    },
+                  },
                   'required': true,
                   'description': 'AUTH_QUERY, AUTH_RESPONSE, RESOLVER_QUERY, RESOLVER_RESPONSE, ..., TOOL_QUERY, TOOL_RESPONSE',
                 },
@@ -309,7 +311,12 @@ export class AgentPoliciesService {
                   'input': 'select',
                   'label': 'Socket Family',
                   'name': 'socket_family',
-                  'options': ['INET', 'INET6'],
+                  'props': {
+                    'options': {
+                      'INET': 'INET',
+                      'INET_6': 'INET_6',
+                    },
+                  },
                   'required': true,
                   'description': 'INET, INET6',
                 },
@@ -318,19 +325,23 @@ export class AgentPoliciesService {
                   'input': 'select',
                   'label': 'Socket Protocol',
                   'name': 'socket_protocol',
-                  'options': ['UDP', 'TCP'],
+                  'props': {
+                    'options': {
+                      'TCP': 'TCP',
+                      'UDP': 'UDP',
+                    },
+                  },
                   'required': true,
                   'description': 'UDP, TCP',
                 },
-                'query_address':
-                  {
-                    'type': 'string',
-                    'input': 'text',
-                    'label': 'Query Address',
-                    'name': 'query_address',
-                    'required': false,
-                    'description': '',
-                  },
+                'query_address': {
+                  'type': 'string',
+                  'input': 'text',
+                  'label': 'Query Address',
+                  'name': 'query_address',
+                  'required': false,
+                  'description': '',
+                },
                 'query_port': {
                   'type': 'string',
                   'input': 'text',
@@ -369,7 +380,7 @@ export class AgentPoliciesService {
                   'label': 'Filter: Include Only RCode',
                   'name': 'filter_only_rcode',
                   'type': 'number',
-                  'input': 'number',
+                  'input': 'select',
                   'description': 'Filter out any queries which are not the given RCODE',
                   'props': {
                     'options': {
