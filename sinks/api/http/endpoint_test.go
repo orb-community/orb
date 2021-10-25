@@ -857,7 +857,7 @@ func TestSinksStatistics(t *testing.T) {
 	var sks []sinks.Sink
 	for i := 0; i < 10; i++ {
 		sink.Name, _ = types.NewIdentifier(fmt.Sprintf("my-sink-%d", i))
-		sink.State = "active"
+		sink.State = sinks.Active
 		sk, err := service.CreateSink(context.Background(), token, sink)
 		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 		sks = append(sks, sk)
@@ -865,7 +865,7 @@ func TestSinksStatistics(t *testing.T) {
 
 	var skSummary []sinks.SinkStates
 	skSummary = append(skSummary, sinks.SinkStates{
-		State: "active",
+		State: sinks.Active,
 		Count: 10,
 	})
 

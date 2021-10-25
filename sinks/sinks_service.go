@@ -10,8 +10,6 @@ package sinks
 
 import (
 	"context"
-	"fmt"
-	"github.com/mainflux/mainflux"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/sinks/backend"
 )
@@ -147,13 +145,20 @@ func validateBackend(sink *Sink) error {
 }
 
 func (svc sinkService) SinksStatistics(ctx context.Context, token string) (SinksStatistics, error) {
-	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	ownerID, err := svc.identify(token)
 	if err != nil {
 		return SinksStatistics{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
 	}
 
-	statisticsSummary, _ := svc.sinkRepo.RetrieveSinksStatistics(ctx, res.GetId())
-	total, _ := svc.sinkRepo.RetrieveTotalSinksByOwner(ctx, res.GetId())
+	statisticsSummary, err := svc.sinkRepo.RetrieveSinksStatistics(ctx, ownerID)
+	if err != nil{
+		return SinksStatistics{}, errors.Wrap(errors.New("Failed to retrieve summary of sink's states"), err)
+	}
+
+	total, err := svc.sinkRepo.RetrieveTotalSinksByOwner(ctx, ownerID)
+	if err != nil{
+		return SinksStatistics{}, errors.Wrap(errors.New("Failed to retrieve total sinks"), err)
+	}
 
 	statistics := SinksStatistics{
 		StatesSummary: statisticsSummary,

@@ -60,7 +60,7 @@ func (s *sinkRepositoryMock) RetrieveSinksStatistics(ctx context.Context, owner 
 	}
 
 	state := sinks.SinkStates{
-		State: "active",
+		State: sinks.Active,
 		Count : count,
 	}
 	summary = append(summary, state)

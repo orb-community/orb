@@ -419,10 +419,15 @@ func TestValidateSink(t *testing.T) {
 func TestSinksStatisticsSummary(t *testing.T) {
 	service := newService(map[string]string{token: email})
 
-	var sks []sinks.Sink
+	var (
+		sks []sinks.Sink
+		err error
+	)
 	for i := 0; i < 10; i++ {
-		sink.Name, _ = types.NewIdentifier(fmt.Sprintf("my-sink-%d", i))
-		sink.State = "active"
+		sink.Name, err = types.NewIdentifier(fmt.Sprintf("my-sink-%d", i))
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+		sink.State = sinks.Active
 		sk, err := service.CreateSink(context.Background(), token, sink)
 		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 		sks = append(sks, sk)
@@ -430,7 +435,7 @@ func TestSinksStatisticsSummary(t *testing.T) {
 
 	var skSummary []sinks.SinkStates
 	skSummary = append(skSummary, sinks.SinkStates{
-		State: "active",
+		State: sinks.Active,
 		Count: 10,
 	})
 

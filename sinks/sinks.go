@@ -105,7 +105,7 @@ type Page struct {
 }
 
 type SinkStates struct {
-	State string
+	State State
 	Count int
 }
 
@@ -136,7 +136,7 @@ type SinkService interface {
 	ValidateSink(ctx context.Context, token string, sink Sink) (Sink, error)
 	// ChangeState
 	ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state State) error
-	// AllStatisticsSummary summarises sinks states and retrieve total sinks by owner
+	// SinksStatistics summarises sinks states and retrieve total sinks by owner
 	SinksStatistics(ctx context.Context, owner string) (SinksStatistics, error)
 }
 

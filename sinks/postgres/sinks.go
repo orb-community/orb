@@ -342,8 +342,8 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 }
 
 type dbSinkStates struct {
-	State string `db:"state"`
-	Count int    `db:"count"`
+	State sinks.State `db:"state"`
+	Count int         `db:"count"`
 }
 
 func toState(dbs dbSinkStates) (sinks.SinkStates, error) {

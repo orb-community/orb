@@ -378,7 +378,7 @@ func TestRetrieveSinkStates(t *testing.T) {
 			Backend:     "prometheus",
 			Created:     time.Now(),
 			MFOwnerID:   oID.String(),
-			State:       "active",
+			State:       sinks.Active,
 			Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 			Tags:        map[string]string{"cloud": "aws"},
 		}
@@ -398,7 +398,7 @@ func TestRetrieveSinkStates(t *testing.T) {
 		"retrieve all sinks states summary": {
 			owner: oID.String(),
 			summary: append(summary, sinks.SinkStates{
-				State: "active",
+				State: sinks.Active,
 				Count: 10,
 			}),
 		},
