@@ -1,54 +1,67 @@
 {
   "dns": {
     "1.0": {
-      "config": {
-        "filter_exclude_noerror": {
-          "title": "Filter: Exclude NOERROR",
+      "filter": {
+        "exclude_noerror": {
+          "label": "Exclude NOERROR",
           "type": "bool",
+          "input": "checkbox",
           "description": "Filter out all NOERROR responses"
         },
-        "filter_only_rcode": {
-          "title": "Filter: Include Only RCode",
-          "type": "integer",
-          "description": "Filter out any queries which are not the given RCODE (see https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-6)",
-          "example": "3"
+        "only_rcode": {
+          "label": "Include Only RCODE",
+          "type": "number",
+          "input": "select",
+          "description": "Filter out any queries which are not the given RCODE",
+          "props": {
+            "allow_custom_options": true,
+            "options": {
+              "NOERROR": 0,
+              "SERVFAIL": 2,
+              "NXDOMAIN": 3,
+              "REFUSED": 5
+            }
+          }
         },
-        "filter_only_qname_suffix": {
-          "title": "Filter: Include Only QName With Suffix",
-          "type": "string_list",
+        "only_qname_suffix": {
+          "label": "Include Only QName With Suffix",
+          "type": "string[]",
+          "input": "text",
           "description": "Filter out any queries whose QName does not end in a suffix on the list",
-          "example": ".foo.com,.example.com"
+          "props": {
+            "example": ".foo.com,.example.com"
+          }
         }
       },
-      "metrics": {
-      },
+      "config": {},
+      "metrics": {},
       "metric_groups": {
         "cardinality": {
-          "title": "Cardinality",
+          "label": "Cardinality",
           "description": "Metrics counting the unique number of items in the stream",
           "metrics": [
           ]
         },
         "dns_transactions": {
-          "title": "DNS Transactions (Query/Reply pairs)",
+          "label": "DNS Transactions (Query/Reply pairs)",
           "description": "Metrics based on tracking queries and their associated replies",
           "metrics": [
           ]
         },
         "top_dns_wire": {
-          "title": "Top N Metrics (Various)",
+          "label": "Top N Metrics (Various)",
           "description": "Top N metrics across various details from the DNS wire packets",
           "metrics": [
           ]
         },
         "top_qnames": {
-          "title": "Top N QNames (All)",
+          "label": "Top N QNames (All)",
           "description": "Top QNames across all DNS queries in stream",
           "metrics": [
           ]
         },
         "top_qnames_by_rcode": {
-          "title": "Top N QNames (Failing RCodes) ",
+          "label": "Top N QNames (Failing RCodes) ",
           "description": "Top QNames across failing result codes",
           "metrics": [
           ]
@@ -58,25 +71,24 @@
   },
   "net": {
     "1.0": {
-      "config": {
-      },
-      "metrics": {
-      },
+      "filter": {},
+      "config": {},
+      "metrics": {},
       "metric_groups": {
         "ip_cardinality": {
-          "title": "IP Address Cardinality",
+          "label": "IP Address Cardinality",
           "description": "Unique IP addresses seen in the stream",
           "metrics": [
           ]
         },
         "top_geo": {
-          "title": "Top Geo",
+          "label": "Top Geo",
           "description": "Top Geo IP and ASN in the stream",
           "metrics": [
           ]
         },
         "top_ips": {
-          "title": "Top IPs",
+          "label": "Top IPs",
           "description": "Top IP addresses in the stream",
           "metrics": [
           ]
