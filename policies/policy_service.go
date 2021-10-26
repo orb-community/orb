@@ -194,6 +194,13 @@ func (s policiesService) ViewDatasetByID(ctx context.Context, token string, data
 	return res, nil
 }
 
+func (s policiesService) ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (Dataset, error) {
+	res, err := s.repo.RetrieveDatasetByID(ctx, datasetID, ownerID)
+	if err != nil {
+		return Dataset{}, err
+	}
+	return res, nil
+}
 func validatePolicyBackend(p *Policy, format string, policyData string) (err error) {
 	if !backend.HaveBackend(p.Backend) {
 		return errors.Wrap(ErrValidatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))

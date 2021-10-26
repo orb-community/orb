@@ -58,8 +58,8 @@ func (m *mockPoliciesRepository) DeletePolicy(ctx context.Context, ownerID strin
 
 func (m *mockPoliciesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
 	var datasetList []policies.Dataset
-	for _, d := range m.ddb{
-		if d.PolicyID == policyID && d.MFOwnerID == ownerID{
+	for _, d := range m.ddb {
+		if d.PolicyID == policyID && d.MFOwnerID == ownerID {
 			datasetList = append(datasetList, d)
 		}
 	}

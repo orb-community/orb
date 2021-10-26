@@ -40,7 +40,7 @@ type createDatasetEvent struct {
 	name         string
 	agentGroupID string
 	policyID     string
-	sinkID       []string
+	sinkIDs      string
 	timestamp    time.Time
 }
 
@@ -80,7 +80,7 @@ func (cce createDatasetEvent) Encode() map[string]interface{} {
 		"name":      cce.name,
 		"group_id":  cce.agentGroupID,
 		"policy_id": cce.policyID,
-		"sink_id":   cce.sinkID,
+		"sink_ids":  cce.sinkIDs,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": DatasetCreate,
 	}

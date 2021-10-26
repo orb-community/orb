@@ -65,25 +65,15 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			if err != nil {
 				a.logger.Warn("policy failed to ensure dataset id", zap.String("id", payload.ID), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
 			}
-		} else {
-			pd := policies.PolicyData{
-				ID:       payload.ID,
-				Name:     payload.Name,
-				Backend:  payload.Backend,
-				Version:  payload.Version,
-				Data:     payload.Data,
-				State:    policies.Unknown,
-				Datasets: map[string]bool{payload.DatasetID: true},
-			}
-			err := be.ApplyPolicy(pd)
+			pd, err := applyPolicy(payload, be, a)
 			if err != nil {
-				a.logger.Warn("policy failed to apply", zap.String("id", payload.ID), zap.Error(err))
-				pd.State = policies.FailedToApply
-				pd.BackendErr = err.Error()
-			} else {
-				pd.State = policies.Running
+				a.repo.Edit(pd)
 			}
-			a.repo.Add(pd)
+		} else {
+			pd, err := applyPolicy(payload, be, a)
+			if err != nil {
+				a.repo.Add(pd)
+			}
 		}
 		return
 	case "remove":
@@ -96,4 +86,25 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 		a.logger.Error("unknown policy action, ignored", zap.String("action", payload.Action))
 	}
 
+}
+
+func applyPolicy(payload fleet.AgentPolicyRPCPayload, be backend.Backend, a *policyManager) (policies.PolicyData, error) {
+	pd := policies.PolicyData{
+		ID:      payload.ID,
+		Name:    payload.Name,
+		Backend: payload.Backend,
+		Version: payload.Version,
+		Data:    payload.Data,
+		State:   policies.Unknown,
+	}
+	err := be.ApplyPolicy(pd)
+	if err != nil {
+		a.logger.Warn("policy failed to apply", zap.String("id", payload.ID), zap.Error(err))
+		pd.State = policies.FailedToApply
+		pd.BackendErr = err.Error()
+		return pd, err
+	} else {
+		pd.State = policies.Running
+	}
+	return pd, nil
 }

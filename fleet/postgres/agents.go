@@ -176,8 +176,8 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 
 func (r agentRepository) UpdateDataByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
 
-	q := `UPDATE agents SET (orb_tags, agent_tags, agent_metadata)         
-			= (:orb_tags, :agent_tags, :agent_metadata) 
+	q := `UPDATE agents SET (agent_tags, agent_metadata)         
+			= (:agent_tags, :agent_metadata) 
 			WHERE mf_thing_id = :mf_thing_id AND mf_channel_id = :mf_channel_id;`
 
 	if agent.MFThingID == "" || agent.MFChannelID == "" {
@@ -416,6 +416,27 @@ func (r agentRepository) RetrieveAgentMetadataByOwner(ctx context.Context, owner
 		items = append(items, types.Metadata(dbmd.AgentMetadata))
 	}
 	return items, nil
+}
+
+func (r agentRepository) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (string, error) {
+	q := `select mf_owner_id from agents where mf_channel_id = :mf_channel_id group by mf_owner_id`
+
+	params := map[string]interface{}{
+		"mf_channel_id": channelID,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return "", err
+	}
+
+	var ownerScan = dbAgent{}
+	if rows.Next() {
+		if err := rows.StructScan(&ownerScan); err != nil {
+			return "", errors.Wrap(errors.ErrSelectEntity, err)
+		}
+	}
+	return ownerScan.MFOwnerID, nil
 }
 
 type dbAgent struct {
