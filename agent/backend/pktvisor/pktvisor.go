@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os/exec"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -256,12 +257,12 @@ func (p *pktvisorBackend) Start() error {
 	}
 
 	pvOptions := []string{
+		strings.Join(p.args, " "),
 		"--admin-api",
 		"-l",
 		p.adminAPIHost,
 		"-p",
 		p.adminAPIPort,
-		p.binary,
 	}
 	if len(p.configFile) > 0 {
 		pvOptions = append(pvOptions, "--config", p.configFile)
