@@ -36,11 +36,11 @@ type Cloud struct {
 }
 
 type OrbAgent struct {
-	Backends map[string]map[string]string `mapstructure:"backends"`
-	Tags     map[string]string            `mapstructure:"tags"`
-	Cloud    Cloud                        `mapstructure:"cloud"`
-	TLS      TLS                          `mapstructure:"tls"`
-	DB       DBConfig                     `mapstructure:"db"`
+	Backends map[string]map[string]interface{} `mapstructure:"backends"`
+	Tags     map[string]string                 `mapstructure:"tags"`
+	Cloud    Cloud                             `mapstructure:"cloud"`
+	TLS      TLS                               `mapstructure:"tls"`
+	DB       DBConfig                          `mapstructure:"db"`
 }
 
 type Config struct {

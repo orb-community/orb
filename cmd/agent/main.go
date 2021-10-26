@@ -59,8 +59,8 @@ func Run(cmd *cobra.Command, args []string) {
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
 	if err == nil && config.OrbAgent.Backends == nil {
-		config.OrbAgent.Backends = make(map[string]map[string]string)
-		config.OrbAgent.Backends["pktvisor"] = make(map[string]string)
+		config.OrbAgent.Backends = make(map[string]map[string]interface{})
+		config.OrbAgent.Backends["pktvisor"] = make(map[string]interface{})
 		config.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
 		if len(cfgFiles) > 0 {
 			config.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]

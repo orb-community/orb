@@ -38,7 +38,7 @@ func (s BackendState) String() string {
 }
 
 type Backend interface {
-	Configure(*zap.Logger, map[string]string) error
+	Configure(*zap.Logger, map[string]interface{}) error
 	SetCommsClient(mqtt.Client, string)
 	Version() (string, error)
 	Start() error
