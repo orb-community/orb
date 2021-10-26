@@ -214,37 +214,22 @@ export class AgentPoliciesService {
     //     },
     //   );
     // TODO remove mock and uncomment http request
-    // if (final === 'pktvisor/taps') {
-    //   return this.http.get(`${environment.agentsBackendUrl}/${final}`)
-    //   .map((response: any) => {
-    //     return response.backend;
-    //   }).catch(
-    //     err => {
-    //       this.notificationsService.error('Failed to get Available Backends',
-    //         `Error: ${ err.status } - ${ err.statusText }`);
-    //       return Observable.throwError(err);
-    //     },
-    //   );
-    // }
+    // TODO remove this if and uncomment code above - this allows only for taps
+    if (final === 'pktvisor/taps') {
+      return this.http.get(`${environment.agentsBackendUrl}/${final}`)
+      .map((response: any) => {
+        return response.backend;
+      }).catch(
+        err => {
+          this.notificationsService.error('Failed to get Available Backends',
+            `Error: ${ err.status } - ${ err.statusText }`);
+          return Observable.throwError(err);
+        },
+      );
+    }
 
     let resp;
     switch (final) {
-      case 'pktvisor/taps':
-        resp = {
-          data: [
-            {
-              'name': 'ethernet',
-              'input_type': 'pcap',
-              'config_predefined': {
-                'iface': 'eth0',
-              },
-              'agents': {
-                'total': 1,
-              },
-            },
-          ],
-        };
-        break;
       case 'pktvisor/inputs':
         resp = {
           data: {
