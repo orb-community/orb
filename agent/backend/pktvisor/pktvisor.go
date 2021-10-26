@@ -21,8 +21,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os/exec"
-	"reflect"
-	"strings"
 	"time"
 )
 
@@ -37,7 +35,6 @@ type pktvisorBackend struct {
 	pktvisorVersion string
 	proc            *cmd.Cmd
 	statusChan      <-chan cmd.Status
-	args            []string
 
 	mqttClient   mqtt.Client
 	metricsTopic string
@@ -257,7 +254,6 @@ func (p *pktvisorBackend) Start() error {
 	}
 
 	pvOptions := []string{
-		strings.Join(p.args, " "),
 		"--admin-api",
 		"-l",
 		p.adminAPIHost,
@@ -332,47 +328,23 @@ func (p *pktvisorBackend) Stop() error {
 	return nil
 }
 
-func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]interface{}) error {
+func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]string) error {
 	p.logger = logger
+
 	var prs bool
-	binary, prs := config["binary"]
-	if !prs {
+	if p.binary, prs = config["binary"]; !prs {
 		return errors.New("you must specify pktvisor binary")
-	} else {
-		p.binary = fmt.Sprint(binary)
 	}
-	args, prs := config["binary_args"]
-	if !prs {
-		return errors.New("you must specify binary args")
-	} else {
-		s := reflect.ValueOf(args)
-		if s.Kind() != reflect.Slice {
-			panic("Interface griven a non-slice type")
-		}
-		for i := 0; i < s.Len(); i++ {
-			p.args = append(p.args, fmt.Sprint(s.Index(i).Interface()))
-		}
-	}
-	configFile, prs := config["config_file"]
-	if !prs {
+	if p.configFile, prs = config["config_file"]; !prs {
 		p.configFile = ""
-	} else {
-		p.configFile = fmt.Sprint(configFile)
 	}
-
-	adminAPIHost, prs := config["api_host"]
-	if !prs {
+	if p.adminAPIHost, prs = config["api_host"]; !prs {
 		return errors.New("you must specify pktvisor admin API host")
-	} else {
-		p.adminAPIHost = fmt.Sprint(adminAPIHost)
+	}
+	if p.adminAPIPort, prs = config["api_port"]; !prs {
+		return errors.New("you must specify pktvisor admin API port")
 	}
 
-	adminAPIPort, prs := config["api_port"]
-	if !prs {
-		return errors.New("you must specify pktvisor admin API port")
-	} else {
-		p.adminAPIPort = fmt.Sprint(adminAPIPort)
-	}
 	return nil
 }
 
