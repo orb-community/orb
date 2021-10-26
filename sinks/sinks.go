@@ -6,6 +6,7 @@ package sinks
 
 import (
 	"context"
+	"database/sql/driver"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
@@ -42,6 +43,47 @@ var (
 	ErrInvalidBackend = errors.New("No available backends")
 )
 
+const (
+	Unknown State = iota
+	Active
+	Error
+	Idle
+)
+
+type State int
+
+var stateMap = [...]string{
+	"unknown",
+	"active",
+	"error",
+	"idle",
+}
+
+var stateRevMap = map[string]State{
+	"unknown": Unknown,
+	"active":  Active,
+	"error":   Error,
+	"idle":    Idle,
+}
+
+func (s State) String() string {
+	return stateMap[s]
+}
+
+func (s *State) Scan(value interface{}) error {
+	asString, ok := value.(string)
+	if !ok {
+		asBytes, ok := value.([]byte)
+		if !ok {
+			return errors.New("Scan source is not []byte")
+		}
+		asString = string(asBytes)
+	}
+	*s = stateRevMap[string(asString)]
+	return nil
+}
+func (s State) Value() (driver.Value, error) { return s.String(), nil }
+
 type Sink struct {
 	ID          string
 	Name        types.Identifier
@@ -50,7 +92,7 @@ type Sink struct {
 	Backend     string
 	Config      types.Metadata
 	Tags        types.Tags
-	State       string
+	State       State
 	Error       string
 	Created     time.Time
 }
@@ -82,6 +124,8 @@ type SinkService interface {
 	DeleteSink(ctx context.Context, token string, key string) error
 	// ValidateSink validate a sink configuration without saving
 	ValidateSink(ctx context.Context, token string, sink Sink) (Sink, error)
+	// ChangeState
+	ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state State) error
 }
 
 type SinkRepository interface {
@@ -99,4 +143,6 @@ type SinkRepository interface {
 	RetrieveByOwnerAndId(ctx context.Context, ownerID string, key string) (Sink, error)
 	// Remove a existing Sink by id
 	Remove(ctx context.Context, owner string, key string) error
+	// UpdateSinkState
+	UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state State) error
 }

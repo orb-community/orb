@@ -26,6 +26,7 @@ type grpcServer struct {
 	pb.UnimplementedPolicyServiceServer
 	retrievePolicy           kitgrpc.Handler
 	retrievePoliciesByGroups kitgrpc.Handler
+	retrieveDataset          kitgrpc.Handler
 }
 
 // NewServer returns new PolicyServiceServer instance.
@@ -40,6 +41,11 @@ func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyService
 			kitot.TraceServer(tracer, "retrieve_policies_by_groups")(retrievePoliciesByGroupsEndpoint(svc)),
 			decodeRetrievePoliciesByGroupRequest,
 			encodePolicyInDSListResponse,
+		),
+		retrieveDataset: kitgrpc.NewServer(
+			kitot.TraceServer(tracer, "retrieve_dataset")(retrieveDatasetEnpoint(svc)),
+			decodeRetrieveDatasetRequest,
+			encodeDatasetResponse,
 		),
 	}
 }
@@ -62,6 +68,15 @@ func (gs *grpcServer) RetrievePolicy(ctx context.Context, req *pb.PolicyByIDReq)
 	return res.(*pb.PolicyRes), nil
 }
 
+func (gs *grpcServer) RetrieveDataset(ctx context.Context, req *pb.DatasetByIDReq) (*pb.DatasetRes, error) {
+	_, res, err := gs.retrieveDataset.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, encodeError(err)
+	}
+
+	return res.(*pb.DatasetRes), nil
+}
+
 func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.PolicyByIDReq)
 	return accessByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
@@ -70,6 +85,14 @@ func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interf
 func decodeRetrievePoliciesByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.PoliciesByGroupsReq)
 	return accessByGroupIDReq{GroupIDs: req.GroupIDs, OwnerID: req.OwnerID}, nil
+}
+
+func decodeRetrieveDatasetRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.DatasetByIDReq)
+	return accessDatasetByIDReq{
+		datasetID: req.DatasetID,
+		ownerID:   req.OwnerID,
+	}, nil
 }
 
 func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
@@ -91,6 +114,17 @@ func encodePolicyInDSListResponse(_ context.Context, grpcRes interface{}) (inter
 		plist[i] = &pb.PolicyInDSRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version, DatasetId: p.datasetID}
 	}
 	return &pb.PolicyInDSListRes{Policies: plist}, nil
+}
+
+func encodeDatasetResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(datasetRes)
+
+	return &pb.DatasetRes{
+		Id:           res.id,
+		AgentGroupId: res.agentGroupID,
+		PolicyId:     res.policyID,
+		SinkIds:      res.sinkIDs,
+	}, nil
 }
 
 func encodeError(err error) error {

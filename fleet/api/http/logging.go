@@ -18,6 +18,20 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
+func (l loggingMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (_ string, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_owner_by_channel_id",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_owner_by_channel_id",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewOwnerByChannelIDInternal(ctx, channelID)
+}
+
 func (l loggingMiddleware) ViewAgentBackend(ctx context.Context, token string, name string) (_ interface{}, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

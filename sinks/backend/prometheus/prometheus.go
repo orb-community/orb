@@ -5,11 +5,8 @@
 package prometheus
 
 import (
-	"fmt"
-	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/sinks/backend"
 	"io"
-	"strconv"
 )
 
 var _ backend.Backend = (*prometheusBackend)(nil)
@@ -25,24 +22,6 @@ type SinkFeature struct {
 	Backend     string                  `json:"backend"`
 	Description string                  `json:"description"`
 	Config      []backend.ConfigFeature `json:"config"`
-}
-
-func (p *prometheusBackend) Connect(config map[string]interface{}) error {
-	if len(config) != 0 {
-		for k, v := range config {
-			switch k {
-			case "remote_host":
-				p.apiHost = fmt.Sprint(v)
-			case "port":
-				p.apiPort, _ = strconv.ParseUint(fmt.Sprint(v), 10, 64)
-			case "username":
-				p.apiUser = fmt.Sprint(v)
-			case "password":
-				p.apiPassword = fmt.Sprint(v)
-			}
-		}
-	}
-	return errors.New("Error to connect to prometheus backend")
 }
 
 func (p *prometheusBackend) Metadata() interface{} {

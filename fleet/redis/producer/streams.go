@@ -28,6 +28,10 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (es eventStore) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (string, error) {
+	return es.svc.ViewOwnerByChannelIDInternal(ctx, channelID)
+}
+
 func (es eventStore) ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error) {
 	return es.svc.ViewAgentBackend(ctx, token, name)
 }

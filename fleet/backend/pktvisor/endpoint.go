@@ -124,7 +124,7 @@ func toBackendTaps(list []types.Metadata) ([]BackendTaps, error) {
 						bkTap.ConfigPredefined = append(bkTap.ConfigPredefined, []string{k}...)
 					}
 				case "input_type":
-					bkTap.InputType = fmt.Sprintf("%v",v)
+					bkTap.InputType = fmt.Sprintf("%v", v)
 				}
 			}
 			idx++
@@ -135,7 +135,7 @@ func toBackendTaps(list []types.Metadata) ([]BackendTaps, error) {
 	return bkTaps, nil
 }
 
-// Used to aggregate and sumarize the taps and return a slice of BackendTaps
+// Used to aggregate and summarize the taps and return a slice of BackendTaps
 func groupTaps(taps []BackendTaps) []BackendTaps {
 	tapsMap := make(map[string]BackendTaps)
 	for _, tap := range taps {

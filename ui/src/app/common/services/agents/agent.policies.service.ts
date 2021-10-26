@@ -53,7 +53,7 @@ export class AgentPoliciesService {
 
   addAgentPolicy(agentPolicyItem: AgentPolicy) {
     return this.http.post(environment.agentPoliciesUrl,
-        { ...agentPolicyItem, validate_only: false },
+        { ...agentPolicyItem },
         { observe: 'response' })
       .map(
         resp => {
@@ -119,7 +119,7 @@ export class AgentPoliciesService {
   }
 
   getAgentsPolicies(pageInfo: NgxDatabalePageInfo, isFilter = false) {
-    const offset = pageInfo.offset || this.cache.offset;
+    const offset = !!pageInfo ? pageInfo.offset : this.cache.offset;
     const limit = pageInfo.limit || this.cache.limit;
     let params = new HttpParams()
       .set('offset', (offset * limit).toString())
