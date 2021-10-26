@@ -672,10 +672,6 @@ components:
                 type: string
                 format: uuid
                 description: Unique identifier (UUID) of the agent
-              PolicyName:
-                type: string
-                description: A unique name label
-                example: my-agent-policy
               PolicyID:
                 type: string
                 format: uuid

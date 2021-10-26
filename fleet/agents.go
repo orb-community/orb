@@ -73,7 +73,6 @@ type AgentsStatistics struct {
 type AgentsFailing struct {
 	MFThingID  string
 	PolicyID   string
-	PolicyName string
 	PolicyInfo string
 }
 

@@ -433,6 +433,7 @@ func AgentsStatisticsEndpoint(svc fleet.Service) endpoint.Endpoint {
 		return agentStatisticsRes{
 			StatesSummary: statistics.StatesSummary,
 			TotalAgents:   statistics.TotalAgents,
+			AgentsFailing: statistics.AgentsFailing,
 		}, nil
 	}
 }
