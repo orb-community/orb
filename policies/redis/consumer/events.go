@@ -10,7 +10,7 @@ package consumer
 
 import "time"
 
-type removeDatasetEvent struct {
+type removeAgentGroupEvent struct {
 	groupID   string
 	token     string
 	timestamp time.Time

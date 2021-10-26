@@ -70,6 +70,10 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 
 }
 
+func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
+	a.unsubscribeGroupChannel(rpc.ChannelID)
+}
+
 func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 
 	a.logger.Debug("RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
@@ -106,8 +110,12 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 		a.handleAgentPolicies(r.Payload)
 	case fleet.GroupRemovedRPCFunc:
 		// TODO group removed
-		a.logger.Error("FIXME: handle group removed, ignoring")
-		return
+		var r fleet.GroupRemovedRPC
+		if err := json.Unmarshal(message.Payload(), &r); err != nil {
+			a.logger.Error("error decoding agent group removal message from core", zap.Error(fleet.ErrSchemaMalformed))
+			return
+		}
+		a.handleAgentGroupRemoval(r.Payload)
 	default:
 		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
 			zap.String("func", rpc.Func),

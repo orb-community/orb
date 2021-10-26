@@ -57,6 +57,12 @@ func (a *orbAgent) unsubscribeGroupChannels() {
 	}
 }
 
+func (a *orbAgent) unsubscribeGroupChannel(channelID string) {
+	if token := a.client.Unsubscribe(channelID); token.Wait() && token.Error() != nil {
+		a.logger.Warn("failed to unsubscribe to group channel", zap.String("topic", channelID), zap.Error(token.Error()))
+	}
+}
+
 func (a *orbAgent) startComms(config config.MQTTConfig) error {
 
 	var err error
