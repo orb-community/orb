@@ -26,6 +26,8 @@ module.exports = {
       //bug - delay.  need to remove this paude
       .navigate()
       .pause(1000)
+      .agentGroupVisualization()
+      .agentGroupCheck('nam3', "some_description", "key", "value")
       .countAgentGroups(browser)
 
 

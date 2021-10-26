@@ -42,7 +42,8 @@ var commands = {
       .verify.containsText('@editSinkHeader', 'Agent Group Tags', "'Agent Group Tags' is being displayed")
       .verify.containsText('@editSinkHeader', 'Set the tags that will be used to group Agents', "Help text about tags is correctly written")
       .verify.containsText('@editSinkHeader', 'Review & Confirm', "'Review & Confirm' is being displayed")
-      .verify.attributeEquals('@sinkNext','aria-disabled', 'false', "Edit button is enabled")
+      .verify.attributeEquals('@sinkNext','aria-disabled', 'false', "Next button is enabled")
+      .verify.attributeEquals('@back','aria-disabled', 'false', "Cancel button is enabled")
   },
 
     agentGroupCreation: function(name, description, key, value, verify) {
@@ -90,6 +91,66 @@ var commands = {
         .click('button.orb-action-hover:nth-child(1)')
         .verify.elementPresent('.cdk-overlay-backdrop', "'Visualization' modal is visible")
         .verify.containsText('.nb-card-medium > nb-card-header:nth-child(1)', 'Agent Group Details', "'Visualization' header is correctly written")
+    },
+
+
+    demo_Test: function() {
+              return this.waitForElementVisible('[class="orb-action-hover detail-button appearance-ghost size-medium status-basic shape-rectangle icon-start icon-end nb-transition"]')
+              .findElements('[class="orb-action-hover detail-button appearance-ghost size-medium status-basic shape-rectangle icon-start icon-end nb-transition"]', function(result) {
+              var agentGroupsView = result.value
+              this.elementIdClick(agentGroupsView[agentGroupsView.length-1].ELEMENT)
+     
+      
+       })
+      },
+
+    addTags: function(key, value) {
+      return this.setValue('@key', key)
+      .setValue('@value', value)
+      .verify.attributeEquals('@addTag','aria-disabled', 'false', "'Add tags' button is enabled")
+      .click('@addTag')
+      .verify.attributeEquals('@next','aria-disabled', 'false', "'Next' button is enabled")
+
+    },
+
+    //bug : need to insert a test for checking if is possible to create two identicals tags
+
+    agentGroupsEdit: function(name, description, key, value, key2, value2, verify) {
+      return this.verify.attributeEquals('@next','aria-disabled', 'false', "'Next' button is enabled")
+      .verify.attributeEquals('@back','aria-disabled', 'false', "'Back' button is enabled")
+      .clearValue('@newNameInput')
+      .setValue('@newNameInput', name)
+      .clearValue('@newDescriptionInput')
+      .setValue('@newDescriptionInput', description)
+      .click('@next')
+      .click('.eva-close-outline')
+      .verify.attributeEquals('@next','aria-disabled', 'true', "'Next' button is not enabled")
+      .verify.attributeEquals('button.status-primary:nth-child(1)','aria-disabled', 'false', "'Back' button is enabled")
+      .verify.attributeEquals('@addTag','aria-disabled', 'true', "'Add tags' button is not enabled")
+      .addTags(key, value)
+      .addTags(key2, value2)
+      .verify.attributeEquals('button.status-primary:nth-child(1)','aria-disabled', 'false', "'Back' button is enabled")
+      .click('@next')
+      .verify.containsText('@agentGroupList','Edit Agent Group', 'Page header is "Edit Agent Group"')
+      .verify.attributeEquals('@back','aria-disabled', 'false', "'Back' button is enabled")
+      .verify.attributeEquals('@next','aria-disabled', 'false', "'Next' button is enabled")
+      .click('@next')
+      .verify.containsText('span.title', verify, "Confirmation message is correctly displayed")
+    },
+
+    
+    agentGroupCheck: function(name, description){
+      return this.verify.containsText('div.row:nth-child(1) > div:nth-child(1) > p:nth-child(1)', 'Agent Group Name*', "View contain Agent Group Name Field")
+      .verify.containsText('div.row:nth-child(1) > div:nth-child(1) > p:nth-child(2)', name, "Name of Agent Group is correctly displayed")
+      .verify.containsText('div.row:nth-child(1) > div:nth-child(2) > p:nth-child(1)', 'Agent Group Description', "View contain Agent Group Description Field")
+      .verify.containsText('div.row:nth-child(1) > div:nth-child(2) > p:nth-child(2)', description, "Description of Agent Group is correctly displayed")
+      .verify.containsText('div.row:nth-child(2) > div:nth-child(1) > p:nth-child(1)', 'Date Created', "View contain Agent Group Date Created Field")
+      .verify.visible('div.row:nth-child(2) > div:nth-child(1) > p:nth-child(2)', "Agent Group Date Created is visible")
+      .verify.containsText('div.row:nth-child(2) > div:nth-child(2) > p:nth-child(1)', 'Matches Against', "View contain Agent Group Matches Against Field")
+      .verify.containsText('div.row:nth-child(2) > div:nth-child(2) > p:nth-child(2)', 'Agent(s)', "Matches of Agent Group is correctly displayed")
+      .verify.containsText('div.row:nth-child(3) > div:nth-child(1) > p:nth-child(1)', 'Tags*', "View contain Agent Group Tags Field")
+      .click('@close')
+      
     },
 
   
