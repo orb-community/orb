@@ -3,7 +3,7 @@
 
 1 - On the root of this project run
 ```
-make dockers_dev
+make dockers_dev && make ui
 ```
 to create the images
 
