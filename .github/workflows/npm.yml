@@ -114,10 +114,10 @@ jobs:
       - name: Setup chrome
         uses: browser-actions/setup-chrome@latest        
         with:
-          chrome-version: 95
+          chrome-version: 95.0.4638.54
 
       - name: Check chrome version
-        run: chrome --version
+        run: chrome --version && sudo find / -type f -iname "chrom*"
 
       - name: Install dependencies
         working-directory: orb_tests        
