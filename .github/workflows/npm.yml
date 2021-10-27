@@ -102,7 +102,7 @@ jobs:
       # common job to build the docker images only once
 
       - name: Start containers
-        timeout-minutes: 10
+        timeout-minutes: 20
         run: |
             make dockers_dev
             make ui
