@@ -69,8 +69,6 @@ jobs:
 
 
 
-
-
   nightwatch:
     needs: build
     runs-on: ubuntu-latest
@@ -115,11 +113,11 @@ jobs:
 
       - name: Install dependencies
         working-directory: orb_tests
-        run: npm ci --ignore-scripts
+        run: npm install --save-dev
 
       - name: Run tests        
         working-directory: orb_tests
-        timeout-minutes: 20
+        timeout-minutes: 25
         run: export UI_URL=http://localhost:80; npm run test:ci
 
       - name: Stop containers
