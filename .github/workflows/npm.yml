@@ -112,13 +112,15 @@ jobs:
           node-version: 12.x
 
       - name: Setup chrome
-        uses: browser-actions/setup-chrome@latest
-        run: chrome --version
+        uses: browser-actions/setup-chrome@latest        
         with:
           chrome-version: latest
 
+      - name: Check chrome version
+        run: chrome --version
+        
       - name: Install dependencies
-        working-directory: orb_tests
+        working-directory: orb_tests        
         run: npm install --save-dev
 
       - name: Run tests        
