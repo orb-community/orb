@@ -69,7 +69,7 @@ jobs:
 
 
 
-  nightwatch:
+  e2e:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -97,7 +97,7 @@ jobs:
               - 'ui/**'
      
       # TODO: The docker build occurs in go.yml and here, is smart to create a 
-      # common job to build the docker images only once
+      # common job to build the docker images only once for test purpose
 
       - name: Start containers
         timeout-minutes: 20
@@ -106,10 +106,16 @@ jobs:
             make ui
             docker-compose --env-file docker/.env -f "docker/docker-compose.yml" up -d 
 
-      - name: Install node
+      - name: Setup node
         uses: actions/setup-node@v1
         with:
           node-version: 12.x
+
+      - name: Setup chrome
+        uses: browser-actions/setup-chrome@latest
+        run: chrome --version
+        with:
+          chrome-version: latest
 
       - name: Install dependencies
         working-directory: orb_tests
@@ -118,7 +124,10 @@ jobs:
       - name: Run tests        
         working-directory: orb_tests
         timeout-minutes: 25
-        run: export UI_URL=http://localhost:80; npm run test:ci
+        run: npm run test:ci
+        env:
+            UI_URL: http://localhost:80
+        
 
       - name: Stop containers
         timeout-minutes: 5
