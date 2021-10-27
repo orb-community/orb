@@ -1,6 +1,6 @@
 const chromedriver = require('chromedriver');
 
-const testUrl = 'http://localhost:4200';
+const testUrl = '${UI_URL}';
 const defaultTimeout = 15000;
 
 module.exports = {

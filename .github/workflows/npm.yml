@@ -1,0 +1,118 @@
+name: npm
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
+  push:
+    branches:
+      - develop
+      # Remove this after tests
+      - pipeline/nightwatch-tests
+
+jobs: 
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ui
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            agent:
+              - 'agent/**'
+              - 'cmd/agent/**'
+            fleet:
+              - 'fleet/**'
+              - 'cmd/fleet/**'
+            policies:
+              - 'policies/**'
+              - 'cmd/policies/**'
+            sinks:
+              - 'sinks/**'
+              - 'cmd/sinks/**'
+            sinker:
+              - 'sinker/**'
+              - 'cmd/sinker/**'
+            ui:
+              - 'ui/**'      
+        
+        # Must match the same version used in the dockerfile
+      - name: Setup 
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12.x'
+
+        # Cache is invalidated only when there is change on ./ui/package-lock.json
+      - name: Cache        
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-key: |
+            npm-
+
+        # Will run faster if package-lock.json exists
+      - name: Install         
+        run: npm ci --ignore-scripts      
+      
+      - name: npm audit
+        if: steps.filter.outputs.ui == 'true'        
+        run: npm audit
+
+
+
+
+  nightwatch:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            agent:
+              - 'agent/**'
+              - 'cmd/agent/**'
+            fleet:
+              - 'fleet/**'
+              - 'cmd/fleet/**'
+            policies:
+              - 'policies/**'
+              - 'cmd/policies/**'
+            sinks:
+              - 'sinks/**'
+              - 'cmd/sinks/**'
+            sinker:
+              - 'sinker/**'
+              - 'cmd/sinker/**'
+            ui:
+              - 'ui/**'
+
+      - name: Start containers
+        run: |
+            make dockers_dev
+            docker-compose --env-file docker/.env -f "docker/docker-compose.yml" up -d 
+
+      - name: Install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Install dependencies
+        working-directory: orb_tests
+        run: npm ci --ignore-scripts
+
+      - name: Run tests        
+        working-directory: orb_tests
+        run: export UI_URL=http://localhost:80; npm run test:ci
+
+      - name: Stop containers
+        if: always()
+        run: docker-compose -f "docker/docker-compose.yml" down
