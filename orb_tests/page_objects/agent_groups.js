@@ -2,7 +2,7 @@ var commands = {
 
   new: function() {
     return this.navigate()
-    .waitForElementVisible('@newButton', 10000)
+    .waitForElementVisible('@newButton', 10000, "New Agent Groups button is visible")
     .click('@newButton')
   },
 
@@ -31,7 +31,7 @@ var commands = {
         .verify.containsText('.step-content', 'Agent Group Name*', "'Agent Group Name*' field is being displayed")
         .verify.containsText('.step-content', 'Agent Group Description',  "'Agent Group Description' field is being displayed")
         .verify.attributeEquals('@next','aria-disabled', 'true', "'Next' button is not enabled")
-        .verify.attributeEquals('@back','aria-disabled', 'false', "'Back' button is not enabled")
+        .verify.attributeEquals('@back','aria-disabled', 'false', "'Back' button is enabled")
     },
 
     agentGroupEditPage: function() {
@@ -94,7 +94,7 @@ var commands = {
     },
 
 
-    demo_Test: function() {
+    choose_last_element: function() {
               return this.waitForElementVisible('[class="orb-action-hover detail-button appearance-ghost size-medium status-basic shape-rectangle icon-start icon-end nb-transition"]')
               .findElements('[class="orb-action-hover detail-button appearance-ghost size-medium status-basic shape-rectangle icon-start icon-end nb-transition"]', function(result) {
               var agentGroupsView = result.value

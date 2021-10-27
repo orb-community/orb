@@ -21,6 +21,7 @@ module.exports = {
       agent_groups
       .navigate()
       .new()
+      //bug need to insert count agent groups
       .agentGroupCreation('nam3', "some_description", "key", "value", "Agent Group successfully created")
       //bug - incomplete reload. need to remove this navigate
       //bug - delay.  need to remove this paude

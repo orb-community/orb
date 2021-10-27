@@ -28,8 +28,8 @@ module.exports = {
     .agentGroupVisualization()
     .click('@edit')
     .agentGroupsEdit('agentGroup_Edited', 'edited_desc', 'editedKey', 'editedValue', 'secondKey', 'secondValue', 'Agent Group successfully updated')
-    .demo_Test()
+    .choose_last_element()
     .agentGroupCheck('agentGroup_Edited', 'edited_desc', 'editedKey', 'editedValue')
-    .demo_Test()
+    .choose_last_element()
     .agentGroupCheck('agentGroup_Edited', 'edited_desc', 'secondKey', 'secondValue')
 }}
