@@ -97,11 +97,15 @@ jobs:
               - 'cmd/sinker/**'
             ui:
               - 'ui/**'
+     
+      # TODO: The docker build occurs in go.yml and here, is smart to create a 
+      # common job to build the docker images only once
 
       - name: Start containers
         timeout-minutes: 10
         run: |
             make dockers_dev
+            make ui
             docker-compose --env-file docker/.env -f "docker/docker-compose.yml" up -d 
 
       - name: Install node
@@ -115,6 +119,7 @@ jobs:
 
       - name: Run tests        
         working-directory: orb_tests
+        timeout-minutes: 20
         run: export UI_URL=http://localhost:80; npm run test:ci
 
       - name: Stop containers

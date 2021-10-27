@@ -14,3 +14,4 @@ ui/mock-json-server/mock/*.json
 
 # /ui - UI e2e dependencies
 ui/e2e/*
+orb_tests/chromedriver.log
