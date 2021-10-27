@@ -71,6 +71,41 @@ var loginActions = {
 
 
 },
+
+agentsDelete: function() {
+  return this.verify.attributeEquals('button.orb-action-hover:nth-child(3)', 'aria-disabled', 'false', "'Remove' agent button is enabled")
+  .click('button.orb-action-hover:nth-child(3)')
+  .verify.attributeEquals('@deleteAgent','aria-disabled', 'true', "'Confirm agent delete button is not enabled")
+  .verify.visible('@deleteAgentModal', "Delete agent modal is visible")
+  .verify.containsText('ngx-agent-delete-component.ng-star-inserted > nb-card:nth-child(1) > nb-card-header:nth-child(1)', 'Delete Agent Confirmation', "Header of help text about delete confirmation is correctly written")
+  .verify.containsText('@deleteAgentModal', 'Are you sure you want to delete this Agent? This action cannot be undone.*', "Help text about delete confirmation is correctly written")
+  .verify.containsText('@deleteAgentModal', '*To confirm, type your Agent name exactly as it appears', "End of help text about delete confirmation is correctly written")
+  .getAttribute('.input-full-width', 'placeholder',  function(result) {this.setValue('.input-full-width', result.value) })
+  .verify.attributeEquals('@deleteAgent','aria-disabled', 'false', "'Confirm agent delete button is enabled")
+  .click('@deleteAgent')
+  .verify.containsText('span.title', 'Agent successfully deleted', "Delete confirmation message is being displayed")
+  //bug .verify.containsText('.empty-row', 'No data to display')
+
+},
+
+countAgent: function(browser) {
+  return this.getText('.page-count',  function(result){
+    //console.log('Value is:', result.value);
+    if (result.value == "0 total") {
+        browser.expect.elements('datatable-row-wrapper').count.to.equal(parseInt(result.value))
+      
+        browser.verify.containsText('.sink-info-accent', 'There are no Agent yet.', "Info message of Agent count is correctly displayed")
+        browser.verify.containsText('.empty-row', 'No data to display', "View table info message is correctly displayed")
+    } else {
+        browser.expect.elements('datatable-row-wrapper').count.to.equal(parseInt(result.value))
+        browser.verify.containsText('.justify-content-between > div:nth-child(1)', 'You have', "Beginning of info message is correctly displayed")
+        browser.verify.containsText('.justify-content-between > div:nth-child(1)', parseInt(result.value), "Number of Agents is correctly displayed")
+        // bug need to insert regions count test
+        browser.verify.containsText('.justify-content-between > div:nth-child(1)', 'agents deployed', "End of info message is correctly displayed")
+    }
+  })
+
+}
   }
   
   module.exports = {
@@ -107,7 +142,9 @@ var loginActions = {
       agentKey: 'ngx-agent-key-component.ng-star-inserted > nb-card:nth-child(1) > nb-card-body:nth-child(2) > pre:nth-child(3)',
       agentProvisioningCommand: 'ngx-agent-key-component.ng-star-inserted > nb-card:nth-child(1) > nb-card-body:nth-child(2) > pre:nth-child(5) > code:nth-child(2)',
       copyKey: 'ngx-agent-key-component.ng-star-inserted > nb-card:nth-child(1) > nb-card-body:nth-child(2) > pre:nth-child(5) > button:nth-child(1)',
-      copyProvisioningCommand: 'ngx-agent-key-component.ng-star-inserted > nb-card:nth-child(1) > nb-card-body:nth-child(2) > pre:nth-child(5) > button:nth-child(1)'
+      copyProvisioningCommand: 'ngx-agent-key-component.ng-star-inserted > nb-card:nth-child(1) > nb-card-body:nth-child(2) > pre:nth-child(5) > button:nth-child(1)',
+      deleteAgent: '.orb-sink-delete-warning-button',
+      deleteAgentModal: 'ngx-agent-delete-component.ng-star-inserted'
       
 
 

@@ -17,25 +17,14 @@ module.exports = {
       },
 
 
-      'Agent Creation using close button' : function(browser){
+      'Agent Delete' : function(browser){
         var agents = browser.page.agents()
         agents
-        .new()
-        .agentCreationPage()
-        .agentCreation('newAgent', 'key', 'value', 'Agent successfully created', '@closeCredentialsModal')
-    
-        
-      },
+        .navigate()
+        .AgentsPage()
+        .countAgent(browser)
+        .agentsDelete()        
+        .AgentsPage()
+        .countAgent(browser)
 
-      'Agent Creation using "x" button' : function(browser){
-        var agents = browser.page.agents()
-        agents
-        .new()
-        .agentCreationPage()
-        .agentCreation('new2Agent', 'key', 'value', 'Agent successfully created', '@close')
-    
-        
-      }
-    
-    
-    }
+      }}
