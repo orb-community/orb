@@ -114,7 +114,7 @@ jobs:
       - name: Setup chrome
         uses: browser-actions/setup-chrome@latest        
         with:
-          chrome-version: 95.0.4638.54
+          chrome-version: stable
 
       - name: Check chrome version
         run: chrome --version && sudo find / -type f -iname "chrom*"
