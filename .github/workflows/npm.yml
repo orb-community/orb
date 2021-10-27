@@ -120,7 +120,7 @@ jobs:
              sudo apt install ./google-chrome*.deb
 
       - name: Check chrome version
-        run: chrome --version 
+        run: google-chrome --version 
 
       - name: Install dependencies
         working-directory: orb_tests        
