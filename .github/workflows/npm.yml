@@ -62,10 +62,8 @@ jobs:
         run: npm ci --ignore-scripts      
       
       - name: npm audit
-        if: steps.filter.outputs.ui == 'true'        
-        # Temporarily to test others steps
-        continue-on-error: true
-        run: npm audit
+        if: steps.filter.outputs.ui == 'true'
+        run: npm audit 
 
 
 
@@ -111,6 +109,9 @@ jobs:
         with:
           node-version: 12.x
 
+      - name: Setup npm version
+        run: npm install -g npm@7.22
+
       - name: Setup chrome
         run: |
              # Install latest stable Chrome for e2e tests
@@ -128,7 +129,7 @@ jobs:
 
       - name: Run tests        
         working-directory: orb_tests
-        timeout-minutes: 25
+        timeout-minutes: 45
         run: npm run test:ci
         env:
             UI_URL: http://localhost:80
