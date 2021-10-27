@@ -112,13 +112,16 @@ jobs:
           node-version: 12.x
 
       - name: Setup chrome
-        uses: browser-actions/setup-chrome@latest        
-        with:
-          chrome-version: stable
+        run: |
+             # Install latest stable Chrome for e2e tests
+             sudo apt --fix-broken install
+             sudo apt-get install libxss1 libappindicator1 libindicator7
+             wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+             sudo apt install ./google-chrome*.deb
 
       - name: Check chrome version
         run: chrome --version 
-        
+
       - name: Install dependencies
         working-directory: orb_tests        
         run: npm install --save-dev
