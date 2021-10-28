@@ -59,22 +59,29 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 
 	switch payload.Action {
 	case "manage":
+		var pd = policies.PolicyData{
+			ID:      payload.ID,
+			Name:    payload.Name,
+			Backend: payload.Backend,
+			Version: payload.Version,
+			Data:    payload.Data,
+			State:   policies.Unknown,
+		}
 		if a.repo.Exists(payload.ID) {
-			a.logger.Info("policy already exists, ensuring dataset", zap.String("id", payload.ID), zap.String("dataset_id", payload.DatasetID))
+			// we have already processed this policy id before (it may be running or failed)
+			// ensure we are associating this dataset with this policy
 			err := a.repo.EnsureDataset(payload.ID, payload.DatasetID)
 			if err != nil {
 				a.logger.Warn("policy failed to ensure dataset id", zap.String("id", payload.ID), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
 			}
-			pd, err := applyPolicy(payload, be, a)
-			if err != nil {
-				a.repo.Edit(pd)
-			}
 		} else {
-			pd, err := applyPolicy(payload, be, a)
-			if err != nil {
-				a.repo.Add(pd)
-			}
+			// new policy we have not seen before, associate with this dataset
+			pd.Datasets = map[string]bool{payload.DatasetID: true}
 		}
+		// attempt to apply the policy to the backend. status of policy application (running/failed) is maintained there.
+		a.applyPolicy(payload, be, &pd)
+		// save policy (with latest status) to local policy db
+		a.repo.Update(pd)
 		return
 	case "remove":
 		err := be.RemovePolicy(payload.ID)
@@ -88,23 +95,15 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 
 }
 
-func applyPolicy(payload fleet.AgentPolicyRPCPayload, be backend.Backend, a *policyManager) (policies.PolicyData, error) {
-	pd := policies.PolicyData{
-		ID:      payload.ID,
-		Name:    payload.Name,
-		Backend: payload.Backend,
-		Version: payload.Version,
-		Data:    payload.Data,
-		State:   policies.Unknown,
-	}
-	err := be.ApplyPolicy(pd)
+func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be backend.Backend, pd *policies.PolicyData) {
+	err := be.ApplyPolicy(*pd)
 	if err != nil {
 		a.logger.Warn("policy failed to apply", zap.String("id", payload.ID), zap.Error(err))
 		pd.State = policies.FailedToApply
 		pd.BackendErr = err.Error()
-		return pd, err
 	} else {
+		a.logger.Info("policy applied successfully", zap.String("id", payload.ID))
 		pd.State = policies.Running
+		pd.BackendErr = ""
 	}
-	return pd, nil
 }
