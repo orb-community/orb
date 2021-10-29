@@ -268,7 +268,7 @@ func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
 
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
-		Func:          GroupMembershipRPCFunc,
+		Func:          GroupRemovedRPCFunc,
 		Payload:       payload,
 	}
 
