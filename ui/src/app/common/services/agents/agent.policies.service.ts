@@ -215,133 +215,88 @@ export class AgentPoliciesService {
     //   );
     // TODO remove mock and uncomment http request
     // TODO remove this if and uncomment code above - this allows only for taps
-    if (final === 'pktvisor/taps') {
-      return this.http.get(`${environment.agentsBackendUrl}/${final}`)
-      .map((response: any) => {
-        return response.backend;
-      }).catch(
-        err => {
-          this.notificationsService.error('Failed to get Available Backends',
-            `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
-        },
-      );
-    }
+    // if (final === 'pktvisor/taps') {
+    //   return this.http.get(`${environment.agentsBackendUrl}/${final}`)
+    //   .map((response: any) => {
+    //     return response.backend;
+    //   }).catch(
+    //     err => {
+    //       this.notificationsService.error('Failed to get Available Backends',
+    //         `Error: ${ err.status } - ${ err.statusText }`);
+    //       return Observable.throwError(err);
+    //     },
+    //   );
+    // }
 
     let resp;
     switch (final) {
+      case 'pktvisor/taps':
+        resp = {
+          data: [
+            {
+              'name': 'ethernet',
+              'input_type': 'pcap',
+              'config_predefined': [
+                'iface',
+              ],
+              'agents': {
+                'total': 1,
+              },
+            },
+          ],
+        };
+        break;
       case 'pktvisor/inputs':
         resp = {
           data: {
             'pcap': {
-              'version': '1.0',
-              'config': {
-                'iface': {
-                  'required': true,
-                  'type': 'string',
-                  'input': 'text',
-                  'label': 'Interface',
-                  'name': 'iface',
-                  'description': 'The ethernet interface to capture on',
-                },
-                'bpf': {
-                  'required': false,
-                  'type': 'string',
-                  'input': 'text',
-                  'label': 'Filter Expression',
-                  'name': 'bpf',
-                  'description': 'tcpdump compatible filter expression for limiting the traffic examined (with BPF). Example: "port 53"',
-                },
-                'host_spec': {
-                  'required': false,
-                  'type': 'string',
-                  'input': 'text',
-                  'label': 'Host Specification',
-                  'name': 'host_spec',
-                  'description': 'Subnets (comma separated) to consider this HOST, in CIDR form. Example: "10.0.1.0/24,10.0.2.1/32,2001:db8::/64"',
-                },
-                'pcap_source': {
-                  'required': false,
-                  'type': 'string',
-                  'input': 'text',
-                  'label': 'pcap Engine',
-                  'name': 'pcap_source',
-                  'description': 'pcap backend engine to use. Defaults to best for platform.',
-                },
-              },
-            },
-            'dnstap': {
-              'version': '1.0',
-              'config': {
-                'type': {
-                  'type': 'string',
-                  'input': 'select',
-                  'label': 'Type',
-                  'name': 'type',
-                  'props': {
-                    'options': {
-                      'AUTH_QUERY': 'AUTH_QUERY',
-                      'AUTH_RESPONSE': 'AUTH_RESPONSE',
-                      'RESOLVER_QUERY': 'RESOLVER_QUERY',
-                      'RESOLVER_RESPONSE': 'RESOLVER_RESPONSE',
-                      'TOOL_QUERY': 'TOOL_QUERY',
-                      'TOOL_RESPONSE': 'TOOL_RESPONSE',
+              '1.0': {
+                'filter': {
+                  'bpf': {
+                    'type': 'string',
+                    'input': 'text',
+                    'label': 'Filter Expression',
+                    'description': 'tcpdump compatible filter expression for limiting the traffic examined (with BPF). See https://www.tcpdump.org/manpages/tcpdump.1.html',
+                    'props': {
+                      'example': 'udp port 53 and host 127.0.0.1',
                     },
                   },
-                  'required': true,
-                  'description': 'AUTH_QUERY, AUTH_RESPONSE, RESOLVER_QUERY, RESOLVER_RESPONSE, ..., TOOL_QUERY, TOOL_RESPONSE',
                 },
-                'socket_family': {
-                  'type': 'string',
-                  'input': 'select',
-                  'label': 'Socket Family',
-                  'name': 'socket_family',
-                  'props': {
-                    'options': {
-                      'INET': 'INET',
-                      'INET_6': 'INET_6',
+                'config': {
+                  'iface': {
+                    'type': 'string',
+                    'input': 'text',
+                    'label': 'Network Interface',
+                    'description': 'The network interface to capture traffic from',
+                    'props': {
+                      'required': true,
+                      'example': 'eth0',
                     },
                   },
-                  'required': true,
-                  'description': 'INET, INET6',
-                },
-                'socket_protocol': {
-                  'type': 'string',
-                  'input': 'select',
-                  'label': 'Socket Protocol',
-                  'name': 'socket_protocol',
-                  'props': {
-                    'options': {
-                      'TCP': 'TCP',
-                      'UDP': 'UDP',
+                  'host_spec': {
+                    'type': 'string',
+                    'input': 'text',
+                    'label': 'Host Specification',
+                    'description': 'Subnets (comma separated) which should be considered belonging to this host, in CIDR form. Used for ingress/egress determination, defaults to host attached to the network interface.',
+                    'props': {
+                      'advanced': true,
+                      'example': '10.0.1.0/24,10.0.2.1/32,2001:db8::/64',
                     },
                   },
-                  'required': true,
-                  'description': 'UDP, TCP',
-                },
-                'query_address': {
-                  'type': 'string',
-                  'input': 'text',
-                  'label': 'Query Address',
-                  'name': 'query_address',
-                  'required': false,
-                  'description': '',
-                },
-                'query_port': {
-                  'type': 'string',
-                  'input': 'text',
-                  'label': 'Query Port',
-                  'name': 'query_port',
-                  'required': false,
-                  'description': '',
-                },
-                'response_address': {
-                  'type': 'string',
-                  'input': 'text',
-                  'label': 'Response Address',
-                  'name': 'response_address',
-                  'required': false,
-                  'description': '',
+                  'pcap_source': {
+                    'type': 'string',
+                    'input': 'select',
+                    'label': 'Packet Capture Engine',
+                    'description': 'Packet capture engine to use. Defaults to best for platform.',
+                    'props': {
+                      'advanced': true,
+                      'example': 'libpcap',
+                      'options': {
+                        'libpcap': 'libpcap',
+                        'af_packet (linux only)': 'af_packet',
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -350,65 +305,95 @@ export class AgentPoliciesService {
         break;
       case 'pktvisor/handlers':
         resp = {
-          'data': {
+          data: {
             'dns': {
-              'version': '1.0',
-              'config': {
-                'filter_exclude_noerror': {
-                  'label': 'Filter: Exclude NOERROR',
-                  'name': 'filter_exclude_noerror',
-                  'type': 'boolean',
-                  'input': 'checkbox',
-                  'description': 'Filter out all NOERROR responses',
-                },
-                'filter_only_rcode': {
-                  'label': 'Filter: Include Only RCode',
-                  'name': 'filter_only_rcode',
-                  'type': 'number',
-                  'input': 'select',
-                  'description': 'Filter out any queries which are not the given RCODE',
-                  'props': {
-                    'options': {
-                      '0': '0 - NoError No Error [RFC1035]',
-                      '1': '1 - FormErr Format Error [RFC1035]',
-                      '2': '2 - ServFail Server Failure [RFC1035]',
-                      '3': '3 - NXDomain Non Existent Domain [RFC1035]',
-                      '4': '4 - NotImp Not Implemented [RFC1035]',
-                      '5': '5 - Refused Query Refused [RFC1035]',
-                      '6': '6 - YXDomain Name Exists when it should not	[RFC2136][RFC6672]',
-                      '7': '7 - YXRRSet RR Set Exists when it should not	[RFC2136]',
-                      '8': '8 - NXRRSet RR Set that should exist does not	[RFC2136]',
-                      '9': '9 - NotAuth Server Not Authoritative for zone	[RFC2136] | NotAuth	Not Authorized	[RFC8945]',
-                      '10': '10 - NotZone Name not contained in zone	[RFC2136]',
-                      '11': '11 - DSOTYPENI DSO TYPE Not Implemented	[RFC8490]',
-                      '16': '16 - BADVERS Bad OPT Version [RFC6891] | BADSIG	TSIG Signature Failure	[RFC8945]',
-                      '17': '17 - BADKEY Key not recognized [RFC8945]',
-                      '18': '18 - BADTIME Signature out of time window	[RFC8945]',
-                      '19': '19 - BADMODE Bad TKEY Mode [RFC2930]',
-                      '20': '20 - BADNAME Duplicate key name [RFC2930]',
-                      '21': '21 - BADALG Algorithm not supported	[RFC2930]',
-                      '22': '22 - BADTRUNC Bad Truncation [RFC8945]',
-                      '23': '23 - BADCOOKIE Bad missing Server Cookie',
+              '1.0': {
+                'filter': {
+                  'exclude_noerror': {
+                    'label': 'Exclude NOERROR',
+                    'type': 'bool',
+                    'input': 'checkbox',
+                    'description': 'Filter out all NOERROR responses',
+                  },
+                  'only_rcode': {
+                    'label': 'Include Only RCODE',
+                    'type': 'number',
+                    'input': 'select',
+                    'description': 'Filter out any queries which are not the given RCODE',
+                    'props': {
+                      'allow_custom_options': true,
+                      'options': {
+                        'NOERROR': 0,
+                        'SERVFAIL': 2,
+                        'NXDOMAIN': 3,
+                        'REFUSED': 5,
+                      },
+                    },
+                  },
+                  'only_qname_suffix': {
+                    'label': 'Include Only QName With Suffix',
+                    'type': 'string[]',
+                    'input': 'text',
+                    'description': 'Filter out any queries whose QName does not end in a suffix on the list',
+                    'props': {
+                      'example': '.foo.com,.example.com',
                     },
                   },
                 },
-                'filter_only_qname_suffix': {
-                  'label': 'Filter: Include Only QName With Suffix',
-                  'name': 'filter_only_qname_suffix',
-                  'type': 'text',
-                  'input': 'text',
-                  'props': { 'pattern': '(\w+);' },
-                  'description': 'Filter out any queries whose QName does not end in a suffix on the list',
+                'config': {},
+                'metrics': {},
+                'metric_groups': {
+                  'cardinality': {
+                    'label': 'Cardinality',
+                    'description': 'Metrics counting the unique number of items in the stream',
+                    'metrics': [],
+                  },
+                  'dns_transactions': {
+                    'label': 'DNS Transactions (Query/Reply pairs)',
+                    'description': 'Metrics based on tracking queries and their associated replies',
+                    'metrics': [],
+                  },
+                  'top_dns_wire': {
+                    'label': 'Top N Metrics (Various)',
+                    'description': 'Top N metrics across various details from the DNS wire packets',
+                    'metrics': [],
+                  },
+                  'top_qnames': {
+                    'label': 'Top N QNames (All)',
+                    'description': 'Top QNames across all DNS queries in stream',
+                    'metrics': [],
+                  },
+                  'top_qnames_by_rcode': {
+                    'label': 'Top N QNames (Failing RCodes) ',
+                    'description': 'Top QNames across failing result codes',
+                    'metrics': [],
+                  },
                 },
               },
             },
-            'pcap': {
-              'version': '1.0',
-              'config': {},
-            },
             'net': {
-              'version': '1.0',
-              'config': {},
+              '1.0': {
+                'filter': {},
+                'config': {},
+                'metrics': {},
+                'metric_groups': {
+                  'ip_cardinality': {
+                    'label': 'IP Address Cardinality',
+                    'description': 'Unique IP addresses seen in the stream',
+                    'metrics': [],
+                  },
+                  'top_geo': {
+                    'label': 'Top Geo',
+                    'description': 'Top Geo IP and ASN in the stream',
+                    'metrics': [],
+                  },
+                  'top_ips': {
+                    'label': 'Top IPs',
+                    'description': 'Top IP addresses in the stream',
+                    'metrics': [],
+                  },
+                },
+              },
             },
           },
         };

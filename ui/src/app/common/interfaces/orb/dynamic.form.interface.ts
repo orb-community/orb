@@ -6,9 +6,6 @@ export interface DynamicInput {
   // label to be shown with descriptive name
   label?: string;
 
-  // field name for property -> payload
-  name?: string;
-
   // type of value - string, number, boolean
   type?: string;
 
@@ -18,11 +15,22 @@ export interface DynamicInput {
   // longer description for tooltip or help text
   description?: string;
 
-  // is this a required field?
-  required?: boolean;
-
   // dynamic properties list for different types of inputs and configs
-  props?: { [propName: string]: string[]|number[]|string|number|any }; // {[propName: string]: [] | {} | any}
+  props?: {
+    // is this a required field?
+    // default|missing -> false
+    required?: boolean;
+
+    // short example string for input value - placeholder
+    example?: string;
+
+    // leave space for any extra
+    [propName: string]: string[]|number[]|string|number|any; // {[propName: string]: [] | {} | any}
+  };
+
+  // optional name used when parsing results from service for ease of use
+  // name for field
+  name?: string;
 }
 
 /**

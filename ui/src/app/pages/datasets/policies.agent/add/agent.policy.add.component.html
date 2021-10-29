@@ -129,6 +129,7 @@
                            fullWidth="true"
                            id="input_type"
                            nbInput
+                           placeholder="Select Input"
                            size="medium">
                   <nb-option *ngFor="let option of availableInputs | keyvalue"
                              [attr.data-orb-qa-id]="option.key"
@@ -154,6 +155,7 @@
                            [type]="control.value.type"
                            fieldSize="medium"
                            fullWidth="true"
+                           [placeholder]="control.value?.props?.example || ''"
                            nbTooltip="{{ control.value.description }}"
                            nbInput>
                     <input *ngSwitchCase="'number'"
@@ -164,6 +166,7 @@
                            [min]="control.value.props.min"
                            [step]="control.value.props.step"
                            [type]="control.value.type"
+                           [placeholder]="control.value?.props?.example || ''"
                            nbTooltip="{{ control.value.description }}">
                     <nb-select *ngSwitchCase="'select'"
                                [attr.data-orb-qa-id]="control.value.name"
@@ -172,6 +175,7 @@
                                appearance="filled"
                                fullWidth="true"
                                size="medium"
+                               [placeholder]="control.value?.props?.example || ''"
                                nbTooltip="{{ control.value.description }}"
                     >{{ control.value.name + "-" + control.value.props.options }}
                       <nb-option *ngFor="let option of control.value.props.options | keyvalue"
@@ -242,7 +246,8 @@
                        data-orb-qa-id="sink_selector"
                        formControlName="selected_handler"
                        fullWidth="true"
-                       placeholder="Handler type"
+                       placeholder="Select Handler"
+                       nbTooltip="Select and configure individual policies from a list of available handlers."
                        size="medium">
               <nb-option *ngFor="let handler of availableHandlers | keyvalue"
                          [attr.data-orb-qa-id]="'available_handler: '+handler.key" [id]="handler.key"
@@ -254,10 +259,11 @@
                 <label class="font-weight-bold" for="description">Handler Label</label>
                 <span class="required"></span>
               </div>
-
               <input data-orb-qa-id="handler-label"
                      fieldSize="medium"
                      formControlName="label"
+                     placeholder="Handler Name"
+                     nbTooltip="Provide a label for your handler configuration"
                      fullWidth="true"
                      id="label"
                      nbInput/>
@@ -281,15 +287,17 @@
                            fieldSize="medium"
                            fullWidth="true"
                            nbInput
+                           [placeholder]="control.value?.props?.example || ''"
                            nbTooltip="{{ control.value.description }}">
                     <input *ngSwitchCase="'number'"
                            [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="true"
                            [formControlName]="control.value.name"
-                           [max]="control.value.props.max"
-                           [min]="control.value.props.min"
-                           [step]="control.value.props.step"
-                           [type]="control.value.props.type"
+                           [max]="control.value?.props?.max"
+                           [min]="control.value?.props?.min"
+                           [step]="control.value?.props?.step"
+                           [type]="control.value.type"
+                           [placeholder]="control.value?.props?.example || ''"
                            nbTooltip="{{ control.value.description }}">
                     <nb-select *ngSwitchCase="'select'"
                                [attr.data-orb-qa-id]="control.value.name"
@@ -298,6 +306,7 @@
                                appearance="filled"
                                fullWidth="true"
                                size="medium"
+                               [placeholder]="control.value?.props?.example || ''"
                                nbTooltip="{{ control.value.description }}">
                       {{ control.value.name + "-" + control.value.props.options }}
                       <nb-option *ngFor="let option of control.value.props.options | keyvalue"
@@ -341,6 +350,7 @@
             </button>
             <button (click)="onFormSubmit()"
                     [disabled]="handlers.length === 0"
+                    nbTooltip="At least one handler must be configure and added to the policies."
                     class="next-button"
                     data-orb-qa-id="next"
                     nbButton

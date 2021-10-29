@@ -55,6 +55,7 @@ export class AgentPolicyAddComponent {
   liveHandler: {
     version?: string,
     config?: DynamicFormConfig,
+    filter?: DynamicFormConfig,
     type?: string,
   };
 
@@ -288,7 +289,7 @@ export class AgentPolicyAddComponent {
         const disabled = !!preConfig?.[key];
         acc[key] = [
           { value, disabled },
-          input?.required ? Validators.required : null,
+          [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
         ];
 
         return acc;
@@ -324,7 +325,7 @@ export class AgentPolicyAddComponent {
     this.liveHandler = selectedHandler !== '' && !!this.availableHandlers[selectedHandler] ?
       { ...this.availableHandlers[selectedHandler], type: selectedHandler } : null;
 
-    const { config } = !!this.liveHandler ? this.liveHandler : { config: {} };
+    const { config, filter } = !!this.liveHandler ? this.liveHandler : { config: {}, filter: {} };
 
     const dynamicControls = Object.entries(config).reduce((controls, [key, value]) => {
       controls[key] = ['', [Validators.required]];
