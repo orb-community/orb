@@ -7,11 +7,15 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package consumer
 
-import "time"
+import (
+	"github.com/ns1labs/orb/sinks"
+	"time"
+)
 
-type connectionLostEvent struct {
+type stateUpdateEvent struct {
 	ownerID   string
 	sinkID    string
-	error     string
+	state     sinks.State
+	msg       string
 	timestamp time.Time
 }

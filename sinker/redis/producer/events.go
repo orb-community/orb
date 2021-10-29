@@ -6,7 +6,7 @@ import (
 
 const (
 	SinkerPrefix = "sinker."
-	ChangeState  = SinkerPrefix + "change_state"
+	SinkerUpdate = SinkerPrefix + "update"
 )
 
 type event interface {
@@ -14,10 +14,10 @@ type event interface {
 }
 
 var (
-	_ event = (*ChangeSinkerStateEvent)(nil)
+	_ event = (*SinkerUpdateEvent)(nil)
 )
 
-type ChangeSinkerStateEvent struct {
+type SinkerUpdateEvent struct {
 	SinkID    string
 	Owner     string
 	State     string
@@ -25,13 +25,13 @@ type ChangeSinkerStateEvent struct {
 	Timestamp time.Time
 }
 
-func (cse ChangeSinkerStateEvent) Encode() map[string]interface{} {
+func (cse SinkerUpdateEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
 		"sink_id":   cse.SinkID,
 		"owner":     cse.Owner,
 		"state":     cse.State,
 		"msg":       cse.Msg,
 		"timestamp": cse.Timestamp.Unix(),
-		"operation": ChangeState,
+		"operation": SinkerUpdate,
 	}
 }
