@@ -9,6 +9,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/go-zoo/bone"
@@ -18,6 +19,7 @@ import (
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	"github.com/ns1labs/orb/sinker"
 	sinkerconfig "github.com/ns1labs/orb/sinker/config"
+	"github.com/ns1labs/orb/sinker/redis/consumer"
 	"github.com/ns1labs/orb/sinker/redis/producer"
 	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
 	"github.com/opentracing/opentracing-go"
@@ -119,6 +121,8 @@ func main() {
 	errs := make(chan error, 2)
 
 	go startHTTPServer(svcCfg.HttpPort, errs, logger)
+	go subscribeToSinksES(svc, configRepo, esClient, esCfg, logger)
+
 	err = svc.Start()
 	if err != nil {
 		logger.Error("unable to start agent metric consumption", zap.Error(err))
@@ -213,4 +217,12 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	}
 
 	return tracer, closer
+}
+
+func subscribeToSinksES(svc sinker.Service, configRepo sinkerconfig.ConfigRepo, client *redis.Client, cfg config.EsConfig, logger *zap.Logger) {
+	eventStore := consumer.NewEventStore(svc, configRepo, client, cfg.Consumer, logger)
+	logger.Info("Subscribed to Redis Event Store for sinks")
+	if err := eventStore.Subscribe(context.Background()); err != nil {
+		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
+	}
 }

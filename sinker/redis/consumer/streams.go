@@ -83,22 +83,22 @@ func NewEventStore(sinkerService sinker.Service, configRepo config.ConfigRepo, c
 	}
 }
 
-func decodeSinksUpdate(event map[string]interface{}) (updateSinksEvent, error) {
-	val := updateSinksEvent{
-		id:        read(event, "id", ""),
-		ownerID:   read(event, "owner_id", ""),
+func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
+	val := updateSinkEvent{
+		sinkID:    read(event, "sink_id", ""),
+		owner:     read(event, "owner", ""),
 		timestamp: time.Time{},
 	}
 
 	var config types.Metadata
 	if err := json.Unmarshal([]byte(read(event, "config", "")), &config); err != nil {
-		return updateSinksEvent{}, err
+		return updateSinkEvent{}, err
 	}
 	val.config = config
 	return val, nil
 }
 
-func (es eventStore) handleSinksUpdate(ctx context.Context, e updateSinksEvent) error {
+func (es eventStore) handleSinksUpdate(ctx context.Context, e updateSinkEvent) error {
 	data, err := json.Marshal(e.config)
 	if err != nil {
 		return err
@@ -108,8 +108,8 @@ func (es eventStore) handleSinksUpdate(ctx context.Context, e updateSinksEvent) 
 		return err
 	}
 
-	if ok := es.configRepo.Exists(e.id); ok {
-		sinkConfig, err := es.configRepo.Get(e.id)
+	if ok := es.configRepo.Exists(e.sinkID); ok {
+		sinkConfig, err := es.configRepo.Get(e.sinkID)
 		if err != nil {
 			return err
 		}
@@ -119,8 +119,8 @@ func (es eventStore) handleSinksUpdate(ctx context.Context, e updateSinksEvent) 
 
 		es.configRepo.Edit(sinkConfig)
 	} else {
-		config.SinkID = e.id
-		config.OwnerID = e.ownerID
+		config.SinkID = e.sinkID
+		config.OwnerID = e.owner
 		es.configRepo.Add(config)
 	}
 	return nil
