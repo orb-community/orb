@@ -109,7 +109,6 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 		}
 		a.handleAgentPolicies(r.Payload)
 	case fleet.GroupRemovedRPCFunc:
-		// TODO group removed
 		var r fleet.GroupRemovedRPC
 		if err := json.Unmarshal(message.Payload(), &r); err != nil {
 			a.logger.Error("error decoding agent group removal message from core", zap.Error(fleet.ErrSchemaMalformed))
