@@ -197,7 +197,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 		if token := p.mqttClient.Publish(topic, 1, false, body); token.Wait() && token.Error() != nil {
 			p.logger.Error("error sending metrics RPC", zap.String("topic", topic), zap.Error(token.Error()))
 		}
-		p.logger.Info("scrapped and published metrics", zap.String("policy_id", data.ID), zap.String("topic", topic), zap.Int("payload_size", len(payloadData)))
+		p.logger.Info("scraped and published metrics", zap.String("policy_id", data.ID), zap.String("topic", topic), zap.Int("payload_size", len(payloadData)))
 
 	})
 	job.SingletonMode()
