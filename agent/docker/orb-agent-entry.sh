@@ -20,6 +20,10 @@ trap 'rm -f "$tmpfile"' EXIT
 
 # simplest: specify just interface, creates tap named "default_pcap"
 # PKTVISOR_PCAP_IFACE_DEFAULT=en0
+# special case: if the iface is "mock", then use "mock" pcap source
+if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = 'mock' ]; then
+  MAYBE_MOCK='pcap_source: mock'
+fi
 if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" ]]; then
 (
 cat <<END
@@ -31,6 +35,7 @@ visor:
       input_type: pcap
       config:
         iface: "$PKTVISOR_PCAP_IFACE_DEFAULT"
+        $MAYBE_MOCK
 END
 ) >"$tmpfile"
 
