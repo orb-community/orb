@@ -119,14 +119,15 @@ func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.Agen
 	for _, m := range metrics {
 		for _, ds := range m.Datasets {
 			if ds != "" {
-				sinkID, err := svc.policiesClient.RetrieveDataset(context.Background(), &policiespb.DatasetByIDReq{
+				dataset, err := svc.policiesClient.RetrieveDataset(context.Background(), &policiespb.DatasetByIDReq{
 					DatasetID: ds,
 					OwnerID:   agent.OwnerID,
 				})
 				if err != nil {
+					svc.logger.Error("unable to retrieve dataset", zap.String("dataset_id", ds), zap.String("owner_id", agent.OwnerID), zap.Error(err))
 					return nil, nil, err
 				}
-				for _, sid := range sinkID.SinkIds {
+				for _, sid := range dataset.SinkIds {
 					if !svc.configRepo.Exists(sid) {
 						// Use the retrieved sinkID to get the backend config
 						sink, err := svc.sinksClient.RetrieveSink(context.Background(), &sinkspb.SinkByIDReq{
