@@ -167,7 +167,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 			p.logger.Error("scrape failed", zap.String("policy_id", data.ID), zap.Error(err))
 			return
 		}
-		payloadData, err := json.Marshal(metrics)
+		payloadData, err := json.Marshal(metrics[data.Name])
 		if err != nil {
 			p.logger.Error("error marshalling scraped metric json", zap.String("policy_id", data.ID), zap.Error(err))
 			return
