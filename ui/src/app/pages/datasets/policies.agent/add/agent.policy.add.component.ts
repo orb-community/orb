@@ -279,12 +279,6 @@ export class AgentPolicyAddComponent {
     // tap config values, cannot be overridden if set
     const preConfig = this.tap.config_predefined;
 
-    // merge preconfigurations
-    const finalConfig = {
-      ...preConfig,
-      ...agentConfig,
-    };
-
     if (this.isEdit === false) {
       this.agentPolicy.policy = { input: { config: {} } };
     }
@@ -292,13 +286,13 @@ export class AgentPolicyAddComponent {
     // populate form controls for config
     const inputConfDynamicCtrl = Object.entries(inputConfig)
       .reduce((acc, [key, input]) => {
-        const value = !!finalConfig?.[key] ? finalConfig[key] : '';
-        const disabled = !!preConfig?.[key];
-        acc[key] = [
-          { value, disabled },
-          [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
-        ];
-
+        const value = !!agentConfig?.[key] ? agentConfig[key] : '';
+        if (!preConfig.includes(key)) {
+          acc[key] = [
+            { value },
+            [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
+          ];
+        }
         return acc;
       }, {});
 
@@ -306,7 +300,7 @@ export class AgentPolicyAddComponent {
 
     const inputFilterDynamicCtrl = Object.entries(filterConfig)
       .reduce((acc, [key, input]) => {
-        const value = !!finalConfig?.[key] ? finalConfig[key] : '';
+        const value = !!agentConfig?.[key] ? agentConfig[key] : '';
         const disabled = !!preConfig?.[key];
         acc[key] = [
           { value, disabled },
