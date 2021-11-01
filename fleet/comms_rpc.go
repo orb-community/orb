@@ -73,6 +73,7 @@ type DatasetRemovedRPC struct {
 
 type DatasetRemovedRPCPayload struct {
 	DatasetID string `json:"dataset_id"`
+	ChannelID string `json:"channel_id"`
 }
 
 // Edge -> Core

@@ -323,7 +323,10 @@ func (svc fleetCommsService) NotifyPolicyRemoval(policyID string, ag AgentGroup)
 
 func (svc fleetCommsService) NofityDatasetRemoval(ag AgentGroup, dsID string) error {
 
-	payload := DatasetRemovedRPCPayload{DatasetID: dsID}
+	payload := DatasetRemovedRPCPayload{
+		DatasetID: dsID,
+		ChannelID: ag.MFChannelID,
+	}
 
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,

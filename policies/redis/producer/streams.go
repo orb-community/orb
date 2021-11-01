@@ -41,12 +41,14 @@ func (e eventStore) ViewDatasetByIDInternal(ctx context.Context, ownerID string,
 }
 
 func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string) (err error) {
-	if err := e.svc.RemoveDataset(ctx, token, dsID); err != nil {
+	ds, err := e.svc.ViewDatasetByID(ctx, token, dsID)
+	if err != nil{
 		return err
 	}
 
-	// TODO wait for the merge to use the function that retrieve a ds by id
-	ds := policies.Dataset{}
+	if err := e.svc.RemoveDataset(ctx, token, dsID); err != nil {
+		return err
+	}
 
 	event := removeDatasetEvent{
 		id:           dsID,
