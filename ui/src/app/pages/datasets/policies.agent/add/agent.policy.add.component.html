@@ -16,7 +16,7 @@
                   disableStepNavigation
                   orientation="vertical">
         <nb-step [label]="firstStepTemplate"
-                 [stepControl]="detailsFormGroup"
+                 [stepControl]="detailsFG"
                  data-orb-qa-id="step_1">
           <ng-template #firstStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -24,7 +24,7 @@
               <p>Provide a name, a description summary and a supported backend for the Agent Policy</p>
             </div>
           </ng-template>
-          <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFormGroup">
+          <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFG">
             <div class="d-flex flex-column">
               <div>
                 <label class="font-weight-bold" for="name">Name Label</label>
@@ -76,7 +76,7 @@
               status="primary"
               type="button">Cancel
             </button>
-            <button [disabled]="!detailsFormGroup?.valid"
+            <button [disabled]="!detailsFG?.valid"
                     class="next-button"
                     data-orb-qa-id="next"
                     nbButton
@@ -88,7 +88,7 @@
           </div>
         </nb-step>
         <nb-step [label]="secondStepTemplate"
-                 [stepControl]="tapFormGroup"
+                 [stepControl]="tapFG"
                  data-orb-qa-id="step_2">
           <ng-template #secondStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -97,7 +97,7 @@
             </div>
           </ng-template>
           <div *ngIf="availableTaps && availableInputs">
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="tapFormGroup">
+            <form (ngSubmit)="onFormSubmit()" [formGroup]="tapFG">
               <!-- Tap selector -->
               <div>
                 <label class="font-weight-bold">Tap</label>
@@ -139,11 +139,60 @@
             </form>
             <hr/>
           </div>
-          <div *ngIf="!!inputFormGroup">
-            <!-- Dynamic Input Form -->
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="inputFormGroup">
+          <div *ngIf="!!inputConfigFG">
+            <!-- Dynamic Input Config Form -->
+            <form (ngSubmit)="onFormSubmit()" [formGroup]="inputConfigFG">
               <div *ngFor="let control of input['config'] | keyvalue; index as i;">
-                <div *ngIf="inputFormGroup.controls.hasOwnProperty(control.value.name)">
+                <div *ngIf="inputConfigFG.controls.hasOwnProperty(control.value.name)">
+                  <div>
+                    <label class="font-weight-bold">{{control.value.label}}</label>
+                  </div>
+                  <div [ngSwitch]="control.value.input">
+                    <input *ngSwitchCase="'text'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.value.name"
+                           [type]="control.value.type"
+                           fieldSize="medium"
+                           fullWidth="true"
+                           [placeholder]="control.value?.props?.example || ''"
+                           nbTooltip="{{ control.value.description }}"
+                           nbInput>
+                    <input *ngSwitchCase="'number'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.value.name"
+                           [max]="control.value.props.max"
+                           [min]="control.value.props.min"
+                           [step]="control.value.props.step"
+                           [type]="control.value.type"
+                           [placeholder]="control.value?.props?.example || ''"
+                           nbTooltip="{{ control.value.description }}">
+                    <nb-select *ngSwitchCase="'select'"
+                               [attr.data-orb-qa-id]="control.value.name"
+                               [formControlName]="control.value.name"
+                               [id]="control.value.name"
+                               appearance="filled"
+                               fullWidth="true"
+                               size="medium"
+                               [placeholder]="control.value?.props?.example || ''"
+                               nbTooltip="{{ control.value.description }}"
+                    >{{ control.value.name + "-" + control.value.props.options }}
+                      <nb-option *ngFor="let option of control.value.props.options | keyvalue"
+                                 [attr.data-orb-qa-id]="option.value"
+                                 [value]="option.key">{{ option.value }}</nb-option>
+                    </nb-select>
+                  </div>
+                  <hr/>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div *ngIf="!!inputFilterFG">
+            <!-- Dynamic Input Config Form -->
+            <form (ngSubmit)="onFormSubmit()" [formGroup]="inputFilterFG">
+              <div *ngFor="let control of input['config'] | keyvalue; index as i;">
+                <div *ngIf="inputFilterFG.controls.hasOwnProperty(control.value.name)">
                   <div>
                     <label class="font-weight-bold">{{control.value.label}}</label>
                   </div>
@@ -197,7 +246,7 @@
               status="primary"
               type="button">Back
             </button>
-            <button [disabled]="!tapFormGroup?.valid"
+            <button [disabled]="!tapFG?.valid"
                     class="next-button"
                     data-orb-qa-id="next"
                     nbButton
@@ -209,7 +258,7 @@
           </div>
         </nb-step>
         <nb-step [label]="thirdStepTemplate"
-                 [stepControl]="handlerSelectorFormGroup"
+                 [stepControl]="handlerSelectorFG"
                  data-orb-qa-id="step_2">
           <ng-template #thirdStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -217,7 +266,7 @@
               <p>Setup any number of handlers</p>
             </div>
           </ng-template>
-          <form [formGroup]="handlerSelectorFormGroup">
+          <form [formGroup]="handlerSelectorFG">
             <!-- Added Handlers List -->
             <div class="d-flex">
               <mat-chip-list data-orb-qa-id="handlers-list">
@@ -271,8 +320,8 @@
           </form>
           <hr/>
           <!--Dynamic Handler Config-->
-          <div *ngIf="!!liveHandler && !!dynamicHandlerConfigFormGroup">
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFormGroup">
+          <div *ngIf="!!liveHandler && !!dynamicHandlerConfigFG">
+            <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFG">
               <div *ngIf="!!liveHandler.config">
                 <div *ngFor="let control of liveHandler.config | keyvalue">
                   <div>
@@ -327,7 +376,7 @@
             </form>
           </div>
           <button (click)="onHandlerAdded()"
-                  [disabled]="handlerSelectorFormGroup.controls['label'].value === ''"
+                  [disabled]="handlerSelectorFG.controls['label'].value === ''"
                   data-orb-qa-id="addHandler"
                   ghost
                   nbButton
