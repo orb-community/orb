@@ -174,11 +174,12 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 			return
 		}
 		metricPayload := fleet.AgentMetricsRPCPayload{
-			PolicyID:  data.ID,
-			Datasets:  data.GetDatasetIDs(),
-			Format:    "json",
-			BEVersion: p.pktvisorVersion,
-			Data:      payloadData,
+			PolicyID:   data.ID,
+			PolicyName: data.Name,
+			Datasets:   data.GetDatasetIDs(),
+			Format:     "json",
+			BEVersion:  p.pktvisorVersion,
+			Data:       payloadData,
 		}
 		rpc := fleet.AgentMetricsRPC{
 			SchemaVersion: fleet.CurrentRPCSchemaVersion,

@@ -25,9 +25,10 @@ type pktvisorBackend struct {
 }
 
 type context struct {
-	agent    *pb.OwnerRes
-	agentID  string
-	policyID string
+	agent      *pb.OwnerRes
+	agentID    string
+	policyID   string
+	policyName string
 }
 
 func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, channelID string, subtopic []string, payload []fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
@@ -35,7 +36,6 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, chan
 	var tsList = []prometheus.TimeSeries{}
 	for _, data := range payload {
 		// TODO check pktvisor version in data.BEVersion against PktvisorVersion
-		// TODO policyID and datasetIDs are in data
 		if data.Format != "json" {
 			p.logger.Warn("ignoring non-json pktvisor payload", zap.String("format", data.Format))
 			continue
@@ -48,9 +48,10 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, chan
 			continue
 		}
 		context := context{
-			agent:    agent,
-			agentID:  agentID,
-			policyID: data.PolicyID,
+			agent:      agent,
+			agentID:    agentID,
+			policyID:   data.PolicyID,
+			policyName: data.PolicyName,
 		}
 		stats := StatSnapshot{}
 		for _, handlerData := range metrics {
@@ -140,7 +141,9 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 	labelsListFlag.Set(fmt.Sprintf("__name__:%s", camelToSnake(label)))
 	labelsListFlag.Set("instance:" + ctxt.agent.AgentName)
 	labelsListFlag.Set("agent_id:" + ctxt.agentID)
+	labelsListFlag.Set("agent:" + ctxt.agent.AgentName)
 	labelsListFlag.Set("policy_id:" + ctxt.policyID)
+	labelsListFlag.Set("policy:" + ctxt.policyName)
 	if k != "" {
 		if quantile {
 			if value, ok := mapQuantiles[k]; ok {
