@@ -22,9 +22,12 @@ module.exports = {
         agents
         .navigate()
         .AgentsPage()
+        // bug need to remove this pause
+        .pause(2000)
         .countAgent(browser)
         .agentsDelete()        
         .AgentsPage()
-        .countAgent(browser)
+        .agentsDelete()
+        .countAgent(browser)   
 
       }}

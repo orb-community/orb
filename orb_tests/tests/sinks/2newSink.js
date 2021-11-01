@@ -28,7 +28,9 @@ module.exports = {
     .click('.appearance-ghost')
     .sinkCreation('some_name', 'some_description', 'remote_host', 'tester', 'password', 'key', 'value', 'Sink successfully created')
     .sinkManagementPage()
-    .countSinks()
+    //bug need to remove this pause
+    .pause(2000)
+    .countSinks(browser)
     	
 
 }}

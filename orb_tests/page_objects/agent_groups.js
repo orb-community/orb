@@ -95,7 +95,7 @@ var commands = {
 
 
     choose_last_element: function() {
-              return this.waitForElementVisible('[class="orb-action-hover detail-button appearance-ghost size-medium status-basic shape-rectangle icon-start icon-end nb-transition"]')
+              return this.waitForElementVisible('[class="orb-action-hover detail-button appearance-ghost size-medium status-basic shape-rectangle icon-start icon-end nb-transition"]', "Agent Group is visible")
               .findElements('[class="orb-action-hover detail-button appearance-ghost size-medium status-basic shape-rectangle icon-start icon-end nb-transition"]', function(result) {
               var agentGroupsView = result.value
               this.elementIdClick(agentGroupsView[agentGroupsView.length-1].ELEMENT)

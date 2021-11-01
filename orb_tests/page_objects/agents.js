@@ -72,6 +72,70 @@ var loginActions = {
 
 },
 
+agentsVisualization: function() {
+  return this.verify.attributeEquals('button.orb-action-hover:nth-child(1)', 'aria-disabled', 'false', "'Visualization' button is visible")
+  .click('button.orb-action-hover:nth-child(1)')
+  .verify.elementPresent('.cdk-overlay-backdrop', "'Visualization' modal is visible")
+  .verify.containsText('.nb-card-medium > nb-card-header:nth-child(1)', 'Agent Details', "'Visualization' header is correctly written")
+  .verify.containsText('@visualizationAgentModal', "Agent Name*", "Agent name field is visible on visualization modal")
+  .verify.containsText('@visualizationAgentModal', "Channel ID", "Agent Channel ID field is visible on visualization modal")
+  .verify.containsText('@visualizationAgentModal', "Created on", "Agent Created on field is visible on visualization modal")
+  .verify.containsText('@visualizationAgentModal', "Status", "Agent Status field is visible on visualization modal")
+  .verify.containsText('@visualizationAgentModal', "Tags*", "Agent Tags field is visible on visualization modal")
+},
+
+
+agentsEdit: function(name, key, value, key2, value2, verify) {
+  return this.verify.attributeEquals('@next','aria-disabled', 'false', "'Next' button is enabled")
+  .verify.attributeEquals('@back','aria-disabled', 'false', "'Back' button is enabled")
+  .clearValue('@newNameInput')
+  .setValue('@newNameInput', name)
+
+  .click('@next')
+  .click('.eva-close-outline')
+  .verify.attributeEquals('@next','aria-disabled', 'true', "'Next' button is not enabled")
+  .verify.attributeEquals('button.status-primary:nth-child(1)','aria-disabled', 'false', "'Back' button is enabled")
+  .verify.attributeEquals('@addTag','aria-disabled', 'true', "'Add tags' button is not enabled")
+  .addTags(key, value)
+  .addTags(key2, value2)
+  .verify.attributeEquals('button.status-primary:nth-child(1)','aria-disabled', 'false', "'Back' button is enabled")
+  .click('@next')
+  .verify.containsText('@agentsList','Edit Agent', 'Page header is "Edit Agent"')
+  .verify.attributeEquals('@back','aria-disabled', 'false', "'Back' button is enabled")
+  .verify.attributeEquals('@next','aria-disabled', 'false', "'Next' button is enabled")
+  .click('@next')
+  .verify.containsText('span.title', verify, "Confirmation message is correctly displayed")
+},
+
+addTags: function(key, value) {
+  return this.setValue('@key', key)
+  .setValue('@value', value)
+  .verify.attributeEquals('@addTag','aria-disabled', 'false', "'Add tags' button is enabled")
+  .click('@addTag')
+  .verify.attributeEquals('@next','aria-disabled', 'false', "'Next' button is enabled")
+
+},
+
+choose_last_element: function() {
+  return this.waitForElementVisible('[class="orb-action-hover detail-button appearance-ghost size-medium status-basic shape-rectangle icon-start icon-end nb-transition"]', "Agent is visible")
+  .findElements('[class="orb-action-hover detail-button appearance-ghost size-medium status-basic shape-rectangle icon-start icon-end nb-transition"]', function(result) {
+  var agentView = result.value
+  this.elementIdClick(agentView[agentView.length-1].ELEMENT)
+
+
+})
+},
+
+agentCheck: function(name, tag){
+  return this.verify.containsText('div.row:nth-child(1) > div:nth-child(1) > p:nth-child(1)', 'Agent Name*', "View contain Agent Group Name Field")
+  .verify.containsText('div.row:nth-child(1) > div:nth-child(1) > p:nth-child(2)', name, "Name of Agent is correctly displayed")
+  .verify.containsText('div.row:nth-child(2) > div:nth-child(1) > p:nth-child(1)', 'Tags*', "View contain Agent Tags Field")
+  // bug insert a way to verify tags
+  // .verify.containsText('[class="mat-chip-list-wrapper"]', tag, "Tag is correctly displayed")
+  .click('@close')
+  
+},
+
 agentsDelete: function() {
   return this.verify.attributeEquals('button.orb-action-hover:nth-child(3)', 'aria-disabled', 'false', "'Remove' agent button is enabled")
   .click('button.orb-action-hover:nth-child(3)')
@@ -144,7 +208,12 @@ countAgent: function(browser) {
       copyKey: 'ngx-agent-key-component.ng-star-inserted > nb-card:nth-child(1) > nb-card-body:nth-child(2) > pre:nth-child(5) > button:nth-child(1)',
       copyProvisioningCommand: 'ngx-agent-key-component.ng-star-inserted > nb-card:nth-child(1) > nb-card-body:nth-child(2) > pre:nth-child(5) > button:nth-child(1)',
       deleteAgent: '.orb-sink-delete-warning-button',
-      deleteAgentModal: 'ngx-agent-delete-component.ng-star-inserted'
+      deleteAgentModal: 'ngx-agent-delete-component.ng-star-inserted',
+      edit: '.sink-edit-button',
+      visualizationAgentModal: '.nb-card-medium > nb-card-body:nth-child(2)',
+      newNameInput: '[formcontrolname="name"]',
+      newDescriptionInput: '[formcontrolname="description"]',
+      agentsList: 'xng-breadcrumb.orb-breadcrumb',
       
 
 
