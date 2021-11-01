@@ -110,10 +110,10 @@ func encodeBase64(user string, password string) string {
 	return fmt.Sprintf("Basic %s", sEnc)
 }
 
-func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.AgentMetricsRPCPayload) ([]string, error) {
-	ownerID, err := svc.fleetClient.RetrieveOwnerByChannelID(context.Background(), &fleetpb.OwnerByChannelIDReq{Channel: channelID})
+func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.AgentMetricsRPCPayload) (*fleetpb.OwnerRes, []string, error) {
+	agent, err := svc.fleetClient.RetrieveOwnerByChannelID(context.Background(), &fleetpb.OwnerByChannelIDReq{Channel: channelID})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	var sinkIDsList []string
 	for _, m := range metrics {
@@ -121,29 +121,29 @@ func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.Agen
 			if ds != "" {
 				sinkID, err := svc.policiesClient.RetrieveDataset(context.Background(), &policiespb.DatasetByIDReq{
 					DatasetID: ds,
-					OwnerID:   ownerID.OwnerID,
+					OwnerID:   agent.OwnerID,
 				})
 				if err != nil {
-					return nil, err
+					return nil, nil, err
 				}
 				for _, sid := range sinkID.SinkIds {
 					if !svc.configRepo.Exists(sid) {
 						// Use the retrieved sinkID to get the backend config
 						sink, err := svc.sinksClient.RetrieveSink(context.Background(), &sinkspb.SinkByIDReq{
 							SinkID:  sid,
-							OwnerID: ownerID.OwnerID,
+							OwnerID: agent.OwnerID,
 						})
 						if err != nil {
-							return nil, err
+							return nil, nil, err
 						}
 
 						var data config.SinkConfig
 						if err := json.Unmarshal(sink.Config, &data); err != nil {
-							return nil, err
+							return nil, nil, err
 						}
 
 						data.SinkID = sid
-						data.OwnerID = ownerID.OwnerID
+						data.OwnerID = agent.OwnerID
 						svc.configRepo.Add(data)
 					}
 					sinkIDsList = append(sinkIDsList, sid)
@@ -151,7 +151,7 @@ func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.Agen
 			}
 		}
 	}
-	return sinkIDsList, nil
+	return agent, sinkIDsList, nil
 }
 
 func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopic string, payload []byte) error {
@@ -184,12 +184,12 @@ func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopi
 		return fleet.ErrSchemaMalformed
 	}
 
-	sinkIDs, err := svc.handleSinkConfig(channelID, metricsRPC.Payload)
+	agent, sinkIDs, err := svc.handleSinkConfig(channelID, metricsRPC.Payload)
 	if err != nil {
 		return err
 	}
 
-	tsList, err := be.ProcessMetrics(thingID, channelID, s, metricsRPC.Payload)
+	tsList, err := be.ProcessMetrics(agent, thingID, channelID, s, metricsRPC.Payload)
 	if err != nil {
 		return err
 	}

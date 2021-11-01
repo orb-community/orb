@@ -18,7 +18,7 @@ type metricsMiddleware struct {
 	svc     fleet.Service
 }
 
-func (m metricsMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (string, error) {
+func (m metricsMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (fleet.Agent, error) {
 	return m.svc.ViewOwnerByChannelIDInternal(ctx, channelID)
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/sinker/backend"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	"go.uber.org/zap"
@@ -23,7 +24,13 @@ type pktvisorBackend struct {
 	logger *zap.Logger
 }
 
-func (p pktvisorBackend) ProcessMetrics(thingID string, channelID string, subtopic []string, payload []fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
+type context struct {
+	agent    *pb.OwnerRes
+	agentID  string
+	policyID string
+}
+
+func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, channelID string, subtopic []string, payload []fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
 	// process batch
 	var tsList = []prometheus.TimeSeries{}
 	for _, data := range payload {
@@ -39,6 +46,11 @@ func (p pktvisorBackend) ProcessMetrics(thingID string, channelID string, subtop
 		if err != nil {
 			p.logger.Warn("unable to unmarshal pktvisor metric payload", zap.Any("payload", data.Data))
 			continue
+		}
+		context := context{
+			agent:    agent,
+			agentID:  agentID,
+			policyID: data.PolicyID,
 		}
 		stats := StatSnapshot{}
 		for _, handlerData := range metrics {
@@ -62,30 +74,30 @@ func (p pktvisorBackend) ProcessMetrics(thingID string, channelID string, subtop
 				}
 			}
 		}
-		tsList = append(tsList, parseToProm(stats)...)
+		tsList = append(tsList, parseToProm(&context, stats)...)
 	}
 	return tsList, nil
 }
 
-func parseToProm(stats StatSnapshot) prometheus.TSList {
+func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
-	convertToPromParticle(statsMap, "", &tsList)
+	convertToPromParticle(ctxt, statsMap, "", &tsList)
 	return tsList
 }
 
-func convertToPromParticle(m map[string]interface{}, label string, tsList *prometheus.TSList) {
+func convertToPromParticle(ctxt *context, m map[string]interface{}, label string, tsList *prometheus.TSList) {
 	for k, v := range m {
 		switch c := v.(type) {
 		case map[string]interface{}:
-			convertToPromParticle(c, label+k, tsList)
+			convertToPromParticle(ctxt, c, label+k, tsList)
 		case int64:
 			{
 				var matchFirstQuantile = regexp.MustCompile("^([P-p])+[0-9]")
 				if ok := matchFirstQuantile.MatchString(k); ok {
-					tsList = makePromParticle(label, k, v, tsList, ok)
+					tsList = makePromParticle(ctxt, label, k, v, tsList, ok)
 				} else {
-					tsList = makePromParticle(label+k, "", v, tsList, false)
+					tsList = makePromParticle(ctxt, label+k, "", v, tsList, false)
 				}
 			}
 		case []interface{}:
@@ -109,14 +121,14 @@ func convertToPromParticle(m map[string]interface{}, label string, tsList *prome
 							}
 						}
 					}
-					tsList = makePromParticle(label+k, lbl, dtpt, tsList, false)
+					tsList = makePromParticle(ctxt, label+k, lbl, dtpt, tsList, false)
 				}
 			}
 		}
 	}
 }
 
-func makePromParticle(label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool) *prometheus.TSList {
+func makePromParticle(ctxt *context, label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool) *prometheus.TSList {
 	mapQuantiles := make(map[string]float64)
 	mapQuantiles["P50"] = 0.50
 	mapQuantiles["P90"] = 0.90
@@ -126,7 +138,8 @@ func makePromParticle(label string, k string, v interface{}, tsList *prometheus.
 	var dpFlag dp
 	var labelsListFlag labelList
 	labelsListFlag.Set(fmt.Sprintf("__name__:%s", camelToSnake(label)))
-	labelsListFlag.Set("instance:gw")
+	labelsListFlag.Set("instance:" + ctxt.agent.AgentName)
+	labelsListFlag.Set("agent_id:" + ctxt.agentID)
 	if k != "" {
 		if quantile {
 			if value, ok := mapQuantiles[k]; ok {

@@ -13,7 +13,8 @@ type agentGroupRes struct {
 }
 
 type ownerRes struct {
-	ownerID string
+	ownerID   string
+	agentName string
 }
 
 type emptyRes struct {
