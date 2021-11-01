@@ -31,7 +31,7 @@ func (svc *sinkerService) sendSingleHeartbeat(t time.Time) {
 		// Set idle if the sinker is more then 30 minutes not been sending metrics
 		if cfg.LastRemoteWrite.Add(DefaultTimeout).Before(time.Now()) {
 			cfg.State = config.Idle
-			event := producer.ChangeSinkerStateEvent{
+			event := producer.SinkerUpdateEvent{
 				SinkID:    cfg.SinkID,
 				Owner:     cfg.OwnerID,
 				State:     cfg.State.String(),

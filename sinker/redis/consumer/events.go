@@ -13,9 +13,9 @@ import (
 	"time"
 )
 
-type updateSinksEvent struct {
-	id        string
-	ownerID   string
+type updateSinkEvent struct {
+	sinkID    string
+	owner     string
 	config    types.Metadata
 	timestamp time.Time
 }
