@@ -13,8 +13,8 @@ type agentRepositoryMock struct {
 	agentsMock map[string]fleet.Agent
 }
 
-func (a agentRepositoryMock) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (string, error) {
-	return "", nil
+func (a agentRepositoryMock) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {
+	return fleet.Agent{}, nil
 }
 
 func (a agentRepositoryMock) RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error) {

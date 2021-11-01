@@ -49,11 +49,11 @@ func retrieveOwnerByChannelIDEndpoint(svc fleet.Service) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
-		ownerID, err := svc.ViewOwnerByChannelIDInternal(ctx, req.ChannelID)
+		agent, err := svc.ViewOwnerByChannelIDInternal(ctx, req.ChannelID)
 		if err != nil {
 			return nil, err
 		}
-		res := ownerRes{ownerID: ownerID}
+		res := ownerRes{ownerID: agent.MFOwnerID, agentName: agent.Name.String()}
 		return res, nil
 	}
 }
