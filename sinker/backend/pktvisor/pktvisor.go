@@ -140,6 +140,7 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 	labelsListFlag.Set(fmt.Sprintf("__name__:%s", camelToSnake(label)))
 	labelsListFlag.Set("instance:" + ctxt.agent.AgentName)
 	labelsListFlag.Set("agent_id:" + ctxt.agentID)
+	labelsListFlag.Set("policy_id:" + ctxt.policyID)
 	if k != "" {
 		if quantile {
 			if value, ok := mapQuantiles[k]; ok {
