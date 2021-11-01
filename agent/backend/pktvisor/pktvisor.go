@@ -139,12 +139,11 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 
 	// add header with "p_data.ID" as policy name
 	// note pktvisor doesn't allow policy names to start with a number, thus the prefix
-	pktvisorPolicyName := fmt.Sprintf("p_%s", data.ID)
 	fullPolicy := map[string]interface{}{
 		"version": "1.0",
 		"visor": map[string]interface{}{
 			"policies": map[string]interface{}{
-				pktvisorPolicyName: data.Data,
+				data.Name: data.Data,
 			},
 		},
 	}
@@ -163,7 +162,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 	}
 
 	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Tag(data.ID).Do(func() {
-		metrics, err := p.scrapeMetrics(data.ID, 1)
+		metrics, err := p.scrapeMetrics(data.Name, 1)
 		if err != nil {
 			p.logger.Error("scrape failed", zap.String("policy_id", data.ID), zap.Error(err))
 			return
@@ -351,7 +350,7 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]string
 
 func (p *pktvisorBackend) scrapeMetrics(policyID string, period uint) (map[string]interface{}, error) {
 	var metrics map[string]interface{}
-	err := p.request(fmt.Sprintf("policies/p_%s/metrics/bucket/%d", policyID, period), &metrics, http.MethodGet, nil, "")
+	err := p.request(fmt.Sprintf("policies/%s/metrics/bucket/%d", policyID, period), &metrics, http.MethodGet, nil, "")
 	if err != nil {
 		return nil, err
 	}
