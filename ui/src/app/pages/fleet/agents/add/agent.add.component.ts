@@ -48,7 +48,7 @@ export class AgentAddComponent {
     });
 
     this.secondFormGroup = this._formBuilder.group({
-      tags: [[], Validators.minLength(1)],
+      tags: [[]],
       key: [''],
       value: [''],
     });
