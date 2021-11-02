@@ -66,7 +66,6 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 		svc.logger.Error("unable to retrieve the sink config", zap.Error(err))
 		return err
 	}
-	svc.logger.Info("writing to", zap.String("url", cfgRepo.Url), zap.String("user", cfgRepo.User))
 
 	cfg := prometheus.NewConfig(
 		prometheus.WriteURLOption(cfgRepo.Url),
@@ -80,7 +79,7 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 
 	var headers = make(map[string]string)
 	headers["Authorization"] = encodeBase64(cfgRepo.User, cfgRepo.Password)
-	_, writeErr := promClient.WriteTimeSeries(context.Background(), tsList,
+	result, writeErr := promClient.WriteTimeSeries(context.Background(), tsList,
 		prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
 		if cfgRepo.State != config.Error || cfgRepo.Msg != fmt.Sprint(err) {
@@ -90,9 +89,11 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 			svc.configRepo.Edit(cfgRepo)
 		}
 
-		svc.logger.Error("remote write error", zap.Error(err))
+		svc.logger.Error("remote write error", zap.String("sink_id", sinkID), zap.Error(err))
 		return err
 	}
+
+	svc.logger.Debug("successful sink", zap.Int("payload_size_b", result.PayloadSize), zap.String("sink_id", sinkID), zap.String("url", cfgRepo.Url), zap.String("user", cfgRepo.User))
 
 	if cfgRepo.State != config.Active {
 		cfgRepo.State = config.Active
@@ -101,7 +102,6 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 		svc.configRepo.Edit(cfgRepo)
 	}
 
-	svc.logger.Info("write success")
 	return nil
 }
 
@@ -156,6 +156,7 @@ func (svc sinkerService) handleSinkConfig(channelID string, metrics []fleet.Agen
 }
 
 func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopic string, payload []byte) error {
+
 	// find backend to send it to
 	s := strings.Split(subtopic, ".")
 	if len(s) < 3 || s[0] != "be" || s[2] != "m" {
@@ -165,6 +166,7 @@ func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopi
 		return errors.New(fmt.Sprintf("unknown agent backend, ignoring: %s", s[1]))
 	}
 	be := backend.GetBackend(s[1])
+
 	// unpack metrics RPC
 	var versionCheck fleet.SchemaVersionCheck
 	if err := json.Unmarshal(payload, &versionCheck); err != nil {
@@ -196,6 +198,11 @@ func (svc sinkerService) handleMetrics(thingID string, channelID string, subtopi
 	}
 
 	for _, id := range sinkIDs {
+		svc.logger.Info("sinking agent metric RPC",
+			zap.String("owner_id", agent.OwnerID),
+			zap.String("agent", agent.AgentName),
+			zap.String("sink_id", id))
+
 		err = svc.remoteWriteToPrometheus(tsList, id)
 		if err != nil {
 			svc.logger.Warn(fmt.Sprintf("unable to remote write to sinkID: %s", id), zap.Error(err))
@@ -215,7 +222,6 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	}
 
 	svc.logger.Debug("received agent message",
-		zap.Any("payload", payload),
 		zap.String("subtopic", msg.Subtopic),
 		zap.String("channel", msg.Channel),
 		zap.String("protocol", msg.Protocol),

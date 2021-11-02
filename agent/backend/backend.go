@@ -39,7 +39,7 @@ func (s BackendState) String() string {
 
 type Backend interface {
 	Configure(*zap.Logger, policies.PolicyRepo, map[string]string) error
-	SetCommsClient(mqtt.Client, string)
+	SetCommsClient(string, mqtt.Client, string)
 	Version() (string, error)
 	Start() error
 	Stop() error

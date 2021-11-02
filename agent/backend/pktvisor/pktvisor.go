@@ -46,9 +46,9 @@ type pktvisorBackend struct {
 	adminAPIProtocol string
 }
 
-func (p *pktvisorBackend) SetCommsClient(client mqtt.Client, baseTopic string) {
+func (p *pktvisorBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
 	p.mqttClient = client
-	p.metricsTopic = fmt.Sprintf("%s/m", baseTopic)
+	p.metricsTopic = fmt.Sprintf("%s/m/%c", baseTopic, agentID[0])
 }
 
 func (p *pktvisorBackend) GetState() (backend.BackendState, string, error) {
