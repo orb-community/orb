@@ -130,7 +130,7 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 		return Agent{}, err
 	}
 
-	err = svc.agentComms.NotifyAgentGroupMembership(res)
+	err = svc.agentComms.NotifyAgentGroupMemberships(res)
 	if err != nil {
 		svc.logger.Error("failure during agent group membership comms", zap.Error(err))
 	}
