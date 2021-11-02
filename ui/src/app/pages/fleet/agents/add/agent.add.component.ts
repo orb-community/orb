@@ -78,7 +78,7 @@ export class AgentAddComponent {
     this.firstFormGroup.controls.name.patchValue(name);
 
     this.secondFormGroup.setValue({
-      tags: Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})),
+      tags: !!orb_tags ? Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})) : [],
       key: '',
       value: '',
     });

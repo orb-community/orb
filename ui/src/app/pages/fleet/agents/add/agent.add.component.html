@@ -81,6 +81,12 @@
                            icon="close-outline"
                            size="12"></nb-icon>
                 </mat-chip>
+                <mat-chip *ngIf="secondFormGroup.controls.tags.value.length === 0"
+                          [attr.data-orb-qa-id]="'tag_none'"
+                          [style.background-color]="'No Tag Added' | tagchipcolor"
+                          class="orb-tag-sink">
+                  No Tag Added
+                </mat-chip>
               </mat-chip-list>
             </div>
             <hr/>
@@ -183,6 +189,12 @@
                   [style.background-color]="tag | keyvalue | tagchip | tagchipcolor"
                   class="orb-tag-sink ">
                   {{tag | keyvalue | tagchip}}
+                </mat-chip>
+                <mat-chip *ngIf="secondFormGroup.controls.tags.value.length === 0"
+                          [attr.data-orb-qa-id]="'tag_none'"
+                          [style.background-color]="'No Tag Added' | tagchipcolor"
+                          class="orb-tag-sink">
+                  No Tag Added
                 </mat-chip>
               </mat-chip-list>
             </div>
