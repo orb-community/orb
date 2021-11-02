@@ -31,53 +31,48 @@ type context struct {
 	policyName string
 }
 
-func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, channelID string, subtopic []string, payload []fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
-	// process batch
-	var tsList = []prometheus.TimeSeries{}
-	for _, data := range payload {
-		// TODO check pktvisor version in data.BEVersion against PktvisorVersion
-		if data.Format != "json" {
-			p.logger.Warn("ignoring non-json pktvisor payload", zap.String("format", data.Format))
-			continue
-		}
-		// unmarshal pktvisor metrics
-		var metrics map[string]map[string]interface{}
-		err := json.Unmarshal(data.Data, &metrics)
-		if err != nil {
-			p.logger.Warn("unable to unmarshal pktvisor metric payload", zap.Any("payload", data.Data))
-			continue
-		}
-		context := context{
-			agent:      agent,
-			agentID:    agentID,
-			policyID:   data.PolicyID,
-			policyName: data.PolicyName,
-		}
-		stats := StatSnapshot{}
-		for _, handlerData := range metrics {
-			if data, ok := handlerData["pcap"]; ok {
-				err := mapstructure.Decode(data, &stats.Pcap)
-				if err != nil {
-					p.logger.Error("error decoding pcap handler", zap.Error(err))
-					continue
-				}
-			} else if data, ok := handlerData["dns"]; ok {
-				err := mapstructure.Decode(data, &stats.DNS)
-				if err != nil {
-					p.logger.Error("error decoding dns handler", zap.Error(err))
-					continue
-				}
-			} else if data, ok := handlerData["packets"]; ok {
-				err := mapstructure.Decode(data, &stats.Packets)
-				if err != nil {
-					p.logger.Error("error decoding packets handler", zap.Error(err))
-					continue
-				}
+func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
+	// TODO check pktvisor version in data.BEVersion against PktvisorVersion
+	if data.Format != "json" {
+		p.logger.Warn("ignoring non-json pktvisor payload", zap.String("format", data.Format))
+		return nil, nil
+	}
+	// unmarshal pktvisor metrics
+	var metrics map[string]map[string]interface{}
+	err := json.Unmarshal(data.Data, &metrics)
+	if err != nil {
+		p.logger.Warn("unable to unmarshal pktvisor metric payload", zap.Any("payload", data.Data))
+		return nil, err
+	}
+	context := context{
+		agent:      agent,
+		agentID:    agentID,
+		policyID:   data.PolicyID,
+		policyName: data.PolicyName,
+	}
+	stats := StatSnapshot{}
+	for _, handlerData := range metrics {
+		if data, ok := handlerData["pcap"]; ok {
+			err := mapstructure.Decode(data, &stats.Pcap)
+			if err != nil {
+				p.logger.Error("error decoding pcap handler", zap.Error(err))
+				continue
+			}
+		} else if data, ok := handlerData["dns"]; ok {
+			err := mapstructure.Decode(data, &stats.DNS)
+			if err != nil {
+				p.logger.Error("error decoding dns handler", zap.Error(err))
+				continue
+			}
+		} else if data, ok := handlerData["packets"]; ok {
+			err := mapstructure.Decode(data, &stats.Packets)
+			if err != nil {
+				p.logger.Error("error decoding packets handler", zap.Error(err))
+				continue
 			}
 		}
-		tsList = append(tsList, parseToProm(&context, stats)...)
 	}
-	return tsList, nil
+	return parseToProm(&context, stats), nil
 }
 
 func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
