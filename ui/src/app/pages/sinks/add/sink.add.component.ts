@@ -95,7 +95,7 @@ export class SinkAddComponent {
       this.onSinkTypeSelected(backend);
 
       this.thirdFormGroup = this._formBuilder.group({
-        tags: [Object.keys(tags || {}).map(key => ({[key]: tags[key]}))],
+        tags: !!tags ? [Object.keys(tags).map(key => ({[key]: tags[key]}))] : [],
         key: [''],
         value: [''],
       });

@@ -168,21 +168,28 @@
             </div>
           </ng-template>
           <form [formGroup]="thirdFormGroup">
+            <label class="font-weight-bold">Selected Sink Tags</label>
             <div class="d-flex">
-              <mat-chip-list data-orb-qa-id="tagList">
-                <mat-chip
-                    class="orb-tag-sink "
-                    *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i"
-                    [attr.data-orb-qa-id]="'tag_' + i"
-                    [style.background-color]="tag | keyvalue | tagchip | tagchipcolor">
-                    {{tag | keyvalue | tagchip}}
-                  <nb-icon class="ml-1"
-                           (click)="onRemoveTag(tag)"
-                           icon="close-outline"
-                           size="12"></nb-icon>
-                </mat-chip>
-              </mat-chip-list>
-            </div>
+                <mat-chip-list data-orb-qa-id="tagList">
+                  <mat-chip
+                      class="orb-tag-sink"
+                      *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i"
+                      [attr.data-orb-qa-id]="'tag_' + i"
+                      [style.background-color]="tag | keyvalue | tagchip | tagchipcolor">
+                      {{tag | keyvalue | tagchip}}
+                    <nb-icon class="ml-1"
+                             (click)="onRemoveTag(tag)"
+                             icon="close-outline"
+                             size="12"></nb-icon>
+                  </mat-chip>
+                  <mat-chip *ngIf="thirdFormGroup.controls.tags.value.length === 0"
+                            class="orb-tag-sink"
+                            [attr.data-orb-qa-id]="'tag_none'"
+                            [style.background-color]="'No Tag Added' | tagchipcolor">
+                    No Tag Added
+                  </mat-chip>
+                </mat-chip-list>
+              </div>
             <hr/>
             <nb-form-field>
               <div class="container d-flex row px-0 mx-0" style="width:75%;">
