@@ -13,6 +13,7 @@ export class AgentKeyComponent implements OnInit {
   strings = STRINGS.agents;
 
   command2copy: string;
+
   key2copy: string;
 
   @Input() agent: Agent = {};
@@ -23,19 +24,20 @@ export class AgentKeyComponent implements OnInit {
     protected router: Router,
   ) {
   }
+
   ngOnInit(): void {
     this.makeCommand2Copy();
     this.key2copy = this.agent.key;
   }
 
   makeCommand2Copy() {
-    this.command2copy = `docker run --rm --net=host \\
-      -e ORB_CLOUD_ADDRESS=${document.location.protocol}//${document.location.hostname}/ \\
-      -e ORB_CLOUD_MQTT_ID='${this.agent.id}' \\
-      -e ORB_CLOUD_MQTT_CHANNEL_ID='${this.agent.channel_id}' \\
-      -e ORB_CLOUD_MQTT_KEY='${this.agent.key}' \\
-      -e PKTVISOR_PCAP_IFACE_DEFAULT=[ETH-INTERFACE] \\
-      ns1labs/orb-agent run`;
+    this.command2copy = `docker run --rm --net=host \
+-e ORB_CLOUD_ADDRESS=${ document.location.hostname } \
+-e ORB_CLOUD_MQTT_ID='${ this.agent.id }' \
+-e ORB_CLOUD_MQTT_CHANNEL_ID='${ this.agent.channel_id }' \
+-e ORB_CLOUD_MQTT_KEY='${ this.agent.key }' \
+-e PKTVISOR_PCAP_IFACE_DEFAULT=\$\{PKTVISOR_IFACE\} \
+ns1labs/orb-agent`;
   }
 
   onClose() {

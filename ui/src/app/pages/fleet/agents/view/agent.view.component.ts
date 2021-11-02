@@ -36,12 +36,12 @@ export class AgentViewComponent {
   }
 
   makeCommand2Copy() {
-    this.command2copy = `docker run --rm --net=host\\
-      \r-e ORB_CLOUD_ADDRESS=${document.location.protocol}://${document.location.hostname}/\\
-      \r-e ORB_CLOUD_MQTT_ID='${this.agent.id}'\\
-      \r-e ORB_CLOUD_MQTT_CHANNEL_ID='${this.agent.channel_id}'\\
-      \r-e ORB_BACKENDS_PKTVISOR_IFACE=[ETH-INTERFACE]\\
-      \r-e ORB_CLOUD_MQTT_KEY=[AGENT-KEY]\\
-      \rns1labs/orb-agent`;
+    this.command2copy = `docker run --rm --net=host \
+-e ORB_CLOUD_ADDRESS=${ document.location.hostname } \
+-e ORB_CLOUD_MQTT_ID='${ this.agent.id }' \
+-e ORB_CLOUD_MQTT_CHANNEL_ID='${ this.agent.channel_id }' \
+-e ORB_CLOUD_MQTT_KEY='${ this.agent.key }' \
+-e PKTVISOR_PCAP_IFACE_DEFAULT=\$\{PKTVISOR_IFACE\} \
+ns1labs/orb-agent`;
   }
 }
