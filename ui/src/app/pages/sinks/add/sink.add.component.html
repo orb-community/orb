@@ -189,7 +189,6 @@
                 <div class="d-flex flex-column col-5 px-0 mx-0">
                   <div>
                     <label class="font-weight-bold">Key</label>
-                    <span class="required">*</span>
                   </div>
                   <div>
                     <input nbInput
@@ -206,7 +205,6 @@
                 <div class="d-flex flex-column col-5 px-0 mx-0">
                   <div>
                     <label class="font-weight-bold">Value</label>
-                    <span class="required">*</span>
                   </div>
                   <div>
                     <input nbInput
@@ -251,7 +249,6 @@
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="thirdFormGroup.controls.tags.value.length === 0"
                       nbStepperNext
                       data-orb-qa-id="next">
                 {{strings.stepper.next}}
