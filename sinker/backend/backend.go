@@ -11,7 +11,7 @@ import (
 )
 
 type Backend interface {
-	ProcessMetrics(agent *pb.OwnerRes, thingID string, channelID string, subtopic []string, payload []fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error)
+	ProcessMetrics(agent *pb.OwnerRes, thingID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error)
 }
 
 var registry = make(map[string]Backend)
