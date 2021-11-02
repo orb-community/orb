@@ -41,7 +41,7 @@ export class AgentViewComponent {
 -e ORB_CLOUD_MQTT_ID='${ this.agent.id }' \
 -e ORB_CLOUD_MQTT_CHANNEL_ID='${ this.agent.channel_id }' \
 -e ORB_CLOUD_MQTT_KEY='${ this.agent.key }' \
--e PKTVISOR_PCAP_IFACE_DEFAULT=\$\{PKTVISOR_IFACE\} \
+-e PKTVISOR_PCAP_IFACE_DEFAULT=[ETH-INTERFACE] \
 ns1labs/orb-agent`;
   }
 }
