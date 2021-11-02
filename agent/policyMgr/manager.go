@@ -16,6 +16,7 @@ import (
 type PolicyManager interface {
 	ManagePolicy(payload fleet.AgentPolicyRPCPayload)
 	GetPolicyState() ([]policies.PolicyData, error)
+	GetRepo() policies.PolicyRepo
 }
 
 var _ PolicyManager = (*policyManager)(nil)
@@ -27,9 +28,12 @@ type policyManager struct {
 	repo policies.PolicyRepo
 }
 
+func (a *policyManager) GetRepo() policies.PolicyRepo {
+	return a.repo
+}
+
 func (a *policyManager) GetPolicyState() ([]policies.PolicyData, error) {
-	d, e := a.repo.GetAll()
-	return d, e
+	return a.repo.GetAll()
 }
 
 func New(logger *zap.Logger, c config.Config, db *sqlx.DB) (PolicyManager, error) {

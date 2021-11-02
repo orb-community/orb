@@ -39,6 +39,7 @@ type pktvisorBackend struct {
 	mqttClient   mqtt.Client
 	metricsTopic string
 	scraper      *gocron.Scheduler
+	policyRepo   policies.PolicyRepo
 
 	adminAPIHost     string
 	adminAPIPort     string
@@ -137,8 +138,6 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 
 	p.logger.Debug("pktvisor policy apply", zap.String("policy_id", data.ID), zap.Any("data", data.Data))
 
-	// add header with "p_data.ID" as policy name
-	// note pktvisor doesn't allow policy names to start with a number, thus the prefix
 	fullPolicy := map[string]interface{}{
 		"version": "1.0",
 		"visor": map[string]interface{}{
@@ -161,55 +160,6 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 		return err
 	}
 
-	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Tag(data.ID).Do(func() {
-		metrics, err := p.scrapeMetrics(data.Name, 1)
-		if err != nil {
-			p.logger.Error("scrape failed", zap.String("policy_id", data.ID), zap.Error(err))
-			return
-		}
-		payloadData, err := json.Marshal(metrics[data.Name])
-		if err != nil {
-			p.logger.Error("error marshalling scraped metric json", zap.String("policy_id", data.ID), zap.Error(err))
-			return
-		}
-		metricPayload := fleet.AgentMetricsRPCPayload{
-			PolicyID:   data.ID,
-			PolicyName: data.Name,
-			Datasets:   data.GetDatasetIDs(),
-			Format:     "json",
-			BEVersion:  p.pktvisorVersion,
-			Data:       payloadData,
-		}
-		rpc := fleet.AgentMetricsRPC{
-			SchemaVersion: fleet.CurrentRPCSchemaVersion,
-			Func:          fleet.AgentMetricsRPCFunc,
-			Payload:       []fleet.AgentMetricsRPCPayload{metricPayload},
-		}
-
-		topic := fmt.Sprintf("%s/%c", p.metricsTopic, data.ID[0])
-		body, err := json.Marshal(rpc)
-		if err != nil {
-			p.logger.Error("error marshalling metric rpc payload", zap.String("policy_id", data.ID), zap.Error(err))
-			return
-		}
-
-		if token := p.mqttClient.Publish(topic, 1, false, body); token.Wait() && token.Error() != nil {
-			p.logger.Error("error sending metrics RPC", zap.String("topic", topic), zap.Error(token.Error()))
-		}
-		p.logger.Info("scraped and published metrics", zap.String("policy_id", data.ID), zap.String("topic", topic), zap.Int("payload_size", len(payloadData)))
-
-	})
-	job.SingletonMode()
-
-	if err != nil {
-		p.logger.Warn("application succeeded but scraper creation failed, attempting remove policy", zap.String("policy_id", data.ID))
-		rerr := p.RemovePolicy(data.ID)
-		if rerr != nil {
-			p.logger.Error("policy removal failed", zap.String("policy_id", data.ID), zap.Error(rerr))
-		}
-		return err
-	}
-
 	return nil
 
 }
@@ -217,11 +167,6 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 func (p *pktvisorBackend) RemovePolicy(policyID string) error {
 	var resp interface{}
 	err := p.request(fmt.Sprintf("policies/%s", policyID), &resp, http.MethodDelete, nil, "")
-	if err != nil {
-		return err
-	}
-
-	err = p.scraper.RemoveByTag(policyID)
 	if err != nil {
 		return err
 	}
@@ -312,6 +257,70 @@ func (p *pktvisorBackend) Start() error {
 	p.scraper = gocron.NewScheduler(time.UTC)
 	p.scraper.StartAsync()
 
+	// scrape all policy json output with one call every minute.
+	// TODO support policies with custom bucket times
+	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
+		metrics, err := p.scrapeMetrics(1)
+		if err != nil {
+			p.logger.Error("scrape failed", zap.Error(err))
+			return
+		}
+		if len(metrics) == 0 {
+			p.logger.Warn("scrape: no policies found, skipping")
+			return
+		}
+
+		var batchPayload []fleet.AgentMetricsRPCPayload
+		totalSize := 0
+		for pName, pMetrics := range metrics {
+			data, err := p.policyRepo.GetByName(pName)
+			if err != nil {
+				p.logger.Error("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.Error(err))
+				continue
+			}
+			payloadData, err := json.Marshal(pMetrics)
+			if err != nil {
+				p.logger.Error("error marshalling scraped metric json", zap.String("policy", pName), zap.Error(err))
+				continue
+			}
+			metricPayload := fleet.AgentMetricsRPCPayload{
+				PolicyID:   data.ID,
+				PolicyName: data.Name,
+				Datasets:   data.GetDatasetIDs(),
+				Format:     "json",
+				BEVersion:  p.pktvisorVersion,
+				Data:       payloadData,
+			}
+			batchPayload = append(batchPayload, metricPayload)
+			totalSize += len(payloadData)
+			p.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", data.ID), zap.Int("payload_size_b", len(payloadData)))
+		}
+
+		rpc := fleet.AgentMetricsRPC{
+			SchemaVersion: fleet.CurrentRPCSchemaVersion,
+			Func:          fleet.AgentMetricsRPCFunc,
+			Payload:       batchPayload,
+		}
+
+		body, err := json.Marshal(rpc)
+		if err != nil {
+			p.logger.Error("error marshalling metric rpc payload", zap.Error(err))
+			return
+		}
+
+		if token := p.mqttClient.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
+			p.logger.Error("error sending metrics RPC", zap.String("topic", p.metricsTopic), zap.Error(token.Error()))
+		}
+		p.logger.Info("scraped and published metrics", zap.String("topic", p.metricsTopic), zap.Int("payload_size_b", totalSize), zap.Int("batch_count", len(batchPayload)))
+
+	})
+
+	if err != nil {
+		return err
+	}
+
+	job.SingletonMode()
+
 	return nil
 }
 
@@ -328,8 +337,9 @@ func (p *pktvisorBackend) Stop() error {
 	return nil
 }
 
-func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]string) error {
+func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string) error {
 	p.logger = logger
+	p.policyRepo = repo
 
 	var prs bool
 	if p.binary, prs = config["binary"]; !prs {
@@ -348,9 +358,9 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, config map[string]string
 	return nil
 }
 
-func (p *pktvisorBackend) scrapeMetrics(policyID string, period uint) (map[string]interface{}, error) {
+func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, error) {
 	var metrics map[string]interface{}
-	err := p.request(fmt.Sprintf("policies/%s/metrics/bucket/%d", policyID, period), &metrics, http.MethodGet, nil, "")
+	err := p.request(fmt.Sprintf("policies/__all/metrics/bucket/%d", period), &metrics, http.MethodGet, nil, "")
 	if err != nil {
 		return nil, err
 	}
