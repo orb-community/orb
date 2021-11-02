@@ -28,7 +28,7 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
-func (es eventStore) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (string, error) {
+func (es eventStore) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (fleet.Agent, error) {
 	return es.svc.ViewOwnerByChannelIDInternal(ctx, channelID)
 }
 
