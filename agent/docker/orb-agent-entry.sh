@@ -46,4 +46,8 @@ fi
 # TODO allow multiple, split on comma
 # PKTVISOR_PCAP_IFACE_TAPS=default_pcap:en0
 
-exec "$orb_agent_bin" "$@"
+if [ $# -eq 0 ]; then
+  exec "$orb_agent_bin" run
+else
+  exec "$orb_agent_bin" "$@"
+fi
