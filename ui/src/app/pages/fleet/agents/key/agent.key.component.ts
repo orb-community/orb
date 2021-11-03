@@ -31,7 +31,7 @@ export class AgentKeyComponent implements OnInit {
   }
 
   makeCommand2Copy() {
-    this.command2copy = `docker run --rm --net=host \
+    this.command2copy = `docker run --rm -d --net=host \
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \
 -e ORB_CLOUD_MQTT_ID='${ this.agent.id }' \
 -e ORB_CLOUD_MQTT_CHANNEL_ID='${ this.agent.channel_id }' \
