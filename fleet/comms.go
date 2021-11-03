@@ -263,9 +263,15 @@ func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 
 func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
 
+	payload := GroupRemovedRPCPayload{
+		AgentGroupID: ag.ID,
+		ChannelID:    ag.MFChannelID,
+	}
+
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          GroupRemovedRPCFunc,
+		Payload:       payload,
 	}
 
 	body, err := json.Marshal(data)

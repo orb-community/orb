@@ -51,10 +51,22 @@ func (a *orbAgent) nameAgentRPCTopics(channelId string) {
 
 func (a *orbAgent) unsubscribeGroupChannels() {
 	for _, channel := range a.groupChannels {
-		if token := a.client.Unsubscribe(channel); token.Wait() && token.Error() != nil {
+		base := fmt.Sprintf("channels/%s/messages", channel)
+		rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
+		if token := a.client.Unsubscribe(rpcFromCoreTopic); token.Wait() && token.Error() != nil {
 			a.logger.Warn("failed to unsubscribe to group channel", zap.String("topic", channel), zap.Error(token.Error()))
 		}
 	}
+}
+
+func (a *orbAgent) unsubscribeGroupChannel(channelID string) {
+	base := fmt.Sprintf("channels/%s/messages", channelID)
+	rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
+	if token := a.client.Unsubscribe(channelID); token.Wait() && token.Error() != nil {
+		a.logger.Warn("failed to unsubscribe to group channel", zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+		return
+	}
+	a.logger.Info("completed RPC unsubscription to group", zap.String("topic", rpcFromCoreTopic))
 }
 
 func (a *orbAgent) startComms(config config.MQTTConfig) error {
