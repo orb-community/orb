@@ -66,13 +66,21 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 		}
 		if a.repo.Exists(payload.ID) {
 			// we have already processed this policy id before (it may be running or failed)
-			// ensure we are associating this dataset with this policy
-			err := a.repo.EnsureDataset(payload.ID, payload.DatasetID)
-			if err != nil {
-				a.logger.Warn("policy failed to ensure dataset id", zap.String("policy_id", payload.ID), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
+			// ensure we are associating this dataset with this policy, if one was specified
+			// note the usual case is dataset id is NOT passed during policy updates
+			if payload.DatasetID != "" {
+				err := a.repo.EnsureDataset(payload.ID, payload.DatasetID)
+				if err != nil {
+					a.logger.Warn("policy failed to ensure dataset id", zap.String("policy_id", payload.ID), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
+				}
 			}
 		} else {
 			// new policy we have not seen before, associate with this dataset
+			// on first time we see policy, we *require* dataset
+			if payload.DatasetID == "" {
+				a.logger.Error("policy RPC for unseen policy did not include dataset ID, skipping", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name))
+				return
+			}
 			pd.Datasets = map[string]bool{payload.DatasetID: true}
 		}
 		if !backend.HaveBackend(payload.Backend) {

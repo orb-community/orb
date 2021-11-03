@@ -188,6 +188,13 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 				datasetSinkIDs[sid] = true
 			}
 		}
+
+		// ensure there are sinks
+		if len(datasetSinkIDs) == 0 {
+			svc.logger.Error("unable to attach any sinks to policy", zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID))
+			continue
+		}
+
 		// now that we have the sinks, process the metrics for this policy
 		tsList, err := be.ProcessMetrics(agent, agentID, m)
 		if err != nil {
