@@ -39,7 +39,7 @@ export class AgentViewComponent {
   }
 
   makeCommand2Copy() {
-    this.command2copy = `docker run --rm -d --net=host \\
+    this.command2copy = `docker run -d --net=host \\
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
@@ -47,7 +47,7 @@ export class AgentViewComponent {
 -e PKTVISOR_PCAP_IFACE_DEFAULT=mock \\
 ns1labs/orb-agent`;
 
-    this.command2show = `docker run --rm -d --net=host \n
+    this.command2show = `docker run -d --net=host \n
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \n
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \n
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \n
