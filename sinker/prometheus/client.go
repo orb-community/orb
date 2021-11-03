@@ -91,7 +91,8 @@ type WriteOptions struct {
 
 // WriteResult returns the successful HTTP status code.
 type WriteResult struct {
-	StatusCode int
+	StatusCode  int
+	PayloadSize int
 }
 
 // WriteError is an error that can also return the HTTP status code
@@ -215,6 +216,7 @@ func (c *client) WriteProto(
 	}
 
 	encoded := snappy.Encode(nil, data)
+	result.PayloadSize = len(encoded)
 
 	body := bytes.NewReader(encoded)
 	req, err := http.NewRequest("POST", c.writeURL, body)

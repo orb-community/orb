@@ -6,11 +6,12 @@ package backend
 
 import (
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/sinker/prometheus"
 )
 
 type Backend interface {
-	ProcessMetrics(thingID string, channelID string, subtopic []string, payload []fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error)
+	ProcessMetrics(agent *pb.OwnerRes, thingID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error)
 }
 
 var registry = make(map[string]Backend)

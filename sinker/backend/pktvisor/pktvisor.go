@@ -10,6 +10,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/sinker/backend"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	"go.uber.org/zap"
@@ -23,69 +24,76 @@ type pktvisorBackend struct {
 	logger *zap.Logger
 }
 
-func (p pktvisorBackend) ProcessMetrics(thingID string, channelID string, subtopic []string, payload []fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
-	// process batch
-	var tsList = []prometheus.TimeSeries{}
-	for _, data := range payload {
-		// TODO check pktvisor version in data.BEVersion against PktvisorVersion
-		// TODO policyID and datasetIDs are in data
-		if data.Format != "json" {
-			p.logger.Warn("ignoring non-json pktvisor payload", zap.String("format", data.Format))
-			continue
-		}
-		// unmarshal pktvisor metrics
-		var metrics map[string]map[string]interface{}
-		err := json.Unmarshal(data.Data, &metrics)
-		if err != nil {
-			p.logger.Warn("unable to unmarshal pktvisor metric payload", zap.Any("payload", data.Data))
-			continue
-		}
-		stats := StatSnapshot{}
-		for _, handlerData := range metrics {
-			if data, ok := handlerData["pcap"]; ok {
-				err := mapstructure.Decode(data, &stats.Pcap)
-				if err != nil {
-					p.logger.Error("error decoding pcap handler", zap.Error(err))
-					continue
-				}
-			} else if data, ok := handlerData["dns"]; ok {
-				err := mapstructure.Decode(data, &stats.DNS)
-				if err != nil {
-					p.logger.Error("error decoding dns handler", zap.Error(err))
-					continue
-				}
-			} else if data, ok := handlerData["packets"]; ok {
-				err := mapstructure.Decode(data, &stats.Packets)
-				if err != nil {
-					p.logger.Error("error decoding packets handler", zap.Error(err))
-					continue
-				}
-			}
-		}
-		tsList = append(tsList, parseToProm(stats)...)
-	}
-	return tsList, nil
+type context struct {
+	agent      *pb.OwnerRes
+	agentID    string
+	policyID   string
+	policyName string
 }
 
-func parseToProm(stats StatSnapshot) prometheus.TSList {
+func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
+	// TODO check pktvisor version in data.BEVersion against PktvisorVersion
+	if data.Format != "json" {
+		p.logger.Warn("ignoring non-json pktvisor payload", zap.String("format", data.Format))
+		return nil, nil
+	}
+	// unmarshal pktvisor metrics
+	var metrics map[string]map[string]interface{}
+	err := json.Unmarshal(data.Data, &metrics)
+	if err != nil {
+		p.logger.Warn("unable to unmarshal pktvisor metric payload", zap.Any("payload", data.Data))
+		return nil, err
+	}
+	context := context{
+		agent:      agent,
+		agentID:    agentID,
+		policyID:   data.PolicyID,
+		policyName: data.PolicyName,
+	}
+	stats := StatSnapshot{}
+	for _, handlerData := range metrics {
+		if data, ok := handlerData["pcap"]; ok {
+			err := mapstructure.Decode(data, &stats.Pcap)
+			if err != nil {
+				p.logger.Error("error decoding pcap handler", zap.Error(err))
+				continue
+			}
+		} else if data, ok := handlerData["dns"]; ok {
+			err := mapstructure.Decode(data, &stats.DNS)
+			if err != nil {
+				p.logger.Error("error decoding dns handler", zap.Error(err))
+				continue
+			}
+		} else if data, ok := handlerData["packets"]; ok {
+			err := mapstructure.Decode(data, &stats.Packets)
+			if err != nil {
+				p.logger.Error("error decoding packets handler", zap.Error(err))
+				continue
+			}
+		}
+	}
+	return parseToProm(&context, stats), nil
+}
+
+func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
-	convertToPromParticle(statsMap, "", &tsList)
+	convertToPromParticle(ctxt, statsMap, "", &tsList)
 	return tsList
 }
 
-func convertToPromParticle(m map[string]interface{}, label string, tsList *prometheus.TSList) {
+func convertToPromParticle(ctxt *context, m map[string]interface{}, label string, tsList *prometheus.TSList) {
 	for k, v := range m {
 		switch c := v.(type) {
 		case map[string]interface{}:
-			convertToPromParticle(c, label+k, tsList)
+			convertToPromParticle(ctxt, c, label+k, tsList)
 		case int64:
 			{
 				var matchFirstQuantile = regexp.MustCompile("^([P-p])+[0-9]")
 				if ok := matchFirstQuantile.MatchString(k); ok {
-					tsList = makePromParticle(label, k, v, tsList, ok)
+					tsList = makePromParticle(ctxt, label, k, v, tsList, ok)
 				} else {
-					tsList = makePromParticle(label+k, "", v, tsList, false)
+					tsList = makePromParticle(ctxt, label+k, "", v, tsList, false)
 				}
 			}
 		case []interface{}:
@@ -109,14 +117,14 @@ func convertToPromParticle(m map[string]interface{}, label string, tsList *prome
 							}
 						}
 					}
-					tsList = makePromParticle(label+k, lbl, dtpt, tsList, false)
+					tsList = makePromParticle(ctxt, label+k, lbl, dtpt, tsList, false)
 				}
 			}
 		}
 	}
 }
 
-func makePromParticle(label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool) *prometheus.TSList {
+func makePromParticle(ctxt *context, label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool) *prometheus.TSList {
 	mapQuantiles := make(map[string]float64)
 	mapQuantiles["P50"] = 0.50
 	mapQuantiles["P90"] = 0.90
@@ -126,7 +134,11 @@ func makePromParticle(label string, k string, v interface{}, tsList *prometheus.
 	var dpFlag dp
 	var labelsListFlag labelList
 	labelsListFlag.Set(fmt.Sprintf("__name__:%s", camelToSnake(label)))
-	labelsListFlag.Set("instance:gw")
+	labelsListFlag.Set("instance:" + ctxt.agent.AgentName)
+	labelsListFlag.Set("agent_id:" + ctxt.agentID)
+	labelsListFlag.Set("agent:" + ctxt.agent.AgentName)
+	labelsListFlag.Set("policy_id:" + ctxt.policyID)
+	labelsListFlag.Set("policy:" + ctxt.policyName)
 	if k != "" {
 		if quantile {
 			if value, ok := mapQuantiles[k]; ok {
