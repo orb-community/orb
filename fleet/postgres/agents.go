@@ -547,7 +547,7 @@ func getOrbOrAgentTagsQuery(m types.Tags) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {
-		mq = ` AND (agent_tags @> :tags OR orb_tags @> :tags)`
+		mq = ` AND (agent_tags @> :tags OR orb_tags @> :tags OR agent_tags <@ :tags OR orb_tags <@ :tags)`
 
 		b, err := json.Marshal(m)
 		if err != nil {
