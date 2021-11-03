@@ -83,22 +83,6 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 
 func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {
 	a.unsubscribeGroupChannel(rpc.ChannelID)
-
-	var index int
-	for ag :=  range a.groupChannels{
-		if a.groupChannels[ag] == rpc.ChannelID{
-			index = ag
-		}
-	}
-
-	fmt.Println(a.groupChannels)
-
-	temp := make([]string, 0)
-	temp = append(temp, a.groupChannels[:index]...)
-	temp = append(temp, a.groupChannels[index+1:]...)
-
-	a.groupChannels = temp
-	fmt.Println(a.groupChannels)
 }
 
 func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
@@ -135,13 +119,6 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			return
 		}
 		a.handleAgentPolicies(r.Payload)
-	case fleet.GroupRemovedRPCFunc:
-		var r fleet.GroupRemovedRPC
-		if err := json.Unmarshal(message.Payload(), &r); err != nil {
-			a.logger.Error("error decoding agent group removal message from core", zap.Error(fleet.ErrSchemaMalformed))
-			return
-		}
-		a.handleAgentGroupRemoval(r.Payload)
 	case fleet.DatasetRemovedRPCFunc:
 		var r fleet.DatasetRemovedRPC
 		if err := json.Unmarshal(message.Payload(), &r); err != nil {
