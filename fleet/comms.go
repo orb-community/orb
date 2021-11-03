@@ -39,7 +39,7 @@ type AgentCommsService interface {
 	NotifyGroupRemoval(ag AgentGroup) error
 	// NotifyPolicyRemoval stop agent policy utilization after Policy removal
 	NotifyPolicyRemoval(policyID string, ag AgentGroup) error
-	// NotifyDatasetRemoval usubscribe the agent membership when delete a dataset
+	// NofityDatasetRemoval usubscribe the agent membership when delete a dataset
 	NofityDatasetRemoval(ag AgentGroup, dsID string) error
 }
 

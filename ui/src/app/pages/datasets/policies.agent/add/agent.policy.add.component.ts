@@ -116,16 +116,16 @@ export class AgentPolicyAddComponent {
           tap: '',
           input_type: '',
         },
-      },
-      handlers: {
-        modules: {},
-        config: {},
+        handlers: {
+          modules: {},
+
+        },
       },
       ...this.agentPolicy,
-    };
+    } as AgentPolicy;
 
-    this.handlers = Object.entries(this.agentPolicy.handlers.modules)
-      .map(([key, handler]) => ({ ...handler, name: key, type: handler.config.type }));
+    this.handlers = Object.entries(this.agentPolicy.policy.handlers.modules)
+      .map(([key, handler]) => ({ name: key, type: handler.config.type, ...handler }));
 
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
@@ -171,11 +171,11 @@ export class AgentPolicyAddComponent {
     Promise.all([this.getTaps(), this.getInputs(), this.getHandlers()])
       .then(value => {
         if (this.isEdit && this.agentPolicy) {
-          const selected_tap = this.agentPolicy.policy.input.tap.name;
+          const selected_tap = this.agentPolicy.policy.input.tap;
           this.tapFormGroup.patchValue({ selected_tap });
           this.tapFormGroup.controls.selected_tap.disable();
           this.onTapSelected(selected_tap);
-          this.handlers = Object.entries(this.agentPolicy.handlers.modules)
+          this.handlers = Object.entries(this.agentPolicy.policy.handlers.modules)
             .map(([key, handler]) => ({ ...handler, name: key, type: handler.config.type }));
         }
       }, reason => console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`))
@@ -262,7 +262,7 @@ export class AgentPolicyAddComponent {
     };
 
     if (this.isEdit === false) {
-      this.agentPolicy.policy = { input: '', config: '' };
+      this.agentPolicy.policy = { input: { config: {} } };
     }
     // populate form controls
     const dynamicControls = Object.keys(inputConfig)
@@ -301,43 +301,52 @@ export class AgentPolicyAddComponent {
 
 
   onHandlerSelected(selectedHandler) {
-    const { config } = this.availableHandlers[selectedHandler];
+    this.selected_handler_config = null;
+    if (this.dynamicHandlerConfigFormGroup) {
+      this.dynamicHandlerConfigFormGroup = null;
+    }
+
+    this.liveHandler = selectedHandler !== '' && !!this.availableHandlers[selectedHandler] ?
+      { ...this.availableHandlers[selectedHandler], type: selectedHandler } : null;
+
+    const { config } = !!this.liveHandler ? this.liveHandler : { config: {} };
 
     this.handlerSelectorFormGroup.controls.label.setValue('');
 
-    const dynamicControls = Object.keys(config).reduce((acc, key) => {
-      const field = config[key];
-      acc[field.name] = [
-        '',
-        field.required ? Validators.required : null,
-      ];
-      return acc;
-    }, Object.keys(config).length > 0 ? { 'selected_handler_config': ['', [Validators.required]] } : {});
+    const dynamicControls = Object.keys(config).length > 0 ? { 'selected_handler_config': ['', [Validators.required]] } : {};
 
     this.dynamicHandlerConfigFormGroup = Object.keys(dynamicControls).length > 0 ? this._formBuilder.group(dynamicControls) : null;
+    if (this.dynamicHandlerConfigFormGroup !== null) this.selected_handler_config = '';
 
-    this.liveHandler = !!this.availableHandlers[selectedHandler] ?
-      { ...this.availableHandlers[selectedHandler], type: selectedHandler } : null;
   }
 
   onHandlerConfigSelected(selectedHandlerConfig) {
-    this.selected_handler_config = selectedHandlerConfig !== '' ? selectedHandlerConfig : null;
+    if (selectedHandlerConfig !== '')
+      this.dynamicHandlerConfigFormGroup.addControl(selectedHandlerConfig, this._formBuilder.control(''));
+    this.selected_handler_config = selectedHandlerConfig;
   }
 
   onHandlerAdded() {
     let config = {};
 
     if (this.dynamicHandlerConfigFormGroup !== null) {
-      config = this.dynamicHandlerConfigFormGroup.controls;
+      config = {
+        [this.selected_handler_config]: this.dynamicHandlerConfigFormGroup.controls[this.selected_handler_config].value,
+      };
     }
 
     const handlerName = this.handlerSelectorFormGroup.controls.label.value;
     this.handlers.push({
       name: handlerName,
       type: this.liveHandler.type,
-      config: Object.keys(config)
-        .map(control => ({ [control]: config[control].value })),
+      config,
     });
+
+    this.handlerSelectorFormGroup.reset({
+      selected_handler: { value: '', disabled: false },
+      label: { value: '', disabled: false },
+    });
+    this.onHandlerSelected('');
   }
 
   onHandlerRemoved(selectedHandler) {
@@ -358,7 +367,7 @@ export class AgentPolicyAddComponent {
       policy: {
         kind: 'collection',
         input: {
-          tap: this.availableTaps[this.tapFormGroup.controls.selected_tap.value],
+          tap: this.tapFormGroup.controls.selected_tap.value,
           input_type: this.tapFormGroup.controls.input_type.value,
           config: Object.keys(this.inputFormGroup.controls)
             .map(key => ({ [key]: this.inputFormGroup.controls[key].value }))
@@ -369,30 +378,17 @@ export class AgentPolicyAddComponent {
               return acc;
             }, {}),
         },
-      },
-      handlers: {
-        modules: this.handlers.reduce((prev, handler) => {
-          for (const [key] of Object.entries(handler)) {
-            prev[key] = {
-              version: '1.0',
-              config: Object.entries(handler.config)
-                .map((handler_key, handler_value) => ({ handler_key: handler_value }))
-                .reduce((acc, curr) => {
-                  for (const config of Object.entries(curr)) {
-                    if (!!config['value'] && config['value'] !== '') acc[config['key']] = config['value'];
-                  }
-                  return acc;
-                }, {}),
+        handlers: {
+          modules: this.handlers.reduce((acc, handler) => {
+            acc[handler.name] = {
+              ...(Object.keys(handler.config).length > 0 ? { config: handler.config } : {}),
+              type: handler.type,
             };
-          }
-          return prev;
-        }, {}),
-        config: {
-          num_periods: 5,
-          deep_sample_rate: 100,
+            return acc;
+          }, {}),
         },
       },
-    };
+    } as AgentPolicy;
 
     if (this.isEdit) {
       // updating existing sink

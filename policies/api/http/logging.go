@@ -18,6 +18,20 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
+func (l loggingMiddleware) ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (_ policies.Dataset, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_dataset_by_id_internal",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_dataset_by_id_internal",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewDatasetByIDInternal(ctx, ownerID, datasetID)
+}
+
 func (l loggingMiddleware) RemoveDataset(ctx context.Context, token string, dsID string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {

@@ -12,6 +12,10 @@ type agentGroupRes struct {
 	channel string
 }
 
+type ownerRes struct {
+	ownerID string
+}
+
 type emptyRes struct {
 	err error
 }

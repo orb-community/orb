@@ -13,7 +13,7 @@ type PolicyRepo interface {
 	Exists(policyID string) bool
 	Get(policyID string) (PolicyData, error)
 	Remove(policyID string) error
-	Add(data PolicyData) error
+	Update(data PolicyData) error
 	GetAll() ([]PolicyData, error)
 	EnsureDataset(policyID string, datasetID string) error
 }
@@ -59,7 +59,7 @@ func (p policyMemRepo) Remove(policyID string) error {
 	return nil
 }
 
-func (p policyMemRepo) Add(data PolicyData) error {
+func (p policyMemRepo) Update(data PolicyData) error {
 	p.db[data.ID] = data
 	return nil
 }

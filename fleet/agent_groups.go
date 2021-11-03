@@ -60,7 +60,7 @@ type AgentGroupService interface {
 	ListAgentGroups(ctx context.Context, token string, pm PageMetadata) (PageAgentGroup, error)
 	// EditAgentGroup edit a existing agent group by id and owner
 	EditAgentGroup(ctx context.Context, token string, ag AgentGroup) (AgentGroup, error)
-	// DeleteAgentGroupByID Remove a existing agent group by owner an id
+	// RemoveAgentGroup Remove a existing agent group by owner an id
 	RemoveAgentGroup(ctx context.Context, token string, id string) error
 	// ValidateAgentGroup validate AgentGroup
 	ValidateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error)

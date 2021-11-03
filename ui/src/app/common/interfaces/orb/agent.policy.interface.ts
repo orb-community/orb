@@ -5,7 +5,7 @@
  */
 
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
-import { TapConfig } from 'app/common/interfaces/orb/policy/config/tap.config.interface';
+import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.config.interface';
 
 
 /**
@@ -38,27 +38,11 @@ export interface AgentPolicy extends OrbEntity {
   /**
    * Agent backend specific policy data {{[propName: string]: string}}
    */
-  policy?: TapConfig | any;
-
-  /**
-   * handlers object with configs
-   */
-  handlers?: {
-    modules?: { [propName: string]: any },
-    config?: { [propName: string]: any },
-  };
+  policy?: PolicyConfig;
 
   /**
    * Tags {{[propName: string]: string}}
    * User defined tags
    */
   tags?: { [propName: string]: any } | any;
-
-  /**
-   * Policy Metadata {{[propName: string]: string}}
-   */
-  policy_metadata?: { [propName: string]: any } | any;
-
-  window_config?: any;
-
 }

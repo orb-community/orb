@@ -21,9 +21,14 @@ module.exports = {
 
     sinks
     .navigate()
-    .verify.containsText('.page-count', '1 total')
-	.sinkDelete()
-	.verify.containsText('.page-count', '0 total')
-	.sinkManagementPage()
+    // bug need to remove this pause
+    .pause(1000)
+    .countSinks(browser)
+    .sinkDelete()
+    .sinkManagementPage()
+    // bug need to remove this pause
+    .pause(1000)
+    .countSinks(browser)
+    .sinkManagementPage()
 
 }}

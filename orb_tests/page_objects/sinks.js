@@ -126,9 +126,9 @@ var commands = {
               browser.verify.containsText('.empty-row', 'No data to display', "View table info message is correctly displayed")
           } else {
               browser.expect.elements('datatable-row-wrapper').count.to.equal(parseInt(result.value))
-              browser.verify.containsText('.justify-content-between > div:nth-child(1)', 'You have', "Beginning of info message is correctly displayed")
+              browser.verify.containsText('.justify-content-between > div:nth-child(1)', 'sinks total', "Beginning of info message is correctly displayed")
               browser.verify.containsText('.justify-content-between > div:nth-child(1)', parseInt(result.value), "Number of Sinks is correctly displayed")
-              browser.verify.containsText('.justify-content-between > div:nth-child(1)', 'sinks deployed in', "End of info message is correctly displayed")
+              browser.verify.containsText('.justify-content-between > div:nth-child(1)', 'have errors.', "End of info message is correctly displayed")
           }
         })}
 

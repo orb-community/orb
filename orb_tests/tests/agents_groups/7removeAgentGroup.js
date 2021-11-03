@@ -28,6 +28,7 @@
         .countAgentGroups(browser)
         .agentGroupsDelete()
         .listView()
+        .agentGroupsDelete()
         .countAgentGroups(browser)
         //bug need to insert loop
 
