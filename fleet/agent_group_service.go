@@ -58,7 +58,7 @@ func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup)
 		return err
 	}
 	for _, agent := range list {
-		err := svc.agentComms.NotifyNewAgentGroupMembership(agent, g)
+		err := svc.agentComms.NotifyAgentNewGroupMembership(agent, g)
 		if err != nil {
 			// note we will not make failure to deliver to one agent fatal, just log
 			svc.logger.Error("failure during agent group membership comms", zap.Error(err))
@@ -111,7 +111,7 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 		return AgentGroup{}, err
 	}
 	for _, agent := range list {
-		err := svc.agentComms.NotifyAgentGroupMembership(agent)
+		err := svc.agentComms.NotifyAgentGroupMemberships(agent)
 		if err != nil {
 			svc.logger.Error("failure during agent group membership comms", zap.Error(err))
 		}
