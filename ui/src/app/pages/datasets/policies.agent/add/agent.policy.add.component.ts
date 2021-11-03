@@ -343,7 +343,7 @@ export class AgentPolicyAddComponent {
 
     const { config, filter } = !!this.liveHandler ? this.liveHandler : { config: {}, filter: {} };
 
-    const dynamicControls = Object.entries(config).reduce((controls, [key, value]) => {
+    const dynamicControls = Object.entries(config || {}).reduce((controls, [key, value]) => {
       controls[key] = ['', [Validators.required]];
       return controls;
     }, {});
@@ -404,14 +404,14 @@ export class AgentPolicyAddComponent {
               }
               return acc;
             }, {}),
-          filter: Object.keys(this.inputFilterFG.controls)
-            .map(key => ({ [key]: this.inputConfigFG.controls[key].value }))
-            .reduce((acc, curr) => {
-              for (const [key, value] of Object.entries(curr)) {
-                if (!!value && value !== '') acc[key] = value;
-              }
-              return acc;
-            }, {}),
+          // filter: Object.keys(this.inputFilterFG.controls)
+          //   .map(key => ({ [key]: this.inputConfigFG.controls[key].value }))
+          //   .reduce((acc, curr) => {
+          //     for (const [key, value] of Object.entries(curr)) {
+          //       if (!!value && value !== '') acc[key] = value;
+          //     }
+          //     return acc;
+          //   }, {}),
         },
         handlers: {
           modules: this.handlers.reduce((acc, handler) => {
