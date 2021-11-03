@@ -14,6 +14,8 @@ export class AgentKeyComponent implements OnInit {
 
   command2copy: string;
 
+  command2show: string;
+
   key2copy: string;
 
   @Input() agent: Agent = {};
@@ -31,12 +33,20 @@ export class AgentKeyComponent implements OnInit {
   }
 
   makeCommand2Copy() {
-    this.command2copy = `docker run --rm -d --net=host \
--e ORB_CLOUD_ADDRESS=${ document.location.hostname } \
--e ORB_CLOUD_MQTT_ID=${ this.agent.id } \
--e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \
--e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \
--e PKTVISOR_PCAP_IFACE_DEFAULT=[PKTVISOR_IFACE] \
+    this.command2copy = `docker run -d --net=host \\
+-e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
+-e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
+-e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
+-e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
+-e PKTVISOR_PCAP_IFACE_DEFAULT=mock \\
+ns1labs/orb-agent`;
+
+    this.command2show = `docker run -d --net=host \n
+-e ORB_CLOUD_ADDRESS=${ document.location.hostname } \n
+-e ORB_CLOUD_MQTT_ID=${ this.agent.id } \n
+-e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \n
+-e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \n
+-e PKTVISOR_PCAP_IFACE_DEFAULT=mock \n
 ns1labs/orb-agent`;
   }
 
