@@ -16,7 +16,7 @@
                   disableStepNavigation
                   orientation="vertical">
         <nb-step [label]="firstStepTemplate"
-                 [stepControl]="detailsFormGroup"
+                 [stepControl]="detailsFG"
                  data-orb-qa-id="step_1">
           <ng-template #firstStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -24,7 +24,7 @@
               <p>Provide a name, a description summary and a supported backend for the Agent Policy</p>
             </div>
           </ng-template>
-          <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFormGroup">
+          <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFG">
             <div class="d-flex flex-column">
               <div>
                 <label class="font-weight-bold" for="name">Name Label</label>
@@ -76,7 +76,7 @@
               status="primary"
               type="button">Cancel
             </button>
-            <button [disabled]="!detailsFormGroup?.valid"
+            <button [disabled]="!detailsFG?.valid"
                     class="next-button"
                     data-orb-qa-id="next"
                     nbButton
@@ -88,7 +88,7 @@
           </div>
         </nb-step>
         <nb-step [label]="secondStepTemplate"
-                 [stepControl]="tapFormGroup"
+                 [stepControl]="tapFG"
                  data-orb-qa-id="step_2">
           <ng-template #secondStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -97,7 +97,7 @@
             </div>
           </ng-template>
           <div *ngIf="availableTaps && availableInputs">
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="tapFormGroup">
+            <form (ngSubmit)="onFormSubmit()" [formGroup]="tapFG">
               <!-- Tap selector -->
               <div>
                 <label class="font-weight-bold">Tap</label>
@@ -129,6 +129,7 @@
                            fullWidth="true"
                            id="input_type"
                            nbInput
+                           placeholder="Select Input"
                            size="medium">
                   <nb-option *ngFor="let option of availableInputs | keyvalue"
                              [attr.data-orb-qa-id]="option.key"
@@ -138,41 +139,97 @@
             </form>
             <hr/>
           </div>
-          <div *ngIf="!!inputFormGroup">
-            <!-- Dynamic Input Form -->
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="inputFormGroup">
+          <div *ngIf="!!inputConfigFG">
+            <!-- Dynamic Input Config Form -->
+            <form (ngSubmit)="onFormSubmit()" [formGroup]="inputConfigFG">
               <div *ngFor="let control of input['config'] | keyvalue; index as i;">
-                <div *ngIf="inputFormGroup.controls.hasOwnProperty(control.value.name)">
+                <div *ngIf="inputConfigFG.controls.hasOwnProperty(control.value.name)">
                   <div>
-                    <label class="font-weight-bold">{{control.value.title}}</label>
+                    <label class="font-weight-bold">{{control.value.label}}</label>
                   </div>
                   <div [ngSwitch]="control.value.input">
                     <input *ngSwitchCase="'text'"
                            [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="i == 0"
-                           [formControlName]="control.value.name"
+                           [formControlName]="controlkey"
+                           [placeholder]="control.value?.props?.example || ''"
                            [type]="control.value.type"
                            fieldSize="medium"
                            fullWidth="true"
-                           nbInput>
+                           nbInput
+                           nbTooltip="{{ control.value.description }}">
                     <input *ngSwitchCase="'number'"
                            [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="i == 0"
-                           [formControlName]="control.value.name"
-                           [max]="control.value.max"
-                           [min]="control.value.min"
-                           [step]="control.value.step"
-                           [type]="control.value.type">
+                           [formControlName]="controlkey"
+                           [max]="control.value.props.max"
+                           [min]="control.value.props.min"
+                           [placeholder]="control.value?.props?.example || ''"
+                           [step]="control.value.props.step"
+                           [type]="control.value.type"
+                           nbTooltip="{{ control.value.description }}">
                     <nb-select *ngSwitchCase="'select'"
                                [attr.data-orb-qa-id]="control.value.name"
-                               [formControlName]="control.value.name"
+                               [formControlName]="control.key"
                                [id]="control.value.name"
+                               [placeholder]="control.value?.props?.example || ''"
                                appearance="filled"
                                fullWidth="true"
-                               size="medium">{{ control.value.name + "-" + control.value.options }}
-                      <nb-option *ngFor="let option of control.value.options"
-                                 [attr.data-orb-qa-id]="option"
-                                 [value]="option">{{ option }}</nb-option>
+                               nbTooltip="{{ control.value.description }}"
+                               size="medium"
+                    >{{ control.value.name + "-" + control.value.props.options }}
+                      <nb-option *ngFor="let option of control.value.props.options | keyvalue"
+                                 [attr.data-orb-qa-id]="option.value"
+                                 [value]="option.key">{{ option.value }}</nb-option>
+                    </nb-select>
+                  </div>
+                  <hr/>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div *ngIf="!!inputConfigFG">
+            <!-- Dynamic Input Config Form -->
+            <form (ngSubmit)="onFormSubmit()" [formGroup]="inputConfigFG">
+              <div *ngFor="let control of input['config'] | keyvalue; index as i;">
+                <div *ngIf="inputConfigFG.controls.hasOwnProperty(control.key)">
+                  <div>
+                    <label class="font-weight-bold">{{control.value.label}}</label>
+                  </div>
+                  <div [ngSwitch]="control.value.input">
+                    <input *ngSwitchCase="'text'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="controlkey"
+                           [placeholder]="control.value?.props?.example || ''"
+                           [type]="control.value.type"
+                           fieldSize="medium"
+                           fullWidth="true"
+                           nbInput
+                           nbTooltip="{{ control.value.description }}">
+                    <input *ngSwitchCase="'number'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="controlkey"
+                           [max]="control.value.props.max"
+                           [min]="control.value.props.min"
+                           [placeholder]="control.value?.props?.example || ''"
+                           [step]="control.value.props.step"
+                           [type]="control.value.type"
+                           nbTooltip="{{ control.value.description }}">
+                    <nb-select *ngSwitchCase="'select'"
+                               [attr.data-orb-qa-id]="control.value.name"
+                               [formControlName]="control.key"
+                               [id]="control.value.name"
+                               [placeholder]="control.value?.props?.example || ''"
+                               appearance="filled"
+                               fullWidth="true"
+                               nbTooltip="{{ control.value.description }}"
+                               size="medium"
+                    >{{ control.value.name + "-" + control.value.props.options }}
+                      <nb-option *ngFor="let option of control.value.props.options | keyvalue"
+                                 [attr.data-orb-qa-id]="option.value"
+                                 [value]="option.key">{{ option.value }}</nb-option>
                     </nb-select>
                   </div>
                   <hr/>
@@ -189,7 +246,7 @@
               status="primary"
               type="button">Back
             </button>
-            <button [disabled]="!tapFormGroup?.valid"
+            <button [disabled]="!tapFG?.valid"
                     class="next-button"
                     data-orb-qa-id="next"
                     nbButton
@@ -201,7 +258,7 @@
           </div>
         </nb-step>
         <nb-step [label]="thirdStepTemplate"
-                 [stepControl]="handlerSelectorFormGroup"
+                 [stepControl]="handlerSelectorFG"
                  data-orb-qa-id="step_2">
           <ng-template #thirdStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -209,7 +266,7 @@
               <p>Setup any number of handlers</p>
             </div>
           </ng-template>
-          <form [formGroup]="handlerSelectorFormGroup">
+          <form [formGroup]="handlerSelectorFG">
             <!-- Added Handlers List -->
             <div class="d-flex">
               <mat-chip-list data-orb-qa-id="handlers-list">
@@ -238,7 +295,8 @@
                        data-orb-qa-id="sink_selector"
                        formControlName="selected_handler"
                        fullWidth="true"
-                       placeholder="Handler type"
+                       nbTooltip="Select and configure individual policies from a list of available handlers."
+                       placeholder="Select Handler"
                        size="medium">
               <nb-option *ngFor="let handler of availableHandlers | keyvalue"
                          [attr.data-orb-qa-id]="'available_handler: '+handler.key" [id]="handler.key"
@@ -250,68 +308,66 @@
                 <label class="font-weight-bold" for="description">Handler Label</label>
                 <span class="required"></span>
               </div>
-
               <input data-orb-qa-id="handler-label"
                      fieldSize="medium"
                      formControlName="label"
                      fullWidth="true"
                      id="label"
-                     nbInput/>
+                     nbInput
+                     nbTooltip="Provide a label for your handler configuration"
+                     placeholder="Handler Name"/>
             </div>
           </form>
           <hr/>
           <!--Dynamic Handler Config-->
-          <div *ngIf="!!liveHandler && !!dynamicHandlerConfigFormGroup">
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFormGroup">
+          <div *ngIf="!!liveHandler && !!dynamicHandlerConfigFG">
+            <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFG">
               <div *ngIf="!!liveHandler.config">
-                <nb-select (selectedChange)="onHandlerConfigSelected($event)"
-                           appearance="filled"
-                           data-orb-qa-id="sink_selector"
-                           formControlName="selected_handler_config"
-                           fullWidth="true"
-                           placeholder="Handler Configuration"
-                           size="medium">
-                  <nb-option *ngFor="let control of liveHandler.config | keyvalue; let i = index"
-                             [attr.data-orb-qa-id]="'available_handler_config: '+control.key" [id]="control.key"
-                             [value]="control.key">{{ control.key }}</nb-option>
-                </nb-select>
-                <div *ngIf="!!liveHandler.config && selected_handler_config && selected_handler_config !== ''">
+                <div *ngFor="let control of liveHandler.config | keyvalue">
                   <div>
-                    <label class="font-weight-bold">{{liveHandler.config[selected_handler_config].title}}</label>
+                    <label class="font-weight-bold">{{control.value.label}}</label>
                   </div>
-                  <div [ngSwitch]="liveHandler.config[selected_handler_config].input">
+                  <div [ngSwitch]="control.value.input">
                     <input *ngSwitchCase="'text'"
-                           [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
+                           [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="true"
-                           [formControlName]="liveHandler.config[selected_handler_config].name"
-                           [type]="liveHandler.config[selected_handler_config].type"
+                           [formControlName]="controlkey"
+                           [placeholder]="control.value?.props?.example || ''"
+                           [type]="control.value.type"
                            fieldSize="medium"
                            fullWidth="true"
-                           nbInput>
+                           nbInput
+                           nbTooltip="{{ control.value.description }}">
                     <input *ngSwitchCase="'number'"
-                           [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
+                           [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="true"
-                           [formControlName]="liveHandler.config[selected_handler_config].name"
-                           [max]="liveHandler.config[selected_handler_config].max"
-                           [min]="liveHandler.config[selected_handler_config].min"
-                           [step]="liveHandler.config[selected_handler_config].step"
-                           [type]="liveHandler.config[selected_handler_config].type">
+                           [formControlName]="controlkey"
+                           [max]="control.value?.props?.max"
+                           [min]="control.value?.props?.min"
+                           [placeholder]="control.value?.props?.example || ''"
+                           [step]="control.value?.props?.step"
+                           [type]="control.value.type"
+                           nbTooltip="{{ control.value.description }}">
                     <nb-select *ngSwitchCase="'select'"
-                               [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
-                               [formControlName]="liveHandler.config[selected_handler_config].name"
-                               [id]="liveHandler.config[selected_handler_config].name"
+                               [attr.data-orb-qa-id]="control.value.name"
+                               [formControlName]="control.key"
+                               [id]="control.value.name"
+                               [placeholder]="control.value?.props?.example || ''"
                                appearance="filled"
                                fullWidth="true"
-                               size="medium">{{ liveHandler.config[selected_handler_config].name + "-" + liveHandler.config[selected_handler_config].options }}
-                      <nb-option *ngFor="let option of liveHandler.config[selected_handler_config].options"
-                                 [attr.data-orb-qa-id]="option"
-                                 [value]="option">{{ option }}</nb-option>
+                               nbTooltip="{{ control.value.description }}"
+                               size="medium">
+                      {{ control.value.name + "-" + control.value.props.options }}
+                      <nb-option *ngFor="let option of control.value.props.options | keyvalue"
+                                 [attr.data-orb-qa-id]="option.key"
+                                 [value]="option.value">{{ option.value }}</nb-option>
                     </nb-select>
                     <nb-checkbox *ngSwitchCase="'checkbox'"
-                                 [attr.data-orb-qa-id]="liveHandler.config[selected_handler_config].name"
-                                 [formControlName]="liveHandler.config[selected_handler_config].name"
-                                 [id]="liveHandler.config[selected_handler_config].name">
-                      {{liveHandler.config[selected_handler_config].name}}
+                                 [attr.data-orb-qa-id]="control.value.name"
+                                 [formControlName]="control.key"
+                                 [id]="control.value.name"
+                                 nbTooltip="{{ control.value.description }}">
+                      {{control.value.name}}
                     </nb-checkbox>
                   </div>
                   <hr/>
@@ -320,11 +376,11 @@
             </form>
           </div>
           <button (click)="onHandlerAdded()"
-                  [disabled]="handlerSelectorFormGroup.controls['label'].value === ''
-                  || (!!liveHandler.config && selected_handler_config === '')"
+                  [disabled]="handlerSelectorFG.controls['label'].value === ''"
                   data-orb-qa-id="addHandler"
                   ghost
-                  nbButton>
+                  nbButton
+                  nbTooltip="Click to Add Handler">
             <nb-icon icon="plus-outline"
                      size="14"
                      status="primary"
@@ -347,6 +403,7 @@
                     data-orb-qa-id="next"
                     nbButton
                     nbStepperNext
+                    nbTooltip="At least one handler must be configure and added to the policies."
                     shape="round"
                     status="primary"
                     type="submit">
