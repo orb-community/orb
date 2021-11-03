@@ -1,12 +1,12 @@
-import {Component, TemplateRef, ViewChild} from '@angular/core';
-import {NbDialogService} from '@nebular/theme';
-import {ActivatedRoute, Router} from '@angular/router';
-import {STRINGS} from 'assets/text/strings';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {Agent} from 'app/common/interfaces/orb/agent.interface';
-import {AgentsService} from 'app/common/services/agents/agents.service';
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {AgentKeyComponent} from '../key/agent.key.component';
+import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { NbDialogService } from '@nebular/theme';
+import { ActivatedRoute, Router } from '@angular/router';
+import { STRINGS } from 'assets/text/strings';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { AgentsService } from 'app/common/services/agents/agents.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { AgentKeyComponent } from '../key/agent.key.component';
 
 
 @Component({

@@ -1,93 +1,93 @@
 <div>
-    <header data-orb-qa-id="sink#add">
-        <xng-breadcrumb class="orb-breadcrumb"
-                        data-orb-qa-id="breadcrumb">
-            <ng-container
-                    *xngBreadcrumbItem="let breadcrumb; let info = info; let first = first">
-                <ng-container [ngClass]="{'my_class': first === ''}">{{ breadcrumb }}</ng-container>
-            </ng-container>
-        </xng-breadcrumb>
-        <h4>{{strings.sink[isEdit ? 'edit' : 'add']['header']}}</h4>
-    </header>
-    <div *ngIf="!isLoading" class="d-flex row">
-        <div class="d-flex col-12 mt-5">
-            <nb-stepper class="stepper w-100 ml-5"
-                        disableStepNavigation
-                        orientation="vertical">
-                <nb-step [label]="firstStepTemplate"
-                         [stepControl]="firstFormGroup"
-                         data-orb-qa-id="step_1">
-                    <ng-template #firstStepTemplate>
-                        <div class="step-label d-flex flex-column">
-                            <strong>Sink Details</strong>
-                            <p>Provide a name and description for the Sink</p>
-                        </div>
-                    </ng-template>
-                    <form (ngSubmit)="onFormSubmit()" [formGroup]="firstFormGroup">
-                        <nb-form-field>
-                            <div class="d-flex flex-column">
-                                <div>
-                                    <label class="font-weight-bold">Name Label</label>
-                                    <span class="required">*</span>
-                                </div>
-                                <input autofocus
-                                       data-orb-qa-id="name"
-                                       fieldSize="medium"
-                                       formControlName="name"
-                                       fullWidth="true"
-                                       nbInput/>
-                            </div>
-                        </nb-form-field>
-                        <hr/>
-                        <nb-form-field>
-                            <div>
-                                <label class="font-weight-bold">Sink Description</label>
-                            </div>
-                            <input data-orb-qa-id="description"
-                                   fieldSize="medium"
-                                   formControlName="description"
-                                   fullWidth="true"
-                                   nbInput/>
-                        </nb-form-field>
-                        <hr/>
-                        <nb-form-field>
-                            <div>
-                                <label class="font-weight-bold">Sink Type</label>
-                                <span class="required">*</span>
-                            </div>
-                            <nb-select (selectedChange)="onSinkTypeSelected($event)"
-                                       appearance="filled"
-                                       data-orb-qa-id="backend"
-                                       formControlName="backend"
-                                       fullWidth="true"
-                                       placeholder="Select backend type"
-                                       size="medium"
-                            >
-                                <nb-option *ngFor="let type of sinkTypesList"
-                                           [value]="type">{{ type | titlecase }}</nb-option>
-                            </nb-select>
-                        </nb-form-field>
-                        <hr/>
-                        <div class="d-flex justify-content-end">
-                            <button
-                                    (click)="goBack()"
-                                    data-orb-qa-id="cancel"
-                                    ghost
-                                    nbButton
-                                    status="primary"
-                                    type="button">Cancel
-                            </button>
-                            <button [disabled]="!firstFormGroup?.valid"
-                                    class="next-button"
-                                    data-orb-qa-id="next"
-                                    nbButton
-                                    nbStepperNext
-                                    shape="round"
-                                    status="primary"
-                                    type="submit">Next
-                            </button>
-                        </div>
-                    </form>
+  <header data-orb-qa-id="sink#add">
+    <xng-breadcrumb class="orb-breadcrumb"
+                    data-orb-qa-id="breadcrumb">
+      <ng-container
+        *xngBreadcrumbItem="let breadcrumb; let info = info; let first = first">
+        <ng-container [ngClass]="{'my_class': first === ''}">{{ breadcrumb }}</ng-container>
+      </ng-container>
+    </xng-breadcrumb>
+    <h4>{{strings.sink[isEdit ? 'edit' : 'add']['header']}}</h4>
+  </header>
+  <div *ngIf="!isLoading" class="d-flex row">
+    <div class="d-flex col-12 mt-5">
+      <nb-stepper class="stepper w-100 ml-5"
+                  disableStepNavigation
+                  orientation="vertical">
+        <nb-step [label]="firstStepTemplate"
+                 [stepControl]="firstFormGroup"
+                 data-orb-qa-id="step_1">
+          <ng-template #firstStepTemplate>
+            <div class="step-label d-flex flex-column">
+              <strong>Sink Details</strong>
+              <p>Provide a name and description for the Sink</p>
+            </div>
+          </ng-template>
+          <form (ngSubmit)="onFormSubmit()" [formGroup]="firstFormGroup">
+            <nb-form-field>
+              <div class="d-flex flex-column">
+                <div>
+                  <label class="font-weight-bold">Name Label</label>
+                  <span class="required">*</span>
+                </div>
+                <input autofocus
+                       data-orb-qa-id="name"
+                       fieldSize="medium"
+                       formControlName="name"
+                       fullWidth="true"
+                       nbInput/>
+              </div>
+            </nb-form-field>
+            <hr/>
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold">Sink Description</label>
+              </div>
+              <input data-orb-qa-id="description"
+                     fieldSize="medium"
+                     formControlName="description"
+                     fullWidth="true"
+                     nbInput/>
+            </nb-form-field>
+            <hr/>
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold">Sink Type</label>
+                <span class="required">*</span>
+              </div>
+              <nb-select (selectedChange)="onSinkTypeSelected($event)"
+                         appearance="filled"
+                         data-orb-qa-id="backend"
+                         formControlName="backend"
+                         fullWidth="true"
+                         placeholder="Select backend type"
+                         size="medium"
+              >
+                <nb-option *ngFor="let type of sinkTypesList"
+                           [value]="type">{{ type | titlecase }}</nb-option>
+              </nb-select>
+            </nb-form-field>
+            <hr/>
+            <div class="d-flex justify-content-end">
+              <button
+                (click)="goBack()"
+                data-orb-qa-id="cancel"
+                ghost
+                nbButton
+                status="primary"
+                type="button">Cancel
+              </button>
+              <button [disabled]="!firstFormGroup?.valid"
+                      class="next-button"
+                      data-orb-qa-id="next"
+                      nbButton
+                      nbStepperNext
+                      shape="round"
+                      status="primary"
+                      type="submit">Next
+              </button>
+            </div>
+          </form>
         </nb-step>
         <nb-step [label]="secondStepLabel"
                  data-orb-qa-id="step_2">
@@ -98,65 +98,65 @@
             </div>
           </ng-template>
           <form [formGroup]="secondFormGroup">
-              <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index">
-                  <div>
-                      <label class="font-weight-bold">{{control.label}}</label>
-                      <span *ngIf="control.required" class="required">*</span>
-                  </div>
-                  <div [ngSwitch]="control.input">
-                      <input *ngSwitchCase="'text'"
-                             [attr.data-orb-qa-id]="control.prop"
-                             [autofocus]="i == 0"
-                             [formControlName]="control.prop"
-                             [type]="control.type"
-                             fieldSize="medium"
-                             fullWidth="true"
-                             nbInput>
-                      <input *ngSwitchCase="'number'"
-                             [attr.data-orb-qa-id]="control.prop"
-                             [autofocus]="i == 0"
-                             [formControlName]="control.prop"
-                             [max]="control.max"
-                             [min]="control.min"
-                             [step]="control.step"
-                             [type]="control.type"
-                             fieldSize="medium"
-                             fullWidth="true"
-                             nbInput>
-                      <nb-select *ngSwitchCase="'select'"
-                                 appearance="filled"
-                                 data-orb-qa-id="backend"
-                                 formControlName="backend"
-                                 fullWidth="true"
-                                 placeholder="Select backend type"
-                                 size="medium">
-                          <nb-option *ngFor="let type of control.options"
-                                     [attr.data-orb-qa-id]="type"
-                                     [value]="type">{{ type }}</nb-option>
-                      </nb-select>
-
-                  </div>
-                  <hr/>
-              </nb-form-field>
-              <div *ngIf="secondFormGroup" class="d-flex justify-content-end">
-                  <button
-                          data-orb-qa-id="cancel"
-                          ghost
-                          nbButton
-                          nbStepperPrevious
-                          status="primary"
-                  >Back
-                  </button>
-                  <button [disabled]="!secondFormGroup?.valid"
-                          class="next-button"
-                          data-orb-qa-id="next"
-                          nbButton
-                          nbStepperNext
-                          shape="round"
-                          status="primary"
-                          type="submit">Next
-                  </button>
+            <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index">
+              <div>
+                <label class="font-weight-bold">{{control.label}}</label>
+                <span *ngIf="control.required" class="required">*</span>
               </div>
+              <div [ngSwitch]="control.input">
+                <input *ngSwitchCase="'text'"
+                       [attr.data-orb-qa-id]="control.prop"
+                       [autofocus]="i == 0"
+                       [formControlName]="control.prop"
+                       [type]="control.type"
+                       fieldSize="medium"
+                       fullWidth="true"
+                       nbInput>
+                <input *ngSwitchCase="'number'"
+                       [attr.data-orb-qa-id]="control.prop"
+                       [autofocus]="i == 0"
+                       [formControlName]="control.prop"
+                       [max]="control.max"
+                       [min]="control.min"
+                       [step]="control.step"
+                       [type]="control.type"
+                       fieldSize="medium"
+                       fullWidth="true"
+                       nbInput>
+                <nb-select *ngSwitchCase="'select'"
+                           appearance="filled"
+                           data-orb-qa-id="backend"
+                           formControlName="backend"
+                           fullWidth="true"
+                           placeholder="Select backend type"
+                           size="medium">
+                  <nb-option *ngFor="let type of control.options"
+                             [attr.data-orb-qa-id]="type"
+                             [value]="type">{{ type }}</nb-option>
+                </nb-select>
+
+              </div>
+              <hr/>
+            </nb-form-field>
+            <div *ngIf="secondFormGroup" class="d-flex justify-content-end">
+              <button
+                data-orb-qa-id="cancel"
+                ghost
+                nbButton
+                nbStepperPrevious
+                status="primary"
+              >Back
+              </button>
+              <button [disabled]="!secondFormGroup?.valid"
+                      class="next-button"
+                      data-orb-qa-id="next"
+                      nbButton
+                      nbStepperNext
+                      shape="round"
+                      status="primary"
+                      type="submit">Next
+              </button>
+            </div>
           </form>
         </nb-step>
         <nb-step [label]="thirdStepLabel"
@@ -168,101 +168,101 @@
             </div>
           </ng-template>
           <form [formGroup]="thirdFormGroup">
-              <label class="font-weight-bold">Selected Sink Tags</label>
-              <div class="d-flex">
-                  <mat-chip-list data-orb-qa-id="tagList">
-                      <mat-chip
-                              *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i"
-                              [attr.data-orb-qa-id]="'tag_' + i"
-                              [style.background-color]="tag | keyvalue | tagchip | tagchipcolor"
-                              class="orb-tag-sink">
-                          {{tag | keyvalue | tagchip}}
-                          <nb-icon (click)="onRemoveTag(tag)"
-                                   class="ml-1"
-                                   icon="close-outline"
-                                   size="12"></nb-icon>
-                      </mat-chip>
-                      <mat-chip *ngIf="thirdFormGroup.controls.tags.value.length === 0"
-                                [attr.data-orb-qa-id]="'tag_none'"
-                                [style.background-color]="'No Tag Added' | tagchipcolor"
-                                class="orb-tag-sink">
-                          No Tag Added
-                      </mat-chip>
-                  </mat-chip-list>
-              </div>
+            <label class="font-weight-bold">Selected Sink Tags</label>
+            <div class="d-flex">
+              <mat-chip-list data-orb-qa-id="tagList">
+                <mat-chip
+                  *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i"
+                  [attr.data-orb-qa-id]="'tag_' + i"
+                  [style.background-color]="tag | keyvalue | tagchip | tagchipcolor"
+                  class="orb-tag-sink">
+                  {{tag | keyvalue | tagchip}}
+                  <nb-icon (click)="onRemoveTag(tag)"
+                           class="ml-1"
+                           icon="close-outline"
+                           size="12"></nb-icon>
+                </mat-chip>
+                <mat-chip *ngIf="thirdFormGroup.controls.tags.value.length === 0"
+                          [attr.data-orb-qa-id]="'tag_none'"
+                          [style.background-color]="'No Tag Added' | tagchipcolor"
+                          class="orb-tag-sink">
+                  No Tag Added
+                </mat-chip>
+              </mat-chip-list>
+            </div>
             <hr/>
             <nb-form-field>
-                <div class="container d-flex row px-0 mx-0" style="width:75%;">
-                    <div class="d-flex flex-column col-5 px-0 mx-0">
-                        <div>
-                            <label class="font-weight-bold">Key</label>
-                            <span class="required">*</span>
-                        </div>
-                        <div>
-                            <input autofocus
-                                   data-orb-qa-id="key"
-                                   fieldSize="medium"
-                                   formControlName="key"
-                                   fullWidth="true"
-                                   nbInput/>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-center align-items-center col-1 mt-4 px-0 mx-0">
-                        <nb-icon icon="plus-outline" size="14" style="color: #df316f;"></nb-icon>
-                    </div>
-                    <div class="d-flex flex-column col-5 px-0 mx-0">
-                        <div>
-                            <label class="font-weight-bold">Value</label>
-                            <span class="required">*</span>
-                        </div>
-                        <div>
-                            <input autofocus
-                                   data-orb-qa-id="value"
-                                   fieldSize="medium"
-                                   formControlName="value"
-                                   fullWidth="true"
-                                   nbInput/>
-                        </div>
-                    </div>
-                    <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
-                         style="transform: translateY(14px);">
-                        <button (click)="onAddTag()"
-                                [disabled]="(thirdFormGroup.controls['key'].value === '' ||
-                          thirdFormGroup.controls['value'].value === '')"
-                                data-orb-qa-id="addTag"
-                                ghost
-                                nbButton>
-                            <nb-icon icon="plus-outline"
-                                     size="14"
-                                     status="primary"
-                                     style="color: #df316f;">
-                            </nb-icon>
-                        </button>
-                    </div>
+              <div class="container d-flex row px-0 mx-0" style="width:75%;">
+                <div class="d-flex flex-column col-5 px-0 mx-0">
+                  <div>
+                    <label class="font-weight-bold">Key</label>
+                    <span class="required">*</span>
+                  </div>
+                  <div>
+                    <input autofocus
+                           data-orb-qa-id="key"
+                           fieldSize="medium"
+                           formControlName="key"
+                           fullWidth="true"
+                           nbInput/>
+                  </div>
                 </div>
-            </nb-form-field>
-              <hr/>
-
-              <div *ngIf="thirdFormGroup" class="d-flex justify-content-start"
-                   style="padding-left: 35%;">
-                  <button
-                          data-orb-qa-id="back"
+                <div class="d-flex justify-content-center align-items-center col-1 mt-4 px-0 mx-0">
+                  <nb-icon icon="plus-outline" size="14" style="color: #df316f;"></nb-icon>
+                </div>
+                <div class="d-flex flex-column col-5 px-0 mx-0">
+                  <div>
+                    <label class="font-weight-bold">Value</label>
+                    <span class="required">*</span>
+                  </div>
+                  <div>
+                    <input autofocus
+                           data-orb-qa-id="value"
+                           fieldSize="medium"
+                           formControlName="value"
+                           fullWidth="true"
+                           nbInput/>
+                  </div>
+                </div>
+                <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
+                     style="transform: translateY(14px);">
+                  <button (click)="onAddTag()"
+                          [disabled]="(thirdFormGroup.controls['key'].value === '' ||
+                          thirdFormGroup.controls['value'].value === '')"
+                          data-orb-qa-id="addTag"
                           ghost
-                          nbButton
-                          nbStepperPrevious
-                          status="primary">
-                      {{strings.stepper.back}}
+                          nbButton>
+                    <nb-icon icon="plus-outline"
+                             size="14"
+                             status="primary"
+                             style="color: #df316f;">
+                    </nb-icon>
                   </button>
-                  <button class="next-button"
-                          data-orb-qa-id="next"
-                          nbButton
-                          nbStepperNext
-                          shape="round"
-                          status="primary"
-                          type="submit">
-                      {{strings.stepper.next}}
-                  </button>
+                </div>
               </div>
+            </nb-form-field>
+            <hr/>
+
+            <div *ngIf="thirdFormGroup" class="d-flex justify-content-start"
+                 style="padding-left: 35%;">
+              <button
+                data-orb-qa-id="back"
+                ghost
+                nbButton
+                nbStepperPrevious
+                status="primary">
+                {{strings.stepper.back}}
+              </button>
+              <button class="next-button"
+                      data-orb-qa-id="next"
+                      nbButton
+                      nbStepperNext
+                      shape="round"
+                      status="primary"
+                      type="submit">
+                {{strings.stepper.next}}
+              </button>
+            </div>
           </form>
         </nb-step>
         <nb-step [label]="fourthStepLabel"
@@ -285,63 +285,63 @@
                 <p data-orb-qa-id="review-description">{{firstFormGroup?.controls.description.value}}</p>
               </div>
             </div>
-              <div class="col-md-12 col-xl-6">
-                  <div>
-                      <label class="font-weight-bold">Sink Type</label>
-                      <p data-orb-qa-id="review-backend">{{firstFormGroup?.controls.backend.value}}</p>
-                  </div>
+            <div class="col-md-12 col-xl-6">
+              <div>
+                <label class="font-weight-bold">Sink Type</label>
+                <p data-orb-qa-id="review-backend">{{firstFormGroup?.controls.backend.value}}</p>
               </div>
+            </div>
           </div>
-            <hr/>
-            <div class="d-flex row mt-4">
-                <div *ngFor="let control of selectedSinkSetting" class="col-md-12 col-xl-6">
-                    <div>
-                        <label class="font-weight-bold">{{control.label}}</label>
-                        <p *ngIf="control.type != 'password'"
-                           [attr.data-orb-qa-id]="'review-' + control.prop">{{secondFormGroup.controls[control.prop].value}}</p>
-                        <p *ngIf="control.type == 'password'"
-                           [attr.data-orb-qa-id]="'review-' + control.prop">*******</p>
-                    </div>
-                </div>
+          <hr/>
+          <div class="d-flex row mt-4">
+            <div *ngFor="let control of selectedSinkSetting" class="col-md-12 col-xl-6">
+              <div>
+                <label class="font-weight-bold">{{control.label}}</label>
+                <p *ngIf="control.type != 'password'"
+                   [attr.data-orb-qa-id]="'review-' + control.prop">{{secondFormGroup.controls[control.prop].value}}</p>
+                <p *ngIf="control.type == 'password'"
+                   [attr.data-orb-qa-id]="'review-' + control.prop">*******</p>
+              </div>
             </div>
-            <hr/>
-            <div class="d-flex row">
-                <div class="col-12">
-                    <label class="font-weight-bold">Sink Tags</label>
-                    <mat-chip-list data-orb-qaid="review-tagList">
-                        <mat-chip
-                                *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i;"
-                                [attr.data-orb-qa-id]="'review-tag_' + i"
-                                [style.background-color]="tag | keyvalue | tagchip | tagchipcolor"
-                                class="orb-tag-sink ">
-                            {{tag | keyvalue | tagchip}}
-                        </mat-chip>
-                        <mat-chip *ngIf="thirdFormGroup.controls.tags.value.length === 0"
-                                  [attr.data-orb-qa-id]="'tag_none'"
-                                  [style.background-color]="'No Tag Added' | tagchipcolor"
-                                  class="orb-tag-sink">
-                            No Tag Added
-                        </mat-chip>
-                    </mat-chip-list>
-                </div>
+          </div>
+          <hr/>
+          <div class="d-flex row">
+            <div class="col-12">
+              <label class="font-weight-bold">Sink Tags</label>
+              <mat-chip-list data-orb-qaid="review-tagList">
+                <mat-chip
+                  *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i;"
+                  [attr.data-orb-qa-id]="'review-tag_' + i"
+                  [style.background-color]="tag | keyvalue | tagchip | tagchipcolor"
+                  class="orb-tag-sink ">
+                  {{tag | keyvalue | tagchip}}
+                </mat-chip>
+                <mat-chip *ngIf="thirdFormGroup.controls.tags.value.length === 0"
+                          [attr.data-orb-qa-id]="'tag_none'"
+                          [style.background-color]="'No Tag Added' | tagchipcolor"
+                          class="orb-tag-sink">
+                  No Tag Added
+                </mat-chip>
+              </mat-chip-list>
             </div>
-            <div *ngIf="thirdFormGroup" class="d-flex justify-content-end">
-                <button
-                        data-orb-qa-id="previous"
-                        ghost
-                        nbButton
-                        nbStepperPrevious
-                        status="primary">Back
-                </button>
-                <button (click)="onFormSubmit()"
-                        class="next-button"
-                        data-orb-qa-id="next"
-                        nbButton
-                        shape="round"
-                        status="primary"
-                        type="submit">Save
-                </button>
-            </div>
+          </div>
+          <div *ngIf="thirdFormGroup" class="d-flex justify-content-end">
+            <button
+              data-orb-qa-id="previous"
+              ghost
+              nbButton
+              nbStepperPrevious
+              status="primary">Back
+            </button>
+            <button (click)="onFormSubmit()"
+                    class="next-button"
+                    data-orb-qa-id="next"
+                    nbButton
+                    shape="round"
+                    status="primary"
+                    type="submit">Save
+            </button>
+          </div>
         </nb-step>
       </nb-stepper>
     </div>

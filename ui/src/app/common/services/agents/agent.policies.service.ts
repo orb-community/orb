@@ -1,12 +1,12 @@
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {Observable, of} from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import {environment} from 'environments/environment';
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
-import {AgentPolicy} from 'app/common/interfaces/orb/agent.policy.interface';
+import { environment } from 'environments/environment';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -217,35 +217,35 @@ export class AgentPoliciesService {
     // TODO remove this if and uncomment code above - this allows only for taps
     if (final === 'pktvisor/taps') {
       return this.http.get(`${environment.agentsBackendUrl}/${final}`)
-          .map((response: any) => {
-            return response.backend;
-          }).catch(
-              err => {
-                this.notificationsService.error('Failed to get Available Backends',
-                    `Error: ${err.status} - ${err.statusText}`);
-                return Observable.throwError(err);
-              },
-          );
+      .map((response: any) => {
+        return response.backend;
+      }).catch(
+        err => {
+          this.notificationsService.error('Failed to get Available Backends',
+            `Error: ${ err.status } - ${ err.statusText }`);
+          return Observable.throwError(err);
+        },
+      );
     }
 
     let resp;
     switch (final) {
-        // case 'pktvisor/taps':
-        //   resp = {
-        //     data: [
-        //       {
-        //         'name': 'ethernet',
-        //         'input_type': 'pcap',
-        //         'config_predefined': [
-        //           'iface',
-        //         ],
-        //         'agents': {
-        //           'total': 1,
-        //         },
-        //       },
-        //     ],
-        //   };
-        //   break;
+      // case 'pktvisor/taps':
+      //   resp = {
+      //     data: [
+      //       {
+      //         'name': 'ethernet',
+      //         'input_type': 'pcap',
+      //         'config_predefined': [
+      //           'iface',
+      //         ],
+      //         'agents': {
+      //           'total': 1,
+      //         },
+      //       },
+      //     ],
+      //   };
+      //   break;
       case 'pktvisor/inputs':
         resp = {
           data: {

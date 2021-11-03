@@ -22,7 +22,7 @@ export interface PolicyTap {
   /**
    * agents
    */
-  agents?: { total?: number };
+  agents?: {total?: number};
 
   /**
    * input type

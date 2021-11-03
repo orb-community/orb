@@ -1,12 +1,12 @@
-import {Component} from '@angular/core';
+import { Component } from '@angular/core';
 
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {AgentPolicy} from 'app/common/interfaces/orb/agent.policy.interface';
-import {DynamicFormConfig} from 'app/common/interfaces/orb/dynamic.form.interface';
-import {AgentPoliciesService} from 'app/common/services/agents/agent.policies.service';
-import {PolicyTap} from 'app/common/interfaces/orb/policy/policy.tap.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { DynamicFormConfig } from 'app/common/interfaces/orb/dynamic.form.interface';
+import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
+import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface';
 
 const CONFIG = {
   TAPS: 'TAPS',
@@ -106,17 +106,17 @@ export class AgentPolicyAddComponent {
 
   // #load controls
   isLoading = Object.entries(CONFIG)
-      .reduce((acc, [value]) => {
-        acc[value] = false;
-        return acc;
-      }, {});
+    .reduce((acc, [value]) => {
+      acc[value] = false;
+      return acc;
+    }, {});
 
   constructor(
-      private agentPoliciesService: AgentPoliciesService,
-      private notificationsService: NotificationsService,
-      private router: Router,
-      private route: ActivatedRoute,
-      private _formBuilder: FormBuilder,
+    private agentPoliciesService: AgentPoliciesService,
+    private notificationsService: NotificationsService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private _formBuilder: FormBuilder,
   ) {
     this.agentPolicy = this.router.getCurrentNavigation().extras.state?.agentPolicy as AgentPolicy || null;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
@@ -161,14 +161,14 @@ export class AgentPolicyAddComponent {
     this.detailsFG = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
-      backend: [{value: backend, disabled: backend !== ''}, [Validators.required]],
+      backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFG = this._formBuilder.group({
       'selected_tap': ['', Validators.required],
       'input_type': ['', Validators.required],
     });
 
-    this.handlerSelectorFG = this._formBuilder.group({'selected_handler': ['']});
+    this.handlerSelectorFG = this._formBuilder.group({ 'selected_handler': [''] });
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
 
     this.getBackendsList();
@@ -203,11 +203,11 @@ export class AgentPolicyAddComponent {
       .then(value => {
         if (this.isEdit && this.agentPolicy) {
           const selected_tap = this.agentPolicy.policy.input.tap;
-          this.tapFG.patchValue({selected_tap});
+          this.tapFG.patchValue({ selected_tap });
           this.tapFG.controls.selected_tap.disable();
           this.onTapSelected(selected_tap);
           this.handlers = Object.entries(this.agentPolicy.policy.handlers.modules)
-              .map(([key, handler]) => ({...handler, name: key, type: handler.config.type}));
+            .map(([key, handler]) => ({ ...handler, name: key, type: handler.config.type }));
         }
       }, reason => console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`))
       .catch(reason => {
@@ -270,45 +270,45 @@ export class AgentPolicyAddComponent {
     // TODO version here
     this.input = this.availableInputs[input_type]['1.0'];
 
-    this.tapFG.patchValue({input_type});
+    this.tapFG.patchValue({ input_type });
 
     // input type config model
-    const {config: inputConfig, filter: filterConfig} = this.input;
+    const { config: inputConfig, filter: filterConfig } = this.input;
     // if editing, some values might not be overrideable any longer, all should be prefilled in form
     const agentConfig = !!this.isEdit ? this.agentPolicy.policy?.input?.config : null;
     // tap config values, cannot be overridden if set
     const preConfig = this.tap.config_predefined;
 
     if (this.isEdit === false) {
-      this.agentPolicy.policy = {input: {config: {}}};
+      this.agentPolicy.policy = { input: { config: {} } };
     }
 
     // populate form controls for config
     const inputConfDynamicCtrl = Object.entries(inputConfig)
-        .reduce((acc, [key, input]) => {
-          const value = !!agentConfig?.[key] ? agentConfig[key] : '';
-          if (!preConfig.includes(key)) {
-            acc[key] = [
-              {value},
-              [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
-            ];
-          }
-          return acc;
-        }, {});
+      .reduce((acc, [key, input]) => {
+        const value = !!agentConfig?.[key] ? agentConfig[key] : '';
+        if (!preConfig.includes(key)) {
+          acc[key] = [
+            { value },
+            [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
+          ];
+        }
+        return acc;
+      }, {});
 
     this.inputConfigFG = Object.keys(inputConfDynamicCtrl).length > 0 ? this._formBuilder.group(inputConfDynamicCtrl) : null;
 
     const inputFilterDynamicCtrl = Object.entries(filterConfig)
-        .reduce((acc, [key, input]) => {
-          const value = !!agentConfig?.[key] ? agentConfig[key] : '';
-          const disabled = !!preConfig?.[key];
-          acc[key] = [
-            {value, disabled},
-            [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
-          ];
+      .reduce((acc, [key, input]) => {
+        const value = !!agentConfig?.[key] ? agentConfig[key] : '';
+        const disabled = !!preConfig?.[key];
+        acc[key] = [
+          { value, disabled },
+          [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
+        ];
 
-          return acc;
-        }, {});
+        return acc;
+      }, {});
 
     this.inputFilterFG = Object.keys(inputFilterDynamicCtrl).length > 0 ? this._formBuilder.group(inputFilterDynamicCtrl) : null;
 
@@ -339,9 +339,9 @@ export class AgentPolicyAddComponent {
     }
 
     this.liveHandler = selectedHandler !== '' && !!this.availableHandlers[selectedHandler] ?
-        {...this.availableHandlers[selectedHandler], type: selectedHandler} : null;
+      { ...this.availableHandlers[selectedHandler], type: selectedHandler } : null;
 
-    const {config} = !!this.liveHandler ? this.liveHandler : {config: {}};
+    const { config } = !!this.liveHandler ? this.liveHandler : { config: {} };
 
     const dynamicControls = Object.entries(config || {}).reduce((controls, [key, value]) => {
       controls[key] = ['', [Validators.required]];
@@ -356,10 +356,10 @@ export class AgentPolicyAddComponent {
 
     if (this.dynamicHandlerConfigFG !== null) {
       config = Object.entries(this.dynamicHandlerConfigFG.controls)
-          .reduce((acc, [key, control]) => {
-            acc[key] = control.value;
-            return acc;
-          }, {});
+        .reduce((acc, [key, control]) => {
+          acc[key] = control.value;
+          return acc;
+        }, {});
     }
 
     const handlerName = this.handlerSelectorFG.controls.label.value;
@@ -370,8 +370,8 @@ export class AgentPolicyAddComponent {
     });
 
     this.handlerSelectorFG.reset({
-      selected_handler: {value: '', disabled: false},
-      label: {value: '', disabled: false},
+      selected_handler: { value: '', disabled: false },
+      label: { value: '', disabled: false },
     });
     this.onHandlerSelected('');
   }
@@ -397,13 +397,13 @@ export class AgentPolicyAddComponent {
           tap: this.tapFG.controls.selected_tap.value,
           input_type: this.tapFG.controls.input_type.value,
           config: Object.keys(this.inputConfigFG.controls)
-              .map(key => ({[key]: this.inputConfigFG.controls[key].value}))
-              .reduce((acc, curr) => {
-                for (const [key, value] of Object.entries(curr)) {
-                  if (!!value && value !== '') acc[key] = value;
-                }
-                return acc;
-              }, {}),
+            .map(key => ({ [key]: this.inputConfigFG.controls[key].value }))
+            .reduce((acc, curr) => {
+              for (const [key, value] of Object.entries(curr)) {
+                if (!!value && value !== '') acc[key] = value;
+              }
+              return acc;
+            }, {}),
           // filter: Object.keys(this.inputFilterFG.controls)
           //   .map(key => ({ [key]: this.inputConfigFG.controls[key].value }))
           //   .reduce((acc, curr) => {

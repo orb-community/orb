@@ -1,12 +1,12 @@
-import {Component} from '@angular/core';
+import { Component } from '@angular/core';
 
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {SinksService} from 'app/common/services/sinks/sinks.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Sink} from 'app/common/interfaces/orb/sink.interface';
-import {STRINGS} from 'assets/text/strings';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {SinkConfig} from 'app/common/interfaces/orb/sink.config/sink.config.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { SinksService } from 'app/common/services/sinks/sinks.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { STRINGS } from 'assets/text/strings';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
 
 @Component({
   selector: 'ngx-sink-add-component',
