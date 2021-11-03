@@ -37,4 +37,5 @@ message OwnerByChannelIDReq {
 
 message OwnerRes {
   string ownerID = 1;
+  string agentName = 2;
 }

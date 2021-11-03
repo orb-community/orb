@@ -27,20 +27,22 @@ type AgentCommsService interface {
 	// Stop end communication with the message bus
 	Stop() error
 
-	// NotifyNewAgentGroupMembership RPC Core -> Agent: Notify Agent of new AgentGroup membership
-	NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error
-	// NotifyAgentGroupMembership RPC Core -> Agent: Notify Agent of all AgentGroup memberships
-	NotifyAgentGroupMembership(a Agent) error
+	// NotifyAgentNewGroupMembership RPC Core -> Agent: Notify a specific Agent of new AgentGroup membership it now belongs to
+	NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error
+	// NotifyAgentGroupMemberships RPC Core -> Agent: Notify a specific Agent of all AgentGroup memberships it belongs to
+	NotifyAgentGroupMemberships(a Agent) error
 	// NotifyAgentAllDatasets RPC Core -> Agent: Notify Agent of all Policy it should currently run based on group membership and current Datasets
 	NotifyAgentAllDatasets(a Agent) error
 	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
 	NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
-	// NotifyGroupRemoval unsubscribe the agent membership when delete a agent group
+	// NotifyGroupRemoval RPC core -> Agent: Notify AgentGroup that the group has been removed
 	NotifyGroupRemoval(ag AgentGroup) error
-	// NotifyPolicyRemoval stop agent policy utilization after Policy removal
-	NotifyPolicyRemoval(policyID string, ag AgentGroup) error
-	// NofityDatasetRemoval usubscribe the agent membership when delete a dataset
-	NofityDatasetRemoval(ag AgentGroup, dsID string) error
+	// NotifyGroupPolicyRemoval RPC core -> Agent: Notify AgentGroup that a Policy has been removed
+	NotifyGroupPolicyRemoval(ag AgentGroup, policyID string) error
+	// NotifyGroupDatasetRemoval RPC core -> Agent: Notify AgentGroup that a Dataset has been removed
+	NotifyGroupDatasetRemoval(ag AgentGroup, dsID string) error
+	// NotifyGroupPolicyUpdate RPC core -> Agent: Notify AgentGroup that a Policy has been updated
+	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -107,7 +109,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 	return nil
 }
 
-func (svc fleetCommsService) NotifyNewAgentGroupMembership(a Agent, ag AgentGroup) error {
+func (svc fleetCommsService) NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error {
 	payload := GroupMembershipRPCPayload{
 		Groups:   []GroupMembershipData{{Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
 		FullList: false,
@@ -215,7 +217,7 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 	return nil
 }
 
-func (svc fleetCommsService) NotifyAgentGroupMembership(a Agent) error {
+func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 
 	list, err := svc.agentGroupRepo.RetrieveAllByAgent(context.Background(), a)
 	if err != nil {
@@ -268,7 +270,7 @@ func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
 
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
-		Func:          GroupMembershipRPCFunc,
+		Func:          GroupRemovedRPCFunc,
 		Payload:       payload,
 	}
 
@@ -290,7 +292,52 @@ func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
 	return nil
 }
 
-func (svc fleetCommsService) NotifyPolicyRemoval(policyID string, ag AgentGroup) error {
+func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error {
+	p, err := svc.policyClient.RetrievePolicy(ctx, &pb.PolicyByIDReq{PolicyID: policyID, OwnerID: ownerID})
+	if err != nil {
+		return err
+	}
+
+	var pdata interface{}
+	if err := json.Unmarshal(p.Data, &pdata); err != nil {
+		return err
+	}
+
+	payload := []AgentPolicyRPCPayload{{
+		Action:  "manage",
+		ID:      policyID,
+		Name:    p.Name,
+		Backend: p.Backend,
+		Version: p.Version,
+		Data:    pdata,
+	}}
+
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentPolicyRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   ag.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID string) error {
 
 	payload := AgentPolicyRPCPayload{
 		Action: "remove",
@@ -321,7 +368,7 @@ func (svc fleetCommsService) NotifyPolicyRemoval(policyID string, ag AgentGroup)
 	return nil
 }
 
-func (svc fleetCommsService) NofityDatasetRemoval(ag AgentGroup, dsID string) error {
+func (svc fleetCommsService) NotifyGroupDatasetRemoval(ag AgentGroup, dsID string) error {
 
 	payload := DatasetRemovedRPCPayload{
 		DatasetID: dsID,
@@ -434,7 +481,7 @@ func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, p
 	// dispatch
 	switch rpc.Func {
 	case GroupMembershipReqRPCFunc:
-		if err := svc.NotifyAgentGroupMembership(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
+		if err := svc.NotifyAgentGroupMemberships(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
 			svc.logger.Error("notify group membership failure", zap.Error(err))
 			return nil
 		}

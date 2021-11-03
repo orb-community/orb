@@ -74,7 +74,7 @@ func (a *orbAgent) startBackends() error {
 			return errors.New("specified backend does not exist: " + name)
 		}
 		be := backend.GetBackend(name)
-		if err := be.Configure(a.logger, config); err != nil {
+		if err := be.Configure(a.logger, a.policyManager.GetRepo(), config); err != nil {
 			return err
 		}
 		if err := be.Start(); err != nil {

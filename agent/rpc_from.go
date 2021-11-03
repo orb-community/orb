@@ -6,7 +6,6 @@ package agent
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
@@ -63,6 +62,13 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 			return
 		}
 		a.handleAgentPolicies(r.Payload)
+	case fleet.GroupRemovedRPCFunc:
+		var r fleet.GroupRemovedRPC
+		if err := json.Unmarshal(message.Payload(), &r); err != nil {
+			a.logger.Error("error decoding agent group removal message from core", zap.Error(fleet.ErrSchemaMalformed))
+			return
+		}
+		a.handleAgentGroupRemoval(r.Payload)
 	default:
 		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
 			zap.String("func", rpc.Func),

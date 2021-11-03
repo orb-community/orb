@@ -62,9 +62,11 @@ func (a *orbAgent) unsubscribeGroupChannels() {
 func (a *orbAgent) unsubscribeGroupChannel(channelID string) {
 	base := fmt.Sprintf("channels/%s/messages", channelID)
 	rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
-	if token := a.client.Unsubscribe(rpcFromCoreTopic); token.Wait() && token.Error() != nil {
-		a.logger.Warn("failed to unsubscribe to group channel", zap.String("topic", channelID), zap.Error(token.Error()))
+	if token := a.client.Unsubscribe(channelID); token.Wait() && token.Error() != nil {
+		a.logger.Warn("failed to unsubscribe to group channel", zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+		return
 	}
+	a.logger.Info("completed RPC unsubscription to group", zap.String("topic", rpcFromCoreTopic))
 }
 
 func (a *orbAgent) startComms(config config.MQTTConfig) error {
@@ -79,7 +81,7 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 	a.nameAgentRPCTopics(config.ChannelID)
 
 	for name, be := range a.backends {
-		be.SetCommsClient(a.client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
+		be.SetCommsClient(config.Id, a.client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
 	}
 
 	if token := a.client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {

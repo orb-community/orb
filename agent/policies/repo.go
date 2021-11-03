@@ -15,19 +15,32 @@ type PolicyRepo interface {
 	Remove(policyID string) error
 	Update(data PolicyData) error
 	GetAll() ([]PolicyData, error)
+	GetByName(policyName string) (PolicyData, error)
 	EnsureDataset(policyID string, datasetID string) error
 }
 
 type policyMemRepo struct {
 	logger *zap.Logger
 
-	db map[string]PolicyData
+	db      map[string]PolicyData
+	nameMap map[string]string
+}
+
+var _ PolicyRepo = (*policyMemRepo)(nil)
+
+func (p policyMemRepo) GetByName(policyName string) (PolicyData, error) {
+	if id, ok := p.nameMap[policyName]; ok {
+		return p.Get(id)
+	} else {
+		return PolicyData{}, errors.New("policy name not found")
+	}
 }
 
 func NewMemRepo(logger *zap.Logger) (PolicyRepo, error) {
 	r := &policyMemRepo{
-		logger: logger,
-		db:     make(map[string]PolicyData),
+		logger:  logger,
+		db:      make(map[string]PolicyData),
+		nameMap: make(map[string]string),
 	}
 	return r, nil
 }
@@ -55,12 +68,23 @@ func (p policyMemRepo) Get(policyID string) (PolicyData, error) {
 }
 
 func (p policyMemRepo) Remove(policyID string) error {
+	v, err := p.Get(policyID)
+	if err != nil {
+		return err
+	}
+	delete(p.nameMap, v.Name)
 	delete(p.db, policyID)
 	return nil
 }
 
 func (p policyMemRepo) Update(data PolicyData) error {
+	policy, ok := p.db[data.ID]
+	if ok {
+		// existed, clear old map
+		delete(p.nameMap, policy.Name)
+	}
 	p.db[data.ID] = data
+	p.nameMap[data.Name] = data.ID
 	return nil
 }
 

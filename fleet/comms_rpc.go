@@ -99,9 +99,10 @@ type AgentMetricsRPC struct {
 }
 
 type AgentMetricsRPCPayload struct {
-	PolicyID  string   `json:"policy_id"`
-	Datasets  []string `json:"datasets"`
-	Format    string   `json:"format"`
-	BEVersion string   `json:"be_version"`
-	Data      []byte   `json:"data"`
+	PolicyID   string   `json:"policy_id"`
+	PolicyName string   `json:"policy_name"`
+	Datasets   []string `json:"datasets"`
+	Format     string   `json:"format"`
+	BEVersion  string   `json:"be_version"`
+	Data       []byte   `json:"data"`
 }

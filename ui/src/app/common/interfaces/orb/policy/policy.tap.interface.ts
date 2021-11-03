@@ -38,6 +38,6 @@ export interface PolicyTap {
    * array with configs fields that are predefined,
    * without their predefined value
    */
-  config_predefined?: string[];
+  config_predefined?: { [propName: string]: string | number | boolean | any };
 }
 

@@ -20,6 +20,10 @@ trap 'rm -f "$tmpfile"' EXIT
 
 # simplest: specify just interface, creates tap named "default_pcap"
 # PKTVISOR_PCAP_IFACE_DEFAULT=en0
+# special case: if the iface is "mock", then use "mock" pcap source
+if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = 'mock' ]; then
+  MAYBE_MOCK='pcap_source: mock'
+fi
 if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" ]]; then
 (
 cat <<END
@@ -31,6 +35,7 @@ visor:
       input_type: pcap
       config:
         iface: "$PKTVISOR_PCAP_IFACE_DEFAULT"
+        $MAYBE_MOCK
 END
 ) >"$tmpfile"
 
@@ -41,4 +46,8 @@ fi
 # TODO allow multiple, split on comma
 # PKTVISOR_PCAP_IFACE_TAPS=default_pcap:en0
 
-exec "$orb_agent_bin" "$@"
+if [ $# -eq 0 ]; then
+  exec "$orb_agent_bin" run
+else
+  exec "$orb_agent_bin" "$@"
+fi
