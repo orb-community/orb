@@ -341,7 +341,7 @@ export class AgentPolicyAddComponent {
     this.liveHandler = selectedHandler !== '' && !!this.availableHandlers[selectedHandler] ?
       { ...this.availableHandlers[selectedHandler], type: selectedHandler } : null;
 
-    const { config} = !!this.liveHandler ? this.liveHandler : { config: {}, filter: {} };
+    const { config } = !!this.liveHandler ? this.liveHandler : { config: {} };
 
     const dynamicControls = Object.entries(config || {}).reduce((controls, [key, value]) => {
       controls[key] = ['', [Validators.required]];
