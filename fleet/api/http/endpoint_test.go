@@ -1329,7 +1329,7 @@ func TestAgentBackendHandler(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/backends/%s/handlers", cli.server.URL, tc.backend),
+				url:    fmt.Sprintf("%s/agents/backends/%s/handlers", cli.server.URL, tc.backend),
 				token:  tc.auth,
 			}
 			res, err := req.make()
@@ -1370,7 +1370,7 @@ func TestAgentBackendInput(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/backends/%s/inputs", cli.server.URL, tc.backend),
+				url:    fmt.Sprintf("%s/agents/backends/%s/inputs", cli.server.URL, tc.backend),
 				token:  tc.auth,
 			}
 			res, err := req.make()
@@ -1411,7 +1411,7 @@ func TestAgentBackendTaps(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/backends/%s/taps", cli.server.URL, tc.backend),
+				url:    fmt.Sprintf("%s/agents/backends/%s/taps", cli.server.URL, tc.backend),
 				token:  tc.token,
 			}
 			res, err := req.make()

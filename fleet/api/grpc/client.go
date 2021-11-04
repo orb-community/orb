@@ -74,7 +74,7 @@ func (g grpcClient) RetrieveOwnerByChannelID(ctx context.Context, in *pb.OwnerBy
 	}
 
 	ir := res.(ownerRes)
-	return &pb.OwnerRes{OwnerID: ir.ownerID}, nil
+	return &pb.OwnerRes{OwnerID: ir.ownerID, AgentName: ir.agentName}, nil
 }
 
 // NewClient returns new gRPC client instance.
@@ -154,6 +154,7 @@ func encodeRetrieveOwnerByChannelIDRequest(ctx context.Context, grpcReq interfac
 func decodeOwnerResponse(ctx context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*pb.OwnerRes)
 	return ownerRes{
-		ownerID: res.GetOwnerID(),
+		ownerID:   res.GetOwnerID(),
+		agentName: res.GetAgentName(),
 	}, nil
 }

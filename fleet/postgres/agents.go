@@ -418,8 +418,8 @@ func (r agentRepository) RetrieveAgentMetadataByOwner(ctx context.Context, owner
 	return items, nil
 }
 
-func (r agentRepository) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (string, error) {
-	q := `select mf_owner_id from agents where mf_channel_id = :mf_channel_id group by mf_owner_id`
+func (r agentRepository) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {
+	q := `select mf_owner_id, name from agents where mf_channel_id = :mf_channel_id limit 1`
 
 	params := map[string]interface{}{
 		"mf_channel_id": channelID,
@@ -427,16 +427,17 @@ func (r agentRepository) RetrieveOwnerByChannelID(ctx context.Context, channelID
 
 	rows, err := r.db.NamedQueryContext(ctx, q, params)
 	if err != nil {
-		return "", err
+		return fleet.Agent{}, err
 	}
+	defer rows.Close()
 
 	var ownerScan = dbAgent{}
 	if rows.Next() {
 		if err := rows.StructScan(&ownerScan); err != nil {
-			return "", errors.Wrap(errors.ErrSelectEntity, err)
+			return fleet.Agent{}, errors.Wrap(errors.ErrSelectEntity, err)
 		}
 	}
-	return ownerScan.MFOwnerID, nil
+	return toAgent(ownerScan)
 }
 
 type dbAgent struct {
@@ -546,7 +547,7 @@ func getOrbOrAgentTagsQuery(m types.Tags) ([]byte, string, error) {
 	mq := ""
 	mb := []byte("{}")
 	if len(m) > 0 {
-		mq = ` AND (agent_tags @> :tags OR orb_tags @> :tags)`
+		mq = ` AND (agent_tags @> :tags OR orb_tags @> :tags OR agent_tags <@ :tags OR orb_tags <@ :tags)`
 
 		b, err := json.Marshal(m)
 		if err != nil {

@@ -47,7 +47,7 @@ define make_docker_dev
 		-f docker/Dockerfile.dev ./build
 endef
 
-all: $(SERVICES)
+all: platform
 
 .PHONY: all $(SERVICES) dockers dockers_dev ui services agent agent_bin
 
@@ -98,4 +98,4 @@ agent:
 ui:
 	cd ui/ && docker build --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(REF_TAG) -f docker/Dockerfile .
 
-
+platform: dockers_dev docker_sinker agent ui

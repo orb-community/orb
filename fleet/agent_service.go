@@ -130,7 +130,7 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 		return Agent{}, err
 	}
 
-	err = svc.agentComms.NotifyAgentGroupMembership(res)
+	err = svc.agentComms.NotifyAgentGroupMemberships(res)
 	if err != nil {
 		svc.logger.Error("failure during agent group membership comms", zap.Error(err))
 	}
@@ -195,10 +195,10 @@ func (svc fleetService) ViewAgentBackend(ctx context.Context, token string, name
 	return nil, errors.ErrNotFound
 }
 
-func (svc fleetService) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (string, error) {
+func (svc fleetService) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (Agent, error) {
 	res, err := svc.agentRepo.RetrieveOwnerByChannelID(ctx, channelID)
 	if err != nil {
-		return "", err
+		return Agent{}, err
 	}
 	return res, nil
 }

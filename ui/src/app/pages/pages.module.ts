@@ -10,7 +10,7 @@ import {
   NbMenuModule,
   NbSelectModule,
   NbStepperModule,
-  NbTabsetModule,
+  NbTabsetModule, NbTooltipModule,
   NbWindowService,
 } from '@nebular/theme';
 import { ThemeModule } from '../@theme/theme.module';
@@ -84,6 +84,7 @@ import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.deta
     NbFormFieldModule,
     NgxDatatableModule,
     DebounceModule,
+    NbTooltipModule,
   ],
   exports: [
     SharedModule,

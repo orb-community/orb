@@ -18,7 +18,7 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
-func (l loggingMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (_ string, err error) {
+func (l loggingMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (_ fleet.Agent, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: view_owner_by_channel_id",

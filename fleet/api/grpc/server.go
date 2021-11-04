@@ -102,7 +102,8 @@ func decodeRetrieveOwnerByChannelIDRequest(_ context.Context, grpcReq interface{
 func encodeOwnerResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(ownerRes)
 	return &pb.OwnerRes{
-		OwnerID: res.ownerID,
+		OwnerID:   res.ownerID,
+		AgentName: res.agentName,
 	}, nil
 }
 

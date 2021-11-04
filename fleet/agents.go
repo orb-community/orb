@@ -88,7 +88,7 @@ type AgentService interface {
 	// ViewAgentBackend retrieves a Backend by provided backend name
 	ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error)
 	//ViewOwnerByChannelIDInternal return a correspondent ownerID by a provided channel id
-	ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (string, error)
+	ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (Agent, error)
 }
 
 type AgentRepository interface {
@@ -116,7 +116,7 @@ type AgentRepository interface {
 	// RetrieveAgentMetadataByOwner retrieves the Metadata having the OwnerID
 	RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error)
 	// RetrieveOwnerByChannelID retrieves a ownerID by a provided channelID
-	RetrieveOwnerByChannelID(ctx context.Context, channelID string) (string, error)
+	RetrieveOwnerByChannelID(ctx context.Context, channelID string) (Agent, error)
 }
 
 type AgentHeartbeatRepository interface {

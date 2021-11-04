@@ -81,8 +81,8 @@ func (es eventStore) Subscribe(context context.Context) error {
 	}
 }
 
-func decodeAgentGroupRemove(event map[string]interface{}) removeDatasetEvent {
-	return removeDatasetEvent{
+func decodeAgentGroupRemove(event map[string]interface{}) removeAgentGroupEvent {
+	return removeAgentGroupEvent{
 		groupID: read(event, "group_id", ""),
 		token:   read(event, "token", ""),
 	}
