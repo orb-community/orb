@@ -40,7 +40,7 @@ type AgentCommsService interface {
 	// NotifyGroupPolicyRemoval RPC core -> Agent: Notify AgentGroup that a Policy has been removed
 	NotifyGroupPolicyRemoval(ag AgentGroup, policyID string) error
 	// NotifyGroupDatasetRemoval RPC core -> Agent: Notify AgentGroup that a Dataset has been removed
-	NotifyGroupDatasetRemoval(ag AgentGroup, dsID string) error
+	NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error
 	// NotifyGroupPolicyUpdate RPC core -> Agent: Notify AgentGroup that a Policy has been updated
 	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 }
@@ -368,11 +368,12 @@ func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID st
 	return nil
 }
 
-func (svc fleetCommsService) NotifyGroupDatasetRemoval(ag AgentGroup, dsID string) error {
+func (svc fleetCommsService) NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error {
 
 	payload := DatasetRemovedRPCPayload{
 		DatasetID: dsID,
 		ChannelID: ag.MFChannelID,
+		PolicyID:  policyID,
 	}
 
 	data := RPC{

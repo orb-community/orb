@@ -28,6 +28,7 @@ type removeDatasetEvent struct {
 	ownerID      string
 	agentGroupID string
 	datasetID    string
+	policyID     string
 	timestamp    time.Time
 }
 

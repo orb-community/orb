@@ -42,7 +42,7 @@ func (e eventStore) ViewDatasetByIDInternal(ctx context.Context, ownerID string,
 
 func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string) (err error) {
 	ds, err := e.svc.ViewDatasetByID(ctx, token, dsID)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -54,6 +54,7 @@ func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string
 		id:           dsID,
 		ownerID:      ds.MFOwnerID,
 		agentGroupID: ds.AgentGroupID,
+		policyID:     ds.PolicyID,
 		datasetID:    ds.ID,
 	}
 	record := &redis.XAddArgs{

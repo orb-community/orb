@@ -82,7 +82,7 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 }
 
 func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {
-	a.unsubscribeGroupChannel(rpc.ChannelID)
+	a.removeDatasetFromPolicy(rpc.DatasetID, rpc.PolicyID)
 }
 
 func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {

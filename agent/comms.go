@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/agent/config"
+	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"time"
@@ -67,6 +68,28 @@ func (a *orbAgent) unsubscribeGroupChannel(channelID string) {
 		return
 	}
 	a.logger.Info("completed RPC unsubscription to group", zap.String("topic", rpcFromCoreTopic))
+}
+
+func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
+	for _, be := range a.backends {
+		pd, err := a.policyManager.GetRepo().Get(policyID)
+		if err != nil {
+			a.logger.Warn("failed to retrieve policy data", zap.Error(err))
+		}
+		if ok := pd.Datasets[datasetID]; ok {
+			pd.Datasets[datasetID] = false
+			err := be.ApplyPolicy(pd)
+			if err != nil {
+				a.logger.Warn("policy failed to apply", zap.String("policy_id", policyID), zap.Error(err))
+				pd.State = policies.FailedToApply
+				pd.BackendErr = err.Error()
+			} else {
+				a.logger.Info("policy applied successfully", zap.String("policy_id", policyID))
+				pd.State = policies.Running
+				pd.BackendErr = ""
+			}
+		}
+	}
 }
 
 func (a *orbAgent) startComms(config config.MQTTConfig) error {

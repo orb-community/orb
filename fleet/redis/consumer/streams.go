@@ -134,6 +134,7 @@ func decodeDatasetRemove(event map[string]interface{}) removeDatasetEvent {
 		ownerID:      read(event, "owner_id", ""),
 		agentGroupID: read(event, "group_id", ""),
 		datasetID:    read(event, "dataset_id", ""),
+		policyID:     read(event, "policy_id", ""),
 	}
 }
 
@@ -143,7 +144,7 @@ func (es eventStore) handleDatasetRemove(ctx context.Context, e removeDatasetEve
 		return err
 	}
 
-	return es.commsService.NotifyGroupDatasetRemoval(ag, e.datasetID)
+	return es.commsService.NotifyGroupDatasetRemoval(ag, e.datasetID, e.policyID)
 }
 
 func decodePolicyUpdate(event map[string]interface{}) (updatePolicyEvent, error) {
