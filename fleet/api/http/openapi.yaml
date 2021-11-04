@@ -250,6 +250,104 @@ paths:
           description: Missing or invalid content type.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /agents/backends:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List of Agent backends'
+      operationId: listAgentsBackends
+      tags:
+        - agents
+      responses:
+        '200':
+          $ref: "#/components/responses/AgentBackendsObjRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /agents/backends/{backend}/:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/BackendName"
+    get:
+      summary: 'Custom endpoints per backends'
+      operationId: customBackends
+      tags:
+        - agents
+      responses:
+        '200':
+          description: 'Custom response per backend'
+          content:
+            application/json: {}
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /agents/backends/pktvisor/taps:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List of Taps available from current agents'
+      operationId: listTaps
+      tags:
+        - agents
+      responses:
+        '200':
+          $ref: "#/components/responses/pktvisorTapsObjRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /agents/backends/pktvisor/inputs:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List of Inputs available across current agents'
+      operationId: listInputs
+      tags:
+        - agents
+      responses:
+        '200':
+          $ref: "#/components/responses/pktvisorInputsObjRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /agents/backends/pktvisor/handlers:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List of Handlers available across current agents'
+      operationId: listHandlers
+      tags:
+        - agents
+      responses:
+        '200':
+          $ref: "#/components/responses/pktvisorHandlersObjRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
   requestBodies:
     AgentGroupCreateReq:
@@ -353,6 +451,13 @@ components:
         type: string
         format: uuid
       required: true
+    BackendName:
+      name: backend
+      description: custom backend name.
+      in: path
+      schema:
+        type: string
+      required: true
   responses:
     AgentGroupObjRes:
       description: Agent Group object
@@ -384,6 +489,30 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AgentPageSchema"
+    AgentBackendsObjRes:
+      description: List of Agent backends object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentBackendsObjSchema"
+    pktvisorTapsObjRes:
+      description: list of Taps available from current agents
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PktvisorTapsObjSchema"
+    pktvisorInputsObjRes:
+      description: list of Taps available from current agents
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PktvisorInputsObjSchema"
+    pktvisorHandlersObjRes:
+      description: list of Handlers available across current agents
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PktvisorhandlersObjSchema"
     ServiceErrorRes:
       description: Unexpected server-side error occurred.
       content:
@@ -620,3 +749,54 @@ components:
           example:
             region: eu
             node_type: dns
+    AgentBackendsObjSchema:
+      type: array
+      items:
+        type: object
+        properties:
+          backend:
+            type: string
+            description: avaliable backend name
+            example: pktvisor
+          description:
+            type: string
+            description: Description of this backend
+            example: pktvisor observability agent from pktvisor.dev
+    PktvisorTapsObjSchema:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: avaliable tap name
+            example: anycast_dns
+          input_type:
+            type: string
+            example: pcap
+          config_predefined:
+            type: array
+            items:
+              type: string
+              example: iface
+          agents:
+            type: object
+            properties:
+              total:
+                type: integer
+    PktvisorInputsObjSchema:
+      type: object
+      properties:
+        additionalProperties:
+          type: object
+          properties:
+            version:
+              type: integer
+    PktvisorhandlersObjSchema:
+      type: object
+      properties:
+        additionalProperties:
+          type: object
+          properties:
+            version:
+              type: integer
