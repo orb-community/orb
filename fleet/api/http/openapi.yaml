@@ -502,7 +502,7 @@ components:
           schema:
             $ref: "#/components/schemas/PktvisorTapsObjSchema"
     pktvisorInputsObjRes:
-      description: list of Taps available from current agents
+      description: list of Inputs available from current agents
       content:
         application/json:
           schema:
@@ -512,7 +512,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/PktvisorhandlersObjSchema"
+            $ref: "#/components/schemas/PktvisorHandlersObjSchema"
     ServiceErrorRes:
       description: Unexpected server-side error occurred.
       content:
@@ -785,14 +785,49 @@ components:
               total:
                 type: integer
     PktvisorInputsObjSchema:
+      required:
+        - iface
       type: object
       properties:
-        additionalProperties:
+        pcap:
           type: object
+          description: input type
           properties:
-            version:
-              type: integer
-    PktvisorhandlersObjSchema:
+            filter:
+              type: object
+              properties:
+                bpf:
+                  type: string
+                  description: tcpdump compatible filter expression for limiting the traffic examined (with BPF)
+            config:
+              type: object
+              properties:
+                iface:
+                  type: string
+                  description: The network interface to capture traffic from
+                  example: eth0
+            host_spec:
+              type: string
+              description: Subnets (comma separated) which should be considered belonging to this host, in CIDR form. Used for ingress/egress determination, defaults to host attached to the network interface
+              example: 10.0.1.0/24,10.0.2.1/32,2001:db8::/64
+            pcap_source:
+              type: string
+              description: Packet capture engine to use. Defaults to best for platform
+              example: libpcap
+          additionalProperties:
+            type: string
+            description: Input version
+      example:
+        pcap:
+          "1.0":
+            filter:
+              bpf: udp port 53 and host 127.0.0.1
+            config:
+              iface: eth0
+            host_spec: 10.0.1.0/24,10.0.2.1/32,2001:db8::/64
+            pcap_source: libpcap
+
+    PktvisorHandlersObjSchema:
       type: object
       properties:
         additionalProperties:
