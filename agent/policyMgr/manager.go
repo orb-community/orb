@@ -97,12 +97,16 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 		a.repo.Update(pd)
 		return
 	case "remove":
+		var pd = policies.PolicyData{
+			ID:   payload.ID,
+			Name: payload.Name,
+		}
 		if !backend.HaveBackend(payload.Backend) {
 			a.logger.Warn("policy remove for a backend we do not have, ignoring", zap.String("policy_id", payload.ID))
 			return
 		}
 		be := backend.GetBackend(payload.Backend)
-		err := be.RemovePolicy(payload.ID)
+		err := be.RemovePolicy(pd)
 		if err != nil {
 			a.logger.Warn("policy failed to remove", zap.String("policy_id", payload.ID), zap.Error(err))
 		}
@@ -114,12 +118,18 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 }
 
 func (a *policyManager) RemovePolicyDataset(policyID string, datasetID string, be backend.Backend) {
+	policyData, err := a.repo.Get(policyID)
+	if err != nil {
+		a.logger.Warn("failed to retrieve policy data", zap.String("policy_id", policyID), zap.Error(err))
+		return
+	}
 	removePolicy, err := a.repo.RemoveDataset(policyID, datasetID)
 	if err != nil {
 		a.logger.Warn("failed to remove policy dataset", zap.String("dataset_id", datasetID), zap.Error(err))
+		return
 	}
 	if removePolicy {
-		err := be.RemovePolicy(policyID)
+		err := be.RemovePolicy(policyData)
 		if err != nil {
 			a.logger.Warn("policy failed to remove", zap.String("policy_id", policyID), zap.Error(err))
 		}
