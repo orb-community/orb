@@ -85,6 +85,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeList,
 		types.EncodeResponse,
 		opts...))
+	r.Get("/backends/agents", kithttp.NewServer(
+		kitot.TraceServer(tracer, "list_backends")(listAgentBackendsEndpoint(svc)),
+		decodeListBackends,
+		types.EncodeResponse,
+		opts...))
 	r.Get("/agents/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "edit_agent")(viewAgentEndpoint(svc)),
 		decodeView,
@@ -103,11 +108,6 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 	r.Delete("/agents/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "delete_agent")(removeAgentEndpoint(svc)),
 		decodeView,
-		types.EncodeResponse,
-		opts...))
-	r.Get("/backends/agents", kithttp.NewServer(
-		kitot.TraceServer(tracer, "list_backends")(listAgentBackendsEndpoint(svc)),
-		decodeListBackends,
 		types.EncodeResponse,
 		opts...))
 

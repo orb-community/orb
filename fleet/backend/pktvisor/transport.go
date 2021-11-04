@@ -12,17 +12,17 @@ import (
 
 func MakePktvisorHandler(tracer opentracing.Tracer, pkt pktvisorBackend, opts []kithttp.ServerOption, r *bone.Mux) {
 
-	r.Get("/backends/pktvisor/handlers", kithttp.NewServer(
+	r.Get("/agents/backends/pktvisor/handlers", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_agent_backend_handler")(viewAgentBackendHandlerEndpoint(pkt)),
 		decodeBackendView,
 		types.EncodeResponse,
 		opts...))
-	r.Get("/backends/pktvisor/inputs", kithttp.NewServer(
+	r.Get("/agents/backends/pktvisor/inputs", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_agent_backend_input")(viewAgentBackendInputEndpoint(pkt)),
 		decodeBackendView,
 		types.EncodeResponse,
 		opts...))
-	r.Get("/backends/pktvisor/taps", kithttp.NewServer(
+	r.Get("/agents/backends/pktvisor/taps", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_agent_backend_taps")(viewAgentBackendTapsEndpoint(pkt)),
 		decodeBackendView,
 		types.EncodeResponse,
