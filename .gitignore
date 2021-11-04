@@ -18,6 +18,6 @@ ui/e2e/*
 orb-agent.db
 
 # /orb_tests - UI Test Dependencies
-orb_tests/node_modules/
-orb_tests/tests_output/
+**node_modules
+**tests_output
 orb_tests/chromedriver.log
