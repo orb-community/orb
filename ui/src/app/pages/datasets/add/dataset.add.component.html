@@ -170,9 +170,9 @@
                 <mat-chip
                   *ngFor="let sink of selectedSinks; index as i"
                   [attr.data-orb-qa-id]="'sink_' + i"
-                  [style.background-color]="sink | tagchipcolor"
+                  [style.background-color]="sink.id | tagchipcolor"
                   class="orb-selected-sink ">
-                  {{ sink.id |slice:0:8 }}: {{sink.name}}
+                  {{sink.name}}
                   <nb-icon (click)="onRemoveSink(sink)"
                            class="ml-1"
                            icon="close-outline"
