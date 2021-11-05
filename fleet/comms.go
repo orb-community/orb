@@ -372,7 +372,6 @@ func (svc fleetCommsService) NotifyGroupDatasetRemoval(ag AgentGroup, dsID strin
 
 	payload := DatasetRemovedRPCPayload{
 		DatasetID: dsID,
-		ChannelID: ag.MFChannelID,
 		PolicyID:  policyID,
 	}
 

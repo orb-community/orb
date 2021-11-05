@@ -99,7 +99,7 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 			return errors.New(fmt.Sprintf("non 200 HTTP error code from pktvisord, no or invalid body: %d", res.StatusCode))
 		}
 		if len(body) == 0 {
-			return errors.New(fmt.Sprintf("%d %s", res.StatusCode, body))
+			return errors.New(fmt.Sprintf("%d empty body", res.StatusCode))
 		} else if body[0] == '{' {
 			var jsonBody map[string]interface{}
 			err := json.Unmarshal(body, &jsonBody)
