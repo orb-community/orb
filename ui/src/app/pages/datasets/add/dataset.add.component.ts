@@ -99,9 +99,16 @@ export class DatasetAddComponent {
   }
 
   getDatasetAvailableConfigList() {
-    this.getAvailableAgentGroups();
-    this.getAvailableAgentPolicies();
-    this.getAvailableSinks();
+    Promise.all([this.getAvailableAgentGroups(), this.getAvailableAgentPolicies(), this.getAvailableSinks()]).then(value => {
+        if (this.isEdit && this.dataset) {
+
+        }
+      }, reason => console.warn(`Cannot retrieve available configurations - reason: ${ JSON.parse(reason) }`))
+      .catch(reason => {
+        console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`);
+      });
+
+
   }
 
   updateForm() {
@@ -116,58 +123,70 @@ export class DatasetAddComponent {
     } as Dataset;
 
     this.selectedSinks = sink_ids.map<{ id: string, name: string }>((id) => {
-      return { id, name: '' };
+      return { id, name: this.availableSinks.find(sink => sink.id === id).name || '' };
     });
 
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
     });
     this.agentFormGroup = this._formBuilder.group({
-      agent_group_id: [agent_group_id, [Validators.required]],
+      agent_group_id: [agent_group_id, [Validators.required, Validators.minLength(1)]],
     });
     this.policyFormGroup = this._formBuilder.group({
-      agent_policy_id: [agent_policy_id, [Validators.required]],
+      agent_policy_id: [agent_policy_id, [Validators.required, Validators.minLength(1)]],
     });
     this.sinkFormGroup = this._formBuilder.group({
-      selected_sink: ['', [Validators.required]],
+      selected_sink: ['', [Validators.minLength(1)]],
     });
   }
 
   getAvailableAgentGroups() {
-    this.isLoading[CONFIG.GROUPS] = true;
-    const pageInfo = { ...AgentGroupsService.getDefaultPagination(), limit: 100 };
-    this.agentGroupsService
-      .getAgentGroups(pageInfo, false)
-      .subscribe((resp: OrbPagination<AgentGroup>) => {
-        this.availableAgentGroups = resp.data;
-        this.isLoading[CONFIG.GROUPS] = false;
-      });
+    return new Promise((resolve) => {
+      this.isLoading[CONFIG.GROUPS] = true;
+      const pageInfo = { ...AgentGroupsService.getDefaultPagination(), limit: 100 };
+      this.agentGroupsService
+        .getAgentGroups(pageInfo, false)
+        .subscribe((resp: OrbPagination<AgentGroup>) => {
+          this.availableAgentGroups = resp.data;
+          this.isLoading[CONFIG.GROUPS] = false;
+
+          resolve(this.availableAgentGroups);
+        });
+    });
   }
 
   getAvailableAgentPolicies() {
-    this.isLoading[CONFIG.POLICIES] = true;
-    const pageInfo = { ...AgentPoliciesService.getDefaultPagination(), limit: 100 };
-    this.agentPoliciesService
-      .getAgentsPolicies(pageInfo, false)
-      .subscribe((resp: OrbPagination<AgentPolicy>) => {
-        this.availableAgentPolicies = resp.data;
-        this.isLoading[CONFIG.POLICIES] = false;
-      });
+    return new Promise((resolve) => {
+      this.isLoading[CONFIG.POLICIES] = true;
+      const pageInfo = { ...AgentPoliciesService.getDefaultPagination(), limit: 100 };
+      this.agentPoliciesService
+        .getAgentsPolicies(pageInfo, false)
+        .subscribe((resp: OrbPagination<AgentPolicy>) => {
+          this.availableAgentPolicies = resp.data;
+          this.isLoading[CONFIG.POLICIES] = false;
+
+          resolve(this.availableAgentPolicies);
+        });
+    });
   }
 
   getAvailableSinks() {
-    this.isLoading[CONFIG.SINKS] = true;
-    const pageInfo = { ...SinksService.getDefaultPagination(), limit: 100 };
-    this.sinksService
-      .getSinks(pageInfo, false)
-      .subscribe((resp: OrbPagination<Sink>) => {
-        this.selectedSinks.forEach((sink) => {
-          sink.name = resp.data.find(anotherSink => anotherSink.id === sink.id).name;
+    return new Promise((resolve) => {
+      this.isLoading[CONFIG.SINKS] = true;
+      const pageInfo = { ...SinksService.getDefaultPagination(), limit: 100 };
+      this.sinksService
+        .getSinks(pageInfo, false)
+        .subscribe((resp: OrbPagination<Sink>) => {
+          this.selectedSinks.forEach((sink) => {
+            sink.name = resp.data.find(anotherSink => anotherSink.id === sink.id).name;
+          });
+          const sinkIDMap = this.selectedSinks.map(sink => sink.id);
+          this.availableSinks = resp.data.filter(sink => !sinkIDMap.includes(sink.id));
+          this.isLoading[CONFIG.SINKS] = false;
+
+          resolve(this.availableSinks);
         });
-        const sinkIDMap = this.selectedSinks.map(sink => sink.id);
-        this.availableSinks = resp.data.filter(sink => !sinkIDMap.includes(sink.id));
-        this.isLoading[CONFIG.SINKS] = false;
-      });
+    });
   }
 
   goBack() {
