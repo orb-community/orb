@@ -9,7 +9,7 @@ var _ fleet.AgentCommsService = (*agentCommsServiceMock)(nil)
 
 type agentCommsServiceMock struct{}
 
-func (ac agentCommsServiceMock) NotifyAgentStop(MFChannelID string) error {
+func (ac agentCommsServiceMock) NotifyAgentStop(MFChannelID string, reason string) error {
 	return nil
 }
 
