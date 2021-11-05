@@ -98,7 +98,9 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 		if err != nil {
 			return errors.New(fmt.Sprintf("non 200 HTTP error code from pktvisord, no or invalid body: %d", res.StatusCode))
 		}
-		if body[0] == '{' {
+		if len(body) == 0 {
+			return errors.New(fmt.Sprintf("%d empty body", res.StatusCode))
+		} else if body[0] == '{' {
 			var jsonBody map[string]interface{}
 			err := json.Unmarshal(body, &jsonBody)
 			if err == nil {
@@ -107,7 +109,6 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 				}
 			}
 		}
-		return errors.New(fmt.Sprintf("%d %s", res.StatusCode, body))
 	}
 
 	err = json.NewDecoder(res.Body).Decode(&payload)
@@ -164,9 +165,9 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 
 }
 
-func (p *pktvisorBackend) RemovePolicy(policyID string) error {
+func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	var resp interface{}
-	err := p.request(fmt.Sprintf("policies/%s", policyID), &resp, http.MethodDelete, nil, "")
+	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, nil, "")
 	if err != nil {
 		return err
 	}
