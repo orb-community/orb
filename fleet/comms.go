@@ -36,7 +36,7 @@ type AgentCommsService interface {
 	// NotifyAgentAllDatasets RPC Core -> Agent: Notify Agent of all Policy it should currently run based on group membership and current Datasets
 	NotifyAgentAllDatasets(a Agent) error
 	// NotifyAgentStop RPC Core -> Agent: Notify Agent that it should Stop (Send the message to Agent Channel)
-	NotifyAgentStop(MFChannelID string) error
+	NotifyAgentStop(MFChannelID string, reason string) error
 	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
 	NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 	// NotifyGroupRemoval RPC core -> Agent: Notify AgentGroup that the group has been removed
@@ -400,10 +400,12 @@ func (svc fleetCommsService) NotifyGroupDatasetRemoval(ag AgentGroup, dsID strin
 	return nil
 }
 
-func (svc fleetCommsService) NotifyAgentStop(MFChannelID string) error {
+func (svc fleetCommsService) NotifyAgentStop(MFChannelID string, reason string) error {
+	payload := AgentStopRPCPayload{Reason: reason}
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentStopRPCFunc,
+		Payload:       payload,
 	}
 
 	body, err := json.Marshal(data)
@@ -452,7 +454,7 @@ func (svc fleetCommsService) handleCapabilities(thingID string, channelID string
 	agent.AgentMetadata["orb_agent"] = capabilities.OrbAgent
 	agent.AgentTags = capabilities.AgentTags
 
-	err := svc.checkVersion(orb.GetMinVersion(), capabilities.OrbAgent.Version, &agent)
+	err := svc.checkVersion(orb.GetMinAgentVersion(), capabilities.OrbAgent.Version, &agent)
 	if err != nil {
 		return err
 	}
@@ -475,8 +477,7 @@ func (svc fleetCommsService) checkVersion(minVersion string, agentVersion string
 	}
 
 	if aVersion.LessThan(mVersion) {
-		// TODO dispatch a Agent Stop RPC to the agent to inform that it's not possible to communicate with the fleet
-		svc.NotifyAgentStop(agent.MFChannelID)
+		svc.NotifyAgentStop(agent.MFChannelID, fmt.Sprintf("The orb-agent version is too old to connect to the control plane. Minimum required version: {%s}", mVersion.String()))
 		agent.State = UpgradeRequired
 	}
 	return nil

@@ -70,13 +70,23 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 		}
 		a.handleAgentGroupRemoval(r.Payload)
 	case fleet.AgentStopRPCFunc:
-		a.Stop()
+		var r fleet.AgentStopRPC
+		if err := json.Unmarshal(message.Payload(), &r); err != nil {
+			a.logger.Error("error decoding agent stop message from core", zap.Error(fleet.ErrSchemaMalformed))
+			return
+		}
+		a.handleAgentStop(r.Payload)
 	default:
 		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
 			zap.String("func", rpc.Func),
 			zap.Any("payload", rpc.Payload))
 	}
 
+}
+
+func (a *orbAgent) handleAgentStop(payload fleet.AgentStopRPCPayload) {
+	a.logger.Info(payload.Reason)
+	a.Stop()
 }
 
 func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
