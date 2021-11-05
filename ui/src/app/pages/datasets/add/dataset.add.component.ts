@@ -56,7 +56,6 @@ export class DatasetAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.dataset = this.router.getCurrentNavigation().extras.state?.dataset as Dataset || null;
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
     this.datasetID = this.route.snapshot.paramMap.get('id');
 
