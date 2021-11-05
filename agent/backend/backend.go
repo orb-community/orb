@@ -48,7 +48,7 @@ type Backend interface {
 	GetState() (BackendState, string, error)
 
 	ApplyPolicy(data policies.PolicyData) error
-	RemovePolicy(policyID string) error
+	RemovePolicy(data policies.PolicyData) error
 }
 
 var registry = make(map[string]Backend)

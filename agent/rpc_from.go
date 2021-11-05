@@ -93,6 +93,10 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 	a.unsubscribeGroupChannel(rpc.ChannelID)
 }
 
+func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {
+	a.removeDatasetFromPolicy(rpc.DatasetID, rpc.PolicyID)
+}
+
 func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 
 	a.logger.Debug("RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))

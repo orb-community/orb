@@ -21,7 +21,7 @@ func (ac agentCommsServiceMock) NotifyGroupPolicyUpdate(ctx context.Context, ag 
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyGroupDatasetRemoval(ag fleet.AgentGroup, dsID string) error {
+func (ac agentCommsServiceMock) NotifyGroupDatasetRemoval(ag fleet.AgentGroup, dsID string, policyID string) error {
 	return nil
 }
 
