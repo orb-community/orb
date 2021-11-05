@@ -14,9 +14,14 @@ import (
 )
 
 const version string = "0.9.0-develop"
+const minVersion string = "0.9.0-develop"
 
 func GetVersion() string {
 	return version
+}
+
+func GetMinVersion() string {
+	return minVersion
 }
 
 // VersionInfo contains version endpoint response.

@@ -17,6 +17,7 @@ const (
 	Offline
 	Stale
 	Removed
+	UpgradeRequired
 )
 
 type State int
@@ -27,14 +28,16 @@ var stateMap = [...]string{
 	"offline",
 	"stale",
 	"removed",
+	"upgrade_required",
 }
 
 var stateRevMap = map[string]State{
-	"new":     New,
-	"online":  Online,
-	"offline": Offline,
-	"stale":   Stale,
-	"removed": Removed,
+	"new":              New,
+	"online":           Online,
+	"offline":          Offline,
+	"stale":            Stale,
+	"removed":          Removed,
+	"upgrade_required": UpgradeRequired,
 }
 
 func (s State) String() string {

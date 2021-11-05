@@ -69,6 +69,8 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 			return
 		}
 		a.handleAgentGroupRemoval(r.Payload)
+	case fleet.AgentStopRPCFunc:
+		a.Stop()
 	default:
 		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
 			zap.String("func", rpc.Func),

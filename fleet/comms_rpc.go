@@ -75,6 +75,8 @@ type DatasetRemovedRPCPayload struct {
 	DatasetID string `json:"dataset_id"`
 }
 
+const AgentStopRPCFunc = "agent_stop"
+
 // Edge -> Core
 
 const GroupMembershipReqRPCFunc = "group_membership_req"
