@@ -152,9 +152,9 @@ export class AgentAddComponent {
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe((resp) => {
-      this.notificationsService.success('Agent successfully created', '');
       this.goBack();
     });
+    this.notificationsService.success('Agent successfully created', '');
   }
 
   // saves current agent group
