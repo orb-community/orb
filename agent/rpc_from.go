@@ -79,7 +79,7 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 }
 
 func (a *orbAgent) handleAgentStop(payload fleet.AgentStopRPCPayload) {
-	// TODO graceful stop agent
+	// TODO graceful stop agent https://github.com/ns1labs/orb/issues/466
 	panic(fmt.Sprintf("control plane requested we terminate, reason: %s", payload.Reason))
 }
 

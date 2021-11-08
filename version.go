@@ -13,7 +13,7 @@ import (
 	"net/http"
 )
 
-const version string = "0.8.0-develop"
+const version string = "0.9.0-develop"
 const minAgentVersion string = "0.9.0-develop"
 
 func GetVersion() string {
