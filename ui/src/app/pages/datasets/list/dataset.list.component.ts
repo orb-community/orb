@@ -105,20 +105,6 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
         flexGrow: 2,
       },
       {
-        prop: 'ts_created',
-        name: 'Date Created',
-        minWidth: 90,
-        flexGrow: 2,
-        resizeable: false,
-      },
-      {
-        prop: 'ts_created',
-        name: 'Date Last Received',
-        minWidth: 90,
-        flexGrow: 2,
-        resizeable: false,
-      },
-      {
         name: '',
         prop: 'actions',
         minWidth: 150,

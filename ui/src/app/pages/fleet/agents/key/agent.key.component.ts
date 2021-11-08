@@ -15,8 +15,10 @@ export class AgentKeyComponent implements OnInit {
   command2copy: string;
 
   command2show: string;
+  copyCommandIcon: string;
 
   key2copy: string;
+  copyKeyIcon: string;
 
   @Input() agent: Agent = {};
 
@@ -30,6 +32,8 @@ export class AgentKeyComponent implements OnInit {
   ngOnInit(): void {
     this.makeCommand2Copy();
     this.key2copy = this.agent.key;
+    this.copyCommandIcon = 'clipboard-outline';
+    this.copyKeyIcon = 'clipboard-outline';
   }
 
   makeCommand2Copy() {
@@ -48,6 +52,14 @@ ns1labs/orb-agent`;
 -e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \n
 -e PKTVISOR_PCAP_IFACE_DEFAULT=mock \n
 ns1labs/orb-agent`;
+  }
+
+  toggleIcon (target) {
+    if (target === 'key') {
+      this.copyKeyIcon = 'checkmark-outline';
+    } else if (target === 'command') {
+      this.copyCommandIcon = 'checkmark-outline';
+    }
   }
 
   onClose() {

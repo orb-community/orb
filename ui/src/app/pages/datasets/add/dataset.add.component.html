@@ -9,7 +9,7 @@
     </xng-breadcrumb>
     <h4>{{isEdit ? 'Edit Dataset' : 'New Dataset'}}</h4>
   </header>
-  <div *ngIf="!isLoading" class="d-flex row">
+  <div *ngIf="!isLoading()" class="d-flex row">
     <div class="d-flex col-12 mt-5">
       <nb-stepper class="stepper w-100 ml-5"
                   disableStepNavigation
@@ -74,6 +74,7 @@
                 <span class="required">*</span>
               </div>
               <nb-select (selectedChange)="onAgentGroupSelected($event)"
+                         [(selected)]="dataset.agent_group_id"
                          appearance="filled"
                          data-orb-qa-id="agent_group_id"
                          formControlName="agent_group_id"
@@ -83,20 +84,20 @@
               >
                 <nb-option *ngFor="let agentGroup of availableAgentGroups"
                            [attr.data-orb-qa-id]="'available_agent_group: '+agentGroup.id" [id]="agentGroup.id"
-                           [value]="agentGroup">{{ agentGroup.name }}</nb-option>
+                           [value]="agentGroup.id">{{ agentGroup.name }}</nb-option>
               </nb-select>
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
               <button
-                nbStepperPrevious
                 data-orb-qa-id="cancel"
                 ghost
                 nbButton
+                nbStepperPrevious
                 status="primary"
                 type="button">Back
               </button>
-              <button [disabled]="!agentFormGroup?.valid"
+              <button [disabled]="!!isEdit || !agentFormGroup?.valid"
                       class="next-button"
                       data-orb-qa-id="next"
                       nbButton
@@ -122,7 +123,9 @@
                 <label class="font-weight-bold">What</label>
                 <span class="required">*</span>
               </div>
-              <nb-select appearance="filled"
+              <nb-select (selectedChange)="onAgentPolicySelected($event)"
+                         [(selected)]="dataset.agent_policy_id"
+                         appearance="filled"
                          data-orb-qa-id="agent_policy_id"
                          formControlName="agent_policy_id"
                          fullWidth="true"
@@ -131,7 +134,7 @@
               >
                 <nb-option *ngFor="let agentPolicy of availableAgentPolicies"
                            [attr.data-orb-qa-id]="'available_agent_policy: '+agentPolicy.id" [id]="agentPolicy.id"
-                           [value]="agentPolicy">{{ agentPolicy.name }}</nb-option>
+                           [value]="agentPolicy.id">{{ agentPolicy.name }}</nb-option>
               </nb-select>
             </nb-form-field>
             <hr/>
@@ -144,7 +147,7 @@
                 status="primary"
               >Back
               </button>
-              <button [disabled]="!policyFormGroup?.valid"
+              <button [disabled]="!!isEdit || !policyFormGroup?.valid"
                       class="next-button"
                       data-orb-qa-id="next"
                       nbButton
@@ -170,9 +173,9 @@
                 <mat-chip
                   *ngFor="let sink of selectedSinks; index as i"
                   [attr.data-orb-qa-id]="'sink_' + i"
-                  [style.background-color]="sink | tagchipcolor"
+                  [style.background-color]="sink.id | tagchipcolor"
                   class="orb-selected-sink ">
-                  {{ sink.id |slice:0:8 }}: {{sink.name}}
+                  {{sink.name}}
                   <nb-icon (click)="onRemoveSink(sink)"
                            class="ml-1"
                            icon="close-outline"
@@ -250,25 +253,25 @@
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">Agent Group Name</label>
-                <p data-orb-qa-id="review-agent-group">{{agentFormGroup?.controls.agent_group_id.value.name}}</p>
+                <p data-orb-qa-id="review-agent-group">{{availableAgentGroups[selectedGroup]}}</p>
               </div>
             </div>
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">Agent Group ID</label>
-                <p data-orb-qa-id="review-agent-group">{{agentFormGroup?.controls.agent_group_id.value.id}}</p>
+                <p data-orb-qa-id="review-agent-group">{{selectedGroup}}</p>
               </div>
             </div>
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">Agent Policy Name</label>
-                <p data-orb-qa-id="review-agent-policy">{{policyFormGroup?.controls.agent_policy_id.value.name}}</p>
+                <p data-orb-qa-id="review-agent-policy">{{availableAgentPolicies[selectedPolicy].name}}</p>
               </div>
             </div>
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">Agent Policy ID</label>
-                <p data-orb-qa-id="review-agent-policy">{{policyFormGroup?.controls.agent_policy_id.value.id}}</p>
+                <p data-orb-qa-id="review-agent-policy">{{selectedPolicy}}</p>
               </div>
             </div>
             <div class="col-md-12 col-xl-6">
@@ -279,9 +282,9 @@
                     <mat-chip
                       *ngFor="let sink of selectedSinks; index as i"
                       [attr.data-orb-qa-id]="'sink_' + i"
-                      [style.background-color]="sink | tagchipcolor"
+                      [style.background-color]="sink.id | tagchipcolor"
                       class="orb-selected-sink ">
-                      {{ sink.id |slice:0:8 }}: {{sink.name}}
+                      {{sink.name}}
                     </mat-chip>
                   </mat-chip-list>
                 </div>
