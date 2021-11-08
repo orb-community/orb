@@ -273,7 +273,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/Authorization"
     get:
-      summary: 'List of Taps available from current agents'
+      summary: 'List of pktvisor Taps available from current agents'
       operationId: listTaps
       tags:
         - agents
@@ -292,7 +292,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/Authorization"
     get:
-      summary: 'List of Inputs available across current agents'
+      summary: 'List of pktvisorInputs available across current agents'
       operationId: listInputs
       tags:
         - agents
@@ -311,7 +311,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/Authorization"
     get:
-      summary: 'List of Handlers available across current agents'
+      summary: 'List of pktvisor Handlers available across current agents'
       operationId: listHandlers
       tags:
         - agents
@@ -467,19 +467,19 @@ components:
           schema:
             $ref: "#/components/schemas/AgentBackendsObjSchema"
     pktvisorTapsObjRes:
-      description: list of Taps available from current agents
+      description: list of pktvisor Taps available from current agents
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/PktvisorTapsObjSchema"
     pktvisorInputsObjRes:
-      description: list of Inputs available from current agents
+      description: list of pktvisor Inputs available from current agents
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/PktvisorInputsObjSchema"
     pktvisorHandlersObjRes:
-      description: list of Handlers available across current agents
+      description: list of pktvisor Handlers available across current agents
       content:
         application/json:
           schema:
