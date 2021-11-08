@@ -55,6 +55,7 @@
               <span class="required">*</span>
             </div>
             <nb-select (selectedChange)="onBackendSelected($event)"
+                       [(selected)]="detailsFG.controls.backend"
                         appearance="filled"
                         data-orb-qa-id="backend"
                         formControlName="backend"
@@ -104,6 +105,7 @@
                 <span class="required">*</span>
               </div>
               <nb-select (selectedChange)="onTapSelected($event)"
+                         [(selected)]="tapFG.controls.selected_tap"
                           appearance="filled"
                           data-orb-qa-id="taps"
                           formControlName="selected_tap"
