@@ -38,7 +38,13 @@ type BackendTaps struct {
 }
 
 func (p pktvisorBackend) Metadata() interface{} {
-	return p
+	return struct {
+		Backend     string `json:"backend"`
+		Description string `json:"description"`
+	}{
+		Backend:     p.Backend,
+		Description: p.Description,
+	}
 }
 
 func (p pktvisorBackend) MakeHandler(tracer opentracing.Tracer, opts []kithttp.ServerOption, r *bone.Mux) {
