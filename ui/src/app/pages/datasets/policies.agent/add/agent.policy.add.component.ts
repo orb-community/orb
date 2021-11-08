@@ -122,19 +122,32 @@ export class AgentPolicyAddComponent {
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.route.snapshot.paramMap.get('agentPolicy') as AgentPolicy;
 
+    this.readyForms();
+
     this.isEdit = !!this.agentPolicyID;
     this.isLoading[CONFIG.AGENT_POLICY] = this.isEdit;
     !!this.agentPolicyID && agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(resp => {
       this.agentPolicy = resp;
       this.isLoading[CONFIG.AGENT_POLICY] = false;
-      this.readyForms();
+      this.updateForms();
     });
-
-    this.readyForms();
   }
 
   readyForms() {
-    const { name, description, backend } = this.agentPolicy
+    const {
+      name,
+      description,
+      backend,
+      policy: {
+        input: {
+          tap,
+          input_type,
+        },
+        handlers: {
+          modules,
+        },
+      },
+    } = this.agentPolicy
       = {
       name: '',
       description: '',
@@ -155,8 +168,8 @@ export class AgentPolicyAddComponent {
       ...this.agentPolicy,
     } as AgentPolicy;
 
-    this.handlers = Object.entries(this.agentPolicy.policy.handlers.modules)
-      .map(([key, handler]) => ({ name: key, type: handler.config.type, ...handler }));
+    this.handlers = Object.entries(modules)
+      .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
 
     this.detailsFG = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
@@ -164,8 +177,8 @@ export class AgentPolicyAddComponent {
       backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFG = this._formBuilder.group({
-      'selected_tap': ['', Validators.required],
-      'input_type': ['', Validators.required],
+      selected_tap: [tap, Validators.required],
+      input_type: [input_type, Validators.required],
     });
 
     this.handlerSelectorFG = this._formBuilder.group({ 'selected_handler': [''] });
@@ -174,11 +187,56 @@ export class AgentPolicyAddComponent {
     this.getBackendsList();
   }
 
+  updateForms() {
+    const {
+      name,
+      description,
+      backend,
+      policy: {
+        input: {
+          tap,
+          input_type,
+        },
+        handlers: {
+          modules,
+        },
+      },
+    } = this.agentPolicy
+      = {
+      name: '',
+      description: '',
+      backend: 'pktvisor',
+      tags: {},
+      version: 1,
+      policy: {
+        kind: 'collection',
+        input: {
+          config: {},
+          tap: '',
+          input_type: '',
+        },
+        handlers: {
+          modules: {},
+        },
+      },
+      ...this.agentPolicy,
+    } as AgentPolicy;
+
+    this.handlers = Object.entries(modules)
+      .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
+
+    this.detailsFG.patchValue({name, description, backend});
+
+    this.tapFG.patchValue({selected_tap: tap, input_type});
+
+    this.dynamicHandlerConfigFG = this._formBuilder.group({});
+  }
+
   getBackendsList() {
     this.isLoading[CONFIG.BACKEND] = true;
     this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
       this.availableBackends = !!backends && backends.reduce((acc, curr) => {
-        acc[curr.Backend] = curr;
+        acc[curr.backend] = curr;
         return acc;
       }, {});
 
@@ -192,7 +250,7 @@ export class AgentPolicyAddComponent {
 
   onBackendSelected(selectedBackend) {
     this.backend = this.availableBackends[selectedBackend];
-    this.backend.config = {};
+    this.backend['config'] = {};
 
     // todo hardcoded for pktvisor
     this.getBackendData();
@@ -218,7 +276,7 @@ export class AgentPolicyAddComponent {
   getTaps() {
     return new Promise((resolve) => {
       this.isLoading[CONFIG.TAPS] = true;
-      this.agentPoliciesService.getBackendConfig([this.backend.Backend, 'taps'])
+      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
         .subscribe(taps => {
           this.availableTaps = !!taps && taps.reduce((acc, curr) => {
             acc[curr.name] = curr;
@@ -254,7 +312,7 @@ export class AgentPolicyAddComponent {
   getInputs() {
     return new Promise((resolve) => {
       this.isLoading[CONFIG.INPUTS] = true;
-      this.agentPoliciesService.getBackendConfig([this.backend.Backend, 'inputs'])
+      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
         .subscribe(inputs => {
           this.availableInputs = !!inputs && inputs;
 
@@ -318,7 +376,7 @@ export class AgentPolicyAddComponent {
     return new Promise((resolve) => {
       this.isLoading[CONFIG.HANDLERS] = true;
 
-      this.agentPoliciesService.getBackendConfig([this.backend.Backend, 'handlers'])
+      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
         .subscribe(handlers => {
           this.availableHandlers = !!handlers && handlers;
 
