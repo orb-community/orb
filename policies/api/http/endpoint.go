@@ -335,6 +335,7 @@ func viewDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			PolicyID:     dataset.PolicyID,
 			SinkIDs:      dataset.SinkIDs,
 			AgentGroupID: dataset.AgentGroupID,
+			TsCreated:    dataset.Created,
 		}
 		return res, nil
 	}
