@@ -137,7 +137,7 @@ type datasetRes struct {
 	Name         string         `json:"name"`
 	Valid        bool           `json:"valid"`
 	AgentGroupID string         `json:"agent_group_id"`
-	PolicyID     string         `json:"policy_id"`
+	PolicyID     string         `json:"agent_policy_id"`
 	SinkIDs      []string       `json:"sink_ids"`
 	Metadata     types.Metadata `json:"metadata"`
 	TsCreated    time.Time      `json:"ts_created"`
