@@ -121,7 +121,7 @@ export class AgentPolicyAddComponent {
     this.agentPolicy = this.router.getCurrentNavigation().extras.state?.agentPolicy as AgentPolicy || null;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.route.snapshot.paramMap.get('agentPolicy') as AgentPolicy;
-
+    this.getBackendData();
     this.readyForms();
 
     this.isEdit = !!this.agentPolicyID;
@@ -230,6 +230,10 @@ export class AgentPolicyAddComponent {
     this.tapFG.patchValue({selected_tap: tap, input_type});
 
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
+
+    this.onBackendSelected(backend);
+    this.onTapSelected(tap);
+    this.onInputSelected(input_type);
   }
 
   getBackendsList() {

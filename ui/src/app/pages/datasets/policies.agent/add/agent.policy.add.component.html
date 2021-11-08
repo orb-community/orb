@@ -24,7 +24,7 @@
               <p>Provide a name, a description summary and a supported backend for the Agent Policy</p>
             </div>
           </ng-template>
-          <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFG">
+          <form [formGroup]="detailsFG">
             <div class="d-flex flex-column">
               <div>
                 <label class="font-weight-bold" for="name">Name Label</label>
@@ -98,7 +98,7 @@
             </div>
           </ng-template>
           <div *ngIf="availableTaps && availableInputs">
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="tapFG">
+            <form [formGroup]="tapFG">
               <!-- Tap selector -->
               <div>
                 <label class="font-weight-bold">Tap</label>
