@@ -581,7 +581,6 @@ func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 	// dispatch
 	switch msg.Subtopic {
 	case CapabilitiesTopic:
-		// Create a version checker
 		if err := svc.handleCapabilities(msg.Publisher, msg.Channel, msg.Payload); err != nil {
 			svc.logger.Error("capabilities failure", zap.Error(err))
 			return err
