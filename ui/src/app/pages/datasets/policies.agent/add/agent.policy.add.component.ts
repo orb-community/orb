@@ -177,8 +177,8 @@ export class AgentPolicyAddComponent {
   getBackendsList() {
     this.isLoading[CONFIG.BACKEND] = true;
     this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
-      this.availableBackends = !!backends['data'] && backends['data'].reduce((acc, curr) => {
-        acc[curr.backend] = curr;
+      this.availableBackends = !!backends && backends.reduce((acc, curr) => {
+        acc[curr.Backend] = curr;
         return acc;
       }, {});
 
@@ -218,9 +218,9 @@ export class AgentPolicyAddComponent {
   getTaps() {
     return new Promise((resolve) => {
       this.isLoading[CONFIG.TAPS] = true;
-      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
+      this.agentPoliciesService.getBackendConfig([this.backend.Backend, 'taps'])
         .subscribe(taps => {
-          this.availableTaps = !!taps['data'] && taps['data'].reduce((acc, curr) => {
+          this.availableTaps = !!taps && taps.reduce((acc, curr) => {
             acc[curr.name] = curr;
             return acc;
           }, {});
@@ -254,9 +254,9 @@ export class AgentPolicyAddComponent {
   getInputs() {
     return new Promise((resolve) => {
       this.isLoading[CONFIG.INPUTS] = true;
-      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
+      this.agentPoliciesService.getBackendConfig([this.backend.Backend, 'inputs'])
         .subscribe(inputs => {
-          this.availableInputs = !!inputs['data'] && inputs['data'];
+          this.availableInputs = !!inputs && inputs;
 
           this.isLoading[CONFIG.INPUTS] = false;
 
@@ -318,9 +318,9 @@ export class AgentPolicyAddComponent {
     return new Promise((resolve) => {
       this.isLoading[CONFIG.HANDLERS] = true;
 
-      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
+      this.agentPoliciesService.getBackendConfig([this.backend.Backend, 'handlers'])
         .subscribe(handlers => {
-          this.availableHandlers = !!handlers['data'] && handlers['data'];
+          this.availableHandlers = !!handlers && handlers;
 
           this.handlerSelectorFG = this._formBuilder.group({
             'selected_handler': ['', [Validators.required]],
@@ -376,8 +376,8 @@ export class AgentPolicyAddComponent {
     this.onHandlerSelected('');
   }
 
-  onHandlerRemoved(selectedHandler) {
-    delete this.handlers[selectedHandler];
+  onHandlerRemoved(index) {
+    this.handlers.splice(index, 1);
   }
 
   goBack() {

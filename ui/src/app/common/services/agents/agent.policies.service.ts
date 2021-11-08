@@ -173,7 +173,7 @@ export class AgentPoliciesService {
   getAvailableBackends() {
     return this.http.get(environment.agentsBackendUrl)
       .map((resp: any) => {
-        return resp.backend;
+        return resp.backends;
       }).catch(err => {
         this.notificationsService.error('Failed to get Available Backends',
           `Error: ${ err.status } - ${ err.statusText }`);
@@ -186,7 +186,7 @@ export class AgentPoliciesService {
 
     return this.http.get(`${ environment.agentsBackendUrl }/${ final }`)
       .map((response: any) => {
-        return response.backend;
+        return response;
       }).catch(
         err => {
           this.notificationsService.error('Failed to get Available Backends',
