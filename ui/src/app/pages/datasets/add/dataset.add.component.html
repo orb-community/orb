@@ -97,7 +97,7 @@
                 status="primary"
                 type="button">Back
               </button>
-              <button [disabled]="!agentFormGroup?.valid"
+              <button [disabled]="!!isEdit || !agentFormGroup?.valid"
                       class="next-button"
                       data-orb-qa-id="next"
                       nbButton
@@ -124,10 +124,10 @@
                 <span class="required">*</span>
               </div>
               <nb-select (selectedChange)="onAgentPolicySelected($event)"
-                         [(selected)]="dataset.policy_id"
+                         [(selected)]="dataset.agent_policy_id"
                          appearance="filled"
-                         data-orb-qa-id="policy_id"
-                         formControlName="policy_id"
+                         data-orb-qa-id="agent_policy_id"
+                         formControlName="agent_policy_id"
                          fullWidth="true"
                          placeholder="Policy"
                          size="medium"
@@ -147,7 +147,7 @@
                 status="primary"
               >Back
               </button>
-              <button [disabled]="!policyFormGroup?.valid"
+              <button [disabled]="!!isEdit || !policyFormGroup?.valid"
                       class="next-button"
                       data-orb-qa-id="next"
                       nbButton
@@ -253,25 +253,25 @@
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">Agent Group Name</label>
-                <p data-orb-qa-id="review-agent-group">{{agentFormGroup?.controls.agent_group_id.value.name}}</p>
+                <p data-orb-qa-id="review-agent-group">{{availableAgentGroups[selectedGroup]}}</p>
               </div>
             </div>
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">Agent Group ID</label>
-                <p data-orb-qa-id="review-agent-group">{{agentFormGroup?.controls.agent_group_id.value.id}}</p>
+                <p data-orb-qa-id="review-agent-group">{{selectedGroup}}</p>
               </div>
             </div>
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">Agent Policy Name</label>
-                <p data-orb-qa-id="review-agent-policy">{{policyFormGroup?.controls.policy_id.value.name}}</p>
+                <p data-orb-qa-id="review-agent-policy">{{availableAgentPolicies[selectedPolicy].name}}</p>
               </div>
             </div>
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">Agent Policy ID</label>
-                <p data-orb-qa-id="review-agent-policy">{{policyFormGroup?.controls.policy_id.value.id}}</p>
+                <p data-orb-qa-id="review-agent-policy">{{selectedPolicy}}</p>
               </div>
             </div>
             <div class="col-md-12 col-xl-6">

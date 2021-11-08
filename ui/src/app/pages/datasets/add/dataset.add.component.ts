@@ -91,13 +91,13 @@ export class DatasetAddComponent {
 
   readyForms() {
     const {
-      name, agent_group_id, policy_id,
+      name, agent_group_id, agent_policy_id,
       sink_ids,
     } = this.dataset
       = {
       name: '',
       agent_group_id: '',
-      policy_id: '',
+      agent_policy_id: '',
       sink_ids: [],
     } as Dataset;
 
@@ -116,7 +116,7 @@ export class DatasetAddComponent {
       agent_group_id: [agent_group_id, [Validators.required, Validators.minLength(1)]],
     });
     this.policyFormGroup = this._formBuilder.group({
-      policy_id: [policy_id, [Validators.required, Validators.minLength(1)]],
+      agent_policy_id: [agent_policy_id, [Validators.required, Validators.minLength(1)]],
     });
     this.sinkFormGroup = this._formBuilder.group({
       selected_sink: ['', [Validators.minLength(1)]],
@@ -125,13 +125,13 @@ export class DatasetAddComponent {
 
   updateForms() {
     const {
-      name, agent_group_id, policy_id,
+      name, agent_group_id, agent_policy_id,
       sink_ids,
     } = this.dataset
       = {
       name: '',
       agent_group_id: '',
-      policy_id: '',
+      agent_policy_id: '',
       sink_ids: [],
       ...this.dataset,
     } as Dataset;
@@ -145,24 +145,21 @@ export class DatasetAddComponent {
     });
 
     this.selectedGroup = this.availableAgentGroups.findIndex(agent => agent.id === agent_group_id);
-    this.selectedPolicy = this.availableAgentPolicies.findIndex(policy => policy.id === policy_id);
+    this.selectedPolicy = this.availableAgentPolicies.findIndex(policy => policy.id === agent_policy_id);
 
     this.detailsFormGroup.controls.name.patchValue(name);
     this.agentFormGroup.controls.agent_group_id.setValue(agent_group_id);
-    this.policyFormGroup.controls.policy_id.setValue(policy_id);
-
-    this.agentFormGroup.markAllAsTouched();
-    this.policyFormGroup.markAllAsTouched();
-
-    this.detailsFormGroup.updateValueAndValidity();
-    this.agentFormGroup.updateValueAndValidity();
-    this.policyFormGroup.updateValueAndValidity();
+    this.policyFormGroup.controls.agent_policy_id.setValue(agent_policy_id);
 
     // when editing, do not change agent group or policy
     if (this.isEdit) {
       this.agentFormGroup.controls.agent_group_id.disable();
-      this.policyFormGroup.controls.policy_id.disable();
+      this.policyFormGroup.controls.agent_policy_id.disable();
     }
+
+    this.detailsFormGroup.updateValueAndValidity();
+    this.agentFormGroup.updateValueAndValidity();
+    this.policyFormGroup.updateValueAndValidity();
   }
 
   isLoading() {
@@ -239,7 +236,7 @@ export class DatasetAddComponent {
   }
 
   onAgentPolicySelected(agentPolicy: any) {
-    this.policyFormGroup.controls.policy_id.setValue(agentPolicy);
+    this.policyFormGroup.controls.agent_policy_id.setValue(agentPolicy);
   }
 
   onAddSink() {
@@ -257,8 +254,8 @@ export class DatasetAddComponent {
   onFormSubmit() {
     const payload = {
       name: this.detailsFormGroup.controls.name.value,
-      agent_group_id: this.agentFormGroup.controls.agent_group_id.value.id,
-      policy_id: this.policyFormGroup.controls.policy_id.value.id,
+      agent_group_id: this.agentFormGroup.controls.agent_group_id.value,
+      agent_policy_id: this.policyFormGroup.controls.agent_policy_id.value,
       sink_ids: this.selectedSinks.map(sink => sink.id),
     } as Dataset;
     if (this.isEdit) {
