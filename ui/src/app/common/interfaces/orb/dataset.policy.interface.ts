@@ -18,7 +18,7 @@ export interface Dataset extends OrbEntity {
   /**
    *  Agent Policy ID {string} UUIDv4 (read only)
    */
-  agent_policy_id?: string;
+  policy_id?: string;
 
   /**
    *  Array of Sink ID {<string>[]} UUIDv4 (read only)

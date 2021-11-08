@@ -74,18 +74,17 @@
                 <span class="required">*</span>
               </div>
               <nb-select (selectedChange)="onAgentGroupSelected($event)"
+                         [(selected)]="dataset.agent_group_id"
                          appearance="filled"
                          data-orb-qa-id="agent_group_id"
                          formControlName="agent_group_id"
-                         
-                         [selected]="dataset.agent_group_id"
                          fullWidth="true"
                          placeholder="Agent Group Name"
                          size="medium"
               >
                 <nb-option *ngFor="let agentGroup of availableAgentGroups"
                            [attr.data-orb-qa-id]="'available_agent_group: '+agentGroup.id" [id]="agentGroup.id"
-                           [value]="agentGroup">{{ agentGroup.name }}</nb-option>
+                           [value]="agentGroup.id">{{ agentGroup.name }}</nb-option>
               </nb-select>
             </nb-form-field>
             <hr/>
@@ -125,17 +124,17 @@
                 <span class="required">*</span>
               </div>
               <nb-select (selectedChange)="onAgentPolicySelected($event)"
-                         [selected]="selectedPolicy"
+                         [(selected)]="dataset.policy_id"
                          appearance="filled"
-                         data-orb-qa-id="agent_policy_id"
-                         formControlName="agent_policy_id"
+                         data-orb-qa-id="policy_id"
+                         formControlName="policy_id"
                          fullWidth="true"
                          placeholder="Policy"
                          size="medium"
               >
                 <nb-option *ngFor="let agentPolicy of availableAgentPolicies"
                            [attr.data-orb-qa-id]="'available_agent_policy: '+agentPolicy.id" [id]="agentPolicy.id"
-                           [value]="agentPolicy">{{ agentPolicy.name }}</nb-option>
+                           [value]="agentPolicy.id">{{ agentPolicy.name }}</nb-option>
               </nb-select>
             </nb-form-field>
             <hr/>
@@ -266,13 +265,13 @@
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">Agent Policy Name</label>
-                <p data-orb-qa-id="review-agent-policy">{{policyFormGroup?.controls.agent_policy_id.value.name}}</p>
+                <p data-orb-qa-id="review-agent-policy">{{policyFormGroup?.controls.policy_id.value.name}}</p>
               </div>
             </div>
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">Agent Policy ID</label>
-                <p data-orb-qa-id="review-agent-policy">{{policyFormGroup?.controls.agent_policy_id.value.id}}</p>
+                <p data-orb-qa-id="review-agent-policy">{{policyFormGroup?.controls.policy_id.value.id}}</p>
               </div>
             </div>
             <div class="col-md-12 col-xl-6">
