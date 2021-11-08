@@ -41,7 +41,7 @@ export class DatasetAddComponent {
   isEdit: boolean;
 
   // #load controls
-  isLoading = Object.entries(CONFIG)
+  loading = Object.entries(CONFIG)
     .reduce((acc, [value]) => {
       acc[value] = false;
       return acc;
@@ -67,63 +67,47 @@ export class DatasetAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.detailsFormGroup = this._formBuilder.group({
-      name: ['', [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
-    });
-    this.agentFormGroup = this._formBuilder.group({
-      agent_group_id: ['', [Validators.required]],
-    });
-    this.policyFormGroup = this._formBuilder.group({
-      agent_policy_id: ['', [Validators.required]],
-    });
-    this.sinkFormGroup = this._formBuilder.group({
-      selected_sink: ['', [Validators.required]],
-    });
-
     this.dataset = this.router.getCurrentNavigation().extras.state?.dataset as Dataset || null;
     this.datasetID = this.route.snapshot.paramMap.get('id');
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean && !!this.datasetID;
 
+    this.updateForms();
+
     // when editing, do not change agent group or policy
     if (this.isEdit) {
-      this.isLoading[CONFIG.DATASET] = true;
+      this.loading[CONFIG.DATASET] = true;
       this.agentFormGroup.controls.agent_group_id.disable();
       this.policyFormGroup.controls.agent_policy_id.disable();
     }
 
     !!this.datasetID && datasetPoliciesService.getDatasetById(this.datasetID).subscribe(resp => {
       this.dataset = resp;
-      this.isLoading[CONFIG.DATASET] = false;
-      this.updateForm();
+      this.loading[CONFIG.DATASET] = false;
+      this.updateForms();
     });
   }
 
-  getDatasetAvailableConfigList() {
-    Promise.all([this.getAvailableAgentGroups(), this.getAvailableAgentPolicies(), this.getAvailableSinks()]).then(value => {
-        if (this.isEdit && this.dataset) {
+  updateForms() {
+    console.table(this.loading);
 
-        }
-      }, reason => console.warn(`Cannot retrieve available configurations - reason: ${ JSON.parse(reason) }`))
-      .catch(reason => {
-        console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`);
-      });
-
-
-  }
-
-  updateForm() {
     const {
       name, agent_group_id, agent_policy_id,
       sink_ids,
-    } = !!this.dataset ? this.dataset : {
+    } = this.dataset
+      = {
       name: '',
       agent_group_id: '',
       agent_policy_id: '',
       sink_ids: [],
+      ...this.dataset,
     } as Dataset;
 
     this.selectedSinks = sink_ids.map<{ id: string, name: string }>((id) => {
-      return { id, name: this.availableSinks.find(sink => sink.id === id).name || '' };
+      return {
+        id,
+        name: this.availableSinks.length > 0 ?
+          this.availableSinks.find(sink => sink.id === id)?.name : '',
+      };
     });
 
     this.detailsFormGroup = this._formBuilder.group({
@@ -138,17 +122,35 @@ export class DatasetAddComponent {
     this.sinkFormGroup = this._formBuilder.group({
       selected_sink: ['', [Validators.minLength(1)]],
     });
+
+    this.getDatasetAvailableConfigList();
+  }
+
+  isLoading() {
+    return Object.values<boolean>(this.loading).reduce((prev, curr) => prev && curr);
+  }
+
+  getDatasetAvailableConfigList() {
+    Promise.all([this.getAvailableAgentGroups(), this.getAvailableAgentPolicies(), this.getAvailableSinks()])
+      .then(value => {
+        if (this.isEdit && this.dataset) {
+
+        }
+      }, reason => console.warn(`Cannot retrieve available configurations - reason: ${ JSON.parse(reason) }`))
+      .catch(reason => {
+        console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`);
+      });
   }
 
   getAvailableAgentGroups() {
     return new Promise((resolve) => {
-      this.isLoading[CONFIG.GROUPS] = true;
+      this.loading[CONFIG.GROUPS] = true;
       const pageInfo = { ...AgentGroupsService.getDefaultPagination(), limit: 100 };
       this.agentGroupsService
         .getAgentGroups(pageInfo, false)
         .subscribe((resp: OrbPagination<AgentGroup>) => {
           this.availableAgentGroups = resp.data;
-          this.isLoading[CONFIG.GROUPS] = false;
+          this.loading[CONFIG.GROUPS] = false;
 
           resolve(this.availableAgentGroups);
         });
@@ -157,13 +159,13 @@ export class DatasetAddComponent {
 
   getAvailableAgentPolicies() {
     return new Promise((resolve) => {
-      this.isLoading[CONFIG.POLICIES] = true;
+      this.loading[CONFIG.POLICIES] = true;
       const pageInfo = { ...AgentPoliciesService.getDefaultPagination(), limit: 100 };
       this.agentPoliciesService
         .getAgentsPolicies(pageInfo, false)
         .subscribe((resp: OrbPagination<AgentPolicy>) => {
           this.availableAgentPolicies = resp.data;
-          this.isLoading[CONFIG.POLICIES] = false;
+          this.loading[CONFIG.POLICIES] = false;
 
           resolve(this.availableAgentPolicies);
         });
@@ -172,7 +174,7 @@ export class DatasetAddComponent {
 
   getAvailableSinks() {
     return new Promise((resolve) => {
-      this.isLoading[CONFIG.SINKS] = true;
+      this.loading[CONFIG.SINKS] = true;
       const pageInfo = { ...SinksService.getDefaultPagination(), limit: 100 };
       this.sinksService
         .getSinks(pageInfo, false)
@@ -182,7 +184,7 @@ export class DatasetAddComponent {
           });
           const sinkIDMap = this.selectedSinks.map(sink => sink.id);
           this.availableSinks = resp.data.filter(sink => !sinkIDMap.includes(sink.id));
-          this.isLoading[CONFIG.SINKS] = false;
+          this.loading[CONFIG.SINKS] = false;
 
           resolve(this.availableSinks);
         });
