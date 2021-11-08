@@ -6,7 +6,15 @@ export const STRINGS = {
     disclaimer: '',
   },
   home: {
-    title: 'Orb Observation Overview',
+    title: 'Welcome to Orb!',
+    step: {
+      message: 'These steps should help you get started:',
+      agent: '* Create an <Agent> to receive instructions on deploying orb-agent and begin observing your infrastructure',
+      agent_groups: '* Group your <Agents> into <Agent Groups> so that you can send your agents <Policies>',
+      policy: '* Create an <Agent Policy> which will tell your agent how to analyze your data streams',
+      sink: '* Setup a <Sink> to be able to send your agent metric output to a time series database for visualizing and alerting',
+      dataset: '* Finally, make a <Dataset> which will send your <Policy> to the selected <Agent Group> and the resulting metrics to the selected <Sink>',
+    },
   },
   // Login Pages strings
   login: {
