@@ -35,6 +35,10 @@ export class DatasetAddComponent {
 
   sinkFormGroup: FormGroup;
 
+  selectedGroup = 0;
+
+  selectedPolicy = 0;
+
   // stores user selected sinks
   selectedSinks: { id: string, name?: string }[] = [];
 
@@ -67,29 +71,25 @@ export class DatasetAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
+    this.readyForms();
+
+    this.getDatasetAvailableConfigList();
+
     this.dataset = this.router.getCurrentNavigation().extras.state?.dataset as Dataset || null;
     this.datasetID = this.route.snapshot.paramMap.get('id');
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean && !!this.datasetID;
-
-    this.updateForms();
-
-    // when editing, do not change agent group or policy
-    if (this.isEdit) {
-      this.loading[CONFIG.DATASET] = true;
-      this.agentFormGroup.controls.agent_group_id.disable();
-      this.policyFormGroup.controls.agent_policy_id.disable();
-    }
+    this.loading[CONFIG.DATASET] = this.isEdit && !!this.datasetID;
 
     !!this.datasetID && datasetPoliciesService.getDatasetById(this.datasetID).subscribe(resp => {
       this.dataset = resp;
       this.loading[CONFIG.DATASET] = false;
       this.updateForms();
     });
+
+    this.updateForms();
   }
 
-  updateForms() {
-    console.table(this.loading);
-
+  readyForms() {
     const {
       name, agent_group_id, agent_policy_id,
       sink_ids,
@@ -99,7 +99,6 @@ export class DatasetAddComponent {
       agent_group_id: '',
       agent_policy_id: '',
       sink_ids: [],
-      ...this.dataset,
     } as Dataset;
 
     this.selectedSinks = sink_ids.map<{ id: string, name: string }>((id) => {
@@ -122,8 +121,48 @@ export class DatasetAddComponent {
     this.sinkFormGroup = this._formBuilder.group({
       selected_sink: ['', [Validators.minLength(1)]],
     });
+  }
 
-    this.getDatasetAvailableConfigList();
+  updateForms() {
+    const {
+      name, agent_group_id, agent_policy_id,
+      sink_ids,
+    } = this.dataset
+      = {
+      name: '',
+      agent_group_id: '',
+      agent_policy_id: '',
+      sink_ids: [],
+      ...this.dataset,
+    } as Dataset;
+
+    this.selectedSinks = sink_ids.map<{ id: string, name: string }>((id) => {
+      return {
+        id,
+        name: this.availableSinks.length > 0 ?
+          this.availableSinks.find(sink => sink.id === id)?.name : '',
+      };
+    });
+
+    this.selectedGroup = this.availableAgentGroups.findIndex(agent => agent.id === agent_group_id);
+    this.selectedPolicy = this.availableAgentPolicies.findIndex(policy => policy.id === agent_policy_id);
+
+    this.detailsFormGroup.controls.name.patchValue(name);
+    this.agentFormGroup.controls.agent_group_id.setValue(agent_group_id);
+    this.policyFormGroup.controls.agent_policy_id.setValue(agent_policy_id);
+
+    this.agentFormGroup.markAllAsTouched();
+    this.policyFormGroup.markAllAsTouched();
+
+    this.detailsFormGroup.updateValueAndValidity();
+    this.agentFormGroup.updateValueAndValidity();
+    this.policyFormGroup.updateValueAndValidity();
+
+    // when editing, do not change agent group or policy
+    // if (this.isEdit) {
+    //   this.agentFormGroup.controls.agent_group_id.disable();
+    //   this.policyFormGroup.controls.agent_policy_id.disable();
+    // }
   }
 
   isLoading() {
@@ -134,7 +173,7 @@ export class DatasetAddComponent {
     Promise.all([this.getAvailableAgentGroups(), this.getAvailableAgentPolicies(), this.getAvailableSinks()])
       .then(value => {
         if (this.isEdit && this.dataset) {
-
+          this.updateForms();
         }
       }, reason => console.warn(`Cannot retrieve available configurations - reason: ${ JSON.parse(reason) }`))
       .catch(reason => {
@@ -196,7 +235,11 @@ export class DatasetAddComponent {
   }
 
   onAgentGroupSelected(agentGroup: any) {
-    this.agentFormGroup.controls.agent_group_id.patchValue(agentGroup);
+    this.agentFormGroup.controls.agent_group_id.setValue(agentGroup);
+  }
+
+  onAgentPolicySelected(agentPolicy: any) {
+    this.policyFormGroup.controls.agent_policy_id.setValue(agentPolicy);
   }
 
   onAddSink() {
