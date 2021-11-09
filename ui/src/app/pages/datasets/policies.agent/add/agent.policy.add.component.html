@@ -9,7 +9,7 @@
     </xng-breadcrumb>
     <h4>{{ isEdit ? 'Edit Agent Policy' : 'Create Agent Policy'}}</h4>
   </header>
-  <div *ngIf="!isLoading['backend'] && !isLoading['taps'] && !isLoading['inputs'] && !isLoading['handlers']"
+  <div *ngIf="!isLoading()"
        class="d-flex row">
     <div class="d-flex col-12 mt-5">
       <nb-stepper class="stepper w-100 ml-5"
@@ -55,7 +55,7 @@
               <span class="required">*</span>
             </div>
             <nb-select (selectedChange)="onBackendSelected($event)"
-                       [(selected)]="detailsFG.controls.backend"
+                       [(selected)]="backend"
                         appearance="filled"
                         data-orb-qa-id="backend"
                         formControlName="backend"
@@ -64,7 +64,7 @@
                         placeholder="Select backend type"
                         size="medium">
               <nb-option *ngFor="let entry of availableBackends | keyvalue; index as i"
-                          [value]="entry.key">{{ entry.key }}</nb-option>
+                          [value]="entry.value">{{ entry.key }}</nb-option>
             </nb-select>
           </form>
           <hr/>
@@ -89,6 +89,7 @@
           </div>
         </nb-step>
         <nb-step [label]="secondStepTemplate"
+                 [completed]="isEdit"
                   [stepControl]="tapFG"
                   data-orb-qa-id="step_2">
           <ng-template #secondStepTemplate>
@@ -97,7 +98,7 @@
               <p>Create and configure tap</p>
             </div>
           </ng-template>
-          <div *ngIf="availableTaps && availableInputs">
+          <div *ngIf="!isLoading() && availableTaps && availableInputs">
             <form [formGroup]="tapFG">
               <!-- Tap selector -->
               <div>
@@ -125,6 +126,7 @@
                   <span class="required">*</span>
                 </div>
                 <nb-select (selectedChange)="onInputSelected($event)"
+                           [(selected)]="tap.input_type"
                             [attr.data-orb-qa-id]="input"
                             appearance="filled"
                             formControlName="input_type"
@@ -143,7 +145,7 @@
           </div>
           <div *ngIf="!!inputConfigFG">
             <!-- Dynamic Input Config Form -->
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="inputConfigFG">
+            <form [formGroup]="inputConfigFG">
               <div *ngFor="let control of input['config'] | keyvalue; index as i;">
                 <div *ngIf="inputConfigFG.controls.hasOwnProperty(control.value.name)">
                   <div>
@@ -153,7 +155,7 @@
                     <input *ngSwitchCase="'text'"
                             [attr.data-orb-qa-id]="control.value.name"
                             [autofocus]="i == 0"
-                            [formControlName]="controlkey"
+                            [formControlName]="control.value.name"
                             [placeholder]="control.value?.props?.example || ''"
                             [type]="control.value.type"
                             fieldSize="medium"
@@ -163,7 +165,7 @@
                     <input *ngSwitchCase="'number'"
                             [attr.data-orb-qa-id]="control.value.name"
                             [autofocus]="i == 0"
-                            [formControlName]="controlkey"
+                            [formControlName]="control.value.name"
                             [max]="control.value.props.max"
                             [min]="control.value.props.min"
                             [placeholder]="control.value?.props?.example || ''"
@@ -192,7 +194,7 @@
           </div>
           <div *ngIf="!!inputConfigFG">
             <!-- Dynamic Input Config Form -->
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="inputConfigFG">
+            <form [formGroup]="inputConfigFG">
               <div *ngFor="let control of input['config'] | keyvalue; index as i;">
                 <div *ngIf="inputConfigFG.controls.hasOwnProperty(control.key)">
                   <div>
@@ -202,7 +204,7 @@
                     <input *ngSwitchCase="'text'"
                             [attr.data-orb-qa-id]="control.value.name"
                             [autofocus]="i == 0"
-                            [formControlName]="controlkey"
+                            [formControlName]="control.value.name"
                             [placeholder]="control.value?.props?.example || ''"
                             [type]="control.value.type"
                             fieldSize="medium"
@@ -212,7 +214,7 @@
                     <input *ngSwitchCase="'number'"
                             [attr.data-orb-qa-id]="control.value.name"
                             [autofocus]="i == 0"
-                            [formControlName]="controlkey"
+                            [formControlName]="control.value.name"
                             [max]="control.value.props.max"
                             [min]="control.value.props.min"
                             [placeholder]="control.value?.props?.example || ''"
@@ -347,7 +349,7 @@
                     <input *ngSwitchCase="'text'"
                             [attr.data-orb-qa-id]="control.value.name"
                             [autofocus]="true"
-                            [formControlName]="controlkey"
+                            [formControlName]="control.value.name"
                             [placeholder]="control.value?.props?.example || ''"
                             [type]="control.value.type"
                             fieldSize="medium"
@@ -357,7 +359,7 @@
                     <input *ngSwitchCase="'number'"
                             [attr.data-orb-qa-id]="control.value.name"
                             [autofocus]="true"
-                            [formControlName]="controlkey"
+                            [formControlName]="control.value.name"
                             [max]="control.value?.props?.max"
                             [min]="control.value?.props?.min"
                             [placeholder]="control.value?.props?.example || ''"

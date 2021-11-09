@@ -23,6 +23,8 @@ const CONFIG = {
 })
 export class AgentPolicyAddComponent {
   // #forms
+  // todo rename
+  onebigform: FormGroup;
   // agent policy general information - name, desc, backend
   detailsFG: FormGroup;
 
@@ -105,7 +107,7 @@ export class AgentPolicyAddComponent {
   isEdit: boolean;
 
   // #load controls
-  isLoading = Object.entries(CONFIG)
+  loadControls = Object.entries(CONFIG)
     .reduce((acc, [value]) => {
       acc[value] = false;
       return acc;
@@ -118,20 +120,22 @@ export class AgentPolicyAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
+    this.readyForms();
+
     this.agentPolicy = this.router.getCurrentNavigation().extras.state?.agentPolicy as AgentPolicy || null;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.route.snapshot.paramMap.get('agentPolicy') as AgentPolicy;
 
-    this.getBackendData();
-    this.readyForms();
-
     this.isEdit = !!this.agentPolicyID;
-    this.isLoading[CONFIG.AGENT_POLICY] = this.isEdit;
+    this.loadControls[CONFIG.AGENT_POLICY] = this.isEdit;
     !!this.agentPolicyID && agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(resp => {
       this.agentPolicy = resp;
-      this.isLoading[CONFIG.AGENT_POLICY] = false;
-      this.updateForms();
+      this.loadControls[CONFIG.AGENT_POLICY] = false;
     });
+
+    this.getBackendsList().then((backends) => {
+
+    }).catch(reason => console.warn(`Couldn't retrieve available backends. Reason: ${ reason }`));
   }
 
   readyForms() {
@@ -166,26 +170,27 @@ export class AgentPolicyAddComponent {
           modules: {},
         },
       },
-      ...this.agentPolicy,
     } as AgentPolicy;
 
-    this.handlers = Object.entries(modules)
-      .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
-
-    this.detailsFG = this._formBuilder.group({
+    // todo this is pktvisor specific
+    this.onebigform = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
       backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
-    });
-    this.tapFG = this._formBuilder.group({
-      selected_tap: [tap, Validators.required],
-      input_type: [input_type, Validators.required],
+      policy: this._formBuilder.group({
+        input: this._formBuilder.group({
+          input_type: [{value: input_type}, [Validators.required]],
+          tap: [{value: tap}, [Validators.required]],
+          config: this._formBuilder.group({}),
+        }, [Validators.required]),
+        handlers: this._formBuilder.group({
+          modules: this._formBuilder.group(),
+        }),
+      }),
     });
 
     this.handlerSelectorFG = this._formBuilder.group({ 'selected_handler': [''] });
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
-
-    this.getBackendsList();
   }
 
   updateForms() {
@@ -197,6 +202,7 @@ export class AgentPolicyAddComponent {
         input: {
           tap,
           input_type,
+          config,
         },
         handlers: {
           modules,
@@ -223,46 +229,55 @@ export class AgentPolicyAddComponent {
       ...this.agentPolicy,
     } as AgentPolicy;
 
-    this.handlers = Object.entries(modules)
-      .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
-
-    this.detailsFG.patchValue({ name, description, backend });
-
-    this.tapFG.patchValue({ selected_tap: tap, input_type });
-
-    this.dynamicHandlerConfigFG = this._formBuilder.group({});
-
-    this.onBackendSelected(backend);
-    this.onTapSelected(tap);
-    this.onInputSelected(input_type);
+    this.onebigform.patchValue({
+      name,
+      description,
+      backend,
+      policy: {
+        input: {
+          tap,
+          input_type,
+        },
+        handlers: {
+          modules,
+        },
+      },
+    }, {emitEvent: true});
   }
 
   getBackendsList() {
-    this.isLoading[CONFIG.BACKEND] = true;
-    this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
-      this.availableBackends = !!backends && backends.reduce((acc, curr) => {
-        acc[curr.backend] = curr;
-        return acc;
-      }, {});
+    return new Promise((resolve) => {
+      this.loadControls[CONFIG.BACKEND] = true;
+      this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
+        this.availableBackends = !!backends && backends.reduce((acc, curr) => {
+          acc[curr.backend] = curr;
+          return acc;
+        }, {});
 
-      if (this.isLoading[CONFIG.AGENT_POLICY] === false) {
-        this.onBackendSelected(this.agentPolicy.backend);
-      }
+        if (this.loadControls[CONFIG.AGENT_POLICY] === false) {
+          this.onBackendSelected(this.agentPolicy.backend);
+        }
 
-      this.isLoading[CONFIG.BACKEND] = false;
+        this.loadControls[CONFIG.BACKEND] = false;
+        resolve(this.availableBackends);
+      });
     });
   }
 
   onBackendSelected(selectedBackend) {
-    this.backend = this.availableBackends[selectedBackend];
     this.backend['config'] = {};
 
     // todo hardcoded for pktvisor
-    this.getBackendData();
+    this.getBackendData(selectedBackend.backend);
   }
 
-  getBackendData() {
-    Promise.all([this.getTaps(), this.getInputs(), this.getHandlers()])
+  isLoading() {
+    return Object.values<boolean>(this.loadControls).reduce((prev, curr) => prev && curr);
+  }
+
+  getBackendData(backendName) {
+    // TODO pktvisor specific
+    Promise.all([this.getTaps(backendName), this.getInputs(backendName), this.getHandlers(backendName)])
       .then(value => {
         if (this.isEdit && this.agentPolicy) {
           const selected_tap = this.agentPolicy.policy.input.tap;
@@ -271,6 +286,7 @@ export class AgentPolicyAddComponent {
           this.onTapSelected(selected_tap);
           this.handlers = Object.entries(this.agentPolicy.policy.handlers.modules)
             .map(([key, handler]) => ({ ...handler, name: key, type: handler.config.type }));
+          this.updateForms();
         }
       }, reason => console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`))
       .catch(reason => {
@@ -278,17 +294,17 @@ export class AgentPolicyAddComponent {
       });
   }
 
-  getTaps() {
+  getTaps(backend) {
     return new Promise((resolve) => {
-      this.isLoading[CONFIG.TAPS] = true;
-      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
+      this.loadControls[CONFIG.TAPS] = true;
+      this.agentPoliciesService.getBackendConfig([backend, 'taps'])
         .subscribe(taps => {
           this.availableTaps = !!taps && taps.reduce((acc, curr) => {
             acc[curr.name] = curr;
             return acc;
           }, {});
 
-          this.isLoading[CONFIG.TAPS] = false;
+          this.loadControls[CONFIG.TAPS] = false;
 
           resolve(this.availableTaps);
         });
@@ -314,14 +330,14 @@ export class AgentPolicyAddComponent {
     }
   }
 
-  getInputs() {
+  getInputs(backend) {
     return new Promise((resolve) => {
-      this.isLoading[CONFIG.INPUTS] = true;
-      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
+      this.loadControls[CONFIG.INPUTS] = true;
+      this.agentPoliciesService.getBackendConfig([backend, 'inputs'])
         .subscribe(inputs => {
           this.availableInputs = !!inputs && inputs;
 
-          this.isLoading[CONFIG.INPUTS] = false;
+          this.loadControls[CONFIG.INPUTS] = false;
 
           resolve(this.availableInputs);
         });
@@ -377,11 +393,11 @@ export class AgentPolicyAddComponent {
 
   }
 
-  getHandlers() {
+  getHandlers(backend) {
     return new Promise((resolve) => {
-      this.isLoading[CONFIG.HANDLERS] = true;
+      this.loadControls[CONFIG.HANDLERS] = true;
 
-      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
+      this.agentPoliciesService.getBackendConfig([backend, 'handlers'])
         .subscribe(handlers => {
           this.availableHandlers = !!handlers && handlers;
 
@@ -390,7 +406,7 @@ export class AgentPolicyAddComponent {
             'label': ['', [Validators.required]],
           });
 
-          this.isLoading[CONFIG.HANDLERS] = false;
+          this.loadControls[CONFIG.HANDLERS] = false;
           resolve(this.availableBackends);
         });
     });
@@ -406,7 +422,7 @@ export class AgentPolicyAddComponent {
 
     const { config } = !!this.liveHandler ? this.liveHandler : { config: {} };
 
-    const dynamicControls = Object.entries(config || {}).reduce((controls, [key, value]) => {
+    const dynamicControls = Object.entries(config || {}).reduce((controls, [key]) => {
       controls[key] = ['', [Validators.required]];
       return controls;
     }, {});
