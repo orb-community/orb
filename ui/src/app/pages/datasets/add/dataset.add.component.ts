@@ -77,8 +77,8 @@ export class DatasetAddComponent {
 
     this.dataset = this.router.getCurrentNavigation().extras.state?.dataset as Dataset || null;
     this.datasetID = this.route.snapshot.paramMap.get('id');
-    this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean && !!this.datasetID;
-    this.loading[CONFIG.DATASET] = this.isEdit && !!this.datasetID;
+    this.isEdit = !!this.datasetID;
+    this.loading[CONFIG.DATASET] = this.isEdit;
 
     !!this.datasetID && datasetPoliciesService.getDatasetById(this.datasetID).subscribe(resp => {
       this.dataset = resp;
@@ -143,6 +143,12 @@ export class DatasetAddComponent {
           this.availableSinks.find(sink => sink.id === id)?.name : '',
       };
     });
+    if (this.availableSinks.length > 0 && this.selectedSinks.length > 0)
+    this.availableSinks = this.availableSinks.filter(sink => !this.selectedSinks.includes({id: sink.id}));
+
+    this.loading[CONFIG.SINKS] = true;
+    this.getAvailableSinks()
+      .catch(reason => console.warn(`Couldn't fetch available sinks. Reason: ${ reason }`));
 
     this.selectedGroup = this.availableAgentGroups.findIndex(agent => agent.id === agent_group_id);
     this.selectedPolicy = this.availableAgentPolicies.findIndex(policy => policy.id === agent_policy_id);
@@ -150,16 +156,15 @@ export class DatasetAddComponent {
     this.detailsFormGroup.controls.name.patchValue(name);
     this.agentFormGroup.controls.agent_group_id.setValue(agent_group_id);
     this.policyFormGroup.controls.agent_policy_id.setValue(agent_policy_id);
+    this.detailsFormGroup.updateValueAndValidity();
+    this.agentFormGroup.updateValueAndValidity();
+    this.policyFormGroup.updateValueAndValidity();
 
     // when editing, do not change agent group or policy
     if (this.isEdit) {
       this.agentFormGroup.controls.agent_group_id.disable();
       this.policyFormGroup.controls.agent_policy_id.disable();
     }
-
-    this.detailsFormGroup.updateValueAndValidity();
-    this.agentFormGroup.updateValueAndValidity();
-    this.policyFormGroup.updateValueAndValidity();
   }
 
   isLoading() {
