@@ -24,7 +24,7 @@
               <p>Provide a name, a description summary and a supported backend for the Agent Policy</p>
             </div>
           </ng-template>
-          <form (ngSubmit)="onFormSubmit()" [formGroup]="detailsFG">
+          <form [formGroup]="detailsFG">
             <div class="d-flex flex-column">
               <div>
                 <label class="font-weight-bold" for="name">Name Label</label>
@@ -55,6 +55,7 @@
               <span class="required">*</span>
             </div>
             <nb-select (selectedChange)="onBackendSelected($event)"
+                       [(selected)]="detailsFG.controls.backend"
                         appearance="filled"
                         data-orb-qa-id="backend"
                         formControlName="backend"
@@ -97,13 +98,14 @@
             </div>
           </ng-template>
           <div *ngIf="availableTaps && availableInputs">
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="tapFG">
+            <form [formGroup]="tapFG">
               <!-- Tap selector -->
               <div>
                 <label class="font-weight-bold">Tap</label>
                 <span class="required">*</span>
               </div>
               <nb-select (selectedChange)="onTapSelected($event)"
+                         [(selected)]="tapFG.controls.selected_tap"
                           appearance="filled"
                           data-orb-qa-id="taps"
                           formControlName="selected_tap"
@@ -277,7 +279,7 @@
                   [value]="i"
                   class="orb-selected-handler ">
                   {{ handler.name }}
-                  <nb-icon (click)="onHandlerRemoved(handler)"
+                  <nb-icon (click)="onHandlerRemoved(i)"
                             class="ml-1"
                             icon="close-outline"
                             size="12"></nb-icon>
