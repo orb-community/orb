@@ -45,7 +45,7 @@ export class AgentPolicyAddComponent {
   backend: { [propName: string]: any };
 
   // selected tap object
-  tap: PolicyTap = {name:''};
+  tap: PolicyTap = { name: '' };
 
   // selected input object
   input: {
@@ -168,7 +168,7 @@ export class AgentPolicyAddComponent {
       },
       ...this.agentPolicy,
     } as AgentPolicy;
-    
+
     this.handlers = Object.entries(modules)
       .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
 
@@ -226,9 +226,9 @@ export class AgentPolicyAddComponent {
     this.handlers = Object.entries(modules)
       .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
 
-    this.detailsFG.patchValue({name, description, backend});
+    this.detailsFG.patchValue({ name, description, backend });
 
-    this.tapFG.patchValue({selected_tap: tap, input_type});
+    this.tapFG.patchValue({ selected_tap: tap, input_type });
 
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
 
