@@ -142,10 +142,12 @@ export class AgentPolicyAddComponent {
   readyForms() {
     // todo this is pktvisor specific
     this.onebigform = this._formBuilder.group({
-      name: [null, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
-      description: [null],
-      backend: [null, [Validators.required]],
-      policy: this._formBuilder.group({
+      firstStep: this._formBuilder.group({
+        name: ['', [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
+        description: [''],
+        backend: ['', [Validators.required]],
+      }, [Validators.required]),
+      secondStep: this._formBuilder.group({
         input: this._formBuilder.group({
           input_type: [null, [Validators.required]],
           tap: [null, [Validators.required]],

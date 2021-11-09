@@ -64,7 +64,7 @@
                         placeholder="Select backend type"
                         size="medium">
               <nb-option *ngFor="let entry of availableBackends | keyvalue; index as i"
-                          [value]="entry.value">{{ entry.key }}</nb-option>
+                          [value]="entry.key">{{ entry.key }}</nb-option>
             </nb-select>
           </form>
           <hr/>
@@ -77,7 +77,7 @@
               status="primary"
               type="button">Cancel
             </button>
-            <button [disabled]="!detailsFG?.valid"
+            <button [disabled]="!onebigform.get(['name', 'backend']).valid"
                     class="next-button"
                     data-orb-qa-id="next"
                     nbButton
