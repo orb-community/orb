@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-version"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
-	"github.com/ns1labs/orb"
+	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/policies/pb"
 	"go.uber.org/zap"
 	"time"
@@ -457,7 +457,7 @@ func (svc fleetCommsService) handleCapabilities(thingID string, channelID string
 	agent.AgentMetadata["orb_agent"] = capabilities.OrbAgent
 	agent.AgentTags = capabilities.AgentTags
 
-	err := svc.checkVersion(orb.GetMinAgentVersion(), capabilities.OrbAgent.Version, &agent)
+	err := svc.checkVersion(buildinfo.GetMinAgentVersion(), capabilities.OrbAgent.Version, &agent)
 	if err != nil {
 		return err
 	}

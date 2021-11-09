@@ -5,9 +5,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
 	config2 "github.com/ns1labs/orb/agent/config"
+	"github.com/ns1labs/orb/buildinfo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -30,6 +32,11 @@ func init() {
 
 	pktvisor.Register()
 
+}
+
+func Version(cmd *cobra.Command, args []string) {
+	fmt.Printf("orb-agent %s\n", buildinfo.GetVersion())
+	os.Exit(0)
 }
 
 func Run(cmd *cobra.Command, args []string) {
@@ -166,6 +173,12 @@ func main() {
 		Use: "orb-agent",
 	}
 
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Show agent version",
+		Run:   Version,
+	}
+
 	runCmd := &cobra.Command{
 		Use:   "run",
 		Short: "Run orb-agent and connect to Orb control plane",
@@ -177,5 +190,6 @@ func main() {
 	runCmd.PersistentFlags().BoolVarP(&Debug, "debug", "d", false, "Enable verbose (debug level) output")
 
 	rootCmd.AddCommand(runCmd)
+	rootCmd.AddCommand(versionCmd)
 	rootCmd.Execute()
 }
