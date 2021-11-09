@@ -24,7 +24,7 @@
               <p>Provide a name, a description summary and a supported backend for the Agent Policy</p>
             </div>
           </ng-template>
-          <form [formGroup]="detailsFG">
+          <form [formGroup]="onebigform">
             <div class="d-flex flex-column">
               <div>
                 <label class="font-weight-bold" for="name">Name Label</label>
@@ -99,7 +99,7 @@
             </div>
           </ng-template>
           <div *ngIf="!isLoading() && availableTaps && availableInputs">
-            <form [formGroup]="tapFG">
+            <form [formGroup]="onebigform">
               <!-- Tap selector -->
               <div>
                 <label class="font-weight-bold">Tap</label>
@@ -109,7 +109,7 @@
                          [(selected)]="tap.name"
                           appearance="filled"
                           data-orb-qa-id="taps"
-                          formControlName="selected_tap"
+                          formControlName="policy.input.tap"
                           fullWidth="true"
                           placeholder="Select Tap"
                           required="true"
@@ -129,7 +129,7 @@
                            [(selected)]="tap.input_type"
                             [attr.data-orb-qa-id]="input"
                             appearance="filled"
-                            formControlName="input_type"
+                            formControlName="policy.input.input_type"
                             fullWidth="true"
                             id="input_type"
                             nbInput
@@ -148,55 +148,6 @@
             <form [formGroup]="inputConfigFG">
               <div *ngFor="let control of input['config'] | keyvalue; index as i;">
                 <div *ngIf="inputConfigFG.controls.hasOwnProperty(control.value.name)">
-                  <div>
-                    <label class="font-weight-bold">{{control.value.label}}</label>
-                  </div>
-                  <div [ngSwitch]="control.value.input">
-                    <input *ngSwitchCase="'text'"
-                            [attr.data-orb-qa-id]="control.value.name"
-                            [autofocus]="i == 0"
-                            [formControlName]="control.value.name"
-                            [placeholder]="control.value?.props?.example || ''"
-                            [type]="control.value.type"
-                            fieldSize="medium"
-                            fullWidth="true"
-                            nbInput
-                            nbTooltip="{{ control.value.description }}">
-                    <input *ngSwitchCase="'number'"
-                            [attr.data-orb-qa-id]="control.value.name"
-                            [autofocus]="i == 0"
-                            [formControlName]="control.value.name"
-                            [max]="control.value.props.max"
-                            [min]="control.value.props.min"
-                            [placeholder]="control.value?.props?.example || ''"
-                            [step]="control.value.props.step"
-                            [type]="control.value.type"
-                            nbTooltip="{{ control.value.description }}">
-                    <nb-select *ngSwitchCase="'select'"
-                                [attr.data-orb-qa-id]="control.value.name"
-                                [formControlName]="control.key"
-                                [id]="control.value.name"
-                                [placeholder]="control.value?.props?.example || ''"
-                                appearance="filled"
-                                fullWidth="true"
-                                nbTooltip="{{ control.value.description }}"
-                                size="medium"
-                    >{{ control.value.name + "-" + control.value.props.options }}
-                      <nb-option *ngFor="let option of control.value.props.options | keyvalue"
-                                  [attr.data-orb-qa-id]="option.value"
-                                  [value]="option.key">{{ option.value }}</nb-option>
-                    </nb-select>
-                  </div>
-                  <hr/>
-                </div>
-              </div>
-            </form>
-          </div>
-          <div *ngIf="!!inputConfigFG">
-            <!-- Dynamic Input Config Form -->
-            <form [formGroup]="inputConfigFG">
-              <div *ngFor="let control of input['config'] | keyvalue; index as i;">
-                <div *ngIf="inputConfigFG.controls.hasOwnProperty(control.key)">
                   <div>
                     <label class="font-weight-bold">{{control.value.label}}</label>
                   </div>
@@ -339,7 +290,7 @@
           </form>
           <!--Dynamic Handler Config-->
           <div *ngIf="!!liveHandler && !!dynamicHandlerConfigFG">
-            <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerConfigFG">
+            <form [formGroup]="dynamicHandlerConfigFG">
               <div *ngIf="!!liveHandler.config">
                 <div *ngFor="let control of liveHandler.config | keyvalue">
                   <div>

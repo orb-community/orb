@@ -120,6 +120,7 @@ export class AgentPolicyAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
+    this.newAgentPolicy();
     this.readyForms();
 
     this.agentPolicy = this.router.getCurrentNavigation().extras.state?.agentPolicy as AgentPolicy || null;
@@ -139,52 +140,19 @@ export class AgentPolicyAddComponent {
   }
 
   readyForms() {
-    const {
-      name,
-      description,
-      backend,
-      policy: {
-        input: {
-          tap,
-          input_type,
-        },
-        handlers: {
-          modules,
-        },
-      },
-    } = this.agentPolicy
-      = {
-      name: '',
-      description: '',
-      backend: 'pktvisor',
-      tags: {},
-      version: 1,
-      policy: {
-        kind: 'collection',
-        input: {
-          config: {},
-          tap: '',
-          input_type: '',
-        },
-        handlers: {
-          modules: {},
-        },
-      },
-    } as AgentPolicy;
-
     // todo this is pktvisor specific
     this.onebigform = this._formBuilder.group({
-      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
-      description: [description],
-      backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
+      name: [null, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
+      description: [null],
+      backend: [null, [Validators.required]],
       policy: this._formBuilder.group({
         input: this._formBuilder.group({
-          input_type: [{value: input_type}, [Validators.required]],
-          tap: [{value: tap}, [Validators.required]],
+          input_type: [null, [Validators.required]],
+          tap: [null, [Validators.required]],
           config: this._formBuilder.group({}),
         }, [Validators.required]),
         handlers: this._formBuilder.group({
-          modules: this._formBuilder.group(),
+          modules: this._formBuilder.group({}),
         }),
       }),
     });
@@ -237,12 +205,44 @@ export class AgentPolicyAddComponent {
         input: {
           tap,
           input_type,
+          config,
         },
         handlers: {
           modules,
         },
       },
     }, {emitEvent: true});
+  }
+
+  retrieveEditAgentPolicy() {
+    return new Promise((resolve) => {
+      this.loadControls[CONFIG.AGENT_POLICY] = true;
+      this.agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(agentPolicy => {
+        this.loadControls[CONFIG.AGENT_POLICY] = false;
+        resolve(agentPolicy as AgentPolicy);
+      });
+    });
+  }
+
+  newAgentPolicy() {
+    return {
+      name: '',
+      description: '',
+      backend: 'pktvisor',
+      tags: {},
+      version: 1,
+      policy: {
+        kind: 'collection',
+        input: {
+          config: {},
+          tap: '',
+          input_type: '',
+        },
+        handlers: {
+          modules: {},
+        },
+      },
+    } as AgentPolicy;
   }
 
   getBackendsList() {
@@ -253,10 +253,6 @@ export class AgentPolicyAddComponent {
           acc[curr.backend] = curr;
           return acc;
         }, {});
-
-        if (this.loadControls[CONFIG.AGENT_POLICY] === false) {
-          this.onBackendSelected(this.agentPolicy.backend);
-        }
 
         this.loadControls[CONFIG.BACKEND] = false;
         resolve(this.availableBackends);
