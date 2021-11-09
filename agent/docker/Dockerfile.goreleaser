@@ -1,0 +1,9 @@
+ARG PKTVISOR_TAG=latest-develop
+
+FROM ns1labs/pktvisor:${PKTVISOR_TAG}
+
+COPY orb-agent /usr/local/bin/orb-agent
+COPY agent/docker/agent.yaml /etc/orb/agent.yaml
+COPY agent/docker/orb-agent-entry.sh /usr/local/bin/orb-agent-entry.sh
+
+ENTRYPOINT [ "/usr/local/bin/orb-agent-entry.sh" ]

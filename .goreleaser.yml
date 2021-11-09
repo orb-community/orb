@@ -1,0 +1,44 @@
+project_name: orb
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - id: "agent"
+    binary: orb-agent
+    main: ./cmd/agent/
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    targets:
+      - linux_amd64
+dockers:
+  - # ID of the image, needed if you want to filter by it later on (e.g. on custom publishers).
+    id: agent
+    # IDs to filter the binaries/packages.
+    ids:
+      - agent
+    image_templates:
+      # defined by GitHub Actions based on branch ("latest" or "develop")
+      - "ns1labs/orb-agent:{{ .Env.REF_TAG }}"
+      # just "x.x.x" for production releases, or snapshot format "x.x.x-develop-HASH"
+      - "ns1labs/orb-agent:{{ .Version }}"
+    skip_push: true
+    dockerfile: agent/docker/Dockerfile.goreleaser
+    extra_files:
+      - agent/docker/agent.yaml
+      - agent/docker/orb-agent-entry.sh
+archives:
+  - replacements:
+      linux: Linux
+      amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Version }}-develop-{{ .ShortCommit }}"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
