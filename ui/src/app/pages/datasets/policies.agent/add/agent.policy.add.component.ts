@@ -128,41 +128,39 @@ export class AgentPolicyAddComponent {
     Promise.all([
       this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(this.newAgent()),
       this.getBackendsList(),
-    ]).catch(reason => console.warn(`Couldn't fetch data. Reason: ${reason}`))
-      .then(values => {
-        this.updateForms();
-        this.getBackendData();
-      });
-
+    ]).catch(reason => console.warn(`Couldn't fetch data. Reason: ${ reason }`))
+      .then(() => this.updateForms())
+      .catch((reason) => console.warn(`Couldn't fetch ${ this.agentPolicy?.backend } data. Reason: ${ reason }`));
   }
 
   newAgent() {
     return {
       name: '',
-        description: '',
+      description: '',
       backend: 'pktvisor',
       tags: {},
       version: 1,
-        policy: {
-      kind: 'collection',
+      policy: {
+        kind: 'collection',
         input: {
-        config: {},
-        tap: '',
+          config: {},
+          tap: '',
           input_type: '',
+        },
+        handlers: {
+          modules: {},
+        },
       },
-      handlers: {
-        modules: {},
-      },
-    },
-    ...this.agentPolicy,
+      ...this.agentPolicy,
     } as AgentPolicy;
   }
 
   retrieveAgentPolicy() {
     return new Promise(resolve => {
-      this.agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(resp => {
-        this.agentPolicy = resp;
+      this.agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(policy => {
+        this.agentPolicy = policy;
         this.isLoading[CONFIG.AGENT_POLICY] = false;
+        resolve(policy);
       });
     });
   }
@@ -256,16 +254,14 @@ export class AgentPolicyAddComponent {
 
     this.detailsFG.patchValue({ name, description, backend });
 
-    this.onBackendSelected(backend);
-
-    this.tapFG.patchValue({ selected_tap: tap, input_type });
+    this.handlers = Object.entries(modules)
+      .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
 
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
 
-    this.handlers = Object.entries(modules)
-      .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
-    this.onTapSelected(tap);
-    this.onInputSelected(input_type);
+    this.onBackendSelected(backend).catch(reason => console.warn(`${ reason }`));
+
+
   }
 
   getBackendsList() {
@@ -285,28 +281,33 @@ export class AgentPolicyAddComponent {
   }
 
   onBackendSelected(selectedBackend) {
-    this.backend = this.availableBackends[selectedBackend];
-    this.backend['config'] = {};
+    return new Promise((resolve) => {
+      this.backend = this.availableBackends[selectedBackend];
+      this.backend['config'] = {};
 
-    // todo hardcoded for pktvisor
-    this.getBackendData();
+      // todo hardcoded for pktvisor
+      this.getBackendData().then(() => {
+        resolve();
+      });
+    });
   }
 
   getBackendData() {
-    Promise.all([this.getTaps(), this.getInputs(), this.getHandlers()])
+    return Promise.all([this.getTaps(), this.getInputs(), this.getHandlers()])
       .then(value => {
         if (this.isEdit && this.agentPolicy) {
           const selected_tap = this.agentPolicy.policy.input.tap;
-          this.tapFG.patchValue({ selected_tap });
-          this.tapFG.controls.selected_tap.disable();
-          this.onTapSelected(selected_tap);
+          this.tapFG.patchValue({ selected_tap }, {emitEvent: true});
           this.handlers = Object.entries(this.agentPolicy.policy.handlers.modules)
             .map(([key, handler]) => ({ ...handler, name: key, type: handler.config.type }));
+          this.onTapSelected(selected_tap);
+          this.tapFG.controls.selected_tap.disable();
         }
+
       }, reason => console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`))
       .catch(reason => {
         console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`);
-      });
+      })                       ;
   }
 
   getTaps() {
@@ -321,14 +322,14 @@ export class AgentPolicyAddComponent {
 
           this.isLoading[CONFIG.TAPS] = false;
 
-          resolve(this.availableTaps);
+          resolve(taps);
         });
     });
   }
 
   onTapSelected(selectedTap) {
     this.tap = this.availableTaps[selectedTap];
-    this.tapFG.patchValue({ selected_tap: selectedTap });
+    this.tapFG.controls.selected_tap.patchValue(selectedTap);
 
     const { input } = this.agentPolicy.policy;
     const { input_type, config_predefined } = this.tap;
@@ -337,6 +338,10 @@ export class AgentPolicyAddComponent {
       ...config_predefined,
       ...input.config,
     };
+
+    console.table(this.tap);
+    console.table(input_type);
+
 
     if (input_type) {
       this.onInputSelected(input_type);
@@ -374,17 +379,22 @@ export class AgentPolicyAddComponent {
     // tap config values, cannot be overridden if set
     const preConfig = this.tap.config_predefined;
 
+    console.table(this.input);
     if (this.isEdit === false) {
       this.agentPolicy.policy = { input: { config: {} } };
     }
-
+    console.table(preConfig);
+    console.table(inputConfig);
     // populate form controls for config
     const inputConfDynamicCtrl = Object.entries(inputConfig)
       .reduce((acc, [key, input]) => {
-        const value = !!agentConfig?.[key] ? agentConfig[key] : '';
+        const value = agentConfig?.[key] ? agentConfig[key] : '';
         if (!preConfig.includes(key)) {
+          console.log(`${key}`);
+          console.table(value);
+          console.table(input);
           acc[key] = [
-            { value },
+            value,
             [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
           ];
         }
@@ -489,7 +499,7 @@ export class AgentPolicyAddComponent {
       policy: {
         kind: 'collection',
         input: {
-          tap: this.tapFG.controls.selected_tap.value,
+          tap: this.tap.name,
           input_type: this.tapFG.controls.input_type.value,
           config: Object.keys(this.inputConfigFG.controls)
             .map(key => ({ [key]: this.inputConfigFG.controls[key].value }))
