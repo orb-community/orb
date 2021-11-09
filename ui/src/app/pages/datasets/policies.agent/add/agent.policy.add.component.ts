@@ -45,7 +45,7 @@ export class AgentPolicyAddComponent {
   backend: { [propName: string]: any };
 
   // selected tap object
-  tap: PolicyTap;
+  tap: PolicyTap = {name:''};
 
   // selected input object
   input: {
@@ -121,6 +121,7 @@ export class AgentPolicyAddComponent {
     this.agentPolicy = this.router.getCurrentNavigation().extras.state?.agentPolicy as AgentPolicy || null;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.route.snapshot.paramMap.get('agentPolicy') as AgentPolicy;
+
     this.getBackendData();
     this.readyForms();
 
@@ -167,7 +168,7 @@ export class AgentPolicyAddComponent {
       },
       ...this.agentPolicy,
     } as AgentPolicy;
-
+    
     this.handlers = Object.entries(modules)
       .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
 
