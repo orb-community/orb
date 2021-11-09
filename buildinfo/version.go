@@ -6,14 +6,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package orb
+package buildinfo
 
 import (
 	"encoding/json"
 	"net/http"
 )
 
-const version string = "0.9.0-develop"
+// set via ldflags -X option at build time
+var version = "unknown"
+
+// minimum version of an agent that we allow to connect
 const minAgentVersion string = "0.9.0-develop"
 
 func GetVersion() string {

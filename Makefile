@@ -6,6 +6,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+# expects to be set as env var
 REF_TAG ?= latest
 DOCKER_IMAGE_NAME_PREFIX ?= orb
 DOCKERHUB_REPO = ns1labs
@@ -15,14 +16,17 @@ DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
 CGO_ENABLED ?= 0
 GOARCH ?= amd64
+ORB_VERSION := $(shell cat VERSION)
 
 define compile_service
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-s -w" -o ${BUILD_DIR}/$(DOCKER_IMAGE_NAME_PREFIX)-$(1) cmd/$(1)/main.go
+    echo "ORB_VERSION: $(ORB_VERSION)"
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-X 'github.com/ns1labs/orb/buildinfo.version=$(ORB_VERSION)'" -o ${BUILD_DIR}/$(DOCKER_IMAGE_NAME_PREFIX)-$(1) cmd/$(1)/main.go
 endef
 
 define compile_service_linux
 	$(eval svc=$(subst docker_dev_,,$(1)))
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=linux GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-s -w" -o ${BUILD_DIR}/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc) cmd/$(svc)/main.go
+    echo "ORB_VERSION: $(ORB_VERSION)"
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=linux GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-X 'github.com/ns1labs/orb/buildinfo.version=$(ORB_VERSION)'" -o ${BUILD_DIR}/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc) cmd/$(svc)/main.go
 endef
 
 define make_docker

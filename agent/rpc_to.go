@@ -6,7 +6,7 @@ package agent
 
 import (
 	"encoding/json"
-	"github.com/ns1labs/orb"
+	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 )
@@ -17,7 +17,7 @@ func (a *orbAgent) sendCapabilities() error {
 		SchemaVersion: fleet.CurrentCapabilitiesSchemaVersion,
 		AgentTags:     a.config.OrbAgent.Tags,
 		OrbAgent: fleet.OrbAgentInfo{
-			Version: orb.GetVersion(),
+			Version: buildinfo.GetVersion(),
 		},
 	}
 

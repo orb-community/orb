@@ -10,7 +10,7 @@ import (
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
-	"github.com/ns1labs/orb"
+	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/internal/httputil"
 	"github.com/ns1labs/orb/pkg/db"
@@ -106,7 +106,7 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 		types.EncodeResponse,
 		opts...))
 
-	r.GetFunc("/version", orb.Version(svcName))
+	r.GetFunc("/version", buildinfo.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
 
 	return r
