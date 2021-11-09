@@ -121,15 +121,49 @@ export class AgentPolicyAddComponent {
     this.agentPolicy = this.router.getCurrentNavigation().extras.state?.agentPolicy as AgentPolicy || null;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.route.snapshot.paramMap.get('agentPolicy') as AgentPolicy;
-    this.getBackendData();
+    this.isEdit = !!this.agentPolicyID;
+
     this.readyForms();
 
-    this.isEdit = !!this.agentPolicyID;
-    this.isLoading[CONFIG.AGENT_POLICY] = this.isEdit;
-    !!this.agentPolicyID && agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(resp => {
-      this.agentPolicy = resp;
-      this.isLoading[CONFIG.AGENT_POLICY] = false;
-      this.updateForms();
+    Promise.all([
+      this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(this.newAgent()),
+      this.getBackendsList(),
+    ]).catch(reason => console.warn(`Couldn't fetch data. Reason: ${reason}`))
+      .then(values => {
+        this.updateForms();
+        this.getBackendData();
+      });
+
+  }
+
+  newAgent() {
+    return {
+      name: '',
+        description: '',
+      backend: 'pktvisor',
+      tags: {},
+      version: 1,
+        policy: {
+      kind: 'collection',
+        input: {
+        config: {},
+        tap: '',
+          input_type: '',
+      },
+      handlers: {
+        modules: {},
+      },
+    },
+    ...this.agentPolicy,
+    } as AgentPolicy;
+  }
+
+  retrieveAgentPolicy() {
+    return new Promise(resolve => {
+      this.agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(resp => {
+        this.agentPolicy = resp;
+        this.isLoading[CONFIG.AGENT_POLICY] = false;
+      });
     });
   }
 
@@ -183,8 +217,6 @@ export class AgentPolicyAddComponent {
 
     this.handlerSelectorFG = this._formBuilder.group({ 'selected_handler': [''] });
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
-
-    this.getBackendsList();
   }
 
   updateForms() {
@@ -222,33 +254,33 @@ export class AgentPolicyAddComponent {
       ...this.agentPolicy,
     } as AgentPolicy;
 
-    this.handlers = Object.entries(modules)
-      .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
+    this.detailsFG.patchValue({ name, description, backend });
 
-    this.detailsFG.patchValue({name, description, backend});
+    this.onBackendSelected(backend);
 
-    this.tapFG.patchValue({selected_tap: tap, input_type});
+    this.tapFG.patchValue({ selected_tap: tap, input_type });
 
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
 
-    this.onBackendSelected(backend);
+    this.handlers = Object.entries(modules)
+      .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
     this.onTapSelected(tap);
     this.onInputSelected(input_type);
   }
 
   getBackendsList() {
-    this.isLoading[CONFIG.BACKEND] = true;
-    this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
-      this.availableBackends = !!backends && backends.reduce((acc, curr) => {
-        acc[curr.backend] = curr;
-        return acc;
-      }, {});
+    return new Promise((resolve) => {
+      this.isLoading[CONFIG.BACKEND] = true;
+      this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
+        this.availableBackends = !!backends && backends.reduce((acc, curr) => {
+          acc[curr.backend] = curr;
+          return acc;
+        }, {});
 
-      if (this.isLoading[CONFIG.AGENT_POLICY] === false) {
-        this.onBackendSelected(this.agentPolicy.backend);
-      }
+        this.isLoading[CONFIG.BACKEND] = false;
 
-      this.isLoading[CONFIG.BACKEND] = false;
+        resolve(backends);
+      });
     });
   }
 
@@ -296,6 +328,7 @@ export class AgentPolicyAddComponent {
 
   onTapSelected(selectedTap) {
     this.tap = this.availableTaps[selectedTap];
+    this.tapFG.patchValue({ selected_tap: selectedTap });
 
     const { input } = this.agentPolicy.policy;
     const { input_type, config_predefined } = this.tap;
