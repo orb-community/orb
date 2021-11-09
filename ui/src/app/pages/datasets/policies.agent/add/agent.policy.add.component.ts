@@ -223,10 +223,6 @@ export class AgentPolicyAddComponent {
       description,
       backend,
       policy: {
-        input: {
-          tap,
-          input_type,
-        },
         handlers: {
           modules,
         },
@@ -297,7 +293,7 @@ export class AgentPolicyAddComponent {
       .then(value => {
         if (this.isEdit && this.agentPolicy) {
           const selected_tap = this.agentPolicy.policy.input.tap;
-          this.tapFG.patchValue({ selected_tap }, {emitEvent: true});
+          this.tapFG.patchValue({ selected_tap }, { emitEvent: true });
           this.handlers = Object.entries(this.agentPolicy.policy.handlers.modules)
             .map(([key, handler]) => ({ ...handler, name: key, type: handler.config.type }));
           this.onTapSelected(selected_tap);
@@ -307,7 +303,7 @@ export class AgentPolicyAddComponent {
       }, reason => console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`))
       .catch(reason => {
         console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`);
-      })                       ;
+      });
   }
 
   getTaps() {
@@ -338,10 +334,6 @@ export class AgentPolicyAddComponent {
       ...config_predefined,
       ...input.config,
     };
-
-    console.table(this.tap);
-    console.table(input_type);
-
 
     if (input_type) {
       this.onInputSelected(input_type);
@@ -379,20 +371,14 @@ export class AgentPolicyAddComponent {
     // tap config values, cannot be overridden if set
     const preConfig = this.tap.config_predefined;
 
-    console.table(this.input);
     if (this.isEdit === false) {
       this.agentPolicy.policy = { input: { config: {} } };
     }
-    console.table(preConfig);
-    console.table(inputConfig);
     // populate form controls for config
     const inputConfDynamicCtrl = Object.entries(inputConfig)
       .reduce((acc, [key, input]) => {
         const value = agentConfig?.[key] ? agentConfig[key] : '';
         if (!preConfig.includes(key)) {
-          console.log(`${key}`);
-          console.table(value);
-          console.table(input);
           acc[key] = [
             value,
             [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
