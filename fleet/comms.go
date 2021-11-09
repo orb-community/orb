@@ -12,8 +12,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/go-version"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
+	"github.com/ns1labs/orb"
 	"github.com/ns1labs/orb/policies/pb"
 	"go.uber.org/zap"
 	"time"
@@ -33,6 +35,8 @@ type AgentCommsService interface {
 	NotifyAgentGroupMemberships(a Agent) error
 	// NotifyAgentAllDatasets RPC Core -> Agent: Notify Agent of all Policy it should currently run based on group membership and current Datasets
 	NotifyAgentAllDatasets(a Agent) error
+	// NotifyAgentStop RPC Core -> Agent: Notify Agent that it should Stop (Send the message to Agent Channel)
+	NotifyAgentStop(MFChannelID string, reason string) error
 	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
 	NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 	// NotifyGroupRemoval RPC core -> Agent: Notify AgentGroup that the group has been removed
@@ -399,6 +403,32 @@ func (svc fleetCommsService) NotifyGroupDatasetRemoval(ag AgentGroup, dsID strin
 	return nil
 }
 
+func (svc fleetCommsService) NotifyAgentStop(MFChannelID string, reason string) error {
+	payload := AgentStopRPCPayload{Reason: reason}
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentStopRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewFleetCommsService(logger *zap.Logger, policyClient pb.PolicyServiceClient, agentRepo AgentRepository, agentGroupRepo AgentGroupRepository, agentPubSub mfnats.PubSub) AgentCommsService {
 	return &fleetCommsService{
 		logger:         logger,
@@ -426,9 +456,32 @@ func (svc fleetCommsService) handleCapabilities(thingID string, channelID string
 	agent.AgentMetadata["backends"] = capabilities.Backends
 	agent.AgentMetadata["orb_agent"] = capabilities.OrbAgent
 	agent.AgentTags = capabilities.AgentTags
-	err := svc.agentRepo.UpdateDataByIDWithChannel(context.Background(), agent)
+
+	err := svc.checkVersion(orb.GetMinAgentVersion(), capabilities.OrbAgent.Version, &agent)
 	if err != nil {
 		return err
+	}
+
+	err = svc.agentRepo.UpdateDataByIDWithChannel(context.Background(), agent)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (svc fleetCommsService) checkVersion(minVersion string, agentVersion string, agent *Agent) error {
+	mVersion, err := version.NewVersion(minVersion)
+	if err != nil {
+		return err
+	}
+	aVersion, err := version.NewVersion(agentVersion)
+	if err != nil {
+		return err
+	}
+
+	if aVersion.LessThan(mVersion) {
+		svc.NotifyAgentStop(agent.MFChannelID, fmt.Sprintf("The orb-agent version is too old to connect to the control plane. Minimum required version: {%s}", mVersion.String()))
+		agent.State = UpgradeRequired
 	}
 	return nil
 }

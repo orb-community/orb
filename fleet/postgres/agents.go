@@ -175,10 +175,10 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 }
 
 func (r agentRepository) UpdateDataByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
-
-	q := `UPDATE agents SET (agent_tags, agent_metadata)         
-			= (:agent_tags, :agent_metadata) 
-			WHERE mf_thing_id = :mf_thing_id AND mf_channel_id = :mf_channel_id;`
+	stateColumn, stateValue := getStateParam(agent.State.String())
+	q := fmt.Sprintf(`UPDATE agents SET (agent_tags, agent_metadata %s)         
+			= (:agent_tags, :agent_metadata %s) 
+			WHERE mf_thing_id = :mf_thing_id AND mf_channel_id = :mf_channel_id;`, stateColumn, stateValue)
 
 	if agent.MFThingID == "" || agent.MFChannelID == "" {
 		return errors.ErrMalformedEntity
@@ -556,6 +556,13 @@ func getOrbOrAgentTagsQuery(m types.Tags) ([]byte, string, error) {
 		mb = b
 	}
 	return mb, mq, nil
+}
+
+func getStateParam(state string) (string, string) {
+	if state == "" {
+		return "", ""
+	}
+	return ",state", ",:state"
 }
 
 func total(ctx context.Context, db Database, query string, params interface{}) (uint64, error) {

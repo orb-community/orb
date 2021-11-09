@@ -14,9 +14,14 @@ import (
 )
 
 const version string = "0.9.0-develop"
+const minAgentVersion string = "0.9.0-develop"
 
 func GetVersion() string {
 	return version
+}
+
+func GetMinAgentVersion() string {
+	return minAgentVersion
 }
 
 // VersionInfo contains version endpoint response.

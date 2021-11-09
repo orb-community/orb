@@ -76,6 +76,18 @@ type DatasetRemovedRPCPayload struct {
 	PolicyID  string `json:"policy_id"`
 }
 
+const AgentStopRPCFunc = "agent_stop"
+
+type AgentStopRPCPayload struct {
+	Reason string `json:"reason"`
+}
+
+type AgentStopRPC struct {
+	SchemaVersion string              `json:"schema_version"`
+	Func          string              `json:"func"`
+	Payload       AgentStopRPCPayload `json:"payload"`
+}
+
 // Edge -> Core
 
 const GroupMembershipReqRPCFunc = "group_membership_req"
