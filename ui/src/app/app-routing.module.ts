@@ -17,8 +17,8 @@ export const routes: Routes = [
       .then(m => m.AuthModule),
     data: {breadcrumb: {skip: true}},
   },
-  {path: '', redirectTo: 'pages', pathMatch: 'full'},
-  {path: '**', redirectTo: 'pages'},
+  {path: '', redirectTo: 'pages/home', pathMatch: 'full'},
+  {path: '**', redirectTo: 'pages/home'},
 ];
 
 const config: ExtraOptions = {
