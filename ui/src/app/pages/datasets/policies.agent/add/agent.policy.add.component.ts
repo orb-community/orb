@@ -377,7 +377,7 @@ export class AgentPolicyAddComponent {
     // populate form controls for config
     const inputConfDynamicCtrl = Object.entries(inputConfig)
       .reduce((acc, [key, input]) => {
-        const value = agentConfig?.[key] ? agentConfig[key] : '';
+        const value = agentConfig?.[key] || '';
         if (!preConfig.includes(key)) {
           acc[key] = [
             value,
