@@ -335,6 +335,7 @@ func viewDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			PolicyID:     dataset.PolicyID,
 			SinkIDs:      dataset.SinkIDs,
 			AgentGroupID: dataset.AgentGroupID,
+			Valid:        dataset.Valid,
 			TsCreated:    dataset.Created,
 		}
 		return res, nil
@@ -370,6 +371,7 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 				PolicyID:     dataset.PolicyID,
 				SinkIDs:      dataset.SinkIDs,
 				AgentGroupID: dataset.AgentGroupID,
+				Valid:        dataset.Valid,
 			}
 			res.Datasets = append(res.Datasets, view)
 		}
