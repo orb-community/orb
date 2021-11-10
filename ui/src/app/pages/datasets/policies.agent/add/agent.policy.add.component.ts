@@ -64,11 +64,13 @@ export class AgentPolicyAddComponent {
   };
 
   // holds all handlers added by user
-  handlers: {
-    name: string,
-    type: string,
-    config: { [propName: string]: {} | any },
-  }[] = [];
+  modules: {
+    [propName: string]: {
+      name?: string,
+      type?: string,
+      config?: { [propName: string]: {} | any },
+    },
+  } = {};
 
   // #services responses
   // hold info retrieved
@@ -94,8 +96,10 @@ export class AgentPolicyAddComponent {
       version?: string,
       config?: DynamicFormConfig,
       filter?: DynamicFormConfig,
+      metrics?: DynamicFormConfig,
+      metrics_groups?: DynamicFormConfig,
     },
-  };
+  } = {};
 
   // #if edit
   agentPolicy: AgentPolicy;
@@ -118,15 +122,14 @@ export class AgentPolicyAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.agentPolicy = this.router.getCurrentNavigation().extras.state?.agentPolicy as AgentPolicy || null;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
-    this.agentPolicy = this.route.snapshot.paramMap.get('agentPolicy') as AgentPolicy;
+    this.agentPolicy = this.newAgent();
     this.isEdit = !!this.agentPolicyID;
 
     this.readyForms();
 
     Promise.all([
-      this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(this.newAgent()),
+      this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(),
       this.getBackendsList(),
     ]).catch(reason => console.warn(`Couldn't fetch data. Reason: ${ reason }`))
       .then(() => this.updateForms())
@@ -151,14 +154,41 @@ export class AgentPolicyAddComponent {
           modules: {},
         },
       },
-      ...this.agentPolicy,
     } as AgentPolicy;
   }
 
   retrieveAgentPolicy() {
     return new Promise(resolve => {
       this.agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(policy => {
-        this.agentPolicy = policy;
+        const {
+          name,
+          description,
+          backend,
+          policy: {
+            input: {
+              tap,
+              input_type,
+            },
+            handlers: {
+              modules,
+            },
+          },
+        } = policy;
+        this.agentPolicy = {
+          ...this.agentPolicy,
+          name,
+          description,
+          backend,
+          policy: {
+            input: {
+              tap,
+              input_type,
+            },
+            handlers: {
+              modules,
+            },
+          },
+        };
         this.isLoading[CONFIG.AGENT_POLICY] = false;
         resolve(policy);
       });
@@ -179,29 +209,9 @@ export class AgentPolicyAddComponent {
           modules,
         },
       },
-    } = this.agentPolicy
-      = {
-      name: '',
-      description: '',
-      backend: 'pktvisor',
-      tags: {},
-      version: 1,
-      policy: {
-        kind: 'collection',
-        input: {
-          config: {},
-          tap: '',
-          input_type: '',
-        },
-        handlers: {
-          modules: {},
-        },
-      },
-      ...this.agentPolicy,
-    } as AgentPolicy;
+    } = this.agentPolicy;
 
-    this.handlers = Object.entries(modules)
-      .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
+    this.modules = modules;
 
     this.detailsFG = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
@@ -213,7 +223,11 @@ export class AgentPolicyAddComponent {
       input_type: [input_type, Validators.required],
     });
 
-    this.handlerSelectorFG = this._formBuilder.group({ 'selected_handler': [''] });
+    this.handlerSelectorFG = this._formBuilder.group({
+      'selected_handler': ['', [Validators.required]],
+      'label': ['', [Validators.required]],
+    });
+
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
   }
 
@@ -227,31 +241,11 @@ export class AgentPolicyAddComponent {
           modules,
         },
       },
-    } = this.agentPolicy
-      = {
-      name: '',
-      description: '',
-      backend: 'pktvisor',
-      tags: {},
-      version: 1,
-      policy: {
-        kind: 'collection',
-        input: {
-          config: {},
-          tap: '',
-          input_type: '',
-        },
-        handlers: {
-          modules: {},
-        },
-      },
-      ...this.agentPolicy,
-    } as AgentPolicy;
+    } = this.agentPolicy;
 
     this.detailsFG.patchValue({ name, description, backend });
 
-    this.handlers = Object.entries(modules)
-      .map(([key, handler]) => ({ name: key, type: handler?.type, ...handler }));
+    this.modules = modules;
 
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
 
@@ -294,8 +288,6 @@ export class AgentPolicyAddComponent {
         if (this.isEdit && this.agentPolicy) {
           const selected_tap = this.agentPolicy.policy.input.tap;
           this.tapFG.patchValue({ selected_tap }, { emitEvent: true });
-          this.handlers = Object.entries(this.agentPolicy.policy.handlers.modules)
-            .map(([key, handler]) => ({ ...handler, name: key, type: handler.config.type }));
           this.onTapSelected(selected_tap);
           this.tapFG.controls.selected_tap.disable();
         }
@@ -311,7 +303,7 @@ export class AgentPolicyAddComponent {
       this.isLoading[CONFIG.TAPS] = true;
       this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
         .subscribe(taps => {
-          this.availableTaps = !!taps && taps.reduce((acc, curr) => {
+          this.availableTaps = taps.reduce((acc, curr) => {
             acc[curr.name] = curr;
             return acc;
           }, {});
@@ -352,7 +344,7 @@ export class AgentPolicyAddComponent {
 
           this.isLoading[CONFIG.INPUTS] = false;
 
-          resolve(this.availableInputs);
+          resolve(inputs);
         });
     });
 
@@ -371,9 +363,6 @@ export class AgentPolicyAddComponent {
     // tap config values, cannot be overridden if set
     const preConfig = this.tap.config_predefined;
 
-    if (this.isEdit === false) {
-      this.agentPolicy.policy = { input: { config: {} } };
-    }
     // populate form controls for config
     const inputConfDynamicCtrl = Object.entries(inputConfig)
       .reduce((acc, [key, input]) => {
@@ -411,15 +400,10 @@ export class AgentPolicyAddComponent {
 
       this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
         .subscribe(handlers => {
-          this.availableHandlers = !!handlers && handlers;
-
-          this.handlerSelectorFG = this._formBuilder.group({
-            'selected_handler': ['', [Validators.required]],
-            'label': ['', [Validators.required]],
-          });
+          this.availableHandlers = handlers || {};
 
           this.isLoading[CONFIG.HANDLERS] = false;
-          resolve(this.availableBackends);
+          resolve(handlers);
         });
     });
   }
@@ -432,14 +416,20 @@ export class AgentPolicyAddComponent {
     this.liveHandler = selectedHandler !== '' && !!this.availableHandlers[selectedHandler] ?
       { ...this.availableHandlers[selectedHandler], type: selectedHandler } : null;
 
-    const { config } = !!this.liveHandler ? this.liveHandler : { config: {} };
+    const { config } = this.liveHandler || { config: {} };
 
-    const dynamicControls = Object.entries(config || {}).reduce((controls, [key, value]) => {
+    const dynamicControls = Object.entries(config || {}).reduce((controls, [key]) => {
       controls[key] = ['', [Validators.required]];
       return controls;
     }, {});
 
     this.dynamicHandlerConfigFG = Object.keys(dynamicControls).length > 0 ? this._formBuilder.group(dynamicControls) : null;
+  }
+
+  checkValidName() {
+    const { policy: { handlers: { modules } } } = this.agentPolicy;
+    const { value } = this.handlerSelectorFG.controls.label;
+    return !(value === '' || Object.keys(modules || {}).find(name => value === name));
   }
 
   onHandlerAdded() {
@@ -454,8 +444,7 @@ export class AgentPolicyAddComponent {
     }
 
     const handlerName = this.handlerSelectorFG.controls.label.value;
-    this.handlers.push({
-      name: handlerName,
+    this.modules[handlerName] = ({
       type: this.liveHandler.type,
       config,
     });
@@ -467,8 +456,8 @@ export class AgentPolicyAddComponent {
     this.onHandlerSelected('');
   }
 
-  onHandlerRemoved(index) {
-    this.handlers.splice(index, 1);
+  onHandlerRemoved(handlerName) {
+    delete this.modules[handlerName];
   }
 
   goBack() {
@@ -487,14 +476,14 @@ export class AgentPolicyAddComponent {
         input: {
           tap: this.tap.name,
           input_type: this.tapFG.controls.input_type.value,
-          config: Object.keys(this.inputConfigFG.controls)
-            .map(key => ({ [key]: this.inputConfigFG.controls[key].value }))
+          ...Object.entries(this.inputConfigFG.controls)
+            .map(([key, control]) => ({ [key]: control.value }))
             .reduce((acc, curr) => {
               for (const [key, value] of Object.entries(curr)) {
-                if (!!value && value !== '') acc[key] = value;
+                if (!!value && value !== '') acc.config[key] = value;
               }
-              return acc;
-            }, {}),
+              return Object.keys(acc.config).length > 0 ? acc : null;
+            }, {config: {}}),
           // filter: Object.keys(this.inputFilterFG.controls)
           //   .map(key => ({ [key]: this.inputConfigFG.controls[key].value }))
           //   .reduce((acc, curr) => {
@@ -505,10 +494,11 @@ export class AgentPolicyAddComponent {
           //   }, {}),
         },
         handlers: {
-          modules: this.handlers.reduce((acc, handler) => {
-            acc[handler.name] = {
-              ...(Object.keys(handler.config).length > 0 ? { config: handler.config } : {}),
-              type: handler.type,
+          modules: Object.entries(this.modules).reduce((acc, [key, value]) => {
+            const {type, config} = value;
+            acc[key] = {
+              type,
+              ...Object.keys(config).length > 0 ? { config } : undefined,
             };
             return acc;
           }, {}),
