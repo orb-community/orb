@@ -250,6 +250,82 @@ paths:
           description: Missing or invalid content type.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /agents/backends:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List of Agent backends'
+      operationId: listAgentsBackends
+      tags:
+        - agents
+      responses:
+        '200':
+          $ref: "#/components/responses/AgentBackendsObjRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /agents/backends/pktvisor/taps:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List of pktvisor Taps available from current agents'
+      operationId: listTaps
+      tags:
+        - agents
+      responses:
+        '200':
+          $ref: "#/components/responses/pktvisorTapsObjRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /agents/backends/pktvisor/inputs:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List of pktvisorInputs available across current agents'
+      operationId: listInputs
+      tags:
+        - agents
+      responses:
+        '200':
+          $ref: "#/components/responses/pktvisorInputsObjRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+  /agents/backends/pktvisor/handlers:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'List of pktvisor Handlers available across current agents'
+      operationId: listHandlers
+      tags:
+        - agents
+      responses:
+        '200':
+          $ref: "#/components/responses/pktvisorHandlersObjRes"
+        '400':
+          description: Failed due to malformed query parameters.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
   requestBodies:
     AgentGroupCreateReq:
@@ -384,6 +460,30 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AgentPageSchema"
+    AgentBackendsObjRes:
+      description: List of Agent backends object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentBackendsObjSchema"
+    pktvisorTapsObjRes:
+      description: list of pktvisor Taps available from current agents
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PktvisorTapsObjSchema"
+    pktvisorInputsObjRes:
+      description: list of pktvisor Inputs available from current agents
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PktvisorInputsObjSchema"
+    pktvisorHandlersObjRes:
+      description: list of pktvisor Handlers available across current agents
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PktvisorHandlersObjSchema"
     ServiceErrorRes:
       description: Unexpected server-side error occurred.
       content:
@@ -620,3 +720,89 @@ components:
           example:
             region: eu
             node_type: dns
+    AgentBackendsObjSchema:
+      type: array
+      items:
+        type: object
+        properties:
+          backend:
+            type: string
+            description: avaliable backend name
+            example: pktvisor
+          description:
+            type: string
+            description: Description of this backend
+            example: pktvisor observability agent from pktvisor.dev
+    PktvisorTapsObjSchema:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: avaliable tap name
+            example: anycast_dns
+          input_type:
+            type: string
+            example: pcap
+          config_predefined:
+            type: array
+            items:
+              type: string
+              example: iface
+          agents:
+            type: object
+            properties:
+              total:
+                type: integer
+    PktvisorInputsObjSchema:
+      required:
+        - iface
+      type: object
+      properties:
+        pcap:
+          type: object
+          description: input type
+          properties:
+            filter:
+              type: object
+              properties:
+                bpf:
+                  type: string
+                  description: tcpdump compatible filter expression for limiting the traffic examined (with BPF)
+            config:
+              type: object
+              properties:
+                iface:
+                  type: string
+                  description: The network interface to capture traffic from
+                  example: eth0
+            host_spec:
+              type: string
+              description: Subnets (comma separated) which should be considered belonging to this host, in CIDR form. Used for ingress/egress determination, defaults to host attached to the network interface
+              example: 10.0.1.0/24,10.0.2.1/32,2001:db8::/64
+            pcap_source:
+              type: string
+              description: Packet capture engine to use. Defaults to best for platform
+              example: libpcap
+          additionalProperties:
+            type: string
+            description: Input version
+      example:
+        pcap:
+          "1.0":
+            filter:
+              bpf: udp port 53 and host 127.0.0.1
+            config:
+              iface: eth0
+            host_spec: 10.0.1.0/24,10.0.2.1/32,2001:db8::/64
+            pcap_source: libpcap
+
+    PktvisorHandlersObjSchema:
+      type: object
+      properties:
+        additionalProperties:
+          type: object
+          properties:
+            version:
+              type: integer

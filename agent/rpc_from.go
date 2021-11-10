@@ -6,6 +6,7 @@ package agent
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
@@ -69,19 +70,17 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 			return
 		}
 		a.handleAgentGroupRemoval(r.Payload)
-	case fleet.DatasetRemovedRPCFunc:
-		var r fleet.DatasetRemovedRPC
-		if err := json.Unmarshal(message.Payload(), &r); err != nil {
-			a.logger.Error("error decoding dataset removal message from core", zap.Error(fleet.ErrSchemaMalformed))
-			return
-		}
-		a.handleDatasetRemoval(r.Payload)
 	default:
 		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
 			zap.String("func", rpc.Func),
 			zap.Any("payload", rpc.Payload))
 	}
 
+}
+
+func (a *orbAgent) handleAgentStop(payload fleet.AgentStopRPCPayload) {
+	// TODO graceful stop agent https://github.com/ns1labs/orb/issues/466
+	panic(fmt.Sprintf("control plane requested we terminate, reason: %s", payload.Reason))
 }
 
 func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
@@ -126,6 +125,13 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			return
 		}
 		a.handleAgentPolicies(r.Payload)
+	case fleet.AgentStopRPCFunc:
+		var r fleet.AgentStopRPC
+		if err := json.Unmarshal(message.Payload(), &r); err != nil {
+			a.logger.Error("error decoding agent stop message from core", zap.Error(fleet.ErrSchemaMalformed))
+			return
+		}
+		a.handleAgentStop(r.Payload)
 	default:
 		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
 			zap.String("func", rpc.Func),

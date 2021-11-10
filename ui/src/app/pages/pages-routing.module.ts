@@ -126,6 +126,11 @@ const children = [
         data: {breadcrumb: 'New Dataset'},
       },
       {
+        path: 'edit/:id',
+        component: DatasetAddComponent,
+        data: {breadcrumb: 'Edit Dataset'},
+      },
+      {
         path: 'policies',
         children: [
           {

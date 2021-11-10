@@ -41,7 +41,7 @@ func migrateDB(db *sqlx.DB) error {
 			{
 				Id: "fleet_1",
 				Up: []string{
-					`CREATE TYPE agent_state AS ENUM ('new', 'online', 'offline', 'stale', 'removed');`,
+					`CREATE TYPE agent_state AS ENUM ('new', 'online', 'offline', 'stale', 'removed', 'upgrade_required');`,
 					`CREATE TABLE IF NOT EXISTS agents (
 
 						mf_thing_id        UUID NOT NULL,

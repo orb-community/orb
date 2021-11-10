@@ -14,6 +14,7 @@ require (
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/golang/protobuf v1.5.0
 	github.com/golang/snappy v0.0.1
+	github.com/hashicorp/go-version v1.3.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.7.0
 	github.com/mainflux/mainflux v0.12.0

@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/go-zoo/bone"
-	"github.com/ns1labs/orb"
+	"github.com/ns1labs/orb/buildinfo"
 	fleetgrpc "github.com/ns1labs/orb/fleet/api/grpc"
 	"github.com/ns1labs/orb/pkg/config"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
@@ -141,7 +141,7 @@ func main() {
 
 func makeHandler(svcName string) http.Handler {
 	r := bone.New()
-	r.GetFunc("/version", orb.Version(svcName))
+	r.GetFunc("/version", buildinfo.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
 	return r
 }
