@@ -96,7 +96,15 @@
     "target": "http://localhost:80/api/v1",
     "secure": false
   },
-  "/backends/agents/*": {
+  "/agents/backends/taps": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/agents/backends/handlers": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/agents/backends/inputs": {
     "target": "http://localhost:80/api/v1",
     "secure": false
   }

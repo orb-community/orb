@@ -55,7 +55,7 @@
               <span class="required">*</span>
             </div>
             <nb-select (selectedChange)="onBackendSelected($event)"
-                       [(selected)]="this.agentPolicy.backend"
+                       [(selected)]="detailsFG.controls.backend"
                        appearance="filled"
                        data-orb-qa-id="backend"
                        formControlName="backend"
@@ -105,7 +105,7 @@
                 <span class="required">*</span>
               </div>
               <nb-select (selectedChange)="onTapSelected($event)"
-                         [(selected)]="this.agentPolicy.policy.input.tap"
+                         [(selected)]="tapFG.controls.selected_tap"
                          appearance="filled"
                          data-orb-qa-id="taps"
                          formControlName="selected_tap"
@@ -125,7 +125,6 @@
                   <span class="required">*</span>
                 </div>
                 <nb-select (selectedChange)="onInputSelected($event)"
-                           [(selected)]="this.agentPolicy.policy.input"
                            [attr.data-orb-qa-id]="input"
                            appearance="filled"
                            formControlName="input_type"
@@ -172,7 +171,6 @@
                            [type]="control.value.type"
                            nbTooltip="{{ control.value.description }}">
                     <nb-select *ngSwitchCase="'select'"
-                               [(selected)]="agentPolicy.policy.input.config[control.key]"
                                [attr.data-orb-qa-id]="control.value.name"
                                [formControlName]="control.key"
                                [id]="control.value.name"
@@ -276,7 +274,7 @@
                      nbTooltip="Provide a label for your handler configuration"
                      placeholder="Handler Name"/>
               <button (click)="onHandlerAdded()"
-                      [disabled]="!checkValidName()"
+                      [disabled]="checkValidName()"
                       class="col-1"
                       data-orb-qa-id="addHandler"
                       ghost
