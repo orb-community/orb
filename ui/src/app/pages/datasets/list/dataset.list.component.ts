@@ -94,15 +94,8 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
         prop: 'name',
         name: 'Name',
         resizeable: false,
-        flexGrow: 1,
+        flexGrow: 5,
         minWidth: 90,
-      },
-      {
-        prop: 'description',
-        name: 'Description',
-        resizeable: false,
-        minWidth: 100,
-        flexGrow: 2,
       },
       {
         name: '',
