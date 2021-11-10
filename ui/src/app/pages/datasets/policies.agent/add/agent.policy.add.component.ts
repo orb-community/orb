@@ -497,9 +497,9 @@ export class AgentPolicyAddComponent {
           modules: Object.entries(this.modules).reduce((acc, [key, value]) => {
             const {type, config} = value;
             acc[key] = {
-              type,
-              ...Object.keys(config).length > 0 ? { config } : undefined,
+              type: type,
             };
+            if (Object.keys(config || {}).length > 0) acc[key][config] = config;
             return acc;
           }, {}),
         },
