@@ -359,9 +359,9 @@ export class AgentPolicyAddComponent {
     // input type config model
     const { config: inputConfig, filter: filterConfig } = this.input;
     // if editing, some values might not be overrideable any longer, all should be prefilled in form
-    const { config: agentConfig, filter: agentFilter } = !!this.isEdit ? this.agentPolicy.policy?.input : null;
+    const { config: agentConfig, filter: agentFilter } = this.agentPolicy.policy.input;
     // tap config values, cannot be overridden if set
-    const preConfig = this.tap.config_predefined;
+    const {config_predefined: preConfig, filter_predefined: preFilter} = this.tap;
 
     // populate form controls for config
     const inputConfDynamicCtrl = Object.entries(inputConfig)
@@ -380,7 +380,7 @@ export class AgentPolicyAddComponent {
 
     const inputFilterDynamicCtrl = Object.entries(filterConfig)
       .reduce((acc, [key, input]) => {
-        const value = !!agentFilter?.[key] ? agentConfig[key] : '';
+        const value = !!agentFilter?.[key] ? agentFilter[key] : '';
         // const disabled = !!preConfig?.[key];
         if (!preConfig.includes(key)) {
           acc[key] = [
