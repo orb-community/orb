@@ -382,7 +382,7 @@ export class AgentPolicyAddComponent {
       .reduce((acc, [key, input]) => {
         const value = !!agentFilter?.[key] ? agentFilter[key] : '';
         // const disabled = !!preConfig?.[key];
-        if (!preConfig.includes(key)) {
+        if (!preFilter.includes(key)) {
           acc[key] = [
             value,
             [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
