@@ -124,7 +124,7 @@ export class AgentAddComponent {
     if (key?.value && key.value !== '') {
       if (value?.value && value.value !== '') {
         // key and value fields
-        this.selectedTags[key] = value;
+        this.selectedTags[key.value] = value.value;
         key.reset('');
         value.reset('');
       }
