@@ -485,14 +485,14 @@ export class AgentPolicyAddComponent {
               }
               return Object.keys(acc.config).length > 0 ? acc : null;
             }, {config: {}}),
-          // filter: Object.keys(this.inputFilterFG.controls)
-          //   .map(key => ({ [key]: this.inputConfigFG.controls[key].value }))
-          //   .reduce((acc, curr) => {
-          //     for (const [key, value] of Object.entries(curr)) {
-          //       if (!!value && value !== '') acc[key] = value;
-          //     }
-          //     return acc;
-          //   }, {}),
+          ...Object.entries(this.inputFilterFG.controls)
+            .map(([key, control]) => ({ [key]: control.value }))
+            .reduce((acc, curr) => {
+              for (const [key, value] of Object.entries(curr)) {
+                if (!!value && value !== '') acc.filter[key] = value;
+              }
+              return Object.keys(acc.filter).length > 0 ? acc : null;
+            }, {filter: {}}),
         },
         handlers: {
           modules: Object.entries(this.modules).reduce((acc, [key, value]) => {
