@@ -35,6 +35,11 @@ export interface PolicyTap {
   config?: { [propName: string]: any };
 
   /**
+   * json object with configs
+   */
+  filter?: { [propName: string]: any };
+
+  /**
    * array with configs fields that are predefined,
    * without their predefined value
    */
