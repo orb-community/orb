@@ -81,7 +81,7 @@
                            icon="close-outline"
                            size="12"></nb-icon>
                 </mat-chip>
-                <mat-chip *ngIf="selectedTags.value.length === 0"
+                <mat-chip *ngIf="!validateSelectedTags()"
                           [attr.data-orb-qa-id]="'tag_none'"
                           [style.background-color]="'No Tag Added' | tagchipcolor"
                           class="orb-tag-sink">
@@ -151,6 +151,7 @@
                 {{strings.stepper.back}}
               </button>
               <button class="next-button"
+                      [disabled]="!validateSelectedTags()"
                       data-orb-qa-id="button#next"
                       nbButton
                       nbStepperNext
@@ -189,7 +190,7 @@
                   class="orb-tag-sink ">
                   {{tag | tagchip}}
                 </mat-chip>
-                <mat-chip *ngIf="secondFormGroup.controls.orb_tags.value.length === 0"
+                <mat-chip *ngIf="!validateSelectedTags()"
                           [attr.data-orb-qa-id]="'tag_none'"
                           [style.background-color]="'No Tag Added' | tagchipcolor"
                           class="orb-tag-sink">

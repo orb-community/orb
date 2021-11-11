@@ -108,14 +108,14 @@ export class AgentAddComponent {
   }
 
   validateSelectedTags() {
-
+    return Object.keys(this.selectedTags).length !== 0;
   }
 
-  // TODO - this method can be refactored and has multiple occurrences in ui componentes
+  // TODO - this method can be refactored and has multiple occurrences in ui components
   checkValidName() {
     const { value } = this.secondFormGroup.controls.key;
     if (value === '') return false;
-    return Object.keys(this.selectedTags).find(name => name === value) !== undefined;
+    return !Object.keys(this.selectedTags).find(name => name === value) !== undefined;
   }
 
   onAddTag() {
@@ -124,7 +124,6 @@ export class AgentAddComponent {
     if (key?.value && key.value !== '') {
       if (value?.value && value.value !== '') {
         // key and value fields
-        orb_tags.reset([{[key.value]: value.value}].concat(orb_tags.value));
         key.reset('');
         value.reset('');
       }
