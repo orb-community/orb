@@ -16,7 +16,7 @@ import { AgentKeyComponent } from '../key/agent.key.component';
 })
 export class AgentAddComponent {
   // page vars
-  strings = {...STRINGS.agents, stepper: STRINGS.stepper};
+  strings = { ...STRINGS.agents, stepper: STRINGS.stepper };
 
   isEdit: boolean;
 
@@ -31,7 +31,7 @@ export class AgentAddComponent {
   // agent vars
   agent: Agent;
 
-  selectedTags: {[propName: string]: string} = {};
+  selectedTags: { [propName: string]: string } = {};
 
   isLoading = false;
 
@@ -72,33 +72,16 @@ export class AgentAddComponent {
   }
 
   updateForm() {
-    const {name, orb_tags} = !!this.agent ? this.agent : {
+    const { name } = this.agent || {
       name: '',
-      orb_tags: {},
     } as Agent;
 
     this.firstFormGroup.controls.name.patchValue(name);
 
     this.secondFormGroup.setValue({
-      orb_tags: !!orb_tags ? Object.entries(orb_tags).map(([key, value]) => ({[key]: value})) : [],
       key: '',
       value: '',
     });
-
-    this.agentsService.clean();
-  }
-
-  resetFormValues() {
-    const {name, orb_tags} = !!this.agent ? this.agent : {
-      name: '',
-      orb_tags: {},
-    } as Agent;
-
-    this.firstFormGroup.setValue({name: name});
-
-    this.secondFormGroup.controls.orb_tags.setValue(
-      Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})),
-    );
 
     this.agentsService.clean();
   }
@@ -119,7 +102,7 @@ export class AgentAddComponent {
   }
 
   onAddTag() {
-    const {key, value} = this.secondFormGroup.controls;
+    const { key, value } = this.secondFormGroup.controls;
     // sanitize minimally anyway
     if (key?.value && key.value !== '') {
       if (value?.value && value.value !== '') {
@@ -139,11 +122,11 @@ export class AgentAddComponent {
   }
 
   wrapPayload(validate: boolean) {
-    const {name} = this.firstFormGroup.controls;
+    const { name } = this.firstFormGroup.controls;
 
     return {
       name: name.value,
-      orb_tags: {...this.selectedTags},
+      orb_tags: { ...this.selectedTags },
       validate_only: !!validate && validate, // Apparently this guy is required..
     };
   }
@@ -164,7 +147,7 @@ export class AgentAddComponent {
     const payload = this.wrapPayload(false);
 
     if (this.isEdit) {
-      this.agentsService.editAgent({...payload, id: this.agentID}).subscribe(() => {
+      this.agentsService.editAgent({ ...payload, id: this.agentID }).subscribe(() => {
         this.notificationsService.success('Agent successfully updated', '');
         this.goBack();
       });
