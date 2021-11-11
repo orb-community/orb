@@ -380,7 +380,7 @@ export class AgentPolicyAddComponent {
 
     const inputFilterDynamicCtrl = Object.entries(filterConfig)
       .reduce((acc, [key, input]) => {
-        const value = !!agentConfig?.[key] ? agentConfig[key] : '';
+        const value = !!agentFilter?.[key] ? agentConfig[key] : '';
         // const disabled = !!preConfig?.[key];
         if (!preConfig.includes(key)) {
           acc[key] = [
