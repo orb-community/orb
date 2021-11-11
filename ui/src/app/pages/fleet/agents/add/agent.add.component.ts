@@ -119,11 +119,12 @@ export class AgentAddComponent {
   }
 
   onAddTag() {
-    const {orb_tags, key, value} = this.secondFormGroup.controls;
+    const {key, value} = this.secondFormGroup.controls;
     // sanitize minimally anyway
     if (key?.value && key.value !== '') {
       if (value?.value && value.value !== '') {
         // key and value fields
+        this.selectedTags[key] = value;
         key.reset('');
         value.reset('');
       }
@@ -133,13 +134,8 @@ export class AgentAddComponent {
     }
   }
 
-  onRemoveTag(tag: any) {
-    const {tags, tags: {value: tagsList}} = this.secondFormGroup.controls;
-    const indexToRemove = tagsList.indexOf(tag);
-
-    if (indexToRemove >= 0) {
-      tags.patchValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
-    }
+  onRemoveTag(tagKey) {
+    delete this.selectedTags[tagKey];
   }
 
   wrapPayload(validate: boolean) {

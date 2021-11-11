@@ -76,7 +76,7 @@
                   [style.background-color]="tag.key  | tagchipcolor"
                   class="orb-tag-sink ">
                   {{ tag.key }}: {{ tag.value }}
-                  <nb-icon (click)="onRemoveTag(tag)"
+                  <nb-icon (click)="onRemoveTag(tag.key)"
                            class="ml-1"
                            icon="close-outline"
                            size="12"></nb-icon>
