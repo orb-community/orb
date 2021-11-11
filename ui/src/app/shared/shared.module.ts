@@ -22,7 +22,7 @@ import { MessageValuePipe } from './pipes/message-value.pipe';
 import { ToMillisecsPipe } from './pipes/time.pipe';
 import { TableComponent } from './components/table/table.component';
 import { PaginationComponent } from './components/pagination/pagination.component';
-import { TagChipPipe, TagChipColorPipe } from 'app/shared/pipes/tagchip.pipe';
+import { TagListChipPipe, TagChipColorPipe, TagChipPipe, TagKeyPipe } from 'app/shared/pipes/tagListChip.pipe';
 import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.directive';
 
 @NgModule({
@@ -49,6 +49,8 @@ import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.di
     TableComponent,
     PaginationComponent,
     TagChipPipe,
+    TagKeyPipe,
+    TagListChipPipe,
     TagChipColorPipe,
     ValidTagInputDirective,
   ],
@@ -63,6 +65,8 @@ import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.di
     TableComponent,
     PaginationComponent,
     TagChipPipe,
+    TagKeyPipe,
+    TagListChipPipe,
     TagChipColorPipe,
     ValidTagInputDirective,
   ],
@@ -70,6 +74,8 @@ import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.di
     MessageValuePipe,
     ToMillisecsPipe,
     TagChipPipe,
+    TagKeyPipe,
+    TagListChipPipe,
     TagChipColorPipe,
     ValidTagInputDirective,
   ],

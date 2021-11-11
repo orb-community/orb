@@ -76,8 +76,8 @@
                 <mat-chip
                     class="orb-tag-sink "
                     *ngFor="let tag of secondFormGroup.controls.tags.value"
-                    [style.background-color]="tag | keyvalue | tagchip | tagchipcolor">
-                    {{tag | keyvalue | tagchip}}
+                    [style.background-color]="tag | keyvalue | tagListChip | tagchipcolor">
+                    {{tag | keyvalue | tagListChip}}
                   <nb-icon class="ml-1"
                            (click)="onRemoveTag(tag)"
                            icon="close-outline"
@@ -196,8 +196,8 @@
                 <mat-chip
                     class="orb-tag-sink "
                     *ngFor="let tag of secondFormGroup.controls.tags.value"
-                    [style.background-color]="tag | keyvalue | tagchip | tagchipcolor">
-                    {{tag | keyvalue | tagchip}}
+                    [style.background-color]="tag | keyvalue | tagListChip | tagchipcolor">
+                    {{tag | keyvalue | tagListChip}}
                 </mat-chip>
               </mat-chip-list>
             </div>
@@ -281,7 +281,7 @@
     <mat-chip-list>
       <mat-chip
           class="orb-tag-sink "
-          *ngFor="let tag of value | keyvalue | tagchip"
+          *ngFor="let tag of value | keyvalue | tagListChip"
           [style.background-color]="tag | tagchipcolor">
           {{tag}}
       </mat-chip>

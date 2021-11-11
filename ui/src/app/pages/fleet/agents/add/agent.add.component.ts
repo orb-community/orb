@@ -31,6 +31,8 @@ export class AgentAddComponent {
   // agent vars
   agent: Agent;
 
+  selectedTags: {[propName: string]: string} = {};
+
   isLoading = false;
 
   agentID;
@@ -48,7 +50,6 @@ export class AgentAddComponent {
     });
 
     this.secondFormGroup = this._formBuilder.group({
-      tags: [[]],
       key: [''],
       value: [''],
     });
@@ -63,6 +64,7 @@ export class AgentAddComponent {
 
     !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
       this.agent = resp;
+      this.selectedTags = this.agent.orb_tags;
       this.isLoading = false;
       this.updateForm();
     });
@@ -78,7 +80,7 @@ export class AgentAddComponent {
     this.firstFormGroup.controls.name.patchValue(name);
 
     this.secondFormGroup.setValue({
-      tags: !!orb_tags ? Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})) : [],
+      orb_tags: !!orb_tags ? Object.entries(orb_tags).map(([key, value]) => ({[key]: value})) : [],
       key: '',
       value: '',
     });
@@ -94,7 +96,7 @@ export class AgentAddComponent {
 
     this.firstFormGroup.setValue({name: name});
 
-    this.secondFormGroup.controls.tags.setValue(
+    this.secondFormGroup.controls.orb_tags.setValue(
       Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})),
     );
 
@@ -105,13 +107,24 @@ export class AgentAddComponent {
     this.router.navigateByUrl('/pages/fleet/agents');
   }
 
+  validateSelectedTags() {
+
+  }
+
+  // TODO - this method can be refactored and has multiple occurrences in ui componentes
+  checkValidName() {
+    const { value } = this.secondFormGroup.controls.key;
+    if (value === '') return false;
+    return Object.keys(this.selectedTags).find(name => name === value) !== undefined;
+  }
+
   onAddTag() {
-    const {tags, key, value} = this.secondFormGroup.controls;
+    const {orb_tags, key, value} = this.secondFormGroup.controls;
     // sanitize minimally anyway
     if (key?.value && key.value !== '') {
       if (value?.value && value.value !== '') {
         // key and value fields
-        tags.reset([{[key.value]: value.value}].concat(tags.value));
+        orb_tags.reset([{[key.value]: value.value}].concat(orb_tags.value));
         key.reset('');
         value.reset('');
       }

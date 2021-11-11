@@ -174,9 +174,9 @@
                 <mat-chip
                   *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i"
                   [attr.data-orb-qa-id]="'tag_' + i"
-                  [style.background-color]="tag | keyvalue | tagchip | tagchipcolor"
+                  [style.background-color]="tag | tagchip | tagchipcolor"
                   class="orb-tag-sink">
-                  {{tag | keyvalue | tagchip}}
+                  {{tag | tagchip}}
                   <nb-icon (click)="onRemoveTag(tag)"
                            class="ml-1"
                            icon="close-outline"
@@ -312,9 +312,9 @@
                 <mat-chip
                   *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i;"
                   [attr.data-orb-qa-id]="'review-tag_' + i"
-                  [style.background-color]="tag | keyvalue | tagchip | tagchipcolor"
+                  [style.background-color]="tag | tagchipcolor"
                   class="orb-tag-sink ">
-                  {{tag | keyvalue | tagchip}}
+                  {{tag | tagchip}}
                 </mat-chip>
                 <mat-chip *ngIf="thirdFormGroup.controls.tags.value.length === 0"
                           [attr.data-orb-qa-id]="'tag_none'"
