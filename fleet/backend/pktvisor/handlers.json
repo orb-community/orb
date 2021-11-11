@@ -95,5 +95,13 @@
         }
       }
     }
+  },
+  "dhcp": {
+    "1.0": {
+      "filter": {},
+      "config": {},
+      "metrics": {},
+      "metric_groups": {}
+    }
   }
 }
