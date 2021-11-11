@@ -160,35 +160,7 @@ export class AgentPolicyAddComponent {
   retrieveAgentPolicy() {
     return new Promise(resolve => {
       this.agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(policy => {
-        const {
-          name,
-          description,
-          backend,
-          policy: {
-            input: {
-              tap,
-              input_type,
-            },
-            handlers: {
-              modules,
-            },
-          },
-        } = policy;
-        this.agentPolicy = {
-          ...this.agentPolicy,
-          name,
-          description,
-          backend,
-          policy: {
-            input: {
-              tap,
-              input_type,
-            },
-            handlers: {
-              modules,
-            },
-          },
-        };
+        this.agentPolicy = policy;
         this.isLoading[CONFIG.AGENT_POLICY] = false;
         resolve(policy);
       });
@@ -320,11 +292,16 @@ export class AgentPolicyAddComponent {
     this.tapFG.controls.selected_tap.patchValue(selectedTap);
 
     const { input } = this.agentPolicy.policy;
-    const { input_type, config_predefined } = this.tap;
+    const { input_type, config_predefined, filter_predefined } = this.tap;
 
-    this.tap['config'] = {
+    this.tap.config = {
       ...config_predefined,
       ...input.config,
+    };
+
+    this.tap.filter = {
+      ...filter_predefined,
+      ...input.filter,
     };
 
     if (input_type) {
@@ -367,7 +344,7 @@ export class AgentPolicyAddComponent {
     const inputConfDynamicCtrl = Object.entries(inputConfig)
       .reduce((acc, [key, input]) => {
         const value = agentConfig?.[key] || '';
-        if (!preConfig.includes(key)) {
+        if (!preConfig?.includes(key)) {
           acc[key] = [
             value,
             [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
@@ -382,7 +359,7 @@ export class AgentPolicyAddComponent {
       .reduce((acc, [key, input]) => {
         const value = !!agentFilter?.[key] ? agentFilter[key] : '';
         // const disabled = !!preConfig?.[key];
-        if (!preFilter.includes(key)) {
+        if (!preFilter?.includes(key)) {
           acc[key] = [
             value,
             [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
