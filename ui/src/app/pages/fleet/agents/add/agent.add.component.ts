@@ -115,7 +115,7 @@ export class AgentAddComponent {
   checkValidName() {
     const { value } = this.secondFormGroup.controls.key;
     if (value === '') return false;
-    return !Object.keys(this.selectedTags).find(name => name === value) !== undefined;
+    return Object.keys(this.selectedTags).find(name => name === value) === undefined;
   }
 
   onAddTag() {
@@ -140,16 +140,10 @@ export class AgentAddComponent {
 
   wrapPayload(validate: boolean) {
     const {name} = this.firstFormGroup.controls;
-    const {tags: {value: tagsList}} = this.secondFormGroup.controls;
-    const tagsObj = tagsList.reduce((prev, curr) => {
-      for (const [key, value] of Object.entries(curr)) {
-        prev[key] = value;
-      }
-      return prev;
-    }, {});
+
     return {
       name: name.value,
-      orb_tags: {...tagsObj},
+      orb_tags: {...this.selectedTags},
       validate_only: !!validate && validate, // Apparently this guy is required..
     };
   }
