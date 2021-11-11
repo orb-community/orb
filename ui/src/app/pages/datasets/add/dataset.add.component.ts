@@ -237,10 +237,12 @@ export class DatasetAddComponent {
   }
 
   onAgentGroupSelected(agentGroup: any) {
+    this.selectedGroup = this.availableAgentGroups.findIndex(agent => agent.id === agentGroup);
     this.agentFormGroup.controls.agent_group_id.setValue(agentGroup);
   }
 
   onAgentPolicySelected(agentPolicy: any) {
+    this.selectedPolicy = this.availableAgentPolicies.findIndex(policy => policy.id === agentPolicy);
     this.policyFormGroup.controls.agent_policy_id.setValue(agentPolicy);
   }
 
