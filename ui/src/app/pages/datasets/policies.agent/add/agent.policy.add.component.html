@@ -142,11 +142,61 @@
             </form>
             <hr/>
           </div>
-          <div *ngIf="!!inputConfigFG">
+          <div *ngIf="!!inputFilterFG">
             <!-- Dynamic Input Config Form -->
             <form (ngSubmit)="onFormSubmit()" [formGroup]="inputConfigFG">
               <div *ngFor="let control of input.config | keyvalue; index as i;">
                 <div *ngIf="inputConfigFG.controls.hasOwnProperty(control.key)">
+                  <div>
+                    <label class="font-weight-bold">{{control.value.label}}</label>
+                  </div>
+                  <div [ngSwitch]="control.value.input">
+                    <input *ngSwitchCase="'text'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.key"
+                           [type]="control.value.type"
+                           fieldSize="medium"
+                           fullWidth="true"
+                           nbInput
+                           nbTooltip="{{ control.value.description }}"
+                           [placeholder]="control.value?.props?.example">
+                    <input *ngSwitchCase="'number'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="i == 0"
+                           [formControlName]="control.key"
+                           [max]="control.value.props.max"
+                           [min]="control.value.props.min"
+                           [placeholder]="control.value?.props?.example || ''"
+                           [step]="control.value.props.step"
+                           [type]="control.value.type"
+                           nbTooltip="{{ control.value.description }}">
+                    <nb-select *ngSwitchCase="'select'"
+                               [(selected)]="agentPolicy.policy.input.config[control.key]"
+                               [attr.data-orb-qa-id]="control.value.name"
+                               [formControlName]="control.key"
+                               [id]="control.value.name"
+                               [placeholder]="control.value?.props?.example || ''"
+                               appearance="filled"
+                               fullWidth="true"
+                               nbTooltip="{{ control.value.description }}"
+                               size="medium"
+                    >{{ control.value.name + "-" + control.value.props.options }}
+                      <nb-option *ngFor="let option of control.value.props.options | keyvalue"
+                                 [attr.data-orb-qa-id]="option.value"
+                                 [value]="option.key">{{ option.value }}</nb-option>
+                    </nb-select>
+                  </div>
+                  <hr/>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div *ngIf="!!inputFilterFG">
+            <!-- Dynamic Input Config Form -->
+            <form (ngSubmit)="onFormSubmit()" [formGroup]="inputFilterFG">
+              <div *ngFor="let control of input.filter | keyvalue; index as i;">
+                <div *ngIf="inputFilterFG.controls.hasOwnProperty(control.key)">
                   <div>
                     <label class="font-weight-bold">{{control.value.label}}</label>
                   </div>
