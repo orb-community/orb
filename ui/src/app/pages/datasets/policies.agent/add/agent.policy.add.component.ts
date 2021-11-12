@@ -460,7 +460,7 @@ export class AgentPolicyAddComponent {
               for (const [key, value] of Object.entries(curr)) {
                 if (!!value && value !== '') acc.config[key] = value;
               }
-              return Object.keys(acc.config).length > 0 ? acc : null;
+              return acc;
             }, {config: {}}),
           ...Object.entries(this.inputFilterFG.controls)
             .map(([key, control]) => ({ [key]: control.value }))
@@ -468,7 +468,7 @@ export class AgentPolicyAddComponent {
               for (const [key, value] of Object.entries(curr)) {
                 if (!!value && value !== '') acc.filter[key] = value;
               }
-              return Object.keys(acc.filter).length > 0 ? acc : null;
+              return acc;
             }, {filter: {}}),
         },
         handlers: {
@@ -483,6 +483,11 @@ export class AgentPolicyAddComponent {
         },
       },
     } as AgentPolicy;
+
+    if (Object.keys(payload.policy?.input?.config).length <= 0)
+      delete payload.policy.input.config;
+    if (Object.keys(payload.policy?.input?.filter).length <= 0)
+      delete payload.policy.input.filter;
 
     if (this.isEdit) {
       // updating existing sink
