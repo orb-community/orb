@@ -13,7 +13,7 @@ func (ac agentCommsServiceMock) NotifyAgentStop(MFChannelID string, reason strin
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyGroupPolicyRemoval(ag fleet.AgentGroup, policyID string) error {
+func (ac agentCommsServiceMock) NotifyGroupPolicyRemoval(ag fleet.AgentGroup, policyID string, policyName string, backend string) error {
 	return nil
 }
 

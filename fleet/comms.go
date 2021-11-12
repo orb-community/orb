@@ -42,7 +42,7 @@ type AgentCommsService interface {
 	// NotifyGroupRemoval RPC core -> Agent: Notify AgentGroup that the group has been removed
 	NotifyGroupRemoval(ag AgentGroup) error
 	// NotifyGroupPolicyRemoval RPC core -> Agent: Notify AgentGroup that a Policy has been removed
-	NotifyGroupPolicyRemoval(ag AgentGroup, policyID string) error
+	NotifyGroupPolicyRemoval(ag AgentGroup, policyID string, policyName string, backend string) error
 	// NotifyGroupDatasetRemoval RPC core -> Agent: Notify AgentGroup that a Dataset has been removed
 	NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error
 	// NotifyGroupPolicyUpdate RPC core -> Agent: Notify AgentGroup that a Policy has been updated
@@ -341,17 +341,22 @@ func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag Age
 	return nil
 }
 
-func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID string) error {
+func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID string, policyName string, backend string) error {
 
+	var payloads []AgentPolicyRPCPayload
 	payload := AgentPolicyRPCPayload{
-		Action: "remove",
-		ID:     policyID,
+		Action:  "remove",
+		ID:      policyID,
+		Name:    policyName,
+		Backend: backend,
 	}
 
-	data := RPC{
+	payloads = append(payloads, payload)
+
+	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
-		Payload:       payload,
+		Payload:       payloads,
 	}
 
 	body, err := json.Marshal(data)
