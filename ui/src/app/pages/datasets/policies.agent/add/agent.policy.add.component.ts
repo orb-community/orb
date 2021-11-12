@@ -160,35 +160,7 @@ export class AgentPolicyAddComponent {
   retrieveAgentPolicy() {
     return new Promise(resolve => {
       this.agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(policy => {
-        const {
-          name,
-          description,
-          backend,
-          policy: {
-            input: {
-              tap,
-              input_type,
-            },
-            handlers: {
-              modules,
-            },
-          },
-        } = policy;
-        this.agentPolicy = {
-          ...this.agentPolicy,
-          name,
-          description,
-          backend,
-          policy: {
-            input: {
-              tap,
-              input_type,
-            },
-            handlers: {
-              modules,
-            },
-          },
-        };
+        this.agentPolicy = policy;
         this.isLoading[CONFIG.AGENT_POLICY] = false;
         resolve(policy);
       });
@@ -320,11 +292,16 @@ export class AgentPolicyAddComponent {
     this.tapFG.controls.selected_tap.patchValue(selectedTap);
 
     const { input } = this.agentPolicy.policy;
-    const { input_type, config_predefined } = this.tap;
+    const { input_type, config_predefined, filter_predefined } = this.tap;
 
-    this.tap['config'] = {
+    this.tap.config = {
       ...config_predefined,
       ...input.config,
+    };
+
+    this.tap.filter = {
+      ...filter_predefined,
+      ...input.filter,
     };
 
     if (input_type) {
@@ -359,15 +336,15 @@ export class AgentPolicyAddComponent {
     // input type config model
     const { config: inputConfig, filter: filterConfig } = this.input;
     // if editing, some values might not be overrideable any longer, all should be prefilled in form
-    const agentConfig = !!this.isEdit ? this.agentPolicy.policy?.input?.config : null;
+    const { config: agentConfig, filter: agentFilter } = this.agentPolicy.policy.input;
     // tap config values, cannot be overridden if set
-    const preConfig = this.tap.config_predefined;
+    const {config_predefined: preConfig, filter_predefined: preFilter} = this.tap;
 
     // populate form controls for config
     const inputConfDynamicCtrl = Object.entries(inputConfig)
       .reduce((acc, [key, input]) => {
         const value = agentConfig?.[key] || '';
-        if (!preConfig.includes(key)) {
+        if (!preConfig?.includes(key)) {
           acc[key] = [
             value,
             [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
@@ -380,13 +357,14 @@ export class AgentPolicyAddComponent {
 
     const inputFilterDynamicCtrl = Object.entries(filterConfig)
       .reduce((acc, [key, input]) => {
-        const value = !!agentConfig?.[key] ? agentConfig[key] : '';
-        const disabled = !!preConfig?.[key];
-        acc[key] = [
-          { value, disabled },
-          [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
-        ];
-
+        const value = !!agentFilter?.[key] ? agentFilter[key] : '';
+        // const disabled = !!preConfig?.[key];
+        if (!preFilter?.includes(key)) {
+          acc[key] = [
+            value,
+            [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
+          ];
+        }
         return acc;
       }, {});
 
@@ -484,14 +462,14 @@ export class AgentPolicyAddComponent {
               }
               return Object.keys(acc.config).length > 0 ? acc : null;
             }, {config: {}}),
-          // filter: Object.keys(this.inputFilterFG.controls)
-          //   .map(key => ({ [key]: this.inputConfigFG.controls[key].value }))
-          //   .reduce((acc, curr) => {
-          //     for (const [key, value] of Object.entries(curr)) {
-          //       if (!!value && value !== '') acc[key] = value;
-          //     }
-          //     return acc;
-          //   }, {}),
+          ...Object.entries(this.inputFilterFG.controls)
+            .map(([key, control]) => ({ [key]: control.value }))
+            .reduce((acc, curr) => {
+              for (const [key, value] of Object.entries(curr)) {
+                if (!!value && value !== '') acc.filter[key] = value;
+              }
+              return Object.keys(acc.filter).length > 0 ? acc : null;
+            }, {filter: {}}),
         },
         handlers: {
           modules: Object.entries(this.modules).reduce((acc, [key, value]) => {
