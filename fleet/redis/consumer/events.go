@@ -43,6 +43,8 @@ type updatePolicyEvent struct {
 type removePolicyEvent struct {
 	id        string
 	ownerID   string
+	name      string
+	backend   string
 	groupsIDs []string
 	timestamp time.Time
 }

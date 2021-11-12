@@ -179,6 +179,8 @@ func decodePolicyRemove(event map[string]interface{}) removePolicyEvent {
 	val := removePolicyEvent{
 		id:      read(event, "id", ""),
 		ownerID: read(event, "owner_id", ""),
+		name:    read(event, "name", ""),
+		backend: read(event, "backend", ""),
 	}
 
 	strgroups := read(event, "groups_ids", "")
@@ -194,7 +196,7 @@ func (es eventStore) handlePolicyRemove(ctx context.Context, e removePolicyEvent
 		if err != nil {
 			return err
 		}
-		err = es.commsService.NotifyGroupPolicyRemoval(ag, e.id)
+		err = es.commsService.NotifyGroupPolicyRemoval(ag, e.id, e.name, e.backend)
 		if err != nil {
 			return err
 		}
