@@ -126,13 +126,6 @@ jobs:
       - name: Build service containers
         run: make dockers
 
-      - name: Push service containers
-        run: |
-          docker push -a ns1labs/orb-fleet
-          docker push -a ns1labs/orb-policies
-          docker push -a ns1labs/orb-sinks
-          docker push -a ns1labs/orb-sinker
-
       - name: Build + push orb-agent
         if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'main'
         env:
@@ -140,7 +133,6 @@ jobs:
           PKTVISOR_TAG: ${{ github.event.inputs.pktvisor_tag }}
         run: |
           make agent
-          docker push -a ${{ env.IMAGE_NAME }}
 
       - name: Build + push orb-ui
         if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'main'
@@ -148,4 +140,12 @@ jobs:
           IMAGE_NAME: ns1labs/orb-ui
         run: |
           make ui
-          docker push -a ${{ env.IMAGE_NAME }}
+
+      - name: Push service containers
+        run: |
+          docker push -a ns1labs/orb-fleet
+          docker push -a ns1labs/orb-policies
+          docker push -a ns1labs/orb-sinks
+          docker push -a ns1labs/orb-sinker
+          docker push -a ns1labs/orb-ui
+          docker push -a ns1labs/orb-agent
