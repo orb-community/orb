@@ -1,0 +1,9 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'mainflux'
+
+    static_configs:
+      - targets: [ 'auth:8189', 'users:8180', 'things:8182', 'fleet:8203', 'sinks:8200' ]

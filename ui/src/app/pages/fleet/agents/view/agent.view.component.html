@@ -1,0 +1,64 @@
+<header data-orb-qa-id="agent#view">
+  <xng-breadcrumb class="orb-breadcrumb"
+                  data-orb-qa-id="breadcrumb">
+  </xng-breadcrumb>
+  <h4>Agent View</h4>
+</header>
+<div class="row"  *ngIf="!isLoading">
+  <div class="col-md-6">
+    <nb-card>
+      <nb-card-header>Agent Information</nb-card-header>
+      <nb-card-body>
+        <label>Agent Name</label>
+        <p>{{ agent?.name }}</p>
+
+        <label>Version</label>
+        <p>{{ agent?.agent_metadata?.orb_agent?.version }}</p>
+
+        <label>Agent ID</label>
+        <p>{{ agent?.id }}</p>
+
+        <label>Channel ID</label>
+        <p>{{ agent?.channel_id }}</p>
+
+        <label>Provisioning Command</label>
+        <pre><button
+          [cdkCopyToClipboard]="command2copy"><nb-icon icon="clipboard-outline" pack="eva" ></nb-icon></button><code>{{ command2show }}</code></pre>
+      </nb-card-body>
+    </nb-card>
+  </div>
+  <div class="col-md-6">
+    <nb-card>
+      <nb-card-header>Tags</nb-card-header>
+      <nb-card-body>
+        <div class="d-flex">
+          <mat-chip-list>
+            <mat-chip
+              class="orb-tag-sink"
+              *ngFor="let tag of agent?.orb_tags | keyvalue | tagchip"
+              [style.background-color]="tag | tagchipcolor">
+              {{tag}}
+            </mat-chip>
+            <mat-chip
+              class="orb-tag-sink"
+              *ngFor="let tag of agent?.agent_tags | keyvalue | tagchip"
+              [style.background-color]="tag | tagchipcolor">
+              {{tag}}
+            </mat-chip>
+          </mat-chip-list>
+        </div>
+      </nb-card-body>
+    </nb-card>
+
+    <nb-card>
+      <nb-card-header>Heartbeat</nb-card-header>
+      <nb-card-body>
+        <label>Last Seen</label>
+        <p>{{ agent?.ts_last_hb | date:'short' }}</p>
+
+        <label>Health Status</label>
+        <p>{{ agent?.state | titlecase }}</p>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>

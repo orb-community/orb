@@ -1,0 +1,57 @@
+<nb-card size="large" class="nb-card-medium">
+  <nb-card-header>
+    Dataset Details
+    <button nbButton
+            ghost="true"
+            size="small"
+            class="orb-close-dialog"
+            (click)="onClose()">
+      <span class="nb-close"></span>
+    </button>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Dataset Name<span class="ns1red">*</span></p>
+        <p>{{ dataset.name }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Validity</p>
+        <p>{{ dataset.valid ? 'Valid' : 'Invalid' }}</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Agent Group ID<span class="ns1red">*</span></p>
+        <p>{{ dataset.agent_group_id }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Agent Policy ID<span class="ns1red">*</span></p>
+        <p>{{ dataset.agent_policy_id }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Sink IDs<span class="ns1red">*</span></p>
+        <p>{{ dataset.sink_ids }}</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Dataset Tags<span class="ns1red">*</span></p>
+        <div>
+          <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
+            <mat-chip
+                class="orb-tag-sink "
+                *ngFor="let tag of dataset.tags | keyvalue | tagchip"
+                [style.background-color]="tag | tagchipcolor">
+                {{tag}}
+            </mat-chip>
+          </mat-chip-list>
+        </div>
+      </div>
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(dataset)">Edit</button>
+  </nb-card-footer>
+</nb-card>

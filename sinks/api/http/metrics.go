@@ -1,0 +1,69 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+package http
+
+import (
+	"context"
+	"github.com/go-kit/kit/metrics"
+	"github.com/ns1labs/orb/sinks"
+	"github.com/ns1labs/orb/sinks/backend"
+)
+
+var _ sinks.SinkService = (*metricsMiddleware)(nil)
+
+type metricsMiddleware struct {
+	counter metrics.Counter
+	latency metrics.Histogram
+	svc     sinks.SinkService
+}
+
+func (m metricsMiddleware) ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
+	return m.svc.ChangeSinkStateInternal(ctx, sinkID, msg, ownerID, state)
+}
+
+func (m metricsMiddleware) CreateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
+	return m.svc.CreateSink(ctx, token, s)
+}
+
+func (m metricsMiddleware) UpdateSink(ctx context.Context, token string, s sinks.Sink) (err error) {
+	return m.svc.UpdateSink(ctx, token, s)
+}
+
+func (m metricsMiddleware) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (_ sinks.Page, err error) {
+	return m.svc.ListSinks(ctx, token, pm)
+}
+
+func (m metricsMiddleware) ListBackends(ctx context.Context, token string) (_ []string, err error) {
+	return m.svc.ListBackends(ctx, token)
+}
+
+func (m metricsMiddleware) ViewBackend(ctx context.Context, token string, key string) (_ backend.Backend, err error) {
+	return m.svc.ViewBackend(ctx, token, key)
+}
+
+func (m metricsMiddleware) ViewSink(ctx context.Context, token string, key string) (_ sinks.Sink, err error) {
+	return m.svc.ViewSink(ctx, token, key)
+}
+
+func (m metricsMiddleware) ViewSinkInternal(ctx context.Context, ownerID string, key string) (sinks.Sink, error) {
+	return m.svc.ViewSinkInternal(ctx, ownerID, key)
+}
+
+func (m metricsMiddleware) DeleteSink(ctx context.Context, token string, key string) (err error) {
+	return m.svc.DeleteSink(ctx, token, key)
+}
+
+func (m metricsMiddleware) ValidateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
+	return m.svc.ValidateSink(ctx, token, s)
+}
+
+// MetricsMiddleware instruments core service by tracking request count and latency.
+func MetricsMiddleware(svc sinks.SinkService, counter metrics.Counter, latency metrics.Histogram) sinks.SinkService {
+	return &metricsMiddleware{
+		counter: counter,
+		latency: latency,
+		svc:     svc,
+	}
+}

@@ -1,0 +1,59 @@
+<nb-card size="large" class="nb-card-medium">
+  <nb-card-header>
+    {{strings.details.header}}
+    <button nbButton
+            ghost="true"
+            size="small"
+            class="orb-close-dialog"
+            (click)="onClose()">
+      <span class="nb-close"></span>
+    </button>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.name}}<span class="ns1red">*</span></p>
+        <p>{{ sink.name }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.description}}</p>
+        <p>{{ sink.description }}</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.backend}}<span class="ns1red">*</span></p>
+        <p>{{ sink.backend }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.config_remote_host}}<span class="ns1red">*</span></p>
+        <p>{{ sink.config.remote_host }}</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.config_username}}<span class="ns1red">*</span></p>
+        <p>{{ sink.config.username }}</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.tags}}<span class="ns1red">*</span></p>
+        <div>
+          <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
+            <mat-chip
+                class="orb-tag-sink "
+                *ngFor="let tag of sink.tags | keyvalue | tagchip"
+                [style.background-color]="tag | tagchipcolor">
+                {{tag}}
+            </mat-chip>
+          </mat-chip-list>
+        </div>
+      </div>
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(sink)">Edit</button>
+  </nb-card-footer>
+</nb-card>

@@ -1,0 +1,68 @@
+nb-card {
+  nb-card-header {
+    text-align: center;
+    background: #232940;
+    color: #969fb9;
+  }
+
+  nb-card-body {
+    margin: 2rem 3rem;
+    padding: 0;
+
+    p {
+      color: #969fb9;
+    }
+  }
+}
+
+h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 32px;
+}
+
+::ng-deep {
+  header p {
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px !important;
+    line-height: 20px;
+
+    width: 250px;
+    height: 20px;
+    margin-left: 16px;
+    margin-top: 24px;
+
+    display: flex;
+    align-items: center;
+  }
+
+  .orb-breadcrumb {
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 12px;
+
+    ::ng-deep {
+      .xng-breadcrumb-trail {
+        color: #ffffff;
+        margin-bottom: 0;
+      }
+      .xng-breadcrumb-link {
+        text-decoration: none !important;
+        color: #969fb9 !important;
+      }
+      .xng-breadcrumb-separator {
+        text-decoration: none !important;
+        color: #969fb9 !important;
+      }
+    }
+  }
+}
+
+

@@ -1,0 +1,23 @@
+.idea/*
+!.idea/runConfigurations
+.DS_Store*
+build/*
+localconfig/
+
+# /ui - UI dependencies
+ui/node_modules
+ui/dist
+ui/*.iml
+
+#/ui mocks
+ui/mock-json-server/mock/*.json
+
+# /ui - UI e2e dependencies
+ui/e2e/*
+
+orb-agent.db
+
+# /orb_tests - UI Test Dependencies
+**node_modules
+**tests_output
+orb_tests/chromedriver.log

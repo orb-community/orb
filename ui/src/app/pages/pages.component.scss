@@ -1,0 +1,30 @@
+@import '../@theme/styles/themes';
+
+@include nb-install-component() {
+  ::ng-deep router-outlet + * {
+    animation: fade 1s;
+    display: block;
+
+    @keyframes fade {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+  }
+
+  ::ng-deep {
+    nb-icon.expand-state {
+      visibility: hidden;
+    }
+
+    .scrollable {
+      padding: 12px 0 12px 27px !important;
+
+    }
+  }
+
+}

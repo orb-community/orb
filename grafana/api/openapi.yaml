@@ -1,0 +1,70 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: orb-grafana
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /grafana:
+    get:
+      summary: 'List Grafana integrations'
+      operationId: listGrafana
+      responses:
+        '200':
+          description: 'One page of Grafana config details'
+          content:
+            application/json:
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'      
+    post:
+      summary: 'Create new Grafana integration'
+      operationId: createGrafana
+      requestBody:
+        required: true
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                        config:
+                            type: object
+      responses:
+        '200':
+          description: 'Grafana integration details'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    id:
+                        type: string
+                        format: uuid
+                    name:
+                        type: string
+                    config:
+                        type: object
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

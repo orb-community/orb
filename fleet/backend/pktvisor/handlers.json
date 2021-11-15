@@ -1,0 +1,107 @@
+{
+  "dns": {
+    "1.0": {
+      "filter": {
+        "exclude_noerror": {
+          "label": "Exclude NOERROR",
+          "type": "bool",
+          "input": "checkbox",
+          "description": "Filter out all NOERROR responses"
+        },
+        "only_rcode": {
+          "label": "Include Only RCODE",
+          "type": "number",
+          "input": "select",
+          "description": "Filter out any queries which are not the given RCODE",
+          "props": {
+            "allow_custom_options": true,
+            "options": {
+              "NOERROR": 0,
+              "SERVFAIL": 2,
+              "NXDOMAIN": 3,
+              "REFUSED": 5
+            }
+          }
+        },
+        "only_qname_suffix": {
+          "label": "Include Only QName With Suffix",
+          "type": "string[]",
+          "input": "text",
+          "description": "Filter out any queries whose QName does not end in a suffix on the list",
+          "props": {
+            "example": ".foo.com,.example.com"
+          }
+        }
+      },
+      "config": {},
+      "metrics": {},
+      "metric_groups": {
+        "cardinality": {
+          "label": "Cardinality",
+          "description": "Metrics counting the unique number of items in the stream",
+          "metrics": [
+          ]
+        },
+        "dns_transactions": {
+          "label": "DNS Transactions (Query/Reply pairs)",
+          "description": "Metrics based on tracking queries and their associated replies",
+          "metrics": [
+          ]
+        },
+        "top_dns_wire": {
+          "label": "Top N Metrics (Various)",
+          "description": "Top N metrics across various details from the DNS wire packets",
+          "metrics": [
+          ]
+        },
+        "top_qnames": {
+          "label": "Top N QNames (All)",
+          "description": "Top QNames across all DNS queries in stream",
+          "metrics": [
+          ]
+        },
+        "top_qnames_by_rcode": {
+          "label": "Top N QNames (Failing RCodes) ",
+          "description": "Top QNames across failing result codes",
+          "metrics": [
+          ]
+        }
+      }
+    }
+  },
+  "net": {
+    "1.0": {
+      "filter": {},
+      "config": {},
+      "metrics": {},
+      "metric_groups": {
+        "ip_cardinality": {
+          "label": "IP Address Cardinality",
+          "description": "Unique IP addresses seen in the stream",
+          "metrics": [
+          ]
+        },
+        "top_geo": {
+          "label": "Top Geo",
+          "description": "Top Geo IP and ASN in the stream",
+          "metrics": [
+          ]
+        },
+        "top_ips": {
+          "label": "Top IPs",
+          "description": "Top IP addresses in the stream",
+          "metrics": [
+          ]
+        }
+      }
+    }
+  },
+  "dhcp": {
+    "1.0": {
+      "filter": {},
+      "config": {},
+      "metrics": {},
+      "metric_groups": {}
+    }
+  }
+}

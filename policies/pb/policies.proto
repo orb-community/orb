@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package policies;
+option go_package = "policies/pb";
+
+service PolicyService {
+  rpc RetrievePolicy(PolicyByIDReq) returns (PolicyRes) {}
+  rpc RetrievePoliciesByGroups(PoliciesByGroupsReq) returns (PolicyInDSListRes) {}
+  rpc RetrieveDataset(DatasetByIDReq) returns (DatasetRes) {}
+}
+
+message PolicyByIDReq {
+  string policyID = 1;
+  string ownerID = 2;
+}
+
+message PoliciesByGroupsReq {
+  repeated string groupIDs = 1;
+  string ownerID = 2;
+}
+
+message DatasetByIDReq {
+  string datasetID = 1;
+  string ownerID = 2;
+}
+
+message PolicyRes {
+  string id = 1;
+  string name = 2;
+  string backend = 3;
+  int32 version = 4;
+  bytes data = 5;
+}
+
+message PolicyInDSRes {
+  string id = 1;
+  string name = 2;
+  string backend = 3;
+  int32 version = 4;
+  bytes data = 5;
+  string dataset_id = 6;
+}
+
+message PolicyInDSListRes {
+  repeated PolicyInDSRes policies = 1;
+}
+
+message DatasetRes {
+  string id = 1;
+  string agent_group_id = 2;
+  string policy_id = 3;
+  repeated string sink_ids = 4;
+}
