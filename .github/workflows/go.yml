@@ -126,7 +126,7 @@ jobs:
       - name: Build service containers
         run: make dockers
 
-      - name: Build + push orb-agent
+      - name: Build orb-agent
         if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'main'
         env:
           IMAGE_NAME: ns1labs/orb-agent
@@ -134,14 +134,14 @@ jobs:
         run: |
           make agent
 
-      - name: Build + push orb-ui
+      - name: Build orb-ui
         if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'main'
         env:
           IMAGE_NAME: ns1labs/orb-ui
         run: |
           make ui
 
-      - name: Push service containers
+      - name: Push all containers
         run: |
           docker push -a ns1labs/orb-fleet
           docker push -a ns1labs/orb-policies
