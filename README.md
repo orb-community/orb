@@ -8,6 +8,8 @@
 **Orb** is a new kind of observability platform that helps operators, developers, and end users understand their
 networks, distributed applications, and traffic flows in real time.
 
+Ready to dive in? See [getorb.io](https://getorb.io) for [installation instructions](https://getorb.io/install/).
+
 # Why Orb?
 
 ## Distributed Deep Network Observability
