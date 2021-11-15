@@ -8,6 +8,7 @@
 
 # expects to be set as env var
 REF_TAG ?= develop
+PKTVISOR_TAG ?= latest-develop
 DOCKER_IMAGE_NAME_PREFIX ?= orb
 DOCKERHUB_REPO = ns1labs
 BUILD_DIR = build
@@ -103,6 +104,7 @@ agent_bin:
 
 agent:
 	docker build \
+	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(REF_TAG) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
