@@ -12,7 +12,8 @@ networks, distributed applications, and traffic flows in real time.
 
 ## Distributed Deep Network Observability
 
-Orb manages a [fleet](about/#fleet) of [agents](about/#agent) deployed across distributed, hybrid infrastructure:
+Orb manages a [fleet](https://getorb.io/about/#fleet) of [agents](https://getorb.io/about/#agent) deployed across
+distributed, hybrid infrastructure:
 containers, VMs, servers, routers and switches. The agent taps into traffic streams and extracts real time insights,
 resulting in light-weight, actionable metrics.
 
@@ -28,19 +29,20 @@ with more analyzers in the works.
 
 Orb uses IoT principals to allow the observability agents to connect out to the Orb central control plane, avoiding
 firewall problems. Once connected, agents are controlled in real time from the Orb Portal or REST API, orchestrating
-observability [policies](about/#policies) designed to precisely extract the desired insights. Agents are grouped and
-addressed based on [tags](about/#agent-group).
+observability [policies](https://getorb.io/about/#policies) designed to precisely extract the desired insights. Agents
+are grouped and addressed based on [tags](https://getorb.io/about/#agent-group).
 
 ## Flexible Integration With Modern Observability Stacks
 
 Orb was built to integrate with modern observability stacks, supporting [Prometheus](https://prometheus.io/) natively
-and designed to support arbitrary [sinks](about/#sinks) in the future. Collection and sinking of the metrics from the
-agents is included; there is no need to run additional data collection pipelines for Orb metrics.
+and designed to support arbitrary [sinks](https://getorb.io/about/#sinks) in the future. Collection and sinking of the
+metrics from the agents is included; there is no need to run additional data collection pipelines for Orb metrics.
 
 ## Portal and REST API Included
 
 Orb includes a modern, responsive UI for managing Agents, Agent Groups, Policies and Sinks. Orb is API first, and all
-platform functionality is available for automation via the [well documented REST API](docs/#working-with-api-docs).
+platform functionality is available for automation via
+the [well documented REST API](https://getorb.io/docs/#working-with-api-docs).
 
 ## Open Source, Vendor Neutral, Cloud Native
 
