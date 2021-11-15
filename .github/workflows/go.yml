@@ -2,6 +2,10 @@ name: Go
 
 on:
   workflow_dispatch:
+    inputs:
+      pktvisor_tag:
+        description: 'pktvisor agent docker tag to package'
+        required: true
   pull_request:
     branches:
       - develop
@@ -133,6 +137,7 @@ jobs:
         if: steps.filter.outputs.agent == 'true'
         env:
           IMAGE_NAME: ns1labs/orb-agent
+          PKTVISOR_TAG: ${{ github.event.inputs.pktvisor_tag }}
         run: |
           make agent
           docker push -a ${{ env.IMAGE_NAME }}
