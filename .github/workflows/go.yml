@@ -134,7 +134,7 @@ jobs:
           docker push -a ns1labs/orb-sinker
 
       - name: Build + push orb-agent
-        if: steps.filter.outputs.agent == 'true'
+        if: steps.filter.outputs.agent == 'true' || ${{ env.BRANCH_NAME == 'main' }}
         env:
           IMAGE_NAME: ns1labs/orb-agent
           PKTVISOR_TAG: ${{ github.event.inputs.pktvisor_tag }}
@@ -143,7 +143,7 @@ jobs:
           docker push -a ${{ env.IMAGE_NAME }}
 
       - name: Build + push orb-ui
-        if: steps.filter.outputs.ui == 'true'
+        if: steps.filter.outputs.ui == 'true' || ${{ env.BRANCH_NAME == 'main' }}
         env:
           IMAGE_NAME: ns1labs/orb-ui
         run: |
