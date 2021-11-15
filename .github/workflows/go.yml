@@ -141,11 +141,19 @@ jobs:
         run: |
           make ui
 
-      - name: Push all containers
+      - name: Push service containers
         run: |
           docker push -a ns1labs/orb-fleet
           docker push -a ns1labs/orb-policies
           docker push -a ns1labs/orb-sinks
           docker push -a ns1labs/orb-sinker
-          docker push -a ns1labs/orb-ui
+
+      - name: Push agent container
+        if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'main'
+        run: |
           docker push -a ns1labs/orb-agent
+
+      - name: Push ui container
+        if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'main'
+        run: |
+          docker push -a ns1labs/orb-ui
