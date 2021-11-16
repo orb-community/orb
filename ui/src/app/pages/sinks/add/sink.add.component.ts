@@ -27,7 +27,7 @@ export class SinkAddComponent {
 
   selectedSinkSetting: any[];
 
-  selectedTags: {[propName: string]: string};
+  selectedTags: { [propName: string]: string };
 
   sink: Sink;
 
@@ -56,10 +56,10 @@ export class SinkAddComponent {
 
     Promise.all([this.getSink(), this.getSinkBackends()]).then(() => {
       // builds secondFormGroup
-      const {backend} = this.sink;
+      const { backend } = this.sink;
       this.isLoading = false;
       if (backend !== '') this.onSinkTypeSelected(backend);
-    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${reason}`));
+    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
   }
 
   newSink() {
@@ -85,7 +85,7 @@ export class SinkAddComponent {
       backend: [backend, Validators.required],
     });
 
-    this.selectedTags = {...tags};
+    this.selectedTags = { ...tags };
 
     this.thirdFormGroup = this._formBuilder.group({
       key: [''],
@@ -97,11 +97,11 @@ export class SinkAddComponent {
     return new Promise(resolve => {
       if (this.sinkID) {
         this.sinksService.getSinkById(this.sinkID).subscribe(resp => {
-          const {name, backend, description, tags} = this.sink = {...this.sink, ...resp};
+          const { name, backend, description, tags } = this.sink = { ...this.sink, ...resp };
           this.sinkLoading = false;
           this.selectedTags = tags;
 
-          this.firstFormGroup.patchValue({name, description, backend});
+          this.firstFormGroup.patchValue({ name, description, backend });
           this.firstFormGroup.controls.backend.disable();
           this.firstFormGroup.controls.name.disable();
           resolve(resp);
@@ -188,7 +188,7 @@ export class SinkAddComponent {
 
   checkValidName() {
     const { tags } = this.sink;
-    const { value } = this.thirdFormGroup?.controls?.label || {value: ''};
+    const { value } = this.thirdFormGroup?.controls?.label || { value: '' };
     return !(value === '' || Object.keys(tags || {}).find(name => value === name));
   }
 
