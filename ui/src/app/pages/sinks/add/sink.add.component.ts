@@ -74,11 +74,12 @@ export class SinkAddComponent {
         }));
         return accumulator;
       }, {});
-      const {name, description, backend, tags} = !!this.sink ? this.sink : {
+      const {name, description, backend, tags} = {
         name: '',
         description: '',
         backend: 'prometheus', // default sink
         tags: {},
+        ...this.sink,
       } as Sink;
       this.firstFormGroup = this._formBuilder.group({
         name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
@@ -95,7 +96,7 @@ export class SinkAddComponent {
       this.onSinkTypeSelected(backend);
 
       this.thirdFormGroup = this._formBuilder.group({
-        tags: !!tags ? [Object.keys(tags).map(key => ({[key]: tags[key]}))] : [],
+        tags: [Object.keys(tags).map(key => ({[key]: tags[key]}))],
         key: [''],
         value: [''],
       });
