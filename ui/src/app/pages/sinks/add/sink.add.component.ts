@@ -27,7 +27,7 @@ export class SinkAddComponent {
 
   selectedSinkSetting: any[];
 
-  selectedTags: {};
+  selectedTags: {[propName: string]: string};
 
   sink: Sink;
 
@@ -36,7 +36,9 @@ export class SinkAddComponent {
   sinkTypesList = [];
 
   isEdit: boolean;
+
   isLoading = false;
+
   sinkLoading = false;
 
   constructor(
@@ -46,64 +48,88 @@ export class SinkAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.sink = this.router.getCurrentNavigation().extras.state?.sink as Sink || null;
-    this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean;
+    this.initializeForms();
     this.sinkID = this.route.snapshot.paramMap.get('id');
-
-    this.isEdit = !!this.sinkID;
+    this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean || !!this.sinkID;
     this.sinkLoading = this.isEdit;
+    this.isLoading = true;
 
-    !!this.sinkID && sinksService.getSinkById(this.sinkID).subscribe(resp => {
-      this.sink = resp;
-      this.selectedTags = resp.tags || {};
-      this.sinkLoading = false;
-      this.getSinkBackends();
+    Promise.all([this.getSink(), this.getSinkBackends()]).then(() => {
+      // builds secondFormGroup
+      const {backend} = this.sink;
+      this.isLoading = false;
+      if (backend !== '') this.onSinkTypeSelected(backend);
+    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${reason}`));
+  }
+
+  newSink() {
+    return {
+      name: '',
+      description: '',
+      backend: 'prometheus', // default sink
+      tags: {},
+    } as Sink;
+  }
+
+  initializeForms() {
+    const { name, description, backend, tags } = this.sink = {
+      name: '',
+      description: '',
+      backend: 'prometheus', // default sink
+      tags: {},
+    } as Sink;
+
+    this.firstFormGroup = this._formBuilder.group({
+      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
+      description: [description],
+      backend: [backend, Validators.required],
     });
-    !this.sinkLoading && this.getSinkBackends();
+
+    this.selectedTags = {...tags};
+
+    this.thirdFormGroup = this._formBuilder.group({
+      key: [''],
+      value: [''],
+    });
+  }
+
+  getSink() {
+    return new Promise(resolve => {
+      if (this.sinkID) {
+        this.sinksService.getSinkById(this.sinkID).subscribe(resp => {
+          const {name, backend, description, tags} = this.sink = {...this.sink, ...resp};
+          this.sinkLoading = false;
+          this.selectedTags = tags;
+
+          this.firstFormGroup.patchValue({name, description, backend});
+          this.firstFormGroup.controls.backend.disable();
+          this.firstFormGroup.controls.name.disable();
+          resolve(resp);
+        });
+      } else {
+        const sink = this.newSink();
+        resolve(sink);
+      }
+    });
   }
 
   getSinkBackends() {
-    this.isLoading = true;
-    this.sinksService.getSinkBackends().subscribe(backends => {
-      this.sinkTypesList = backends.map(entry => entry.backend);
-      this.customSinkSettings = this.sinkTypesList.reduce((accumulator, curr) => {
-        const index = backends.findIndex(entry => entry.backend === curr);
-        accumulator[curr] = backends[index].config.map(entry => ({
-          type: entry.type,
-          label: entry.title,
-          prop: entry.name,
-          input: entry.input,
-          required: entry.required,
-        }));
-        return accumulator;
-      }, {});
-      const {name, description, backend, tags} = {
-        name: '',
-        description: '',
-        backend: 'prometheus', // default sink
-        tags: {},
-        ...this.sink,
-      } as Sink;
-      this.firstFormGroup = this._formBuilder.group({
-        name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
-        description: [description],
-        backend: [backend, Validators.required],
+    return new Promise(resolve => {
+      this.sinksService.getSinkBackends().subscribe(backends => {
+        this.sinkTypesList = backends.map(entry => entry.backend);
+        this.customSinkSettings = this.sinkTypesList.reduce((accumulator, curr) => {
+          const index = backends.findIndex(entry => entry.backend === curr);
+          accumulator[curr] = backends[index].config.map(entry => ({
+            type: entry.type,
+            label: entry.title,
+            prop: entry.name,
+            input: entry.input,
+            required: entry.required,
+          }));
+          return accumulator;
+        }, {});
+        resolve(true);
       });
-
-      if (this.isEdit) {
-        this.firstFormGroup.controls.backend.disable();
-        this.firstFormGroup.controls.name.disable();
-      }
-
-      // builds secondFormGroup
-      this.onSinkTypeSelected(backend);
-
-      this.thirdFormGroup = this._formBuilder.group({
-        key: [''],
-        value: [''],
-      });
-
-      this.isLoading = false;
     });
   }
 
@@ -120,13 +146,12 @@ export class SinkAddComponent {
         accumulator[current.prop] = this.secondFormGroup.controls[current.prop].value;
         return accumulator;
       }, {}),
-      tags: {...this.selectedTags} ,
+      tags: { ...this.selectedTags },
     };
-    // TODO Check this out
-    // console.log(payload);
+
     if (this.isEdit) {
       // updating existing sink
-      this.sinksService.editSink({...payload, id: this.sinkID}).subscribe(() => {
+      this.sinksService.editSink({ ...payload, id: this.sinkID }).subscribe(() => {
         this.notificationsService.success('Sink successfully updated', '');
         this.goBack();
       });
@@ -163,13 +188,13 @@ export class SinkAddComponent {
 
   checkValidName() {
     const { tags } = this.sink;
-    const { value } = this.thirdFormGroup.controls.label;
+    const { value } = this.thirdFormGroup?.controls?.label || {value: ''};
     return !(value === '' || Object.keys(tags || {}).find(name => value === name));
   }
 
   // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
   onAddTag() {
-    const {key, value} = this.thirdFormGroup.controls;
+    const { key, value } = this.thirdFormGroup.controls;
 
     this.selectedTags[key.value] = value.value;
     key.reset('');

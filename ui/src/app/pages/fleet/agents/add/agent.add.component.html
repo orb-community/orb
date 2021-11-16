@@ -73,9 +73,9 @@
                 <mat-chip
                   *ngFor="let tag of secondFormGroup.controls.tags.value; index as i;"
                   [attr.data-orb-qa-id]="'orb_tag_' + i"
-                  [style.background-color]="tag | keyvalue | tagchip | tagchipcolor"
+                  [style.background-color]="tag | keyvalue | tagchiplist | tagcolor"
                   class="orb-tag-sink ">
-                  {{tag | keyvalue | tagchip}}
+                  {{tag | keyvalue | tagchiplist}}
                   <nb-icon (click)="onRemoveTag(tag)"
                            class="ml-1"
                            icon="close-outline"
@@ -83,7 +83,7 @@
                 </mat-chip>
                 <mat-chip *ngIf="secondFormGroup.controls.tags.value.length === 0"
                           [attr.data-orb-qa-id]="'tag_none'"
-                          [style.background-color]="'No Tag Added' | tagchipcolor"
+                          [style.background-color]="'No Tag Added' | tagcolor"
                           class="orb-tag-sink">
                   No Tag Added
                 </mat-chip>
@@ -186,13 +186,13 @@
                 <mat-chip
                   *ngFor="let tag of secondFormGroup.controls.tags.value; index as i;"
                   [attr.data-orb-qa-id]="'review-tag_' + i"
-                  [style.background-color]="tag | keyvalue | tagchip | tagchipcolor"
+                  [style.background-color]="tag | keyvalue | tagchiplist | tagcolor"
                   class="orb-tag-sink ">
-                  {{tag | keyvalue | tagchip}}
+                  {{tag | keyvalue | tagchiplist}}
                 </mat-chip>
                 <mat-chip *ngIf="secondFormGroup.controls.tags.value.length === 0"
                           [attr.data-orb-qa-id]="'tag_none'"
-                          [style.background-color]="'No Tag Added' | tagchipcolor"
+                          [style.background-color]="'No Tag Added' | tagcolor"
                           class="orb-tag-sink">
                   No Tag Added
                 </mat-chip>
