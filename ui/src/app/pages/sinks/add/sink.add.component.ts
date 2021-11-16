@@ -27,6 +27,8 @@ export class SinkAddComponent {
 
   selectedSinkSetting: any[];
 
+  selectedTags: {};
+
   sink: Sink;
 
   sinkID: string;
@@ -53,6 +55,7 @@ export class SinkAddComponent {
 
     !!this.sinkID && sinksService.getSinkById(this.sinkID).subscribe(resp => {
       this.sink = resp;
+      this.selectedTags = resp.tags || {};
       this.sinkLoading = false;
       this.getSinkBackends();
     });
@@ -96,7 +99,6 @@ export class SinkAddComponent {
       this.onSinkTypeSelected(backend);
 
       this.thirdFormGroup = this._formBuilder.group({
-        tags: [Object.keys(tags).map(key => ({[key]: tags[key]}))],
         key: [''],
         value: [''],
       });
@@ -118,13 +120,7 @@ export class SinkAddComponent {
         accumulator[current.prop] = this.secondFormGroup.controls[current.prop].value;
         return accumulator;
       }, {}),
-      tags: this.thirdFormGroup.controls.tags.value.reduce((prev, curr) => {
-        for (const [key, value] of Object.entries(curr)) {
-          prev[key] = value;
-        }
-        return prev;
-      }, {}),
-      validate_only: false, // Apparently this guy is required..
+      tags: {...this.selectedTags} ,
     };
     // TODO Check this out
     // console.log(payload);
@@ -165,29 +161,22 @@ export class SinkAddComponent {
     this.secondFormGroup = this._formBuilder.group(dynamicFormControls);
   }
 
+  checkValidName() {
+    const { tags } = this.sink;
+    const { value } = this.thirdFormGroup.controls.label;
+    return !(value === '' || Object.keys(tags || {}).find(name => value === name));
+  }
+
   // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
   onAddTag() {
-    const {tags, key, value} = this.thirdFormGroup.controls;
-    // sanitize minimally anyway
-    if (key?.value && key.value !== '') {
-      if (value?.value && value.value !== '') {
-        // key and value fields
-        tags.reset([{[key.value]: value.value}].concat(tags.value));
-        key.reset('');
-        value.reset('');
-      }
-    } else {
-      // TODO remove this else clause and error
-      console.error('This shouldn\'t be happening');
-    }
+    const {key, value} = this.thirdFormGroup.controls;
+
+    this.selectedTags[key.value] = value.value;
+    key.reset('');
+    value.reset('');
   }
 
   onRemoveTag(tag: any) {
-    const {tags, tags: {value: tagsList}} = this.thirdFormGroup.controls;
-    const indexToRemove = tagsList.indexOf(tag);
-
-    if (indexToRemove >= 0) {
-      tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
-    }
+    delete this.selectedTags[tag];
   }
 }
