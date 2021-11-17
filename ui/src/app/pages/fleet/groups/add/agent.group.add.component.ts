@@ -179,13 +179,13 @@ export class AgentGroupAddComponent implements AfterViewInit {
     key.reset('');
     value.reset('');
 
-    return this.updateMatches();
+    this.updateMatches();
   }
 
   onRemoveTag(tag: any) {
     delete this.selectedTags[tag];
 
-    return this.updateMatches();
+    this.updateMatches();
   }
 
   // query agent group matches
@@ -213,7 +213,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
         });
     });
 
-    return Promise.all([tagMatches, matchingAgents]).then(responses => {
+    Promise.all([tagMatches, matchingAgents]).then(responses => {
       const summary = responses[0] as TagMatch;
       const matches = responses[1] as Agent[];
 
