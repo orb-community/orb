@@ -6,9 +6,9 @@
     <h4>{{isEdit ? 'Edit Agent' : 'New Agent'}}</h4>
   </header>
   <div class="d-flex row">
-    <div class="d-flex col-12 mt-5">
+    <div class="d-flex col-12 mt-5"
+         *ngIf="!isLoading">
       <nb-stepper class="stepper w-100 ml-5"
-                  *ngIf="!isLoading"
                   disableStepNavigation
                   orientation="vertical">
         <nb-step [label]="firstStepTemplate"
