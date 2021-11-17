@@ -6,7 +6,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
+import { SinkConfig } from 'app/common/interfaces/orb/sink/sink.config.interface';
+import { SinkFeature } from 'app/common/interfaces/orb/sink/sink.feature.interface';
 
 @Component({
   selector: 'ngx-sink-add-component',
@@ -39,8 +40,6 @@ export class SinkAddComponent {
 
   isLoading = false;
 
-  sinkLoading = false;
-
   constructor(
     private sinksService: SinksService,
     private notificationsService: NotificationsService,
@@ -48,15 +47,29 @@ export class SinkAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.initializeForms();
+    this.isLoading = true;
     this.sinkID = this.route.snapshot.paramMap.get('id');
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean || !!this.sinkID;
-    this.sinkLoading = this.isEdit;
-    this.isLoading = true;
 
-    Promise.all([this.getSink(), this.getSinkBackends()]).then(() => {
-      // builds secondFormGroup
-      const { backend } = this.sink;
+    Promise.all([this.getSink(), this.getSinkBackends()]).then((responses) => {
+      const { backend } = this.sink = responses[0];
+      const backends = responses[1];
+
+      this.sinkTypesList = backends.map(entry => entry.backend);
+      this.customSinkSettings = this.sinkTypesList.reduce((accumulator, curr) => {
+        const index = backends.findIndex(entry => entry.backend === curr);
+        accumulator[curr] = backends[index].config.map(entry => ({
+          type: entry.type,
+          label: entry.title,
+          prop: entry.name,
+          input: entry.input,
+          required: entry.required,
+        }));
+        return accumulator;
+      }, {});
+
+      this.initializeForms();
+
       this.isLoading = false;
       if (backend !== '') this.onSinkTypeSelected(backend);
     }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
@@ -72,7 +85,7 @@ export class SinkAddComponent {
   }
 
   initializeForms() {
-    const { name, description, backend, tags } = this.sink = this.newSink();
+    const { name, description, backend, tags } = this.sink;
 
     this.firstFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
@@ -89,41 +102,21 @@ export class SinkAddComponent {
   }
 
   getSink() {
-    return new Promise(resolve => {
+    return new Promise<Sink>(resolve => {
       if (this.sinkID) {
         this.sinksService.getSinkById(this.sinkID).subscribe(resp => {
-          const { name, backend, description, tags } = this.sink = { ...this.sink, ...resp };
-          this.sinkLoading = false;
-          this.selectedTags = tags;
-
-          this.firstFormGroup.patchValue({ name, description, backend });
-          this.firstFormGroup.controls.backend.disable();
-          this.firstFormGroup.controls.name.disable();
           resolve(resp);
         });
       } else {
-        const sink = this.newSink();
-        resolve(sink);
+        resolve(this.newSink());
       }
     });
   }
 
   getSinkBackends() {
-    return new Promise(resolve => {
+    return new Promise<SinkFeature[]>(resolve => {
       this.sinksService.getSinkBackends().subscribe(backends => {
-        this.sinkTypesList = backends.map(entry => entry.backend);
-        this.customSinkSettings = this.sinkTypesList.reduce((accumulator, curr) => {
-          const index = backends.findIndex(entry => entry.backend === curr);
-          accumulator[curr] = backends[index].config.map(entry => ({
-            type: entry.type,
-            label: entry.title,
-            prop: entry.name,
-            input: entry.input,
-            required: entry.required,
-          }));
-          return accumulator;
-        }, {});
-        resolve(true);
+        resolve(backends);
       });
     });
   }

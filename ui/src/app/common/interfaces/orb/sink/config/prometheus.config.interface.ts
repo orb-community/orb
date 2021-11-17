@@ -4,13 +4,13 @@
  * [Prometheus Sink]{@link https://github.com/ns1labs/orb/blob/develop/cmd/prom-sink/main.go}
  * [Sinks Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Sinks}
  */
-import { SinkConfig } from 'app/common/interfaces/orb/sink.config/sink.config.interface';
+import { SinkConfig } from 'app/common/interfaces/orb/sink/sink.config.interface';
 
 /**
- * @interface AWSConfig
+ * @interface PrometheusConfig
  */
-export interface AWSConfig extends SinkConfig<string> {
-  name: 'AWS';
+export interface PrometheusConfig extends SinkConfig<string> {
+  name: 'Prometheus';
   /**
    *  Remote Host URL {string}
    */
