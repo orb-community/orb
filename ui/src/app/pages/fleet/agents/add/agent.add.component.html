@@ -8,6 +8,7 @@
   <div class="d-flex row">
     <div class="d-flex col-12 mt-5">
       <nb-stepper class="stepper w-100 ml-5"
+                  *ngIf="!isLoading"
                   disableStepNavigation
                   orientation="vertical">
         <nb-step [label]="firstStepTemplate"
@@ -71,21 +72,21 @@
             <div class="d-flex">
               <mat-chip-list data-orb-qa-id="orb_tagsList">
                 <mat-chip
-                  *ngFor="let tag of secondFormGroup.controls.tags.value; index as i;"
+                  *ngFor="let tag of selectedTags | keyvalue; index as i;"
                   [attr.data-orb-qa-id]="'orb_tag_' + i"
-                  [style.background-color]="tag | keyvalue | tagchiplist | tagcolor"
+                  [style.background-color]="tag | tagcolor"
                   class="orb-tag-sink ">
-                  {{tag | keyvalue | tagchiplist}}
+                  {{tag | tagchip}}
                   <nb-icon (click)="onRemoveTag(tag)"
                            class="ml-1"
                            icon="close-outline"
                            size="12"></nb-icon>
                 </mat-chip>
-                <mat-chip *ngIf="secondFormGroup.controls.tags.value.length === 0"
-                          [attr.data-orb-qa-id]="'tag_none'"
-                          [style.background-color]="'No Tag Added' | tagcolor"
-                          class="orb-tag-sink">
-                  No Tag Added
+                <mat-chip
+                  *ngIf="(selectedTags | json) === '{}'"
+                  [style.background-color]="'notaggit ' | tagcolor"
+                  class="orb-tag-sink ">
+                  No tag added
                 </mat-chip>
               </mat-chip-list>
             </div>
@@ -184,17 +185,17 @@
               <label class="font-weight-bold">Orb Tags</label>
               <mat-chip-list data-orb-qa-id="review-orb_tagsList">
                 <mat-chip
-                  *ngFor="let tag of secondFormGroup.controls.tags.value; index as i;"
+                  *ngFor="let tag of selectedTags | keyvalue; index as i;"
                   [attr.data-orb-qa-id]="'review-tag_' + i"
-                  [style.background-color]="tag | keyvalue | tagchiplist | tagcolor"
+                  [style.background-color]="tag | tagcolor"
                   class="orb-tag-sink ">
-                  {{tag | keyvalue | tagchiplist}}
+                  {{tag | tagchip}}
                 </mat-chip>
-                <mat-chip *ngIf="secondFormGroup.controls.tags.value.length === 0"
-                          [attr.data-orb-qa-id]="'tag_none'"
-                          [style.background-color]="'No Tag Added' | tagcolor"
-                          class="orb-tag-sink">
-                  No Tag Added
+                <mat-chip
+                  *ngIf="(selectedTags | json) === '{}'"
+                  [style.background-color]="'notaggit ' | tagcolor"
+                  class="orb-tag-sink ">
+                  No tag added
                 </mat-chip>
               </mat-chip-list>
             </div>

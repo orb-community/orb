@@ -7,6 +7,7 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { AgentKeyComponent } from '../key/agent.key.component';
+import { Sink } from 'app/common/interfaces/orb/sink.interface';
 
 
 @Component({
@@ -28,6 +29,8 @@ export class AgentAddComponent {
 
   secondFormGroup: FormGroup;
 
+  selectedTags: { [propName: string]: string };
+
   // agent vars
   agent: Agent;
 
@@ -43,105 +46,80 @@ export class AgentAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
+    this.isLoading = true;
+
+    this.agentsService.clean();
+    this.agentID = this.route.snapshot.paramMap.get('id');
+    this.isEdit = !!this.agentID;
+
+    this.getAgent().then((agent) => {
+      this.agent = agent;
+      this.initializeForms();
+      this.isLoading = false;
+    }).catch(reason => console.warn(`Couldn't fetch data. Reason: ${reason}`));
+  }
+
+  newAgent() {
+    return {
+      name: '',
+      orb_tags: {},
+    } as Agent;
+  }
+
+  getAgent() {
+    return new Promise<Agent>(resolve => {
+      if (this.agentID) {
+        !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
+          resolve(resp);
+        });
+      } else {
+        resolve(this.newAgent());
+      }
+    });
+  }
+
+  initializeForms() {
+    const { name, orb_tags } = this.agent;
+
+    this.selectedTags = { ...orb_tags };
+
     this.firstFormGroup = this._formBuilder.group({
-      name: ['', [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
+      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
     });
 
     this.secondFormGroup = this._formBuilder.group({
-      tags: [[]],
       key: [''],
       value: [''],
     });
-
-    this.agentsService.clean();
-    this.agent = this.router.getCurrentNavigation().extras.state?.agent as Agent || null;
-    this.agentID = this.route.snapshot.paramMap.get('id');
-
-    this.isEdit = !!this.agentID && this.router.getCurrentNavigation().extras.state?.edit as boolean;
-
-    this.isLoading = this.isEdit;
-
-    !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
-      this.agent = resp;
-      this.isLoading = false;
-      this.updateForm();
-    });
-
-  }
-
-  updateForm() {
-    const {name, orb_tags} = !!this.agent ? this.agent : {
-      name: '',
-      orb_tags: {},
-    } as Agent;
-
-    this.firstFormGroup.controls.name.patchValue(name);
-
-    this.secondFormGroup.setValue({
-      tags: !!orb_tags ? Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})) : [],
-      key: '',
-      value: '',
-    });
-
-    this.agentsService.clean();
-  }
-
-  resetFormValues() {
-    const {name, orb_tags} = !!this.agent ? this.agent : {
-      name: '',
-      orb_tags: {},
-    } as Agent;
-
-    this.firstFormGroup.setValue({name: name});
-
-    this.secondFormGroup.controls.tags.setValue(
-      Object.keys(orb_tags).map(key => ({[key]: orb_tags[key]})),
-    );
-
-    this.agentsService.clean();
   }
 
   goBack() {
     this.router.navigateByUrl('/pages/fleet/agents');
   }
 
+  checkValidName() {
+    const { value } = this.secondFormGroup?.controls?.label || { value: '' };
+    return value !== '' && Object.keys(this.selectedTags).find(name => name === value) !== undefined;
+  }
+
+  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
   onAddTag() {
-    const {tags, key, value} = this.secondFormGroup.controls;
-    // sanitize minimally anyway
-    if (key?.value && key.value !== '') {
-      if (value?.value && value.value !== '') {
-        // key and value fields
-        tags.reset([{[key.value]: value.value}].concat(tags.value));
-        key.reset('');
-        value.reset('');
-      }
-    } else {
-      // TODO remove this else clause and error
-      console.error('This shouldn\'t be happening');
-    }
+    const { key, value } = this.secondFormGroup.controls;
+
+    this.selectedTags[key.value] = value.value;
+    key.reset('');
+    value.reset('');
   }
 
   onRemoveTag(tag: any) {
-    const {tags, tags: {value: tagsList}} = this.secondFormGroup.controls;
-    const indexToRemove = tagsList.indexOf(tag);
-
-    if (indexToRemove >= 0) {
-      tags.patchValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
-    }
+    delete this.selectedTags[tag];
   }
 
   wrapPayload(validate: boolean) {
     const {name} = this.firstFormGroup.controls;
-    const {tags: {value: tagsList}} = this.secondFormGroup.controls;
-    const tagsObj = tagsList.reduce((prev, curr) => {
-      for (const [key, value] of Object.entries(curr)) {
-        prev[key] = value;
-      }
-      return prev;
-    }, {});
     return {
       name: name.value,
-      orb_tags: {...tagsObj},
+      orb_tags: {...this.selectedTags},
       validate_only: !!validate && validate, // Apparently this guy is required..
     };
   }
@@ -172,5 +150,4 @@ export class AgentAddComponent {
       });
     }
   }
-
 }

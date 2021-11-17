@@ -72,12 +72,7 @@ export class SinkAddComponent {
   }
 
   initializeForms() {
-    const { name, description, backend, tags } = this.sink = {
-      name: '',
-      description: '',
-      backend: 'prometheus', // default sink
-      tags: {},
-    } as Sink;
+    const { name, description, backend, tags } = this.sink = this.newSink();
 
     this.firstFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
@@ -189,7 +184,7 @@ export class SinkAddComponent {
   checkValidName() {
     const { tags } = this.sink;
     const { value } = this.thirdFormGroup?.controls?.label || { value: '' };
-    return !(value === '' || Object.keys(tags || {}).find(name => value === name));
+    return !(value === '' || Object.keys(this.selectedTags || {}).find(name => value === name));
   }
 
   // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
