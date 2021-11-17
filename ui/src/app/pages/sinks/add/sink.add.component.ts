@@ -182,9 +182,8 @@ export class SinkAddComponent {
   }
 
   checkValidName() {
-    const { tags } = this.sink;
     const { value } = this.thirdFormGroup?.controls?.label || { value: '' };
-    return !(value === '' || Object.keys(this.selectedTags || {}).find(name => value === name));
+    return value !== '';
   }
 
   // addTag button should be [disabled] = `$sf.controls.key.value !== ''`

@@ -7,8 +7,6 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { AgentKeyComponent } from '../key/agent.key.component';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
-
 
 @Component({
   selector: 'ngx-agent-add-component',
@@ -99,7 +97,7 @@ export class AgentAddComponent {
 
   checkValidName() {
     const { value } = this.secondFormGroup?.controls?.label || { value: '' };
-    return value !== '' && Object.keys(this.selectedTags).find(name => name === value) !== undefined;
+    return value !== '';
   }
 
   // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
