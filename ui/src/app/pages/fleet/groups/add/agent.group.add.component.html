@@ -80,7 +80,7 @@
                     [style.background-color]="tag | tagcolor">
                     {{tag | tagchip}}
                   <nb-icon class="ml-1"
-                           (click)="onRemoveTag(tag)"
+                           (click)="onRemoveTag(tag.key)"
                            icon="close-outline"
                            size="12"></nb-icon>
                 </mat-chip>
