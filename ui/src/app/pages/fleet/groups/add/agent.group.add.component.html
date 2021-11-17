@@ -296,7 +296,7 @@
           class="orb-tag-sink "
           *ngFor="let tag of value | keyvalue"
           [style.background-color]="tag | tagcolor">
-          {{tag}}
+          {{tag | tagchip}}
       </mat-chip>
     </mat-chip-list>
   </div>

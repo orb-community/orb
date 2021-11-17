@@ -191,8 +191,8 @@ export class AgentGroupAddComponent implements AfterViewInit {
   // query agent group matches
   updateMatches() {
     const tagMatches = new Promise<TagMatch>(resolve => {
-      const {name} = this.agentGroup;
-      if (name !== '' && this.selectedTags !== {}) {
+      const { name } = this.agentGroup;
+      if (name !== '' && Object.keys(this.selectedTags) !== []) {
         const payload = this.wrapPayload(true);
         // just validate and get matches summary
         this.agentGroupsService.validateAgentGroup(payload).subscribe((resp: any) => {
@@ -202,15 +202,19 @@ export class AgentGroupAddComponent implements AfterViewInit {
           });
         });
       } else {
-        resolve({total: 0, online: 0});
+        resolve({ total: 0, online: 0 });
       }
     });
 
     const matchingAgents = new Promise<Agent[]>(resolve => {
-      this.agentsService.getMatchingAgents(this.selectedTags).subscribe(
-        resp => {
-          resolve(resp.agents);
-        });
+      if (Object.keys(this.selectedTags) !== []) {
+        this.agentsService.getMatchingAgents(this.selectedTags).subscribe(
+          resp => {
+            resolve(resp.agents);
+          });
+      } else {
+        resolve([]);
+      }
     });
 
     Promise.all([tagMatches, matchingAgents]).then(responses => {
@@ -219,7 +223,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
 
       this.tagMatch = summary;
       this.matchingAgents = matches;
-    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${reason}`));
+    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
   }
 
   toggleExpandMatches() {
