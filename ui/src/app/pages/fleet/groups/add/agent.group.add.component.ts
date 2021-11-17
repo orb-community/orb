@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -17,17 +17,19 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
   templateUrl: './agent.group.add.component.html',
   styleUrls: ['./agent.group.add.component.scss'],
 })
-export class AgentGroupAddComponent implements OnInit, AfterViewInit {
+export class AgentGroupAddComponent implements AfterViewInit {
   // page vars
-  strings = {...STRINGS.agentGroups, stepper: STRINGS.stepper};
+  strings = { ...STRINGS.agentGroups, stepper: STRINGS.stepper };
 
   isEdit: boolean;
 
   columnMode = ColumnMode;
+
   columns: TableColumn[];
 
   // templates
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
+
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
@@ -51,8 +53,11 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
   firstFormGroup: FormGroup;
 
   secondFormGroup: FormGroup;
+
   // agent vars
   agentGroup: AgentGroup;
+
+  selectedTags: { [propName: string]: string };
 
   matchingAgents: Agent[];
 
@@ -70,65 +75,39 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
-    this.agentsService.clean();
-    this.agentGroup = this.router.getCurrentNavigation().extras.state?.agentGroup as AgentGroup || null;
-    this.agentGroupID = this.route.snapshot.paramMap.get('id');
-    !!this.agentGroupID && this.agentGroupsService.getAgentGroupById(this.agentGroupID).subscribe(resp => {
-      this.agentGroup = resp.agentGroup;
-      this.isLoading = false;
+    this.isLoading = true;
 
-      this.updateTagMatches();
-      this.updateMatchingAgents();
-    });
-    this.isEdit = !!this.agentGroupID && this.router.getCurrentNavigation().extras.state?.edit as boolean;
-    this.isLoading = this.isEdit;
+    this.tagMatch.total = this.tagMatch.online = 0;
+    this.expanded = false;
+    this.agentsService.clean();
+    this.agentGroupsService.clean();
+
+    this.agentGroupID = this.route.snapshot.paramMap.get('id');
+    this.isEdit = !!this.agentGroupID;
+
+    this.getAgentGroup()
+      .then((agentGroup) => {
+        this.agentGroup = agentGroup;
+        this.selectedTags = agentGroup.tags;
+        this.initializeForms();
+        this.isLoading = false;
+      })
+      .then(() => this.updateMatches())
+      .catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
   }
 
-  ngOnInit() {
-    const {name, description, tags} = !!this.agentGroup ? this.agentGroup : {
-      name: '',
-      description: '',
-      tags: {},
-    } as AgentGroup;
+  initializeForms() {
+    const { name, description } = this.agentGroup;
+
     this.firstFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
     });
 
     this.secondFormGroup = this._formBuilder.group({
-      tags: [Object.keys(tags).map(key => ({[key]: tags[key]})) || [],
-        Validators.minLength(1)],
       key: [''],
       value: [''],
     });
-
-    this.tagMatch.total = this.tagMatch.online = 0;
-    this.expanded = false;
-
-    this.agentGroupsService.clean();
-  }
-
-  resetFormValues() {
-    const {name, description, tags} = !!this.agentGroup ? this.agentGroup : {
-      name: '',
-      description: '',
-      tags: {},
-    } as AgentGroup;
-
-    this.firstFormGroup.setValue({name: name, description: description});
-
-    this.secondFormGroup.controls.tags.setValue(
-      Object.keys(tags).map(key => ({[key]: tags[key]})));
-
-    this.updateTagMatches();
-
-    this.updateMatchingAgents();
-
-    this.agentGroupsService.clean();
-  }
-
-  goBack() {
-      this.router.navigateByUrl('/pages/fleet/groups');
   }
 
   ngAfterViewInit() {
@@ -166,76 +145,94 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     ];
   }
 
-  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
-  onAddTag() {
-    const {tags, key, value} = this.secondFormGroup.controls;
-    // sanitize minimally anyway
-    if (key?.value && key.value !== '') {
-      if (value?.value && value.value !== '') {
-        // key and value fields
-        tags.reset([{[key.value]: value.value}].concat(tags.value));
-        key.reset('');
-        value.reset('');
-        this.updateTagMatches();
-        this.updateMatchingAgents();
+  newAgentGroup() {
+    return {
+      name: '',
+      description: '',
+      tags: {},
+    } as AgentGroup;
+  }
+
+  getAgentGroup() {
+    return new Promise<AgentGroup>(resolve => {
+      if (this.agentGroupID) {
+        this.agentGroupsService.getAgentGroupById(this.agentGroupID).subscribe(resp => {
+          resolve(resp);
+        });
+      } else {
+        resolve(this.newAgentGroup());
       }
-    } else {
-      // TODO remove this else clause and error
-      console.error('This shouldn\'t be happening');
-    }
-  }
-
-  onRemoveTag(tag: any) {
-    const {tags, tags: {value: tagsList}} = this.secondFormGroup.controls;
-    const indexToRemove = tagsList.indexOf(tag);
-    tags.setValue(tagsList.slice(0, indexToRemove).concat(tagsList.slice(indexToRemove + 1)));
-
-    if (tags.value.length > 0) {
-      this.updateTagMatches();
-      this.updateMatchingAgents();
-    }
-  }
-
-  // query agent group matches
-  updateTagMatches() {
-    const payload = this.wrapPayload(true);
-    // just validate and get matches summary
-    this.agentGroupsService.validateAgentGroup(payload).subscribe((resp: any) => {
-      this.tagMatch = {
-        total: resp.body.matching_agents.total,
-        online: resp.body.matching_agents.online,
-      };
     });
   }
 
-  updateMatchingAgents() {
-    const tags = this.secondFormGroup.controls.tags.value;
-    this.agentsService.getMatchingAgents(tags).subscribe(
-      resp => {
-        this.matchingAgents = resp.agents;
-      },
-    );
+  goBack() {
+    this.router.navigateByUrl('/pages/fleet/groups');
+  }
+
+  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
+  onAddTag() {
+    const { key, value } = this.secondFormGroup.controls;
+
+    this.selectedTags[key.value] = value.value;
+
+    // key and value fields
+    key.reset('');
+    value.reset('');
+
+    return this.updateMatches();
+  }
+
+  onRemoveTag(tag: any) {
+    delete this.selectedTags[tag];
+
+    return this.updateMatches();
+  }
+
+  // query agent group matches
+  updateMatches() {
+    const tagMatches = new Promise<TagMatch>(resolve => {
+      const {name} = this.agentGroup;
+      if (name !== '' && this.selectedTags !== {}) {
+        const payload = this.wrapPayload(true);
+        // just validate and get matches summary
+        this.agentGroupsService.validateAgentGroup(payload).subscribe((resp: any) => {
+          resolve({
+            total: resp.body.matching_agents.total,
+            online: resp.body.matching_agents.online,
+          });
+        });
+      } else {
+        resolve({total: 0, online: 0});
+      }
+    });
+
+    const matchingAgents = new Promise<Agent[]>(resolve => {
+      this.agentsService.getMatchingAgents(this.selectedTags).subscribe(
+        resp => {
+          resolve(resp.agents);
+        });
+    });
+
+    return Promise.all([tagMatches, matchingAgents]).then(responses => {
+      const summary = responses[0] as TagMatch;
+      const matches = responses[1] as Agent[];
+
+      this.tagMatch = summary;
+      this.matchingAgents = matches;
+    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${reason}`));
   }
 
   toggleExpandMatches() {
     this.expanded = !this.expanded;
-    !!this.expanded && this.updateMatchingAgents();
+    !!this.expanded && this.updateMatches();
   }
 
   wrapPayload(validate: boolean) {
-    const {name, description} = this.firstFormGroup.controls;
-    const {tags: {value: tagsList}} = this.secondFormGroup.controls;
-    const tagsObj = tagsList.reduce((prev, curr) => {
-      for (const [key, value] of Object.entries(curr)) {
-        prev[key] = value;
-      }
-      return prev;
-    }, {});
-
+    const { name, description } = this.firstFormGroup.controls;
     return {
       name: name.value,
       description: description.value,
-      tags: {...tagsObj},
+      tags: { ...this.selectedTags },
       validate_only: !!validate && validate, // Apparently this guy is required..
     };
   }
@@ -248,7 +245,7 @@ export class AgentGroupAddComponent implements OnInit, AfterViewInit {
     // // remove line bellow
     // console.log(payload)
     if (this.isEdit) {
-      this.agentGroupsService.editAgentGroup({...payload, id: this.agentGroupID}).subscribe(() => {
+      this.agentGroupsService.editAgentGroup({ ...payload, id: this.agentGroupID }).subscribe(() => {
         this.notificationsService.success('Agent Group successfully updated', '');
         this.goBack();
       });
