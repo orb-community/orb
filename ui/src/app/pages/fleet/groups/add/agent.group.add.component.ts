@@ -77,6 +77,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
   ) {
     this.isLoading = true;
 
+    this.selectedTags = {};
     this.tagMatch.total = this.tagMatch.online = 0;
     this.expanded = false;
     this.agentsService.clean();
@@ -192,7 +193,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
   updateMatches() {
     const tagMatches = new Promise<TagMatch>(resolve => {
       const { name } = this.agentGroup;
-      if (name !== '' && Object.keys(this.selectedTags) !== []) {
+      if (name !== '' && Object.keys(this.selectedTags).length !== 0) {
         const payload = this.wrapPayload(true);
         // just validate and get matches summary
         this.agentGroupsService.validateAgentGroup(payload).subscribe((resp: any) => {
@@ -207,7 +208,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
     });
 
     const matchingAgents = new Promise<Agent[]>(resolve => {
-      if (Object.keys(this.selectedTags) !== []) {
+      if (Object.keys(this.selectedTags).length !== 0) {
         this.agentsService.getMatchingAgents(this.selectedTags).subscribe(
           resp => {
             resolve(resp.agents);
