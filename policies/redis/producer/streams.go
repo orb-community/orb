@@ -77,6 +77,10 @@ func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.D
 }
 
 func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID string) error {
+	policy, err := e.svc.ViewPolicyByID(ctx, token, policyID)
+	if err != nil {
+		return err
+	}
 	if err := e.svc.RemovePolicy(ctx, token, policyID); err != nil {
 		return err
 	}
@@ -100,6 +104,8 @@ func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID str
 	event := removePolicyEvent{
 		id:       policyID,
 		ownerID:  ownerID,
+		name:     policy.Name.String(),
+		backend:  policy.Backend,
 		groupIDs: strings.Join(groupsIDs, ","),
 	}
 	record := &redis.XAddArgs{

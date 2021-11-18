@@ -71,6 +71,8 @@ type removePolicyEvent struct {
 	id        string
 	ownerID   string
 	groupIDs  string
+	name      string
+	backend   string
 	timestamp time.Time
 }
 
@@ -124,6 +126,8 @@ func (cce removePolicyEvent) Encode() map[string]interface{} {
 		"id":         cce.id,
 		"owner_id":   cce.ownerID,
 		"groups_ids": cce.groupIDs,
+		"name":       cce.name,
+		"backend":    cce.backend,
 		"timestamp":  cce.timestamp.Unix(),
 		"operation":  PolicyRemove,
 	}

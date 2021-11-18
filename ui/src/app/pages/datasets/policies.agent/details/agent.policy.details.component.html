@@ -30,31 +30,6 @@
         <p>{{ agentPolicy.version }}</p>
       </div>
     </div>
-    <div class="row">
-      <div class="col-6 align-items-start d-flex flex-column">
-        <p class="detail-title">Date Created:</p>
-        <p>{{ agentPolicy.ts_created | date:'short' }}</p>
-      </div>
-      <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Policy Config<span class="ns1red">*</span></p>
-        <p>{{ agentPolicy.policy | json }}</p>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Policy Tags<span class="ns1red">*</span></p>
-        <div>
-          <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
-            <mat-chip
-                class="orb-tag-sink "
-                *ngFor="let tag of agentPolicy.tags | keyvalue | tagchip"
-                [style.background-color]="tag | tagchipcolor">
-                {{tag}}
-            </mat-chip>
-          </mat-chip-list>
-        </div>
-      </div>
-    </div>
   </nb-card-body>
 
   <nb-card-footer>

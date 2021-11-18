@@ -451,7 +451,7 @@ services:
       - orb-base-net
 
   ui:
-    image: "ns1labs/orb-ui:latest"
+    image: "ns1labs/orb-ui:${ORB_RELEASE_TAG}"
     container_name: orb-ui
     restart: on-failure
     volumes:

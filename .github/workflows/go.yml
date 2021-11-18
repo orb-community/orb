@@ -2,6 +2,10 @@ name: Go
 
 on:
   workflow_dispatch:
+    inputs:
+      pktvisor_tag:
+        description: 'pktvisor agent docker tag to package'
+        required: true
   pull_request:
     branches:
       - develop
@@ -113,28 +117,6 @@ jobs:
       - name: Debug version
         run: echo ${{ env.VERSION }}
 
-      - name: Manage Github ref tags
-        uses: actions/github-script@v3
-        with:
-          github-token: ${{ github.token }}
-          # note deleteRef can't start with refs/, but create createRef does.
-          script: |
-            try {
-                await github.git.deleteRef({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  ref: "tags/${{ env.REF_TAG }}",
-                })
-            } catch (e) {
-              console.log("The tag doesn't exist yet: " + e)
-            }
-            await github.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: "refs/tags/${{ env.REF_TAG }}",
-              sha: context.sha
-            })
-
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -144,6 +126,21 @@ jobs:
       - name: Build service containers
         run: make dockers
 
+      - name: Build orb-agent
+        if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'main'
+        env:
+          IMAGE_NAME: ns1labs/orb-agent
+          PKTVISOR_TAG: ${{ github.event.inputs.pktvisor_tag }}
+        run: |
+          make agent
+
+      - name: Build orb-ui
+        if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'main'
+        env:
+          IMAGE_NAME: ns1labs/orb-ui
+        run: |
+          make ui
+
       - name: Push service containers
         run: |
           docker push -a ns1labs/orb-fleet
@@ -151,18 +148,12 @@ jobs:
           docker push -a ns1labs/orb-sinks
           docker push -a ns1labs/orb-sinker
 
-      - name: Build + push orb-agent
-        if: steps.filter.outputs.agent == 'true'
-        env:
-          IMAGE_NAME: ns1labs/orb-agent
+      - name: Push agent container
+        if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'main'
         run: |
-          make agent
-          docker push -a ${{ env.IMAGE_NAME }}
+          docker push -a ns1labs/orb-agent
 
-      - name: Build + push orb-ui
-        if: steps.filter.outputs.ui == 'true'
-        env:
-          IMAGE_NAME: ns1labs/orb-ui
+      - name: Push ui container
+        if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'main'
         run: |
-          make ui
-          docker push -a ${{ env.IMAGE_NAME }}
+          docker push -a ns1labs/orb-ui
