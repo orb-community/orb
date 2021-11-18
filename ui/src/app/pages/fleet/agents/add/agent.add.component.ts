@@ -96,8 +96,9 @@ export class AgentAddComponent {
   }
 
   checkValidName() {
-    const { value } = this.secondFormGroup?.controls?.label || { value: '' };
-    return value !== '';
+    const { value } = this.secondFormGroup?.controls?.key;
+    const hasTagForKey = Object.keys(this.selectedTags).find(key => key === value);
+    return value !== '' && !hasTagForKey;
   }
 
   // addTag button should be [disabled] = `$sf.controls.key.value !== ''`

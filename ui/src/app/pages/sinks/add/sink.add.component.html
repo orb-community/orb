@@ -227,7 +227,7 @@
                 <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
                      style="transform: translateY(14px);">
                   <button (click)="onAddTag()"
-                          [disabled]="checkValidName()"
+                          [disabled]="!checkValidName()"
                           data-orb-qa-id="addTag"
                           ghost
                           nbButton>

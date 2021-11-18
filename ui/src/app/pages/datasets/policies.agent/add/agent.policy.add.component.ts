@@ -405,9 +405,9 @@ export class AgentPolicyAddComponent {
   }
 
   checkValidName() {
-    const { policy: { handlers: { modules } } } = this.agentPolicy;
     const { value } = this.handlerSelectorFG.controls.label;
-    return !(value === '' || Object.keys(modules || {}).find(name => value === name));
+    const hasTagForKey = Object.keys(this.modules).find(key => key === value);
+    return value && value !== '' && !hasTagForKey;
   }
 
   onHandlerAdded() {
