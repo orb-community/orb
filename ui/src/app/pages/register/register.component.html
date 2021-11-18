@@ -47,7 +47,7 @@
             Full name is required!
           </p>
           <p class="caption status-danger mb-1" *ngIf="fullName.errors?.minlength || fullName.errors?.maxlength">
-            Full name should contains
+            Full name should contain
             from {{getConfigValue('forms.validation.fullName.minLength')}}
             to {{getConfigValue('forms.validation.fullName.maxLength')}}
             characters
