@@ -21,6 +21,7 @@ type PolicyServiceClient interface {
 	RetrievePolicy(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*PolicyRes, error)
 	RetrievePoliciesByGroups(ctx context.Context, in *PoliciesByGroupsReq, opts ...grpc.CallOption) (*PolicyInDSListRes, error)
 	RetrieveDataset(ctx context.Context, in *DatasetByIDReq, opts ...grpc.CallOption) (*DatasetRes, error)
+	RetrieveDatasetsByPolicyID(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*DatasetListRes, error)
 }
 
 type policyServiceClient struct {
@@ -58,6 +59,15 @@ func (c *policyServiceClient) RetrieveDataset(ctx context.Context, in *DatasetBy
 	return out, nil
 }
 
+func (c *policyServiceClient) RetrieveDatasetsByPolicyID(ctx context.Context, in *PolicyByIDReq, opts ...grpc.CallOption) (*DatasetListRes, error) {
+	out := new(DatasetListRes)
+	err := c.cc.Invoke(ctx, "/policies.PolicyService/RetrieveDatasetsByPolicyID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PolicyServiceServer is the server API for PolicyService service.
 // All implementations must embed UnimplementedPolicyServiceServer
 // for forward compatibility
@@ -65,6 +75,7 @@ type PolicyServiceServer interface {
 	RetrievePolicy(context.Context, *PolicyByIDReq) (*PolicyRes, error)
 	RetrievePoliciesByGroups(context.Context, *PoliciesByGroupsReq) (*PolicyInDSListRes, error)
 	RetrieveDataset(context.Context, *DatasetByIDReq) (*DatasetRes, error)
+	RetrieveDatasetsByPolicyID(context.Context, *PolicyByIDReq) (*DatasetListRes, error)
 	mustEmbedUnimplementedPolicyServiceServer()
 }
 
@@ -80,6 +91,9 @@ func (UnimplementedPolicyServiceServer) RetrievePoliciesByGroups(context.Context
 }
 func (UnimplementedPolicyServiceServer) RetrieveDataset(context.Context, *DatasetByIDReq) (*DatasetRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrieveDataset not implemented")
+}
+func (UnimplementedPolicyServiceServer) RetrieveDatasetsByPolicyID(context.Context, *PolicyByIDReq) (*DatasetListRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RetrieveDatasetsByPolicyID not implemented")
 }
 func (UnimplementedPolicyServiceServer) mustEmbedUnimplementedPolicyServiceServer() {}
 
@@ -148,6 +162,24 @@ func _PolicyService_RetrieveDataset_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PolicyService_RetrieveDatasetsByPolicyID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PolicyByIDReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PolicyServiceServer).RetrieveDatasetsByPolicyID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/policies.PolicyService/RetrieveDatasetsByPolicyID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PolicyServiceServer).RetrieveDatasetsByPolicyID(ctx, req.(*PolicyByIDReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PolicyService_ServiceDesc is the grpc.ServiceDesc for PolicyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -166,6 +198,10 @@ var PolicyService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RetrieveDataset",
 			Handler:    _PolicyService_RetrieveDataset_Handler,
+		},
+		{
+			MethodName: "RetrieveDatasetsByPolicyID",
+			Handler:    _PolicyService_RetrieveDatasetsByPolicyID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

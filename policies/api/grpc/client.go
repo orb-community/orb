@@ -23,10 +23,38 @@ import (
 var _ pb.PolicyServiceClient = (*grpcClient)(nil)
 
 type grpcClient struct {
-	timeout                  time.Duration
-	retrievePolicy           endpoint.Endpoint
-	retrievePoliciesByGroups endpoint.Endpoint
-	retrieveDataset          endpoint.Endpoint
+	timeout                    time.Duration
+	retrievePolicy             endpoint.Endpoint
+	retrievePoliciesByGroups   endpoint.Endpoint
+	retrieveDataset            endpoint.Endpoint
+	retrieveDatasetsByPolicyID endpoint.Endpoint
+}
+
+func (client grpcClient) RetrieveDatasetsByPolicyID(ctx context.Context, in *pb.PolicyByIDReq, opts ...grpc.CallOption) (*pb.DatasetListRes, error) {
+	ctx, cancel := context.WithTimeout(ctx, client.timeout)
+	defer cancel()
+
+	ar := accessByIDReq{
+		PolicyID: in.PolicyID,
+		OwnerID:  in.OwnerID,
+	}
+	res, err := client.retrieveDatasetsByPolicyID(ctx, ar)
+	if err != nil {
+		return nil, err
+	}
+
+	ir := res.(datasetListRes)
+
+	dsList := make([]*pb.DatasetRes, len(ir.datasets))
+	for i, p := range ir.datasets {
+		dsList[i] = &pb.DatasetRes{
+			Id:           p.id,
+			AgentGroupId: p.agentGroupID,
+			PolicyId:     p.policyID,
+			SinkIds:      p.sinkIDs,
+		}
+	}
+	return &pb.DatasetListRes{Datasets: dsList}, nil
 }
 
 func (client grpcClient) RetrievePolicy(ctx context.Context, in *pb.PolicyByIDReq, opts ...grpc.CallOption) (*pb.PolicyRes, error) {
@@ -119,6 +147,14 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 			decodeDatasetResponse,
 			pb.DatasetRes{},
 		).Endpoint()),
+		retrieveDatasetsByPolicyID: kitot.TraceClient(tracer, "retrieve_datasets_by_policy_id")(kitgrpc.NewClient(
+			conn,
+			svcName,
+			"RetrieveDatasetsByPolicyID",
+			encodeRetrieveDatasetsByPolicyIDRequest,
+			decodeDatasetsByPolicyIDResponse,
+			pb.DatasetListRes{},
+		).Endpoint()),
 	}
 }
 
@@ -139,6 +175,12 @@ func encodeRetrieveDatasetRequest(_ context.Context, grpcReq interface{}) (inter
 		OwnerID:   req.ownerID,
 	}, nil
 }
+
+func encodeRetrieveDatasetsByPolicyIDRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(accessByIDReq)
+	return &pb.PolicyByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
+}
+
 func decodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*pb.PolicyRes)
 	return policyRes{id: res.GetId(), name: res.GetName(), data: res.GetData(), version: res.GetVersion(), backend: res.GetBackend()}, nil
@@ -161,4 +203,18 @@ func decodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface
 		policies[i] = policyInDSRes{id: p.GetId(), name: p.GetName(), data: p.GetData(), version: p.GetVersion(), backend: p.GetBackend(), datasetID: p.GetDatasetId()}
 	}
 	return policyInDSListRes{policies: policies}, nil
+}
+
+func decodeDatasetsByPolicyIDResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(*pb.DatasetListRes)
+	datasets := make([]datasetRes, len(res.Datasets))
+	for i, p := range res.Datasets {
+		datasets[i] = datasetRes{
+			id:           p.GetId(),
+			agentGroupID: p.GetAgentGroupId(),
+			policyID:     p.GetPolicyId(),
+			sinkIDs:      p.GetSinkIds(),
+		}
+	}
+	return datasetListRes{datasets: datasets}, nil
 }

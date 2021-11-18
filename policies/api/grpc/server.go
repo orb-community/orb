@@ -24,9 +24,10 @@ var _ pb.PolicyServiceServer = (*grpcServer)(nil)
 
 type grpcServer struct {
 	pb.UnimplementedPolicyServiceServer
-	retrievePolicy           kitgrpc.Handler
-	retrievePoliciesByGroups kitgrpc.Handler
-	retrieveDataset          kitgrpc.Handler
+	retrievePolicy             kitgrpc.Handler
+	retrievePoliciesByGroups   kitgrpc.Handler
+	retrieveDataset            kitgrpc.Handler
+	retrieveDatasetsByPolicyID kitgrpc.Handler
 }
 
 // NewServer returns new PolicyServiceServer instance.
@@ -46,6 +47,11 @@ func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyService
 			kitot.TraceServer(tracer, "retrieve_dataset")(retrieveDatasetEnpoint(svc)),
 			decodeRetrieveDatasetRequest,
 			encodeDatasetResponse,
+		),
+		retrieveDatasetsByPolicyID: kitgrpc.NewServer(
+			kitot.TraceServer(tracer, "retrieve_datasets_by_policy_id")(retrieveDatasetEnpoint(svc)),
+			decodeRetrieveDatasetsByPolicyIDRequest,
+			encodeDatasetsByPolicyIDResponse,
 		),
 	}
 }
@@ -95,6 +101,11 @@ func decodeRetrieveDatasetRequest(_ context.Context, grpcReq interface{}) (inter
 	}, nil
 }
 
+func decodeRetrieveDatasetsByPolicyIDRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.PolicyByIDReq)
+	return accessByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
+}
+
 func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(policyRes)
 	return &pb.PolicyRes{
@@ -125,6 +136,21 @@ func encodeDatasetResponse(_ context.Context, grpcRes interface{}) (interface{},
 		PolicyId:     res.policyID,
 		SinkIds:      res.sinkIDs,
 	}, nil
+}
+
+func encodeDatasetsByPolicyIDResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(datasetListRes)
+
+	dsList := make([]*pb.DatasetRes, len(res.datasets))
+	for i, p := range res.datasets {
+		dsList[i] = &pb.DatasetRes{
+			Id:           p.id,
+			AgentGroupId: p.agentGroupID,
+			PolicyId:     p.policyID,
+			SinkIds:      p.sinkIDs,
+		}
+	}
+	return &pb.DatasetListRes{Datasets: dsList}, nil
 }
 
 func encodeError(err error) error {
