@@ -151,20 +151,17 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 		// this payload loop is per policy. each policy has a list of datasets it is associated with, and each dataset may contain multiple sinks
 		// however, per policy, we want a unique set of sink IDs as we don't want to send the same metrics twice to the same sink for the same policy
 		datasetSinkIDs := make(map[string]bool)
+		// First retrieve a list of datasets passing policy id
+		datasets, err := svc.policiesClient.RetrieveDatasetsByPolicyID(context.Background(), &policiespb.PolicyByIDReq{
+			PolicyID: m.PolicyID,
+			OwnerID:  agent.OwnerID,
+		})
+		if err != nil {
+			svc.logger.Error("unable to retrieve datasets", zap.String("policy_id", m.PolicyID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
+			return err
+		}
 		// first go through the datasets and gather the unique set of sinks we need for this particular policy
-		for _, ds := range m.Datasets {
-			if ds == "" {
-				svc.logger.Error("malformed agent RPC: empty dataset", zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID))
-				continue
-			}
-			dataset, err := svc.policiesClient.RetrieveDataset(context.Background(), &policiespb.DatasetByIDReq{
-				DatasetID: ds,
-				OwnerID:   agent.OwnerID,
-			})
-			if err != nil {
-				svc.logger.Error("unable to retrieve dataset", zap.String("dataset_id", ds), zap.String("owner_id", agent.OwnerID), zap.Error(err))
-				continue
-			}
+		for _, dataset := range datasets.Datasets {
 			for _, sid := range dataset.SinkIds {
 				if !svc.configRepo.Exists(sid) {
 					// Use the retrieved sinkID to get the backend config
