@@ -29,6 +29,7 @@ var (
 	ErrNotFound                = errors.New("non-existent entity")
 	ErrUnauthorizedAccess      = errors.New("missing or invalid credentials provided")
 	ErrNotifyAgentGroupChannel = errors.New("failed to notify agent group channel")
+	ErrSelectEntity            = errors.New("failed to select entity from db error")
 )
 
 func (s policiesService) ListPolicies(ctx context.Context, token string, pm PageMetadata) (Page, error) {

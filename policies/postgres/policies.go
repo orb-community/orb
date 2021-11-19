@@ -413,7 +413,7 @@ func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, poli
 
 	rows, err := r.db.QueryxContext(ctx, query, args...)
 	if err != nil {
-		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		return nil, errors.Wrap(policies.ErrSelectEntity, err)
 	}
 	defer rows.Close()
 
@@ -421,7 +421,7 @@ func (r policiesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, poli
 	for rows.Next() {
 		dbth := dbDataset{MFOwnerID: ownerID}
 		if err := rows.StructScan(&dbth); err != nil {
-			return nil, errors.Wrap(errors.ErrSelectEntity, err)
+			return nil, errors.Wrap(policies.ErrSelectEntity, err)
 		}
 
 		th := toDataset(dbth)

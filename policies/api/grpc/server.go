@@ -10,6 +10,7 @@ package grpc
 
 import (
 	"context"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies"
 	"github.com/ns1labs/orb/policies/pb"
 
@@ -163,12 +164,16 @@ func encodeDatasetsByPolicyIDResponse(_ context.Context, grpcRes interface{}) (i
 }
 
 func encodeError(err error) error {
-	switch err {
-	case nil:
-		return nil
-	case policies.ErrMalformedEntity:
-		return status.Error(codes.InvalidArgument, "received invalid can access request")
+	switch errorVal := err.(type) {
+	case errors.Error:
+		switch {
+		case errors.Contains(errorVal, policies.ErrSelectEntity):
+			return status.Error(codes.InvalidArgument, err.Error())
+		case errors.Contains(errorVal, policies.ErrMalformedEntity):
+			return status.Error(codes.InvalidArgument, "received invalid can access request")
+		}
 	default:
 		return status.Error(codes.Internal, "internal server error")
 	}
+	return nil
 }
