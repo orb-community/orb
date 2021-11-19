@@ -150,13 +150,21 @@ func (s policiesService) EditPolicy(ctx context.Context, token string, pol Polic
 	return res, nil
 }
 
-func (s policiesService) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error) {
+func (s policiesService) ListDatasetsByPolicyID(ctx context.Context, policyID string, token string) ([]Dataset, error) {
 	ownerID, err := s.identify(token)
 	if err != nil {
 		return nil, err
 	}
 
 	res, err := s.repo.RetrieveDatasetsByPolicyID(ctx, policyID, ownerID)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (s policiesService) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, owner string) ([]Dataset, error) {
+	res, err := s.repo.RetrieveDatasetsByPolicyID(ctx, policyID, owner)
 	if err != nil {
 		return nil, err
 	}

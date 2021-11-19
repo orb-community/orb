@@ -74,7 +74,21 @@ func (l loggingMiddleware) RemovePolicy(ctx context.Context, token string, polic
 	return l.svc.RemovePolicy(ctx, token, policyID)
 }
 
-func (l loggingMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) (_ []policies.Dataset, err error) {
+func (l loggingMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, owner string) (_ []policies.Dataset, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: list_dataset_by_policy_id_internal",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: list_dataset_by_policy_id_internal",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, owner)
+}
+
+func (l loggingMiddleware) ListDatasetsByPolicyID(ctx context.Context, policyID string, token string) (_ []policies.Dataset, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: list_dataset_by_policy_id",
@@ -85,7 +99,7 @@ func (l loggingMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, p
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
+	return l.svc.ListDatasetsByPolicyID(ctx, policyID, token)
 }
 
 func (l loggingMiddleware) EditPolicy(ctx context.Context, token string, pol policies.Policy, format string, policyData string) (_ policies.Policy, err error) {

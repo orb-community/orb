@@ -79,7 +79,10 @@ type Service interface {
 	InactivateDatasetByGroupID(ctx context.Context, groupID string, token string) error
 
 	// ListDatasetsByPolicyIDInternal retrieves the subset of Datasets by policyID owned by the specified user
-	ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error)
+	ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, owner string) ([]Dataset, error)
+
+	// ListDatasetsByPolicyID retrieves the subset of Datasets by policyID owned by the specified user
+	ListDatasetsByPolicyID(ctx context.Context, policyID string, token string) ([]Dataset, error)
 
 	// ValidatePolicy validates an agent Policy without saving
 	ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)

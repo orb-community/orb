@@ -49,7 +49,7 @@ func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyService
 			encodeDatasetResponse,
 		),
 		retrieveDatasetsByPolicyID: kitgrpc.NewServer(
-			kitot.TraceServer(tracer, "retrieve_datasets_by_policy_id")(retrieveDatasetEnpoint(svc)),
+			kitot.TraceServer(tracer, "retrieve_datasets_by_policy_id")(retrieveDatasetsByPolicyIDEndpoint(svc)),
 			decodeRetrieveDatasetsByPolicyIDRequest,
 			encodeDatasetsByPolicyIDResponse,
 		),
@@ -81,6 +81,15 @@ func (gs *grpcServer) RetrieveDataset(ctx context.Context, req *pb.DatasetByIDRe
 	}
 
 	return res.(*pb.DatasetRes), nil
+}
+
+func (gs *grpcServer) RetrieveDatasetsByPolicyID(ctx context.Context, req *pb.PolicyByIDReq) (*pb.DatasetListRes, error) {
+	_, res, err := gs.retrieveDatasetsByPolicyID.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, encodeError(err)
+	}
+
+	return res.(*pb.DatasetListRes), nil
 }
 
 func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {

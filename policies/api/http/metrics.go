@@ -34,7 +34,11 @@ func (m metricsMiddleware) RemovePolicy(ctx context.Context, token string, polic
 	return m.svc.RemovePolicy(ctx, token, policyID)
 }
 
-func (m metricsMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]policies.Dataset, error) {
+func (m metricsMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, owner string) ([]policies.Dataset, error) {
+	return m.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, owner)
+}
+
+func (m metricsMiddleware) ListDatasetsByPolicyID(ctx context.Context, policyID string, token string) ([]policies.Dataset, error) {
 	return m.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
 }
 

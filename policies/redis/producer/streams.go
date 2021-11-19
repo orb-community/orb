@@ -85,7 +85,7 @@ func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID str
 		return err
 	}
 
-	datasets, err := e.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
+	datasets, err := e.svc.ListDatasetsByPolicyID(ctx, policyID, token)
 	if err != nil {
 		return err
 	}
@@ -122,8 +122,12 @@ func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID str
 	return nil
 }
 
-func (e eventStore) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]policies.Dataset, error) {
-	return e.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
+func (e eventStore) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, owner string) ([]policies.Dataset, error) {
+	return e.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, owner)
+}
+
+func (e eventStore) ListDatasetsByPolicyID(ctx context.Context, policyID string, token string) ([]policies.Dataset, error) {
+	return e.svc.ListDatasetsByPolicyID(ctx, policyID, token)
 }
 
 func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.Policy, format string, policyData string) (policies.Policy, error) {
@@ -132,7 +136,7 @@ func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.P
 		return policies.Policy{}, err
 	}
 
-	datasets, err := e.svc.ListDatasetsByPolicyIDInternal(ctx, res.ID, token)
+	datasets, err := e.svc.ListDatasetsByPolicyID(ctx, res.ID, token)
 	if err != nil {
 		return policies.Policy{}, err
 	}

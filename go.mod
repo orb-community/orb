@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/eclipse/paho.mqtt.golang v1.2.0
 	github.com/fatih/structs v1.1.0
+	github.com/fullstorydev/grpcurl v1.8.5 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-cmd/cmd v1.3.0
 	github.com/go-co-op/gocron v1.9.0
