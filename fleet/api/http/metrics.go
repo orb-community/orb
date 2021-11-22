@@ -24,7 +24,8 @@ func (m metricsMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, cha
 		labels := []string{
 			"method", "viewOwnerByChannelIDInternal",
 			"owner_id", agent.MFOwnerID,
-			"service_id", agent.MFThingID,
+			"service", "fleet",
+			"id", agent.MFThingID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -40,7 +41,8 @@ func (m metricsMiddleware) ViewAgentBackend(ctx context.Context, token string, n
 		labels := []string{
 			"method", "viewAgentBackend",
 			"owner_id", "",
-			"service_id", "",
+			"service", "fleet",
+			"id", "",
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -56,7 +58,8 @@ func (m metricsMiddleware) ListAgentBackends(ctx context.Context, token string) 
 		labels := []string{
 			"method", "listAgentBackends",
 			"owner_id", "",
-			"service_id", "",
+			"service", "fleet",
+			"id", "",
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -72,7 +75,8 @@ func (m metricsMiddleware) ViewAgentByIDInternal(ctx context.Context, ownerID st
 		labels := []string{
 			"method", "viewAgentByIDInternal",
 			"owner_id", ownerID,
-			"service_id", thingID,
+			"service", "fleet",
+			"id", thingID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -88,7 +92,8 @@ func (m metricsMiddleware) ViewAgentByID(ctx context.Context, token string, thin
 		labels := []string{
 			"method", "viewAgentByID",
 			"owner_id", a.MFOwnerID,
-			"service_id", thingID,
+			"service", "fleet",
+			"id", thingID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -104,7 +109,8 @@ func (m metricsMiddleware) EditAgent(ctx context.Context, token string, agent fl
 		labels := []string{
 			"method", "editAgent",
 			"owner_id", a.MFOwnerID,
-			"service_id", a.MFThingID,
+			"service", "fleet",
+			"id", a.MFThingID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -120,7 +126,8 @@ func (m metricsMiddleware) ViewAgentGroupByIDInternal(ctx context.Context, group
 		labels := []string{
 			"method", "viewAgentGroupByIDInternal",
 			"owner_id", ownerID,
-			"service_id", groupID,
+			"service", "fleet",
+			"id", groupID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -136,7 +143,8 @@ func (m metricsMiddleware) ViewAgentGroupByID(ctx context.Context, token string,
 		labels := []string{
 			"method", "viewAgentGroupByID",
 			"owner_id", group.MFOwnerID,
-			"service_id", groupID,
+			"service", "fleet",
+			"id", groupID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -151,15 +159,16 @@ func (m metricsMiddleware) ListAgentGroups(ctx context.Context, token string, pm
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "listAgentGroups",
+			"service", "fleet",
 		}
 		if len(groups.AgentGroups) != 0{
 			labels = append(labels,
 				"owner_id", groups.AgentGroups[0].MFOwnerID,
-				"service_id", "")
+				"id", "")
 		}else {
 		labels = append(labels,
 			"owner_id", "",
-			"service_id", "")
+			"id", "")
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -175,7 +184,8 @@ func (m metricsMiddleware) EditAgentGroup(ctx context.Context, token string, ag 
 		labels := []string{
 			"method", "editAgentGroup",
 			"owner_id", ag.MFOwnerID,
-			"service_id", ag.ID,
+			"service", "fleet",
+			"id", ag.ID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -190,15 +200,16 @@ func (m metricsMiddleware) ListAgents(ctx context.Context, token string, pm flee
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "listAgents",
+			"service", "fleet",
 		}
 		if agents.Agents != nil{
 			labels = append(labels,
 				"owner_id", agents.Agents[0].MFOwnerID,
-				"service_id", "")
+				"id", "")
 		} else {
 			labels = append(labels,
 				"owner_id", "",
-				"service_id", "")
+				"id", "")
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -214,7 +225,8 @@ func (m metricsMiddleware) CreateAgent(ctx context.Context, token string, a flee
 		labels := []string{
 			"method", "createAgent",
 			"owner_id", agent.MFOwnerID,
-			"service_id", agent.MFThingID,
+			"service", "fleet",
+			"id", agent.MFThingID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -230,7 +242,8 @@ func (m metricsMiddleware) CreateAgentGroup(ctx context.Context, token string, s
 		labels := []string{
 			"method", "createAgentGroup",
 			"owner_id", group.MFOwnerID,
-			"service_id", group.ID,
+			"service", "fleet",
+			"id", group.ID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -246,7 +259,8 @@ func (m metricsMiddleware) RemoveAgentGroup(ctx context.Context, token string, g
 		labels := []string{
 			"method", "removeAgentGroup",
 			"owner_id", "",
-			"service_id", groupID,
+			"service", "fleet",
+			"id", groupID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -262,7 +276,8 @@ func (m metricsMiddleware) ValidateAgentGroup(ctx context.Context, token string,
 		labels := []string{
 			"method", "validateAgentGroup",
 			"owner_id", group.MFOwnerID,
-			"service_id", group.ID,
+			"service", "fleet",
+			"id", group.ID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -278,7 +293,8 @@ func (m metricsMiddleware) ValidateAgent(ctx context.Context, token string, a fl
 		labels := []string{
 			"method", "validateAgent",
 			"owner_id", agent.MFOwnerID,
-			"service_id", agent.MFThingID,
+			"service", "fleet",
+			"id", agent.MFThingID,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -294,7 +310,8 @@ func (m metricsMiddleware) RemoveAgent(ctx context.Context, token string, thingI
 		labels := []string{
 			"method", "removeAgent",
 			"owner_id", "",
-			"service_id", thingID,
+			"service", "fleet",
+			"id", thingID,
 		}
 
 		m.counter.With(labels...).Add(1)
