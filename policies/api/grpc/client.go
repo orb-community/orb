@@ -51,6 +51,7 @@ func (client grpcClient) RetrieveDatasetsByPolicyID(ctx context.Context, in *pb.
 			Id:           p.id,
 			AgentGroupId: p.agentGroupID,
 			PolicyId:     p.policyID,
+			Valid:        p.valid,
 			SinkIds:      p.sinkIDs,
 		}
 	}
@@ -192,6 +193,7 @@ func decodeDatasetResponse(_ context.Context, grpcRes interface{}) (interface{},
 		id:           res.GetId(),
 		agentGroupID: res.GetAgentGroupId(),
 		policyID:     res.GetPolicyId(),
+		valid:        res.GetValid(),
 		sinkIDs:      res.GetSinkIds(),
 	}, nil
 }
@@ -213,6 +215,7 @@ func decodeDatasetsByPolicyIDResponse(_ context.Context, grpcRes interface{}) (i
 			id:           p.GetId(),
 			agentGroupID: p.GetAgentGroupId(),
 			policyID:     p.GetPolicyId(),
+			valid:        p.GetValid(),
 			sinkIDs:      p.GetSinkIds(),
 		}
 	}

@@ -107,6 +107,7 @@ func retrieveDatasetsByPolicyIDEndpoint(svc policies.Service) endpoint.Endpoint 
 				id:           dataset.ID,
 				agentGroupID: dataset.AgentGroupID,
 				policyID:     dataset.PolicyID,
+				valid:        dataset.Valid,
 				sinkIDs:      dataset.SinkIDs,
 			}
 		}

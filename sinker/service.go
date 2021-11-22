@@ -162,6 +162,10 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 		}
 		// first go through the datasets and gather the unique set of sinks we need for this particular policy
 		for _, dataset := range datasets.Datasets {
+			if dataset.Valid == false {
+				svc.logger.Error("malformed agent RPC: invalid dataset", zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID))
+				continue
+			}
 			for _, sid := range dataset.SinkIds {
 				if !svc.configRepo.Exists(sid) {
 					// Use the retrieved sinkID to get the backend config

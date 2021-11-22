@@ -144,6 +144,7 @@ func encodeDatasetResponse(_ context.Context, grpcRes interface{}) (interface{},
 		Id:           res.id,
 		AgentGroupId: res.agentGroupID,
 		PolicyId:     res.policyID,
+		Valid:        res.valid,
 		SinkIds:      res.sinkIDs,
 	}, nil
 }
@@ -157,6 +158,7 @@ func encodeDatasetsByPolicyIDResponse(_ context.Context, grpcRes interface{}) (i
 			Id:           p.id,
 			AgentGroupId: p.agentGroupID,
 			PolicyId:     p.policyID,
+			Valid:        p.valid,
 			SinkIds:      p.sinkIDs,
 		}
 	}
