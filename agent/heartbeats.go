@@ -34,9 +34,8 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 	if err == nil {
 		for _, pd := range pdata {
 			ps[pd.ID] = fleet.PolicyStateInfo{
-				State:    pd.State.String(),
-				Error:    pd.BackendErr,
-				Datasets: pd.GetDatasetIDs(),
+				State: pd.State.String(),
+				Error: pd.BackendErr,
 			}
 		}
 	} else {

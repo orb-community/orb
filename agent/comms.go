@@ -69,12 +69,6 @@ func (a *orbAgent) unsubscribeGroupChannel(channelID string) {
 	a.logger.Info("completed RPC unsubscription to group", zap.String("topic", rpcFromCoreTopic))
 }
 
-func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
-	for _, be := range a.backends {
-		a.policyManager.RemovePolicyDataset(policyID, datasetID, be)
-	}
-}
-
 func (a *orbAgent) startComms(config config.MQTTConfig) error {
 
 	var err error

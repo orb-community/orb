@@ -287,7 +287,6 @@ func (p *pktvisorBackend) Start() error {
 			metricPayload := fleet.AgentMetricsRPCPayload{
 				PolicyID:   data.ID,
 				PolicyName: data.Name,
-				Datasets:   data.GetDatasetIDs(),
 				Format:     "json",
 				BEVersion:  p.pktvisorVersion,
 				Data:       payloadData,

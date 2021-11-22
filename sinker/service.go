@@ -160,6 +160,11 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 			svc.logger.Error("unable to retrieve datasets", zap.String("policy_id", m.PolicyID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
 			return err
 		}
+
+		if len(datasets.Datasets) == 0 {
+			svc.logger.Error("unable to attach any sinks to policy", zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID))
+			continue
+		}
 		// first go through the datasets and gather the unique set of sinks we need for this particular policy
 		for _, dataset := range datasets.Datasets {
 			if dataset.Valid == false {
