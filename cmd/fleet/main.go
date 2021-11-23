@@ -209,19 +209,20 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = fleethttp.NewLoggingMiddleware(svc, logger)
 	svc = fleethttp.MetricsMiddleware(
+		auth,
 		svc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "fleet",
 			Subsystem: "api",
 			Name:      "request_count",
 			Help:      "Number of requests received.",
-		}, []string{"method", "owner_id", "service", "id"}),
+		}, []string{"method", "owner_id", "thing_id"}),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "fleet",
 			Subsystem: "api",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
-		}, []string{"method", "owner_id", "service", "id"}),
+		}, []string{"method", "owner_id", "thing_id"}),
 	)
 	return svc
 }

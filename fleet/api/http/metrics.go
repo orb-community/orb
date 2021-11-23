@@ -7,7 +7,9 @@ package http
 import (
 	"context"
 	"github.com/go-kit/kit/metrics"
+	"github.com/mainflux/mainflux"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/errors"
 	"time"
 )
 
@@ -17,6 +19,7 @@ type metricsMiddleware struct {
 	counter metrics.Counter
 	latency metrics.Histogram
 	svc     fleet.Service
+	auth    mainflux.AuthServiceClient
 }
 
 func (m metricsMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (agent fleet.Agent, _ error) {
@@ -24,12 +27,11 @@ func (m metricsMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, cha
 		labels := []string{
 			"method", "viewOwnerByChannelIDInternal",
 			"owner_id", agent.MFOwnerID,
-			"service", "fleet",
-			"id", agent.MFThingID,
+			"thing_id", agent.MFThingID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -37,16 +39,20 @@ func (m metricsMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, cha
 }
 
 func (m metricsMiddleware) ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error) {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return nil, err
+	}
+
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "viewAgentBackend",
-			"owner_id", "",
-			"service", "fleet",
-			"id", "",
+			"owner_id", ownerID,
+			"thing_id", "",
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -54,16 +60,20 @@ func (m metricsMiddleware) ViewAgentBackend(ctx context.Context, token string, n
 }
 
 func (m metricsMiddleware) ListAgentBackends(ctx context.Context, token string) ([]string, error) {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return nil, err
+	}
+
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "listAgentBackends",
-			"owner_id", "",
-			"service", "fleet",
-			"id", "",
+			"owner_id", ownerID,
+			"thing_id", "",
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -75,12 +85,11 @@ func (m metricsMiddleware) ViewAgentByIDInternal(ctx context.Context, ownerID st
 		labels := []string{
 			"method", "viewAgentByIDInternal",
 			"owner_id", ownerID,
-			"service", "fleet",
-			"id", thingID,
+			"thing_id", thingID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -92,12 +101,11 @@ func (m metricsMiddleware) ViewAgentByID(ctx context.Context, token string, thin
 		labels := []string{
 			"method", "viewAgentByID",
 			"owner_id", a.MFOwnerID,
-			"service", "fleet",
-			"id", thingID,
+			"thing_id", thingID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -109,12 +117,11 @@ func (m metricsMiddleware) EditAgent(ctx context.Context, token string, agent fl
 		labels := []string{
 			"method", "editAgent",
 			"owner_id", a.MFOwnerID,
-			"service", "fleet",
-			"id", a.MFThingID,
+			"thing_id", a.MFThingID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -126,12 +133,11 @@ func (m metricsMiddleware) ViewAgentGroupByIDInternal(ctx context.Context, group
 		labels := []string{
 			"method", "viewAgentGroupByIDInternal",
 			"owner_id", ownerID,
-			"service", "fleet",
-			"id", groupID,
+			"thing_id", groupID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -143,12 +149,11 @@ func (m metricsMiddleware) ViewAgentGroupByID(ctx context.Context, token string,
 		labels := []string{
 			"method", "viewAgentGroupByID",
 			"owner_id", group.MFOwnerID,
-			"service", "fleet",
-			"id", groupID,
+			"thing_id", groupID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -156,23 +161,20 @@ func (m metricsMiddleware) ViewAgentGroupByID(ctx context.Context, token string,
 }
 
 func (m metricsMiddleware) ListAgentGroups(ctx context.Context, token string, pm fleet.PageMetadata) (groups fleet.PageAgentGroup, _ error) {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return fleet.PageAgentGroup{}, err
+	}
+
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "listAgentGroups",
-			"service", "fleet",
-		}
-		if len(groups.AgentGroups) != 0{
-			labels = append(labels,
-				"owner_id", groups.AgentGroups[0].MFOwnerID,
-				"id", "")
-		}else {
-		labels = append(labels,
-			"owner_id", "",
-			"id", "")
+			"owner_id", ownerID,
+			"thing_id", "",
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -184,12 +186,11 @@ func (m metricsMiddleware) EditAgentGroup(ctx context.Context, token string, ag 
 		labels := []string{
 			"method", "editAgentGroup",
 			"owner_id", ag.MFOwnerID,
-			"service", "fleet",
-			"id", ag.ID,
+			"thing_id", ag.ID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -197,23 +198,20 @@ func (m metricsMiddleware) EditAgentGroup(ctx context.Context, token string, ag 
 }
 
 func (m metricsMiddleware) ListAgents(ctx context.Context, token string, pm fleet.PageMetadata) (agents fleet.Page, _ error) {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return fleet.Page{}, err
+	}
+
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "listAgents",
-			"service", "fleet",
-		}
-		if agents.Agents != nil{
-			labels = append(labels,
-				"owner_id", agents.Agents[0].MFOwnerID,
-				"id", "")
-		} else {
-			labels = append(labels,
-				"owner_id", "",
-				"id", "")
+			"owner_id", ownerID,
+			"thing_id", "",
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -225,12 +223,11 @@ func (m metricsMiddleware) CreateAgent(ctx context.Context, token string, a flee
 		labels := []string{
 			"method", "createAgent",
 			"owner_id", agent.MFOwnerID,
-			"service", "fleet",
-			"id", agent.MFThingID,
+			"thing_id", agent.MFThingID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -242,12 +239,11 @@ func (m metricsMiddleware) CreateAgentGroup(ctx context.Context, token string, s
 		labels := []string{
 			"method", "createAgentGroup",
 			"owner_id", group.MFOwnerID,
-			"service", "fleet",
-			"id", group.ID,
+			"thing_id", group.ID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -255,16 +251,20 @@ func (m metricsMiddleware) CreateAgentGroup(ctx context.Context, token string, s
 }
 
 func (m metricsMiddleware) RemoveAgentGroup(ctx context.Context, token string, groupID string) error {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return err
+	}
+
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "removeAgentGroup",
-			"owner_id", "",
-			"service", "fleet",
-			"id", groupID,
+			"owner_id", ownerID,
+			"thing_id", groupID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -276,12 +276,11 @@ func (m metricsMiddleware) ValidateAgentGroup(ctx context.Context, token string,
 		labels := []string{
 			"method", "validateAgentGroup",
 			"owner_id", group.MFOwnerID,
-			"service", "fleet",
-			"id", group.ID,
+			"thing_id", group.ID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -293,12 +292,11 @@ func (m metricsMiddleware) ValidateAgent(ctx context.Context, token string, a fl
 		labels := []string{
 			"method", "validateAgent",
 			"owner_id", agent.MFOwnerID,
-			"service", "fleet",
-			"id", agent.MFThingID,
+			"thing_id", agent.MFThingID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -306,27 +304,44 @@ func (m metricsMiddleware) ValidateAgent(ctx context.Context, token string, a fl
 }
 
 func (m metricsMiddleware) RemoveAgent(ctx context.Context, token string, thingID string) error {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return err
+	}
+
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "removeAgent",
-			"owner_id", "",
-			"service", "fleet",
-			"id", thingID,
+			"owner_id", ownerID,
+			"thing_id", thingID,
 		}
 
 		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(time.Since(begin).Seconds())
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
 	return m.svc.RemoveAgent(ctx, token, thingID)
 }
 
+func (m metricsMiddleware) identify(token string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	res, err := m.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+
+	return res.GetId(), nil
+}
+
 // MetricsMiddleware instruments core service by tracking request count and latency.
-func MetricsMiddleware(svc fleet.Service, counter metrics.Counter, latency metrics.Histogram) fleet.Service {
+func MetricsMiddleware(auth mainflux.AuthServiceClient, svc fleet.Service, counter metrics.Counter, latency metrics.Histogram) fleet.Service {
 	return &metricsMiddleware{
 		counter: counter,
 		latency: latency,
 		svc:     svc,
+		auth:    auth,
 	}
 }
