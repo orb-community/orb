@@ -14,7 +14,7 @@ import (
 )
 
 // set via ldflags -X option at build time
-var version = "0.9.0-develop"
+var version = "unknown"
 
 // minimum version of an agent that we allow to connect
 const minAgentVersion string = "0.9.0-develop"

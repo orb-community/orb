@@ -11,12 +11,24 @@ import (
 
 type PolicyData struct {
 	ID         string
+	Datasets   map[string]bool
 	Name       string
 	Backend    string
 	Version    int32
 	Data       interface{}
 	State      PolicyState
 	BackendErr string
+}
+
+func (d *PolicyData) GetDatasetIDs() []string {
+	keys := make([]string, len(d.Datasets))
+
+	i := 0
+	for k := range d.Datasets {
+		keys[i] = k
+		i++
+	}
+	return keys
 }
 
 const (

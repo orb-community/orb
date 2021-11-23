@@ -15,6 +15,7 @@ import (
 
 type PolicyManager interface {
 	ManagePolicy(payload fleet.AgentPolicyRPCPayload)
+	RemovePolicyDataset(policyID string, datasetID string, be backend.Backend)
 	GetPolicyState() ([]policies.PolicyData, error)
 	GetRepo() policies.PolicyRepo
 }
@@ -95,6 +96,18 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 		a.logger.Error("unknown policy action, ignored", zap.String("action", payload.Action))
 	}
 
+}
+
+func (a *policyManager) RemovePolicyDataset(policyID string, datasetID string, be backend.Backend) {
+	policyData, err := a.repo.Get(policyID)
+	if err != nil {
+		a.logger.Warn("failed to retrieve policy data", zap.String("policy_id", policyID), zap.Error(err))
+		return
+	}
+	err = be.RemovePolicy(policyData)
+	if err != nil {
+		a.logger.Warn("policy failed to remove", zap.String("policy_id", policyID), zap.Error(err))
+	}
 }
 
 func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be backend.Backend, pd *policies.PolicyData) {

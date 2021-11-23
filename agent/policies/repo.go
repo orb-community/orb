@@ -16,6 +16,8 @@ type PolicyRepo interface {
 	Update(data PolicyData) error
 	GetAll() ([]PolicyData, error)
 	GetByName(policyName string) (PolicyData, error)
+	EnsureDataset(policyID string, datasetID string) error
+	RemoveDataset(policyID string, datasetID string) (bool, error)
 }
 
 type policyMemRepo struct {
@@ -42,6 +44,32 @@ func NewMemRepo(logger *zap.Logger) (PolicyRepo, error) {
 		nameMap: make(map[string]string),
 	}
 	return r, nil
+}
+
+func (p policyMemRepo) EnsureDataset(policyID string, datasetID string) error {
+	policy, ok := p.db[policyID]
+	if !ok {
+		return errors.New("unknown policy ID")
+	}
+	policy.Datasets[datasetID] = true
+	return nil
+}
+
+func (p policyMemRepo) RemoveDataset(policyID string, datasetID string) (bool, error) {
+	policy, ok := p.db[policyID]
+	if !ok {
+		return false, errors.New("unknown policy ID")
+	}
+	if ok := policy.Datasets[datasetID]; ok {
+		delete(policy.Datasets, datasetID)
+	}
+	// If after remove the policy it doesn't have others datasets,
+	// we can remove the policy from the agent
+	if len(policy.Datasets) > 0 {
+		return false, nil
+	} else {
+		return true, nil
+	}
 }
 
 func (p policyMemRepo) Exists(policyID string) bool {

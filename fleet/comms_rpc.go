@@ -63,6 +63,19 @@ type GroupRemovedRPCPayload struct {
 	ChannelID    string `json:"channel_id"`
 }
 
+const DatasetRemovedRPCFunc = "dataset_removed"
+
+type DatasetRemovedRPC struct {
+	SchemaVersion string                   `json:"schema_version"`
+	Func          string                   `json:"func"`
+	Payload       DatasetRemovedRPCPayload `json:"payload"`
+}
+
+type DatasetRemovedRPCPayload struct {
+	DatasetID string `json:"dataset_id"`
+	PolicyID  string `json:"policy_id"`
+}
+
 const AgentStopRPCFunc = "agent_stop"
 
 type AgentStopRPCPayload struct {

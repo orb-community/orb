@@ -43,6 +43,8 @@ type AgentCommsService interface {
 	NotifyGroupRemoval(ag AgentGroup) error
 	// NotifyGroupPolicyRemoval RPC core -> Agent: Notify AgentGroup that a Policy has been removed
 	NotifyGroupPolicyRemoval(ag AgentGroup, policyID string, policyName string, backend string) error
+	// NotifyGroupDatasetRemoval RPC core -> Agent: Notify AgentGroup that a Dataset has been removed
+	NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error
 	// NotifyGroupPolicyUpdate RPC core -> Agent: Notify AgentGroup that a Policy has been updated
 	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 }
@@ -355,6 +357,37 @@ func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID st
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
 		Payload:       payloads,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   ag.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (svc fleetCommsService) NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error {
+
+	payload := DatasetRemovedRPCPayload{
+		DatasetID: dsID,
+		PolicyID:  policyID,
+	}
+
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          DatasetRemovedRPCFunc,
+		Payload:       payload,
 	}
 
 	body, err := json.Marshal(data)
