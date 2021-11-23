@@ -1,19 +1,20 @@
 from behave import given, when, then
 import time
 import functions
+import os
+import docker
 
-base_orb_url = "https://beta.orb.live"
-email = 'tester@email.com'
-password = '12345678'
+email = os.getenv('EMAIL')
+password = os.getenv('PASSWORD')
 
-agentname = 'agent1'
-agentTagKey = 'test'
-agentTagValeu = 'true'
+agentname = os.getenv('AGENT_NAME')
+agentTagKey = os.getenv('TAG_KEY', 'test')
+agentTagValeu = os.getenv('TAG_VALUE', 'true')
 
 
 @given('A valid authentication')
 def get_auth(context):
-    context.token = functions.generate_token(email, password, base_orb_url)
+    context.token = functions.generate_token(email, password)
     assert len(context.token) > 0
 
 @when('Create an agent')
@@ -24,14 +25,19 @@ def create_agent(context):
     context.agent_id = context.agent_data['id']
     context.agent_channel_id = context.agent_data['channel_id']
 
-@when('Build agent container')
-def build_agent(context):
-    iface = 'mock'
-    provision_agent_command = f"docker run -d --net=host -e ORB_CLOUD_ADDRESS=beta.orb.live -e ORB_CLOUD_MQTT_ID={context.agent_id} -e ORB_CLOUD_MQTT_CHANNEL_ID={context.agent_channel_id} -e ORB_CLOUD_MQTT_KEY={context.agent_key} -e PKTVISOR_PCAP_IFACE_DEFAULT={iface} ns1labs/orb-agent"
-    context.id_terminal = functions.send_terminal_commands(provision_agent_command, '[')
-    assert len(context.id_terminal) > 0 
+@when('Run agent container')
+def run_agent(context):
+    iface = os.getenv('IFACE', 'mock')
+    context.orb_address = os.getenv('ORB_ADDRESS', 'beta.orb.live')
+    context.version_image = os.getenv('AGENT_VERSION')
+    context.agent_image = f"ns1labs/orb-agent:{context.version_image}"
+    var_env ={"ORB_CLOUD_ADDRESS":context.orb_address, "ORB_CLOUD_MQTT_ID":context.agent_id,"ORB_CLOUD_MQTT_CHANNEL_ID":context.agent_channel_id, "ORB_CLOUD_MQTT_KEY":context.agent_key,"PKTVISOR_PCAP_IFACE_DEFAULT":iface}
+    client = docker.from_env()
+    context.agent_container = client.containers.run(context.agent_image, detach=True, network_mode= 'host', environment=var_env)
+    assert len(context.agent_container.id) > 0
+    context.id_terminal =  context.agent_container.id
 
-@then("Agente should be online")
+@then("Agent should be online")
 def check_container_status(context):
     timeout = 0
     context.agent_mode = functions.check_existing_agents(context.token, '/'+context.agent_id)[agentname]['state']
@@ -43,13 +49,6 @@ def check_container_status(context):
 
 @then("Container logs should be sending capabilities")
 def check_agent_log(context):
-    print(context.id_terminal)
-    print(context.id_terminal)
     context.logs = functions.orb_agent_logs(context.id_terminal)
     context.match = functions.check_logs(context.logs)
-    assert context.match == True
-    
-
-
-    # context.agent_mode = functions.agent_provising('Agent10', 'test', 'true', context.token, iface="mock")
-    # assert agent_mode == 'online'
+    assert context.match == True  
