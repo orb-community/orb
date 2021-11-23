@@ -39,6 +39,7 @@ import {
 import { AuthRoutingModule } from 'app/auth/auth.routing.module';
 import { RegisterComponent } from 'app/pages/register/register.component';
 import { LogoutComponent } from 'app/pages/logout/logout.component';
+import { RequestPasswordComponent } from 'app/pages/login/request-password.component';
 
 @NgModule({
   imports: [
@@ -56,6 +57,7 @@ import { LogoutComponent } from 'app/pages/logout/logout.component';
   declarations: [
     AuthComponent,
     LoginComponent,
+    RequestPasswordComponent,
     RegisterComponent,
     LogoutComponent,
   ],
@@ -63,6 +65,7 @@ import { LogoutComponent } from 'app/pages/logout/logout.component';
     AuthRoutingModule,
     AuthComponent,
     LoginComponent,
+    RequestPasswordComponent,
     RegisterComponent,
     LogoutComponent,
   ],

@@ -41,14 +41,16 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   }
 
   register() {
+    const {email, password, company} = this.user;
     this.authService.register(this.strategy, {
-      email: this.user.email,
-      password: this.user.password,
+      email,
+      password,
+      company,
     }).subscribe(
       respReg => {
         this.authService.authenticate(this.strategy, {
-          email: this.user.email,
-          password: this.user.password,
+          email,
+          password,
         }).subscribe(
           respAuth => {
             this.router.navigateByUrl('/pages/dashboard');
