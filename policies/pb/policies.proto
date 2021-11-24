@@ -50,8 +50,8 @@ message DatasetRes {
   string id = 1;
   string agent_group_id = 2;
   string policy_id = 3;
-  bool valid = 4;
-  repeated string sink_ids = 5;
+  repeated string sink_ids = 4;
+  bool valid = 5;
 }
 
 message DatasetListRes {
