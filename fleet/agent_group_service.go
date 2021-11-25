@@ -13,6 +13,7 @@ import (
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
+	"sync"
 )
 
 var (
@@ -67,11 +68,21 @@ func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup)
 	return nil
 }
 
+var (
+	LockOwnerIDListGroup sync.Mutex
+	OwnerIDListGroup string
+)
+
 func (svc fleetService) ListAgentGroups(ctx context.Context, token string, pm PageMetadata) (PageAgentGroup, error) {
 	ownerID, err := svc.identify(token)
 	if err != nil {
 		return PageAgentGroup{}, err
 	}
+
+	LockOwnerIDListGroup.Lock()
+	OwnerIDListGroup = ownerID
+
+
 	ag, err := svc.agentGroupRepository.RetrieveAllAgentGroupsByOwner(ctx, ownerID, pm)
 	if err != nil {
 		return PageAgentGroup{}, err

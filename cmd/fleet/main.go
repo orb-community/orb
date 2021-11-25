@@ -216,13 +216,13 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 			Subsystem: "api",
 			Name:      "request_count",
 			Help:      "Number of requests received.",
-		}, []string{"method", "owner_id", "thing_id"}),
+		}, []string{"method", "owner_id", "agent_id", "group_id"}),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "fleet",
 			Subsystem: "api",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
-		}, []string{"method", "owner_id", "thing_id"}),
+		}, []string{"method", "owner_id", "agent_id", "group_id"}),
 	)
 	return svc
 }
