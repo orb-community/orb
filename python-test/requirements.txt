@@ -9,3 +9,4 @@ requests==2.26.0
 six==1.16.0
 urllib3==1.26.7
 websocket-client==1.2.1
+PyHamcrest==2.0.2

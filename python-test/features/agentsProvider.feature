@@ -2,8 +2,8 @@
 Feature: agent provider
    
     Scenario: Provision agent
-        Given A valid authentication
-        When Create an agent
-            And Run agent container 
-        Then Agent should be online
-            And Container logs should be sending capabilities
+        Given that the user is logged in
+        When a new agent is created
+            And the agent container is started
+        Then the agent status in Orb should be online
+            And the container logs should contain the message "sending capabilities"

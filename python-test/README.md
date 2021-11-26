@@ -14,27 +14,23 @@
 
 `$ pip install -r requirements.txt`
 
-
 ## Configuring the correct variables
-Modified the ./steps/env_variables.env file changing the correct values
 
+Create the file `test_config.ini` by making a copy of the template `test_config.ini.tpl`, then fill it with the correct
+values.
 
-- EMAIL=`<email>`
-  - Default value = None 
-  - user's email
-- PASSWORD=`<password>`
-  - Default value =  None 
-  - user's password
-- AGENT_NAME=`<agent-name>`
-  - Default value = Random String 
-- TAG_KEY=`<tag-key>`
-  - Default value = test
-- TAG_VALUE=`<tag-value>`
-  - Default value = true
-- AGENT_DOCKER_TAG=`<tag>`
-  - Default value: None (if none, it will default to "latest" by docker)
-    - latest/develop
-- ORB_ADDRESS=`<address>`
-  - Default value = beta.orb.live
-- IFACE=`<iface>`
-  - Default value = mock
+- email:
+  - Mandatory!
+  - Orb user's email
+- password:
+  - Mandatory!
+  - Orb user's password
+- orb_address:
+  - Mandatory!
+  - URL of the Orb deployment. Do NOT include the protocol (`https://` or `mqtt://`)
+- agent_image_tag:
+  - Tag of the Orb agent docker image
+  - Default value: `latest`
+- orb_agent_interface:
+  - Network interface that will be used by pktvisor when running the Orb agent
+  - Default value: `mock`
