@@ -5,5 +5,5 @@ password=<user-password>
 orb_address=<orb url>
 
 # Optional fields:
-# agent_image_tag=latest
+# agent_docker_tag=latest
 # orb_agent_interface=mock

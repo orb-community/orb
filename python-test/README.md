@@ -28,7 +28,7 @@ values.
 - orb_address:
   - Mandatory!
   - URL of the Orb deployment. Do NOT include the protocol (`https://` or `mqtt://`)
-- agent_image_tag:
+- agent_docker_tag:
   - Tag of the Orb agent docker image
   - Default value: `latest`
 - orb_agent_interface:

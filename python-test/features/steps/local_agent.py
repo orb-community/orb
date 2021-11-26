@@ -11,7 +11,7 @@ configs = TestConfig.configs()
 def run_local_agent_container(context):
     orb_address = configs.get('orb_address')
     interface = configs.get('orb_agent_interface', 'mock')
-    image_tag = ':' + configs.get('agent_image_tag', 'latest')
+    image_tag = ':' + configs.get('agent_docker_tag', 'latest')
     agent_image = "ns1labs/orb-agent" + image_tag
 
     env_vars = {"ORB_CLOUD_ADDRESS": orb_address,
