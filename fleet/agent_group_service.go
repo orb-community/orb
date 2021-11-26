@@ -73,15 +73,13 @@ var (
 	OwnerIDListGroup string
 )
 
-func (svc fleetService) ListAgentGroups(ctx context.Context, token string, pm PageMetadata) (PageAgentGroup, error) {
+func (svc fleetService) ListAgentGroups(ctx context.Context, token string, pm PageMetadata, oID ...*string) (PageAgentGroup, error) {
 	ownerID, err := svc.identify(token)
 	if err != nil {
 		return PageAgentGroup{}, err
 	}
 
-	LockOwnerIDListGroup.Lock()
-	OwnerIDListGroup = ownerID
-
+	if oID != nil{*oID[0] = ownerID}
 
 	ag, err := svc.agentGroupRepository.RetrieveAllAgentGroupsByOwner(ctx, ownerID, pm)
 	if err != nil {

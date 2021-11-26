@@ -130,7 +130,7 @@ func (l loggingMiddleware) ViewAgentGroupByID(ctx context.Context, groupID strin
 	return l.svc.ViewAgentGroupByID(ctx, groupID, ownerID)
 }
 
-func (l loggingMiddleware) ListAgentGroups(ctx context.Context, token string, pm fleet.PageMetadata) (_ fleet.PageAgentGroup, err error) {
+func (l loggingMiddleware) ListAgentGroups(ctx context.Context, token string, pm fleet.PageMetadata, ownerID ...*string) (_ fleet.PageAgentGroup, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: list_agent_groups",
@@ -141,7 +141,7 @@ func (l loggingMiddleware) ListAgentGroups(ctx context.Context, token string, pm
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.ListAgentGroups(ctx, token, pm)
+	return l.svc.ListAgentGroups(ctx, token, pm, ownerID[0])
 }
 
 func (l loggingMiddleware) EditAgentGroup(ctx context.Context, token string, ag fleet.AgentGroup) (_ fleet.AgentGroup, err error) {

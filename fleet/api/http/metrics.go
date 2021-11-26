@@ -168,14 +168,13 @@ func (m metricsMiddleware) ViewAgentGroupByID(ctx context.Context, token string,
 	return m.svc.ViewAgentGroupByID(ctx, token, groupID)
 }
 
-func (m metricsMiddleware) ListAgentGroups(ctx context.Context, token string, pm fleet.PageMetadata) (groups fleet.PageAgentGroup, _ error) {
-	defer func(begin time.Time) {
-		ownerID := fleet.OwnerIDListGroup
-		fleet.LockOwnerIDListGroup.Unlock()
+func (m metricsMiddleware) ListAgentGroups(ctx context.Context, token string, pm fleet.PageMetadata, ownerID ...*string) (groups fleet.PageAgentGroup, _ error) {
+	var oID string
 
+	defer func(begin time.Time) {
 		labels := []string{
 			"method", "listAgentGroups",
-			"owner_id", ownerID,
+			"owner_id", oID,
 			"agent_id", "",
 			"group_id", "",
 		}
@@ -185,7 +184,7 @@ func (m metricsMiddleware) ListAgentGroups(ctx context.Context, token string, pm
 
 	}(time.Now())
 
-	return m.svc.ListAgentGroups(ctx, token, pm)
+	return m.svc.ListAgentGroups(ctx, token, pm, &oID)
 }
 
 func (m metricsMiddleware) EditAgentGroup(ctx context.Context, token string, ag fleet.AgentGroup) (fleet.AgentGroup, error) {

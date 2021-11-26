@@ -60,8 +60,8 @@ func (es eventStore) ViewAgentGroupByID(ctx context.Context, groupID string, own
 	return es.svc.ViewAgentGroupByID(ctx, groupID, ownerID)
 }
 
-func (es eventStore) ListAgentGroups(ctx context.Context, token string, pm fleet.PageMetadata) (fleet.PageAgentGroup, error) {
-	return es.svc.ListAgentGroups(ctx, token, pm)
+func (es eventStore) ListAgentGroups(ctx context.Context, token string, pm fleet.PageMetadata, ownerID ...*string) (fleet.PageAgentGroup, error) {
+	return es.svc.ListAgentGroups(ctx, token, pm, ownerID[0])
 }
 
 func (es eventStore) EditAgentGroup(ctx context.Context, token string, ag fleet.AgentGroup) (fleet.AgentGroup, error) {
