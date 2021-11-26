@@ -115,7 +115,7 @@ paths:
         $ref: "#/components/requestBodies/AgentGroupCreateReq"
       responses:
         '200':
-          description: Valid Agent group
+          $ref: "#/components/responses/AgentGroupValidateObjRes"
         '400':
           description: Failed due to malformed JSON.
         '401':
@@ -436,6 +436,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AgentGroupsObjSchema"
+    AgentGroupValidateObjRes:
+      description: Agent Group object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentGroupsValidateObjSchema"
     AgentGroupsPageRes:
       description: Data retrieved.
       content:
@@ -659,6 +665,29 @@ components:
             online:
               type: integer
               description: total agents matching which are currently online
+    AgentGroupsValidateObjSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: eu-agents
+        tags:
+          type: object
+          description: User defined key/values that will define the members of the group by matching against Agent tags
+          example:
+            region: eu
+            node_type: dns
+        matching_agents:
+          type: object
+          description: Counts of agents currently matching this group
+          properties:
+            total:
+              type: integer
+              description: total agents matching
+            online:
+              type: integer
+              description: total agents matching which are currently online
     AgentObjSchema:
       type: object
       required:
@@ -705,6 +734,14 @@ components:
           type: string
           format: date-time
           description: A time stamp of the last heartbeat that was received
+        key:
+          type: string
+          format: uuid
+          description: Agent key is a secret key that's generated at the agent creation for authentication purposes
+        channel_id:
+          type: string
+          format: uuid
+          description: Communication channel ID (UUIDv4), unique to this agent and created at agent creation
     AgentValidateObjSchema:
       type: object
       required:
