@@ -3,6 +3,7 @@ from behave import when, then
 from hamcrest import *
 from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
+import time
 
 configs = TestConfig.configs()
 
@@ -24,9 +25,18 @@ def run_local_agent_container(context):
 
 @then('the container logs should contain the message "{text_to_match}"')
 def check_agent_log(context, text_to_match):
-    logs = get_orb_agent_logs(context.container_id)
-    contains_text = check_logs_contains_message(logs, text_to_match)
-    assert_that(contains_text, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+    time_waiting = 0
+    sleep_time = 0.5
+    timeout = 10
+    while time_waiting < timeout:
+        logs = get_orb_agent_logs(context.container_id)
+        contains_text = check_logs_contains_message(logs, text_to_match)
+        try:
+            assert_that(contains_text, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+            break
+        except:
+            time.sleep(sleep_time)
+            time_waiting += sleep_time
 
 
 def run_agent_container(container_image, env_vars):
