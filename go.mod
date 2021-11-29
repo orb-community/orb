@@ -11,9 +11,9 @@ require (
 	github.com/go-kit/kit v0.10.0
 	github.com/go-redis/redis/v8 v8.11.0
 	github.com/go-zoo/bone v1.3.0
-	github.com/gofrs/uuid v3.3.0+incompatible
-	github.com/golang/protobuf v1.5.0
-	github.com/golang/snappy v0.0.1
+	github.com/gofrs/uuid v4.0.0+incompatible
+	github.com/golang/protobuf v1.5.2
+	github.com/golang/snappy v0.0.4
 	github.com/hashicorp/go-version v1.3.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.7.0
@@ -22,15 +22,23 @@ require (
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/ory/dockertest/v3 v3.6.0
-	github.com/prometheus/client_golang v1.7.1
-	github.com/prometheus/prometheus v2.5.0+incompatible
+	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/prometheus v1.8.2-0.20210621150501-ff58416a0b02
 	github.com/rubenv/sql-migrate v0.0.0-20200616145509-8d140a17f351
-	github.com/spf13/cobra v1.1.3
-	github.com/spf13/viper v1.7.0
+	github.com/spf13/cobra v1.2.1
+	github.com/spf13/viper v1.8.1
 	github.com/stretchr/testify v1.7.0
-	github.com/uber/jaeger-client-go v2.24.0+incompatible
-	go.uber.org/zap v1.16.0
-	google.golang.org/grpc v1.38.0
+	github.com/uber/jaeger-client-go v2.29.1+incompatible
+	go.opentelemetry.io/collector v0.40.0
+	go.uber.org/zap v1.19.1
+	google.golang.org/grpc v1.42.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+)
+
+require (
+	github.com/Azure/azure-sdk-for-go v59.4.0+incompatible // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.40.0
+	github.com/prometheus/common v0.32.1
+	k8s.io/client-go v0.22.4
 )

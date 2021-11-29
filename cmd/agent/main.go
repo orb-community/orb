@@ -9,14 +9,21 @@ import (
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
 	config2 "github.com/ns1labs/orb/agent/config"
+	"github.com/ns1labs/orb/agent/otel"
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/service"
+	"go.opentelemetry.io/collector/service/defaultcomponents"
 	"go.uber.org/zap"
+	"log"
+	"math/rand"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 )
 
 const (
@@ -26,6 +33,7 @@ const (
 var (
 	cfgFiles []string
 	Debug    bool
+	rng      = rand.New(rand.NewSource(time.Now().UnixNano()))
 )
 
 func init() {
@@ -98,6 +106,24 @@ func Run(cmd *cobra.Command, args []string) {
 		logger.Error("agent startup error", zap.Error(err))
 		os.Exit(1)
 	}
+
+	// new otel receiver
+	factories, err := defaultcomponents.Components()
+	receivers := []component.ReceiverFactory{
+		otel.NewFactory(),
+	}
+	factories.Receivers, err = component.MakeReceiverFactoryMap(receivers...)
+
+	info := component.BuildInfo{
+		Command:     "otelcontribcol",
+		Description: "OpenTelemetry Collector Contrib",
+		Version:     buildinfo.GetVersion(),
+	}
+
+	if err = runInteractive(service.CollectorSettings{BuildInfo: info, Factories: factories}); err != nil {
+		log.Fatal(err)
+	}
+
 	<-done
 
 }
@@ -192,4 +218,13 @@ func main() {
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.Execute()
+}
+
+func runInteractive(params service.CollectorSettings) error {
+	cmd := service.NewCommand(params)
+	if err := cmd.Execute(); err != nil {
+		return fmt.Errorf("collector server run finished with error: %w", err)
+	}
+
+	return nil
 }

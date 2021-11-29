@@ -365,6 +365,7 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 	if err != nil {
 		return nil, err
 	}
+
 	return metrics, nil
 }
 
