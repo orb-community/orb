@@ -737,7 +737,7 @@ components:
         key:
           type: string
           format: uuid
-          description: Agent key is a secret key that's generated at the agent creation for authentication purposes
+          description: Agent key is a secret key that is generated at agent creation for authentication purposes
         channel_id:
           type: string
           format: uuid
