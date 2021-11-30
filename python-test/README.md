@@ -26,6 +26,9 @@ Then fill in the correct values:
 - **orb_address**:
   - Mandatory!
   - URL of the Orb deployment. Do NOT include the protocol (`https://` or `mqtt://`).
+- **agent_docker_image**:
+  - Docker image of the orb agent.
+  - Default value: `ns1labs/orb-agent`
 - **agent_docker_tag**:
   - Tag of the Orb agent docker image.
   - Default value: `latest`

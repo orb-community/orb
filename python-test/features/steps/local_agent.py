@@ -11,15 +11,14 @@ configs = TestConfig.configs()
 def run_local_agent_container(context):
     orb_address = configs.get('orb_address')
     interface = configs.get('orb_agent_interface', 'mock')
+    agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
     image_tag = ':' + configs.get('agent_docker_tag', 'latest')
-    agent_image = "ns1labs/orb-agent" + image_tag
-
+    agent_image = agent_docker_image + image_tag
     env_vars = {"ORB_CLOUD_ADDRESS": orb_address,
                 "ORB_CLOUD_MQTT_ID": context.agent['id'],
                 "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
                 "ORB_CLOUD_MQTT_KEY": context.agent['key'],
                 "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
-
     context.container_id = run_agent_container(agent_image, env_vars)
 
 
