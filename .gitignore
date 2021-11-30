@@ -21,3 +21,5 @@ orb-agent.db
 **node_modules
 **tests_output
 orb_tests/chromedriver.log
+features/steps/__pycache__/*
+*.pyc
