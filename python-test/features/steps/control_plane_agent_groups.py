@@ -1,55 +1,58 @@
 import time
-from control_plane_agents import create_agent, agent_name, agent_tag_key, agent_tag_value, get_agent, \
-    expect_container_status, base_orb_url
-from local_agent import run_agent_container
+from control_plane_agents import create_agent, get_agent, expect_container_status, base_orb_url
+from local_agent import run_local_agent_container
+from utils import random_string
 from behave import given, when, then
 from hamcrest import *
 from test_config import TestConfig
-import random
-import string
 import requests
+from users import get_auth_token
 
 configs = TestConfig.configs()
-random_agent_name_group = ''.join(random.choices(string.ascii_letters, k=10))  # k sets the number of characters
-agent_group_name = 'test_group' + random_agent_name_group
+agent_group_name = 'test_group_name_' + random_string()
 agent_group_description = "This is an agent group"
+agent_name = "test_agent_name_" + random_string(4)
+agent_tag_key = "test_tag_key_" + random_string(4)
+agent_tag_value = "test_tag_value_" + random_string(4)
 
 
-@given("that an agent already exists and be {status}")
+@given("that an agent already exists and is {status}")
 def check_if_agents_exist(context, status):
     agent = create_agent(context.token, agent_name, agent_tag_key, agent_tag_value)
     context.agent = agent
     token = context.token
-    orb_address = configs.get('orb_address')
-    interface = configs.get('orb_agent_interface', 'mock')
-    agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
-    image_tag = ':' + configs.get('agent_docker_tag', 'latest')
-    agent_image = agent_docker_image + image_tag
-    env_vars = {"ORB_CLOUD_ADDRESS": orb_address,
-                "ORB_CLOUD_MQTT_ID": context.agent['id'],
-                "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
-                "ORB_CLOUD_MQTT_KEY": context.agent['key'],
-                "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
-    context.container_id = run_agent_container(agent_image, env_vars)
+    run_local_agent_container(context)
     agent_id = context.agent['id']
     existing_agents = get_agent(token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
     expect_container_status(token, agent_id, status)
 
 
-@when("an Agent Group is created with same tag as agent")
+@when("an Agent Group is created with same tag as the agent")
 def creat_agent_group(context):
     context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
                                                   agent_tag_key, agent_tag_value)
-    time.sleep(2)
 
 
-@then("one matching agent must be seen")
+@then("one agent must be matching on response field matching_agents")
 def matching_agent(context):
     matching_total_agents = context.agent_group_data['matching_agents']['total']
     matching_online_agents = context.agent_group_data['matching_agents']['online']
     assert_that(matching_total_agents, equal_to(1))
     assert_that(matching_online_agents, equal_to(1))
+
+
+@then('cleanup agent group')
+def clean_agent_groups(context):
+    """
+    Remove all agent groups starting with 'test_group_' from the orb
+
+    :param context: Behave object that contains contextual information during the running of tests.
+    """
+    get_auth_token(context)
+    token = context.token
+    agent_groups_list = list_agent_groups(token)
+    delete_agent_groups(token, agent_groups_list, 'test_group_name_')
 
 
 def create_agent_group(token, name, description, tag_key, tag_value):
@@ -91,16 +94,18 @@ def list_agent_groups(token):
     return agent_groups_as_json['agentGroups']
 
 
-def delete_agent_groups(token, list_of_agent_groups):
+def delete_agent_groups(token, list_of_agent_groups, start_with):
     """
     Deletes from Orb control plane the agent groups specified on the given list
 
     :param (str) token: used for API authentication
     :param (list) list_of_agent_groups: that will be deleted
+    :param (str) start_with: prefix to filter the deletion of agent groups
     """
 
     for agent_Groups in list_of_agent_groups:
-        delete_agent_group(token, agent_Groups['id'])
+        if agent_Groups['name'].startswith(start_with):
+            delete_agent_group(token, agent_Groups['id'])
 
 
 def delete_agent_group(token, agent_group_id):

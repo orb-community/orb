@@ -1,18 +1,16 @@
 from behave import when, then
 from hamcrest import *
 from test_config import TestConfig
+from utils import random_string
 import time
-import random
-import string
 import requests
 
 configs = TestConfig.configs()
 
 base_orb_url = "https://" + configs.get('orb_address')
-random_agent_name = ''.join(random.choices(string.ascii_letters, k=10))  # k sets the number of characters
-agent_name = "test_agent_name_" + random_agent_name
-agent_tag_key = "test_tag_key"
-agent_tag_value = "test_tag_value"
+agent_name = "test_agent_name_" + random_string(10)
+agent_tag_key = "test_tag_key_" + random_string(4)
+agent_tag_value = "test_tag_value_" + random_string(4)
 
 
 @when('a new agent is created')
@@ -89,16 +87,18 @@ def list_agents(token):
     return agents_as_json['agents']
 
 
-def delete_agents(token, list_of_agents):
+def delete_agents(token, list_of_agents, start_with):
     """
     Deletes from Orb control plane the agents specified on the given list
 
     :param (str) token: used for API authentication
     :param (list) list_of_agents: that will be deleted
+    :param (str) start_with: prefix to filter the deletion of agents
     """
 
     for agent in list_of_agents:
-        delete_agent(token, agent['id'])
+        if agent['name'].startswith(start_with):
+            delete_agent(token, agent['id'])
 
 
 def delete_agent(token, agent_id):
@@ -135,3 +135,18 @@ def create_agent(token, name, tag_key, tag_value):
                 'Request to create agent failed with status=' + str(response.status_code))
 
     return response.json()
+
+
+@then('cleanup agents')
+def clean_agents(context):
+    """
+    Remove all agents starting with 'test_agent_name_' from the orb
+
+    :param context: Behave class that contains contextual information during the running of tests.
+    """
+    context.execute_steps('''
+    Given that the user is logged in
+    ''')
+    token = context.token
+    agents_list = list_agents(token)
+    delete_agents(token, agents_list, 'test_agent_name_')

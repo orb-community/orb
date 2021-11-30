@@ -7,11 +7,10 @@ def after_all(context):
 
 
 def after_feature(context, feature):
-    if feature.tags[0] == 'agentGroups':
-        context.execute_steps('''
-        Then all agents should be deleted from orb
-        Then all agent groups should be deleted from orb
-        ''')
+    context.execute_steps('''
+    Then cleanup agents
+    Then cleanup agent group
+    ''')
 
 
 def cleanup_container():
