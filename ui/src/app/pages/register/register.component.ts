@@ -3,6 +3,14 @@ import { Component, ChangeDetectorRef, Inject, OnInit } from '@angular/core';
 import { NbAuthService, NB_AUTH_OPTIONS, NbRegisterComponent } from '@nebular/auth';
 import { Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
+import { environment } from '../../../environments/environment';
+
+/**
+ * Pactsafe
+ */
+const _ps = window['_ps'];
+const _sid = environment.PS.SID;
+const _groupKey = environment.PS.GROUP_KEY;
 
 @Component({
   selector: 'ngx-register-component',

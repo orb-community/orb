@@ -14,4 +14,12 @@ export const environment = {
       return acc;
     },
     {}),
+
+  // PACTSAFE
+  PS: {
+    // site id
+    SID: process.env.PS_SID,
+    // group key
+    GROUP_KEY: process.env.PS_GROUP_KEY,
+  },
 };
