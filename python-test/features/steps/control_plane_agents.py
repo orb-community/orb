@@ -1,14 +1,14 @@
+from test_config import TestConfig
+from utils import random_string, filter_list_by_parameter_start_with
 from behave import when, then
 from hamcrest import *
-from test_config import TestConfig
-from utils import random_string
 import time
 import requests
 
 configs = TestConfig.configs()
-
 base_orb_url = "https://" + configs.get('orb_address')
-agent_name = "test_agent_name_" + random_string(10)
+agent_name_prefix = "test_agent_name_"
+agent_name = agent_name_prefix + random_string(10)
 agent_tag_key = "test_tag_key_" + random_string(4)
 agent_tag_value = "test_tag_value_" + random_string(4)
 
@@ -24,6 +24,19 @@ def check_agent_online(context, status):
     token = context.token
     agent_id = context.agent['id']
     expect_container_status(token, agent_id, status)
+
+
+@then('cleanup agents')
+def clean_agents(context):
+    """
+    Remove all agents starting with 'agent_name_prefix' from the orb
+
+    :param context: Behave class that contains contextual information during the running of tests.
+    """
+    token = context.token
+    agents_list = list_agents(token)
+    agents_filtered_list = filter_list_by_parameter_start_with(agents_list, 'name', agent_name_prefix)
+    delete_agents(token, agents_filtered_list)
 
 
 def expect_container_status(token, agent_id, status):
@@ -87,18 +100,16 @@ def list_agents(token):
     return agents_as_json['agents']
 
 
-def delete_agents(token, list_of_agents, start_with):
+def delete_agents(token, list_of_agents):
     """
     Deletes from Orb control plane the agents specified on the given list
 
     :param (str) token: used for API authentication
     :param (list) list_of_agents: that will be deleted
-    :param (str) start_with: prefix to filter the deletion of agents
     """
 
     for agent in list_of_agents:
-        if agent['name'].startswith(start_with):
-            delete_agent(token, agent['id'])
+        delete_agent(token, agent['id'])
 
 
 def delete_agent(token, agent_id):
@@ -136,17 +147,3 @@ def create_agent(token, name, tag_key, tag_value):
 
     return response.json()
 
-
-@then('cleanup agents')
-def clean_agents(context):
-    """
-    Remove all agents starting with 'test_agent_name_' from the orb
-
-    :param context: Behave class that contains contextual information during the running of tests.
-    """
-    context.execute_steps('''
-    Given that the user is logged in
-    ''')
-    token = context.token
-    agents_list = list_agents(token)
-    delete_agents(token, agents_list, 'test_agent_name_')

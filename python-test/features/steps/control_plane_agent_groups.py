@@ -1,17 +1,17 @@
-import time
-from control_plane_agents import create_agent, get_agent, expect_container_status, base_orb_url
+from test_config import TestConfig
+from control_plane_agents import create_agent, get_agent, expect_container_status, base_orb_url, agent_name_prefix
 from local_agent import run_local_agent_container
-from utils import random_string
+from users import get_auth_token
+from utils import random_string, filter_list_by_parameter_start_with
 from behave import given, when, then
 from hamcrest import *
-from test_config import TestConfig
 import requests
-from users import get_auth_token
 
 configs = TestConfig.configs()
-agent_group_name = 'test_group_name_' + random_string()
+agent_group_name_prefix = 'test_group_name_'
+agent_group_name = agent_group_name_prefix + random_string()
 agent_group_description = "This is an agent group"
-agent_name = "test_agent_name_" + random_string(4)
+agent_name = agent_name_prefix + random_string(4)
 agent_tag_key = "test_tag_key_" + random_string(4)
 agent_tag_value = "test_tag_value_" + random_string(4)
 
@@ -45,14 +45,14 @@ def matching_agent(context):
 @then('cleanup agent group')
 def clean_agent_groups(context):
     """
-    Remove all agent groups starting with 'test_group_' from the orb
+    Remove all agent groups starting with 'agent_group_name_prefix' from the orb
 
     :param context: Behave object that contains contextual information during the running of tests.
     """
-    get_auth_token(context)
     token = context.token
     agent_groups_list = list_agent_groups(token)
-    delete_agent_groups(token, agent_groups_list, 'test_group_name_')
+    agent_groups_filtered_list = filter_list_by_parameter_start_with(agent_groups_list, 'name', agent_group_name_prefix)
+    delete_agent_groups(token, agent_groups_filtered_list)
 
 
 def create_agent_group(token, name, description, tag_key, tag_value):
@@ -94,18 +94,16 @@ def list_agent_groups(token):
     return agent_groups_as_json['agentGroups']
 
 
-def delete_agent_groups(token, list_of_agent_groups, start_with):
+def delete_agent_groups(token, list_of_agent_groups):
     """
     Deletes from Orb control plane the agent groups specified on the given list
 
     :param (str) token: used for API authentication
     :param (list) list_of_agent_groups: that will be deleted
-    :param (str) start_with: prefix to filter the deletion of agent groups
     """
 
     for agent_Groups in list_of_agent_groups:
-        if agent_Groups['name'].startswith(start_with):
-            delete_agent_group(token, agent_Groups['id'])
+        delete_agent_group(token, agent_Groups['id'])
 
 
 def delete_agent_group(token, agent_group_id):

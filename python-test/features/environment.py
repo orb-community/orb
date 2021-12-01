@@ -2,15 +2,13 @@ import docker
 from steps import test_config
 
 
-def after_all(context):
-    cleanup_container()
-
-
 def after_feature(context, feature):
     context.execute_steps('''
+    Given that the user is logged in
     Then cleanup agents
     Then cleanup agent group
     ''')
+    cleanup_container()
 
 
 def cleanup_container():
