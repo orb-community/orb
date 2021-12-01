@@ -23,7 +23,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
 
   showPassword = false;
   groupOptions = {
-    container_selector: 'pactsafe-conatiner',
+    container_selector: 'pactsafe-container',
     display_all: true,
     signer_id_selector: 'input-email',
     test_mode: true,
@@ -45,13 +45,6 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     const el = document.getElementById('nb-global-spinner');
     if (el) {
       el.style['display'] = 'none';
-    }
-
-    // Set up validation of Terms before allowing form submission.
-    if (document.readyState === 'loading') {  // Loading hasn't finished yet
-      document.addEventListener('DOMContentLoaded', this.addFormAcceptanceValidation);
-    } else {  // `DOMContentLoaded` has already fired
-      this.addFormAcceptanceValidation();
     }
   }
 
@@ -85,7 +78,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     // Prevent the form from automatically submitting without
     // checking PactSafe acceptance first.
 
-    event.preventDefault();
+    event?.preventDefault();
     if (!this.blockSubmission()) {
       // We don't need to block the form submission,
       // so submit the form.
