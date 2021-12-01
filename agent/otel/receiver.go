@@ -10,25 +10,35 @@ import (
 	"github.com/prometheus/prometheus/discovery"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
+	"go.uber.org/zap"
 	"k8s.io/client-go/rest"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
 )
 
 type prometheusReceiverWrapper struct {
-	params            component.ReceiverCreateSettings
-	config            *Config
-	consumer          consumer.Metrics
-	prometheusRecever component.MetricsReceiver
+	logger             *zap.Logger
+	params             component.ReceiverCreateSettings
+	config             *Config
+	consumer           consumer.Metrics
+	prometheusReceiver component.MetricsReceiver
 }
 
 // new returns a prometheusReceiverWrapper
-func new(params component.ReceiverCreateSettings, cfg *Config, consumer consumer.Metrics) *prometheusReceiverWrapper {
-	return &prometheusReceiverWrapper{params: params, config: cfg, consumer: consumer}
+func New(params component.ReceiverCreateSettings, cfg *Config, consumer consumer.Metrics) *prometheusReceiverWrapper {
+	var logger *zap.Logger
+	var err error
+	logger, err = zap.NewProduction()
+	if err != nil {
+		fmt.Errorf("failed to create logger: %v", err)
+	}
+	return &prometheusReceiverWrapper{params: params, config: cfg, consumer: consumer, logger: logger}
 }
 
 // Start creates and starts the prometheus receiver.
 func (prw *prometheusReceiverWrapper) Start(ctx context.Context, host component.Host) error {
+	prw.logger.Info("passou aqui...")
+
 	pFactory := prometheusreceiver.NewFactory()
 
 	pConfig, err := getPrometheusConfig(prw.config)
@@ -41,8 +51,8 @@ func (prw *prometheusReceiverWrapper) Start(ctx context.Context, host component.
 		return fmt.Errorf("failed to create prometheus receiver: %v", err)
 	}
 
-	prw.prometheusRecever = pr
-	return prw.prometheusRecever.Start(ctx, host)
+	prw.prometheusReceiver = pr
+	return prw.prometheusReceiver.Start(ctx, host)
 }
 
 func getPrometheusConfig(cfg *Config) (*prometheusreceiver.Config, error) {
@@ -104,5 +114,5 @@ func getPrometheusConfig(cfg *Config) (*prometheusreceiver.Config, error) {
 
 // Shutdown stops the underlying Prometheus receiver.
 func (prw *prometheusReceiverWrapper) Shutdown(ctx context.Context) error {
-	return prw.prometheusRecever.Shutdown(ctx)
+	return prw.prometheusReceiver.Shutdown(ctx)
 }

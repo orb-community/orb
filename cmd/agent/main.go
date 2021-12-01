@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
@@ -14,10 +15,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/service"
-	"go.opentelemetry.io/collector/service/defaultcomponents"
+	"go.opentelemetry.io/collector/component/componenttest"
+	otelconfig "go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
-	"log"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -28,12 +30,17 @@ import (
 
 const (
 	defaultConfig = "/etc/orb/agent.yaml"
+	typeStr       = "prometheus_simple"
+
+	defaultEndpoint    = "http://localhost:10853"
+	defaultMetricsPath = "/api/v1/policies/__all/metrics/bucket/1"
 )
 
 var (
-	cfgFiles []string
-	Debug    bool
-	rng      = rand.New(rand.NewSource(time.Now().UnixNano()))
+	cfgFiles                  []string
+	Debug                     bool
+	rng                       = rand.New(rand.NewSource(time.Now().UnixNano()))
+	defaultCollectionInterval = 10 * time.Second
 )
 
 func init() {
@@ -70,7 +77,6 @@ func Run(cmd *cobra.Command, args []string) {
 	}
 
 	config.Debug = Debug
-
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
 	if err == nil && config.OrbAgent.Backends == nil {
@@ -89,6 +95,27 @@ func Run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	// new otel receiver
+	factory := otel.NewFactory()
+	var getConfigFn getReceiverConfigFn
+	if getConfigFn == nil {
+		getConfigFn = func() otelconfig.Receiver {
+			config := &otel.Config{
+				ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID(typeStr)),
+				TCPAddr: confignet.TCPAddr{
+					Endpoint: defaultEndpoint,
+				},
+				MetricsPath:        defaultMetricsPath,
+				CollectionInterval: defaultCollectionInterval,
+			}
+			return config
+		}
+	}
+	ctx := context.Background()
+	wrap := createMetricsReceiver(factory)
+	receiverCreateSet := componenttest.NewNopReceiverCreateSettings()
+	receiver, err := wrap(ctx, receiverCreateSet, getConfigFn(), nil, logger)
+
 	// handle signals
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
@@ -97,6 +124,7 @@ func Run(cmd *cobra.Command, args []string) {
 	go func() {
 		<-sigs
 		a.Stop()
+		receiver.Shutdown(ctx)
 		done <- true
 	}()
 
@@ -107,25 +135,30 @@ func Run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	// new otel receiver
-	factories, err := defaultcomponents.Components()
-	receivers := []component.ReceiverFactory{
-		otel.NewFactory(),
-	}
-	factories.Receivers, err = component.MakeReceiverFactoryMap(receivers...)
-
-	info := component.BuildInfo{
-		Command:     "otelcontribcol",
-		Description: "OpenTelemetry Collector Contrib",
-		Version:     buildinfo.GetVersion(),
-	}
-
-	if err = runInteractive(service.CollectorSettings{BuildInfo: info, Factories: factories}); err != nil {
-		log.Fatal(err)
+	err = receiver.Start(context.Background(), nil)
+	if err != nil {
+		logger.Error("otel startup error", zap.Error(err))
+		os.Exit(1)
 	}
 
 	<-done
+}
 
+type getReceiverConfigFn func() otelconfig.Receiver
+
+type createReceiverFn func(
+	ctx context.Context,
+	params component.ReceiverCreateSettings,
+	cfg otelconfig.Receiver,
+	nextConsumer consumer.Metrics,
+	logger *zap.Logger) (component.Receiver, error)
+
+func createMetricsReceiver(factory component.ReceiverFactory) createReceiverFn {
+	return func(ctx context.Context, params component.ReceiverCreateSettings, cfg otelconfig.Receiver, nextConsumer consumer.Metrics, logger *zap.Logger) (component.Receiver, error) {
+		rCfg := cfg.(*otel.Config)
+		//return factory.CreateMetricsReceiver(ctx, params, cfg, nextConsumer)
+		return otel.New(params, rCfg, nextConsumer), nil
+	}
 }
 
 func mergeOrError(path string) {
@@ -218,13 +251,4 @@ func main() {
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.Execute()
-}
-
-func runInteractive(params service.CollectorSettings) error {
-	cmd := service.NewCommand(params)
-	if err := cmd.Execute(); err != nil {
-		return fmt.Errorf("collector server run finished with error: %w", err)
-	}
-
-	return nil
 }
