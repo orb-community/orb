@@ -7,7 +7,7 @@ export const environment = {
   production: true,
   GTAGID: 'G-387CGPZQF0',
   ...defaultEnvironment,
-  ...envVars
+  ...envVars,
   // ORB api --prod
   // override all urls prepend /api/v<#>/<service_url>
   ...urlKeys.reduce(
