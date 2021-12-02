@@ -8,6 +8,7 @@
     <div class="d-flex col-12 mt-5">
       <nb-stepper orientation="vertical"
                   class="stepper w-100 ml-5"
+                  *ngIf="!isLoading"
                   disableStepNavigation>
         <nb-step [label]="firstStepTemplate"
                  [stepControl]="firstFormGroup">
@@ -75,13 +76,19 @@
               <mat-chip-list>
                 <mat-chip
                     class="orb-tag-sink "
-                    *ngFor="let tag of secondFormGroup.controls.tags.value"
-                    [style.background-color]="tag | keyvalue | tagchip | tagchipcolor">
-                    {{tag | keyvalue | tagchip}}
+                    *ngFor="let tag of selectedTags | keyvalue"
+                    [style.background-color]="tag | tagcolor">
+                    {{tag | tagchip}}
                   <nb-icon class="ml-1"
-                           (click)="onRemoveTag(tag)"
+                           (click)="onRemoveTag(tag.key)"
                            icon="close-outline"
                            size="12"></nb-icon>
+                </mat-chip>
+                <mat-chip
+                  *ngIf="(selectedTags | json) === '{}'"
+                  [style.background-color]="'notag' | tagcolor"
+                  class="orb-tag-sink ">
+                  No tag added
                 </mat-chip>
               </mat-chip-list>
             </div>
@@ -161,7 +168,7 @@
                       shape="round"
                       status="primary"
                       type="submit"
-                      [disabled]="secondFormGroup.controls.tags.value.length === 0"
+                      [disabled]="(selectedTags | json) === '{}'"
                       nbStepperNext>
                 {{strings.stepper.next}}
               </button>
@@ -195,9 +202,15 @@
               <mat-chip-list>
                 <mat-chip
                     class="orb-tag-sink "
-                    *ngFor="let tag of secondFormGroup.controls.tags.value"
-                    [style.background-color]="tag | keyvalue | tagchip | tagchipcolor">
-                    {{tag | keyvalue | tagchip}}
+                    *ngFor="let tag of selectedTags | keyvalue"
+                    [style.background-color]="tag | tagcolor">
+                    {{tag | tagchip}}
+                </mat-chip>
+                <mat-chip
+                  *ngIf="(selectedTags | json) === '{}'"
+                  [style.background-color]="'notag' | tagcolor"
+                  class="orb-tag-sink ">
+                  No tag added
                 </mat-chip>
               </mat-chip-list>
             </div>
@@ -281,9 +294,9 @@
     <mat-chip-list>
       <mat-chip
           class="orb-tag-sink "
-          *ngFor="let tag of value | keyvalue | tagchip"
-          [style.background-color]="tag | tagchipcolor">
-          {{tag}}
+          *ngFor="let tag of value | keyvalue"
+          [style.background-color]="tag | tagcolor">
+          {{tag | tagchip}}
       </mat-chip>
     </mat-chip-list>
   </div>

@@ -4,8 +4,8 @@
  * [Sinks Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Sinks}
  */
 
-import { PrometheusConfig } from 'app/common/interfaces/orb/sink.config/prometheus.config.interface';
-import { AWSConfig } from 'app/common/interfaces/orb/sink.config/aws.config.interface';
+import { PrometheusConfig } from 'app/common/interfaces/orb/sink/config/prometheus.config.interface';
+import { AWSConfig } from 'app/common/interfaces/orb/sink/config/aws.config.interface';
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
 
 /**

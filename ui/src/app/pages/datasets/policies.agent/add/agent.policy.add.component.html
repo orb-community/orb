@@ -280,7 +280,7 @@
                 <mat-chip
                   *ngFor="let handler of modules | keyvalue; index as i"
                   [attr.data-orb-qa-id]="'handler_' + i"
-                  [style.background-color]="handler.key | tagchipcolor"
+                  [style.background-color]="handler.key | tagcolor"
                   [value]="i"
                   class="orb-selected-handler ">
                   {{ handler.key }}
@@ -417,7 +417,7 @@
                     shape="round"
                     status="primary"
                     type="submit">
-              Next
+              Save
             </button>
           </div>
         </nb-step>

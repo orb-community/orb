@@ -172,26 +172,26 @@
             <div class="d-flex">
               <mat-chip-list data-orb-qa-id="tagList">
                 <mat-chip
-                  *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i"
+                  *ngFor="let tag of this.selectedTags | keyvalue; index as i;"
                   [attr.data-orb-qa-id]="'tag_' + i"
-                  [style.background-color]="tag | keyvalue | tagchip | tagchipcolor"
+                  [style.background-color]="tag | tagcolor"
                   class="orb-tag-sink">
-                  {{tag | keyvalue | tagchip}}
-                  <nb-icon (click)="onRemoveTag(tag)"
+                  {{tag | tagchip}}
+                  <nb-icon (click)="onRemoveTag(tag.key)"
                            class="ml-1"
                            icon="close-outline"
                            size="12"></nb-icon>
                 </mat-chip>
-                <mat-chip *ngIf="thirdFormGroup.controls.tags.value.length === 0"
-                          [attr.data-orb-qa-id]="'tag_none'"
-                          [style.background-color]="'No Tag Added' | tagchipcolor"
-                          class="orb-tag-sink">
-                  No Tag Added
+                <mat-chip
+                  *ngIf="(selectedTags | json) === '{}'"
+                  [style.background-color]="'notag' | tagcolor"
+                  class="orb-tag-sink ">
+                  No tag added
                 </mat-chip>
               </mat-chip-list>
             </div>
             <hr/>
-            <nb-form-field>
+            <nb-form-field *ngIf="thirdFormGroup">
               <div class="container d-flex row px-0 mx-0" style="width:75%;">
                 <div class="d-flex flex-column col-5 px-0 mx-0">
                   <div>
@@ -227,8 +227,7 @@
                 <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
                      style="transform: translateY(14px);">
                   <button (click)="onAddTag()"
-                          [disabled]="(thirdFormGroup.controls['key'].value === '' ||
-                          thirdFormGroup.controls['value'].value === '')"
+                          [disabled]="!checkValidName()"
                           data-orb-qa-id="addTag"
                           ghost
                           nbButton>
@@ -310,17 +309,17 @@
               <label class="font-weight-bold">Sink Tags</label>
               <mat-chip-list data-orb-qaid="review-tagList">
                 <mat-chip
-                  *ngFor="let tag of thirdFormGroup.controls.tags.value; index as i;"
+                  *ngFor="let tag of selectedTags | keyvalue; index as i;"
                   [attr.data-orb-qa-id]="'review-tag_' + i"
-                  [style.background-color]="tag | keyvalue | tagchip | tagchipcolor"
+                  [style.background-color]="tag | tagcolor"
                   class="orb-tag-sink ">
-                  {{tag | keyvalue | tagchip}}
+                  {{tag | tagchip}}
                 </mat-chip>
-                <mat-chip *ngIf="thirdFormGroup.controls.tags.value.length === 0"
-                          [attr.data-orb-qa-id]="'tag_none'"
-                          [style.background-color]="'No Tag Added' | tagchipcolor"
-                          class="orb-tag-sink">
-                  No Tag Added
+                <mat-chip
+                  *ngIf="(selectedTags | json) === '{}'"
+                  [style.background-color]="'notaggit ' | tagcolor"
+                  class="orb-tag-sink ">
+                  No tag added
                 </mat-chip>
               </mat-chip-list>
             </div>

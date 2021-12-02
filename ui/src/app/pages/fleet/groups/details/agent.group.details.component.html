@@ -31,8 +31,8 @@
           <mat-chip-list>
             <mat-chip
                 class="orb-tag-sink "
-                *ngFor="let tag of agentGroup.tags | keyvalue | tagchip"
-                [style.background-color]="tag | tagchipcolor">
+                *ngFor="let tag of agentGroup.tags | keyvalue"
+                [style.background-color]="tag | tagcolor">
                 {{tag}}
             </mat-chip>
           </mat-chip-list>
