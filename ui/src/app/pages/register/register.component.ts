@@ -5,13 +5,6 @@ import { Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { environment } from '../../../environments/environment';
 
-/**
- * Pactsafe
- */
-const _ps = window['_ps'];
-const _sid = environment.PS.SID;
-const _groupKey = environment.PS.GROUP_KEY;
-
 @Component({
   selector: 'ngx-register-component',
   templateUrl: 'register.component.html',
@@ -29,6 +22,13 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   messages: string[] = [];
   user: any = {};
 
+  /**
+   * Pactsafe
+   */
+  _ps = window['_ps'];
+  _sid = environment.PS.SID;
+  _groupKey = environment.PS.GROUP_KEY;
+
   showPassword = false;
   groupOptions = {
     container_selector: 'pactsafe-container',
@@ -44,9 +44,9 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     protected router: Router,
   ) {
     super(authService, options, cd, router);
-    _ps('create', _sid);
-    _ps.debug = true;
-    _ps('load', _groupKey, this.groupOptions);
+    this._ps('create', this._sid);
+    this._ps.debug = true;
+    this._ps('load', this._groupKey, this.groupOptions);
   }
 
   ngOnInit() { // In the ngOnInit() or in the constructor
@@ -70,11 +70,11 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   // Return whether to block the submission or not.
   blockSubmission() {
     // Check to ensure we're able to get the Group successfully.
-    if (_ps.getByKey(_groupKey)) {
+    if (this._ps.getByKey(this._groupKey)) {
 
       // Return if we should block the submission using the .block() method
       // provided by the Group object.
-      return _ps.getByKey(_groupKey).block();
+      return this._ps.getByKey(this._groupKey).block();
     } else {
       // We weren't able to get the group,
       // so blocking form submission may be needed.
@@ -111,8 +111,8 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
       // We can get the alert message if set on the group
       // or define our own if it's not.
       const acceptanceAlertLanguage =
-        (_ps.getByKey(_groupKey) && _ps.getByKey(_groupKey).get('alert_message')) ?
-          _ps.getByKey(_groupKey).get('alert_message') :
+        (this._ps.getByKey(this._groupKey) && this._ps.getByKey(this._groupKey).get('alert_message')) ?
+          this._ps.getByKey(this._groupKey).get('alert_message') :
           'Please accept our Terms and Conditions.';
 
       // Alert the user that the Terms need to be accepted before continuing.

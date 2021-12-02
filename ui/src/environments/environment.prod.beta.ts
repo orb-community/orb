@@ -18,8 +18,8 @@ export const environment = {
   // PACTSAFE
   PS: {
     // site id
-    SID: process.env.PS_SID,
+    SID: `${process.env.PS_SID}`,
     // group key
-    GROUP_KEY: process.env.PS_GROUP_KEY,
+    GROUP_KEY: `${process.env.PS_GROUP_KEY}`,
   },
 };

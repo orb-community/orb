@@ -23,3 +23,4 @@ orb-agent.db
 orb_tests/chromedriver.log
 features/steps/__pycache__/*
 *.pyc
+.env

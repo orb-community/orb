@@ -66,11 +66,12 @@ export const environment = {
   mqttWsUrl: window['env']['mqttWsUrl'] || 'ws://localhost/mqtt',
   exportConfigFile: '/configs/export/config.toml',
 
+  // PACTSAFE
   PS: {
     // site id
-    SID: '',
+    SID: `${process.env.PS_SID}`,
     // group key
-    GROUP_KEY: '',
+    GROUP_KEY: `${process.env.PS_GROUP_KEY}`,
   },
 
   // expose ORB routes and api versioning
