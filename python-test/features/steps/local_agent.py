@@ -1,8 +1,9 @@
-from json import loads, JSONDecodeError
+from utils import safe_load_json
 from behave import when, then
 from hamcrest import *
 from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
+import time
 
 configs = TestConfig.configs()
 
@@ -24,9 +25,20 @@ def run_local_agent_container(context):
 
 @then('the container logs should contain the message "{text_to_match}"')
 def check_agent_log(context, text_to_match):
-    logs = get_orb_agent_logs(context.container_id)
-    contains_text = check_logs_contains_message(logs, text_to_match)
-    assert_that(contains_text, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+    time_waiting = 0
+    sleep_time = 0.5
+    timeout = 10
+    text_found = False
+
+    while time_waiting < timeout:
+        logs = get_orb_agent_logs(context.container_id)
+        text_found = check_logs_contain_message(logs, text_to_match)
+        if text_found is True:
+            break
+        time.sleep(sleep_time)
+        time_waiting += sleep_time
+
+    assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
 
 
 def run_agent_container(container_image, env_vars):
@@ -57,7 +69,7 @@ def get_orb_agent_logs(container_id):
     return container.logs().decode("utf-8").split("\n")
 
 
-def check_logs_contains_message(logs, expected_message):
+def check_logs_contain_message(logs, expected_message):
     """
     Gets the logs from Orb agent container
 
@@ -73,17 +85,3 @@ def check_logs_contains_message(logs, expected_message):
             return True
 
     return False
-
-
-# TODO: move this function to some sort of utils.py module
-def safe_load_json(json_str):
-    """
-    Safely parses a string into a JSON object, without ever raising an error.
-    :param (str) json_str: to be loaded
-    :return: the JSON object, or None if string is not a valid JSON.
-    """
-
-    try:
-        return loads(json_str)
-    except JSONDecodeError:
-        return None

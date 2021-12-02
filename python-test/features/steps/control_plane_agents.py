@@ -1,18 +1,16 @@
+from test_config import TestConfig
+from utils import random_string, filter_list_by_parameter_start_with
 from behave import when, then
 from hamcrest import *
-from test_config import TestConfig
 import time
-import random
-import string
 import requests
 
 configs = TestConfig.configs()
-
 base_orb_url = "https://" + configs.get('orb_address')
-random_agent_name = ''.join(random.choices(string.ascii_letters, k=10))  # k sets the number of characters
-agent_name = "test_agent_name_" + random_agent_name
-agent_tag_key = "test_tag_key"
-agent_tag_value = "test_tag_value"
+agent_name_prefix = "test_agent_name_"
+agent_name = agent_name_prefix + random_string(10)
+agent_tag_key = "test_tag_key_" + random_string(4)
+agent_tag_value = "test_tag_value_" + random_string(4)
 
 
 @when('a new agent is created')
@@ -26,6 +24,19 @@ def check_agent_online(context, status):
     token = context.token
     agent_id = context.agent['id']
     expect_container_status(token, agent_id, status)
+
+
+@then('cleanup agents')
+def clean_agents(context):
+    """
+    Remove all agents starting with 'agent_name_prefix' from the orb
+
+    :param context: Behave class that contains contextual information during the running of tests.
+    """
+    token = context.token
+    agents_list = list_agents(token)
+    agents_filtered_list = filter_list_by_parameter_start_with(agents_list, 'name', agent_name_prefix)
+    delete_agents(token, agents_filtered_list)
 
 
 def expect_container_status(token, agent_id, status):
@@ -135,3 +146,4 @@ def create_agent(token, name, tag_key, tag_value):
                 'Request to create agent failed with status=' + str(response.status_code))
 
     return response.json()
+
