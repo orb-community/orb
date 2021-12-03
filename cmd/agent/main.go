@@ -19,6 +19,7 @@ import (
 	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"math/rand"
 	"os"
@@ -115,8 +116,9 @@ func Run(cmd *cobra.Command, args []string) {
 	wrap := createMetricsReceiver()
 	receiverCreateSet := component.ReceiverCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:        logger,
-			MeterProvider: global.GetMeterProvider(),
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.GetMeterProvider(),
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
