@@ -16,6 +16,10 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
 )
 
+const (
+	typeStr = "prometheus_simple"
+)
+
 type prometheusReceiverWrapper struct {
 	logger             *zap.Logger
 	params             component.ReceiverCreateSettings

@@ -15,10 +15,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenttest"
 	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/otel/metric/global"
 	"go.uber.org/zap"
 	"math/rand"
 	"os"
@@ -32,8 +32,8 @@ const (
 	defaultConfig = "/etc/orb/agent.yaml"
 	typeStr       = "prometheus_simple"
 
-	defaultEndpoint    = "http://localhost:10853"
-	defaultMetricsPath = "/api/v1/policies/__all/metrics/bucket/1"
+	defaultEndpoint    = "localhost:10853"
+	defaultMetricsPath = "/api/v1/policies/__all/metrics/prometheus"
 )
 
 var (
@@ -96,7 +96,7 @@ func Run(cmd *cobra.Command, args []string) {
 	}
 
 	// new otel receiver
-	factory := otel.NewFactory()
+	//factory := otel.NewFactory()
 	var getConfigFn getReceiverConfigFn
 	if getConfigFn == nil {
 		getConfigFn = func() otelconfig.Receiver {
@@ -112,8 +112,14 @@ func Run(cmd *cobra.Command, args []string) {
 		}
 	}
 	ctx := context.Background()
-	wrap := createMetricsReceiver(factory)
-	receiverCreateSet := componenttest.NewNopReceiverCreateSettings()
+	wrap := createMetricsReceiver()
+	receiverCreateSet := component.ReceiverCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:        logger,
+			MeterProvider: global.GetMeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
 	receiver, err := wrap(ctx, receiverCreateSet, getConfigFn(), nil, logger)
 
 	// handle signals
@@ -153,7 +159,7 @@ type createReceiverFn func(
 	nextConsumer consumer.Metrics,
 	logger *zap.Logger) (component.Receiver, error)
 
-func createMetricsReceiver(factory component.ReceiverFactory) createReceiverFn {
+func createMetricsReceiver() createReceiverFn {
 	return func(ctx context.Context, params component.ReceiverCreateSettings, cfg otelconfig.Receiver, nextConsumer consumer.Metrics, logger *zap.Logger) (component.Receiver, error) {
 		rCfg := cfg.(*otel.Config)
 		//return factory.CreateMetricsReceiver(ctx, params, cfg, nextConsumer)
