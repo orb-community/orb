@@ -35,6 +35,15 @@ Then fill in the correct values:
 - **orb_agent_interface**:
   - Network interface that will be used by pktvisor when running the Orb agent.
   - Default value: `mock`
+- **prometheus_username**
+  - Mandatory for running the tests in [sinks feature](./features/sinks.feature)
+  - Your Grafana Cloud Prometheus username
+- **prometheus_key**
+  - Mandatory for running the tests in [sinks feature](./features/sinks.feature)
+  - Your Grafana Cloud API Key. Be sure to grant the key a role with metrics push privileges
+- **remote_prometheus_endpoint**
+  - Mandatory for running the tests in [sinks feature](./features/sinks.feature)
+  - base URL to send Prometheus metrics to Grafana Cloud> `(ex. prometheus-prod-10-prod-us-central-0.grafana.net)`
 
 ## Run behave
 Simply run `behave`, optionally passing the feature file as follows:
@@ -48,7 +57,7 @@ Output:
 Feature: agent provider # features/agentsProvider.feature:2
 
   Scenario: Provision agent                                                  # features/agentsProvider.feature:4
-    Given that the user is logged in                                         # features/steps/users.py:10 1.031s
+    Given that the user is logged in on orb account                                         # features/steps/users.py:10 1.031s
     When a new agent is created                                              # features/steps/control_plane_agents.py:18 1.032s
     And the agent container is started                                       # features/steps/local_agent.py:10 0.217s
     Then the agent status in Orb should be online                            # features/steps/control_plane_agents.py:24 2.556s
