@@ -7,7 +7,7 @@ configs = TestConfig.configs()
 base_orb_url = "https://" + configs.get('orb_address')
 
 
-@given('that the user is logged in on orb account')
+@given('the Orb user logs in')
 def get_auth_token(context):
     email = configs.get('email')
     password = configs.get('password')

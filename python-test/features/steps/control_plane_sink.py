@@ -10,28 +10,19 @@ sink_label_name_prefix = "test_sink_label_name_"
 sink_label_name = sink_label_name_prefix + random_string(10)
 
 
-@given("that there is a remote write endpoint to send Prometheus metrics to Grafana Cloud")
-def check_remote_endpoint(context):
+@given("that the user has the prometheus/grafana credentials")
+def check_prometheus_grafana_credentials(context):
     remote_prometheus_endpoint = configs.get('remote_prometheus_endpoint')
-
     assert_that(remote_prometheus_endpoint, not_none(), 'No remote write endpoint to send Prometheus metrics to '
                                                         'Grafana Cloud was provided!')
     assert_that(remote_prometheus_endpoint, not_(""), 'No remote write endpoint to send Prometheus metrics to Grafana '
                                                       'Cloud was provided!')
-
     context.remote_prometheus_endpoint = "https://" + remote_prometheus_endpoint + "/api/prom/push"
 
-
-@given("that the user have a Grafana Cloud Prometheus username")
-def check_prometheus_username(context):
     context.prometheus_username = configs.get('prometheus_username')
-
     assert_that(context.prometheus_username, not_none(), 'No Grafana Cloud Prometheus username was provided!')
     assert_that(context.prometheus_username, not_(""), 'No Grafana Cloud Prometheus username was provided!')
 
-
-@given("that the user have a Grafana Cloud API Key with a role with metrics push privileges")
-def check_prometheus_key(context):
     context.prometheus_key = configs.get('prometheus_key')
     assert_that(context.prometheus_key, not_none(), 'No Grafana Cloud API Key was provided!')
     assert_that(context.prometheus_key, not_(""), 'No Grafana Cloud API Key was provided!')
@@ -67,7 +58,6 @@ def clean_sinks(context):
     delete_sinks(token, sinks_filtered_list)
 
 
-# Todo uncomment assert
 def create_new_sink(token, name_label, remote_host, username, password, description=None, tag_key='',
                     tag_value=None, backend_type="prometheus"):
     """

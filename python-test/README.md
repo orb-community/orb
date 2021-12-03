@@ -36,13 +36,13 @@ Then fill in the correct values:
   - Network interface that will be used by pktvisor when running the Orb agent.
   - Default value: `mock`
 - **prometheus_username**
-  - Mandatory *for sinks feature*!
+  - Mandatory for running the tests in [sinks feature](./features/sinks.feature)
   - Your Grafana Cloud Prometheus username
 - **prometheus_key**
-  - Mandatory *for sinks feature*!
+  - Mandatory for running the tests in [sinks feature](./features/sinks.feature)
   - Your Grafana Cloud API Key. Be sure to grant the key a role with metrics push privileges
 - **remote_prometheus_endpoint**
-  - Mandatory *for sinks feature*!
+  - Mandatory for running the tests in [sinks feature](./features/sinks.feature)
   - base URL to send Prometheus metrics to Grafana Cloud> `(ex. prometheus-prod-10-prod-us-central-0.grafana.net)`
 
 ## Run behave

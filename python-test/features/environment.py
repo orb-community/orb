@@ -2,14 +2,14 @@ import docker
 from steps import test_config
 
 
-def after_feature(context, feature):
-    context.execute_steps('''
-    Given that the user is logged in on orb account
-    Then cleanup agents
-    Then cleanup agent group
-    Then cleanup sinks
-    ''')
-    cleanup_container()
+# def after_feature(context, feature):
+#     context.execute_steps('''
+#     Given that the user is logged in on orb account
+#     Then cleanup agents
+#     Then cleanup agent group
+#     Then cleanup sinks
+#     ''')
+#     cleanup_container()
 
 
 def cleanup_container():
