@@ -8,8 +8,8 @@ ENV BUILD_DEPS "g++ make ca-certificates golang"
 
 RUN apt-get update && \
     apt-get install --yes --force-yes --no-install-recommends ${BUILD_DEPS}
-
-RUN mkdir /tmp/build && CGO_ENABLED=1 make agent_bin && mv build/orb-agent /tmp/build/orb-agent
+#RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=mod -ldflags "-X 'github.com/ns1labs/orb/buildinfo.version=0.9.0-develop'" -o ../build/orb-agent ../cmd/agent/main.go
+RUN mkdir /tmp/build && mv orb-agent /tmp/build/orb-agent
 
 FROM ns1labs/pktvisor:${PKTVISOR_TAG}
 
