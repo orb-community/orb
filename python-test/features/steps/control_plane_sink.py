@@ -40,9 +40,9 @@ def create_sink(context):
 @then("referred sink must have {status} state on response")
 def check_sink_status(context, status):
     sink_id = context.sink['id']
-    validate_sink_state(context.sink, status, sink_id)
+    assert_that(sink_id['state'], equal_to(status), f"Sink {sink_id} state failed")
     get_sink_response = get_sink(context.token, sink_id)
-    validate_sink_state(get_sink_response, status, sink_id)
+    assert_that(sink_id['state'], equal_to(status), f"Sink {sink_id} state failed")
 
 
 @then('cleanup sinks')
@@ -102,18 +102,6 @@ def get_sink(token, sink_id):
                 'Request to get sink id=' + sink_id + ' failed with status=' + str(get_sink_response.status_code))
 
     return get_sink_response.json()
-
-
-def validate_sink_state(sink_data, state, sink_id):
-    """
-    Validates if the state of existing sink is as expected
-
-    :param (dict) sink_data: sink data
-    :param (str) state: sink expected state
-    :param sink_id: sink identifier
-    """
-    sink_state = sink_data['state']
-    assert_that(sink_state, equal_to(state), f"Sink {sink_id} state failed")
 
 
 def list_sinks(token):
