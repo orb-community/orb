@@ -401,7 +401,17 @@ export class AgentPolicyAddComponent {
       return controls;
     }, {});
 
+    this.handlerSelectorFG.reset({
+      selected_handler: { value: '', disabled: false },
+      label: { value: '', disabled: false },
+    });
+
     this.dynamicHandlerConfigFG = Object.keys(dynamicControls).length > 0 ? this._formBuilder.group(dynamicControls) : null;
+  }
+
+  getSeriesHandlerName(handlerType) {
+    const count = Object.values(this.modules).filter(({type}) => type === handlerType);
+    return `handler_${handlerType}_${count}`;
   }
 
   checkValidName() {
