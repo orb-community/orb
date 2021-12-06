@@ -3,13 +3,14 @@ from steps import test_config
 
 
 def after_feature(context, feature):
+    cleanup_container()
     context.execute_steps('''
-    Given that the user is logged in on orb account
+    Given the Orb user logs in
     Then cleanup agents
     Then cleanup agent group
     Then cleanup sinks
+    Then cleanup policies
     ''')
-    cleanup_container()
 
 
 def cleanup_container():
