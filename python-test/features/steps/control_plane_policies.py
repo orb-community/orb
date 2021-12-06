@@ -4,7 +4,7 @@ from control_plane_agents import base_orb_url
 from behave import given, when, then
 from utils import random_string, filter_list_by_parameter_start_with
 
-policy_name_prefix = "test_policy_name"
+policy_name_prefix = "test_policy_name_"
 name = policy_name_prefix + random_string(4)
 handler = "net"
 handle_label = "default_" + handler
@@ -18,7 +18,8 @@ def create_new_policy(context):
 @then("referred policy must be listened on the orb policies list")
 def check_policies(context):
     policy_id = context.policy['id']
-    get_policy(context.token, policy_id)
+    policy = get_policy(context.token, policy_id)
+    assert_that(policy['name'], equal_to(name), "Incorrect policy name")
 
 
 @then('cleanup policies')
@@ -36,7 +37,7 @@ def clean_policies(context):
 
 # Todo complete the documentation
 def create_policy(token, policy_name, handler_label, handler, description=None, tap="default_pcap",
-                  input_tap="pcap", host_specification=None, filter_expression=None, backend_type="pktvisor"):
+                  input_type="pcap", host_specification=None, filter_expression=None, backend_type="pktvisor"):
     """
 
     Creates a new policy in Orb control plane
@@ -51,7 +52,7 @@ def create_policy(token, policy_name, handler_label, handler, description=None, 
     """
     response = requests.post(base_orb_url + '/api/v1/policies/agent',
                              json={"name": policy_name, "description": description, "backend": backend_type,
-                                   "policy": {"kind": "collection", "input": {"tap": tap, "input_type": input_tap}},
+                                   "policy": {"kind": "collection", "input": {"tap": tap, "input_type": input_type}},
                                    "config": {"host_spec": host_specification}, "filter": {"bpf": filter_expression},
                                    "handlers": {"modules": {handler_label: {"type": handler}}}},
                              headers={'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token})
