@@ -203,6 +203,7 @@ export class AgentPolicyAddComponent {
     });
 
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
+    this.dynamicHandlerFilterFG = this._formBuilder.group({});
   }
 
   updateForms() {
@@ -222,6 +223,7 @@ export class AgentPolicyAddComponent {
     this.modules = modules;
 
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
+    this.dynamicHandlerFilterFG = this._formBuilder.group({});
 
     this.onBackendSelected(backend).catch(reason => console.warn(`${ reason }`));
 
@@ -396,6 +398,7 @@ export class AgentPolicyAddComponent {
       this.dynamicHandlerFilterFG = null;
     }
 
+    // TODO - hardcoded for v: 1.0 -: always retrieve latest
     this.liveHandler = selectedHandler !== '' && !!this.availableHandlers[selectedHandler] ?
       { ...this.availableHandlers[selectedHandler]['1.0'], type: selectedHandler } : null;
 
