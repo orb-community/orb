@@ -57,7 +57,7 @@ type AgentGroupService interface {
 	// ViewAgentGroupByIDInternal Retrieve an AgentGroup by id, without a token
 	ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error)
 	// ListAgentGroups Retrieve a list of AgentGroups by owner
-	ListAgentGroups(ctx context.Context, token string, pm PageMetadata, ownerID ...*string) (PageAgentGroup, error)
+	ListAgentGroups(ctx context.Context, token string, pm PageMetadata) (PageAgentGroup, error)
 	// EditAgentGroup edit a existing agent group by id and owner
 	EditAgentGroup(ctx context.Context, token string, ag AgentGroup) (AgentGroup, error)
 	// RemoveAgentGroup Remove a existing agent group by owner an id
