@@ -108,33 +108,8 @@ func Run(cmd *cobra.Command, args []string) {
 
 	// new otel receiver
 	//factory := otel.NewFactory()
-	exporter, err := createExporter(ctx, logger)
-	receiver, err := createReceiver(ctx, exporter, logger)
-	//var getConfigFn getReceiverConfigFn
-	//if getConfigFn == nil {
-	//	getConfigFn = func() otelconfig.Receiver {
-	//		config := &otel.Config{
-	//			ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID(typeStr)),
-	//			TCPAddr: confignet.TCPAddr{
-	//				Endpoint: defaultEndpoint,
-	//			},
-	//			MetricsPath:        defaultMetricsPath,
-	//			CollectionInterval: defaultCollectionInterval,
-	//		}
-	//		return config
-	//	}
-	//}
-	//
-	//wrap := createMetricsReceiver()
-	//receiverCreateSet := component.ReceiverCreateSettings{
-	//	TelemetrySettings: component.TelemetrySettings{
-	//		Logger:         logger,
-	//		TracerProvider: trace.NewNoopTracerProvider(),
-	//		MeterProvider:  global.GetMeterProvider(),
-	//	},
-	//	BuildInfo: component.NewDefaultBuildInfo(),
-	//}
-	//receiver, err := wrap(ctx, receiverCreateSet, getConfigFn(), exporter, logger)
+	exporter, err := createNewExporter(ctx, logger)
+	receiver, err := createNewReceiver(ctx, exporter, logger)
 
 	// handle signals
 	sigs := make(chan os.Signal, 1)
@@ -171,7 +146,7 @@ func Run(cmd *cobra.Command, args []string) {
 	<-done
 }
 
-func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
+func createNewExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
 	// 2. Create the Prometheus metrics exporter that'll receive and verify the metrics produced.
 	exporterCfg := &promexporter.Config{
 		ExporterSettings: otelconfig.NewExporterSettings(otelconfig.NewComponentID(typeStr)),
@@ -196,7 +171,7 @@ func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsE
 	return exporter, nil
 }
 
-func createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
+func createNewReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
 	receiverFactory := prometheusreceiver.NewFactory()
 	receiverCreateSet := component.ReceiverCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
