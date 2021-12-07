@@ -401,16 +401,14 @@ export class AgentPolicyAddComponent {
       return controls;
     }, {});
 
-    this.handlerSelectorFG.reset({
-      selected_handler: { value: '', disabled: false },
-      label: { value: '', disabled: false },
-    });
+    const suggestName = this.getSeriesHandlerName(selectedHandler);
+    this.handlerSelectorFG.patchValue({label: suggestName});
 
     this.dynamicHandlerConfigFG = Object.keys(dynamicControls).length > 0 ? this._formBuilder.group(dynamicControls) : null;
   }
 
   getSeriesHandlerName(handlerType) {
-    const count = Object.values(this.modules).filter(({type}) => type === handlerType);
+    const count = 1 + Object.values(this.modules || {}).filter(({type}) => type === handlerType).length;
     return `handler_${handlerType}_${count}`;
   }
 
