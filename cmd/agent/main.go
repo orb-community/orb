@@ -5,27 +5,43 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
 	config2 "github.com/ns1labs/orb/agent/config"
+	"github.com/ns1labs/orb/agent/otel"
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.opentelemetry.io/collector/component"
+	otelconfig "go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"math/rand"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 )
 
 const (
 	defaultConfig = "/etc/orb/agent.yaml"
+	typeStr       = "prometheus_simple"
+
+	defaultEndpoint    = "localhost:10853"
+	defaultMetricsPath = "/api/v1/policies/__all/metrics/prometheus"
 )
 
 var (
-	cfgFiles []string
-	Debug    bool
+	cfgFiles                  []string
+	Debug                     bool
+	rng                       = rand.New(rand.NewSource(time.Now().UnixNano()))
+	defaultCollectionInterval = 10 * time.Second
 )
 
 func init() {
@@ -62,7 +78,6 @@ func Run(cmd *cobra.Command, args []string) {
 	}
 
 	config.Debug = Debug
-
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
 	if err == nil && config.OrbAgent.Backends == nil {
@@ -81,6 +96,34 @@ func Run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	// new otel receiver
+	//factory := otel.NewFactory()
+	var getConfigFn getReceiverConfigFn
+	if getConfigFn == nil {
+		getConfigFn = func() otelconfig.Receiver {
+			config := &otel.Config{
+				ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID(typeStr)),
+				TCPAddr: confignet.TCPAddr{
+					Endpoint: defaultEndpoint,
+				},
+				MetricsPath:        defaultMetricsPath,
+				CollectionInterval: defaultCollectionInterval,
+			}
+			return config
+		}
+	}
+	ctx := context.Background()
+	wrap := createMetricsReceiver()
+	receiverCreateSet := component.ReceiverCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.GetMeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+	receiver, err := wrap(ctx, receiverCreateSet, getConfigFn(), nil, logger)
+
 	// handle signals
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
@@ -89,6 +132,7 @@ func Run(cmd *cobra.Command, args []string) {
 	go func() {
 		<-sigs
 		a.Stop()
+		receiver.Shutdown(ctx)
 		done <- true
 	}()
 
@@ -98,8 +142,31 @@ func Run(cmd *cobra.Command, args []string) {
 		logger.Error("agent startup error", zap.Error(err))
 		os.Exit(1)
 	}
-	<-done
 
+	err = receiver.Start(context.Background(), nil)
+	if err != nil {
+		logger.Error("otel startup error", zap.Error(err))
+		os.Exit(1)
+	}
+
+	<-done
+}
+
+type getReceiverConfigFn func() otelconfig.Receiver
+
+type createReceiverFn func(
+	ctx context.Context,
+	params component.ReceiverCreateSettings,
+	cfg otelconfig.Receiver,
+	nextConsumer consumer.Metrics,
+	logger *zap.Logger) (component.Receiver, error)
+
+func createMetricsReceiver() createReceiverFn {
+	return func(ctx context.Context, params component.ReceiverCreateSettings, cfg otelconfig.Receiver, nextConsumer consumer.Metrics, logger *zap.Logger) (component.Receiver, error) {
+		rCfg := cfg.(*otel.Config)
+		//return factory.CreateMetricsReceiver(ctx, params, cfg, nextConsumer)
+		return otel.New(params, rCfg, nextConsumer), nil
+	}
 }
 
 func mergeOrError(path string) {
