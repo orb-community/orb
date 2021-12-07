@@ -12,6 +12,13 @@ import (
 	config2 "github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/agent/otel"
 	"github.com/ns1labs/orb/buildinfo"
+	"github.com/ns1labs/orb/pkg/errors"
+	promexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
+	configutil "github.com/prometheus/common/config"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/discovery"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
@@ -21,6 +28,7 @@ import (
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"k8s.io/client-go/rest"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -96,33 +104,37 @@ func Run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	ctx := context.Background()
+
 	// new otel receiver
 	//factory := otel.NewFactory()
-	var getConfigFn getReceiverConfigFn
-	if getConfigFn == nil {
-		getConfigFn = func() otelconfig.Receiver {
-			config := &otel.Config{
-				ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID(typeStr)),
-				TCPAddr: confignet.TCPAddr{
-					Endpoint: defaultEndpoint,
-				},
-				MetricsPath:        defaultMetricsPath,
-				CollectionInterval: defaultCollectionInterval,
-			}
-			return config
-		}
-	}
-	ctx := context.Background()
-	wrap := createMetricsReceiver()
-	receiverCreateSet := component.ReceiverCreateSettings{
-		TelemetrySettings: component.TelemetrySettings{
-			Logger:         logger,
-			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.GetMeterProvider(),
-		},
-		BuildInfo: component.NewDefaultBuildInfo(),
-	}
-	receiver, err := wrap(ctx, receiverCreateSet, getConfigFn(), nil, logger)
+	exporter, err := createExporter(ctx, logger)
+	receiver, err := createReceiver(ctx, exporter, logger)
+	//var getConfigFn getReceiverConfigFn
+	//if getConfigFn == nil {
+	//	getConfigFn = func() otelconfig.Receiver {
+	//		config := &otel.Config{
+	//			ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID(typeStr)),
+	//			TCPAddr: confignet.TCPAddr{
+	//				Endpoint: defaultEndpoint,
+	//			},
+	//			MetricsPath:        defaultMetricsPath,
+	//			CollectionInterval: defaultCollectionInterval,
+	//		}
+	//		return config
+	//	}
+	//}
+	//
+	//wrap := createMetricsReceiver()
+	//receiverCreateSet := component.ReceiverCreateSettings{
+	//	TelemetrySettings: component.TelemetrySettings{
+	//		Logger:         logger,
+	//		TracerProvider: trace.NewNoopTracerProvider(),
+	//		MeterProvider:  global.GetMeterProvider(),
+	//	},
+	//	BuildInfo: component.NewDefaultBuildInfo(),
+	//}
+	//receiver, err := wrap(ctx, receiverCreateSet, getConfigFn(), exporter, logger)
 
 	// handle signals
 	sigs := make(chan os.Signal, 1)
@@ -132,6 +144,7 @@ func Run(cmd *cobra.Command, args []string) {
 	go func() {
 		<-sigs
 		a.Stop()
+		exporter.Shutdown(ctx)
 		receiver.Shutdown(ctx)
 		done <- true
 	}()
@@ -143,13 +156,131 @@ func Run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	err = receiver.Start(context.Background(), nil)
+	err = exporter.Start(ctx, nil)
 	if err != nil {
-		logger.Error("otel startup error", zap.Error(err))
+		logger.Error("otel exporter startup error", zap.Error(err))
+		os.Exit(1)
+	}
+
+	err = receiver.Start(ctx, nil)
+	if err != nil {
+		logger.Error("otel receiver startup error", zap.Error(err))
 		os.Exit(1)
 	}
 
 	<-done
+}
+
+func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
+	// 2. Create the Prometheus metrics exporter that'll receive and verify the metrics produced.
+	exporterCfg := &promexporter.Config{
+		ExporterSettings: otelconfig.NewExporterSettings(otelconfig.NewComponentID(typeStr)),
+		Namespace:        "test",
+		Endpoint:         ":8787",
+		SendTimestamps:   true,
+		MetricExpiration: 2 * time.Hour,
+	}
+	exporterFactory := promexporter.NewFactory()
+	set := component.ExporterCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.GetMeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+	exporter, err := exporterFactory.CreateMetricsExporter(ctx, set, exporterCfg)
+	if err != nil {
+		return nil, err
+	}
+	return exporter, nil
+}
+
+func createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
+	receiverFactory := prometheusreceiver.NewFactory()
+	receiverCreateSet := component.ReceiverCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.GetMeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+	rcvCfg := &otel.Config{
+		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID(typeStr)),
+		TCPAddr: confignet.TCPAddr{
+			Endpoint: defaultEndpoint,
+		},
+		MetricsPath:        defaultMetricsPath,
+		CollectionInterval: defaultCollectionInterval,
+	}
+	// 3.5 Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
+	pConfig, err := getPrometheusConfig(rcvCfg)
+	if err != nil {
+		return nil, errors.Wrap(errors.New("failed to create prometheus receiver config"), err)
+	}
+	prometheusReceiver, err := receiverFactory.CreateMetricsReceiver(ctx, receiverCreateSet, pConfig, exporter)
+	if err != nil {
+		return nil, err
+	}
+	return prometheusReceiver, nil
+}
+
+func getPrometheusConfig(cfg *otel.Config) (*prometheusreceiver.Config, error) {
+	var bearerToken string
+	if cfg.UseServiceAccount {
+		restConfig, err := rest.InClusterConfig()
+		if err != nil {
+			return nil, err
+		}
+		bearerToken = restConfig.BearerToken
+		if bearerToken == "" {
+			return nil, errors.New("bearer token was empty")
+		}
+	}
+
+	out := &prometheusreceiver.Config{}
+	httpConfig := configutil.HTTPClientConfig{}
+
+	scheme := "http"
+
+	if cfg.TLSEnabled {
+		scheme = "https"
+		httpConfig.TLSConfig = configutil.TLSConfig{
+			CAFile:             cfg.TLSConfig.CAFile,
+			CertFile:           cfg.TLSConfig.CertFile,
+			KeyFile:            cfg.TLSConfig.KeyFile,
+			InsecureSkipVerify: cfg.TLSConfig.InsecureSkipVerify,
+		}
+	}
+
+	httpConfig.BearerToken = configutil.Secret(bearerToken)
+
+	scrapeConfig := &config.ScrapeConfig{
+		ScrapeInterval:  model.Duration(cfg.CollectionInterval),
+		ScrapeTimeout:   model.Duration(cfg.CollectionInterval),
+		JobName:         fmt.Sprintf("%s/%s", typeStr, cfg.Endpoint),
+		HonorTimestamps: true,
+		Scheme:          scheme,
+		MetricsPath:     cfg.MetricsPath,
+		Params:          cfg.Params,
+		ServiceDiscoveryConfigs: discovery.Configs{
+			&discovery.StaticConfig{
+				{
+					Targets: []model.LabelSet{
+						{model.AddressLabel: model.LabelValue(cfg.Endpoint)},
+					},
+				},
+			},
+		},
+	}
+
+	scrapeConfig.HTTPClientConfig = httpConfig
+	out.PrometheusConfig = &config.Config{ScrapeConfigs: []*config.ScrapeConfig{
+		scrapeConfig,
+	}}
+
+	return out, nil
 }
 
 type getReceiverConfigFn func() otelconfig.Receiver

@@ -20,7 +20,7 @@ const (
 	defaultMetricsPath = "/api/v1/policies/__all/metrics/bucket/1"
 )
 
-var defaultCollectionInterval = 10 * time.Second
+var defaultCollectionInterval = 1 * time.Millisecond
 
 // NewFactory creates a factory for "Simple" Prometheus receiver.
 func NewFactory() component.ReceiverFactory {
