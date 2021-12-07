@@ -23,12 +23,18 @@ import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.a
 import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 import { DashboardComponent } from 'app/pages/dashboard/dashboard.component';
 import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.component';
+import { ProfileComponent } from './profile/profile.component';
 
 const children = [
   {
     path: 'home',
     data: {breadcrumb: 'Home'},
     component: DashboardComponent,
+  },
+  {
+    path: 'profile',
+    data: {breadcrumb: 'Home'},
+    component: ProfileComponent,
   },
   {
     path: 'dev',
