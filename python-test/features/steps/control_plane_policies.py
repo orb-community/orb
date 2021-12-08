@@ -35,13 +35,17 @@ def clean_policies(context):
     delete_policies(token, policies_filtered_list)
 
 
-# Todo complete the documentation
 def create_policy(token, policy_name, handler_label, handler, description=None, tap="default_pcap",
                   input_type="pcap", host_specification=None, filter_expression=None, backend_type="pktvisor"):
     """
 
     Creates a new policy in Orb control plane
 
+    :param filter_expression:
+    :param (str) host_specification: Subnets (comma separated) which should be considered belonging to this host,
+    in CIDR form. Used for ingress/egress determination, defaults to host attached to the network interface.
+    :param input_type: this must reference a tap name, or application of the policy will fail
+    :param tap: named, host specific connection specifications for the raw input streams accessed by pktvisor
     :param (str) token: used for API authentication
     :param (str) policy_name:  of the policy to be created
     :param (str) handler_label:  of the handler
