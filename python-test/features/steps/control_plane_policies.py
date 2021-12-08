@@ -5,21 +5,21 @@ from behave import given, when, then
 from utils import random_string, filter_list_by_parameter_start_with
 
 policy_name_prefix = "test_policy_name_"
-name = policy_name_prefix + random_string(4)
-handler = "net"
-handle_label = "default_" + handler
+default_handler = "net"
+handle_label = "default_" + default_handler
 
-#todo
+
 @when("a new policy is created")
 def create_new_policy(context):
-    context.policy = create_policy(context.token, name, handle_label, handler)
+    context.policy_name = policy_name_prefix + random_string(10)
+    context.policy = create_policy(context.token, context.policy_name, handle_label, default_handler)
 
 
 @then("referred policy must be listened on the orb policies list")
 def check_policies(context):
     policy_id = context.policy['id']
     policy = get_policy(context.token, policy_id)
-    assert_that(policy['name'], equal_to(name), "Incorrect policy name")
+    assert_that(policy['name'], equal_to(context.policy_name), "Incorrect policy name")
 
 
 @then('cleanup policies')
@@ -33,6 +33,12 @@ def clean_policies(context):
     policies_list = list_policies(token)
     policies_filtered_list = filter_list_by_parameter_start_with(policies_list, 'name', policy_name_prefix)
     delete_policies(token, policies_filtered_list)
+
+
+@given("that a policy already exists")
+def new_policy(context):
+    create_new_policy(context)
+    check_policies(context)
 
 
 def create_policy(token, policy_name, handler_label, handler, description=None, tap="default_pcap",
@@ -56,9 +62,9 @@ def create_policy(token, policy_name, handler_label, handler, description=None, 
     """
     response = requests.post(base_orb_url + '/api/v1/policies/agent',
                              json={"name": policy_name, "description": description, "backend": backend_type,
-                                   "policy": {"kind": "collection", "input": {"tap": tap, "input_type": input_type}},
-                                   "config": {"host_spec": host_specification}, "filter": {"bpf": filter_expression},
-                                   "handlers": {"modules": {handler_label: {"type": handler}}}},
+                                   "policy": {"kind": "collection", "input": {"tap": tap, "input_type": input_type},
+                                              "handlers": {"modules": {handler_label: {"type": handler}}}},
+                                   "config": {"host_spec": host_specification}, "filter": {"bpf": filter_expression}},
                              headers={'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token})
     assert_that(response.status_code, equal_to(201),
                 'Request to create policy failed with status=' + str(response.status_code))
@@ -84,15 +90,17 @@ def get_policy(token, policy_id):
     return get_policy_response.json()
 
 
-def list_policies(token):
+def list_policies(token, limit=100):
     """
     Lists all policies from Orb control plane that belong to this user
 
+    :param (int) limit: Size of the subset to retrieve.
     :param (str) token: used for API authentication
     :returns: (list) a list of policies
     """
 
-    response = requests.get(base_orb_url + '/api/v1/policies/agent', headers={'Authorization': token})
+    response = requests.get(base_orb_url + '/api/v1/policies/agent', headers={'Authorization': token},
+                            params={'limit': limit})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list policies failed with status=' + str(response.status_code))
