@@ -24,7 +24,7 @@ type prometheusReceiverWrapper struct {
 	prometheusReceiver component.MetricsReceiver
 }
 
-// new returns a prometheusReceiverWrapper
+// New returns a prometheusReceiverWrapper
 func New(params component.ReceiverCreateSettings, cfg *Config, consumer consumer.Metrics) *prometheusReceiverWrapper {
 	var logger *zap.Logger
 	var err error
@@ -70,16 +70,6 @@ func getPrometheusConfig(cfg *Config) (*prometheusreceiver.Config, error) {
 	httpConfig := configutil.HTTPClientConfig{}
 
 	scheme := "http"
-
-	if cfg.TLSEnabled {
-		scheme = "https"
-		httpConfig.TLSConfig = configutil.TLSConfig{
-			CAFile:             cfg.TLSConfig.CAFile,
-			CertFile:           cfg.TLSConfig.CertFile,
-			KeyFile:            cfg.TLSConfig.KeyFile,
-			InsecureSkipVerify: cfg.TLSConfig.InsecureSkipVerify,
-		}
-	}
 
 	httpConfig.BearerToken = configutil.Secret(bearerToken)
 

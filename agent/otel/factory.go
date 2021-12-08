@@ -14,13 +14,13 @@ import (
 // This file implements factory for prometheus_simple receiver
 const (
 	// The value of "type" key in configuration.
-	typeStr = "prometheus_simple"
+	typeStr = "pktvisor_prometheus"
 
 	defaultEndpoint    = "http://localhost:10853"
 	defaultMetricsPath = "/api/v1/policies/__all/metrics/bucket/1"
 )
 
-var defaultCollectionInterval = 1 * time.Millisecond
+var defaultCollectionInterval = 10 * time.Second
 
 // NewFactory creates a factory for "Simple" Prometheus receiver.
 func NewFactory() component.ReceiverFactory {
