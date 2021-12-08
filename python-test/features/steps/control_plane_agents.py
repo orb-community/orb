@@ -1,6 +1,7 @@
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with
-from behave import when, then
+from local_agent import run_local_agent_container
+from behave import given, when, then
 from hamcrest import *
 import time
 import requests
@@ -8,14 +9,30 @@ import requests
 configs = TestConfig.configs()
 base_orb_url = "https://" + configs.get('orb_address')
 agent_name_prefix = "test_agent_name_"
-agent_name = agent_name_prefix + random_string(10)
-agent_tag_key = "test_tag_key_" + random_string(4)
-agent_tag_value = "test_tag_value_" + random_string(4)
+tag_key_prefix = "test_tag_key_"
+tag_value_prefix = "test_tag_value_"
+
+@given("that an agent already exists and is {status}")
+def check_if_agents_exist(context, status):
+    context.agent_name = agent_name_prefix + random_string(10)
+    context.agent_tag_key = tag_key_prefix + random_string(4)
+    context.agent_tag_value = tag_value_prefix + random_string(4)
+    agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
+    context.agent = agent
+    token = context.token
+    run_local_agent_container(context)
+    agent_id = context.agent['id']
+    existing_agents = get_agent(token, agent_id)
+    assert_that(len(existing_agents), greater_than(0), "Agent not created")
+    expect_container_status(token, agent_id, status)
 
 
 @when('a new agent is created')
 def agent_is_created(context):
-    agent = create_agent(context.token, agent_name, agent_tag_key, agent_tag_value)
+    context.agent_name = agent_name_prefix + random_string(10)
+    context.agent_tag_key = tag_key_prefix + random_string(4)
+    context.agent_tag_value = tag_value_prefix + random_string(4)
+    agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
     context.agent = agent
 
 
@@ -83,15 +100,16 @@ def get_agent(token, agent_id):
     return get_agents_response.json()
 
 
-def list_agents(token):
+def list_agents(token, limit=100):
     """
-    Lists all agents from Orb control plane that belong to this user
+    Lists up to 100 agents from Orb control plane that belong to this user
 
+    :param (int) limit: Size of the subset to retrieve.
     :param (str) token: used for API authentication
     :returns: (list) a list of agents
     """
 
-    response = requests.get(base_orb_url + '/api/v1/agents', headers={'Authorization': token})
+    response = requests.get(base_orb_url + '/api/v1/agents', headers={'Authorization': token},  params={"limit": limit})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list agents failed with status=' + str(response.status_code))

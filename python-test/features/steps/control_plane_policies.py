@@ -9,7 +9,7 @@ name = policy_name_prefix + random_string(4)
 handler = "net"
 handle_label = "default_" + handler
 
-
+#todo
 @when("a new policy is created")
 def create_new_policy(context):
     context.policy = create_policy(context.token, name, handle_label, handler)
