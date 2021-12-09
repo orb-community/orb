@@ -127,7 +127,7 @@ func TestCreateSinks(t *testing.T) {
 			req:         validJson,
 			contentType: contentType,
 			auth:        token,
-			status:      http.StatusOK,
+			status:      http.StatusCreated,
 			location:    "/sinks",
 		},
 		"add a duplicate sink": {
