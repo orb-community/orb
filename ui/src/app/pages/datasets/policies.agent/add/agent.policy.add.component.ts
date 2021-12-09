@@ -416,7 +416,15 @@ export class AgentPolicyAddComponent {
       return controls;
     }, {});
 
+    const suggestName = this.getSeriesHandlerName(selectedHandler);
+    this.handlerSelectorFG.patchValue({label: suggestName});
+
     this.dynamicHandlerFilterFG = Object.keys(dynamicFilterControls).length > 0 ? this._formBuilder.group(dynamicFilterControls) : null;
+  }
+
+  getSeriesHandlerName(handlerType) {
+    const count = 1 + Object.values(this.modules || {}).filter(({type}) => type === handlerType).length;
+    return `handler_${handlerType}_${count}`;
   }
 
   checkValidName() {
