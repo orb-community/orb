@@ -39,6 +39,7 @@ export class AgentPolicyAddComponent {
   handlerSelectorFG: FormGroup;
 
   dynamicHandlerConfigFG: FormGroup;
+  dynamicHandlerFilterFG: FormGroup;
 
   // #key inputs holders
   // selected backend object
@@ -69,6 +70,7 @@ export class AgentPolicyAddComponent {
       name?: string,
       type?: string,
       config?: { [propName: string]: {} | any },
+      filter?: { [propName: string]: {} | any },
     },
   } = {};
 
@@ -201,6 +203,7 @@ export class AgentPolicyAddComponent {
     });
 
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
+    this.dynamicHandlerFilterFG = this._formBuilder.group({});
   }
 
   updateForms() {
@@ -220,6 +223,7 @@ export class AgentPolicyAddComponent {
     this.modules = modules;
 
     this.dynamicHandlerConfigFG = this._formBuilder.group({});
+    this.dynamicHandlerFilterFG = this._formBuilder.group({});
 
     this.onBackendSelected(backend).catch(reason => console.warn(`${ reason }`));
 
@@ -249,7 +253,7 @@ export class AgentPolicyAddComponent {
 
       // todo hardcoded for pktvisor
       this.getBackendData().then(() => {
-        resolve();
+        resolve(null);
       });
     });
   }
@@ -390,13 +394,24 @@ export class AgentPolicyAddComponent {
     if (this.dynamicHandlerConfigFG) {
       this.dynamicHandlerConfigFG = null;
     }
+    if (this.dynamicHandlerFilterFG) {
+      this.dynamicHandlerFilterFG = null;
+    }
 
+    // TODO - hardcoded for v: 1.0 -: always retrieve latest
     this.liveHandler = selectedHandler !== '' && !!this.availableHandlers[selectedHandler] ?
-      { ...this.availableHandlers[selectedHandler], type: selectedHandler } : null;
+      { ...this.availableHandlers[selectedHandler]['1.0'], type: selectedHandler } : null;
 
-    const { config } = this.liveHandler || { config: {} };
+    const { config, filter } = this.liveHandler || { config: {}, filter: {} };
 
-    const dynamicControls = Object.entries(config || {}).reduce((controls, [key]) => {
+    const dynamicConfigControls = Object.entries(config || {}).reduce((controls, [key]) => {
+      controls[key] = ['', [Validators.required]];
+      return controls;
+    }, {});
+
+    this.dynamicHandlerConfigFG = Object.keys(dynamicConfigControls).length > 0 ? this._formBuilder.group(dynamicConfigControls) : null;
+
+    const dynamicFilterControls = Object.entries(filter || {}).reduce((controls, [key]) => {
       controls[key] = ['', [Validators.required]];
       return controls;
     }, {});
@@ -404,7 +419,7 @@ export class AgentPolicyAddComponent {
     const suggestName = this.getSeriesHandlerName(selectedHandler);
     this.handlerSelectorFG.patchValue({label: suggestName});
 
-    this.dynamicHandlerConfigFG = Object.keys(dynamicControls).length > 0 ? this._formBuilder.group(dynamicControls) : null;
+    this.dynamicHandlerFilterFG = Object.keys(dynamicFilterControls).length > 0 ? this._formBuilder.group(dynamicFilterControls) : null;
   }
 
   getSeriesHandlerName(handlerType) {
@@ -420,9 +435,18 @@ export class AgentPolicyAddComponent {
 
   onHandlerAdded() {
     let config = {};
+    let filter = {};
 
     if (this.dynamicHandlerConfigFG !== null) {
       config = Object.entries(this.dynamicHandlerConfigFG.controls)
+        .reduce((acc, [key, control]) => {
+          acc[key] = control.value;
+          return acc;
+        }, {});
+    }
+
+    if (this.dynamicHandlerFilterFG !== null) {
+      filter = Object.entries(this.dynamicHandlerFilterFG.controls)
         .reduce((acc, [key, control]) => {
           acc[key] = control.value;
           return acc;
@@ -433,6 +457,7 @@ export class AgentPolicyAddComponent {
     this.modules[handlerName] = ({
       type: this.liveHandler.type,
       config,
+      filter,
     });
 
     this.handlerSelectorFG.reset({
