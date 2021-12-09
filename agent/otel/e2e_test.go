@@ -108,7 +108,7 @@ func TestEndToEndSummarySupport(t *testing.T) {
 			CollectionInterval: defaultCollectionInterval,
 		}
 		// 3.5 Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
-		pConfig, err := getPrometheusConfig(rcvCfg)
+		pConfig, err := GetPrometheusConfig(rcvCfg)
 		if err != nil {
 			t.Fatalf("failed to create prometheus receiver config: %v", err)
 		}
@@ -257,7 +257,7 @@ func TestEndToEnd(t *testing.T) {
 			CollectionInterval: defaultCollectionInterval,
 		}
 		// 3.5 Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
-		pConfig, err := getPrometheusConfig(rcvCfg)
+		pConfig, err := GetPrometheusConfig(rcvCfg)
 		if err != nil {
 			t.Fatalf("failed to create prometheus receiver config: %v", err)
 		}

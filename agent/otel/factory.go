@@ -16,8 +16,8 @@ const (
 	// The value of "type" key in configuration.
 	typeStr = "pktvisor_prometheus"
 
-	defaultEndpoint    = "http://localhost:10853"
-	defaultMetricsPath = "/api/v1/policies/__all/metrics/bucket/1"
+	defaultEndpoint    = "localhost:10853"
+	defaultMetricsPath = "/api/v1/policies/__all/metrics/prometheus"
 )
 
 var defaultCollectionInterval = 10 * time.Second
@@ -27,7 +27,7 @@ func NewFactory() component.ReceiverFactory {
 	return receiverhelper.NewFactory(
 		typeStr,
 		CreateDefaultConfig,
-		receiverhelper.WithMetrics(createMetricsReceiver))
+		receiverhelper.WithMetrics(CreateMetricsReceiver))
 }
 
 func CreateDefaultConfig() config.Receiver {
@@ -41,7 +41,7 @@ func CreateDefaultConfig() config.Receiver {
 	}
 }
 
-func createMetricsReceiver(
+func CreateMetricsReceiver(
 	_ context.Context,
 	params component.ReceiverCreateSettings,
 	cfg config.Receiver,
