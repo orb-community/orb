@@ -47,16 +47,16 @@ def create_policy(token, policy_name, handler_label, handler, description=None, 
 
     Creates a new policy in Orb control plane
 
-    :param filter_expression:
-    :param (str) host_specification: Subnets (comma separated) which should be considered belonging to this host,
-    in CIDR form. Used for ingress/egress determination, defaults to host attached to the network interface.
-    :param input_type: this must reference a tap name, or application of the policy will fail
-    :param tap: named, host specific connection specifications for the raw input streams accessed by pktvisor
     :param (str) token: used for API authentication
     :param (str) policy_name:  of the policy to be created
     :param (str) handler_label:  of the handler
-    :param (str) handler:  to be added
+    :param (str) handler: to be added
     :param (str) description: description of policy
+    :param tap: named, host specific connection specifications for the raw input streams accessed by pktvisor
+    :param input_type: this must reference a tap name, or application of the policy will fail
+    :param (str) host_specification: Subnets (comma separated) which should be considered belonging to this host,
+    in CIDR form. Used for ingress/egress determination, defaults to host attached to the network interface.
+    :param filter_expression: these decide exactly which data to summarize and expose for collection
     :param backend_type: Agent backend this policy is for. Cannot change once created. Default: pktvisor
     :return: (dict) a dictionary containing the created policy data
     """

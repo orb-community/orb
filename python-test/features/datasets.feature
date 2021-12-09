@@ -10,3 +10,4 @@ Feature: datasets creation
     When a new dataset is created using referred group, sink and policy ID
     Then the container logs should contain the message "managing agent policy from core" within 10 seconds
     Then the container logs should contain the message "scraped metrics for policy" within 120 seconds
+    Then referred sink must have active state on response

@@ -40,7 +40,6 @@ def create_sink(context):
 @then("referred sink must have {status} state on response")
 def check_sink_status(context, status):
     sink_id = context.sink["id"]
-    assert_that(context.sink['state'], equal_to(status), f"Sink {sink_id} state failed")
     get_sink_response = get_sink(context.token, sink_id)
     assert_that(get_sink_response['state'], equal_to(status), f"Sink {sink_id} state failed")
 
@@ -71,14 +70,14 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     Creates a new sink in Orb control plane
 
     :param (str) token: used for API authentication
-    :param name_label:  of the sink to be created
-    :param remote_host: base url to send metrics to a dashboard
-    :param username: user that enables access to the dashboard
-    :param password: key that enables access to the dashboard
+    :param (str) name_label:  of the sink to be created
+    :param (str) remote_host: base url to send metrics to a dashboard
+    :param (str) username: user that enables access to the dashboard
+    :param (str) password: key that enables access to the dashboard
     :param (str) description: description of sink
-    :param tag_key: the key of the tag to be added to this sink. Default: ''
-    :param tag_value: the value of the tag to be added to this sink. Default: None
-    :param backend_type: type of backend used to send metrics. Default: prometheus
+    :param (str) tag_key: the key of the tag to be added to this sink. Default: ''
+    :param (str) tag_value: the value of the tag to be added to this sink. Default: None
+    :param (str) backend_type: type of backend used to send metrics. Default: prometheus
     :return: (dict) a dictionary containing the created sink data
     """
     response = requests.post(base_orb_url + '/api/v1/sinks',
@@ -87,12 +86,7 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
                                    "config": {"remote_host": remote_host, "username": username, "password": password}},
                              headers={'Content-type': 'application/json', 'Accept': '*/*',
                                       'Authorization': token})
-    #Todo uncomment asssertation
-    # assert_that(response.status_code, equal_to(201),
-    #             'Request to create sink failed with status=' + str(response.status_code))
-
-    #Todo remove assertation
-    assert_that(response.status_code, equal_to(200),
+    assert_that(response.status_code, equal_to(201),
                 'Request to create sink failed with status=' + str(response.status_code))
 
     return response.json()

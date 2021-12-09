@@ -17,10 +17,18 @@ def create_new_dataset(context):
     context.dataset = create_dataset(token, dataset_name, policy_id, agent_groups_id, sink_id)
 
 
-# Todo doc this function
-def create_dataset(token, name_label, policy_id, agent_groups_id, sink_id):
+def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) name_label:  of the dataset to be created
+    :param (str) policy_id: that identifies policy to be fetched
+    :param (str) agent_group_id: that identifies agent_group to be fetched
+    :param (str) sink_id: that identifies sink to be fetched
+    :return:
+    """
     response = requests.post(base_orb_url + '/api/v1/policies/dataset',
-                             json={"name": name_label, "agent_group_id": agent_groups_id, "agent_policy_id": policy_id,
+                             json={"name": name_label, "agent_group_id": agent_group_id, "agent_policy_id": policy_id,
                                    "sink_ids": [sink_id]},
                              headers={'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token})
     assert_that(response.status_code, equal_to(201),
