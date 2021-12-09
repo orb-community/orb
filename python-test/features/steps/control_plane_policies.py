@@ -15,6 +15,7 @@ def create_new_policy(context):
     context.policy = create_policy(context.token, context.policy_name, handle_label, default_handler)
 
 
+
 @then("referred policy must be listened on the orb policies list")
 def check_policies(context):
     policy_id = context.policy['id']
@@ -47,6 +48,7 @@ def create_policy(token, policy_name, handler_label, handler, description=None, 
 
     Creates a new policy in Orb control plane
 
+
     :param (str) token: used for API authentication
     :param (str) policy_name:  of the policy to be created
     :param (str) handler_label:  of the handler
@@ -65,6 +67,7 @@ def create_policy(token, policy_name, handler_label, handler, description=None, 
                                    "policy": {"kind": "collection", "input": {"tap": tap, "input_type": input_type},
                                               "handlers": {"modules": {handler_label: {"type": handler}}}},
                                    "config": {"host_spec": host_specification}, "filter": {"bpf": filter_expression}},
+
                              headers={'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token})
     assert_that(response.status_code, equal_to(201),
                 'Request to create policy failed with status=' + str(response.status_code))
@@ -98,6 +101,7 @@ def list_policies(token, limit=100):
     :param (str) token: used for API authentication
     :returns: (list) a list of policies
     """
+
 
     response = requests.get(base_orb_url + '/api/v1/policies/agent', headers={'Authorization': token},
                             params={'limit': limit})
@@ -134,3 +138,4 @@ def delete_policy(token, policy_id):
 
     assert_that(response.status_code, equal_to(204), 'Request to delete policy id='
                 + policy_id + ' failed with status=' + str(response.status_code))
+

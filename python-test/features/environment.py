@@ -12,7 +12,6 @@ def after_feature(context, feature):
     Then cleanup policies
     Then cleanup datasets
     ''')
-    pass
 
 
 def cleanup_container():
