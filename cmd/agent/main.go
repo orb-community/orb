@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
-	config2 "github.com/ns1labs/orb/agent/config"
+	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/pkg/errors"
 	receiver "github.com/ns1labs/orb/receiver/pktvisorpromreceiver"
@@ -64,7 +64,7 @@ func Run(cmd *cobra.Command, args []string) {
 	initConfig()
 
 	// configuration
-	var config config2.Config
+	var config config.Config
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		logger.Error("agent start up error (config)", zap.Error(err))
@@ -106,12 +106,6 @@ func Run(cmd *cobra.Command, args []string) {
 	if err != nil {
 		logger.Error("agent startup error", zap.Error(err))
 		os.Exit(1)
-	}
-
-	// run otel components
-	err = runPromComponents()
-	if err != nil {
-		logger.Error("failed to start up ", zap.Error(err))
 	}
 
 	<-done
@@ -156,7 +150,7 @@ func mergeOrError(path string) {
 	if versionNumber1 := viper.GetFloat64("version"); versionNumber1 != fZero {
 		versionNumber2 := v.GetFloat64("version")
 		if versionNumber2 == fZero {
-			cobra.CheckErr("Failed to parse config vesrion in: " + path)
+			cobra.CheckErr("Failed to parse config version in: " + path)
 		}
 		if versionNumber2 != versionNumber1 {
 			cobra.CheckErr("Config file version mismatch in: " + path)
@@ -209,7 +203,7 @@ func main() {
 	rootCmd.Execute()
 }
 
-func runPromComponents() error {
+func RunComponents() error {
 	factories, err := components()
 	if err != nil {
 		return errors.Wrap(errors.New(fmt.Sprintf("failed to build components: %v", err)), err)
