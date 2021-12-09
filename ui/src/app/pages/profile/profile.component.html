@@ -1,60 +1,62 @@
-<nb-card>
-  <nb-card-header>User Information</nb-card-header>
-  <nb-card-body>
-    <div class="form-group row">
-      <div class="col-sm-12">
-        <div class="row">
-          <div class="col-sm-12">
+<div class="card-row">
+  <div class="card-col">
+    <nb-card>
+      <nb-card-header>User Information</nb-card-header>
+      <nb-card-body>
+        <div class="form-group col-sm-12">
+          <div class="row">
             <label>Full Name</label>
             <input type="text" class="form-control" [(ngModel)]="fullName">
           </div>
-        </div>
-        <br/>
-        <div class="row">
-          <div class="col-sm-12 col-md-6">
+          <br/>
+          <div class="row">
             <label>Email</label>
             <input type="email" class="form-control" [(ngModel)]="email" readonly>
           </div>
-          <div class="col-sm-12 col-md-6">
+          <br/>
+          <div class="row">
             <label>Company</label>
             <input type="text" class="form-control" [(ngModel)]="company">
           </div>
         </div>
-      </div>
-    </div>
-    <button nbButton size="medium" class="button-blue"
-      (click)="onClickSaveInfos($event)">
-      <nb-icon icon="save-outline"></nb-icon>
-      Save
-    </button>
-  </nb-card-body>
-</nb-card>
-
-<!-- User Password -->
-<nb-card>
-  <nb-card-header>Change Password</nb-card-header>
-  <nb-card-body>
-    <div class="form-group row">
-      <div class="col-sm-4">
-        <label>New Password</label>
-        <input type="password" [(ngModel)]="newPassword"
-               class="form-control" placeholder="New Password">
-      </div>
-      <div class="col-sm-4">
-        <label>Confirm Password</label>
-        <input type="password" [(ngModel)]="confirmPassword"
-               class="form-control" placeholder="Confirm Password">
-      </div>
-      <div class="col-sm-4">
-        <label>Old Password</label>
-        <input type="password" [(ngModel)]="oldPassword"
-               class="form-control" placeholder="Old Password">
-      </div>
-    </div>
-    <button nbButton size="medium" class="button-blue"
-      (click)="onClickSavePassword($event)">
-      <nb-icon icon="save-outline"></nb-icon>
-      Save
-    </button>
-  </nb-card-body>
-</nb-card>
+        <button nbButton size="medium" class="button-blue"
+          (click)="onClickSaveInfos($event)">
+          <nb-icon icon="save-outline"></nb-icon>
+          Save
+        </button>
+      </nb-card-body>
+    </nb-card>
+  </div>
+  <!-- User Password -->
+  <div class="card-col">
+    <nb-card>
+      <nb-card-header>Change Password</nb-card-header>
+      <nb-card-body>
+        <div class="form-group col-sm-12">
+          <div class="row">
+            <label>New Password</label>
+            <input type="password" [(ngModel)]="newPassword"
+                    class="form-control" placeholder="New Password">
+          </div>
+          <br/>
+          <div class="row">
+            <label>Confirm Password</label>
+            <input type="password" [(ngModel)]="confirmPassword"
+                    class="form-control" placeholder="Confirm Password">
+          </div>
+          <br/>
+          <div class="row">
+            <label>Old Password</label>
+            <input type="password" [(ngModel)]="oldPassword"
+                    class="form-control" placeholder="Old Password">
+          </div>
+        </div>
+        <button nbButton size="medium" class="button-blue"
+          (click)="onClickSavePassword($event)">
+          <nb-icon icon="save-outline"></nb-icon>
+          Save
+        </button>
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>
