@@ -26,11 +26,11 @@ var defaultCollectionInterval = 10 * time.Second
 func NewFactory() component.ReceiverFactory {
 	return receiverhelper.NewFactory(
 		typeStr,
-		createDefaultConfig,
+		CreateDefaultConfig,
 		receiverhelper.WithMetrics(createMetricsReceiver))
 }
 
-func createDefaultConfig() config.Receiver {
+func CreateDefaultConfig() config.Receiver {
 	return &Config{
 		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
 		TCPAddr: confignet.TCPAddr{

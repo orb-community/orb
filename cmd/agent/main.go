@@ -5,19 +5,13 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/buildinfo"
-	"github.com/ns1labs/orb/pkg/errors"
-	receiver "github.com/ns1labs/orb/receiver/pktvisorpromreceiver"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/service"
-	"go.opentelemetry.io/collector/service/defaultcomponents"
 	"go.uber.org/zap"
 	"math/rand"
 	"os"
@@ -203,47 +197,47 @@ func main() {
 	rootCmd.Execute()
 }
 
-func RunComponents() error {
-	factories, err := components()
-	if err != nil {
-		return errors.Wrap(errors.New(fmt.Sprintf("failed to build components: %v", err)), err)
-	}
-
-	info := component.BuildInfo{
-		Command:     "otelcontribcol",
-		Description: "OpenTelemetry Collector Contrib",
-		Version:     buildinfo.GetVersion(),
-	}
-
-	app, err := service.New(service.CollectorSettings{
-		Factories: factories,
-		BuildInfo: info,
-	})
-
-	err = app.Run(context.Background())
-	if err != nil {
-		return errors.Wrap(errors.New(fmt.Sprintf("application run finished with error: %v", err)), err)
-	}
-	return nil
-}
-
-func components() (component.Factories, error) {
-	factories, err := defaultcomponents.Components()
-	if err != nil {
-		return component.Factories{}, err
-	}
-	receivers := []component.ReceiverFactory{
-		receiver.NewFactory(),
-	}
-
-	for _, rc := range factories.Receivers {
-		receivers = append(receivers, rc)
-	}
-
-	factories.Receivers, err = component.MakeReceiverFactoryMap(receivers...)
-	if err != nil {
-		return factories, err
-	}
-
-	return factories, nil
-}
+//func RunComponents() error {
+//	factories, err := components()
+//	if err != nil {
+//		return errors.Wrap(errors.New(fmt.Sprintf("failed to build components: %v", err)), err)
+//	}
+//
+//	info := component.BuildInfo{
+//		Command:     "otelcontribcol",
+//		Description: "OpenTelemetry Collector Contrib",
+//		Version:     buildinfo.GetVersion(),
+//	}
+//
+//	app, err := service.New(service.CollectorSettings{
+//		Factories: factories,
+//		BuildInfo: info,
+//	})
+//
+//	err = app.Run(context.Background())
+//	if err != nil {
+//		return errors.Wrap(errors.New(fmt.Sprintf("application run finished with error: %v", err)), err)
+//	}
+//	return nil
+//}
+//
+//func components() (component.Factories, error) {
+//	factories, err := defaultcomponents.Components()
+//	if err != nil {
+//		return component.Factories{}, err
+//	}
+//	receivers := []component.ReceiverFactory{
+//		receiver.NewFactory(),
+//	}
+//
+//	for _, rc := range factories.Receivers {
+//		receivers = append(receivers, rc)
+//	}
+//
+//	factories.Receivers, err = component.MakeReceiverFactoryMap(receivers...)
+//	if err != nil {
+//		return factories, err
+//	}
+//
+//	return factories, nil
+//}

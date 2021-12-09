@@ -36,9 +36,28 @@ require (
 )
 
 require (
-	github.com/ns1labs/orb/receiver/pktvisorpromreceiver v0.0.0
-	github.com/open-telemetry/opentelemetry-collector-contrib v0.40.0
+	github.com/Microsoft/go-winio v0.5.0 // indirect
+	github.com/aws/aws-sdk-go v1.42.9 // indirect
+	github.com/docker/docker v20.10.11+incompatible // indirect
+	github.com/docker/go-connections v0.4.1-0.20210727194412-58542c764a11 // indirect
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/go-test/deep v1.0.7 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/hashicorp/go-msgpack v0.5.5 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 // indirect
+	github.com/onsi/ginkgo v1.16.5 // indirect
+	github.com/onsi/gomega v1.16.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.40.0
+	github.com/prometheus/common v0.32.1
+	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	go.opentelemetry.io/collector v0.40.0
+	go.opentelemetry.io/otel/metric v0.25.0
+	go.opentelemetry.io/otel/trace v1.2.0
+	golang.org/x/crypto v0.0.0-20210920023735-84f357641f63 // indirect
+	golang.org/x/net v0.0.0-20210927181540-4e4d966f7476 // indirect
+	google.golang.org/api v0.60.0 // indirect
+	k8s.io/client-go v0.22.4
 )
-
-replace github.com/ns1labs/orb/receiver/pktvisorpromreceiver v0.0.0 => ../../NS1/orb/agent/otel

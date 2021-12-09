@@ -39,7 +39,7 @@ func New(params component.ReceiverCreateSettings, cfg *Config, consumer consumer
 func (prw *prometheusReceiverWrapper) Start(ctx context.Context, host component.Host) error {
 	pFactory := prometheusreceiver.NewFactory()
 
-	pConfig, err := getPrometheusConfig(prw.config)
+	pConfig, err := GetPrometheusConfig(prw.config)
 	if err != nil {
 		return fmt.Errorf("failed to create prometheus receiver config: %v", err)
 	}
@@ -53,7 +53,7 @@ func (prw *prometheusReceiverWrapper) Start(ctx context.Context, host component.
 	return prw.prometheusReceiver.Start(ctx, host)
 }
 
-func getPrometheusConfig(cfg *Config) (*prometheusreceiver.Config, error) {
+func GetPrometheusConfig(cfg *Config) (*prometheusreceiver.Config, error) {
 	var bearerToken string
 	if cfg.UseServiceAccount {
 		restConfig, err := rest.InClusterConfig()
