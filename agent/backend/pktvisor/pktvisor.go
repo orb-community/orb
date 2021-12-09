@@ -449,8 +449,8 @@ func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsE
 }
 
 func createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
+	// Create a pktvisor receiver factory
 	r := otel.NewFactory()
-	//receiverFactory := prometheusreceiver.NewFactory()
 	receiverCreateSet := component.ReceiverCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
@@ -459,24 +459,8 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
-	//rcvCfg := &otel.Config{
-	//	ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID(typeStr)),
-	//	TCPAddr: confignet.TCPAddr{
-	//		Endpoint: defaultEndpoint,
-	//	},
-	//	MetricsPath:        defaultMetricsPath,
-	//	CollectionInterval: defaultCollectionInterval,
-	//}
 	rcvCfg := otel.CreateDefaultConfig()
-	// 3.5 Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
-	//pConfig, err := otel.GetPrometheusConfig(rcvCfg)
-	//if err != nil {
-	//	return nil, errors.Wrap(errors.New("failed to create prometheus receiver config"), err)
-	//}
-	//prometheusReceiver, err := receiverFactory.CreateMetricsReceiver(ctx, receiverCreateSet, pConfig, exporter)
-	//if err != nil {
-	//	return nil, err
-	//}
+	// Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
 	pReceiver, err := r.CreateMetricsReceiver(ctx, receiverCreateSet, rcvCfg, exporter)
 	if err != nil {
 		return nil, err
