@@ -29,7 +29,6 @@ export class ProfileComponent implements OnInit {
         if (resp.metadata !== undefined) {
           this.user.fullName = resp.metadata.fullName ? resp.metadata.fullName : '';
           this.user.company = resp.metadata.company ? resp.metadata.company : '';
-          this.user.email = resp.metadata.email ? resp.metadata.email : '';
         }
       },
     );
@@ -40,7 +39,6 @@ export class ProfileComponent implements OnInit {
       metadata: {
         fullName: this.user.fullName,
         company: this.user.company,
-        email: this.user.email,
       },
     };
 
