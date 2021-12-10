@@ -9,9 +9,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
   styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit {
-  fullName: string;
-  email: string;
-  company: string;
+  user: any = {};
 
   newPassword: string = '';
   confirmPassword: string = '';
@@ -26,12 +24,12 @@ export class ProfileComponent implements OnInit {
   ngOnInit(): void {
     this.usersService.getProfile().subscribe(
       resp => {
-        this.email = resp.email ? resp.email : '';
+        this.user.email = resp.email ? resp.email : '';
 
         if (resp.metadata !== undefined) {
-          this.fullName = resp.metadata.fullName ? resp.metadata.fullName : '';
-          this.company = resp.metadata.company ? resp.metadata.company : '';
-          this.email = resp.metadata.email ? resp.metadata.email : '';
+          this.user.fullName = resp.metadata.fullName ? resp.metadata.fullName : '';
+          this.user.company = resp.metadata.company ? resp.metadata.company : '';
+          this.user.email = resp.metadata.email ? resp.metadata.email : '';
         }
       },
     );
@@ -40,9 +38,9 @@ export class ProfileComponent implements OnInit {
   onClickSaveInfos(event): void {
     const userReq = {
       metadata: {
-        fullName: this.fullName,
-        company: this.company,
-        email: this.email,
+        fullName: this.user.fullName,
+        company: this.user.company,
+        email: this.user.email,
       },
     };
 
