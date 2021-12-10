@@ -11,12 +11,11 @@ sink_label_name_prefix = "test_sink_label_name_"
 
 @given("that the user has the prometheus/grafana credentials")
 def check_prometheus_grafana_credentials(context):
-    remote_prometheus_endpoint = configs.get('remote_prometheus_endpoint')
-    assert_that(remote_prometheus_endpoint, not_none(), 'No remote write endpoint to send Prometheus metrics to '
-                                                        'Grafana Cloud was provided!')
-    assert_that(remote_prometheus_endpoint, not_(""), 'No remote write endpoint to send Prometheus metrics to Grafana '
-                                                      'Cloud was provided!')
-    context.remote_prometheus_endpoint = "https://" + remote_prometheus_endpoint + "/api/prom/push"
+    context.remote_prometheus_endpoint = configs.get('remote_prometheus_endpoint')
+    assert_that(context.remote_prometheus_endpoint, not_none(), 'No remote write endpoint to send Prometheus metrics '
+                                                                'to Grafana Cloud was provided!')
+    assert_that(context.remote_prometheus_endpoint, not_(""), 'No remote write endpoint to send Prometheus metrics to '
+                                                              'Grafana Cloud was provided!')
 
     context.prometheus_username = configs.get('prometheus_username')
     assert_that(context.prometheus_username, not_none(), 'No Grafana Cloud Prometheus username was provided!')
