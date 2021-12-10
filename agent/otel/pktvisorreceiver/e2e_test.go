@@ -3,10 +3,14 @@ package pktvisorreceiver
 import (
 	"context"
 	"fmt"
+	"github.com/jmoiron/sqlx"
+	"github.com/ory/dockertest/v3"
 	promconfig "github.com/prometheus/prometheus/config"
 	"go.opentelemetry.io/collector/config/confignet"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -18,6 +22,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
+)
+
+var (
+	testLog, _ = zap.NewDevelopment()
 )
 
 func TestEndToEndSummarySupport(t *testing.T) {
@@ -219,4 +227,56 @@ func TestEndToEndToPktvisor(t *testing.T) {
 			t.Fatalf("Left-over unmatched Prometheus scrape content: %q\n", prometheusExporterScrape)
 		}
 	})
+}
+
+func TestOrbAgentContainer(t *testing.T) {
+	pool, err := dockertest.NewPool("")
+	if err != nil {
+		log.Fatalf("Could not connect to docker: %s", err)
+	}
+
+	ro := dockertest.RunOptions{
+		Repository: "ns1labs/pktvisor",
+		Tag:        "latest-develop",
+		Cmd: []string{"-v",
+			"/tmp/orb-agent-pktvisor-conf.GOLvtV:/etc/pktvisor/config.yaml",
+			"--rm",
+			"--net=host",
+			"pktvisord",
+			"--config",
+			"/etc/pktvisor/config.yaml",
+			"--admin-api"},
+	}
+	container, err := pool.RunWithOptions(&ro)
+	if err != nil {
+		log.Fatalf("Could not start container: %s", err)
+	}
+	port := container.GetPort("5432/tcp")
+
+	if err := pool.Retry(func() error {
+		url := fmt.Sprintf("host=localhost port=%s user=test dbname=test password=test sslmode=disable", port)
+		db, err := sqlx.Open("postgres", url)
+		if err != nil {
+			return err
+		}
+		return db.Ping()
+	}); err != nil {
+		log.Fatalf("Could not connect to docker: %s", err)
+	}
+
+	//if db, err = postgres.Connect(dbConfig); err != nil {
+	//	log.Fatalf("Could not setup test DB connection: %s", err)
+	//}
+
+	testLog.Debug("connected to database")
+
+	//code := t.Run()
+
+	//db.Close()
+
+	if err := pool.Purge(container); err != nil {
+		log.Fatalf("Could not purge container: %s", err)
+	}
+
+	//os.Exit(code)
 }
