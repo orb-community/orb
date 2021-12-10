@@ -62,13 +62,13 @@ def create_policy(token, policy_name, handler_label, handler, description=None, 
     :param backend_type: Agent backend this policy is for. Cannot change once created. Default: pktvisor
     :return: (dict) a dictionary containing the created policy data
     """
-    response = requests.post(base_orb_url + '/api/v1/policies/agent',
-                             json={"name": policy_name, "description": description, "backend": backend_type,
-                                   "policy": {"kind": "collection", "input": {"tap": tap, "input_type": input_type},
-                                              "handlers": {"modules": {handler_label: {"type": handler}}}},
-                                   "config": {"host_spec": host_specification}, "filter": {"bpf": filter_expression}},
+    json_request = {"name": policy_name, "description": description, "backend": backend_type,
+                    "policy": {"kind": "collection", "input": {"tap": tap, "input_type": input_type},
+                               "handlers": {"modules": {handler_label: {"type": handler}}}},
+                    "config": {"host_spec": host_specification}, "filter": {"bpf": filter_expression}}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
-                             headers={'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token})
+    response = requests.post(base_orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create policy failed with status=' + str(response.status_code))
 
@@ -97,12 +97,10 @@ def list_policies(token, limit=100):
     """
     Lists all policies from Orb control plane that belong to this user
 
-    :param (int) limit: Size of the subset to retrieve.
     :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
     :returns: (list) a list of policies
     """
-
-
     response = requests.get(base_orb_url + '/api/v1/policies/agent', headers={'Authorization': token},
                             params={'limit': limit})
 

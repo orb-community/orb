@@ -22,15 +22,17 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
 
     :param (str) token: used for API authentication
     :param (str) name_label:  of the dataset to be created
-    :param (str) policy_id: that identifies policy to be fetched
-    :param (str) agent_group_id: that identifies agent_group to be fetched
-    :param (str) sink_id: that identifies sink to be fetched
+    :param (str) policy_id: that identifies policy to be bound
+    :param (str) agent_group_id: that identifies agent_group to be bound
+    :param (str) sink_id: that identifies sink to be bound
     :return:
     """
-    response = requests.post(base_orb_url + '/api/v1/policies/dataset',
-                             json={"name": name_label, "agent_group_id": agent_group_id, "agent_policy_id": policy_id,
-                                   "sink_ids": [sink_id]},
-                             headers={'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token})
+
+    json_request = {"name": name_label, "agent_group_id": agent_group_id, "agent_policy_id": policy_id,
+                    "sink_ids": [sink_id]}
+    header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+
+    response = requests.post(base_orb_url + '/api/v1/policies/dataset', json=json_request, headers=header_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create dataset failed with status=' + str(response.status_code))
 
@@ -40,7 +42,7 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
 @then('cleanup datasets')
 def clean_datasets(context):
     """
-    Remove all datasets starting with 'test_dataset_name_' from the orb
+    Remove all datasets starting with 'test_dataset_name_' from orb
 
     :param context: Behave class that contains contextual information during the running of tests.
     """
@@ -54,8 +56,8 @@ def list_datasets(token, limit=100):
     """
     Lists up to 100 datasets from Orb control plane that belong to this user
 
-    :param (int) limit: Size of the subset to retrieve.
     :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
     :returns: (list) a list of datasets
     """
 

@@ -63,10 +63,10 @@ def create_agent_group(token, name, description, tag_key, tag_value):
     :returns: (dict) a dictionary containing the created agent group data
     """
 
-    response = requests.post(base_orb_url + '/api/v1/agent_groups',
-                             json={"name": name, "description": description, "tags": {tag_key: tag_value}},
-                             headers={'Content-type': 'application/json', 'Accept': '*/*',
-                                      'Authorization': token})
+    json_request = {"name": name, "description": description, "tags": {tag_key: tag_value}}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+
+    response = requests.post(base_orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create agent failed with status=' + str(response.status_code))
 
@@ -77,8 +77,8 @@ def list_agent_groups(token, limit=100):
     """
     Lists up to 100 agent groups from Orb control plane that belong to this user
 
-    :param (int) limit: Size of the subset to retrieve.
     :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve (max 100). Default = 100
     :returns: (list) a list of agent groups
     """
 

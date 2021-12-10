@@ -80,12 +80,13 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     :param (str) backend_type: type of backend used to send metrics. Default: prometheus
     :return: (dict) a dictionary containing the created sink data
     """
-    response = requests.post(base_orb_url + '/api/v1/sinks',
-                             json={"name": name_label, "description": description, "tags": {tag_key: tag_value},
-                                   "backend": backend_type, "validate_only": False,
-                                   "config": {"remote_host": remote_host, "username": username, "password": password}},
-                             headers={'Content-type': 'application/json', 'Accept': '*/*',
-                                      'Authorization': token})
+    json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
+                    "backend": backend_type, "validate_only": False,
+                    "config": {"remote_host": remote_host, "username": username, "password": password}}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
+                       'Authorization': token}
+
+    response = requests.post(base_orb_url + '/api/v1/sinks', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create sink failed with status=' + str(response.status_code))
 
@@ -113,8 +114,8 @@ def list_sinks(token, limit=100):
     """
     Lists all sinks from Orb control plane that belong to this user
 
-    :param (int) limit: Size of the subset to retrieve.
     :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
     :returns: (list) a list of sinks
     """
 

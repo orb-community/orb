@@ -104,8 +104,8 @@ def list_agents(token, limit=100):
     """
     Lists up to 100 agents from Orb control plane that belong to this user
 
-    :param (int) limit: Size of the subset to retrieve.
     :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
     :returns: (list) a list of agents
     """
 
@@ -156,10 +156,11 @@ def create_agent(token, name, tag_key, tag_value):
     :returns: (dict) a dictionary containing the created agent data
     """
 
-    response = requests.post(base_orb_url + '/api/v1/agents',
-                             json={"name": name, "orb_tags": {tag_key: tag_value}, "validate_only": False},
-                             headers={'Content-type': 'application/json', 'Accept': '*/*',
-                                      'Authorization': token})
+    json_request = {"name": name, "orb_tags": {tag_key: tag_value}, "validate_only": False}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
+                       'Authorization': token}
+
+    response = requests.post(base_orb_url + '/api/v1/agents', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create agent failed with status=' + str(response.status_code))
 

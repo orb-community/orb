@@ -1,6 +1,5 @@
 import random
 import string
-from time import sleep
 from json import loads, JSONDecodeError
 
 
