@@ -14,7 +14,7 @@ import (
 	"github.com/go-cmd/cmd"
 	"github.com/go-co-op/gocron"
 	"github.com/ns1labs/orb/agent/backend"
-	"github.com/ns1labs/orb/agent/otel"
+	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
 	promexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
@@ -450,7 +450,7 @@ func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsE
 
 func createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
 	// Create a pktvisor receiver factory
-	r := otel.NewFactory()
+	r := pktvisorreceiver.NewFactory()
 	receiverCreateSet := component.ReceiverCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
@@ -459,7 +459,7 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
-	rcvCfg := otel.CreateDefaultConfig()
+	rcvCfg := pktvisorreceiver.CreateDefaultConfig()
 	// Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
 	pReceiver, err := r.CreateMetricsReceiver(ctx, receiverCreateSet, rcvCfg, exporter)
 	if err != nil {

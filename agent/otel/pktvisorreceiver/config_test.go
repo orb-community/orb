@@ -1,4 +1,4 @@
-package otel
+package pktvisorreceiver
 
 import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"

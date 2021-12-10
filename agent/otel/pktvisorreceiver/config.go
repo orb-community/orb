@@ -1,4 +1,4 @@
-package otel
+package pktvisorreceiver
 
 import (
 	"go.opentelemetry.io/collector/config"
