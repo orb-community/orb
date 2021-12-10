@@ -8,12 +8,6 @@ receivers:
       columns: "name,messages"
       key: [ "foo","bar" ]
     use_service_account: true
-    tls_enabled: true
-    tls_config:
-      ca_file: "path"
-      cert_file: "path"
-      key_file: "path"
-      insecure_skip_verify: true
 
 processors:
   nop:
