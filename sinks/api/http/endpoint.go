@@ -50,7 +50,7 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			Backend:     saved.Backend,
 			Config:      saved.Config,
 			TsCreated:   saved.Created,
-			created: true,
+			created:     true,
 		}
 
 		return res, nil
