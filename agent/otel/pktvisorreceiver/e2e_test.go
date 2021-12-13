@@ -285,18 +285,23 @@ visor:
 		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
-	volume := fmt.Sprintf("%s:/etc/pktvisor/config.yaml", file.Name())
+	//volume := fmt.Sprintf("%s:/etc/pktvisor/config.yaml", file.Name())
+	//docker run --net=host -d ns1labs/pktvisor pktvisord eth0
 	ro := dockertest.RunOptions{
 		Repository: "ns1labs/pktvisor",
 		Tag:        "latest-develop",
-		Cmd: []string{"-v",
-			volume,
-			"--rm",
+		Cmd: []string{
+			//"-v",
+			//volume,
+			//"--rm",
 			"--net=host",
+			"-d",
 			"pktvisord",
-			"--config",
-			"/etc/pktvisor/config.yaml",
-			"--admin-api"},
+			"wlp0s20f3",
+			//"--config",
+			//"/etc/pktvisor/config.yaml",
+			//"--admin-api",
+		},
 	}
 	container, err := pool.RunWithOptions(&ro)
 	if err != nil {
