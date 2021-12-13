@@ -158,8 +158,8 @@ export class AgentsService {
   }
 
   getAgents(pageInfo: NgxDatabalePageInfo, isFilter = false) {
-    const offset = !!pageInfo ? pageInfo.offset : this.cache.offset;
-    const limit = pageInfo.limit || this.cache.limit;
+    const offset = pageInfo?.offset || this.cache.offset;
+    const limit = pageInfo?.limit || this.cache.limit;
     let params = new HttpParams()
       .set('offset', (offset * limit).toString())
       .set('limit', limit.toString())
@@ -176,14 +176,14 @@ export class AgentsService {
       this.paginationCache[offset] = false;
     }
 
-    if (this.paginationCache[pageInfo.offset]) {
+    if (this.paginationCache[pageInfo?.offset]) {
       return of(this.cache);
     }
 
     return this.http.get(environment.agentsUrl, { params })
       .map(
         (resp: any) => {
-          this.paginationCache[pageInfo.offset] = true;
+          this.paginationCache[pageInfo?.offset || 0] = true;
           // This is the position to insert the new data
           const start = resp.offset;
           const newData = [...this.cache.data];
