@@ -53,62 +53,17 @@ $ behave --include agentsProvider.feature
 ```
 Output:
 ```text
-@agentGroups
-Feature: agent groups creation # features/agentGroups.feature:2
-
-  Scenario: Create Agent Group                                                                                # features/agentGroups.feature:4
-    Given the Orb user logs in                                                                                # features/steps/users.py:10 0.668s
-    And that an agent already exists and is online                                                            # features/steps/control_plane_agents.py:15 4.647s
-    When an Agent Group is created with same tag as the agent                                                 # features/steps/control_plane_agent_groups.py:15 0.720s
-    Then one agent must be matching on response field matching_agents                                         # features/steps/control_plane_agent_groups.py:22 0.000s
-    And the container logs should contain the message "completed RPC subscription to group" within 10 seconds # features/steps/local_agent.py:26 0.550s
-
 @agents
 Feature: agent provider # features/agentsProvider.feature:2
-
-  Scenario: Provision agent                                                                    # features/agentsProvider.feature:4
-    Given the Orb user logs in                                                                 # features/steps/users.py:10 0.677s
-    When a new agent is created                                                                # features/steps/control_plane_agents.py:30 0.761s
-    And the agent container is started                                                         # features/steps/local_agent.py:11 0.262s
-    Then the agent status in Orb should be online                                              # features/steps/control_plane_agents.py:39 3.619s
-    And the container logs should contain the message "sending capabilities" within 10 seconds # features/steps/local_agent.py:26 0.050s
-
-@datasets
-Feature: datasets creation # features/datasets.feature:2
-
-  Scenario: Create Dataset                                                                                 # features/datasets.feature:4
-    Given the Orb user logs in                                                                             # features/steps/users.py:10 0.648s
-    And that an agent already exists and is online                                                         # features/steps/control_plane_agents.py:15 4.121s
-    And referred agent is subscribed to a group                                                            # features/steps/control_plane_agent_groups.py:43 0.759s
-    And that a sink already exists                                                                         # features/steps/control_plane_sink.py:60 0.617s
-    And that a policy already exists                                                                       # features/steps/control_plane_policies.py:38 2.549s
-    When a new dataset is created using referred group, sink and policy ID                                 # features/steps/control_plane_datasets.py:10 0.593s
-    Then the container logs should contain the message "managing agent policy from core" within 10 seconds # features/steps/local_agent.py:26 0.034s
-    Then the container logs should contain the message "scraped metrics for policy" within 120 seconds     # features/steps/local_agent.py:26 113.350s
-    Then referred sink must have active state on response                                                  # features/steps/control_plane_sink.py:40 0.549s
-
-@policies
-Feature: policy creation # features/policies.feature:2
-
-  Scenario: Create a policy                                        # features/policies.feature:4
-    Given the Orb user logs in                                     # features/steps/users.py:10 0.633s
-    And that an agent already exists and is online                 # features/steps/control_plane_agents.py:15 4.001s
-    When a new policy is created                                   # features/steps/control_plane_policies.py:12 0.615s
-    Then referred policy must be listened on the orb policies list # features/steps/control_plane_policies.py:18 0.612s
-
-@sinks
-Feature: sink creation # features/sinks.feature:2
-
-  Scenario: Create Sink using Prometheus                       # features/sinks.feature:4
-    Given that the user has the prometheus/grafana credentials # features/steps/control_plane_sink.py:12 0.000s
-    And the Orb user logs in                                   # features/steps/users.py:10 0.921s
-    When a new sink is created                                 # features/steps/control_plane_sink.py:30 0.675s
-    Then referred sink must have unknown state on response     # features/steps/control_plane_sink.py:40 0.654s
-
-5 features passed, 0 failed, 0 skipped
-5 scenarios passed, 0 failed, 0 skipped
-27 steps passed, 0 failed, 0 skipped, 0 undefined
-Took 2m23.288s
-
+  Scenario: Provision agent                                                  # features/agentsProvider.feature:4
+    Given that the user is logged in on orb account                                         # features/steps/users.py:10 1.031s
+    When a new agent is created                                              # features/steps/control_plane_agents.py:18 1.032s
+    And the agent container is started                                       # features/steps/local_agent.py:10 0.217s
+    Then the agent status in Orb should be online                            # features/steps/control_plane_agents.py:24 2.556s
+    And the container logs should contain the message "sending capabilities" # features/steps/local_agent.py:26 0.023s
+1 feature passed, 0 failed, 0 skipped
+1 scenario passed, 0 failed, 0 skipped
+5 steps passed, 0 failed, 0 skipped, 0 undefined
+Took 0m4.858s
 
 ```
