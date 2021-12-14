@@ -9,29 +9,14 @@ import requests
 
 configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
-agent_group_name = agent_group_name_prefix + random_string()
 agent_group_description = "This is an agent group"
-agent_name = agent_name_prefix + random_string(4)
-agent_tag_key = "test_tag_key_" + random_string(4)
-agent_tag_value = "test_tag_value_" + random_string(4)
-
-
-@given("that an agent already exists and is {status}")
-def check_if_agents_exist(context, status):
-    agent = create_agent(context.token, agent_name, agent_tag_key, agent_tag_value)
-    context.agent = agent
-    token = context.token
-    run_local_agent_container(context)
-    agent_id = context.agent['id']
-    existing_agents = get_agent(token, agent_id)
-    assert_that(len(existing_agents), greater_than(0), "Agent not created")
-    expect_container_status(token, agent_id, status)
 
 
 @when("an Agent Group is created with same tag as the agent")
 def creat_agent_group(context):
+    agent_group_name = agent_group_name_prefix + random_string()
     context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
-                                                  agent_tag_key, agent_tag_value)
+                                                  context.agent_tag_key, context.agent_tag_value)
 
 
 @then("one agent must be matching on response field matching_agents")
@@ -55,6 +40,17 @@ def clean_agent_groups(context):
     delete_agent_groups(token, agent_groups_filtered_list)
 
 
+@given("referred agent is subscribed to a group")
+def subscribe_agent_to_a_group(context):
+    agent = context.agent
+    agent_group_name = agent_group_name_prefix + random_string(4)
+    agent_tag_key = list(agent['orb_tags'].keys())[0]
+    agent_tag_value = agent['orb_tags'][agent_tag_key]
+    context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
+                                                  agent_tag_key, agent_tag_value)
+    matching_agent(context)
+
+
 def create_agent_group(token, name, description, tag_key, tag_value):
     """
     Creates an agent group in Orb control plane
@@ -67,25 +63,27 @@ def create_agent_group(token, name, description, tag_key, tag_value):
     :returns: (dict) a dictionary containing the created agent group data
     """
 
-    response = requests.post(base_orb_url + '/api/v1/agent_groups',
-                             json={"name": name, "description": description, "tags": {tag_key: tag_value}},
-                             headers={'Content-type': 'application/json', 'Accept': '*/*',
-                                      'Authorization': token})
+    json_request = {"name": name, "description": description, "tags": {tag_key: tag_value}}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+
+    response = requests.post(base_orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create agent failed with status=' + str(response.status_code))
 
     return response.json()
 
 
-def list_agent_groups(token):
+def list_agent_groups(token, limit=100):
     """
-    Lists all agent groups from Orb control plane that belong to this user
+    Lists up to 100 agent groups from Orb control plane that belong to this user
 
     :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve (max 100). Default = 100
     :returns: (list) a list of agent groups
     """
 
-    response = requests.get(base_orb_url + '/api/v1/agent_groups', headers={'Authorization': token})
+    response = requests.get(base_orb_url + '/api/v1/agent_groups', headers={'Authorization': token},
+                            params={"limit": limit})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list agent groups failed with status=' + str(response.status_code))

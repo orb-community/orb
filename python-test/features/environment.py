@@ -10,6 +10,7 @@ def after_feature(context, feature):
     Then cleanup agent group
     Then cleanup sinks
     Then cleanup policies
+    Then cleanup datasets
     ''')
 
 

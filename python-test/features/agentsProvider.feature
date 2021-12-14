@@ -6,4 +6,4 @@ Feature: agent provider
         When a new agent is created
             And the agent container is started
         Then the agent status in Orb should be online
-            And the container logs should contain the message "sending capabilities"
+            And the container logs should contain the message "sending capabilities" within 10 seconds
