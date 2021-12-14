@@ -33,7 +33,7 @@ const children = [
   },
   {
     path: 'profile',
-    data: {breadcrumb: 'Home'},
+    data: {breadcrumb: 'User Profile'},
     component: ProfileComponent,
   },
   {
