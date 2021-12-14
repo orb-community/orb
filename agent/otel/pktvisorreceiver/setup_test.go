@@ -3,6 +3,7 @@ package pktvisorreceiver_test
 import (
 	"fmt"
 	"github.com/ory/dockertest/v3"
+	"github.com/ory/dockertest/v3/docker"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"log"
@@ -75,9 +76,14 @@ visor:
 		Name:         "pktvisord",
 		Hostname:     "localhost",
 		ExposedPorts: []string{"10853"},
+		PortBindings: map[docker.Port][]docker.PortBinding{
+			"10853": {
+				{HostIP: "0.0.0.0", HostPort: "10853"},
+			},
+		},
 		//Mounts:       []string{fmt.Sprintf("%s:/etc/pktvisor/config.yaml", file.Name())},
 		Cmd: []string{
-			"--volume",
+			"-v",
 			fmt.Sprintf("%s:/etc/pktvisor/config.yaml", file.Name()),
 			"--rm",
 			"--net=host",
@@ -96,15 +102,13 @@ visor:
 		log.Fatalf("Could not start container: %s", err)
 	}
 
-	port := container.GetPort("10853/tcp")
-	//port := "10853"
+	host := container.GetHostPort("10853/tcp")
 
 	var res *http.Response
 	var client *http.Client
-	//pool.MaxWait = 10 * time.Second
 	if err := pool.Retry(func() error {
 		client = &http.Client{}
-		req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%s/api/v1/policies/__all/metrics/prometheus", port), nil)
+		req, err := http.NewRequest("GET", fmt.Sprintf("http://%s/api/v1/policies/__all/metrics/prometheus", host), nil)
 
 		if err != nil {
 			fmt.Println(err)
