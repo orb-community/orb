@@ -165,7 +165,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     this.agentService.getAgents(pageInfo, isFilter).subscribe(
       (resp: OrbPagination<Agent>) => {
         this.paginationControls = resp;
-        this.paginationControls.offset = pageInfo.offset;
+        this.paginationControls.offset = pageInfo?.offset || 0;
         this.paginationControls.total = resp.total;
         this.loading = false;
       },

@@ -116,8 +116,8 @@ export class DatasetPoliciesService {
   }
 
   getDatasetPolicies(pageInfo: NgxDatabalePageInfo, isFilter = false) {
-    const offset = pageInfo.offset || this.cache.offset;
-    const limit = pageInfo.limit || this.cache.limit;
+    const offset = pageInfo?.offset || this.cache.offset;
+    const limit = pageInfo?.limit || this.cache.limit;
     let params = new HttpParams()
       .set('offset', (offset * limit).toString())
       .set('limit', limit.toString())
@@ -125,22 +125,22 @@ export class DatasetPoliciesService {
       .set('dir', this.cache.dir);
 
     if (isFilter) {
-      if (pageInfo.name) {
+      if (pageInfo?.name) {
         params = params.append('name', pageInfo.name);
       }
-      if (pageInfo.tags) {
+      if (pageInfo?.tags) {
         params.append('tags', JSON.stringify(pageInfo.tags));
       }
       this.paginationCache[offset] = false;
     }
 
-    if (this.paginationCache[pageInfo.offset]) {
+    if (this.paginationCache[pageInfo?.offset]) {
       return of(this.cache);
     }
 
     return this.http.get(environment.datasetPoliciesUrl, { params })
       .map((resp: any) => {
-          this.paginationCache[pageInfo.offset] = true;
+          this.paginationCache[pageInfo?.offset || 0] = true;
           // This is the position to insert the new data
           const start = resp.offset;
           const newData = [...this.cache.data];
@@ -152,8 +152,8 @@ export class DatasetPoliciesService {
             total: resp.total,
             data: newData,
           };
-          if (pageInfo.name) this.cache.name = pageInfo.name;
-          if (pageInfo.tags) this.cache.tags = pageInfo.tags;
+          if (pageInfo?.name) this.cache.name = pageInfo.name;
+          if (pageInfo?.tags) this.cache.tags = pageInfo.tags;
           return this.cache;
         },
       )
