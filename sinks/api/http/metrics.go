@@ -40,10 +40,15 @@ func (m metricsMiddleware) ChangeSinkStateInternal(ctx context.Context, sinkID s
 }
 
 func (m metricsMiddleware) CreateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, _ error) {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return sinks.Sink{}, err
+	}
+
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "createSink",
-			"owner_id", sink.MFOwnerID,
+			"owner_id", ownerID,
 			"sink_id", sink.ID,
 		}
 
@@ -134,12 +139,17 @@ func (m metricsMiddleware) ViewBackend(ctx context.Context, token string, key st
 	return m.svc.ViewBackend(ctx, token, key)
 }
 
-func (m metricsMiddleware) ViewSink(ctx context.Context, token string, key string) (sink sinks.Sink, err error) {
+func (m metricsMiddleware) ViewSink(ctx context.Context, token string, key string) (sinks.Sink, error) {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return sinks.Sink{}, err
+	}
+
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "viewSink",
-			"owner_id", sink.MFOwnerID,
-			"sink_id", sink.ID,
+			"owner_id", ownerID,
+			"sink_id", key,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -150,12 +160,12 @@ func (m metricsMiddleware) ViewSink(ctx context.Context, token string, key strin
 	return m.svc.ViewSink(ctx, token, key)
 }
 
-func (m metricsMiddleware) ViewSinkInternal(ctx context.Context, ownerID string, key string) (sink sinks.Sink, _ error) {
+func (m metricsMiddleware) ViewSinkInternal(ctx context.Context, ownerID string, key string) (sinks.Sink, error) {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "viewSinkInternal",
 			"owner_id", ownerID,
-			"sink_id", sink.ID,
+			"sink_id", key,
 		}
 
 		m.counter.With(labels...).Add(1)
@@ -187,12 +197,17 @@ func (m metricsMiddleware) DeleteSink(ctx context.Context, token string, id stri
 	return m.svc.DeleteSink(ctx, token, id)
 }
 
-func (m metricsMiddleware) ValidateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, _ error) {
+func (m metricsMiddleware) ValidateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return sinks.Sink{}, err
+	}
+
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "validateSink",
-			"owner_id", sink.MFOwnerID,
-			"sink_id", sink.ID,
+			"owner_id", ownerID,
+			"sink_id", "",
 		}
 
 		m.counter.With(labels...).Add(1)
