@@ -75,18 +75,14 @@ visor:
 		Tag:          "latest-develop",
 		Name:         "pktvisord",
 		Hostname:     "localhost",
-		ExposedPorts: []string{"10853"},
+		ExposedPorts: []string{"10853/tcp"},
 		PortBindings: map[docker.Port][]docker.PortBinding{
-			"10853": {
-				{HostIP: "0.0.0.0", HostPort: "10853"},
+			"10853/tcp": {
+				{HostIP: "localhost", HostPort: "10853/tcp"},
 			},
 		},
-		//Mounts:       []string{fmt.Sprintf("%s:/etc/pktvisor/config.yaml", file.Name())},
+		Mounts: []string{fmt.Sprintf("%s:/etc/pktvisor/config.yaml", file.Name())},
 		Cmd: []string{
-			"-v",
-			fmt.Sprintf("%s:/etc/pktvisor/config.yaml", file.Name()),
-			"--rm",
-			"--net=host",
 			"pktvisord",
 			"--config",
 			"/etc/pktvisor/config.yaml",
@@ -97,7 +93,11 @@ visor:
 		log.Fatalf("Could not remove existing container: %s", err)
 	}
 
-	container, err := pool.RunWithOptions(&ro)
+	container, err := pool.RunWithOptions(&ro, func(config *docker.HostConfig) {
+		// set AutoRemove to true so that stopped container goes away by itself
+		config.AutoRemove = true
+		config.RestartPolicy = docker.RestartPolicy{Name: "no"}
+	})
 	if err != nil {
 		log.Fatalf("Could not start container: %s", err)
 	}
@@ -108,7 +108,7 @@ visor:
 	var client *http.Client
 	if err := pool.Retry(func() error {
 		client = &http.Client{}
-		req, err := http.NewRequest("GET", fmt.Sprintf("http://%s/api/v1/policies/__all/metrics/prometheus", host), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s/api/v1/policies/__all/metrics/prometheus", host), nil)
 
 		if err != nil {
 			fmt.Println(err)
