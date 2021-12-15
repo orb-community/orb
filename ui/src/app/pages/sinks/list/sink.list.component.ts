@@ -13,6 +13,7 @@ import { Debounce } from 'app/shared/decorators/utils';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { tagComparator } from 'app/common/orb.comparators';
 
 @Component({
   selector: 'ngx-sink-list-component',
@@ -117,6 +118,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
         name: 'Tags',
         minWidth: 90,
         flexGrow: 3,
+        comparator: tagComparator.bind(this),
         cellTemplate: this.sinkTagsTemplateCell,
       },
       {
