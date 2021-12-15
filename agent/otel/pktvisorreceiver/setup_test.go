@@ -3,16 +3,23 @@ package pktvisorreceiver_test
 import (
 	"fmt"
 	"github.com/ory/dockertest/v3"
-	"github.com/ory/dockertest/v3/docker"
 	"go.uber.org/zap"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"testing"
 )
 
-var testLog, _ = zap.NewDevelopment()
+const (
+	// The value of "type" key in configuration.
+	typeStr            = "pktvisor_prometheus"
+	defaultMetricsPath = "/api/v1/policies/__all/metrics/prometheus"
+)
+
+var (
+	testLog, _ = zap.NewDevelopment()
+	container  *dockertest.Resource
+)
 
 func TestMain(m *testing.M) {
 	file, err := os.CreateTemp("", "pktvisor-conf-")
@@ -74,30 +81,23 @@ visor:
 		Repository:   "ns1labs/pktvisor",
 		Tag:          "latest-develop",
 		Name:         "pktvisord",
-		Hostname:     "localhost",
+		Hostname:     "pktvisor",
 		ExposedPorts: []string{"10853/tcp"},
-		PortBindings: map[docker.Port][]docker.PortBinding{
-			"10853/tcp": {
-				{HostIP: "localhost", HostPort: "10853/tcp"},
-			},
-		},
-		Mounts: []string{fmt.Sprintf("%s:/etc/pktvisor/config.yaml", file.Name())},
+		Mounts:       []string{fmt.Sprintf("%s:/etc/pktvisor/config.yaml", file.Name())},
 		Cmd: []string{
 			"pktvisord",
 			"--config",
 			"/etc/pktvisor/config.yaml",
-			"--admin-api"},
+			"--admin-api",
+			"-l",
+			"pktvisor"},
 	}
 	err = pool.RemoveContainerByName("pktvisord")
 	if err != nil {
 		log.Fatalf("Could not remove existing container: %s", err)
 	}
 
-	container, err := pool.RunWithOptions(&ro, func(config *docker.HostConfig) {
-		// set AutoRemove to true so that stopped container goes away by itself
-		config.AutoRemove = true
-		config.RestartPolicy = docker.RestartPolicy{Name: "no"}
-	})
+	container, err = pool.RunWithOptions(&ro)
 	if err != nil {
 		log.Fatalf("Could not start container: %s", err)
 	}
@@ -129,11 +129,11 @@ visor:
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(string(body))
+	//body, err := ioutil.ReadAll(res.Body)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//fmt.Println(string(body))
 
 	testLog.Debug("pktvisor running")
 

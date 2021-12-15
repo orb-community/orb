@@ -1,7 +1,8 @@
-package pktvisorreceiver
+package pktvisorreceiver_test
 
 import (
 	"context"
+	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestReceiver(t *testing.T) {
-	f := NewFactory()
+	f := pktvisorreceiver.NewFactory()
 	tests := map[string]struct {
 		useServiceAccount bool
 		wantError         bool
@@ -22,7 +23,7 @@ func TestReceiver(t *testing.T) {
 	}
 	for desc, tt := range tests {
 		t.Run(desc, func(t *testing.T) {
-			cfg := (f.CreateDefaultConfig()).(*Config)
+			cfg := (f.CreateDefaultConfig()).(*pktvisorreceiver.Config)
 			cfg.UseServiceAccount = tt.useServiceAccount
 
 			r, err := f.CreateMetricsReceiver(

@@ -1,11 +1,11 @@
-package pktvisorreceiver
+package pktvisorreceiver_test
 
 import (
 	"context"
 	"fmt"
+	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	promconfig "github.com/prometheus/prometheus/config"
 	"go.opentelemetry.io/collector/config/confignet"
-	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net/http"
@@ -19,10 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
-)
-
-var (
-	testLog, _ = zap.NewDevelopment()
 )
 
 func TestEndToEndSummarySupport(t *testing.T) {
@@ -152,12 +148,13 @@ jvm_gc_collection_seconds_sum{gc="G1 Young Generation",} 0.229
 jvm_gc_collection_seconds_count{gc="G1 Old Generation",} 0.0
 jvm_gc_collection_seconds_sum{gc="G1 Old Generation",} 0.0`
 
-//TODO create a instance of pktvisor with mocked data to ensure the test
 func TestEndToEndToPktvisor(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("This test can take a couple of seconds")
 		}
+
+		defaultEndpoint := container.GetHostPort("10853/tcp")
 
 		//1. Create the Prometheus scrape endpoint.
 		ctx, cancel := context.WithCancel(context.Background())
@@ -186,16 +183,16 @@ func TestEndToEndToPktvisor(t *testing.T) {
 		//it'll feed scraped and converted metrics then pass them to the Prometheus exporter.
 		receiverFactory := prometheusreceiver.NewFactory()
 		receiverCreateSet := componenttest.NewNopReceiverCreateSettings()
-		rcvCfg := &Config{
+		rcvCfg := &pktvisorreceiver.Config{
 			ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
 			TCPAddr: confignet.TCPAddr{
 				Endpoint: defaultEndpoint,
 			},
 			MetricsPath:        defaultMetricsPath,
-			CollectionInterval: 1 * time.Millisecond,
+			CollectionInterval: 1 * time.Second,
 		}
 		// 3.5 Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
-		pConfig, err := GetPrometheusConfig(rcvCfg)
+		pConfig, err := pktvisorreceiver.GetPrometheusConfig(rcvCfg)
 		if err != nil {
 			t.Fatalf("failed to create prometheus receiver config: %v", err)
 		}
@@ -210,17 +207,29 @@ func TestEndToEndToPktvisor(t *testing.T) {
 		t.Cleanup(func() { require.NoError(t, prometheusReceiver.Shutdown(ctx)) })
 
 		// 4. Scrape from the Prometheus exporter to ensure that we export summary metrics
-		// We shall let the Prometheus exporter scrape the DropWizard mock server, at least 9 times.
-		res, err := http.Get("http://localhost" + exporterCfg.Endpoint + "/metrics")
-		if err != nil {
-			t.Fatalf("Failed to scrape from the exporter: %v", err)
+		// We shall let the Prometheus exporter scrape the pktvisor mock server, at least after 5 seconds.
+		var res *http.Response
+		var prometheusExporterScrape []byte
+		var backoffSchedule = []time.Duration{
+			5 * time.Second,
+			10 * time.Second,
+			15 * time.Second,
 		}
-		prometheusExporterScrape, err := ioutil.ReadAll(res.Body)
-		res.Body.Close()
-		if err != nil {
-			t.Fatal(err)
+		for _, backoff := range backoffSchedule {
+			res, err = http.Get("http://localhost" + exporterCfg.Endpoint + "/metrics")
+			if err != nil {
+				t.Fatalf("Failed to scrape from the exporter: %v", err)
+			}
+			prometheusExporterScrape, err = ioutil.ReadAll(res.Body)
+			res.Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(prometheusExporterScrape) == 0 {
+				time.Sleep(backoff)
+			}
 		}
-		if len(prometheusExporterScrape) != 0 {
+		if len(prometheusExporterScrape) == 0 {
 			t.Fatalf("Left-over unmatched Prometheus scrape content: %q\n", prometheusExporterScrape)
 		}
 	})
