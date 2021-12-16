@@ -9,8 +9,8 @@ import (
 type Config struct {
 	config.ExporterSettings        `mapstructure:",squash"`
 	exporterhelper.TimeoutSettings `mapstructure:",squash"`
-	exporterhelper.QueueSettings   `mapstructure:",sending_queue"`
-	exporterhelper.RetrySettings   `mapstructure:",retry_on_failure"`
+	exporterhelper.QueueSettings   `mapstructure:"sending_queue"`
+	exporterhelper.RetrySettings   `mapstructure:"retry_on_failure"`
 
 	configgrpc.GRPCClientSettings `mapstructure:",squash"`
 }
