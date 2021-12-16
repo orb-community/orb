@@ -6,4 +6,4 @@ Feature: agent groups creation
             And that an agent already exists and is online
         When an Agent Group is created with same tag as the agent
         Then one agent must be matching on response field matching_agents
-            And the container logs should contain the message "completed RPC subscription to group"
+            And the container logs should contain the message "completed RPC subscription to group" within 10 seconds

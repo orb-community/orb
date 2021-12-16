@@ -72,6 +72,7 @@ func (svc fleetService) ListAgentGroups(ctx context.Context, token string, pm Pa
 	if err != nil {
 		return PageAgentGroup{}, err
 	}
+
 	ag, err := svc.agentGroupRepository.RetrieveAllAgentGroupsByOwner(ctx, ownerID, pm)
 	if err != nil {
 		return PageAgentGroup{}, err

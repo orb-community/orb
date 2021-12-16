@@ -151,7 +151,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     this.sinkService.getSinks(pageInfo, isFilter).subscribe(
       (resp: OrbPagination<Sink>) => {
         this.paginationControls = resp;
-        this.paginationControls.offset = pageInfo.offset;
+        this.paginationControls.offset = pageInfo?.offset || 0;
         this.paginationControls.total = resp.total;
         this.loading = false;
       },

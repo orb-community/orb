@@ -23,11 +23,11 @@ def run_local_agent_container(context):
     context.container_id = run_agent_container(agent_image, env_vars)
 
 
-@then('the container logs should contain the message "{text_to_match}"')
-def check_agent_log(context, text_to_match):
+@then('the container logs should contain the message "{text_to_match}" within {time_to_wait} seconds')
+def check_agent_log(context, text_to_match, time_to_wait):
     time_waiting = 0
     sleep_time = 0.5
-    timeout = 10
+    timeout = int(time_to_wait)
     text_found = False
 
     while time_waiting < timeout:
