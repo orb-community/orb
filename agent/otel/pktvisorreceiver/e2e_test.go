@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 )
 
+// Test with mocked server
 func TestEndToEndSummarySupport(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 
