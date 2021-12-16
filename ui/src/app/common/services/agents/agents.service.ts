@@ -158,8 +158,7 @@ export class AgentsService {
   }
 
   getAgents(pageInfo: NgxDatabalePageInfo, isFilter = false) {
-    const offset = pageInfo?.offset || this.cache.offset;
-    const limit = pageInfo?.limit || this.cache.limit;
+    const { limit, offset, name, tags } = pageInfo || this.cache;
     let params = new HttpParams()
       .set('offset', (offset * limit).toString())
       .set('limit', limit.toString())
@@ -167,23 +166,23 @@ export class AgentsService {
       .set('dir', this.cache.dir);
 
     if (isFilter) {
-      if (pageInfo.name) {
-        params = params.append('name', pageInfo.name);
+      if (name) {
+        params = params.append('name', name);
       }
-      if (pageInfo.tags) {
-        params.append('tags', JSON.stringify(pageInfo.tags));
+      if (tags) {
+        params.append('tags', JSON.stringify(tags));
       }
       this.paginationCache[offset] = false;
     }
 
-    if (this.paginationCache[pageInfo?.offset]) {
+    if (this.paginationCache[offset]) {
       return of(this.cache);
     }
 
     return this.http.get(environment.agentsUrl, { params })
       .map(
         (resp: any) => {
-          this.paginationCache[pageInfo?.offset || 0] = true;
+          this.paginationCache[offset || 0] = true;
           // This is the position to insert the new data
           const start = resp.offset;
           const newData = [...this.cache.data];
@@ -194,8 +193,8 @@ export class AgentsService {
             total: resp.total,
             data: newData,
           };
-          if (pageInfo.name) this.cache.name = pageInfo.name;
-          if (pageInfo.tags) this.cache.tags = pageInfo.tags;
+          if (name) this.cache.name = name;
+          if (tags) this.cache.tags = tags;
           return this.cache;
         },
       )
