@@ -13,12 +13,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"math/rand"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
-	"time"
 )
 
 const (
@@ -26,10 +24,8 @@ const (
 )
 
 var (
-	cfgFiles                  []string
-	Debug                     bool
-	rng                       = rand.New(rand.NewSource(time.Now().UnixNano()))
-	defaultCollectionInterval = 10 * time.Second
+	cfgFiles []string
+	Debug    bool
 )
 
 func init() {
