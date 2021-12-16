@@ -29,6 +29,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 )
 
@@ -55,6 +56,8 @@ type pktvisorBackend struct {
 	adminAPIHost     string
 	adminAPIPort     string
 	adminAPIProtocol string
+
+	scrapeOtel bool
 }
 
 func (p *pktvisorBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
@@ -269,92 +272,93 @@ func (p *pktvisorBackend) Start() error {
 	p.scraper = gocron.NewScheduler(time.UTC)
 	p.scraper.StartAsync()
 
-	//TODO create a startup for otel receiver / exporter component
-	ctx := context.Background()
-	p.exporter, err = createExporter(ctx, p.logger)
-	if err != nil {
-		p.logger.Error("failed to create a exporter", zap.Error(err))
-	}
-	p.receiver, err = createReceiver(ctx, p.exporter, p.logger)
-	if err != nil {
-		p.logger.Error("failed to create a receiver", zap.Error(err))
-	}
-
-	err = p.exporter.Start(ctx, nil)
-	if err != nil {
-		p.logger.Error("otel exporter startup error", zap.Error(err))
-		os.Exit(1)
-	}
-
-	err = p.receiver.Start(ctx, nil)
-	if err != nil {
-		p.logger.Error("otel receiver startup error", zap.Error(err))
-		os.Exit(1)
-	}
-
-	// scrape all policy json output with one call every minute.
-	// TODO support policies with custom bucket times
-	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
-		metrics, err := p.scrapeMetrics(1)
+	if p.scrapeOtel {
+		ctx := context.Background()
+		p.exporter, err = createExporter(ctx, p.logger)
 		if err != nil {
-			p.logger.Error("scrape failed", zap.Error(err))
-			return
+			p.logger.Error("failed to create a exporter", zap.Error(err))
 		}
-		if len(metrics) == 0 {
-			p.logger.Warn("scrape: no policies found, skipping")
-			return
-		}
-
-		var batchPayload []fleet.AgentMetricsRPCPayload
-		totalSize := 0
-		for pName, pMetrics := range metrics {
-			data, err := p.policyRepo.GetByName(pName)
-			if err != nil {
-				p.logger.Error("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.Error(err))
-				continue
-			}
-			payloadData, err := json.Marshal(pMetrics)
-			if err != nil {
-				p.logger.Error("error marshalling scraped metric json", zap.String("policy", pName), zap.Error(err))
-				continue
-			}
-			metricPayload := fleet.AgentMetricsRPCPayload{
-				PolicyID:   data.ID,
-				PolicyName: data.Name,
-				Datasets:   data.GetDatasetIDs(),
-				Format:     "json",
-				BEVersion:  p.pktvisorVersion,
-				Data:       payloadData,
-			}
-			batchPayload = append(batchPayload, metricPayload)
-			totalSize += len(payloadData)
-			p.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", data.ID), zap.Int("payload_size_b", len(payloadData)))
-		}
-
-		rpc := fleet.AgentMetricsRPC{
-			SchemaVersion: fleet.CurrentRPCSchemaVersion,
-			Func:          fleet.AgentMetricsRPCFunc,
-			Payload:       batchPayload,
-		}
-
-		body, err := json.Marshal(rpc)
+		p.receiver, err = createReceiver(ctx, p.exporter, p.logger)
 		if err != nil {
-			p.logger.Error("error marshalling metric rpc payload", zap.Error(err))
-			return
+			p.logger.Error("failed to create a receiver", zap.Error(err))
 		}
 
-		if token := p.mqttClient.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
-			p.logger.Error("error sending metrics RPC", zap.String("topic", p.metricsTopic), zap.Error(token.Error()))
+		err = p.exporter.Start(ctx, nil)
+		if err != nil {
+			p.logger.Error("otel exporter startup error", zap.Error(err))
+			os.Exit(1)
 		}
-		p.logger.Info("scraped and published metrics", zap.String("topic", p.metricsTopic), zap.Int("payload_size_b", totalSize), zap.Int("batch_count", len(batchPayload)))
 
-	})
+		err = p.receiver.Start(ctx, nil)
+		if err != nil {
+			p.logger.Error("otel receiver startup error", zap.Error(err))
+			os.Exit(1)
+		}
+	} else {
+		// scrape all policy json output with one call every minute.
+		// TODO support policies with custom bucket times
+		job, err := p.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
+			metrics, err := p.scrapeMetrics(1)
+			if err != nil {
+				p.logger.Error("scrape failed", zap.Error(err))
+				return
+			}
+			if len(metrics) == 0 {
+				p.logger.Warn("scrape: no policies found, skipping")
+				return
+			}
 
-	if err != nil {
-		return err
+			var batchPayload []fleet.AgentMetricsRPCPayload
+			totalSize := 0
+			for pName, pMetrics := range metrics {
+				data, err := p.policyRepo.GetByName(pName)
+				if err != nil {
+					p.logger.Error("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.Error(err))
+					continue
+				}
+				payloadData, err := json.Marshal(pMetrics)
+				if err != nil {
+					p.logger.Error("error marshalling scraped metric json", zap.String("policy", pName), zap.Error(err))
+					continue
+				}
+				metricPayload := fleet.AgentMetricsRPCPayload{
+					PolicyID:   data.ID,
+					PolicyName: data.Name,
+					Datasets:   data.GetDatasetIDs(),
+					Format:     "json",
+					BEVersion:  p.pktvisorVersion,
+					Data:       payloadData,
+				}
+				batchPayload = append(batchPayload, metricPayload)
+				totalSize += len(payloadData)
+				p.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", data.ID), zap.Int("payload_size_b", len(payloadData)))
+			}
+
+			rpc := fleet.AgentMetricsRPC{
+				SchemaVersion: fleet.CurrentRPCSchemaVersion,
+				Func:          fleet.AgentMetricsRPCFunc,
+				Payload:       batchPayload,
+			}
+
+			body, err := json.Marshal(rpc)
+			if err != nil {
+				p.logger.Error("error marshalling metric rpc payload", zap.Error(err))
+				return
+			}
+
+			if token := p.mqttClient.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
+				p.logger.Error("error sending metrics RPC", zap.String("topic", p.metricsTopic), zap.Error(token.Error()))
+			}
+			p.logger.Info("scraped and published metrics", zap.String("topic", p.metricsTopic), zap.Int("payload_size_b", totalSize), zap.Int("batch_count", len(batchPayload)))
+
+		})
+
+		if err != nil {
+			return err
+		}
+
+		job.SingletonMode()
 	}
-
-	job.SingletonMode()
 
 	return nil
 }
@@ -391,6 +395,17 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 	}
 	if p.adminAPIPort, prs = config["api_port"]; !prs {
 		return errors.New("you must specify pktvisor admin API port")
+	}
+
+	var otelScraper string
+	if otelScraper, prs = config["scrape_otel"]; !prs {
+		return errors.New("you must specify pktvisor scraper")
+	}
+
+	var err error
+	p.scrapeOtel, err = strconv.ParseBool(otelScraper)
+	if err != nil {
+		return err
 	}
 
 	return nil

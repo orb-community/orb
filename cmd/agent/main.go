@@ -128,6 +128,7 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.cloud.mqtt.channel_id", "")
 	v.SetDefault("orb.db.file", "./orb-agent.db")
 	v.SetDefault("orb.tls.verify", true)
+	v.SetDefault("orb.otel.scrape", false)
 
 	v.SetDefault("orb.backends.pktvisor.binary", "")
 	v.SetDefault("orb.backends.pktvisor.config_file", "")
@@ -196,48 +197,3 @@ func main() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.Execute()
 }
-
-//func RunComponents() error {
-//	factories, err := components()
-//	if err != nil {
-//		return errors.Wrap(errors.New(fmt.Sprintf("failed to build components: %v", err)), err)
-//	}
-//
-//	info := component.BuildInfo{
-//		Command:     "otelcontribcol",
-//		Description: "OpenTelemetry Collector Contrib",
-//		Version:     buildinfo.GetVersion(),
-//	}
-//
-//	app, err := service.New(service.CollectorSettings{
-//		Factories: factories,
-//		BuildInfo: info,
-//	})
-//
-//	err = app.Run(context.Background())
-//	if err != nil {
-//		return errors.Wrap(errors.New(fmt.Sprintf("application run finished with error: %v", err)), err)
-//	}
-//	return nil
-//}
-//
-//func components() (component.Factories, error) {
-//	factories, err := defaultcomponents.Components()
-//	if err != nil {
-//		return component.Factories{}, err
-//	}
-//	receivers := []component.ReceiverFactory{
-//		receiver.NewFactory(),
-//	}
-//
-//	for _, rc := range factories.Receivers {
-//		receivers = append(receivers, rc)
-//	}
-//
-//	factories.Receivers, err = component.MakeReceiverFactoryMap(receivers...)
-//	if err != nil {
-//		return factories, err
-//	}
-//
-//	return factories, nil
-//}
