@@ -18,8 +18,10 @@ export class AgentViewComponent {
   agentID;
 
   command2copy: string;
+  copyCommandIcon: string;
 
   command2show: string;
+
 
   constructor(
     private agentsService: AgentsService,
@@ -30,12 +32,19 @@ export class AgentViewComponent {
     this.agentID = this.route.snapshot.paramMap.get('id');
     this.command2copy = '';
     this.command2show = '';
+    this.copyCommandIcon = 'clipboard-outline';
 
     !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
       this.agent = resp;
       this.makeCommand2Copy();
       this.isLoading = false;
     });
+  }
+
+  toggleIcon (target) {
+  if (target === 'command') {
+      this.copyCommandIcon = 'checkmark-outline';
+    }
   }
 
   makeCommand2Copy() {
