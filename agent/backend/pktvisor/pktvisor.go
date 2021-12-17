@@ -502,7 +502,7 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
 	rcvCfg := pktvisorreceiver.CreateDefaultConfig()
-	// Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
+	// Create the Prometheus receiver and pass in the previously created Prometheus exporter.
 	pReceiver, err := r.CreateMetricsReceiver(ctx, receiverCreateSet, rcvCfg, exporter)
 	if err != nil {
 		return nil, err
