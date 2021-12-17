@@ -14,6 +14,7 @@ import (
 	"github.com/ns1labs/orb/agent/policyMgr"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"strconv"
 	"time"
 )
 
@@ -74,6 +75,7 @@ func (a *orbAgent) startBackends() error {
 			return errors.New("specified backend does not exist: " + name)
 		}
 		be := backend.GetBackend(name)
+		config["scrape_otel"] = strconv.FormatBool(a.config.OrbAgent.Otel.Scrape)
 		if err := be.Configure(a.logger, a.policyManager.GetRepo(), config); err != nil {
 			return err
 		}
