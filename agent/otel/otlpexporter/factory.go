@@ -19,7 +19,7 @@ func NewFactory() component.ExporterFactory {
 	return exporterhelper.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		exporterhelper.WithMetrics(createMetricsExporter))
+		exporterhelper.WithMetrics(CreateMetricsExporter))
 }
 
 func createDefaultConfig() config.Exporter {
@@ -39,7 +39,7 @@ func createDefaultConfig() config.Exporter {
 	}
 }
 
-func createMetricsExporter(
+func CreateMetricsExporter(
 	_ context.Context,
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
