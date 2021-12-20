@@ -280,10 +280,6 @@ func (p *pktvisorBackend) Start() error {
 
 	if p.scrapeOtel {
 		ctx := context.Background()
-		//p.exporter, err = createExporter(ctx, p.logger)
-		//if err != nil {
-		//	p.logger.Error("failed to create a exporter", zap.Error(err))
-		//}
 		p.exporter, err = createOtlpExporter(ctx, p.logger)
 		if err != nil {
 			p.logger.Error("failed to create a exporter", zap.Error(err))
@@ -293,12 +289,6 @@ func (p *pktvisorBackend) Start() error {
 		if err != nil {
 			p.logger.Error("failed to create a receiver", zap.Error(err))
 		}
-
-		//err = p.exporter.Start(ctx, nil)
-		//if err != nil {
-		//	p.logger.Error("otel exporter startup error", zap.Error(err))
-		//	os.Exit(1)
-		//}
 
 		err = p.receiver.Start(ctx, nil)
 		if err != nil {
