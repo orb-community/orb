@@ -75,7 +75,7 @@ func (a *orbAgent) startBackends() error {
 			return errors.New("specified backend does not exist: " + name)
 		}
 		be := backend.GetBackend(name)
-		config["scrape_otel"] = strconv.FormatBool(a.config.OrbAgent.Otel.Scrape)
+		config["scrape_otel"] = strconv.FormatBool(a.config.OrbAgent.Otel.Enable)
 		if err := be.Configure(a.logger, a.policyManager.GetRepo(), config); err != nil {
 			return err
 		}
