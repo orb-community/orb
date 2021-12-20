@@ -261,8 +261,6 @@ export class DatasetAddComponent {
   onFormSubmit() {
     const payload = {
       name: this.detailsFormGroup.controls.name.value,
-      agent_group_id: this.agentFormGroup.controls.agent_group_id.value,
-      agent_policy_id: this.policyFormGroup.controls.agent_policy_id.value,
       sink_ids: this.selectedSinks.map(sink => sink.id),
     } as Dataset;
     if (this.isEdit) {
@@ -272,6 +270,8 @@ export class DatasetAddComponent {
         this.goBack();
       });
     } else {
+      payload.agent_group_id = this.agentFormGroup.controls.agent_group_id.value,
+      payload.agent_policy_id = this.policyFormGroup.controls.agent_policy_id.value,
       this.datasetPoliciesService.addDataset(payload).subscribe(() => {
         this.notificationsService.success('Dataset successfully created', '');
         this.goBack();
