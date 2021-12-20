@@ -84,7 +84,7 @@ export class DatasetPoliciesService {
   }
 
   editDataset(datasetItem: Dataset): any {
-    return this.http.put(`${ environment.datasetPoliciesUrl }/${ datasetItem.id }`, datasetItem)
+    return this.http.patch(`${ environment.datasetPoliciesUrl }/${ datasetItem.id }`, datasetItem)
       .map(
         resp => {
           return resp;
