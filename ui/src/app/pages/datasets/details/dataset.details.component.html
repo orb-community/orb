@@ -34,21 +34,6 @@
         <p>{{ dataset.sink_ids }}</p>
       </div>
     </div>
-    <div class="row">
-      <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Dataset Tags<span class="ns1red">*</span></p>
-        <div>
-          <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
-            <mat-chip
-                class="orb-tag-sink "
-                *ngFor="let tag of dataset.tags | keyvalue | tagchip"
-                [style.background-color]="tag | tagchipcolor">
-                {{tag}}
-            </mat-chip>
-          </mat-chip-list>
-        </div>
-      </div>
-    </div>
   </nb-card-body>
 
   <nb-card-footer>

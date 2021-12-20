@@ -4,7 +4,7 @@
   </xng-breadcrumb>
   <h4>Agent View</h4>
 </header>
-<div class="row"  *ngIf="!isLoading">
+<div *ngIf="!isLoading" class="row">
   <div class="col-md-6">
     <nb-card>
       <nb-card-header>Agent Information</nb-card-header>
@@ -22,8 +22,15 @@
         <p>{{ agent?.channel_id }}</p>
 
         <label>Provisioning Command</label>
-        <pre><button
-          [cdkCopyToClipboard]="command2copy"><nb-icon icon="clipboard-outline" pack="eva" ></nb-icon></button><code>{{ command2show }}</code></pre>
+        <pre>
+          <button
+          [cdkCopyToClipboard]="command2copy">
+            <nb-icon [icon]="copyCommandIcon"
+                     (click)="toggleIcon('command')"
+                     pack="eva">
+            </nb-icon>
+          </button><code>{{ command2show }}</code>
+        </pre>
       </nb-card-body>
     </nb-card>
   </div>
@@ -34,16 +41,16 @@
         <div class="d-flex">
           <mat-chip-list>
             <mat-chip
-              class="orb-tag-sink"
-              *ngFor="let tag of agent?.orb_tags | keyvalue | tagchip"
-              [style.background-color]="tag | tagchipcolor">
-              {{tag}}
+              *ngFor="let tag of agent?.orb_tags | keyvalue"
+              [style.background-color]="tag | tagcolor"
+              class="orb-tag-sink">
+              {{ tag | tagchip }}
             </mat-chip>
             <mat-chip
-              class="orb-tag-sink"
-              *ngFor="let tag of agent?.agent_tags | keyvalue | tagchip"
-              [style.background-color]="tag | tagchipcolor">
-              {{tag}}
+              *ngFor="let tag of agent?.agent_tags | keyvalue"
+              [style.background-color]="tag | tagcolor"
+              class="orb-tag-sink">
+              {{tag | tagchip}}
             </mat-chip>
           </mat-chip-list>
         </div>

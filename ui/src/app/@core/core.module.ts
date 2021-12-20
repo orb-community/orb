@@ -82,6 +82,11 @@ export const NB_CORE_PROVIDERS = [
         fullName: {
           required: false,
         },
+        company: {
+          required: false,
+          minLength: 1,
+          maxLength: 30,
+        },
       },
     },
   }).providers,

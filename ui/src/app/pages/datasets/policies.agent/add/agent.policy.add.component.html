@@ -142,7 +142,7 @@
             </form>
             <hr/>
           </div>
-          <div *ngIf="!!inputFilterFG">
+          <div *ngIf="!!inputConfigFG">
             <!-- Dynamic Input Config Form -->
             <form (ngSubmit)="onFormSubmit()" [formGroup]="inputConfigFG">
               <div *ngFor="let control of input.config | keyvalue; index as i;">
@@ -280,7 +280,7 @@
                 <mat-chip
                   *ngFor="let handler of modules | keyvalue; index as i"
                   [attr.data-orb-qa-id]="'handler_' + i"
-                  [style.background-color]="handler.key | tagchipcolor"
+                  [style.background-color]="handler.key | tagcolor"
                   [value]="i"
                   class="orb-selected-handler ">
                   {{ handler.key }}
@@ -397,10 +397,67 @@
               </div>
             </form>
           </div>
+          <!--Dynamic Handler Filter-->
+          <div *ngIf="!!liveHandler && !!dynamicHandlerFilterFG">
+            <form (ngSubmit)="onFormSubmit()" [formGroup]="dynamicHandlerFilterFG">
+              <div *ngIf="!!liveHandler.filter">
+                <div *ngFor="let control of liveHandler.filter | keyvalue">
+                  <div>
+                    <label class="font-weight-bold">{{control.value.label}}</label>
+                  </div>
+                  <div [ngSwitch]="control.value.input">
+                    <input *ngSwitchCase="'text'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="true"
+                           [formControlName]="control.key"
+                           [placeholder]="control.value?.props?.example || ''"
+                           [type]="control.value.type"
+                           fieldSize="medium"
+                           fullWidth="true"
+                           nbInput
+                           nbTooltip="{{ control.value.description }}">
+                    <input *ngSwitchCase="'number'"
+                           [attr.data-orb-qa-id]="control.value.name"
+                           [autofocus]="true"
+                           [formControlName]="control.key"
+                           [max]="control.value?.props?.max"
+                           [min]="control.value?.props?.min"
+                           [placeholder]="control.value?.props?.example || ''"
+                           [step]="control.value?.props?.step"
+                           [type]="control.value.type"
+                           nbTooltip="{{ control.value.description }}">
+                    <nb-select *ngSwitchCase="'select'"
+                               [attr.data-orb-qa-id]="control.value.name"
+                               [formControlName]="control.key"
+                               [id]="control.value.name"
+                               [placeholder]="control.value?.props?.example || ''"
+                               appearance="filled"
+                               fullWidth="true"
+                               nbTooltip="{{ control.value.description }}"
+                               size="medium">
+                      {{ control.value.name + "-" + control.value.props.options }}
+                      <nb-option *ngFor="let option of control.value.props.options | keyvalue"
+                                 [attr.data-orb-qa-id]="option.key"
+                                 [value]="option.value">{{ option.value }}</nb-option>
+                    </nb-select>
+                    <nb-checkbox *ngSwitchCase="'checkbox'"
+                                 [attr.data-orb-qa-id]="control.value.name"
+                                 [formControlName]="control.key"
+                                 [id]="control.value.name"
+                                 nbTooltip="{{ control.value.description }}">
+                      {{control.value.name}}
+                    </nb-checkbox>
+                  </div>
+                  <hr/>
+                </div>
+              </div>
+            </form>
+          </div>
           <div class="d-flex justify-content-start"
                style="padding-left: 35%;">
             <button
               data-orb-qa-id="back"
+              (click)="liveHandler = null"
               ghost
               nbButton
               nbStepperPrevious
@@ -417,7 +474,7 @@
                     shape="round"
                     status="primary"
                     type="submit">
-              Next
+              Save
             </button>
           </div>
         </nb-step>

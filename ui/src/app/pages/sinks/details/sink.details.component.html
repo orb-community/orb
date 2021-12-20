@@ -38,14 +38,14 @@
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">{{strings.propNames.tags}}<span class="ns1red">*</span></p>
+        <p class="detail-title">{{strings.propNames.tags}}</p>
         <div>
           <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
             <mat-chip
                 class="orb-tag-sink "
-                *ngFor="let tag of sink.tags | keyvalue | tagchip"
-                [style.background-color]="tag | tagchipcolor">
-                {{tag}}
+                *ngFor="let tag of sink.tags | keyvalue"
+                [style.background-color]="tag | tagcolor">
+                {{tag | tagchip}}
             </mat-chip>
           </mat-chip-list>
         </div>
