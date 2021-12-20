@@ -818,7 +818,7 @@ func TestDatasetEdition(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			req := testRequest{
 				client:      cli.server.Client(),
-				method:      http.MethodPatch,
+				method:      http.MethodPut,
 				url:         fmt.Sprintf("%s/policies/dataset/%s", cli.server.URL, tc.id),
 				contentType: tc.contentType,
 				token:       tc.auth,
