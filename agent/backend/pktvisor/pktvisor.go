@@ -27,9 +27,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"os/exec"
-	"strconv"
 	"time"
 )
 
@@ -273,10 +271,11 @@ func (p *pktvisorBackend) Start() error {
 	p.scraper.StartAsync()
 
 	if p.scrapeOtel {
-		p.scrapeOpentelemetry(err)
+		if err := p.scrapeOpentelemetry(); err != nil {
+			return err
+		}
 	} else {
-		err = p.scrapeDefault()
-		if err != nil {
+		if err := p.scrapeDefault(); err != nil {
 			return err
 		}
 	}
@@ -351,7 +350,7 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
-func (p *pktvisorBackend) scrapeOpentelemetry(err error) {
+func (p *pktvisorBackend) scrapeOpentelemetry() (err error) {
 	ctx := context.Background()
 	p.exporter, err = createExporter(ctx, p.logger)
 	if err != nil {
@@ -365,14 +364,15 @@ func (p *pktvisorBackend) scrapeOpentelemetry(err error) {
 	err = p.exporter.Start(ctx, nil)
 	if err != nil {
 		p.logger.Error("otel exporter startup error", zap.Error(err))
-		os.Exit(1)
+		return err
 	}
 
 	err = p.receiver.Start(ctx, nil)
 	if err != nil {
 		p.logger.Error("otel receiver startup error", zap.Error(err))
-		os.Exit(1)
+		return err
 	}
+	return nil
 }
 
 func (p *pktvisorBackend) Stop() error {
@@ -391,7 +391,7 @@ func (p *pktvisorBackend) Stop() error {
 	return nil
 }
 
-func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string) error {
+func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string, otelConfig map[string]interface{}) error {
 	p.logger = logger
 	p.policyRepo = repo
 
@@ -409,15 +409,11 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 		return errors.New("you must specify pktvisor admin API port")
 	}
 
-	var otelScraper string
-	if otelScraper, prs = config["scrape_otel"]; !prs {
-		return errors.New("you must specify pktvisor scraper")
-	}
-
-	var err error
-	p.scrapeOtel, err = strconv.ParseBool(otelScraper)
-	if err != nil {
-		return err
+	for k, v := range otelConfig {
+		switch k {
+		case "Enable":
+			p.scrapeOtel = v.(bool)
+		}
 	}
 
 	return nil
