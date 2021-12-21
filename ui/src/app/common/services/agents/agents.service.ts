@@ -1,12 +1,12 @@
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {Observable, of} from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import {environment} from 'environments/environment';
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
-import {Agent} from 'app/common/interfaces/orb/agent.interface';
+import { environment } from 'environments/environment';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import { Agent } from 'app/common/interfaces/orb/agent.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -15,7 +15,7 @@ const defDir = 'desc';
 
 @Injectable()
 export class AgentsService {
-    paginationCache: any = {};
+  paginationCache: any = {};
 
   cache: OrbPagination<Agent>;
 
@@ -158,44 +158,44 @@ export class AgentsService {
   }
 
   getAgents(pageInfo: NgxDatabalePageInfo, isFilter = false) {
-      const {limit, offset, name, tags} = pageInfo || this.cache;
-      let params = new HttpParams()
-          .set('offset', (offset * limit).toString())
-          .set('limit', limit.toString())
-          .set('order', this.cache.order)
-          .set('dir', this.cache.dir);
+    const { limit, offset, name, tags } = pageInfo || this.cache;
+    let params = new HttpParams()
+      .set('offset', (offset * limit).toString())
+      .set('limit', limit.toString())
+      .set('order', this.cache.order)
+      .set('dir', this.cache.dir);
 
     if (isFilter) {
-        if (name) {
-            params = params.append('name', name);
-        }
-        if (tags) {
-            params.append('tags', JSON.stringify(tags));
-        }
-        this.paginationCache[offset] = false;
+      if (name) {
+        params = params.append('name', name);
+      }
+      if (tags) {
+        params.append('tags', JSON.stringify(tags));
+      }
+      this.paginationCache[offset] = false;
     }
 
-      if (this.paginationCache[offset]) {
-          return of(this.cache);
-      }
+    if (this.paginationCache[offset]) {
+      return of(this.cache);
+    }
 
     return this.http.get(environment.agentsUrl, { params })
       .map(
         (resp: any) => {
-            this.paginationCache[offset || 0] = true;
-            // This is the position to insert the new data
-            const start = resp.offset;
-            const newData = [...this.cache.data];
-            newData.splice(start, resp.limit, ...resp.agents);
-            this.cache = {
-                ...this.cache,
-                offset: Math.floor(resp.offset / resp.limit),
-                total: resp.total,
-                data: newData,
-            };
-            if (name) this.cache.name = name;
-            if (tags) this.cache.tags = tags;
-            return this.cache;
+          this.paginationCache[offset || 0] = true;
+          // This is the position to insert the new data
+          const start = resp.offset;
+          const newData = [...this.cache.data];
+          newData.splice(start, resp.limit, ...resp.agents);
+          this.cache = {
+            ...this.cache,
+            offset: Math.floor(resp.offset / resp.limit),
+            total: resp.total,
+            data: newData,
+          };
+          if (name) this.cache.name = name;
+          if (tags) this.cache.tags = tags;
+          return this.cache;
         },
       )
       .catch(

@@ -1,8 +1,8 @@
-import {Component} from '@angular/core';
-import {STRINGS} from 'assets/text/strings';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Agent} from 'app/common/interfaces/orb/agent.interface';
-import {AgentsService} from 'app/common/services/agents/agents.service';
+import { Component } from '@angular/core';
+import { STRINGS } from 'assets/text/strings';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { AgentsService } from 'app/common/services/agents/agents.service';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -41,18 +41,18 @@ export class AgentViewComponent {
     });
   }
 
-  toggleIcon(target) {
-    if (target === 'command') {
+  toggleIcon (target) {
+  if (target === 'command') {
       this.copyCommandIcon = 'checkmark-outline';
     }
   }
 
   makeCommand2Copy() {
     this.command2copy = `docker run -d --net=host \\
--e ORB_CLOUD_ADDRESS=${document.location.hostname} \\
--e ORB_CLOUD_MQTT_ID=${this.agent.id} \\
--e ORB_CLOUD_MQTT_CHANNEL_ID=${this.agent.channel_id} \\
--e ORB_CLOUD_MQTT_KEY=${this.agent.key} \\
+-e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
+-e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
+-e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
+-e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=mock \\
 ns1labs/orb-agent`;
 
