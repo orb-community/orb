@@ -1,14 +1,9 @@
 ARG PKTVISOR_TAG=latest-develop
-FROM ns1labs/pktvisor:${PKTVISOR_TAG} AS builder
+FROM golang:1.17-alpine AS builder
 
 WORKDIR /go/src/github.com/ns1labs/orb
 COPY . .
-
-ENV BUILD_DEPS "g++ make ca-certificates golang"
-
-RUN apt-get update && \
-    apt-get install --yes --force-yes --no-install-recommends ${BUILD_DEPS}
-
+RUN apk update && apk add make build-base
 RUN mkdir /tmp/build && CGO_ENABLED=1 make agent_bin && mv build/orb-agent /tmp/build/orb-agent
 
 FROM ns1labs/pktvisor:${PKTVISOR_TAG}
