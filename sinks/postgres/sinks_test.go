@@ -56,6 +56,32 @@ func TestSinkSave(t *testing.T) {
 		Tags:        map[string]string{"cloud": "aws"},
 	}
 
+	invalidOwnerSink := sinks.Sink{
+		Name:        nameID,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		ID:          skID.String(),
+		Created:     time.Now(),
+		MFOwnerID:   "",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+
+	sinkMalformedOwnerID := sinks.Sink{
+		Name:        nameID,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		ID:          skID.String(),
+		Created:     time.Now(),
+		MFOwnerID:   "123",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+
 	sinkCopy := sink
 	sinkCopy.Name = conflictNameID
 	_, err = sinkRepo.Save(context.Background(), sinkCopy)
@@ -72,6 +98,14 @@ func TestSinkSave(t *testing.T) {
 		"create a sink that already exist": {
 			sink: sinkCopy,
 			err:  errors.ErrConflict,
+		},
+		"create a sink with invalid ownerID": {
+			sink: invalidOwnerSink,
+			err:  errors.ErrMalformedEntity,
+		},
+		"create a sink with a malformed ownerID": {
+			sink: sinkMalformedOwnerID,
+			err:  errors.ErrMalformedEntity,
 		},
 	}
 
@@ -143,6 +177,13 @@ func TestSinkUpdate(t *testing.T) {
 				MFOwnerID: invalideOwnerID.String(),
 			},
 			err: sinks.ErrNotFound,
+		},
+		"update a sink with malformed ownerID": {
+			sink: sinks.Sink{
+				ID: sinkID,
+				MFOwnerID: "123",
+			},
+			err:  errors.ErrMalformedEntity,
 		},
 	}
 
@@ -297,6 +338,26 @@ func TestMultiSinkRetrieval(t *testing.T) {
 			},
 			size: n,
 		},
+		"retrieve agents filtered by tags": {
+			owner: oID.String(),
+			pageMetadata: sinks.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Tags: map[string]string{"cloud":"aws"},
+			},
+			size: n,
+		},
+		"retrieve agents filtered by metadata": {
+			owner: oID.String(),
+			pageMetadata: sinks.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  0,
+				Metadata: map[string]interface{}{"username": "dbuser", "remote_host": "my.prometheus-host.com"},
+			},
+			size: 0,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -362,6 +423,141 @@ func TestSinkRemoval(t *testing.T) {
 			require.True(t, errors.Contains(err, sinks.ErrNotFound), fmt.Sprintf("%s: expected %s got %s", desc, sinks.ErrNotFound, err))
 		})
 	}
+}
+
+func TestSinkRetrieveInternal(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("my-sink")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		Created:     time.Now(),
+		MFOwnerID:   oID.String(),
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+
+	sinkID, err := sinkRepo.Save(context.Background(), sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	sink.ID = sinkID
+
+	cases := map[string]struct {
+		sinkID  string
+		ownerID string
+		nameID  string
+		err     error
+	}{
+		"retrieve existing sink by sinkID and ownerID": {
+			sinkID:  sinkID,
+			ownerID: sink.MFOwnerID,
+			nameID:  sink.Name.String(),
+			err:     nil,
+		},
+		"retrieve sink with empty sinkID and ownerID": {
+			sinkID:  "",
+			ownerID: "",
+			nameID:  sink.Name.String(),
+			err:     errors.ErrSelectEntity,
+		},
+		"retrieve non-existing sink by sinkID and ownerID": {
+			sinkID:  "invalid",
+			ownerID: "invalid",
+			nameID:  sink.Name.String(),
+			err:     errors.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := sinkRepo.RetrieveByOwnerAndId(context.Background(), tc.ownerID, tc.sinkID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
+	}
+
+}
+
+func TestUpdateSinkState(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	sinkRepo := postgres.NewSinksRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	fakeSinkID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("my-sink")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	fakeOwnerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		Created:     time.Now(),
+		MFOwnerID:   oID.String(),
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+
+	sinkID, err := sinkRepo.Save(context.Background(), sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	sink.ID = sinkID
+
+	cases := map[string]struct {
+		sinkID  string
+		ownerID string
+		state   sinks.State
+		msg     string
+		err     error
+	}{
+		"update sink state with no error": {
+			sinkID:  sinkID,
+			ownerID: sink.MFOwnerID,
+			state:   sinks.State(1),
+			msg:     "",
+			err:     nil,
+		},
+		"update sink state with error": {
+			sinkID:  sinkID,
+			ownerID: sink.MFOwnerID,
+			state:   sinks.State(2),
+			msg:     "failed",
+			err:     nil,
+		},
+		"update state of a non-existent sink": {
+			sinkID:  fakeSinkID.String(),
+			ownerID: sink.MFOwnerID,
+			state:   sinks.State(2),
+			msg:     "failed",
+			err:     sinks.ErrNotFound,
+		},
+		"update state of a non-existent owner": {
+			sinkID:  sinkID,
+			ownerID: fakeOwnerID.String(),
+			state:   sinks.State(2),
+			msg:     "failed",
+			err:     sinks.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := sinkRepo.UpdateSinkState(context.Background(), tc.sinkID, tc.msg, tc.ownerID, tc.state)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
+	}
+
 }
 
 func testSortSinks(t *testing.T, pm sinks.PageMetadata, sks []sinks.Sink) {

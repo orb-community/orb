@@ -227,9 +227,21 @@ func (s sinksRepository) UpdateSinkState(ctx context.Context, sinkID string, msg
 	}
 
 	q := "update sinks set state = :state, error = :error where mf_owner_id = :mf_owner_id and id = :id"
-	if _, err := s.db.NamedExecContext(ctx, q, dbsk); err != nil {
+
+	res, err := s.db.NamedExecContext(ctx, q, dbsk)
+	if err != nil {
 		return errors.Wrap(sinks.ErrUpdateEntity, err)
 	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(sinks.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return sinks.ErrNotFound
+	}
+
 	return nil
 }
 
