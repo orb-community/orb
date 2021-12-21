@@ -1,46 +1,46 @@
-import { NbMenuItem } from '@nebular/theme';
-import { environment } from '../../environments/environment';
+import {NbMenuItem} from '@nebular/theme';
+import {environment} from '../../environments/environment';
 
 export const MENU: NbMenuItem[] = [
-  {
-    title: 'Home',
-    icon: 'layout-outline',
-    link: 'home',
-    home: true,
-  },
-  {
-    title: 'Fleet Management',
+    {
+        title: 'Home',
+        icon: 'layout-outline',
+        link: 'home',
+        home: true,
+    },
+    {
+        title: 'Fleet Management',
     icon: 'cube-outline',
     children: [
       {
-        title: 'Agents',
-        link: 'fleet/agents',
+          title: 'Agents',
+          link: 'fleet/agents',
       },
-      {
-        title: 'Agent Groups',
-        link: 'fleet/groups',
-      },
+        {
+            title: 'Agent Groups',
+            link: 'fleet/groups',
+        },
     ],
-  },
-  {
-    title: 'Dataset Explorer',
-    icon: 'layers-outline',
-    children: [
-      {
-        title: 'Datasets',
-        link: 'datasets/list',
-      },
-      {
-        title: 'Policy Management',
-        link: 'datasets/policies',
-      },
-    ],
-  },
-  {
-    title: 'Sink Management',
-    icon: 'cloud-upload-outline',
-    link: 'sinks',
-  },
+    },
+    {
+        title: 'Sink Management',
+        icon: 'cloud-upload-outline',
+        link: 'sinks',
+    },
+    {
+        title: 'Dataset Explorer',
+        icon: 'layers-outline',
+        children: [
+            {
+                title: 'Policy Management',
+                link: 'datasets/policies',
+            },
+            {
+                title: 'Datasets',
+                link: 'datasets/list',
+            },
+        ],
+    },
   {
     title: 'Settings',
     icon: 'settings-2-outline',

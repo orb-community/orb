@@ -26,8 +26,8 @@
         <p>{{ agentPolicy.backend }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Policy Version<span class="ns1red">*</span></p>
-        <p>{{ agentPolicy.version }}</p>
+          <p class="detail-title">Policy Version</p>
+          <p>{{ agentPolicy.version || '-' }}</p>
       </div>
     </div>
   </nb-card-body>

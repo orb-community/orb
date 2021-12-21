@@ -1,15 +1,15 @@
-import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { STRINGS } from 'assets/text/strings';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
-import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
-import { AgentsService } from 'app/common/services/agents/agents.service';
-import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import {AfterViewInit, Component, TemplateRef, ViewChild} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {STRINGS} from 'assets/text/strings';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
+import {AgentGroupsService} from 'app/common/services/agents/agent.groups.service';
+import {TagMatch} from 'app/common/interfaces/orb/tag.match.interface';
+import {Agent} from 'app/common/interfaces/orb/agent.interface';
+import {DropdownFilterItem} from 'app/common/interfaces/mainflux.interface';
+import {AgentsService} from 'app/common/services/agents/agents.service';
+import {ColumnMode, TableColumn} from '@swimlane/ngx-datatable';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
 
 
 @Component({
@@ -19,7 +19,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 })
 export class AgentGroupAddComponent implements AfterViewInit {
   // page vars
-  strings = { ...STRINGS.agentGroups, stepper: STRINGS.stepper };
+  strings = {...STRINGS.agentGroups, stepper: STRINGS.stepper};
 
   isEdit: boolean;
 
@@ -192,7 +192,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
   // query agent group matches
   updateMatches() {
     const tagMatches = new Promise<TagMatch>(resolve => {
-      const { name } = this.agentGroup;
+      const name = this.firstFormGroup.controls.name.value;
       if (name !== '' && Object.keys(this.selectedTags).length !== 0) {
         const payload = this.wrapPayload(true);
         // just validate and get matches summary
