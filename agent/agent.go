@@ -7,6 +7,7 @@ package agent
 import (
 	"errors"
 	"github.com/eclipse/paho.mqtt.golang"
+	"github.com/fatih/structs"
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/cloud_config"
@@ -14,7 +15,6 @@ import (
 	"github.com/ns1labs/orb/agent/policyMgr"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
-	"strconv"
 	"time"
 )
 
@@ -75,8 +75,7 @@ func (a *orbAgent) startBackends() error {
 			return errors.New("specified backend does not exist: " + name)
 		}
 		be := backend.GetBackend(name)
-		config["scrape_otel"] = strconv.FormatBool(a.config.OrbAgent.Otel.Scrape)
-		if err := be.Configure(a.logger, a.policyManager.GetRepo(), config); err != nil {
+		if err := be.Configure(a.logger, a.policyManager.GetRepo(), config, structs.Map(a.config.OrbAgent.Otel)); err != nil {
 			return err
 		}
 		if err := be.Start(); err != nil {

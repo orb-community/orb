@@ -36,7 +36,7 @@ type Cloud struct {
 }
 
 type Opentelemetry struct {
-	Scrape bool `mapstructure:"scrape"`
+	Enable bool `mapstructure:"enable"`
 }
 
 type OrbAgent struct {

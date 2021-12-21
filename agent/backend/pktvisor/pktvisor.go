@@ -14,16 +14,12 @@ import (
 	"github.com/go-cmd/cmd"
 	"github.com/go-co-op/gocron"
 	"github.com/ns1labs/orb/agent/backend"
-	"github.com/ns1labs/orb/agent/otel/otlpexporter"
 	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
 	promexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configgrpc"
-	"go.opentelemetry.io/collector/config/configtls"
-	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -31,12 +27,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"os/exec"
-	"strconv"
 	"time"
-
-	"go.opentelemetry.io/collector/config"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
@@ -279,10 +271,11 @@ func (p *pktvisorBackend) Start() error {
 	p.scraper.StartAsync()
 
 	if p.scrapeOtel {
-		p.scrapeOpentelemetry(err)
+		if err := p.scrapeOpentelemetry(); err != nil {
+			return err
+		}
 	} else {
-		err = p.scrapeDefault()
-		if err != nil {
+		if err := p.scrapeDefault(); err != nil {
 			return err
 		}
 	}
@@ -357,13 +350,12 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
-func (p *pktvisorBackend) scrapeOpentelemetry(err error) {
+func (p *pktvisorBackend) scrapeOpentelemetry() (err error) {
 	ctx := context.Background()
-	p.exporter, err = createOtlpExporter(ctx, p.logger)
+	p.exporter, err = createExporter(ctx, p.logger)
 	if err != nil {
 		p.logger.Error("failed to create a exporter", zap.Error(err))
 	}
-
 	p.receiver, err = createReceiver(ctx, p.exporter, p.logger)
 	if err != nil {
 		p.logger.Error("failed to create a receiver", zap.Error(err))
@@ -372,14 +364,15 @@ func (p *pktvisorBackend) scrapeOpentelemetry(err error) {
 	err = p.exporter.Start(ctx, nil)
 	if err != nil {
 		p.logger.Error("otel exporter startup error", zap.Error(err))
-		os.Exit(1)
+		return err
 	}
 
 	err = p.receiver.Start(ctx, nil)
 	if err != nil {
 		p.logger.Error("otel receiver startup error", zap.Error(err))
-		os.Exit(1)
+		return err
 	}
+	return nil
 }
 
 func (p *pktvisorBackend) Stop() error {
@@ -398,7 +391,7 @@ func (p *pktvisorBackend) Stop() error {
 	return nil
 }
 
-func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string) error {
+func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string, otelConfig map[string]interface{}) error {
 	p.logger = logger
 	p.policyRepo = repo
 
@@ -416,15 +409,11 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 		return errors.New("you must specify pktvisor admin API port")
 	}
 
-	var otelScraper string
-	if otelScraper, prs = config["scrape_otel"]; !prs {
-		return errors.New("you must specify pktvisor scraper")
-	}
-
-	var err error
-	p.scrapeOtel, err = strconv.ParseBool(otelScraper)
-	if err != nil {
-		return err
+	for k, v := range otelConfig {
+		switch k {
+		case "Enable":
+			p.scrapeOtel = v.(bool)
+		}
 	}
 
 	return nil
@@ -457,7 +446,7 @@ func Register() bool {
 	return true
 }
 
-func createPromExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
+func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
 	// 2. Create the Prometheus metrics exporter that'll receive and verify the metrics produced.
 	exporterCfg := &promexporter.Config{
 		ExporterSettings: otelconfig.NewExporterSettings(otelconfig.NewComponentID("pktvisor_prometheus_exporter")),
@@ -482,37 +471,6 @@ func createPromExporter(ctx context.Context, logger *zap.Logger) (component.Metr
 	return exporter, nil
 }
 
-func createOtlpExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
-	// 2. Create the Prometheus metrics exporter that'll receive and verify the metrics produced.
-	exporterCfg := &otlpexporter.Config{
-		ExporterSettings: config.NewExporterSettings(config.NewComponentID("otlp_exporter")), // Definir o id do component via config
-		TimeoutSettings:  exporterhelper.DefaultTimeoutSettings(),
-		QueueSettings:    exporterhelper.DefaultQueueSettings(),
-		RetrySettings:    exporterhelper.DefaultRetrySettings(),
-		GRPCClientSettings: configgrpc.GRPCClientSettings{
-			Endpoint:        "localhost:1234", // Definir pra qual url serão enviadas as métricas via config
-			Headers:         map[string]string{},
-			WriteBufferSize: 512 * 1024,
-			TLSSetting: configtls.TLSClientSetting{
-				Insecure: true,
-			},
-		},
-	}
-	set := component.ExporterCreateSettings{
-		TelemetrySettings: component.TelemetrySettings{
-			Logger:         logger,
-			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.GetMeterProvider(),
-		},
-		BuildInfo: component.NewDefaultBuildInfo(),
-	}
-	exporter, err := otlpexporter.CreateMetricsExporter(ctx, set, exporterCfg)
-	if err != nil {
-		return nil, err
-	}
-	return exporter, nil
-}
-
 func createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
 	// Create a pktvisor receiver factory
 	r := pktvisorreceiver.NewFactory()
@@ -525,7 +483,7 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
 	rcvCfg := pktvisorreceiver.CreateDefaultConfig()
-	// Create the Prometheus receiver and pass in the previously created Prometheus exporter.
+	// Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
 	pReceiver, err := r.CreateMetricsReceiver(ctx, receiverCreateSet, rcvCfg, exporter)
 	if err != nil {
 		return nil, err
