@@ -116,6 +116,9 @@ func TestCreateSinks(t *testing.T) {
 	_, err = service.CreateSink(context.Background(), token, sinkConflict)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
+	var invalidNameJson = "{\n    \"name\": \"s\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	var emptyNameJson = "{\n    \"name\": \"\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+
 	cases := map[string]struct {
 		req         string
 		contentType string
@@ -156,6 +159,20 @@ func TestCreateSinks(t *testing.T) {
 			contentType: "",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
+			location:    "/sinks",
+		},
+		"add a sink with invalid name": {
+			req:         invalidNameJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks",
+		},
+		"add a sink with empty name": {
+			req:         emptyNameJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
 			location:    "/sinks",
 		},
 	}
@@ -733,6 +750,11 @@ func TestDeleteSink(t *testing.T) {
 			id:     sk.ID,
 			auth:   "",
 			status: http.StatusUnauthorized,
+		},
+		"delete sink with empty id": {
+			id:     "",
+			auth:   token,
+			status: http.StatusBadRequest,
 		},
 	}
 	for desc, tc := range cases {

@@ -11,7 +11,6 @@ package http
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 )
@@ -203,8 +202,8 @@ func deleteSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		req := request.(deleteSinkReq)
 
 		err = req.validate()
-		if err == errors.ErrNotFound {
-			return removeRes{}, nil
+		if err != nil {
+			return removeRes{}, err
 		}
 
 		if err != nil {
