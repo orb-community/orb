@@ -4,6 +4,7 @@ from hamcrest import *
 from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
 import time
+from users import base_orb_url
 
 configs = TestConfig.configs()
 
@@ -15,11 +16,20 @@ def run_local_agent_container(context):
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
     image_tag = ':' + configs.get('agent_docker_tag', 'latest')
     agent_image = agent_docker_image + image_tag
-    env_vars = {"ORB_CLOUD_ADDRESS": orb_address,
-                "ORB_CLOUD_MQTT_ID": context.agent['id'],
-                "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
-                "ORB_CLOUD_MQTT_KEY": context.agent['key'],
-                "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
+    if "localhost" in base_orb_url:
+        env_vars = {"ORB_CLOUD_ADDRESS": 'localhost',
+                    "ORB_CLOUD_MQTT_ID": context.agent['id'],
+                    "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
+                    "ORB_CLOUD_MQTT_KEY": context.agent['key'],
+                    "PKTVISOR_PCAP_IFACE_DEFAULT": interface,
+                    "ORB_TLS_VERIFY": "false"}
+    else:
+        env_vars = {"ORB_CLOUD_ADDRESS": orb_address,
+                    "ORB_CLOUD_MQTT_ID": context.agent['id'],
+                    "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
+                    "ORB_CLOUD_MQTT_KEY": context.agent['key'],
+                    "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
+
     context.container_id = run_agent_container(agent_image, env_vars)
 
 
