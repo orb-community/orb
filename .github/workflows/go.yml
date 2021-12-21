@@ -127,12 +127,16 @@ jobs:
         run: make dockers
 
       - name: Build orb-agent
+        shell: bash
         if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'main'
         env:
           IMAGE_NAME: ns1labs/orb-agent
-          PKTVISOR_TAG: ${{ github.event.inputs.pktvisor_tag }}
         run: |
-          make agent
+          if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
+            make agent
+          else
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
+          fi
 
       - name: Build orb-ui
         if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'main'
