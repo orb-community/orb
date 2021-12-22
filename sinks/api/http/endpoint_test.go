@@ -48,10 +48,11 @@ var (
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
-	invalidName  = strings.Repeat("m", maxNameSize+1)
-	notFoundRes  = toJSON(errorRes{sinks.ErrNotFound.Error()})
-	unauthRes    = toJSON(errorRes{sinks.ErrUnauthorizedAccess.Error()})
-	notSupported = toJSON(errorRes{sinks.ErrUnsupportedContentTypeSink.Error()})
+	invalidName        = strings.Repeat("m", maxNameSize+1)
+	notFoundRes        = toJSON(errorRes{sinks.ErrNotFound.Error()})
+	unauthRes          = toJSON(errorRes{sinks.ErrUnauthorizedAccess.Error()})
+	notSupported       = toJSON(errorRes{sinks.ErrUnsupportedContentTypeSink.Error()})
+	malformedEntityRes = toJSON(errorRes{sinks.ErrMalformedEntity.Error()})
 	wrongID, _   = uuid.NewV4()
 )
 
@@ -210,6 +211,20 @@ func TestUpdateSink(t *testing.T) {
 		Tags:        sk.Tags,
 	})
 
+	dataInvalidName := toJSON(updateSinkReq{
+		Name:        invalidName,
+		Description: sk.Description,
+		Config:      sink.Config,
+		Tags:        sk.Tags,
+	})
+
+	dataInvalidRgxName := toJSON(updateSinkReq{
+		Name:        "&*sink*&",
+		Description: sk.Description,
+		Config:      sink.Config,
+		Tags:        sk.Tags,
+	})
+
 	cases := map[string]struct {
 		req         string
 		id          string
@@ -289,6 +304,20 @@ func TestUpdateSink(t *testing.T) {
 		},
 		"update sink with different owner": {
 			req:         invalidJson,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update existing sink with a invalid name": {
+			req:         dataInvalidName,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update existing sink with a invalid regex name": {
+			req:         dataInvalidRgxName,
 			id:          sk.ID,
 			contentType: contentType,
 			auth:        token,
@@ -549,6 +578,12 @@ func TestViewBackend(t *testing.T) {
 			auth:   token,
 			status: http.StatusNotFound,
 			res:    notFoundRes,
+		},
+		"view backend with empty id": {
+			id:     "",
+			auth:   token,
+			status: http.StatusBadRequest,
+			res:    malformedEntityRes,
 		},
 	}
 

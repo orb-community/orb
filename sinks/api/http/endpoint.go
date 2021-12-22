@@ -135,6 +135,10 @@ func listBackendsEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(listBackendsReq)
 
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
 		backends, err := svc.ListBackends(ctx, req.token)
 		if err != nil {
 			return nil, err
@@ -160,6 +164,10 @@ func listBackendsEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 func viewBackendEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
+
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
 
 		backend, err := svc.ViewBackend(ctx, req.token, req.id)
 		if err != nil {
@@ -202,10 +210,6 @@ func deleteSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		req := request.(deleteSinkReq)
 
 		err = req.validate()
-		if err != nil {
-			return removeRes{}, err
-		}
-
 		if err != nil {
 			return nil, err
 		}
