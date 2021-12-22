@@ -15,7 +15,7 @@ else:
 def register_orb_account(context):
     email = configs.get('email')
     password = configs.get('password')
-    register_account(email, password, 201)
+    register_account(email, password)
 
 
 @given('the Orb user logs in')
@@ -45,18 +45,18 @@ def authenticate(user_email, user_password):
     return response.json()['token']
 
 
-def register_account(user_email, user_password, request_status):
+def register_account(user_email, user_password, expected_status_code=201):
     """
     Logs in to orb with given credentials
 
     :param (str) user_email: email of the user that is about to login
     :param (str) user_password: password of the user that is about to login
-    :param (int) request_status: expected request's status
+    :param (int) expected_status_code: expected request's status
     """
 
     headers = {'Content-type': 'application/json', 'Accept': '*/*'}
     response = requests.post(base_orb_url + '/api/v1/users',
                              json={'email': user_email, 'password': user_password},
                              headers=headers)
-    assert_that(response.status_code, equal_to(request_status),
+    assert_that(response.status_code, equal_to(expected_status_code),
                 'Register an account request failed with status=' + str(response.status_code))

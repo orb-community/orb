@@ -1,7 +1,6 @@
 from behave import given, when, then
-from login_ui import orb_page, use_credentials, check_home_page, enter_information, base_orb_url, user_email,\
-    user_password
-from users import authenticate
+from ui_utils import input_text_by_xpath
+from login_ui import base_orb_url
 from control_plane_agents import agent_name_prefix, tag_key_prefix, tag_value_prefix
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -9,20 +8,9 @@ from selenium.webdriver.common.by import By
 from utils import random_string
 from test_config import TestConfig
 from hamcrest import *
-import subprocess
-import shlex
-import re
 
 
 configs = TestConfig.configs()
-
-
-@given("the Orb user logs in through the UI")
-def logs_in_orb_ui(context):
-    orb_page(context)
-    use_credentials(context)
-    check_home_page(context)
-    context.token = authenticate(user_email, user_password)
 
 
 @given("that fleet Management is clickable on ORB Menu")
@@ -51,11 +39,11 @@ def create_agent_through_the_agents_page(context):
     context.agent_name = agent_name_prefix + random_string(10)
     context.agent_tag_key = tag_key_prefix + random_string(4)
     context.agent_tag_value = tag_value_prefix + random_string(4)
-    enter_information("//input[contains(@data-orb-qa-id, 'input#name')]", context.agent_name, context, 2)
+    input_text_by_xpath("//input[contains(@data-orb-qa-id, 'input#name')]", context.agent_name, context)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Next')]"))).click()
-    enter_information("//input[contains(@data-orb-qa-id, 'input#orb_tag_key')]", context.agent_tag_key, context, 2)
-    enter_information("//input[contains(@data-orb-qa-id, 'input#orb_tag_value')]", context.agent_tag_value, context, 2)
+    input_text_by_xpath("//input[contains(@data-orb-qa-id, 'input#orb_tag_key')]", context.agent_tag_key, context)
+    input_text_by_xpath("//input[contains(@data-orb-qa-id, 'input#orb_tag_value')]", context.agent_tag_value, context)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, "//button[contains(@data-orb-qa-id, 'button#addTag')]"))).click()
     WebDriverWait(context.driver, 3).until(
@@ -83,12 +71,6 @@ def create_agent_through_the_agents_page(context):
         EC.presence_of_all_elements_located((By.XPATH, "//label[contains(text(), 'Agent ID')]/following::p")))[0].text
 
 
-@when("the agent container is started using the command provided by the UI")
-def run_container_using_ui_command(context):
-    context.container_id = send_terminal_commands(context.agent_provisioning_command)[0]
-    assert_that(context.container_id, is_not((none())))
-
-
 @then("the agents list and the agents view should display agent's status as {status}")
 def check_status_on_orb_ui(context, status):
     context.driver.get(f"{base_orb_url}/pages/fleet/agents")
@@ -107,15 +89,3 @@ def check_status_on_orb_ui(context, status):
         EC.presence_of_all_elements_located(
             (By.XPATH, "//label[contains(text(), 'Health Status')]/following::p")))[0].text
     assert_that(agent_view_status, equal_to(status))
-
-
-def send_terminal_commands(command, separator=None, cwd_run=None):
-    args = shlex.split(command)
-    terminal_running = subprocess.Popen(
-        args, stdout=subprocess.PIPE, cwd=cwd_run)
-    subprocess_return = terminal_running.stdout.read().decode()
-    if separator is None:
-        subprocess_return_terminal = subprocess_return.split()
-    else:
-        subprocess_return_terminal = re.split(separator, subprocess_return)
-    return subprocess_return_terminal

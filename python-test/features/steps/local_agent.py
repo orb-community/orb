@@ -5,6 +5,9 @@ from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
 import time
 from users import base_orb_url
+import subprocess
+import shlex
+import re
 
 configs = TestConfig.configs()
 
@@ -16,19 +19,14 @@ def run_local_agent_container(context):
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
     image_tag = ':' + configs.get('agent_docker_tag', 'latest')
     agent_image = agent_docker_image + image_tag
+    env_vars = {"ORB_CLOUD_ADDRESS": orb_address,
+                "ORB_CLOUD_MQTT_ID": context.agent['id'],
+                "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
+                "ORB_CLOUD_MQTT_KEY": context.agent['key'],
+                "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
     if "localhost" in base_orb_url:
-        env_vars = {"ORB_CLOUD_ADDRESS": 'localhost',
-                    "ORB_CLOUD_MQTT_ID": context.agent['id'],
-                    "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
-                    "ORB_CLOUD_MQTT_KEY": context.agent['key'],
-                    "PKTVISOR_PCAP_IFACE_DEFAULT": interface,
-                    "ORB_TLS_VERIFY": "false"}
-    else:
-        env_vars = {"ORB_CLOUD_ADDRESS": orb_address,
-                    "ORB_CLOUD_MQTT_ID": context.agent['id'],
-                    "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
-                    "ORB_CLOUD_MQTT_KEY": context.agent['key'],
-                    "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
+        env_vars["ORB_CLOUD_ADDRESS"] = "localhost"
+        env_vars["ORB_TLS_VERIFY"] = "false"
 
     context.container_id = run_agent_container(agent_image, env_vars)
 
@@ -49,6 +47,13 @@ def check_agent_log(context, text_to_match, time_to_wait):
         time_waiting += sleep_time
 
     assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+
+
+@when("the agent container is started using the command provided by the UI")
+def run_container_using_ui_command(context):
+    context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command)
+    assert_that(context.container_id, is_not((none())))
+    rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME)
 
 
 def run_agent_container(container_image, env_vars):
@@ -95,3 +100,26 @@ def check_logs_contain_message(logs, expected_message):
             return True
 
     return False
+
+
+def run_local_agent_from_terminal(command, separator=None, cwd_run=None):
+    args = shlex.split(command)
+    localhost = [elem for elem in args if elem.endswith('localhost')]
+    if len(localhost) == 1:
+        args.insert(-1, "-e")
+        args.insert(-1, "ORB_TLS_VERIFY=false")
+    terminal_running = subprocess.Popen(
+        args, stdout=subprocess.PIPE, cwd=cwd_run)
+    subprocess_return = terminal_running.stdout.read().decode()
+    if separator is None:
+        container_id = subprocess_return.split()
+    else:
+        container_id = re.split(separator, subprocess_return)
+    assert_that(container_id[0], is_not((none())))
+    return container_id[0]
+
+
+def rename_container(container_id, container_name):
+    rename_container_command = f"docker rename {container_id} {container_name}"
+    rename_container_args = shlex.split(rename_container_command)
+    subprocess.Popen(rename_container_args, stdout=subprocess.PIPE)
