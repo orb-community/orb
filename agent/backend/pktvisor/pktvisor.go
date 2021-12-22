@@ -14,12 +14,16 @@ import (
 	"github.com/go-cmd/cmd"
 	"github.com/go-co-op/gocron"
 	"github.com/ns1labs/orb/agent/backend"
+	"github.com/ns1labs/orb/agent/otel/otlpexporter"
 	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
 	promexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configgrpc"
+	"go.opentelemetry.io/collector/config/configtls"
+	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -29,6 +33,8 @@ import (
 	"net/http"
 	"os/exec"
 	"time"
+
+	"go.opentelemetry.io/collector/config"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
@@ -352,7 +358,7 @@ func (p *pktvisorBackend) scrapeDefault() error {
 
 func (p *pktvisorBackend) scrapeOpentelemetry() (err error) {
 	ctx := context.Background()
-	p.exporter, err = createExporter(ctx, p.logger)
+	p.exporter, err = createOtlpExporter(ctx, p.logger)
 	if err != nil {
 		p.logger.Error("failed to create a exporter", zap.Error(err))
 	}
@@ -446,7 +452,7 @@ func Register() bool {
 	return true
 }
 
-func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
+func createPromExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
 	// 2. Create the Prometheus metrics exporter that'll receive and verify the metrics produced.
 	exporterCfg := &promexporter.Config{
 		ExporterSettings: otelconfig.NewExporterSettings(otelconfig.NewComponentID("pktvisor_prometheus_exporter")),
@@ -465,6 +471,37 @@ func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsE
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
 	exporter, err := exporterFactory.CreateMetricsExporter(ctx, set, exporterCfg)
+	if err != nil {
+		return nil, err
+	}
+	return exporter, nil
+}
+
+func createOtlpExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
+	// 2. Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+	exporterCfg := &otlpexporter.Config{
+		ExporterSettings: config.NewExporterSettings(config.NewComponentID("otlp_exporter")), // Define the component id by config
+		TimeoutSettings:  exporterhelper.DefaultTimeoutSettings(),
+		QueueSettings:    exporterhelper.DefaultQueueSettings(),
+		RetrySettings:    exporterhelper.DefaultRetrySettings(),
+		GRPCClientSettings: configgrpc.GRPCClientSettings{
+			Endpoint:        "localhost:1234", // Define the export url by config
+			Headers:         map[string]string{},
+			WriteBufferSize: 512 * 1024,
+			TLSSetting: configtls.TLSClientSetting{
+				Insecure: true,
+			},
+		},
+	}
+	set := component.ExporterCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.GetMeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+	exporter, err := otlpexporter.CreateMetricsExporter(ctx, set, exporterCfg)
 	if err != nil {
 		return nil, err
 	}
