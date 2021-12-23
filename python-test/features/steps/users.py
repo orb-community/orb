@@ -1,9 +1,10 @@
 from hamcrest import *
 from behave import given
-from test_config import TestConfig, base_orb_url
+from test_config import TestConfig
 import requests
 
 configs = TestConfig.configs()
+base_orb_url = configs.get('base_orb_url')
 
 
 @given("the Orb user has a registered account")
@@ -42,7 +43,8 @@ def authenticate(user_email, user_password):
 
 def register_account(user_email, user_password, expected_status_code=201):
     """
-    Asserts if the expected status code for an account registration with given credentials is correct
+    Attempt to register an account and asserts if the expected status code for an account registration with given
+    credentials is correct
 
     :param (str) user_email: email of the user that is about to login
     :param (str) user_password: password of the user that is about to login

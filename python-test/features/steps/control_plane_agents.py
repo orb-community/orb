@@ -1,4 +1,4 @@
-from test_config import TestConfig, base_orb_url
+from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with
 from local_agent import run_local_agent_container
 from behave import given, when, then
@@ -10,6 +10,7 @@ configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
 tag_key_prefix = "test_tag_key_"
 tag_value_prefix = "test_tag_value_"
+base_orb_url = configs.get('base_orb_url')
 
 
 @given("that an agent already exists and is {status}")

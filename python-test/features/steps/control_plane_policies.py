@@ -1,19 +1,19 @@
 from hamcrest import *
 import requests
-from test_config import base_orb_url
 from behave import given, when, then
 from utils import random_string, filter_list_by_parameter_start_with
+from test_config import TestConfig
 
 policy_name_prefix = "test_policy_name_"
 default_handler = "net"
 handle_label = "default_" + default_handler
+base_orb_url = TestConfig.configs().get('base_orb_url')
 
 
 @when("a new policy is created")
 def create_new_policy(context):
     context.policy_name = policy_name_prefix + random_string(10)
     context.policy = create_policy(context.token, context.policy_name, handle_label, default_handler)
-
 
 
 @then("referred policy must be listened on the orb policies list")

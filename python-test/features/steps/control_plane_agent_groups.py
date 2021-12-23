@@ -1,4 +1,4 @@
-from test_config import TestConfig, base_orb_url
+from test_config import TestConfig
 from local_agent import run_local_agent_container
 from users import get_auth_token
 from utils import random_string, filter_list_by_parameter_start_with
@@ -9,6 +9,7 @@ import requests
 configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
 agent_group_description = "This is an agent group"
+base_orb_url = configs.get('base_orb_url')
 
 
 @when("an Agent Group is created with same tag as the agent")

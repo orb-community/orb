@@ -1,14 +1,14 @@
 from utils import safe_load_json
 from behave import when, then
 from hamcrest import *
-from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME, bypass_ssl_certificate_check
+from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
 import time
 import subprocess
 import shlex
-import re
 
 configs = TestConfig.configs()
+bypass_ssl_certificate_check = configs.get('bypass_ssl_certificate_check')
 
 
 @when('the agent container is started')

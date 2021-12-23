@@ -5,11 +5,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from utils import random_string
-from test_config import TestConfig, base_orb_url
+from test_config import TestConfig
 import time
 from hamcrest import *
 
 configs = TestConfig.configs()
+base_orb_url = configs.get('base_orb_url')
 
 
 @given("that fleet Management is clickable on ORB Menu")

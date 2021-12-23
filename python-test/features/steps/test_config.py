@@ -30,16 +30,11 @@ def _read_configs():
     assert_that(configs.get('password'), not_none(), 'No Orb user password was provided!')
     assert_that(configs.get('password'), not_(""), 'No Orb user password was provided!')
 
-    return configs
-
-
-def bypass_ssl_certificate_check():
-    ignore_ssl_and_certificate_errors = TestConfig.configs().get('ignore_ssl_and_certificate_errors', False)
-    if ignore_ssl_and_certificate_errors:
-        orb_url = f"http://{TestConfig.configs().get('orb_address')}"
+    ignore_ssl_and_certificate_errors = TestConfig.configs().get('ignore_ssl_and_certificate_errors', 'false')
+    configs['ignore_ssl_and_certificate_errors'] = ignore_ssl_and_certificate_errors
+    if ignore_ssl_and_certificate_errors.lower() == 'true':
+        configs['base_orb_url'] = f"http://{TestConfig.configs().get('orb_address')}"
     else:
-        orb_url = f"https://{TestConfig.configs().get('orb_address')}"
-    return ignore_ssl_and_certificate_errors, orb_url
+        configs['base_orb_url'] = f"https://{TestConfig.configs().get('orb_address')}"
 
-
-bypass_ssl_certificate_check, base_orb_url = bypass_ssl_certificate_check()
+    return configs

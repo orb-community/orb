@@ -28,7 +28,7 @@ Then fill in the correct values:
   - URL of the Orb deployment. Do NOT include the protocol (`https://`, `http://` or `mqtt://`).
 - **ignore_ssl_and_certificate_errors**:
   - Bool
-  - Bypass SSL/certificate check 
+  - Replaces HTTPS connections with HTTP and disables SSL certificate validation in MQTT connections.
   - Default value: `False`
 - **agent_docker_image**:
   - Docker image of the orb agent.
