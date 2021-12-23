@@ -79,6 +79,7 @@ func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
 	convertToPromParticle(ctxt, statsMap, "", &tsList)
+	fmt.Print(tsList)
 	return tsList
 }
 
@@ -86,16 +87,27 @@ func convertToPromParticle(ctxt *context, m map[string]interface{}, label string
 	for k, v := range m {
 		switch c := v.(type) {
 		case map[string]interface{}:
+			// Call convertToPromParticle recursively until the last interface of the StatSnapshot struct
+			// The prom particle label it's been formed during the recursive call
 			convertToPromParticle(ctxt, c, label+k, tsList)
+		// The StatSnapshot has two ways to record metrics (i.e. Live int64 `mapstructure:"live"`)
+		// It's why we check if the type is int64
 		case int64:
 			{
+				// Use this regex to identify if the value it's a quantile
 				var matchFirstQuantile = regexp.MustCompile("^([P-p])+[0-9]")
 				if ok := matchFirstQuantile.MatchString(k); ok {
+					// If it's quantile, needs to be parsed to prom quantile format
 					tsList = makePromParticle(ctxt, label, k, v, tsList, ok)
+					fmt.Printf("%s{instance=\"%s\",quantile=\"%s\"}%v", label, ctxt.agent.AgentName, k, v)
 				} else {
 					tsList = makePromParticle(ctxt, label+k, "", v, tsList, false)
+					fmt.Printf("%s{instance=\"%s\"}%v", label+k, ctxt.agent.AgentName, v)
 				}
 			}
+		// The StatSnapshot has two ways to record metrics (i.e. TopIpv4   []NameCount   `mapstructure:"top_ipv4"`)
+		// It's why we check if the type is []interface
+		// Here we extract the value for Name and Estimate
 		case []interface{}:
 			{
 				for _, value := range c {
@@ -118,6 +130,7 @@ func convertToPromParticle(ctxt *context, m map[string]interface{}, label string
 						}
 					}
 					tsList = makePromParticle(ctxt, label+k, lbl, dtpt, tsList, false)
+					fmt.Printf("%s{instance=\"%s\",name=\"%s\"}%v", label+k, ctxt.agent.AgentName, lbl, dtpt)
 				}
 			}
 		}
