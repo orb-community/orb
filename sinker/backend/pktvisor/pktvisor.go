@@ -79,7 +79,6 @@ func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
 	convertToPromParticle(ctxt, statsMap, "", &tsList)
-	fmt.Print(tsList)
 	return tsList
 }
 
