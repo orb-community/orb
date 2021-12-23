@@ -98,32 +98,14 @@
                          size="medium">
                 <nb-option *ngFor="let option of availableTaps | keyvalue; index as i"
                            [attr.data-orb-qa-id]="option.key"
-                           [value]="option.key">{{ option.key }}</nb-option>
+                           [value]="option.key">{{ option.key }} <span class="tap-input-text"> {{' | input type: ' + option.value?.input_type }}</span></nb-option>
               </nb-select>
               <hr/>
-              <!-- Input selector -->
-              <div [hidden]="!tap">
-                <div>
-                  <label class="font-weight-bold">Input</label>
-                  <span class="required">*</span>
-                </div>
-                <nb-select (selectedChange)="onInputSelected($event)"
-                           [(selected)]="this.agentPolicy.policy.input"
-                           [attr.data-orb-qa-id]="input"
-                           appearance="filled"
-                           formControlName="input_type"
-                           fullWidth="true"
-                           id="input_type"
-                           nbInput
-                           placeholder="Select Input"
-                           size="medium">
-                  <nb-option *ngFor="let option of availableInputs | keyvalue"
-                             [attr.data-orb-qa-id]="option.key"
-                             [value]="option.key">{{ option.key }}</nb-option>
-                </nb-select>
-              </div>
             </form>
             <hr/>
+          </div>
+          <div *ngIf="!availableTaps">
+            <label class="font-weight-bold">There are no <a class="text-link" routerLink="../../../fleet/agents">agents</a> available.</label>
           </div>
           <div *ngIf="!!inputConfigFG">
             <!-- Dynamic Input Config Form -->
