@@ -316,7 +316,7 @@ func TestMultiSinkRetrieval(t *testing.T) {
 			},
 			size: 0,
 		},
-		"retrieve agents sorted by name ascendent": {
+		"retrieve sinks sorted by name ascendent": {
 			owner: oID.String(),
 			pageMetadata: sinks.PageMetadata{
 				Offset: 0,
@@ -327,7 +327,7 @@ func TestMultiSinkRetrieval(t *testing.T) {
 			},
 			size: n,
 		},
-		"retrieve agents sorted by name descendent": {
+		"retrieve sinks sorted by name descendent": {
 			owner: oID.String(),
 			pageMetadata: sinks.PageMetadata{
 				Offset: 0,
@@ -338,7 +338,7 @@ func TestMultiSinkRetrieval(t *testing.T) {
 			},
 			size: n,
 		},
-		"retrieve agents filtered by tags": {
+		"retrieve sinks filtered by tags": {
 			owner: oID.String(),
 			pageMetadata: sinks.PageMetadata{
 				Offset: 0,
@@ -348,7 +348,7 @@ func TestMultiSinkRetrieval(t *testing.T) {
 			},
 			size: n,
 		},
-		"retrieve agents filtered by metadata": {
+		"retrieve sinks filtered by metadata": {
 			owner: oID.String(),
 			pageMetadata: sinks.PageMetadata{
 				Offset: 0,
