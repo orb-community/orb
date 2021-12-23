@@ -1,11 +1,10 @@
-from test_config import TestConfig
+from test_config import TestConfig, base_orb_url
 from utils import random_string, filter_list_by_parameter_start_with
 from local_agent import run_local_agent_container
 from behave import given, when, then
 from hamcrest import *
 import time
 import requests
-from users import base_orb_url
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"

@@ -1,6 +1,6 @@
 from hamcrest import *
 import requests
-from control_plane_agents import base_orb_url
+from test_config import base_orb_url
 from behave import given, when, then
 from utils import random_string, filter_list_by_parameter_start_with
 

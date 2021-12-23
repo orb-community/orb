@@ -1,14 +1,13 @@
 from behave import given, when, then
 from ui_utils import input_text_by_xpath
-from login_ui import base_orb_url
 from control_plane_agents import agent_name_prefix, tag_key_prefix, tag_value_prefix
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from utils import random_string
-from test_config import TestConfig
+from test_config import TestConfig, base_orb_url
+import time
 from hamcrest import *
-
 
 configs = TestConfig.configs()
 
@@ -71,14 +70,26 @@ def create_agent_through_the_agents_page(context):
         EC.presence_of_all_elements_located((By.XPATH, "//label[contains(text(), 'Agent ID')]/following::p")))[0].text
 
 
-@then("the agents list and the agents view should display agent's status as {status}")
-def check_status_on_orb_ui(context, status):
+@then("the agents list and the agents view should display agent's status as {status} within {time_to_wait} seconds")
+def check_status_on_orb_ui(context, status, time_to_wait):
     context.driver.get(f"{base_orb_url}/pages/fleet/agents")
-    list_of_datatable_body_cell = WebDriverWait(context.driver, 3).until(
-        EC.presence_of_all_elements_located([By.XPATH, f"//div[contains(text(), {context.agent_name})]/ancestor"
-                                                       f"::datatable-body-row/descendant::i[contains(@class, "
-                                                       f"'fa fa-circle')]/ancestor::div[contains(@class, "
-                                                       f"'ng-star-inserted')]"]))
+
+    time_waiting = 0
+    sleep_time = 0.5
+    timeout = int(time_to_wait)
+    list_of_datatable_body_cell = list()
+
+    while time_waiting < timeout:
+        list_of_datatable_body_cell = WebDriverWait(context.driver, 3).until(
+            EC.presence_of_all_elements_located([By.XPATH, f"//div[contains(text(), {context.agent_name})]/ancestor"
+                                                           f"::datatable-body-row/descendant::i[contains(@class, "
+                                                           f"'fa fa-circle')]/ancestor::div[contains(@class, "
+                                                           f"'ng-star-inserted')]"]))
+        if list_of_datatable_body_cell[0].text.splitlines()[1] == status:
+            break
+        time.sleep(sleep_time)
+        time_waiting += sleep_time
+        context.driver.refresh()
     assert_that(list_of_datatable_body_cell[0].text.splitlines()[1], equal_to(status),
                 f"Agent {context.agent['id']} status failed")
     assert_that(list_of_datatable_body_cell[1].text, equal_to(status))
@@ -88,4 +99,4 @@ def check_status_on_orb_ui(context, status):
     agent_view_status = WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located(
             (By.XPATH, "//label[contains(text(), 'Health Status')]/following::p")))[0].text
-    assert_that(agent_view_status, equal_to(status))
+    assert_that(agent_view_status, equal_to(status), f"Agent {context.agent['id']} status failed")

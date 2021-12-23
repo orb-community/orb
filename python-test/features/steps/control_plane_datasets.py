@@ -1,8 +1,8 @@
 from behave import when, then
-from control_plane_agents import base_orb_url
 from utils import random_string, filter_list_by_parameter_start_with
 from hamcrest import *
 import requests
+from test_config import base_orb_url
 
 dataset_name_prefix = "test_dataset_name_"
 

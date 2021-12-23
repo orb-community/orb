@@ -1,6 +1,6 @@
-from users import authenticate, base_orb_url
+from users import authenticate
 from behave import given, when, then
-from test_config import TestConfig
+from test_config import TestConfig, base_orb_url
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from ui_utils import go_to_page, input_text_by_id

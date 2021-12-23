@@ -25,7 +25,11 @@ Then fill in the correct values:
   - Orb user's password
 - **orb_address**:
   - Mandatory!
-  - URL of the Orb deployment. Do NOT include the protocol (`https://` or `mqtt://`).
+  - URL of the Orb deployment. Do NOT include the protocol (`https://`, `http://` or `mqtt://`).
+- **ignore_ssl_and_certificate_errors**:
+  - Bool
+  - Bypass SSL/certificate check 
+  - Default value: `False`
 - **agent_docker_image**:
   - Docker image of the orb agent.
   - Default value: `ns1labs/orb-agent`

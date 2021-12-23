@@ -1,5 +1,4 @@
-from test_config import TestConfig
-from control_plane_agents import create_agent, get_agent, expect_container_status, base_orb_url, agent_name_prefix
+from test_config import TestConfig, base_orb_url
 from local_agent import run_local_agent_container
 from users import get_auth_token
 from utils import random_string, filter_list_by_parameter_start_with

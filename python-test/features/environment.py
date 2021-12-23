@@ -2,7 +2,7 @@ import docker
 from steps import test_config
 
 
-def after_scenario(context, scenario):
+def before_scenario(context, scenario):
     cleanup_container()
 
 

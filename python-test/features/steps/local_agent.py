@@ -1,10 +1,9 @@
 from utils import safe_load_json
 from behave import when, then
 from hamcrest import *
-from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
+from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME, bypass_ssl_certificate_check
 import docker
 import time
-from users import base_orb_url
 import subprocess
 import shlex
 import re
@@ -24,8 +23,7 @@ def run_local_agent_container(context):
                 "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
                 "ORB_CLOUD_MQTT_KEY": context.agent['key'],
                 "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
-    if "localhost" in base_orb_url:
-        env_vars["ORB_CLOUD_ADDRESS"] = "localhost"
+    if bypass_ssl_certificate_check:
         env_vars["ORB_TLS_VERIFY"] = "false"
 
     context.container_id = run_agent_container(agent_image, env_vars)
@@ -51,7 +49,8 @@ def check_agent_log(context, text_to_match, time_to_wait):
 
 @when("the agent container is started using the command provided by the UI")
 def run_container_using_ui_command(context):
-    context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command)
+    context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
+                                                         bypass_ssl_certificate_check)
     assert_that(context.container_id, is_not((none())))
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME)
 
@@ -102,24 +101,30 @@ def check_logs_contain_message(logs, expected_message):
     return False
 
 
-def run_local_agent_from_terminal(command, separator=None, cwd_run=None):
+def run_local_agent_from_terminal(command, bypass_check_ssl_certificate):
+    """
+    :param (str) command: docker command to provision an agent
+    :param (bool) bypass_check_ssl_certificate: True if orb address doesn't have a valid certificate.
+    :return: agent container ID
+    """
     args = shlex.split(command)
-    localhost = [elem for elem in args if elem.endswith('localhost')]
-    if len(localhost) == 1:
+    if bypass_check_ssl_certificate:
         args.insert(-1, "-e")
         args.insert(-1, "ORB_TLS_VERIFY=false")
     terminal_running = subprocess.Popen(
-        args, stdout=subprocess.PIPE, cwd=cwd_run)
+        args, stdout=subprocess.PIPE)
     subprocess_return = terminal_running.stdout.read().decode()
-    if separator is None:
-        container_id = subprocess_return.split()
-    else:
-        container_id = re.split(separator, subprocess_return)
+    container_id = subprocess_return.split()
     assert_that(container_id[0], is_not((none())))
     return container_id[0]
 
 
 def rename_container(container_id, container_name):
+    """
+
+    :param container_id: agent container ID
+    :param container_name: agent container name
+    """
     rename_container_command = f"docker rename {container_id} {container_name}"
     rename_container_args = shlex.split(rename_container_command)
     subprocess.Popen(rename_container_args, stdout=subprocess.PIPE)
