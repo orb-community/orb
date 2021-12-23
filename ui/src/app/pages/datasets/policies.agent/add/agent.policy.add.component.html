@@ -49,23 +49,6 @@
                    id="description"
                    nbInput/>
             <hr/>
-            <!-- Backend Selector -->
-            <div>
-              <label class="font-weight-bold" for="backend">Backend</label>
-              <span class="required">*</span>
-            </div>
-            <nb-select (selectedChange)="onBackendSelected($event)"
-                       [(selected)]="this.agentPolicy.backend"
-                       appearance="filled"
-                       data-orb-qa-id="backend"
-                       formControlName="backend"
-                       fullWidth="true"
-                       id="backend"
-                       placeholder="Select backend type"
-                       size="medium">
-              <nb-option *ngFor="let entry of availableBackends | keyvalue; index as i"
-                         [value]="entry.key">{{ entry.key }}</nb-option>
-            </nb-select>
           </form>
           <hr/>
           <div class="d-flex justify-content-end">
