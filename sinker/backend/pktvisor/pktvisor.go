@@ -169,6 +169,12 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 }
 
 func camelToSnake(s string) string {
+	switch s {
+	case "TopGeoLoc":
+		return "top_geoLoc"
+	case "TopASN":
+		return "top_ASN"
+	}
 	var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
 	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 	snake := matchFirstCap.ReplaceAllString(s, "${1}_${2}")
