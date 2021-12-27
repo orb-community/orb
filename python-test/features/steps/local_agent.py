@@ -1,5 +1,5 @@
 from utils import safe_load_json
-from behave import when, then
+from behave import given, when, then
 from hamcrest import *
 from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
@@ -9,6 +9,13 @@ import shlex
 
 configs = TestConfig.configs()
 bypass_ssl_certificate_check = configs.get('bypass_ssl_certificate_check')
+
+
+@given('that container logs contains messages "{text1_to_match}" and "{text2_to_match}" for applied policy within {'
+       'time_to_wait} seconds')
+def check_correct_logs_for_policy(context, text1_to_match, text2_to_match, time_to_wait):
+    check_agent_log_for_policy(context, text1_to_match, time_to_wait)
+    check_agent_log_for_policy(context, text2_to_match, time_to_wait)
 
 
 @when('the agent container is started')
@@ -39,6 +46,25 @@ def check_agent_log(context, text_to_match, time_to_wait):
     while time_waiting < timeout:
         logs = get_orb_agent_logs(context.container_id)
         text_found = check_logs_contain_message(logs, text_to_match)
+        if text_found is True:
+            break
+        time.sleep(sleep_time)
+        time_waiting += sleep_time
+
+    assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+
+
+@then('the container logs should contain the message "{text_to_match}" referred to the created policy within {'
+      'time_to_wait} seconds')
+def check_agent_log_for_policy(context, text_to_match, time_to_wait):
+    time_waiting = 0
+    sleep_time = 0.5
+    timeout = int(time_to_wait)
+    text_found = False
+
+    while time_waiting < timeout:
+        logs = get_orb_agent_logs(context.container_id)
+        text_found = check_logs_contain_message_for_policy(logs, text_to_match, context.policy_name)
         if text_found is True:
             break
         time.sleep(sleep_time)
@@ -96,6 +122,26 @@ def check_logs_contain_message(logs, expected_message):
         log_line = safe_load_json(log_line)
 
         if log_line is not None and log_line['msg'] == expected_message:
+            return True
+
+    return False
+
+
+def check_logs_contain_message_for_policy(logs, expected_message, policy):
+    """
+    Checks agent container logs for expected message for applied policy
+
+    :param (list) logs: list of log lines
+    :param (str) expected_message: message that we expect to find in the logs
+    :param (str) policy: policy name
+    :returns: (bool) whether expected message was found in the logs for expected policy
+    """
+
+    for log_line in logs:
+        log_line = safe_load_json(log_line)
+
+        if log_line is not None and log_line['msg'] == expected_message:
+
             return True
 
     return False

@@ -1,4 +1,4 @@
-from behave import when, then
+from behave import given, when, then
 from utils import random_string, filter_list_by_parameter_start_with
 from hamcrest import *
 import requests
@@ -52,6 +52,11 @@ def clean_datasets(context):
     datasets_list = list_datasets(token)
     datasets_filtered_list = filter_list_by_parameter_start_with(datasets_list, 'name', dataset_name_prefix)
     delete_datasets(token, datasets_filtered_list)
+
+
+@given('that a dataset using referred group, sink and policy ID already exists')
+def new_dataset(context):
+    create_new_dataset(context)
 
 
 def list_datasets(token, limit=100):
