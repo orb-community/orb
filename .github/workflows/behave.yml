@@ -40,4 +40,5 @@ jobs:
           echo "ignore_ssl_and_certificate_errors=True" >> python-test/test_config.ini
           echo "agent_docker_tag=develop" >> python-test/test_config.ini
       - name: Run behave
+        working-directory: ./python-test
         run: behave
