@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.10
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: "3.10"
@@ -35,5 +35,4 @@ jobs:
           echo "ignore_ssl_and_certificate_errors=True" >> python-test/test_config.ini
           echo "agent_docker_tag=develop" >> python-test/test_config.ini
       - name: Run behave
-        run: |
-          behave
+        run: behave
