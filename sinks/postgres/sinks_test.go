@@ -535,14 +535,14 @@ func TestUpdateSinkState(t *testing.T) {
 			msg:     "failed",
 			err:     nil,
 		},
-		"update state of a non-existent sink": {
+		"update sink state of a non-existent sink": {
 			sinkID:  fakeSinkID.String(),
 			ownerID: sink.MFOwnerID,
 			state:   sinks.State(2),
 			msg:     "failed",
 			err:     sinks.ErrNotFound,
 		},
-		"update state of a non-existent owner": {
+		"update sink state of a non-existent owner": {
 			sinkID:  sinkID,
 			ownerID: fakeOwnerID.String(),
 			state:   sinks.State(2),

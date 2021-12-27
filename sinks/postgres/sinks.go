@@ -239,7 +239,7 @@ func (s sinksRepository) UpdateSinkState(ctx context.Context, sinkID string, msg
 	}
 
 	if count == 0 {
-		return sinks.ErrNotFound
+		return sinks.ErrUpdateEntity
 	}
 
 	return nil
