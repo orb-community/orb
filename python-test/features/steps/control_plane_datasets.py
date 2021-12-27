@@ -1,10 +1,12 @@
 from behave import when, then
-from control_plane_agents import base_orb_url
 from utils import random_string, filter_list_by_parameter_start_with
 from hamcrest import *
 import requests
+from test_config import TestConfig
 
 dataset_name_prefix = "test_dataset_name_"
+
+base_orb_url = TestConfig.configs().get('base_orb_url')
 
 
 @when("a new dataset is created using referred group, sink and policy ID")

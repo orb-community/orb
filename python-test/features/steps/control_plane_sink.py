@@ -1,12 +1,12 @@
 from behave import given, when, then
 from test_config import TestConfig
-from control_plane_agents import base_orb_url
 from utils import random_string, filter_list_by_parameter_start_with
 from hamcrest import *
 import requests
 
 configs = TestConfig.configs()
 sink_label_name_prefix = "test_sink_label_name_"
+base_orb_url = configs.get('base_orb_url')
 
 
 @given("that the user has the prometheus/grafana credentials")
