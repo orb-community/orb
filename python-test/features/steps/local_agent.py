@@ -64,7 +64,7 @@ def check_agent_log_for_policy(context, text_to_match, time_to_wait):
 
     while time_waiting < timeout:
         logs = get_orb_agent_logs(context.container_id)
-        text_found = check_logs_contain_message_for_policy(logs, text_to_match, context.policy_name)
+        text_found = check_logs_contain_message_for_policy(logs, text_to_match, context.policy)
         if text_found is True:
             break
         time.sleep(sleep_time)
@@ -79,6 +79,12 @@ def run_container_using_ui_command(context):
                                                          bypass_ssl_certificate_check)
     assert_that(context.container_id, is_not((none())))
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME)
+
+
+@then('the container logs should contain messages "{text1_to_match}" and "{text2_to_match}" for applied policy within '
+      '{time_to_wait} seconds')
+def then_check_logs(context, text1_to_match, text2_to_match, time_to_wait):
+    check_correct_logs_for_policy(context, text1_to_match, text2_to_match, time_to_wait)
 
 
 def run_agent_container(container_image, env_vars):
@@ -133,16 +139,17 @@ def check_logs_contain_message_for_policy(logs, expected_message, policy):
 
     :param (list) logs: list of log lines
     :param (str) expected_message: message that we expect to find in the logs
-    :param (str) policy: policy name
+    :param (dict) policy: policy
     :returns: (bool) whether expected message was found in the logs for expected policy
     """
 
     for log_line in logs:
         log_line = safe_load_json(log_line)
-
         if log_line is not None and log_line['msg'] == expected_message:
-
-            return True
+            if 'id' in log_line.keys() and log_line['id'] == policy['id']:
+                return True
+            if 'policy_id' in log_line.keys() and log_line['policy_id'] == policy['id']:
+                return True
 
     return False
 
