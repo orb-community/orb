@@ -14,7 +14,12 @@ type agentRepositoryMock struct {
 }
 
 func (a agentRepositoryMock) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {
-	return fleet.Agent{}, nil
+	for _, ag := range a.agentsMock{
+		if ag.MFChannelID == channelID{
+			return ag, nil
+		}
+	}
+	return fleet.Agent{}, fleet.ErrNotFound
 }
 
 func (a agentRepositoryMock) RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error) {

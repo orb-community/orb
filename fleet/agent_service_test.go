@@ -383,6 +383,74 @@ func TestListBackends(t *testing.T) {
 	}
 }
 
+func TestViewAgentBackend(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	cases := map[string]struct {
+		name  string
+		token string
+		err   error
+	}{
+		"view backend not registered": {
+			name:  "invalid",
+			token: token,
+			err:   errors.ErrNotFound,
+		},
+		"view backend with invalid token": {
+			name:  "pktvisor",
+			token: invalidToken,
+			err:   errors.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.ViewAgentBackend(context.Background(), tc.token, tc.name)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
+func TestViewOwnerInternal(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ag, err := createAgent(t, "agent", fleetService)
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	cases := map[string]struct {
+		channelID string
+		agent     fleet.Agent
+		err       error
+	}{
+		"view existent owner by channelID": {
+			channelID: ag.MFChannelID,
+			agent:     ag,
+			err:       nil,
+		},
+		"view existent owner by non-existent channelID": {
+			channelID: chID.String(),
+			agent:     fleet.Agent{},
+			err:       errors.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			agent, err := fleetService.ViewOwnerByChannelIDInternal(context.Background(), tc.channelID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+			assert.Equal(t, tc.agent, agent, fmt.Sprintf("%s: expected %s got %s", desc, tc.agent, agent))
+		})
+	}
+}
+
 func createAgent(t *testing.T, name string, svc fleet.Service) (fleet.Agent, error) {
 	t.Helper()
 	aCopy := agent
