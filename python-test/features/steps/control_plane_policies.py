@@ -1,8 +1,11 @@
 from hamcrest import *
 import requests
-from behave import given, when, then
-from utils import random_string, filter_list_by_parameter_start_with
+from behave import given, when, then, step
+from utils import random_string, filter_list_by_parameter_start_with, safe_load_json
+from control_plane_agents import get_agent
+from local_agent import get_orb_agent_logs
 from test_config import TestConfig
+import time
 
 policy_name_prefix = "test_policy_name_"
 default_handler = "net"
@@ -14,6 +17,11 @@ base_orb_url = TestConfig.configs().get('base_orb_url')
 def create_new_policy(context):
     context.policy_name = policy_name_prefix + random_string(10)
     context.policy = create_policy(context.token, context.policy_name, handle_label, default_handler)
+    if 'policies_created' in context:
+        context.policies_created[context.policy['id']] = context.policy_name
+    else:
+        context.policies_created = dict()
+        context.policies_created[context.policy['id']] = context.policy_name
 
 
 @then("referred policy must be listened on the orb policies list")
@@ -40,6 +48,36 @@ def clean_policies(context):
 def new_policy(context):
     create_new_policy(context)
     check_policies(context)
+
+
+@step('agent have {amount_of_policies} policies applied to it')
+def list_policies_applied_to_an_agent(context, amount_of_policies):
+    agent = get_agent(context.token, context.agent['id'])
+    context.list_agent_policies = list(agent['last_hb_data']['policy_state'].keys())
+    assert_that(len(context.list_agent_policies), equal_to(int(amount_of_policies)), f'Amount of policies applied to '
+                                                                                     f'this agent failed with '
+                                                                                     f'{amount_of_policies} policies')
+
+
+@step('the container logs contains the message "{text_to_match}" referred to all applied policies within {'
+      'time_to_wait} seconds')
+def check_agent_log_for_policy(context, text_to_match, time_to_wait):
+    assert_that(sorted(context.list_agent_policies), equal_to(sorted(context.policies_created.keys())))
+    for policy_id in context.list_agent_policies:
+        time_waiting = 0
+        sleep_time = 0.5
+        timeout = int(time_to_wait)
+        text_found = False
+        while time_waiting < timeout:
+            logs = get_orb_agent_logs(context.container_id)
+            text_found = check_logs_contain_message_for_policy(logs, text_to_match, policy_id)
+            if text_found is True:
+                break
+            time.sleep(sleep_time)
+            time_waiting += sleep_time
+
+        assert_that(text_found, is_(True), f"Message '{text_to_match}' for policy '{policy_id}' was not found in the "
+                                           f"agent logs!")
 
 
 def create_policy(token, policy_name, handler_label, handler, description=None, tap="default_pcap",
@@ -137,3 +175,23 @@ def delete_policy(token, policy_id):
     assert_that(response.status_code, equal_to(204), 'Request to delete policy id='
                 + policy_id + ' failed with status=' + str(response.status_code))
 
+
+def check_logs_contain_message_for_policy(logs, expected_message, policy_id):
+    """
+    Checks agent container logs for expected message for applied policy
+
+    :param (list) logs: list of log lines
+    :param (str) expected_message: message that we expect to find in the logs
+    :param (str) policy_id: policy id
+    :returns: (bool) whether expected message was found in the logs for expected policy
+    """
+
+    for log_line in logs:
+        log_line = safe_load_json(log_line)
+        if log_line is not None and log_line['msg'] == expected_message:
+            if 'id' in log_line.keys() and log_line['id'] == policy_id:
+                return True
+            if 'policy_id' in log_line.keys() and log_line['policy_id'] == policy_id:
+                return True
+
+    return False

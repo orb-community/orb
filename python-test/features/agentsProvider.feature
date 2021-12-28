@@ -16,8 +16,14 @@ Feature: agent provider
             And that a sink already exists
             And that a policy already exists
             And that a dataset using referred group, sink and policy ID already exists
-            And that container logs contains messages "scraped metrics for policy", "policy applied successfully" and "managing agent policy from core" for applied policy within 180 seconds
+            And agent have 1 policies applied to it
+            And the container logs contains the message "policy applied successfully" referred to all applied policies within 10 seconds
+            And the container logs contains the message "managing agent policy from core" referred to all applied policies within 10 seconds
+            And the container logs contains the message "scraped metrics for policy" referred to all applied policies within 180 seconds
         When a new policy is created
             And a new dataset is created using referred group, sink and policy ID
-        Then the container logs should contain messages "scraped metrics for policy", "policy applied successfully" and "managing agent policy from core" for applied policy within 180 seconds
+        Then agent have 2 policies applied to it
+            And the container logs contains the message "policy applied successfully" referred to all applied policies within 10 seconds
+            And the container logs contains the message "managing agent policy from core" referred to all applied policies within 10 seconds
+            And the container logs contains the message "scraped metrics for policy" referred to all applied policies within 180 seconds
             And referred sink must have active state on response
