@@ -79,6 +79,7 @@ func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
 	convertToPromParticle(ctxt, statsMap, "", &tsList)
+	fmt.Print(tsList)
 	return tsList
 }
 
@@ -98,10 +99,10 @@ func convertToPromParticle(ctxt *context, m map[string]interface{}, label string
 				if ok := matchFirstQuantile.MatchString(k); ok {
 					// If it's quantile, needs to be parsed to prom quantile format
 					tsList = makePromParticle(ctxt, label, k, v, tsList, ok)
-					fmt.Printf("%s{instance=\"%s\",quantile=\"%s\"}%v\n", label, ctxt.agent.AgentName, k, v)
+					//fmt.Printf("%s{instance=\"%s\",quantile=\"%s\"}%v\n", label, ctxt.agent.AgentName, k, v)
 				} else {
 					tsList = makePromParticle(ctxt, label+k, "", v, tsList, false)
-					fmt.Printf("%s{instance=\"%s\"}%v\n", label+k, ctxt.agent.AgentName, v)
+					//fmt.Printf("%s{instance=\"%s\"}%v\n", label+k, ctxt.agent.AgentName, v)
 				}
 			}
 		// The StatSnapshot has two ways to record metrics (i.e. TopIpv4   []NameCount   `mapstructure:"top_ipv4"`)
@@ -129,7 +130,7 @@ func convertToPromParticle(ctxt *context, m map[string]interface{}, label string
 						}
 					}
 					tsList = makePromParticle(ctxt, label+k, lbl, dtpt, tsList, false)
-					fmt.Printf("%s{instance=\"%s\",name=\"%s\"}%v\n", label+k, ctxt.agent.AgentName, lbl, dtpt)
+					//fmt.Printf("%s{instance=\"%s\",name=\"%s\"}%v\n", label+k, ctxt.agent.AgentName, lbl, dtpt)
 				}
 			}
 		}
@@ -170,7 +171,7 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 
 func camelToSnake(s string) string {
 	var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-	var matchAllCap = regexp.MustCompile("((?!oLoc\b)+[a-z0-9])([A-Z])")
+	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 	snake := matchFirstCap.ReplaceAllString(s, "${1}_${2}")
 	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
 	lower := strings.ToLower(snake)
