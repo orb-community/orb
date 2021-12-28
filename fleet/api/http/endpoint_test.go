@@ -155,6 +155,9 @@ func TestCreateAgentGroup(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()
 
+	var missingTagsJson         = "{\n	\"name\": \"group\", \n	\"tags\": {}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	var invalidNameJson         = "{\n	\"name\": \"g\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+
 	// Conflict scenario
 	createAgentGroup(t, "eu-agents-conflict", &cli)
 
@@ -198,6 +201,20 @@ func TestCreateAgentGroup(t *testing.T) {
 			contentType: "",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
+			location:    "/agent_groups",
+		},
+		"add a agent group without tags": {
+			req:         missingTagsJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agent_groups",
+		},
+		"add a agent group with invalid name": {
+			req:         invalidNameJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
 			location:    "/agent_groups",
 		},
 	}
@@ -455,6 +472,18 @@ func TestUpdateAgentGroup(t *testing.T) {
 		Tags:        ag.Tags,
 	})
 
+	invalidName := toJSON(updateAgentGroupReq{
+		Name:        "g",
+		Description: ag.Description,
+		Tags:        ag.Tags,
+	})
+
+	missingTagsdata := toJSON(updateAgentGroupReq{
+		Name:        ag.Name.String(),
+		Description: ag.Description,
+		Tags:        map[string]string{},
+	})
+
 	cases := map[string]struct {
 		req         string
 		id          string
@@ -539,6 +568,20 @@ func TestUpdateAgentGroup(t *testing.T) {
 			auth:        token,
 			status:      http.StatusBadRequest,
 		},
+		"add a agent group with invalid name": {
+			req:         invalidName,
+			id:          ag.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update existing agent group without tags": {
+			req:         missingTagsdata,
+			id:          ag.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -611,10 +654,12 @@ func TestValidateAgentGroup(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()
 
-	var invalidValueTag = "{\n \"name\": \"eu-agents\", \n    \"tags\": {\n       \"invalidTag\", \n      \"node_type\": \"dns\"\n    }, \n   \"description\": \"An example agent group representing european dns nodes\", \n \"validate_only\": false \n}"
-	var invalidValueName = "{\n \"name\": \",,AGENT 6,\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
-	var invalidField = "{\n \"nname\": \",,AGENT 6,\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
-
+	var (
+		invalidValueTag  = "{\n \"name\": \"eu-agents\", \n    \"tags\": {\n       \"invalidTag\", \n      \"node_type\": \"dns\"\n    }, \n   \"description\": \"An example agent group representing european dns nodes\", \n \"validate_only\": false \n}"
+		invalidValueName = "{\n \"name\": \",,AGENT 6,\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+		invalidField     = "{\n \"nname\": \",,AGENT 6,\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+		invalidNameJson  = "{\n	\"name\": \"g\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	)
 	cases := map[string]struct {
 		req         string
 		contentType string
@@ -659,7 +704,7 @@ func TestValidateAgentGroup(t *testing.T) {
 			status:      http.StatusBadRequest,
 			location:    "/agent_groups/validate",
 		},
-		"validate a agent group with a invalid name": {
+		"validate a agent group with a name not respecting RegEx": {
 			req:         invalidValueName,
 			contentType: contentType,
 			auth:        token,
@@ -677,6 +722,13 @@ func TestValidateAgentGroup(t *testing.T) {
 			req:         invalidField,
 			contentType: contentType,
 			auth:        invalidToken,
+			status:      http.StatusBadRequest,
+			location:    "/agent_groups/validate",
+		},
+		"validate a agent group with a invalid name": {
+			req:         invalidNameJson,
+			contentType: contentType,
+			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/agent_groups/validate",
 		},
@@ -730,6 +782,11 @@ func TestViewAgent(t *testing.T) {
 			id:     ag.MFThingID,
 			auth:   "",
 			status: http.StatusUnauthorized,
+		},
+		"view a existing agent with empty id": {
+			id:     "",
+			auth:   token,
+			status: http.StatusBadRequest,
 		},
 	}
 
@@ -936,6 +993,16 @@ func TestUpdateAgent(t *testing.T) {
 		Tags: ag.OrbTags,
 	})
 
+	invalidNameData := toJSON(updateAgentReq{
+		Name: "a",
+		Tags: ag.OrbTags,
+	})
+
+	missingTagsData := toJSON(updateAgentReq{
+		Name: ag.Name.String(),
+		Tags: map[string]string{},
+	})
+
 	cases := map[string]struct {
 		req         string
 		id          string
@@ -1020,6 +1087,20 @@ func TestUpdateAgent(t *testing.T) {
 			auth:        token,
 			status:      http.StatusBadRequest,
 		},
+		"update existing agent with invalid name": {
+			req:         invalidNameData,
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update existing agent without tags": {
+			req:         missingTagsData,
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -1040,10 +1121,13 @@ func TestUpdateAgent(t *testing.T) {
 }
 
 func TestValidateAgent(t *testing.T) {
-	var validJson = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
-	var invalidTag = "{\"name\":\"eu-agents\",\"orb_tags\": {\n\"invalidTag\", \n \"node_type\":\"dns\"}}"
-	var invalidName = "{\"name\":\",,AGENT 6,\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
-	var invalidField = "{\"nname\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+	var (
+		validJson       = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+		invalidTag      = "{\"name\":\"eu-agents\",\"orb_tags\": {\n\"invalidTag\", \n \"node_type\":\"dns\"}}"
+		invalidName     = "{\"name\":\",,AGENT 6,\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+		invalidField    = "{\"nname\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+		invalidNameJson = "{\"name\":\"a\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+	)
 
 	cli := newClientServer(t)
 	defer cli.server.Close()
@@ -1090,7 +1174,7 @@ func TestValidateAgent(t *testing.T) {
 			status:      http.StatusBadRequest,
 			location:    "/agents/validate",
 		},
-		"validate a agent with a invalid name": {
+		"validate a agent with name not following regex": {
 			req:         invalidName,
 			contentType: contentType,
 			auth:        token,
@@ -1111,6 +1195,14 @@ func TestValidateAgent(t *testing.T) {
 			status:      http.StatusBadRequest,
 			location:    "/agents/validate",
 		},
+		"validate a agent with invalid name": {
+			req:         invalidNameJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents/validate",
+		},
+
 	}
 
 	for desc, tc := range cases {
@@ -1134,6 +1226,7 @@ func TestValidateAgent(t *testing.T) {
 func TestCreateAgent(t *testing.T) {
 	var validJson = "{\"name\":\"eu-agents\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
 	var conflictValidJson = "{\"name\":\"conflict\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
+	var invalidNameJson = "{\"name\":\"a\",\"orb_tags\": {\"region\":\"eu\",   \"node_type\":\"dns\"}}"
 
 	cli := newClientServer(t)
 	defer cli.server.Close()
@@ -1192,6 +1285,13 @@ func TestCreateAgent(t *testing.T) {
 		},
 		"add a agent with an empty request": {
 			req:         "{}",
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/agents",
+		},
+		"add a agent with invalid name": {
+			req:         invalidNameJson,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
@@ -1279,6 +1379,10 @@ func TestAgentBackends(t *testing.T) {
 		},
 		"Return a list of available backends with invalid token": {
 			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+		},
+		"Return a list of available backends with empty token": {
+			auth:   "",
 			status: http.StatusUnauthorized,
 		},
 	}
