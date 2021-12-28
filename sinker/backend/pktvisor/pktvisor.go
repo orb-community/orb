@@ -172,10 +172,21 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 func camelToSnake(s string) string {
 	var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
 	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+
+	// Approach to avoid change the values to TopGeoLoc and TopASN
+	// for Camel Case and Lower Case
+	var matchExcept = regexp.MustCompile(`(oLoc$|pASN$)`)
+	sub := matchExcept.Split(s, 2)
+	var strExcept = ""
+	if len(sub) > 1 {
+		strExcept = matchExcept.FindAllString(s, 1)[0]
+		s = sub[0]
+	}
+
 	snake := matchFirstCap.ReplaceAllString(s, "${1}_${2}")
 	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
 	lower := strings.ToLower(snake)
-	return lower
+	return lower + strExcept
 }
 
 func Register(logger *zap.Logger) bool {
