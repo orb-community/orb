@@ -85,6 +85,42 @@ func TestAgentSave(t *testing.T) {
 			agent: agentCopy,
 			err:   errors.ErrConflict,
 		},
+		"create new agent with empty OwnerID": {
+			agent: fleet.Agent{
+				Name:          nameID,
+				MFOwnerID:     "",
+				MFThingID:     thID.String(),
+				MFChannelID:   chID.String(),
+			},
+			err:   errors.ErrMalformedEntity,
+		},
+		"create new agent with empty ThingID": {
+			agent: fleet.Agent{
+				Name:          nameID,
+				MFOwnerID:     oID.String(),
+				MFThingID:     "",
+				MFChannelID:   chID.String(),
+			},
+			err:   errors.ErrMalformedEntity,
+		},
+		"create new agent with empty channelID": {
+			agent: fleet.Agent{
+				Name:          nameID,
+				MFOwnerID:     oID.String(),
+				MFThingID:     thID.String(),
+				MFChannelID:   "",
+			},
+			err:   errors.ErrMalformedEntity,
+		},
+		"create new agent with empty invalid OwnerID": {
+			agent: fleet.Agent{
+				Name:          nameID,
+				MFOwnerID:     "123",
+				MFThingID:     thID.String(),
+				MFChannelID:   chID.String(),
+			},
+			err:   errors.ErrMalformedEntity,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -207,6 +243,22 @@ func TestAgentUpdateData(t *testing.T) {
 			},
 			err: errors.ErrNotFound,
 		},
+		"update agent data by thingID and channelID with invalid thingID": {
+			agent: fleet.Agent{
+				MFThingID:     "123",
+				MFChannelID:   chID.String(),
+				AgentMetadata: types.Metadata{"newkey": "newvalue"},
+			},
+			err: errors.ErrMalformedEntity,
+		},
+		"update agent data by thingID with channelID with empty fields": {
+			agent: fleet.Agent{
+				MFThingID:     "",
+				MFChannelID:   "",
+				AgentMetadata: types.Metadata{"newkey": "newvalue"},
+			},
+			err: errors.ErrMalformedEntity,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -268,6 +320,22 @@ func TestAgentUpdateHeartbeat(t *testing.T) {
 				LastHBData:  types.Metadata{"heartbeatdata2": "newvalue"},
 			},
 			err: errors.ErrNotFound,
+		},
+		"update existing agent heartbeat with empty thingID and channelID": {
+			agent: fleet.Agent{
+				MFThingID:   "",
+				MFChannelID: "",
+				LastHBData:  types.Metadata{"heartbeatdata2": "newvalue"},
+			},
+			err: errors.ErrMalformedEntity,
+		},
+		"update existing agent heartbeat with invalid thingID": {
+			agent: fleet.Agent{
+				MFThingID:   "123",
+				MFChannelID: chID.String(),
+				LastHBData:  types.Metadata{"heartbeatdata2": "newvalue"},
+			},
+			err: errors.ErrMalformedEntity,
 		},
 	}
 
@@ -470,6 +538,9 @@ func TestAgentUpdate(t *testing.T) {
 	thID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	duplicatedThID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	chID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
@@ -482,6 +553,9 @@ func TestAgentUpdate(t *testing.T) {
 	updatedNameID, err := types.NewIdentifier("my-agent2")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	duplicatedNameID, err := types.NewIdentifier("my-agent3")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	agent := fleet.Agent{
 		Name:          nameID,
 		MFThingID:     thID.String(),
@@ -492,7 +566,20 @@ func TestAgentUpdate(t *testing.T) {
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
 
+	duplicatedAgent := fleet.Agent{
+		Name:          duplicatedNameID,
+		MFThingID:     duplicatedThID.String(),
+		MFOwnerID:     oID.String(),
+		MFChannelID:   chID.String(),
+		OrbTags:       types.Tags{"testkey": "testvalue"},
+		AgentTags:     types.Tags{"testkey": "testvalue"},
+		AgentMetadata: types.Metadata{"testkey": "testvalue"},
+	}
+
 	err = agentRepo.Save(context.Background(), agent)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	err = agentRepo.Save(context.Background(), duplicatedAgent)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 
 	cases := map[string]struct {
@@ -516,6 +603,41 @@ func TestAgentUpdate(t *testing.T) {
 				OrbTags:   types.Tags{"newkey": "newvalue"},
 			},
 			err: errors.ErrNotFound,
+		},
+		"update agent data with empty thingID": {
+			agent: fleet.Agent{
+				MFThingID: "",
+				MFOwnerID: oID.String(),
+				Name:      updatedNameID,
+				OrbTags:   types.Tags{"newkey": "newvalue"},
+			},
+			err: errors.ErrMalformedEntity,
+		},
+		"update agent data with empty OwnerID": {
+			agent: fleet.Agent{
+				MFThingID: thID.String(),
+				MFOwnerID: "",
+				Name:      updatedNameID,
+				OrbTags:   types.Tags{"newkey": "newvalue"},
+			},
+			err: errors.ErrMalformedEntity,
+		},
+		"update agent data by thingID and channelID with invalid thingID": {
+			agent: fleet.Agent{
+				MFThingID:     "123",
+				MFOwnerID:     oID.String(),
+				Name:          updatedNameID,
+				AgentMetadata: types.Metadata{"newkey": "newvalue"},
+			},
+			err: errors.ErrMalformedEntity,
+		},
+		"update agent data by thingID and channelID with duplicated nameID": {
+			agent: fleet.Agent{
+				MFThingID: thID.String(),
+				MFOwnerID: oID.String(),
+				Name:      duplicatedNameID,
+			},
+			err: errors.ErrConflict,
 		},
 	}
 
@@ -641,6 +763,330 @@ func TestAgentBackendTapsRetrieve(t *testing.T) {
 			ag, err := agentRepo.RetrieveAgentMetadataByOwner(context.Background(), tc.ownerID)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 			assert.Equal(t, tc.total, len(ag), fmt.Sprintf("%s: expected %d got %d", desc, tc.total, len(ag)))
+		})
+	}
+}
+
+func TestMultiAgentRetrievalByAgentGroup(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+	agentGroupRepo := postgres.NewAgentGroupRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	wrongoID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	groupNameID, err := types.NewIdentifier("my-group")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	metaStr := `{"field1":"value1","field2":{"subfield11":"value2","subfield12":{"subfield121":"value3","subfield122":"value4"}}}`
+	metadata := types.Metadata{}
+	json.Unmarshal([]byte(metaStr), &metadata)
+
+	tagsStr := `{"region": "EU", "node_type": "dns"}`
+	tags := types.Tags{}
+	json.Unmarshal([]byte(tagsStr), &tags)
+
+	subTagsStr := `{"region": "EU"}`
+	subTags := types.Tags{}
+	json.Unmarshal([]byte(subTagsStr), &subTags)
+
+
+	group := fleet.AgentGroup{
+		Name:        groupNameID,
+		MFOwnerID:   oID.String(),
+		MFChannelID: chID.String(),
+		Tags:        tags,
+	}
+
+	id, err := agentGroupRepo.Save(context.Background(), group)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		thID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		chID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th := fleet.Agent{
+			MFOwnerID:   oID.String(),
+			MFThingID:   thID.String(),
+			MFChannelID: chID.String(),
+		}
+
+		th.Name, err = types.NewIdentifier(fmt.Sprintf("agent_name-%d", i))
+		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th.AgentMetadata = metadata
+		th.AgentTags = tags
+		th.OrbTags = subTags
+		th.State = fleet.Online
+
+		err = agentRepo.Save(context.Background(), th)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner    string
+		groupID  string
+		onlinish bool
+		size     uint64
+		err      error
+	}{
+		"retrieve all agents with existing owner that are online": {
+			owner:    oID.String(),
+			onlinish: true,
+			groupID:  id,
+			size:     n,
+			err:      nil,
+		},
+		"retrieve all agents with empty owner": {
+			owner:    "",
+			onlinish: true,
+			groupID:  id,
+			size:     0,
+			err:      errors.ErrMalformedEntity,
+		},
+		"retrieve agents with non-existing groupID": {
+			owner:    oID.String(),
+			groupID:  wrongoID.String(),
+			onlinish: true,
+			size:     0,
+			err:      nil,
+		},
+		"retrieve agents with non-existing owner": {
+			owner:    wrongoID.String(),
+			groupID:  id,
+			onlinish: true,
+			size:     0,
+			err:      nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			agents, err := agentRepo.RetrieveAllByAgentGroupID(context.Background(), tc.owner, tc.groupID, tc.onlinish)
+			size := uint64(len(agents))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d\n", desc, tc.size, size))
+			assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected %s got %d\n", desc, tc.err, err))
+
+		})
+	}
+}
+
+func TestMatchingAgentRetrieval(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	wrongoID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	name := "agent_name"
+	metaStr := `{"field1":"value1","field2":{"subfield11":"value2","subfield12":{"subfield121":"value3","subfield122":"value4"}}}`
+	tagsStr := `{"region": "EU", "node_type": "dns"}`
+	subTagsStr := `{"region": "EU"}`
+
+	wrongTagsStr := `{"region": "Br"}`
+
+	metadata := types.Metadata{}
+	json.Unmarshal([]byte(metaStr), &metadata)
+
+	tags := types.Tags{}
+	json.Unmarshal([]byte(tagsStr), &tags)
+
+	subTags := types.Tags{}
+	json.Unmarshal([]byte(subTagsStr), &subTags)
+
+	wrongTags := types.Tags{}
+	json.Unmarshal([]byte(wrongTagsStr), &wrongTags)
+
+
+	n := float64(10)
+	for i := float64(0); i < n; i++ {
+		thID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		chID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th := fleet.Agent{
+			MFOwnerID:   oID.String(),
+			MFThingID:   thID.String(),
+			MFChannelID: chID.String(),
+		}
+
+		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, uint64(i)))
+		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th.AgentMetadata = metadata
+		th.AgentTags = tags
+		th.OrbTags = subTags
+		th.State = fleet.Online
+
+		err = agentRepo.Save(context.Background(), th)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner   string
+		tags    map[string]string
+		size    float64
+	}{
+		"retrieve all matching agents with existing owner": {
+			owner: oID.String(),
+			tags:  tags,
+			size:  n,
+		},
+		"retrieve all matching agents with wrong owner": {
+			owner: wrongoID.String(),
+			tags:  tags,
+			size:  0,
+		},
+		"retrieve all matching agents with different tags": {
+			owner: oID.String(),
+			tags:  wrongTags,
+			size:  0,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			agents, err := agentRepo.RetrieveMatchingAgents(context.Background(), tc.owner, tc.tags)
+			assert.Equal(t, tc.size, agents["total"], fmt.Sprintf("%s: expected size %f got %f\n", desc, tc.size, agents["total"]))
+			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
+		})
+	}
+}
+
+func TestAgentRetrieveByID(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	thID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("myagent")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	agent := fleet.Agent{
+		Name:          nameID,
+		MFThingID:     thID.String(),
+		MFOwnerID:     oID.String(),
+		MFChannelID:   chID.String(),
+		OrbTags:       types.Tags{"testkey": "testvalue"},
+		AgentTags:     types.Tags{"testkey": "testvalue"},
+		AgentMetadata: types.Metadata{"testkey": "testvalue"},
+	}
+
+	err = agentRepo.Save(context.Background(), agent)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	cases := map[string]struct {
+		thingID string
+		ownerID string
+		err     error
+		tags    types.Tags
+	}{
+		"retrieve existing agent by thingID": {
+			thingID: thID.String(),
+			ownerID: oID.String(),
+			tags:    types.Tags{"testkey": "testvalue"},
+			err:     nil,
+		},
+		"retrieve non-existent agent by thingID": {
+			thingID: thID.String(),
+			ownerID: thID.String(),
+			err:     errors.ErrNotFound,
+		},
+		"retrieve existing agent by thingID with invalid ownerID": {
+			thingID: thID.String(),
+			ownerID: "123",
+			err:     errors.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			ag, err := agentRepo.RetrieveByID(context.Background(), tc.ownerID, tc.thingID)
+			if err == nil {
+				assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
+			}
+			if len(tc.tags) > 0 {
+				assert.Equal(t, tc.tags, ag.OrbTags)
+				assert.Equal(t, tc.tags, ag.AgentTags)
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
+	}
+}
+
+func TestRetrieveOwnerByChannelID(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	thID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("myagent")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	agent := fleet.Agent{
+		Name:          nameID,
+		MFThingID:     thID.String(),
+		MFOwnerID:     oID.String(),
+		MFChannelID:   chID.String(),
+		OrbTags:       types.Tags{"testkey": "testvalue"},
+		AgentTags:     types.Tags{"testkey": "testvalue"},
+		AgentMetadata: types.Metadata{"testkey": "testvalue"},
+	}
+
+	err = agentRepo.Save(context.Background(), agent)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	cases := map[string]struct {
+		channelID string
+		ownerID   string
+		name      string
+		err       error
+	}{
+		"retrieve existing owner by channelID": {
+			channelID: chID.String(),
+			ownerID:   oID.String(),
+			name:      nameID.String(),
+			err:       nil,
+		},
+		"retrieve existent owner by non-existent channelID": {
+			channelID: thID.String(),
+			ownerID:   "",
+			name:      "",
+			err:       nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			ag, err := agentRepo.RetrieveOwnerByChannelID(context.Background(), tc.channelID)
+			if err == nil {
+				assert.Equal(t, tc.name, ag.Name.String(), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.name, ag.Name.String()))
+				assert.Equal(t, tc.ownerID, ag.MFOwnerID, fmt.Sprintf("%s: expected %s got %s\n", desc, tc.ownerID, ag.MFOwnerID))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 		})
 	}
 }
