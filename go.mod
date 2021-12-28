@@ -171,7 +171,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.40.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.40.0
 	github.com/prometheus/common v0.32.1
-	go.opentelemetry.io/collector v0.40.0
+	go.opentelemetry.io/collector v0.41.0
 	go.opentelemetry.io/otel/metric v0.25.0
 	go.opentelemetry.io/otel/trace v1.2.0
 	k8s.io/client-go v0.22.4
