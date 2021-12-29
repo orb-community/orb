@@ -24,6 +24,8 @@ import (
 	"go.uber.org/zap"
 	"strings"
 	"time"
+
+	otlpreceiver "github.com/ns1labs/orb/sinker/otel/otlpreceiver"
 )
 
 const (
@@ -266,6 +268,20 @@ func (svc sinkerService) Start() error {
 	svc.hbTicker = time.NewTicker(HeartbeatFreq)
 	svc.hbDone = make(chan bool)
 	go svc.sendHeartbeats()
+
+	set := otlpreceiver.CreateDefaultCreateSetting(svc.logger)
+	cfg := otlpreceiver.CreateDefaultConfig()
+
+	receiver, err := otlpreceiver.CreateMetricsReceiver(context.Background(), set, cfg, nil)
+	if err != nil {
+		return err
+	}
+
+	err = receiver.Start(context.Background(), nil)
+	if err != nil {
+		svc.logger.Error("otel receiver startup error", zap.Error(err))
+		return err
+	}
 
 	return nil
 }

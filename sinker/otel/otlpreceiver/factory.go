@@ -16,6 +16,9 @@ package otlpreceiver // import "go.opentelemetry.io/collector/receiver/otlprecei
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 
 	"github.com/ns1labs/orb/sinker/otel/otlpreceiver/internal/sharedcomponent"
 	"go.opentelemetry.io/collector/component"
@@ -37,15 +40,27 @@ const (
 
 // NewFactory creates a new OTLP receiver factory.
 func NewFactory() component.ReceiverFactory {
-	receiver := receiverhelper.WithMetrics(createMetricsReceiver)
+	receiver := receiverhelper.WithMetrics(CreateMetricsReceiver)
 	return receiverhelper.NewFactory(
 		typeStr,
-		createDefaultConfig,
+		CreateDefaultConfig,
 		receiver)
 }
 
+// createDefaultCreateSettings
+func CreateDefaultCreateSetting(logger *zap.Logger) component.ReceiverCreateSettings {
+	return component.ReceiverCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.GetMeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+}
+
 // createDefaultConfig creates the default configuration for receiver.
-func createDefaultConfig() config.Receiver {
+func CreateDefaultConfig() config.Receiver {
 	return &Config{
 		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
 		Protocols: Protocols{
@@ -65,7 +80,7 @@ func createDefaultConfig() config.Receiver {
 }
 
 // CreateMetricsReceiver creates a metrics receiver based on provided config.
-func createMetricsReceiver(
+func CreateMetricsReceiver(
 	_ context.Context,
 	set component.ReceiverCreateSettings,
 	cfg config.Receiver,
