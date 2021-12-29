@@ -127,6 +127,5 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
       // Alert the user that the Terms need to be accepted before continuing.
       alert(acceptanceAlertLanguage);
     }
-
   }
 }

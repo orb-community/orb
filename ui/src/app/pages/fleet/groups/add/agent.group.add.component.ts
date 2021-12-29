@@ -192,7 +192,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
   // query agent group matches
   updateMatches() {
     const tagMatches = new Promise<TagMatch>(resolve => {
-      const { name } = this.agentGroup;
+      const name = this.firstFormGroup.controls.name.value;
       if (name !== '' && Object.keys(this.selectedTags).length !== 0) {
         const payload = this.wrapPayload(true);
         // just validate and get matches summary

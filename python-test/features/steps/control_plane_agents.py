@@ -1,23 +1,39 @@
-from behave import when, then
-from hamcrest import *
 from test_config import TestConfig
+from utils import random_string, filter_list_by_parameter_start_with
+from local_agent import run_local_agent_container
+from behave import given, when, then
+from hamcrest import *
 import time
-import random
-import string
 import requests
 
 configs = TestConfig.configs()
+agent_name_prefix = "test_agent_name_"
+tag_key_prefix = "test_tag_key_"
+tag_value_prefix = "test_tag_value_"
+base_orb_url = configs.get('base_orb_url')
 
-base_orb_url = "https://" + configs.get('orb_address')
-random_agent_name = ''.join(random.choices(string.ascii_letters, k=10))  # k sets the number of characters
-agent_name = "test_agent_name_" + random_agent_name
-agent_tag_key = "test_tag_key"
-agent_tag_value = "test_tag_value"
+
+@given("that an agent already exists and is {status}")
+def check_if_agents_exist(context, status):
+    context.agent_name, context.agent_tag_key, context.agent_tag_value = generate_agent_name_and_tag(agent_name_prefix,
+                                                                                                     tag_key_prefix,
+                                                                                                     tag_value_prefix)
+    agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
+    context.agent = agent
+    token = context.token
+    run_local_agent_container(context)
+    agent_id = context.agent['id']
+    existing_agents = get_agent(token, agent_id)
+    assert_that(len(existing_agents), greater_than(0), "Agent not created")
+    expect_container_status(token, agent_id, status)
 
 
 @when('a new agent is created')
 def agent_is_created(context):
-    agent = create_agent(context.token, agent_name, agent_tag_key, agent_tag_value)
+    context.agent_name, context.agent_tag_key, context.agent_tag_value = generate_agent_name_and_tag(agent_name_prefix,
+                                                                                                     tag_key_prefix,
+                                                                                                     tag_value_prefix)
+    agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
     context.agent = agent
 
 
@@ -26,6 +42,19 @@ def check_agent_online(context, status):
     token = context.token
     agent_id = context.agent['id']
     expect_container_status(token, agent_id, status)
+
+
+@then('cleanup agents')
+def clean_agents(context):
+    """
+    Remove all agents starting with 'agent_name_prefix' from the orb
+
+    :param context: Behave class that contains contextual information during the running of tests.
+    """
+    token = context.token
+    agents_list = list_agents(token)
+    agents_filtered_list = filter_list_by_parameter_start_with(agents_list, 'name', agent_name_prefix)
+    delete_agents(token, agents_filtered_list)
 
 
 def expect_container_status(token, agent_id, status):
@@ -47,12 +76,11 @@ def expect_container_status(token, agent_id, status):
         agent_status = agent['state']
         if agent_status == status:
             break
-
         time.sleep(sleep_time)
         time_waiting += sleep_time
 
-    assert_that(time_waiting, is_not(equal_to(timeout)),
-                'Agent did not get "' + status + '" after ' + str(timeout) + ' seconds')
+    assert_that(agent_status, is_(equal_to(status)),
+                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
 
 
 def get_agent(token, agent_id):
@@ -72,15 +100,16 @@ def get_agent(token, agent_id):
     return get_agents_response.json()
 
 
-def list_agents(token):
+def list_agents(token, limit=100):
     """
-    Lists all agents from Orb control plane that belong to this user
+    Lists up to 100 agents from Orb control plane that belong to this user
 
     :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
     :returns: (list) a list of agents
     """
 
-    response = requests.get(base_orb_url + '/api/v1/agents', headers={'Authorization': token})
+    response = requests.get(base_orb_url + '/api/v1/agents', headers={'Authorization': token}, params={"limit": limit})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list agents failed with status=' + str(response.status_code))
@@ -127,11 +156,25 @@ def create_agent(token, name, tag_key, tag_value):
     :returns: (dict) a dictionary containing the created agent data
     """
 
-    response = requests.post(base_orb_url + '/api/v1/agents',
-                             json={"name": name, "orb_tags": {tag_key: tag_value}, "validate_only": False},
-                             headers={'Content-type': 'application/json', 'Accept': '*/*',
-                                      'Authorization': token})
+    json_request = {"name": name, "orb_tags": {tag_key: tag_value}, "validate_only": False}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
+                       'Authorization': token}
+
+    response = requests.post(base_orb_url + '/api/v1/agents', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create agent failed with status=' + str(response.status_code))
 
     return response.json()
+
+
+def generate_agent_name_and_tag(name_agent_prefix, agent_tag_key_prefix, agent_tag_value_prefix):
+    """
+    :param (str) name_agent_prefix: prefix to identify agents created by tests
+    :param (str) agent_tag_key_prefix: prefix to identify tag_key created by tests
+    :param (str) agent_tag_value_prefix: prefix to identify tag_value created by tests
+    :return: random name, tag_key and tag_value for agent
+    """
+    agent_name = agent_name_prefix + random_string(10)
+    agent_tag_key = tag_key_prefix + random_string(4)
+    agent_tag_value = tag_value_prefix + random_string(4)
+    return agent_name, agent_tag_key, agent_tag_value

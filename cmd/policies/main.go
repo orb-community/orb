@@ -185,19 +185,20 @@ func newService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient, logger)
 	svc = policieshttp.NewLoggingMiddleware(svc, logger)
 	svc = policieshttp.MetricsMiddleware(
+		auth,
 		svc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "policies",
 			Subsystem: "api",
 			Name:      "request_count",
 			Help:      "Number of requests received.",
-		}, []string{"method"}),
+		}, []string{"method", "owner_id", "policy_id", "dataset_id"}),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "policies",
 			Subsystem: "api",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
-		}, []string{"method"}),
+		}, []string{"method", "owner_id", "policy_id", "dataset_id"}),
 	)
 	return svc
 }

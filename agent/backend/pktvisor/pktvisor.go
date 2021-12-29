@@ -6,6 +6,7 @@ package pktvisor
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,8 +14,14 @@ import (
 	"github.com/go-cmd/cmd"
 	"github.com/go-co-op/gocron"
 	"github.com/ns1labs/orb/agent/backend"
+	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
+	promexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
+	"go.opentelemetry.io/collector/component"
+	otelconfig "go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"io"
@@ -41,9 +48,14 @@ type pktvisorBackend struct {
 	scraper      *gocron.Scheduler
 	policyRepo   policies.PolicyRepo
 
+	receiver component.MetricsReceiver
+	exporter component.MetricsExporter
+
 	adminAPIHost     string
 	adminAPIPort     string
 	adminAPIProtocol string
+
+	scrapeOtel bool
 }
 
 func (p *pktvisorBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
@@ -258,6 +270,20 @@ func (p *pktvisorBackend) Start() error {
 	p.scraper = gocron.NewScheduler(time.UTC)
 	p.scraper.StartAsync()
 
+	if p.scrapeOtel {
+		if err := p.scrapeOpentelemetry(); err != nil {
+			return err
+		}
+	} else {
+		if err := p.scrapeDefault(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *pktvisorBackend) scrapeDefault() error {
 	// scrape all policy json output with one call every minute.
 	// TODO support policies with custom bucket times
 	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
@@ -321,7 +347,31 @@ func (p *pktvisorBackend) Start() error {
 	}
 
 	job.SingletonMode()
+	return nil
+}
 
+func (p *pktvisorBackend) scrapeOpentelemetry() (err error) {
+	ctx := context.Background()
+	p.exporter, err = createExporter(ctx, p.logger)
+	if err != nil {
+		p.logger.Error("failed to create a exporter", zap.Error(err))
+	}
+	p.receiver, err = createReceiver(ctx, p.exporter, p.logger)
+	if err != nil {
+		p.logger.Error("failed to create a receiver", zap.Error(err))
+	}
+
+	err = p.exporter.Start(ctx, nil)
+	if err != nil {
+		p.logger.Error("otel exporter startup error", zap.Error(err))
+		return err
+	}
+
+	err = p.receiver.Start(ctx, nil)
+	if err != nil {
+		p.logger.Error("otel receiver startup error", zap.Error(err))
+		return err
+	}
 	return nil
 }
 
@@ -334,11 +384,14 @@ func (p *pktvisorBackend) Stop() error {
 		return err
 	}
 	p.scraper.Stop()
+
+	p.exporter.Shutdown(context.Background())
+	p.receiver.Shutdown(context.Background())
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
 	return nil
 }
 
-func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string) error {
+func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string, otelConfig map[string]interface{}) error {
 	p.logger = logger
 	p.policyRepo = repo
 
@@ -354,6 +407,13 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 	}
 	if p.adminAPIPort, prs = config["api_port"]; !prs {
 		return errors.New("you must specify pktvisor admin API port")
+	}
+
+	for k, v := range otelConfig {
+		switch k {
+		case "Enable":
+			p.scrapeOtel = v.(bool)
+		}
 	}
 
 	return nil
@@ -384,4 +444,49 @@ func Register() bool {
 		adminAPIProtocol: "http",
 	})
 	return true
+}
+
+func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
+	// 2. Create the Prometheus metrics exporter that'll receive and verify the metrics produced.
+	exporterCfg := &promexporter.Config{
+		ExporterSettings: otelconfig.NewExporterSettings(otelconfig.NewComponentID("pktvisor_prometheus_exporter")),
+		Namespace:        "test",
+		Endpoint:         ":8787",
+		SendTimestamps:   true,
+		MetricExpiration: 2 * time.Hour,
+	}
+	exporterFactory := promexporter.NewFactory()
+	set := component.ExporterCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.GetMeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+	exporter, err := exporterFactory.CreateMetricsExporter(ctx, set, exporterCfg)
+	if err != nil {
+		return nil, err
+	}
+	return exporter, nil
+}
+
+func createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
+	// Create a pktvisor receiver factory
+	r := pktvisorreceiver.NewFactory()
+	receiverCreateSet := component.ReceiverCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.GetMeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+	rcvCfg := pktvisorreceiver.CreateDefaultConfig()
+	// Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
+	pReceiver, err := r.CreateMetricsReceiver(ctx, receiverCreateSet, rcvCfg, exporter)
+	if err != nil {
+		return nil, err
+	}
+	return pReceiver, nil
 }

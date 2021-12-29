@@ -1,2 +1,4 @@
 test_config.ini
 reports/
+venv/
+ui_venv/

@@ -169,19 +169,20 @@ func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClien
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = sinkshttp.NewLoggingMiddleware(svc, logger)
 	svc = sinkshttp.MetricsMiddleware(
+		auth,
 		svc,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "sink",
 			Subsystem: "api",
 			Name:      "request_count",
 			Help:      "Number of requests received.",
-		}, []string{"method"}),
+		}, []string{"method", "owner_id", "sink_id"}),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "sink",
 			Subsystem: "api",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
-		}, []string{"method"}),
+		}, []string{"method", "owner_id", "sink_id"}),
 	)
 	return svc
 }

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
-	config2 "github.com/ns1labs/orb/agent/config"
+	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -54,7 +54,7 @@ func Run(cmd *cobra.Command, args []string) {
 	initConfig()
 
 	// configuration
-	var config config2.Config
+	var config config.Config
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		logger.Error("agent start up error (config)", zap.Error(err))
@@ -62,7 +62,6 @@ func Run(cmd *cobra.Command, args []string) {
 	}
 
 	config.Debug = Debug
-
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
 	if err == nil && config.OrbAgent.Backends == nil {
@@ -98,8 +97,8 @@ func Run(cmd *cobra.Command, args []string) {
 		logger.Error("agent startup error", zap.Error(err))
 		os.Exit(1)
 	}
-	<-done
 
+	<-done
 }
 
 func mergeOrError(path string) {
@@ -125,6 +124,7 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.cloud.mqtt.channel_id", "")
 	v.SetDefault("orb.db.file", "./orb-agent.db")
 	v.SetDefault("orb.tls.verify", true)
+	v.SetDefault("orb.otel.enable", false)
 
 	v.SetDefault("orb.backends.pktvisor.binary", "")
 	v.SetDefault("orb.backends.pktvisor.config_file", "")
@@ -141,7 +141,7 @@ func mergeOrError(path string) {
 	if versionNumber1 := viper.GetFloat64("version"); versionNumber1 != fZero {
 		versionNumber2 := v.GetFloat64("version")
 		if versionNumber2 == fZero {
-			cobra.CheckErr("Failed to parse config vesrion in: " + path)
+			cobra.CheckErr("Failed to parse config version in: " + path)
 		}
 		if versionNumber2 != versionNumber1 {
 			cobra.CheckErr("Config file version mismatch in: " + path)
