@@ -13,15 +13,6 @@ import { environment } from '../../../environments/environment';
 export class RegisterComponent extends NbRegisterComponent implements OnInit {
   strings = STRINGS.login;
 
-  redirectDelay: number = 0;
-  showMessages: any = {};
-  strategy: string = '';
-
-  submitted = false;
-  errors: string[] = [];
-  messages: string[] = [];
-  user: any = {};
-
   /**
    * Pactsafe
    */
@@ -85,6 +76,8 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   register(event?: any) {
     // Prevent the form from automatically submitting without
     // checking PactSafe acceptance first.
+    this.errors = this.messages = [];
+    this.submitted = true;
 
     event?.preventDefault();
     if (!this.blockSubmission()) {
@@ -97,6 +90,22 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
         company,
       }).subscribe(
         respReg => {
+          this.submitted = false;
+
+          if (respReg.isSuccess()) {
+            this.messages = respReg.getMessages();
+          } else {
+            this.errors = respReg.getErrors();
+          }
+
+          const redirect = respReg.getRedirect();
+          if (redirect) {
+            setTimeout(() => {
+              return this.router.navigateByUrl(redirect);
+            }, this.redirectDelay);
+          }
+          this.cd.detectChanges();
+
           this.authService.authenticate(this.strategy, {
             email,
             password,
