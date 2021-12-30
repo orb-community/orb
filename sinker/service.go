@@ -282,7 +282,6 @@ func (svc sinkerService) Start() error {
 
 	set := otlpreceiver.CreateDefaultCreateSetting(svc.logger)
 	cfg := otlpreceiver.CreateDefaultConfig()
-
 	receiver, err := otlpreceiver.CreateMetricsReceiver(ctx, set, cfg, exporter)
 	if err != nil {
 		return err
