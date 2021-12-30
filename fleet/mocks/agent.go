@@ -3,6 +3,7 @@ package mocks
 import (
 	"context"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 )
 
@@ -99,7 +100,20 @@ func (a agentRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm f
 }
 
 func (a agentRepositoryMock) RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]fleet.Agent, error) {
-	return []fleet.Agent{}, nil
+	if agentGroupID == "" || owner == "" {
+		return nil, errors.ErrMalformedEntity
+	}
+
+	var agents []fleet.Agent
+	id := uint64(0)
+	for _, v := range a.agentsMock {
+		if v.MFOwnerID == owner {
+			agents = append(agents, v)
+		}
+		id++
+	}
+
+	return agents, nil
 }
 
 func (a agentRepositoryMock) Delete(ctx context.Context, ownerID, thingID string) error {

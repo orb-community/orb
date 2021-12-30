@@ -101,6 +101,20 @@ func TestCreateAgentGroup(t *testing.T) {
 	nameID, err := types.NewIdentifier("eu-agents")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
+	agNameID, err := types.NewIdentifier("agent")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agent := fleet.Agent{
+		Name:          agNameID,
+		MFOwnerID:     ownerID.String(),
+		MFChannelID:   "",
+		AgentTags:     map[string]string{
+			"region":    "eu",
+			"node_type": "dns",
+		},
+	}
+	_, err = fleetService.CreateAgent(context.Background(), token, agent)
+
 	validAgent := fleet.AgentGroup{
 		MFOwnerID:   ownerID.String(),
 		Name:        nameID,
@@ -296,6 +310,16 @@ func TestUpdateAgentGroup(t *testing.T) {
 
 	ag, err := createAgentGroup(t, "ue-agent-group", fleetService)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agNameID, err := types.NewIdentifier("agent")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agent := fleet.Agent{
+		Name:          agNameID,
+		MFOwnerID:     ag.MFOwnerID,
+		MFChannelID:   ag.MFChannelID,
+	}
+	_, err = fleetService.CreateAgent(context.Background(), token, agent)
 
 	matching := types.Metadata{"total": 0, "online": 0}
 	wrongAgentGroup := fleet.AgentGroup{ID: wrongID}
