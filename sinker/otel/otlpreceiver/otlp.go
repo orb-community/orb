@@ -17,6 +17,7 @@ package otlpreceiver // import "go.opentelemetry.io/collector/receiver/otlprecei
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc/reflection"
 	"net"
 	"net/http"
 	"sync"
@@ -76,6 +77,7 @@ func (r *otlpReceiver) startGRPCServer(cfg *configgrpc.GRPCServerSettings, host 
 	go func() {
 		defer r.shutdownWG.Done()
 
+		reflection.Register(r.serverGRPC)
 		if errGrpc := r.serverGRPC.Serve(gln); errGrpc != nil && errGrpc != grpc.ErrServerStopped {
 			host.ReportFatalError(errGrpc)
 		}
