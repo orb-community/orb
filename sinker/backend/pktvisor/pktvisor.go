@@ -79,7 +79,6 @@ func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
 	convertToPromParticle(ctxt, statsMap, "", &tsList)
-	fmt.Print(tsList)
 	return tsList
 }
 
@@ -99,10 +98,8 @@ func convertToPromParticle(ctxt *context, m map[string]interface{}, label string
 				if ok := matchFirstQuantile.MatchString(k); ok {
 					// If it's quantile, needs to be parsed to prom quantile format
 					tsList = makePromParticle(ctxt, label, k, v, tsList, ok)
-					//fmt.Printf("%s{instance=\"%s\",quantile=\"%s\"}%v\n", label, ctxt.agent.AgentName, k, v)
 				} else {
 					tsList = makePromParticle(ctxt, label+k, "", v, tsList, false)
-					//fmt.Printf("%s{instance=\"%s\"}%v\n", label+k, ctxt.agent.AgentName, v)
 				}
 			}
 		// The StatSnapshot has two ways to record metrics (i.e. TopIpv4   []NameCount   `mapstructure:"top_ipv4"`)
@@ -130,7 +127,6 @@ func convertToPromParticle(ctxt *context, m map[string]interface{}, label string
 						}
 					}
 					tsList = makePromParticle(ctxt, label+k, lbl, dtpt, tsList, false)
-					//fmt.Printf("%s{instance=\"%s\",name=\"%s\"}%v\n", label+k, ctxt.agent.AgentName, lbl, dtpt)
 				}
 			}
 		}
@@ -174,7 +170,7 @@ func camelToSnake(s string) string {
 	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 
 	// Approach to avoid change the values to TopGeoLoc and TopASN
-	// for Camel Case and Lower Case
+	// Should continue camel case or upper case
 	var matchExcept = regexp.MustCompile(`(oLoc$|pASN$)`)
 	sub := matchExcept.Split(s, 2)
 	var strExcept = ""
