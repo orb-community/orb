@@ -101,17 +101,16 @@
                            [value]="option.key">{{ option.key }} <span
                   class="tap-input-text"> {{' | input type: ' + option.value?.input_type }}</span></nb-option>
               </nb-select>
-              <hr/>
             </form>
-            <hr/>
           </div>
+          <hr/>
+          <label class="font-weight-bold">Tap Configuration Options</label>
           <div *ngIf="!availableTaps">
             <label class="font-weight-bold">There are no <a class="text-link"
                                                             routerLink="../../../fleet/agents">agents</a>
               available.</label>
           </div>
           <div *ngIf="!!inputConfigFG">
-<!--            <div>Tap Configuration Options</div>-->
             <!-- Dynamic Input Config Form -->
             <form (ngSubmit)="onFormSubmit()" [formGroup]="inputConfigFG">
               <div *ngFor="let control of input.config | keyvalue | advancedoptions:false ; index as i;">
@@ -156,13 +155,12 @@
                                  [value]="option.key">{{ option.value }}</nb-option>
                     </nb-select>
                   </div>
-                  <hr/>
                 </div>
               </div>
               <nb-accordion>
                 <nb-accordion-item>
                   <nb-accordion-item-header>
-                    <label class="font-weight-bold">Advanced Options</label>
+                    <label>Advanced Options</label>
                   </nb-accordion-item-header>
                   <nb-accordion-item-body>
                     <div *ngFor="let control of input.config | keyvalue | advancedoptions:true ; index as i;">
@@ -215,8 +213,8 @@
             </form>
           </div>
           <hr/>
+          <label class="font-weight-bold">Tap Filter Options</label>
           <div *ngIf="!!inputFilterFG">
-<!--            <div>Tap Filter Options</div>-->
             <!-- Dynamic Input Config Form -->
             <form (ngSubmit)="onFormSubmit()" [formGroup]="inputFilterFG">
               <div *ngFor="let control of input.filter | keyvalue; index as i;">
