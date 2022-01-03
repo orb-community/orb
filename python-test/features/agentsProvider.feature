@@ -19,6 +19,6 @@ Feature: agent provider
         When a new policy is created
             And a new dataset is created using referred group, sink and policy ID
         Then this agent's heartbeat shows that all 2 policies have been successfully applied
-            And the container logs contains the message "policy applied successfully" referred to all applied policies within 10 seconds
-            And the container logs contains the message "scraped metrics for policy" referred to all applied policies within 180 seconds after applying all of them
+            And the container logs contains the message "policy applied successfully" referred to each policy within 10 seconds
+            And the container logs that were output after all policies have been applied contains the message "scraped metrics for policy" referred to each policy within 180 seconds
             And referred sink must have active state on response within 10 seconds
