@@ -3,6 +3,7 @@ from utils import random_string, filter_list_by_parameter_start_with
 from hamcrest import *
 import requests
 from test_config import TestConfig
+from datetime import datetime
 
 dataset_name_prefix = "test_dataset_name_"
 
@@ -11,6 +12,7 @@ base_orb_url = TestConfig.configs().get('base_orb_url')
 
 @when("a new dataset is created using referred group, sink and policy ID")
 def create_new_dataset(context):
+    context.dataset_applied_timestamp = datetime.now().timestamp()
     token = context.token
     agent_groups_id = context.agent_group_data['id']
     sink_id = context.sink['id']

@@ -3,6 +3,7 @@ from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with
 from hamcrest import *
 import requests
+import time
 
 configs = TestConfig.configs()
 sink_label_name_prefix = "test_sink_label_name_"
@@ -36,10 +37,20 @@ def create_sink(context):
     context.sink = create_new_sink(token, sink_label_name, endpoint, username, password)
 
 
-@then("referred sink must have {status} state on response")
-def check_sink_status(context, status):
+@then("referred sink must have {status} state on response within {time_to_wait} seconds")
+def check_sink_status(context, status, time_to_wait):
+    time_waiting = 0
+    sleep_time = 0.5
+    timeout = int(time_to_wait)
     sink_id = context.sink["id"]
-    get_sink_response = get_sink(context.token, sink_id)
+
+    while time_waiting < timeout:
+        get_sink_response = get_sink(context.token, sink_id)
+        if get_sink_response['state'] == status:
+            break
+        time.sleep(sleep_time)
+        time_waiting += sleep_time
+
     assert_that(get_sink_response['state'], equal_to(status), f"Sink {sink_id} state failed")
 
 
