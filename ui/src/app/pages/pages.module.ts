@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import {
+  NbAccordionModule,
   NbAlertModule,
   NbButtonModule,
   NbCardModule,
@@ -87,6 +88,7 @@ import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.deta
     DebounceModule,
     NbTooltipModule,
     NbAlertModule,
+    NbAccordionModule,
   ],
   exports: [
     SharedModule,
