@@ -9,15 +9,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
   styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit {
-  picture: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  company: string;
-  department: string;
-  occupation: string;
-  location: string;
+  user: any = {};
 
   newPassword: string = '';
   confirmPassword: string = '';
@@ -30,20 +22,13 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.picture = this.usersService.getUserPicture();
-
     this.usersService.getProfile().subscribe(
       resp => {
-        this.email = resp.email ? resp.email : '';
+        this.user.email = resp.email ? resp.email : '';
 
         if (resp.metadata !== undefined) {
-          this.firstName = resp.metadata.firstName ? resp.metadata.firstName : '';
-          this.lastName = resp.metadata.lastName ? resp.metadata.lastName : '';
-          this.phone = resp.metadata.phone ? resp.metadata.phone : '';
-          this.company = resp.metadata.company ? resp.metadata.company : '';
-          this.department = resp.metadata.department ? resp.metadata.department : '';
-          this.occupation = resp.metadata.occupation ? resp.metadata.occupation : '';
-          this.location = resp.metadata.location ? resp.metadata.location : '';
+          this.user.fullName = resp.metadata.fullName ? resp.metadata.fullName : '';
+          this.user.company = resp.metadata.company ? resp.metadata.company : '';
         }
       },
     );
@@ -52,13 +37,8 @@ export class ProfileComponent implements OnInit {
   onClickSaveInfos(event): void {
     const userReq = {
       metadata: {
-        firstName: this.firstName,
-        lastName: this.lastName,
-        phone: this.phone,
-        department: this.department,
-        occupation: this.occupation,
-        location: this.location,
-        company: this.company,
+        fullName: this.user.fullName,
+        company: this.user.company,
       },
     };
 
