@@ -421,8 +421,8 @@ func TestValidateSink(t *testing.T) {
 			err:   sinks.ErrUnauthorizedAccess,
 		},
 		"validate a sink with a invalid backend": {
-			sink:  sinks.Sink{
-				Name: nameID,
+			sink: sinks.Sink{
+				Name:        nameID,
 				Description: "An example prometheus sink",
 				Backend:     "invalid",
 				Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},

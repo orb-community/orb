@@ -2,6 +2,9 @@ package pktvisorreceiver
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -28,6 +31,17 @@ func NewFactory() component.ReceiverFactory {
 		typeStr,
 		CreateDefaultConfig,
 		receiverhelper.WithMetrics(CreateMetricsReceiver))
+}
+
+func CreateDefaultSettings(logger *zap.Logger) component.ReceiverCreateSettings {
+	return component.ReceiverCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.GetMeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
 }
 
 func CreateDefaultConfig() config.Receiver {

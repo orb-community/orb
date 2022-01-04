@@ -53,7 +53,7 @@ var (
 	unauthRes          = toJSON(errorRes{sinks.ErrUnauthorizedAccess.Error()})
 	notSupported       = toJSON(errorRes{sinks.ErrUnsupportedContentTypeSink.Error()})
 	malformedEntityRes = toJSON(errorRes{sinks.ErrMalformedEntity.Error()})
-	wrongID, _   = uuid.NewV4()
+	wrongID, _         = uuid.NewV4()
 )
 
 type testRequest struct {

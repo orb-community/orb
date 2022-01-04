@@ -180,10 +180,10 @@ func TestSinkUpdate(t *testing.T) {
 		},
 		"update a sink with malformed ownerID": {
 			sink: sinks.Sink{
-				ID: sinkID,
+				ID:        sinkID,
 				MFOwnerID: "123",
 			},
-			err:  errors.ErrMalformedEntity,
+			err: errors.ErrMalformedEntity,
 		},
 	}
 
@@ -344,16 +344,16 @@ func TestMultiSinkRetrieval(t *testing.T) {
 				Offset: 0,
 				Limit:  n,
 				Total:  n,
-				Tags: map[string]string{"cloud":"aws"},
+				Tags:   map[string]string{"cloud": "aws"},
 			},
 			size: n,
 		},
 		"retrieve sinks filtered by metadata": {
 			owner: oID.String(),
 			pageMetadata: sinks.PageMetadata{
-				Offset: 0,
-				Limit:  n,
-				Total:  0,
+				Offset:   0,
+				Limit:    n,
+				Total:    0,
 				Metadata: map[string]interface{}{"username": "dbuser", "remote_host": "my.prometheus-host.com"},
 			},
 			size: 0,
