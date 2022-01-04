@@ -81,30 +81,46 @@ type AppMetrics struct {
 
 // note this needs to be stateless because it is calledfor multiple go routines
 func (p *pktvisorBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string) error {
-	client := http.Client{
-		Timeout: time.Second * 5,
+	var backoffSchedule = []time.Duration{
+		5 * time.Second,
+		10 * time.Second,
+	}
+	var res *http.Response
+	var getErr error
+	for _, backoff := range backoffSchedule {
+		client := http.Client{
+			Timeout: backoff,
+		}
+
+		alive, err := p.checkAlive()
+		if !alive {
+			return err
+		}
+
+		URL := fmt.Sprintf("%s://%s:%s/api/v1/%s", p.adminAPIProtocol, p.adminAPIHost, p.adminAPIPort, url)
+
+		req, err := http.NewRequest(method, URL, body)
+		if err != nil {
+			return err
+		}
+		if contentType == "" {
+			contentType = "application/json"
+		}
+		req.Header.Add("Content-Type", contentType)
+
+		res, getErr = client.Do(req)
+		if getErr != nil {
+			continue
+		}
+		if res.StatusCode == 200 {
+			break
+		}
 	}
 
-	alive, err := p.checkAlive()
-	if !alive {
-		return err
-	}
-
-	URL := fmt.Sprintf("%s://%s:%s/api/v1/%s", p.adminAPIProtocol, p.adminAPIHost, p.adminAPIPort, url)
-
-	req, err := http.NewRequest(method, URL, body)
-	if err != nil {
-		return err
-	}
-	if contentType == "" {
-		contentType = "application/json"
-	}
-	req.Header.Add("Content-Type", contentType)
-
-	res, getErr := client.Do(req)
 	if getErr != nil {
 		return getErr
 	}
+
 	if res.StatusCode != 200 {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -123,7 +139,7 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 		}
 	}
 
-	err = json.NewDecoder(res.Body).Decode(&payload)
+	err := json.NewDecoder(res.Body).Decode(&payload)
 	if err != nil {
 		return err
 	}
@@ -183,9 +199,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
-
 }
 
 func (p *pktvisorBackend) Version() (string, error) {
