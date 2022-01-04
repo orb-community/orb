@@ -48,10 +48,11 @@ var (
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
-	invalidName  = strings.Repeat("m", maxNameSize+1)
-	notFoundRes  = toJSON(errorRes{sinks.ErrNotFound.Error()})
-	unauthRes    = toJSON(errorRes{sinks.ErrUnauthorizedAccess.Error()})
-	notSupported = toJSON(errorRes{sinks.ErrUnsupportedContentTypeSink.Error()})
+	invalidName        = strings.Repeat("m", maxNameSize+1)
+	notFoundRes        = toJSON(errorRes{sinks.ErrNotFound.Error()})
+	unauthRes          = toJSON(errorRes{sinks.ErrUnauthorizedAccess.Error()})
+	notSupported       = toJSON(errorRes{sinks.ErrUnsupportedContentTypeSink.Error()})
+	malformedEntityRes = toJSON(errorRes{sinks.ErrMalformedEntity.Error()})
 	wrongID, _   = uuid.NewV4()
 )
 
@@ -116,6 +117,9 @@ func TestCreateSinks(t *testing.T) {
 	_, err = service.CreateSink(context.Background(), token, sinkConflict)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
+	var invalidNameJson = "{\n    \"name\": \"s\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	var emptyNameJson = "{\n    \"name\": \"\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+
 	cases := map[string]struct {
 		req         string
 		contentType string
@@ -158,6 +162,20 @@ func TestCreateSinks(t *testing.T) {
 			status:      http.StatusUnsupportedMediaType,
 			location:    "/sinks",
 		},
+		"add a sink with invalid name": {
+			req:         invalidNameJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks",
+		},
+		"add a sink with empty name": {
+			req:         emptyNameJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks",
+		},
 	}
 
 	for desc, tc := range cases {
@@ -188,6 +206,20 @@ func TestUpdateSink(t *testing.T) {
 
 	data := toJSON(updateSinkReq{
 		Name:        sk.Name.String(),
+		Description: sk.Description,
+		Config:      sink.Config,
+		Tags:        sk.Tags,
+	})
+
+	dataInvalidName := toJSON(updateSinkReq{
+		Name:        invalidName,
+		Description: sk.Description,
+		Config:      sink.Config,
+		Tags:        sk.Tags,
+	})
+
+	dataInvalidRgxName := toJSON(updateSinkReq{
+		Name:        "&*sink*&",
 		Description: sk.Description,
 		Config:      sink.Config,
 		Tags:        sk.Tags,
@@ -272,6 +304,20 @@ func TestUpdateSink(t *testing.T) {
 		},
 		"update sink with different owner": {
 			req:         invalidJson,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update existing sink with a invalid name": {
+			req:         dataInvalidName,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update existing sink with a invalid regex name": {
+			req:         dataInvalidRgxName,
 			id:          sk.ID,
 			contentType: contentType,
 			auth:        token,
@@ -533,6 +579,12 @@ func TestViewBackend(t *testing.T) {
 			status: http.StatusNotFound,
 			res:    notFoundRes,
 		},
+		"view backend with empty id": {
+			id:     "",
+			auth:   token,
+			status: http.StatusBadRequest,
+			res:    malformedEntityRes,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -733,6 +785,11 @@ func TestDeleteSink(t *testing.T) {
 			id:     sk.ID,
 			auth:   "",
 			status: http.StatusUnauthorized,
+		},
+		"delete sink with empty id": {
+			id:     "",
+			auth:   token,
+			status: http.StatusBadRequest,
 		},
 	}
 	for desc, tc := range cases {
