@@ -36,5 +36,5 @@ def _read_configs():
         configs['base_orb_url'] = f"http://{configs.get('orb_address')}"
     else:
         configs['base_orb_url'] = f"https://{configs.get('orb_address')}"
-
     return configs
+
