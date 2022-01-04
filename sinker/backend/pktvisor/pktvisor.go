@@ -86,16 +86,25 @@ func convertToPromParticle(ctxt *context, m map[string]interface{}, label string
 	for k, v := range m {
 		switch c := v.(type) {
 		case map[string]interface{}:
+			// Call convertToPromParticle recursively until the last interface of the StatSnapshot struct
+			// The prom particle label it's been formed during the recursive call
 			convertToPromParticle(ctxt, c, label+k, tsList)
+		// The StatSnapshot has two ways to record metrics (i.e. Live int64 `mapstructure:"live"`)
+		// It's why we check if the type is int64
 		case int64:
 			{
+				// Use this regex to identify if the value it's a quantile
 				var matchFirstQuantile = regexp.MustCompile("^([P-p])+[0-9]")
 				if ok := matchFirstQuantile.MatchString(k); ok {
+					// If it's quantile, needs to be parsed to prom quantile format
 					tsList = makePromParticle(ctxt, label, k, v, tsList, ok)
 				} else {
 					tsList = makePromParticle(ctxt, label+k, "", v, tsList, false)
 				}
 			}
+		// The StatSnapshot has two ways to record metrics (i.e. TopIpv4   []NameCount   `mapstructure:"top_ipv4"`)
+		// It's why we check if the type is []interface
+		// Here we extract the value for Name and Estimate
 		case []interface{}:
 			{
 				for _, value := range c {
@@ -159,10 +168,21 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 func camelToSnake(s string) string {
 	var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
 	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+
+	// Approach to avoid change the values to TopGeoLoc and TopASN
+	// Should continue camel case or upper case
+	var matchExcept = regexp.MustCompile(`(oLoc$|pASN$)`)
+	sub := matchExcept.Split(s, 2)
+	var strExcept = ""
+	if len(sub) > 1 {
+		strExcept = matchExcept.FindAllString(s, 1)[0]
+		s = sub[0]
+	}
+
 	snake := matchFirstCap.ReplaceAllString(s, "${1}_${2}")
 	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
 	lower := strings.ToLower(snake)
-	return lower
+	return lower + strExcept
 }
 
 func Register(logger *zap.Logger) bool {

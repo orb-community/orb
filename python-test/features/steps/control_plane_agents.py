@@ -1,22 +1,23 @@
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with
 from local_agent import run_local_agent_container
-from behave import given, when, then
+from behave import given, when, then, step
 from hamcrest import *
 import time
 import requests
 
 configs = TestConfig.configs()
-base_orb_url = "https://" + configs.get('orb_address')
 agent_name_prefix = "test_agent_name_"
 tag_key_prefix = "test_tag_key_"
 tag_value_prefix = "test_tag_value_"
+base_orb_url = configs.get('base_orb_url')
+
 
 @given("that an agent already exists and is {status}")
 def check_if_agents_exist(context, status):
-    context.agent_name = agent_name_prefix + random_string(10)
-    context.agent_tag_key = tag_key_prefix + random_string(4)
-    context.agent_tag_value = tag_value_prefix + random_string(4)
+    context.agent_name, context.agent_tag_key, context.agent_tag_value = generate_agent_name_and_tag(agent_name_prefix,
+                                                                                                     tag_key_prefix,
+                                                                                                     tag_value_prefix)
     agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
     context.agent = agent
     token = context.token
@@ -29,9 +30,9 @@ def check_if_agents_exist(context, status):
 
 @when('a new agent is created')
 def agent_is_created(context):
-    context.agent_name = agent_name_prefix + random_string(10)
-    context.agent_tag_key = tag_key_prefix + random_string(4)
-    context.agent_tag_value = tag_value_prefix + random_string(4)
+    context.agent_name, context.agent_tag_key, context.agent_tag_value = generate_agent_name_and_tag(agent_name_prefix,
+                                                                                                     tag_key_prefix,
+                                                                                                     tag_value_prefix)
     agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
     context.agent = agent
 
@@ -56,6 +57,16 @@ def clean_agents(context):
     delete_agents(token, agents_filtered_list)
 
 
+@step("this agent's heartbeat shows that all {amount_of_policies} policies have been successfully applied")
+def list_policies_applied_to_an_agent(context, amount_of_policies):
+    agent = get_agent(context.token, context.agent['id'])
+    context.list_agent_policies_id = list(agent['last_hb_data']['policy_state'].keys())
+    assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)), f'Amount of policies applied to '
+                                                                                     f'this agent failed with '
+                                                                                     f'{amount_of_policies} policies')
+    assert_that(sorted(context.list_agent_policies_id), equal_to(sorted(context.policies_created.keys())))
+
+
 def expect_container_status(token, agent_id, status):
     """
     Keeps fetching agent data from Orb control plane until it gets to
@@ -75,12 +86,11 @@ def expect_container_status(token, agent_id, status):
         agent_status = agent['state']
         if agent_status == status:
             break
-
         time.sleep(sleep_time)
         time_waiting += sleep_time
 
-    assert_that(time_waiting, is_not(equal_to(timeout)),
-                'Agent did not get "' + status + '" after ' + str(timeout) + ' seconds')
+    assert_that(agent_status, is_(equal_to(status)),
+                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
 
 
 def get_agent(token, agent_id):
@@ -109,7 +119,7 @@ def list_agents(token, limit=100):
     :returns: (list) a list of agents
     """
 
-    response = requests.get(base_orb_url + '/api/v1/agents', headers={'Authorization': token},  params={"limit": limit})
+    response = requests.get(base_orb_url + '/api/v1/agents', headers={'Authorization': token}, params={"limit": limit})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list agents failed with status=' + str(response.status_code))
@@ -166,3 +176,15 @@ def create_agent(token, name, tag_key, tag_value):
 
     return response.json()
 
+
+def generate_agent_name_and_tag(name_agent_prefix, agent_tag_key_prefix, agent_tag_value_prefix):
+    """
+    :param (str) name_agent_prefix: prefix to identify agents created by tests
+    :param (str) agent_tag_key_prefix: prefix to identify tag_key created by tests
+    :param (str) agent_tag_value_prefix: prefix to identify tag_value created by tests
+    :return: random name, tag_key and tag_value for agent
+    """
+    agent_name = agent_name_prefix + random_string(10)
+    agent_tag_key = tag_key_prefix + random_string(4)
+    agent_tag_value = tag_value_prefix + random_string(4)
+    return agent_name, agent_tag_key, agent_tag_value

@@ -12,6 +12,32 @@ type NameCount struct {
 	Estimate int64  `mapstructure:"estimate"`
 }
 
+// Rates represents a histogram of rates at various percentiles
+type Rates struct {
+	Live int64 `mapstructure:"live"`
+	P50  int64 `mapstructure:"p50"`
+	P90  int64 `mapstructure:"p90"`
+	P95  int64 `mapstructure:"p95"`
+	P99  int64 `mapstructure:"p99"`
+}
+
+// DHCPPayload contains the information specifically for the DNS protocol
+type DHCPPayload struct {
+	WirePackets struct {
+		Filtered    int64 `mapstructure:"filtered"`
+		Total       int64 `mapstructure:"total"`
+		DeepSamples int64 `mapstructure:"deep_samples"`
+		Discover    int64 `mapstructure:"discover"`
+		Offer       int64 `mapstructure:"offer"`
+		Request     int64 `mapstructure:"request"`
+		Ack         int64 `mapstructure:"ack"`
+	} `mapstructure:"wire_packets"`
+	Rates struct {
+		Total Rates `mapstructure:"total"`
+	} `mapstructure:"rates"`
+	Period PeriodPayload `mapstructure:"period"`
+}
+
 // DNSPayload contains the information specifically for the DNS protocol
 type DNSPayload struct {
 	WirePackets struct {
@@ -22,19 +48,13 @@ type DNSPayload struct {
 		TCP      int64 `mapstructure:"tcp"`
 		Total    int64 `mapstructure:"total"`
 		UDP      int64 `mapstructure:"udp"`
-		NoError  int64 `mapstructure:"noerror"`
-		NxDomain int64 `mapstructure:"nxdomain"`
-		SrvFail  int64 `mapstructure:"srvfail"`
+		Noerror  int64 `mapstructure:"noerror"`
+		Nxdomain int64 `mapstructure:"nxdomain"`
+		Srvfail  int64 `mapstructure:"srvfail"`
 		Refused  int64 `mapstructure:"refused"`
 	} `mapstructure:"wire_packets"`
 	Rates struct {
-		Total struct {
-			Live int64 `mapstructure:"live"`
-			P50  int64 `mapstructure:"p50"`
-			P90  int64 `mapstructure:"p90"`
-			P95  int64 `mapstructure:"p95"`
-			P99  int64 `mapstructure:"p99"`
-		} `mapstructure:"total"`
+		Total Rates `mapstructure:"total"`
 	} `mapstructure:"rates"`
 	Cardinality struct {
 		Qname int64 `mapstructure:"qname"`
@@ -67,7 +87,7 @@ type DNSPayload struct {
 	} `mapstructure:"xact"`
 	TopQname2   []NameCount   `mapstructure:"top_qname2"`
 	TopQname3   []NameCount   `mapstructure:"top_qname3"`
-	TopNX       []NameCount   `mapstructure:"top_nxdomain"`
+	TopNxdomain []NameCount   `mapstructure:"top_nxdomain"`
 	TopQtype    []NameCount   `mapstructure:"top_qtype"`
 	TopRcode    []NameCount   `mapstructure:"top_rcode"`
 	TopREFUSED  []NameCount   `mapstructure:"top_refused"`
@@ -137,6 +157,7 @@ type PeriodPayload struct {
 // StatSnapshot is a snapshot of a given period from pktvisord
 type StatSnapshot struct {
 	DNS     DNSPayload
+	DHCP    DHCPPayload
 	Packets PacketPayload
 	Pcap    PcapPayload
 }

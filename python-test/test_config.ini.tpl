@@ -13,3 +13,4 @@ orb_address=<orb url>
 # agent_docker_image=ns1labs/orb-agent
 # agent_docker_tag=latest
 # orb_agent_interface=mock
+# ignore_ssl_and_certificate_errors=False

@@ -1,14 +1,18 @@
-from behave import when, then
-from control_plane_agents import base_orb_url
+from behave import given, when, then
 from utils import random_string, filter_list_by_parameter_start_with
 from hamcrest import *
 import requests
+from test_config import TestConfig
+from datetime import datetime
 
 dataset_name_prefix = "test_dataset_name_"
+
+base_orb_url = TestConfig.configs().get('base_orb_url')
 
 
 @when("a new dataset is created using referred group, sink and policy ID")
 def create_new_dataset(context):
+    context.dataset_applied_timestamp = datetime.now().timestamp()
     token = context.token
     agent_groups_id = context.agent_group_data['id']
     sink_id = context.sink['id']
@@ -50,6 +54,11 @@ def clean_datasets(context):
     datasets_list = list_datasets(token)
     datasets_filtered_list = filter_list_by_parameter_start_with(datasets_list, 'name', dataset_name_prefix)
     delete_datasets(token, datasets_filtered_list)
+
+
+@given('that a dataset using referred group, sink and policy ID already exists')
+def new_dataset(context):
+    create_new_dataset(context)
 
 
 def list_datasets(token, limit=100):
