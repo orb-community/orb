@@ -1,25 +1,22 @@
 # Integration Tests
-
 This directory contains integration tests that can be run through the UI and/or API
 
-Here's what you'll need to do in order to run these tests:
 
+Here's what you'll need to do in order to run these tests:
 - Setup your python environment
 - Configure the test settings
 - Run behave
 
 ## Setup your Python environment
-
 Create a virtual environment: `python3 -m venv name_of_virtualenv`
 
 Activate your virtual environment: `source name_of_virtualenv/bin/activate`
 
 Install the required libraries: `pip install -r requirements.txt`
 
+
 ### Additional configuration of your Python environment for UI tests
-
 - Install Google Chrome :
-
 ```
 $ sudo curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add
 $ sudo echo "deb [arch=amd64]  http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list
@@ -28,7 +25,6 @@ $ sudo apt-get -y install google-chrome-stable
 ```
 
 - Install ChromeDriver
-
 ```
 $ wget https://chromedriver.storage.googleapis.com/$(google-chrome --product-version)/chromedriver_linux64.zip
 $ unzip chromedriver_linux64.zip
@@ -38,7 +34,6 @@ $ sudo chmod +x /usr/bin/chromedriver
 ```
 
 ## Test settings
-
 Create the test config file from the template: `cp test_config.ini.tpl test_config.ini`.
 
 Then fill in the correct values:
