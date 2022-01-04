@@ -8,6 +8,9 @@ import (
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
+	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 )
 
 const (
@@ -18,11 +21,22 @@ const (
 func NewFactory() component.ExporterFactory {
 	return exporterhelper.NewFactory(
 		typeStr,
-		createDefaultConfig,
+		CreateDefaultConfig,
 		exporterhelper.WithMetrics(CreateMetricsExporter))
 }
 
-func createDefaultConfig() config.Exporter {
+func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings {
+	return component.ExporterCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.GetMeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+}
+
+func CreateDefaultConfig() config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		TimeoutSettings:  exporterhelper.DefaultTimeoutSettings(),
