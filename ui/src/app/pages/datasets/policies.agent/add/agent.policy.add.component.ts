@@ -506,9 +506,11 @@ export class AgentPolicyAddComponent {
         },
         handlers: {
           modules: Object.entries(this.modules).reduce((acc, [key, value]) => {
-            const {type, config} = value;
+            const {type, config, filter} = value;
             acc[key] = {
               type: type,
+              config: config,
+              filter: filter,
             };
             if (Object.keys(config || {}).length > 0) acc[key][config] = config;
             return acc;

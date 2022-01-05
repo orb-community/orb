@@ -1,4 +1,3 @@
 test_config.ini
 reports/
-venv/
-ui_venv/
+behave_test/

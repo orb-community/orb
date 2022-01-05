@@ -1,8 +1,11 @@
 from hamcrest import *
 import requests
-from behave import given, when, then
-from utils import random_string, filter_list_by_parameter_start_with
+from behave import given, when, then, step
+from utils import random_string, filter_list_by_parameter_start_with, safe_load_json
+from local_agent import get_orb_agent_logs
 from test_config import TestConfig
+import time
+from datetime import datetime
 
 policy_name_prefix = "test_policy_name_"
 default_handler = "net"
@@ -14,6 +17,11 @@ base_orb_url = TestConfig.configs().get('base_orb_url')
 def create_new_policy(context):
     context.policy_name = policy_name_prefix + random_string(10)
     context.policy = create_policy(context.token, context.policy_name, handle_label, default_handler)
+    if 'policies_created' in context:
+        context.policies_created[context.policy['id']] = context.policy_name
+    else:
+        context.policies_created = dict()
+        context.policies_created[context.policy['id']] = context.policy_name
 
 
 @then("referred policy must be listened on the orb policies list")
@@ -40,6 +48,19 @@ def clean_policies(context):
 def new_policy(context):
     create_new_policy(context)
     check_policies(context)
+
+
+@step('the container logs that were output after all policies have been applied contain the message "{'
+      'text_to_match}" referred to each policy within {time_to_wait} seconds')
+def check_agent_logs_for_policies_considering_timestamp(context, text_to_match, time_to_wait):
+    check_agent_log_for_policies(text_to_match, time_to_wait, context.container_id, context.list_agent_policies_id,
+                                 context.dataset_applied_timestamp)
+
+
+@step('the container logs contain the message "{text_to_match}" referred to each policy within {'
+      'time_to_wait} seconds')
+def check_agent_logs_for_policies(context, text_to_match, time_to_wait):
+    check_agent_log_for_policies(text_to_match, time_to_wait, context.container_id, context.list_agent_policies_id)
 
 
 def create_policy(token, policy_name, handler_label, handler, description=None, tap="default_pcap",
@@ -137,3 +158,80 @@ def delete_policy(token, policy_id):
     assert_that(response.status_code, equal_to(204), 'Request to delete policy id='
                 + policy_id + ' failed with status=' + str(response.status_code))
 
+
+def check_logs_contain_message_for_policies(logs, expected_message, list_agent_policies_id, considered_timestamp):
+    """
+    Checks agent container logs for expected message for all applied policies and the log analysis loop is interrupted
+    as soon as a log is found with the expected message for each applied policy.
+
+    :param (list) logs: list of log lines
+    :param (str) expected_message: message that we expect to find in the logs
+    :param (list) list_agent_policies_id: list with all policy id applied to the agent
+    :param (float) considered_timestamp: timestamp from which the log will be considered
+    :returns: (set) set containing the ids of the policies for which the expected logs exist
+
+
+
+    """
+    policies_have_expected_message = set()
+    for log_line in logs:
+        log_line = safe_load_json(log_line)
+        if is_expected_log_line(log_line, expected_message, list_agent_policies_id, considered_timestamp) is True:
+            policies_have_expected_message.add(log_line['policy_id'])
+            if set(list_agent_policies_id) == set(policies_have_expected_message):
+                return policies_have_expected_message
+    return policies_have_expected_message
+
+
+def check_agent_log_for_policies(expected_message, time_to_wait, container_id, list_agent_policies_id,
+                                 considered_timestamp=datetime.now().timestamp()):
+    """
+    Checks agent container logs for expected message for each applied policy over a period of time
+
+    :param (str) expected_message: message that we expect to find in the logs
+    :param time_to_wait: seconds to wait for the log
+    :param (str) container_id: agent container id
+    :param (list) list_agent_policies_id: list with all policy id applied to the agent
+    :param (float) considered_timestamp: timestamp from which the log will be considered.
+                                                                Default: timestamp at which behave execution is started
+    """
+    time_waiting = 0
+    sleep_time = 0.5
+    timeout = int(time_to_wait)
+    policies_have_expected_message = set()
+    while time_waiting < timeout:
+        logs = get_orb_agent_logs(container_id)
+        policies_have_expected_message = \
+            check_logs_contain_message_for_policies(logs, expected_message, list_agent_policies_id, considered_timestamp)
+        if len(policies_have_expected_message) == len(list_agent_policies_id):
+            break
+        time.sleep(sleep_time)
+        time_waiting += sleep_time
+
+    assert_that(policies_have_expected_message, equal_to(set(list_agent_policies_id)),
+                f"Message '{expected_message}' for policy "
+                f"'{set(list_agent_policies_id).difference(policies_have_expected_message)}'"
+                f" was not found in the agent logs!")
+
+
+def is_expected_log_line(log_line, expected_message, list_agent_policies_id, considered_timestamp):
+    """
+    Test if log line is an expected one
+    - not be None
+    - have a 'msg' property that matches the expected_message string.
+    - have a 'ts' property whose value is greater than considered_timestamp
+    - have a property 'policy_id' that is also contained in the list_agent_policies_id list
+
+    :param (dict) log_line: agent container log line
+    :param (str) expected_message: message that we expect to find in the logs
+    :param (list) list_agent_policies_id: list with all policy id applied to the agent
+    :param (float) considered_timestamp: timestamp from which the log will be considered.
+    :return: (bool) whether expected message was found in the logs for expected policies
+
+    """
+    if log_line is not None:
+        if log_line['msg'] == expected_message and 'policy_id' in log_line.keys():
+            if log_line['policy_id'] in list_agent_policies_id:
+                if log_line['ts'] > considered_timestamp:
+                    return True
+    return False

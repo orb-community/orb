@@ -29,7 +29,7 @@
                      (click)="toggleIcon('command')"
                      pack="eva">
             </nb-icon>
-          </button><code>{{ command2show }}</code>
+          </button><code [innerHtml]="command2show">{{ command2show }}</code>
         </pre>
       </nb-card-body>
     </nb-card>

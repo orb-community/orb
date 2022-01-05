@@ -6,6 +6,7 @@ idna==3.3
 parse==1.19.0
 parse-type==0.5.2
 requests==2.26.0
+selenium==4.1.0
 six==1.16.0
 urllib3==1.26.7
 websocket-client==1.2.1
