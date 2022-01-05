@@ -59,11 +59,22 @@ def clean_agents(context):
 
 @step("this agent's heartbeat shows that all {amount_of_policies} policies have been successfully applied")
 def list_policies_applied_to_an_agent(context, amount_of_policies):
-    agent = get_agent(context.token, context.agent['id'])
-    context.list_agent_policies_id = list(agent['last_hb_data']['policy_state'].keys())
+    time_waiting = 0
+    sleep_time = 0.5
+    timeout = 10
+
+    while time_waiting < timeout:
+        agent = get_agent(context.token, context.agent['id'])
+        context.list_agent_policies_id = list(agent['last_hb_data']['policy_state'].keys())
+        if len(context.list_agent_policies_id) == int(amount_of_policies):
+            break
+        time.sleep(sleep_time)
+        time_waiting += sleep_time
+
     assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)), f'Amount of policies applied to '
                                                                                      f'this agent failed with '
-                                                                                     f'{amount_of_policies} policies')
+                                                                                     f'{context.list_agent_policies_id}'
+                                                                                        f'policies')
     assert_that(sorted(context.list_agent_policies_id), equal_to(sorted(context.policies_created.keys())))
 
 
