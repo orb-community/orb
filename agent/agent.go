@@ -93,6 +93,10 @@ func (a *orbAgent) Start() error {
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
 
+	if a.config.Debug {
+		mqtt.DEBUG = &agentLoggerDebug{a: a}
+	}
+
 	ccm, err := cloud_config.New(a.logger, a.config, a.db)
 	if err != nil {
 		return err
