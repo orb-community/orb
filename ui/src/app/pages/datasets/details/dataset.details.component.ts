@@ -58,7 +58,8 @@ export class DatasetDetailsComponent implements OnInit {
       .subscribe(result => {
         this.agentGroup = result.agentGroup;
         this.agentPolicy = result.agentPolicy;
-        this.sinks = result.sinks.data;
+        this.sinks = result.sinks.data
+          .filter(sink => this.dataset?.sink_ids.indexOf(sink.id) >= 0);
       });
   }
 
