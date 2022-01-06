@@ -93,7 +93,7 @@ func (a *orbAgent) Start() error {
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
 
-	if a.config.Debug {
+	if a.config.OrbAgent.Debug.Enable {
 		mqtt.DEBUG = &agentLoggerDebug{a: a}
 	}
 
