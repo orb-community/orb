@@ -15,7 +15,7 @@ import (
 
 const (
 	typeStr        = "otlp"
-	defaultEnpoint = "localhost:1234"
+	defaultEnpoint = "localhost:4317"
 )
 
 func NewFactory() component.ExporterFactory {
@@ -43,12 +43,18 @@ func CreateDefaultConfig() config.Exporter {
 		QueueSettings:    exporterhelper.DefaultQueueSettings(),
 		RetrySettings:    exporterhelper.DefaultRetrySettings(),
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
-			Endpoint:        defaultEnpoint,
-			Headers:         map[string]string{},
-			WriteBufferSize: 512 * 1024,
+			Endpoint:    defaultEnpoint,
+			Compression: "",
 			TLSSetting: configtls.TLSClientSetting{
 				Insecure: true,
 			},
+			Keepalive:       nil,
+			ReadBufferSize:  0,
+			WriteBufferSize: 512 * 1024,
+			WaitForReady:    false,
+			Headers:         map[string]string{},
+			BalancerName:    "",
+			Auth:            nil,
 		},
 	}
 }

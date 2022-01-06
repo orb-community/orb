@@ -47,7 +47,7 @@ func NewFactory() component.ReceiverFactory {
 		receiver)
 }
 
-// createDefaultCreateSettings
+// CreateDefaultCreateSetting creates the default setting for receiver.
 func CreateDefaultCreateSetting(logger *zap.Logger) component.ReceiverCreateSettings {
 	return component.ReceiverCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
@@ -59,7 +59,7 @@ func CreateDefaultCreateSetting(logger *zap.Logger) component.ReceiverCreateSett
 	}
 }
 
-// createDefaultConfig creates the default configuration for receiver.
+// CreateDefaultConfig creates the default configuration for receiver.
 func CreateDefaultConfig() config.Receiver {
 	return &Config{
 		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),

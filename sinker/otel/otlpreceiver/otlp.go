@@ -216,6 +216,7 @@ func (r *otlpReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 	if mc == nil {
 		return componenterror.ErrNilNextConsumer
 	}
+	//TODO here it's where we register our internal Receiver
 	r.metricsReceiver = metrics.New(r.cfg.ID(), mc, r.settings)
 	if r.httpMux != nil {
 		r.httpMux.HandleFunc("/v1/metrics", func(resp http.ResponseWriter, req *http.Request) {

@@ -16,7 +16,6 @@ package metrics // import "go.opentelemetry.io/collector/receiver/otlpreceiver/i
 
 import (
 	"context"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
@@ -49,6 +48,7 @@ func New(id config.ComponentID, nextConsumer consumer.Metrics, set component.Rec
 
 // Export implements the service Export metrics func.
 func (r *Receiver) Export(ctx context.Context, req otlpgrpc.MetricsRequest) (otlpgrpc.MetricsResponse, error) {
+// TODO implement here the logic to get the sink configuration based on Receiver authentication
 	md := req.Metrics()
 	dataPointCount := md.DataPointCount()
 	if dataPointCount == 0 {
