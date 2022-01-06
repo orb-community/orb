@@ -35,10 +35,6 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     protected router: Router,
   ) {
     super(authService, options, cd, router);
-    // this._ps('create', this._sid);
-    // this._ps.debug = true;
-    // this._ps('load', this._groupKey, this.groupOptions);
-
   }
 
   ngOnInit() { // In the ngOnInit() or in the constructor

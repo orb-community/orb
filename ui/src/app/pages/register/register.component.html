@@ -183,8 +183,12 @@
         </ng-container>
       </div>
 
-      <div id="pactsafe-container"></div>
-
+      <ps-click-wrap
+        accessId="{{_sid}}"
+        groupKey="{{_groupKey}}"
+        signerIdSelector="input-email">
+      </ps-click-wrap>
+      
       <button nbButton
               fullWidth
               status="primary"
