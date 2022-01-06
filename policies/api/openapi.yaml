@@ -483,13 +483,17 @@ components:
           type: string
           example: pktvisor
           description: Agent backend this policy is for. Cannot change once created.
+        schema_version:
+          type: string
+          example: '1.0'
+          description: Schema version which needs to match the schema defined by the backend which will use the policy.
         policy:
           type: object
           description: Agent backend specific policy data in json format
           example:
-              version: 1.0
-              visor:
-                foo: bar
+            version: 1.0
+            visor:
+              foo: bar
     PolicyCreateReqSchemaYaml:
       type: object
       required:
@@ -518,6 +522,10 @@ components:
           type: string
           example: pktvisor
           description: Agent backend this policy is for. Cannot change once created.
+        schema_version:
+          type: string
+          example: '1.0'
+          description: Schema version which needs to match the schema defined by the backend which will use the policy.
         policy_data:
           type: string
           description: Agent backend specific policy data in yaml format
