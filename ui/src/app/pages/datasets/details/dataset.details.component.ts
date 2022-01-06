@@ -1,6 +1,6 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
-import { ActivatedRoute, Data, Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
@@ -8,10 +8,9 @@ import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { combineLatest, forkJoin, Observable, of, Subscription, zip } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
-import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
-import { concatMapTo, filter, mergeMap, switchMap, tap } from 'rxjs/operators';
+import { switchMap, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'ngx-dataset-details-component',
