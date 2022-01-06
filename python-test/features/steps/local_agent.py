@@ -8,7 +8,7 @@ import subprocess
 import shlex
 
 configs = TestConfig.configs()
-bypass_ssl_certificate_check = configs.get('bypass_ssl_certificate_check')
+ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
 
 
 @when('the agent container is started')
@@ -23,7 +23,7 @@ def run_local_agent_container(context):
                 "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
                 "ORB_CLOUD_MQTT_KEY": context.agent['key'],
                 "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
-    if bypass_ssl_certificate_check:
+    if ignore_ssl_and_certificate_errors == 'true':
         env_vars["ORB_TLS_VERIFY"] = "false"
 
     context.container_id = run_agent_container(agent_image, env_vars)
@@ -50,7 +50,7 @@ def check_agent_log(context, text_to_match, time_to_wait):
 @when("the agent container is started using the command provided by the UI")
 def run_container_using_ui_command(context):
     context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
-                                                         bypass_ssl_certificate_check)
+                                                         ignore_ssl_and_certificate_errors)
     assert_that(context.container_id, is_not((none())))
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME)
 
@@ -101,14 +101,14 @@ def check_logs_contain_message(logs, expected_message):
     return False
 
 
-def run_local_agent_from_terminal(command, bypass_check_ssl_certificate):
+def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors):
     """
     :param (str) command: docker command to provision an agent
-    :param (bool) bypass_check_ssl_certificate: True if orb address doesn't have a valid certificate.
+    :param (bool) ignore_ssl_and_certificate_errors: True if orb address doesn't have a valid certificate.
     :return: agent container ID
     """
     args = shlex.split(command)
-    if bypass_check_ssl_certificate:
+    if ignore_ssl_and_certificate_errors == 'true':
         args.insert(-1, "-e")
         args.insert(-1, "ORB_TLS_VERIFY=false")
     terminal_running = subprocess.Popen(
