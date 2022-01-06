@@ -61,7 +61,8 @@ ns1labs/orb-agent`;
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \n
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \n
 -e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \n
--e PKTVISOR_PCAP_IFACE_DEFAULT=mock \n
+-e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>mock</mark> \n
+
 ns1labs/orb-agent`;
   }
 }

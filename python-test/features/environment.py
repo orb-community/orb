@@ -7,6 +7,7 @@ def before_scenario(context, scenario):
 
 
 def after_feature(context, feature):
+    cleanup_container()
     context.execute_steps('''
     Given the Orb user logs in
     Then cleanup agents

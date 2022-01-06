@@ -106,9 +106,15 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			return
 		}
 		be := backend.GetBackend(payload.Backend)
+		// Remove policy from pktvisor via http request
 		err := be.RemovePolicy(pd)
 		if err != nil {
 			a.logger.Warn("policy failed to remove", zap.String("policy_id", payload.ID), zap.Error(err))
+		}
+		// Remove policy from orb-agent local repo
+		err = a.repo.Remove(pd.ID)
+		if err != nil {
+			a.logger.Warn("policy failed to remove local", zap.String("policy_id", pd.ID), zap.Error(err))
 		}
 		break
 	default:
@@ -129,9 +135,15 @@ func (a *policyManager) RemovePolicyDataset(policyID string, datasetID string, b
 		return
 	}
 	if removePolicy {
+		// Remove policy from pktvisor via http request
 		err := be.RemovePolicy(policyData)
 		if err != nil {
 			a.logger.Warn("policy failed to remove", zap.String("policy_id", policyID), zap.Error(err))
+		}
+		// Remove policy from orb-agent local repo
+		err = a.repo.Remove(policyData.ID)
+		if err != nil {
+			a.logger.Warn("policy failed to remove local", zap.String("policy_id", policyData.ID), zap.Error(err))
 		}
 	}
 }
