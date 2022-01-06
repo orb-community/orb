@@ -2,7 +2,8 @@
 Feature: agent provider
    
     Scenario: Provision agent
-        Given the Orb user logs in
+        Given the Orb user has a registered account
+            And the Orb user logs in
         When a new agent is created
             And the agent container is started
         Then the agent status in Orb should be online
@@ -10,7 +11,8 @@ Feature: agent provider
 
 
     Scenario: Apply two policies to an agent
-        Given the Orb user logs in
+        Given the Orb user has a registered account
+            And the Orb user logs in
             And that an agent already exists and is online
             And referred agent is subscribed to a group
             And that a sink already exists
