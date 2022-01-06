@@ -51,6 +51,7 @@ func migrateDB(db *sqlx.DB) error {
 						orb_tags       JSONB NOT NULL DEFAULT '{}',
 
 						backend        TEXT NOT NULL,
+                        schema_version TEXT NOT NULL,
 						version        INTEGER NOT NULL DEFAULT 0,
 						policy		   JSONB NOT NULL DEFAULT '{}',
 

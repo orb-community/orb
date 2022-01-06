@@ -28,11 +28,12 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		policy := policies.Policy{
-			Name:        nID,
-			Backend:     req.Backend,
-			Policy:      req.Policy,
-			Description: req.Description,
-			OrbTags:     req.Tags,
+			Name:          nID,
+			Backend:       req.Backend,
+			SchemaVersion: req.SchemaVersion,
+			Policy:        req.Policy,
+			Description:   req.Description,
+			OrbTags:       req.Tags,
 		}
 
 		saved, err := svc.AddPolicy(ctx, req.token, policy, req.Format, req.PolicyData)
@@ -46,6 +47,7 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Description: saved.Description,
 			Tags:        saved.OrbTags,
 			Backend:     saved.Backend,
+			Schema:      saved.SchemaVersion,
 			Policy:      saved.Policy,
 			Version:     saved.Version,
 			created:     true,
@@ -73,6 +75,7 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Description: policy.Description,
 			Tags:        policy.OrbTags,
 			Backend:     policy.Backend,
+			Schema:      policy.SchemaVersion,
 			Policy:      policy.Policy,
 			Version:     policy.Version,
 		}
@@ -109,6 +112,7 @@ func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
 				Description: ag.Description,
 				Version:     ag.Version,
 				Backend:     ag.Backend,
+				Schema:      ag.SchemaVersion,
 			}
 			res.Policies = append(res.Policies, view)
 		}
