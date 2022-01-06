@@ -67,8 +67,8 @@ export class DatasetPoliciesService {
       );
   }
 
-  getDatasetById(id: string): any {
-    return this.http.get(`${ environment.datasetPoliciesUrl }/${ id }`)
+  getDatasetById(id: string): Observable<Dataset> {
+    return this.http.get<Dataset>(`${ environment.datasetPoliciesUrl }/${ id }`)
       .map(
         resp => {
           return resp;

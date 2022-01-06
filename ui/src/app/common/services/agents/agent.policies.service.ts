@@ -69,7 +69,7 @@ export class AgentPoliciesService {
       );
   }
 
-  getAgentPolicyById(id: string): any {
+  getAgentPolicyById(id: string): Observable<AgentPolicy> {
     return this.http.get(`${ environment.agentPoliciesUrl }/${ id }`)
       .map(
         resp => {
