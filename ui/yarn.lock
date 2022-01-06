@@ -1032,6 +1032,11 @@
     rxjs "6.5.3"
     webpack-sources "1.4.3"
 
+"@pactsafe/pactsafe-angular-sdk@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@pactsafe/pactsafe-angular-sdk/-/pactsafe-angular-sdk-2.0.0.tgz#b38bc3cbb7de9aabe14a0b611fea53713ae5c2c9"
+  integrity sha512-FjMF8YnUQoHCBEK2IVo4UAJtnjIK9IZB7/E02tsNq2T1wifkuTOub0sWAi15MpspkUwKwopdAkC4tzggViDd4A==
+
 "@schematics/angular@9.1.15":
   version "9.1.15"
   resolved "https://registry.yarnpkg.com/@schematics/angular/-/angular-9.1.15.tgz#6fddac20ab62cb5f9178b5fafd35175169f96cf1"
