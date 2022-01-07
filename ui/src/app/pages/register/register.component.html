@@ -16,7 +16,11 @@
     <div class="bg"></div>
     <div class="pane d-flex flex-column justify-content-center">
 
-    <form (ngSubmit)="register()" #form="ngForm" aria-labelledby="title">
+    <form (ngSubmit)="register()"
+          #form="ngForm"
+          aria-labelledby="title"
+          id="register-form"
+    >
       <h1 id="title" class="title">Create an account</h1>
 
       <nb-alert *ngIf="showMessages.error && errors?.length && !submitted" outline="danger" role="alert">
@@ -179,12 +183,12 @@
         </ng-container>
       </div>
 
-      <div class="form-control-group accept-group" *ngIf="getConfigValue('forms.register.terms')">
-        <nb-checkbox name="terms" [(ngModel)]="user.terms" [required]="getConfigValue('forms.register.terms')">
-          Agree to <a href="#" target="_blank"><strong>Terms & Conditions</strong></a>
-        </nb-checkbox>
-      </div>
-
+      <ps-click-wrap
+        accessId="{{_sid}}"
+        groupKey="{{_groupKey}}"
+        signerIdSelector="input-email">
+      </ps-click-wrap>
+      
       <button nbButton
               fullWidth
               status="primary"
@@ -226,4 +230,5 @@
   </div>
 </div>
 <nb-layout style="display: none"></nb-layout>
+  
 </div>

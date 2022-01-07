@@ -38,6 +38,8 @@ import { BreadcrumbModule } from 'xng-breadcrumb';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { ProfileComponent } from 'app/pages/profile/profile.component';
 import { GoogleAnalyticsService } from './common/services/analytics/google-service-analytics.service';
+// Pactsafe
+import { PSModule } from '@pactsafe/pactsafe-angular-sdk';
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   connectOnCreate: false,
@@ -83,6 +85,7 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     NbLayoutModule,
     NbAlertModule,
     NbCheckboxModule,
+    PSModule.forRoot(),
   ],
   bootstrap: [AppComponent],
   // Mfx dependencies
