@@ -12,7 +12,7 @@
   <nb-card-body *ngIf="!isLoading">
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Policy Name<span class="ns1red">*</span></p>
+        <p class="detail-title">Policy Name</p>
         <p>{{ agentPolicy.name }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
@@ -22,12 +22,25 @@
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Policy Backend<span class="ns1red">*</span></p>
+        <p class="detail-title">Policy Backend</p>
         <p>{{ agentPolicy.backend }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">Policy Version</p>
         <p>{{ agentPolicy.version || '-' }}</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Input Details</p>
+        <p>Input type: {{ agentPolicy.policy.input.input_type }}</p>
+        <p>Tap: {{ agentPolicy.policy.input.tap }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Handlers</p>
+        <p><span *ngFor="let module of agentPolicy.policy.handlers.modules | keyvalue; last as last">
+          {{ module.key }}{{ !last ? ', ': '' }}
+        </span></p>
       </div>
     </div>
   </nb-card-body>

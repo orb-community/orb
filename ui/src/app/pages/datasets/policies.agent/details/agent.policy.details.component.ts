@@ -10,7 +10,7 @@ import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.
   templateUrl: './agent.policy.details.component.html',
   styleUrls: ['./agent.policy.details.component.scss'],
 })
-export class AgentPolicyDetailsComponent implements OnInit, OnDestroy{
+export class AgentPolicyDetailsComponent implements OnInit, OnDestroy {
   @Input() agentPolicy: AgentPolicy = {};
 
   isLoading: boolean;
