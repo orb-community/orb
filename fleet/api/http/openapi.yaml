@@ -770,6 +770,10 @@ components:
             type: string
             description: Description of this backend
             example: pktvisor observability agent from pktvisor.dev
+          schema_version:
+            type: string
+            description: Backend version
+            example: '1.0'
     PktvisorTapsObjSchema:
       type: array
       items:
