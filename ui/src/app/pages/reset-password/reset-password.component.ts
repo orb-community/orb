@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { NbResetPasswordComponent, NB_AUTH_OPTIONS } from '@nebular/auth';
+import {NbResetPasswordComponent, NB_AUTH_OPTIONS, getDeepFromObject, NbAuthResult} from '@nebular/auth';
 
 import { NbAuthService } from '@nebular/auth';
 
@@ -27,5 +27,31 @@ export class ResetPasswordComponent extends NbResetPasswordComponent {
               protected router: Router) {
 
     super(service, options, cd, router);
+  }
+
+  resetPass(): void {
+    this.errors = this.messages = [];
+    this.submitted = true;
+
+    this.service.resetPassword(this.strategy, this.user).subscribe((result: NbAuthResult) => {
+      this.submitted = false;
+      if (result.isSuccess()) {
+        this.messages = result.getMessages();
+      } else {
+        this.errors = result.getErrors();
+      }
+
+      const redirect = result.getRedirect();
+      if (redirect) {
+        setTimeout(() => {
+          return this.router.navigateByUrl(redirect);
+        }, this.redirectDelay);
+      }
+      this.cd.detectChanges();
+    });
+  }
+
+  getConfigValue(key: string): any {
+    return getDeepFromObject(this.options, key, null);
   }
 }
