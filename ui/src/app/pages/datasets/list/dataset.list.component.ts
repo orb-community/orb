@@ -48,12 +48,6 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
       prop: 'name',
       selected: false,
     },
-    {
-      id: '1',
-      label: 'Tags',
-      prop: 'tags',
-      selected: false,
-    },
   ];
 
   @ViewChild('tableWrapper') tableWrapper;
