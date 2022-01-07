@@ -144,10 +144,10 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
 
   onOpenEdit(dataset: any) {
     this.router.navigate(
-      [`edit/${dataset.id}`],
+      [`edit/${ dataset.id }`],
       {
         relativeTo: this.route.parent,
-        state: {dataset: dataset, edit: true},
+        state: { dataset: dataset, edit: true },
       },
     );
   }
@@ -157,9 +157,9 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
   }
 
   openDeleteModal(row: any) {
-    const {id} = row;
+    const { id } = row;
     this.dialogService.open(DatasetDeleteComponent, {
-      context: {name: row.name},
+      context: { name: row.name },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
@@ -176,7 +176,7 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
 
   openDetailsModal(row: any) {
     this.dialogService.open(DatasetDetailsComponent, {
-      context: {dataset: row},
+      context: { dataset: row },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe((resp) => {
