@@ -9,7 +9,7 @@
       <span class="nb-close"></span>
     </button>
   </nb-card-header>
-  <nb-card-body>
+  <nb-card-body *ngIf="!isLoading">
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">Policy Name<span class="ns1red">*</span></p>
