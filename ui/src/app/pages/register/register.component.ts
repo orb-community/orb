@@ -1,3 +1,5 @@
+declare var _ps: any;
+
 import { Component, ChangeDetectorRef, Inject, OnInit } from '@angular/core';
 
 import { NbAuthService, NB_AUTH_OPTIONS, NbRegisterComponent } from '@nebular/auth';
@@ -16,7 +18,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   /**
    * Pactsafe
    */
-  _ps = window['_ps'];
+
   _sid = environment.PS.SID;
   _groupKey = environment.PS.GROUP_KEY;
 
@@ -38,6 +40,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   }
 
   ngOnInit() { // In the ngOnInit() or in the constructor
+    _ps = window['_ps'];
     const el = document.getElementById('nb-global-spinner');
     if (el) {
       el.style['display'] = 'none';
@@ -58,11 +61,11 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   // Return whether to block the submission or not.
   blockSubmission() {
     // Check to ensure we're able to get the Group successfully.
-    if (this._ps.getByKey(this._groupKey)) {
+    if (_ps.getByKey(this._groupKey)) {
 
       // Return if we should block the submission using the .block() method
       // provided by the Group object.
-      return this._ps.getByKey(this._groupKey).block();
+      return _ps.getByKey(this._groupKey).block();
     } else {
       // We weren't able to get the group,
       // so blocking form submission may be needed.
@@ -117,8 +120,8 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
       // We can get the alert message if set on the group
       // or define our own if it's not.
       const acceptanceAlertLanguage =
-        (this._ps.getByKey(this._groupKey) && this._ps.getByKey(this._groupKey).get('alert_message')) ?
-          this._ps.getByKey(this._groupKey).get('alert_message') :
+        (_ps.getByKey(this._groupKey) && _ps.getByKey(this._groupKey).get('alert_message')) ?
+          _ps.getByKey(this._groupKey).get('alert_message') :
           'Please accept our Terms and Conditions.';
 
       // Alert the user that the Terms need to be accepted before continuing.
