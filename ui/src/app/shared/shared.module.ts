@@ -26,6 +26,7 @@ import { TaglistChipPipe } from 'app/shared/pipes/taglist-chip.pipe';
 import { TagColorPipe } from 'app/shared/pipes/tag-color.pipe';
 import { TagChipPipe } from 'app/shared/pipes/tag-chip.pipe';
 import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.directive';
+import { AdvancedOptionsPipe } from 'app/shared/pipes/advanced-options.pipe';
 
 @NgModule({
   imports: [
@@ -50,6 +51,7 @@ import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.di
     ToMillisecsPipe,
     TableComponent,
     PaginationComponent,
+    AdvancedOptionsPipe,
     TagColorPipe,
     TagChipPipe,
     TaglistChipPipe,
@@ -65,6 +67,7 @@ import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.di
     MessageMonitorComponent,
     TableComponent,
     PaginationComponent,
+    AdvancedOptionsPipe,
     TagColorPipe,
     TagChipPipe,
     TaglistChipPipe,
@@ -73,6 +76,7 @@ import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.di
   providers: [
     MessageValuePipe,
     ToMillisecsPipe,
+    AdvancedOptionsPipe,
     TagColorPipe,
     TagChipPipe,
     TaglistChipPipe,
