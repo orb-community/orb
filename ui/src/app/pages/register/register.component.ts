@@ -15,20 +15,15 @@ import { environment } from '../../../environments/environment';
 export class RegisterComponent extends NbRegisterComponent implements OnInit {
   strings = STRINGS.login;
 
+
+  _isProduction = environment.production;
   /**
    * Pactsafe
    */
-
   _sid = environment.PS.SID;
   _groupKey = environment.PS.GROUP_KEY;
 
   showPassword = false;
-  groupOptions = {
-    container_selector: 'pactsafe-container',
-    display_all: true,
-    signer_id_selector: 'input-email',
-    test_mode: true,
-  };
 
   constructor(
     @Inject(NB_AUTH_OPTIONS) protected options: {},
