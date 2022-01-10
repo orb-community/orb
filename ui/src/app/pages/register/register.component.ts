@@ -2,7 +2,9 @@ declare var _ps;
 
 import { Component, ChangeDetectorRef, Inject, OnInit } from '@angular/core';
 
-import { NbAuthService, NB_AUTH_OPTIONS, NbRegisterComponent } from '@nebular/auth';
+import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
+
+import { NB_AUTH_OPTIONS, NbAuthService, NbRegisterComponent } from '@nebular/auth';
 import { Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { environment } from '../../../environments/environment';
@@ -16,10 +18,14 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   strings = STRINGS.login;
 
   _isProduction = environment.production;
+
   /**
    * Pactsafe
    */
+  _psEnabled = !!environment.PS;
+
   _sid = environment.PS.SID;
+
   _groupKey = environment.PS.GROUP_KEY;
 
   showPassword = false;
@@ -54,6 +60,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
 
   // Return whether to block the submission or not.
   blockSubmission() {
+    if (!(this._isProduction && this._psEnabled)) return false;
     // Check to ensure we're able to get the Group successfully.
     if (_ps.getByKey(this._groupKey)) {
 
@@ -77,7 +84,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     if (!this.blockSubmission()) {
       // We don't need to block the form submission,
       // so submit the form.
-      const {email, password, company} = this.user;
+      const { email, password, company } = this.user;
       this.authService.register(this.strategy, {
         email,
         password,
