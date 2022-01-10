@@ -1,0 +1,20 @@
+<div class="row">
+  <div  *ngIf="page.total > 0" class="col-1">
+    <nb-select size="tiny" [(selected)]="page.limit" (selectedChange)="onChangeLimit($event)">
+      <nb-option *ngFor="let lim of limits" [value]="lim"> {{ lim }} </nb-option>
+    </nb-select>
+  </div>
+  <div *ngIf="totalPages > 1" class="col-10" style="text-align: center;">
+    <button (click)="onChangePage('prev')" nbButton size="tiny" class="page-button">
+      <<
+    </button>
+    <button (click)="onChangePage('current')" nbButton size="tiny" class="page-button">
+      {{ currentPage }}
+    </button>
+    <button (click)="onChangePage('next')" nbButton size="tiny" class="page-button">
+      >>
+    </button>
+  </div>
+  <div class="col-1">
+  </div>
+</div>

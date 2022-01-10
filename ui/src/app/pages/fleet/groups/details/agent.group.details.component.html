@@ -1,0 +1,47 @@
+<nb-card size="large" class="nb-card-medium">
+  <nb-card-header>
+    {{strings.details.header}}
+
+
+    <button nbButton ghost="true" size="small" class="orb-close-dialog"
+            (click)="onClose()"><span class="nb-close"></span>
+    </button>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.name}}<span class="ns1red">*</span></p>
+        <p>{{ agentGroup.name }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.description}}</p>
+        <p>{{ agentGroup.description }}</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.matches}}</p>
+        <p>{{ agentGroup.matching_agents.total }} {{strings.match.agents}}</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.tags}}<span class="ns1red">*</span></p>
+        <div>
+          <mat-chip-list>
+            <mat-chip
+                class="orb-tag-sink "
+                *ngFor="let tag of agentGroup.tags | keyvalue"
+                [style.background-color]="tag | tagcolor">
+                {{tag | tagchip}}
+            </mat-chip>
+          </mat-chip-list>
+        </div>
+      </div>
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(agentGroup)">Edit</button>
+  </nb-card-footer>
+</nb-card>

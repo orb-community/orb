@@ -1,0 +1,111 @@
+{
+  "/password/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/users": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/members/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/groups/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/version": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/things/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/connect": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/channels/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/http/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false,
+    "pathRewrite": {
+      "^/http": ""
+    }
+  },
+  "/reader/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false,
+    "pathRewrite": {
+      "^/reader": ""
+    }
+  },
+  "/bootstrap/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false,
+    "pathRewrite": {
+      "^/bootstrap": ""
+    }
+  },
+  "/browse": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/twins/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/states/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/tokens/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/features/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/sinks/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/agents/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/agent_groups/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/policies/agent/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/policies/dataset/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/agents/backends/*": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/agents/backends/taps": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/agents/backends/handlers": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  },
+  "/agents/backends/inputs": {
+    "target": "http://localhost:80/api/v1",
+    "secure": false
+  }
+}

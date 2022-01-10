@@ -1,0 +1,34 @@
+<div>
+  <header>
+    <xng-breadcrumb class="orb-breadcrumb">
+    </xng-breadcrumb>
+    <h4>{{title}}</h4>
+  </header>
+  <h6>{{ message }}</h6>
+  <div class="d-flex flex-row justify-content-between">
+    <nb-card class="col-12 col-md-6 mr-md-4">
+      <nb-card-body [innerHTML]="agent">
+      </nb-card-body>
+    </nb-card>
+    <nb-card class="col-12 col-md-6 mr-md-4">
+      <nb-card-body [innerHTML]="agent_groups">
+      </nb-card-body>
+    </nb-card>
+  </div>
+  <div class="d-flex flex-row justify-content-between">
+    <nb-card class="col-12 col-md-6 mr-md-4">
+      <nb-card-body  [innerHTML]="sink">
+      </nb-card-body>
+    </nb-card>
+    <nb-card class="col-12 col-md-6 mr-md-4">
+      <nb-card-body [innerHTML]="policy">
+      </nb-card-body>
+    </nb-card>
+  </div>
+  <div class="d-flex flex-row justify-content-between">
+    <nb-card class="col-12 col-md-6 mr-md-4">
+      <nb-card-body [innerHTML]="dataset">
+      </nb-card-body>
+    </nb-card>
+  </div>
+</div>

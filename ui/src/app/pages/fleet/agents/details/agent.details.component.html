@@ -1,0 +1,57 @@
+<nb-card size="large" class="nb-card-medium">
+  <nb-card-header>
+    {{strings.details.header}}
+    <button nbButton
+            ghost="true"
+            size="small"
+            class="orb-close-dialog"
+            (click)="onClose()">
+      <span class="nb-close"></span>
+    </button>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.name}}<span class="ns1red">*</span></p>
+        <p>{{ agent.name }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Channel ID</p>
+        <p>{{ agent?.channel_id }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Created on</p>
+        <p>{{ agent?.ts_created | date }}</p>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Status</p>
+        <p>{{ agent?.state }}</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Tags</p>
+        <div>
+          <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
+            <mat-chip
+                class="orb-tag-sink "
+                *ngFor="let tag of agent.agent_tags | keyvalue | tagchiplist"
+                [style.background-color]="tag | tagcolor">
+                {{tag}}
+            </mat-chip>
+            <mat-chip
+                class="orb-tag-sink "
+                *ngFor="let tag of agent.orb_tags | keyvalue | tagchiplist"
+                [style.background-color]="tag | tagcolor">
+                {{tag}}
+            </mat-chip>
+          </mat-chip-list>
+        </div>
+      </div>
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(agent)">Edit</button>
+  </nb-card-footer>
+</nb-card>

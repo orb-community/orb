@@ -1,0 +1,226 @@
+<div>
+  <header data-orb-qa-id="agent#add">
+    <xng-breadcrumb class="orb-breadcrumb"
+                    data-orb-qa-id="breadcrumb">
+    </xng-breadcrumb>
+    <h4>{{isEdit ? 'Edit Agent' : 'New Agent'}}</h4>
+  </header>
+  <div class="d-flex row">
+    <div class="d-flex col-12 mt-5"
+         *ngIf="!isLoading">
+      <nb-stepper class="stepper w-100 ml-5"
+                  disableStepNavigation
+                  orientation="vertical">
+        <nb-step [label]="firstStepTemplate"
+                 [stepControl]="firstFormGroup"
+                 data-orb-qa-id="step_1">
+          <ng-template #firstStepTemplate>
+            <div class="step-label d-flex flex-column">
+              <strong>{{strings.add.step.title1}}</strong>
+              <p>{{strings.add.step.desc1}}</p>
+            </div>
+          </ng-template>
+          <form (ngSubmit)="onFormSubmit()"
+                [formGroup]="firstFormGroup">
+            <nb-form-field>
+              <div class="d-flex flex-column">
+                <div>
+                  <label class="font-weight-bold">{{strings.propNames.name}}</label>
+                  <span class="required">*</span>
+                </div>
+                <input autofocus
+                       data-orb-qa-id="input#name"
+                       fieldSize="medium"
+                       formControlName="name"
+                       fullWidth="true"
+                       nbInput/>
+              </div>
+            </nb-form-field>
+            <hr/>
+            <div class="d-flex justify-content-end">
+              <button
+                (click)="goBack()"
+                data-orb-qa-id="button#previous"
+                ghost
+                nbButton
+                status="primary"
+                type="button">
+                {{strings.stepper.back}}
+              </button>
+              <button [disabled]="!firstFormGroup.valid"
+                      class="next-button"
+                      data-orb-qa-id="button#next"
+                      nbButton
+                      nbStepperNext
+                      shape="round"
+                      status="primary"
+                      type="submit">
+                {{strings.stepper.next}}
+              </button>
+            </div>
+          </form>
+        </nb-step>
+        <nb-step [label]="secondStepLabel"
+                 data-orb-qa-id="step_2">
+          <ng-template #secondStepLabel>
+            <div class="step-label d-flex flex-column">
+              <strong>{{strings.add.step.title2}}</strong>
+              <p>{{strings.add.step.desc2}}</p>
+            </div>
+          </ng-template>
+          <form [formGroup]="secondFormGroup">
+            <div class="d-flex">
+              <mat-chip-list data-orb-qa-id="orb_tagsList">
+                <mat-chip
+                  *ngFor="let tag of selectedTags | keyvalue; index as i;"
+                  [attr.data-orb-qa-id]="'orb_tag_' + i"
+                  [style.background-color]="tag | tagcolor"
+                  class="orb-tag-sink ">
+                  {{tag | tagchip}}
+                  <nb-icon (click)="onRemoveTag(tag.key)"
+                           class="ml-1"
+                           icon="close-outline"
+                           size="12"></nb-icon>
+                </mat-chip>
+                <mat-chip
+                  *ngIf="(selectedTags | json) === '{}'"
+                  [style.background-color]="'notaggit ' | tagcolor"
+                  class="orb-tag-sink ">
+                  No tag added
+                </mat-chip>
+              </mat-chip-list>
+            </div>
+            <hr/>
+            <nb-form-field>
+              <div class="container d-flex row px-0 mx-0">
+                <div class="d-flex flex-column col-5 px-0 mx-0">
+                  <div>
+                    <label class="font-weight-bold">{{strings.propNames.key}}</label>
+                  </div>
+                  <div>
+                    <input autofocus
+                           data-orb-qa-id="input#orb_tag_key"
+                           fieldSize="medium"
+                           formControlName="key"
+                           fullWidth="true"
+                           nbInput/>
+                  </div>
+                </div>
+                <div class="d-flex justify-content-center align-items-center col-1 mt-4 px-0 mx-0">
+                  <nb-icon icon="plus-outline" size="14" style="color: #df316f;"></nb-icon>
+                </div>
+                <div class="d-flex flex-column col-5 px-0 mx-0">
+                  <div>
+                    <label class="font-weight-bold">{{strings.propNames.value}}</label>
+                  </div>
+                  <div>
+                    <input autofocus
+                           data-orb-qa-id="input#orb_tag_value"
+                           fieldSize="medium"
+                           formControlName="value"
+                           fullWidth="true"
+                           nbInput/>
+                  </div>
+                </div>
+                <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
+                     style="transform: translateY(14px);">
+                  <button (click)="onAddTag()"
+                          [disabled]="(secondFormGroup.controls['key'].value === '' ||
+                          secondFormGroup.controls['value'].value === '')"
+                          data-orb-qa-id="button#addTag"
+                          ghost
+                          nbButton>
+                    <nb-icon icon="plus-outline"
+                             size="14"
+                             status="primary"
+                             style="color: #df316f;">
+                    </nb-icon>
+                  </button>
+                </div>
+              </div>
+            </nb-form-field>
+            <hr/>
+            <div *ngIf="secondFormGroup"
+                 class="d-flex justify-content-end">
+              <button
+                data-orb-qa-id="button#back"
+                ghost
+                nbButton
+                nbStepperPrevious
+                status="primary">
+                {{strings.stepper.back}}
+              </button>
+              <button class="next-button"
+                      data-orb-qa-id="button#next"
+                      nbButton
+                      nbStepperNext
+                      shape="round"
+                      status="primary"
+                      type="submit">
+                {{strings.stepper.next}}
+              </button>
+            </div>
+          </form>
+        </nb-step>
+        <nb-step [label]="thirdStepLabel"
+                 data-orb-qa-id="step_3">
+          <ng-template #thirdStepLabel>
+            <div class="step-label d-flex flex-column">
+              <strong>{{strings.add.step.title3}}</strong>
+            </div>
+          </ng-template>
+          <div class="d-flex row">
+            <div class="col-12">
+              <div>
+                <label class="font-weight-bold">{{strings.propNames.name}}</label>
+                <p data-orb-qa-id="review-name">{{firstFormGroup.controls.name.value}}</p>
+              </div>
+            </div>
+          </div>
+          <hr/>
+          <div class="d-flex row">
+            <div class="col-12">
+              <label class="font-weight-bold">Orb Tags</label>
+              <mat-chip-list data-orb-qa-id="review-orb_tagsList">
+                <mat-chip
+                  *ngFor="let tag of selectedTags | keyvalue; index as i;"
+                  [attr.data-orb-qa-id]="'review-tag_' + i"
+                  [style.background-color]="tag | tagcolor"
+                  class="orb-tag-sink ">
+                  {{tag | tagchip}}
+                </mat-chip>
+                <mat-chip
+                  *ngIf="(selectedTags | json) === '{}'"
+                  [style.background-color]="'notaggit ' | tagcolor"
+                  class="orb-tag-sink ">
+                  No tag added
+                </mat-chip>
+              </mat-chip-list>
+            </div>
+          </div>
+          <hr/>
+          <div *ngIf="secondFormGroup"
+               class="d-flex justify-content-end">
+            <button
+              data-orb-qa-id="button#back"
+              ghost
+              nbButton
+              nbStepperPrevious
+              status="primary">
+              {{strings.stepper.back}}
+            </button>
+            <button (click)="onFormSubmit()"
+                    class="next-button"
+                    data-orb-qa-id="button#save"
+                    nbButton
+                    shape="round"
+                    status="primary"
+                    type="submit">
+              {{strings.stepper.save}}
+            </button>
+          </div>
+        </nb-step>
+      </nb-stepper>
+    </div>
+  </div>
+</div>
