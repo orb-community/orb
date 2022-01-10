@@ -57,7 +57,7 @@ def clean_agents(context):
     delete_agents(token, agents_filtered_list)
 
 
-@step("this agent's heartbeat shows that all {amount_of_policies} policies have been successfully applied")
+@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied")
 def list_policies_applied_to_an_agent(context, amount_of_policies):
     time_waiting = 0
     sleep_time = 0.5

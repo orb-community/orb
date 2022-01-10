@@ -12,7 +12,7 @@ base_orb_url = TestConfig.configs().get('base_orb_url')
 
 @when("a new dataset is created using referred group, sink and policy ID")
 def create_new_dataset(context):
-    context.dataset_applied_timestamp = datetime.now().timestamp()
+    context.considered_timestamp = datetime.now().timestamp()
     token = context.token
     agent_groups_id = context.agent_group_data['id']
     sink_id = context.sink['id']
