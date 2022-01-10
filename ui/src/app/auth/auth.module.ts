@@ -45,6 +45,7 @@ import { PSModule } from '@pactsafe/pactsafe-angular-sdk';
 
 @NgModule({
   imports: [
+    PSModule.forRoot(),
     CommonModule,
     NbLayoutModule,
     NbCheckboxModule,
@@ -55,7 +56,6 @@ import { PSModule } from '@pactsafe/pactsafe-angular-sdk';
     FormsModule,
     NbIconModule,
     NbAuthModule,
-    PSModule,
   ],
   declarations: [
     AuthComponent,

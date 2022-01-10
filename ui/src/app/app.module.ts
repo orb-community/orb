@@ -52,13 +52,14 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     ProfileComponent,
   ],
   imports: [
+    PSModule.forRoot(),
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
+
     AppRoutingModule,
 
     ThemeModule.forRoot(),
-
     NbSidebarModule.forRoot(),
     NbMenuModule.forRoot(),
     NbDatepickerModule.forRoot(),
@@ -68,12 +69,12 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     NbChatModule.forRoot({
       messageGoogleMapKey: 'AIzaSyA_wNuCzia92MAmdLRzmqitRGvCF7wCZPY',
     }),
-    CoreModule.forRoot(),
     // Mfx dependencies
+    CoreModule.forRoot(),
     MqttModule.forRoot(MQTT_SERVICE_OPTIONS),
-    FormsModule,
 
     // 3rd party
+    FormsModule,
     NbInputModule,
     NbCardModule,
     NbIconModule,
@@ -85,7 +86,6 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     NbLayoutModule,
     NbAlertModule,
     NbCheckboxModule,
-    PSModule.forRoot(),
   ],
   bootstrap: [AppComponent],
   // Mfx dependencies
