@@ -1,7 +1,5 @@
 declare var _ps;
 
-import { Component, ChangeDetectorRef, Inject, OnInit } from '@angular/core';
-
 import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 
 import { NB_AUTH_OPTIONS, NbAuthService, NbRegisterComponent } from '@nebular/auth';
