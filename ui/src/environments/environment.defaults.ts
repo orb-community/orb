@@ -55,17 +55,26 @@ export const environment = {
   channelsUrl: '/channels',
   bootstrapConfigsUrl: '/bootstrap/things/configs',
   bootstrapUrl: '/bootstrap/things/bootstrap',
-  connectUrl: '/connect',
-  browseUrl: '/browse',
-  loginUrl: '/tokens',
-  httpAdapterUrl: '/http',
-  readerUrl: '/reader',
-  readerPrefix: 'channels',
-  readerSuffix: 'messages',
+    connectUrl: '/connect',
+    browseUrl: '/browse',
+    loginUrl: '/tokens',
+    httpAdapterUrl: '/http',
+    readerUrl: '/reader',
+    readerPrefix: 'channels',
+    readerSuffix: 'messages',
 
-  mqttWsUrl: window['env']['mqttWsUrl'] || 'ws://localhost/mqtt',
-  exportConfigFile: '/configs/export/config.toml',
-  // expose ORB routes and api versioning
-  orbApi: {urlKeys: Object.keys(ORB.servicesUrls), ...ORB.orbApi, servicesUrls: ORB.servicesUrls},
-  ...ORB.servicesUrls,
+    mqttWsUrl: window['env']['mqttWsUrl'] || 'ws://localhost/mqtt',
+    exportConfigFile: '/configs/export/config.toml',
+
+    // PACTSAFE
+    PS: {
+        // site id
+        SID: '',
+        // group key
+        GROUP_KEY: '',
+    },
+
+    // expose ORB routes and api versioning
+    orbApi: {urlKeys: Object.keys(ORB.servicesUrls), ...ORB.orbApi, servicesUrls: ORB.servicesUrls},
+    ...ORB.servicesUrls,
 };

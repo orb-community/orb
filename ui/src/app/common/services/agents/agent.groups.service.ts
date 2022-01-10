@@ -1,12 +1,12 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Observable, of} from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from 'environments/environment';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
+import {environment} from 'environments/environment';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
+import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -15,7 +15,7 @@ const defDir = 'desc';
 
 @Injectable()
 export class AgentGroupsService {
-  paginationCache: any = {};
+    paginationCache: any = {};
 
   cache: OrbPagination<AgentGroup>;
 
@@ -85,17 +85,17 @@ export class AgentGroupsService {
       );
   }
 
-  getAgentGroupById(id: string): any {
-    return this.http.get(`${ environment.agentGroupsUrl }/${ id }`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to fetch Agent Group',
-            `Error: ${ err.status } - ${ err.statusText }`);
+    getAgentGroupById(id: string): Observable<AgentGroup> {
+        return this.http.get(`${environment.agentGroupsUrl}/${id}`)
+            .map(
+                resp => {
+                    return resp;
+                },
+            )
+            .catch(
+                err => {
+                    this.notificationsService.error('Failed to fetch Agent Group',
+                        `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );

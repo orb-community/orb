@@ -1,12 +1,12 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Observable, of} from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from 'environments/environment';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import {environment} from 'environments/environment';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
+import {AgentPolicy} from 'app/common/interfaces/orb/agent.policy.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -15,7 +15,7 @@ const defDir = 'desc';
 
 @Injectable()
 export class AgentPoliciesService {
-  paginationCache: any = {};
+    paginationCache: any = {};
 
   cache: OrbPagination<AgentPolicy>;
 
@@ -69,17 +69,17 @@ export class AgentPoliciesService {
       );
   }
 
-  getAgentPolicyById(id: string): any {
-    return this.http.get(`${ environment.agentPoliciesUrl }/${ id }`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to fetch Agent Policy',
-            `Error: ${ err.status } - ${ err.statusText }`);
+    getAgentPolicyById(id: string): Observable<AgentPolicy> {
+        return this.http.get(`${environment.agentPoliciesUrl}/${id}`)
+            .map(
+                resp => {
+                    return resp;
+                },
+            )
+            .catch(
+                err => {
+                    this.notificationsService.error('Failed to fetch Agent Policy',
+                        `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );

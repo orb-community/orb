@@ -8,17 +8,17 @@ import {
   ViewChild,
 } from '@angular/core';
 
-import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
-import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { Debounce } from 'app/shared/decorators/utils';
-import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
-import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
-import { NbDialogService } from '@nebular/theme';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.details.component';
+import {DropdownFilterItem} from 'app/common/interfaces/mainflux.interface';
+import {ColumnMode, DatatableComponent, TableColumn} from '@swimlane/ngx-datatable';
+import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
+import {Debounce} from 'app/shared/decorators/utils';
+import {Dataset} from 'app/common/interfaces/orb/dataset.policy.interface';
+import {DatasetPoliciesService} from 'app/common/services/dataset/dataset.policies.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {DatasetDeleteComponent} from 'app/pages/datasets/delete/dataset.delete.component';
+import {NbDialogService} from '@nebular/theme';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import {DatasetDetailsComponent} from 'app/pages/datasets/details/dataset.details.component';
 
 @Component({
   selector: 'ngx-dataset-list-component',
@@ -46,12 +46,6 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
       id: '0',
       label: 'Name',
       prop: 'name',
-      selected: false,
-    },
-    {
-      id: '1',
-      label: 'Tags',
-      prop: 'tags',
       selected: false,
     },
   ];
@@ -144,11 +138,11 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
 
   onOpenEdit(dataset: any) {
     this.router.navigate(
-      [`edit/${dataset.id}`],
-      {
-        relativeTo: this.route.parent,
-        state: {dataset: dataset, edit: true},
-      },
+        [`edit/${dataset.id}`],
+        {
+          relativeTo: this.route.parent,
+          state: {dataset: dataset, edit: true},
+        },
     );
   }
 

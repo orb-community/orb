@@ -1,12 +1,12 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Observable, of} from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from 'environments/environment';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import {environment} from 'environments/environment';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
+import {Dataset} from 'app/common/interfaces/orb/dataset.policy.interface';
 
 // default filters
 const defLimit: number = 20;
@@ -15,7 +15,7 @@ const defDir = 'desc';
 
 @Injectable()
 export class DatasetPoliciesService {
-  paginationCache: any = {};
+    paginationCache: any = {};
 
   cache: OrbPagination<Dataset>;
 
@@ -58,27 +58,27 @@ export class DatasetPoliciesService {
           return resp;
         },
       )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to create Dataset Policy',
-            `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
-          return Observable.throwError(err);
-        },
-      );
+        .catch(
+            err => {
+                this.notificationsService.error('Failed to create Dataset Policy',
+                    `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
+                return Observable.throwError(err);
+            },
+        );
   }
 
-  getDatasetById(id: string): any {
-    return this.http.get(`${ environment.datasetPoliciesUrl }/${ id }`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to fetch Dataset Policy',
-            `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
+    getDatasetById(id: string): Observable<Dataset> {
+        return this.http.get<Dataset>(`${environment.datasetPoliciesUrl}/${id}`)
+            .map(
+                resp => {
+                    return resp;
+                },
+            )
+            .catch(
+                err => {
+                    this.notificationsService.error('Failed to fetch Dataset Policy',
+                        `Error: ${err.status} - ${err.statusText}`);
+                    return Observable.throwError(err);
         },
       );
   }
