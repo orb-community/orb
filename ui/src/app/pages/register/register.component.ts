@@ -1,4 +1,4 @@
-declare var _ps: any;
+declare var _ps;
 
 import { Component, ChangeDetectorRef, Inject, OnInit } from '@angular/core';
 
@@ -14,7 +14,6 @@ import { environment } from '../../../environments/environment';
 })
 export class RegisterComponent extends NbRegisterComponent implements OnInit {
   strings = STRINGS.login;
-
 
   _isProduction = environment.production;
   /**
