@@ -24,6 +24,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 		a.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 	})
 	opts.SetPingTimeout(1 * time.Second)
+	opts.SetAutoReconnect(true)
 
 	if !a.config.OrbAgent.TLS.Verify {
 		opts.TLSConfig = &tls.Config{InsecureSkipVerify: true}
