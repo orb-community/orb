@@ -57,7 +57,7 @@ def clean_agents(context):
     delete_agents(token, agents_filtered_list)
 
 
-@step("this agent's heartbeat shows that all {amount_of_policies} policies have been successfully applied")
+@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied")
 def list_policies_applied_to_an_agent(context, amount_of_policies):
     time_waiting = 0
     sleep_time = 0.5
@@ -71,10 +71,8 @@ def list_policies_applied_to_an_agent(context, amount_of_policies):
         time.sleep(sleep_time)
         time_waiting += sleep_time
 
-    assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)), f'Amount of policies applied to '
-                                                                                     f'this agent failed with '
-                                                                                     f'{context.list_agent_policies_id}'
-                                                                                        f'policies')
+    assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)),
+                f"Amount of policies applied to this agent failed with {context.list_agent_policies_id} policies")
     assert_that(sorted(context.list_agent_policies_id), equal_to(sorted(context.policies_created.keys())))
 
 
@@ -195,7 +193,7 @@ def generate_agent_name_and_tag(name_agent_prefix, agent_tag_key_prefix, agent_t
     :param (str) agent_tag_value_prefix: prefix to identify tag_value created by tests
     :return: random name, tag_key and tag_value for agent
     """
-    agent_name = agent_name_prefix + random_string(10)
-    agent_tag_key = tag_key_prefix + random_string(4)
-    agent_tag_value = tag_value_prefix + random_string(4)
+    agent_name = name_agent_prefix + random_string(10)
+    agent_tag_key = agent_tag_key_prefix + random_string(4)
+    agent_tag_value = agent_tag_value_prefix + random_string(4)
     return agent_name, agent_tag_key, agent_tag_value

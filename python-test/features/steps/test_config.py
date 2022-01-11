@@ -54,5 +54,4 @@ def _read_configs():
     assert_that(is_credentials_registered, any_of(equal_to('true'), equal_to('false')),
                 'Invalid value to is_credentials_registered parameter. A boolean value is expected.')
     configs['is_credentials_registered'] = is_credentials_registered
-
     return configs
