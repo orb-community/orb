@@ -1,4 +1,4 @@
-from behave import given, when, then
+from behave import given, when, then, step
 from utils import random_string, filter_list_by_parameter_start_with
 from hamcrest import *
 import requests
@@ -19,6 +19,23 @@ def create_new_dataset(context):
     policy_id = context.policy['id']
     dataset_name = dataset_name_prefix + random_string(10)
     context.dataset = create_dataset(token, dataset_name, policy_id, agent_groups_id, sink_id)
+
+
+@step('datasets related to removed policy has validity invalid')
+def check_dataset_status_invalid(context):
+    for dataset_id in context.id_of_datasets_related_to_removed_policy:
+        dataset = get_dataset(context.token, dataset_id)
+        assert_that(dataset['valid'], equal_to(False), f"dataset {dataset_id} status failed with valid"
+                                                       f"equals {dataset['valid']}")
+
+
+@step('datasets related to all existing policies have validity valid')
+def check_dataset_status_valid(context):
+    all_datasets = list_datasets(context.token)
+    for dataset in all_datasets:
+        if dataset["agent_policy_id"] in context.policies_created.keys():
+            assert_that(dataset['valid'], equal_to(True), f"dataset {dataset['id']} status failed with valid "
+                                                          f"equals {dataset['valid']}")
 
 
 def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
@@ -105,3 +122,22 @@ def delete_dataset(token, dataset_id):
 
     assert_that(response.status_code, equal_to(204), 'Request to delete dataset id='
                 + dataset_id + ' failed with status=' + str(response.status_code))
+
+
+def get_dataset(token, dataset_id, expected_status_code=200):
+    """
+    Gets a dataset from Orb control plane
+
+    :param (str) token: used for API authentication
+    :param (str) dataset_id: that identifies dataset to be fetched
+    :param (int) expected_status_code: expected request's status code. Default:200.
+    :returns: (dict) the fetched dataset
+    """
+
+    get_dataset_response = requests.get(base_orb_url + '/api/v1/policies/dataset/' + dataset_id,
+                                       headers={'Authorization': token})
+
+    assert_that(get_dataset_response.status_code, equal_to(expected_status_code),
+                'Request to get policy id=' + dataset_id + ' failed with status=' + str(get_dataset_response.status_code))
+
+    return get_dataset_response.json()

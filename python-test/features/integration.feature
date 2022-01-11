@@ -12,6 +12,7 @@ Scenario: Apply two policies to an agent
         And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 10 seconds
+        And datasets related to all existing policies have validity valid
 
 
 Scenario: Remove policy from agent
@@ -20,13 +21,12 @@ Scenario: Remove policy from agent
         And that an agent already exists and is online
         And referred agent is subscribed to a group
         And that a sink already exists
-    When 2 policies are applied to the agent
+        And 2 policies are applied to the agent
         And this agent's heartbeat shows that 2 policies are successfully applied
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
     When one of applied policies is removed
     Then referred policy must not be listed on the orb policies list
+        And datasets related to removed policy has validity invalid
+        And datasets related to all existing policies have validity valid
         And this agent's heartbeat shows that 1 policies are successfully applied
         And container logs should inform that removed policy was stopped and removed within 10 seconds
         And the container logs that were output after the policy have been removed contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds

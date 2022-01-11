@@ -6,7 +6,7 @@ from local_agent import get_orb_agent_logs
 from test_config import TestConfig
 import time
 from datetime import datetime
-from control_plane_datasets import create_new_dataset
+from control_plane_datasets import create_new_dataset, list_datasets
 from random import choice
 
 policy_name_prefix = "test_policy_name_"
@@ -55,6 +55,8 @@ def remove_policy_applied(context):
     delete_policy(context.token, context.policy["id"])
     context.list_agent_policies_id.remove(context.policy["id"])
     context.policies_created.pop(context.policy["id"])
+    existing_datasets = list_datasets(context.token)
+    context.id_of_datasets_related_to_removed_policy = list_datasets_for_a_policy(policy_removed, existing_datasets)
 
 
 @step('container logs should inform that removed policy was stopped and removed within {time_to_wait} seconds')
@@ -70,11 +72,12 @@ def check_test(context, time_to_wait):
         logs = get_orb_agent_logs(context.container_id)
         for log_line in logs:
             log_line = safe_load_json(log_line)
-            if found['stop'] is False: found['stop'] = is_expected_log_info_in_log_line(log_line, stop_log_info,
-                                                                                        context.considered_timestamp)
+            if found['stop'] is False:
+                found['stop'] = is_expected_log_info_in_log_line(log_line, stop_log_info, context.considered_timestamp)
 
-            if found['remove'] is False: found['remove'] = is_expected_log_info_in_log_line(log_line, remove_log_info,
-                                                                                            context.considered_timestamp)
+            if found['remove'] is False:
+                found['remove'] = is_expected_log_info_in_log_line(log_line, remove_log_info,
+                                                                   context.considered_timestamp)
             if found['stop'] is True and found['remove'] is True:
                 break
         time.sleep(sleep_time)
@@ -332,3 +335,17 @@ def is_expected_log_info_in_log_line(log_line, expected_log_info, considered_tim
         if expected_log_info in log_line['log']:
             return True
     return False
+
+
+def list_datasets_for_a_policy(policy_id, datasets_list):
+    """
+
+    :param (str) policy_id: that identifies the policy
+    :param (list) datasets_list: list of datasets that will be filtered by policy
+    :return: (list) list of ids of datasets related to referred policy
+    """
+    id_of_related_datasets = list()
+    for dataset in datasets_list:
+        if dataset['agent_policy_id'] == policy_id:
+            id_of_related_datasets.append(dataset['id'])
+    return id_of_related_datasets
