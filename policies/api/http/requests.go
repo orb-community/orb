@@ -59,6 +59,10 @@ func (req addPolicyReq) validate() error {
 		}
 	}
 
+	if req.SchemaVersion == "" {
+		req.SchemaVersion = "1.0"
+	}
+
 	_, err := types.NewIdentifier(req.Name)
 	if err != nil {
 		return errors.Wrap(errors.ErrMalformedEntity, err)

@@ -42,15 +42,15 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := policyRes{
-			ID:          saved.ID,
-			Name:        saved.Name.String(),
-			Description: saved.Description,
-			Tags:        saved.OrbTags,
-			Backend:     saved.Backend,
-			Schema:      saved.SchemaVersion,
-			Policy:      saved.Policy,
-			Version:     saved.Version,
-			created:     true,
+			ID:            saved.ID,
+			Name:          saved.Name.String(),
+			Description:   saved.Description,
+			Tags:          saved.OrbTags,
+			Backend:       saved.Backend,
+			SchemaVersion: saved.SchemaVersion,
+			Policy:        saved.Policy,
+			Version:       saved.Version,
+			created:       true,
 		}
 
 		return res, nil
@@ -70,14 +70,14 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		res := policyRes{
-			ID:          policy.ID,
-			Name:        policy.Name.String(),
-			Description: policy.Description,
-			Tags:        policy.OrbTags,
-			Backend:     policy.Backend,
-			Schema:      policy.SchemaVersion,
-			Policy:      policy.Policy,
-			Version:     policy.Version,
+			ID:            policy.ID,
+			Name:          policy.Name.String(),
+			Description:   policy.Description,
+			Tags:          policy.OrbTags,
+			Backend:       policy.Backend,
+			SchemaVersion: policy.SchemaVersion,
+			Policy:        policy.Policy,
+			Version:       policy.Version,
 		}
 		return res, nil
 	}
@@ -107,12 +107,12 @@ func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 		for _, ag := range page.Policies {
 			view := policyRes{
-				ID:          ag.ID,
-				Name:        ag.Name.String(),
-				Description: ag.Description,
-				Version:     ag.Version,
-				Backend:     ag.Backend,
-				Schema:      ag.SchemaVersion,
+				ID:            ag.ID,
+				Name:          ag.Name.String(),
+				Description:   ag.Description,
+				Version:       ag.Version,
+				Backend:       ag.Backend,
+				SchemaVersion: ag.SchemaVersion,
 			}
 			res.Policies = append(res.Policies, view)
 		}

@@ -51,7 +51,6 @@ func migrateDB(db *sqlx.DB) error {
 						orb_tags       JSONB NOT NULL DEFAULT '{}',
 
 						backend        TEXT NOT NULL,
-                        schema_version TEXT NOT NULL,
 						version        INTEGER NOT NULL DEFAULT 0,
 						policy		   JSONB NOT NULL DEFAULT '{}',
 
@@ -81,6 +80,13 @@ func migrateDB(db *sqlx.DB) error {
 				Down: []string{
 					"DROP TABLE agent_policies",
 					"DROP TABLE datasets",
+				},
+			},
+			{
+				Id: "policies_2",
+				Up: []string{
+					`ALTER TABLE IF EXISTS agent_policies ADD COLUMN IF NOT EXISTS
+					 schema_version TEXT NOT NULL`,
 				},
 			},
 		},
