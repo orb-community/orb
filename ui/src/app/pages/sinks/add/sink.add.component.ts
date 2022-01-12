@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
@@ -6,7 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { SinkConfig } from 'app/common/interfaces/orb/sink/sink.config.interface';
+import { forkJoin, of, Subscription } from 'rxjs';
 import { SinkFeature } from 'app/common/interfaces/orb/sink/sink.feature.interface';
 
 @Component({
@@ -14,7 +14,7 @@ import { SinkFeature } from 'app/common/interfaces/orb/sink/sink.feature.interfa
   templateUrl: './sink.add.component.html',
   styleUrls: ['./sink.add.component.scss'],
 })
-export class SinkAddComponent {
+export class SinkAddComponent implements OnInit, OnDestroy {
   strings = STRINGS;
 
   // stepper vars
@@ -26,7 +26,9 @@ export class SinkAddComponent {
 
   customSinkSettings: {};
 
-  selectedSinkSetting: any[];
+  backends: { [propName: string]: SinkFeature };
+
+  backendConfig: any[];
 
   selectedTags: { [propName: string]: string };
 
@@ -40,6 +42,8 @@ export class SinkAddComponent {
 
   isLoading = false;
 
+  subscription: Subscription;
+
   constructor(
     private sinksService: SinksService,
     private notificationsService: NotificationsService,
@@ -50,45 +54,46 @@ export class SinkAddComponent {
     this.isLoading = true;
     this.sinkID = this.route.snapshot.paramMap.get('id');
     this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean || !!this.sinkID;
-
-    Promise.all([this.getSink(), this.getSinkBackends()]).then((responses) => {
-      const { backend } = this.sink = responses[0];
-      const backends = responses[1];
-
-      this.sinkTypesList = backends.map(entry => entry.backend);
-      this.customSinkSettings = this.sinkTypesList.reduce((accumulator, curr) => {
-        const index = backends.findIndex(entry => entry.backend === curr);
-        accumulator[curr] = backends[index].config.map(entry => ({
-          type: entry.type,
-          label: entry.title,
-          prop: entry.name,
-          input: entry.input,
-          required: entry.required,
-        }));
-        return accumulator;
-      }, {});
-
-      this.initializeForms();
-
-      this.isLoading = false;
-      if (backend !== '') this.onSinkTypeSelected(backend);
-    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
   }
 
-  newSink() {
-    return {
-      name: '',
-      description: '',
-      backend: 'prometheus', // default sink
-      tags: {},
-    } as Sink;
+  ngOnInit() {
+    const sink$ = this.isEdit ?
+      // retrieve sink by id
+      this.sinksService.getSinkById(this.sinkID)
+      :
+      // use a blank sink
+      of({
+        name: '',
+        description: '',
+        backend: 'prometheus', // default sink
+        tags: {},
+      } as Sink);
+
+    this.subscription = forkJoin(
+      {
+        sink: sink$,
+        backends: this.sinksService.getSinkBackends(),
+      })
+      .subscribe(values => {
+        const { sink: { backend: backend } } = { sink: this.sink, backends: this.backends } = values;
+
+        this.isLoading = false;
+
+        this.initializeForms();
+
+        if (backend !== '') this.onSinkTypeSelected(backend);
+      });
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 
   initializeForms() {
     const { name, description, backend, tags } = this.sink;
 
     this.firstFormGroup = this._formBuilder.group({
-      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
+      name: [name, [this.sinksService.sinkNameValidator, Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
       backend: [backend, Validators.required],
     });
@@ -101,26 +106,6 @@ export class SinkAddComponent {
     });
   }
 
-  getSink() {
-    return new Promise<Sink>(resolve => {
-      if (this.sinkID) {
-        this.sinksService.getSinkById(this.sinkID).subscribe(resp => {
-          resolve(resp);
-        });
-      } else {
-        resolve(this.newSink());
-      }
-    });
-  }
-
-  getSinkBackends() {
-    return new Promise<SinkFeature[]>(resolve => {
-      this.sinksService.getSinkBackends().subscribe(backends => {
-        resolve(backends);
-      });
-    });
-  }
-
   goBack() {
     this.router.navigateByUrl('/pages/sinks');
   }
@@ -130,7 +115,7 @@ export class SinkAddComponent {
       name: this.firstFormGroup.controls.name.value,
       backend: this.firstFormGroup.controls.backend.value,
       description: this.firstFormGroup.controls.description.value,
-      config: this.selectedSinkSetting.reduce((accumulator, current) => {
+      config: this.backendConfig.reduce((accumulator, current) => {
         accumulator[current.prop] = this.secondFormGroup.controls[current.prop].value;
         return accumulator;
       }, {}),
@@ -152,17 +137,15 @@ export class SinkAddComponent {
 
   }
 
-  onSinkTypeSelected(selectedValue) {
+  onSinkTypeSelected(selectedBackend) {
     // SinkConfig<string> being the generic of all other `sinkTypes`.
     const conf = !!this.sink &&
-      this.isEdit &&
-      (selectedValue === this.sink.backend) &&
-      this.sink?.config &&
-      this.sink.config as SinkConfig<string> || null;
+      (selectedBackend === this.sink.backend) &&
+      this.sink?.config || null;
 
-    this.selectedSinkSetting = this.customSinkSettings[selectedValue];
+    this.backendConfig = this.backends[selectedBackend].config;
 
-    const dynamicFormControls = this.selectedSinkSetting.reduce((accumulator, curr) => {
+    const dynamicFormControls = this.backendConfig.reduce((accumulator, curr) => {
       accumulator[curr.prop] = [
         !!conf && (curr.prop in conf) && conf[curr.prop] ||
         '',

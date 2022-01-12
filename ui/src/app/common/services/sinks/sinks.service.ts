@@ -7,6 +7,8 @@ import { environment } from 'environments/environment';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import { map, startWith } from 'rxjs/operators';
+import { AbstractControl, ValidatorFn } from '@angular/forms';
 
 // default filters
 const defLimit: number = 20;
@@ -67,7 +69,25 @@ export class SinksService {
       );
   }
 
-  getSinkById(sinkId: string): any {
+  sinkNameValidator(): ValidatorFn {
+    return (control: AbstractControl): Observable<boolean> => {
+      return this.isSinkNameAvailable(control.value)
+        .pipe(
+          map(isAvailable => !isAvailable ? { invalidName: { value: control.value } } : null),
+        );
+    };
+  }
+
+  isSinkNameAvailable(sinkName: string): any {
+    this.getSinks(this.paginationCache, false)
+      .pipe(
+        map((page: any) => page.data.map((sink) => sink?.name)),
+        map((sinkNames: string[]) => !sinkNames.includes(sinkName)),
+        startWith(true),
+      );
+  }
+
+  getSinkById(sinkId: string): Observable<Sink> {
     return this.http.get(`${ environment.sinksUrl }/${ sinkId }`)
       .map(
         resp => {

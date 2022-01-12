@@ -36,6 +36,19 @@
                        formControlName="name"
                        fullWidth="true"
                        nbInput/>
+                <div *ngIf="firstFormGroup.controls.name.invalid && (firstFormGroup.controls.name.dirty || firstFormGroup.controls.name.touched)"
+                     class="alert alert-danger">
+
+                  <div *ngIf="firstFormGroup.controls.name.errors?.required">
+                    Name is required.
+                  </div>
+                  <div *ngIf="firstFormGroup.controls.name.errors?.minlength">
+                    Name must be at least 4 characters long.
+                  </div>
+                  <div *ngIf="firstFormGroup.controls.name.errors?.invalidName">
+                    Name is already in use.
+                  </div>
+                </div>
               </div>
             </nb-form-field>
             <hr/>
@@ -63,8 +76,8 @@
                          placeholder="Select backend type"
                          size="medium"
               >
-                <nb-option *ngFor="let type of sinkTypesList"
-                           [value]="type">{{ type | titlecase }}</nb-option>
+              <nb-option *ngFor="let type of backends | keyvalue"
+                         [value]="type.key">{{ type.key | titlecase }}</nb-option>
               </nb-select>
             </nb-form-field>
             <hr/>
@@ -98,7 +111,7 @@
             </div>
           </ng-template>
           <form [formGroup]="secondFormGroup">
-            <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index">
+            <nb-form-field *ngFor="let control of backendConfig;let i = index">
               <div>
                 <label class="font-weight-bold">{{control.label}}</label>
                 <span *ngIf="control.required" class="required">*</span>
@@ -291,7 +304,7 @@
           </div>
           <hr/>
           <div class="d-flex row mt-4">
-            <div *ngFor="let control of selectedSinkSetting" class="col-md-12 col-xl-6">
+            <div *ngFor="let control of backendConfig" class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">{{control.label}}</label>
                 <p *ngIf="control.type != 'password'"
