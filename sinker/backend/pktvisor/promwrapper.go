@@ -26,7 +26,9 @@ func (t *labelList) String() string {
 }
 
 func (t *labelList) Set(value string) error {
-	labelPair := strings.Split(value, ":")
+	// TODO Sometimes the value received from pktvisor has a ':' which breaks the split logic from Set method (Find a way to avoid it) i'll change : for ;
+	labelPair := strings.Split(value, ";")
+
 	if len(labelPair) != 2 {
 		return fmt.Errorf("incorrect number of arguments to '-t': %d", len(labelPair))
 	}

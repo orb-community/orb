@@ -142,19 +142,19 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 
 	var dpFlag dp
 	var labelsListFlag labelList
-	labelsListFlag.Set(fmt.Sprintf("__name__:%s", camelToSnake(label)))
-	labelsListFlag.Set("instance:" + ctxt.agent.AgentName)
-	labelsListFlag.Set("agent_id:" + ctxt.agentID)
-	labelsListFlag.Set("agent:" + ctxt.agent.AgentName)
-	labelsListFlag.Set("policy_id:" + ctxt.policyID)
-	labelsListFlag.Set("policy:" + ctxt.policyName)
+	labelsListFlag.Set(fmt.Sprintf("__name__;%s", camelToSnake(label)))
+	labelsListFlag.Set("instance;" + ctxt.agent.AgentName)
+	labelsListFlag.Set("agent_id;" + ctxt.agentID)
+	labelsListFlag.Set("agent;" + ctxt.agent.AgentName)
+	labelsListFlag.Set("policy_id;" + ctxt.policyID)
+	labelsListFlag.Set("policy;" + ctxt.policyName)
 	if k != "" {
 		if quantile {
 			if value, ok := mapQuantiles[k]; ok {
 				labelsListFlag.Set(fmt.Sprintf("quantile:%.2f", value))
 			}
 		} else {
-			labelsListFlag.Set(fmt.Sprintf("name:%s", k))
+			labelsListFlag.Set(fmt.Sprintf("name;%s", k))
 		}
 	}
 	dpFlag.Set(fmt.Sprintf("now,%d", v))
