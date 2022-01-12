@@ -74,7 +74,7 @@ func Run(cmd *cobra.Command, args []string) {
 	}
 
 	// new agent
-	a, err := agent.New(logger, config)
+	a, err := agent.New(logger, config, buildinfo.GetVersion())
 	if err != nil {
 		logger.Error("agent start up error", zap.Error(err))
 		os.Exit(1)

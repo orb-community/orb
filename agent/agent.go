@@ -18,6 +18,10 @@ import (
 	"time"
 )
 
+var (
+	ErrMqttConnection = errors.New("failed to connect to a broker")
+)
+
 type Agent interface {
 	Start() error
 	Stop()
@@ -29,6 +33,7 @@ type orbAgent struct {
 	client   mqtt.Client
 	db       *sqlx.DB
 	backends map[string]backend.Backend
+	version  string
 
 	hbTicker *time.Ticker
 	hbDone   chan bool
@@ -49,7 +54,7 @@ type orbAgent struct {
 
 var _ Agent = (*orbAgent)(nil)
 
-func New(logger *zap.Logger, c config.Config) (Agent, error) {
+func New(logger *zap.Logger, c config.Config, version string) (Agent, error) {
 	logger.Info("using local config db", zap.String("filename", c.OrbAgent.DB.File))
 	db, err := sqlx.Connect("sqlite3", c.OrbAgent.DB.File)
 	if err != nil {
@@ -60,7 +65,7 @@ func New(logger *zap.Logger, c config.Config) (Agent, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db}, nil
+	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db, version: version}, nil
 }
 
 func (a *orbAgent) startBackends() error {
@@ -88,7 +93,7 @@ func (a *orbAgent) startBackends() error {
 
 func (a *orbAgent) Start() error {
 
-	a.logger.Info("agent started")
+	a.logger.Info("agent started", zap.String("version", a.version))
 
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
