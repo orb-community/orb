@@ -166,7 +166,7 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 	if k != "" {
 		if quantile {
 			if value, ok := mapQuantiles[k]; ok {
-				if err := labelsListFlag.Set(fmt.Sprintf("quantile:%.2f", value)); err != nil {
+				if err := labelsListFlag.Set(fmt.Sprintf("quantile;%.2f", value)); err != nil {
 					handleParticleError(ctxt, err)
 				}
 			}
