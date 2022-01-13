@@ -29,6 +29,7 @@ type context struct {
 	agentID    string
 	policyID   string
 	policyName string
+	logger     *zap.Logger
 }
 
 func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
@@ -49,6 +50,7 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data
 		agentID:    agentID,
 		policyID:   data.PolicyID,
 		policyName: data.PolicyName,
+		logger:     p.logger,
 	}
 	stats := StatSnapshot{}
 	for _, handlerData := range metrics {
@@ -142,27 +144,50 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 
 	var dpFlag dp
 	var labelsListFlag labelList
-	labelsListFlag.Set(fmt.Sprintf("__name__;%s", camelToSnake(label)))
-	labelsListFlag.Set("instance;" + ctxt.agent.AgentName)
-	labelsListFlag.Set("agent_id;" + ctxt.agentID)
-	labelsListFlag.Set("agent;" + ctxt.agent.AgentName)
-	labelsListFlag.Set("policy_id;" + ctxt.policyID)
-	labelsListFlag.Set("policy;" + ctxt.policyName)
+	if err := labelsListFlag.Set(fmt.Sprintf("__name__;%s", camelToSnake(label))); err != nil {
+		handleParticleError(ctxt, err)
+	}
+	if err := labelsListFlag.Set("instance;" + ctxt.agent.AgentName); err != nil {
+		handleParticleError(ctxt, err)
+	}
+	if err := labelsListFlag.Set("agent_id;" + ctxt.agentID); err != nil {
+		handleParticleError(ctxt, err)
+	}
+	if err := labelsListFlag.Set("agent;" + ctxt.agent.AgentName); err != nil {
+		handleParticleError(ctxt, err)
+	}
+	if err := labelsListFlag.Set("policy_id;" + ctxt.policyID); err != nil {
+		handleParticleError(ctxt, err)
+	}
+	if err := labelsListFlag.Set("policy;" + ctxt.policyName); err != nil {
+		handleParticleError(ctxt, err)
+	}
+
 	if k != "" {
 		if quantile {
 			if value, ok := mapQuantiles[k]; ok {
-				labelsListFlag.Set(fmt.Sprintf("quantile:%.2f", value))
+				if err := labelsListFlag.Set(fmt.Sprintf("quantile:%.2f", value)); err != nil {
+					handleParticleError(ctxt, err)
+				}
 			}
 		} else {
-			labelsListFlag.Set(fmt.Sprintf("name;%s", k))
+			if err := labelsListFlag.Set(fmt.Sprintf("name;%s", k)); err != nil {
+				handleParticleError(ctxt, err)
+			}
 		}
 	}
-	dpFlag.Set(fmt.Sprintf("now,%d", v))
+	if err := dpFlag.Set(fmt.Sprintf("now,%d", v)); err != nil {
+		handleParticleError(ctxt, err)
+	}
 	*tsList = append(*tsList, prometheus.TimeSeries{
 		Labels:    []prometheus.Label(labelsListFlag),
 		Datapoint: prometheus.Datapoint(dpFlag),
 	})
 	return tsList
+}
+
+func handleParticleError(ctxt *context, err error) {
+	ctxt.logger.Warn("failed to set prometheus element", zap.Error(err))
 }
 
 func camelToSnake(s string) string {
