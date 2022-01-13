@@ -187,7 +187,7 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 }
 
 func handleParticleError(ctxt *context, err error) {
-	ctxt.logger.Warn("failed to set prometheus element", zap.Error(err))
+	ctxt.logger.Error("failed to set prometheus element", zap.Error(err))
 }
 
 func camelToSnake(s string) string {
