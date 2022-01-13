@@ -26,7 +26,6 @@ func (t *labelList) String() string {
 }
 
 func (t *labelList) Set(value string) error {
-	// TODO Sometimes the value received from pktvisor has a ':' which breaks the split logic from Set method (Find a way to avoid it) i'll change : for ;
 	labelPair := strings.Split(value, ";")
 
 	if len(labelPair) != 2 {
