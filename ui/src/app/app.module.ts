@@ -38,6 +38,8 @@ import { BreadcrumbModule } from 'xng-breadcrumb';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { ProfileComponent } from 'app/pages/profile/profile.component';
 import { GoogleAnalyticsService } from './common/services/analytics/google-service-analytics.service';
+// Pactsafe
+import { PSModule } from '@pactsafe/pactsafe-angular-sdk';
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   connectOnCreate: false,
@@ -50,13 +52,14 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     ProfileComponent,
   ],
   imports: [
+    PSModule.forRoot(),
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
+
     AppRoutingModule,
 
     ThemeModule.forRoot(),
-
     NbSidebarModule.forRoot(),
     NbMenuModule.forRoot(),
     NbDatepickerModule.forRoot(),
@@ -66,12 +69,12 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     NbChatModule.forRoot({
       messageGoogleMapKey: 'AIzaSyA_wNuCzia92MAmdLRzmqitRGvCF7wCZPY',
     }),
-    CoreModule.forRoot(),
     // Mfx dependencies
+    CoreModule.forRoot(),
     MqttModule.forRoot(MQTT_SERVICE_OPTIONS),
-    FormsModule,
 
     // 3rd party
+    FormsModule,
     NbInputModule,
     NbCardModule,
     NbIconModule,
