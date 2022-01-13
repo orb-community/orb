@@ -17,13 +17,14 @@ base_orb_url = TestConfig.configs().get('base_orb_url')
 
 @when("a new policy is created")
 def create_new_policy(context):
-    context.policy_name = policy_name_prefix + random_string(10)
-    context.policy = create_policy(context.token, context.policy_name, handle_label, default_handler)
+    policy_name = policy_name_prefix + random_string(10)
+    context.policy = create_policy(context.token, policy_name, handle_label, default_handler)
+    assert_that(context.policy['name'], equal_to(policy_name))
     if 'policies_created' in context:
-        context.policies_created[context.policy['id']] = context.policy_name
+        context.policies_created[context.policy['id']] = context.policy['name']
     else:
         context.policies_created = dict()
-        context.policies_created[context.policy['id']] = context.policy_name
+        context.policies_created[context.policy['id']] = context.policy['name']
 
 
 @then("referred policy {condition} be listed on the orb policies list")
@@ -37,14 +38,13 @@ def check_policies(context, condition='must'):
             break
         is_policy_listed = False
     if condition == 'must':
-        assert_that(is_policy_listed, equal_to(True), "Policy not listed on policies list")
-        policy = get_policy(context.token, policy_id)
-        assert_that(policy['name'], equal_to(context.policy_name), "Incorrect policy name")
+        assert_that(is_policy_listed, equal_to(True), f"Policy {policy_id} not listed on policies list")
+        get_policy(context.token, policy_id)
     elif condition == 'must not':
         assert_that(is_policy_listed, equal_to(False), f"Policy {policy_id} exists in the policies list")
         policy = get_policy(context.token, policy_id, 404)
         assert_that(policy['error'], equal_to('non-existent entity'),
-                    "Unexpected response for deleted policy request")
+                    "Unexpected response for get policy request")
 
 
 @step('one of applied policies is removed')

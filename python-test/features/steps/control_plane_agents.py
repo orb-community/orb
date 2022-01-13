@@ -61,7 +61,7 @@ def clean_agents(context):
 def list_policies_applied_to_an_agent(context, amount_of_policies):
     time_waiting = 0
     sleep_time = 0.5
-    timeout = 10
+    timeout = 180
 
     while time_waiting < timeout:
         agent = get_agent(context.token, context.agent['id'])
