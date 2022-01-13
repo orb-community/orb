@@ -128,14 +128,14 @@
                            fullWidth="true"
                            nbInput
                            nbTooltip="{{ control.value.description }}"
-                           [placeholder]="control.value?.props?.example">
+                           [placeholder]="'e.g.: '.concat(control.value?.props?.example)">
                     <input *ngSwitchCase="'number'"
                            [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="i == 0"
                            [formControlName]="control.key"
                            [max]="control.value.props.max"
                            [min]="control.value.props.min"
-                           [placeholder]="control.value?.props?.example || ''"
+                           [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                            [step]="control.value.props.step"
                            [type]="control.value.type"
                            nbTooltip="{{ control.value.description }}">
@@ -144,7 +144,7 @@
                                [attr.data-orb-qa-id]="control.value.name"
                                [formControlName]="control.key"
                                [id]="control.value.name"
-                               [placeholder]="control.value?.props?.example || ''"
+                               [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                                appearance="filled"
                                fullWidth="true"
                                nbTooltip="{{ control.value.description }}"
@@ -178,14 +178,14 @@
                                  fullWidth="true"
                                  nbInput
                                  nbTooltip="{{ control.value.description }}"
-                                 [placeholder]="control.value?.props?.example">
+                                 [placeholder]="'e.g.: '.concat(control.value?.props?.example)">
                           <input *ngSwitchCase="'number'"
                                  [attr.data-orb-qa-id]="control.value.name"
                                  [autofocus]="i == 0"
                                  [formControlName]="control.key"
                                  [max]="control.value.props.max"
                                  [min]="control.value.props.min"
-                                 [placeholder]="control.value?.props?.example || ''"
+                                 [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                                  [step]="control.value.props.step"
                                  [type]="control.value.type"
                                  nbTooltip="{{ control.value.description }}">
@@ -194,7 +194,7 @@
                                      [attr.data-orb-qa-id]="control.value.name"
                                      [formControlName]="control.key"
                                      [id]="control.value.name"
-                                     [placeholder]="control.value?.props?.example || ''"
+                                     [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                                      appearance="filled"
                                      fullWidth="true"
                                      nbTooltip="{{ control.value.description }}"
@@ -232,14 +232,14 @@
                            fullWidth="true"
                            nbInput
                            nbTooltip="{{ control.value.description }}"
-                           [placeholder]="control.value?.props?.example">
+                           [placeholder]="'e.g.: '.concat(control.value?.props?.example)">
                     <input *ngSwitchCase="'number'"
                            [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="i == 0"
                            [formControlName]="control.key"
                            [max]="control.value.props.max"
                            [min]="control.value.props.min"
-                           [placeholder]="control.value?.props?.example || ''"
+                           [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                            [step]="control.value.props.step"
                            [type]="control.value.type"
                            nbTooltip="{{ control.value.description }}">
@@ -248,7 +248,7 @@
                                [attr.data-orb-qa-id]="control.value.name"
                                [formControlName]="control.key"
                                [id]="control.value.name"
-                               [placeholder]="control.value?.props?.example || ''"
+                               [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                                appearance="filled"
                                fullWidth="true"
                                nbTooltip="{{ control.value.description }}"
@@ -376,7 +376,7 @@
                            [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="true"
                            [formControlName]="control.key"
-                           [placeholder]="control.value?.props?.example || ''"
+                           [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                            [type]="control.value.type"
                            fieldSize="medium"
                            fullWidth="true"
@@ -388,7 +388,7 @@
                            [formControlName]="control.key"
                            [max]="control.value?.props?.max"
                            [min]="control.value?.props?.min"
-                           [placeholder]="control.value?.props?.example || ''"
+                           [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                            [step]="control.value?.props?.step"
                            [type]="control.value.type"
                            nbTooltip="{{ control.value.description }}">
@@ -396,7 +396,7 @@
                                [attr.data-orb-qa-id]="control.value.name"
                                [formControlName]="control.key"
                                [id]="control.value.name"
-                               [placeholder]="control.value?.props?.example || ''"
+                               [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                                appearance="filled"
                                fullWidth="true"
                                nbTooltip="{{ control.value.description }}"
@@ -432,7 +432,7 @@
                            [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="true"
                            [formControlName]="control.key"
-                           [placeholder]="control.value?.props?.example || ''"
+                           [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                            [type]="control.value.type"
                            fieldSize="medium"
                            fullWidth="true"
@@ -444,7 +444,7 @@
                            [formControlName]="control.key"
                            [max]="control.value?.props?.max"
                            [min]="control.value?.props?.min"
-                           [placeholder]="control.value?.props?.example || ''"
+                           [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                            [step]="control.value?.props?.step"
                            [type]="control.value.type"
                            nbTooltip="{{ control.value.description }}">
@@ -452,7 +452,7 @@
                                [attr.data-orb-qa-id]="control.value.name"
                                [formControlName]="control.key"
                                [id]="control.value.name"
-                               [placeholder]="control.value?.props?.example || ''"
+                               [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                                appearance="filled"
                                fullWidth="true"
                                nbTooltip="{{ control.value.description }}"
