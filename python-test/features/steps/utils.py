@@ -38,3 +38,14 @@ def filter_list_by_parameter_start_with(list_of_elements, parameter, start_with)
         if element[parameter].startswith(start_with):
             list_of_filtered_elements.append(element)
     return list_of_filtered_elements
+
+
+def insert_str(str_base, str_to_insert, index):
+    """
+
+    :param (str) str_base: string in which some letter will be inserted
+    :param (str) str_to_insert: letter to be inserted
+    :param (int) index: position that letter should be inserted
+    :return: (str) string with letter inserted on determined index
+    """
+    return str_base[:index] + str_to_insert + str_base[index:]
