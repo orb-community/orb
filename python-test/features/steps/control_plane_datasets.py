@@ -52,12 +52,7 @@ def remove_dataset_from_agent(context):
 def check_orb_datasets_list(context, condition='must'):
     dataset_id = context.dataset['id']
     all_existing_datasets = list_datasets(context.token)
-    is_dataset_listed = bool()
-    for dataset in all_existing_datasets:
-        if dataset_id in dataset.values():
-            is_dataset_listed = True
-            break
-        is_dataset_listed = False
+    is_dataset_listed = any(dataset_id in dataset.values() for dataset in all_existing_datasets)
     if condition == 'must':
         assert_that(is_dataset_listed, equal_to(True), f"Dataset {dataset_id} not listed on orb datasets list")
         get_dataset(context.token, dataset_id)
