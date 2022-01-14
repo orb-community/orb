@@ -538,6 +538,7 @@ func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, p
 
 	// dispatch
 	switch rpc.Func {
+	// TODO Find why this function breaks when an agent group is created before the agent
 	case GroupMembershipReqRPCFunc:
 		if err := svc.NotifyAgentGroupMemberships(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
 			svc.logger.Error("notify group membership failure", zap.Error(err))
