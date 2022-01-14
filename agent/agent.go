@@ -13,6 +13,7 @@ import (
 	"github.com/ns1labs/orb/agent/cloud_config"
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/agent/policyMgr"
+	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"time"
@@ -33,7 +34,6 @@ type orbAgent struct {
 	client   mqtt.Client
 	db       *sqlx.DB
 	backends map[string]backend.Backend
-	version  string
 
 	hbTicker *time.Ticker
 	hbDone   chan bool
@@ -54,7 +54,7 @@ type orbAgent struct {
 
 var _ Agent = (*orbAgent)(nil)
 
-func New(logger *zap.Logger, c config.Config, version string) (Agent, error) {
+func New(logger *zap.Logger, c config.Config) (Agent, error) {
 	logger.Info("using local config db", zap.String("filename", c.OrbAgent.DB.File))
 	db, err := sqlx.Connect("sqlite3", c.OrbAgent.DB.File)
 	if err != nil {
@@ -65,7 +65,7 @@ func New(logger *zap.Logger, c config.Config, version string) (Agent, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db, version: version}, nil
+	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db}, nil
 }
 
 func (a *orbAgent) startBackends() error {
@@ -93,7 +93,7 @@ func (a *orbAgent) startBackends() error {
 
 func (a *orbAgent) Start() error {
 
-	a.logger.Info("agent started", zap.String("version", a.version))
+	a.logger.Info("agent started", zap.String("version", buildinfo.GetVersion()))
 
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
