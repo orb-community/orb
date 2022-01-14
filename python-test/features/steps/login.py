@@ -27,15 +27,12 @@ def request_account_registration(context, password_status, username, company):
     email = configs.get('email')
     password = configs.get('password')
     if password_status == "unregistered":
-        password1 = password + random_string(1)
-        response = register_account(email, password1, company, username, 409)
-        assert_that(response.json()['error'], equal_to('email already taken'), 'Wrong message on API response')
-        password2 = password[:8]
-        response = register_account(email, password2, company, username, 409)
-        assert_that(response.json()['error'], equal_to('email already taken'), 'Wrong message on API response')
-        if len(password) > 8:
-            password3 = password[:-1]
-            response = register_account(email, password3, company, username, 409)
+        passwords_to_test = list()
+        passwords_to_test.append(password + random_string(1))
+        passwords_to_test.append(password[:8])
+        if len(password) > 8: passwords_to_test.append(password[:-1])
+        for current_password in passwords_to_test:
+            response = register_account(email, current_password, company, username, 409)
             assert_that(response.json()['error'], equal_to('email already taken'), 'Wrong message on API response')
     else:
         response = register_account(email, password, company, username, 409)

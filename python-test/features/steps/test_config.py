@@ -31,7 +31,7 @@ def _read_configs():
 
     assert_that(configs.get('password'), not_none(), 'No Orb user password was provided!')
     assert_that(configs.get('password'), not_(""), 'No Orb user password was provided!')
-    assert_that(configs.get('password'), has_length(greater_than_or_equal_to(8)), 'No Orb user password was provided!')
+    assert_that(configs.get('password'), has_length(greater_than_or_equal_to(8)), 'Orb password must be at least 8 digits')
 
     assert_that(configs.get('prometheus_username'), not_none(), 'No Orb user password was provided!')
     assert_that(configs.get('prometheus_username'), not_(""), 'No Orb user password was provided!')
