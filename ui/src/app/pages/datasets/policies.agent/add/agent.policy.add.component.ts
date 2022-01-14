@@ -440,7 +440,7 @@ export class AgentPolicyAddComponent {
     if (this.dynamicHandlerConfigFG !== null) {
       config = Object.entries(this.dynamicHandlerConfigFG.controls)
         .reduce((acc, [key, control]) => {
-          acc[key] = control.value;
+          if (control.value) acc[key] = control.value;
           return acc;
         }, {});
     }
@@ -448,7 +448,7 @@ export class AgentPolicyAddComponent {
     if (this.dynamicHandlerFilterFG !== null) {
       filter = Object.entries(this.dynamicHandlerFilterFG.controls)
         .reduce((acc, [key, control]) => {
-          acc[key] = control.value;
+          if (control.value) acc[key] = control.value;
           return acc;
         }, {});
     }
@@ -509,8 +509,8 @@ export class AgentPolicyAddComponent {
             const {type, config, filter} = value;
             acc[key] = {
               type: type,
-              config: config,
-              filter: filter,
+              config: Object.entries(config).length > 0 && config || undefined,
+              filter: Object.entries(filter).length > 0 && filter || undefined,
             };
             if (Object.keys(config || {}).length > 0) acc[key][config] = config;
             return acc;
