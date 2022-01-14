@@ -358,8 +358,8 @@ func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, pol
 
 func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 
-	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags, description)         
-			  VALUES (:name, :mf_owner_id, :backend, :policy, :orb_tags, :description) RETURNING id`
+	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, schema_version, policy, orb_tags, description)         
+			  VALUES (:name, :mf_owner_id, :backend, :schema_version, :policy, :orb_tags, :description) RETURNING id`
 
 	if !policy.Name.IsValid() || policy.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -504,16 +504,17 @@ func (r policiesRepository) RetrieveAllDatasetsByOwner(ctx context.Context, owne
 }
 
 type dbPolicy struct {
-	ID          string           `db:"id"`
-	Name        types.Identifier `db:"name"`
-	MFOwnerID   string           `db:"mf_owner_id"`
-	Backend     string           `db:"backend"`
-	Description string           `db:"description"`
-	OrbTags     db.Tags          `db:"orb_tags"`
-	Policy      db.Metadata      `db:"policy"`
-	Version     int32            `db:"version"`
-	Created     time.Time        `db:"ts_created"`
-	DataSetID   string           `db:"dataset_id"`
+	ID            string           `db:"id"`
+	Name          types.Identifier `db:"name"`
+	MFOwnerID     string           `db:"mf_owner_id"`
+	Backend       string           `db:"backend"`
+	SchemaVersion string           `db:"schema_version"`
+	Description   string           `db:"description"`
+	OrbTags       db.Tags          `db:"orb_tags"`
+	Policy        db.Metadata      `db:"policy"`
+	Version       int32            `db:"version"`
+	Created       time.Time        `db:"ts_created"`
+	DataSetID     string           `db:"dataset_id"`
 }
 
 func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
@@ -525,14 +526,15 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 	}
 
 	return dbPolicy{
-		ID:          policy.ID,
-		Name:        policy.Name,
-		Description: policy.Description,
-		Version:     policy.Version,
-		MFOwnerID:   uID.String(),
-		Backend:     policy.Backend,
-		OrbTags:     db.Tags(policy.OrbTags),
-		Policy:      db.Metadata(policy.Policy),
+		ID:            policy.ID,
+		Name:          policy.Name,
+		Description:   policy.Description,
+		Version:       policy.Version,
+		MFOwnerID:     uID.String(),
+		Backend:       policy.Backend,
+		SchemaVersion: policy.SchemaVersion,
+		OrbTags:       db.Tags(policy.OrbTags),
+		Policy:        db.Metadata(policy.Policy),
 	}, nil
 
 }
@@ -593,15 +595,16 @@ func NewPoliciesRepository(db Database, log *zap.Logger) policies.Repository {
 func toPolicy(dba dbPolicy) policies.Policy {
 
 	policy := policies.Policy{
-		ID:          dba.ID,
-		Name:        dba.Name,
-		Description: dba.Description,
-		MFOwnerID:   dba.MFOwnerID,
-		Backend:     dba.Backend,
-		Version:     dba.Version,
-		OrbTags:     types.Tags(dba.OrbTags),
-		Policy:      types.Metadata(dba.Policy),
-		Created:     dba.Created,
+		ID:            dba.ID,
+		Name:          dba.Name,
+		Description:   dba.Description,
+		MFOwnerID:     dba.MFOwnerID,
+		Backend:       dba.Backend,
+		SchemaVersion: dba.SchemaVersion,
+		Version:       dba.Version,
+		OrbTags:       types.Tags(dba.OrbTags),
+		Policy:        types.Metadata(dba.Policy),
+		Created:       dba.Created,
 	}
 
 	return policy

@@ -26,7 +26,8 @@ func (t *labelList) String() string {
 }
 
 func (t *labelList) Set(value string) error {
-	labelPair := strings.Split(value, ":")
+	labelPair := strings.Split(value, ";")
+
 	if len(labelPair) != 2 {
 		return fmt.Errorf("incorrect number of arguments to '-t': %d", len(labelPair))
 	}

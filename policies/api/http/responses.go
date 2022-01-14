@@ -11,16 +11,17 @@ import (
 )
 
 type policyRes struct {
-	ID          string         `json:"id"`
-	Name        string         `json:"name"`
-	Description string         `json:"description,omitempty"`
-	Tags        types.Tags     `json:"tags"`
-	Backend     string         `json:"backend"`
-	Policy      types.Metadata `json:"policy,omitempty"`
-	Format      string         `json:"format,omitempty"`
-	PolicyData  string         `json:"policy_data,omitempty"`
-	Version     int32          `json:"version,omitempty"`
-	created     bool
+	ID            string         `json:"id"`
+	Name          string         `json:"name"`
+	Description   string         `json:"description,omitempty"`
+	Tags          types.Tags     `json:"tags"`
+	Backend       string         `json:"backend"`
+	SchemaVersion string         `json:"schema_version"`
+	Policy        types.Metadata `json:"policy,omitempty"`
+	Format        string         `json:"format,omitempty"`
+	PolicyData    string         `json:"policy_data,omitempty"`
+	Version       int32          `json:"version,omitempty"`
+	created       bool
 }
 
 func (s policyRes) Code() int {
