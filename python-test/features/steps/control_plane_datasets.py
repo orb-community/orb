@@ -4,6 +4,7 @@ from hamcrest import *
 import requests
 from test_config import TestConfig
 from datetime import datetime
+from random import choice
 
 dataset_name_prefix = "test_dataset_name_"
 
@@ -19,6 +20,11 @@ def create_new_dataset(context):
     policy_id = context.policy['id']
     dataset_name = dataset_name_prefix + random_string(10)
     context.dataset = create_dataset(token, dataset_name, policy_id, agent_groups_id, sink_id)
+    if 'datasets_created' in context:
+        context.datasets_created[context.dataset['id']] = context.dataset['name']
+    else:
+        context.datasets_created = dict()
+        context.datasets_created[context.dataset['id']] = context.dataset['name']
 
 
 @step('datasets related to removed policy has validity invalid')
@@ -27,6 +33,34 @@ def check_dataset_status_invalid(context):
         dataset = get_dataset(context.token, dataset_id)
         assert_that(dataset['valid'], equal_to(False), f"dataset {dataset_id} status failed with valid"
                                                        f"equals {dataset['valid']}")
+
+
+@step('a dataset linked to this agent is removed')
+def remove_dataset_from_agent(context):
+    dataset_remove = choice(list(context.datasets_created.keys()))
+    context.dataset = get_dataset(context.token, dataset_remove)
+    delete_dataset(context.token, dataset_remove)
+    context.datasets_created.pop(dataset_remove)
+    context.policy.clear()
+    context.policy =\
+        {'id': context.dataset["agent_policy_id"], 'name': context.policies_created[context.dataset["agent_policy_id"]]}
+    context.list_agent_policies_id.remove(context.policy["id"])
+    context.policies_created.pop(context.policy["id"])
+
+
+@step('referred dataset {condition} be listed on the orb datasets list')
+def check_orb_datasets_list(context, condition='must'):
+    dataset_id = context.dataset['id']
+    all_existing_datasets = list_datasets(context.token)
+    is_dataset_listed = any(dataset_id in dataset.values() for dataset in all_existing_datasets)
+    if condition == 'must':
+        assert_that(is_dataset_listed, equal_to(True), f"Dataset {dataset_id} not listed on orb datasets list")
+        get_dataset(context.token, dataset_id)
+    elif condition == 'must not':
+        assert_that(is_dataset_listed, equal_to(False), f"Dataset {dataset_id} exists in the orb datasets list")
+        policy = get_dataset(context.token, dataset_id, 404)
+        assert_that(policy['error'], equal_to('non-existent entity'),
+                    "Unexpected response for get dataset request")
 
 
 @step('datasets related to all existing policies have validity valid')
