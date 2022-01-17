@@ -28,6 +28,47 @@ var (
 	errThingNotFound = errors.New("thing not found")
 )
 
+func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) error {
+	// first wet get the agent group to connect the new agent to the correct group channel
+	groupList, err := svc.agentGroupRepository.RetrieveAllByAgent(context.Background(), a)
+	if len(groupList) == 0 {
+		return nil
+	}
+
+	var idList = make([]string, 1)
+	idList[0] = a.MFThingID
+	for _, group := range groupList {
+		ids := mfsdk.ConnectionIDs{
+			ChannelIDs: []string{group.MFChannelID},
+			ThingIDs:   idList,
+		}
+		err = svc.mfsdk.Connect(ids, token)
+		if err != nil {
+			return err
+		}
+	}
+
+	// TODO need to connect a agent on creatinon to a existing agent group
+	//idList := make([]string, len(list))
+	//for i, agent := range list {
+	//	idList[i] = agent.MFThingID
+	//}
+
+	//// now we get only onlinish agents to notify them in real time
+	//list, err = svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), g.MFOwnerID, g.ID, true)
+	//if err != nil {
+	//	return err
+	//}
+	//for _, agent := range list {
+	//	err := svc.agentComms.NotifyAgentNewGroupMembership(agent, g)
+	//	if err != nil {
+	//		// note we will not make failure to deliver to one agent fatal, just log
+	//		svc.logger.Error("failure during agent group membership comms", zap.Error(err))
+	//	}
+	//}
+	return nil
+}
+
 func (svc fleetService) ViewAgentByID(ctx context.Context, token string, thingID string) (Agent, error) {
 	ownerID, err := svc.identify(token)
 	if err != nil {
@@ -109,6 +150,8 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 		}
 		return Agent{}, errors.Wrap(ErrCreateAgent, err)
 	}
+
+	// TODO Check if exists a agent group created and connect to then
 
 	return a, nil
 }
