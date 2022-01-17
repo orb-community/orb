@@ -38,6 +38,7 @@ export const NB_CORE_PROVIDERS = [
             },
             register: {
               endpoint: environment.usersUrl,
+              requireValidToken: false,
             },
             requestPass: {
               endpoint: environment.requestPassUrl,
