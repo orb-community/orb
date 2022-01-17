@@ -97,12 +97,6 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
             this.errors = respReg.getErrors();
           }
 
-          const redirect = respReg.getRedirect();
-          if (redirect) {
-            setTimeout(() => {
-              return this.router.navigateByUrl(redirect);
-            }, this.redirectDelay);
-          }
           this.cd.detectChanges();
 
           this.authService.authenticate(this.strategy, {
