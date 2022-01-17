@@ -112,9 +112,12 @@ agent:
 
 ui:
 	cd ui/ && docker build \
-    		  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(REF_TAG) \
-    		  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION) \
-    		  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
-    		  -f docker/Dockerfile .
+		--build-arg ENV_PS_SID=${PS_SID} \
+		--build-arg	ENV_PS_GROUP_KEY=${PS_GROUP_KEY} \
+		--build-arg ENV=${ENVIRONMENT} \
+		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(REF_TAG) \
+		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION) \
+		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
+		-f docker/Dockerfile .
 
 platform: dockers_dev docker_sinker agent ui
