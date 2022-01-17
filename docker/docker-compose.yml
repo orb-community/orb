@@ -131,7 +131,7 @@ services:
       - mainflux-users-db-volume:/var/lib/postgresql/data
 
   users:
-    image: "ns1labs/users:${ORB_RELEASE_TAG}"
+    image: "ns1labs/users:latest"
     container_name: mainflux-users
     volumes:
       - ./templates/${MF_USERS_RESET_PWD_TEMPLATE}:/${MF_EMAIL_TEMPLATE}

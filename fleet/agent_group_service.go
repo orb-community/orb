@@ -39,7 +39,6 @@ func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup)
 	if len(list) == 0 {
 		return nil
 	}
-	// TODO need to connect a agent on creatinon to a existing agent group
 	idList := make([]string, len(list))
 	for i, agent := range list {
 		idList[i] = agent.MFThingID
