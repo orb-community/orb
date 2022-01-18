@@ -7,7 +7,7 @@ const targetPath = `./src/environments/environment.env.ts`;
 
 // PACTSAFE
 const enablePS = () => {
-  if (!!process.env.PS_SID && !!process.env.PS_GROUP_KEY) {
+  if (process.env.PS_SID !== '' && process.env.PS_GROUP_KEY !== '') {
     return `
   PS: {
     // site id
