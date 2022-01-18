@@ -86,7 +86,7 @@ func migrateDB(db *sqlx.DB) error {
 				Id: "policies_2",
 				Up: []string{
 					`ALTER TABLE IF EXISTS agent_policies ADD COLUMN IF NOT EXISTS
-					 schema_version TEXT NOT NULL DEFAULT ''`,
+					 schema_version TEXT NOT NULL DEFAULT '1.0'`,
 				},
 			},
 		},
