@@ -75,6 +75,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 					a.logger.Warn("policy failed to ensure dataset id", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
 				}
 			}
+			return
 		} else {
 			// new policy we have not seen before, associate with this dataset
 			// on first time we see policy, we *require* dataset
