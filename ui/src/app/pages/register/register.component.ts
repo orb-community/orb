@@ -16,15 +16,14 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   strings = STRINGS.login;
 
   _isProduction = environment.production;
-
   /**
    * Pactsafe
    */
-  _psEnabled = !!environment.PS;
-
   _sid = environment.PS.SID;
 
   _groupKey = environment.PS.GROUP_KEY;
+
+  _psEnabled = !!this._sid && !!this._groupKey;
 
   showPassword = false;
 
@@ -58,7 +57,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
 
   // Return whether to block the submission or not.
   blockSubmission() {
-    if (!(this._isProduction && this._psEnabled)) return false;
+    if (!this._psEnabled) return false;
     // Check to ensure we're able to get the Group successfully.
     if (_ps.getByKey(this._groupKey)) {
 
