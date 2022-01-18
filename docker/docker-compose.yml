@@ -82,7 +82,7 @@ services:
       - mainflux-auth-db-volume:/var/lib/postgresql/data
 
   auth:
-    image: "mainflux/auth:0.12.1"
+    image: "mainflux/auth:${MF_RELEASE_TAG}"
     container_name: mainflux-auth
     depends_on:
       - auth-db
@@ -131,7 +131,7 @@ services:
       - mainflux-users-db-volume:/var/lib/postgresql/data
 
   users:
-    image: "ns1labs/users:latest"
+    image: "mainflux/users:${MF_RELEASE_TAG}"
     container_name: mainflux-users
     volumes:
       - ./templates/${MF_USERS_RESET_PWD_TEMPLATE}:/${MF_EMAIL_TEMPLATE}
