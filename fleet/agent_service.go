@@ -136,7 +136,7 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 	err = svc.addAgentToAgentGroupChannels(token, a)
 	if err != nil {
 		// TODO should we roll back?
-		svc.logger.Error("failed to add agent to a existing group channel", zap.Error(err))
+		svc.logger.Error("failed to add agent to a existing group channel", zap.String("agent_id", a.MFThingID), zap.Error(err))
 	}
 	return a, nil
 }
