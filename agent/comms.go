@@ -81,7 +81,7 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 	var err error
 	a.client, err = a.connect(config)
 	if err != nil {
-		a.logger.Error("connection failed", zap.String("key", config.Key), zap.String("channel", config.ChannelID), zap.String("id", config.Id), zap.Error(err))
+		a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
 		return ErrMqttConnection
 	}
 
