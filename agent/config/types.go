@@ -35,12 +35,22 @@ type Cloud struct {
 	MQTT   MQTTConfig  `mapstructure:"mqtt"`
 }
 
+type Opentelemetry struct {
+	Enable bool `mapstructure:"enable"`
+}
+
+type Debug struct {
+	Enable bool `mapstructure:"enable"`
+}
+
 type OrbAgent struct {
 	Backends map[string]map[string]string `mapstructure:"backends"`
 	Tags     map[string]string            `mapstructure:"tags"`
 	Cloud    Cloud                        `mapstructure:"cloud"`
 	TLS      TLS                          `mapstructure:"tls"`
 	DB       DBConfig                     `mapstructure:"db"`
+	Otel     Opentelemetry                `mapstructure:"otel"`
+	Debug    Debug                        `mapstructure:"debug"`
 }
 
 type Config struct {

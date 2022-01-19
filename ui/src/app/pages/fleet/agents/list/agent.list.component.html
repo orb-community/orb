@@ -119,6 +119,12 @@
           [style.background-color]="tag | tagcolor">
         {{tag}}
       </mat-chip>
+      <mat-chip
+        *ngIf="(row.orb_tags | json) === '{}' && (row.agent_tags | json) === '{}'"
+        [style.background-color]="'notag' | tagcolor"
+        class="orb-tag-sink ">
+        No tags were created
+      </mat-chip>
     </mat-chip-list>
   </div>
 </ng-template>

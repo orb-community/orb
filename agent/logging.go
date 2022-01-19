@@ -28,16 +28,16 @@ var _ mqtt.Logger = (*agentLoggerCritical)(nil)
 var _ mqtt.Logger = (*agentLoggerError)(nil)
 
 func (a *agentLoggerWarn) Println(v ...interface{}) {
-	a.a.logger.Warn("mqtt log", zap.Any("payload", v))
+	a.a.logger.Warn("WARN mqtt log", zap.Any("payload", v))
 }
 func (a *agentLoggerWarn) Printf(format string, v ...interface{}) {
-	a.a.logger.Warn("mqtt log", zap.Any("payload", v))
+	a.a.logger.Warn("WARN mqtt log", zap.Any("payload", v))
 }
 func (a *agentLoggerDebug) Println(v ...interface{}) {
-	a.a.logger.Debug("mqtt log", zap.Any("payload", v))
+	a.a.logger.Debug("DEBUG mqtt log", zap.Any("payload", v))
 }
 func (a *agentLoggerDebug) Printf(format string, v ...interface{}) {
-	a.a.logger.Debug("mqtt log", zap.Any("payload", v))
+	a.a.logger.Debug("DEBUG mqtt log", zap.Any("payload", v))
 }
 func (a *agentLoggerCritical) Println(v ...interface{}) {
 	a.a.logger.Error("CRITICAL mqtt log", zap.Any("payload", v))
@@ -46,8 +46,8 @@ func (a *agentLoggerCritical) Printf(format string, v ...interface{}) {
 	a.a.logger.Error("CRITICAL mqtt log", zap.Any("payload", v))
 }
 func (a *agentLoggerError) Println(v ...interface{}) {
-	a.a.logger.Error("mqtt log", zap.Any("payload", v))
+	a.a.logger.Error("ERROR mqtt log", zap.Any("payload", v))
 }
 func (a *agentLoggerError) Printf(format string, v ...interface{}) {
-	a.a.logger.Error("mqtt log", zap.Any("payload", v))
+	a.a.logger.Error("ERROR mqtt log", zap.Any("payload", v))
 }

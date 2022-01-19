@@ -72,7 +72,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			if payload.DatasetID != "" {
 				err := a.repo.EnsureDataset(payload.ID, payload.DatasetID)
 				if err != nil {
-					a.logger.Warn("policy failed to ensure dataset id", zap.String("policy_id", payload.ID), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
+					a.logger.Warn("policy failed to ensure dataset id", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
 				}
 			}
 		} else {
@@ -102,13 +102,19 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			Name: payload.Name,
 		}
 		if !backend.HaveBackend(payload.Backend) {
-			a.logger.Warn("policy remove for a backend we do not have, ignoring", zap.String("policy_id", payload.ID))
+			a.logger.Warn("policy remove for a backend we do not have, ignoring", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name))
 			return
 		}
 		be := backend.GetBackend(payload.Backend)
+		// Remove policy from pktvisor via http request
 		err := be.RemovePolicy(pd)
 		if err != nil {
-			a.logger.Warn("policy failed to remove", zap.String("policy_id", payload.ID), zap.Error(err))
+			a.logger.Warn("policy failed to remove", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.Error(err))
+		}
+		// Remove policy from orb-agent local repo
+		err = a.repo.Remove(pd.ID)
+		if err != nil {
+			a.logger.Warn("policy failed to remove local", zap.String("policy_id", pd.ID),  zap.String("policy_name", pd.Name), zap.Error(err))
 		}
 		break
 	default:
@@ -120,18 +126,24 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 func (a *policyManager) RemovePolicyDataset(policyID string, datasetID string, be backend.Backend) {
 	policyData, err := a.repo.Get(policyID)
 	if err != nil {
-		a.logger.Warn("failed to retrieve policy data", zap.String("policy_id", policyID), zap.Error(err))
+		a.logger.Warn("failed to retrieve policy data", zap.String("policy_id", policyID), zap.String("policy_name", policyData.Name), zap.Error(err))
 		return
 	}
 	removePolicy, err := a.repo.RemoveDataset(policyID, datasetID)
 	if err != nil {
-		a.logger.Warn("failed to remove policy dataset", zap.String("dataset_id", datasetID), zap.Error(err))
+		a.logger.Warn("failed to remove policy dataset", zap.String("dataset_id", datasetID), zap.String("policy_name", policyData.Name), zap.Error(err))
 		return
 	}
 	if removePolicy {
+		// Remove policy from pktvisor via http request
 		err := be.RemovePolicy(policyData)
 		if err != nil {
-			a.logger.Warn("policy failed to remove", zap.String("policy_id", policyID), zap.Error(err))
+			a.logger.Warn("policy failed to remove", zap.String("policy_id", policyID), zap.String("policy_name", policyData.Name), zap.Error(err))
+		}
+		// Remove policy from orb-agent local repo
+		err = a.repo.Remove(policyData.ID)
+		if err != nil {
+			a.logger.Warn("policy failed to remove local", zap.String("policy_id", policyData.ID), zap.String("policy_name", policyData.Name), zap.Error(err))
 		}
 	}
 }

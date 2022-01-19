@@ -41,9 +41,11 @@ import { RegisterComponent } from 'app/pages/register/register.component';
 import { LogoutComponent } from 'app/pages/logout/logout.component';
 import { RequestPasswordComponent } from 'app/pages/request-password/request-password.component';
 import { ResetPasswordComponent } from 'app/pages/reset-password/reset-password.component';
+import { PSModule } from '@pactsafe/pactsafe-angular-sdk';
 
 @NgModule({
   imports: [
+    PSModule.forRoot(),
     CommonModule,
     NbLayoutModule,
     NbCheckboxModule,

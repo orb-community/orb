@@ -4,8 +4,11 @@ from hamcrest import *
 from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
 import time
+import subprocess
+import shlex
 
 configs = TestConfig.configs()
+ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
 
 
 @when('the agent container is started')
@@ -20,6 +23,9 @@ def run_local_agent_container(context):
                 "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
                 "ORB_CLOUD_MQTT_KEY": context.agent['key'],
                 "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
+    if ignore_ssl_and_certificate_errors == 'true':
+        env_vars["ORB_TLS_VERIFY"] = "false"
+
     context.container_id = run_agent_container(agent_image, env_vars)
 
 
@@ -39,6 +45,14 @@ def check_agent_log(context, text_to_match, time_to_wait):
         time_waiting += sleep_time
 
     assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+
+
+@when("the agent container is started using the command provided by the UI")
+def run_container_using_ui_command(context):
+    context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
+                                                         ignore_ssl_and_certificate_errors)
+    assert_that(context.container_id, is_not((none())))
+    rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME)
 
 
 def run_agent_container(container_image, env_vars):
@@ -85,3 +99,32 @@ def check_logs_contain_message(logs, expected_message):
             return True
 
     return False
+
+
+def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors):
+    """
+    :param (str) command: docker command to provision an agent
+    :param (bool) ignore_ssl_and_certificate_errors: True if orb address doesn't have a valid certificate.
+    :return: agent container ID
+    """
+    args = shlex.split(command)
+    if ignore_ssl_and_certificate_errors == 'true':
+        args.insert(-1, "-e")
+        args.insert(-1, "ORB_TLS_VERIFY=false")
+    terminal_running = subprocess.Popen(
+        args, stdout=subprocess.PIPE)
+    subprocess_return = terminal_running.stdout.read().decode()
+    container_id = subprocess_return.split()
+    assert_that(container_id[0], is_not((none())))
+    return container_id[0]
+
+
+def rename_container(container_id, container_name):
+    """
+
+    :param container_id: agent container ID
+    :param container_name: agent container name
+    """
+    rename_container_command = f"docker rename {container_id} {container_name}"
+    rename_container_args = shlex.split(rename_container_command)
+    subprocess.Popen(rename_container_args, stdout=subprocess.PIPE)

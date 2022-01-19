@@ -461,6 +461,9 @@ services:
     environment:
       MF_UI_PORT: ${MF_UI_PORT}
       MF_UI_MQTT_WS_URL: ${MF_UI_MQTT_WS_URL}
+      PS_SID: ${PS_SID}
+      PS_GROUP_KEY: ${PS_GROUP_KEY}
+      
     command: /entrypoint.sh
 
   ## main LB ##
