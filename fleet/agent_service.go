@@ -31,6 +31,9 @@ var (
 func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) error {
 	// first we get the agent group to connect the new agent to the correct group channel
 	groupList, err := svc.agentGroupRepository.RetrieveAllByAgent(context.Background(), a)
+	if err != nil {
+		return err
+	}
 	if len(groupList) == 0 {
 		return nil
 	}
