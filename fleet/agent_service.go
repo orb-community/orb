@@ -28,6 +28,32 @@ var (
 	errThingNotFound = errors.New("thing not found")
 )
 
+func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) error {
+	// first we get the agent group to connect the new agent to the correct group channel
+	groupList, err := svc.agentGroupRepository.RetrieveAllByAgent(context.Background(), a)
+	if err != nil {
+		return err
+	}
+	if len(groupList) == 0 {
+		return nil
+	}
+
+	var idList = make([]string, 1)
+	idList[0] = a.MFThingID
+	for _, group := range groupList {
+		ids := mfsdk.ConnectionIDs{
+			ChannelIDs: []string{group.MFChannelID},
+			ThingIDs:   idList,
+		}
+		err = svc.mfsdk.Connect(ids, token)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (svc fleetService) ViewAgentByID(ctx context.Context, token string, thingID string) (Agent, error) {
 	ownerID, err := svc.identify(token)
 	if err != nil {
@@ -110,6 +136,11 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 		return Agent{}, errors.Wrap(ErrCreateAgent, err)
 	}
 
+	err = svc.addAgentToAgentGroupChannels(token, a)
+	if err != nil {
+		// TODO should we roll back?
+		svc.logger.Error("failed to add agent to a existing group channel", zap.String("agent_id", a.MFThingID), zap.Error(err))
+	}
 	return a, nil
 }
 
