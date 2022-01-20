@@ -13,9 +13,14 @@ import (
 	"github.com/ns1labs/orb/agent/cloud_config"
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/agent/policyMgr"
+	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"time"
+)
+
+var (
+	ErrMqttConnection = errors.New("failed to connect to a broker")
 )
 
 type Agent interface {
@@ -88,10 +93,14 @@ func (a *orbAgent) startBackends() error {
 
 func (a *orbAgent) Start() error {
 
-	a.logger.Info("agent started")
+	a.logger.Info("agent started", zap.String("version", buildinfo.GetVersion()))
 
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
+
+	if a.config.OrbAgent.Debug.Enable {
+		mqtt.DEBUG = &agentLoggerDebug{a: a}
+	}
 
 	ccm, err := cloud_config.New(a.logger, a.config, a.db)
 	if err != nil {

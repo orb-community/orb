@@ -64,7 +64,7 @@ func (m metricsMiddleware) RemoveDataset(ctx context.Context, token string, dsID
 func (m metricsMiddleware) EditDataset(ctx context.Context, token string, ds policies.Dataset) (policies.Dataset, error) {
 	ownerID, err := m.identify(token)
 	if err != nil {
-		return policies.Dataset{} ,err
+		return policies.Dataset{}, err
 	}
 
 	defer func(begin time.Time) {

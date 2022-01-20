@@ -1,7 +1,7 @@
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with
 from local_agent import run_local_agent_container
-from behave import given, when, then
+from behave import given, when, then, step
 from hamcrest import *
 import time
 import requests
@@ -55,6 +55,25 @@ def clean_agents(context):
     agents_list = list_agents(token)
     agents_filtered_list = filter_list_by_parameter_start_with(agents_list, 'name', agent_name_prefix)
     delete_agents(token, agents_filtered_list)
+
+
+@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied")
+def list_policies_applied_to_an_agent(context, amount_of_policies):
+    time_waiting = 0
+    sleep_time = 0.5
+    timeout = 180
+
+    while time_waiting < timeout:
+        agent = get_agent(context.token, context.agent['id'])
+        context.list_agent_policies_id = list(agent['last_hb_data']['policy_state'].keys())
+        if len(context.list_agent_policies_id) == int(amount_of_policies):
+            break
+        time.sleep(sleep_time)
+        time_waiting += sleep_time
+
+    assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)),
+                f"Amount of policies applied to this agent failed with {context.list_agent_policies_id} policies")
+    assert_that(sorted(context.list_agent_policies_id), equal_to(sorted(context.policies_created.keys())))
 
 
 def expect_container_status(token, agent_id, status):
@@ -174,7 +193,7 @@ def generate_agent_name_and_tag(name_agent_prefix, agent_tag_key_prefix, agent_t
     :param (str) agent_tag_value_prefix: prefix to identify tag_value created by tests
     :return: random name, tag_key and tag_value for agent
     """
-    agent_name = agent_name_prefix + random_string(10)
-    agent_tag_key = tag_key_prefix + random_string(4)
-    agent_tag_value = tag_value_prefix + random_string(4)
+    agent_name = name_agent_prefix + random_string(10)
+    agent_tag_key = agent_tag_key_prefix + random_string(4)
+    agent_tag_value = agent_tag_value_prefix + random_string(4)
     return agent_name, agent_tag_key, agent_tag_value

@@ -18,6 +18,7 @@ var (
 	ErrCreateSink                 = errors.New("failed to create Sink")
 	ErrConflictSink               = errors.New("entity already exists")
 	ErrUnsupportedContentTypeSink = errors.New("unsupported content type")
+	ErrValidateSink               = errors.New("failed to validate Sink")
 )
 
 func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) (Sink, error) {
@@ -125,7 +126,7 @@ func (svc sinkService) ValidateSink(ctx context.Context, token string, sink Sink
 
 	err = validateBackend(&sink)
 	if err != nil {
-		return Sink{}, errors.Wrap(ErrCreateSink, err)
+		return Sink{}, errors.Wrap(ErrValidateSink, err)
 	}
 
 	return sink, nil
