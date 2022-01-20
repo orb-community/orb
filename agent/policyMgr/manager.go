@@ -5,6 +5,7 @@
 package manager
 
 import (
+	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/config"
@@ -82,6 +83,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 				a.logger.Error("failed to retrieve policy", zap.String("policy_id", payload.ID), zap.Error(err))
 			}
 			if currentPolicy.Version >= pd.Version {
+				a.logger.Info("policy already applied or with greater version, skipping", zap.String("policy_id", pd.ID), zap.String("policy_name", pd.Name), zap.String("attempted version", fmt.Sprint(pd.Version)), zap.String("current version", fmt.Sprint(currentPolicy.Version)))
 				return
 			} else {
 				updatePolicy = true
