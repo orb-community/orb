@@ -346,6 +346,12 @@ func TestPolicyEdition(t *testing.T) {
 	cli := newClientServer(t)
 	policy := createPolicy(t, &cli, "policy")
 
+	var (
+		invalidNamePolicyJson = "{\"name\": \"*#simple_dns#*\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
+		emptyFormatPolicyYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
+		notEmptyFormatPolicyJson = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"format\": \"json\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
+	)
+
 	cases := map[string]struct {
 		id          string
 		contentType string
@@ -422,6 +428,27 @@ func TestPolicyEdition(t *testing.T) {
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
+		},
+		"update a existing policy with a invalid name": {
+			id:          policy.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data:        invalidNamePolicyJson,
+		},
+		"update a policy with invalid yaml - empty Format field": {
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data:        emptyFormatPolicyYaml,
+		},
+		"update a policy with invalid json - not empty Format field": {
+			id:          policy.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data:        notEmptyFormatPolicyJson,
 		},
 	}
 
@@ -599,6 +626,11 @@ func TestCreatePolicy(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()
 
+	var (
+		emptyFormatPolicyYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
+		notEmptyFormatPolicyJson = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"format\": \"json\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
+	)
+
 	// Conflict scenario
 	createPolicy(t, &cli, "conflict-simple_dns")
 
@@ -651,6 +683,20 @@ func TestCreatePolicy(t *testing.T) {
 			status:      http.StatusUnsupportedMediaType,
 			location:    "/policies/agent",
 		},
+		"add a policy with invalid yaml - empty Format field": {
+			req:         emptyFormatPolicyYaml,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent",
+		},
+		"add a policy with invalid json - not empty Format field": {
+			req:         notEmptyFormatPolicyJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/policies/agent",
+		},
 	}
 
 	for desc, tc := range cases {
@@ -673,6 +719,14 @@ func TestCreatePolicy(t *testing.T) {
 func TestCreateDataset(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()
+
+	var emptyGroupIDDatasetJson = `{
+    "name": "my-dataset",
+    "agent_group_id": "",
+    "agent_policy_id": "bfa9351d-8075-444f-9a4c-228f9a476a0d",
+    "sink_ids": ["03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"],
+	"tags":{}
+}`
 
 	// Conflict scenario
 	createDataset(t, &cli, "my-dataset-conflict")
@@ -717,6 +771,13 @@ func TestCreateDataset(t *testing.T) {
 			contentType: "",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
+			location:    "/policies/dataset",
+		},
+		"add a dataset with empty GroupID field": {
+			req:         emptyGroupIDDatasetJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
 			location:    "/policies/dataset",
 		},
 	}
@@ -811,6 +872,13 @@ func TestDatasetEdition(t *testing.T) {
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
+		},
+		"update a dataset with empty ID requisition": {
+			id:          "",
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data:        validDatasetJson,
 		},
 	}
 
@@ -1020,6 +1088,11 @@ func TestViewDataset(t *testing.T) {
 			ID:     dataset.ID,
 			token:  "",
 			status: http.StatusUnauthorized,
+		},
+		"view a dataset with empty ID requisition": {
+			ID:     "",
+			token:  token,
+			status: http.StatusBadRequest,
 		},
 	}
 
