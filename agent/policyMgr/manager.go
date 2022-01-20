@@ -65,6 +65,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			Data:    payload.Data,
 			State:   policies.Unknown,
 		}
+		var updatePolicy bool
 		if a.repo.Exists(payload.ID) {
 			// we have already processed this policy id before (it may be running or failed)
 			// ensure we are associating this dataset with this policy, if one was specified
@@ -75,7 +76,16 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 					a.logger.Warn("policy failed to ensure dataset id", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
 				}
 			}
-			return
+			// if policy already exist and has no version upgrade, has no need to apply it again on pktvisor
+			currentPolicy, err := a.repo.Get(payload.ID)
+			if err != nil {
+				a.logger.Error("failed to retrieve policy", zap.String("policy_id", payload.ID), zap.Error(err))
+			}
+			if currentPolicy.Version >= pd.Version {
+				return
+			} else {
+				updatePolicy = true
+			}
 		} else {
 			// new policy we have not seen before, associate with this dataset
 			// on first time we see policy, we *require* dataset
@@ -92,6 +102,13 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 		} else {
 			// attempt to apply the policy to the backend. status of policy application (running/failed) is maintained there.
 			be := backend.GetBackend(payload.Backend)
+			if updatePolicy {
+				// pktvisor has no update endpoint, so to update a policy it's necessary remove it and apply a new version
+				err := be.RemovePolicy(pd)
+				if err != nil {
+					a.logger.Warn("policy failed to remove", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.Error(err))
+				}
+			}
 			a.applyPolicy(payload, be, &pd)
 		}
 		// save policy (with latest status) to local policy db
@@ -115,7 +132,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 		// Remove policy from orb-agent local repo
 		err = a.repo.Remove(pd.ID)
 		if err != nil {
-			a.logger.Warn("policy failed to remove local", zap.String("policy_id", pd.ID),  zap.String("policy_name", pd.Name), zap.Error(err))
+			a.logger.Warn("policy failed to remove local", zap.String("policy_id", pd.ID), zap.String("policy_name", pd.Name), zap.Error(err))
 		}
 		break
 	default:
