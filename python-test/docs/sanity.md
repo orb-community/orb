@@ -1,0 +1,16 @@
+## Sanity tests
+
+- [Check if sink is active while scraping metrics](integration/sink_active_while_scraping_metrics.md)
+- [Provision agent before group (check if agent subscribes to the group)](integration/provision_agent_before_group.md)
+- [Provision agent after group (check if agent subscribes to the group)](integration/provision_agent_after_group.md)
+- [Provision agent with tag matching existing group linked to a valid dataset](integration/multiple_agents_subscribed_to_a_group.md)
+- [Apply multiple policies to a group](integration/apply_multiple_policies.md)
+- [Apply multiple policies to a group and remove one policy](integration/remove_one_of_multiple_policies.md)
+- [Apply multiple policies to a group and remove one dataset](integration/remove_one_of_multiple_datasets.md)
+- [Apply the same policy twice to the agent](integration/apply_policy_twice.md)
+- [Remove group (invalid dataset, agent logs)](integration/remove_group.md)
+- [Remove sink (invalid dataset, agent logs)](integration/remove_sink.md)
+- [Remove dataset (check agent logs, heartbeat)](integration/remove_dataset.md)
+- [Remove agent container (logs, agent groups matches)](integration/remove_agent_container.md)
+- [Remove agent container force (logs, agent groups matches)](integration/remove_agent_container_force.md)
+- [Remove agent (logs, agent groups matches)](integration/remove_agent.md)
