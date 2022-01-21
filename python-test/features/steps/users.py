@@ -13,6 +13,7 @@ def register_orb_account(context):
     password = configs.get('password')
     if configs.get('is_credentials_registered') == 'false':
         register_account(email, password)
+        configs['is_credentials_registered'] = 'true'
     authenticate(email, password)
 
 
