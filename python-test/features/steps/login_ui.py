@@ -18,7 +18,7 @@ def logs_in_orb_ui(context):
     orb_page(context)
     use_credentials(context)
     check_home_page(context)
-    context.token = authenticate(user_email, user_password)
+    context.token = authenticate(user_email, user_password)['token']
 
 
 @given("that the user is on the orb page")
