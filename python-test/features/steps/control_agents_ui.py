@@ -65,7 +65,7 @@ def create_agent_through_the_agents_page(context):
         EC.presence_of_all_elements_located((By.XPATH, "//span[contains(@class, 'nb-close')]")))[0].click()
     WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located((By.XPATH, f"//div[contains(@class, 'agent-name') and contains(text(),"
-                                                       f"{context.agent_name})]")))[0].click()
+                                                       f"'{context.agent_name}')]")))[0].click()
     context.agent = dict()
     context.agent['id'] = WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located((By.XPATH, "//label[contains(text(), 'Agent ID')]/following::p")))[0].text
@@ -82,7 +82,7 @@ def check_status_on_orb_ui(context, status, time_to_wait):
 
     while time_waiting < timeout:
         list_of_datatable_body_cell = WebDriverWait(context.driver, 3).until(
-            EC.presence_of_all_elements_located([By.XPATH, f"//div[contains(text(), {context.agent_name})]/ancestor"
+            EC.presence_of_all_elements_located([By.XPATH, f"//div[contains(text(), '{context.agent_name}')]/ancestor"
                                                            f"::datatable-body-row/descendant::i[contains(@class, "
                                                            f"'fa fa-circle')]/ancestor::div[contains(@class, "
                                                            f"'ng-star-inserted')]"]))
@@ -96,7 +96,7 @@ def check_status_on_orb_ui(context, status, time_to_wait):
     assert_that(list_of_datatable_body_cell[1].text, equal_to(status))
     WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located((By.XPATH, f"//div[contains(@class, 'agent-name') and contains(text(),"
-                                                       f"{context.agent_name})]")))[0].click()
+                                                       f"'{context.agent_name}')]")))[0].click()
     agent_view_status = WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located(
             (By.XPATH, "//label[contains(text(), 'Health Status')]/following::p")))[0].text
