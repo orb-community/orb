@@ -63,6 +63,16 @@ func newService(tokens map[string]string) sinks.SinkService {
 func TestCreateSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
 
+	var invalidBackendSink = sinks.Sink{
+		Name:        nameID,
+		Description: "An example prometheus sink",
+		Backend:     "invalid",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+
 	cases := map[string]struct {
 		sink  sinks.Sink
 		token string
@@ -78,11 +88,16 @@ func TestCreateSink(t *testing.T) {
 			token: "invalid",
 			err:   sinks.ErrUnauthorizedAccess,
 		},
+		"create a sink with a invalid backend": {
+			sink:  invalidBackendSink,
+			token: token,
+			err:   sinks.ErrInvalidBackend,
+		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := service.CreateSink(context.Background(), tc.token, sink)
+			_, err := service.CreateSink(context.Background(), tc.token, tc.sink)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
 			t.Log(tc.token)
 		})
@@ -405,15 +420,62 @@ func TestValidateSink(t *testing.T) {
 			token: invalidToken,
 			err:   sinks.ErrUnauthorizedAccess,
 		},
+		"validate a sink with a invalid backend": {
+			sink: sinks.Sink{
+				Name:        nameID,
+				Description: "An example prometheus sink",
+				Backend:     "invalid",
+				Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+				Tags:        map[string]string{"cloud": "aws"},
+			},
+			token: token,
+			err:   sinks.ErrValidateSink,
+		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := service.ValidateSink(context.Background(), tc.token, sink)
-			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
+			_, err := service.ValidateSink(context.Background(), tc.token, tc.sink)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		})
 	}
 
+}
+
+func TestViewSinkInternal(t *testing.T) {
+	service := newService(map[string]string{token: email})
+
+	sk, err := service.CreateSink(context.Background(), token, sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		key     string
+		ownerID string
+		err     error
+	}{
+		"view a existing sink": {
+			key:     sk.ID,
+			ownerID: sk.MFOwnerID,
+			err:     nil,
+		},
+		"view a existing sink with wrong credentials": {
+			key:     sk.ID,
+			ownerID: "invalid",
+			err:     sinks.ErrNotFound,
+		},
+		"view a non-existing sink": {
+			key:     wrongID.String(),
+			ownerID: sk.MFOwnerID,
+			err:     sinks.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := service.ViewSinkInternal(context.Background(), tc.ownerID, tc.key)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
+	}
 }
 
 func testSortSinks(t *testing.T, pm sinks.PageMetadata, sks []sinks.Sink) {

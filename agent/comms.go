@@ -19,11 +19,12 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	opts := mqtt.NewClientOptions().AddBroker(config.Address).SetClientID(config.Id)
 	opts.SetUsername(config.Id)
 	opts.SetPassword(config.Key)
-	opts.SetKeepAlive(2 * time.Second)
+	opts.SetKeepAlive(10 * time.Second)
 	opts.SetDefaultPublishHandler(func(client mqtt.Client, message mqtt.Message) {
 		a.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 	})
-	opts.SetPingTimeout(1 * time.Second)
+	opts.SetPingTimeout(5 * time.Second)
+	opts.SetAutoReconnect(true)
 
 	if !a.config.OrbAgent.TLS.Verify {
 		opts.TLSConfig = &tls.Config{InsecureSkipVerify: true}
@@ -80,8 +81,8 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 	var err error
 	a.client, err = a.connect(config)
 	if err != nil {
-		a.logger.Error("connection failed", zap.Error(err))
-		return err
+		a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
+		return ErrMqttConnection
 	}
 
 	a.nameAgentRPCTopics(config.ChannelID)

@@ -2,6 +2,10 @@ import docker
 from steps import test_config
 
 
+def before_scenario(context, scenario):
+    cleanup_container()
+
+
 def after_feature(context, feature):
     cleanup_container()
     context.execute_steps('''
@@ -19,4 +23,4 @@ def cleanup_container():
     containers = docker_client.containers.list(filters={"name": test_config.LOCAL_AGENT_CONTAINER_NAME})
     if len(containers) == 1:
         containers[0].stop()
-        containers[0].remove(force=True)
+        containers[0].remove()

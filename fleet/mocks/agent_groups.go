@@ -10,6 +10,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/errors"
+	"reflect"
 )
 
 var _ fleet.AgentGroupRepository = (*agentGroupRepositoryMock)(nil)
@@ -44,7 +45,13 @@ func (a *agentGroupRepositoryMock) Save(ctx context.Context, group fleet.AgentGr
 }
 
 func (a *agentGroupRepositoryMock) RetrieveAllByAgent(ctx context.Context, agent fleet.Agent) ([]fleet.AgentGroup, error) {
-	panic("implement me")
+	var agentGroups []fleet.AgentGroup
+	for _, v := range a.agentGroupMock {
+		if v.MFOwnerID == agent.MFOwnerID && (reflect.DeepEqual(v.Tags, agent.AgentTags) || reflect.DeepEqual(v.Tags, agent.OrbTags)) {
+			agentGroups = append(agentGroups, v)
+		}
+	}
+	return agentGroups, nil
 }
 
 func (a *agentGroupRepositoryMock) RetrieveByID(ctx context.Context, groupID string, ownerID string) (fleet.AgentGroup, error) {

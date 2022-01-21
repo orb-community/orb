@@ -85,7 +85,7 @@ export class AgentGroupsService {
       );
   }
 
-  getAgentGroupById(id: string): any {
+  getAgentGroupById(id: string): Observable<AgentGroup> {
     return this.http.get(`${ environment.agentGroupsUrl }/${ id }`)
       .map(
         resp => {

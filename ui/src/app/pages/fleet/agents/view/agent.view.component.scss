@@ -95,3 +95,10 @@ nb-card {
     }
   }
 }
+
+::ng-deep {
+  mark {
+    background:#1c2339!important;
+    color:#df316f!important;
+  }
+}

@@ -163,7 +163,7 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 	err = svc.addAgentsToAgentGroupChannel(token, ag)
 	if err != nil {
 		// TODO should we roll back?
-		svc.logger.Error("error adding agents to group channel", zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
+		svc.logger.Error("error adding agents to group channel", zap.String("group_id", ag.ID), zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
 	}
 
 	return ag, err
