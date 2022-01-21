@@ -48,7 +48,7 @@ func (p *prometheusBackend) CreateFeatureConfig() []backend.ConfigFeature {
 	remoteHost := backend.ConfigFeature{
 		Type:     "text",
 		Input:    "text",
-		Title:    "Remote Host",
+		Title:    "Remote Write URL",
 		Name:     "remote_host",
 		Required: true,
 	}
