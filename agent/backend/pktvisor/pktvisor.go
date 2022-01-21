@@ -146,7 +146,15 @@ func (p *pktvisorBackend) checkAlive() (bool, error) {
 	return true, nil
 }
 
-func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
+func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool) error {
+
+	if updatePolicy {
+		// To update a policy it's necessary first remove it and then apply a new version
+		err := p.RemovePolicy(data)
+		if err != nil {
+			p.logger.Warn("policy failed to remove", zap.String("policy_id", data.ID), zap.String("policy_name", data.Name), zap.Error(err))
+		}
+	}
 
 	p.logger.Debug("pktvisor policy apply", zap.String("policy_id", data.ID), zap.Any("data", data.Data))
 

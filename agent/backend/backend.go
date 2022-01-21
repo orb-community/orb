@@ -47,7 +47,7 @@ type Backend interface {
 	GetCapabilities() (map[string]interface{}, error)
 	GetState() (BackendState, string, error)
 
-	ApplyPolicy(data policies.PolicyData) error
+	ApplyPolicy(data policies.PolicyData, updatePolicy bool) error
 	RemovePolicy(data policies.PolicyData) error
 }
 
