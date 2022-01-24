@@ -1,79 +1,80 @@
 ## Login
 
-* Register an unregistered account
-* Check if user is not enabled to register an account previously registered
-* Register an account only with valid email address and password
-* Register an account with full name, company name, valid email address and password
-* Register an account with invalid email address
-* Register an account with invalid password
-* Check if email and password is required fields
-* Login with valid credentials
-* Login with invalid credentials
-* Request password with registered email address
-* Request password with unregistered email address
+ - [Request registration of a registered account using registered password username and company](login/request_registration_of_a_registered_account_using_registered_password_username_and_company.md)
+ - [Request registration of a registered account using registered password and username](login/request_registration_of_a_registered_account_using_registered_password_and_username.md)
+ - [Request registration of a registered account using registered password and company](login/request_registration_of_a_registered_account_using_registered_password_and_company.md)
+ - [Request registration of a registered account using registered password](login/request_registration_of_a_registered_account_using_registered_password.md)
+ - [Request registration of a registered account using unregistered password username and company](login/request_registration_of_a_registered_account_using_unregistered_password_username_and_company.md)
+ - [Request registration of a registered account using unregistered password and username](login/request_registration_of_a_registered_account_using_unregistered_password_and_username.md)
+ - [Request registration of a registered account using unregistered password and company](login/request_registration_of_a_registered_account_using_unregistered_password_and_company.md)
+ - [Request registration of a registered account using unregistered password](login/request_registration_of_a_registered_account_using_unregistered_password.md)
+ - [Request registration of an unregistered account with valid password and invalid email](login/request_registration_of_an_unregistered_account_with_valid_password_and_invalid_email.md)
+ - [Request registration of an unregistered account with valid password and valid email](login/request_registration_of_an_unregistered_account_with_valid_password_and_valid_email.md)
+ - [Request registration of an unregistered account with invalid password and valid email](login/request_registration_of_an_unregistered_account_with_invalid_password_and_valid_email.md)
+ - [Request registration of an unregistered account with invalid password and invalid email](login/request_registration_of_an_unregistered_account_with_invalid_password_and_invalid_email.md)
+ - [Check if email and password are required fields](login/check_if_email_and_password_are_required_fields.md)
+ - [Login with valid credentials](login/login_with_valid_credentials.md)
+ - [Login with invalid credentials](login/login_with_invalid_credentials.md)
+ - [Request password with registered email address](login/request_password_with_registered_email_address.md)
+ - [Request password with unregistered email address](login/request_password_with_unregistered_email_address.md)
 
 
 ## Agents
 
-* Check if total agent on agent page is correct
-* Check if regex matches
-* Create agent without tags
-* Create agent with one tag
-* Create agent with multiple tags (test whether tag removal is enabled)
-* Create agent with duplicate name
-* Provision agent before agent group (check status and last activity)
-* Provision agent after agent group
-* Provision agent before dataset
-* Provision agent after dataset
-* Test filters (name, status, tags, search)
-* Check if agent details is correctly displayed (agent name, channel ID, created on, status and tags)
-* Check if is possible to edit an agent through the details modal
-* Edit agent name
-* Edit agent tag
-* Save agent without tag
-* Insert tags in agents created without tags
-* Check if is possible cancel operations with no change
-* Stop/remove agent container (check status)
-* Remove agent (check if removal changes matching agents only on referred group)
-* Check if removal is not allowed without correct name
+- [Check if total agent on agents' page is correct](agents/check_if_total_agent_on_agents'_page_is_correct.md)
+- [Create agent without tags](agents/create_agent_without_tags.md)
+- [Create agent with one tag](agents/create_agent_with_one_tag.md)
+- [Create agent with multiple tags](agents/create_agent_with_multiple_tags.md)
+- [Create agent with invalid name (regex)](agents/create_agent_with_invalid_name_(regex).md)
+- [Create agent with duplicate name](agents/create_agent_with_duplicate_name.md)
+- [Test agent filters](agents/test_agent_filters.md)
+- [Check agent details](agents/check_agent_details.md)
+- [Edit an agent through the details modal](agents/edit_an_agent_through_the_details_modal.md)
+- [Edit agent name](agents/edit_agent_name.md)
+- [Edit agent tag](agents/edit_agent_tag.md)
+- [Save agent without tag](agents/save_agent_without_tag.md)
+- [Insert tags in agents created without tags](agents/insert_tags_in_agents_created_without_tags.md)
+- [Check if is possible cancel operations with no change](agents/check_if_is_possible_cancel_operations_with_no_change.md)
+- [Remove agent using correct name](agents/remove_agent_using_correct_name.md)
+- [Remove agent using incorrect name](agents/remove_agent_using_incorrect_name.md)
 
 ## Agent Groups
 
-* Check if total agent groups on agent groups page is correct
-* Check if regex matches
-* Create agent group with duplicate name
-* Create agent group with description
-* Create agent group without description
-* Check if user is not enabled to create group without tag
-* Create agent group with one tag (validate if only match agents are linked to group)
-* Create agent group with multiple tags (validate if only match agents are linked to group)
-* Test filters (name, description, agents, tags, search)
-* Test if is possible visualize matching agents
-* Check if agent groups details is correctly displayed (agent group name, agent group description, matches against, and tags)
-* Check if is possible to edit an agent group through the details modal
-* Check if is possible cancel operations with no change
-* Edit agent name
-* Edit agent description
-* Edit agent group tag
-* Insert/remove tags in existing agent group (check if correctly matching agents remains)
-* Remove agent group
-* Remove agent group to which an agent is linked (check container logs)
-* Check if removal is not allowed without correct name
+      
+ - [Check if total agent groups on agent groups' page is correct](agent_groups/check_if_total_agent_groups_on_agent_groups'_page_is_correct.md)
+ - [Create agent group with invalid name (regex)](agent_groups/create_agent_group_with_invalid_name_(regex).md)
+ - [Create agent group with duplicate name](agent_groups/create_agent_group_with_duplicate_name.md)
+ - [Create agent group with description](agent_groups/create_agent_group_with_description.md)
+ - [Create agent group without description](agent_groups/create_agent_group_without_description.md)
+ - [Create agent group without tag](agent_groups/create_agent_group_without_tag.md)
+ - [Create agent group with one tag](agent_groups/create_agent_group_with_one_tag.md)
+ - [Create agent group with multiple tags](agent_groups/create_agent_group_with_multiple_tags.md)
+ - [Test agent groups filters](agent_groups/test_agent_groups_filters.md)
+ - [Visualize matching agents](agent_groups/visualize_matching_agents.md)
+ - [Check agent groups details](agent_groups/check_agent_groups_details.md)
+ - [Edit an agent group through the details modal](agent_groups/edit_an_agent_group_through_the_details_modal.md)
+ - [Check if is possible cancel operations with no change](agent_groups/check_if_is_possible_cancel_operations_with_no_change.md)
+ - [Edit agent group name](agent_groups/edit_agent_group_name.md)
+ - [Edit agent group description](agent_groups/edit_agent_group_description.md)
+ - [Edit agent group tag](agent_groups/edit_agent_group_tag.md)
+ - [Remove agent group using correct name](agent_groups/remove_agent_group_using_correct_name.md)
+ - [Remove agent group using incorrect name](agent_groups/remove_agent_group_using_incorrect_name.md)
+
 
 ## Sinks
 
-* Check if total sinks on sinks page is correct
-* Check if regex matches
+* Check if total sinks on sinks' page is correct
+* Create sink with invalid name (regex)
 * Create sink with duplicate name
 * Create sink with description
 * Create sink without description
-* Check if remote host, username and password are required to create a sink
-* Check is user is allowed to create a sink without tags (create sink without tags)
-* Create sink with one tag
+* Create sink without tags
+* Create sink with tags
 * Create sink with multiple tags
-* Test filters (name, description, type, status, tags, search)
-* Check if sink details is correctly displayed (name, description, service type, remote host, username and tags)
-* Check if is possible to edit a sink through the details modal
+* Check if remote host, username and password are required to create a sink
+* Test sink filters
+* Check sink details
+* Edit a sink through the details modal
 * Edit sink name
 * Edit sink description
 * Edit sink remote host
@@ -81,14 +82,14 @@
 * Edit sink password
 * Edit sink tags
 * Check if is possible cancel operations with no change
-* Remove sink
-* Check if removal is not allowed without correct name
+* Remove sink using correct name
+* Remove sink using incorrect name
 
 ## Policies
 
-* Check if policy creation when no agent is provisioned has an alert message (backend)
-* Check if total policies on policies page is correct
-* Check if regex matches
+* Check if total policies on policies' page is correct
+* Create policy with invalid name (regex)
+* Create policy with no agent provisioned
 * Create policy with duplicate name
 * Create policy with description
 * Create policy without description
@@ -97,29 +98,29 @@
 * Create policy with net handler
 * Create policy with multiple handlers
 * Create broken policy
-* Test filters (name, description, version, last modified and search)
-* Check if policies details is correctly displayed (name, description, policy backend, version)
-* Check if is possible to edit a policy through the details modal
+* Test policy filters
+* Check policies details
+* Edit a policy through the details modal
 * Edit policy name
 * Edit policy description
 * Edit policy handler
 * Check if is possible cancel operations with no change
-* Remove policy
-* Check if removal is not allowed without correct name
+* Remove policy using correct name
+* Remove policy using incorrect name
 
 ## Datasets
 
-* Check if total datasets on datasets page is correct
-* Check if regex matches
-* Create dataset (check if group, policy and sink are required)
-* Check if datasets details is correctly displayed (name, validity, group, policy and sink)
+* Check if total datasets on datasets' page is correct
+* Create dataset with invalid name (regex)
+* Create dataset
+* Check datasets details
 * Check if is possible cancel operations with no change
-* Test filter
-* Check if is possible to edit a dataset through the details modal
+* Test datasets filter
+* Edit a dataset through the details modal
 * Edit dataset name
 * Edit dataset sink
-* Remove dataset
-* Check if removal is not allowed without correct name
+* Remove dataset using correct name
+* Remove dataset using incorrect name
 
 ## Integration tests
 

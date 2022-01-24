@@ -1,18 +1,18 @@
 @integration
 Feature: Integration tests
 
-Scenario: Apply two policies to an agent
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that an agent already exists and is online
-        And referred agent is subscribed to a group
-        And that a sink already exists
-    When 2 policies are applied to the agent
-    Then this agent's heartbeat shows that 2 policies are successfully applied
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
-        And datasets related to all existing policies have validity valid
+#Scenario: Apply two policies to an agent
+#    Given the Orb user has a registered account
+#        And the Orb user logs in
+#        And that an agent already exists and is online
+#        And referred agent is subscribed to a group
+#        And that a sink already exists
+#    When 2 policies are applied to the agent
+#    Then this agent's heartbeat shows that 2 policies are successfully applied
+#        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+#        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+#        And referred sink must have active state on response within 10 seconds
+#        And datasets related to all existing policies have validity valid
 
 
 Scenario: Remove policy from agent
