@@ -77,9 +77,9 @@ type AppMetrics struct {
 }
 
 // note this needs to be stateless because it is calledfor multiple go routines
-func (p *pktvisorBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string) error {
+func (p *pktvisorBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string, timeout int32) error {
 	client := http.Client{
-		Timeout: time.Second * 5,
+		Timeout: time.Second * time.Duration(timeout),
 	}
 
 	alive, err := p.checkAlive()
@@ -146,7 +146,15 @@ func (p *pktvisorBackend) checkAlive() (bool, error) {
 	return true, nil
 }
 
-func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
+func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool) error {
+
+	if updatePolicy {
+		// To update a policy it's necessary first remove it and then apply a new version
+		err := p.RemovePolicy(data)
+		if err != nil {
+			p.logger.Warn("policy failed to remove", zap.String("policy_id", data.ID), zap.String("policy_name", data.Name), zap.Error(err))
+		}
+	}
 
 	p.logger.Debug("pktvisor policy apply", zap.String("policy_id", data.ID), zap.Any("data", data.Data))
 
@@ -166,7 +174,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 	}
 
 	var resp map[string]interface{}
-	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(pyaml), "application/x-yaml")
+	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(pyaml), "application/x-yaml", 5)
 	if err != nil {
 		p.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", pyaml))
 		return err
@@ -178,7 +186,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 
 func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	var resp interface{}
-	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, nil, "")
+	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, nil, "", 10)
 	if err != nil {
 		return err
 	}
@@ -187,7 +195,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 
 func (p *pktvisorBackend) Version() (string, error) {
 	var appMetrics AppMetrics
-	err := p.request("metrics/app", &appMetrics, http.MethodGet, nil, "")
+	err := p.request("metrics/app", &appMetrics, http.MethodGet, nil, "", 5)
 	if err != nil {
 		return "", err
 	}
@@ -418,7 +426,7 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 
 func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, error) {
 	var metrics map[string]interface{}
-	err := p.request(fmt.Sprintf("policies/__all/metrics/bucket/%d", period), &metrics, http.MethodGet, nil, "")
+	err := p.request(fmt.Sprintf("policies/__all/metrics/bucket/%d", period), &metrics, http.MethodGet, nil, "", 5)
 	if err != nil {
 		return nil, err
 	}
@@ -427,7 +435,7 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 
 func (p *pktvisorBackend) GetCapabilities() (map[string]interface{}, error) {
 	var taps interface{}
-	err := p.request("taps", &taps, http.MethodGet, nil, "")
+	err := p.request("taps", &taps, http.MethodGet, nil, "", 5)
 	if err != nil {
 		return nil, err
 	}

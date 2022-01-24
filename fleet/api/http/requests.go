@@ -116,9 +116,6 @@ func (req updateAgentReq) validate() error {
 	if req.Name == "" {
 		return errors.ErrMalformedEntity
 	}
-	if len(req.Tags) == 0 {
-		return errors.ErrMalformedEntity
-	}
 
 	_, err := types.NewIdentifier(req.Name)
 	if err != nil {
