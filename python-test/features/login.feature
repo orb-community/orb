@@ -7,11 +7,9 @@
       Examples:
         |  password_status  | username | company |
         |      registered   |  Tester  |    NS1  |
-        |      registered   |  Tester  |    NS1  |
         |      registered   |   None   |    None |
         |      registered   |  Tester  |    None |
         |      registered   |   None   |    NS1  |
-        |    unregistered   |  Tester  |    NS1  |
         |    unregistered   |  Tester  |    NS1  |
         |    unregistered   |   None   |    None |
         |    unregistered   |  Tester  |    None |
