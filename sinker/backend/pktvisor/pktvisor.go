@@ -11,6 +11,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/fleet/pb"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/sinker/backend"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	"go.uber.org/zap"
@@ -81,6 +82,7 @@ func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
 	convertToPromParticle(ctxt, statsMap, "", &tsList)
+	fmt.Print(tsList)
 	return tsList
 }
 
@@ -128,7 +130,7 @@ func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label
 							}
 						}
 					}
-					tsList = makePromParticle(ctxt, label, promLabel, promDataPoint, tsList, false, key)
+					tsList = makePromParticle(ctxt, label+key, promLabel, promDataPoint, tsList, false, key)
 				}
 			}
 		}
@@ -146,21 +148,27 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 	var labelsListFlag labelList
 	if err := labelsListFlag.Set(fmt.Sprintf("__name__;%s", camelToSnake(label))); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	if err := labelsListFlag.Set("instance;" + ctxt.agent.AgentName); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	if err := labelsListFlag.Set("agent_id;" + ctxt.agentID); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	if err := labelsListFlag.Set("agent;" + ctxt.agent.AgentName); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	if err := labelsListFlag.Set("policy_id;" + ctxt.policyID); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	if err := labelsListFlag.Set("policy;" + ctxt.policyName); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 
 	if k != "" {
@@ -168,16 +176,24 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 			if value, ok := mapQuantiles[k]; ok {
 				if err := labelsListFlag.Set(fmt.Sprintf("quantile;%.2f", value)); err != nil {
 					handleParticleError(ctxt, err)
+					return tsList
 				}
 			}
 		} else {
-			if err := labelsListFlag.Set(fmt.Sprintf("%s;%s", name, k)); err != nil {
+			parsedName, err := topNMetricsParser(name)
+			if err != nil {
+				ctxt.logger.Error("failed to parse Top N metric", zap.Error(err))
+				return tsList
+			}
+			if err := labelsListFlag.Set(fmt.Sprintf("%s;%s", parsedName, k)); err != nil {
 				handleParticleError(ctxt, err)
+				return tsList
 			}
 		}
 	}
 	if err := dpFlag.Set(fmt.Sprintf("now,%d", v)); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	*tsList = append(*tsList, prometheus.TimeSeries{
 		Labels:    labelsListFlag,
@@ -208,6 +224,28 @@ func camelToSnake(s string) string {
 	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
 	lower := strings.ToLower(snake)
 	return lower + strExcept
+}
+
+func topNMetricsParser(label string) (string, error) {
+	mapNMetrics := make(map[string]string)
+	mapNMetrics["TopGeoLoc"] = "geo_loc"
+	mapNMetrics["TopASN"] = "ans"
+	mapNMetrics["TopIpv6"] = "ipv6"
+	mapNMetrics["TopIpv4"] = "ipv4"
+	mapNMetrics["TopQname2"] = "qname"
+	mapNMetrics["TopQname3"] = "qname"
+	mapNMetrics["TopNxdomain"] = "qname"
+	mapNMetrics["TopQtype"] = "qname"
+	mapNMetrics["TopRcode"] = "rcode"
+	mapNMetrics["TopREFUSED"] = "qname"
+	mapNMetrics["TopSRVFAIL"] = "qname"
+	mapNMetrics["TopUDPPorts"] = "port"
+	mapNMetrics["TopSlow"] = "qname"
+	if value, ok := mapNMetrics[label]; ok {
+		return value, nil
+	} else {
+		return "", errors.New(fmt.Sprintf("top N metric not mapped for parse:  %s", label))
+	}
 }
 
 func Register(logger *zap.Logger) bool {
