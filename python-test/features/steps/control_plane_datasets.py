@@ -72,6 +72,15 @@ def check_dataset_status_valid(context):
                                                           f"equals {dataset['valid']}")
 
 
+@step('dataset related have validity {validity}')
+def check_dataset_status_valid(context, validity):
+    assert_that(validity, any_of(equal_to('invalid'), equal_to('valid')))
+    validity_bool = {"invalid": False, "valid": True}
+    dataset = get_dataset(context.token, context.dataset['id'])
+    assert_that(dataset['valid'], equal_to(validity_bool[validity]), f"dataset {dataset['id']} status failed with "
+                                                                     f"valid equals {dataset['valid']}")
+
+
 def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
     """
 

@@ -1,8 +1,8 @@
 from test_config import TestConfig
 from local_agent import run_local_agent_container
 from users import get_auth_token
-from utils import random_string, filter_list_by_parameter_start_with
-from behave import given, when, then
+from utils import random_string, filter_list_by_parameter_start_with, generate_name_and_tag, tag_key_prefix, tag_value_prefix
+from behave import given, when, then, step
 from hamcrest import *
 import requests
 
@@ -13,8 +13,17 @@ base_orb_url = configs.get('base_orb_url')
 
 
 @when("an Agent Group is created with same tag as the agent")
-def creat_agent_group(context):
+def create_agent_group_matching_agent(context):
     agent_group_name = agent_group_name_prefix + random_string()
+    context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
+                                                  context.agent_tag_key, context.agent_tag_value)
+
+
+@step("an Agent Group is created")
+def create_new_agent_group(context):
+    agent_group_name, context.agent_tag_key, context.agent_tag_value = generate_name_and_tag(agent_group_name_prefix,
+                                                                                             tag_key_prefix,
+                                                                                             tag_value_prefix)
     context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
                                                   context.agent_tag_key, context.agent_tag_value)
 

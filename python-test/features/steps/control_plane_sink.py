@@ -37,6 +37,20 @@ def create_sink(context):
     context.sink = create_new_sink(token, sink_label_name, endpoint, username, password)
 
 
+@step("that a sink with invalid {credential} already exists")
+def create_invalid_sink(context, credential):
+    assert_that(credential, any_of(equal_to('endpoint'), equal_to('username'), equal_to('password')),
+                "Invalid prometheus field")
+    check_prometheus_grafana_credentials(context)
+    sink_label_name = sink_label_name_prefix + random_string(10)
+    token = context.token
+    prometheus_credentials = {'endpoint': context.remote_prometheus_endpoint, 'username': context.prometheus_username,
+                              'password': context.prometheus_key}
+    prometheus_credentials[credential] = prometheus_credentials[credential][:-1]
+    context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
+                                   prometheus_credentials['username'], prometheus_credentials['password'])
+
+
 @step("referred sink must have {status} state on response within {time_to_wait} seconds")
 def check_sink_status(context, status, time_to_wait):
     time_waiting = 0
