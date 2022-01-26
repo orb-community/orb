@@ -137,11 +137,11 @@ func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label
 }
 
 func makePromParticle(ctxt *context, label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool, name string) *prometheus.TSList {
-	mapQuantiles := make(map[string]float64)
-	mapQuantiles["P50"] = 0.5
-	mapQuantiles["P90"] = 0.9
-	mapQuantiles["P95"] = 0.95
-	mapQuantiles["P99"] = 0.99
+	mapQuantiles := make(map[string]string)
+	mapQuantiles["P50"] = "0.5"
+	mapQuantiles["P90"] = "0.9"
+	mapQuantiles["P95"] = "0.95"
+	mapQuantiles["P99"] = "0.99"
 
 	var dpFlag dp
 	var labelsListFlag labelList
@@ -173,7 +173,7 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 	if k != "" {
 		if quantile {
 			if value, ok := mapQuantiles[k]; ok {
-				if err := labelsListFlag.Set(fmt.Sprintf("quantile;%.2f", value)); err != nil {
+				if err := labelsListFlag.Set(fmt.Sprintf("quantile;%s", value)); err != nil {
 					handleParticleError(ctxt, err)
 					return tsList
 				}
@@ -181,8 +181,8 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 		} else {
 			parsedName, err := topNMetricsParser(name)
 			if err != nil {
-				ctxt.logger.Error("failed to parse Top N metric", zap.Error(err))
-				return tsList
+				ctxt.logger.Error("failed to parse Top N metric, default value it'll be used", zap.Error(err))
+				parsedName = "name"
 			}
 			if err := labelsListFlag.Set(fmt.Sprintf("%s;%s", parsedName, k)); err != nil {
 				handleParticleError(ctxt, err)
@@ -228,13 +228,13 @@ func camelToSnake(s string) string {
 func topNMetricsParser(label string) (string, error) {
 	mapNMetrics := make(map[string]string)
 	mapNMetrics["TopGeoLoc"] = "geo_loc"
-	mapNMetrics["TopASN"] = "ans"
+	mapNMetrics["TopASN"] = "asn"
 	mapNMetrics["TopIpv6"] = "ipv6"
 	mapNMetrics["TopIpv4"] = "ipv4"
 	mapNMetrics["TopQname2"] = "qname"
 	mapNMetrics["TopQname3"] = "qname"
 	mapNMetrics["TopNxdomain"] = "qname"
-	mapNMetrics["TopQtype"] = "qname"
+	mapNMetrics["TopQtype"] = "qtype"
 	mapNMetrics["TopRcode"] = "rcode"
 	mapNMetrics["TopREFUSED"] = "qname"
 	mapNMetrics["TopSRVFAIL"] = "qname"
