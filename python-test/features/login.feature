@@ -1,7 +1,7 @@
 @login
   Feature: login tests
 
-    Scenario Outline: Request registration of a registered email using <password_status> password
+  Scenario Outline: Request registration of a registered email using <password_status> password
       Given there is a registered account
       When request referred account registration using registered email, <password_status> password, <username> user name and <company> company name
       Examples:
@@ -24,4 +24,33 @@
         | incorrect   | incorrect         |
         | incorrect   | correct         |
         | correct   | incorrect         |
+      Then user should not be able to authenticate
+
+  Scenario Outline: Check if email is a required field
+      When user request account registration <email> email, <password> password, <username> user name and <company> company name
+      Examples:
+        |    email   | password | username | company |
+        |   without  |    with  |   with   |   with  |
+        |   without  |    with  |   with   | without |
+        |   without  |    with  | without  | without |
+        |   without  |    with  | without  |   with  |
+        |   without  | without  | without  |   with  |
+        |   without  | without  | without  | without |
+        |   without  | without  |   with   |   with  |
+        |   without  | without  |   with   | without |
+      Then user should not be able to authenticate
+
+
+  Scenario Outline: Check if password is a required field
+      When user request account registration <email> email, <password> password, <username> user name and <company> company name
+      Examples:
+        |  password  |   email  | username | company |
+        |   without  |   with   |   with   |   with  |
+        |   without  |   with   |   with   | without |
+        |   without  |   with   | without  | without |
+        |   without  |   with   | without  |   with  |
+        |   without  | without  | without  |   with  |
+        |   without  | without  | without  | without |
+        |   without  | without  |   with   |   with  |
+        |   without  | without  |   with   | without |
       Then user should not be able to authenticate

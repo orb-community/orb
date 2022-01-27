@@ -62,6 +62,14 @@ def clean_agents(context):
     delete_agents(token, agents_filtered_list)
 
 
+@step("{amount_of_datasets} datasets are linked with each policy on agent's heartbeat")
+def multiple_dataset_for_policy(context, amount_of_datasets):
+    agent = get_agent(context.token, context.agent['id'])
+    for policy_id in context.list_agent_policies_id:
+        assert_that(len(agent['last_hb_data']['policy_state'][policy_id]['datasets']), equal_to(int(amount_of_datasets)),
+                    f"Amount of datasets linked with policy {policy_id} failed")
+
+
 @step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied")
 def list_policies_applied_to_an_agent(context, amount_of_policies):
     time_waiting = 0
@@ -79,7 +87,11 @@ def list_policies_applied_to_an_agent(context, amount_of_policies):
 
     assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)),
                 f"Amount of policies applied to this agent failed with {context.list_agent_policies_id} policies")
-    assert_that(sorted(context.list_agent_policies_id), equal_to(sorted(context.policies_created.keys())))
+    assert_that(sorted(context.list_agent_policies_id), equal_to(sorted(context.policies_created.keys())),
+                "Policies linked with the agent is not the same as the created by test process")
+    for policy_id in context.list_agent_policies_id:
+        assert_that(agent['last_hb_data']['policy_state'][policy_id]["state"], equal_to('running'),
+                    f"policy {policy_id} is not running")
 
 
 def expect_container_status(token, agent_id, status):
