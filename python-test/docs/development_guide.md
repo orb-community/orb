@@ -3,20 +3,20 @@
 |                                                            Integration Scenario                                                             | Automated via API | Automated via UI | Smoke | Sanity | 
 |:-------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------:|:----------------:|:-----:|:------:|
 |                     [Check if sink is active while scraping metrics](integration/sink_active_while_scraping_metrics.md)                     |         ✅         |                  |  👍   |   👍   |
-|                   [Check if sink with invalid credentials becomes active](integration/sink_error_invalid_credentials.md)                    |                   |                  |       |        |
+|                   [Check if sink with invalid credentials becomes active](integration/sink_error_invalid_credentials.md)                    |         ✅         |                  |  👍   |   👍   |
 |                       [Check if after 30 minutes without data sink becomes idle](integration/sink_idle_30_minutes.md)                       |                   |                  |       |        |
 |            [Provision agent before group (check if agent subscribes to the group)](integration/provision_agent_before_group.md)             |         ✅         |                  |  👍   |   👍   |
-|             [Provision agent after group (check if agent subscribes to the group)](integration/provision_agent_after_group.md)              |                   |                  |  👍   |   👍   |
-|     [Provision agent with tag matching existing group linked to a valid dataset](integration/multiple_agents_subscribed_to_a_group.md)      |                   |                  |  👍   |   👍   |
+|             [Provision agent after group (check if agent subscribes to the group)](integration/provision_agent_after_group.md)              |         ✅         |                  |  👍   |   👍   |
+|     [Provision agent with tag matching existing group linked to a valid dataset](integration/multiple_agents_subscribed_to_a_group.md)      |         ✅         |                  |  👍   |   👍   |
 |                                [Apply multiple policies to a group](integration/apply_multiple_policies.md)                                 |         ✅         |                  |  👍   |   👍   |
 |                 [Apply multiple policies to a group and remove one policy](integration/remove_one_of_multiple_policies.md)                  |         ✅         |                  |  👍   |   👍   |
 |                       [Apply multiple policies to a group and remove all of them](integration/remove_all_policies.md)                       |                   |                  |       |        |
 |                 [Apply multiple policies to a group and remove one dataset](integration/remove_one_of_multiple_datasets.md)                 |         ✅         |                  |  👍   |   👍   |
 |                      [Apply multiple policies to a group and remove all datasets](integration/remove_all_datasets.md)                       |                   |                  |       |        |
-|                                [Apply the same policy twice to the agent](integration/apply_policy_twice.md)                                |                   |                  |       |        |
+|                                [Apply the same policy twice to the agent](integration/apply_policy_twice.md)                                |         ✅         |                  |  👍   |   👍   |
 |        [Delete sink linked to a dataset, create another one and edit dataset using new sink](integration/change_sink_on_dataset.md)         |                   |                  |       |        |
 | [Remove one of multiples datasets that apply the same policy to the agent](integration/remove_one_dataset_of_multiples_with_same_policy.md) |                   |                  |       |        |
-|                                  [Remove group (invalid dataset, agent logs)](integration/remove_group.md)                                  |                   |                  |  👍   |   👍   |
+|                                  [Remove group (invalid dataset, agent logs)](integration/remove_group.md)                                  |         ✅         |                  |  👍   |   👍   |
 |                                   [Remove sink (invalid dataset, agent logs)](integration/remove_sink.md)                                   |                   |                  |  👍   |   👍   |
 |                           [Remove policy (invalid dataset, agent logs, heartbeat)](integration/remove_policy.md)                            |         ✅         |                  |  👍   |   👍   |
 |                                [Remove dataset (check agent logs, heartbeat)](integration/remove_dataset.md)                                |         ✅         |                  |  👍   |   👍   |
@@ -42,9 +42,9 @@
 |           [Request registration of an unregistered account with valid password and valid email](login/request_registration_of_an_unregistered_account_with_valid_password_and_valid_email.md)           |         ✅         |                  |  👍   |   👍   |
 |         [Request registration of an unregistered account with invalid password and valid email](login/request_registration_of_an_unregistered_account_with_invalid_password_and_valid_email.md)         |         ✅         |                  |  👍   |   👍   |
 |       [Request registration of an unregistered account with invalid password and invalid email](login/request_registration_of_an_unregistered_account_with_invalid_password_and_invalid_email.md)       |         ✅         |                  |  👍   |   👍   |
-|                                               [Check if email and password are required fields](login/check_if_email_and_password_are_required_fields.md)                                               |                   |                  |  👍   |   👍   |
+|                                               [Check if email and password are required fields](login/check_if_email_and_password_are_required_fields.md)                                               |         ✅         |                  |  👍   |   👍   |
 |                                                                  [Login with valid credentials](login/login_with_valid_credentials.md)                                                                  |         ✅         |        ✅         |  👍   |   👍   |
-|                                                                [Login with invalid credentials](login/login_with_invalid_credentials.md)                                                                |                   |                  |  👍   |   👍   |
+|                                                                [Login with invalid credentials](login/login_with_invalid_credentials.md)                                                                |         ✅          |                  |  👍   |   👍   |
 |                                                [Request password with registered email address](login/request_password_with_registered_email_address.md)                                                |                   |                  |  👍   |   👍   |
 |                                              [Request password with unregistered email address](login/request_password_with_unregistered_email_address.md)                                              |                   |                  |       |   👍   |
 
@@ -54,7 +54,7 @@
 
 |                                                     Agents Scenario                                                      | Automated via API | Automated via UI | Smoke | Sanity | 
 |:------------------------------------------------------------------------------------------------------------------------:|:-----------------:|:----------------:|:-----:|:------:|
-|       [Check if total agent on agents' page is correct](agents/check_if_total_agent_on_agents'_page_is_correct.md)       |                   |                  |       |   👍   |
+|       [Check if total agent on agents' page is correct](agents/check_if_total_agent_on_agents'_page_is_correct.md)       |                   |                  |       |        |
 |                             [Create agent without tags](agents/create_agent_without_tags.md)                             |                   |                  |       |   👍   |
 |                             [Create agent with one tag](agents/create_agent_with_one_tag.md)                             |         ✅         |        ✅         |  👍   |   👍   |
 |                       [Create agent with multiple tags](agents/create_agent_with_multiple_tags.md)                       |                   |                  |       |   👍   |
@@ -77,7 +77,7 @@
 
 |                                                             Agent Group Scenario                                                             | Automated via API | Automated via UI | Smoke | Sanity | 
 |:--------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------:|:----------------:|:-----:|:------:|
-| [Check if total agent groups on agent groups' page is correct](agent_groups/check_if_total_agent_groups_on_agent_groups'_page_is_correct.md) |                   |                  |       |   👍   |
+| [Check if total agent groups on agent groups' page is correct](agent_groups/check_if_total_agent_groups_on_agent_groups'_page_is_correct.md) |                   |                  |       |        |
 |                 [Create agent group with invalid name (regex)](agent_groups/create_agent_group_with_invalid_name_(regex).md)                 |                   |                  |       |   👍   |
 |                       [Create agent group with duplicate name](agent_groups/create_agent_group_with_duplicate_name.md)                       |                   |                  |       |   👍   |
 |                          [Create agent group with description](agent_groups/create_agent_group_with_description.md)                          |         ✅         |                  |  👍   |   👍   |
@@ -103,7 +103,7 @@
 
 |                                                                          Sink Scenario                                                                          | Automated via API | Automated via UI | Smoke | Sanity | 
 |:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------:|:----------------:|:-----:|:------:|
-|                            [Check if total sinks on sinks' page is correct](sinks/check_if_total_sinks_on_sinks'_page_is_correct.md)                            |                   |                  |       |   👍   |                                                   
+|                            [Check if total sinks on sinks' page is correct](sinks/check_if_total_sinks_on_sinks'_page_is_correct.md)                            |                   |                  |       |        |                                                   
 |                                     [Create sink with invalid name (regex)](sinks/create_sink_with_invalid_name_(regex).md)                                     |                   |                  |       |   👍   |                                                                     
 |                                           [Create sink with duplicate name](sinks/create_sink_with_duplicate_name.md)                                           |                   |                  |       |   👍   |                                                                                 
 |                                              [Create sink with description](sinks/create_sink_with_description.md)                                              |         ✅         |                  |  👍   |   👍   |                                                                                          
@@ -132,7 +132,7 @@
 
 |                                                     Policies Scenario                                                      | Automated via API | Automated via UI | Smoke | Sanity | 
 |:--------------------------------------------------------------------------------------------------------------------------:|:-----------------:|:----------------:|:-----:|:------:|
-|  [Check if total policies on policies' page is correct](policies/check_if_total_policies_on_policies'_page_is_correct.md)  |                   |                  |       |   👍   | 
+|  [Check if total policies on policies' page is correct](policies/check_if_total_policies_on_policies'_page_is_correct.md)  |                   |                  |       |        | 
 |               [Create policy with invalid name (regex)](policies/create_policy_with_invalid_name_(regex).md)               |                   |                  |       |   👍   |                           
 |               [Create policy with no agent provisioned](policies/create_policy_with_no_agent_provisioned.md)               |                   |                  |       |   👍   |                            
 |                     [Create policy with duplicate name](policies/create_policy_with_duplicate_name.md)                     |                   |                  |       |   👍   |                                       
@@ -160,9 +160,9 @@
 |                                                     Datasets Scenario                                                      | Automated via API | Automated via UI | Smoke | Sanity | 
 |:--------------------------------------------------------------------------------------------------------------------------:|:-----------------:|:----------------:|:-----:|:------:|
 |  [Check if total datasets on datasets' page is correct](datasets/check_if_total_datasets_on_datasets'_page_is_correct.md)  |                   |                  |       |        |   
-|              [Create dataset with invalid name (regex)](datasets/create_dataset_with_invalid_name_(regex).md)              |                   |                  |       |        |                           
+|              [Create dataset with invalid name (regex)](datasets/create_dataset_with_invalid_name_(regex).md)              |                   |                  |       |   👍   |                           
 |                                        [Create dataset](datasets/create_dataset.md)                                        |         ✅         |                  |  👍   |   👍   |                                                                               
-|                                [Check datasets details](datasets/check_datasets_details.md)                                |                   |                  |       |        |                                                               
+|                                [Check datasets details](datasets/check_datasets_details.md)                                |                   |                  |       |   👍   |                                                               
 | [Check if is possible cancel operations with no change](datasets/check_if_is_possible_cancel_operations_with_no_change.md) |                   |                  |       |        | 
 |                                  [Test datasets filter](datasets/test_datasets_filter.md)                                  |                   |                  |       |        |                                                                   
 |              [Edit a dataset through the details modal](datasets/edit_a_dataset_through_the_details_modal.md)              |                   |                  |       |        |                           
