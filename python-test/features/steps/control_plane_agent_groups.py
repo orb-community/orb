@@ -36,6 +36,12 @@ def matching_agent(context):
     assert_that(matching_online_agents, equal_to(1))
 
 
+@step("the group to which the agent is linked is removed")
+def remove_group(context):
+    delete_agent_group(context.token, context.agent_group_data['id'])
+
+
+
 @then('cleanup agent group')
 def clean_agent_groups(context):
     """

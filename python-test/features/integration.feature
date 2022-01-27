@@ -15,7 +15,35 @@ Scenario: Apply two policies to an agent
         And datasets related to all existing policies have validity valid
 
 
-Scenario: Remove policy from agent
+Scenario: apply one policy using multiple datasets to the same group
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent already exists and is online
+        And referred agent is subscribed to a group
+        And that a sink already exists
+    When 2 policies are applied to the group by 3 datasets each
+    Then this agent's heartbeat shows that 2 policies are successfully applied
+        And 3 datasets are linked with each policy on agent's heartbeat
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 10 seconds
+        And datasets related to all existing policies have validity valid
+
+
+Scenario: Remove group to which agent is linked
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent already exists and is online
+        And referred agent is subscribed to a group
+        And that a sink already exists
+        And 1 policies are applied to the group
+        And this agent's heartbeat shows that 1 policies are successfully applied
+    When the group to which the agent is linked is removed
+    Then the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
+        And dataset related have validity invalid
+
+
+    Scenario: Remove policy from agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent already exists and is online
@@ -63,6 +91,7 @@ Scenario: Remove dataset from agent with more than one dataset linked
         And container logs should inform that removed policy was stopped and removed within 10 seconds
         And the container logs that were output after removing dataset contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And the container logs that were output after removing dataset does not contain the message "scraped metrics for policy" referred to deleted policy anymore
+
 
 Scenario: Provision agent with tags matching an existent group
     Given the Orb user has a registered account
@@ -117,6 +146,7 @@ Scenario: Sink with invalid username
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 10 seconds
         And dataset related have validity invalid
+
 
 Scenario: Sink with invalid password
     Given the Orb user has a registered account

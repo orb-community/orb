@@ -146,6 +146,15 @@ def apply_n_policies(context, amount_of_policies):
         create_new_dataset(context)
 
 
+@step('{amount_of_policies} policies are applied to the group by {amount_of_datasets} datasets each')
+def apply_n_policies_x_times(context, amount_of_policies, amount_of_datasets):
+    for n in range(int(amount_of_policies)):
+        create_new_policy(context)
+        check_policies(context)
+        for x in range(int(amount_of_datasets)):
+            create_new_dataset(context)
+
+
 def create_policy(token, policy_name, handler_label, handler, description=None, tap="default_pcap",
                   input_type="pcap", host_specification=None, filter_expression=None, backend_type="pktvisor"):
     """
