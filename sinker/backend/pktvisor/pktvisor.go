@@ -74,7 +74,7 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data
 				continue
 			}
 		} else if data, ok := handlerData["dhcp"]; ok {
-			err := mapstructure.Decode(data, &stats.DHCP)
+		 	err := mapstructure.Decode(data, &stats.DHCP)
 			if err != nil {
 				p.logger.Error("error decoding dhcp handler", zap.Error(err))
 				continue

@@ -20,13 +20,13 @@ func TestDHCPConversion(t *testing.T) {
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
-	require.NoError(t, err, "failed to generate owner id")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	policyID, err := uuid.NewV4()
-	require.NoError(t, err, "failed to generate policy id")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	agentID, err := uuid.NewV4()
-	require.NoError(t, err, "failed to generate agentID")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
@@ -96,9 +96,12 @@ func TestDHCPConversion(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			data.Data = c.data
 			res, err := be.ProcessMetrics(agent, agentID.String(), data)
-			require.NoError(t, err, "failed to process metrics")
-			assert.True(t, reflect.DeepEqual(c.expected.Labels, res[0].Labels), fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, res[0].Labels))
-			assert.Equal(t, c.expected.Datapoint.Value, res[0].Datapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, res[0].Datapoint.Value))
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			assert.Len(t, res, 1, fmt.Sprintf("%s: expected a non-empty result", desc))
+			if len(res) > 0 {
+				assert.True(t, reflect.DeepEqual(c.expected.Labels, res[0].Labels), fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, res[0].Labels))
+				assert.Equal(t, c.expected.Datapoint.Value, res[0].Datapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, res[0].Datapoint.Value))
+			}
 		})
 	}
 
