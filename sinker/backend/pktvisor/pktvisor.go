@@ -73,6 +73,12 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data
 				p.logger.Error("error decoding packets handler", zap.Error(err))
 				continue
 			}
+		} else if data, ok := handlerData["dhcp"]; ok {
+			err := mapstructure.Decode(data, &stats.DHCP)
+			if err != nil {
+				p.logger.Error("error decoding dhcp handler", zap.Error(err))
+				continue
+			}
 		}
 	}
 	return parseToProm(&context, stats), nil
@@ -192,6 +198,9 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 	}
 	if err := dpFlag.Set(fmt.Sprintf("now,%d", v)); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
+	}
+	if dpFlag.Value == 0 {
 		return tsList
 	}
 	*tsList = append(*tsList, prometheus.TimeSeries{
