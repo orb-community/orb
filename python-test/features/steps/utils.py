@@ -2,6 +2,9 @@ import random
 import string
 from json import loads, JSONDecodeError
 
+tag_key_prefix = "test_tag_key_"
+tag_value_prefix = "test_tag_value_"
+
 
 def random_string(k=10):
     """
@@ -49,3 +52,16 @@ def insert_str(str_base, str_to_insert, index):
     :return: (str) string with letter inserted on determined index
     """
     return str_base[:index] + str_to_insert + str_base[index:]
+
+
+def generate_name_and_tag(name_prefix, tag_key_prefix, tag_value_prefix):
+    """
+    :param (str) name_prefix: prefix to identify object created by tests
+    :param (str) tag_key_prefix: prefix to identify tag_key created by tests
+    :param (str) tag_value_prefix: prefix to identify tag_value created by tests
+    :return: random name, tag_key and tag_value
+    """
+    name = name_prefix + random_string(10)
+    tag_key = tag_key_prefix + random_string(4)
+    tag_value = tag_value_prefix + random_string(4)
+    return name, tag_key, tag_value
