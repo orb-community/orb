@@ -78,6 +78,7 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			SchemaVersion: policy.SchemaVersion,
 			Policy:        policy.Policy,
 			Version:       policy.Version,
+			LastModified:  policy.LastModified,
 		}
 		return res, nil
 	}

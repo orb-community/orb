@@ -21,6 +21,7 @@ type Policy struct {
 	OrbTags       types.Tags
 	Policy        types.Metadata
 	Created       time.Time
+	LastModified  time.Time
 }
 
 type Dataset struct {

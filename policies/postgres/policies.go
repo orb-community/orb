@@ -52,7 +52,7 @@ func (r policiesRepository) DeletePolicy(ctx context.Context, ownerID string, po
 }
 
 func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, plcy policies.Policy) error {
-	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy, version = :version WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy, version = :version, ts_last_modified = CURRENT_TIMESTAMP WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 	plcyDB, err := toDBPolicy(plcy)
 	if err != nil {
 		return errors.Wrap(policies.ErrUpdateEntity, err)
@@ -93,7 +93,7 @@ func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm po
 		return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	q := fmt.Sprintf(`SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created 
+	q := fmt.Sprintf(`SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, ts_last_modified 
 			FROM agent_policies
 			WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, orderQuery, dirQuery)
 
@@ -182,7 +182,8 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 }
 
 func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
+	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, ts_last_modified 
+			FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
 
 	if policyID == "" || ownerID == "" {
 		return policies.Policy{}, errors.ErrMalformedEntity
@@ -515,6 +516,7 @@ type dbPolicy struct {
 	Version       int32            `db:"version"`
 	Created       time.Time        `db:"ts_created"`
 	DataSetID     string           `db:"dataset_id"`
+	LastModified  time.Time        `db:"ts_last_modified"`
 }
 
 func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
@@ -605,6 +607,7 @@ func toPolicy(dba dbPolicy) policies.Policy {
 		OrbTags:       types.Tags(dba.OrbTags),
 		Policy:        types.Metadata(dba.Policy),
 		Created:       dba.Created,
+		LastModified:  dba.LastModified,
 	}
 
 	return policy
