@@ -18,6 +18,20 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
+func (l loggingMiddleware) ResetAgent(ct context.Context, token string, agentID string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: reset_agent",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: reset_agent",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ResetAgent(ct, token, agentID)
+}
+
 func (l loggingMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (_ fleet.Agent, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

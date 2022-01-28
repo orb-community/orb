@@ -141,15 +141,20 @@ func (a *orbAgent) Stop() {
 }
 
 func (a *orbAgent) Restart() {
-	for _, be := range a.backends {
+	a.logger.Info("restarting all backends")
+	for name, be := range a.backends {
+		a.logger.Info("removing policies", zap.String("backend", name))
 		if err := a.policyManager.RemoveBackendPolicies(be); err != nil {
-			a.logger.Error("backend error while removing policies", zap.Error(err))
+			a.logger.Error("failed to remove policies", zap.String("backend", name), zap.Error(err))
 		}
+		a.logger.Info("resetting backend", zap.String("backend",name))
 		if err := be.FullReset(); err != nil {
-			a.logger.Error("backend error while resetting", zap.Error(err))
+			a.logger.Error("failed to reset backend", zap.String("backend", name), zap.Error(err))
 		}
+		a.logger.Info("reapplying policies", zap.String("backend", name))
 		if err := a.policyManager.ApplyBackendPolicies(be); err != nil {
-			a.logger.Error("backend error while reapplying policies", zap.Error(err))
+			a.logger.Error("failed to reapply policies", zap.String("backend", name), zap.Error(err))
 		}
 	}
+	a.logger.Info("all backends were restarted")
 }
