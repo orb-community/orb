@@ -18,6 +18,10 @@ export class AdvancedOptionsPipe implements PipeTransform {
       return items;
     }
 
-    return items.filter(item => item.value?.props?.advanced === filter);
+    return items.filter(item => {
+      return (!!item.value?.props?.advanced && item.value.props.advanced === filter)
+      || (filter === false && !item.value?.props?.advanced);
+    });
+
   }
 }
