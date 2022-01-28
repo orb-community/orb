@@ -53,6 +53,7 @@ func (a agentRepositoryMock) Save(ctx context.Context, agent fleet.Agent) error 
 		}
 	}
 	a.agentsMock[agent.MFThingID] = agent
+	a.counter++
 	return nil
 }
 

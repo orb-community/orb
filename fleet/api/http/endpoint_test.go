@@ -130,7 +130,7 @@ func newThingsServer(svc things.Service) *httptest.Server {
 func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	agentGroupRepo := flmocks.NewAgentGroupRepository()
 	agentRepo := flmocks.NewAgentRepositoryMock()
-	agentComms := flmocks.NewFleetCommService()
+	agentComms := flmocks.NewFleetCommService(agentRepo, agentGroupRepo)
 	logger, _ := zap.NewDevelopment()
 	config := mfsdk.Config{
 		BaseURL: url,
@@ -155,8 +155,8 @@ func TestCreateAgentGroup(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()
 
-	var missingTagsJson         = "{\n	\"name\": \"group\", \n	\"tags\": {}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
-	var invalidNameJson         = "{\n	\"name\": \"g\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	var missingTagsJson = "{\n	\"name\": \"group\", \n	\"tags\": {}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
+	var invalidNameJson = "{\n	\"name\": \"g\", \n	\"tags\": {\n		\"region\": \"eu\", \n		\"node_type\": \"dns\"\n	}, \n	\"description\": \"An example agent group representing european dns nodes\", \n	\"validate_only\": false \n}"
 
 	// Conflict scenario
 	createAgentGroup(t, "eu-agents-conflict", &cli)
@@ -808,11 +808,11 @@ func TestViewAgent(t *testing.T) {
 func TestListAgent(t *testing.T) {
 	cli := newClientServer(t)
 
-	var data []viewAgentRes
+	var data []agentRes
 	for i := 0; i < limit; i++ {
 		ag, err := createAgent(t, fmt.Sprintf("my-agent-%d", i), &cli)
 		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-		data = append(data, viewAgentRes{
+		data = append(data, agentRes{
 			ID:            ag.MFThingID,
 			Name:          ag.Name.String(),
 			ChannelID:     ag.MFChannelID,
@@ -822,7 +822,7 @@ func TestListAgent(t *testing.T) {
 			AgentMetadata: ag.AgentMetadata,
 			State:         ag.State.String(),
 			LastHBData:    ag.LastHBData,
-			LastHB:        ag.LastHB,
+			TsLastHB:      ag.LastHB,
 		})
 	}
 
@@ -830,7 +830,7 @@ func TestListAgent(t *testing.T) {
 		auth   string
 		status int
 		url    string
-		res    []viewAgentRes
+		res    []agentRes
 		total  uint64
 	}{
 		"retrieve a list of agents": {
@@ -998,11 +998,6 @@ func TestUpdateAgent(t *testing.T) {
 		Tags: ag.OrbTags,
 	})
 
-	missingTagsData := toJSON(updateAgentReq{
-		Name: ag.Name.String(),
-		Tags: map[string]string{},
-	})
-
 	cases := map[string]struct {
 		req         string
 		id          string
@@ -1089,13 +1084,6 @@ func TestUpdateAgent(t *testing.T) {
 		},
 		"update existing agent with invalid name": {
 			req:         invalidNameData,
-			id:          ag.MFThingID,
-			contentType: contentType,
-			auth:        token,
-			status:      http.StatusBadRequest,
-		},
-		"update existing agent without tags": {
-			req:         missingTagsData,
 			id:          ag.MFThingID,
 			contentType: contentType,
 			auth:        token,
@@ -1202,7 +1190,6 @@ func TestValidateAgent(t *testing.T) {
 			status:      http.StatusBadRequest,
 			location:    "/agents/validate",
 		},
-
 	}
 
 	for desc, tc := range cases {
@@ -1583,25 +1570,26 @@ type agentGroupsPageRes struct {
 	Limit       uint64          `json:"limit"`
 	AgentGroups []agentGroupRes `json:"agentGroups"`
 }
-
-type viewAgentRes struct {
+type agentRes struct {
 	ID            string         `json:"id"`
 	Name          string         `json:"name"`
+	State         string         `json:"state"`
+	Key           string         `json:"key,omitempty"`
 	ChannelID     string         `json:"channel_id,omitempty"`
 	AgentTags     types.Tags     `json:"agent_tags"`
 	OrbTags       types.Tags     `json:"orb_tags"`
-	TsCreated     time.Time      `json:"ts_created"`
 	AgentMetadata types.Metadata `json:"agent_metadata"`
-	State         string         `json:"state"`
 	LastHBData    types.Metadata `json:"last_hb_data"`
-	LastHB        time.Time      `json:"ts_last_hb"`
+	TsCreated     time.Time      `json:"ts_created"`
+	TsLastHB      time.Time      `json:"ts_last_hb"`
+	created       bool
 }
 
 type agentsPageRes struct {
-	Total  uint64         `json:"total"`
-	Offset uint64         `json:"offset"`
-	Limit  uint64         `json:"limit"`
-	Agents []viewAgentRes `json:"agents"`
+	Total  uint64     `json:"total"`
+	Offset uint64     `json:"offset"`
+	Limit  uint64     `json:"limit"`
+	Agents []agentRes `json:"agents"`
 }
 
 type updateAgentGroupReq struct {

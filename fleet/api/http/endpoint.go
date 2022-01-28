@@ -213,7 +213,7 @@ func viewAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		res := viewAgentRes{
+		res := agentRes{
 			ID:            ag.MFThingID,
 			Name:          ag.Name.String(),
 			ChannelID:     ag.MFChannelID,
@@ -223,7 +223,7 @@ func viewAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			AgentMetadata: ag.AgentMetadata,
 			State:         ag.State.String(),
 			LastHBData:    ag.LastHBData,
-			LastHB:        ag.LastHB,
+			TsLastHB:      ag.LastHB,
 		}
 		return res, nil
 	}
@@ -250,10 +250,10 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 				Order:  page.Order,
 				Dir:    page.Dir,
 			},
-			Agents: []viewAgentRes{},
+			Agents: []agentRes{},
 		}
 		for _, ag := range page.Agents {
-			view := viewAgentRes{
+			view := agentRes{
 				ID:        ag.MFThingID,
 				Name:      ag.Name.String(),
 				ChannelID: ag.MFChannelID,
@@ -261,7 +261,7 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 				OrbTags:   ag.OrbTags,
 				TsCreated: ag.Created,
 				State:     ag.State.String(),
-				LastHB:    ag.LastHB,
+				TsLastHB:  ag.LastHB,
 			}
 			res.Agents = append(res.Agents, view)
 		}
@@ -324,7 +324,7 @@ func editAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		res := viewAgentRes{
+		res := agentRes{
 			ID:            ag.MFThingID,
 			Name:          ag.Name.String(),
 			ChannelID:     ag.MFChannelID,
@@ -334,7 +334,7 @@ func editAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			AgentMetadata: ag.AgentMetadata,
 			State:         ag.State.String(),
 			LastHBData:    ag.LastHBData,
-			LastHB:        ag.LastHB,
+			TsLastHB:      ag.LastHB,
 		}
 
 		return res, nil

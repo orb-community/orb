@@ -193,8 +193,22 @@ func TestUpdateAgent(t *testing.T) {
 	thingsServer := newThingsServer(newThingsService(users))
 	fleetService := newService(users, thingsServer.URL)
 
-	ag, err := createAgent(t, "my-agent1", fleetService)
+	validAgentName, err := types.NewIdentifier("group")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	ag, err := fleetService.CreateAgent(context.Background(), "token", fleet.Agent{
+		Name:      validAgentName,
+		AgentTags: map[string]string{"test": "true"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	validName, err := types.NewIdentifier("group")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	_, _ = fleetService.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
+		Name: validName,
+		Tags: map[string]string{"test": "true"},
+	})
 
 	wrongAgentGroup := fleet.Agent{MFThingID: wrongID}
 	cases := map[string]struct {
@@ -281,6 +295,8 @@ func TestCreateAgent(t *testing.T) {
 	nameID, err := types.NewIdentifier("eu-agents")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
+	conflictCase, err := createAgent(t, "agent", fleetService)
+
 	validAgent := fleet.Agent{
 		MFOwnerID: ownerID.String(),
 		Name:      nameID,
@@ -305,6 +321,11 @@ func TestCreateAgent(t *testing.T) {
 			agent: validAgent,
 			token: invalidToken,
 			err:   fleet.ErrUnauthorizedAccess,
+		},
+		"add a conflict agent": {
+			agent: conflictCase,
+			token: token,
+			err:   fleet.ErrConflict,
 		},
 	}
 
@@ -403,6 +424,11 @@ func TestViewAgentBackend(t *testing.T) {
 			name:  "pktvisor",
 			token: invalidToken,
 			err:   errors.ErrUnauthorizedAccess,
+		},
+		"view registered backend": {
+			name:  "pktvisor",
+			token: token,
+			err:   nil,
 		},
 	}
 
