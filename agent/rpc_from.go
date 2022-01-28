@@ -101,6 +101,7 @@ func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {
 func (a *orbAgent) handleAgentReset(payload fleet.AgentResetRPCPayload) {
 	// TODO implement logic for agent and backend reset
 	// (close all policies, restart backends, re-query core for all policies and groups, and re-apply policies)
+	a.Restart()
 }
 
 func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
