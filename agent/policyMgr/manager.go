@@ -19,6 +19,8 @@ type PolicyManager interface {
 	RemovePolicyDataset(policyID string, datasetID string, be backend.Backend)
 	GetPolicyState() ([]policies.PolicyData, error)
 	GetRepo() policies.PolicyRepo
+	ApplyBackendPolicies(be backend.Backend) error
+	RemoveBackendPolicies(be backend.Backend) error
 }
 
 var _ PolicyManager = (*policyManager)(nil)
@@ -173,4 +175,46 @@ func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be back
 		pd.State = policies.Running
 		pd.BackendErr = ""
 	}
+}
+
+func (a *policyManager) RemoveBackendPolicies(be backend.Backend) error {
+	plcies, err := a.repo.GetAll()
+	if err != nil {
+		a.logger.Error("failed to retrieve list of policies", zap.Error(err))
+		return err
+	}
+
+	for _, plcy := range plcies {
+		err := be.RemovePolicy(plcy)
+		if err != nil {
+			a.logger.Error("failed to remove policy from backend", zap.String("policy_id", plcy.ID), zap.String("policy_name", plcy.Name), zap.Error(err))
+			return err
+		}
+		plcy.State = policies.Unknown
+		a.repo.Update(plcy)
+	}
+	return nil
+}
+
+func (a *policyManager) ApplyBackendPolicies(be backend.Backend) error {
+	plcies, err := a.repo.GetAll()
+	if err != nil {
+		a.logger.Error("failed to retrieve list of policies", zap.Error(err))
+		return err
+	}
+
+	for _, policy := range plcies {
+		be.ApplyPolicy(policy, false)
+		if err != nil {
+			a.logger.Warn("policy failed to apply", zap.String("policy_id", policy.ID), zap.String("policy_name", policy.Name), zap.Error(err))
+			policy.State = policies.FailedToApply
+			policy.BackendErr = err.Error()
+		} else {
+			a.logger.Info("policy applied successfully", zap.String("policy_id", policy.ID), zap.String("policy_name", policy.Name))
+			policy.State = policies.Running
+			policy.BackendErr = ""
+		}
+		a.repo.Update(policy)
+	}
+	return nil
 }

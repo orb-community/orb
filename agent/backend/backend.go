@@ -43,6 +43,7 @@ type Backend interface {
 	Version() (string, error)
 	Start() error
 	Stop() error
+	FullReset() error
 
 	GetCapabilities() (map[string]interface{}, error)
 	GetState() (BackendState, string, error)

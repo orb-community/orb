@@ -98,6 +98,11 @@ func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {
 	a.removeDatasetFromPolicy(rpc.DatasetID, rpc.PolicyID)
 }
 
+func (a *orbAgent) handleAgentReset(payload fleet.AgentResetRPCPayload) {
+	// TODO implement logic for agent and backend reset
+	// (close all policies, restart backends, re-query core for all policies and groups, and re-apply policies)
+}
+
 func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 
 	a.logger.Debug("RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
@@ -139,6 +144,13 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			return
 		}
 		a.handleAgentStop(r.Payload)
+	case fleet.AgentResetRPCFunc:
+		var r fleet.AgentResetRPC
+		if err := json.Unmarshal(message.Payload(), &r); err != nil {
+			a.logger.Error("error decoding agent reset message from core", zap.Error(fleet.ErrSchemaMalformed))
+			return
+		}
+		a.handleAgentReset(r.Payload)
 	default:
 		a.logger.Warn("unsupported/unhandled core RPC, ignoring",
 			zap.String("func", rpc.Func),

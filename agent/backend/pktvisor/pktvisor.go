@@ -472,3 +472,17 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 	}
 	return receiver, nil
 }
+
+func (p *pktvisorBackend) FullReset() error {
+	p.logger.Info("restarting backend...")
+	if err := p.Stop(); err != nil {
+		p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
+		return err
+	}
+	if err := p.Start(); err != nil {
+		p.logger.Error("failed to start backend on restart procedure", zap.Error(err))
+		return err
+	}
+	p.logger.Info("backend restarted...")
+	return nil
+}

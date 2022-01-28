@@ -88,6 +88,19 @@ type AgentStopRPC struct {
 	Payload       AgentStopRPCPayload `json:"payload"`
 }
 
+const AgentResetRPCFunc = "agent_reset"
+
+type AgentResetRPCPayload struct {
+	FullReset bool   `json:"full_reset"`
+	Reason    string `json:"reason"`
+}
+
+type AgentResetRPC struct {
+	SchemaVersion string               `json:"schema_version"`
+	Func          string               `json:"func"`
+	Payload       AgentResetRPCPayload `json:"payload"`
+}
+
 // Edge -> Core
 
 const GroupMembershipReqRPCFunc = "group_membership_req"

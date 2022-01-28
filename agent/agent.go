@@ -26,6 +26,7 @@ var (
 type Agent interface {
 	Start() error
 	Stop()
+	Restart()
 }
 
 type orbAgent struct {
@@ -137,4 +138,18 @@ func (a *orbAgent) Stop() {
 		}
 	}
 	a.client.Disconnect(250)
+}
+
+func (a *orbAgent) Restart() {
+	for _, be := range a.backends {
+		if err := a.policyManager.RemoveBackendPolicies(be); err != nil {
+			a.logger.Error("backend error while removing policies", zap.Error(err))
+		}
+		if err := be.FullReset(); err != nil {
+			a.logger.Error("backend error while resetting", zap.Error(err))
+		}
+		if err := a.policyManager.ApplyBackendPolicies(be); err != nil {
+			a.logger.Error("backend error while reapplying policies", zap.Error(err))
+		}
+	}
 }
