@@ -47,6 +47,8 @@ type AgentCommsService interface {
 	NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error
 	// NotifyGroupPolicyUpdate RPC core -> Agent: Notify AgentGroup that a Policy has been updated
 	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
+	//NotifyAgentReset RPC core -> Agent: Notify Agent to reset the backend
+	NotifyAgentReset(channelID string, fullReset bool, reason string) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -413,6 +415,35 @@ func (svc fleetCommsService) NotifyAgentStop(MFChannelID string, reason string) 
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentStopRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (svc fleetCommsService) NotifyAgentReset(MFChannelID string, fullReset bool, reason string) error {
+	payload := AgentResetRPCPayload{
+		FullReset: fullReset,
+		Reason:    reason,
+	}
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentResetRPCFunc,
 		Payload:       payload,
 	}
 

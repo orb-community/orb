@@ -62,6 +62,20 @@ func (svc fleetService) ViewAgentByID(ctx context.Context, token string, thingID
 	return svc.agentRepo.RetrieveByID(ctx, ownerID, thingID)
 }
 
+func (svc fleetService) ResetAgent(ctx context.Context, token string, agentID string) error {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return err
+	}
+
+	agent, err := svc.agentRepo.RetrieveByID(ctx, ownerID, agentID)
+	if err != nil {
+		return err
+	}
+
+	return svc.agentComms.NotifyAgentReset(agent.MFChannelID, true, "Reset initiated from control plane")
+}
+
 func (svc fleetService) ViewAgentByIDInternal(ctx context.Context, ownerID string, id string) (Agent, error) {
 	return svc.agentRepo.RetrieveByID(ctx, ownerID, id)
 }

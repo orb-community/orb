@@ -90,6 +90,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc fleet.Service) h
 		decodeListBackends,
 		types.EncodeResponse,
 		opts...))
+	r.Post("/agents/:id/rpc/reset", kithttp.NewServer(
+		kitot.TraceServer(tracer, "reset_agent")(resetAgentEndpoint(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...))
 	r.Get("/agents/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "edit_agent")(viewAgentEndpoint(svc)),
 		decodeView,

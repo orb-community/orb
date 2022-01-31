@@ -229,6 +229,19 @@ func viewAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 	}
 }
 
+func resetAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		if err := svc.ResetAgent(ctx, req.token, req.id); err != nil {
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
 func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(listResourcesReq)

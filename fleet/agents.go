@@ -92,6 +92,8 @@ type AgentService interface {
 	ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error)
 	//ViewOwnerByChannelIDInternal return a correspondent ownerID by a provided channel id
 	ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (Agent, error)
+	// ResetAgent reset a agent on edge by a provided agent
+	ResetAgent(ct context.Context, token string, agentID string) error
 }
 
 type AgentRepository interface {

@@ -390,8 +390,11 @@ func (p *pktvisorBackend) Stop() error {
 	}
 	p.scraper.Stop()
 
-	p.exporter.Shutdown(context.Background())
-	p.receiver.Shutdown(context.Background())
+	if p.scrapeOtel {
+		p.exporter.Shutdown(context.Background())
+		p.receiver.Shutdown(context.Background())
+	}
+
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
 	return nil
 }
@@ -471,4 +474,16 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 		return nil, err
 	}
 	return receiver, nil
+}
+
+func (p *pktvisorBackend) FullReset() error {
+	if err := p.Stop(); err != nil {
+		p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
+		return err
+	}
+	if err := p.Start(); err != nil {
+		p.logger.Error("failed to start backend on restart procedure", zap.Error(err))
+		return err
+	}
+	return nil
 }
