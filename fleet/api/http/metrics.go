@@ -30,7 +30,7 @@ func (m metricsMiddleware) ResetAgent(ct context.Context, token string, agentID 
 
 	defer func(begin time.Time) {
 		labels := []string{
-			"method", "viewOwnerByChannelIDInternal",
+			"method", "resetAgent",
 			"owner_id", ownerID,
 			"agent_id", agentID,
 			"group_id", "",
