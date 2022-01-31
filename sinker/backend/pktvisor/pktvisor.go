@@ -200,9 +200,6 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 		handleParticleError(ctxt, err)
 		return tsList
 	}
-	if dpFlag.Value == 0 {
-		return tsList
-	}
 	*tsList = append(*tsList, prometheus.TimeSeries{
 		Labels:    labelsListFlag,
 		Datapoint: prometheus.Datapoint(dpFlag),

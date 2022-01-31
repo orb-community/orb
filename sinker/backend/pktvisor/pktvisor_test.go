@@ -97,11 +97,16 @@ func TestDHCPConversion(t *testing.T) {
 			data.Data = c.data
 			res, err := be.ProcessMetrics(agent, agentID.String(), data)
 			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
-			assert.Len(t, res, 1, fmt.Sprintf("%s: expected a non-empty result", desc))
-			if len(res) > 0 {
-				assert.True(t, reflect.DeepEqual(c.expected.Labels, res[0].Labels), fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, res[0].Labels))
-				assert.Equal(t, c.expected.Datapoint.Value, res[0].Datapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, res[0].Datapoint.Value))
+			var receivedLabel []prometheus.Label
+			var receivedDatapoint prometheus.Datapoint
+			for _, value := range res {
+				if c.expected.Labels[0] == value.Labels[0] {
+					receivedLabel = value.Labels
+					receivedDatapoint = value.Datapoint
+				}
 			}
+			assert.True(t, reflect.DeepEqual(c.expected.Labels, receivedLabel), fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, receivedLabel))
+			assert.Equal(t, c.expected.Datapoint.Value, receivedDatapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, receivedDatapoint.Value))
 		})
 	}
 
