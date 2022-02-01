@@ -18,7 +18,36 @@ def check_registered_account(context):
     authenticate(email, password)
 
 
-@when('request referred account registration using registered email, {password_status} password, {username} user name and {company} company name')
+@when("user request account registration {email} email, {password} password, {username} user name and {company} "
+      "company name")
+def check_account_input(context, email, password, username, company):
+    inputs = {'email': email, 'password': password, 'username': username, 'company': company}
+    for key, value in inputs.items():
+        assert_that(value, any_of(equal_to('with'), equal_to('without')),
+                    f"Not expected option to {key}")
+    account_input = {'email': None, 'password': None, 'company': None, 'username': None, 'reg_status': 201,
+                     'auth_status': 201}
+    if email == "without" or password == "without":
+        account_input['reg_status'] = 400
+        account_input['auth_status'] = 400
+    elif email == "with":
+        account_input['email'] = f"test_email_{random_string(3)}@email.com"
+        if password == "without":
+            account_input['auth_status'] = 403
+    elif password == "with":
+        account_input['password'] = configs.get('password')
+    if username == "with":
+        account_input['username'] = f"test_user {random_string(3)}"
+    if company == "with":
+        account_input['company'] = f"test_company {random_string(3)}"
+
+    register_account(account_input['email'], account_input['password'], account_input['company'],
+                     account_input['username'], account_input['reg_status'])
+    context.auth_response = authenticate(account_input['email'], account_input['password'], account_input['auth_status'])
+
+
+@when('request referred account registration using registered email, {password_status} password, {username} user name '
+      'and {company} company name')
 def request_account_registration(context, password_status, username, company):
     assert_that(password_status, any_of(equal_to('registered'), equal_to('unregistered')),
                 "Not expected option to password")
@@ -66,4 +95,3 @@ def request_orb_authentication(context, email_status, password_status):
 def check_access_denied(context):
     assert_that(context.auth_response, not_(has_key("token")))
     assert_that(context.auth_response.keys(), only_contains("error"))
-

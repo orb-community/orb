@@ -37,8 +37,10 @@ def authenticate(user_email, user_password, expected_status_code=201):
     """
 
     headers = {'Content-type': 'application/json', 'Accept': '*/*'}
+    json_request = {'email': user_email, 'password': user_password}
+    json_request = {parameter: value for parameter, value in json_request.items() if value}
     response = requests.post(base_orb_url + '/api/v1/tokens',
-                             json={'email': user_email, 'password': user_password},
+                             json=json_request,
                              headers=headers)
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Authentication failed with status= ' + str(response.status_code))

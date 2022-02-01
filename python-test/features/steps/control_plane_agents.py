@@ -1,5 +1,5 @@
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with
+from utils import random_string, filter_list_by_parameter_start_with, generate_name_and_tag, tag_key_prefix, tag_value_prefix
 from local_agent import run_local_agent_container
 from behave import given, when, then, step
 from hamcrest import *
@@ -8,16 +8,14 @@ import requests
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
-tag_key_prefix = "test_tag_key_"
-tag_value_prefix = "test_tag_value_"
 base_orb_url = configs.get('base_orb_url')
 
 
 @given("that an agent already exists and is {status}")
 def check_if_agents_exist(context, status):
-    context.agent_name, context.agent_tag_key, context.agent_tag_value = generate_agent_name_and_tag(agent_name_prefix,
-                                                                                                     tag_key_prefix,
-                                                                                                     tag_value_prefix)
+    context.agent_name, context.agent_tag_key, context.agent_tag_value = generate_name_and_tag(agent_name_prefix,
+                                                                                               tag_key_prefix,
+                                                                                               tag_value_prefix)
     agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
     context.agent = agent
     token = context.token
@@ -30,9 +28,16 @@ def check_if_agents_exist(context, status):
 
 @when('a new agent is created')
 def agent_is_created(context):
-    context.agent_name, context.agent_tag_key, context.agent_tag_value = generate_agent_name_and_tag(agent_name_prefix,
-                                                                                                     tag_key_prefix,
-                                                                                                     tag_value_prefix)
+    context.agent_name, context.agent_tag_key, context.agent_tag_value = generate_name_and_tag(agent_name_prefix,
+                                                                                               tag_key_prefix,
+                                                                                               tag_value_prefix)
+    agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
+    context.agent = agent
+
+
+@when('a new agent is created with tags matching an existing group')
+def agent_is_created_matching_group(context):
+    context.agent_name = agent_name_prefix + random_string(10)
     agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
     context.agent = agent
 
@@ -57,23 +62,36 @@ def clean_agents(context):
     delete_agents(token, agents_filtered_list)
 
 
+@step("{amount_of_datasets} datasets are linked with each policy on agent's heartbeat")
+def multiple_dataset_for_policy(context, amount_of_datasets):
+    agent = get_agent(context.token, context.agent['id'])
+    for policy_id in context.list_agent_policies_id:
+        assert_that(len(agent['last_hb_data']['policy_state'][policy_id]['datasets']), equal_to(int(amount_of_datasets)),
+                    f"Amount of datasets linked with policy {policy_id} failed")
+
+
 @step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied")
 def list_policies_applied_to_an_agent(context, amount_of_policies):
     time_waiting = 0
     sleep_time = 0.5
     timeout = 180
-
+    context.list_agent_policies_id = list()
     while time_waiting < timeout:
         agent = get_agent(context.token, context.agent['id'])
-        context.list_agent_policies_id = list(agent['last_hb_data']['policy_state'].keys())
-        if len(context.list_agent_policies_id) == int(amount_of_policies):
-            break
+        if 'policy_state' in agent['last_hb_data'].keys():
+            context.list_agent_policies_id = list(agent['last_hb_data']['policy_state'].keys())
+            if len(context.list_agent_policies_id) == int(amount_of_policies):
+                break
         time.sleep(sleep_time)
         time_waiting += sleep_time
 
     assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)),
                 f"Amount of policies applied to this agent failed with {context.list_agent_policies_id} policies")
-    assert_that(sorted(context.list_agent_policies_id), equal_to(sorted(context.policies_created.keys())))
+    assert_that(sorted(context.list_agent_policies_id), equal_to(sorted(context.policies_created.keys())),
+                "Policies linked with the agent is not the same as the created by test process")
+    for policy_id in context.list_agent_policies_id:
+        assert_that(agent['last_hb_data']['policy_state'][policy_id]["state"], equal_to('running'),
+                    f"policy {policy_id} is not running")
 
 
 def expect_container_status(token, agent_id, status):
@@ -184,16 +202,3 @@ def create_agent(token, name, tag_key, tag_value):
                 'Request to create agent failed with status=' + str(response.status_code))
 
     return response.json()
-
-
-def generate_agent_name_and_tag(name_agent_prefix, agent_tag_key_prefix, agent_tag_value_prefix):
-    """
-    :param (str) name_agent_prefix: prefix to identify agents created by tests
-    :param (str) agent_tag_key_prefix: prefix to identify tag_key created by tests
-    :param (str) agent_tag_value_prefix: prefix to identify tag_value created by tests
-    :return: random name, tag_key and tag_value for agent
-    """
-    agent_name = name_agent_prefix + random_string(10)
-    agent_tag_key = agent_tag_key_prefix + random_string(4)
-    agent_tag_value = agent_tag_value_prefix + random_string(4)
-    return agent_name, agent_tag_key, agent_tag_value

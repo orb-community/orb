@@ -43,7 +43,14 @@ func (m *mockPoliciesRepository) UpdateDataset(ctx context.Context, ownerID stri
 }
 
 func (m *mockPoliciesRepository) InactivateDatasetByPolicyID(ctx context.Context, policyID string, ownerID string) error {
-	//todo implement when create unit tests to dataset
+	if ds, ok := m.ddb[policyID]; ok {
+		if m.ddb[policyID].MFOwnerID != ownerID {
+			return policies.ErrUpdateEntity
+		}
+		ds.Valid = false
+		return nil
+	}
+
 	return nil
 }
 
@@ -137,7 +144,8 @@ func (m *mockPoliciesRepository) RetrievePolicyByID(ctx context.Context, policyI
 
 func (m *mockPoliciesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) (ret []policies.PolicyInDataset, err error) {
 	for _, d := range groupIDs {
-		ret = append(ret, m.gdb[d][0])
+		ret = make([]policies.PolicyInDataset, len(m.gdb[d]))
+		copy(ret, m.gdb[d])
 	}
 	return ret, nil
 }
@@ -152,8 +160,13 @@ func (m *mockPoliciesRepository) SaveDataset(ctx context.Context, dataset polici
 	ID, _ := uuid.NewV4()
 	dataset.ID = ID.String()
 	m.ddb[dataset.ID] = dataset
-	m.gdb[dataset.AgentGroupID] = make([]policies.PolicyInDataset, 1)
-	m.gdb[dataset.AgentGroupID][0] = policies.PolicyInDataset{Policy: m.pdb[dataset.PolicyID], DatasetID: dataset.ID}
+
+	if _, ok := m.gdb[dataset.AgentGroupID]; !ok {
+		m.gdb[dataset.AgentGroupID] = make([]policies.PolicyInDataset, 1)
+		m.gdb[dataset.AgentGroupID][0] = policies.PolicyInDataset{Policy: m.pdb[dataset.PolicyID], DatasetID: dataset.ID}
+	} else {
+		m.gdb[dataset.AgentGroupID] = append(m.gdb[dataset.AgentGroupID], policies.PolicyInDataset{Policy: m.pdb[dataset.PolicyID], DatasetID: dataset.ID})
+	}
 	m.dataSetCounter++
 	return ID.String(), nil
 }
@@ -169,7 +182,14 @@ func (m *mockPoliciesRepository) RetrieveDatasetByID(ctx context.Context, datase
 }
 
 func (m *mockPoliciesRepository) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
-	panic("implement me")
+	for _, ds := range m.ddb{
+		if ds.AgentGroupID == groupID && ds.MFOwnerID == ownerID{
+			ds.Valid = false
+			return nil
+		}
+	}
+
+	return policies.ErrNotFound
 }
 
 func (m *mockPoliciesRepository) RetrieveAllDatasetsByOwner(ctx context.Context, owner string, pm policies.PageMetadata) (policies.PageDataset, error) {
