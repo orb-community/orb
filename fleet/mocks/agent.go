@@ -73,7 +73,13 @@ func (a agentRepositoryMock) UpdateDataByIDWithChannel(ctx context.Context, agen
 }
 
 func (a agentRepositoryMock) RetrieveByIDWithChannel(ctx context.Context, thingID string, channelID string) (fleet.Agent, error) {
-	panic("implement me")
+	if _, ok := a.agentsMock[thingID]; ok {
+		if a.agentsMock[thingID].MFChannelID != channelID {
+			return fleet.Agent{}, fleet.ErrNotFound
+		}
+		return a.agentsMock[thingID], nil
+	}
+	return fleet.Agent{}, fleet.ErrNotFound
 }
 
 func (a agentRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm fleet.PageMetadata) (fleet.Page, error) {

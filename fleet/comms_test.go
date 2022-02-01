@@ -7,7 +7,9 @@ import (
 	"github.com/mainflux/mainflux"
 	mflog "github.com/mainflux/mainflux/logger"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
+	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/fleet/backend/pktvisor"
 	flmocks "github.com/ns1labs/orb/fleet/mocks"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -22,6 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 	"log"
 	"net"
@@ -32,10 +36,25 @@ import (
 const bufSize = 1024 * 1024
 
 var (
-	lis *bufconn.Listener
-	users = flmocks.NewAuthService(map[string]string{token: email})
+	lis         *bufconn.Listener
+	users       = flmocks.NewAuthService(map[string]string{token: email})
 	policiesSVC = newPoliciesService(users)
 )
+
+func newFleetService(auth mainflux.AuthServiceClient, url string, agentGroupRepo fleet.AgentGroupRepository, agentRepo fleet.AgentRepository) fleet.Service {
+	agentComms := flmocks.NewFleetCommService(agentRepo, agentGroupRepo)
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+	config := mfsdk.Config{
+		BaseURL: url,
+	}
+
+	mfsdk := mfsdk.NewSDK(config)
+	pktvisor.Register(auth, agentRepo)
+	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
+}
 
 func newPoliciesService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
@@ -69,15 +88,11 @@ func bufDialer(context.Context, string) (net.Conn, error) {
 	return lis.Dial()
 }
 
-
-func newCommsService() fleet.AgentCommsService {
+func newCommsService(agentGroupRepo fleet.AgentGroupRepository, agentRepo fleet.AgentRepository) fleet.AgentCommsService {
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-
-	agentGroupRepo := flmocks.NewAgentGroupRepository()
-	agentRepo := flmocks.NewAgentRepositoryMock()
 
 	conn, err := grpc.DialContext(context.Background(), "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
@@ -99,19 +114,23 @@ func newCommsService() fleet.AgentCommsService {
 	return fleet.NewFleetCommsService(logger, policyClient, agentRepo, agentGroupRepo, agentPubSub)
 }
 
-func TestNotifyGroupNewDataset(t *testing.T){
-	commsSVC := newCommsService()
+func TestNotifyGroupNewDataset(t *testing.T) {
+	agentGroupRepo := flmocks.NewAgentGroupRepository()
+	agentRepo := flmocks.NewAgentRepositoryMock()
+
+	commsSVC := newCommsService(agentGroupRepo, agentRepo)
 
 	thingsServer := newThingsServer(newThingsService(users))
-	fleetSVC := newService(users, thingsServer.URL)
+	fleetSVC := newFleetService(users, thingsServer.URL, agentGroupRepo, agentRepo)
 
 	ag, err := createAgentGroup(t, "group", fleetSVC)
-	if err != nil {
-		log.Fatalf("Faled to create agent group: %v", err)
-	}
+	assert.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	policy := createPolicy(t, policiesSVC, "policy")
-	dataset := createDataset(t, policiesSVC, "dataset")
+	dataset := createDataset(t, policiesSVC, "dataset", ag.ID)
+
+	wrongPolicyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	cases := map[string]struct {
 		policyID   string
@@ -127,10 +146,375 @@ func TestNotifyGroupNewDataset(t *testing.T){
 			agentGroup: ag,
 			err:        nil,
 		},
+		"Notify a existent group new dataset with wrong policyID": {
+			ownerID:    ag.MFOwnerID,
+			policyID:   wrongPolicyID.String(),
+			datasetID:  dataset.ID,
+			agentGroup: ag,
+			err:        status.Error(codes.Internal, "internal server error"),
+		},
 	}
 
-	for desc, tc := range cases{
+	for desc, tc := range cases {
 		err := commsSVC.NotifyGroupNewDataset(context.Background(), tc.agentGroup, tc.datasetID, tc.policyID, tc.ownerID)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestNotifyGroupPolicyRemoval(t *testing.T) {
+	agentGroupRepo := flmocks.NewAgentGroupRepository()
+	agentRepo := flmocks.NewAgentRepositoryMock()
+
+	commsSVC := newCommsService(agentGroupRepo, agentRepo)
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetSVC := newFleetService(users, thingsServer.URL, agentGroupRepo, agentRepo)
+
+	agent, err := createAgent(t, "agent", fleetSVC)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	group, err := createAgentGroup(t, "group2", fleetSVC)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		agent      fleet.Agent
+		agentGroup fleet.AgentGroup
+		policyID   string
+		policyName string
+		backend    string
+		err        error
+	}{
+		"Notify group policy deletion": {
+			agent:      agent,
+			agentGroup: group,
+			policyID:   policyID.String(),
+			policyName: "policy2",
+			backend:    "pktvisor",
+			err:        nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := commsSVC.NotifyGroupPolicyRemoval(tc.agentGroup, tc.policyID, tc.policyName, tc.backend)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestNotifyAgentAllDatasets(t *testing.T) {
+	agentGroupRepo := flmocks.NewAgentGroupRepository()
+	agentRepo := flmocks.NewAgentRepositoryMock()
+
+	commsSVC := newCommsService(agentGroupRepo, agentRepo)
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetSVC := newFleetService(users, thingsServer.URL, agentGroupRepo, agentRepo)
+
+	validAgentName, err := types.NewIdentifier("agent2")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	ag, err := fleetSVC.CreateAgent(context.Background(), "token", fleet.Agent{
+		Name:      validAgentName,
+		AgentTags: map[string]string{"test": "true"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	validGroupName, err := types.NewIdentifier("group3")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	group, err := fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
+		Name: validGroupName,
+		Tags: map[string]string{"test": "true"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	_ = createDataset(t, policiesSVC, "dataset2", group.ID)
+
+	noMatchingGroup, err := createAgent(t, "agent3", fleetSVC)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		agent fleet.Agent
+		err   error
+	}{
+		"Notify agent all policies should run": {
+			agent: ag,
+			err:   nil,
+		},
+		"Notify agent all policies with malformed agent": {
+			agent: fleet.Agent{MFThingID: ""},
+			err:   errors.ErrMalformedEntity,
+		},
+		"Notify agent with no matching groups": {
+			agent: noMatchingGroup,
+			err:   nil,
+		},
+		"Notify agent with wrong thingID": {
+			agent: fleet.Agent{
+				MFOwnerID:   ag.MFOwnerID,
+				MFThingID:   wrongID,
+				MFChannelID: ag.MFChannelID,
+				AgentTags:   ag.AgentTags,
+			},
+			err: fleet.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := commsSVC.NotifyAgentAllDatasets(tc.agent)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestNotifyGroupRemoval(t *testing.T) {
+	agentGroupRepo := flmocks.NewAgentGroupRepository()
+	agentRepo := flmocks.NewAgentRepositoryMock()
+
+	commsSVC := newCommsService(agentGroupRepo, agentRepo)
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetSVC := newFleetService(users, thingsServer.URL, agentGroupRepo, agentRepo)
+
+	group, err := createAgentGroup(t, "group4", fleetSVC)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		agentGroup fleet.AgentGroup
+		err        error
+	}{
+		"Notify group deletion": {
+			agentGroup: group,
+			err:        nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := commsSVC.NotifyGroupRemoval(tc.agentGroup)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestNotifyGroupPolicyUpdate(t *testing.T) {
+	agentGroupRepo := flmocks.NewAgentGroupRepository()
+	agentRepo := flmocks.NewAgentRepositoryMock()
+
+	commsSVC := newCommsService(agentGroupRepo, agentRepo)
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetSVC := newFleetService(users, thingsServer.URL, agentGroupRepo, agentRepo)
+
+	policy := createPolicy(t, policiesSVC, "policy3")
+
+	agent, err := createAgent(t, "agent4", fleetSVC)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	group, err := createAgentGroup(t, "group6", fleetSVC)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		agent      fleet.Agent
+		agentGroup fleet.AgentGroup
+		policyID   string
+		ownerID    string
+		err        error
+	}{
+		"Notify group a policy update": {
+			agent:      agent,
+			agentGroup: group,
+			policyID:   policy.ID,
+			ownerID:    policy.MFOwnerID,
+			err:        nil,
+		},
+		"Notify group a policy update wih wrong policyID": {
+			agent:      agent,
+			agentGroup: group,
+			policyID:   wrongID,
+			ownerID:    policy.MFOwnerID,
+			err:        status.Error(codes.Internal, "internal server error"),
+		},
+	}
+
+	for desc, tc := range cases {
+		err := commsSVC.NotifyGroupPolicyUpdate(context.Background(), tc.agentGroup, tc.policyID, tc.ownerID)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestNotifyAgentGroupMembership(t *testing.T) {
+	agentGroupRepo := flmocks.NewAgentGroupRepository()
+	agentRepo := flmocks.NewAgentRepositoryMock()
+
+	commsSVC := newCommsService(agentGroupRepo, agentRepo)
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetSVC := newFleetService(users, thingsServer.URL, agentGroupRepo, agentRepo)
+
+	validAgentName, err := types.NewIdentifier("agent5")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	ag, err := fleetSVC.CreateAgent(context.Background(), "token", fleet.Agent{
+		Name:      validAgentName,
+		AgentTags: map[string]string{"test": "true"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	validGroupName, err := types.NewIdentifier("group5")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	_, err = fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
+		Name: validGroupName,
+		Tags: map[string]string{"test": "true"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	noMatchingGroup, err := createAgent(t, "agent6", fleetSVC)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		agent fleet.Agent
+		err   error
+	}{
+		"Notify agent all AgentGroup memberships it belongs to": {
+			agent: ag,
+			err:   nil,
+		},
+		"Notify agent not belong to any AgentGroup": {
+			agent: noMatchingGroup,
+			err:   nil,
+		},
+		"Notify agent, but missing thingID": {
+			agent: fleet.Agent{
+				MFOwnerID:   ag.MFOwnerID,
+				MFThingID:   "",
+				MFChannelID: ag.MFChannelID,
+				AgentTags:   ag.AgentTags,
+			},
+			err: fleet.ErrMalformedEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := commsSVC.NotifyAgentGroupMemberships(tc.agent)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestNotifyGroupDatasetRemoval(t *testing.T) {
+	agentGroupRepo := flmocks.NewAgentGroupRepository()
+	agentRepo := flmocks.NewAgentRepositoryMock()
+
+	commsSVC := newCommsService(agentGroupRepo, agentRepo)
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetSVC := newFleetService(users, thingsServer.URL, agentGroupRepo, agentRepo)
+
+	agent, err := createAgent(t, "agent4", fleetSVC)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	group, err := createAgentGroup(t, "group6", fleetSVC)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	datasetID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		agent      fleet.Agent
+		agentGroup fleet.AgentGroup
+		dsID       string
+		policyID   string
+		err        error
+	}{
+		"Notify group dataset deletion": {
+			agent:      agent,
+			agentGroup: group,
+			dsID:       datasetID.String(),
+			policyID:   policyID.String(),
+			err:        nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := commsSVC.NotifyGroupDatasetRemoval(tc.agentGroup, tc.dsID, tc.policyID)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestNotifyAgentStop(t *testing.T) {
+	agentGroupRepo := flmocks.NewAgentGroupRepository()
+	agentRepo := flmocks.NewAgentRepositoryMock()
+
+	commsSVC := newCommsService(agentGroupRepo, agentRepo)
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetSVC := newFleetService(users, thingsServer.URL, agentGroupRepo, agentRepo)
+
+	agent, err := createAgent(t, "agent4", fleetSVC)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		channelID string
+		reason    string
+		err       error
+	}{
+		"Notify agent to stop": {
+			channelID: agent.MFChannelID,
+			reason:    "",
+			err:       nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := commsSVC.NotifyAgentStop(tc.channelID, tc.reason)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestNotifyAgentNewGroupMembership(t *testing.T) {
+	agentGroupRepo := flmocks.NewAgentGroupRepository()
+	agentRepo := flmocks.NewAgentRepositoryMock()
+
+	commsSVC := newCommsService(agentGroupRepo, agentRepo)
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetSVC := newFleetService(users, thingsServer.URL, agentGroupRepo, agentRepo)
+
+	validAgentName, err := types.NewIdentifier("agent5")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	ag, err := fleetSVC.CreateAgent(context.Background(), "token", fleet.Agent{
+		Name:      validAgentName,
+		AgentTags: map[string]string{"test": "true"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	validGroupName, err := types.NewIdentifier("group5")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	_, err = fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
+		Name: validGroupName,
+		Tags: map[string]string{"test": "true"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		agent      fleet.Agent
+		agentGroup fleet.AgentGroup
+		err        error
+	}{
+		"Notify agent a new membership of AgentGroup": {
+			agent:      ag,
+			agentGroup: agentGroup,
+			err:        nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := commsSVC.NotifyAgentNewGroupMembership(tc.agent, tc.agentGroup)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }
@@ -164,15 +548,12 @@ visor:
 	return res
 }
 
-func createDataset(t *testing.T, svc policies.Service, name string) policies.Dataset {
+func createDataset(t *testing.T, svc policies.Service, name string, groupID string) policies.Dataset {
 	t.Helper()
 	ID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	policyID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-
-	agentGroupID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	sinkIDs := make([]string, 2)
@@ -189,7 +570,7 @@ func createDataset(t *testing.T, svc policies.Service, name string) policies.Dat
 		ID:           ID.String(),
 		Name:         validName,
 		PolicyID:     policyID.String(),
-		AgentGroupID: agentGroupID.String(),
+		AgentGroupID: groupID,
 		SinkIDs:      sinkIDs,
 	}
 

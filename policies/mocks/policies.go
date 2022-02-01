@@ -136,6 +136,10 @@ func (m *mockPoliciesRepository) RetrievePolicyByID(ctx context.Context, policyI
 }
 
 func (m *mockPoliciesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) (ret []policies.PolicyInDataset, err error) {
+	if len(groupIDs) == 0 || ownerID == "" {
+		return nil, errors.ErrMalformedEntity
+	}
+
 	for _, d := range groupIDs {
 		ret = append(ret, m.gdb[d][0])
 	}
