@@ -1,4 +1,4 @@
-from behave import given, when, then
+from behave import given, then, step
 from ui_utils import input_text_by_xpath
 from control_plane_agents import agent_name_prefix, tag_key_prefix, tag_value_prefix
 from selenium.webdriver.support.ui import WebDriverWait
@@ -28,7 +28,16 @@ def agent_page(context):
                                                                                                        "available")
 
 
-@when("a new agent is created through the UI")
+@step("that the user is on the orb Agent page")
+def orb_page(context):
+    expand_fleet_management(context)
+    agent_page(context)
+    current_url = context.driver.current_url
+    assert_that(current_url, equal_to(f"{base_orb_url}/pages/fleet/agents"),
+                "user not enabled to access orb login page")
+
+
+@step("a new agent is created through the UI")
 def create_agent_through_the_agents_page(context):
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'New Agent')]"))).click()
