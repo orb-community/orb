@@ -70,6 +70,8 @@
 | [Check if is possible cancel operations with no change](agents/check_if_is_possible_cancel_operations_with_no_change.md) |                   |                  |       |        |
 |                       [Remove agent using correct name](agents/remove_agent_using_correct_name.md)                       |         ✅         |                  |  👍   |   👍   |
 |                     [Remove agent using incorrect name](agents/remove_agent_using_incorrect_name.md)                     |                   |                  |       |   👍   |
+|                   [Run two orb agents on the same port](agents/run_two_orb_agents_on_the_same_port.md)                   |         ✅         |        ✅         |  👍   |   👍   |
+|                 [Run two orb agents on different ports](agents/run_two_orb_agents_on_different_ports.md)                 |         ✅         |        ✅         |  👍   |   👍   |
 
 ---------------------------------
 ## **AGENT GROUP**

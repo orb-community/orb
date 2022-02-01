@@ -1,5 +1,5 @@
 from users import authenticate
-from behave import given, when, then
+from behave import given, when, then, step
 from test_config import TestConfig
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -21,7 +21,7 @@ def logs_in_orb_ui(context):
     context.token = authenticate(user_email, user_password)['token']
 
 
-@given("that the user is on the orb page")
+@step("that the user is on the orb page")
 def orb_page(context):
     current_url = go_to_page(base_orb_url, context)
     assert_that(current_url, equal_to(f"{base_orb_url}/auth/login"), "user not enabled to access orb login page")

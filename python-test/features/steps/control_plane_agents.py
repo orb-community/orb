@@ -19,7 +19,7 @@ def check_if_agents_exist(context, status):
     agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
     context.agent = agent
     token = context.token
-    run_local_agent_container(context)
+    run_local_agent_container(context, "default")
     agent_id = context.agent['id']
     existing_agents = get_agent(token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
