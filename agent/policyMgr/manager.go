@@ -91,6 +91,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			} else {
 				updatePolicy = true
 			}
+			pd.Datasets = currentPolicy.Datasets
 		} else {
 			// new policy we have not seen before, associate with this dataset
 			// on first time we see policy, we *require* dataset
