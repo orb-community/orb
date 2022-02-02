@@ -57,6 +57,7 @@ func (a *orbAgent) unsubscribeGroupChannels() {
 		if token := a.client.Unsubscribe(rpcFromCoreTopic); token.Wait() && token.Error() != nil {
 			a.logger.Warn("failed to unsubscribe to group channel", zap.String("topic", channel), zap.Error(token.Error()))
 		}
+		a.logger.Info("completed RPC unsubscription to group", zap.String("topic", rpcFromCoreTopic))
 	}
 }
 
