@@ -95,7 +95,7 @@
     "@types/d3-color": "1.0.5",
     "@types/jasmine": "2.5.54",
     "@types/jasminewd2": "2.0.3",
-    "@types/node": "^12.11.1",
+    "@types/node": "12.20.42",
     "axios": "^0.21.1",
     "body-parser": "^1.19.0",
     "codelyzer": "^5.1.2",
