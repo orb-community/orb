@@ -6,7 +6,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/mainflux/mainflux"
 	mflog "github.com/mainflux/mainflux/logger"
-	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/fleet/backend/pktvisor"
@@ -106,7 +105,7 @@ func newCommsService(agentGroupRepo fleet.AgentGroupRepository, agentRepo fleet.
 	}
 
 	url := config.LoadNatsConfig("orb_fleet")
-	agentPubSub, err := mfnats.NewPubSub(url.URL, "fleet", mflogger)
+	agentPubSub, err := flmocks.NewPubSub(url.URL, "fleet", mflogger)
 	if err != nil {
 		log.Fatalf("Failed to create PubSub %v", err)
 	}
