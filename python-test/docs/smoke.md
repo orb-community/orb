@@ -28,6 +28,8 @@
 - [Save agent without tag](agents/save_agent_without_tag.md)
 - [Insert tags in agents created without tags](agents/insert_tags_in_agents_created_without_tags.md)
 - [Remove agent using correct name](agents/remove_agent_using_correct_name.md)
+- [Run two orb agents on the same port](agents/run_two_orb_agents_on_the_same_port.md)
+- [Run two orb agents on different ports](agents/run_two_orb_agents_on_different_ports.md)
 
 ## Agent Groups
 

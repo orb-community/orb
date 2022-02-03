@@ -4,6 +4,7 @@ from steps import test_config
 
 def before_scenario(context, scenario):
     cleanup_container()
+    context.containers_id = dict()
 
 
 def after_feature(context, feature):
@@ -20,7 +21,9 @@ def after_feature(context, feature):
 
 def cleanup_container():
     docker_client = docker.from_env()
-    containers = docker_client.containers.list(filters={"name": test_config.LOCAL_AGENT_CONTAINER_NAME})
-    if len(containers) == 1:
-        containers[0].stop()
-        containers[0].remove()
+    containers = docker_client.containers.list(all=True)
+    for container in containers:
+        test_container = container.name.startswith(test_config.LOCAL_AGENT_CONTAINER_NAME)
+        if test_container is True:
+            container.stop()
+            container.remove()

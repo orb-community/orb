@@ -1,5 +1,5 @@
-from utils import safe_load_json
-from behave import when, then
+from utils import safe_load_json, random_string
+from behave import when, then, step
 from hamcrest import *
 from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
@@ -11,8 +11,11 @@ configs = TestConfig.configs()
 ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
 
 
-@when('the agent container is started')
-def run_local_agent_container(context):
+@when('the agent container is started on port {port}')
+def run_local_agent_container(context, port):
+    if port.isdigit():
+        port = int(port)
+    assert_that(port, any_of(equal_to('default'), instance_of(int)), "Unexpected value for port")
     orb_address = configs.get('orb_address')
     interface = configs.get('orb_agent_interface', 'mock')
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
@@ -25,8 +28,14 @@ def run_local_agent_container(context):
                 "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
     if ignore_ssl_and_certificate_errors == 'true':
         env_vars["ORB_TLS_VERIFY"] = "false"
+    if port == "default":
+        port = str(10853)
+    else:
+        env_vars["ORB_BACKENDS_PKTVISOR_API_PORT"] = str(port)
 
-    context.container_id = run_agent_container(agent_image, env_vars)
+    context.container_id = run_agent_container(agent_image, env_vars, LOCAL_AGENT_CONTAINER_NAME)
+    if port not in context.containers_id.keys():
+        context.containers_id[str(port)] = context.container_id
 
 
 @then('the container logs should contain the message "{text_to_match}" within {time_to_wait} seconds')
@@ -47,23 +56,48 @@ def check_agent_log(context, text_to_match, time_to_wait):
     assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
 
 
-@when("the agent container is started using the command provided by the UI")
-def run_container_using_ui_command(context):
+@then("container on port {port} is {status} after {seconds} seconds")
+def check_container_on_port_status(context, port, status, seconds):
+    if port.isdigit():
+        port = int(port)
+    assert_that(port, any_of(equal_to('default'), instance_of(int)), "Unexpected value for port")
+    if port == "default":
+        port = str(10853)
+    time.sleep(int(seconds))
+    check_container_status(context.containers_id[str(port)], status)
+
+
+@step("last container created is {status} after {seconds} seconds")
+def check_last_container_status(context, status, seconds):
+    time.sleep(int(seconds))
+    check_container_status(context.container_id, status)
+
+
+@step("the agent container is started using the command provided by the UI on port {port}")
+def run_container_using_ui_command(context, port):
+    if port.isdigit():
+        port = int(port)
+    assert_that(port, any_of(equal_to('default'), instance_of(int)), "Unexpected value for port")
     context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
-                                                         ignore_ssl_and_certificate_errors)
+                                                         ignore_ssl_and_certificate_errors, str(port))
     assert_that(context.container_id, is_not((none())))
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME)
+    if port == "default":
+        port = str(10853)
+    if port not in context.containers_id.keys():
+        context.containers_id[str(port)] = context.container_id
 
 
-def run_agent_container(container_image, env_vars):
+def run_agent_container(container_image, env_vars, container_name):
     """
     Gets a specific agent from Orb control plane
 
     :param (str) container_image: that will be used for running the container
     :param (dict) env_vars: that will be passed to the container context
+    :param (str) container_name: base of container name
     :returns: (str) the container ID
     """
-
+    LOCAL_AGENT_CONTAINER_NAME = container_name + random_string(5)
     client = docker.from_env()
     container = client.containers.run(container_image, name=LOCAL_AGENT_CONTAINER_NAME, detach=True,
                                       network_mode='host', environment=env_vars)
@@ -101,16 +135,20 @@ def check_logs_contain_message(logs, expected_message):
     return False
 
 
-def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors):
+def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pktvisor_port):
     """
     :param (str) command: docker command to provision an agent
     :param (bool) ignore_ssl_and_certificate_errors: True if orb address doesn't have a valid certificate.
+    :param (str or int) pktvisor_port: Port on which pktvisor should run
     :return: agent container ID
     """
     args = shlex.split(command)
     if ignore_ssl_and_certificate_errors == 'true':
         args.insert(-1, "-e")
         args.insert(-1, "ORB_TLS_VERIFY=false")
+    if pktvisor_port != 'default':
+        args.insert(-1, "-e")
+        args.insert(-1, f"ORB_BACKENDS_PKTVISOR_API_PORT={pktvisor_port}")
     terminal_running = subprocess.Popen(
         args, stdout=subprocess.PIPE)
     subprocess_return = terminal_running.stdout.read().decode()
@@ -123,8 +161,22 @@ def rename_container(container_id, container_name):
     """
 
     :param container_id: agent container ID
-    :param container_name: agent container name
+    :param container_name: base of agent container name
     """
+    container_name = container_name + random_string(5)
     rename_container_command = f"docker rename {container_id} {container_name}"
     rename_container_args = shlex.split(rename_container_command)
     subprocess.Popen(rename_container_args, stdout=subprocess.PIPE)
+
+
+def check_container_status(container_id, status):
+    """
+
+    :param container_id: agent container ID
+    :param status: status that we expect to find in the container
+    """
+    docker_client = docker.from_env()
+    container = docker_client.containers.list(all=True, filters={'id': container_id})
+    assert_that(container, has_length(1))
+    container = container[0]
+    assert_that(container.status, equal_to(status), f"Container {container_id} failed with status {container.status}")

@@ -98,7 +98,7 @@ Scenario: Provision agent with tags matching an existent group
         And the Orb user logs in
         And an Agent Group is created
     When a new agent is created with tags matching an existing group
-        And the agent container is started
+        And the agent container is started on port default
     Then the agent status in Orb should be online
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
 
@@ -110,7 +110,7 @@ Scenario: Provision agent with tag matching existing group linked to a valid dat
         And that a sink already exists
         And 2 policies are applied to the group
     When a new agent is created with tags matching an existing group
-        And the agent container is started
+        And the agent container is started on port default
     Then this agent's heartbeat shows that 2 policies are successfully applied
         And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds

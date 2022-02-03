@@ -114,6 +114,7 @@ func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
 				Version:       ag.Version,
 				Backend:       ag.Backend,
 				SchemaVersion: ag.SchemaVersion,
+				LastModified:  ag.LastModified,
 			}
 			res.Policies = append(res.Policies, view)
 		}
