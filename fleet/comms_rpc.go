@@ -23,6 +23,7 @@ type GroupMembershipRPC struct {
 }
 
 type GroupMembershipData struct {
+	GroupID   string `json:"group_id"`
 	Name      string `json:"name"`
 	ChannelID string `json:"channel_id"`
 }

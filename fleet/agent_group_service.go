@@ -102,15 +102,22 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 		return AgentGroup{}, errors.ErrUpdateEntity
 	}
 
+	// Should return a list of agents before apply a edition
+	listUnsub, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, group.ID, true)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+
 	ag, err := svc.agentGroupRepository.Update(ctx, ownerID, group)
 	if err != nil {
 		return AgentGroup{}, err
 	}
 
-	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, group.ID, true)
+	listSub, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, group.ID, true)
 	if err != nil {
 		return AgentGroup{}, err
 	}
+	list := removeDuplicates(listSub, listUnsub)
 	for _, agent := range list {
 		err := svc.agentComms.NotifyAgentGroupMemberships(agent)
 		if err != nil {
@@ -119,6 +126,20 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 	}
 
 	return ag, nil
+}
+
+func removeDuplicates(sliceA []Agent, sliceB []Agent) []Agent {
+	keys := make(map[string]bool)
+	var list []Agent
+    var concatSlice []Agent
+    concatSlice = append(append(concatSlice, sliceA...), sliceB...)
+    for _, entry := range concatSlice {
+        if _, value := keys[entry.MFThingID]; !value {
+            keys[entry.MFThingID] = true
+            list = append(list, entry)
+        }
+    }
+    return list
 }
 
 func (svc fleetService) ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error) {

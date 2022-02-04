@@ -34,6 +34,7 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 	if err == nil {
 		for _, pd := range pdata {
 			ps[pd.ID] = fleet.PolicyStateInfo{
+				Name:     pd.Name,
 				State:    pd.State.String(),
 				Error:    pd.BackendErr,
 				Datasets: pd.GetDatasetIDs(),
@@ -43,12 +44,21 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 		a.logger.Error("unable to retrieved policy state", zap.Error(err))
 	}
 
+	ag := make(map[string]fleet.GroupStateInfo)
+	for id, groupInfo := range a.groupInfos {
+		ag[id] = fleet.GroupStateInfo{
+			GroupName:    groupInfo.Name,
+			GroupChannel: groupInfo.ChannelID,
+		}
+	}
+
 	hbData := fleet.Heartbeat{
 		SchemaVersion: fleet.CurrentHeartbeatSchemaVersion,
 		State:         state,
 		TimeStamp:     t,
 		BackendState:  bes,
 		PolicyState:   ps,
+		GroupState:    ag,
 	}
 
 	body, err := json.Marshal(hbData)

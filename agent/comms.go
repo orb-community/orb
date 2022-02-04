@@ -51,14 +51,15 @@ func (a *orbAgent) nameAgentRPCTopics(channelId string) {
 }
 
 func (a *orbAgent) unsubscribeGroupChannels() {
-	for _, channel := range a.groupChannels {
-		base := fmt.Sprintf("channels/%s/messages", channel)
+	for _, groupInfo := range a.groupInfos {
+		base := fmt.Sprintf("channels/%s/messages", groupInfo.ChannelID)
 		rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
 		if token := a.client.Unsubscribe(rpcFromCoreTopic); token.Wait() && token.Error() != nil {
-			a.logger.Warn("failed to unsubscribe to group channel", zap.String("topic", channel), zap.Error(token.Error()))
+			a.logger.Warn("failed to unsubscribe to group channel", zap.String("group_name", groupInfo.Name), zap.String("topic", groupInfo.ChannelID), zap.Error(token.Error()))
 		}
-		a.logger.Info("completed RPC unsubscription to group", zap.String("topic", rpcFromCoreTopic))
+		a.logger.Info("completed RPC unsubscription to group", zap.String("group_name", groupInfo.Name), zap.String("topic", rpcFromCoreTopic))
 	}
+	a.groupInfos = make(map[string]GroupInfo)
 }
 
 func (a *orbAgent) unsubscribeGroupChannel(channelID string) {
@@ -120,8 +121,8 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 	return nil
 }
 
-func (a *orbAgent) subscribeGroupChannels(groups []fleet.GroupMembershipData) []string {
-	var successList []string
+func (a *orbAgent) subscribeGroupChannels(groups []fleet.GroupMembershipData) {
+	//var successList = make(map[string]GroupInfo)
 	for _, groupData := range groups {
 
 		base := fmt.Sprintf("channels/%s/messages", groupData.ChannelID)
@@ -129,20 +130,23 @@ func (a *orbAgent) subscribeGroupChannels(groups []fleet.GroupMembershipData) []
 
 		token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore)
 		if token.Error() != nil {
-			a.logger.Error("failed to subscribe to group channel/topic", zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+			a.logger.Error("failed to subscribe to group channel/topic", zap.String("name", groupData.Name), zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
 			continue
 		}
 		ok := token.WaitTimeout(time.Second * 5)
 		if ok && token.Error() != nil {
-			a.logger.Error("failed to subscribe to group channel/topic", zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+			a.logger.Error("failed to subscribe to group channel/topic", zap.String("name", groupData.Name), zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
 			continue
 		}
 		if !ok {
-			a.logger.Error("failed to subscribe to group channel/topic: time out", zap.String("topic", rpcFromCoreTopic))
+			a.logger.Error("failed to subscribe to group channel/topic: time out", zap.String("name", groupData.Name), zap.String("topic", rpcFromCoreTopic))
 			continue
 		}
 		a.logger.Info("completed RPC subscription to group", zap.String("name", groupData.Name), zap.String("topic", rpcFromCoreTopic))
-		successList = append(successList, groupData.ChannelID)
+		a.groupInfos[groupData.GroupID] = GroupInfo{
+			Name:      groupData.Name,
+			ChannelID: groupData.ChannelID,
+		}
 	}
-	return successList
+	//return successList
 }
