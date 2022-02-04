@@ -74,7 +74,7 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data
 				continue
 			}
 		} else if data, ok := handlerData["dhcp"]; ok {
-		 	err := mapstructure.Decode(data, &stats.DHCP)
+			err := mapstructure.Decode(data, &stats.DHCP)
 			if err != nil {
 				p.logger.Error("error decoding dhcp handler", zap.Error(err))
 				continue
@@ -222,6 +222,9 @@ func camelToSnake(s string) string {
 	var strExcept = ""
 	if len(sub) > 1 {
 		strExcept = matchExcept.FindAllString(s, 1)[0]
+		if strExcept == "ASN" {
+			strExcept = "_" + strExcept
+		}
 		s = sub[0]
 	}
 
