@@ -117,6 +117,9 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 	if err != nil {
 		return AgentGroup{}, err
 	}
+
+	// append both lists and remove duplicates
+	// need to unsubscribe the agents who are no longer matching with the group
 	list := removeDuplicates(listSub, listUnsub)
 	for _, agent := range list {
 		err := svc.agentComms.NotifyAgentGroupMemberships(agent)

@@ -122,7 +122,6 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 }
 
 func (a *orbAgent) subscribeGroupChannels(groups []fleet.GroupMembershipData) {
-	//var successList = make(map[string]GroupInfo)
 	for _, groupData := range groups {
 
 		base := fmt.Sprintf("channels/%s/messages", groupData.ChannelID)
@@ -148,5 +147,4 @@ func (a *orbAgent) subscribeGroupChannels(groups []fleet.GroupMembershipData) {
 			ChannelID: groupData.ChannelID,
 		}
 	}
-	//return successList
 }
