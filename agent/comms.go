@@ -51,7 +51,7 @@ func (a *orbAgent) nameAgentRPCTopics(channelId string) {
 }
 
 func (a *orbAgent) unsubscribeGroupChannels() {
-	for _, groupInfo := range a.groupInfos {
+	for _, groupInfo := range a.groupsInfos {
 		base := fmt.Sprintf("channels/%s/messages", groupInfo.ChannelID)
 		rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
 		if token := a.client.Unsubscribe(rpcFromCoreTopic); token.Wait() && token.Error() != nil {
@@ -59,7 +59,7 @@ func (a *orbAgent) unsubscribeGroupChannels() {
 		}
 		a.logger.Info("completed RPC unsubscription to group", zap.String("group_name", groupInfo.Name), zap.String("topic", rpcFromCoreTopic))
 	}
-	a.groupInfos = make(map[string]GroupInfo)
+	a.groupsInfos = make(map[string]GroupInfo)
 }
 
 func (a *orbAgent) unsubscribeGroupChannel(channelID string) {
@@ -142,7 +142,7 @@ func (a *orbAgent) subscribeGroupChannels(groups []fleet.GroupMembershipData) {
 			continue
 		}
 		a.logger.Info("completed RPC subscription to group", zap.String("name", groupData.Name), zap.String("topic", rpcFromCoreTopic))
-		a.groupInfos[groupData.GroupID] = GroupInfo{
+		a.groupsInfos[groupData.GroupID] = GroupInfo{
 			Name:      groupData.Name,
 			ChannelID: groupData.ChannelID,
 		}

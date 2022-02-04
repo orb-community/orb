@@ -48,7 +48,7 @@ type orbAgent struct {
 	logTopic          string
 
 	// AgentGroup channels sent from core
-	groupInfos map[string]GroupInfo
+	groupsInfos map[string]GroupInfo
 
 	policyManager manager.PolicyManager
 }
@@ -71,7 +71,7 @@ func New(logger *zap.Logger, c config.Config) (Agent, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db, groupInfos: make(map[string]GroupInfo)}, nil
+	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db, groupsInfos: make(map[string]GroupInfo)}, nil
 }
 
 func (a *orbAgent) startBackends() error {

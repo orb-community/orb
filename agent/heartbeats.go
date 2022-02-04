@@ -45,7 +45,7 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 	}
 
 	ag := make(map[string]fleet.GroupStateInfo)
-	for id, groupInfo := range a.groupInfos {
+	for id, groupInfo := range a.groupsInfos {
 		ag[id] = fleet.GroupStateInfo{
 			GroupName:    groupInfo.Name,
 			GroupChannel: groupInfo.ChannelID,
