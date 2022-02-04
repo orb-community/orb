@@ -117,7 +117,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 
 func (svc fleetCommsService) NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error {
 	payload := GroupMembershipRPCPayload{
-		Groups:   []GroupMembershipData{{Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
+		Groups:   []GroupMembershipData{{GroupID: ag.ID, Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
 		FullList: false,
 	}
 
@@ -232,6 +232,7 @@ func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 
 	fullList := make([]GroupMembershipData, len(list))
 	for i, agentGroup := range list {
+		fullList[i].GroupID = agentGroup.ID
 		fullList[i].Name = agentGroup.Name.String()
 		fullList[i].ChannelID = agentGroup.MFChannelID
 	}
@@ -541,11 +542,14 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 		agent.State = Offline
 		agent.LastHBData["backend_state"] = BackendStateInfo{}
 		agent.LastHBData["policy_state"] = PolicyStateInfo{}
+		agent.LastHBData["group_state"] = GroupStateInfo{}
 	} else {
 		// otherwise, state is always "online"
 		agent.State = Online
 		agent.LastHBData["backend_state"] = hb.BackendState
 		agent.LastHBData["policy_state"] = hb.PolicyState
+		agent.LastHBData["group_state"] = hb.GroupState
+
 	}
 	err := svc.agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), agent)
 	if err != nil {

@@ -175,6 +175,12 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 		return Agent{}, err
 	}
 
+	err = svc.addAgentToAgentGroupChannels(token, res)
+	if err != nil {
+		// TODO should we roll back?
+		svc.logger.Error("failed to add agent to a existing group channel", zap.String("agent_id", res.MFThingID), zap.Error(err))
+	}
+
 	err = svc.agentComms.NotifyAgentGroupMemberships(res)
 	if err != nil {
 		svc.logger.Error("failure during agent group membership comms", zap.Error(err))
