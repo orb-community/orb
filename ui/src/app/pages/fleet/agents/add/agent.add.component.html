@@ -68,7 +68,7 @@
               <p>{{strings.add.step.desc2}}</p>
             </div>
           </ng-template>
-          <p *ngIf="(selectedTags | json) === '{}'">Agent tags were optional and may be set here or when you are provisioning an Agent.<br> The lack of tags will block an Agent to be matched during the Agent Group creation.</p>
+          <p *ngIf="(selectedTags | json) === '{}'">Agent tags are optional and may be set here or when you are provisioning an Agent.<br> The lack of tags will block an Agent to be matched during the Agent Group creation.</p>
           <form [formGroup]="secondFormGroup">
             <div class="d-flex">
               <mat-chip-list data-orb-qa-id="orb_tagsList">
