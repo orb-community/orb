@@ -102,7 +102,7 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 		return AgentGroup{}, errors.ErrUpdateEntity
 	}
 
-	// Should return a list of agents before apply a edition
+	// Should return a list of agents before applying an edit
 	listUnsub, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, group.ID, true)
 	if err != nil {
 		return AgentGroup{}, err
@@ -134,15 +134,15 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 func removeDuplicates(sliceA []Agent, sliceB []Agent) []Agent {
 	keys := make(map[string]bool)
 	var list []Agent
-    var concatSlice []Agent
-    concatSlice = append(append(concatSlice, sliceA...), sliceB...)
-    for _, entry := range concatSlice {
-        if _, value := keys[entry.MFThingID]; !value {
-            keys[entry.MFThingID] = true
-            list = append(list, entry)
-        }
-    }
-    return list
+	var concatSlice []Agent
+	concatSlice = append(append(concatSlice, sliceA...), sliceB...)
+	for _, entry := range concatSlice {
+		if _, value := keys[entry.MFThingID]; !value {
+			keys[entry.MFThingID] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }
 
 func (svc fleetService) ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error) {

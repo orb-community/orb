@@ -542,13 +542,13 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 		agent.State = Offline
 		agent.LastHBData["backend_state"] = BackendStateInfo{}
 		agent.LastHBData["policy_state"] = PolicyStateInfo{}
-		agent.LastHBData["subscribed_groups"] = GroupStateInfo{}
+		agent.LastHBData["group_state"] = GroupStateInfo{}
 	} else {
 		// otherwise, state is always "online"
 		agent.State = Online
 		agent.LastHBData["backend_state"] = hb.BackendState
 		agent.LastHBData["policy_state"] = hb.PolicyState
-		agent.LastHBData["subscribed_groups"] = hb.GroupState
+		agent.LastHBData["group_state"] = hb.GroupState
 
 	}
 	err := svc.agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), agent)
