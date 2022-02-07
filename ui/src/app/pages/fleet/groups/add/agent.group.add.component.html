@@ -157,6 +157,14 @@
             <div class="d-flex justify-content-end"
                  *ngIf="secondFormGroup">
               <button
+                nbButton
+                ghost
+                (click)="goBack()"
+                type="button"
+                status="primary">
+                {{strings.stepper.cancel}}
+              </button>
+              <button
                   nbButton
                   ghost
                   status="primary"
@@ -252,6 +260,14 @@
           <hr/>
           <div class="d-flex justify-content-end"
                *ngIf="secondFormGroup">
+            <button
+              nbButton
+              ghost
+              (click)="goBack()"
+              type="button"
+              status="primary">
+              {{strings.stepper.cancel}}
+            </button>
             <button
                 nbButton
                 ghost

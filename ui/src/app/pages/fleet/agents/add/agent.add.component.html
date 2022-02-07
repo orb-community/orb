@@ -45,7 +45,7 @@
                 nbButton
                 status="primary"
                 type="button">
-                {{strings.stepper.back}}
+                Cancel
               </button>
               <button [disabled]="!firstFormGroup.valid"
                       class="next-button"
@@ -144,6 +144,15 @@
             <div *ngIf="secondFormGroup"
                  class="d-flex justify-content-end">
               <button
+                (click)="goBack()"
+                data-orb-qa-id="button#previous"
+                ghost
+                nbButton
+                status="primary"
+                type="button">
+                Cancel
+              </button>
+              <button
                 data-orb-qa-id="button#back"
                 ghost
                 nbButton
@@ -202,6 +211,15 @@
           <hr/>
           <div *ngIf="secondFormGroup"
                class="d-flex justify-content-end">
+            <button
+              (click)="goBack()"
+              data-orb-qa-id="button#previous"
+              ghost
+              nbButton
+              status="primary"
+              type="button">
+              Cancel
+            </button>
             <button
               data-orb-qa-id="button#back"
               ghost

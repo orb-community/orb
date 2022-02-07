@@ -92,6 +92,14 @@
             <hr/>
             <div class="d-flex justify-content-end">
               <button
+                (click)="goBack()"
+                data-orb-qa-id="cancel"
+                ghost
+                nbButton
+                status="primary"
+                type="button">Cancel
+              </button>
+              <button
                 data-orb-qa-id="cancel"
                 ghost
                 nbButton
@@ -142,6 +150,14 @@
             </nb-form-field>
             <hr/>
             <div *ngIf="policyFormGroup" class="d-flex justify-content-end">
+              <button
+                (click)="goBack()"
+                data-orb-qa-id="cancel"
+                ghost
+                nbButton
+                status="primary"
+                type="button">Cancel
+              </button>
               <button
                 data-orb-qa-id="cancel"
                 ghost
@@ -219,6 +235,14 @@
             <div *ngIf="sinkFormGroup" class="d-flex justify-content-start"
                  style="padding-left: 35%;">
               <button
+                (click)="goBack()"
+                data-orb-qa-id="cancel"
+                ghost
+                nbButton
+                status="primary"
+                type="button">Cancel
+              </button>
+              <button
                 data-orb-qa-id="back"
                 ghost
                 nbButton
@@ -285,6 +309,14 @@
           </div>
           <hr/>
           <div *ngIf="sinkFormGroup" class="d-flex justify-content-end">
+            <button
+              (click)="goBack()"
+              data-orb-qa-id="cancel"
+              ghost
+              nbButton
+              status="primary"
+              type="button">Cancel
+            </button>
             <button
               data-orb-qa-id="previous"
               ghost

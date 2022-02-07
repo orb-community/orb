@@ -266,6 +266,14 @@
           </div>
           <div class="d-flex justify-content-end">
             <button
+              (click)="goBack()"
+              data-orb-qa-id="cancel"
+              ghost
+              nbButton
+              status="primary"
+              type="button">Cancel
+            </button>
+            <button
               data-orb-qa-id="cancel"
               ghost
               nbButton
@@ -477,6 +485,14 @@
           </div>
           <div class="d-flex justify-content-start"
                style="padding-left: 35%;">
+            <button
+              (click)="goBack()"
+              data-orb-qa-id="cancel"
+              ghost
+              nbButton
+              status="primary"
+              type="button">Cancel
+            </button>
             <button
               data-orb-qa-id="back"
               (click)="liveHandler = null"
