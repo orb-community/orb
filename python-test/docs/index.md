@@ -145,6 +145,8 @@
 - [Remove agent container (logs, agent groups matches)](integration/remove_agent_container.md)
 - [Remove agent container force (logs, agent groups matches)](integration/remove_agent_container_force.md)
 - [Remove agent (logs, agent groups matches)](integration/remove_agent.md)
+- [Subscribe an agent to multiple groups created before agent provisioning](integration/subscribe_an_agent_to_multiple_groups_created_before_agent_provisioning.md)
+- [Subscribe an agent to multiple groups created after agent provisioning](integration/subscribe_an_agent_to_multiple_groups_created_after_agent_provisioning.md)
 
 ## Pktvisor Agent
 

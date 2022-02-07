@@ -5,6 +5,7 @@ from steps import test_config
 def before_scenario(context, scenario):
     cleanup_container()
     context.containers_id = dict()
+    context.agent_groups = dict()
 
 
 def after_feature(context, feature):
