@@ -1,4 +1,4 @@
-<nb-card size="large" class="nb-card-medium" xmlns="http://www.w3.org/1999/html">
+<nb-card size="large" class="nb-card-large" xmlns="http://www.w3.org/1999/html">
   <nb-card-header>
     Handler Configuration
     <button nbButton
@@ -31,15 +31,15 @@
       <hr/>
       <div *ngIf="!!selectedHandler">
         <div>
-          <label for="label" class="font-weight-bold">Handler Label</label>
+          <label for="name" class="font-weight-bold">Handler Label</label>
           <span class="required">*</span>
         </div>
         <input class="col-10"
                data-orb-qa-id="handler-label"
                fieldSize="medium"
-               formControlName="label"
+               formControlName="name"
                fullWidth="true"
-               id="label"
+               id="name"
                nbInput
                nbTooltip="Provide a label for your handler configuration"
                placeholder="Handler Name"/>
@@ -111,20 +111,13 @@
             status="primary">
       Cancel
     </button>
-    <button nbButton status="primary" class="sink-edit-button" (click)="onSaveHandler()">Save</button>
-    <button (click)="onSaveHandler()"
-            [disabled]="!checkValidName()"
-            class="col-1"
+    <button nbButton
+            nbTooltip="Click to Save Handler"
+            status="primary"
             data-orb-qa-id="addHandler"
-            ghost
-            nbButton
-            nbTooltip="Click to Add Handler">
-      <nb-icon icon="plus-outline"
-               size="14"
-               status="primary"
-               style="color: #df316f;">
-      </nb-icon>
-    </button>
+            (click)="onSaveHandler()"
+            [disabled]="!checkValidName()">
+      Save</button>
   </nb-card-footer>
 </nb-card>
 

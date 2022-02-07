@@ -42,5 +42,10 @@ export interface PolicyHandler {
    * metrics_groups {}
    */
   metrics_groups?: { [propName: string]: {} | any };
+
+  /**
+   * content
+   */
+  content?: { [propName: string]: {} | any };
 }
 

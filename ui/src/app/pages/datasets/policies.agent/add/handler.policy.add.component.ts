@@ -99,7 +99,7 @@ export class HandlerPolicyAddComponent implements OnInit, OnDestroy {
   readyForms(): void {
     this.handlerSelectorFG = this._formBuilder.group({
       'selected_handler': [null, [Validators.required]],
-      'label': [null, [Validators.required]],
+      'name': [null, [Validators.required]],
       'type': [null],
       'config': [null],
       'filter': [null],
@@ -122,14 +122,15 @@ export class HandlerPolicyAddComponent implements OnInit, OnDestroy {
   onHandlerSelected(selectedHandler) {
     this.selectedHandler = selectedHandler;
 
-    const { config, filter, type } = this.handlerProps = this.availableHandlers[selectedHandler];
+    const { config, filter } = this.handlerProps = this.availableHandlers[selectedHandler].content;
 
     const suggestName = this.getSeriesHandlerName(selectedHandler);
 
     this.handlerSelectorFG.patchValue({
-      label: suggestName,
-      type,
+      name: suggestName,
+      type: selectedHandler,
     });
+
     this.handlerSelectorFG.setControl('config', this.createDynamicControls(config));
     this.handlerSelectorFG.setControl('filter', this.createDynamicControls(filter));
   }
@@ -140,7 +141,7 @@ export class HandlerPolicyAddComponent implements OnInit, OnDestroy {
   }
 
   checkValidName() {
-    const { value } = this.handlerSelectorFG.controls.label;
+    const { value } = this.handlerSelectorFG.controls.name;
     const hasTagForKey = Object.keys(this.modules).find(key => key === value);
     return value && value !== '' && !hasTagForKey;
   }
@@ -148,27 +149,34 @@ export class HandlerPolicyAddComponent implements OnInit, OnDestroy {
   onSaveHandler() {
     const configForm = this.handlerSelectorFG.get('config') as FormGroup;
     const filterForm = this.handlerSelectorFG.get('filter') as FormGroup;
-    const { label, type } = this.handlerSelectorFG.value;
+    const { name, type } = this.handlerSelectorFG.value;
     let config, filter;
+
+    const valueReducer = (dynConfig) => {
+      return (acc, [key, control]) => {
+        if (control.value) {
+          if (dynConfig[key].type === 'string[]') {
+            acc[key] = control.value.split(','); // todo we must support separator definition
+          } else {
+            acc[key] = control.value;
+          }
+        }
+        return acc;
+      };
+    };
 
     if (configForm !== null) {
       config = Object.entries(configForm.controls)
-        .reduce((acc, [key, control]) => {
-          if (control.value) acc[key] = control.value;
-          return acc;
-        }, {});
+        .reduce(valueReducer(this.handlerProps['config']), {});
     }
 
     if (filterForm !== null) {
       filter = Object.entries(filterForm.controls)
-        .reduce((acc, [key, control]) => {
-          if (control.value) acc[key] = control.value;
-          return acc;
-        }, {});
+        .reduce(valueReducer(this.handlerProps['filter']), {});
     }
 
     this.dialogRef.close({
-      label,
+      name,
       type,
       config,
       filter,
