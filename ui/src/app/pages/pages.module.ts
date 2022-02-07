@@ -59,6 +59,7 @@ import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.compo
 import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
 import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.component';
 import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.details.component';
+import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
 
 @NgModule({
   imports: [
@@ -128,6 +129,7 @@ import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.deta
     AgentPolicyDeleteComponent,
     AgentPolicyDetailsComponent,
     AgentPolicyListComponent,
+    HandlerPolicyAddComponent,
     // Sink Management
     SinkListComponent,
     SinkAddComponent,

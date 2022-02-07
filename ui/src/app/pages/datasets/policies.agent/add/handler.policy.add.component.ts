@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -33,9 +33,11 @@ export class HandlerPolicyAddComponent implements OnInit, OnDestroy {
   handlerSelectorFG: FormGroup;
 
   // backend - selected by user on agent policy creation
+  @Input()
   backend: PolicyBackend;
 
   // holds all handlers added by user
+  @Input()
   modules: ModuleCollection = {};
 
   // handler key
@@ -60,18 +62,15 @@ export class HandlerPolicyAddComponent implements OnInit, OnDestroy {
     protected agentPoliciesService: AgentPoliciesService,
   ) {
     this.isLoading = true;
+  }
 
-    this.backend = this.router.getCurrentNavigation().extras.state?.backend as PolicyBackend || null;
-    this.modules = this.router.getCurrentNavigation().extras.state?.modules as ModuleCollection || null;
-
+  ngOnInit() {
     this.subscription = this.getHandlers()
       .subscribe(handlers => {
         this.availableHandlers = handlers;
         this.isLoading = false;
       });
-  }
 
-  ngOnInit() {
     this.readyForms();
   }
 
@@ -121,6 +120,7 @@ export class HandlerPolicyAddComponent implements OnInit, OnDestroy {
   }
 
   onHandlerSelected(selectedHandler) {
+    this.selectedHandler = selectedHandler;
 
     const { config, filter, type } = this.handlerProps = this.availableHandlers[selectedHandler];
 
@@ -129,9 +129,9 @@ export class HandlerPolicyAddComponent implements OnInit, OnDestroy {
     this.handlerSelectorFG.patchValue({
       label: suggestName,
       type,
-      config: this.createDynamicControls(config),
-      filter: this.createDynamicControls(filter),
     });
+    this.handlerSelectorFG.setControl('config', this.createDynamicControls(config));
+    this.handlerSelectorFG.setControl('filter', this.createDynamicControls(filter));
   }
 
   getSeriesHandlerName(handlerType) {
