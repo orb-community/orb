@@ -45,6 +45,7 @@
                  [required]="getConfigValue('forms.validation.fullName.required')"
                  [minlength]="getConfigValue('forms.validation.fullName.minLength')"
                  [maxlength]="getConfigValue('forms.validation.fullName.maxLength')"
+                 pattern="^([a-zA-Z]*)\s+([a-zA-Z ]*)$"
                  [attr.aria-invalid]="fullName.invalid && fullName.touched ? true : null">
           <ng-container *ngIf="fullName.invalid && fullName.touched">
             <p class="caption status-danger mb-1" *ngIf="fullName.errors?.required">
@@ -55,6 +56,9 @@
               from {{getConfigValue('forms.validation.fullName.minLength')}}
               to {{getConfigValue('forms.validation.fullName.maxLength')}}
               characters
+            </p>
+            <p class="caption status-danger mb-1" *ngIf="fullName.errors?.pattern">
+              Full name should contain two space separated names
             </p>
           </ng-container>
         </div>
@@ -187,7 +191,8 @@
           *ngIf="_isProduction && _psEnabled"
           accessId="{{_sid}}"
           groupKey="{{_groupKey}}"
-          signerIdSelector="input-email">
+          signerIdSelector="input-name"
+          confirmationEmail="1">
         </ps-click-wrap>
 
         <button nbButton
