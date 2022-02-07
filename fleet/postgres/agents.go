@@ -36,6 +36,11 @@ func (r agentRepository) RetrieveMatchingAgents(ctx context.Context, ownerID str
 		return types.Metadata{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
+	tg, tgq, err := getGroupsTagsQuery(tags)
+	if err != nil {
+		return types.Metadata{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
 	q := fmt.Sprintf(
 		`select
 			json_build_object('total', coalesce(total,0), 'online', coalesce(online,0)) AS matching_agents
@@ -43,10 +48,16 @@ func (r agentRepository) RetrieveMatchingAgents(ctx context.Context, ownerID str
 			(select
 				sum(case when mf_thing_id is not null then 1 else 0 end) as total,
 				sum(case when state = 'online' then 1 else 0 end) as online
-			from agents WHERE mf_owner_id = :mf_owner_id %s) as agent_groups`, tmq)
+			from agents WHERE mf_owner_id = :mf_owner_id %s
+			union all
+			select
+				sum(case when mf_thing_id is not null then 1 else 0 end) as total,
+				sum(case when state = 'online' then 1 else 0 end) as online
+			from agents WHERE mf_owner_id = :mf_owner_id %s) as agent_groups`, tmq, tgq)
 
 	params := map[string]interface{}{
 		"tags":        t,
+		"tags_g":      tg,
 		"mf_owner_id": ownerID,
 	}
 
@@ -548,6 +559,21 @@ func getOrbOrAgentTagsQuery(m types.Tags) ([]byte, string, error) {
 	mb := []byte("{}")
 	if len(m) > 0 {
 		mq = ` AND (agent_tags @> :tags OR orb_tags @> :tags)`
+
+		b, err := json.Marshal(m)
+		if err != nil {
+			return nil, "", err
+		}
+		mb = b
+	}
+	return mb, mq, nil
+}
+
+func getGroupsTagsQuery(m types.Tags) ([]byte, string, error) {
+	mq := ""
+	mb := []byte("{}")
+	if len(m) > 0 {
+		mq = ` AND (agent_tags <@ :tags_g OR orb_tags <@ :tags_g)`
 
 		b, err := json.Marshal(m)
 		if err != nil {
