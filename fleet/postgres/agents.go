@@ -31,33 +31,26 @@ type agentRepository struct {
 }
 
 func (r agentRepository) RetrieveMatchingAgents(ctx context.Context, ownerID string, tags types.Tags) (types.Metadata, error) {
-	t, tmq, err := getOrbOrAgentTagsQuery(tags)
-	if err != nil {
-		return types.Metadata{}, errors.Wrap(errors.ErrSelectEntity, err)
-	}
-
-	tg, tgq, err := getGroupsTagsQuery(tags)
+	t, tmq, err := getTagsQuery(tags)
 	if err != nil {
 		return types.Metadata{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
 	q := fmt.Sprintf(
 		`select
-			json_build_object('total', coalesce(total,0), 'online', coalesce(online,0)) AS matching_agents
+			json_build_object('total', sum(coalesce(total,0)), 'online', sum(coalesce(online,0))) AS matching_agents
 		from
 			(select
+				mf_owner_id,
+				coalesce(agent_tags || orb_tags, agent_tags, orb_tags) as tags,
 				sum(case when mf_thing_id is not null then 1 else 0 end) as total,
 				sum(case when state = 'online' then 1 else 0 end) as online
-			from agents WHERE mf_owner_id = :mf_owner_id %s
-			union all
-			select
-				sum(case when mf_thing_id is not null then 1 else 0 end) as total,
-				sum(case when state = 'online' then 1 else 0 end) as online
-			from agents WHERE mf_owner_id = :mf_owner_id %s) as agent_groups`, tmq, tgq)
+			from agents where mf_owner_id = :mf_owner_id
+			group by mf_owner_id, coalesce(agent_tags || orb_tags, agent_tags, orb_tags)) agent_groups
+		WHERE 1=1 %s`, tmq)
 
 	params := map[string]interface{}{
 		"tags":        t,
-		"tags_g":      tg,
 		"mf_owner_id": ownerID,
 	}
 
@@ -127,13 +120,22 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
-	t, tmq, err := getOrbOrAgentTagsQuery(pm.Tags)
+	t, tmq, err := getTagsQuery(pm.Tags)
 	if err != nil {
 		return fleet.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
 	q := fmt.Sprintf(`SELECT mf_thing_id, name, mf_owner_id, mf_channel_id, ts_created, orb_tags, agent_tags, agent_metadata, state, last_hb_data, ts_last_hb
-			FROM agents WHERE mf_owner_id = :mf_owner_id %s%s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, mq, nq, oq, dq)
+				from (
+				select
+						mf_thing_id, name, mf_owner_id, mf_channel_id, ts_created, orb_tags, agent_tags, agent_metadata, state, last_hb_data, ts_last_hb, 
+						coalesce(agent_tags || orb_tags, agent_tags, orb_tags) as tags
+				from agents where mf_owner_id = :mf_owner_id
+				group by 
+						mf_thing_id, name, mf_owner_id, mf_channel_id, ts_created, orb_tags, agent_tags, agent_metadata, state, last_hb_data, ts_last_hb, 
+						coalesce(agent_tags || orb_tags, agent_tags, orb_tags)) as agts
+				WHERE 1=1 %s%s%s 
+				ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tmq, mq, nq, oq, dq)
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
 		"limit":       pm.Limit,
@@ -164,7 +166,35 @@ func (r agentRepository) RetrieveAll(ctx context.Context, owner string, pm fleet
 		items = append(items, th)
 	}
 
-	cq := fmt.Sprintf(`SELECT COUNT(*) FROM agents WHERE mf_owner_id = :mf_owner_id %s%s%s;`, nq, tmq, mq)
+	cq := fmt.Sprintf(`SELECT count(*)
+				from (
+				select
+						mf_thing_id, 
+						name, 
+						mf_owner_id, 
+						mf_channel_id, 
+						ts_created, 
+						orb_tags, 
+						agent_tags, 
+						agent_metadata, 
+						state, 
+						last_hb_data, 
+						ts_last_hb,
+						coalesce(agent_tags || orb_tags, agent_tags, orb_tags) as tags
+				from agents where mf_owner_id = :mf_owner_id
+				group by mf_thing_id, 
+						name, 
+						mf_owner_id, 
+						mf_channel_id, 
+						ts_created, 
+						orb_tags, 
+						agent_tags, 
+						agent_metadata, 
+						state, 
+						last_hb_data, 
+						ts_last_hb, 
+						coalesce(agent_tags || orb_tags, agent_tags, orb_tags)) as agts
+				WHERE 1=1 %s%s%s;`, nq, tmq, mq)
 
 	total, err := total(ctx, r.db, cq, params)
 	if err != nil {
@@ -559,21 +589,6 @@ func getOrbOrAgentTagsQuery(m types.Tags) ([]byte, string, error) {
 	mb := []byte("{}")
 	if len(m) > 0 {
 		mq = ` AND (agent_tags @> :tags OR orb_tags @> :tags)`
-
-		b, err := json.Marshal(m)
-		if err != nil {
-			return nil, "", err
-		}
-		mb = b
-	}
-	return mb, mq, nil
-}
-
-func getGroupsTagsQuery(m types.Tags) ([]byte, string, error) {
-	mq := ""
-	mb := []byte("{}")
-	if len(m) > 0 {
-		mq = ` AND (agent_tags <@ :tags_g OR orb_tags <@ :tags_g)`
 
 		b, err := json.Marshal(m)
 		if err != nil {
