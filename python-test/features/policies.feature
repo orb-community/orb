@@ -4,6 +4,6 @@ Feature: policy creation
   Scenario: Create a policy
     Given the Orb user has a registered account
       And the Orb user logs in
-      And that an agent with random orb tag(s): 1 tag(s) already exists and is online
+      And that an agent with 1 orb tag(s) already exists and is online
     When a new policy is created
     Then referred policy must be listed on the orb policies list

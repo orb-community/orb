@@ -11,10 +11,10 @@ agent_name_prefix = "test_agent_name_"
 base_orb_url = configs.get('base_orb_url')
 
 
-@given("that an agent with {tags_type} orb tag(s): {orb_tags} already exists and is {status}")
-def check_if_agents_exist(context, tags_type, orb_tags, status):
+@given("that an agent with {orb_tags} orb tag(s) already exists and is {status}")
+def check_if_agents_exist(context, orb_tags, status):
     context.agent_name = generate_random_string_with_predefined_prefix(agent_name_prefix)
-    context.orb_tags = create_tags_set(tags_type, orb_tags)
+    context.orb_tags = create_tags_set(orb_tags)
     context.agent = create_agent(context.token, context.agent_name, context.orb_tags)
     token = context.token
     run_local_agent_container(context, "default")
@@ -24,10 +24,10 @@ def check_if_agents_exist(context, tags_type, orb_tags, status):
     expect_container_status(token, agent_id, status)
 
 
-@step('a new agent is created with {tags_type} orb tag(s): {orb_tags}')
-def agent_is_created(context, tags_type, orb_tags):
+@step('a new agent is created with {orb_tags} orb tag(s)')
+def agent_is_created(context, orb_tags):
     context.agent_name = generate_random_string_with_predefined_prefix(agent_name_prefix)
-    context.orb_tags = create_tags_set(tags_type, orb_tags)
+    context.orb_tags = create_tags_set(orb_tags)
     context.agent = create_agent(context.token, context.agent_name, context.orb_tags)
 
 

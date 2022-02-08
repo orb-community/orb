@@ -38,9 +38,9 @@ def orb_page(context):
                 "user not enabled to access orb login page")
 
 
-@step("a new agent is created through the UI with {tags_type} orb tag(s): {orb_tags}")
-def create_agent_through_the_agents_page(context, tags_type, orb_tags):
-    context.orb_tags = create_tags_set(tags_type, orb_tags)
+@step("a new agent is created through the UI with {orb_tags} orb tag(s)")
+def create_agent_through_the_agents_page(context, orb_tags):
+    context.orb_tags = create_tags_set(orb_tags)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, AgentsPage.new_agent_button()))).click()
     WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{base_orb_url}/pages/fleet/agents/add"), message="Orb add"

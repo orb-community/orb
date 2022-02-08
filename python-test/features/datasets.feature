@@ -4,7 +4,7 @@ Feature: datasets creation
   Scenario: Create Dataset
     Given the Orb user has a registered account
       And the Orb user logs in
-      And that an agent with random orb tag(s): 1 tag(s) already exists and is online
+      And that an agent with 1 orb tag(s) already exists and is online
       And referred agent is subscribed to a group
       And that a sink already exists
       And that a policy already exists
