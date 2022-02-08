@@ -171,7 +171,7 @@ def check_subscription(time_to_wait, agent_groups_names, text_to_match, containe
             logs = get_orb_agent_logs(container_id)
             text_found, log_line = check_logs_contain_message_and_name(logs, text_to_match, name, "group_name")
             if text_found is True:
-                groups_to_which_subscribed.add(log_line['group_name'])
+                groups_to_which_subscribed.add(log_line["group_name"])
                 if set(groups_to_which_subscribed) == set(agent_groups_names):
                     return True, groups_to_which_subscribed
         time.sleep(sleep_time)
