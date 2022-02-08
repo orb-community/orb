@@ -32,7 +32,7 @@ Feature: agent provider
     Scenario: Provision agent without tags
         Given the Orb user has a registered account
         And the Orb user logs in
-        When a new agent is created with random orb tag(s): 0 tag(s)
+        When a new agent is created with 0 orb tag(s)
         And the agent container is started on port default
         Then the agent status in Orb should be online
         And the container logs should contain the message "sending capabilities" within 10 seconds
@@ -41,7 +41,7 @@ Feature: agent provider
     Scenario: Provision agent with multiple tags
         Given the Orb user has a registered account
         And the Orb user logs in
-        When a new agent is created with random orb tag(s): 5 tag(s)
+        When a new agent is created with 5 orb tag(s)
         And the agent container is started on port default
         Then the agent status in Orb should be online
         And the container logs should contain the message "sending capabilities" within 10 seconds

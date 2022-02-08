@@ -171,7 +171,7 @@ Scenario: Sink with invalid password
     When an Agent Group is created with demo:true, ns1:true orb tag(s)
         And an Agent Group is created with region:br orb tag(s)
         And an Agent Group is created with demo:true orb tag(s)
-    Then the container logs contain the message "completed RPC subscription to group" referred to each group within 10 seconds
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
 
 
     Scenario: Agent subscription to multiple groups created before provisioning agent
@@ -182,4 +182,4 @@ Scenario: Sink with invalid password
             And an Agent Group is created with demo:true orb tag(s)
         When a new agent is created with demo:true, ns1:true orb tag(s)
             And the agent container is started on port default
-        Then the container logs contain the message "completed RPC subscription to group" referred to each group within 10 seconds
+        Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
