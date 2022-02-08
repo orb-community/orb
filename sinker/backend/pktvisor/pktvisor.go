@@ -222,8 +222,8 @@ func camelToSnake(s string) string {
 	var strExcept = ""
 	if len(sub) > 1 {
 		strExcept = matchExcept.FindAllString(s, 1)[0]
-		if strExcept == "ASN" {
-			strExcept = "_" + strExcept
+		if strExcept == "pASN" {
+			strExcept = "p_ASN"
 		}
 		s = sub[0]
 	}
