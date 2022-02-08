@@ -24,10 +24,10 @@ def create_agent_group_matching_agent(context):
     context.agent_groups[group_id] = agent_group_name
 
 
-@step("an Agent Group is created with {tags_type} orb tag(s): {orb_tags}")
-def create_new_agent_group(context, tags_type, orb_tags):
+@step("an Agent Group is created with {orb_tags} orb tag(s)")
+def create_new_agent_group(context, orb_tags):
     agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
-    context.orb_tags = create_tags_set(tags_type, orb_tags)
+    context.orb_tags = create_tags_set(orb_tags)
     if len(context.orb_tags) == 0:
         context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
                                                       context.orb_tags, 400)
