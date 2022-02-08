@@ -16,14 +16,14 @@ base_orb_url = configs.get('base_orb_url')
 
 @given("that fleet Management is clickable on ORB Menu")
 def expand_fleet_management(context):
-    context.driver.find_elements_by_xpath(fleet_management_left_menu)[0].click()
+    context.driver.find_elements_by_xpath(LeftMenu.fleet_management())[0].click()
 
 
 @given('that Agents is clickable on ORB Menu')
 def agent_page(context):
     WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, agent_left_menu)))
-    context.driver.find_element_by_xpath(agent_left_menu).click()
+        EC.element_to_be_clickable((By.XPATH, LeftMenu.agents())))
+    context.driver.find_element_by_xpath(LeftMenu.agents()).click()
     WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{base_orb_url}/pages/fleet/agents"), message="Orb agents "
                                                                                                        "page not "
                                                                                                        "available")
@@ -42,41 +42,42 @@ def orb_page(context):
 def create_agent_through_the_agents_page(context, tags_type, orb_tags):
     context.orb_tags = create_tags_set(tags_type, orb_tags)
     WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, new_agent_button))).click()
+        EC.element_to_be_clickable((By.XPATH, AgentsPage.new_agent_button()))).click()
     WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{base_orb_url}/pages/fleet/agents/add"), message="Orb add"
                                                                                                            "agents "
                                                                                                            "page not "
                                                                                                            "available")
     context.agent_name = agent_name_prefix + random_string(10)
-    input_text_by_xpath(agent_name_element, context.agent_name, context)
+    input_text_by_xpath(AgentsPage.agent_name(), context.agent_name, context)
     WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, next_button))).click()
+        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
     for tag_key, tag_value in context.orb_tags.items():
-        input_text_by_xpath(agent_tag_key_element, tag_key, context)
-        input_text_by_xpath(agent_tag_value_element, tag_value, context)
+        input_text_by_xpath(AgentsPage.agent_tag_key(), tag_key, context)
+        input_text_by_xpath(AgentsPage.agent_tag_value(), tag_value, context)
         WebDriverWait(context.driver, 3).until(
-            EC.element_to_be_clickable((By.XPATH, agent_add_tag_button))).click()
+            EC.element_to_be_clickable((By.XPATH, AgentsPage.agent_add_tag_button()))).click()
     WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, next_button))).click()
+        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
     WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, save_button))).click()
+        EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
     WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent successfully created'))
     context.agent_key = \
-        WebDriverWait(context.driver, 3).until(EC.presence_of_all_elements_located((By.XPATH, agent_key_xpath)))[0].text
+        WebDriverWait(context.driver, 3).until(EC.presence_of_all_elements_located((By.XPATH,
+                                                                                    AgentsPage.agent_key())))[0].text
     agent_provisioning_command = \
         WebDriverWait(context.driver, 3).until(
-            EC.presence_of_all_elements_located((By.XPATH, agent_provisioning_command_xpath)))[0].text
+            EC.presence_of_all_elements_located((By.XPATH, AgentsPage.agent_provisioning_command())))[0].text
 
     context.agent_provisioning_command = agent_provisioning_command.replace("\n\n", " ")
     WebDriverWait(context.driver, 3).until(
-        EC.presence_of_all_elements_located((By.XPATH, close_button)))[0].click()
+        EC.presence_of_all_elements_located((By.XPATH, UtilButton.close_button())))[0].click()
     WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located((By.XPATH, f"//div[contains(@class, 'agent-name') and contains(text(),"
                                                        f"'{context.agent_name}')]")))[0].click()
     context.agent = dict()
     context.agent['id'] = WebDriverWait(context.driver, 3).until(
-        EC.presence_of_all_elements_located((By.XPATH, agent_view_id)))[0].text
+        EC.presence_of_all_elements_located((By.XPATH, AgentsPage.agent_view_id())))[0].text
 
 
 @then("the agents list and the agents view should display agent's status as {status} within {time_to_wait} seconds")
@@ -107,5 +108,5 @@ def check_status_on_orb_ui(context, status, time_to_wait):
                                                        f"'{context.agent_name}')]")))[0].click()
     agent_view_status = WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located(
-            (By.XPATH, agent_status_element)))[0].text
+            (By.XPATH, AgentsPage.agent_status())))[0].text
     assert_that(agent_view_status, equal_to(status), f"Agent {context.agent['id']} status failed")

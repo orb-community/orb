@@ -130,7 +130,7 @@ Scenario: Sink with invalid endpoint
         And the container logs should contain the message "policy applied successfully" within 10 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 10 seconds
-        And dataset related have validity invalid
+        And dataset related have validity valid
 
 
 Scenario: Sink with invalid username
@@ -145,7 +145,7 @@ Scenario: Sink with invalid username
         And the container logs should contain the message "policy applied successfully" within 10 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 10 seconds
-        And dataset related have validity invalid
+        And dataset related have validity valid
 
 
 Scenario: Sink with invalid password
@@ -160,7 +160,7 @@ Scenario: Sink with invalid password
         And the container logs should contain the message "policy applied successfully" within 10 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 10 seconds
-        And dataset related have validity invalid
+        And dataset related have validity valid
 
 
     Scenario: Agent subscription to multiple groups created after provisioning agent
