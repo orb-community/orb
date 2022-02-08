@@ -25,6 +25,10 @@ nb-card {
       color: #969fb9;
     }
 
+    span {
+      text-align: end;
+    }
+
     .active-dataset {
       list-style-type: none;
       margin: 0;
@@ -49,6 +53,27 @@ nb-card {
 
       code {
         color: #ffffff;
+      }
+
+      font-weight: 400;
+
+      .number-line {
+        color: #adadaf;
+      }
+      .string {
+        color: #95c602;
+      }
+      .number {
+        color: #f2b619;
+      }
+      .boolean {
+        color: #0097f1;
+      }
+      .null {
+        color: #727990;
+      }
+      .key {
+        color: #fff;
       }
     }
   }

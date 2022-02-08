@@ -3,68 +3,108 @@
                   data-orb-qa-id="breadcrumb">
   </xng-breadcrumb>
   <h4>Agent View</h4>
+  <span>{{ agent?.state | ngxCapitalize }}: Last activity {{ agent?.ts_last_hb | date:'long' }}</span>
 </header>
 <div *ngIf="!isLoading" class="row">
-  <div class="col-md-6">
+  <div class="col-5">
     <nb-card>
-      <nb-card-header>Agent Information</nb-card-header>
+      <nb-card-header>Agent Information <a class="float-right">Manage</a></nb-card-header>
       <nb-card-body>
-        <label>Agent Name</label>
-        <p>{{ agent?.name }}</p>
-
-        <label>Version</label>
-        <p>{{ agent?.agent_metadata?.orb_agent?.version }}</p>
-
-        <label>Agent ID</label>
-        <p>{{ agent?.id }}</p>
-
-        <label>Channel ID</label>
-        <p>{{ agent?.channel_id }}</p>
-
-        <label>Provisioning Command</label>
-        <pre>
-          <button
-            [cdkCopyToClipboard]="command2copy">
-            <nb-icon [icon]="copyCommandIcon"
-                     (click)="toggleIcon('command')"
-                     pack="eva">
-            </nb-icon>
-          </button><code [innerHtml]="command2show">{{ command2show }}</code>
-        </pre>
-      </nb-card-body>
-    </nb-card>
-  </div>
-  <div class="col-md-6">
-    <nb-card>
-      <nb-card-header>Tags</nb-card-header>
-      <nb-card-body>
-        <div class="d-flex">
-          <mat-chip-list>
-            <mat-chip
-              *ngFor="let tag of agent?.orb_tags | keyvalue"
-              [style.background-color]="tag | tagcolor"
-              class="orb-tag-sink">
-              {{ tag | tagchip }}
-            </mat-chip>
-            <mat-chip
-              *ngFor="let tag of agent?.agent_tags | keyvalue"
-              [style.background-color]="tag | tagcolor"
-              class="orb-tag-sink">
-              {{tag | tagchip}}
-            </mat-chip>
-          </mat-chip-list>
+        <div class="row">
+          <div class="col-6">
+            <label>Agent Name</label>
+            <p>{{ agent?.name }}</p>
+          </div>
+          <div class="col-6">
+            <div class="float-right">
+              <label class="float-right">Version</label>
+              <p class="float-right">{{ agent?.agent_metadata?.orb_agent?.version }}</p>
+            </div>
+          </div>
+        </div>
+        <p class="card-row">
+          <label>Agent ID</label>
+          <span>{{ agent?.id }}</span>
+        </p>
+        <p class="card-row">
+          <label>Channel ID</label>
+          <span>{{ agent?.channel_id }}</span>
+        </p>
+        <div class="card-row">
+          <label>Key Value Pairs</label>
+          <a class="float-right">Manage</a>
+          <div class="d-flex">
+            <mat-chip-list>
+              <mat-chip
+                *ngFor="let tag of agent?.orb_tags | keyvalue"
+                [style.background-color]="tag | tagcolor"
+                class="orb-tag-sink">
+                {{ tag | tagchip }}
+              </mat-chip>
+              <mat-chip
+                *ngFor="let tag of agent?.agent_tags | keyvalue"
+                [style.background-color]="tag | tagcolor"
+                class="orb-tag-sink">
+                {{tag | tagchip}}
+              </mat-chip>
+            </mat-chip-list>
+          </div>
         </div>
       </nb-card-body>
     </nb-card>
 
     <nb-card>
-      <nb-card-header>Heartbeat</nb-card-header>
+      <nb-card-header>Capabilities <a class="float-right">Edit</a></nb-card-header>
       <nb-card-body>
-        <label>Last Seen</label>
-        <p>{{ agent?.ts_last_hb | date:'short' }}</p>
+        <label>Taps</label>
+        <div *ngFor="let backend of agent?.agent_metadata?.backends | keyvalue">
+          <pre [innerHTML]="backend?.value?.data | prettyJson: [true, 3]"></pre>
+        </div>
+      </nb-card-body>
+    </nb-card>
 
-        <label>Health Status</label>
-        <p>{{ agent?.state | titlecase }}</p>
+    <nb-card>
+      <nb-card-header>
+        Provisioning Command
+        <a class="float-right">Dropdown</a>
+        <button
+          [cdkCopyToClipboard]="command2copy">
+          <nb-icon [icon]="copyCommandIcon"
+                   (click)="toggleIcon('command')"
+                   pack="eva">
+          </nb-icon>
+        </button>
+      </nb-card-header>
+      <nb-card-body class="hide" hidden="true">
+      </nb-card-body>
+    </nb-card>
+  </div>
+
+  <div class="col-7">
+    <nb-card>
+      <nb-card-header>Active Policies/Datasets <a class="float-right">Full View</a></nb-card-header>
+      <nb-card-body>
+        <nb-accordion *ngFor="let policy of agent?.last_hb_data?.policy_state | keyvalue">
+          <nb-accordion-item>
+            <nb-accordion-item-header>
+              {{ "Policy: " + policy.value.name }} {{ "  Status: " + policy.value.state }}
+            </nb-accordion-item-header>
+            <nb-accordion-item-body>
+              <nb-list>
+                <nb-list-item *ngFor="let dataset of policy.value.datasets">
+                  {{ "Dataset \"" + dataset + "\"" }}
+                </nb-list-item>
+              </nb-list>
+            </nb-accordion-item-body>
+          </nb-accordion-item>
+        </nb-accordion>
+      </nb-card-body>
+    </nb-card>
+
+    <nb-card>
+      <nb-card-header>Active Groups <a class="float-right">Full View</a></nb-card-header>
+      <nb-card-body>
+        <p><a>Group Name 1</a>, <a>Group Name 2</a>, <a>Group Name 3</a></p>
       </nb-card-body>
     </nb-card>
   </div>

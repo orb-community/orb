@@ -27,6 +27,7 @@ import { TagColorPipe } from 'app/shared/pipes/tag-color.pipe';
 import { TagChipPipe } from 'app/shared/pipes/tag-chip.pipe';
 import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.directive';
 import { AdvancedOptionsPipe } from 'app/shared/pipes/advanced-options.pipe';
+import { PrettyJsonPipe } from 'app/shared/pipes/pretty-json.pipe';
 
 @NgModule({
   imports: [
@@ -56,6 +57,7 @@ import { AdvancedOptionsPipe } from 'app/shared/pipes/advanced-options.pipe';
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,
+    PrettyJsonPipe,
   ],
   exports: [
     ThemeModule,
@@ -72,6 +74,7 @@ import { AdvancedOptionsPipe } from 'app/shared/pipes/advanced-options.pipe';
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,
+    PrettyJsonPipe,
   ],
   providers: [
     MessageValuePipe,

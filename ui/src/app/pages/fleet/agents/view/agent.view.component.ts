@@ -1,15 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { STRINGS } from 'assets/text/strings';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'ngx-agent-view',
   templateUrl: './agent.view.component.html',
   styleUrls: ['./agent.view.component.scss'],
 })
-export class AgentViewComponent {
+export class AgentViewComponent implements OnDestroy {
   strings = STRINGS.agents;
 
   isLoading: boolean = true;
@@ -22,6 +23,7 @@ export class AgentViewComponent {
 
   command2show: string;
 
+  subscription: Subscription;
 
   constructor(
     private agentsService: AgentsService,
@@ -32,9 +34,9 @@ export class AgentViewComponent {
     this.agentID = this.route.snapshot.paramMap.get('id');
     this.command2copy = '';
     this.command2show = '';
-    this.copyCommandIcon = 'clipboard-outline';
+    this.copyCommandIcon = 'plus-outline';
 
-    !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
+    this.subscription = !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
       this.agent = resp;
       this.makeCommand2Copy();
       this.isLoading = false;
@@ -64,5 +66,9 @@ ns1labs/orb-agent:develop`;
 -e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>mock</mark> \n
 
 ns1labs/orb-agent:develop`;
+  }
+
+  ngOnDestroy() {
+    this.subscription?.unsubscribe();
   }
 }
