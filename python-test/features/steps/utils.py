@@ -1,9 +1,7 @@
 import random
 import string
 from json import loads, JSONDecodeError
-import socket, errno
 from hamcrest import *
-from behave import step
 
 tag_prefix = "test_tag_"
 
@@ -66,23 +64,20 @@ def generate_random_string_with_predefined_prefix(string_prefix, n_random=10):
     return random_string_with_predefined_prefix
 
 
-def create_tags_set(tags_type, orb_tags):
+def create_tags_set(orb_tags):
     """
     Create a set of orb-tags
-    :param (str) tags_type: Defines if the set of tags is previously defined or if it should be randomly generated.
-                    Options: "defined" or "random".
     :param orb_tags: If defined: the defined tags that should compose the set.
                      If random: the number of tags that the set must contain.
     :return: (dict) tag_set
     """
-    assert_that(tags_type, any_of(equal_to('random'), equal_to('defined')), 'Unexpect type of tags')
     tag_set = dict()
-    if tags_type == 'defined':
+    if orb_tags.isdigit() is False:
+        assert_that(orb_tags, matches_regexp("^.+\:.+"), "Unexpected tags")
         for tag in orb_tags.split(", "):
             key, value = tag.split(":")
             tag_set[key] = value
     else:
-        assert_that(orb_tags, matches_regexp("^\d+\stag\(s\)"), "Unexpected value for tags: n tag(s) is expected")
         amount_of_tags = int(orb_tags.split()[0])
         for tag in range(amount_of_tags):
             tag_set[tag_prefix + random_string(4)] = tag_prefix + random_string(2)
