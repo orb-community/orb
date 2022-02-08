@@ -6,6 +6,7 @@
  */
 
 import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface';
+import { PolicyHandler } from 'app/common/interfaces/orb/policy/policy.handler.interface';
 
 /**
  * @interface PolicyConfig
@@ -31,11 +32,7 @@ export interface PolicyConfig {
    */
   handlers?: {
     modules?: {
-      [propName: string]: {
-        config: { [propName: string]: any },
-        type: string,
-        [propName: string]: any,
-      } | string | any,
+      [propName: string]: PolicyHandler | string | any,
     },
   };
 }
