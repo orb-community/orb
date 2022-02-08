@@ -89,13 +89,14 @@ def create_tags_set(tags_type, orb_tags):
     return tag_set
 
 
-def check_logs_contain_message_and_name(logs, expected_message, name):
+def check_logs_contain_message_and_name(logs, expected_message, name, name_key):
     """
     Gets the logs from Orb agent container
 
     :param (list) logs: list of log lines
     :param (str) expected_message: message that we expect to find in the logs
     :param (str) name: element name that we expect to find in the logs
+    :param (str) name_key: key to get element name on log line
     :returns: (bool) whether expected message was found in the logs
     """
 
@@ -103,7 +104,7 @@ def check_logs_contain_message_and_name(logs, expected_message, name):
         log_line = safe_load_json(log_line)
 
         if log_line is not None and log_line['msg'] == expected_message:
-            if log_line is not None and log_line['name'] == name:
+            if log_line is not None and log_line[name_key] == name:
                 return True, log_line
 
     return False, "Logs doesn't contain the message and name expected"
