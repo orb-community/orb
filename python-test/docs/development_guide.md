@@ -57,9 +57,9 @@
 |                                                     Agents Scenario                                                      | Automated via API | Automated via UI | Smoke | Sanity | 
 |:------------------------------------------------------------------------------------------------------------------------:|:-----------------:|:----------------:|:-----:|:------:|
 |       [Check if total agent on agents' page is correct](agents/check_if_total_agent_on_agents'_page_is_correct.md)       |                   |                  |       |        |
-|                             [Create agent without tags](agents/create_agent_without_tags.md)                             |                   |                  |       |   👍   |
+|                             [Create agent without tags](agents/create_agent_without_tags.md)                             |         ✅         |                  |       |   👍   |
 |                             [Create agent with one tag](agents/create_agent_with_one_tag.md)                             |         ✅         |        ✅         |  👍   |   👍   |
-|                       [Create agent with multiple tags](agents/create_agent_with_multiple_tags.md)                       |                   |                  |       |   👍   |
+|                       [Create agent with multiple tags](agents/create_agent_with_multiple_tags.md)                       |         ✅         |                  |       |   👍   |
 |                [Create agent with invalid name (regex)](agents/create_agent_with_invalid_name_(regex).md)                |                   |                  |       |   👍   |
 |                      [Create agent with duplicate name](agents/create_agent_with_duplicate_name.md)                      |                   |                  |       |   👍   |
 |                                    [Test agent filters](agents/test_agent_filters.md)                                    |                   |                  |       |        |
@@ -86,9 +86,9 @@
 |                       [Create agent group with duplicate name](agent_groups/create_agent_group_with_duplicate_name.md)                       |                   |                  |       |   👍   |
 |                          [Create agent group with description](agent_groups/create_agent_group_with_description.md)                          |         ✅         |                  |  👍   |   👍   |
 |                       [Create agent group without description](agent_groups/create_agent_group_without_description.md)                       |                   |                  |       |   👍   |
-|                               [Create agent group without tag](agent_groups/create_agent_group_without_tag.md)                               |                   |                  |       |   👍   |
+|                               [Create agent group without tag](agent_groups/create_agent_group_without_tag.md)                               |         ✅         |                  |       |   👍   |
 |                              [Create agent group with one tag](agent_groups/create_agent_group_with_one_tag.md)                              |         ✅         |                  |  👍   |   👍   |
-|                        [Create agent group with multiple tags](agent_groups/create_agent_group_with_multiple_tags.md)                        |                   |                  |       |   👍   |
+|                        [Create agent group with multiple tags](agent_groups/create_agent_group_with_multiple_tags.md)                        |         ✅         |                  |       |   👍   |
 |                                    [Test agent groups filters](agent_groups/test_agent_groups_filters.md)                                    |                   |                  |       |        |
 |                                    [Visualize matching agents](agent_groups/visualize_matching_agents.md)                                    |                   |                  |       |   👍   |
 |                                   [Check agent groups details](agent_groups/check_agent_groups_details.md)                                   |                   |                  |       |   👍   |

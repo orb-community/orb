@@ -28,10 +28,23 @@ def create_agent_group_matching_agent(context):
 def create_new_agent_group(context, tags_type, orb_tags):
     agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
     context.orb_tags = create_tags_set(tags_type, orb_tags)
-    context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
-                                                  context.orb_tags)
-    group_id = context.agent_group_data['id']
-    context.agent_groups[group_id] = agent_group_name
+    if len(context.orb_tags) == 0:
+        context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
+                                                      context.orb_tags, 400)
+    else:
+        context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
+                                                      context.orb_tags)
+        group_id = context.agent_group_data['id']
+        context.agent_groups[group_id] = agent_group_name
+
+
+@step("Agent Group creation response must be an error with message '{message}'")
+def error_response_message(context, message):
+    response = list(context.agent_group_data.items())[0]
+    response_key, response_value = response[0], response[1]
+    assert_that(response_key, equal_to('error'),
+                'Response of invalid agent group creation must be an error')
+    assert_that(response_value, equal_to(message), "Unexpected message for error")
 
 
 @then("one agent must be matching on response field matching_agents")
@@ -80,7 +93,7 @@ def check_logs_for_group(context, text_to_match, time_to_wait):
                                        f"{set(context.agent_groups.values()).difference(groups_to_which_subscribed)}!")
 
 
-def create_agent_group(token, name, description, tags):
+def create_agent_group(token, name, description, tags, expected_status_code=201):
     """
     Creates an agent group in Orb control plane
 
@@ -89,13 +102,14 @@ def create_agent_group(token, name, description, tags):
     :param (str) description: description of group
     :param (dict) tags: dict with all pairs key:value that will be used as tags
     :returns: (dict) a dictionary containing the created agent group data
+    :param (int) expected_status_code: expected request's status code. Default:201 (happy path).
     """
 
     json_request = {"name": name, "description": description, "tags": tags}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
     response = requests.post(base_orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
-    assert_that(response.status_code, equal_to(201),
+    assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create agent group failed with status=' + str(response.status_code))
 
     return response.json()

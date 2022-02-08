@@ -27,3 +27,21 @@ Feature: agent provider
             And the agent container is started on port 10854
         Then last container created is running after 2 seconds
             And container on port default is running after 2 seconds
+
+
+    Scenario: Provision agent without tags
+        Given the Orb user has a registered account
+        And the Orb user logs in
+        When a new agent is created with random orb tag(s): 0 tag(s)
+        And the agent container is started on port default
+        Then the agent status in Orb should be online
+        And the container logs should contain the message "sending capabilities" within 10 seconds
+
+
+    Scenario: Provision agent with multiple tags
+        Given the Orb user has a registered account
+        And the Orb user logs in
+        When a new agent is created with random orb tag(s): 5 tag(s)
+        And the agent container is started on port default
+        Then the agent status in Orb should be online
+        And the container logs should contain the message "sending capabilities" within 10 seconds
