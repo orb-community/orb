@@ -52,22 +52,23 @@
           </form>
           <hr/>
           <div class="d-flex justify-content-end">
-            <button
-              (click)="goBack()"
-              data-orb-qa-id="cancel"
-              ghost
-              nbButton
-              status="primary"
-              type="button">Cancel
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
             </button>
             <button [disabled]="!detailsFG?.valid"
                     class="next-button"
-                    data-orb-qa-id="next"
+                    data-orb-qa-id="button#next"
                     nbButton
                     nbStepperNext
                     shape="round"
                     status="primary"
-                    type="submit">Next
+                    type="submit">
+              {{ strings.stepper.next }}
             </button>
           </div>
         </nb-step>
@@ -262,22 +263,31 @@
             </form>
           </div>
           <div class="d-flex justify-content-end">
-            <button
-              data-orb-qa-id="cancel"
-              ghost
-              nbButton
-              nbStepperPrevious
-              status="primary"
-              type="button">Back
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.back }}
             </button>
             <button [disabled]="!tapFG?.valid"
                     class="next-button"
-                    data-orb-qa-id="next"
+                    data-orb-qa-id="button#next"
                     nbButton
                     nbStepperNext
                     shape="round"
                     status="primary"
-                    type="submit">Next
+                    type="submit">
+              {{ strings.stepper.next }}
             </button>
           </div>
         </nb-step>
@@ -325,24 +335,24 @@
           <div class="d-flex justify-content-start"
                style="padding-left: 35%;">
             <button
-              data-orb-qa-id="back"
+              data-orb-qa-id="button#back"
               ghost
               nbButton
               nbStepperPrevious
               status="primary">
-              Back
+              {{ strings.stepper.back }}
             </button>
             <button (click)="onFormSubmit()"
                     [disabled]="modules.length === 0"
                     class="next-button"
-                    data-orb-qa-id="next"
+                    data-orb-qa-id="button#save"
                     nbButton
                     nbStepperNext
                     nbTooltip="At least one handler must be configure and added to the policies."
                     shape="round"
                     status="primary"
                     type="submit">
-              Save
+              {{ strings.stepper.save }}
             </button>
           </div>
         </nb-step>

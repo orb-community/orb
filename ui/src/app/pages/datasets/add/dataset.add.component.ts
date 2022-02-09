@@ -12,6 +12,7 @@ import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { STRINGS } from '../../../../assets/text/strings';
 
 const CONFIG = {
   SINKS: 'SINKS',
@@ -26,6 +27,9 @@ const CONFIG = {
   styleUrls: ['./dataset.add.component.scss'],
 })
 export class DatasetAddComponent {
+  // page vars
+  strings = {stepper: STRINGS.stepper};
+
   // stepper form groups
   detailsFormGroup: FormGroup;
 
