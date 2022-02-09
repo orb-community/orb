@@ -32,7 +32,13 @@ export class PrettyJsonPipe implements PipeTransform {
     /**
      * Converts special charaters like &, <, > to equivalent HTML code of it
      */
-    obj = obj.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    obj = obj
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n( *)/g, function (match, p1) {
+        return '<br>' + '&nbsp;'.repeat(p1.length);
+      });
     /* taken from https://stackoverflow.com/a/7220510 */
 
     /**

@@ -40,6 +40,7 @@ nb-card {
       padding: 0.75rem;
       border-radius: 0.5rem;
       white-space: pre-line;
+      color: #ffffff;
 
       button {
         background: transparent;
@@ -51,30 +52,7 @@ nb-card {
         right: -0.5rem;
       }
 
-      code {
-        color: #ffffff;
-      }
-
       font-weight: 400;
-
-      .number-line {
-        color: #adadaf;
-      }
-      .string {
-        color: #95c602;
-      }
-      .number {
-        color: #f2b619;
-      }
-      .boolean {
-        color: #0097f1;
-      }
-      .null {
-        color: #727990;
-      }
-      .key {
-        color: #fff;
-      }
     }
   }
 }

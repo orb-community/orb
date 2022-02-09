@@ -1,14 +1,15 @@
-<header data-orb-qa-id="agent#view">
-  <xng-breadcrumb class="orb-breadcrumb"
+<header data-orb-qa-id="agent#view" class="row">
+  <xng-breadcrumb class="orb-breadcrumb float-left"
                   data-orb-qa-id="breadcrumb">
   </xng-breadcrumb>
   <h4>Agent View</h4>
-  <span>{{ agent?.state | ngxCapitalize }}: Last activity {{ agent?.ts_last_hb | date:'long' }}</span>
+  <p class="float-right">{{ agent?.state | ngxCapitalize }}: Last activity
+    {{ agent?.ts_last_hb | date:'long' }}</p>
 </header>
 <div *ngIf="!isLoading" class="row">
   <div class="col-5">
     <nb-card>
-      <nb-card-header>Agent Information <a class="float-right">Manage</a></nb-card-header>
+      <nb-card-header>Agent Information</nb-card-header>
       <nb-card-body>
         <div class="row">
           <div class="col-6">
@@ -32,7 +33,6 @@
         </p>
         <div class="card-row">
           <label>Key Value Pairs</label>
-          <a class="float-right">Manage</a>
           <div class="d-flex">
             <mat-chip-list>
               <mat-chip
@@ -54,11 +54,11 @@
     </nb-card>
 
     <nb-card>
-      <nb-card-header>Capabilities <a class="float-right">Edit</a></nb-card-header>
+      <nb-card-header>Capabilities</nb-card-header>
       <nb-card-body>
         <label>Taps</label>
         <div *ngFor="let backend of agent?.agent_metadata?.backends | keyvalue">
-          <pre [innerHTML]="backend?.value?.data | prettyJson: [true, 3]"></pre>
+          <pre innerHtml="{{ backend?.value?.data | prettyJson: [false, 2] }}"></pre>
         </div>
       </nb-card-body>
     </nb-card>
@@ -82,7 +82,7 @@
 
   <div class="col-7">
     <nb-card>
-      <nb-card-header>Active Policies/Datasets <a class="float-right">Full View</a></nb-card-header>
+      <nb-card-header>Active Policies/Datasets</nb-card-header>
       <nb-card-body>
         <nb-accordion *ngFor="let policy of agent?.last_hb_data?.policy_state | keyvalue">
           <nb-accordion-item>
@@ -102,7 +102,7 @@
     </nb-card>
 
     <nb-card>
-      <nb-card-header>Active Groups <a class="float-right">Full View</a></nb-card-header>
+      <nb-card-header>Active Groups</nb-card-header>
       <nb-card-body>
         <p><a>Group Name 1</a>, <a>Group Name 2</a>, <a>Group Name 3</a></p>
       </nb-card-body>
