@@ -1,5 +1,5 @@
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, generate_name_and_tag, tag_key_prefix, tag_value_prefix
+from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, create_tags_set
 from local_agent import run_local_agent_container
 from behave import given, when, then, step
 from hamcrest import *
@@ -11,13 +11,11 @@ agent_name_prefix = "test_agent_name_"
 base_orb_url = configs.get('base_orb_url')
 
 
-@given("that an agent already exists and is {status}")
-def check_if_agents_exist(context, status):
-    context.agent_name, context.agent_tag_key, context.agent_tag_value = generate_name_and_tag(agent_name_prefix,
-                                                                                               tag_key_prefix,
-                                                                                               tag_value_prefix)
-    agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
-    context.agent = agent
+@given("that an agent with {orb_tags} orb tag(s) already exists and is {status}")
+def check_if_agents_exist(context, orb_tags, status):
+    context.agent_name = generate_random_string_with_predefined_prefix(agent_name_prefix)
+    context.orb_tags = create_tags_set(orb_tags)
+    context.agent = create_agent(context.token, context.agent_name, context.orb_tags)
     token = context.token
     run_local_agent_container(context, "default")
     agent_id = context.agent['id']
@@ -26,19 +24,17 @@ def check_if_agents_exist(context, status):
     expect_container_status(token, agent_id, status)
 
 
-@when('a new agent is created')
-def agent_is_created(context):
-    context.agent_name, context.agent_tag_key, context.agent_tag_value = generate_name_and_tag(agent_name_prefix,
-                                                                                               tag_key_prefix,
-                                                                                               tag_value_prefix)
-    agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
-    context.agent = agent
+@step('a new agent is created with {orb_tags} orb tag(s)')
+def agent_is_created(context, orb_tags):
+    context.agent_name = generate_random_string_with_predefined_prefix(agent_name_prefix)
+    context.orb_tags = create_tags_set(orb_tags)
+    context.agent = create_agent(context.token, context.agent_name, context.orb_tags)
 
 
 @when('a new agent is created with tags matching an existing group')
 def agent_is_created_matching_group(context):
     context.agent_name = agent_name_prefix + random_string(10)
-    agent = create_agent(context.token, context.agent_name, context.agent_tag_key, context.agent_tag_value)
+    agent = create_agent(context.token, context.agent_name, context.orb_tags)
     context.agent = agent
 
 
@@ -182,7 +178,7 @@ def delete_agent(token, agent_id):
                 + agent_id + ' failed with status=' + str(response.status_code))
 
 
-def create_agent(token, name, tag_key, tag_value):
+def create_agent(token, name, tags):
     """
     Creates an agent in Orb control plane
 
@@ -193,7 +189,7 @@ def create_agent(token, name, tag_key, tag_value):
     :returns: (dict) a dictionary containing the created agent data
     """
 
-    json_request = {"name": name, "orb_tags": {tag_key: tag_value}, "validate_only": False}
+    json_request = {"name": name, "orb_tags": tags, "validate_only": False}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': token}
 
