@@ -45,7 +45,7 @@
                  [required]="getConfigValue('forms.validation.fullName.required')"
                  [minlength]="getConfigValue('forms.validation.fullName.minLength')"
                  [maxlength]="getConfigValue('forms.validation.fullName.maxLength')"
-                 pattern="^([a-zA-Z]*)\s+([a-zA-Z ]*)$"
+                 pattern="^([a-zA-Z]+)\s([a-zA-Z ]+)$"
                  [attr.aria-invalid]="fullName.invalid && fullName.touched ? true : null">
           <ng-container *ngIf="fullName.invalid && fullName.touched">
             <p class="caption status-danger mb-1" *ngIf="fullName.errors?.required">
