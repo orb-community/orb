@@ -39,22 +39,23 @@
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button
-                (click)="goBack()"
-                data-orb-qa-id="cancel"
-                ghost
-                nbButton
-                status="primary"
-                type="button">Cancel
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
               <button [disabled]="!detailsFormGroup?.valid"
                       class="next-button"
-                      data-orb-qa-id="next"
+                      data-orb-qa-id="button#next"
                       nbButton
                       nbStepperNext
                       shape="round"
                       status="primary"
-                      type="submit">Next
+                      type="submit">
+                {{ strings.stepper.next }}
               </button>
             </div>
           </form>
@@ -91,30 +92,31 @@
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button
-                (click)="goBack()"
-                data-orb-qa-id="cancel"
-                ghost
-                nbButton
-                status="primary"
-                type="button">Cancel
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
-              <button
-                data-orb-qa-id="cancel"
-                ghost
-                nbButton
-                nbStepperPrevious
-                status="primary"
-                type="button">Back
+              <button data-orb-qa-id="button#back"
+                      ghost
+                      nbButton
+                      nbStepperPrevious
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.back }}
               </button>
               <button [disabled]="!isEdit && !agentFormGroup?.valid"
                       class="next-button"
-                      data-orb-qa-id="next"
+                      data-orb-qa-id="button#next"
                       nbButton
                       nbStepperNext
                       shape="round"
                       status="primary"
-                      type="submit">Next
+                      type="submit">
+                {{ strings.stepper.next }}
               </button>
             </div>
           </form>
@@ -150,30 +152,30 @@
             </nb-form-field>
             <hr/>
             <div *ngIf="policyFormGroup" class="d-flex justify-content-end">
-              <button
-                (click)="goBack()"
-                data-orb-qa-id="cancel"
-                ghost
-                nbButton
-                status="primary"
-                type="button">Cancel
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
-              <button
-                data-orb-qa-id="cancel"
-                ghost
-                nbButton
-                nbStepperPrevious
-                status="primary"
-              >Back
+              <button data-orb-qa-id="button#back"
+                      ghost
+                      nbButton
+                      nbStepperPrevious
+                      status="primary">
+                {{ strings.stepper.back }}
               </button>
               <button [disabled]="!isEdit && !policyFormGroup?.valid"
                       class="next-button"
-                      data-orb-qa-id="next"
+                      data-orb-qa-id="button#next"
                       nbButton
                       nbStepperNext
                       shape="round"
                       status="primary"
-                      type="submit">Next
+                      type="submit">
+                {{ strings.stepper.next }}
               </button>
             </div>
           </form>
@@ -234,31 +236,30 @@
             <hr/>
             <div *ngIf="sinkFormGroup" class="d-flex justify-content-start"
                  style="padding-left: 35%;">
-              <button
-                (click)="goBack()"
-                data-orb-qa-id="cancel"
-                ghost
-                nbButton
-                status="primary"
-                type="button">Cancel
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
-              <button
-                data-orb-qa-id="back"
-                ghost
-                nbButton
-                nbStepperPrevious
-                status="primary">
-                Back
+              <button data-orb-qa-id="button#back"
+                      ghost
+                      nbButton
+                      nbStepperPrevious
+                      status="primary">
+                {{ strings.stepper.back }}
               </button>
               <button [disabled]="selectedSinks.length === 0"
                       class="next-button"
-                      data-orb-qa-id="next"
+                      data-orb-qa-id="button#next"
                       nbButton
                       nbStepperNext
                       shape="round"
                       status="primary"
                       type="submit">
-                Next
+                {{ strings.stepper.next }}
               </button>
             </div>
           </form>
@@ -309,28 +310,29 @@
           </div>
           <hr/>
           <div *ngIf="sinkFormGroup" class="d-flex justify-content-end">
-            <button
-              (click)="goBack()"
-              data-orb-qa-id="cancel"
-              ghost
-              nbButton
-              status="primary"
-              type="button">Cancel
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
             </button>
-            <button
-              data-orb-qa-id="previous"
-              ghost
-              nbButton
-              nbStepperPrevious
-              status="primary">Back
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    status="primary">
+              {{ strings.stepper.back }}
             </button>
             <button (click)="onFormSubmit()"
                     class="next-button"
-                    data-orb-qa-id="next"
+                    data-orb-qa-id="button#save"
                     nbButton
                     shape="round"
                     status="primary"
-                    type="submit">Save
+                    type="submit">
+              {{ strings.stepper.save }}
             </button>
           </div>
         </nb-step>

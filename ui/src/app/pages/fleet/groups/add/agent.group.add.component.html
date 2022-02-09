@@ -45,21 +45,22 @@
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button
-                  nbButton
-                  ghost
-                  (click)="goBack()"
-                  type="button"
-                  status="primary">
-                {{strings.stepper.cancel}}
+              <button data-orb-qa-id="button#cancel"
+                      nbButton
+                      ghost
+                      (click)="goBack()"
+                      type="button"
+                      status="primary">
+                {{ strings.stepper.cancel }}
               </button>
-              <button class="next-button"
+              <button data-orb-qa-id="button#next"
+                      class="next-button"
                       nbButton
                       shape="round"
                       status="primary"
                       type="submit"
                       [disabled]="!firstFormGroup.valid" nbStepperNext>
-                {{strings.stepper.next}}
+                {{ strings.stepper.next }}
               </button>
             </div>
           </form>
@@ -75,10 +76,10 @@
             <div class="d-flex">
               <mat-chip-list>
                 <mat-chip
-                    class="orb-tag-sink "
-                    *ngFor="let tag of selectedTags | keyvalue"
-                    [style.background-color]="tag | tagcolor">
-                    {{tag | tagchip}}
+                  class="orb-tag-sink "
+                  *ngFor="let tag of selectedTags | keyvalue"
+                  [style.background-color]="tag | tagcolor">
+                  {{tag | tagchip}}
                   <nb-icon class="ml-1"
                            (click)="onRemoveTag(tag.key)"
                            icon="close-outline"
@@ -156,29 +157,30 @@
             <hr/>
             <div class="d-flex justify-content-end"
                  *ngIf="secondFormGroup">
-              <button
-                nbButton
-                ghost
-                (click)="goBack()"
-                type="button"
-                status="primary">
-                {{strings.stepper.cancel}}
+              <button data-orb-qa-id="button#cancel"
+                      nbButton
+                      ghost
+                      (click)="goBack()"
+                      type="button"
+                      status="primary">
+                {{ strings.stepper.cancel }}
               </button>
-              <button
-                  nbButton
-                  ghost
-                  status="primary"
-                  nbStepperPrevious>
-                {{strings.stepper.back}}
+              <button data-orb-qa-id="button#back"
+                      nbButton
+                      ghost
+                      status="primary"
+                      nbStepperPrevious>
+                {{ strings.stepper.back }}
               </button>
-              <button class="next-button"
+              <button data-orb-qa-id="button#next"
+                      class="next-button"
                       nbButton
                       shape="round"
                       status="primary"
                       type="submit"
                       [disabled]="(selectedTags | json) === '{}'"
                       nbStepperNext>
-                {{strings.stepper.next}}
+                {{ strings.stepper.next }}
               </button>
             </div>
           </form>
@@ -209,10 +211,10 @@
             <div class="col-12">
               <mat-chip-list>
                 <mat-chip
-                    class="orb-tag-sink "
-                    *ngFor="let tag of selectedTags | keyvalue"
-                    [style.background-color]="tag | tagcolor">
-                    {{tag | tagchip}}
+                  class="orb-tag-sink "
+                  *ngFor="let tag of selectedTags | keyvalue"
+                  [style.background-color]="tag | tagcolor">
+                  {{tag | tagchip}}
                 </mat-chip>
                 <mat-chip
                   *ngIf="(selectedTags | json) === '{}'"
@@ -245,43 +247,44 @@
           <div class="d-flex row" *ngIf="expanded">
             <div class="tag-table">
               <ngx-datatable
-                  class="orb w-100"
-                  style="height: 500px;"
-                  [rows]="matchingAgents"
-                  [scrollbarV]="true"
-                  [columns]="columns"
-                  [columnMode]="columnMode.flex"
-                  [headerHeight]="50"
-                  [footerHeight]="50"
-                  [rowHeight]="50">
+                class="orb w-100"
+                style="height: 500px;"
+                [rows]="matchingAgents"
+                [scrollbarV]="true"
+                [columns]="columns"
+                [columnMode]="columnMode.flex"
+                [headerHeight]="50"
+                [footerHeight]="50"
+                [rowHeight]="50">
               </ngx-datatable>
             </div>
           </div>
           <hr/>
           <div class="d-flex justify-content-end"
                *ngIf="secondFormGroup">
-            <button
-              nbButton
-              ghost
-              (click)="goBack()"
-              type="button"
-              status="primary">
-              {{strings.stepper.cancel}}
+            <button data-orb-qa-id="button#cancel"
+                    nbButton
+                    ghost
+                    (click)="goBack()"
+                    type="button"
+                    status="primary">
+              {{ strings.stepper.cancel }}
             </button>
-            <button
-                nbButton
-                ghost
-                status="primary"
-                nbStepperPrevious>
-              {{strings.stepper.back}}
+            <button data-orb-qa-id="button#back"
+                    nbButton
+                    ghost
+                    status="primary"
+                    nbStepperPrevious>
+              {{ strings.stepper.back }}
             </button>
-            <button class="next-button"
+            <button data-orb-qa-id="button#save"
+                    class="next-button"
                     nbButton
                     shape="round"
                     status="primary"
                     (click)="onFormSubmit()"
                     type="submit">
-              {{strings.stepper.save}}
+              {{ strings.stepper.save }}
             </button>
           </div>
         </nb-step>
@@ -309,10 +312,10 @@
   <div class="d-flex">
     <mat-chip-list>
       <mat-chip
-          class="orb-tag-sink "
-          *ngFor="let tag of value | keyvalue"
-          [style.background-color]="tag | tagcolor">
-          {{tag | tagchip}}
+        class="orb-tag-sink "
+        *ngFor="let tag of value | keyvalue"
+        [style.background-color]="tag | tagcolor">
+        {{tag | tagchip}}
       </mat-chip>
     </mat-chip-list>
   </div>

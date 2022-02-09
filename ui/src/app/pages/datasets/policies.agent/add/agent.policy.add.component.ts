@@ -7,6 +7,7 @@ import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { DynamicFormConfig } from 'app/common/interfaces/orb/dynamic.form.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface';
+import { STRINGS } from '../../../../../assets/text/strings';
 
 const CONFIG = {
   TAPS: 'TAPS',
@@ -22,6 +23,9 @@ const CONFIG = {
   styleUrls: ['./agent.policy.add.component.scss'],
 })
 export class AgentPolicyAddComponent {
+  // page vars
+  strings = {stepper: STRINGS.stepper};
+
   // #forms
   // agent policy general information - name, desc, backend
   detailsFG: FormGroup;
