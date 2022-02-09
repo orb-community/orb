@@ -88,7 +88,6 @@
                 <span class="required">*</span>
               </div>
               <nb-select (selectedChange)="onTapSelected($event)"
-                         [(selected)]="this.agentPolicy.policy.input.tap"
                          appearance="filled"
                          data-orb-qa-id="taps"
                          formControlName="selected_tap"
@@ -140,7 +139,7 @@
                            [type]="control.value.type"
                            nbTooltip="{{ control.value.description }}">
                     <nb-select *ngSwitchCase="'select'"
-                               [(selected)]="agentPolicy.policy.input.config[control.key]"
+                               [selected]="agentPolicy?.policy?.input?.tap"
                                [attr.data-orb-qa-id]="control.value.name"
                                [formControlName]="control.key"
                                [id]="control.value.name"
@@ -190,7 +189,6 @@
                                  [type]="control.value.type"
                                  nbTooltip="{{ control.value.description }}">
                           <nb-select *ngSwitchCase="'select'"
-                                     [(selected)]="agentPolicy.policy.input.config[control.key]"
                                      [attr.data-orb-qa-id]="control.value.name"
                                      [formControlName]="control.key"
                                      [id]="control.value.name"
@@ -244,7 +242,6 @@
                            [type]="control.value.type"
                            nbTooltip="{{ control.value.description }}">
                     <nb-select *ngSwitchCase="'select'"
-                               [(selected)]="agentPolicy.policy.input.config[control.key]"
                                [attr.data-orb-qa-id]="control.value.name"
                                [formControlName]="control.key"
                                [id]="control.value.name"
