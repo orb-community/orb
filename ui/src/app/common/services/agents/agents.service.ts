@@ -13,6 +13,10 @@ const defLimit: number = 20;
 const defOrder: string = 'name';
 const defDir = 'desc';
 
+export enum AGENT_OS {
+  DOCKER = 'docker',
+}
+
 @Injectable()
 export class AgentsService {
   paginationCache: any = {};

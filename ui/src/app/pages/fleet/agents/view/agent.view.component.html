@@ -1,58 +1,65 @@
+<div>
 <header data-orb-qa-id="agent#view" class="row">
-  <xng-breadcrumb class="orb-breadcrumb float-left"
-                  data-orb-qa-id="breadcrumb">
-  </xng-breadcrumb>
-  <h4>Agent View</h4>
-  <p class="float-right">{{ agent?.state | ngxCapitalize }}: Last activity
-    {{ agent?.ts_last_hb | date:'long' }}</p>
+  <div>
+    <xng-breadcrumb class="orb-breadcrumb"
+                    data-orb-qa-id="breadcrumb">
+    </xng-breadcrumb>
+    <h4>Agent View</h4>
+    <span class="float-right">
+    {{ agent?.state | ngxCapitalize }}: Last activity
+      {{ agent?.ts_last_hb | date:'long' }}
+  </span>
+  </div>
 </header>
+
 <div *ngIf="!isLoading" class="row">
-  <div class="col-5">
-    <nb-card>
-      <nb-card-header>Agent Information</nb-card-header>
-      <nb-card-body>
-        <div class="row">
-          <div class="col-6">
-            <label>Agent Name</label>
-            <p>{{ agent?.name }}</p>
-          </div>
-          <div class="col-6">
-            <div class="float-right">
-              <label class="float-right">Version</label>
-              <p class="float-right">{{ agent?.agent_metadata?.orb_agent?.version }}</p>
+  <div class="card-col col-4">
+    <div class="card-row">
+      <nb-card>
+        <nb-card-header>Agent Information</nb-card-header>
+        <nb-card-body>
+          <div class="row">
+            <div class="col-6">
+              <label>Agent Name</label>
+              <p>{{ agent?.name }}</p>
+            </div>
+            <div class="col-6">
+              <div class="float-right">
+                <label>Version</label>
+                <p>{{ agent?.agent_metadata?.orb_agent?.version }}</p>
+              </div>
             </div>
           </div>
-        </div>
-        <p class="card-row">
-          <label>Agent ID</label>
-          <span>{{ agent?.id }}</span>
-        </p>
-        <p class="card-row">
-          <label>Channel ID</label>
-          <span>{{ agent?.channel_id }}</span>
-        </p>
-        <div class="card-row">
-          <label>Key Value Pairs</label>
-          <div class="d-flex">
-            <mat-chip-list>
-              <mat-chip
-                *ngFor="let tag of agent?.orb_tags | keyvalue"
-                [style.background-color]="tag | tagcolor"
-                class="orb-tag-sink">
-                {{ tag | tagchip }}
-              </mat-chip>
-              <mat-chip
-                *ngFor="let tag of agent?.agent_tags | keyvalue"
-                [style.background-color]="tag | tagcolor"
-                class="orb-tag-sink">
-                {{tag | tagchip}}
-              </mat-chip>
-            </mat-chip-list>
+          <p>
+            <label>Agent ID</label>
+            <span class="float-right">{{ agent?.id }}</span>
+          </p>
+          <p>
+            <label>Channel ID</label>
+            <span class="float-right">{{ agent?.channel_id }}</span>
+          </p>
+          <div>
+            <label>Key Value Pairs</label>
+            <div class="d-flex">
+              <mat-chip-list>
+                <mat-chip
+                  *ngFor="let tag of agent?.orb_tags | keyvalue"
+                  [style.background-color]="tag | tagcolor"
+                  class="orb-tag-sink">
+                  {{ tag | tagchip }}
+                </mat-chip>
+                <mat-chip
+                  *ngFor="let tag of agent?.agent_tags | keyvalue"
+                  [style.background-color]="tag | tagcolor"
+                  class="orb-tag-sink">
+                  {{tag | tagchip}}
+                </mat-chip>
+              </mat-chip-list>
+            </div>
           </div>
-        </div>
-      </nb-card-body>
-    </nb-card>
-
+        </nb-card-body>
+      </nb-card>
+    </div>
     <nb-card>
       <nb-card-header>Capabilities</nb-card-header>
       <nb-card-body>
@@ -66,46 +73,63 @@
     <nb-card>
       <nb-card-header>
         Provisioning Command
-        <a class="float-right">Dropdown</a>
+        <nb-select class="float-right"
+                   appearance="filled"
+                   data-orb-qa-id="selected_OS"
+                   [(selected)]="selectedOS">
+          <nb-option *ngFor="let option of availableOS"
+                     [value]="option">
+            {{ option | titlecase }}
+          </nb-option>
+        </nb-select>
         <button
+          nbButton
+          ghost="true"
           [cdkCopyToClipboard]="command2copy">
           <nb-icon [icon]="copyCommandIcon"
                    (click)="toggleIcon('command')"
+
                    pack="eva">
           </nb-icon>
         </button>
       </nb-card-header>
-      <nb-card-body class="hide" hidden="true">
+      <nb-card-body [ngClass]="agent?.state !== 'new' ? 'hide' : null"
+                    [hidden]="agent?.state !== 'new'">
+        <pre><code [innerHtml]="command2show">{{ command2show }}</code></pre>
       </nb-card-body>
     </nb-card>
   </div>
 
-  <div class="col-7">
-    <nb-card>
-      <nb-card-header>Active Policies/Datasets</nb-card-header>
-      <nb-card-body>
-        <nb-accordion *ngFor="let policy of agent?.last_hb_data?.policy_state | keyvalue">
-          <nb-accordion-item>
-            <nb-accordion-item-header>
-              {{ "Policy: " + policy.value.name }} {{ "  Status: " + policy.value.state }}
-            </nb-accordion-item-header>
-            <nb-accordion-item-body>
-              <nb-list>
-                <nb-list-item *ngFor="let dataset of policy.value.datasets">
-                  {{ "Dataset \"" + dataset + "\"" }}
-                </nb-list-item>
-              </nb-list>
-            </nb-accordion-item-body>
-          </nb-accordion-item>
-        </nb-accordion>
-      </nb-card-body>
-    </nb-card>
-
-    <nb-card>
-      <nb-card-header>Active Groups</nb-card-header>
-      <nb-card-body>
-        <p><a>Group Name 1</a>, <a>Group Name 2</a>, <a>Group Name 3</a></p>
-      </nb-card-body>
-    </nb-card>
+  <div class="card-col col-8">
+    <div class="card-row">
+      <nb-card>
+        <nb-card-header>Active Policies/Datasets</nb-card-header>
+        <nb-card-body>
+          <nb-accordion *ngFor="let policy of agent?.last_hb_data?.policy_state | keyvalue">
+            <nb-accordion-item>
+              <nb-accordion-item-header>
+                {{ "Policy: " + policy.value.name }} {{ "  Status: " + policy.value.state }}
+              </nb-accordion-item-header>
+              <nb-accordion-item-body>
+                <nb-list>
+                  <nb-list-item *ngFor="let dataset of policy.value.datasets">
+                    {{ "Dataset \"" + dataset + "\"" }}
+                  </nb-list-item>
+                </nb-list>
+              </nb-accordion-item-body>
+            </nb-accordion-item>
+          </nb-accordion>
+        </nb-card-body>
+      </nb-card>
+    </div>
+    <div class="card-row">
+      <nb-card>
+        <nb-card-header>Active Groups</nb-card-header>
+        <nb-card-body>
+          <p><a>Group Name 1</a>, <a>Group Name 2</a>, <a>Group Name 3</a></p>
+        </nb-card-body>
+      </nb-card>
+    </div>
   </div>
+</div>
 </div>
