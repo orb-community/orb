@@ -1,28 +1,30 @@
 ## **INTEGRATION**
 
-|                                                            Integration Scenario                                                             | Automated via API | Automated via UI | Smoke | Sanity | 
-|:-------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------:|:----------------:|:-----:|:------:|
-|                     [Check if sink is active while scraping metrics](integration/sink_active_while_scraping_metrics.md)                     |         ✅         |                  |  👍   |   👍   |
-|                   [Check if sink with invalid credentials becomes active](integration/sink_error_invalid_credentials.md)                    |         ✅         |                  |  👍   |   👍   |
-|                       [Check if after 30 minutes without data sink becomes idle](integration/sink_idle_30_minutes.md)                       |                   |                  |       |        |
-|            [Provision agent before group (check if agent subscribes to the group)](integration/provision_agent_before_group.md)             |         ✅         |                  |  👍   |   👍   |
-|             [Provision agent after group (check if agent subscribes to the group)](integration/provision_agent_after_group.md)              |         ✅         |                  |  👍   |   👍   |
-|     [Provision agent with tag matching existing group linked to a valid dataset](integration/multiple_agents_subscribed_to_a_group.md)      |         ✅         |                  |  👍   |   👍   |
-|                                [Apply multiple policies to a group](integration/apply_multiple_policies.md)                                 |         ✅         |                  |  👍   |   👍   |
-|                 [Apply multiple policies to a group and remove one policy](integration/remove_one_of_multiple_policies.md)                  |         ✅         |                  |  👍   |   👍   |
-|                       [Apply multiple policies to a group and remove all of them](integration/remove_all_policies.md)                       |                   |                  |       |        |
-|                 [Apply multiple policies to a group and remove one dataset](integration/remove_one_of_multiple_datasets.md)                 |         ✅         |                  |  👍   |   👍   |
-|                      [Apply multiple policies to a group and remove all datasets](integration/remove_all_datasets.md)                       |                   |                  |       |        |
-|                                [Apply the same policy twice to the agent](integration/apply_policy_twice.md)                                |         ✅         |                  |  👍   |   👍   |
-|        [Delete sink linked to a dataset, create another one and edit dataset using new sink](integration/change_sink_on_dataset.md)         |                   |                  |       |        |
-| [Remove one of multiples datasets that apply the same policy to the agent](integration/remove_one_dataset_of_multiples_with_same_policy.md) |                   |                  |       |        |
-|                                  [Remove group (invalid dataset, agent logs)](integration/remove_group.md)                                  |         ✅         |                  |  👍   |   👍   |
-|                                   [Remove sink (invalid dataset, agent logs)](integration/remove_sink.md)                                   |                   |                  |  👍   |   👍   |
-|                           [Remove policy (invalid dataset, agent logs, heartbeat)](integration/remove_policy.md)                            |         ✅         |                  |  👍   |   👍   |
-|                                [Remove dataset (check agent logs, heartbeat)](integration/remove_dataset.md)                                |         ✅         |                  |  👍   |   👍   |
-|                        [Remove agent container (logs, agent groups matches)](integration/remove_agent_container.md)                         |                   |                  |  👍   |   👍   |
-|                  [Remove agent container force (logs, agent groups matches)](integration/remove_agent_container_force.md)                   |                   |                  |  👍   |   👍   |
-|                                  [Remove agent (logs, agent groups matches)](integration/remove_agent.md)                                   |                   |                  |  👍   |   👍   |
+|                                                                       Integration Scenario                                                                        | Automated via API | Automated via UI | Smoke | Sanity | 
+|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------:|:----------------:|:-----:|:------:|
+|                                [Check if sink is active while scraping metrics](integration/sink_active_while_scraping_metrics.md)                                |         ✅         |                  |  👍   |   👍   |
+|                              [Check if sink with invalid credentials becomes active](integration/sink_error_invalid_credentials.md)                               |         ✅         |                  |  👍   |   👍   |
+|                                  [Check if after 30 minutes without data sink becomes idle](integration/sink_idle_30_minutes.md)                                  |                   |                  |       |        |
+|                       [Provision agent before group (check if agent subscribes to the group)](integration/provision_agent_before_group.md)                        |         ✅         |                  |  👍   |   👍   |
+|                        [Provision agent after group (check if agent subscribes to the group)](integration/provision_agent_after_group.md)                         |         ✅         |                  |  👍   |   👍   |
+|                [Provision agent with tag matching existing group linked to a valid dataset](integration/multiple_agents_subscribed_to_a_group.md)                 |         ✅         |                  |  👍   |   👍   |
+|                                           [Apply multiple policies to a group](integration/apply_multiple_policies.md)                                            |         ✅         |                  |  👍   |   👍   |
+|                            [Apply multiple policies to a group and remove one policy](integration/remove_one_of_multiple_policies.md)                             |         ✅         |                  |  👍   |   👍   |
+|                                  [Apply multiple policies to a group and remove all of them](integration/remove_all_policies.md)                                  |                   |                  |       |        |
+|                            [Apply multiple policies to a group and remove one dataset](integration/remove_one_of_multiple_datasets.md)                            |         ✅         |                  |  👍   |   👍   |
+|                                 [Apply multiple policies to a group and remove all datasets](integration/remove_all_datasets.md)                                  |                   |                  |       |        |
+|                                           [Apply the same policy twice to the agent](integration/apply_policy_twice.md)                                           |         ✅         |                  |  👍   |   👍   |
+|                   [Delete sink linked to a dataset, create another one and edit dataset using new sink](integration/change_sink_on_dataset.md)                    |                   |                  |       |        |
+|            [Remove one of multiples datasets that apply the same policy to the agent](integration/remove_one_dataset_of_multiples_with_same_policy.md)            |                   |                  |       |        |
+|                                             [Remove group (invalid dataset, agent logs)](integration/remove_group.md)                                             |         ✅         |                  |  👍   |   👍   |
+|                                              [Remove sink (invalid dataset, agent logs)](integration/remove_sink.md)                                              |                   |                  |  👍   |   👍   |
+|                                      [Remove policy (invalid dataset, agent logs, heartbeat)](integration/remove_policy.md)                                       |         ✅         |                  |  👍   |   👍   |
+|                                           [Remove dataset (check agent logs, heartbeat)](integration/remove_dataset.md)                                           |         ✅         |                  |  👍   |   👍   |
+|                                   [Remove agent container (logs, agent groups matches)](integration/remove_agent_container.md)                                    |                   |                  |  👍   |   👍   |
+|                             [Remove agent container force (logs, agent groups matches)](integration/remove_agent_container_force.md)                              |                   |                  |  👍   |   👍   |
+|                                             [Remove agent (logs, agent groups matches)](integration/remove_agent.md)                                              |                   |                  |  👍   |   👍   |
+| [Subscribe an agent to multiple groups created before agent provisioning](integration/subscribe_an_agent_to_multiple_groups_created_before_agent_provisioning.md) |         ✅         |                  |  👍   |   👍   |
+|  [Subscribe an agent to multiple groups created after agent provisioning](integration/subscribe_an_agent_to_multiple_groups_created_after_agent_provisioning.md)  |         ✅         |                  |  👍   |   👍   |
 
 ---------------------------------
 ## **LOGIN**
@@ -44,7 +46,7 @@
 |       [Request registration of an unregistered account with invalid password and invalid email](login/request_registration_of_an_unregistered_account_with_invalid_password_and_invalid_email.md)       |         ✅         |                  |  👍   |   👍   |
 |                                               [Check if email and password are required fields](login/check_if_email_and_password_are_required_fields.md)                                               |         ✅         |                  |  👍   |   👍   |
 |                                                                  [Login with valid credentials](login/login_with_valid_credentials.md)                                                                  |         ✅         |        ✅         |  👍   |   👍   |
-|                                                                [Login with invalid credentials](login/login_with_invalid_credentials.md)                                                                |         ✅          |                  |  👍   |   👍   |
+|                                                                [Login with invalid credentials](login/login_with_invalid_credentials.md)                                                                |         ✅         |                  |  👍   |   👍   |
 |                                                [Request password with registered email address](login/request_password_with_registered_email_address.md)                                                |                   |                  |  👍   |   👍   |
 |                                              [Request password with unregistered email address](login/request_password_with_unregistered_email_address.md)                                              |                   |                  |       |   👍   |
 
@@ -55,9 +57,9 @@
 |                                                     Agents Scenario                                                      | Automated via API | Automated via UI | Smoke | Sanity | 
 |:------------------------------------------------------------------------------------------------------------------------:|:-----------------:|:----------------:|:-----:|:------:|
 |       [Check if total agent on agents' page is correct](agents/check_if_total_agent_on_agents'_page_is_correct.md)       |                   |                  |       |        |
-|                             [Create agent without tags](agents/create_agent_without_tags.md)                             |                   |                  |       |   👍   |
+|                             [Create agent without tags](agents/create_agent_without_tags.md)                             |         ✅         |                  |       |   👍   |
 |                             [Create agent with one tag](agents/create_agent_with_one_tag.md)                             |         ✅         |        ✅         |  👍   |   👍   |
-|                       [Create agent with multiple tags](agents/create_agent_with_multiple_tags.md)                       |                   |                  |       |   👍   |
+|                       [Create agent with multiple tags](agents/create_agent_with_multiple_tags.md)                       |         ✅         |                  |       |   👍   |
 |                [Create agent with invalid name (regex)](agents/create_agent_with_invalid_name_(regex).md)                |                   |                  |       |   👍   |
 |                      [Create agent with duplicate name](agents/create_agent_with_duplicate_name.md)                      |                   |                  |       |   👍   |
 |                                    [Test agent filters](agents/test_agent_filters.md)                                    |                   |                  |       |        |
@@ -84,9 +86,9 @@
 |                       [Create agent group with duplicate name](agent_groups/create_agent_group_with_duplicate_name.md)                       |                   |                  |       |   👍   |
 |                          [Create agent group with description](agent_groups/create_agent_group_with_description.md)                          |         ✅         |                  |  👍   |   👍   |
 |                       [Create agent group without description](agent_groups/create_agent_group_without_description.md)                       |                   |                  |       |   👍   |
-|                               [Create agent group without tag](agent_groups/create_agent_group_without_tag.md)                               |                   |                  |       |   👍   |
+|                               [Create agent group without tag](agent_groups/create_agent_group_without_tag.md)                               |         ✅         |                  |       |   👍   |
 |                              [Create agent group with one tag](agent_groups/create_agent_group_with_one_tag.md)                              |         ✅         |                  |  👍   |   👍   |
-|                        [Create agent group with multiple tags](agent_groups/create_agent_group_with_multiple_tags.md)                        |                   |                  |       |   👍   |
+|                        [Create agent group with multiple tags](agent_groups/create_agent_group_with_multiple_tags.md)                        |         ✅         |                  |       |   👍   |
 |                                    [Test agent groups filters](agent_groups/test_agent_groups_filters.md)                                    |                   |                  |       |        |
 |                                    [Visualize matching agents](agent_groups/visualize_matching_agents.md)                                    |                   |                  |       |   👍   |
 |                                   [Check agent groups details](agent_groups/check_agent_groups_details.md)                                   |                   |                  |       |   👍   |

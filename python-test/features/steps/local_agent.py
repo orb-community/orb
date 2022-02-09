@@ -11,7 +11,7 @@ configs = TestConfig.configs()
 ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
 
 
-@when('the agent container is started on port {port}')
+@step('the agent container is started on port {port}')
 def run_local_agent_container(context, port):
     if port.isdigit():
         port = int(port)

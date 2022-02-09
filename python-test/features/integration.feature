@@ -4,7 +4,7 @@ Feature: Integration tests
 Scenario: Apply two policies to an agent
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that an agent already exists and is online
+        And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink already exists
     When 2 policies are applied to the group
@@ -18,7 +18,7 @@ Scenario: Apply two policies to an agent
 Scenario: apply one policy using multiple datasets to the same group
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that an agent already exists and is online
+        And that an agent with 2 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink already exists
     When 2 policies are applied to the group by 3 datasets each
@@ -33,7 +33,7 @@ Scenario: apply one policy using multiple datasets to the same group
 Scenario: Remove group to which agent is linked
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that an agent already exists and is online
+        And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink already exists
         And 1 policies are applied to the group
@@ -46,7 +46,7 @@ Scenario: Remove group to which agent is linked
     Scenario: Remove policy from agent
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that an agent already exists and is online
+        And that an agent with 3 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink already exists
         And 2 policies are applied to the group
@@ -64,7 +64,7 @@ Scenario: Remove group to which agent is linked
 Scenario: Remove dataset from agent with just one dataset linked
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that an agent already exists and is online
+        And that an agent with 3 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink already exists
         And 1 policies are applied to the group
@@ -80,7 +80,7 @@ Scenario: Remove dataset from agent with just one dataset linked
 Scenario: Remove dataset from agent with more than one dataset linked
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that an agent already exists and is online
+        And that an agent with 4 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink already exists
         And 3 policies are applied to the group
@@ -96,7 +96,7 @@ Scenario: Remove dataset from agent with more than one dataset linked
 Scenario: Provision agent with tags matching an existent group
     Given the Orb user has a registered account
         And the Orb user logs in
-        And an Agent Group is created
+        And an Agent Group is created with 2 orb tag(s)
     When a new agent is created with tags matching an existing group
         And the agent container is started on port default
     Then the agent status in Orb should be online
@@ -106,7 +106,7 @@ Scenario: Provision agent with tags matching an existent group
 Scenario: Provision agent with tag matching existing group linked to a valid dataset
     Given the Orb user has a registered account
         And the Orb user logs in
-        And an Agent Group is created
+        And an Agent Group is created with 3 orb tag(s)
         And that a sink already exists
         And 2 policies are applied to the group
     When a new agent is created with tags matching an existing group
@@ -121,7 +121,7 @@ Scenario: Provision agent with tag matching existing group linked to a valid dat
 Scenario: Sink with invalid endpoint
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that an agent already exists and is online
+        And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink with invalid endpoint already exists
         And that a policy already exists
@@ -130,13 +130,13 @@ Scenario: Sink with invalid endpoint
         And the container logs should contain the message "policy applied successfully" within 10 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 10 seconds
-        And dataset related have validity invalid
+        And dataset related have validity valid
 
 
 Scenario: Sink with invalid username
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that an agent already exists and is online
+        And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink with invalid username already exists
         And that a policy already exists
@@ -145,13 +145,13 @@ Scenario: Sink with invalid username
         And the container logs should contain the message "policy applied successfully" within 10 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 10 seconds
-        And dataset related have validity invalid
+        And dataset related have validity valid
 
 
 Scenario: Sink with invalid password
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that an agent already exists and is online
+        And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink with invalid password already exists
         And that a policy already exists
@@ -160,4 +160,26 @@ Scenario: Sink with invalid password
         And the container logs should contain the message "policy applied successfully" within 10 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 10 seconds
-        And dataset related have validity invalid
+        And dataset related have validity valid
+
+
+    Scenario: Agent subscription to multiple groups created after provisioning agent
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And a new agent is created with region:br, demo:true, ns1:true orb tag(s)
+        And the agent container is started on port default
+    When an Agent Group is created with demo:true, ns1:true orb tag(s)
+        And an Agent Group is created with region:br orb tag(s)
+        And an Agent Group is created with demo:true orb tag(s)
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+
+
+    Scenario: Agent subscription to multiple groups created before provisioning agent
+        Given the Orb user has a registered account
+            And the Orb user logs in
+            And an Agent Group is created with demo:true, ns1:true orb tag(s)
+            And an Agent Group is created with region:br orb tag(s)
+            And an Agent Group is created with demo:true orb tag(s)
+        When a new agent is created with demo:true, ns1:true orb tag(s)
+            And the agent container is started on port default
+        Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
