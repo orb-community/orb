@@ -13,6 +13,8 @@ import (
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
+	"reflect"
+	"strings"
 )
 
 var (
@@ -122,19 +124,25 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 	// need to unsubscribe the agents who are no longer matching with the group
 	list := removeDuplicates(listSub, listUnsub)
 
-	// TODO check if the list before and after are equal (do not try to connect again if its equals)
-	// connect all agents to the group channel
-	idList := make([]string, len(listSub))
-	for i, agent := range list {
-		idList[i] = agent.MFThingID
-	}
-	ids := mfsdk.ConnectionIDs{
-		ChannelIDs: []string{ag.MFChannelID},
-		ThingIDs:   idList,
-	}
-	err = svc.mfsdk.Connect(ids, token)
-	if err != nil {
-		return AgentGroup{}, err
+	// connect all agents to the group channel (check the already connected and connect the new ones)
+	if !reflect.DeepEqual(listSub, listUnsub) {
+		for _, a := range listSub {
+			idList := make([]string, 1)
+			idList[0] = a.MFThingID
+			ids := mfsdk.ConnectionIDs{
+				ChannelIDs: []string{ag.MFChannelID},
+				ThingIDs:   idList,
+			}
+			err = svc.mfsdk.Connect(ids, token)
+			if err != nil {
+				if strings.Contains(err.Error(), "409") {
+					svc.logger.Warn("agent already connected, skipping...")
+				} else {
+					return AgentGroup{}, err
+				}
+			}
+		}
+
 	}
 
 	for _, agent := range list {
