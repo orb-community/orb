@@ -13,7 +13,7 @@ const defLimit: number = 20;
 const defOrder: string = 'name';
 const defDir = 'desc';
 
-export enum AGENT_OS {
+export enum AvailableOS {
   DOCKER = 'docker',
 }
 

@@ -7,6 +7,17 @@
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
 
 /**
+ * @enum AgentStates
+ */
+export enum AgentStates {
+  new = 'new',
+  online = 'online',
+  offline = 'offline',
+  stale = 'stale',
+  removed = 'removed',
+}
+
+/**
  * @interface Agent
  */
 export interface Agent extends OrbEntity {
@@ -62,6 +73,9 @@ export interface Agent extends OrbEntity {
    */
   error_state?: boolean;
 
+  /**
+   * MQTT KEY
+   */
   key?: string;
 
 }

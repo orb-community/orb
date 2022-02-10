@@ -6,10 +6,11 @@
     </xng-breadcrumb>
     <div><h4>Agent View</h4></div>
   </div>
-  <div class="col-7">
+  <div *ngIf="!isLoading"
+       class="col-7">
     <span class="float-right">
-      <span class="summary-accent">{{ agent?.state | ngxCapitalize }}.</span>
-      <span *ngIf="agent?.state !== 'new'">
+      <span class="agent-{{ agent.state }}">{{ agent?.state | ngxCapitalize }}.</span>
+      <span *ngIf="agent?.state !== agentStates.new">
         Last activity
         <span *ngIf="isToday()">
           today, at {{ agent?.ts_last_hb | date: 'mediumTime' }}
@@ -18,7 +19,7 @@
           on {{ agent?.ts_last_hb | date:'medium' }}
         </span>
       </span>
-      <span *ngIf="agent?.state === 'new'">
+      <span *ngIf="agent?.state === agentStates.new">
         This Agent has not been provisioned.
       </span>
     </span>
@@ -26,7 +27,7 @@
 </header>
 
 <div *ngIf="!isLoading" class="row">
-  <div class="card-col col-4">
+  <div class="card-col col-5">
     <div class="card-row">
       <nb-card>
         <nb-card-header>Agent Information</nb-card-header>
@@ -77,6 +78,8 @@
       <nb-card-header>Capabilities</nb-card-header>
       <nb-card-body>
         <label>Taps</label>
+        <span *ngIf="!agent.agent_metadata.backends"
+              class="float-right summary-accent">Agent has not been provisioned.</span>
         <div *ngFor="let backend of agent?.agent_metadata?.backends | keyvalue">
           <pre innerHtml="{{ backend?.value?.data | prettyJson: [false, 2] }}"></pre>
         </div>
@@ -106,14 +109,14 @@
           </nb-icon>
         </button>
       </nb-card-header>
-      <nb-card-body [hidden]="agent?.state !== 'new'"
-                    [ngClass]="agent?.state !== 'new' ? 'hide' : null">
+      <nb-card-body [hidden]="agent?.state !== agentStates.new"
+                    [ngClass]="agent?.state !== agentStates.new ? 'hide' : null">
         <pre><code [innerHtml]="command2show">{{ command2show }}</code></pre>
       </nb-card-body>
     </nb-card>
   </div>
 
-  <div class="card-col col-8">
+  <div class="card-col col-7">
     <div class="card-row">
       <nb-card>
         <nb-card-header>Active Policies/Datasets</nb-card-header>
@@ -121,12 +124,15 @@
           <nb-accordion *ngFor="let policy of agent?.last_hb_data?.policy_state | keyvalue">
             <nb-accordion-item>
               <nb-accordion-item-header>
-                {{ "Policy: " + policy.value.name }} {{ "  Status: " + policy.value.state }}
+                <span class="summary-accent">Policy:&nbsp;</span>
+                {{ policy.key }}
+                <span class="summary-accent">&nbsp;&nbsp;Status:&nbsp;</span>
+                <span class="policy-{{ policy.value.state }}">{{ policy.value.state }}</span>
               </nb-accordion-item-header>
               <nb-accordion-item-body>
                 <nb-list>
                   <nb-list-item *ngFor="let dataset of policy.value.datasets">
-                    {{ "Dataset \"" + dataset + "\"" }}
+                    <span>Dataset:&nbsp;&quot;{{ dataset }}&quot;</span>
                   </nb-list-item>
                 </nb-list>
               </nb-accordion-item-body>

@@ -1,8 +1,8 @@
 import { Component, OnDestroy } from '@angular/core';
 import { STRINGS } from 'assets/text/strings';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { AGENT_OS, AgentsService } from 'app/common/services/agents/agents.service';
+import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
+import { AvailableOS, AgentsService } from 'app/common/services/agents/agents.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -12,6 +12,8 @@ import { Subscription } from 'rxjs';
 })
 export class AgentViewComponent implements OnDestroy {
   strings = STRINGS.agents;
+
+  agentStates = AgentStates;
 
   isLoading: boolean = true;
 
@@ -23,9 +25,9 @@ export class AgentViewComponent implements OnDestroy {
 
   copyCommandIcon: string;
 
-  availableOS = [AGENT_OS.DOCKER];
+  availableOS = [AvailableOS.DOCKER];
 
-  selectedOS = AGENT_OS.DOCKER;
+  selectedOS = AvailableOS.DOCKER;
 
   command2show: string;
 
@@ -67,7 +69,7 @@ export class AgentViewComponent implements OnDestroy {
 
   makeCommand2Copy() {
     // TODO: future - store this elsewhere
-    if (this.selectedOS === AGENT_OS.DOCKER) {
+    if (this.selectedOS === AvailableOS.DOCKER) {
       this.command2copy = `docker run -d --net=host \\
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\

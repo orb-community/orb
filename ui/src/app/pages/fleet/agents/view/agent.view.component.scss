@@ -7,14 +7,10 @@ h4 {
   line-height: 2rem;
 }
 
-.summary-accent {
-  color: #969fb9;
-}
-
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
-  
+
   nb-card-header {
     background-color: #232940;
     color: #969fb9;
@@ -23,7 +19,7 @@ nb-card {
     border-top-left-radius: 0.5rem;
     border-top-right-radius: 0.5rem;
   }
-  
+
   nb-card-body {
     label {
       color: #969fb9;
@@ -44,7 +40,7 @@ nb-card {
       padding: 0.75rem;
       border-radius: 0.5rem;
       white-space: pre-line;
-      color: #ffffff;
+      color: #fff;
 
       button {
         background: transparent;
@@ -62,6 +58,31 @@ nb-card {
 }
 
 ::ng-deep {
+
+  .agent-new {
+    color: #9b51e0 !important;
+  }
+
+  .agent-online, .dataset-valid, .policy-running {
+    color: #6fcf97 !important;
+  }
+
+  .agent-offline, .dataset-invalid, .policy-error {
+    color: #df316f !important;
+  }
+
+  .agent-stale {
+    color: #f2994a !important;
+  }
+
+  .agent-removed {
+    color: #62d9ff !important;
+  }
+
+  .summary-accent {
+    color: #969fb9 !important;
+  }
+
   header p {
     font-family: 'Montserrat', sans-serif;
     font-style: normal;
@@ -88,14 +109,16 @@ nb-card {
 
     ::ng-deep {
       .xng-breadcrumb-trail {
-        color: #ffffff;
+        color: #fff;
         margin-bottom: 0;
       }
+
       .xng-breadcrumb-link {
         text-decoration: none !important;
         color: #969fb9 !important;
       }
-     .xng-breadcrumb-separator {
+
+      .xng-breadcrumb-separator {
         text-decoration: none !important;
         color: #969fb9 !important;
       }
@@ -105,7 +128,7 @@ nb-card {
 
 ::ng-deep {
   mark {
-    background:#1c2339!important;
-    color:#df316f!important;
+    background: #1c2339 !important;
+    color: #df316f !important;
   }
 }
