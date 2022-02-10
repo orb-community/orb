@@ -74,7 +74,7 @@ export class AgentViewComponent implements OnDestroy {
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
--e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
+-e ORB_CLOUD_MQTT_KEY="PASTE_AGENT_KEY" \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=mock \\
 ns1labs/orb-agent:develop`;
 
@@ -82,7 +82,7 @@ ns1labs/orb-agent:develop`;
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \n
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \n
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \n
--e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \n
+-e ORB_CLOUD_MQTT_KEY=<mark>{{ AGENT KEY }}</mark> \n
 -e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>mock</mark> \n
 
 ns1labs/orb-agent:develop`;

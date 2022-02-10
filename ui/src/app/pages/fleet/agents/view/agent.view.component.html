@@ -121,6 +121,8 @@
       <nb-card>
         <nb-card-header>Active Policies/Datasets</nb-card-header>
         <nb-card-body>
+          <span *ngIf="!agent.last_hb_data.policy_state"
+                class="summary-accent">Agent has not been provisioned.</span>
           <nb-accordion *ngFor="let policy of agent?.last_hb_data?.policy_state | keyvalue">
             <nb-accordion-item>
               <nb-accordion-item-header>
