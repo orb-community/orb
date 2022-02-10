@@ -31,6 +31,8 @@ export class AgentViewComponent implements OnDestroy {
 
   command2show: string;
 
+  hideCommand: boolean;
+
   subscription: Subscription;
 
   constructor(
@@ -43,6 +45,7 @@ export class AgentViewComponent implements OnDestroy {
     this.command2copy = '';
     this.command2show = '';
     this.copyCommandIcon = 'clipboard-outline';
+    this.hideCommand = this.agent?.state !== this.agentStates.new;
 
     this.subscription = !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
       this.agent = resp;
@@ -87,6 +90,10 @@ ns1labs/orb-agent:develop`;
 
 ns1labs/orb-agent:develop`;
     }
+  }
+
+  toggleProvisioningCommand() {
+    this.hideCommand = !this.hideCommand;
   }
 
   ngOnDestroy() {
