@@ -74,3 +74,7 @@ jobs:
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
+
+      - name: Push agent container
+        run: |
+          docker push -a ns1labs/orb-agent
