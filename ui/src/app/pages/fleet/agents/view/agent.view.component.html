@@ -1,14 +1,27 @@
-<div>
-<header data-orb-qa-id="agent#view" class="row">
-  <div>
+<header class="row"
+        data-orb-qa-id="agent#view">
+  <div class="col-5">
     <xng-breadcrumb class="orb-breadcrumb"
                     data-orb-qa-id="breadcrumb">
     </xng-breadcrumb>
-    <h4>Agent View</h4>
+    <div><h4>Agent View</h4></div>
+  </div>
+  <div class="col-7">
     <span class="float-right">
-    {{ agent?.state | ngxCapitalize }}: Last activity
-      {{ agent?.ts_last_hb | date:'long' }}
-  </span>
+      <span class="summary-accent">{{ agent?.state | ngxCapitalize }}.</span>
+      <span *ngIf="agent?.state !== 'new'">
+        Last activity
+        <span *ngIf="isToday()">
+          today, at {{ agent?.ts_last_hb | date: 'mediumTime' }}
+        </span>
+        <span *ngIf="!isToday()">
+          on {{ agent?.ts_last_hb | date:'medium' }}
+        </span>
+      </span>
+      <span *ngIf="agent?.state === 'new'">
+        This Agent has not been provisioned.
+      </span>
+    </span>
   </div>
 </header>
 
@@ -73,28 +86,28 @@
     <nb-card>
       <nb-card-header>
         Provisioning Command
-        <nb-select class="float-right"
+        <nb-select [(selected)]="selectedOS"
                    appearance="filled"
-                   data-orb-qa-id="selected_OS"
-                   [(selected)]="selectedOS">
+                   class="float-right"
+                   data-orb-qa-id="selected_OS">
           <nb-option *ngFor="let option of availableOS"
                      [value]="option">
             {{ option | titlecase }}
           </nb-option>
         </nb-select>
         <button
-          nbButton
+          [cdkCopyToClipboard]="command2copy"
           ghost="true"
-          [cdkCopyToClipboard]="command2copy">
-          <nb-icon [icon]="copyCommandIcon"
-                   (click)="toggleIcon('command')"
+          nbButton>
+          <nb-icon (click)="toggleIcon('command')"
+                   [icon]="copyCommandIcon"
 
                    pack="eva">
           </nb-icon>
         </button>
       </nb-card-header>
-      <nb-card-body [ngClass]="agent?.state !== 'new' ? 'hide' : null"
-                    [hidden]="agent?.state !== 'new'">
+      <nb-card-body [hidden]="agent?.state !== 'new'"
+                    [ngClass]="agent?.state !== 'new' ? 'hide' : null">
         <pre><code [innerHtml]="command2show">{{ command2show }}</code></pre>
       </nb-card-body>
     </nb-card>
@@ -131,5 +144,4 @@
       </nb-card>
     </div>
   </div>
-</div>
 </div>

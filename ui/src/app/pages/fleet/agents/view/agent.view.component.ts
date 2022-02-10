@@ -55,6 +55,16 @@ export class AgentViewComponent implements OnDestroy {
     }
   }
 
+  isToday() {
+    const today = new Date(Date.now());
+    const date = new Date(this?.agent?.ts_last_hb);
+
+    return today.getDay() === date.getDay()
+      && today.getMonth() === date.getMonth()
+      && today.getFullYear() === date.getFullYear();
+
+  }
+
   makeCommand2Copy() {
     // TODO: future - store this elsewhere
     if (this.selectedOS === AGENT_OS.DOCKER) {
