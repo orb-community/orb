@@ -731,8 +731,24 @@ func TestMatchingAgentRetrieval(t *testing.T) {
 			owner: oID.String(),
 			tag: mixTags,
 			matchingAgents: types.Metadata{
-				"total": 10,
-				"online": 0,
+				"total": float64(n),
+				"online": float64(0),
+			},
+		},
+		"retrieve matching agents with orb tags": {
+			owner: oID.String(),
+			tag: orbTags,
+			matchingAgents: types.Metadata{
+				"total": float64(n),
+				"online": float64(0),
+			},
+		},
+		"retrieve matching agents with agent tags": {
+			owner: oID.String(),
+			tag: agentTags,
+			matchingAgents: types.Metadata{
+				"total": float64(n),
+				"online": float64(0),
 			},
 		},
 		"retrieve unmatched agents with mix tags": {
