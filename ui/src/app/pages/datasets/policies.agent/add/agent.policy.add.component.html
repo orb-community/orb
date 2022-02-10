@@ -343,7 +343,7 @@
               {{ strings.stepper.back }}
             </button>
             <button (click)="onFormSubmit()"
-                    [disabled]="modules.length === 0"
+                    [disabled]="!hasModules()"
                     class="next-button"
                     data-orb-qa-id="button#save"
                     nbButton

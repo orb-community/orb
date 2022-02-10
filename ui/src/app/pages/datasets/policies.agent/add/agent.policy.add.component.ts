@@ -380,6 +380,10 @@ export class AgentPolicyAddComponent {
     delete this.modules[name];
   }
 
+  hasModules() {
+    return Object.keys(this.modules).length > 0;
+  }
+
   goBack() {
     this.router.navigateByUrl('/pages/datasets/policies');
   }
