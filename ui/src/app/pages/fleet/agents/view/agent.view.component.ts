@@ -66,9 +66,9 @@ export class AgentViewComponent implements OnDestroy {
           this.agent = resp.agent;
           this.datasets = resp?.datasets;
           this.policies = resp?.policies;
-          this.makeCommand2Copy();
         },
         complete: () => {
+          this.makeCommand2Copy();
           this.isLoading = false;
         },
       });

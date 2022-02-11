@@ -78,7 +78,7 @@
       <nb-card-header>Capabilities</nb-card-header>
       <nb-card-body>
         <label>Taps</label>
-        <span *ngIf="!agent.agent_metadata.backends"
+        <span *ngIf="!agent?.agent_metadata?.backends"
               class="float-right summary-accent">Agent has not been provisioned.</span>
         <div *ngFor="let backend of agent?.agent_metadata?.backends | keyvalue">
           <pre innerHtml="{{ backend?.value?.data | prettyJson: [false, 2] }}"></pre>
@@ -99,11 +99,11 @@
           </nb-option>
         </nb-select>
         <button
-          [cdkCopyToClipboard]="command2copy"
           ghost="true"
           nbButton>
           <nb-icon (click)="toggleProvisioningCommand()"
-                   icon="plus-outline">
+                   icon="plus-outline"
+                   pack="eva">
           </nb-icon>
         </button>
       </nb-card-header>
