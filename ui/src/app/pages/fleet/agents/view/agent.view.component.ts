@@ -3,14 +3,13 @@ import { STRINGS } from 'assets/text/strings';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService, AvailableOS } from 'app/common/services/agents/agents.service';
-import { forkJoin, Observable, Subscription } from 'rxjs';
+import { defer, forkJoin, Observable, of, Subscription } from 'rxjs';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
-import { concatMap, take, tap } from 'rxjs/operators';
+import { concatMap, take } from 'rxjs/operators';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
-import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -50,7 +49,6 @@ export class AgentViewComponent implements OnDestroy {
 
   constructor(
     private agentsService: AgentsService,
-    private agentGroupsService: AgentGroupsService,
     private policiesService: AgentPoliciesService,
     private datasetService: DatasetPoliciesService,
     protected route: ActivatedRoute,
@@ -63,12 +61,16 @@ export class AgentViewComponent implements OnDestroy {
     this.copyCommandIcon = 'clipboard-outline';
     this.hideCommand = this.agent?.state !== this.agentStates.new;
     this.subscription = this.loadData()
-      .subscribe(resp => {
-        this.agent = resp.agent;
-        this.datasets = resp.datasets;
-        this.policies = resp.policies;
-        this.makeCommand2Copy();
-        this.isLoading = false;
+      .subscribe({
+        next: resp => {
+          this.agent = resp.agent;
+          this.datasets = resp?.datasets;
+          this.policies = resp?.policies;
+          this.makeCommand2Copy();
+        },
+        complete: () => {
+          this.isLoading = false;
+        },
       });
   }
 
@@ -80,15 +82,38 @@ export class AgentViewComponent implements OnDestroy {
         .pipe(
           // retrieve policies
           concatMap(agent => forkJoin({
-              policies: forkJoin(Object.keys(agent?.last_hb_data?.policy_state)
-                .map(policyId => this.policiesService.getAgentPolicyById(policyId).pipe(take(1)))).pipe(take(1)),
+              // defer execution until subscription
+              // either has policies to query or not
+              policies: defer(() => !!agent?.last_hb_data?.policy_state
+                // fork all requests and await complete all
+                && forkJoin(Object.keys(agent?.last_hb_data?.policy_state)
+                  // map policy IDs to request
+                  .map(policyId => this.policiesService
+                    .getAgentPolicyById(policyId)
+                    .pipe(take(1))))
+                  .pipe(take(1))
+                // or no requests at all
+                || of(null)),
+              // defer execution until subscription
               // and datasets for each policy too
-              datasets: forkJoin(Object.values(agent?.last_hb_data?.policy_state)
-                .reduce((acc: Observable<Dataset>[], { datasets }) => {
-                  return acc.concat(datasets.map(dataset => this.datasetService.getDatasetById(dataset).pipe(take(1))));
-                }, []) as Observable<Dataset>[]).pipe(take(1)),
+              datasets: defer(() => !!agent?.last_hb_data?.policy_state
+                // fork all requests and await complete all
+                && forkJoin(Object.values(agent?.last_hb_data?.policy_state)
+                  // summarize all datasets to request
+                  .reduce((acc: Observable<Dataset>[], { datasets }) => {
+                    return acc.concat(datasets
+                      // map each datasetID to request
+                      .map(dataset => this.datasetService
+                        .getDatasetById(dataset)
+                        .pipe(take(1))));
+                  }, []) as Observable<Dataset>[])
+                  .pipe(take(1))
+                // or no requests at all
+                || of(null)),
             }),
-            // emit once
+            // emit once when all emitters emit(), completes,
+            // and take(1) unsubscribes all inner observables at
+            // first emission.
             (outer, inner) => ({ agent: outer, ...inner })),
         );
   }
