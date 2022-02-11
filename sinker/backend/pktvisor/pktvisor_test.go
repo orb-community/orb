@@ -248,7 +248,7 @@ func TestGeoLocConversion(t *testing.T) {
 		data     []byte
 		expected prometheus.TimeSeries
 	}{
-		"PacketPayloadTopASN": {
+		"PacketPayloadTopGeoLoc": {
 			data: []byte(`
 {
     "policy_packets": {
@@ -311,6 +311,256 @@ func TestGeoLocConversion(t *testing.T) {
 				if c.expected.Labels[0] == value.Labels[0] {
 					receivedLabel = value.Labels
 					receivedDatapoint = value.Datapoint
+				}
+			}
+			assert.True(t, reflect.DeepEqual(c.expected.Labels, receivedLabel), fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, receivedLabel))
+			assert.Equal(t, c.expected.Datapoint.Value, receivedDatapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, receivedDatapoint.Value))
+		})
+	}
+
+}
+
+func TestPCAPConversion(t *testing.T) {
+	var logger *zap.Logger
+	pktvisor.Register(logger)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	var agent = &pb.OwnerRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+	}
+
+	data := fleet.AgentMetricsRPCPayload{
+		PolicyID:   policyID.String(),
+		PolicyName: "policy-test",
+		Datasets:   nil,
+		Format:     "json",
+		BEVersion:  "1.0",
+	}
+
+	be := backend.GetBackend("pktvisor")
+
+	cases := map[string]struct {
+		data     []byte
+		expected prometheus.TimeSeries
+	}{
+		"PCAPPayload_Tcp_Reassembly_Errors": {
+			data: []byte(`
+{
+	"policy_pcap": {
+        "pcap": {
+            "tcp_reassembly_errors": 2
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "pcap_tcp_reassembly_errors",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 2,
+				},
+			},
+		},
+	}
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			data.Data = c.data
+			res, err := be.ProcessMetrics(agent, agentID.String(), data)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var receivedLabel []prometheus.Label
+			var receivedDatapoint prometheus.Datapoint
+			for _, value := range res {
+				if c.expected.Labels[0] == value.Labels[0] {
+					receivedLabel = value.Labels
+					receivedDatapoint = value.Datapoint
+				}
+			}
+			assert.True(t, reflect.DeepEqual(c.expected.Labels, receivedLabel), fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, receivedLabel))
+			assert.Equal(t, c.expected.Datapoint.Value, receivedDatapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, receivedDatapoint.Value))
+		})
+	}
+
+}
+
+func TestDNSConversion(t *testing.T) {
+	var logger *zap.Logger
+	pktvisor.Register(logger)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	var agent = &pb.OwnerRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+	}
+
+	data := fleet.AgentMetricsRPCPayload{
+		PolicyID:   policyID.String(),
+		PolicyName: "policy-test",
+		Datasets:   nil,
+		Format:     "json",
+		BEVersion:  "1.0",
+	}
+
+	be := backend.GetBackend("pktvisor")
+
+	cases := map[string]struct {
+		data     []byte
+		expected prometheus.TimeSeries
+	}{
+		"DNSPayloadWirePacketsIpv4": {
+			data: []byte(`
+{
+	"policy_dns": {
+        "dns": {
+            "wire_packets": {
+				"ipv4": 1
+			}
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "dns_wire_packets_ipv4",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 1,
+				},
+			},
+		},
+		"DNSPayloadXactInQuantiles": {
+			data: []byte(`
+{
+	"policy_dns": {
+		"dns": {
+        	"xact": {
+            	"in": {
+					"quantiles_us": {
+						"p90": 4
+					}
+				}
+        	}
+    	}
+	}
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "dns_xact_in_quantiles_us",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "quantile",
+						Value: "0.9",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 4,
+				},
+			},
+		},
+	}
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			data.Data = c.data
+			res, err := be.ProcessMetrics(agent, agentID.String(), data)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var receivedLabel []prometheus.Label
+			var receivedDatapoint prometheus.Datapoint
+			for _, value := range res {
+				if c.expected.Labels[0] == value.Labels[0] {
+					if len(c.expected.Labels) < 7 {
+						receivedLabel = value.Labels
+						receivedDatapoint = value.Datapoint
+					} else {
+						if c.expected.Labels[6].Value == value.Labels[6].Value{
+							receivedLabel = value.Labels
+							receivedDatapoint = value.Datapoint
+						}
+					}
 				}
 			}
 			assert.True(t, reflect.DeepEqual(c.expected.Labels, receivedLabel), fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, receivedLabel))
