@@ -60,7 +60,15 @@ export interface Agent extends OrbEntity {
   /**
    * Last Heartbeat Data {{[propName: string]: string}}
    */
-  last_hb_data?: any;
+  last_hb_data?: any | {
+    backend_state?: any;
+    group_state?: any;
+    policy_state?: {[propName: string]: {
+      name?: string;
+      state?: string;
+      datasets?: string[];
+      }};
+  };
 
   /**
    * Last Heartbeat timestamp {string}
