@@ -761,6 +761,18 @@ func TestMatchingAgentRetrieval(t *testing.T) {
 				"online": nil,
 			},
 		},
+		"retrieve agents with mix tags": {
+			owner: oID.String(),
+			tag: types.Tags{
+				"node_type": "dns",
+				"region": "EU",
+				"wrong": "tag",
+			},
+			matchingAgents: types.Metadata{
+				"total": nil,
+				"online": nil,
+			},
+		},
 	}
 
 	for desc, tc := range cases {
