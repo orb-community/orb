@@ -126,6 +126,13 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 
 	// connect all agents to the group channel (check the already connected and connect the new ones)
 	if !reflect.DeepEqual(listSub, listUnsub) {
+		for _, a := range listUnsub {
+			err = svc.mfsdk.DisconnectThing(a.MFThingID, ag.MFChannelID, token)
+			if err != nil {
+				svc.logger.Error("failed to disconnect thing", zap.String("agent_name", a.Name.String()), zap.String("agent_id", a.MFThingID), zap.Error(err))
+			}
+		}
+
 		for _, a := range listSub {
 			idList := make([]string, 1)
 			idList[0] = a.MFThingID
