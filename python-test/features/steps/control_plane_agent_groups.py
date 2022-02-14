@@ -88,12 +88,14 @@ def subscribe_agent_to_a_group(context):
       'time_to_wait} seconds')
 def check_logs_for_group(context, text_to_match, time_to_wait):
     groups_matching = list()
+    context.groups_matching_id = list()
     for group in context.agent_groups.keys():
         group_data = get_agent_group(context.token, group)
         group_tags = dict(group_data["tags"])
         agent_tags = context.agent["orb_tags"]
         if all(item in agent_tags.items() for item in group_tags.items()) is True:
             groups_matching.append(context.agent_groups[group])
+            context.groups_matching_id.append(group)
     text_found, groups_to_which_subscribed = check_subscription(time_to_wait, groups_matching,
                                                                 text_to_match, context.container_id)
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)"

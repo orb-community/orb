@@ -163,7 +163,7 @@ Scenario: Sink with invalid password
         And dataset related have validity valid
 
 
-    Scenario: Agent subscription to multiple groups created after provisioning agent
+Scenario: Agent subscription to multiple groups created after provisioning agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And a new agent is created with region:br, demo:true, ns1:true orb tag(s)
@@ -174,12 +174,84 @@ Scenario: Sink with invalid password
     Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
 
 
-    Scenario: Agent subscription to multiple groups created before provisioning agent
+Scenario: Agent subscription to multiple groups created before provisioning agent
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with demo:true, ns1:true orb tag(s)
+        And an Agent Group is created with region:br orb tag(s)
+        And an Agent Group is created with demo:true orb tag(s)
+    When a new agent is created with demo:true, ns1:true orb tag(s)
+        And the agent container is started on port default
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+
+
+Scenario: Agent subscription to group after editing agent's tags (agent provisioned before editing and group created after)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And a new agent is created with demo:true, ns1:true orb tag(s)
+        And the agent container is started on port default
+        And an Agent Group is created with demo:true, ns1:true orb tag(s)
+    When edit the agent tags and use region:br orb tag(s)
+        And an Agent Group is created with region:br orb tag(s)
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+
+
+Scenario: Agent subscription to group after editing agent's tags (editing tags after agent provision)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with demo:true, ns1:true orb tag(s)
+        And an Agent Group is created with region:br orb tag(s)
+        And a new agent is created with demo:true, ns1:true orb tag(s)
+        And the agent container is started on port default
+    When edit the agent tags and use region:br orb tag(s)
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+
+
+Scenario: Agent subscription to group after editing agent's tags (editing tags before agent provision)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And a new agent is created with demo:true, ns1:true orb tag(s)
+        And edit the agent tags and use region:br orb tag(s)
+        And the agent container is started on port default
+    When an Agent Group is created with region:br orb tag(s)
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+
+
+Scenario: Agent subscription to multiple group with policies after editing agent's tags (editing tags after agent provision)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with test:true orb tag(s) already exists and is online
+        And referred agent is subscribed to a group
+        And that a sink already exists
+        And 2 policies are applied to the group
+        And this agent's heartbeat shows that 2 policies are successfully applied
+        And an Agent Group is created with region:br orb tag(s)
+        And 1 policies are applied to the group
+    When edit the agent tags and use region:br, test:true orb tag(s)
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+        And this agent's heartbeat shows that 3 policies are successfully applied
+        And this agent's heartbeat shows that 2 groups are matching the agent
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+
+
+    Scenario: Agent subscription to group with policies after editing agent's tags (editing tags after agent provision)
         Given the Orb user has a registered account
-            And the Orb user logs in
-            And an Agent Group is created with demo:true, ns1:true orb tag(s)
-            And an Agent Group is created with region:br orb tag(s)
-            And an Agent Group is created with demo:true orb tag(s)
-        When a new agent is created with demo:true, ns1:true orb tag(s)
-            And the agent container is started on port default
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And referred agent is subscribed to a group
+        And that a sink already exists
+        And 2 policies are applied to the group
+        And this agent's heartbeat shows that 2 policies are successfully applied
+        And an Agent Group is created with region:br orb tag(s)
+        And 1 policies are applied to the group
+        When edit the agent tags and use region:br orb tag(s)
         Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+        And this agent's heartbeat shows that 1 policies are successfully applied
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+

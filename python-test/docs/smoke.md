@@ -82,3 +82,5 @@
 - [Remove agent (logs, agent groups matches)](integration/remove_agent.md)
 - [Subscribe an agent to multiple groups created before agent provisioning](integration/subscribe_an_agent_to_multiple_groups_created_before_agent_provisioning.md)
 - [Subscribe an agent to multiple groups created after agent provisioning](integration/subscribe_an_agent_to_multiple_groups_created_after_agent_provisioning.md)
+- [Agent subscription to group after editing agent's tags](integration/agent_subscription_to_group_after_editing_agent's_tags.md)
+- [Agent subscription to group with policies after editing agent's tags](integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags.md)
