@@ -63,6 +63,8 @@ nav:
                  - Edit agent group tag: agent_groups/edit_agent_group_tag.md
                  - Remove agent group using correct name: agent_groups/remove_agent_group_using_correct_name.md
                  - Remove agent group using incorrect name: agent_groups/remove_agent_group_using_incorrect_name.md
+                 - Run two orb agents on the same port: agents/run_two_orb_agents_on_the_same_port.md
+                 - Run two orb agents on different ports: agents/run_two_orb_agents_on_different_ports.md
           - Sink Scenarios:
                  - Check if total sinks on sinks' page is correct: sinks/check_if_total_sinks_on_sinks'_page_is_correct.md
                  - Create sink with invalid name (regex): sinks/create_sink_with_invalid_name_(regex).md
@@ -139,6 +141,10 @@ nav:
                  - Remove agent container (logs, agent groups matches): integration/remove_agent_container.md
                  - Remove agent container force (logs, agent groups matches): integration/remove_agent_container_force.md
                  - Remove agent (logs, agent groups matches): integration/remove_agent.md
+                 - Subscribe an agent to multiple groups created before agent provisioning: integration/subscribe_an_agent_to_multiple_groups_created_before_agent_provisioning.md
+                 - Subscribe an agent to multiple groups created after agent provisioning: integration/subscribe_an_agent_to_multiple_groups_created_after_agent_provisioning.md
+                 - Agent subscription to group after editing agent's tags: integration/agent_subscription_to_group_after_editing_agent's_tags.md
+                 - Agent subscription to group with policies after editing agent's tags: integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags.md
 
   - Suites:
           - Smoke:
@@ -175,6 +181,12 @@ nav:
                         - Remove agent container (logs, agent groups matches): integration/remove_agent_container.md
                         - Remove agent container force (logs, agent groups matches): integration/remove_agent_container_force.md
                         - Remove agent (logs, agent groups matches): integration/remove_agent.md
+                        - Run two orb agents on the same port: agents/run_two_orb_agents_on_the_same_port.md
+                        - Run two orb agents on different ports: agents/run_two_orb_agents_on_different_ports.md
+                        - Subscribe an agent to multiple groups created before agent provisioning: integration/subscribe_an_agent_to_multiple_groups_created_before_agent_provisioning.md
+                        - Subscribe an agent to multiple groups created after agent provisioning: integration/subscribe_an_agent_to_multiple_groups_created_after_agent_provisioning.md
+                        - Agent subscription to group after editing agent's tags: integration/agent_subscription_to_group_after_editing_agent's_tags.md
+                        - Agent subscription to group with policies after editing agent's tags: integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags.md
           - Sanity:
                  - Sanity list: sanity.md
                  - Sanity tests:
@@ -204,3 +216,9 @@ nav:
                         - Remove agent container (logs, agent groups matches): integration/remove_agent_container.md
                         - Remove agent container force (logs, agent groups matches): integration/remove_agent_container_force.md
                         - Remove agent (logs, agent groups matches): integration/remove_agent.md
+                        - Run two orb agents on the same port: agents/run_two_orb_agents_on_the_same_port.md
+                        - Run two orb agents on different ports: agents/run_two_orb_agents_on_different_ports.md
+                        - Subscribe an agent to multiple groups created before agent provisioning: integration/subscribe_an_agent_to_multiple_groups_created_before_agent_provisioning.md
+                        - Subscribe an agent to multiple groups created after agent provisioning: integration/subscribe_an_agent_to_multiple_groups_created_after_agent_provisioning.md
+                        - Agent subscription to group after editing agent's tags: integration/agent_subscription_to_group_after_editing_agent's_tags.md
+                        - Agent subscription to group with policies after editing agent's tags: integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags.md
