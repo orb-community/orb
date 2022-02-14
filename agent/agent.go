@@ -150,7 +150,7 @@ func (a *orbAgent) Restart(fullReset bool, reason string) {
 		a.logger.Info("restarting all backends", zap.String("reason", reason))
 		for name, be := range a.backends {
 			a.logger.Info("removing policies", zap.String("backend", name))
-			if err := a.policyManager.RemoveBackendPolicies(be, false); err != nil {
+			if err := a.policyManager.RemoveBackendPolicies(be); err != nil {
 				a.logger.Error("failed to remove policies", zap.String("backend", name), zap.Error(err))
 			}
 			a.logger.Info("resetting backend", zap.String("backend",name))
