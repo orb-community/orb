@@ -17,16 +17,16 @@ export enum AgentStates {
   removed = 'removed',
 }
 
-export type AgentGroupState = {
+export interface AgentGroupState {
   name?: string;
   channel?: string;
-};
+}
 
-export type AgentPolicyState = {
+export interface AgentPolicyState {
   name?: string;
   state?: string;
   datasets?: string[];
-};
+}
 
 /**
  * @interface Agent
