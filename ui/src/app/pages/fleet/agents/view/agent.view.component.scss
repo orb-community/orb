@@ -132,3 +132,25 @@ nb-card {
     color: #df316f !important;
   }
 }
+
+nb-accordion {
+  padding: 0;
+  text-subtitle-line-height: 1rem;
+  display: grid;
+
+  nb-accordion-item {
+    padding: 0;
+    //background: rgb(23, 28, 48);
+
+    nb-accordion-item-header {
+      padding: 10px 0;
+      //background: rgb(23, 28, 48);
+    }
+
+    nb-accordion-item-body {
+      padding: 0;
+      //background: rgb(23, 28, 48);
+      display: grid;
+    }
+  }
+}

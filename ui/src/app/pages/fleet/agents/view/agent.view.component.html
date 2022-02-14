@@ -79,7 +79,11 @@
       <nb-card-body>
         <label>Taps</label>
         <span *ngIf="!agent?.agent_metadata?.backends"
-              class="float-right summary-accent">Agent has not been provisioned.</span>
+              class="float-right summary-accent">
+          <span *ngIf="agent?.state === agentStates.new">
+            Agent has not been provisioned.
+          </span>
+        </span>
         <div *ngFor="let backend of agent?.agent_metadata?.backends | keyvalue">
           <pre innerHtml="{{ backend?.value?.data | prettyJson: [false, 2] }}"></pre>
         </div>
@@ -156,7 +160,13 @@
       <nb-card>
         <nb-card-header>Active Groups</nb-card-header>
         <nb-card-body>
-          <p><a>Group Name 1</a>, <a>Group Name 2</a>, <a>Group Name 3</a></p>
+          <p>
+            <span (click)="showAgentGroupDetail(group)"
+                  *ngFor="let group of groups; last as isLast"
+            >{{ group.name }}
+              <span *ngIf="!isLast">,</span>
+            </span>
+          </p>
         </nb-card-body>
       </nb-card>
     </div>

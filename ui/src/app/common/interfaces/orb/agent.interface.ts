@@ -17,6 +17,17 @@ export enum AgentStates {
   removed = 'removed',
 }
 
+export type AgentGroupState = {
+  name?: string;
+  channel?: string;
+};
+
+export type AgentPolicyState = {
+  name?: string;
+  state?: string;
+  datasets?: string[];
+};
+
 /**
  * @interface Agent
  */
@@ -62,12 +73,8 @@ export interface Agent extends OrbEntity {
    */
   last_hb_data?: any | {
     backend_state?: any;
-    group_state?: any;
-    policy_state?: {[propName: string]: {
-      name?: string;
-      state?: string;
-      datasets?: string[];
-      }};
+    group_state?: {[id: string]: AgentGroupState};
+    policy_state?: {[id: string]: AgentPolicyState};
   };
 
   /**

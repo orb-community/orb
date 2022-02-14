@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { STRINGS } from 'assets/text/strings';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
@@ -6,17 +6,20 @@ import { AgentsService, AvailableOS } from 'app/common/services/agents/agents.se
 import { defer, forkJoin, Observable, of, Subscription } from 'rxjs';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
-import { concatMap, take } from 'rxjs/operators';
+import { concatMap } from 'rxjs/operators';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
+import { NbDialogService } from '@nebular/theme';
+import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 
 @Component({
   selector: 'ngx-agent-view',
   templateUrl: './agent.view.component.html',
   styleUrls: ['./agent.view.component.scss'],
 })
-export class AgentViewComponent implements OnDestroy {
+export class AgentViewComponent implements OnInit, OnDestroy {
   strings = STRINGS.agents;
 
   agentStates = AgentStates;
@@ -25,11 +28,11 @@ export class AgentViewComponent implements OnDestroy {
 
   agent: Agent;
 
-  groups: AgentGroup[];
-
   datasets: Dataset[];
 
   policies: AgentPolicy[];
+
+  groups: AgentGroup[];
 
   agentID;
 
@@ -49,23 +52,36 @@ export class AgentViewComponent implements OnDestroy {
 
   constructor(
     private agentsService: AgentsService,
-    private policiesService: AgentPoliciesService,
     private datasetService: DatasetPoliciesService,
+    private groupsService: AgentGroupsService,
+    private policiesService: AgentPoliciesService,
+    private dialogService: NbDialogService,
     protected route: ActivatedRoute,
     protected router: Router,
   ) {
-    this.agent = this.router.getCurrentNavigation().extras.state?.agent as Agent || null;
+    this.agent = this.router.getCurrentNavigation()?.extras?.state?.agent as Agent || null;
     this.agentID = this.route.snapshot.paramMap.get('id');
+
+    this.datasets = [];
+    this.groups = [];
+    this.policies = [];
     this.command2copy = '';
     this.command2show = '';
     this.copyCommandIcon = 'clipboard-outline';
+
+  }
+
+  ngOnInit() {
     this.hideCommand = this.agent?.state !== this.agentStates.new;
+    this.isLoading = true;
+
     this.subscription = this.loadData()
       .subscribe({
         next: resp => {
           this.agent = resp.agent;
           this.datasets = resp?.datasets;
           this.policies = resp?.policies;
+          this.groups = resp?.groups;
         },
         complete: () => {
           this.makeCommand2Copy();
@@ -89,9 +105,7 @@ export class AgentViewComponent implements OnDestroy {
                 && forkJoin(Object.keys(agent?.last_hb_data?.policy_state)
                   // map policy IDs to request
                   .map(policyId => this.policiesService
-                    .getAgentPolicyById(policyId)
-                    .pipe(take(1))))
-                  .pipe(take(1))
+                    .getAgentPolicyById(policyId)))
                 // or no requests at all
                 || of(null)),
               // defer execution until subscription
@@ -104,10 +118,17 @@ export class AgentViewComponent implements OnDestroy {
                     return acc.concat(datasets
                       // map each datasetID to request
                       .map(dataset => this.datasetService
-                        .getDatasetById(dataset)
-                        .pipe(take(1))));
+                        .getDatasetById(dataset)));
                   }, []) as Observable<Dataset>[])
-                  .pipe(take(1))
+                // or no requests at all
+                || of(null)),
+              groups: defer(() => !!agent?.last_hb_data?.group_state
+                // fork all requests and await complete all
+                && forkJoin(Object.keys(agent?.last_hb_data?.group_state)
+                  // summarize all groups to request
+                  .map(groupId => this.groupsService
+                    .getAgentGroupById(groupId)))
+                // or no requests at all
                 // or no requests at all
                 || of(null)),
             }),
@@ -162,5 +183,24 @@ ns1labs/orb-agent:develop`;
 
   ngOnDestroy() {
     this.subscription?.unsubscribe();
+  }
+
+  showAgentGroupDetail(agentGroup) {
+    this.dialogService.open(AgentGroupDetailsComponent, {
+      context: { agentGroup },
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe((resp) => {
+      if (resp) {
+        this.onOpenEditAgentGroup(agentGroup);
+      }
+    });
+  }
+
+  onOpenEditAgentGroup(agentGroup: any) {
+    this.router.navigate([`../../../groups/edit/${ agentGroup.id }`], {
+      state: { agentGroup: agentGroup, edit: true },
+      relativeTo: this.route,
+    });
   }
 }
