@@ -1,0 +1,118 @@
+.nb-card-large {
+  width: 800px;
+}
+
+.nb-card-medium {
+  width: 497px;
+}
+
+.nb-card-small {
+  width: 280px;
+}
+
+nb-icon {
+  vertical-align: middle;
+}
+
+.form-key {
+  color: #969fb9;
+}
+
+.p {
+  color: #ffffff;
+  text-align: left;
+}
+
+.ns1red {
+  color: #df316f;
+}
+
+nb-select {
+  width: 100%;
+}
+
+button {
+  float: right;
+}
+
+textarea {
+  width: 100%;
+  height: 100%;
+}
+
+nb-tabset {
+  padding: 0;
+  margin: 0;
+}
+
+// ORB
+.sink-edit-button {
+  background-color: blue;
+}
+
+.orb-close-dialog {
+  background-color: #23294000;
+  border-radius: 4px;
+  display: contents;
+  float: right;
+
+  > span {
+    float: right;
+    padding-top: 0.3rem;
+    font-size: large;
+    color: #3089fc;
+    font-weight: 900;
+  }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: 32px;
+  margin-left: 6px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+
+  div > p {
+    margin-top: 0;
+    margin-bottom: 0.4rem;
+  }
+}
+
+.detail-title {
+  color: #969fb9;
+}
+
+nb-accordion {
+  padding: 0;
+  text-subtitle-line-height: 1rem;
+  display: grid;
+
+  nb-accordion-item {
+    padding: 0;
+    //background: rgb(23, 28, 48);
+
+    nb-accordion-item-header {
+      padding: 10px 0;
+      //background: rgb(23, 28, 48);
+    }
+
+    nb-accordion-item-body {
+      padding: 0;
+      //background: rgb(23, 28, 48);
+      display: grid;
+    }
+  }
+}
+
+.faded-input-text {
+  color: #969fb9;
+  font-family: 'Montserrat', sans-serif;
+  padding-left: 5px;
+  font-weight: 300;
+}
+
+.required {
+  color: #df316f;
+  padding-left: 2px;
+}

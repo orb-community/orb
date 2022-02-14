@@ -54,7 +54,7 @@ export class AgentViewComponent {
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=mock \\
-ns1labs/orb-agent`;
+ns1labs/orb-agent:develop`;
 
     this.command2show = `docker run -d --net=host \n
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \n
@@ -63,6 +63,6 @@ ns1labs/orb-agent`;
 -e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \n
 -e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>mock</mark> \n
 
-ns1labs/orb-agent`;
+ns1labs/orb-agent:develop`;
   }
 }
