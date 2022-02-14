@@ -14,7 +14,7 @@ agent_group_description = "This is an agent group"
 base_orb_url = configs.get('base_orb_url')
 
 
-@when("an Agent Group is created with same tag as the agent")
+@step("an Agent Group is created with same tag as the agent")
 def create_agent_group_matching_agent(context):
     agent_group_name = agent_group_name_prefix + random_string()
     tags = context.agent["orb_tags"]
@@ -47,7 +47,7 @@ def error_response_message(context, message):
     assert_that(response_value, equal_to(message), "Unexpected message for error")
 
 
-@then("one agent must be matching on response field matching_agents")
+@step("one agent must be matching on response field matching_agents")
 def matching_agent(context):
     matching_total_agents = context.agent_group_data['matching_agents']['total']
     matching_online_agents = context.agent_group_data['matching_agents']['online']

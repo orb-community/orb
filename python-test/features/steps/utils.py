@@ -57,7 +57,7 @@ def insert_str(str_base, str_to_insert, index):
 def generate_random_string_with_predefined_prefix(string_prefix, n_random=10):
     """
     :param (str) string_prefix: prefix to identify object created by tests
-    :param (str) n_random: amount of random characters
+    :param (int) n_random: amount of random characters
     :return: random_string_with_predefined_prefix
     """
     random_string_with_predefined_prefix = string_prefix + random_string(n_random)
