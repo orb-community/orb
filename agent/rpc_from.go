@@ -24,7 +24,7 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 		if len(policies) > 0 {
 			for name, be := range a.backends {
 				a.logger.Info("removing policies", zap.String("backend", name))
-				a.policyManager.RemoveBackendPolicies(be)
+				a.policyManager.RemoveBackendPolicies(be, true)
 			}
 		}
 		a.subscribeGroupChannels(rpc.Groups)

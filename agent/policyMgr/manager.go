@@ -20,7 +20,7 @@ type PolicyManager interface {
 	GetPolicyState() ([]policies.PolicyData, error)
 	GetRepo() policies.PolicyRepo
 	ApplyBackendPolicies(be backend.Backend) error
-	RemoveBackendPolicies(be backend.Backend) error
+	RemoveBackendPolicies(be backend.Backend, permanently bool) error
 }
 
 var _ PolicyManager = (*policyManager)(nil)
@@ -178,7 +178,7 @@ func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be back
 	}
 }
 
-func (a *policyManager) RemoveBackendPolicies(be backend.Backend) error {
+func (a *policyManager) RemoveBackendPolicies(be backend.Backend, permanently bool) error {
 	plcies, err := a.repo.GetAll()
 	if err != nil {
 		a.logger.Error("failed to retrieve list of policies", zap.Error(err))
@@ -191,8 +191,12 @@ func (a *policyManager) RemoveBackendPolicies(be backend.Backend) error {
 			a.logger.Error("failed to remove policy from backend", zap.String("policy_id", plcy.ID), zap.String("policy_name", plcy.Name), zap.Error(err))
 			return err
 		}
-		plcy.State = policies.Unknown
-		a.repo.Update(plcy)
+		if permanently {
+			a.repo.Remove(plcy.ID)
+		} else {
+			plcy.State = policies.Unknown
+			a.repo.Update(plcy)
+		}
 	}
 	return nil
 }
