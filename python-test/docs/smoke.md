@@ -84,3 +84,5 @@
 - [Subscribe an agent to multiple groups created after agent provisioning](integration/subscribe_an_agent_to_multiple_groups_created_after_agent_provisioning.md)
 - [Agent subscription to group after editing agent's tags](integration/agent_subscription_to_group_after_editing_agent's_tags.md)
 - [Agent subscription to group with policies after editing agent's tags](integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags.md)
+- [Edit agent name and apply policies to then](integration/edit_agent_name_and_apply_policies_to_then.md)
+- [Insert tags in agents created without tags and apply policies to group matching new tags.md](integration/insert_tags_in_agents_created_without_tags_and_apply_policies_to_group_matching_new_tags.md)

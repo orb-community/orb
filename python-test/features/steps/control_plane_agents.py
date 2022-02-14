@@ -115,11 +115,35 @@ def list_groups_matching_an_agent(context, amount_of_groups):
 
 
 @step("edit the agent tags and use {orb_tags} orb tag(s)")
-def editing_agent(context, orb_tags):
+def editing_agent_tags(context, orb_tags):
     agent = get_agent(context.token, context.agent["id"])
     context.orb_tags = create_tags_set(orb_tags)
     edit_agent(context.token, context.agent["id"], agent["name"], context.orb_tags, expected_status_code=200)
     context.agent = get_agent(context.token, context.agent["id"])
+
+
+@step("edit the agent name")
+def editing_agent_name(context):
+    agent = get_agent(context.token, context.agent["id"])
+    agent_new_name = generate_random_string_with_predefined_prefix(agent_name_prefix, 5)
+    edit_agent(context.token, context.agent["id"], agent_new_name, agent['orb_tags'], expected_status_code=200)
+    context.agent = get_agent(context.token, context.agent["id"])
+    assert_that(context.agent["name"], equal_to(agent_new_name), "Agent name editing failed")
+
+
+@step("edit the agent name and edit agent tags using {orb_tags} orb tag(s)")
+def editing_agent_name_and_tags(context, orb_tags):
+    agent_new_name = generate_random_string_with_predefined_prefix(agent_name_prefix, 5)
+    context.orb_tags = create_tags_set(orb_tags)
+    edit_agent(context.token, context.agent["id"], agent_new_name, context.orb_tags, expected_status_code=200)
+    context.agent = get_agent(context.token, context.agent["id"])
+    assert_that(context.agent["name"], equal_to(agent_new_name), "Agent name editing failed")
+
+
+@step("agent must have {amount_of_tags} tags")
+def check_agent_tags(context, amount_of_tags):
+    agent = get_agent(context.token, context.agent["id"])
+    assert_that(len(dict(agent["orb_tags"])), equal_to(int(amount_of_tags)), "Amount of orb tags failed")
 
 
 def expect_container_status(token, agent_id, status):
