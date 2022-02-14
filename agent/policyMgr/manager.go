@@ -20,7 +20,7 @@ type PolicyManager interface {
 	GetPolicyState() ([]policies.PolicyData, error)
 	GetRepo() policies.PolicyRepo
 	ApplyBackendPolicies(be backend.Backend) error
-	RemoveBackendPolicies(be backend.Backend) error
+	RemoveBackendPolicies(be backend.Backend, permanently bool) error
 }
 
 var _ PolicyManager = (*policyManager)(nil)
@@ -85,7 +85,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 				a.logger.Error("failed to retrieve policy", zap.String("policy_id", payload.ID), zap.Error(err))
 				return
 			}
-			if currentPolicy.Version >= pd.Version {
+			if currentPolicy.Version >= pd.Version && currentPolicy.State == policies.Running {
 				a.logger.Info("a better version of this policy has already been applied, skipping", zap.String("policy_id", pd.ID), zap.String("policy_name", pd.Name), zap.String("attempted_version", fmt.Sprint(pd.Version)), zap.String("current_version", fmt.Sprint(currentPolicy.Version)))
 				return
 			} else {
@@ -178,7 +178,7 @@ func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be back
 	}
 }
 
-func (a *policyManager) RemoveBackendPolicies(be backend.Backend) error {
+func (a *policyManager) RemoveBackendPolicies(be backend.Backend, permanently bool) error {
 	plcies, err := a.repo.GetAll()
 	if err != nil {
 		a.logger.Error("failed to retrieve list of policies", zap.Error(err))
@@ -191,8 +191,12 @@ func (a *policyManager) RemoveBackendPolicies(be backend.Backend) error {
 			a.logger.Error("failed to remove policy from backend", zap.String("policy_id", plcy.ID), zap.String("policy_name", plcy.Name), zap.Error(err))
 			return err
 		}
-		plcy.State = policies.Unknown
-		a.repo.Update(plcy)
+		if permanently {
+			a.repo.Remove(plcy.ID)
+		} else {
+			plcy.State = policies.Unknown
+			a.repo.Update(plcy)
+		}
 	}
 	return nil
 }

@@ -17,10 +17,24 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 	// if this is the full list, reset all group subscriptions and subscribed to this list
 	if rpc.FullList {
 		a.unsubscribeGroupChannels()
+		policies, err := a.policyManager.GetRepo().GetAll()
+		if err != nil {
+			a.logger.Error("failed to retrieve policies on handle subscriptions")
+		}
+		if len(policies) > 0 {
+			for name, be := range a.backends {
+				a.logger.Info("removing policies", zap.String("backend", name))
+				a.policyManager.RemoveBackendPolicies(be, true)
+			}
+		}
 		a.subscribeGroupChannels(rpc.Groups)
 	} else {
 		// otherwise, just add these subscriptions to the existing list
 		a.subscribeGroupChannels(rpc.Groups)
+	}
+	err := a.sendAgentPoliciesReq()
+	if err != nil {
+		a.logger.Error("failed to send agent policies request", zap.Error(err))
 	}
 }
 
