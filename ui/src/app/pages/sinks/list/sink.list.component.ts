@@ -70,6 +70,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   ngAfterViewChecked() {
     if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
+      this.table.rowHeight = this.tableWrapper.nativeElement.clientHeight * 0.70 / this.paginationControls.limit;
       this.table.recalculate();
       this.cdr.detectChanges();
       window.dispatchEvent(new Event('resize'));

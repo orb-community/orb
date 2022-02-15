@@ -9,7 +9,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 
 // default filters
-const defLimit: number = 20;
+const defLimit: number = 10;
 const defOrder: string = 'name';
 const defDir = 'desc';
 
@@ -122,14 +122,14 @@ export class SinksService {
     return this.http.get(environment.sinksUrl, { params })
       .map(
         (resp: any) => {
-          this.paginationCache[pageInfo?.offset || 0] = true;
+          this.paginationCache[pageInfo?.offset / pageInfo?.limit || 0] = true;
           // This is the position to insert the new data
-          const start = pageInfo?.offset || 0;
+          const start = pageInfo?.offset * pageInfo?.limit || 0;
           const newData = [...this.cache.data];
           newData.splice(start, resp.limit, ...resp.sinks);
           this.cache = {
             ...this.cache,
-            offset: Math.floor(resp.offset / resp.limit),
+            offset: resp.offset,
             total: resp.total,
             data: newData,
           };
