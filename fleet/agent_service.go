@@ -15,6 +15,7 @@ import (
 	"github.com/ns1labs/orb/fleet/backend"
 	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
+	"strings"
 )
 
 var (
@@ -47,7 +48,11 @@ func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) erro
 		}
 		err = svc.mfsdk.Connect(ids, token)
 		if err != nil {
-			return err
+			if strings.Contains(err.Error(), "409") {
+				svc.logger.Warn("agent already connected, skipping...")
+			} else {
+				return err
+			}
 		}
 	}
 
