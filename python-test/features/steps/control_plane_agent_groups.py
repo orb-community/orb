@@ -153,8 +153,8 @@ def subscribe_agent_to_a_group(context):
     matching_agent(context)
 
 
-@step('the container logs contain the message "{text_to_match}" referred to each matching group within {'
-      'time_to_wait} seconds')
+@step('the container logs contain the message "{text_to_match}" referred to each matching group within'
+      '{time_to_wait} seconds')
 def check_logs_for_group(context, text_to_match, time_to_wait):
     groups_matching = list()
     context.groups_matching_id = list()
