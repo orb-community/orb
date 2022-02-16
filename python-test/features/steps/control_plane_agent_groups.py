@@ -150,7 +150,6 @@ def subscribe_agent_to_a_group(context):
     context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description, agent_tags)
     group_id = context.agent_group_data['id']
     context.agent_groups[group_id] = agent_group_name
-    matching_agent(context)
 
 
 @step('the container logs contain the message "{text_to_match}" referred to each matching group within'
