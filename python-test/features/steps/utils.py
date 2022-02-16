@@ -1,9 +1,9 @@
 import random
 import string
 from json import loads, JSONDecodeError
+from hamcrest import *
 
-tag_key_prefix = "test_tag_key_"
-tag_value_prefix = "test_tag_value_"
+tag_prefix = "test_tag_"
 
 
 def random_string(k=10):
@@ -54,14 +54,52 @@ def insert_str(str_base, str_to_insert, index):
     return str_base[:index] + str_to_insert + str_base[index:]
 
 
-def generate_name_and_tag(name_prefix, tag_key_prefix, tag_value_prefix):
+def generate_random_string_with_predefined_prefix(string_prefix, n_random=10):
     """
-    :param (str) name_prefix: prefix to identify object created by tests
-    :param (str) tag_key_prefix: prefix to identify tag_key created by tests
-    :param (str) tag_value_prefix: prefix to identify tag_value created by tests
-    :return: random name, tag_key and tag_value
+    :param (str) string_prefix: prefix to identify object created by tests
+    :param (int) n_random: amount of random characters
+    :return: random_string_with_predefined_prefix
     """
-    name = name_prefix + random_string(10)
-    tag_key = tag_key_prefix + random_string(4)
-    tag_value = tag_value_prefix + random_string(4)
-    return name, tag_key, tag_value
+    random_string_with_predefined_prefix = string_prefix + random_string(n_random)
+    return random_string_with_predefined_prefix
+
+
+def create_tags_set(orb_tags):
+    """
+    Create a set of orb-tags
+    :param orb_tags: If defined: the defined tags that should compose the set.
+                     If random: the number of tags that the set must contain.
+    :return: (dict) tag_set
+    """
+    tag_set = dict()
+    if orb_tags.isdigit() is False:
+        assert_that(orb_tags, matches_regexp("^.+\:.+"), "Unexpected tags")
+        for tag in orb_tags.split(", "):
+            key, value = tag.split(":")
+            tag_set[key] = value
+    else:
+        amount_of_tags = int(orb_tags.split()[0])
+        for tag in range(amount_of_tags):
+            tag_set[tag_prefix + random_string(4)] = tag_prefix + random_string(2)
+    return tag_set
+
+
+def check_logs_contain_message_and_name(logs, expected_message, name, name_key):
+    """
+    Gets the logs from Orb agent container
+
+    :param (list) logs: list of log lines
+    :param (str) expected_message: message that we expect to find in the logs
+    :param (str) name: element name that we expect to find in the logs
+    :param (str) name_key: key to get element name on log line
+    :returns: (bool) whether expected message was found in the logs
+    """
+
+    for log_line in logs:
+        log_line = safe_load_json(log_line)
+
+        if log_line is not None and log_line['msg'] == expected_message:
+            if log_line is not None and log_line[name_key] == name:
+                return True, log_line
+
+    return False, "Logs doesn't contain the message and name expected"

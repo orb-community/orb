@@ -193,8 +193,22 @@ func TestUpdateAgent(t *testing.T) {
 	thingsServer := newThingsServer(newThingsService(users))
 	fleetService := newService(users, thingsServer.URL)
 
-	ag, err := createAgent(t, "my-agent1", fleetService)
+	validAgentName, err := types.NewIdentifier("group")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	ag, err := fleetService.CreateAgent(context.Background(), "token", fleet.Agent{
+		Name:      validAgentName,
+		AgentTags: map[string]string{"test": "true"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	validName, err := types.NewIdentifier("group")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	_, _ = fleetService.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
+		Name: validName,
+		Tags: map[string]string{"test": "true"},
+	})
 
 	wrongAgentGroup := fleet.Agent{MFThingID: wrongID}
 	cases := map[string]struct {
@@ -281,6 +295,8 @@ func TestCreateAgent(t *testing.T) {
 	nameID, err := types.NewIdentifier("eu-agents")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
+	conflictCase, err := createAgent(t, "agent", fleetService)
+
 	validAgent := fleet.Agent{
 		MFOwnerID: ownerID.String(),
 		Name:      nameID,
@@ -305,6 +321,11 @@ func TestCreateAgent(t *testing.T) {
 			agent: validAgent,
 			token: invalidToken,
 			err:   fleet.ErrUnauthorizedAccess,
+		},
+		"add a conflict agent": {
+			agent: conflictCase,
+			token: token,
+			err:   fleet.ErrConflict,
 		},
 	}
 
@@ -379,6 +400,79 @@ func TestListBackends(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			_, err := fleetService.ListAgentBackends(context.Background(), tc.token)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
+func TestViewAgentBackend(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	cases := map[string]struct {
+		name  string
+		token string
+		err   error
+	}{
+		"view backend not registered": {
+			name:  "invalid",
+			token: token,
+			err:   errors.ErrNotFound,
+		},
+		"view backend with invalid token": {
+			name:  "pktvisor",
+			token: invalidToken,
+			err:   errors.ErrUnauthorizedAccess,
+		},
+		"view registered backend": {
+			name:  "pktvisor",
+			token: token,
+			err:   nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := fleetService.ViewAgentBackend(context.Background(), tc.token, tc.name)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
+func TestViewOwnerInternal(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ag, err := createAgent(t, "agent", fleetService)
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	cases := map[string]struct {
+		channelID string
+		agent     fleet.Agent
+		err       error
+	}{
+		"view existent owner by channelID": {
+			channelID: ag.MFChannelID,
+			agent:     ag,
+			err:       nil,
+		},
+		"view existent owner by non-existent channelID": {
+			channelID: chID.String(),
+			agent:     fleet.Agent{},
+			err:       errors.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			agent, err := fleetService.ViewOwnerByChannelIDInternal(context.Background(), tc.channelID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+			assert.Equal(t, tc.agent, agent, fmt.Sprintf("%s: expected %s got %s", desc, tc.agent, agent))
 		})
 	}
 }

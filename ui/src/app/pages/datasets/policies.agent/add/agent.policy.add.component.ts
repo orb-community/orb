@@ -9,6 +9,7 @@ import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.
 import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface';
 import { NbDialogService } from '@nebular/theme';
 import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
+import { STRINGS } from '../../../../../assets/text/strings';
 
 const CONFIG = {
   TAPS: 'TAPS',
@@ -24,6 +25,9 @@ const CONFIG = {
   styleUrls: ['./agent.policy.add.component.scss'],
 })
 export class AgentPolicyAddComponent {
+  // page vars
+  strings = {stepper: STRINGS.stepper};
+
   // #forms
   // agent policy general information - name, desc, backend
   detailsFG: FormGroup;
@@ -374,6 +378,10 @@ export class AgentPolicyAddComponent {
 
   onHandlerRemoved(name) {
     delete this.modules[name];
+  }
+
+  hasModules() {
+    return Object.keys(this.modules).length > 0;
   }
 
   goBack() {

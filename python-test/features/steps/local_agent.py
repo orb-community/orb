@@ -11,7 +11,7 @@ configs = TestConfig.configs()
 ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
 
 
-@when('the agent container is started on port {port}')
+@step('the agent container is started on port {port}')
 def run_local_agent_container(context, port):
     if port.isdigit():
         port = int(port)
@@ -24,7 +24,7 @@ def run_local_agent_container(context, port):
     env_vars = {"ORB_CLOUD_ADDRESS": orb_address,
                 "ORB_CLOUD_MQTT_ID": context.agent['id'],
                 "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
-                "ORB_CLOUD_MQTT_KEY": context.agent['key'],
+                "ORB_CLOUD_MQTT_KEY": context.agent_key,
                 "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
     if ignore_ssl_and_certificate_errors == 'true':
         env_vars["ORB_TLS_VERIFY"] = "false"
