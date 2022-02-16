@@ -17,6 +17,7 @@ import (
 	"github.com/mainflux/mainflux/things"
 	thingsapi "github.com/mainflux/mainflux/things/api/things/http"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/fleet/backend/pktvisor"
 	flmocks "github.com/ns1labs/orb/fleet/mocks"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
@@ -80,13 +81,14 @@ func newThingsServer(svc things.Service) *httptest.Server {
 func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	agentGroupRepo := flmocks.NewAgentGroupRepository()
 	agentRepo := flmocks.NewAgentRepositoryMock()
-	agentComms := flmocks.NewFleetCommService()
+	agentComms := flmocks.NewFleetCommService(agentRepo, agentGroupRepo)
 	logger, _ := zap.NewDevelopment()
 	config := mfsdk.Config{
 		BaseURL: url,
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
+	pktvisor.Register(auth, agentRepo)
 	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
 }
 
@@ -100,6 +102,20 @@ func TestCreateAgentGroup(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	nameID, err := types.NewIdentifier("eu-agents")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agNameID, err := types.NewIdentifier("agent")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agent := fleet.Agent{
+		Name:          agNameID,
+		MFOwnerID:     ownerID.String(),
+		MFChannelID:   "",
+		AgentTags:     map[string]string{
+			"region":    "eu",
+			"node_type": "dns",
+		},
+	}
+	_, err = fleetService.CreateAgent(context.Background(), token, agent)
 
 	validAgent := fleet.AgentGroup{
 		MFOwnerID:   ownerID.String(),
@@ -296,6 +312,16 @@ func TestUpdateAgentGroup(t *testing.T) {
 
 	ag, err := createAgentGroup(t, "ue-agent-group", fleetService)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agNameID, err := types.NewIdentifier("agent")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agent := fleet.Agent{
+		Name:          agNameID,
+		MFOwnerID:     ag.MFOwnerID,
+		MFChannelID:   ag.MFChannelID,
+	}
+	_, err = fleetService.CreateAgent(context.Background(), token, agent)
 
 	matching := types.Metadata{"total": 0, "online": 0}
 	wrongAgentGroup := fleet.AgentGroup{ID: wrongID}

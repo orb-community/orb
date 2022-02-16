@@ -89,6 +89,13 @@ func migrateDB(db *sqlx.DB) error {
 					 schema_version TEXT NOT NULL DEFAULT '1.0'`,
 				},
 			},
+			{
+				Id: "policies_3",
+				Up: []string{
+					`ALTER TABLE IF EXISTS agent_policies ADD COLUMN IF NOT EXISTS
+					ts_last_modified TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL`,
+				},
+			},
 		},
 	}
 

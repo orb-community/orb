@@ -35,7 +35,7 @@ type addPolicyReq struct {
 	token         string
 }
 
-func (req addPolicyReq) validate() error {
+func (req *addPolicyReq) validate() error {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
 	}

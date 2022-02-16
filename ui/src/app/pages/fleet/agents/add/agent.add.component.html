@@ -38,14 +38,13 @@
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button
-                (click)="goBack()"
-                data-orb-qa-id="button#previous"
-                ghost
-                nbButton
-                status="primary"
-                type="button">
-                {{strings.stepper.back}}
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
               <button [disabled]="!firstFormGroup.valid"
                       class="next-button"
@@ -55,7 +54,7 @@
                       shape="round"
                       status="primary"
                       type="submit">
-                {{strings.stepper.next}}
+                {{ strings.stepper.next }}
               </button>
             </div>
           </form>
@@ -68,7 +67,9 @@
               <p>{{strings.add.step.desc2}}</p>
             </div>
           </ng-template>
-          <p *ngIf="(selectedTags | json) === '{}'">Agent tags were optional and may be set here or when you are provisioning an Agent.<br> The lack of tags will block an Agent to be matched during the Agent Group creation.</p>
+          <p *ngIf="(selectedTags | json) === '{}'">Agent tags are optional and may be set here or when you are
+            provisioning an Agent.<br> The lack of tags will block an Agent to be matched during the Agent Group
+            creation.</p>
           <form [formGroup]="secondFormGroup">
             <div class="d-flex">
               <mat-chip-list data-orb-qa-id="orb_tagsList">
@@ -143,13 +144,20 @@
             <hr/>
             <div *ngIf="secondFormGroup"
                  class="d-flex justify-content-end">
-              <button
-                data-orb-qa-id="button#back"
-                ghost
-                nbButton
-                nbStepperPrevious
-                status="primary">
-                {{strings.stepper.back}}
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
+              </button>
+              <button data-orb-qa-id="button#back"
+                      ghost
+                      nbButton
+                      nbStepperPrevious
+                      status="primary">
+                {{ strings.stepper.back }}
               </button>
               <button class="next-button"
                       data-orb-qa-id="button#next"
@@ -158,7 +166,7 @@
                       shape="round"
                       status="primary"
                       type="submit">
-                {{strings.stepper.next}}
+                {{ strings.stepper.next }}
               </button>
             </div>
           </form>
@@ -202,13 +210,20 @@
           <hr/>
           <div *ngIf="secondFormGroup"
                class="d-flex justify-content-end">
-            <button
-              data-orb-qa-id="button#back"
-              ghost
-              nbButton
-              nbStepperPrevious
-              status="primary">
-              {{strings.stepper.back}}
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    status="primary">
+              {{ strings.stepper.back }}
             </button>
             <button (click)="onFormSubmit()"
                     class="next-button"
@@ -217,7 +232,7 @@
                     shape="round"
                     status="primary"
                     type="submit">
-              {{strings.stepper.save}}
+              {{ strings.stepper.save }}
             </button>
           </div>
         </nb-step>

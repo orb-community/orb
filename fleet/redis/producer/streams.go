@@ -28,6 +28,10 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (es eventStore) ResetAgent(ct context.Context, token string, agentID string) error {
+	return es.svc.ResetAgent(ct, token, agentID)
+}
+
 func (es eventStore) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (fleet.Agent, error) {
 	return es.svc.ViewOwnerByChannelIDInternal(ctx, channelID)
 }

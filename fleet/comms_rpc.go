@@ -23,6 +23,7 @@ type GroupMembershipRPC struct {
 }
 
 type GroupMembershipData struct {
+	GroupID   string `json:"group_id"`
 	Name      string `json:"name"`
 	ChannelID string `json:"channel_id"`
 }
@@ -86,6 +87,19 @@ type AgentStopRPC struct {
 	SchemaVersion string              `json:"schema_version"`
 	Func          string              `json:"func"`
 	Payload       AgentStopRPCPayload `json:"payload"`
+}
+
+const AgentResetRPCFunc = "agent_reset"
+
+type AgentResetRPCPayload struct {
+	FullReset bool   `json:"full_reset"`
+	Reason    string `json:"reason"`
+}
+
+type AgentResetRPC struct {
+	SchemaVersion string               `json:"schema_version"`
+	Func          string               `json:"func"`
+	Payload       AgentResetRPCPayload `json:"payload"`
 }
 
 // Edge -> Core

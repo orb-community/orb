@@ -62,6 +62,20 @@ func (svc fleetService) ViewAgentByID(ctx context.Context, token string, thingID
 	return svc.agentRepo.RetrieveByID(ctx, ownerID, thingID)
 }
 
+func (svc fleetService) ResetAgent(ctx context.Context, token string, agentID string) error {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return err
+	}
+
+	agent, err := svc.agentRepo.RetrieveByID(ctx, ownerID, agentID)
+	if err != nil {
+		return err
+	}
+
+	return svc.agentComms.NotifyAgentReset(agent.MFChannelID, true, "Reset initiated from control plane")
+}
+
 func (svc fleetService) ViewAgentByIDInternal(ctx context.Context, ownerID string, id string) (Agent, error) {
 	return svc.agentRepo.RetrieveByID(ctx, ownerID, id)
 }
@@ -159,6 +173,12 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 	res, err := svc.agentRepo.RetrieveByID(ctx, ownerID, agent.MFThingID)
 	if err != nil {
 		return Agent{}, err
+	}
+
+	err = svc.addAgentToAgentGroupChannels(token, res)
+	if err != nil {
+		// TODO should we roll back?
+		svc.logger.Error("failed to add agent to a existing group channel", zap.String("agent_id", res.MFThingID), zap.Error(err))
 	}
 
 	err = svc.agentComms.NotifyAgentGroupMemberships(res)

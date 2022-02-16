@@ -46,6 +46,11 @@ func (a *agentGroupRepositoryMock) Save(ctx context.Context, group fleet.AgentGr
 
 func (a *agentGroupRepositoryMock) RetrieveAllByAgent(ctx context.Context, agent fleet.Agent) ([]fleet.AgentGroup, error) {
 	var agentGroups []fleet.AgentGroup
+
+	if agent.MFThingID == ""{
+		return agentGroups, errors.ErrMalformedEntity
+	}
+
 	for _, v := range a.agentGroupMock {
 		if v.MFOwnerID == agent.MFOwnerID && (reflect.DeepEqual(v.Tags, agent.AgentTags) || reflect.DeepEqual(v.Tags, agent.OrbTags)) {
 			agentGroups = append(agentGroups, v)

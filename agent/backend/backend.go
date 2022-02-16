@@ -43,11 +43,12 @@ type Backend interface {
 	Version() (string, error)
 	Start() error
 	Stop() error
+	FullReset() error
 
 	GetCapabilities() (map[string]interface{}, error)
 	GetState() (BackendState, string, error)
 
-	ApplyPolicy(data policies.PolicyData) error
+	ApplyPolicy(data policies.PolicyData, updatePolicy bool) error
 	RemovePolicy(data policies.PolicyData) error
 }
 

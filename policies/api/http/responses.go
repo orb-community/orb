@@ -21,6 +21,7 @@ type policyRes struct {
 	Format        string         `json:"format,omitempty"`
 	PolicyData    string         `json:"policy_data,omitempty"`
 	Version       int32          `json:"version,omitempty"`
+	LastModified  time.Time      `json:"ts_last_modified"`
 	created       bool
 }
 
