@@ -971,7 +971,14 @@ func TestMatchingAgentRetrieval(t *testing.T) {
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			agents, err := agentRepo.RetrieveMatchingAgents(context.Background(), tc.owner, tc.tags)
-			assert.Equal(t, tc.size, agents["total"], fmt.Sprintf("%s: expected size %f got %f\n", desc, tc.size, agents["total"]))
+
+			var assertTotal interface{}
+			if agents["total"] == nil{
+				assertTotal = float64(0)
+			} else {
+				assertTotal = agents["total"]
+			}
+			assert.Equal(t, tc.size, assertTotal, fmt.Sprintf("%s: expected size %f got %f\n", desc, tc.size, assertTotal))
 			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
 		})
 	}
