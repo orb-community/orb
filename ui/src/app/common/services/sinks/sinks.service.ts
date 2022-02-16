@@ -97,27 +97,46 @@ export class SinksService {
   }
 
   getSinks(pageInfo: NgxDatabalePageInfo, isFilter = false) {
-    const offset = pageInfo?.offset || this.cache.offset;
-    const limit = pageInfo?.limit || this.cache.limit;
-    let params = new HttpParams()
-      .set('offset', (offset * limit).toString())
-      .set('limit', limit.toString())
-      .set('order', this.cache.order)
-      .set('dir', this.cache.dir);
+    let limit = pageInfo?.limit || this.cache.limit;
+    let order = pageInfo?.order || this.cache.order;
+    let dir = pageInfo?.dir || this.cache.dir;
+    let offset = pageInfo?.offset || this.cache.offset;
+    let doClean = false;
+    let params = new HttpParams();
 
     if (isFilter) {
       if (pageInfo?.name) {
-        params = params.append('name', pageInfo.name);
+        params = params.set('name', pageInfo.name);
+        // is filter different than last filter?
+        doClean = !this.paginationCache?.name || this.paginationCache?.name !== pageInfo.name;
       }
-      if (pageInfo?.tags) {
-        params.append('tags', JSON.stringify(pageInfo.tags));
-      }
-      this.paginationCache[offset] = false;
+      // was filtered, no longer
+    } else if (this.paginationCache?.isFilter === true) {
+      doClean = true;
     }
 
-    if (this.paginationCache[pageInfo?.offset]) {
+    if (pageInfo.order !== this.cache.order
+      || pageInfo.dir !== this.cache.dir) {
+      doClean = true;
+    }
+
+    if (doClean) {
+      this.clean();
+      offset = this.cache.offset;
+      limit = this.cache.limit = pageInfo.limit;
+      dir = pageInfo.dir;
+      order = pageInfo.order;
+    }
+
+    if (this.paginationCache[offset]) {
       return of(this.cache);
     }
+
+    params = params
+      .set('offset', (offset * limit).toString())
+      .set('limit', limit.toString())
+      .set('order', order)
+      .set('dir', dir);
 
     return this.http.get(environment.sinksUrl, { params })
       .map(
@@ -130,11 +149,13 @@ export class SinksService {
           this.cache = {
             ...this.cache,
             offset: resp.offset,
+            dir: resp.dir,
+            order: resp.order,
             total: resp.total,
             data: newData,
+            name: pageInfo?.name,
           };
-          if (pageInfo?.name) this.cache.name = pageInfo.name;
-          if (pageInfo?.tags) this.cache.tags = pageInfo.tags;
+
           return this.cache;
         },
       )

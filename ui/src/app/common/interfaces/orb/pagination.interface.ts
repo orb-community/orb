@@ -16,4 +16,6 @@ export interface NgxDatabalePageInfo {
   count?: number;
   name?: string;
   tags?: string;
+  order?: string;
+  dir?: string;
 }
