@@ -1,9 +1,9 @@
 from test_config import TestConfig
 from local_agent import get_orb_agent_logs
 from users import get_auth_token
-from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix,\
+from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
     create_tags_set, check_logs_contain_message_and_name
-from behave import given, when, then, step
+from behave import given, then, step
 from hamcrest import *
 import requests
 import time
@@ -15,27 +15,97 @@ base_orb_url = configs.get('base_orb_url')
 
 
 @step("an Agent Group is created with same tag as the agent")
-def create_agent_group_matching_agent(context):
+def create_agent_group_matching_agent(context, **kwargs):
     agent_group_name = agent_group_name_prefix + random_string()
+    if "group_description" in kwargs.keys():
+        group_description = kwargs["group_description"]
+    else:
+        group_description = agent_group_description
     tags = context.agent["orb_tags"]
-    context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
+    context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
                                                   tags)
     group_id = context.agent_group_data['id']
     context.agent_groups[group_id] = agent_group_name
 
 
 @step("an Agent Group is created with {orb_tags} orb tag(s)")
-def create_new_agent_group(context, orb_tags):
+def create_new_agent_group(context, orb_tags, **kwargs):
     agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
+    if "group_description" in kwargs.keys():
+        group_description = kwargs["group_description"]
+    else:
+        group_description = agent_group_description
     context.orb_tags = create_tags_set(orb_tags)
     if len(context.orb_tags) == 0:
-        context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
+        context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
                                                       context.orb_tags, 400)
     else:
-        context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description,
+        context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
                                                       context.orb_tags)
         group_id = context.agent_group_data['id']
         context.agent_groups[group_id] = agent_group_name
+
+
+@step("an Agent Group is created with {orb_tags} orb tag(s) and {description} description")
+def create_new_agent_group_with_defined_description(context, orb_tags, description):
+    if description == "without":
+        create_new_agent_group(context, orb_tags, group_description=None)
+    else:
+        description = description.replace('"', '')
+        description = description.replace(' as', '')
+        create_new_agent_group(context, orb_tags, group_description=description)
+
+
+@step("an Agent Group is created with same tag as the agent and {description} description")
+def create_agent_group_with_defined_description_and_matching_agent(context, description):
+    if description == "without":
+        create_agent_group_matching_agent(context, group_description=None)
+    else:
+        description = description.replace('"', '')
+        description = description.replace(' as', '')
+        create_agent_group_matching_agent(context, group_description=description)
+
+
+@step("the {edited_parameters} of Agent Group is edited using: {parameters_values}")
+def edit_multiple_groups_parameters(context, edited_parameters, parameters_values):
+    edited_parameters = edited_parameters.split(", ")
+    for param in edited_parameters:
+        assert_that(param, any_of(equal_to('name'), equal_to('description'), equal_to('tags')),
+                    'Unexpected parameter to edit')
+    parameters_values = parameters_values.split("/ ")
+
+    group_editing = get_agent_group(context.token, context.agent_group_data["id"])
+    group_data = {"name": group_editing["name"], "tags": group_editing["tags"]}
+    if "description" in group_editing.keys():
+        group_data["description"] = group_editing["description"]
+    else:
+        group_data["description"] = None
+
+    editing_param_dict = dict()
+    for param in parameters_values:
+        param_split = param.split("=")
+        if param_split[1].lower() == "none":
+            param_split[1] = None
+        editing_param_dict[param_split[0]] = param_split[1]
+
+    assert_that(set(editing_param_dict.keys()), equal_to(set(edited_parameters)),
+                "All parameter must have referenced value")
+
+    if "tags" in editing_param_dict.keys() and editing_param_dict["tags"] is not None:
+        editing_param_dict["tags"] = create_tags_set(editing_param_dict["tags"])
+    if "name" in editing_param_dict.keys() and editing_param_dict["name"] is not None:
+        editing_param_dict["name"] = agent_group_name_prefix + editing_param_dict["name"]
+
+    for parameter, value in editing_param_dict.items():
+        group_data[parameter] = value
+
+    context.editing_response = edit_agent_group(context.token, context.agent_group_data["id"], group_data["name"],
+                                                group_data["description"], group_data["tags"])
+
+
+@then("agent group editing must fail")
+def fail_group_editing(context):
+    assert_that(list(context.editing_response.keys())[0], equal_to("error"))
 
 
 @step("Agent Group creation response must be an error with message '{message}'")
@@ -47,12 +117,11 @@ def error_response_message(context, message):
     assert_that(response_value, equal_to(message), "Unexpected message for error")
 
 
-@step("one agent must be matching on response field matching_agents")
-def matching_agent(context):
+@step("{amount_agent_matching} agent must be matching on response field matching_agents")
+def matching_agent(context, amount_agent_matching):
+    context.agent_group_data = get_agent_group(context.token, context.agent_group_data["id"])
     matching_total_agents = context.agent_group_data['matching_agents']['total']
-    matching_online_agents = context.agent_group_data['matching_agents']['online']
-    assert_that(matching_total_agents, equal_to(1))
-    assert_that(matching_online_agents, equal_to(1))
+    assert_that(matching_total_agents, equal_to(int(amount_agent_matching)))
 
 
 @step("the group to which the agent is linked is removed")
@@ -137,7 +206,8 @@ def get_agent_group(token, agent_group_id):
                                        headers={'Authorization': token})
 
     assert_that(get_groups_response.status_code, equal_to(200),
-                'Request to get agent group id=' + agent_group_id + ' failed with status=' + str(get_groups_response.status_code))
+                'Request to get agent group id=' + agent_group_id + ' failed with status=' + str(
+                    get_groups_response.status_code))
 
     return get_groups_response.json()
 
@@ -212,3 +282,32 @@ def check_subscription(time_to_wait, agent_groups_names, expected_message, conta
         time.sleep(sleep_time)
         time_waiting += sleep_time
     return False, groups_to_which_subscribed
+
+
+def edit_agent_group(token, agent_group_id, name, description, tags, expected_status_code=200):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) agent_group_id: that identifies the agent group to be edited
+    :param (str) name: agent group's name
+    :param (str) description: agent group's description
+    :param (str) tags: orb tags that will be used to connect agents to groups
+    :param (int) expected_status_code: expected request's status code. Default:200.
+    :returns: (dict) the edited agent group
+    """
+
+    json_request = {"name": name, "description": description, "tags": tags,
+                    "validate_only": False}
+    json_request = {parameter: value for parameter, value in json_request.items() if value}
+
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+
+    group_edited_response = requests.put(base_orb_url + '/api/v1/agent_groups/' + agent_group_id, json=json_request,
+                                         headers=headers_request)
+
+    if name is None or tags is None:
+        expected_status_code = 400
+    assert_that(group_edited_response.status_code, equal_to(expected_status_code),
+                'Request to edit agent group failed with status=' + str(group_edited_response.status_code))
+
+    return group_edited_response.json()

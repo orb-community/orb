@@ -238,48 +238,76 @@ Scenario: Agent subscription to multiple group with policies after editing agent
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
-    Scenario: Agent subscription to group with policies after editing agent's tags (editing tags after agent provision)
-        Given the Orb user has a registered account
-            And the Orb user logs in
-            And that an agent with 1 orb tag(s) already exists and is online
-            And referred agent is subscribed to a group
-            And that a sink already exists
-            And 2 policies are applied to the group
-            And this agent's heartbeat shows that 2 policies are successfully applied
-            And an Agent Group is created with region:br orb tag(s)
-            And 1 policies are applied to the group
-        When edit the agent tags and use region:br orb tag(s)
-        Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
-            And this agent's heartbeat shows that 1 policies are successfully applied
-            And this agent's heartbeat shows that 1 groups are matching the agent
-            And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
-            And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+Scenario: Agent subscription to group with policies after editing agent's tags (editing tags after agent provision)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And referred agent is subscribed to a group
+        And that a sink already exists
+        And 2 policies are applied to the group
+        And this agent's heartbeat shows that 2 policies are successfully applied
+        And an Agent Group is created with region:br orb tag(s)
+        And 1 policies are applied to the group
+    When edit the agent tags and use region:br orb tag(s)
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+        And this agent's heartbeat shows that 1 policies are successfully applied
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
-    Scenario: Insert tags in agents created without tags and apply policies to group matching new tags
-        Given the Orb user has a registered account
-            And the Orb user logs in
-            And a new agent is created with 0 orb tag(s)
-            And the agent container is started on port default
-            And that a sink already exists
-        When edit the agent tags and use 2 orb tag(s)
-            And an Agent Group is created with same tag as the agent
-            And 1 policies are applied to the group
-        Then this agent's heartbeat shows that 1 policies are successfully applied
-            And the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
-            And this agent's heartbeat shows that 1 groups are matching the agent
-            And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
-            And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+Scenario: Insert tags in agents created without tags and apply policies to group matching new tags
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And a new agent is created with 0 orb tag(s)
+        And the agent container is started on port default
+        And that a sink already exists
+    When edit the agent tags and use 2 orb tag(s)
+        And an Agent Group is created with same tag as the agent
+        And 1 policies are applied to the group
+    Then this agent's heartbeat shows that 1 policies are successfully applied
+        And the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
-    Scenario: Edit agent name and apply policies to then
-        Given the Orb user has a registered account
-            And the Orb user logs in
-            And that an agent with 5 orb tag(s) already exists and is online
-            And an Agent Group is created with same tag as the agent
-            And one agent must be matching on response field matching_agents
-            And that a sink already exists
-            And 1 policies are applied to the group
-        When edit the agent name and edit agent tags using 3 orb tag(s)
-        Then this agent's heartbeat shows that 1 policies are successfully applied
-            And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+Scenario: Edit agent name and apply policies to then
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 5 orb tag(s) already exists and is online
+        And an Agent Group is created with same tag as the agent
+        And 1 agent must be matching on response field matching_agents
+        And that a sink already exists
+        And 1 policies are applied to the group
+    When edit the agent name and edit agent tags using 3 orb tag(s)
+    Then this agent's heartbeat shows that 1 policies are successfully applied
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+
+
+Scenario: Editing tags of an Agent Group with policies (unsubscription)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with region:br orb tag(s) already exists and is online
+        And an Agent Group is created with same tag as the agent and without description
+        And that a sink already exists
+        And 2 policies are applied to the group
+    When the name, tags, description of Agent Group is edited using: name=new_name/ tags=another:tag, ns1:true/ description=None
+    Then 0 agent must be matching on response field matching_agents
+        And the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
+        And the agent status in Orb should be online
+
+
+Scenario: Editing tags of an Agent Group with policies (subscription)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with region:br, another:tag orb tag(s) already exists and is online
+        And an Agent Group is created with ns1:true orb tag(s) and without description
+        And that a sink already exists
+        And 2 policies are applied to the group
+    When the name, tags, description of Agent Group is edited using: name=new_name/ tags=region:br/ description=None
+    Then 1 agent must be matching on response field matching_agents
+        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+        And the agent status in Orb should be online
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 2 policies are successfully applied
