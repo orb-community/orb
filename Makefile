@@ -8,7 +8,9 @@
 
 # expects to be set as env var
 REF_TAG ?= develop
+DEBUG_REF_TAG ?= develop-debug
 PKTVISOR_TAG ?= latest-develop
+PKTVISOR_DEBUG_TAG ?= latest-develop-debug
 DOCKER_IMAGE_NAME_PREFIX ?= orb
 DOCKERHUB_REPO = ns1labs
 BUILD_DIR = build
@@ -108,6 +110,12 @@ agent:
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(REF_TAG) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
+	  -f agent/docker/Dockerfile .
+
+agent_debug:
+	docker build \
+	  --build-arg PKTVISOR_TAG=$(PKTVISOR_DEBUG_TAG) \
+	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(DEBUG_REF_TAG) \
 	  -f agent/docker/Dockerfile .
 
 ui:

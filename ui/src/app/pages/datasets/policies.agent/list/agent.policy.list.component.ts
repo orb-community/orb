@@ -19,6 +19,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Debounce } from 'app/shared/decorators/utils';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
 import { AgentPolicyDetailsComponent } from 'app/pages/datasets/policies.agent/details/agent.policy.details.component';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'ngx-agent-policy-list-component',
@@ -66,6 +67,7 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
+    private datePipe: DatePipe,
     private agentPoliciesService: AgentPoliciesService,
     private notificationsService: NotificationsService,
     private route: ActivatedRoute,
@@ -113,7 +115,8 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
         minWidth: 60,
       },
       {
-        prop: 'ts_created',
+        prop: 'ts_last_modified',
+        pipe: {transform: (value) => this.datePipe.transform(value, 'MMM d, y, HH:mm:ss z')},
         name: 'Last Modified',
         minWidth: 90,
         flexGrow: 2,

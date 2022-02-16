@@ -5,6 +5,7 @@
 package manager
 
 import (
+	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/config"
@@ -18,6 +19,8 @@ type PolicyManager interface {
 	RemovePolicyDataset(policyID string, datasetID string, be backend.Backend)
 	GetPolicyState() ([]policies.PolicyData, error)
 	GetRepo() policies.PolicyRepo
+	ApplyBackendPolicies(be backend.Backend) error
+	RemoveBackendPolicies(be backend.Backend) error
 }
 
 var _ PolicyManager = (*policyManager)(nil)
@@ -65,6 +68,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			Data:    payload.Data,
 			State:   policies.Unknown,
 		}
+		var updatePolicy bool
 		if a.repo.Exists(payload.ID) {
 			// we have already processed this policy id before (it may be running or failed)
 			// ensure we are associating this dataset with this policy, if one was specified
@@ -75,6 +79,19 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 					a.logger.Warn("policy failed to ensure dataset id", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
 				}
 			}
+			// if policy already exist and has no version upgrade, has no need to apply it again
+			currentPolicy, err := a.repo.Get(payload.ID)
+			if err != nil {
+				a.logger.Error("failed to retrieve policy", zap.String("policy_id", payload.ID), zap.Error(err))
+				return
+			}
+			if currentPolicy.Version >= pd.Version {
+				a.logger.Info("a better version of this policy has already been applied, skipping", zap.String("policy_id", pd.ID), zap.String("policy_name", pd.Name), zap.String("attempted_version", fmt.Sprint(pd.Version)), zap.String("current_version", fmt.Sprint(currentPolicy.Version)))
+				return
+			} else {
+				updatePolicy = true
+			}
+			pd.Datasets = currentPolicy.Datasets
 		} else {
 			// new policy we have not seen before, associate with this dataset
 			// on first time we see policy, we *require* dataset
@@ -91,7 +108,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 		} else {
 			// attempt to apply the policy to the backend. status of policy application (running/failed) is maintained there.
 			be := backend.GetBackend(payload.Backend)
-			a.applyPolicy(payload, be, &pd)
+			a.applyPolicy(payload, be, &pd, updatePolicy)
 		}
 		// save policy (with latest status) to local policy db
 		a.repo.Update(pd)
@@ -106,7 +123,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			return
 		}
 		be := backend.GetBackend(payload.Backend)
-		// Remove policy from pktvisor via http request
+		// Remove policy via http request
 		err := be.RemovePolicy(pd)
 		if err != nil {
 			a.logger.Warn("policy failed to remove", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.Error(err))
@@ -114,7 +131,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 		// Remove policy from orb-agent local repo
 		err = a.repo.Remove(pd.ID)
 		if err != nil {
-			a.logger.Warn("policy failed to remove local", zap.String("policy_id", pd.ID),  zap.String("policy_name", pd.Name), zap.Error(err))
+			a.logger.Warn("policy failed to remove local", zap.String("policy_id", pd.ID), zap.String("policy_name", pd.Name), zap.Error(err))
 		}
 		break
 	default:
@@ -135,7 +152,7 @@ func (a *policyManager) RemovePolicyDataset(policyID string, datasetID string, b
 		return
 	}
 	if removePolicy {
-		// Remove policy from pktvisor via http request
+		// Remove policy via http request
 		err := be.RemovePolicy(policyData)
 		if err != nil {
 			a.logger.Warn("policy failed to remove", zap.String("policy_id", policyID), zap.String("policy_name", policyData.Name), zap.Error(err))
@@ -148,8 +165,8 @@ func (a *policyManager) RemovePolicyDataset(policyID string, datasetID string, b
 	}
 }
 
-func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be backend.Backend, pd *policies.PolicyData) {
-	err := be.ApplyPolicy(*pd)
+func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be backend.Backend, pd *policies.PolicyData, updatePolicy bool) {
+	err := be.ApplyPolicy(*pd, updatePolicy)
 	if err != nil {
 		a.logger.Warn("policy failed to apply", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.Error(err))
 		pd.State = policies.FailedToApply
@@ -159,4 +176,46 @@ func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be back
 		pd.State = policies.Running
 		pd.BackendErr = ""
 	}
+}
+
+func (a *policyManager) RemoveBackendPolicies(be backend.Backend) error {
+	plcies, err := a.repo.GetAll()
+	if err != nil {
+		a.logger.Error("failed to retrieve list of policies", zap.Error(err))
+		return err
+	}
+
+	for _, plcy := range plcies {
+		err := be.RemovePolicy(plcy)
+		if err != nil {
+			a.logger.Error("failed to remove policy from backend", zap.String("policy_id", plcy.ID), zap.String("policy_name", plcy.Name), zap.Error(err))
+			return err
+		}
+		plcy.State = policies.Unknown
+		a.repo.Update(plcy)
+	}
+	return nil
+}
+
+func (a *policyManager) ApplyBackendPolicies(be backend.Backend) error {
+	plcies, err := a.repo.GetAll()
+	if err != nil {
+		a.logger.Error("failed to retrieve list of policies", zap.Error(err))
+		return err
+	}
+
+	for _, policy := range plcies {
+		be.ApplyPolicy(policy, false)
+		if err != nil {
+			a.logger.Warn("policy failed to apply", zap.String("policy_id", policy.ID), zap.String("policy_name", policy.Name), zap.Error(err))
+			policy.State = policies.FailedToApply
+			policy.BackendErr = err.Error()
+		} else {
+			a.logger.Info("policy applied successfully", zap.String("policy_id", policy.ID), zap.String("policy_name", policy.Name))
+			policy.State = policies.Running
+			policy.BackendErr = ""
+		}
+		a.repo.Update(policy)
+	}
+	return nil
 }

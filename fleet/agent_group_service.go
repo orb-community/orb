@@ -36,6 +36,10 @@ func (svc fleetService) removeAgentGroupSubscriptions(groupID string, ownerID st
 func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup) error {
 	// first we get all agents, online or not, to connect them to the correct group channel
 	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), g.MFOwnerID, g.ID, false)
+	if err != nil{
+		return err
+	}
+
 	if len(list) == 0 {
 		return nil
 	}
@@ -102,15 +106,25 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 		return AgentGroup{}, errors.ErrUpdateEntity
 	}
 
+	// Should return a list of agents before applying an edit
+	listUnsub, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, group.ID, true)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+
 	ag, err := svc.agentGroupRepository.Update(ctx, ownerID, group)
 	if err != nil {
 		return AgentGroup{}, err
 	}
 
-	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, group.ID, true)
+	listSub, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, group.ID, true)
 	if err != nil {
 		return AgentGroup{}, err
 	}
+
+	// append both lists and remove duplicates
+	// need to unsubscribe the agents who are no longer matching with the group
+	list := removeDuplicates(listSub, listUnsub)
 	for _, agent := range list {
 		err := svc.agentComms.NotifyAgentGroupMemberships(agent)
 		if err != nil {
@@ -119,6 +133,20 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 	}
 
 	return ag, nil
+}
+
+func removeDuplicates(sliceA []Agent, sliceB []Agent) []Agent {
+	keys := make(map[string]bool)
+	var list []Agent
+	var concatSlice []Agent
+	concatSlice = append(append(concatSlice, sliceA...), sliceB...)
+	for _, entry := range concatSlice {
+		if _, value := keys[entry.MFThingID]; !value {
+			keys[entry.MFThingID] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }
 
 func (svc fleetService) ViewAgentGroupByIDInternal(ctx context.Context, groupID string, ownerID string) (AgentGroup, error) {

@@ -40,7 +40,7 @@ export class AgentPolicyDetailsComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  onOpenEdit(agentPolicy: any) {
+  onOpenEdit() {
     this.dialogRef.close(true);
   }
 

@@ -26,6 +26,7 @@ var (
 type Agent interface {
 	Start() error
 	Stop()
+	Restart(fullReset bool, reason string)
 }
 
 type orbAgent struct {
@@ -47,9 +48,14 @@ type orbAgent struct {
 	logTopic          string
 
 	// AgentGroup channels sent from core
-	groupChannels []string
+	groupsInfos map[string]GroupInfo
 
 	policyManager manager.PolicyManager
+}
+
+type GroupInfo struct {
+	Name string
+	ChannelID string
 }
 
 var _ Agent = (*orbAgent)(nil)
@@ -65,7 +71,7 @@ func New(logger *zap.Logger, c config.Config) (Agent, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db}, nil
+	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db, groupsInfos: make(map[string]GroupInfo)}, nil
 }
 
 func (a *orbAgent) startBackends() error {
@@ -137,4 +143,25 @@ func (a *orbAgent) Stop() {
 		}
 	}
 	a.client.Disconnect(250)
+}
+
+func (a *orbAgent) Restart(fullReset bool, reason string) {
+	if fullReset {
+		a.logger.Info("restarting all backends", zap.String("reason", reason))
+		for name, be := range a.backends {
+			a.logger.Info("removing policies", zap.String("backend", name))
+			if err := a.policyManager.RemoveBackendPolicies(be); err != nil {
+				a.logger.Error("failed to remove policies", zap.String("backend", name), zap.Error(err))
+			}
+			a.logger.Info("resetting backend", zap.String("backend",name))
+			if err := be.FullReset(); err != nil {
+				a.logger.Error("failed to reset backend", zap.String("backend", name), zap.Error(err))
+			}
+			a.logger.Info("reapplying policies", zap.String("backend", name))
+			if err := a.policyManager.ApplyBackendPolicies(be); err != nil {
+				a.logger.Error("failed to reapply policies", zap.String("backend", name), zap.Error(err))
+			}
+		}
+		a.logger.Info("all backends were restarted")
+	}
 }

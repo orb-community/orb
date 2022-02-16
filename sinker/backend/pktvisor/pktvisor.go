@@ -11,6 +11,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/fleet/pb"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/sinker/backend"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	"go.uber.org/zap"
@@ -72,6 +73,12 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data
 				p.logger.Error("error decoding packets handler", zap.Error(err))
 				continue
 			}
+		} else if data, ok := handlerData["dhcp"]; ok {
+			err := mapstructure.Decode(data, &stats.DHCP)
+			if err != nil {
+				p.logger.Error("error decoding dhcp handler", zap.Error(err))
+				continue
+			}
 		}
 	}
 	return parseToProm(&context, stats), nil
@@ -84,24 +91,24 @@ func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	return tsList
 }
 
-func convertToPromParticle(ctxt *context, m map[string]interface{}, label string, tsList *prometheus.TSList) {
-	for k, v := range m {
-		switch c := v.(type) {
+func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label string, tsList *prometheus.TSList) {
+	for key, value := range statsMap {
+		switch statistic := value.(type) {
 		case map[string]interface{}:
 			// Call convertToPromParticle recursively until the last interface of the StatSnapshot struct
-			// The prom particle label it's been formed during the recursive call
-			convertToPromParticle(ctxt, c, label+k, tsList)
+			// The prom particle label it's been formed during the recursive call (concatenation)
+			convertToPromParticle(ctxt, statistic, label+key, tsList)
 		// The StatSnapshot has two ways to record metrics (i.e. Live int64 `mapstructure:"live"`)
 		// It's why we check if the type is int64
 		case int64:
 			{
 				// Use this regex to identify if the value it's a quantile
 				var matchFirstQuantile = regexp.MustCompile("^([P-p])+[0-9]")
-				if ok := matchFirstQuantile.MatchString(k); ok {
+				if ok := matchFirstQuantile.MatchString(key); ok {
 					// If it's quantile, needs to be parsed to prom quantile format
-					tsList = makePromParticle(ctxt, label, k, v, tsList, ok)
+					tsList = makePromParticle(ctxt, label, key, value, tsList, ok, "")
 				} else {
-					tsList = makePromParticle(ctxt, label+k, "", v, tsList, false)
+					tsList = makePromParticle(ctxt, label+key, "", value, tsList, false, "")
 				}
 			}
 		// The StatSnapshot has two ways to record metrics (i.e. TopIpv4   []NameCount   `mapstructure:"top_ipv4"`)
@@ -109,78 +116,92 @@ func convertToPromParticle(ctxt *context, m map[string]interface{}, label string
 		// Here we extract the value for Name and Estimate
 		case []interface{}:
 			{
-				for _, value := range c {
+				for _, value := range statistic {
 					m, ok := value.(map[string]interface{})
 					if !ok {
 						return
 					}
-					var lbl string
-					var dtpt interface{}
+					var promLabel string
+					var promDataPoint interface{}
 					for k, v := range m {
 						switch k {
 						case "Name":
 							{
-								lbl = fmt.Sprintf("%v", v)
+								promLabel = fmt.Sprintf("%v", v)
 							}
 						case "Estimate":
 							{
-								dtpt = v
+								promDataPoint = v
 							}
 						}
 					}
-					tsList = makePromParticle(ctxt, label+k, lbl, dtpt, tsList, false)
+					tsList = makePromParticle(ctxt, label+key, promLabel, promDataPoint, tsList, false, key)
 				}
 			}
 		}
 	}
 }
 
-func makePromParticle(ctxt *context, label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool) *prometheus.TSList {
-	mapQuantiles := make(map[string]float64)
-	mapQuantiles["P50"] = 0.50
-	mapQuantiles["P90"] = 0.90
-	mapQuantiles["P95"] = 0.95
-	mapQuantiles["P99"] = 0.99
+func makePromParticle(ctxt *context, label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool, name string) *prometheus.TSList {
+	mapQuantiles := make(map[string]string)
+	mapQuantiles["P50"] = "0.5"
+	mapQuantiles["P90"] = "0.9"
+	mapQuantiles["P95"] = "0.95"
+	mapQuantiles["P99"] = "0.99"
 
 	var dpFlag dp
 	var labelsListFlag labelList
 	if err := labelsListFlag.Set(fmt.Sprintf("__name__;%s", camelToSnake(label))); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	if err := labelsListFlag.Set("instance;" + ctxt.agent.AgentName); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	if err := labelsListFlag.Set("agent_id;" + ctxt.agentID); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	if err := labelsListFlag.Set("agent;" + ctxt.agent.AgentName); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	if err := labelsListFlag.Set("policy_id;" + ctxt.policyID); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	if err := labelsListFlag.Set("policy;" + ctxt.policyName); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 
 	if k != "" {
 		if quantile {
 			if value, ok := mapQuantiles[k]; ok {
-				if err := labelsListFlag.Set(fmt.Sprintf("quantile;%.2f", value)); err != nil {
+				if err := labelsListFlag.Set(fmt.Sprintf("quantile;%s", value)); err != nil {
 					handleParticleError(ctxt, err)
+					return tsList
 				}
 			}
 		} else {
-			if err := labelsListFlag.Set(fmt.Sprintf("name;%s", k)); err != nil {
+			parsedName, err := topNMetricsParser(name)
+			if err != nil {
+				ctxt.logger.Error("failed to parse Top N metric, default value it'll be used", zap.Error(err))
+				parsedName = "name"
+			}
+			if err := labelsListFlag.Set(fmt.Sprintf("%s;%s", parsedName, k)); err != nil {
 				handleParticleError(ctxt, err)
+				return tsList
 			}
 		}
 	}
 	if err := dpFlag.Set(fmt.Sprintf("now,%d", v)); err != nil {
 		handleParticleError(ctxt, err)
+		return tsList
 	}
 	*tsList = append(*tsList, prometheus.TimeSeries{
-		Labels:    []prometheus.Label(labelsListFlag),
+		Labels:    labelsListFlag,
 		Datapoint: prometheus.Datapoint(dpFlag),
 	})
 	return tsList
@@ -201,6 +222,9 @@ func camelToSnake(s string) string {
 	var strExcept = ""
 	if len(sub) > 1 {
 		strExcept = matchExcept.FindAllString(s, 1)[0]
+		if strExcept == "pASN" {
+			strExcept = "p_ASN"
+		}
 		s = sub[0]
 	}
 
@@ -208,6 +232,28 @@ func camelToSnake(s string) string {
 	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
 	lower := strings.ToLower(snake)
 	return lower + strExcept
+}
+
+func topNMetricsParser(label string) (string, error) {
+	mapNMetrics := make(map[string]string)
+	mapNMetrics["TopGeoLoc"] = "geo_loc"
+	mapNMetrics["TopASN"] = "asn"
+	mapNMetrics["TopIpv6"] = "ipv6"
+	mapNMetrics["TopIpv4"] = "ipv4"
+	mapNMetrics["TopQname2"] = "qname"
+	mapNMetrics["TopQname3"] = "qname"
+	mapNMetrics["TopNxdomain"] = "qname"
+	mapNMetrics["TopQtype"] = "qtype"
+	mapNMetrics["TopRcode"] = "rcode"
+	mapNMetrics["TopREFUSED"] = "qname"
+	mapNMetrics["TopSRVFAIL"] = "qname"
+	mapNMetrics["TopUDPPorts"] = "port"
+	mapNMetrics["TopSlow"] = "qname"
+	if value, ok := mapNMetrics[label]; ok {
+		return value, nil
+	} else {
+		return "", errors.New(fmt.Sprintf("top N metric not mapped for parse:  %s", label))
+	}
 }
 
 func Register(logger *zap.Logger) bool {

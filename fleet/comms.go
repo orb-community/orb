@@ -47,6 +47,8 @@ type AgentCommsService interface {
 	NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error
 	// NotifyGroupPolicyUpdate RPC core -> Agent: Notify AgentGroup that a Policy has been updated
 	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
+	//NotifyAgentReset RPC core -> Agent: Notify Agent to reset the backend
+	NotifyAgentReset(channelID string, fullReset bool, reason string) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -115,7 +117,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 
 func (svc fleetCommsService) NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error {
 	payload := GroupMembershipRPCPayload{
-		Groups:   []GroupMembershipData{{Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
+		Groups:   []GroupMembershipData{{GroupID: ag.ID, Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
 		FullList: false,
 	}
 
@@ -230,6 +232,7 @@ func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 
 	fullList := make([]GroupMembershipData, len(list))
 	for i, agentGroup := range list {
+		fullList[i].GroupID = agentGroup.ID
 		fullList[i].Name = agentGroup.Name.String()
 		fullList[i].ChannelID = agentGroup.MFChannelID
 	}
@@ -434,6 +437,35 @@ func (svc fleetCommsService) NotifyAgentStop(MFChannelID string, reason string) 
 	return nil
 }
 
+func (svc fleetCommsService) NotifyAgentReset(MFChannelID string, fullReset bool, reason string) error {
+	payload := AgentResetRPCPayload{
+		FullReset: fullReset,
+		Reason:    reason,
+	}
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentResetRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewFleetCommsService(logger *zap.Logger, policyClient pb.PolicyServiceClient, agentRepo AgentRepository, agentGroupRepo AgentGroupRepository, agentPubSub mfnats.PubSub) AgentCommsService {
 	return &fleetCommsService{
 		logger:         logger,
@@ -510,11 +542,14 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 		agent.State = Offline
 		agent.LastHBData["backend_state"] = BackendStateInfo{}
 		agent.LastHBData["policy_state"] = PolicyStateInfo{}
+		agent.LastHBData["group_state"] = GroupStateInfo{}
 	} else {
 		// otherwise, state is always "online"
 		agent.State = Online
 		agent.LastHBData["backend_state"] = hb.BackendState
 		agent.LastHBData["policy_state"] = hb.PolicyState
+		agent.LastHBData["group_state"] = hb.GroupState
+
 	}
 	err := svc.agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), agent)
 	if err != nil {

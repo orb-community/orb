@@ -31,6 +31,11 @@ export interface AgentPolicy extends OrbEntity {
   version?: number;
 
   /**
+   * Schema Version
+   */
+  schema_version?: string;
+
+  /**
    * A timestamp of creation {string}
    */
   ts_created?: string;
