@@ -1,17 +1,26 @@
 package fleet
 
 import (
+	"context"
+	"fmt"
+	"go.uber.org/zap"
 	"time"
 )
 
 const (
 	HeartbeatFreq  = 60 * time.Second
-	DefaultTimeout = 30 * time.Minute
+	DefaultTimeout = 1 * time.Second
 )
 
 func (svc *fleetService) checkState(t time.Time) {
-	svc.logger.Info("checking stale agents...")
-	// TODO Create a query to update to stale agents with more than 30 minutes without a heartbeat
+	svc.logger.Info("checking agents without communication")
+	count, err := svc.agentRepo.SetStaleStatus(context.Background(), DefaultTimeout)
+	if err != nil {
+		svc.logger.Error("failed to change agents status to stale", zap.Error(err))
+	}
+	if count > 0 {
+		svc.logger.Info(fmt.Sprintf("%d agents with more than %v without heartbeats had their state changed to stale", count, DefaultTimeout))
+	}
 }
 
 
