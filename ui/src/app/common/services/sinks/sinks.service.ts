@@ -100,7 +100,7 @@ export class SinksService {
     let limit = pageInfo?.limit || this.cache.limit;
     let order = pageInfo?.order || this.cache.order;
     let dir = pageInfo?.dir || this.cache.dir;
-    let offset = pageInfo?.offset || this.cache.offset;
+    let offset = pageInfo?.offset || 0;
     let doClean = false;
     let params = new HttpParams();
 
@@ -122,7 +122,7 @@ export class SinksService {
 
     if (doClean) {
       this.clean();
-      offset = this.cache.offset;
+      offset = 0;
       limit = this.cache.limit = pageInfo.limit;
       dir = pageInfo.dir;
       order = pageInfo.order;
@@ -131,7 +131,6 @@ export class SinksService {
     if (this.paginationCache[offset]) {
       return of(this.cache);
     }
-
     params = params
       .set('offset', (offset * limit).toString())
       .set('limit', limit.toString())
@@ -149,7 +148,7 @@ export class SinksService {
           this.cache = {
             ...this.cache,
             offset: resp.offset,
-            dir: resp.dir,
+            dir: resp.direction,
             order: resp.order,
             total: resp.total,
             data: newData,

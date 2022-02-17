@@ -134,29 +134,31 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     this.cdr.detectChanges();
   }
 
-
-  @Debounce(500)
   getSinks(pageInfo: NgxDatabalePageInfo = null): void {
     const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
+    const finalPageInfo = {...pageInfo};
+    finalPageInfo.dir = 'desc';
+    finalPageInfo.order = 'name';
+    finalPageInfo.limit = this.paginationControls.limit;
+    finalPageInfo.offset = pageInfo?.offset || 0;
 
     if (isFilter) {
-      pageInfo = {
-        offset: this.paginationControls.offset,
-        limit: this.paginationControls.limit,
-      };
-      if (this.paginationControls.name?.length > 0) pageInfo.name = this.paginationControls.name;
-      if (this.paginationControls.tags?.length > 0) pageInfo.tags = this.paginationControls.tags;
+      if (this.paginationControls.name?.length > 0) finalPageInfo.name = this.paginationControls.name;
+      if (this.paginationControls.tags?.length > 0) finalPageInfo.tags = this.paginationControls.tags;
     }
 
     this.loading = true;
-    this.sinkService.getSinks(pageInfo, isFilter).subscribe(
+    this.sinkService.getSinks(finalPageInfo, isFilter).subscribe(
       (resp: OrbPagination<Sink>) => {
-        this.paginationControls = resp;
-        this.paginationControls.offset = pageInfo?.offset || 0;
+        this.paginationControls.data = resp.data.slice(resp.offset, resp.offset + resp.limit);
         this.paginationControls.total = resp.total;
+        this.paginationControls.offset = finalPageInfo.offset;
         this.loading = false;
+        this.cdr.detectChanges();
       },
     );
+
+
   }
 
   onOpenAdd() {
