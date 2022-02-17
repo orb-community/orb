@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	HeartbeatFreq  = 5 * time.Second
+	HeartbeatFreq  = 60 * time.Second
 	DefaultTimeout = 30 * time.Minute
 )
 
