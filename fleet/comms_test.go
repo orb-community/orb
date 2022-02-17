@@ -30,6 +30,7 @@ import (
 	"net"
 	"os"
 	"testing"
+	"time"
 )
 
 const bufSize = 1024 * 1024
@@ -52,7 +53,9 @@ func newFleetService(auth mainflux.AuthServiceClient, url string, agentGroupRepo
 
 	mfsdk := mfsdk.NewSDK(config)
 	pktvisor.Register(auth, agentRepo)
-	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
+	aTicker := time.NewTicker(fleet.HeartbeatFreq)
+	aDone := make(chan bool)
+	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, aTicker, aDone)
 }
 
 func newPoliciesService(auth mainflux.AuthServiceClient) policies.Service {

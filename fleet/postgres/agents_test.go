@@ -1175,39 +1175,37 @@ func TestSetAgentStale(t *testing.T) {
 	err = agentRepo.Save(context.Background(), agent)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 
-	agent.State = fleet.Online
-	err = agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), agent)
-	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
-	time.Sleep(2 * time.Second)
-
 	cases := map[string]struct {
-		agent        fleet.Agent
-		duration     time.Duration
-		owner        string
-		state        fleet.State
-		affectedRows int64
+		agent    fleet.Agent
+		duration time.Duration
+		owner    string
+		state    fleet.State
 	}{
 		"set agent state to stale when stops do send heartbeats": {
-			agent:        agent,
-			duration:     1 * time.Second,
-			owner:        oID.String(),
-			state:        fleet.Stale,
-			affectedRows: 1,
+			agent:    agent,
+			duration: 1 * time.Second,
+			owner:    oID.String(),
+			state:    fleet.Stale,
 		},
 		"keep agent state online when agent it's sending heartbeats": {
-			agent:        agent,
-			duration:     3 * time.Second,
-			owner:        oID.String(),
-			state:        fleet.Online,
-			affectedRows: 0,
+			agent:    agent,
+			duration: 3 * time.Second,
+			owner:    oID.String(),
+			state:    fleet.Online,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			count, err := agentRepo.SetStaleStatus(context.Background(), tc.duration)
+
+			// simulating a heartbeat on agent
+			tc.agent.State = fleet.Online
+			err = agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), tc.agent)
+			require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+			time.Sleep(2 * time.Second)
+
+			_, err := agentRepo.SetStaleStatus(context.Background(), tc.duration)
 			require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-			require.Equal(t, tc.affectedRows, count, fmt.Sprintf("%s: expected affected rows %d got %d", desc, tc.affectedRows, count))
 			agent, err := agentRepo.RetrieveByID(context.Background(), tc.owner, tc.agent.MFThingID)
 			require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 			require.Equal(t, tc.state, agent.State, fmt.Sprintf("%s: expected %s got %s", desc, tc.state.String(), agent.State.String()))
