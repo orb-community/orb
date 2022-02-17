@@ -48,6 +48,9 @@ type fleetService struct {
 	agentGroupRepository AgentGroupRepository
 	// Agent Comms
 	agentComms AgentCommsService
+
+	aTicker *time.Ticker
+	aDone   chan bool
 }
 
 func (svc fleetService) identify(token string) (string, error) {
@@ -92,15 +95,19 @@ func (svc fleetService) thing(token, id string, name string, md map[string]inter
 	return thing, nil
 }
 
-func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, agentComms AgentCommsService, mfsdk mfsdk.SDK) Service {
+func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, agentComms AgentCommsService, mfsdk mfsdk.SDK, aTicker *time.Ticker, aDone chan bool) Service {
 
-	return &fleetService{
+	service := fleetService{
 		logger:               logger,
 		auth:                 auth,
 		agentRepo:            agentRepo,
 		agentGroupRepository: agentGroupRepository,
 		agentComms:           agentComms,
 		mfsdk:                mfsdk,
+		aTicker:              aTicker,
+		aDone:                aDone,
 	}
-
+	
+	go service.checkAgents()
+	return service
 }
