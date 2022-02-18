@@ -512,7 +512,7 @@ func (r policiesRepository) InactivateDatasetBySinkID(ctx context.Context, sinkI
 		"sink_ids":    sinkID,
 	}
 
-	res, err := r.db.NamedExecContext(ctx, q, params)
+	_, err := r.db.NamedExecContext(ctx, q, params)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
@@ -524,14 +524,6 @@ func (r policiesRepository) InactivateDatasetBySinkID(ctx context.Context, sinkI
 		return errors.Wrap(policies.ErrUpdateEntity, err)
 	}
 
-	count, err := res.RowsAffected()
-	if err != nil {
-		return errors.Wrap(policies.ErrUpdateEntity, err)
-	}
-
-	if count == 0 {
-		return policies.ErrInactivateDataset
-	}
 	return nil
 }
 
@@ -543,7 +535,7 @@ func (r policiesRepository) DeleteSinkFromDataset(ctx context.Context, sinkID st
 		"sink_ids":    sinkID,
 	}
 
-	res, err := r.db.NamedExecContext(ctx, q, params)
+	_, err := r.db.NamedExecContext(ctx, q, params)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
@@ -553,15 +545,6 @@ func (r policiesRepository) DeleteSinkFromDataset(ctx context.Context, sinkID st
 			}
 		}
 		return errors.Wrap(fleet.ErrUpdateEntity, err)
-	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return errors.Wrap(fleet.ErrRemoveEntity, err)
-	}
-
-	if count == 0 {
-		return policies.ErrNotFound
 	}
 
 	return nil
