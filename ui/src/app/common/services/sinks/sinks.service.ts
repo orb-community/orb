@@ -160,7 +160,6 @@ export class SinksService {
     return this.http.get(environment.sinksUrl, { params })
       .map(
         (resp: any) => {
-          console.log(`resp offset : ${parseInt(resp.offset, 10)} + limit : ${parseInt(resp.limit,10)}`);
           this.paginationCache[pageInfo?.offset / pageInfo?.limit || 0] = true;
           // This is the position to insert the new data
           const start = pageInfo?.offset * pageInfo?.limit || 0;

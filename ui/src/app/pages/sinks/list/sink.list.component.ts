@@ -70,10 +70,10 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   ngAfterViewChecked() {
     if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
-      this.table.rowHeight = this.tableWrapper.nativeElement.clientHeight * 0.70 / this.paginationControls.limit;
+      this.table.rowHeight = Math.floor(this.tableWrapper.nativeElement.clientHeight * 0.70) / this.paginationControls.limit;
+      this.table.bodyHeight = this.table.rowHeight * this.paginationControls.limit;
+      this.table.pageSize = this.paginationControls.limit;
       this.table.recalculate();
-      this.cdr.detectChanges();
-      window.dispatchEvent(new Event('resize'));
     }
   }
 
@@ -140,8 +140,8 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
         this.paginationControls.total = resp.total;
         this.paginationControls.offset = resp.offset / resp.limit;
         this.loading = false;
+        this.cdr.markForCheck();
         console.table(resp.data);
-        console.log('on next');
     });
   }
 
