@@ -7,6 +7,7 @@ export interface OrbPagination<T> {
   tags?: string;
   dir?: 'desc' | 'asc';
   data: T[];
+  next?: any;
 }
 
 export interface NgxDatabalePageInfo {

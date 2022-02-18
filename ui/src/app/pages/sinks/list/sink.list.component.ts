@@ -79,7 +79,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
 
   ngOnInit() {
     this.sinkService.clean();
-    this.getSinks();
+    this.getAllSinks();
   }
 
   ngAfterViewInit() {
@@ -134,13 +134,24 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     this.cdr.detectChanges();
   }
 
+  getAllSinks(): void {
+    this.sinkService.getAllSinks().subscribe(resp => {
+        this.paginationControls.data = resp.data;
+        this.paginationControls.total = resp.total;
+        this.paginationControls.offset = resp.offset / resp.limit;
+        this.loading = false;
+        console.table(resp.data);
+        console.log('on next');
+    });
+  }
+
   getSinks(pageInfo: NgxDatabalePageInfo = null): void {
     const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
     const finalPageInfo = {...pageInfo};
     finalPageInfo.dir = 'desc';
     finalPageInfo.order = 'name';
     finalPageInfo.limit = this.paginationControls.limit;
-    finalPageInfo.offset = pageInfo?.offset || 0;
+    finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
 
     if (isFilter) {
       if (this.paginationControls.name?.length > 0) finalPageInfo.name = this.paginationControls.name;
@@ -152,7 +163,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
       (resp: OrbPagination<Sink>) => {
         this.paginationControls.data = resp.data.slice(resp.offset, resp.offset + resp.limit);
         this.paginationControls.total = resp.total;
-        this.paginationControls.offset = finalPageInfo.offset;
+        this.paginationControls.offset = resp.offset / resp.limit;
         this.loading = false;
         this.cdr.detectChanges();
       },

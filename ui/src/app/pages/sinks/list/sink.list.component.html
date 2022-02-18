@@ -60,20 +60,15 @@
     </div>
     <ngx-datatable
       #table
-      (page)='getSinks($event)'
       [columnMode]="columnMode.flex"
       [columns]="columns"
       [count]="paginationControls.total"
-      [externalPaging]="true"
-      [externalSorting]="true"
       [footerHeight]="50"
       [headerHeight]="50"
-      [limit]="paginationControls.limit"
       [loadingIndicator]="loading"
-      [offset]="paginationControls.offset"
       [rowHeight]="50"
       [rows]="paginationControls.data"
-      [scrollbarV]="false"
+      [scrollbarV]="true"
       class="orb"
       style="height: calc(68vh)">
     </ngx-datatable>

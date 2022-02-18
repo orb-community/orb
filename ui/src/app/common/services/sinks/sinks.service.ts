@@ -7,6 +7,8 @@ import { environment } from 'environments/environment';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import { response } from 'express';
+import { delay, expand, reduce } from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 10;
@@ -96,6 +98,24 @@ export class SinksService {
       );
   }
 
+  getAllSinks() {
+    const pageInfo = SinksService.getDefaultPagination();
+    pageInfo.limit = 100;
+
+    return this.getSinks(pageInfo)
+      .pipe(
+        expand(data => {
+          return data.next ? this.getSinks(data.next) : Observable.empty();
+        }),
+        delay(250),
+        reduce<OrbPagination<Sink>>((acc, value) => {
+          acc.data.splice(value.offset, value.limit, ...value.data);
+          acc.offset = 0;
+          return acc;
+        }, this.cache),
+      );
+  }
+
   getSinks(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     let limit = pageInfo?.limit || this.cache.limit;
     let order = pageInfo?.order || this.cache.order;
@@ -132,7 +152,7 @@ export class SinksService {
       return of(this.cache);
     }
     params = params
-      .set('offset', (offset * limit).toString())
+      .set('offset', (offset).toString())
       .set('limit', limit.toString())
       .set('order', order)
       .set('dir', dir);
@@ -140,6 +160,7 @@ export class SinksService {
     return this.http.get(environment.sinksUrl, { params })
       .map(
         (resp: any) => {
+          console.log(`resp offset : ${parseInt(resp.offset, 10)} + limit : ${parseInt(resp.limit,10)}`);
           this.paginationCache[pageInfo?.offset / pageInfo?.limit || 0] = true;
           // This is the position to insert the new data
           const start = pageInfo?.offset * pageInfo?.limit || 0;
@@ -147,6 +168,12 @@ export class SinksService {
           newData.splice(start, resp.limit, ...resp.sinks);
           this.cache = {
             ...this.cache,
+            next: resp.offset + resp.limit < resp.total && {
+              limit: resp.limit,
+              offset: (parseInt(resp.offset, 10) + parseInt(resp.limit, 10)).toString(),
+              order: 'name',
+              dir: 'desc',
+            },
             offset: resp.offset,
             dir: resp.direction,
             order: resp.order,
