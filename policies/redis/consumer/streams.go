@@ -16,17 +16,21 @@ import (
 )
 
 const (
-	stream = "orb.fleet"
-	group  = "orb.policies"
+	stream     = "orb.fleet"
+	streamSink = "orb.sinks"
+	group      = "orb.policies"
 
 	agentGroupPrefix = "agent_group."
 	agentGroupRemove = agentGroupPrefix + "remove"
+	sinkPrefix       = "sinks."
+	sinkRemove       = sinkPrefix + "remove"
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
 
 type Subscriber interface {
 	Subscribe(context context.Context) error
+	SubscribeSink(context context.Context) error
 }
 
 type eventStore struct {
@@ -81,6 +85,42 @@ func (es eventStore) Subscribe(context context.Context) error {
 	}
 }
 
+func (es eventStore) SubscribeSink(context context.Context) error {
+	err := es.client.XGroupCreateMkStream(context, streamSink, group, "$").Err()
+	if err != nil && err.Error() != exists {
+		return err
+	}
+
+	for {
+		streams, err := es.client.XReadGroup(context, &redis.XReadGroupArgs{
+			Group:    group,
+			Consumer: es.esconsumer,
+			Streams:  []string{streamSink, ">"},
+			Count:    100,
+		}).Result()
+		if err != nil || len(streams) == 0 {
+			continue
+		}
+
+		for _, msg := range streams[0].Messages {
+			event := msg.Values
+
+			var err error
+			switch event["operation"] {
+			case sinkRemove:
+				rte := decodeSinkRemove(event)
+				err = es.handleSinkRemove(context, rte.sinkID, rte.token)
+			}
+
+			if err != nil {
+				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
+				break
+			}
+			es.client.XAck(context, streamSink, group, msg.ID)
+		}
+	}
+}
+
 func decodeAgentGroupRemove(event map[string]interface{}) removeAgentGroupEvent {
 	return removeAgentGroupEvent{
 		groupID: read(event, "group_id", ""),
@@ -88,10 +128,31 @@ func decodeAgentGroupRemove(event map[string]interface{}) removeAgentGroupEvent 
 	}
 }
 
+func decodeSinkRemove(event map[string]interface{}) removeSinkEvent {
+	return removeSinkEvent{
+		sinkID: read(event, "sink_id", ""),
+		token:  read(event, "token", ""),
+	}
+}
+
 // Inactivate a Dataset after AgentGroup deletion
 func (es eventStore) handleAgentGroupRemove(ctx context.Context, groupID string, token string) error {
 
 	err := es.policiesService.InactivateDatasetByGroupID(ctx, groupID, token)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (es eventStore) handleSinkRemove(ctx context.Context, sinkID string, token string) error {
+
+	err := es.policiesService.InactivateDatasetBySinkID(ctx, sinkID, token)
+	if err != nil {
+		return err
+	}
+
+	err = es.policiesService.DeleteSinkFromDataset(ctx, sinkID, token)
 	if err != nil {
 		return err
 	}

@@ -504,6 +504,69 @@ func (r policiesRepository) RetrieveAllDatasetsByOwner(ctx context.Context, owne
 	return pageDataset, nil
 }
 
+func (r policiesRepository) InactivateDatasetBySinkID(ctx context.Context, sinkID string, ownerID string) error {
+	q := `UPDATE datasets SET valid = false WHERE mf_owner_id = :mf_owner_id AND :sink_ids = ANY (sink_ids)`
+
+	params := map[string]interface{}{
+		"mf_owner_id": ownerID,
+		"sink_ids":    sinkID,
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrInactivateDataset
+	}
+	return nil
+}
+
+func (r policiesRepository) DeleteSinkFromDataset(ctx context.Context, sinkID string, ownerID string) error {
+	q := `UPDATE datasets SET sink_ids = array_remove(sink_ids, :sink_ids) WHERE mf_owner_id = :mf_owner_id`
+
+	params := map[string]interface{}{
+		"mf_owner_id": ownerID,
+		"sink_ids":    sinkID,
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(fleet.ErrRemoveEntity, err)
+	}
+
+	if count == 0 {
+		return policies.ErrNotFound
+	}
+
+	return nil
+}
+
 type dbPolicy struct {
 	ID            string           `db:"id"`
 	Name          types.Identifier `db:"name"`

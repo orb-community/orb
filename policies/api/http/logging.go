@@ -256,6 +256,34 @@ func (l loggingMiddleware) ListDatasets(ctx context.Context, token string, pm po
 	return l.svc.ListDatasets(ctx, token, pm)
 }
 
+func (l loggingMiddleware) InactivateDatasetBySinkID(ctx context.Context, sinkID string, token string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: inactivate_dataset_by_sink_id",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: inactivate_dataset_by_sink_id",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.InactivateDatasetBySinkID(ctx, sinkID, token)
+}
+
+func (l loggingMiddleware) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: delete_sink_from_dataset",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: delete_sink_from_dataset",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.DeleteSinkFromDataset(ctx, sinkID, token)
+}
+
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {
 	return &loggingMiddleware{logger, svc}
 }

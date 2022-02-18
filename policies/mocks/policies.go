@@ -21,6 +21,14 @@ type mockPoliciesRepository struct {
 	gdb            map[string][]policies.PolicyInDataset
 }
 
+func (m *mockPoliciesRepository) InactivateDatasetBySinkID(ctx context.Context, sinkID string, ownerID string) error {
+	panic("implement me")
+}
+
+func (m *mockPoliciesRepository) DeleteSinkFromDataset(ctx context.Context, sinkID string, ownerID string) error {
+	panic("implement me")
+}
+
 func (m *mockPoliciesRepository) DeleteDataset(ctx context.Context, ownerID string, dsID string) error {
 	if _, ok := m.ddb[dsID]; ok {
 		if m.ddb[dsID].MFOwnerID != ownerID {

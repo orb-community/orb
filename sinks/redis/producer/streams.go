@@ -94,7 +94,8 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err erro
 	}
 
 	event := deleteSinkEvent{
-		id: id,
+		sinkID: id,
+		token:  token,
 	}
 
 	record := &redis.XAddArgs{

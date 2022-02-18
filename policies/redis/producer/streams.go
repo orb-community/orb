@@ -229,6 +229,14 @@ func (e eventStore) ValidatePolicy(ctx context.Context, token string, p policies
 	return e.svc.ValidatePolicy(ctx, token, p, format, policyData)
 }
 
+func (e eventStore) InactivateDatasetBySinkID(ctx context.Context, sinkID string, token string) error {
+	return e.svc.InactivateDatasetBySinkID(ctx, sinkID, token)
+}
+
+func (e eventStore) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) error {
+	return e.svc.DeleteSinkFromDataset(ctx, sinkID, token)
+}
+
 // NewEventStoreMiddleware returns wrapper around policies service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc policies.Service, client *redis.Client, logger *zap.Logger) policies.Service {

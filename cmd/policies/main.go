@@ -120,6 +120,7 @@ func main() {
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 	go startGRPCServer(svc, tracer, policiesGRPCCfg, logger, errs)
 	go subscribeToFleetES(svc, esClient, esCfg, logger)
+	go subscribeToSinksES(svc, esClient, esCfg, logger)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -276,6 +277,14 @@ func subscribeToFleetES(svc policies.Service, client *r.Client, cfg config.EsCon
 	eventStore := rediscon.NewEventStore(svc, client, cfg.Consumer, logger)
 	logger.Info("Subscribed to Redis Event Store for agent groups")
 	if err := eventStore.Subscribe(context.Background()); err != nil {
+		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
+	}
+}
+
+func subscribeToSinksES(svc policies.Service, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
+	eventStore := rediscon.NewEventStore(svc, client, cfg.Consumer, logger)
+	logger.Info("Subscribed to Redis Event Store for sinks")
+	if err := eventStore.SubscribeSink(context.Background()); err != nil {
 		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 	}
 }

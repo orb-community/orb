@@ -376,6 +376,50 @@ func (m metricsMiddleware) ListDatasets(ctx context.Context, token string, pm po
 	return m.svc.ListDatasets(ctx, token, pm)
 }
 
+func (m metricsMiddleware) InactivateDatasetBySinkID(ctx context.Context, sinkID string, token string) error {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return err
+	}
+
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "inactivateDatasetByGroupID",
+			"owner_id", ownerID,
+			"policy_id", "",
+			"dataset_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.InactivateDatasetBySinkID(ctx, sinkID, token)
+}
+
+func (m metricsMiddleware) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) error {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return err
+	}
+
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "inactivateDatasetByGroupID",
+			"owner_id", ownerID,
+			"policy_id", "",
+			"dataset_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.DeleteSinkFromDataset(ctx, sinkID, token)
+}
+
 func (m metricsMiddleware) identify(token string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

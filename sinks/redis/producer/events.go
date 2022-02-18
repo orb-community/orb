@@ -17,7 +17,7 @@ import (
 const (
 	SinkPrefix = "sinks."
 	SinkCreate = SinkPrefix + "create"
-	SinkDelete = SinkPrefix + "delete"
+	SinkDelete = SinkPrefix + "remove"
 	SinkUpdate = SinkPrefix + "update"
 )
 
@@ -49,12 +49,14 @@ func (cce createSinkEvent) Encode() map[string]interface{} {
 }
 
 type deleteSinkEvent struct {
-	id string
+	sinkID    string
+	token string
 }
 
 func (dse deleteSinkEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
-		"id":        dse.id,
+		"sink_id":   dse.sinkID,
+		"token":     dse.token,
 		"operation": SinkDelete,
 	}
 }
