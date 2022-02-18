@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -364,8 +365,9 @@ func TestMultiAgentRetrieval(t *testing.T) {
 	name := "agent_name"
 	metaStr := `{"field1":"value1","field2":{"subfield11":"value2","subfield12":{"subfield121":"value3","subfield122":"value4"}}}`
 	subMetaStr := `{"field2":{"subfield12":{"subfield121":"value3"}}}`
-	tagsStr := `{"region": "EU", "node_type": "dns"}`
+	tagsStr := `{"node_type": "dns"}`
 	subTagsStr := `{"region": "EU"}`
+	mixTagsStr := `{"node_type": "dns", "region": "EU"}`
 
 	metadata := types.Metadata{}
 	json.Unmarshal([]byte(metaStr), &metadata)
@@ -378,6 +380,9 @@ func TestMultiAgentRetrieval(t *testing.T) {
 
 	subTags := types.Tags{}
 	json.Unmarshal([]byte(subTagsStr), &subTags)
+
+	mixTags := types.Tags{}
+	json.Unmarshal([]byte(mixTagsStr), &mixTags)
 
 	wrongMeta := types.Metadata{
 		"field": "value1",
@@ -510,6 +515,16 @@ func TestMultiAgentRetrieval(t *testing.T) {
 				Total:  n,
 				Order:  "name",
 				Dir:    "desc",
+			},
+			size: n,
+		},
+		"retrieve agents with mix tags": {
+			owner: oID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Tags:   mixTags,
 			},
 			size: n,
 		},
@@ -878,90 +893,6 @@ func TestMultiAgentRetrievalByAgentGroup(t *testing.T) {
 	}
 }
 
-func TestMatchingAgentRetrieval(t *testing.T) {
-	dbMiddleware := postgres.NewDatabase(db)
-	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
-
-	oID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-	wrongoID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-
-	name := "agent_name"
-	metaStr := `{"field1":"value1","field2":{"subfield11":"value2","subfield12":{"subfield121":"value3","subfield122":"value4"}}}`
-	tagsStr := `{"region": "EU", "node_type": "dns"}`
-	subTagsStr := `{"region": "EU"}`
-
-	wrongTagsStr := `{"region": "Br"}`
-
-	metadata := types.Metadata{}
-	json.Unmarshal([]byte(metaStr), &metadata)
-
-	tags := types.Tags{}
-	json.Unmarshal([]byte(tagsStr), &tags)
-
-	subTags := types.Tags{}
-	json.Unmarshal([]byte(subTagsStr), &subTags)
-
-	wrongTags := types.Tags{}
-	json.Unmarshal([]byte(wrongTagsStr), &wrongTags)
-
-
-	n := float64(10)
-	for i := float64(0); i < n; i++ {
-		thID, err := uuid.NewV4()
-		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-		chID, err := uuid.NewV4()
-		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-		th := fleet.Agent{
-			MFOwnerID:   oID.String(),
-			MFThingID:   thID.String(),
-			MFChannelID: chID.String(),
-		}
-
-		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, uint64(i)))
-		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
-		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-		th.AgentMetadata = metadata
-		th.AgentTags = tags
-		th.OrbTags = subTags
-		th.State = fleet.Online
-
-		err = agentRepo.Save(context.Background(), th)
-		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
-	}
-
-	cases := map[string]struct {
-		owner   string
-		tags    map[string]string
-		size    float64
-	}{
-		"retrieve all matching agents with existing owner": {
-			owner: oID.String(),
-			tags:  tags,
-			size:  n,
-		},
-		"retrieve all matching agents with wrong owner": {
-			owner: wrongoID.String(),
-			tags:  tags,
-			size:  0,
-		},
-		"retrieve all matching agents with different tags": {
-			owner: oID.String(),
-			tags:  wrongTags,
-			size:  0,
-		},
-	}
-
-	for desc, tc := range cases {
-		t.Run(desc, func(t *testing.T) {
-			agents, err := agentRepo.RetrieveMatchingAgents(context.Background(), tc.owner, tc.tags)
-			assert.Equal(t, tc.size, agents["total"], fmt.Sprintf("%s: expected size %f got %f\n", desc, tc.size, agents["total"]))
-			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
-		})
-	}
-}
-
 func TestAgentRetrieveByID(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
 	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
@@ -1106,5 +1037,111 @@ func testSortAgents(t *testing.T, pm fleet.PageMetadata, ths []fleet.Agent) {
 		}
 	default:
 		break
+	}
+}
+
+func TestMatchingAgentRetrieval(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	name := "agent_name"
+	orbTagsStr := `{"node_type": "dns"}`
+	agentTagsStr := `{"region": "EU"}`
+	mixTagsStr := `{"node_type": "dns", "region": "EU"}`
+
+
+	orbTags := types.Tags{}
+	json.Unmarshal([]byte(orbTagsStr), &orbTags)
+
+	agentTags := types.Tags{}
+	json.Unmarshal([]byte(agentTagsStr), &agentTags)
+
+	mixTags := types.Tags{}
+	json.Unmarshal([]byte(mixTagsStr), &mixTags)
+
+	n := uint64(3)
+	for i := uint64(0); i < n; i++ {
+		thID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		chID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th := fleet.Agent{
+			MFOwnerID:   oID.String(),
+			MFThingID:   thID.String(),
+			MFChannelID: chID.String(),
+		}
+
+		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, i))
+		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th.AgentTags = agentTags
+		th.OrbTags = orbTags
+
+		err = agentRepo.Save(context.Background(), th)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner          string
+		tag            types.Tags
+		matchingAgents types.Metadata
+	}{
+		"retrieve matching agents with mix tags": {
+			owner: oID.String(),
+			tag: mixTags,
+			matchingAgents: types.Metadata{
+				"total": float64(n),
+				"online": float64(0),
+			},
+		},
+		"retrieve matching agents with orb tags": {
+			owner: oID.String(),
+			tag: orbTags,
+			matchingAgents: types.Metadata{
+				"total": float64(n),
+				"online": float64(0),
+			},
+		},
+		"retrieve matching agents with agent tags": {
+			owner: oID.String(),
+			tag: agentTags,
+			matchingAgents: types.Metadata{
+				"total": float64(n),
+				"online": float64(0),
+			},
+		},
+		"retrieve unmatched agents with mix tags": {
+			owner: oID.String(),
+			tag: types.Tags{
+				"wrong": "tag",
+			},
+			matchingAgents: types.Metadata{
+				"total": nil,
+				"online": nil,
+			},
+		},
+		"retrieve agents with mix tags": {
+			owner: oID.String(),
+			tag: types.Tags{
+				"node_type": "dns",
+				"region": "EU",
+				"wrong": "tag",
+			},
+			matchingAgents: types.Metadata{
+				"total": nil,
+				"online": nil,
+			},
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			ma, err := agentRepo.RetrieveMatchingAgents(context.Background(), tc.owner, tc.tag)
+			assert.True(t, reflect.DeepEqual(tc.matchingAgents, ma), fmt.Sprintf("%s: expected %v got %v\n", desc, tc.matchingAgents, ma))
+			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
+		})
 	}
 }
