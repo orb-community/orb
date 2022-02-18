@@ -22,11 +22,31 @@ type mockPoliciesRepository struct {
 }
 
 func (m *mockPoliciesRepository) InactivateDatasetBySinkID(ctx context.Context, sinkID string, ownerID string) error {
-	panic("implement me")
+	for _, ds := range m.ddb{
+		if ds.MFOwnerID == ownerID{
+			for _, sID := range ds.SinkIDs {
+				if sID == sinkID{
+					ds.Valid = false
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (m *mockPoliciesRepository) DeleteSinkFromDataset(ctx context.Context, sinkID string, ownerID string) error {
-	panic("implement me")
+	for _, ds := range m.ddb{
+		if ds.MFOwnerID == ownerID{
+			for i, sID := range ds.SinkIDs {
+				if sID == sinkID{
+					ds.SinkIDs[i] = ds.SinkIDs[len(ds.SinkIDs)-1]
+					ds.SinkIDs[len(ds.SinkIDs)-1] = ""
+					ds.SinkIDs = ds.SinkIDs[:len(ds.SinkIDs)-1]
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (m *mockPoliciesRepository) DeleteDataset(ctx context.Context, ownerID string, dsID string) error {
