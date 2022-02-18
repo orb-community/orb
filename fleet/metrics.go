@@ -3,71 +3,81 @@ package fleet
 import (
 	"context"
 	"github.com/go-kit/kit/metrics"
-	"github.com/mainflux/mainflux"
+	"time"
 )
 
-var _ AgentCommsService = (*metricsMiddleware)(nil)
+var _ AgentCommsService = (*commsMetricsMiddleware)(nil)
 
-type metricsMiddleware struct {
+type commsMetricsMiddleware struct {
 	counter metrics.Counter
 	latency metrics.Histogram
 	svc     AgentCommsService
-	auth    mainflux.AuthServiceClient
 }
 
-func (m metricsMiddleware) Start() error {
+func (c commsMetricsMiddleware) Start() error {
 	panic("implement me")
 }
 
-func (m metricsMiddleware) Stop() error {
+func (c commsMetricsMiddleware) Stop() error {
 	panic("implement me")
 }
 
-func (m metricsMiddleware) NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error {
+func (c commsMetricsMiddleware) NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error {
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "NotifyAgentNewGroupMembership",
+			"agent_id", a.MFChannelID,
+			"group_id", ag.ID,
+		}
+
+		c.counter.With(labels...).Add(1)
+		c.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return c.svc.NotifyAgentNewGroupMembership(a, ag)
+}
+
+func (c commsMetricsMiddleware) NotifyAgentGroupMemberships(a Agent) error {
 	panic("implement me")
 }
 
-func (m metricsMiddleware) NotifyAgentGroupMemberships(a Agent) error {
+func (c commsMetricsMiddleware) NotifyAgentAllDatasets(a Agent) error {
 	panic("implement me")
 }
 
-func (m metricsMiddleware) NotifyAgentAllDatasets(a Agent) error {
+func (c commsMetricsMiddleware) NotifyAgentStop(MFChannelID string, reason string) error {
 	panic("implement me")
 }
 
-func (m metricsMiddleware) NotifyAgentStop(MFChannelID string, reason string) error {
+func (c commsMetricsMiddleware) NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error {
 	panic("implement me")
 }
 
-func (m metricsMiddleware) NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error {
+func (c commsMetricsMiddleware) NotifyGroupRemoval(ag AgentGroup) error {
 	panic("implement me")
 }
 
-func (m metricsMiddleware) NotifyGroupRemoval(ag AgentGroup) error {
+func (c commsMetricsMiddleware) NotifyGroupPolicyRemoval(ag AgentGroup, policyID string, policyName string, backend string) error {
 	panic("implement me")
 }
 
-func (m metricsMiddleware) NotifyGroupPolicyRemoval(ag AgentGroup, policyID string, policyName string, backend string) error {
+func (c commsMetricsMiddleware) NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error {
 	panic("implement me")
 }
 
-func (m metricsMiddleware) NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error {
+func (c commsMetricsMiddleware) NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error {
 	panic("implement me")
 }
 
-func (m metricsMiddleware) NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error {
+func (c commsMetricsMiddleware) NotifyAgentReset(channelID string, fullReset bool, reason string) error {
 	panic("implement me")
 }
 
-func (m metricsMiddleware) NotifyAgentReset(channelID string, fullReset bool, reason string) error {
-	panic("implement me")
-}
-
-func MetricsMiddleware(auth mainflux.AuthServiceClient, svc AgentCommsService, counter metrics.Counter, latency metrics.Histogram) AgentCommsService {
-	return &metricsMiddleware{
+func CommsMetricsMiddleware(svc AgentCommsService, counter metrics.Counter, latency metrics.Histogram) AgentCommsService {
+	return &commsMetricsMiddleware{
 		counter: counter,
 		latency: latency,
 		svc:     svc,
-		auth:    auth,
 	}
 }

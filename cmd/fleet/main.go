@@ -122,6 +122,22 @@ func main() {
 	agentGroupRepo := postgres.NewAgentGroupRepository(db, logger)
 
 	commsSvc := fleet.NewFleetCommsService(logger, policiesGRPCClient, agentRepo, agentGroupRepo, pubSub)
+	commsSvc = fleet.CommsMetricsMiddleware(
+		commsSvc,
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "fleet",
+			Subsystem: "comms",
+			Name:      "request_count",
+			Help:      "Number of requests received.",
+		}, []string{"method", "owner_id", "agent_id", "group_id"}),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "fleet",
+			Subsystem: "comms",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, []string{"method", "owner_id", "agent_id", "group_id"}),
+	)
+
 	svc := newFleetService(authGRPCClient, db, logger, esClient, sdkCfg, agentRepo, agentGroupRepo, commsSvc)
 	defer commsSvc.Stop()
 
