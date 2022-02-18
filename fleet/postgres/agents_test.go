@@ -1198,7 +1198,7 @@ func TestSetAgentStale(t *testing.T) {
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 
-			// simulating a heartbeat on agent
+			// simulating a heartbeat from agent
 			tc.agent.State = fleet.Online
 			err = agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), tc.agent)
 			require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
