@@ -17,16 +17,6 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 	// if this is the full list, reset all group subscriptions and subscribed to this list
 	if rpc.FullList {
 		a.unsubscribeGroupChannels()
-		policies, err := a.policyManager.GetRepo().GetAll()
-		if err != nil {
-			a.logger.Error("failed to retrieve policies on handle subscriptions")
-		}
-		if len(policies) > 0 {
-			for name, be := range a.backends {
-				a.logger.Info("removing policies", zap.String("backend", name))
-				a.policyManager.RemoveBackendPolicies(be, true)
-			}
-		}
 		a.subscribeGroupChannels(rpc.Groups)
 	} else {
 		// otherwise, just add these subscriptions to the existing list
@@ -38,8 +28,41 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 	}
 }
 
-func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload) {
-
+func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullList bool) {
+	if fullList {
+		policies, err := a.policyManager.GetRepo().GetAll()
+		if err != nil {
+			a.logger.Error("failed to retrieve policies on handle subscriptions")
+		}
+		// Compare the list of policies the check which one should be removed
+		// After a editing a policy
+		policyRemove := map[string]bool{}
+		for _, p := range policies {
+			policyRemove[p.ID] = true
+			for _, payload := range rpc {
+				if p.ID == payload.ID {
+					policyRemove[p.ID] = false
+				}
+			}
+		}
+		// Remove only the policy which should be removed
+		for k, v := range policyRemove {
+			policy, err := a.policyManager.GetRepo().Get(k)
+			if err != nil {
+				a.logger.Error("failed to retrieve policy", zap.String("policy_id", k), zap.Error(err))
+			}
+			if v == true {
+				a.policyManager.ManagePolicy(fleet.AgentPolicyRPCPayload{
+					Action:    "remove",
+					ID:        policy.ID,
+					Name:      policy.Name,
+					Backend:   policy.Backend,
+					Version:   0,
+					Data:      nil,
+				})
+			}
+		}
+	}
 	for _, payload := range rpc {
 		a.policyManager.ManagePolicy(payload)
 	}
@@ -75,7 +98,7 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 			a.logger.Error("error decoding agent policy message from core", zap.Error(fleet.ErrSchemaMalformed))
 			return
 		}
-		a.handleAgentPolicies(r.Payload)
+		a.handleAgentPolicies(r.Payload, r.FullList)
 	case fleet.GroupRemovedRPCFunc:
 		var r fleet.GroupRemovedRPC
 		if err := json.Unmarshal(message.Payload(), &r); err != nil {
@@ -148,7 +171,7 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			a.logger.Error("error decoding agent policy message from core", zap.Error(fleet.ErrSchemaMalformed))
 			return
 		}
-		a.handleAgentPolicies(r.Payload)
+		a.handleAgentPolicies(r.Payload, r.FullList)
 	case fleet.AgentStopRPCFunc:
 		var r fleet.AgentStopRPC
 		if err := json.Unmarshal(message.Payload(), &r); err != nil {
