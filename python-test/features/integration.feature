@@ -285,7 +285,7 @@ Scenario: Edit agent name and apply policies to then
         And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
 
 
-Scenario: Editing tags of an Agent Group with policies (unsubscription)
+Scenario: Editing tags of an Agent Group with policies (unsubscription - provision agent before editing)
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with region:br orb tag(s) already exists and is online
@@ -298,7 +298,7 @@ Scenario: Editing tags of an Agent Group with policies (unsubscription)
         And the agent status in Orb should be online
 
 
-Scenario: Editing tags of an Agent Group with policies (subscription)
+Scenario: Editing tags of an Agent Group with policies (subscription - provision agent before editing)
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with region:br, another:tag orb tag(s) already exists and is online
@@ -306,6 +306,96 @@ Scenario: Editing tags of an Agent Group with policies (subscription)
         And that a sink already exists
         And 2 policies are applied to the group
     When the name, tags, description of Agent Group is edited using: name=new_name/ tags=region:br/ description=None
+    Then 1 agent must be matching on response field matching_agents
+        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+        And the agent status in Orb should be online
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 2 policies are successfully applied
+
+
+Scenario: Editing tags of an Agent Group with policies (provision agent after editing)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with ns1:true orb tag(s) and without description
+        And that a sink already exists
+        And 2 policies are applied to the group
+    When the name, tags, description of Agent Group is edited using: name=new_name/ tags=another:tag, ns1:true/ description=None
+        And a new agent is created with region:us orb tag(s)
+        And the agent container is started on port default
+    Then 0 agent must be matching on response field matching_agents
+        And the agent status in Orb should be online
+
+
+Scenario: Editing tags of an Agent Group with policies (subscription - provision agent after editing)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with ns1:true orb tag(s) and without description
+        And that a sink already exists
+        And 2 policies are applied to the group
+    When the name, tags, description of Agent Group is edited using: name=new_name/ tags=region:br/ description=None
+        And a new agent is created with region:br orb tag(s)
+        And the agent container is started on port default
+    Then 1 agent must be matching on response field matching_agents
+        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+        And the agent status in Orb should be online
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 2 policies are successfully applied
+
+
+    Scenario: Editing tags of an Agent and Agent Group with policies (unsubscription - provision agent before editing)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with region:br orb tag(s) already exists and is online
+        And an Agent Group is created with same tag as the agent and without description
+        And that a sink already exists
+        And 2 policies are applied to the group
+    When the name, tags, description of Agent Group is edited using: name=new_name/ tags=another:tag, ns1:true/ description=None
+        And edit the agent tags and use region:us orb tag(s)
+    Then 0 agent must be matching on response field matching_agents
+        And the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
+        And the agent status in Orb should be online
+
+
+Scenario: Editing tags of an Agent and Agent Group with policies (subscription - provision agent before editing)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with region:br, another:tag, test:true orb tag(s) already exists and is online
+        And an Agent Group is created with ns1:true orb tag(s) and without description
+        And that a sink already exists
+        And 2 policies are applied to the group
+    When edit the agent tags and use region:br, another:tag orb tag(s)
+        And the name, tags, description of Agent Group is edited using: name=new_name/ tags=region:br/ description=None
+    Then 1 agent must be matching on response field matching_agents
+        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+        And the agent status in Orb should be online
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 2 policies are successfully applied
+
+
+Scenario: Editing tags of an Agent and Agent Group with policies (provision agent after editing)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with ns1:true orb tag(s) and without description
+        And that a sink already exists
+        And 2 policies are applied to the group
+    When the name, tags, description of Agent Group is edited using: name=new_name/ tags=another:tag, ns1:true/ description=None
+        And a new agent is created with test:true orb tag(s)
+        And edit the agent tags and use region:us orb tag(s)
+        And the agent container is started on port default
+    Then 0 agent must be matching on response field matching_agents
+        And the agent status in Orb should be online
+
+
+Scenario: Editing tags of an Agent and Agent Group with policies (subscription - provision agent after editing)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with ns1:true orb tag(s) and without description
+        And that a sink already exists
+        And 2 policies are applied to the group
+    When the name, tags, description of Agent Group is edited using: name=new_name/ tags=region:br/ description=None
+        And a new agent is created with test:true orb tag(s)
+        And edit the agent tags and use region:br orb tag(s)
+        And the agent container is started on port default
     Then 1 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
         And the agent status in Orb should be online
