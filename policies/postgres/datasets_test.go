@@ -631,9 +631,6 @@ func TestInactivateDatasetBySinkID(t *testing.T) {
 	oID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
-	wrongOID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-
 	groupID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
@@ -653,6 +650,9 @@ func TestInactivateDatasetBySinkID(t *testing.T) {
 	nameID, err := types.NewIdentifier("mydataset")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	nameID2, err := types.NewIdentifier("mydataset-2")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	dataset := policies.Dataset{
 		Name:         nameID,
 		MFOwnerID:    oID.String(),
@@ -664,32 +664,37 @@ func TestInactivateDatasetBySinkID(t *testing.T) {
 		Created:      time.Time{},
 	}
 
+	dataset2 := dataset
+	dataset2.Name = nameID2
+
 	dsID, err := repo.SaveDataset(context.Background(), dataset)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	dataset.ID = dsID
 
+	dsID2, err := repo.SaveDataset(context.Background(), dataset2)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset2.ID = dsID2
+
 	cases := map[string]struct {
 		ownerID string
 		sinkID  string
+		dataset policies.Dataset
 		valid   bool
 		err     error
 	}{
-		"inactivate a dataset with non-existent owner": {
-			sinkID:  dataset.SinkIDs[0],
-			ownerID: wrongOID.String(),
-			valid:   true,
-			err:     nil,
-		},
 		"inactivate dataset with a non-existing sink": {
 			sinkID:  wrongSinkID.String(),
 			ownerID: dataset.MFOwnerID,
+			dataset: dataset2,
 			valid:   true,
 			err:     nil,
 		},
 		"inactivate a existing dataset by sink ID": {
 			ownerID: dataset.MFOwnerID,
 			sinkID:  dataset.SinkIDs[0],
+			dataset: dataset,
 			valid:   false,
 			err:     nil,
 		},
@@ -700,7 +705,7 @@ func TestInactivateDatasetBySinkID(t *testing.T) {
 			err := repo.InactivateDatasetBySinkID(context.Background(), tc.sinkID, tc.ownerID)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
 
-			assertate, _ := repo.RetrieveDatasetByID(context.Background(), dataset.ID, dataset.MFOwnerID)
+			assertate, _ := repo.RetrieveDatasetByID(context.Background(), tc.dataset.ID, tc.dataset.MFOwnerID)
 			assert.Equal(t, tc.valid, assertate.Valid, fmt.Sprintf("%s: expected '%t' got '%t'", desc, tc.valid, assertate.Valid))
 		})
 	}

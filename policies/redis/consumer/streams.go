@@ -29,8 +29,8 @@ const (
 )
 
 type Subscriber interface {
-	Subscribe(context context.Context) error
-	SubscribeSink(context context.Context) error
+	SubscribeToFleet(context context.Context) error
+	SubscribeToSink(context context.Context) error
 }
 
 type eventStore struct {
@@ -50,7 +50,7 @@ func NewEventStore(policiesService policies.Service, client *redis.Client, escon
 	}
 }
 
-func (es eventStore) Subscribe(context context.Context) error {
+func (es eventStore) SubscribeToFleet(context context.Context) error {
 	err := es.client.XGroupCreateMkStream(context, stream, group, "$").Err()
 	if err != nil && err.Error() != exists {
 		return err
@@ -85,7 +85,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 	}
 }
 
-func (es eventStore) SubscribeSink(context context.Context) error {
+func (es eventStore) SubscribeToSink(context context.Context) error {
 	err := es.client.XGroupCreateMkStream(context, streamSink, group, "$").Err()
 	if err != nil && err.Error() != exists {
 		return err

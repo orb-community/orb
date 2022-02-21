@@ -276,7 +276,7 @@ func startGRPCServer(svc policies.Service, tracer opentracing.Tracer, cfg config
 func subscribeToFleetES(svc policies.Service, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
 	eventStore := rediscon.NewEventStore(svc, client, cfg.Consumer, logger)
 	logger.Info("Subscribed to Redis Event Store for agent groups")
-	if err := eventStore.Subscribe(context.Background()); err != nil {
+	if err := eventStore.SubscribeToFleet(context.Background()); err != nil {
 		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 	}
 }
@@ -284,7 +284,7 @@ func subscribeToFleetES(svc policies.Service, client *r.Client, cfg config.EsCon
 func subscribeToSinksES(svc policies.Service, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
 	eventStore := rediscon.NewEventStore(svc, client, cfg.Consumer, logger)
 	logger.Info("Subscribed to Redis Event Store for sinks")
-	if err := eventStore.SubscribeSink(context.Background()); err != nil {
+	if err := eventStore.SubscribeToSink(context.Background()); err != nil {
 		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 	}
 }
