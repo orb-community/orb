@@ -129,13 +129,13 @@ func main() {
 			Subsystem: "comms",
 			Name:      "request_count",
 			Help:      "Number of requests received.",
-		}, []string{"method", "agent_id", "group_id"}),
+		}, []string{"method", "agent_id", "group_id", "channel_id", "policy_id", "policy_name"}),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "fleet",
 			Subsystem: "comms",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
-		}, []string{"method", "agent_id", "group_id"}),
+		}, []string{"method", "agent_id", "group_id", "channel_id", "policy_id", "policy_name"}),
 	)
 
 	svc := newFleetService(authGRPCClient, db, logger, esClient, sdkCfg, agentRepo, agentGroupRepo, commsSvc)
