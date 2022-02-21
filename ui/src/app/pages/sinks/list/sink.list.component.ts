@@ -1,4 +1,12 @@
-import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
@@ -9,7 +17,6 @@ import { STRINGS } from 'assets/text/strings';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { Debounce } from 'app/shared/decorators/utils';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
@@ -23,6 +30,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   strings = STRINGS.sink;
 
   columnMode = ColumnMode;
+
   columns: TableColumn[];
 
   loading = false;
@@ -30,11 +38,14 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   paginationControls: OrbPagination<AgentGroup>;
 
   searchPlaceholder = 'Search by name';
+
   filterSelectedIndex = '0';
 
   // templates
   @ViewChild('sinkStateTemplateCell') sinkStateTemplateCell: TemplateRef<any>;
+
   @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
+
   @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
@@ -52,6 +63,12 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     },
   ];
 
+  @ViewChild('tableWrapper') tableWrapper;
+
+  @ViewChild(DatatableComponent) table: DatatableComponent;
+
+  private currentComponentWidth;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -64,9 +81,6 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     this.paginationControls = SinksService.getDefaultPagination();
   }
 
-  @ViewChild('tableWrapper') tableWrapper;
-  @ViewChild(DatatableComponent) table: DatatableComponent;
-  private currentComponentWidth;
   ngAfterViewChecked() {
     if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
@@ -136,18 +150,18 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
 
   getAllSinks(): void {
     this.sinkService.getAllSinks().subscribe(resp => {
-        this.paginationControls.data = resp.data;
-        this.paginationControls.total = resp.total;
-        this.paginationControls.offset = resp.offset / resp.limit;
-        this.loading = false;
-        this.cdr.markForCheck();
-        console.table(resp.data);
+      this.paginationControls.data = resp.data;
+      this.paginationControls.total = resp.total;
+      this.paginationControls.offset = resp.offset / resp.limit;
+      this.loading = false;
+      this.cdr.markForCheck();
+      console.table(resp.data);
     });
   }
 
   getSinks(pageInfo: NgxDatabalePageInfo = null): void {
     const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
-    const finalPageInfo = {...pageInfo};
+    const finalPageInfo = { ...pageInfo };
     finalPageInfo.dir = 'desc';
     finalPageInfo.order = 'name';
     finalPageInfo.limit = this.paginationControls.limit;
@@ -175,28 +189,28 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   onOpenAdd() {
     this.router.navigate(
       ['add'],
-      {relativeTo: this.route},
+      { relativeTo: this.route },
     );
   }
 
   onOpenEdit(sink: any) {
     this.router.navigate(
-      [`edit/${sink.id}`],
+      [`edit/${ sink.id }`],
       {
         relativeTo: this.route,
-        state: {sink: sink, edit: true},
+        state: { sink: sink, edit: true },
       },
     );
   }
 
   onFilterSelected(selectedIndex) {
-    this.searchPlaceholder = `Search by ${this.tableFilters[selectedIndex].label}`;
+    this.searchPlaceholder = `Search by ${ this.tableFilters[selectedIndex].label }`;
   }
 
   openDeleteModal(row: any) {
-    const {id} = row;
+    const { id } = row;
     this.dialogService.open(SinkDeleteComponent, {
-      context: {sink: row},
+      context: { sink: row },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
@@ -213,7 +227,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
 
   openDetailsModal(row: any) {
     this.dialogService.open(SinkDetailsComponent, {
-      context: {sink: row},
+      context: { sink: row },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe((resp) => {
