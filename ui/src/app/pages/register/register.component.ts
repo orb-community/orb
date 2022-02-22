@@ -99,6 +99,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
             this.messages = respReg.getMessages();
           } else {
             this.errors = respReg.getErrors();
+            return;
           }
 
           this.cd.detectChanges();
