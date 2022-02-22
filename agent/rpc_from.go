@@ -40,12 +40,19 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullLi
 		for _, p := range policies {
 			policyRemove[p.ID] = true
 		}
-		// Remove only the policy which should be removed
 		for _, payload := range rpc {
-			if ok := policyRemove[payload.ID]; !ok {
-				a.policyManager.RemovePolicy(payload.ID, payload.Name, payload.Backend)
-			} else {
-				a.policyManager.ManagePolicy(payload)
+			if ok := policyRemove[payload.ID]; ok {
+				policyRemove[payload.ID] = false
+			}
+		}
+		// Remove only the policy which should be removed
+		for k, v := range policyRemove {
+			if v == true {
+				policy, err := a.policyManager.GetRepo().Get(k)
+				if err != nil {
+					a.logger.Error("failed to retrieve policy", zap.String("policy_id", k), zap.Error(err))
+				}
+				a.policyManager.RemovePolicy(policy.ID, policy.Name, policy.Backend)
 			}
 		}
 	} else {
