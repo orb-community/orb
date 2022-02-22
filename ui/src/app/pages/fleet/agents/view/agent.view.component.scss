@@ -1,10 +1,10 @@
 h4 {
   font-family: 'Montserrat', sans-serif;
+  font-size: 1.5rem;
   font-style: normal;
   font-weight: normal;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
   line-height: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 nb-card {
@@ -13,11 +13,11 @@ nb-card {
 
   nb-card-header {
     background-color: #232940;
-    color: #969fb9;
-    padding: 0.5rem 1rem;
     border-bottom: transparent;
     border-top-left-radius: 0.5rem;
     border-top-right-radius: 0.5rem;
+    color: #969fb9;
+    padding: 0.5rem 1rem;
   }
 
   nb-card-body {
@@ -37,27 +37,33 @@ nb-card {
 
     pre {
       background: #1c2339;
-      padding: 0.75rem;
       border-radius: 0.5rem;
-      white-space: pre-line;
       color: #fff;
+      font-weight: 400;
+      padding: 0.75rem;
+
+      white-space: pre-line;
 
       button {
         background: transparent;
         border: 0 transparent;
         color: #969fb9;
-        position: relative;
-        top: -0.25rem;
         float: right;
+        position: relative;
         right: -0.5rem;
+        top: -0.25rem;
       }
-
-      font-weight: 400;
     }
   }
 }
 
 ::ng-deep {
+
+  .agent-group-link {
+    color: #0c5dc5;
+    text-decoration: underline;
+    text-decoration-color: #0c5dc5;
+  }
 
   .agent-new {
     color: #9b51e0 !important;
@@ -84,27 +90,27 @@ nb-card {
   }
 
   header p {
-    font-family: 'Montserrat', sans-serif;
-    font-style: normal;
-    font-weight: normal;
-    font-size: 14px !important;
-    line-height: 20px;
-
-    width: 250px;
-    height: 20px;
-    margin-left: 16px;
-    margin-top: 24px;
-
-    display: flex;
     align-items: center;
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px !important;
+    font-style: normal;
+
+    font-weight: normal;
+    height: 20px;
+    line-height: 20px;
+    margin-left: 16px;
+
+    margin-top: 24px;
+    width: 250px;
   }
 
   .orb-breadcrumb {
     display: flex;
     font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
     font-style: normal;
     font-weight: 500;
-    font-size: 12px;
     line-height: 12px;
 
     ::ng-deep {
@@ -114,13 +120,13 @@ nb-card {
       }
 
       .xng-breadcrumb-link {
-        text-decoration: none !important;
         color: #969fb9 !important;
+        text-decoration: none !important;
       }
 
       .xng-breadcrumb-separator {
-        text-decoration: none !important;
         color: #969fb9 !important;
+        text-decoration: none !important;
       }
     }
   }
@@ -134,34 +140,34 @@ nb-card {
 }
 
 ::ng-deep nb-accordion {
-  padding: 0;
-  text-subtitle-line-height: 1rem;
-  display: grid;
   border: none !important;
   border-radius: 8px !important;
+  display: grid;
+  padding: 0;
+  text-subtitle-line-height: 1rem;
 
   nb-accordion-item {
-    padding: 0;
     border: none !important;
     border-radius: 8px !important;
+    padding: 0;
 
     nb-accordion-item-header {
-      padding: 10px 0;
       border: none !important;
       border-radius: 8px !important;
+      padding: 10px 0;
     }
 
     nb-accordion-item-body {
-      padding: 0;
-      display: grid;
       border: none !important;
       border-radius: 8px !important;
+      display: grid;
+      padding: 0;
     }
   }
 }
 
 nb-list-item {
-  border: none;
   background: #171c30;
+  border: none;
   border-radius: 8px;
 }
