@@ -33,38 +33,25 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullLi
 		policies, err := a.policyManager.GetRepo().GetAll()
 		if err != nil {
 			a.logger.Error("failed to retrieve policies on handle subscriptions")
+			return
 		}
-		// Compare the list of policies the check which one should be removed
-		// After a editing a policy
+		// Create a map with all the old policies
 		policyRemove := map[string]bool{}
 		for _, p := range policies {
 			policyRemove[p.ID] = true
-			for _, payload := range rpc {
-				if p.ID == payload.ID {
-					policyRemove[p.ID] = false
-				}
-			}
 		}
 		// Remove only the policy which should be removed
-		for k, v := range policyRemove {
-			policy, err := a.policyManager.GetRepo().Get(k)
-			if err != nil {
-				a.logger.Error("failed to retrieve policy", zap.String("policy_id", k), zap.Error(err))
-			}
-			if v == true {
-				a.policyManager.ManagePolicy(fleet.AgentPolicyRPCPayload{
-					Action:    "remove",
-					ID:        policy.ID,
-					Name:      policy.Name,
-					Backend:   policy.Backend,
-					Version:   0,
-					Data:      nil,
-				})
+		for _, payload := range rpc {
+			if ok := policyRemove[payload.ID]; !ok {
+				// TODO remove policy
+			} else {
+				a.policyManager.ManagePolicy(payload)
 			}
 		}
-	}
-	for _, payload := range rpc {
-		a.policyManager.ManagePolicy(payload)
+	} else {
+		for _, payload := range rpc {
+			a.policyManager.ManagePolicy(payload)
+		}
 	}
 
 	// heart beat with new policy status after application
