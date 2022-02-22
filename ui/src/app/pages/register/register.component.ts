@@ -111,6 +111,8 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
               this.router.navigateByUrl('/pages/dashboard');
             },
           );
+
+
         },
       );
     } else {
