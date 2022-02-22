@@ -104,7 +104,11 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "orb-ui:build"
+            "browserTarget": "orb-ui:build",
+            "ssl": true,
+            "sslKey": "scripts/key.pem",
+            "sslCert": "scripts/cert.pem",
+            "disableHostCheck": true
           },
           "configurations": {
             "production": {
