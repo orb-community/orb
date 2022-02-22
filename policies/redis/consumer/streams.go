@@ -147,7 +147,7 @@ func (es eventStore) handleAgentGroupRemove(ctx context.Context, groupID string,
 
 func (es eventStore) handleSinkRemove(ctx context.Context, sinkID string, token string) error {
 
-	err := es.policiesService.InactivateDatasetBySinkID(ctx, sinkID, token)
+	err := es.policiesService.InactivateDatasetBySinkID(context.Background(), sinkID, token)
 	if err != nil {
 		return err
 	}

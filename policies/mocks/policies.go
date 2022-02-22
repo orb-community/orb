@@ -21,7 +21,20 @@ type mockPoliciesRepository struct {
 	gdb            map[string][]policies.PolicyInDataset
 }
 
-func (m *mockPoliciesRepository) InactivateDatasetBySinkID(ctx context.Context, sinkID string, ownerID string) error {
+func (m *mockPoliciesRepository) RetrieveAllDatasetsInternal(ctx context.Context, owner string) ([]policies.Dataset, error) {
+	var datasetList []policies.Dataset
+	id := uint64(0)
+	for _, d := range m.ddb {
+		if d.MFOwnerID == owner {
+			datasetList = append(datasetList, d)
+		}
+		id++
+	}
+
+	return datasetList, nil
+}
+
+func (m *mockPoliciesRepository) InactivateDatasetByID(ctx context.Context, sinkID string, ownerID string) error {
 	for _, ds := range m.ddb{
 		if ds.MFOwnerID == ownerID{
 			for _, sID := range ds.SinkIDs {

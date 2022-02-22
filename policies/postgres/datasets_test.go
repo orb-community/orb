@@ -631,10 +631,13 @@ func TestInactivateDatasetBySinkID(t *testing.T) {
 	oID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	oID2, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	groupID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
-	wrongSinkID, err := uuid.NewV4()
+	wrongID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	policyID, err := uuid.NewV4()
@@ -666,6 +669,7 @@ func TestInactivateDatasetBySinkID(t *testing.T) {
 
 	dataset2 := dataset
 	dataset2.Name = nameID2
+	dataset2.MFOwnerID = oID2.String()
 
 	dsID, err := repo.SaveDataset(context.Background(), dataset)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
@@ -679,13 +683,13 @@ func TestInactivateDatasetBySinkID(t *testing.T) {
 
 	cases := map[string]struct {
 		ownerID string
-		sinkID  string
+		id      string
 		dataset policies.Dataset
 		valid   bool
 		err     error
 	}{
 		"inactivate dataset with a non-existing sink": {
-			sinkID:  wrongSinkID.String(),
+			id:      wrongID.String(),
 			ownerID: dataset.MFOwnerID,
 			dataset: dataset2,
 			valid:   true,
@@ -693,16 +697,23 @@ func TestInactivateDatasetBySinkID(t *testing.T) {
 		},
 		"inactivate a existing dataset by sink ID": {
 			ownerID: dataset.MFOwnerID,
-			sinkID:  dataset.SinkIDs[0],
+			id:      dataset.ID,
 			dataset: dataset,
 			valid:   false,
 			err:     nil,
+		},
+		"inactivate dataset with an invalid ownerID": {
+			id:      dataset.ID,
+			ownerID: "",
+			dataset: dataset2,
+			valid:   true,
+			err:     policies.ErrMalformedEntity,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			err := repo.InactivateDatasetBySinkID(context.Background(), tc.sinkID, tc.ownerID)
+			err := repo.InactivateDatasetByID(context.Background(), tc.id, tc.ownerID)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
 
 			assertate, _ := repo.RetrieveDatasetByID(context.Background(), tc.dataset.ID, tc.dataset.MFOwnerID)
@@ -716,6 +727,9 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
 
 	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	oID2, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	wrongSinkID, err := uuid.NewV4()
@@ -737,6 +751,9 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 	nameID, err := types.NewIdentifier("mydataset")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
+	nameID2, err := types.NewIdentifier("mydataset")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
 	dataset := policies.Dataset{
 		Name:         nameID,
 		MFOwnerID:    oID.String(),
@@ -748,28 +765,47 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 		Created:      time.Time{},
 	}
 
+	dataset2 := dataset
+	dataset2.Name = nameID2
+	dataset2.MFOwnerID = oID2.String()
+
 	dsID, err := repo.SaveDataset(context.Background(), dataset)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	dataset.ID = dsID
 
+	dsID2, err := repo.SaveDataset(context.Background(), dataset2)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset2.ID = dsID2
+
 	cases := map[string]struct {
 		owner    string
 		sinkID   string
 		contains bool
+		dataset  policies.Dataset
 		err      error
 	}{
 		"delete a sink from existing dataset": {
 			owner:    dataset.MFOwnerID,
 			sinkID:   dataset.SinkIDs[0],
 			contains: false,
+			dataset:  dataset,
 			err:      nil,
 		},
 		"delete a non-existing sink from a dataset": {
 			owner:    dataset.MFOwnerID,
 			sinkID:   wrongSinkID.String(),
 			contains: false,
+			dataset:  dataset,
 			err:      nil,
+		},
+		"delete a sink from a dataset with an invalid ownerID": {
+			sinkID:   dataset2.SinkIDs[0],
+			owner:    "",
+			contains: true,
+			dataset:  dataset2,
+			err:      policies.ErrMalformedEntity,
 		},
 	}
 
@@ -778,13 +814,61 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 			err := repo.DeleteSinkFromDataset(context.Background(), tc.sinkID, tc.owner)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
 
-			assertate, _ := repo.RetrieveDatasetByID(context.Background(), dataset.ID, dataset.MFOwnerID)
+			assertate, _ := repo.RetrieveDatasetByID(context.Background(), tc.dataset.ID, tc.dataset.MFOwnerID)
 			switch tc.contains {
 			case false:
 				assert.NotContains(t, assertate.SinkIDs, tc.sinkID, fmt.Sprintf("%s: expected '%s' to not contains '%s'", desc, assertate.SinkIDs, tc.sinkID))
 			case true:
 				assert.Contains(t, assertate.SinkIDs, tc.sinkID, fmt.Sprintf("%s: expected '%s' to contains '%s'", desc, assertate.SinkIDs, tc.sinkID))
 			}
+		})
+	}
+}
+
+func TestMultiDatasetRetrievalInternal(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	wrongID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		nameID, err := types.NewIdentifier(fmt.Sprintf("mydataset-%d", i))
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+		dataset := policies.Dataset{
+			Name:      nameID,
+			MFOwnerID: oID.String(),
+		}
+
+		_, err = repo.SaveDataset(context.Background(), dataset)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner        string
+		size         uint64
+	}{
+		"retrieve all datasets with existing owner": {
+			owner: oID.String(),
+			size: n,
+		},
+		"retrieve datasets with no-existing owner": {
+			owner: wrongID.String(),
+			size: 0,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			datasets, err := repo.RetrieveAllDatasetsInternal(context.Background(), tc.owner)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s\n", desc, err))
+			size := uint64(len(datasets))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
 		})
 	}
 }

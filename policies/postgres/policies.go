@@ -504,12 +504,12 @@ func (r policiesRepository) RetrieveAllDatasetsByOwner(ctx context.Context, owne
 	return pageDataset, nil
 }
 
-func (r policiesRepository) InactivateDatasetBySinkID(ctx context.Context, sinkID string, ownerID string) error {
-	q := `UPDATE datasets SET valid = false WHERE mf_owner_id = :mf_owner_id AND :sink_ids = ANY (sink_ids)`
+func (r policiesRepository) InactivateDatasetByID(ctx context.Context, id string, ownerID string) error {
+	q := `UPDATE datasets SET valid = false WHERE mf_owner_id = :mf_owner_id AND :id = id`
 
 	params := map[string]interface{}{
 		"mf_owner_id": ownerID,
-		"sink_ids":    sinkID,
+		"id":          id,
 	}
 
 	_, err := r.db.NamedExecContext(ctx, q, params)
@@ -530,6 +530,10 @@ func (r policiesRepository) InactivateDatasetBySinkID(ctx context.Context, sinkI
 func (r policiesRepository) DeleteSinkFromDataset(ctx context.Context, sinkID string, ownerID string) error {
 	q := `UPDATE datasets SET sink_ids = array_remove(sink_ids, :sink_ids) WHERE mf_owner_id = :mf_owner_id`
 
+	if ownerID == "" {
+		return policies.ErrMalformedEntity
+	}
+
 	params := map[string]interface{}{
 		"mf_owner_id": ownerID,
 		"sink_ids":    sinkID,
@@ -548,6 +552,33 @@ func (r policiesRepository) DeleteSinkFromDataset(ctx context.Context, sinkID st
 	}
 
 	return nil
+}
+
+func (r policiesRepository) RetrieveAllDatasetsInternal(ctx context.Context, owner string) ([]policies.Dataset, error) {
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_ids, metadata, ts_created 
+			FROM datasets
+			WHERE mf_owner_id = :mf_owner_id`)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+	}
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return []policies.Dataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []policies.Dataset
+	for rows.Next() {
+		dbDataset := dbDataset{MFOwnerID: owner}
+		if err := rows.StructScan(&dbDataset); err != nil {
+			return []policies.Dataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		dataset := toDataset(dbDataset)
+		items = append(items, dataset)
+	}
+
+	return items, nil
 }
 
 type dbPolicy struct {

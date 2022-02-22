@@ -155,9 +155,12 @@ type Repository interface {
 	// RetrieveAllDatasetsByOwner retrieves the subset of Datasets owned by the specified user
 	RetrieveAllDatasetsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageDataset, error)
 
-	// InactivateDatasetBySinkID inactivate a dataset
-	InactivateDatasetBySinkID(ctx context.Context, sinkID string, ownerID string) error
+	// InactivateDatasetByID inactivate a dataset
+	InactivateDatasetByID(ctx context.Context, sinkID string, ownerID string) error
 
 	// DeleteSinkFromDataset removes a sink from a dataset
 	DeleteSinkFromDataset(ctx context.Context, sinkID string, ownerID string) error
+
+	// RetrieveAllDatasetsInternal retrieves all datasets by owner
+	RetrieveAllDatasetsInternal(ctx context.Context, owner string) ([]Dataset, error)
 }

@@ -339,7 +339,21 @@ func (s policiesService) InactivateDatasetBySinkID(ctx context.Context, sinkID s
 		return ErrMalformedEntity
 	}
 
-	return s.repo.InactivateDatasetBySinkID(ctx, sinkID, ownerID)
+	datasets, err := s.repo.RetrieveAllDatasetsInternal(ctx, ownerID)
+	if err != nil{
+		return err
+	}
+
+	for _, ds := range datasets{
+		if len(ds.SinkIDs) == 1 && ds.SinkIDs[0] == sinkID{
+			err = s.repo.InactivateDatasetByID(ctx, ds.ID, ownerID)
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s policiesService) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) error {
