@@ -11,15 +11,16 @@ var _ AgentCommsService = (*commsMetricsMiddleware)(nil)
 type commsMetricsMiddleware struct {
 	counter metrics.Counter
 	latency metrics.Histogram
+	gauge   metrics.Gauge
 	svc     AgentCommsService
 }
 
 func (c commsMetricsMiddleware) Start() error {
-	panic("implement me")
+	return c.svc.Start()
 }
 
 func (c commsMetricsMiddleware) Stop() error {
-	panic("implement me")
+	return c.svc.Stop()
 }
 
 func (c commsMetricsMiddleware) NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error {
@@ -27,7 +28,10 @@ func (c commsMetricsMiddleware) NotifyAgentNewGroupMembership(a Agent, ag AgentG
 		labels := []string{
 			"method", "NotifyAgentNewGroupMembership",
 			"agent_id", a.MFThingID,
+			"agent_name", a.Name.String(),
 			"group_id", ag.ID,
+			"group_name", ag.Name.String(),
+			"owner_id", a.MFOwnerID,
 		}
 
 		c.counter.With(labels...).Add(1)
@@ -43,6 +47,10 @@ func (c commsMetricsMiddleware) NotifyAgentGroupMemberships(a Agent) error {
 		labels := []string{
 			"method", "NotifyAgentGroupMemberships",
 			"agent_id", a.MFThingID,
+			"agent_name", a.Name.String(),
+			"group_id", "",
+			"group_name", "",
+			"owner_id", a.MFOwnerID,
 		}
 
 		c.counter.With(labels...).Add(1)
@@ -57,6 +65,10 @@ func (c commsMetricsMiddleware) NotifyAgentAllDatasets(a Agent) error {
 		labels := []string{
 			"method", "NotifyAgentAllDatasets",
 			"agent_id", a.MFThingID,
+			"agent_name", a.Name.String(),
+			"group_id", "",
+			"group_name", "",
+			"owner_id", a.MFOwnerID,
 		}
 
 		c.counter.With(labels...).Add(1)
@@ -70,7 +82,11 @@ func (c commsMetricsMiddleware) NotifyAgentStop(MFChannelID string, reason strin
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyAgentStop",
-			"channel_id", MFChannelID,
+			"agent_id", "",
+			"agent_name", "",
+			"group_id", "",
+			"group_name", "",
+			"owner_id", "",
 		}
 
 		c.counter.With(labels...).Add(1)
@@ -84,8 +100,11 @@ func (c commsMetricsMiddleware) NotifyGroupNewDataset(ctx context.Context, ag Ag
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyGroupNewDataset",
+			"agent_id", "",
+			"agent_name", "",
 			"group_id", ag.ID,
-			"policy_id", policyID,
+			"group_name", ag.Name.String(),
+			"owner_id", ownerID,
 		}
 
 		c.counter.With(labels...).Add(1)
@@ -99,7 +118,11 @@ func (c commsMetricsMiddleware) NotifyGroupRemoval(ag AgentGroup) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyGroupRemoval",
+			"agent_id", "",
+			"agent_name", "",
 			"group_id", ag.ID,
+			"group_name", ag.Name.String(),
+			"owner_id", ag.MFOwnerID,
 		}
 
 		c.counter.With(labels...).Add(1)
@@ -113,9 +136,11 @@ func (c commsMetricsMiddleware) NotifyGroupPolicyRemoval(ag AgentGroup, policyID
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyGroupPolicyRemoval",
+			"agent_id", "",
+			"agent_name", "",
 			"group_id", ag.ID,
-			"policy_id", policyID,
-			"policy_name", policyName,
+			"group_name", ag.Name.String(),
+			"owner_id", ag.MFOwnerID,
 		}
 
 		c.counter.With(labels...).Add(1)
@@ -129,8 +154,11 @@ func (c commsMetricsMiddleware) NotifyGroupDatasetRemoval(ag AgentGroup, dsID st
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyGroupDatasetRemoval",
+			"agent_id", "",
+			"agent_name", "",
 			"group_id", ag.ID,
-			"policy_id", policyID,
+			"group_name", ag.Name.String(),
+			"owner_id", ag.MFOwnerID,
 		}
 
 		c.counter.With(labels...).Add(1)
@@ -144,8 +172,11 @@ func (c commsMetricsMiddleware) NotifyGroupPolicyUpdate(ctx context.Context, ag 
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyGroupPolicyUpdate",
+			"agent_id", "",
+			"agent_name", "",
 			"group_id", ag.ID,
-			"policy_id", policyID,
+			"group_name", ag.Name.String(),
+			"owner_id", ownerID,
 		}
 
 		c.counter.With(labels...).Add(1)
@@ -158,8 +189,12 @@ func (c commsMetricsMiddleware) NotifyGroupPolicyUpdate(ctx context.Context, ag 
 func (c commsMetricsMiddleware) NotifyAgentReset(channelID string, fullReset bool, reason string) error {
 	defer func(begin time.Time) {
 		labels := []string{
-			"method", "NotifyGroupPolicyUpdate",
-			"channel_id", channelID,
+			"method", "NotifyAgentReset",
+			"agent_id", "",
+			"agent_name", "",
+			"group_id", "",
+			"group_name", "",
+			"owner_id", "",
 		}
 
 		c.counter.With(labels...).Add(1)
@@ -169,10 +204,11 @@ func (c commsMetricsMiddleware) NotifyAgentReset(channelID string, fullReset boo
 	return c.svc.NotifyAgentReset(channelID, fullReset, reason)
 }
 
-func CommsMetricsMiddleware(svc AgentCommsService, counter metrics.Counter, latency metrics.Histogram) AgentCommsService {
+func CommsMetricsMiddleware(svc AgentCommsService, counter metrics.Counter, latency metrics.Histogram, gauge metrics.Gauge) AgentCommsService {
 	return &commsMetricsMiddleware{
 		counter: counter,
 		latency: latency,
+		gauge:   gauge,
 		svc:     svc,
 	}
 }
