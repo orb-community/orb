@@ -21,6 +21,7 @@ type PolicyManager interface {
 	GetRepo() policies.PolicyRepo
 	ApplyBackendPolicies(be backend.Backend) error
 	RemoveBackendPolicies(be backend.Backend, permanently bool) error
+	RemovePolicy(policyID string, policyName string, beName string)
 }
 
 var _ PolicyManager = (*policyManager)(nil)
@@ -114,30 +115,34 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 		a.repo.Update(pd)
 		return
 	case "remove":
-		var pd = policies.PolicyData{
-			ID:   payload.ID,
-			Name: payload.Name,
-		}
-		if !backend.HaveBackend(payload.Backend) {
-			a.logger.Warn("policy remove for a backend we do not have, ignoring", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name))
-			return
-		}
-		be := backend.GetBackend(payload.Backend)
-		// Remove policy via http request
-		err := be.RemovePolicy(pd)
-		if err != nil {
-			a.logger.Warn("policy failed to remove", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.Error(err))
-		}
-		// Remove policy from orb-agent local repo
-		err = a.repo.Remove(pd.ID)
-		if err != nil {
-			a.logger.Warn("policy failed to remove local", zap.String("policy_id", pd.ID), zap.String("policy_name", pd.Name), zap.Error(err))
-		}
+		a.RemovePolicy(payload.ID, payload.Name, payload.Backend)
 		break
 	default:
 		a.logger.Error("unknown policy action, ignored", zap.String("action", payload.Action))
 	}
+}
 
+func (a *policyManager) RemovePolicy(policyID string, policyName string, beName string) {
+	var pd = policies.PolicyData{
+		ID:   policyID,
+		Name: policyName,
+	}
+	if !backend.HaveBackend(beName) {
+		a.logger.Warn("policy remove for a backend we do not have, ignoring", zap.String("policy_id", pd.ID), zap.String("policy_name", pd.Name))
+		return
+	}
+	be := backend.GetBackend(beName)
+	// Remove policy via http request
+	err := be.RemovePolicy(pd)
+	if err != nil {
+		a.logger.Warn("policy failed to remove", zap.String("policy_id", pd.ID), zap.String("policy_name", pd.Name), zap.Error(err))
+	}
+	// Remove policy from orb-agent local repo
+	err = a.repo.Remove(pd.ID)
+	if err != nil {
+		a.logger.Warn("policy failed to remove local", zap.String("policy_id", pd.ID), zap.String("policy_name", pd.Name), zap.Error(err))
+	}
+	return
 }
 
 func (a *policyManager) RemovePolicyDataset(policyID string, datasetID string, be backend.Backend) {

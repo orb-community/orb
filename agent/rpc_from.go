@@ -43,7 +43,7 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullLi
 		// Remove only the policy which should be removed
 		for _, payload := range rpc {
 			if ok := policyRemove[payload.ID]; !ok {
-				// TODO remove policy
+				a.policyManager.RemovePolicy(payload.ID, payload.Name, payload.Backend)
 			} else {
 				a.policyManager.ManagePolicy(payload)
 			}
@@ -56,7 +56,6 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullLi
 
 	// heart beat with new policy status after application
 	a.sendSingleHeartbeat(time.Now(), fleet.Online)
-
 }
 
 func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Message) {
