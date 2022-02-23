@@ -316,7 +316,7 @@
   </div>
 </ng-template>
 
-<ng-template #agentLastHBTemplateCell let-i="index" let-row="row" let-value="value">
+<ng-template #agentLastHBTemplateCell let-row="row" let-value="value" let-i="index">
   <div>
     {{ row.ts_last_hb | date: 'medium' }}
   </div>
