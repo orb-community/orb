@@ -238,7 +238,6 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 				"owner_id", agent.OwnerID,
 			}
 			svc.counter.With(labels...).Add(1)
-			svc.gauge.With(labels...).Set(float64(unsafe.Sizeof(m)))
 			svc.gauge.With(labels...).Add(float64(unsafe.Sizeof(m)))
 		}
 	}
