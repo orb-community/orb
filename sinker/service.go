@@ -61,7 +61,8 @@ type sinkerService struct {
 	fleetClient    fleetpb.FleetServiceClient
 	sinksClient    sinkspb.SinkServiceClient
 
-	gauge metrics.Gauge
+	gauge   metrics.Gauge
+	counter metrics.Counter
 }
 
 func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkID string) error {
@@ -236,9 +237,10 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 				"sink_id", id,
 				"owner_id", agent.OwnerID,
 			}
+			svc.counter.With(labels...).Add(1)
+			svc.gauge.With(labels...).Set(float64(unsafe.Sizeof(m)))
 			svc.gauge.With(labels...).Add(float64(unsafe.Sizeof(m)))
 		}
-
 	}
 
 	return nil
@@ -309,6 +311,7 @@ func New(logger *zap.Logger,
 	fleetClient fleetpb.FleetServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
 	gauge metrics.Gauge,
+	counter metrics.Counter,
 ) Service {
 
 	pktvisor.Register(logger)
@@ -321,5 +324,6 @@ func New(logger *zap.Logger,
 		fleetClient:    fleetClient,
 		sinksClient:    sinksClient,
 		gauge:          gauge,
+		counter:        counter,
 	}
 }

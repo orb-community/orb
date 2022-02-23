@@ -118,12 +118,19 @@ func main() {
 	configRepo := sinkerconfig.NewMemRepo(logger)
 	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient)
 	promGauge := kitprometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
-			Namespace: "sinker",
-			Subsystem: "comms",
-			Name:      "request_size",
-			Help:      "Total size of requests",
-		}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
-	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, promGauge)
+		Namespace: "sinker",
+		Subsystem: "comms",
+		Name:      "request_size",
+		Help:      "Total size of requests",
+	}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
+	promCounter := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "sinker",
+		Subsystem: "comms",
+		Name:      "request_count",
+		Help:      "Number of payloads received",
+	}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
+
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, promGauge, promCounter)
 	defer svc.Stop()
 
 	errs := make(chan error, 2)
@@ -156,6 +163,17 @@ func makeHandler(svcName string) http.Handler {
 
 func startHTTPServer(port string, errs chan error, logger *zap.Logger) {
 	p := fmt.Sprintf(":%s", port)
+
+	//p := fmt.Sprintf(":%s", cfg.HttpPort)
+	//if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
+	//	logger.Info(fmt.Sprintf("Fleet service started using https on port %s with cert %s key %s",
+	//		cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
+	//	errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, fleethttp.MakeHandler(tracer, svcName, svc))
+	//	return
+	//}
+	//logger.Info(fmt.Sprintf("Fleet service started using http on port %s", cfg.HttpPort))
+	//errs <- http.ListenAndServe(p, fleethttp.MakeHandler(tracer, svcName, svc))
+
 	logger.Info("sinker service started, exposed port", zap.String("port", port))
 	errs <- http.ListenAndServe(p, makeHandler(svcName))
 }
