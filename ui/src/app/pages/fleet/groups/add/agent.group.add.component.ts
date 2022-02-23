@@ -11,7 +11,6 @@ import { AgentsService } from 'app/common/services/agents/agents.service';
 import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
-
 @Component({
   selector: 'ngx-agent-group-add-component',
   templateUrl: './agent.group.add.component.html',
