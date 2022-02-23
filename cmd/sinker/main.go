@@ -11,6 +11,7 @@ package main
 import (
 	"context"
 	"fmt"
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/go-redis/redis/v8"
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb/buildinfo"
@@ -23,6 +24,7 @@ import (
 	"github.com/ns1labs/orb/sinker/redis/producer"
 	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
 	"github.com/opentracing/opentracing-go"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	jconfig "github.com/uber/jaeger-client-go/config"
 	"go.uber.org/zap"
@@ -115,7 +117,13 @@ func main() {
 
 	configRepo := sinkerconfig.NewMemRepo(logger)
 	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient)
-	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient)
+	promGauge := kitprometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "sinker",
+			Subsystem: "comms",
+			Name:      "request_size",
+			Help:      "Total size of requests",
+		}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, promGauge)
 	defer svc.Stop()
 
 	errs := make(chan error, 2)
