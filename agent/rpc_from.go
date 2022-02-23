@@ -50,15 +50,20 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullLi
 			if v == true {
 				policy, err := a.policyManager.GetRepo().Get(k)
 				if err != nil {
-					a.logger.Error("failed to retrieve policy", zap.String("policy_id", k), zap.Error(err))
+					a.logger.Warn("failed to retrieve policy", zap.String("policy_id", k), zap.Error(err))
+					continue
 				}
-				a.policyManager.RemovePolicy(policy.ID, policy.Name, policy.Backend)
+				err = a.policyManager.RemovePolicy(policy.ID, policy.Name, policy.Backend)
+				if err != nil {
+					a.logger.Warn("failed to remove a policy, ignoring", zap.String("policy_id", policy.ID), zap.String("policy_name", policy.Name), zap.Error(err))
+					continue
+				}
 			}
 		}
-	} else {
-		for _, payload := range rpc {
-			a.policyManager.ManagePolicy(payload)
-		}
+	}
+
+	for _, payload := range rpc {
+		a.policyManager.ManagePolicy(payload)
 	}
 
 	// heart beat with new policy status after application
