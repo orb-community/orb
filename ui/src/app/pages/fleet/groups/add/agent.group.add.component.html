@@ -315,3 +315,9 @@
     </mat-chip-list>
   </div>
 </ng-template>
+
+<ng-template #agentLastHBTemplateCell let-row="row" let-value="value" let-i="index">
+  <div>
+    {{ row.ts_last_hb | date: 'medium' }}
+  </div>
+</ng-template>

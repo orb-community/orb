@@ -32,6 +32,8 @@ export class AgentGroupAddComponent implements AfterViewInit {
 
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
 
+  @ViewChild('agentLastHBTemplateCell') agentLastHBTemplateRef: TemplateRef<any>;
+
   tableFilters: DropdownFilterItem[] = [
     {
       id: '0',
@@ -138,6 +140,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
       {
         name: 'Last Activity',
         prop: 'ts_last_hb',
+        cellTemplate: this.agentLastHBTemplateRef,
         minWidth: 130,
         resizeable: false,
         sortable: false,
