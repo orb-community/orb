@@ -295,13 +295,8 @@
 
 <ng-template #agentStateTemplateCell let-row="row" let-value="value" let-i="index">
   <div>
-    <div *ngIf="row.state === 'active'">
-      <i class="fa fa-circle orb-service-active"
-         aria-hidden="true"></i>
-      {{ row.state | titlecase }}
-    </div>
-    <div *ngIf="row.state !== 'active'">
-      <i class="fa fa-circle orb-service-inactive"
+    <div>
+      <i class="fa fa-circle orb-service-{{ row.state }}"
          aria-hidden="true"></i>
       {{ row.state | titlecase }}
     </div>

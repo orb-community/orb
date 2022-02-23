@@ -188,3 +188,21 @@ tr div p {
   left: 0;
   width: 900px;
 }
+
+.orb-service- {
+  &new {
+    color: #9b51e0;
+  }
+  &online {
+    color: #6fcf97;
+  }
+  &stale {
+    color: #f2994a;
+  }
+  &error {
+    color: #df316f;
+  }
+  &offline {
+    color: #969fb9;
+  }
+}
