@@ -22,6 +22,28 @@ type metricsMiddleware struct {
 	svc     policies.Service
 }
 
+func (m metricsMiddleware) InactivateDatasetByID(ctx context.Context, datasetID string, token string) error {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return err
+	}
+
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "inactivateDatasetByID",
+			"owner_id", ownerID,
+			"policy_id", "",
+			"dataset_id", datasetID,
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.InactivateDatasetByID(ctx, token, datasetID)
+}
+
 func (m metricsMiddleware) ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (policies.Dataset, error) {
 	defer func(begin time.Time) {
 		labels := []string{
@@ -374,28 +396,6 @@ func (m metricsMiddleware) ListDatasets(ctx context.Context, token string, pm po
 	}(time.Now())
 
 	return m.svc.ListDatasets(ctx, token, pm)
-}
-
-func (m metricsMiddleware) InactivateDatasetBySinkID(ctx context.Context, sinkID string, token string) error {
-	ownerID, err := m.identify(token)
-	if err != nil {
-		return err
-	}
-
-	defer func(begin time.Time) {
-		labels := []string{
-			"method", "inactivateDatasetByGroupID",
-			"owner_id", ownerID,
-			"policy_id", "",
-			"dataset_id", "",
-		}
-
-		m.counter.With(labels...).Add(1)
-		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
-
-	}(time.Now())
-
-	return m.svc.InactivateDatasetBySinkID(ctx, sinkID, token)
 }
 
 func (m metricsMiddleware) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) error {

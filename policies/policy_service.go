@@ -329,33 +329,6 @@ func (s policiesService) ListDatasets(ctx context.Context, token string, pm Page
 	return s.repo.RetrieveAllDatasetsByOwner(ctx, ownerID, pm)
 }
 
-func (s policiesService) InactivateDatasetBySinkID(ctx context.Context, sinkID string, token string) error {
-	ownerID, err := s.identify(token)
-	if err != nil {
-		return err
-	}
-
-	if sinkID == "" {
-		return ErrMalformedEntity
-	}
-
-	datasets, err := s.repo.RetrieveAllDatasetsInternal(ctx, ownerID)
-	if err != nil{
-		return err
-	}
-
-	for _, ds := range datasets{
-		if len(ds.SinkIDs) == 1 && ds.SinkIDs[0] == sinkID{
-			err = s.repo.InactivateDatasetByID(ctx, ds.ID, ownerID)
-		}
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (s policiesService) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) error {
 	ownerID, err := s.identify(token)
 	if err != nil {
@@ -366,5 +339,29 @@ func (s policiesService) DeleteSinkFromDataset(ctx context.Context, sinkID strin
 		return ErrMalformedEntity
 	}
 
-	return s.repo.DeleteSinkFromDataset(ctx, sinkID, ownerID)
+	datasets, err := s.repo.DeleteSinkFromDataset(ctx, sinkID, ownerID)
+
+	for _, ds := range datasets{
+		if len(ds.SinkIDs) == 0{
+			s.InactivateDatasetByID(ctx, sinkID, ownerID)
+
+		}
+	}
+
+	return nil
+}
+
+func (s policiesService) InactivateDatasetByID(ctx context.Context, datasetID string, token string) error {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return err
+	}
+
+	if datasetID == "" {
+		return ErrMalformedEntity
+	}
+
+	err = s.repo.InactivateDatasetByID(ctx, datasetID, ownerID)
+
+	return nil
 }

@@ -805,70 +805,23 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 			owner:    "",
 			contains: true,
 			dataset:  dataset2,
-			err:      policies.ErrMalformedEntity,
+			err:      errors.ErrMalformedEntity,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			err := repo.DeleteSinkFromDataset(context.Background(), tc.sinkID, tc.owner)
+			dataset, err := repo.DeleteSinkFromDataset(context.Background(), tc.sinkID, tc.owner)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
 
-			assertate, _ := repo.RetrieveDatasetByID(context.Background(), tc.dataset.ID, tc.dataset.MFOwnerID)
-			switch tc.contains {
-			case false:
-				assert.NotContains(t, assertate.SinkIDs, tc.sinkID, fmt.Sprintf("%s: expected '%s' to not contains '%s'", desc, assertate.SinkIDs, tc.sinkID))
-			case true:
-				assert.Contains(t, assertate.SinkIDs, tc.sinkID, fmt.Sprintf("%s: expected '%s' to contains '%s'", desc, assertate.SinkIDs, tc.sinkID))
+			for _, d := range dataset {
+				switch tc.contains {
+				case false:
+					assert.NotContains(t, d.SinkIDs, tc.sinkID, fmt.Sprintf("%s: expected '%s' to not contains '%s'", desc, d.SinkIDs, tc.sinkID))
+				case true:
+					assert.Contains(t, d.SinkIDs, tc.sinkID, fmt.Sprintf("%s: expected '%s' to contains '%s'", desc, d.SinkIDs, tc.sinkID))
+				}
 			}
-		})
-	}
-}
-
-func TestMultiDatasetRetrievalInternal(t *testing.T) {
-	dbMiddleware := postgres.NewDatabase(db)
-	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
-
-	oID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-
-	wrongID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-
-	n := uint64(10)
-	for i := uint64(0); i < n; i++ {
-		nameID, err := types.NewIdentifier(fmt.Sprintf("mydataset-%d", i))
-		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-
-		dataset := policies.Dataset{
-			Name:      nameID,
-			MFOwnerID: oID.String(),
-		}
-
-		_, err = repo.SaveDataset(context.Background(), dataset)
-		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
-	}
-
-	cases := map[string]struct {
-		owner        string
-		size         uint64
-	}{
-		"retrieve all datasets with existing owner": {
-			owner: oID.String(),
-			size: n,
-		},
-		"retrieve datasets with no-existing owner": {
-			owner: wrongID.String(),
-			size: 0,
-		},
-	}
-
-	for desc, tc := range cases {
-		t.Run(desc, func(t *testing.T) {
-			datasets, err := repo.RetrieveAllDatasetsInternal(context.Background(), tc.owner)
-			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s\n", desc, err))
-			size := uint64(len(datasets))
-			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
 		})
 	}
 }
