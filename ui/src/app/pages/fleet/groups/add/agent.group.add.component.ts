@@ -11,7 +11,6 @@ import { AgentsService } from 'app/common/services/agents/agents.service';
 import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
-
 @Component({
   selector: 'ngx-agent-group-add-component',
   templateUrl: './agent.group.add.component.html',
@@ -31,6 +30,8 @@ export class AgentGroupAddComponent implements AfterViewInit {
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
 
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
+
+  @ViewChild('agentLastHBTemplateCell') agentLastHBTemplateRef: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
     {
@@ -138,6 +139,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
       {
         name: 'Last Activity',
         prop: 'ts_last_hb',
+        cellTemplate: this.agentLastHBTemplateRef,
         minWidth: 130,
         resizeable: false,
         sortable: false,
