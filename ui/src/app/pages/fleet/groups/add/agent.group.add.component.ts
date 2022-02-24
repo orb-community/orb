@@ -8,7 +8,7 @@ import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
-import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
+import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
@@ -25,6 +25,9 @@ export class AgentGroupAddComponent implements AfterViewInit {
   columnMode = ColumnMode;
 
   columns: TableColumn[];
+
+  // table
+  @ViewChild(DatatableComponent) table: DatatableComponent;
 
   // templates
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
@@ -126,7 +129,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
         name: 'Tags',
         resizeable: false,
         minWidth: 100,
-        flexGrow: 2,
+        flexGrow: 4,
         cellTemplate: this.agentTagsTemplateCell,
       },
       {
@@ -143,7 +146,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
         minWidth: 130,
         resizeable: false,
         sortable: false,
-        flexGrow: 1,
+        flexGrow: 2,
       },
     ];
   }
@@ -226,6 +229,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
 
       this.tagMatch = summary;
       this.matchingAgents = matches;
+      this.table.recalculate();
     }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
   }
 

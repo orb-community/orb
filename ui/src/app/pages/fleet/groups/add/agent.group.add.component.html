@@ -5,9 +5,9 @@
     <h4>{{strings[isEdit ? 'edit' : 'add']['header']}}</h4>
   </header>
   <div class="d-flex row">
-    <div class="d-flex col-12 mt-5">
+    <div class="d-flex col-12 mt-md-0 mt-lg-3">
       <nb-stepper *ngIf="!isLoading"
-                  class="stepper w-100 ml-5"
+                  class="stepper w-100 ml-sm-0 ml-lg-2"
                   disableStepNavigation
                   orientation="vertical">
         <nb-step [label]="firstStepTemplate"
@@ -205,8 +205,8 @@
                 <p>{{firstFormGroup.controls.description.value}}</p>
               </div>
             </div>
+            <hr/>
           </div>
-          <hr/>
           <div class="d-flex row">
             <div class="col-12">
               <mat-chip-list>
@@ -243,19 +243,19 @@
               </div>
             </div>
           </div>
-          <hr/>
           <div *ngIf="expanded" class="d-flex row">
             <div class="tag-table">
               <ngx-datatable
-                [columnMode]="columnMode.flex"
+                #table
+                [columnMode]="columnMode.standard"
                 [columns]="columns"
                 [footerHeight]="50"
                 [headerHeight]="50"
-                [rowHeight]="50"
                 [rows]="matchingAgents"
                 [scrollbarV]="true"
-                class="orb w-100"
-                style="height: 500px;">
+                [rowHeight]="50"
+                class="orb"
+                style="height: 100%;">
               </ngx-datatable>
             </div>
           </div>
@@ -318,6 +318,6 @@
 
 <ng-template #agentLastHBTemplateCell let-i="index" let-row="row" let-value="value">
   <div>
-    {{ row.ts_last_hb | date: 'medium' }}
+    {{ row.ts_last_hb | date: 'short' }}
   </div>
 </ng-template>

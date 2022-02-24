@@ -127,6 +127,8 @@ nb-sidebar {
 }
 
 // Pages padding
-.nb-theme-default nb-layout .layout .layout-container .content .columns nb-layout-column {
-  padding: 1.25rem 2.25rem 0.75rem;
+::ng-deep {
+  .nb-theme-default nb-layout .layout .layout-container .content .columns nb-layout-column {
+    padding: 1rem 1rem 0.75rem !important;
+  }
 }
