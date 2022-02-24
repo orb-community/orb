@@ -90,10 +90,11 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 		DatasetID: datasetID,
 	}}
 
-	data := RPC{
+	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
 		Payload:       payload,
+		FullList:      false,
 	}
 
 	body, err := json.Marshal(data)
@@ -198,10 +199,11 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 
 	}
 
-	data := RPC{
+	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
 		Payload:       payload,
+		FullList:      true,
 	}
 
 	body, err := json.Marshal(data)
@@ -319,10 +321,11 @@ func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag Age
 		Data:    pdata,
 	}}
 
-	data := RPC{
+	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
 		Payload:       payload,
+		FullList:      false,
 	}
 
 	body, err := json.Marshal(data)
@@ -360,6 +363,7 @@ func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID st
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
 		Payload:       payloads,
+		FullList:      false,
 	}
 
 	body, err := json.Marshal(data)

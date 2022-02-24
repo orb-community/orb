@@ -39,6 +39,7 @@ type AgentPolicyRPC struct {
 	SchemaVersion string                  `json:"schema_version"`
 	Func          string                  `json:"func"`
 	Payload       []AgentPolicyRPCPayload `json:"payload"`
+	FullList      bool                    `json:"full_list"`
 }
 
 type AgentPolicyRPCPayload struct {
