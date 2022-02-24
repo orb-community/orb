@@ -16,6 +16,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   strings = STRINGS.login;
 
   _isProduction = environment.production;
+
   /**
    * Pactsafe
    */
@@ -88,12 +89,17 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
         company,
       }).subscribe(
         respReg => {
+          const first_name = this.user.fullname.split(' ')[0];
+          const last_name = this.user.fullName.replace(`${first_name} `, '');
+          _ps.getByKey(this._groupKey).send('updated', { custom_data: { first_name, last_name } });
+
           this.submitted = false;
 
           if (respReg.isSuccess()) {
             this.messages = respReg.getMessages();
           } else {
             this.errors = respReg.getErrors();
+            return;
           }
 
           this.cd.detectChanges();
@@ -106,6 +112,8 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
               this.router.navigateByUrl('/pages/dashboard');
             },
           );
+
+
         },
       );
     } else {
