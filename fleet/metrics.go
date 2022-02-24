@@ -11,7 +11,6 @@ var _ AgentCommsService = (*commsMetricsMiddleware)(nil)
 type commsMetricsMiddleware struct {
 	counter metrics.Counter
 	latency metrics.Histogram
-	gauge   metrics.Gauge
 	svc     AgentCommsService
 }
 
@@ -204,11 +203,10 @@ func (c commsMetricsMiddleware) NotifyAgentReset(channelID string, fullReset boo
 	return c.svc.NotifyAgentReset(channelID, fullReset, reason)
 }
 
-func CommsMetricsMiddleware(svc AgentCommsService, counter metrics.Counter, latency metrics.Histogram, gauge metrics.Gauge) AgentCommsService {
+func CommsMetricsMiddleware(svc AgentCommsService, counter metrics.Counter, latency metrics.Histogram) AgentCommsService {
 	return &commsMetricsMiddleware{
 		counter: counter,
 		latency: latency,
-		gauge:   gauge,
 		svc:     svc,
 	}
 }

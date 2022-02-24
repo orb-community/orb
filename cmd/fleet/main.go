@@ -135,14 +135,7 @@ func main() {
 			Subsystem: "comms",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
-		}, []string{"method", "agent_id", "agent_name", "group_id", "group_name", "owner_id"}),
-		kitprometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
-			Namespace: "fleet",
-			Subsystem: "comms",
-			Name:      "request_size",
-			Help:      "Total size of requests",
-		}, []string{"method", "agent_id", "agent_name", "group_id", "group_name", "owner_id"}),
-	)
+		}, []string{"method", "agent_id", "agent_name", "group_id", "group_name", "owner_id"}))
 
 	svc := newFleetService(authGRPCClient, db, logger, esClient, sdkCfg, agentRepo, agentGroupRepo, commsSvc)
 	defer commsSvc.Stop()
