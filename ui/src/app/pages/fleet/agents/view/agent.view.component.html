@@ -1,71 +1,174 @@
-<header data-orb-qa-id="agent#view">
-  <xng-breadcrumb class="orb-breadcrumb"
-                  data-orb-qa-id="breadcrumb">
-  </xng-breadcrumb>
-  <h4>Agent View</h4>
-</header>
-<div *ngIf="!isLoading" class="row">
-  <div class="col-md-6">
-    <nb-card>
-      <nb-card-header>Agent Information</nb-card-header>
-      <nb-card-body>
-        <label>Agent Name</label>
-        <p>{{ agent?.name }}</p>
-
-        <label>Version</label>
-        <p>{{ agent?.agent_metadata?.orb_agent?.version }}</p>
-
-        <label>Agent ID</label>
-        <p>{{ agent?.id }}</p>
-
-        <label>Channel ID</label>
-        <p>{{ agent?.channel_id }}</p>
-
-        <label>Provisioning Command</label>
-        <pre>
-          <button
-            [cdkCopyToClipboard]="command2copy">
-            <nb-icon [icon]="copyCommandIcon"
-                     (click)="toggleIcon('command')"
-                     pack="eva">
-            </nb-icon>
-          </button><code [innerHtml]="command2show">{{ command2show }}</code>
-        </pre>
-      </nb-card-body>
-    </nb-card>
+<header class="row"
+        data-orb-qa-id="agent#view">
+  <div class="col-5">
+    <xng-breadcrumb class="orb-breadcrumb"
+                    data-orb-qa-id="breadcrumb">
+    </xng-breadcrumb>
+    <div><h4>Agent View</h4></div>
   </div>
-  <div class="col-md-6">
+  <div *ngIf="!isLoading"
+       class="col-7">
+    <span class="float-right">
+      <span class="agent-{{ agent.state }}">{{ agent?.state | ngxCapitalize }}.</span>
+      <span *ngIf="agent?.state !== agentStates.new">
+        Last activity
+        <span *ngIf="isToday()">
+          today, at {{ agent?.ts_last_hb | date: 'mediumTime' }}
+        </span>
+        <span *ngIf="!isToday()">
+          on {{ agent?.ts_last_hb | date:'medium' }}
+        </span>
+      </span>
+      <span *ngIf="agent?.state === agentStates.new">
+        This Agent has not been provisioned.
+      </span>
+    </span>
+  </div>
+</header>
+
+<div *ngIf="!isLoading" class="row">
+  <div class="card-col col-5">
+    <div class="card-row">
+      <nb-card>
+        <nb-card-header>Agent Information</nb-card-header>
+        <nb-card-body>
+          <div class="row">
+            <div class="col-6">
+              <label>Agent Name</label>
+              <p>{{ agent?.name }}</p>
+            </div>
+            <div class="col-6">
+              <div class="float-right">
+                <label>Version</label>
+                <p>{{ agent?.agent_metadata?.orb_agent?.version }}</p>
+              </div>
+            </div>
+          </div>
+          <p>
+            <label>Agent ID</label>
+            <span class="float-right">{{ agent?.id }}</span>
+          </p>
+          <p>
+            <label>Channel ID</label>
+            <span class="float-right">{{ agent?.channel_id }}</span>
+          </p>
+          <div>
+            <label>Key Value Pairs</label>
+            <div class="d-flex">
+              <mat-chip-list>
+                <mat-chip
+                  *ngFor="let tag of agent?.orb_tags | keyvalue"
+                  [style.background-color]="tag | tagcolor"
+                  class="orb-tag-sink">
+                  {{ tag | tagchip }}
+                </mat-chip>
+                <mat-chip
+                  *ngFor="let tag of agent?.agent_tags | keyvalue"
+                  [style.background-color]="tag | tagcolor"
+                  class="orb-tag-sink">
+                  {{tag | tagchip}}
+                </mat-chip>
+              </mat-chip-list>
+            </div>
+          </div>
+        </nb-card-body>
+      </nb-card>
+    </div>
     <nb-card>
-      <nb-card-header>Tags</nb-card-header>
+      <nb-card-header>Capabilities</nb-card-header>
       <nb-card-body>
-        <div class="d-flex">
-          <mat-chip-list>
-            <mat-chip
-              *ngFor="let tag of agent?.orb_tags | keyvalue"
-              [style.background-color]="tag | tagcolor"
-              class="orb-tag-sink">
-              {{ tag | tagchip }}
-            </mat-chip>
-            <mat-chip
-              *ngFor="let tag of agent?.agent_tags | keyvalue"
-              [style.background-color]="tag | tagcolor"
-              class="orb-tag-sink">
-              {{tag | tagchip}}
-            </mat-chip>
-          </mat-chip-list>
+        <label>Taps</label>
+        <span *ngIf="!agent?.agent_metadata?.backends"
+              class="float-right summary-accent">
+          <span *ngIf="agent?.state === agentStates.new">
+            Agent has not been provisioned.
+          </span>
+        </span>
+        <div *ngFor="let backend of agent?.agent_metadata?.backends | keyvalue">
+          <pre innerHtml="{{ backend?.value?.data | prettyJson: [false, 2] }}"></pre>
         </div>
       </nb-card-body>
     </nb-card>
 
     <nb-card>
-      <nb-card-header>Heartbeat</nb-card-header>
-      <nb-card-body>
-        <label>Last Seen</label>
-        <p>{{ agent?.ts_last_hb | date:'short' }}</p>
-
-        <label>Health Status</label>
-        <p>{{ agent?.state | titlecase }}</p>
+      <nb-card-header>
+        Provisioning Command
+        <nb-select [(selected)]="selectedOS"
+                   appearance="filled"
+                   class="float-right"
+                   data-orb-qa-id="selected_OS">
+          <nb-option *ngFor="let option of availableOS"
+                     [value]="option">
+            {{ option | titlecase }}
+          </nb-option>
+        </nb-select>
+        <button
+          ghost="true"
+          nbButton>
+          <nb-icon (click)="toggleProvisioningCommand()"
+                   icon="plus-outline"
+                   pack="eva">
+          </nb-icon>
+        </button>
+      </nb-card-header>
+      <nb-card-body [hidden]="hideCommand">
+        <pre>
+          <button
+            [cdkCopyToClipboard]="command2copy"
+            ghost="true"
+            nbButton>
+            <nb-icon (click)="toggleIcon('command')"
+                     [icon]="copyCommandIcon"
+                     pack="eva">
+            </nb-icon>
+          </button>
+          <code [innerHtml]="command2show">{{ command2show }}</code>
+        </pre>
       </nb-card-body>
     </nb-card>
+  </div>
+
+  <div class="card-col col-7">
+    <div class="card-row">
+      <nb-card>
+        <nb-card-header>Active Policies/Datasets</nb-card-header>
+        <nb-card-body>
+          <span *ngIf="!policies"
+                class="summary-accent">Agent has not been provisioned.</span>
+          <nb-accordion *ngFor="let policy of policies">
+            <nb-accordion-item>
+              <nb-accordion-item-header>
+                <span class="summary-accent">Policy:&nbsp;</span>
+                {{ policy.name }}
+                <span class="summary-accent">&nbsp;&nbsp;Status:&nbsp;</span>
+                <span
+                  class="policy-{{ agent.last_hb_data.policy_state[policy.id].state }}">{{ agent.last_hb_data.policy_state[policy.id].state }}</span>
+              </nb-accordion-item-header>
+              <nb-accordion-item-body>
+                <nb-list>
+                  <nb-list-item *ngFor="let dataset of datasets">
+                    <span>Dataset:&nbsp;&quot;{{ dataset.name }}&quot;</span>
+                  </nb-list-item>
+                </nb-list>
+              </nb-accordion-item-body>
+            </nb-accordion-item>
+          </nb-accordion>
+        </nb-card-body>
+      </nb-card>
+    </div>
+    <div class="card-row">
+      <nb-card>
+        <nb-card-header>Active Groups</nb-card-header>
+        <nb-card-body>
+          <p>
+            <span (click)="showAgentGroupDetail(group)"
+                  *ngFor="let group of groups; last as isLast">
+              <span class="agent-group-link">{{ group.name }}</span>
+              <span *ngIf="!isLast">,</span>
+            </span>
+          </p>
+        </nb-card-body>
+      </nb-card>
+    </div>
   </div>
 </div>

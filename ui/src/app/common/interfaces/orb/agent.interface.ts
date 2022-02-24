@@ -7,6 +7,28 @@
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
 
 /**
+ * @enum AgentStates
+ */
+export enum AgentStates {
+  new = 'new',
+  online = 'online',
+  offline = 'offline',
+  stale = 'stale',
+  removed = 'removed',
+}
+
+export interface AgentGroupState {
+  name?: string;
+  channel?: string;
+}
+
+export interface AgentPolicyState {
+  name?: string;
+  state?: string;
+  datasets?: string[];
+}
+
+/**
  * @interface Agent
  */
 export interface Agent extends OrbEntity {
@@ -49,7 +71,11 @@ export interface Agent extends OrbEntity {
   /**
    * Last Heartbeat Data {{[propName: string]: string}}
    */
-  last_hb_data?: any;
+  last_hb_data?: any | {
+    backend_state?: any;
+    group_state?: {[id: string]: AgentGroupState};
+    policy_state?: {[id: string]: AgentPolicyState};
+  };
 
   /**
    * Last Heartbeat timestamp {string}
@@ -62,6 +88,9 @@ export interface Agent extends OrbEntity {
    */
   error_state?: boolean;
 
+  /**
+   * MQTT KEY
+   */
   key?: string;
 
 }
