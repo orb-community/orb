@@ -245,17 +245,18 @@
           </div>
           <div *ngIf="expanded" class="d-flex row">
             <div class="tag-table">
-              <ngx-datatable
-                #table
-                [columnMode]="columnMode.standard"
-                [columns]="columns"
-                [footerHeight]="50"
-                [headerHeight]="50"
-                [rows]="matchingAgents"
-                [scrollbarV]="true"
-                [rowHeight]="50"
-                class="orb"
-                style="height: 100%;">
+              <ngx-datatable #table
+                             *ngIf="columns"
+                             [columnMode]="columnMode.standard"
+                             [columns]="columns"
+                             [footerHeight]="50"
+                             [headerHeight]="50"
+                             [rowHeight]="50"
+                             [rows]="matchingAgents"
+                             [scrollbarV]="true"
+                             [virtualization]="false"
+                             class="orb"
+                             style="height: 100%;">
               </ngx-datatable>
             </div>
           </div>
@@ -304,7 +305,7 @@
 </ng-template>
 
 <ng-template #agentTagsTemplateCell let-i="index" let-row="row" let-value="value">
-  <div class="d-flex">
+  <div class="d-block">
     <mat-chip-list>
       <mat-chip
         *ngFor="let tag of value | keyvalue"
