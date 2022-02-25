@@ -18,13 +18,13 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 	if rpc.FullList {
 		a.unsubscribeGroupChannels()
 		a.subscribeGroupChannels(rpc.Groups)
+		err := a.sendAgentPoliciesReq()
+		if err != nil {
+			a.logger.Error("failed to send agent policies request", zap.Error(err))
+		}
 	} else {
 		// otherwise, just add these subscriptions to the existing list
 		a.subscribeGroupChannels(rpc.Groups)
-	}
-	err := a.sendAgentPoliciesReq()
-	if err != nil {
-		a.logger.Error("failed to send agent policies request", zap.Error(err))
 	}
 }
 
