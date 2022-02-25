@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnChanges, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -8,7 +8,7 @@ import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
-import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
+import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
@@ -16,7 +16,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
   templateUrl: './agent.group.add.component.html',
   styleUrls: ['./agent.group.add.component.scss'],
 })
-export class AgentGroupAddComponent implements AfterViewInit {
+export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit {
   // page vars
   strings = { ...STRINGS.agentGroups, stepper: STRINGS.stepper };
 
@@ -25,6 +25,9 @@ export class AgentGroupAddComponent implements AfterViewInit {
   columnMode = ColumnMode;
 
   columns: TableColumn[];
+
+  // table
+  @ViewChild(DatatableComponent) table: DatatableComponent;
 
   // templates
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
@@ -71,6 +74,7 @@ export class AgentGroupAddComponent implements AfterViewInit {
   constructor(
     private agentGroupsService: AgentGroupsService,
     private agentsService: AgentsService,
+    private cdr: ChangeDetectorRef,
     private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
@@ -86,7 +90,9 @@ export class AgentGroupAddComponent implements AfterViewInit {
 
     this.agentGroupID = this.route.snapshot.paramMap.get('id');
     this.isEdit = !!this.agentGroupID;
+  }
 
+  ngOnInit() {
     this.getAgentGroup()
       .then((agentGroup) => {
         this.agentGroup = agentGroup;
@@ -96,6 +102,12 @@ export class AgentGroupAddComponent implements AfterViewInit {
       })
       .then(() => this.updateMatches())
       .catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
+  }
+
+  ngOnChanges() {
+    this.table.rows = this.matchingAgents;
+    this.table.recalculate();
+
   }
 
   initializeForms() {
@@ -118,21 +130,27 @@ export class AgentGroupAddComponent implements AfterViewInit {
         prop: 'name',
         name: 'Agent Name',
         resizeable: false,
+        canAutoResize: true,
         flexGrow: 1,
-        minWidth: 90,
+        minWidth: 150,
+        width: 175,
       },
       {
         prop: 'orb_tags',
         name: 'Tags',
         resizeable: false,
-        minWidth: 100,
-        flexGrow: 2,
+        minWidth: 250,
+        width: 350,
+        canAutoResize: true,
+        flexGrow: 10,
         cellTemplate: this.agentTagsTemplateCell,
       },
       {
         prop: 'state',
         name: 'Status',
-        minWidth: 90,
+        minWidth: 100,
+        width: 100,
+        canAutoResize: true,
         flexGrow: 1,
         cellTemplate: this.agentStateTemplateRef,
       },
@@ -141,9 +159,11 @@ export class AgentGroupAddComponent implements AfterViewInit {
         prop: 'ts_last_hb',
         cellTemplate: this.agentLastHBTemplateRef,
         minWidth: 130,
+        width: 140,
         resizeable: false,
+        canAutoResize: true,
         sortable: false,
-        flexGrow: 1,
+        flexGrow: 2,
       },
     ];
   }
@@ -226,6 +246,8 @@ export class AgentGroupAddComponent implements AfterViewInit {
 
       this.tagMatch = summary;
       this.matchingAgents = matches;
+      this.cdr.markForCheck();
+
     }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
   }
 

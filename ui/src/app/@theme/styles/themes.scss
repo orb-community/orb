@@ -7,7 +7,7 @@
 @import './material/material-light';
 
 $nb-themes: nb-register-theme((
-  layout-padding-top: 2.25rem,
+  layout-padding-top: 1rem,
   menu-item-icon-margin: 0 0.5rem 0 0,
   card-height-tiny: 13.5rem,
   card-height-small: 21.1875rem,
@@ -25,7 +25,7 @@ $nb-themes: nb-register-theme((
 ), default, default);
 
 $nb-themes: nb-register-theme((
-  layout-padding-top: 2.25rem,
+  layout-padding-top: 1rem,
   menu-item-icon-margin: 0 0.5rem 0 0,
   card-height-tiny: 13.5rem,
   card-height-small: 21.1875rem,
@@ -42,7 +42,7 @@ $nb-themes: nb-register-theme((
 ), cosmic, cosmic);
 
 $nb-themes: nb-register-theme((
-  layout-padding-top: 2.25rem,
+  layout-padding-top: 1rem,
   menu-item-icon-margin: 0 0.5rem 0 0,
   card-height-tiny: 13.5rem,
   card-height-small: 21.1875rem,
@@ -59,7 +59,7 @@ $nb-themes: nb-register-theme((
 ), corporate, corporate);
 
 $nb-themes: nb-register-theme((
-  layout-padding-top: 2.25rem,
+  layout-padding-top: 1rem,
   menu-item-icon-margin: 0 0.5rem 0 0,
   card-height-tiny: 13.5rem,
   card-height-small: 21.1875rem,
@@ -76,7 +76,7 @@ $nb-themes: nb-register-theme((
 ), dark, dark);
 
 $nb-themes: nb-register-theme((
-  layout-padding-top: 2.25rem,
+  layout-padding-top: 1rem,
   menu-item-icon-margin: 0 0.5rem 0 0,
   card-height-tiny: 13.5rem,
   card-height-small: 21.1875rem,
@@ -94,7 +94,7 @@ $nb-themes: nb-register-theme((
 ), material-light, material-light);
 
 $nb-themes: nb-register-theme((
-  layout-padding-top: 2.25rem,
+  layout-padding-top: 1rem,
   menu-item-icon-margin: 0 0.5rem 0 0,
   card-height-tiny: 13.5rem,
   card-height-small: 21.1875rem,
@@ -115,7 +115,7 @@ $nb-themes: nb-register-theme((
   // outter layout
   layout-padding-left: 0,
   layout-padding-right: 0,
-  layout-padding-top: 1.75rem,
+  layout-padding-top: 1rem !important,
   // nav menu
   scrollable-padding: 10px 0 12px 0,
   //menu-card-height-tiny: 13.5rem,
@@ -152,6 +152,7 @@ $nb-themes: nb-register-theme((
   slide-out-shadow-color: 0 4px 14px 0 #292929,
   slide-out-shadow-color-rtl: 0 4px 14px 0 #292929,
   // Stepper
+  stepper-step-margin-left: 1rem,
   stepper-step-index-border-color: #969fb9,
   stepper-step-index-active-border-color: #df316f,
   stepper-step-active-text-color: #df316f,

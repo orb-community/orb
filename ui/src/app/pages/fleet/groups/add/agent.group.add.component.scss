@@ -41,6 +41,10 @@ mat-chip nb-icon {
     }
   }
 
+  nb-layout-column {
+    padding: 1rem 1rem 0.75rem !important;
+  }
+
   .step {
     flex-direction: row-reverse !important;
     align-items: start !important;
@@ -186,7 +190,10 @@ tr div p {
 .tag-table {
   position: relative;
   left: 0;
-  width: 900px;
+  min-height: 18vw;
+  height: 25vw;
+  max-height: 30vw;
+  width: 57vw;
 }
 
 .orb-service- {
