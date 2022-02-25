@@ -158,11 +158,6 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 		return err
 	}
 
-	if len(groups) == 0 {
-		// no groups, nothing to do
-		return nil
-	}
-
 	groupIDs := make([]string, len(groups))
 	for i, group := range groups {
 		groupIDs[i] = group.ID
@@ -174,29 +169,34 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 		return err
 	}
 
-	p, err := svc.policyClient.RetrievePoliciesByGroups(ctx, &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: a.MFOwnerID})
-	if err != nil {
-		return err
-	}
-
-	payload := make([]AgentPolicyRPCPayload, len(p.Policies))
-	for i, policy := range p.Policies {
-
-		var pdata interface{}
-		if err := json.Unmarshal(policy.Data, &pdata); err != nil {
+	var payload []AgentPolicyRPCPayload
+	if len(groups) > 0 {
+		p, err := svc.policyClient.RetrievePoliciesByGroups(ctx, &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: a.MFOwnerID})
+		if err != nil {
 			return err
 		}
+		payload = make([]AgentPolicyRPCPayload, len(p.Policies))
+		for i, policy := range p.Policies {
 
-		payload[i] = AgentPolicyRPCPayload{
-			Action:    "manage",
-			ID:        policy.Id,
-			Name:      policy.Name,
-			Backend:   policy.Backend,
-			Version:   policy.Version,
-			Data:      pdata,
-			DatasetID: policy.DatasetId,
+			var pdata interface{}
+			if err := json.Unmarshal(policy.Data, &pdata); err != nil {
+				return err
+			}
+
+			payload[i] = AgentPolicyRPCPayload{
+				Action:    "manage",
+				ID:        policy.Id,
+				Name:      policy.Name,
+				Backend:   policy.Backend,
+				Version:   policy.Version,
+				Data:      pdata,
+				DatasetID: policy.DatasetId,
+			}
+
 		}
-
+	} else {
+		payload = make([]AgentPolicyRPCPayload, 1)
+		payload[0] = AgentPolicyRPCPayload{}
 	}
 
 	data := AgentPolicyRPC{

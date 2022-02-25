@@ -63,6 +63,9 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullLi
 	}
 
 	for _, payload := range rpc {
+		if payload.Action == "" {
+			continue
+		}
 		a.policyManager.ManagePolicy(payload)
 	}
 
