@@ -30,6 +30,7 @@ func (svc *fleetService) checkAgents() {
 		select {
 		case <-svc.aDone:
 			svc.logger.Info("stopping stale agent routine")
+			svc.aTicker.Stop()
 			return
 		case t := <-svc.aTicker.C:
 			svc.checkState(t)
