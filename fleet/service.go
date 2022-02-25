@@ -95,7 +95,9 @@ func (svc fleetService) thing(token, id string, name string, md map[string]inter
 	return thing, nil
 }
 
-func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, agentComms AgentCommsService, mfsdk mfsdk.SDK, aTicker *time.Ticker, aDone chan bool) Service {
+func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentRepo AgentRepository, agentGroupRepository AgentGroupRepository, agentComms AgentCommsService, mfsdk mfsdk.SDK, aDone chan bool) Service {
+
+	aTicker := time.NewTicker(HeartbeatFreq)
 
 	service := fleetService{
 		logger:               logger,
