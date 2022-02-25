@@ -11,7 +11,6 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['register.component.scss'],
 })
 export class RegisterComponent extends NbRegisterComponent implements OnInit {
-  _ps;
   strings = STRINGS.login;
 
   _isProduction = environment.production;
@@ -37,7 +36,6 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   }
 
   ngOnInit() { // In the ngOnInit() or in the constructor
-    this._ps = window['_ps'];
     const el = document.getElementById('nb-global-spinner');
     if (el) {
       el.style['display'] = 'none';
@@ -57,13 +55,14 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
 
   // Return whether to block the submission or not.
   blockSubmission() {
+    const _ps = window['_ps'];
     if (!this._psEnabled) return false;
     // Check to ensure we're able to get the Group successfully.
-    if (this._ps.getByKey(this._groupKey)) {
+    if (_ps.getByKey(this._groupKey)) {
 
       // Return if we should block the submission using the .block() method
       // provided by the Group object.
-      return this._ps.getByKey(this._groupKey).block();
+      return _ps.getByKey(this._groupKey).block();
     } else {
       // We weren't able to get the group,
       // so blocking form submission may be needed.
@@ -77,6 +76,8 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     this.errors = this.messages = [];
     this.submitted = true;
 
+    const _ps = window['_ps'];
+
     event?.preventDefault();
     if (!this.blockSubmission()) {
       // We don't need to block the form submission,
@@ -89,8 +90,8 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
       }).subscribe(
         respReg => {
           const first_name = this.user.fullName.split(' ')[0];
-          const last_name = this.user.fullName.replace(`${first_name} `, '');
-          this._ps.getByKey(this._groupKey).send('updated', { custom_data: { first_name, last_name } });
+          const last_name = this.user.fullName.replace(`${ first_name } `, '');
+          _ps.getByKey(this._groupKey).send('updated', { custom_data: { first_name, last_name } });
 
           this.submitted = false;
 
@@ -118,8 +119,8 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
       // We can get the alert message if set on the group
       // or define our own if it's not.
       const acceptanceAlertLanguage =
-        (this._ps.getByKey(this._groupKey) && this._ps.getByKey(this._groupKey).get('alert_message')) ?
-          this._ps.getByKey(this._groupKey).get('alert_message') :
+        (_ps.getByKey(this._groupKey) && _ps.getByKey(this._groupKey).get('alert_message')) ?
+          _ps.getByKey(this._groupKey).get('alert_message') :
           'Please accept our Terms and Conditions.';
 
       // Alert the user that the Terms need to be accepted before continuing.
