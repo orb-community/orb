@@ -1,6 +1,7 @@
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, create_tags_set
 from local_agent import run_local_agent_container
+from control_plane_agent_groups import return_matching_groups
 from behave import given, when, then, step
 from hamcrest import *
 import time
@@ -86,8 +87,6 @@ def list_policies_applied_to_an_agent(context, amount_of_policies, policies_stat
 
     assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)),
                 f"Amount of policies applied to this agent failed with {context.list_agent_policies_id} policies")
-    assert_that(sorted(context.list_agent_policies_id), equal_to(sorted(context.policies_created.keys())),
-                "Policies linked with the agent is not the same as the created by test process")
     for policy_id in context.list_agent_policies_id:
         assert_that(agent['last_hb_data']['policy_state'][policy_id]["state"], equal_to(policies_status),
                     f"policy {policy_id} is not {policies_status}")
@@ -97,8 +96,9 @@ def list_policies_applied_to_an_agent(context, amount_of_policies, policies_stat
 def list_groups_matching_an_agent(context, amount_of_groups):
     time_waiting = 0
     sleep_time = 0.5
-    timeout = 30
+    timeout = 10
     context.list_groups_id = list()
+    groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups, context.agent)
     while time_waiting < timeout:
         agent = get_agent(context.token, context.agent['id'])
         if 'group_state' in agent['last_hb_data'].keys():
