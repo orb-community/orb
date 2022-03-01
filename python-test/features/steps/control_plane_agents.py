@@ -69,8 +69,8 @@ def multiple_dataset_for_policy(context, amount_of_datasets):
                     f"Amount of datasets linked with policy {policy_id} failed")
 
 
-@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied")
-def list_policies_applied_to_an_agent(context, amount_of_policies):
+@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied and has status {policies_status}")
+def list_policies_applied_to_an_agent(context, amount_of_policies, policies_status):
     time_waiting = 0
     sleep_time = 0.5
     timeout = 30
@@ -89,8 +89,8 @@ def list_policies_applied_to_an_agent(context, amount_of_policies):
     assert_that(sorted(context.list_agent_policies_id), equal_to(sorted(context.policies_created.keys())),
                 "Policies linked with the agent is not the same as the created by test process")
     for policy_id in context.list_agent_policies_id:
-        assert_that(agent['last_hb_data']['policy_state'][policy_id]["state"], equal_to('running'),
-                    f"policy {policy_id} is not running")
+        assert_that(agent['last_hb_data']['policy_state'][policy_id]["state"], equal_to(policies_status),
+                    f"policy {policy_id} is not {policies_status}")
 
 
 @step("this agent's heartbeat shows that {amount_of_groups} groups are matching the agent")
