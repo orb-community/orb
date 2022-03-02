@@ -7,6 +7,7 @@ import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { delay, expand, reduce } from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 20;
@@ -115,6 +116,24 @@ export class AgentPoliciesService {
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
+      );
+  }
+
+  getAllAgentPolicies() {
+    const pageInfo = AgentPoliciesService.getDefaultPagination();
+    pageInfo.limit = 100;
+
+    return this.getAgentsPolicies(pageInfo)
+      .pipe(
+        expand(data => {
+          return data.next ? this.getAgentsPolicies(data.next) : Observable.empty();
+        }),
+        delay(250),
+        reduce<OrbPagination<AgentPolicy>>((acc, value) => {
+          acc.data.splice(value.offset, value.limit, ...value.data);
+          acc.offset = 0;
+          return acc;
+        }, this.cache),
       );
   }
 

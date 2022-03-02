@@ -131,6 +131,7 @@ export interface DropdownFilterItem {
   label?: string;
   selected?: boolean;
   prop?: string;
+  filter?: (item: any, filter: any) => boolean;
 }
 
 export interface TableConfig {

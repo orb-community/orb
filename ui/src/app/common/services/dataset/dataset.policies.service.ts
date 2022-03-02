@@ -7,6 +7,7 @@ import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import { delay, expand, reduce } from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 20;
@@ -51,7 +52,7 @@ export class DatasetPoliciesService {
 
   addDataset(datasetItem: Dataset) {
     return this.http.post(environment.datasetPoliciesUrl,
-        { ...datasetItem},
+        { ...datasetItem },
         { observe: 'response' })
       .map(
         resp => {
@@ -112,6 +113,24 @@ export class DatasetPoliciesService {
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
+      );
+  }
+
+  getAllDatasets() {
+    const pageInfo = DatasetPoliciesService.getDefaultPagination();
+    pageInfo.limit = 100;
+
+    return this.getDatasetPolicies(pageInfo)
+      .pipe(
+        expand(data => {
+          return data.next ? this.getDatasetPolicies(data.next) : Observable.empty();
+        }),
+        delay(250),
+        reduce<OrbPagination<Dataset>>((acc, value) => {
+          acc.data.splice(value.offset, value.limit, ...value.data);
+          acc.offset = 0;
+          return acc;
+        }, this.cache),
       );
   }
 
