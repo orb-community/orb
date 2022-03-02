@@ -1,5 +1,5 @@
 ## Scenario: Create policy with dhcp handler 
-## 1 - Create a policy dhcp with description, host specification, bpf filter and pcap source
+## 1 - Create a policy with dhcp handler, description, host specification, bpf filter and pcap source
 
 - REST API Method: POST
 - endpoint: /policies/agent/

@@ -1,6 +1,6 @@
 ## Scenario: Create policy with net handler 
 
-## 1 - Create a policy net with description, host specification, bpf filter and pcap source
+## 1 - Create a policy with net handler, description, host specification, bpf filter and pcap source
 
 - REST API Method: POST
 - endpoint: /policies/agent/
