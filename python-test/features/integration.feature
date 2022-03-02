@@ -1,6 +1,8 @@
 @integration
 Feature: Integration tests
 
+
+@smoke
 Scenario: Apply multiple advanced policies to an agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -13,6 +15,7 @@ Scenario: Apply multiple advanced policies to an agent
         And datasets related to all existing policies have validity valid
 
 
+@smoke
 Scenario: Apply two simple policies to an agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -27,6 +30,7 @@ Scenario: Apply two simple policies to an agent
         And datasets related to all existing policies have validity valid
 
 
+@smoke
 Scenario: apply one policy using multiple datasets to the same group
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -37,10 +41,11 @@ Scenario: apply one policy using multiple datasets to the same group
     Then this agent's heartbeat shows that 2 policies are successfully applied and has status running
         And 3 datasets are linked with each policy on agent's heartbeat
         And the container logs contain the message "policy applied successfully" referred to each policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
+        And referred sink must have active state on response within 180 seconds
         And datasets related to all existing policies have validity valid
 
-    
+
+@smoke
 Scenario: Remove group to which agent is linked
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -54,6 +59,7 @@ Scenario: Remove group to which agent is linked
         And dataset related have validity invalid
 
 
+@smoke
 Scenario: Remove policy from agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -72,6 +78,7 @@ Scenario: Remove policy from agent
         And the container logs that were output after the policy have been removed does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
 
+@smoke
 Scenario: Remove dataset from agent with just one dataset linked
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -88,6 +95,7 @@ Scenario: Remove dataset from agent with just one dataset linked
         And the container logs that were output after removing dataset does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
 
+@smoke
 Scenario: Remove dataset from agent with more than one dataset linked
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -104,6 +112,7 @@ Scenario: Remove dataset from agent with more than one dataset linked
         And the container logs that were output after removing dataset does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
 
+@smoke
 Scenario: Provision agent with tags matching an existent group
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -114,6 +123,7 @@ Scenario: Provision agent with tags matching an existent group
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
 
 
+@smoke
 Scenario: Provision agent with tag matching existing group linked to a valid dataset
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -129,6 +139,7 @@ Scenario: Provision agent with tag matching existing group linked to a valid dat
         And datasets related to all existing policies have validity valid
 
 
+@smoke
 Scenario: Sink with invalid endpoint
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -144,6 +155,7 @@ Scenario: Sink with invalid endpoint
         And dataset related have validity valid
 
 
+@smoke
 Scenario: Sink with invalid username
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -159,6 +171,8 @@ Scenario: Sink with invalid username
         And dataset related have validity valid
 
 
+#@smoke
+@fail
 Scenario: Sink with invalid password
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -174,6 +188,7 @@ Scenario: Sink with invalid password
         And dataset related have validity valid
 
 
+@smoke
 Scenario: Agent subscription to multiple groups created after provisioning agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -185,6 +200,7 @@ Scenario: Agent subscription to multiple groups created after provisioning agent
     Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
 
 
+@smoke
 Scenario: Agent subscription to multiple groups created before provisioning agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -196,6 +212,7 @@ Scenario: Agent subscription to multiple groups created before provisioning agen
     Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
 
 
+@smoke
 Scenario: Agent subscription to group after editing agent's tags (agent provisioned before editing and group created after)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -208,6 +225,7 @@ Scenario: Agent subscription to group after editing agent's tags (agent provisio
         And this agent's heartbeat shows that 1 groups are matching the agent
 
 
+@smoke
 Scenario: Agent subscription to group after editing agent's tags (editing tags after agent provision)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -220,6 +238,7 @@ Scenario: Agent subscription to group after editing agent's tags (editing tags a
         And this agent's heartbeat shows that 1 groups are matching the agent
 
 
+@smoke
 Scenario: Agent subscription to group after editing agent's tags (editing tags before agent provision)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -231,6 +250,7 @@ Scenario: Agent subscription to group after editing agent's tags (editing tags b
         And this agent's heartbeat shows that 1 groups are matching the agent
 
 
+@smoke
 Scenario: Agent subscription to multiple group with policies after editing agent's tags (editing tags after agent provision)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -249,6 +269,7 @@ Scenario: Agent subscription to multiple group with policies after editing agent
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
+@smoke
 Scenario: Agent subscription to group with policies after editing agent's tags (editing tags after agent provision)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -267,6 +288,7 @@ Scenario: Agent subscription to group with policies after editing agent's tags (
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
+@smoke
 Scenario: Insert tags in agents created without tags and apply policies to group matching new tags
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -283,6 +305,7 @@ Scenario: Insert tags in agents created without tags and apply policies to group
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
+@smoke
 Scenario: Edit agent name and apply policies to then
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -296,6 +319,7 @@ Scenario: Edit agent name and apply policies to then
         And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
 
 
+@smoke
 Scenario: Editing tags of an Agent Group with policies (unsubscription - provision agent before editing)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -309,6 +333,7 @@ Scenario: Editing tags of an Agent Group with policies (unsubscription - provisi
         And the agent status in Orb should be online
 
 
+@smoke
 Scenario: Editing tags of an Agent Group with policies (subscription - provision agent before editing)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -324,6 +349,7 @@ Scenario: Editing tags of an Agent Group with policies (subscription - provision
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
 
 
+@smoke
 Scenario: Editing tags of an Agent Group with policies (provision agent after editing)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -337,6 +363,7 @@ Scenario: Editing tags of an Agent Group with policies (provision agent after ed
         And the agent status in Orb should be online
 
 
+@smoke
 Scenario: Editing tags of an Agent Group with policies (subscription - provision agent after editing)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -353,6 +380,7 @@ Scenario: Editing tags of an Agent Group with policies (subscription - provision
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
 
 
+@smoke
 Scenario: Editing tags of an Agent and Agent Group with policies (unsubscription - provision agent before editing)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -367,6 +395,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (unsubscription
         And the agent status in Orb should be online
 
 
+@smoke
 Scenario: Editing tags of an Agent and Agent Group with policies (subscription - provision agent before editing)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -383,6 +412,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
 
 
+@smoke
 Scenario: Editing tags of an Agent and Agent Group with policies (provision agent after editing)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -397,6 +427,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (provision agen
         And the agent status in Orb should be online
 
 
+@smoke
 Scenario: Editing tags of an Agent and Agent Group with policies (subscription - provision agent after editing)
     Given the Orb user has a registered account
         And the Orb user logs in

@@ -1,6 +1,7 @@
 @datasets
 Feature: datasets creation
 
+  @smoke
   Scenario: Create Dataset
     Given the Orb user has a registered account
       And the Orb user logs in
