@@ -166,12 +166,12 @@ export class AgentViewComponent implements OnInit, OnDestroy {
 -e PKTVISOR_PCAP_IFACE_DEFAULT=mock \\
 ns1labs/orb-agent:develop`;
 
-      this.command2show = `docker run -d --net=host \n
--e ORB_CLOUD_ADDRESS=${ document.location.hostname } \n
--e ORB_CLOUD_MQTT_ID=${ this.agent.id } \n
--e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \n
--e ORB_CLOUD_MQTT_KEY=<mark>{{ AGENT KEY }}</mark> \n
--e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>mock</mark> \n
+      this.command2show = `docker run -d --net=host \\
+-e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
+-e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
+-e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
+-e ORB_CLOUD_MQTT_KEY=<mark>{{ AGENT KEY }}</mark> \\
+-e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>mock</mark> \\
 
 ns1labs/orb-agent:develop`;
     }
