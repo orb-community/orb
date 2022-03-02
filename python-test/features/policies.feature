@@ -48,7 +48,7 @@ Feature: policy creation
     When a new policy is created using: handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap
     Then referred policy must be listed on the orb policies list
 
-    
+
   Scenario: Create a policy with net handler, description, host specification, bpf filter and pcap source
     Given the Orb user has a registered account
       And the Orb user logs in
