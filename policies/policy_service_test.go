@@ -1170,7 +1170,7 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			err := svc.DeleteSinkFromDataset(context.Background(), tc.sinkID, tc.token)
+			_, err := svc.DeleteSinkFromDataset(context.Background(), tc.sinkID, tc.token)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		})
 	}

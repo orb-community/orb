@@ -552,7 +552,7 @@ func (r policiesRepository) DeleteSinkFromDataset(ctx context.Context, sinkID st
 	}
 
 	defer res.Close()
-	res.Next()
+
 	var datasets []policies.Dataset
 	for res.Next() {
 		dbDataset := dbDataset{MFOwnerID: ownerID}

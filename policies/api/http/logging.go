@@ -270,7 +270,7 @@ func (l loggingMiddleware) ListDatasets(ctx context.Context, token string, pm po
 	return l.svc.ListDatasets(ctx, token, pm)
 }
 
-func (l loggingMiddleware) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) (err error) {
+func (l loggingMiddleware) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) (ds []policies.Dataset, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: delete_sink_from_dataset",

@@ -329,26 +329,22 @@ func (s policiesService) ListDatasets(ctx context.Context, token string, pm Page
 	return s.repo.RetrieveAllDatasetsByOwner(ctx, ownerID, pm)
 }
 
-func (s policiesService) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) error {
+func (s policiesService) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) ([]Dataset, error) {
 	ownerID, err := s.identify(token)
 	if err != nil {
-		return err
+		return []Dataset{}, err
 	}
 
 	if sinkID == "" {
-		return ErrMalformedEntity
+		return []Dataset{}, ErrMalformedEntity
 	}
 
 	datasets, err := s.repo.DeleteSinkFromDataset(ctx, sinkID, ownerID)
-
-	for _, ds := range datasets{
-		if len(ds.SinkIDs) == 0{
-			s.InactivateDatasetByID(ctx, sinkID, ownerID)
-
-		}
+	if err != nil {
+		return []Dataset{}, err
 	}
 
-	return nil
+	return datasets, nil
 }
 
 func (s policiesService) InactivateDatasetByID(ctx context.Context, datasetID string, token string) error {
@@ -357,11 +353,14 @@ func (s policiesService) InactivateDatasetByID(ctx context.Context, datasetID st
 		return err
 	}
 
-	if datasetID == "" {
+	if datasetID == ""{
 		return ErrMalformedEntity
 	}
 
 	err = s.repo.InactivateDatasetByID(ctx, datasetID, ownerID)
+	if err != nil {
+		return errors.Wrap(ErrInactivateDataset, err)
+	}
 
 	return nil
 }

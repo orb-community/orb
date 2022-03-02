@@ -107,7 +107,7 @@ type Service interface {
 	InactivateDatasetByID(ctx context.Context, datasetID string, token string) error
 
 	// DeleteSinkFromDataset removes a sink from a dataset
-	DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) error
+	DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) ([]Dataset, error)
 }
 
 type Repository interface {

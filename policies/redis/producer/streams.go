@@ -229,7 +229,7 @@ func (e eventStore) ValidatePolicy(ctx context.Context, token string, p policies
 	return e.svc.ValidatePolicy(ctx, token, p, format, policyData)
 }
 
-func (e eventStore) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) error {
+func (e eventStore) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) ([]policies.Dataset, error) {
 	return e.svc.DeleteSinkFromDataset(ctx, sinkID, token)
 }
 

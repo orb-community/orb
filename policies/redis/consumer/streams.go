@@ -147,10 +147,20 @@ func (es eventStore) handleAgentGroupRemove(ctx context.Context, groupID string,
 
 func (es eventStore) handleSinkRemove(ctx context.Context, sinkID string, token string) error {
 
-	err := es.policiesService.DeleteSinkFromDataset(ctx, sinkID, token)
+	datasets, err := es.policiesService.DeleteSinkFromDataset(ctx, sinkID, token)
 	if err != nil {
 		return err
 	}
+
+	for _, ds := range datasets{
+		if len(ds.SinkIDs) == 0{
+			err = es.policiesService.InactivateDatasetByID(ctx, ds.ID, token)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 

@@ -41,7 +41,7 @@ func (m metricsMiddleware) InactivateDatasetByID(ctx context.Context, datasetID 
 
 	}(time.Now())
 
-	return m.svc.InactivateDatasetByID(ctx, token, datasetID)
+	return m.svc.InactivateDatasetByID(ctx, datasetID, token)
 }
 
 func (m metricsMiddleware) ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (policies.Dataset, error) {
@@ -398,10 +398,10 @@ func (m metricsMiddleware) ListDatasets(ctx context.Context, token string, pm po
 	return m.svc.ListDatasets(ctx, token, pm)
 }
 
-func (m metricsMiddleware) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) error {
+func (m metricsMiddleware) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) ([]policies.Dataset, error) {
 	ownerID, err := m.identify(token)
 	if err != nil {
-		return err
+		return []policies.Dataset{}, err
 	}
 
 	defer func(begin time.Time) {

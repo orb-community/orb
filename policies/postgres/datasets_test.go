@@ -624,7 +624,7 @@ func TestMultiDatasetRetrievalPolicyID(t *testing.T) {
 	}
 }
 
-func TestInactivateDatasetBySinkID(t *testing.T) {
+func TestInactivateDatasetByID(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
 	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
 
@@ -635,9 +635,6 @@ func TestInactivateDatasetBySinkID(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	groupID, err := uuid.NewV4()
-	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-
-	wrongID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
 	policyID, err := uuid.NewV4()
@@ -688,14 +685,7 @@ func TestInactivateDatasetBySinkID(t *testing.T) {
 		valid   bool
 		err     error
 	}{
-		"inactivate dataset with a non-existing sink": {
-			id:      wrongID.String(),
-			ownerID: dataset.MFOwnerID,
-			dataset: dataset2,
-			valid:   true,
-			err:     nil,
-		},
-		"inactivate a existing dataset by sink ID": {
+		"inactivate a existing dataset by ID": {
 			ownerID: dataset.MFOwnerID,
 			id:      dataset.ID,
 			dataset: dataset,
@@ -716,8 +706,8 @@ func TestInactivateDatasetBySinkID(t *testing.T) {
 			err := repo.InactivateDatasetByID(context.Background(), tc.id, tc.ownerID)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
 
-			assertate, _ := repo.RetrieveDatasetByID(context.Background(), tc.dataset.ID, tc.dataset.MFOwnerID)
-			assert.Equal(t, tc.valid, assertate.Valid, fmt.Sprintf("%s: expected '%t' got '%t'", desc, tc.valid, assertate.Valid))
+			check, _ := repo.RetrieveDatasetByID(context.Background(), tc.dataset.ID, tc.dataset.MFOwnerID)
+			assert.Equal(t, tc.valid, check.Valid, fmt.Sprintf("%s: expected '%t' got '%t'", desc, tc.valid, check.Valid))
 		})
 	}
 }
