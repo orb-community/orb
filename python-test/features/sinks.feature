@@ -1,6 +1,7 @@
 @sinks
 Feature: sink creation
 
+  @smoke
   Scenario: Create Sink using Prometheus
     Given that the user has the prometheus/grafana credentials
       And the Orb user has a registered account
