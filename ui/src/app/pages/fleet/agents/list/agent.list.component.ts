@@ -40,8 +40,6 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
 
   searchPlaceholder = 'Search by name';
 
-  filterSelectedIndex = '0';
-
   // templates
   @ViewChild('agentNameTemplateCell') agentNameTemplateCell: TemplateRef<any>;
 
@@ -59,12 +57,33 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
       label: 'Name',
       prop: 'name',
       selected: false,
+      filter: (agent, name) => agent?.name.includes(name),
     },
     {
       id: '1',
       label: 'Tags',
       prop: 'tags',
       selected: false,
+      filter: (agent, tag) => Object.entries(agent?.tags)
+        .filter(([key, value]) => key?.includes(tag) || (!!value && value as string).includes(tag)).length > 0,
+    },
+    {
+      id: '2',
+      label: 'Status',
+      prop: 'state',
+      selected: false,
+      filter: (agent, state) => agent?.state.includes(state),
+    },
+  ];
+
+  selectedFilter = this.tableFilters[0];
+
+  filterValue = null;
+
+  tableSorts = [
+    {
+      prop: 'name',
+      dir: 'asc',
     },
   ];
 
@@ -97,7 +116,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
 
   ngOnInit() {
     this.agentService.clean();
-    this.getAgents();
+    this.getAllAgents();
   }
 
   ngAfterViewInit() {
@@ -106,7 +125,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
         prop: 'name',
         name: 'Name',
         resizeable: false,
-        flexGrow: 3,
+        flexGrow: 2,
         minWidth: 90,
         cellTemplate: this.agentNameTemplateCell,
       },
@@ -121,7 +140,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
       {
         prop: 'orb_tags',
         name: 'Tags',
-        minWidth: 90,
+        minWidth: 150,
         flexGrow: 4,
         cellTemplate: this.agentTagsTemplateCell,
       },
@@ -148,21 +167,25 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     this.cdr.detectChanges();
   }
 
-  @Debounce(500)
-  getAgents(pageInfo: NgxDatabalePageInfo = null): void {
-    const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
+  getAllAgents(): void {
+    this.agentService.getAllAgents().subscribe(resp => {
+      this.paginationControls.data = resp.data;
+      this.paginationControls.total = resp.data.length;
+      this.paginationControls.offset = resp.offset / resp.limit;
+      this.loading = false;
+      this.cdr.markForCheck();
+    });
+  }
 
-    if (isFilter) {
-      pageInfo = {
-        offset: this.paginationControls.offset,
-        limit: this.paginationControls.limit,
-      };
-      if (this.paginationControls.name?.length > 0) pageInfo.name = this.paginationControls.name;
-      if (this.paginationControls.tags?.length > 0) pageInfo.tags = this.paginationControls.tags;
-    }
+  getAgents(pageInfo: NgxDatabalePageInfo = null): void {
+    const finalPageInfo = { ...pageInfo };
+    finalPageInfo.dir = 'desc';
+    finalPageInfo.order = 'name';
+    finalPageInfo.limit = this.paginationControls.limit;
+    finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
 
     this.loading = true;
-    this.agentService.getAgents(pageInfo, isFilter).subscribe(
+    this.agentService.getAgents(pageInfo).subscribe(
       (resp: OrbPagination<Agent>) => {
         this.paginationControls = resp;
         this.paginationControls.offset = pageInfo?.offset || 0;
@@ -192,8 +215,22 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     });
   }
 
-  onFilterSelected(selectedIndex) {
-    this.searchPlaceholder = `Search by ${ this.tableFilters[selectedIndex].label }`;
+  onFilterSelected(filter) {
+    this.searchPlaceholder = `Search by ${ filter.label }`;
+    this.filterValue = null;
+  }
+
+  applyFilter() {
+    if (!this.paginationControls || !this.paginationControls?.data) return;
+
+    if (!this.filterValue || this.filterValue === '') {
+      this.table.rows = this.paginationControls.data;
+    } else {
+      this.table.rows = this.paginationControls.data.filter(agent => this.filterValue.split(/[\s,.:]+/gm).reduce((prev, curr) => {
+        return this.selectedFilter.filter(agent, curr) && prev;
+      }, true));
+    }
+    this.paginationControls.offset = 0;
   }
 
   openDeleteModal(row: any) {
@@ -225,13 +262,6 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
       } else {
         this.getAgents();
       }
-    });
-  }
-
-  searchAgentByName(input) {
-    this.getAgents({
-      ...this.paginationControls,
-      [this.tableFilters[this.filterSelectedIndex].prop]: input,
     });
   }
 

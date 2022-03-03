@@ -40,6 +40,8 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
 
 
   // templates
+  @ViewChild('sinkNameTemplateCell') sinkNameTemplateCell: TemplateRef<any>;
+
   @ViewChild('sinkStateTemplateCell') sinkStateTemplateCell: TemplateRef<any>;
 
   @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
@@ -118,6 +120,8 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
       this.table.recalculate();
+      this.cdr.detectChanges();
+      window.dispatchEvent(new Event('resize'));
     }
   }
 
@@ -135,6 +139,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
         resizeable: false,
         flexGrow: 2,
         minWidth: 90,
+        cellTemplate: this.sinkNameTemplateCell,
       },
       {
         prop: 'description',
@@ -161,7 +166,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
       {
         prop: 'tags',
         name: 'Tags',
-        minWidth: 90,
+        minWidth: 300,
         flexGrow: 3,
         resizeable: false,
         cellTemplate: this.sinkTagsTemplateCell,
@@ -191,26 +196,19 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   }
 
   getSinks(pageInfo: NgxDatabalePageInfo = null): void {
-    const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
     const finalPageInfo = { ...pageInfo };
     finalPageInfo.dir = 'desc';
     finalPageInfo.order = 'name';
     finalPageInfo.limit = this.paginationControls.limit;
     finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
 
-    if (isFilter) {
-      if (this.paginationControls.name?.length > 0) finalPageInfo.name = this.paginationControls.name;
-      if (this.paginationControls.tags?.length > 0) finalPageInfo.tags = this.paginationControls.tags;
-    }
-
     this.loading = true;
-    this.sinkService.getSinks(finalPageInfo, isFilter).subscribe(
+    this.sinkService.getSinks(finalPageInfo).subscribe(
       (resp: OrbPagination<Sink>) => {
         this.paginationControls.data = resp.data.slice(resp.offset, resp.offset + resp.limit);
         this.paginationControls.total = resp.total;
         this.paginationControls.offset = resp.offset / resp.limit;
         this.loading = false;
-        this.cdr.detectChanges();
       },
     );
   }
@@ -247,7 +245,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
         return this.selectedFilter.filter(sink, curr) && prev;
       }, true));
     }
-
+    this.paginationControls.offset = 0;
   }
 
   openDeleteModal(row: any) {

@@ -67,24 +67,22 @@
   </div>
 </div>
 
+<ng-template #sinkNameTemplateCell let-i="index" let-row="row" let-value="value">
+  <div nbTooltip="{{ row.id }}">
+    {{ row.name }}
+  </div>
+</ng-template>
+
 <ng-template #sinkStateTemplateCell let-i="index" let-row="row" let-value="value">
   <div>
-    <div *ngIf="row.state === 'active'">
-      <i aria-hidden="true" class="fa fa-circle orb-service-active"
-         style="color: #61f69f;"></i>
+      <i aria-hidden="true" class="fa fa-circle orb-service-{{ row.state }}"></i>
       {{ row.state | titlecase }}
-    </div>
-    <div *ngIf="row.state !== 'active'">
-      <i aria-hidden="true" class="fa fa-circle orb-service-inactive"
-         style="color: #f2994a;"></i>
-      {{ row.state | titlecase }}
-    </div>
   </div>
 </ng-template>
 
 <ng-template #sinkTagsTemplateCell let-i="index" let-row="row" let-value="value">
   <div class="d-flex">
-    <mat-chip-list>
+    <mat-chip-list nbTooltip="{{ value | json }}">
       <mat-chip
         *ngFor="let tag of value | keyvalue | slice:0:3"
         [style.background-color]="tag | tagcolor"

@@ -13,7 +13,7 @@
         </p>
         <p *ngIf=" paginationControls.data && paginationControls.data.filter(filterByError).length > 0 "
            class="ns1red">
-          &nbsp;<a><strong> {{paginationControls.data.filter(filterByError).length}}</strong> of them  have errors</a>.
+          &nbsp;<a><strong> {{paginationControls.data.filter(filterByError).length}}</strong> of them have errors</a>.
         </p>
         <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
            class="sink-info-accent mb-0">
@@ -23,104 +23,80 @@
       <div class="d-flex">
         <div class="mr-3">
           <nb-select
-            *ngIf="tableFilters && tableFilters.length"
-            [(selected)]="filterSelectedIndex"
             (selectedChange)="onFilterSelected($event)"
+            *ngIf="tableFilters && tableFilters.length"
+            [(selected)]="selectedFilter"
             appearance="filled"
-            size="medium"
             class="d-flex justify-content-end"
-            style="width: 160px; height: 100%"
-            placeholder="Filter by">
-            <nb-option *ngFor="let conf of tableFilters" [value]="conf.id">{{ conf.label }}</nb-option>
+            placeholder="Filter by"
+            size="medium"
+            style="width: 160px; height: 100%">
+            <nb-option *ngFor="let conf of tableFilters" [value]="conf">{{ conf.label }}</nb-option>
           </nb-select>
         </div>
-        <nb-form-field *ngIf="filterSelectedIndex =='1'">
-          <nb-icon nbPrefix icon="search-outline" pack="eva"></nb-icon>
-          <input nbInput
-                 (keyup)="getAgents()"
+        <nb-form-field *ngIf="selectedFilter">
+          <nb-icon icon="search-outline" nbPrefix pack="eva"></nb-icon>
+          <input (keyup)="applyFilter()"
+                 [(ngModel)]="filterValue"
                  [placeholder]="searchPlaceholder"
-                 type="text"
                  fieldSize="medium"
-                 [(ngModel)]="paginationControls.tags"/>
-        </nb-form-field>
-        <nb-form-field *ngIf="filterSelectedIndex =='0'">
-          <nb-icon nbPrefix icon="search-outline" pack="eva"></nb-icon>
-          <input nbInput
-                 (keyup)="getAgents()"
-                 [placeholder]="searchPlaceholder"
-                 type="text"
-                 fieldSize="medium"
-                 [(ngModel)]="paginationControls.name"/>
+                 nbInput
+                 type="text"/>
         </nb-form-field>
       </div>
     </div>
     <div class="add-agent-container">
-      <button nbButton
+      <button (click)="onOpenAdd()"
               ghost="true"
-              status="primary"
-              (click)="onOpenAdd()">
+              nbButton
+              status="primary">
         <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
     </div>
     <ngx-datatable
-        #table
-        class="orb"
-        style="height: calc(100vh - 300px)"
-        [loadingIndicator]="loading"
-        [externalPaging]="true"
-        [externalSorting]="true"
-        [count]="paginationControls.total"
-        [limit]="paginationControls.limit"
-        [offset]="paginationControls.offset"
-        [rows]="paginationControls.data"
-        [scrollbarV]="true"
-        (page)='getAgents($event)'
-        [columns]="columns"
-        [columnMode]="columnMode.flex"
-        [headerHeight]="50"
-        [footerHeight]="50"
-        [rowHeight]="50">
+      #table
+      [columnMode]="columnMode.flex"
+      [columns]="columns"
+      [footerHeight]="50"
+      [headerHeight]="50"
+      [limit]="paginationControls.limit"
+      [loadingIndicator]="loading"
+      [rowHeight]="50"
+      [rows]="paginationControls.data"
+      [scrollbarV]="true"
+      [sorts]="tableSorts"
+      class="orb"
+      style="height: calc(62vh)">
     </ngx-datatable>
   </div>
 </div>
 
-<ng-template #agentNameTemplateCell let-row="row" let-value="value" let-i="index">
-  <div class="agent-name" (click)="onOpenView(row)">
+<ng-template #agentNameTemplateCell let-i="index" let-row="row" let-value="value">
+  <div (click)="onOpenView(row)"
+       nbTooltip="View Details for {{ row.id }}"
+       class="agent-name">
     {{ value }}
   </div>
 </ng-template>
 
-<ng-template #agentStateTemplateCell let-row="row" let-value="value" let-i="index">
+<ng-template #agentStateTemplateCell let-i="index" let-row="row" let-value="value">
   <div>
-    <div *ngIf="row.state === 'active'">
-      <i class="fa fa-circle orb-service-active"
-         aria-hidden="true"></i>
-      {{ row.state | titlecase }}
-    </div>
-    <div *ngIf="row.state !== 'active'">
-      <i class="fa fa-circle orb-service-{{row.state}}"
-         aria-hidden="true"></i>
-      {{ row.state | titlecase }}
-    </div>
+    <i aria-hidden="true"
+       class="fa fa-circle orb-service-{{row.state}}"></i>
+    {{ row.state | titlecase }}
   </div>
 </ng-template>
 
-<ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
+<ng-template #agentTagsTemplateCell let-i="index" let-row="row" let-value="value">
   <div class="d-flex">
-    <mat-chip-list>
+    <mat-chip-list nbTooltip="{{ row?.combined_tags | json }}">
       <mat-chip
-          class="orb-tag-sink "
-          *ngFor="let tag of row.agent_tags | keyvalue | tagchiplist"
-          [style.background-color]="tag | tagcolor">
+        *ngFor="let tag of row?.combined_tags | keyvalue | tagchiplist"
+        [style.background-color]="tag | tagcolor"
+        class="orb-tag-sink ">
         {{tag}}
       </mat-chip>
       <mat-chip
-          class="orb-tag-sink"
-          *ngFor="let tag of row.orb_tags | keyvalue | tagchiplist"
-          [style.background-color]="tag | tagcolor">
-        {{tag}}
-      </mat-chip>
-      <mat-chip
-        *ngIf="(row.orb_tags | json) === '{}' && (row.agent_tags | json) === '{}'"
+        *ngIf="(row?.orb_tags | json) === '{}' && (row?.agent_tags | json) === '{}'"
         [style.background-color]="'notag' | tagcolor"
         class="orb-tag-sink ">
         No tags were created
@@ -129,33 +105,33 @@
   </div>
 </ng-template>
 
-<ng-template #agentLastActivityTemplateCell let-row="row" let-value="value" let-i="index">
-  <div class="d-flex" *ngIf="row.state === 'new'">
+<ng-template #agentLastActivityTemplateCell let-i="index" let-row="row" let-value="value">
+  <div *ngIf="row.state === 'new'" class="d-flex">
     Never
   </div>
-  <div class="d-flex" *ngIf="row.state !== 'new'">
+  <div *ngIf="row.state !== 'new'" class="d-flex">
     {{ value | date:'short' }}
   </div>
 </ng-template>
 
-<ng-template #actionsTemplateCell let-row="row" let-value="value" let-i="index">
+<ng-template #actionsTemplateCell let-i="index" let-row="row" let-value="value">
   <div class="d-flex flex-row">
-    <button nbButton
-            ghost
+    <button (click)="openDetailsModal(row)"
             class="orb-action-hover detail-button"
-            (click)="openDetailsModal(row)">
+            ghost
+            nbButton>
       <nb-icon icon="search-outline"></nb-icon>
     </button>
-    <button nbButton
-            ghost
+    <button (click)="onOpenEdit(row)"
             class="orb-action-hover edit-button"
-            (click)="onOpenEdit(row)">
+            ghost
+            nbButton>
       <nb-icon icon="edit-outline"></nb-icon>
     </button>
-    <button nbButton
-            ghost
+    <button (click)="openDeleteModal(row)"
             class="orb-action-hover del-button"
-            (click)="openDeleteModal(row)">
+            ghost
+            nbButton>
       <nb-icon icon="trash-2-outline"></nb-icon>
     </button>
   </div>
