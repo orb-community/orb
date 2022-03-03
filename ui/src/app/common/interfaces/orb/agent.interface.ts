@@ -93,4 +93,11 @@ export interface Agent extends OrbEntity {
    */
   key?: string;
 
+  /**
+   * Combines tags for display in UI
+   * Internal use
+   * See
+   */
+  combined_tags?: any;
+
 }

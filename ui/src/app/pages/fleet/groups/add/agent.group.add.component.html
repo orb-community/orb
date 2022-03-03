@@ -78,7 +78,7 @@
                 <mat-chip
                   *ngFor="let tag of selectedTags | keyvalue"
                   [style.background-color]="tag | tagcolor"
-                  class="orb-tag-sink ">
+                  class="orb-tag-chip ">
                   {{tag | tagchip}}
                   <nb-icon (click)="onRemoveTag(tag.key)"
                            class="ml-1"
@@ -88,7 +88,7 @@
                 <mat-chip
                   *ngIf="(selectedTags | json) === '{}'"
                   [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-sink ">
+                  class="orb-tag-chip ">
                   No tag added
                 </mat-chip>
               </mat-chip-list>
@@ -213,13 +213,13 @@
                 <mat-chip
                   *ngFor="let tag of selectedTags | keyvalue"
                   [style.background-color]="tag | tagcolor"
-                  class="orb-tag-sink ">
+                  class="orb-tag-chip ">
                   {{tag | tagchip}}
                 </mat-chip>
                 <mat-chip
                   *ngIf="(selectedTags | json) === '{}'"
                   [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-sink ">
+                  class="orb-tag-chip ">
                   No tag added
                 </mat-chip>
               </mat-chip-list>
@@ -310,7 +310,7 @@
       <mat-chip
         *ngFor="let tag of value | keyvalue"
         [style.background-color]="tag | tagcolor"
-        class="orb-tag-sink ">
+        class="orb-tag-chip ">
         {{tag | tagchip}}
       </mat-chip>
     </mat-chip-list>
@@ -319,6 +319,6 @@
 
 <ng-template #agentLastHBTemplateCell let-i="index" let-row="row" let-value="value">
   <div>
-    {{ row.ts_last_hb | date: 'short' }}
+    {{ row.ts_last_hb | date: 'M/d/yy, HH:mm z' }}
   </div>
 </ng-template>

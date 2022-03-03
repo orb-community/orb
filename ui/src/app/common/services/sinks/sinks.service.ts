@@ -7,9 +7,10 @@ import { environment } from 'environments/environment';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import { delay, expand, reduce } from 'rxjs/operators';
 
 // default filters
-const defLimit: number = 20;
+const defLimit: number = 10;
 const defOrder: string = 'name';
 const defDir = 'desc';
 
@@ -96,45 +97,89 @@ export class SinksService {
       );
   }
 
+  getAllSinks() {
+    const pageInfo = SinksService.getDefaultPagination();
+    pageInfo.limit = 100;
+
+    return this.getSinks(pageInfo)
+      .pipe(
+        expand(data => {
+          return data.next ? this.getSinks(data.next) : Observable.empty();
+        }),
+        delay(250),
+        reduce<OrbPagination<Sink>>((acc, value) => {
+          acc.data.splice(value.offset, value.limit, ...value.data);
+          acc.offset = 0;
+          return acc;
+        }, this.cache),
+      );
+  }
+
   getSinks(pageInfo: NgxDatabalePageInfo, isFilter = false) {
-    const offset = pageInfo?.offset || this.cache.offset;
-    const limit = pageInfo?.limit || this.cache.limit;
-    let params = new HttpParams()
-      .set('offset', (offset * limit).toString())
-      .set('limit', limit.toString())
-      .set('order', this.cache.order)
-      .set('dir', this.cache.dir);
+    let limit = pageInfo?.limit || this.cache.limit;
+    let order = pageInfo?.order || this.cache.order;
+    let dir = pageInfo?.dir || this.cache.dir;
+    let offset = pageInfo?.offset || 0;
+    let doClean = false;
+    let params = new HttpParams();
 
     if (isFilter) {
       if (pageInfo?.name) {
-        params = params.append('name', pageInfo.name);
+        params = params.set('name', pageInfo.name);
+        // is filter different than last filter?
+        doClean = !this.paginationCache?.name || this.paginationCache?.name !== pageInfo.name;
       }
-      if (pageInfo?.tags) {
-        params.append('tags', JSON.stringify(pageInfo.tags));
-      }
-      this.paginationCache[offset] = false;
+      // was filtered, no longer
+    } else if (this.paginationCache?.isFilter === true) {
+      doClean = true;
     }
 
-    if (this.paginationCache[pageInfo?.offset]) {
+    if (pageInfo.order !== this.cache.order
+      || pageInfo.dir !== this.cache.dir) {
+      doClean = true;
+    }
+
+    if (doClean) {
+      this.clean();
+      offset = 0;
+      limit = this.cache.limit = pageInfo.limit;
+      dir = pageInfo.dir;
+      order = pageInfo.order;
+    }
+
+    if (this.paginationCache[offset]) {
       return of(this.cache);
     }
+    params = params
+      .set('offset', (offset).toString())
+      .set('limit', limit.toString())
+      .set('order', order)
+      .set('dir', dir);
 
     return this.http.get(environment.sinksUrl, { params })
       .map(
         (resp: any) => {
-          this.paginationCache[pageInfo?.offset || 0] = true;
+          this.paginationCache[pageInfo?.offset / pageInfo?.limit || 0] = true;
           // This is the position to insert the new data
-          const start = pageInfo?.offset || 0;
+          const start = pageInfo?.offset * pageInfo?.limit || 0;
           const newData = [...this.cache.data];
           newData.splice(start, resp.limit, ...resp.sinks);
           this.cache = {
             ...this.cache,
-            offset: Math.floor(resp.offset / resp.limit),
+            next: resp.offset + resp.limit < resp.total && {
+              limit: resp.limit,
+              offset: (parseInt(resp.offset, 10) + parseInt(resp.limit, 10)).toString(),
+              order: 'name',
+              dir: 'desc',
+            },
+            offset: resp.offset,
+            dir: resp.direction,
+            order: resp.order,
             total: resp.total,
             data: newData,
+            name: pageInfo?.name,
           };
-          if (pageInfo?.name) this.cache.name = pageInfo.name;
-          if (pageInfo?.tags) this.cache.tags = pageInfo.tags;
+
           return this.cache;
         },
       )
