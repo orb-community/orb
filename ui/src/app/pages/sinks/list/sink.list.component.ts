@@ -62,7 +62,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
       prop: 'tags',
       selected: false,
       filter: (sink, tag) => Object.entries(sink?.tags)
-        .filter(([key, value]) => key?.includes(tag) || (!!value && value as string).includes(tag)).length > 0,
+        .filter(([key, value]) => `${key}:${value}`.includes(tag.replace(' ', ''))).length > 0,
     },
     {
       id: '2',
@@ -241,7 +241,8 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     if (!this.filterValue || this.filterValue === '') {
       this.table.rows = this.paginationControls.data;
     } else {
-      this.table.rows = this.paginationControls.data.filter(sink => this.filterValue.split(/[\s,.:]+/gm).reduce((prev, curr) => {
+      this.table.rows = this.paginationControls.data.
+      filter(sink => this.filterValue.split(/[,;]+/gm).reduce((prev, curr) => {
         return this.selectedFilter.filter(sink, curr) && prev;
       }, true));
     }

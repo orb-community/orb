@@ -13,10 +13,10 @@
       <span *ngIf="agent?.state !== agentStates.new">
         Last activity
         <span *ngIf="isToday()">
-          today, at {{ agent?.ts_last_hb | date: 'mediumTime' }}
+          today, at {{ agent?.ts_last_hb | date: 'HH:mm z' }}
         </span>
         <span *ngIf="!isToday()">
-          on {{ agent?.ts_last_hb | date:'medium' }}
+          on {{ agent?.ts_last_hb | date: 'M/d/yy, HH:mm z' }}
         </span>
       </span>
       <span *ngIf="agent?.state === agentStates.new">
@@ -59,13 +59,13 @@
                 <mat-chip
                   *ngFor="let tag of agent?.orb_tags | keyvalue"
                   [style.background-color]="tag | tagcolor"
-                  class="orb-tag-sink">
+                  class="orb-tag-chip">
                   {{ tag | tagchip }}
                 </mat-chip>
                 <mat-chip
                   *ngFor="let tag of agent?.agent_tags | keyvalue"
                   [style.background-color]="tag | tagcolor"
-                  class="orb-tag-sink">
+                  class="orb-tag-chip">
                   {{tag | tagchip}}
                 </mat-chip>
               </mat-chip-list>

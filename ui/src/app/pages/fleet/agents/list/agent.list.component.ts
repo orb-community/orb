@@ -14,7 +14,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { Debounce } from 'app/shared/decorators/utils';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete.component';
@@ -64,8 +63,8 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
       label: 'Tags',
       prop: 'tags',
       selected: false,
-      filter: (agent, tag) => Object.entries(agent?.tags)
-        .filter(([key, value]) => key?.includes(tag) || (!!value && value as string).includes(tag)).length > 0,
+      filter: (agent, tag) => Object.entries(agent?.combined_tags)
+        .filter(([key, value]) => `${key}:${value}`.includes(tag.replace(' ', ''))).length > 0,
     },
     {
       id: '2',
@@ -138,7 +137,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
         cellTemplate: this.agentStateTemplateRef,
       },
       {
-        prop: 'orb_tags',
+        prop: 'combined_tags',
         name: 'Tags',
         minWidth: 150,
         flexGrow: 4,
@@ -185,7 +184,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
 
     this.loading = true;
-    this.agentService.getAgents(pageInfo).subscribe(
+    this.agentService.getAgents(finalPageInfo).subscribe(
       (resp: OrbPagination<Agent>) => {
         this.paginationControls = resp;
         this.paginationControls.offset = pageInfo?.offset || 0;
@@ -226,7 +225,8 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     if (!this.filterValue || this.filterValue === '') {
       this.table.rows = this.paginationControls.data;
     } else {
-      this.table.rows = this.paginationControls.data.filter(agent => this.filterValue.split(/[\s,.:]+/gm).reduce((prev, curr) => {
+      this.table.rows = this.paginationControls.data
+        .filter(agent => this.filterValue.split(/[,;]+/gm).reduce((prev, curr) => {
         return this.selectedFilter.filter(agent, curr) && prev;
       }, true));
     }

@@ -208,22 +208,28 @@ export class AgentsService {
           this.paginationCache[offset || 0] = true;
           // This is the position to insert the new data
           const start = resp.offset;
-          // TODO - check rule for combination/concatenation of tags
-          // should we start to represent multiple values for a key here already or
-          // simply override value for key, assuming agent_tag is precedent.
-          const newData = [...this.cache.data.map(agent => {
+
+          const newData = [...this.cache.data];
+
+          newData.splice(start, resp.limit,
+            // TODO - check rule for combination/concatenation of tags
+            // should we start to represent multiple values for a key here already or
+            // simply override value for key, assuming agent_tag is precedent.
+            ...resp.agents.map(agent => {
             agent.combined_tags = {...agent?.orb_tags, ...agent?.agent_tags};
             return agent;
-          })];
-          newData.splice(start, resp.limit, ...resp.agents);
+          }));
+
           this.cache = {
             ...this.cache,
             offset: Math.floor(resp.offset / resp.limit),
             total: resp.total,
             data: newData,
           };
+
           if (name) this.cache.name = name;
           if (tags) this.cache.tags = tags;
+
           return this.cache;
         },
       )

@@ -98,6 +98,6 @@ export interface Agent extends OrbEntity {
    * Internal use
    * See
    */
-  combined_tags?: string;
+  combined_tags?: any;
 
 }

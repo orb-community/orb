@@ -77,7 +77,7 @@
                   *ngFor="let tag of selectedTags | keyvalue; index as i;"
                   [attr.data-orb-qa-id]="'orb_tag_' + i"
                   [style.background-color]="tag | tagcolor"
-                  class="orb-tag-sink ">
+                  class="orb-tag-chip ">
                   {{tag | tagchip}}
                   <nb-icon (click)="onRemoveTag(tag.key)"
                            class="ml-1"
@@ -87,7 +87,7 @@
                 <mat-chip
                   *ngIf="(selectedTags | json) === '{}'"
                   [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-sink ">
+                  class="orb-tag-chip ">
                   No tag added
                 </mat-chip>
               </mat-chip-list>
@@ -195,13 +195,13 @@
                   *ngFor="let tag of selectedTags | keyvalue; index as i;"
                   [attr.data-orb-qa-id]="'review-tag_' + i"
                   [style.background-color]="tag | tagcolor"
-                  class="orb-tag-sink ">
+                  class="orb-tag-chip ">
                   {{tag | tagchip}}
                 </mat-chip>
                 <mat-chip
                   *ngIf="(selectedTags | json) === '{}'"
                   [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-sink ">
+                  class="orb-tag-chip ">
                   No tag added
                 </mat-chip>
               </mat-chip-list>
