@@ -38,6 +38,16 @@
 - [Edit agent group name](agent_groups/edit_agent_group_name.md)
 - [Edit agent group tag](agent_groups/edit_agent_group_tag.md)
 - [Remove agent group using correct name](agent_groups/remove_agent_group_using_correct_name.md)
+- [Run two orb agents on the same port](agents/run_two_orb_agents_on_the_same_port.md)
+- [Run two orb agents on different ports](agents/run_two_orb_agents_on_different_ports.md)
+- [Edit Agent Group name removing name](agent_groups/edit_agent_group_name_removing_name.md)
+- [Edit agent group name](agent_groups/edit_agent_group_name.md)
+- [Edit agent group description](agent_groups/edit_agent_group_description.md)
+- [Edit Agent Group description removing description](agent_groups/edit_agent_group_description_removing_description.md)
+- [Edit Agent Group tags to subscribe agent](agent_groups/edit_agent_group_tags_to_subscribe_agent.md)
+- [Edit Agent Group tags to unsubscribe agent](agent_groups/edit_agent_group_tags_to_unsubscribe_agent.md)
+- [Edit Agent Group removing tags](agent_groups/edit_agent_group_removing_tags.md)
+- [Edit Agent Group name, description and tags](agent_groups/edit_agent_group_name,_description_and_tags.md)
 
 
 ## Sinks
@@ -86,3 +96,11 @@
 - [Agent subscription to group with policies after editing agent's tags](integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags.md)
 - [Edit agent name and apply policies to then](integration/edit_agent_name_and_apply_policies_to_then.md)
 - [Insert tags in agents created without tags and apply policies to group matching new tags.md](integration/insert_tags_in_agents_created_without_tags_and_apply_policies_to_group_matching_new_tags.md)
+- [Agent unsubscription to group with policies after editing agent group's tags (editing tags after agent provision)](integration/agent_unsubscription_to_group_with_policies_after_editing_agent_group's_tags_editing_tags_after_agent_provision.md)
+- [Agent subscription to group with policies after editing agent group's tags (editing tags after agent provision)](integration/agent_subscription_to_group_with_policies_after_editing_agent_group's_tags_editing_tags_after_agent_provision.md)
+- [Agent unsubscription to group with policies after editing agent group's tags (editing tags before agent provision)](integration/agent_unsubscription_to_group_with_policies_after_editing_agent_group's_tags_editing_tags_before_agent_provision.md)
+- [Agent subscription to group with policies after editing agent group's tags (editing tags before agent provision)](integration/agent_subscription_to_group_with_policies_after_editing_agent_group's_tags_editing_tags_before_agent_provision.md)
+- [Agent unsubscription to group with policies after editing agent's tags and agent group's tags (editing tags after agent provision)](integration/agent_unsubscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_after_agent_provision.md)
+- [Agent subscription to group with policies after editing agent's tags and agent group's tags (editing tags after agent provision)](integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_after_agent_provision.md)
+- [Agent unsubscription to group with policies after editing agent's tags and agent group's tags (editing tags before agent provision)](integration/agent_unsubscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_before_agent_provision.md)
+- [Agent subscription to group with policies after editing agent's tags and agent group's tags (editing tags before agent provision)](integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_before_agent_provision.md)

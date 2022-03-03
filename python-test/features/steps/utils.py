@@ -103,3 +103,16 @@ def check_logs_contain_message_and_name(logs, expected_message, name, name_key):
                 return True, log_line
 
     return False, "Logs doesn't contain the message and name expected"
+
+
+def remove_empty_from_json(json_file):
+    """
+    Delete keys with the value "None" in a dictionary, recursively.
+
+    """
+    for key, value in list(json_file.items()):
+        if value is None:
+            del json_file[key]
+        elif isinstance(value, dict):
+            remove_empty_from_json(value)
+    return json_file

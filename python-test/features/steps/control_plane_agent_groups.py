@@ -155,15 +155,7 @@ def subscribe_agent_to_a_group(context):
 @step('the container logs contain the message "{text_to_match}" referred to each matching group within'
       '{time_to_wait} seconds')
 def check_logs_for_group(context, text_to_match, time_to_wait):
-    groups_matching = list()
-    context.groups_matching_id = list()
-    for group in context.agent_groups.keys():
-        group_data = get_agent_group(context.token, group)
-        group_tags = dict(group_data["tags"])
-        agent_tags = context.agent["orb_tags"]
-        if all(item in agent_tags.items() for item in group_tags.items()) is True:
-            groups_matching.append(context.agent_groups[group])
-            context.groups_matching_id.append(group)
+    groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups, context.agent)
     text_found, groups_to_which_subscribed = check_subscription(time_to_wait, groups_matching,
                                                                 text_to_match, context.container_id)
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)"
@@ -310,3 +302,24 @@ def edit_agent_group(token, agent_group_id, name, description, tags, expected_st
                 'Request to edit agent group failed with status=' + str(group_edited_response.status_code))
 
     return group_edited_response.json()
+
+
+def return_matching_groups(token, existing_agent_groups, agent_json):
+    """
+
+    :param (str) token: used for API authentication
+    :param (dict) existing_agent_groups: dictionary with the existing groups, the id of the groups being the key and the name the values
+    :param (dict) agent_json: dictionary containing all the information of the agent to which the groups must be matching
+
+    :return (list): groups_matching, groups_matching_id
+    """
+    groups_matching = list()
+    groups_matching_id = list()
+    for group in existing_agent_groups.keys():
+        group_data = get_agent_group(token, group)
+        group_tags = dict(group_data["tags"])
+        agent_tags = agent_json["orb_tags"]
+        if all(item in agent_tags.items() for item in group_tags.items()) is True:
+            groups_matching.append(existing_agent_groups[group])
+            groups_matching_id.append(group)
+    return groups_matching, groups_matching_id

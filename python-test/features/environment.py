@@ -4,6 +4,11 @@ from steps import test_config
 
 def before_scenario(context, scenario):
     cleanup_container()
+    context.containers_id = dict()
+    context.agent_groups = dict()
+
+
+def after_scenario(context, scenario):
     context.execute_steps('''
     Given the Orb user logs in
     Then cleanup agents
@@ -12,8 +17,6 @@ def before_scenario(context, scenario):
     Then cleanup policies
     Then cleanup datasets
     ''')
-    context.containers_id = dict()
-    context.agent_groups = dict()
 
 
 def after_feature(context, feature):

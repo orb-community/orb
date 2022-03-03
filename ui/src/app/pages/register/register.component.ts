@@ -1,5 +1,3 @@
-declare var _ps;
-
 import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 
 import { NB_AUTH_OPTIONS, NbAuthService, NbRegisterComponent } from '@nebular/auth';
@@ -16,6 +14,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   strings = STRINGS.login;
 
   _isProduction = environment.production;
+
   /**
    * Pactsafe
    */
@@ -37,7 +36,6 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   }
 
   ngOnInit() { // In the ngOnInit() or in the constructor
-    _ps = window['_ps'];
     const el = document.getElementById('nb-global-spinner');
     if (el) {
       el.style['display'] = 'none';
@@ -57,6 +55,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
 
   // Return whether to block the submission or not.
   blockSubmission() {
+    const _ps = window['_ps'];
     if (!this._psEnabled) return false;
     // Check to ensure we're able to get the Group successfully.
     if (_ps.getByKey(this._groupKey)) {
@@ -77,6 +76,8 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     this.errors = this.messages = [];
     this.submitted = true;
 
+    const _ps = window['_ps'];
+
     event?.preventDefault();
     if (!this.blockSubmission()) {
       // We don't need to block the form submission,
@@ -88,6 +89,10 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
         company,
       }).subscribe(
         respReg => {
+          const first_name = this.user.fullName.split(' ')[0];
+          const last_name = this.user.fullName.replace(`${ first_name } `, '');
+          _ps.getByKey(this._groupKey).send('updated', { custom_data: { first_name, last_name } });
+
           this.submitted = false;
 
           if (respReg.isSuccess()) {
@@ -106,6 +111,8 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
               this.router.navigateByUrl('/pages/dashboard');
             },
           );
+
+
         },
       );
     } else {

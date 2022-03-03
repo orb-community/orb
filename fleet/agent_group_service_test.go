@@ -89,7 +89,8 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 
 	mfsdk := mfsdk.NewSDK(config)
 	pktvisor.Register(auth, agentRepo)
-	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
+	aDone := make(chan bool)
+	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, aDone)
 }
 
 func TestCreateAgentGroup(t *testing.T) {
@@ -107,10 +108,10 @@ func TestCreateAgentGroup(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	agent := fleet.Agent{
-		Name:          agNameID,
-		MFOwnerID:     ownerID.String(),
-		MFChannelID:   "",
-		AgentTags:     map[string]string{
+		Name:        agNameID,
+		MFOwnerID:   ownerID.String(),
+		MFChannelID: "",
+		AgentTags: map[string]string{
 			"region":    "eu",
 			"node_type": "dns",
 		},
@@ -317,9 +318,9 @@ func TestUpdateAgentGroup(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	agent := fleet.Agent{
-		Name:          agNameID,
-		MFOwnerID:     ag.MFOwnerID,
-		MFChannelID:   ag.MFChannelID,
+		Name:        agNameID,
+		MFOwnerID:   ag.MFOwnerID,
+		MFChannelID: ag.MFChannelID,
 	}
 	_, err = fleetService.CreateAgent(context.Background(), token, agent)
 

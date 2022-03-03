@@ -1,24 +1,52 @@
 from hamcrest import *
 import requests
 from behave import given, when, then, step
-from utils import random_string, filter_list_by_parameter_start_with, safe_load_json
+from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json
 from local_agent import get_orb_agent_logs
 from test_config import TestConfig
 import time
 from datetime import datetime
 from control_plane_datasets import create_new_dataset, list_datasets
-from random import choice
+from random import choice, choices, sample
 
 policy_name_prefix = "test_policy_name_"
-default_handler = "net"
-handle_label = "default_" + default_handler
 base_orb_url = TestConfig.configs().get('base_orb_url')
 
 
-@when("a new policy is created")
-def create_new_policy(context):
+@when("a new policy is created using: {kwargs}")
+def create_new_policy(context, kwargs):
+
+    acceptable_keys = ['policy_name', 'handler_label', 'handler', 'description', 'tap', 'input_type',
+                       'host_specification', 'bpf_filter_expression', 'pcap_source', 'only_qname_suffix',
+                       'only_rcode', 'backend_type']
     policy_name = policy_name_prefix + random_string(10)
-    context.policy = create_policy(context.token, policy_name, handle_label, default_handler)
+
+    kwargs_dict = {'policy_name': policy_name, 'handler': None, 'description': None, 'tap': "default_pcap",
+                   'input_type': "pcap", 'host_specification': None, 'bpf_filter_expression': None,
+                   'pcap_source': None, 'only_qname_suffix': None, 'only_rcode': None, 'backend_type': "pktvisor"}
+
+    for i in kwargs.split(", "):
+        assert_that(i, matches_regexp("^.+=.+$"), f"Unexpected format for param {i}")
+        item = i.split("=")
+        kwargs_dict[item[0]] = item[1]
+
+    assert_that(all(key in acceptable_keys for key, value in kwargs_dict.items()), equal_to(True),
+                f"Unexpected parameters for policy. Options are {acceptable_keys}")
+
+    if kwargs_dict["only_qname_suffix"] is not None:
+        kwargs_dict["only_qname_suffix"] = kwargs_dict["only_qname_suffix"].replace("[", "")
+        kwargs_dict["only_qname_suffix"] = kwargs_dict["only_qname_suffix"].replace("]", "")
+        kwargs_dict["only_qname_suffix"] = kwargs_dict["only_qname_suffix"].split("/ ")
+
+    handle_label = f"default_{kwargs_dict['handler']}_{random_string(3)}"
+
+    context.policy = create_policy(context.token, kwargs_dict["policy_name"], handle_label,
+                                   kwargs_dict["handler"], kwargs_dict["description"], kwargs_dict["tap"],
+                                   kwargs_dict["input_type"], kwargs_dict["host_specification"],
+                                   kwargs_dict["bpf_filter_expression"], kwargs_dict["pcap_source"],
+                                   kwargs_dict["only_qname_suffix"], kwargs_dict["only_rcode"],
+                                   kwargs_dict["backend_type"])
+
     assert_that(context.policy['name'], equal_to(policy_name))
     if 'policies_created' in context:
         context.policies_created[context.policy['id']] = context.policy['name']
@@ -97,9 +125,9 @@ def clean_policies(context):
     delete_policies(token, policies_filtered_list)
 
 
-@given("that a policy already exists")
-def new_policy(context):
-    create_new_policy(context)
+@given("that a policy using: {kwargs} already exists")
+def new_policy(context, kwargs):
+    create_new_policy(context, kwargs)
     check_policies(context)
 
 
@@ -118,12 +146,18 @@ def check_agent_logs_for_deleted_policies_considering_timestamp(context, conditi
 @step('the container logs that were output after {condition} contain the message "{'
       'text_to_match}" referred to each applied policy within {time_to_wait} seconds')
 def check_agent_logs_for_policies_considering_timestamp(context, condition, text_to_match, time_to_wait):
+    policies_data = list()
     policies_have_expected_message = \
         check_agent_log_for_policies(text_to_match, time_to_wait, context.container_id, context.list_agent_policies_id,
                                      context.considered_timestamp)
+    if len(set(context.list_agent_policies_id).difference(policies_have_expected_message)) > 0:
+        policies_without_message = set(context.list_agent_policies_id).difference(policies_have_expected_message)
+        for policy in policies_without_message:
+            policies_data.append(get_policy(context.token, policy))
+
     assert_that(policies_have_expected_message, equal_to(set(context.list_agent_policies_id)),
                 f"Message '{text_to_match}' for policy "
-                f"'{set(context.list_agent_policies_id).difference(policies_have_expected_message)}'"
+                f"'{policies_data}'"
                 f" was not found in the agent logs!")
 
 
@@ -138,25 +172,28 @@ def check_agent_logs_for_policies(context, text_to_match, time_to_wait):
                 f" was not found in the agent logs!")
 
 
-@step('{amount_of_policies} policies are applied to the group')
-def apply_n_policies(context, amount_of_policies):
+@step('{amount_of_policies} {type_of_policies} policies are applied to the group')
+def apply_n_policies(context, amount_of_policies, type_of_policies):
+    args_for_policies = return_policies_type(int(amount_of_policies), type_of_policies)
     for i in range(int(amount_of_policies)):
-        create_new_policy(context)
+        create_new_policy(context, args_for_policies[i][1])
         check_policies(context)
         create_new_dataset(context)
 
 
-@step('{amount_of_policies} policies are applied to the group by {amount_of_datasets} datasets each')
-def apply_n_policies_x_times(context, amount_of_policies, amount_of_datasets):
+@step('{amount_of_policies} {type_of_policies} policies are applied to the group by {amount_of_datasets} datasets each')
+def apply_n_policies_x_times(context, amount_of_policies, type_of_policies, amount_of_datasets):
     for n in range(int(amount_of_policies)):
-        create_new_policy(context)
+        args_for_policies = return_policies_type(int(amount_of_policies), type_of_policies)
+        create_new_policy(context, args_for_policies[n][1])
         check_policies(context)
         for x in range(int(amount_of_datasets)):
             create_new_dataset(context)
 
 
 def create_policy(token, policy_name, handler_label, handler, description=None, tap="default_pcap",
-                  input_type="pcap", host_specification=None, filter_expression=None, backend_type="pktvisor"):
+                  input_type="pcap", host_specification=None, bpf_filter_expression=None, pcap_source=None,
+                  only_qname_suffix=None, only_rcode=None, backend_type="pktvisor"):
     """
 
     Creates a new policy in Orb control plane
@@ -170,14 +207,52 @@ def create_policy(token, policy_name, handler_label, handler, description=None, 
     :param input_type: this must reference a tap name, or application of the policy will fail
     :param (str) host_specification: Subnets (comma separated) which should be considered belonging to this host,
     in CIDR form. Used for ingress/egress determination, defaults to host attached to the network interface.
-    :param filter_expression: these decide exactly which data to summarize and expose for collection
+    :param (str) bpf_filter_expression: these decide exactly which data to summarize and expose for collection.
+                                        Tcpdump compatible filter expression for limiting the traffic examined
+                                        (with BPF). See https://www.tcpdump.org/manpages/tcpdump.1.html.
+    :param (str) pcap_source: Packet capture engine to use. Defaults to best for platform.
+                                                            Options: af_packet (linux only) or libpcap.
+    :param (str) only_qname_suffix: Filter out any queries whose QName does not end in a suffix on the list
+    :param (int) only_rcode: Filter out any queries which are not the given RCODE. Options:
+                                                                                    "NOERROR": 0,
+                                                                                    "NXDOMAIN": 3,
+                                                                                    "REFUSED": 5,
+                                                                                    "SERVFAIL": 2
     :param backend_type: Agent backend this policy is for. Cannot change once created. Default: pktvisor
     :return: (dict) a dictionary containing the created policy data
     """
-    json_request = {"name": policy_name, "description": description, "backend": backend_type,
-                    "policy": {"kind": "collection", "input": {"tap": tap, "input_type": input_type},
-                               "handlers": {"modules": {handler_label: {"type": handler}}}},
-                    "config": {"host_spec": host_specification}, "filter": {"bpf": filter_expression}}
+    if only_rcode is not None: only_rcode = int(only_rcode)
+    assert_that(pcap_source, any_of(equal_to(None), equal_to("af_packet"), equal_to("libpcap")),
+                "Unexpected type of pcap_source")
+    assert_that(only_rcode, any_of(equal_to(None), equal_to(0), equal_to(2), equal_to(3), equal_to(5)),
+                "Unexpected type of only_rcode")
+
+    json_request = {"name": policy_name,
+                    "description": description,
+                    "backend": backend_type,
+                    "policy": {
+                        "kind": "collection",
+                        "input": {
+                            "tap": tap,
+                            "input_type": input_type,
+                            "config": {
+                                "host_spec": host_specification,
+                                "pcap_source": pcap_source},
+                            "filter": {"bpf": bpf_filter_expression}},
+                        "handlers": {
+                            "modules": {
+                                handler_label: {
+                                    "type": handler,
+                                    "filter": {
+                                        "only_qname_suffix": only_qname_suffix,
+                                        "only_rcode": only_rcode
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    }
+    json_request = remove_empty_from_json(json_request.copy())
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
     response = requests.post(base_orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
@@ -358,3 +433,38 @@ def list_datasets_for_a_policy(policy_id, datasets_list):
         if dataset['agent_policy_id'] == policy_id:
             id_of_related_datasets.append(dataset['id'])
     return id_of_related_datasets
+
+
+def return_policies_type(k, policies_type='mixed'):
+
+    assert_that(policies_type, any_of(equal_to('mixed'), any_of('simple'), any_of('advanced')),
+                "Unexpected value for policies type")
+
+    advanced = {
+        'advanced_dns_libpcap_0': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=0",
+        'advanced_dns_libpcap_2': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=2",
+        'advanced_dns_libpcap_3': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=3",
+        'advanced_dns_libpcap_5': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=5",
+
+        'advanced_net': "handler=net, description='policy_net', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
+
+        'advanced_dhcp': "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
+        }
+
+    simple = {
+
+        'simple_dns': "handler=dns",
+        'simple_net': "handler=net",
+        # 'simple_dhcp': "handler=dhcp",
+    }
+
+    mixed = dict()
+    mixed.update(advanced)
+    mixed.update(simple)
+
+    master_dict = {'advanced': advanced, 'simple': simple, 'mixed': mixed}
+
+    if k <= len(master_dict[policies_type]):
+        return sample(list(master_dict[policies_type].items()), k=k)
+
+    return choices(list(master_dict[policies_type].items()), k=k)

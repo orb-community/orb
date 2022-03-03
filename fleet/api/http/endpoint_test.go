@@ -138,7 +138,8 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 
 	mfsdk := mfsdk.NewSDK(config)
 	pktvisor.Register(auth, agentRepo)
-	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
+	aDone := make(chan bool)
+	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, aDone)
 }
 
 func newServer(svc fleet.Service) *httptest.Server {
