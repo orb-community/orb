@@ -82,7 +82,7 @@ func migrateDB(db *sqlx.DB) error {
 					)`,
 					`CREATE INDEX ON agent_groups (mf_owner_id)`,
 					`CREATE INDEX ON agent_groups USING gin (tags)`,
-					`CREATE VIEW agent_group_membership(agent_groups_id, agent_groups_name, agent_mf_thing_id, agent_mf_channel_id, group_mf_channel_id, mf_owner_id, agent_state) as
+					`CREATE or REPLACE VIEW agent_group_membership(agent_groups_id, agent_groups_name, agent_mf_thing_id, agent_mf_channel_id, group_mf_channel_id, mf_owner_id, agent_state) as
 					SELECT agent_groups.id,
 						   agent_groups.name,
 						   agents.mf_thing_id,
@@ -93,7 +93,7 @@ func migrateDB(db *sqlx.DB) error {
 					FROM agents,
 						 agent_groups
 					WHERE agent_groups.mf_owner_id = agents.mf_owner_id
-					  AND (agent_groups.tags <@ agents.agent_tags OR agent_groups.tags <@ agents.orb_tags)`,
+					  AND (agent_groups.tags <@ coalesce(agents.agent_tags || agents.orb_tags, agents.agent_tags, agents.orb_tags))`,
 				},
 				Down: []string{
 					"DROP TABLE agents",
