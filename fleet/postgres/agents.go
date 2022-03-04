@@ -332,7 +332,6 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 	}
 
 	_, err = tx.NamedExecContext(ctx, q, dba)
-	//_, err = r.db.NamedExecContext(ctx, q, dba)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {

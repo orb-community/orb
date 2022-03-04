@@ -10,7 +10,6 @@ package fleet
 
 import (
 	"context"
-	"fmt"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/fleet/backend"
@@ -32,7 +31,6 @@ var (
 
 func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) error {
 	groupList, err := svc.agentGroupRepository.RetrieveAllByAgent(context.Background(), a)
-	svc.logger.Info(fmt.Sprintf("%s: Retornou uma lista de grupos: %d", a.MFThingID, len(groupList)))
 	if err != nil {
 		return err
 	}
@@ -48,7 +46,7 @@ func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) erro
 			ChannelIDs: []string{group.MFChannelID},
 			ThingIDs:   idList,
 		}
-		err := svc.mfsdk.Connect(ids, token)
+		err = svc.mfsdk.Connect(ids, token)
 		if err != nil {
 			if strings.Contains(err.Error(), "409") {
 				svc.logger.Warn("agent already connected, skipping...")
@@ -56,7 +54,6 @@ func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) erro
 				return err
 			}
 		}
-		svc.logger.Info(fmt.Sprintf("Conectou ao grupo: %d", group.ID))
 	}
 
 	return nil
