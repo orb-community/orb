@@ -79,9 +79,10 @@ func (req updateAgentGroupReq) validate() error {
 }
 
 type addAgentReq struct {
-	token   string
-	Name    string     `json:"name,omitempty"`
-	OrbTags types.Tags `json:"orb_tags,omitempty"`
+	token     string
+	Name      string     `json:"name,omitempty"`
+	OrbTags   types.Tags `json:"orb_tags,omitempty"`
+	AgentTags types.Tags `json:"agent_tags,omitempty"`
 }
 
 func (req addAgentReq) validate() error {

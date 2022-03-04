@@ -10,6 +10,7 @@ package fleet
 
 import (
 	"context"
+	"fmt"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/fleet/backend"
@@ -30,11 +31,12 @@ var (
 )
 
 func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) error {
-	// first we get the agent group to connect the new agent to the correct group channel
 	groupList, err := svc.agentGroupRepository.RetrieveAllByAgent(context.Background(), a)
+	svc.logger.Info(fmt.Sprintf("%s: Retornou uma lista de grupos: %d", a.MFThingID, len(groupList)))
 	if err != nil {
 		return err
 	}
+
 	if len(groupList) == 0 {
 		return nil
 	}
@@ -46,7 +48,7 @@ func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) erro
 			ChannelIDs: []string{group.MFChannelID},
 			ThingIDs:   idList,
 		}
-		err = svc.mfsdk.Connect(ids, token)
+		err := svc.mfsdk.Connect(ids, token)
 		if err != nil {
 			if strings.Contains(err.Error(), "409") {
 				svc.logger.Warn("agent already connected, skipping...")
@@ -54,6 +56,7 @@ func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) erro
 				return err
 			}
 		}
+		svc.logger.Info(fmt.Sprintf("Conectou ao grupo: %d", group.ID))
 	}
 
 	return nil
@@ -160,6 +163,7 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 		// TODO should we roll back?
 		svc.logger.Error("failed to add agent to a existing group channel", zap.String("agent_id", a.MFThingID), zap.Error(err))
 	}
+
 	return a, nil
 }
 

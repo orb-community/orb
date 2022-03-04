@@ -256,7 +256,16 @@ func (a agentGroupRepository) Update(ctx context.Context, ownerID string, group 
 
 func (a agentGroupRepository) RetrieveAllByAgent(ctx context.Context, ag fleet.Agent) ([]fleet.AgentGroup, error) {
 
-	q := `SELECT agent_groups_id AS id, agent_groups_name AS name, group_mf_channel_id AS mf_channel_id, mf_owner_id FROM agent_group_membership WHERE agent_mf_thing_id = :agent_id`
+	//q := `SELECT agent_groups_id AS id, agent_groups_name AS name, group_mf_channel_id AS mf_channel_id, mf_owner_id FROM agent_group_membership WHERE agent_mf_thing_id = :agent_id`
+	q := `select 
+			ag.id as id, 
+			ag.name as name, 
+			ag.mf_channel_id as mf_channel_id, 
+			ag.mf_owner_id as mf_owner_id 
+	from agents a 
+    	inner join agent_groups ag on ag.tags <@ coalesce(a.agent_tags || a.orb_tags, a.agent_tags, a.orb_tags)
+        	and ag.mf_owner_id = a.mf_owner_id
+	where a.mf_thing_id = :agent_id`
 
 	if ag.MFThingID == "" {
 		return nil, errors.ErrMalformedEntity
