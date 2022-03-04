@@ -337,11 +337,14 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 		if ok {
 			switch pqErr.Code.Name() {
 			case db.ErrInvalid, db.ErrTruncation:
+				tx.Rollback()
 				return errors.Wrap(errors.ErrMalformedEntity, err)
 			case db.ErrDuplicate:
+				tx.Rollback()
 				return errors.Wrap(errors.ErrConflict, err)
 			}
 		}
+		tx.Rollback()
 		return errors.Wrap(db.ErrSaveDB, err)
 	}
 
