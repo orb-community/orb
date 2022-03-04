@@ -60,12 +60,12 @@ func (m metricsMiddleware) CreateSink(ctx context.Context, token string, s sinks
 	return m.svc.CreateSink(ctx, token, s)
 }
 
-func (m metricsMiddleware) UpdateSink(ctx context.Context, token string, s sinks.Sink) (err error) {
+func (m metricsMiddleware) UpdateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, err error) {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "updateSink",
-			"owner_id", s.MFOwnerID,
-			"sink_id", s.ID,
+			"owner_id", sink.MFOwnerID,
+			"sink_id", sink.ID,
 		}
 
 		m.counter.With(labels...).Add(1)
