@@ -43,6 +43,29 @@ func TestDHCPConversion(t *testing.T) {
 
 	be := backend.GetBackend("pktvisor")
 
+	commonLabels := []prometheus.Label{
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+	}
+
 	cases := map[string]struct {
 		data     []byte
 		expected prometheus.TimeSeries
@@ -59,32 +82,129 @@ func TestDHCPConversion(t *testing.T) {
     }
 }`),
 			expected: prometheus.TimeSeries{
-				Labels: []prometheus.Label{
-					{
-						Name:  "__name__",
-						Value: "dhcp_wire_packets_filtered",
-					},
-					{
-						Name:  "instance",
-						Value: "agent-test",
-					},
-					{
-						Name:  "agent_id",
-						Value: agentID.String(),
-					},
-					{
-						Name:  "agent",
-						Value: "agent-test",
-					},
-					{
-						Name:  "policy_id",
-						Value: policyID.String(),
-					},
-					{
-						Name:  "policy",
-						Value: "policy-test",
-					},
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dhcp_wire_packets_filtered"})),
+				Datapoint: prometheus.Datapoint{
+					Value: 10,
 				},
+			},
+		},
+		"DHCPPayloadWirePacketsTotal": {
+			data: []byte(`
+{
+	"policy_dhcp": {
+        "dhcp": {
+            "wire_packets": {
+                "total": 10
+            }
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dhcp_wire_packets_total"})),
+				Datapoint: prometheus.Datapoint{
+					Value: 10,
+				},
+			},
+		},
+		"DHCPPayloadWirePacketsDeepSamples": {
+			data: []byte(`
+{
+	"policy_dhcp": {
+        "dhcp": {
+            "wire_packets": {
+                "deep_samples": 10
+            }
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dhcp_wire_packets_deep_samples"})),
+				Datapoint: prometheus.Datapoint{
+					Value: 10,
+				},
+			},
+		},
+		"DHCPPayloadWirePacketsDiscover": {
+			data: []byte(`
+{
+	"policy_dhcp": {
+        "dhcp": {
+            "wire_packets": {
+                "discover": 10
+            }
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dhcp_wire_packets_discover"})),
+				Datapoint: prometheus.Datapoint{
+					Value: 10,
+				},
+			},
+		},
+		"DHCPPayloadWirePacketsOffer": {
+			data: []byte(`
+{
+	"policy_dhcp": {
+        "dhcp": {
+            "wire_packets": {
+                "offer": 10
+            }
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dhcp_wire_packets_offer"})),
+				Datapoint: prometheus.Datapoint{
+					Value: 10,
+				},
+			},
+		},
+		"DHCPPayloadWirePacketsRequest": {
+			data: []byte(`
+{
+	"policy_dhcp": {
+        "dhcp": {
+            "wire_packets": {
+                "request": 10
+            }
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dhcp_wire_packets_request"})),
+				Datapoint: prometheus.Datapoint{
+					Value: 10,
+				},
+			},
+		},
+		"DHCPPayloadWirePacketsAck": {
+			data: []byte(`
+{
+	"policy_dhcp": {
+        "dhcp": {
+            "wire_packets": {
+                "ack": 10
+            }
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dhcp_wire_packets_ack"})),
 				Datapoint: prometheus.Datapoint{
 					Value: 10,
 				},
@@ -626,7 +746,7 @@ func TestDNSConversion(t *testing.T) {
 						receivedLabel = value.Labels
 						receivedDatapoint = value.Datapoint
 					} else {
-						if c.expected.Labels[6].Value == value.Labels[6].Value{
+						if c.expected.Labels[6].Value == value.Labels[6].Value {
 							receivedLabel = value.Labels
 							receivedDatapoint = value.Datapoint
 						}
@@ -668,6 +788,105 @@ func TestDNSRatesConversion(t *testing.T) {
 
 	be := backend.GetBackend("pktvisor")
 
+	commonLabels := []prometheus.Label{
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.5",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.9",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.95",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.99",
+		},
+	}
+
 	cases := map[string]struct {
 		data               []byte
 		expectedLabels     []prometheus.Label
@@ -689,123 +908,101 @@ func TestDNSRatesConversion(t *testing.T) {
     	}
 	}
 }`),
-			expectedLabels: []prometheus.Label{
-					{
-						Name:  "__name__",
-						Value: "dns_rates_total",
-					},
-					{
-						Name:  "instance",
-						Value: "agent-test",
-					},
-					{
-						Name:  "agent_id",
-						Value: agentID.String(),
-					},
-					{
-						Name:  "agent",
-						Value: "agent-test",
-					},
-					{
-						Name:  "policy_id",
-						Value: policyID.String(),
-					},
-					{
-						Name:  "policy",
-						Value: "policy-test",
-					},
-					{
-						Name:  "quantile",
-						Value: "0.5",
-					},
-					{
-						Name:  "__name__",
-						Value: "dns_rates_total",
-					},
-					{
-						Name:  "instance",
-						Value: "agent-test",
-					},
-					{
-						Name:  "agent_id",
-						Value: agentID.String(),
-					},
-					{
-						Name:  "agent",
-						Value: "agent-test",
-					},
-					{
-						Name:  "policy_id",
-						Value: policyID.String(),
-					},
-					{
-						Name:  "policy",
-						Value: "policy-test",
-					},
-					{
-						Name:  "quantile",
-						Value: "0.9",
-					},
-					{
-						Name:  "__name__",
-						Value: "dns_rates_total",
-					},
-					{
-						Name:  "instance",
-						Value: "agent-test",
-					},
-					{
-						Name:  "agent_id",
-						Value: agentID.String(),
-					},
-					{
-						Name:  "agent",
-						Value: "agent-test",
-					},
-					{
-						Name:  "policy_id",
-						Value: policyID.String(),
-					},
-					{
-						Name:  "policy",
-						Value: "policy-test",
-					},
-					{
-						Name:  "quantile",
-						Value: "0.95",
-					},
-					{
-						Name:  "__name__",
-						Value: "dns_rates_total",
-					},
-					{
-						Name:  "instance",
-						Value: "agent-test",
-					},
-					{
-						Name:  "agent_id",
-						Value: agentID.String(),
-					},
-					{
-						Name:  "agent",
-						Value: "agent-test",
-					},
-					{
-						Name:  "policy_id",
-						Value: policyID.String(),
-					},
-					{
-						Name:  "policy",
-						Value: "policy-test",
-					},
-					{
-						Name:  "quantile",
-						Value: "0.99",
-					},
-				},
-				expectedDatapoints: []float64{0, 1, 2, 6},
-			},
-		}
+			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
+				Name:  "__name__",
+				Value: "dns_rates_total",
+			}),
+			expectedDatapoints: []float64{0, 1, 2, 6},
+		},
+		"PacketsPayloadRatesPpsIn": {
+			data: []byte(`
+{
+	"policy_dns": {
+		"packets": {
+        	"rates": {
+				"pps_in": {
+					"p50": 0,
+          			"p90": 1,
+        			"p95": 2,
+        			"p99": 6
+				}
+        	}
+    	}
+	}
+}`),
+			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
+				Name:  "__name__",
+				Value: "packets_rates_pps_in",
+			}),
+			expectedDatapoints: []float64{0, 1, 2, 6},
+		},
+		"PacketsPayloadRatesPpsTotal": {
+			data: []byte(`
+{
+	"policy_dns": {
+		"packets": {
+        	"rates": {
+				"pps_total": {
+					"p50": 0,
+          			"p90": 1,
+        			"p95": 2,
+        			"p99": 6
+				}
+        	}
+    	}
+	}
+}`),
+			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
+				Name:  "__name__",
+				Value: "packets_rates_pps_total",
+			}),
+			expectedDatapoints: []float64{0, 1, 2, 6},
+		},
+		"PacketsPayloadRatesPpsOut": {
+			data: []byte(`
+{
+	"policy_dns": {
+		"packets": {
+        	"rates": {
+				"pps_out": {
+					"p50": 0,
+          			"p90": 1,
+        			"p95": 2,
+        			"p99": 6
+				}
+        	}
+    	}
+	}
+}`),
+			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
+				Name:  "__name__",
+				Value: "packets_rates_pps_out",
+			}),
+			expectedDatapoints: []float64{0, 1, 2, 6},
+		},
+		"DHCPPayloadRates": {
+			data: []byte(`
+{
+	"policy_dhcp": {
+		"dhcp": {
+        	"rates": {
+				"total": {
+					"p50": 0,
+    	      		"p90": 1,
+        			"p95": 2,
+        			"p99": 6
+        		}
+			}
+    	}
+	}
+}`),
+			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
+				Name:  "__name__",
+				Value: "dhcp_rates_total",
+			}),
+			expectedDatapoints: []float64{0, 1, 2, 6},
+		},
+	}
 
 	for desc, c := range cases {
 		t.Run(desc, func(t *testing.T) {
@@ -823,8 +1020,9 @@ func TestDNSRatesConversion(t *testing.T) {
 					receivedDatapoint = append(receivedDatapoint, value.Datapoint.Value)
 				}
 			}
-			assert.Equal(t, c.expectedLabels, receivedLabel, fmt.Sprintf("%s: expected %v got %v", desc, c.expectedLabels, receivedLabel))
-			assert.Equal(t, c.expectedDatapoints, receivedDatapoint, fmt.Sprintf("%s: expected %v got %v", desc, c.expectedDatapoints, receivedDatapoint))
+
+			assert.ElementsMatch(t, c.expectedLabels, receivedLabel, fmt.Sprintf("%s: expected %v got %v", desc, c.expectedLabels, receivedLabel))
+			assert.ElementsMatch(t, c.expectedDatapoints, receivedDatapoint, fmt.Sprintf("%s: expected %v got %v", desc, c.expectedDatapoints, receivedDatapoint))
 		})
 	}
 
@@ -2015,9 +2213,195 @@ func TestPacketsConversion(t *testing.T) {
 	}
 }
 
+func TestPeriodConversion(t *testing.T) {
+	var logger *zap.Logger
+	pktvisor.Register(logger)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	var agent = &pb.OwnerRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+	}
+
+	data := fleet.AgentMetricsRPCPayload{
+		PolicyID:   policyID.String(),
+		PolicyName: "policy-test",
+		Datasets:   nil,
+		Format:     "json",
+		BEVersion:  "1.0",
+	}
+
+	be := backend.GetBackend("pktvisor")
+
+	commonLabels := []prometheus.Label{
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+	}
+
+	cases := map[string]struct {
+		data            []byte
+		expectedLength  prometheus.TimeSeries
+		expectedStartTs prometheus.TimeSeries
+	}{
+		"DNSPayloadPeriod": {
+			data: []byte(`
+{
+	"policy_dns": {
+        "dns": {
+			"period": {
+		        "length": 60,
+        		"start_ts": 1624888107
+        	}
+		}
+    }
+}`),
+			expectedLength: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dns_period_length",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 60,
+				},
+			},
+			expectedStartTs: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dns_period_start_ts",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 1624888107,
+				},
+			},
+		},
+		"PacketsPayloadPeriod": {
+			data: []byte(`
+{
+	"policy_packets": {
+        "packets": {
+			"period": {
+		        "length": 60,
+        		"start_ts": 1624888107
+        	}
+		}
+    }
+}`),
+			expectedLength: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "packets_period_length",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 60,
+				},
+			},
+			expectedStartTs: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "packets_period_start_ts",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 1624888107,
+				},
+			},
+		},
+		"DHCPPayloadPeriod": {
+			data: []byte(`
+{
+	"policy_dhcp": {
+        "dhcp": {
+			"period": {
+		        "length": 60,
+        		"start_ts": 1624888107
+        	}
+		}
+    }
+}`),
+			expectedLength: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dhcp_period_length",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 60,
+				},
+			},
+			expectedStartTs: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dhcp_period_start_ts",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 1624888107,
+				},
+			},
+		},
+	}
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			data.Data = c.data
+			res, err := be.ProcessMetrics(agent, agentID.String(), data)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var receivedLabelStartTs []prometheus.Label
+			var receivedDatapointStartTs prometheus.Datapoint
+			var receivedLabelLength []prometheus.Label
+			var receivedDatapointLength prometheus.Datapoint
+			for _, value := range res {
+				if c.expectedLength.Labels[0] == value.Labels[0] {
+					receivedLabelLength = value.Labels
+					receivedDatapointLength = value.Datapoint
+				} else if c.expectedStartTs.Labels[0] == value.Labels[0] {
+					receivedLabelStartTs = value.Labels
+					receivedDatapointStartTs = value.Datapoint
+				}
+			}
+			assert.True(t, reflect.DeepEqual(c.expectedLength.Labels, receivedLabelLength), fmt.Sprintf("%s: expected %v got %v", desc, c.expectedLength.Labels, receivedLabelLength))
+			assert.Equal(t, c.expectedLength.Datapoint.Value, receivedDatapointLength.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expectedLength.Datapoint.Value, receivedDatapointLength.Value))
+			assert.True(t, reflect.DeepEqual(c.expectedStartTs.Labels, receivedLabelStartTs), fmt.Sprintf("%s: expected %v got %v", desc, c.expectedStartTs.Labels, receivedLabelStartTs))
+			assert.Equal(t, c.expectedStartTs.Datapoint.Value, receivedDatapointStartTs.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expectedStartTs.Datapoint.Value, receivedDatapointStartTs.Value))
+
+		})
+	}
+}
+
 func prependLabel(labelList []prometheus.Label, label prometheus.Label) []prometheus.Label {
 	labelList = append(labelList, prometheus.Label{})
 	copy(labelList[1:], labelList)
 	labelList[0] = label
+	return labelList
+}
+
+func labelQuantiles(labelList []prometheus.Label, label prometheus.Label) []prometheus.Label {
+	for i := 0; i < 28; i += 7 {
+		labelList = append(labelList[:i+1], labelList[i:]...)
+		labelList[i] = label
+	}
 	return labelList
 }
