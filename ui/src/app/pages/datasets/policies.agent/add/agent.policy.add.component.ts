@@ -90,6 +90,18 @@ export class AgentPolicyAddComponent {
 
   isEdit: boolean;
 
+  editorOptions = {theme: 'vs-dark', language: 'yaml'};
+  code: string = 'version: "1.0"\n' +
+    '\n' +
+    'visor:\n' +
+    '  taps:\n' +
+    '\n' +
+    'orb:\n' +
+    '  backends:\n' +
+    '    pktvisor:\n' +
+    '      binary: "/usr/local/sbin/pktvisord"\n' +
+    '      config_file: "/etc/orb/agent.yaml"\n';
+
   // #load controls
   isLoading = Object.entries(CONFIG)
     .reduce((acc, [value]) => {

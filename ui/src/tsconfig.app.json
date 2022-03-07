@@ -17,6 +17,9 @@
   "paths": {
     "@angular/*": [
       "../node_modules/@angular/*"
+    ],
+    "@monaco/*": [
+      "../node_modules/monaco/*"
     ]
   },
 }

@@ -50,6 +50,12 @@
                    nbInput/>
             <hr/>
           </form>
+          <div style="height: calc(50vh) !important; width: calc(100vh) !important;">
+            <ngx-monaco-editor class="my-code-editor"
+                               [options]="editorOptions"
+                               [(ngModel)]="code">
+            </ngx-monaco-editor>
+          </div>
           <hr/>
           <div class="d-flex justify-content-end">
             <button (click)="goBack()"
