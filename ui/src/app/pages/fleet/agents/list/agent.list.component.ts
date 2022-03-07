@@ -142,6 +142,12 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
         minWidth: 150,
         flexGrow: 4,
         cellTemplate: this.agentTagsTemplateCell,
+        comparator: (a, b) => Object.entries(a)
+          .map(([key, value]) => `${key}:${value}`)
+          .join(',')
+          .localeCompare(Object.entries(b)
+            .map(([key, value]) => `${key}:${value}`)
+            .join(',')),
       },
       {
         prop: 'ts_last_hb',

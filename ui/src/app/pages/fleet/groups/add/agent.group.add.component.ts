@@ -144,6 +144,12 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
         canAutoResize: true,
         flexGrow: 10,
         cellTemplate: this.agentTagsTemplateCell,
+        comparator: (a, b) => Object.entries(a)
+          .map(([key, value]) => `${key}:${value}`)
+          .join(',')
+          .localeCompare(Object.entries(b)
+            .map(([key, value]) => `${key}:${value}`)
+            .join(',')),
       },
       {
         prop: 'state',

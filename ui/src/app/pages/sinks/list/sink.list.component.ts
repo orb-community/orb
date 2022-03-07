@@ -170,6 +170,12 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
         flexGrow: 3,
         resizeable: false,
         cellTemplate: this.sinkTagsTemplateCell,
+        comparator: (a, b) => Object.entries(a)
+          .map(([key, value]) => `${key}:${value}`)
+          .join(',')
+          .localeCompare(Object.entries(b)
+            .map(([key, value]) => `${key}:${value}`)
+            .join(',')),
       },
       {
         name: '',
