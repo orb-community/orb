@@ -229,17 +229,17 @@ func (e eventStore) ValidatePolicy(ctx context.Context, token string, p policies
 	return e.svc.ValidatePolicy(ctx, token, p, format, policyData)
 }
 
-func (e eventStore) DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, token string) ([]policies.Dataset, error) {
-	return e.svc.DeleteSinkFromAllDatasets(ctx, sinkID, token)
+func (e eventStore) DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, token string) ([]policies.Dataset, error) {
+	return e.svc.DeleteSinkFromAllDatasetsInternal(ctx, sinkID, token)
 }
 
-func (e eventStore) InactivateDatasetByID(ctx context.Context, datasetID string, ownerID string) error {
+func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, datasetID string, ownerID string) error {
 	ds, err := e.svc.ViewDatasetByIDInternal(ctx, ownerID, datasetID)
 	if err != nil {
 		return err
 	}
 
-	if err := e.svc.InactivateDatasetByID(ctx, datasetID, ownerID); err != nil {
+	if err := e.svc.InactivateDatasetByIDInternal(ctx, datasetID, ownerID); err != nil {
 		return err
 	}
 

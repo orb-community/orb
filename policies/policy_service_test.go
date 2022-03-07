@@ -1170,7 +1170,7 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := svc.DeleteSinkFromAllDatasets(context.Background(), tc.sinkID, tc.ownerID)
+			_, err := svc.DeleteSinkFromAllDatasetsInternal(context.Background(), tc.sinkID, tc.ownerID)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		})
 	}
@@ -1247,7 +1247,7 @@ func TestInactivateDatasetByID(t *testing.T) {
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			for _, id := range tc.datasetIDs {
-				err := svc.InactivateDatasetByID(context.Background(), id, tc.ownerID)
+				err := svc.InactivateDatasetByIDInternal(context.Background(), id, tc.ownerID)
 				assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 			}
 		})

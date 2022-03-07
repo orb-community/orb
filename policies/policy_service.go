@@ -329,7 +329,7 @@ func (s policiesService) ListDatasets(ctx context.Context, token string, pm Page
 	return s.repo.RetrieveAllDatasetsByOwner(ctx, ownerID, pm)
 }
 
-func (s policiesService) DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error) {
+func (s policiesService) DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error) {
 	if sinkID == "" || ownerID == ""{
 		return []Dataset{}, ErrMalformedEntity
 	}
@@ -342,7 +342,7 @@ func (s policiesService) DeleteSinkFromAllDatasets(ctx context.Context, sinkID s
 	return datasets, nil
 }
 
-func (s policiesService) InactivateDatasetByID(ctx context.Context, datasetID string, ownerID string) error {
+func (s policiesService) InactivateDatasetByIDInternal(ctx context.Context, datasetID string, ownerID string) error {
 	if datasetID == "" || ownerID == ""{
 		return ErrMalformedEntity
 	}
