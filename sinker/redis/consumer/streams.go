@@ -103,8 +103,8 @@ func (es eventStore) handleSinksUpdate(ctx context.Context, e updateSinkEvent) e
 	if err != nil {
 		return err
 	}
-	var config config.SinkConfig
-	if err := json.Unmarshal(data, &config); err != nil {
+	var cfg config.SinkConfig
+	if err := json.Unmarshal(data, &cfg); err != nil {
 		return err
 	}
 
@@ -113,15 +113,18 @@ func (es eventStore) handleSinksUpdate(ctx context.Context, e updateSinkEvent) e
 		if err != nil {
 			return err
 		}
-		sinkConfig.Url = config.Url
-		sinkConfig.User = config.User
-		sinkConfig.Password = config.Password
+		sinkConfig.Url = cfg.Url
+		sinkConfig.User = cfg.User
+		sinkConfig.Password = cfg.Password
+		if sinkConfig.OwnerID == "" {
+			sinkConfig.OwnerID = e.owner
+		}
 
 		es.configRepo.Edit(sinkConfig)
 	} else {
-		config.SinkID = e.sinkID
-		config.OwnerID = e.owner
-		es.configRepo.Add(config)
+		cfg.SinkID = e.sinkID
+		cfg.OwnerID = e.owner
+		es.configRepo.Add(cfg)
 	}
 	return nil
 }

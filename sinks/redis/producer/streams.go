@@ -41,35 +41,32 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 	return es.svc.CreateSink(ctx, token, s)
 }
 
-func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink) (err error) {
-	if err := es.svc.UpdateSink(ctx, token, s); err != nil {
-		return err
-	}
+func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink,err error) {
+	defer func() {
+		event := updateSinkEvent{
+			sinkID: sink.ID,
+			owner:  sink.MFOwnerID,
+			config: sink.Config,
+		}
 
-	event := updateSinkEvent{
-		sinkID: s.ID,
-		owner:  s.MFOwnerID,
-		config: s.Config,
-	}
+		encode, err := event.Encode()
+		if err != nil {
+			es.logger.Error("error encoding object", zap.Error(err))
+		}
 
-	encode, err := event.Encode()
-	if err != nil {
-		es.logger.Error("error encoding object", zap.Error(err))
-		return err
-	}
+		record := &redis.XAddArgs{
+			Stream:       streamID,
+			MaxLenApprox: streamLen,
+			Values:       encode,
+		}
 
-	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       encode,
-	}
+		err = es.client.XAdd(ctx, record).Err()
+		if err != nil {
+			es.logger.Error("error sending event to event store", zap.Error(err))
+		}
+	}()
 
-	err = es.client.XAdd(ctx, record).Err()
-	if err != nil {
-		es.logger.Error("error sending event to event store", zap.Error(err))
-		return err
-	}
-	return nil
+	return es.svc.UpdateSink(ctx, token, s)
 }
 
 func (es eventStore) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (sinks.Page, error) {

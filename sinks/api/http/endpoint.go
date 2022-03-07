@@ -71,7 +71,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			Description: req.Description,
 		}
 
-		if err := svc.UpdateSink(ctx, req.token, sink); err != nil {
+		if _, err := svc.UpdateSink(ctx, req.token, sink); err != nil {
 			return nil, err
 		}
 		res := sinkRes{
