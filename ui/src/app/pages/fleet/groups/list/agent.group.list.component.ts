@@ -141,6 +141,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
         resizeable: false,
         minWidth: 25,
         flexGrow: 1,
+        comparator: (a, b) => a.total - b.total,
         cellTemplate: this.agentGroupsTemplateCell,
       },
       {
@@ -150,6 +151,12 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
         flexGrow: 3,
         resizeable: false,
         cellTemplate: this.agentGroupTagsTemplateCell,
+        comparator: (a, b) => Object.entries(a)
+          .map(([key, value]) => `${key}:${value}`)
+          .join(',')
+          .localeCompare(Object.entries(b)
+            .map(([key, value]) => `${key}:${value}`)
+            .join(',')),
       },
       {
         name: '',
