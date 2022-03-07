@@ -197,7 +197,9 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 	} else {
 		// Even with no policies, we should send the signal to agent for policy sanitization
 		payload = make([]AgentPolicyRPCPayload, 1)
-		payload[0] = AgentPolicyRPCPayload{}
+		payload[0] = AgentPolicyRPCPayload{
+			Action: "sanitize",
+		}
 	}
 
 	data := AgentPolicyRPC{

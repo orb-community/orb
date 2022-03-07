@@ -63,7 +63,7 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullLi
 	}
 
 	for _, payload := range rpc {
-		if payload.Action != "" {
+		if payload.Action != "sanitize" {
 			a.policyManager.ManagePolicy(payload)
 		}
 	}
