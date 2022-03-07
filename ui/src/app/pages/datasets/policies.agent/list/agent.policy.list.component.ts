@@ -40,6 +40,8 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
 
   @ViewChild('nameTemplateCell') nameTemplateCell: TemplateRef<any>;
 
+  @ViewChild('versionTemplateCell') versionTemplateCell: TemplateRef<any>;
+
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
@@ -129,11 +131,12 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
         minWidth: 120,
       },
       {
-        prop: 'schema_version',
+        prop: 'version',
         name: 'Version',
         resizeable: false,
         flexGrow: 1,
         minWidth: 50,
+        cellTemplate: this.versionTemplateCell,
       },
       {
         prop: 'ts_last_modified',
