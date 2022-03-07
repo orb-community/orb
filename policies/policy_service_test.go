@@ -1147,31 +1147,109 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		token    string
-		sinkID   string
-		err      error
+		ownerID string
+		sinkID  string
+		err     error
 	}{
 		"delete sinkID of a set of datasets": {
-			sinkID:   sinkIDs[0],
-			token:    token,
-			err:      nil,
+			sinkID:  sinkIDs[0],
+			ownerID: datasetsTest[0].MFOwnerID,
+			err:     nil,
 		},
 		"delete sinkID of a set of datasets with empty sinkID": {
-			sinkID:   "",
-			token:    token,
-			err:      policies.ErrMalformedEntity,
+			sinkID:  "",
+			ownerID: datasetsTest[0].MFOwnerID,
+			err:     policies.ErrMalformedEntity,
 		},
-		"delete sinkID of a set of datasets with invalid token": {
-			sinkID:   sinkIDs[0],
-			token:    invalidToken,
-			err:      errors.ErrUnauthorizedAccess,
+		"delete sinkID of a set of datasets with empty owner": {
+			sinkID:  sinkIDs[0],
+			ownerID: "",
+			err:     policies.ErrMalformedEntity,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := svc.DeleteSinkFromDataset(context.Background(), tc.sinkID, tc.token)
+			_, err := svc.DeleteSinkFromAllDatasets(context.Background(), tc.sinkID, tc.ownerID)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
+func TestInactivateDatasetByID(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	agentGroupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	policy := createPolicy(t, svc, "policy")
+
+	var total = 10
+
+	datasetsTest := make([]policies.Dataset, total)
+	datasetsID := make([]string, 0, total)
+
+	sinkIDs := make([]string, 0)
+	for i := 0; i < total; i++ {
+		ID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		datasetsID = append(datasetsID, ID.String())
+
+		for i := 0; i < 2; i++ {
+			sinkID, err := uuid.NewV4()
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+			sinkIDs = append(sinkIDs, sinkID.String())
+		}
+
+		validName, err := types.NewIdentifier(fmt.Sprintf("dataset-%d", i))
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		dataset := policies.Dataset{
+			ID:           ID.String(),
+			Name:         validName,
+			PolicyID:     policy.ID,
+			AgentGroupID: agentGroupID.String(),
+			SinkIDs:      sinkIDs,
+		}
+
+		ds, err := svc.AddDataset(context.Background(), token, dataset)
+		if err != nil {
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+		}
+
+		datasetsTest[i] = ds
+	}
+
+	cases := map[string]struct {
+		ownerID    string
+		datasetIDs []string
+		err        error
+	}{
+		"inactivate a set of datasets by ID": {
+			datasetIDs: datasetsID,
+			ownerID:    datasetsTest[0].MFOwnerID,
+			err:        nil,
+		},
+		"inactivate datasets with empty ownerID": {
+			datasetIDs: datasetsID,
+			ownerID:    "",
+			err:        policies.ErrMalformedEntity,
+		},
+		"inactivate datasets with empty ID": {
+			datasetIDs: []string{""},
+			ownerID:    datasetsTest[0].MFOwnerID,
+			err:        policies.ErrMalformedEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			for _, id := range tc.datasetIDs {
+				err := svc.InactivateDatasetByID(context.Background(), id, tc.ownerID)
+				assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+			}
 		})
 	}
 }

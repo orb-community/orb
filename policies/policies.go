@@ -103,11 +103,11 @@ type Service interface {
 	// ListDatasets retrieve a list of Dataset by owner
 	ListDatasets(ctx context.Context, token string, pm PageMetadata) (PageDataset, error)
 
-	// InactivateDatasetByDatasetID inactivate a dataset
-	InactivateDatasetByID(ctx context.Context, datasetID string, token string) error
+	// InactivateDatasetByID inactivate a dataset
+	InactivateDatasetByID(ctx context.Context, datasetID string, ownerID string) error
 
-	// DeleteSinkFromDataset removes a sink from a dataset
-	DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) ([]Dataset, error)
+	// DeleteSinkFromAllDatasets removes a sink from a dataset
+	DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
 }
 
 type Repository interface {
@@ -158,6 +158,6 @@ type Repository interface {
 	// InactivateDatasetByID inactivate a dataset
 	InactivateDatasetByID(ctx context.Context, sinkID string, ownerID string) error
 
-	// DeleteSinkFromDataset removes a sink from a dataset
-	DeleteSinkFromDataset(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
+	// DeleteSinkFromAllDatasets removes a sink from a dataset
+	DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
 }

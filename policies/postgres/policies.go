@@ -527,7 +527,7 @@ func (r policiesRepository) InactivateDatasetByID(ctx context.Context, id string
 	return nil
 }
 
-func (r policiesRepository) DeleteSinkFromDataset(ctx context.Context, sinkID string, ownerID string) ([]policies.Dataset, error) {
+func (r policiesRepository) DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]policies.Dataset, error) {
 	q := `UPDATE datasets SET sink_ids = array_remove(sink_ids, :sink_ids) WHERE mf_owner_id = :mf_owner_id RETURNING *`
 
 	if ownerID == "" {

@@ -47,7 +47,7 @@ func (m *mockPoliciesRepository) InactivateDatasetByID(ctx context.Context, sink
 	return nil
 }
 
-func (m *mockPoliciesRepository) DeleteSinkFromDataset(ctx context.Context, sinkID string, ownerID string) ([]policies.Dataset, error) {
+func (m *mockPoliciesRepository) DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]policies.Dataset, error) {
 	var datasets []policies.Dataset
 
 	for _, ds := range m.ddb{

@@ -49,14 +49,14 @@ func (cce createSinkEvent) Encode() map[string]interface{} {
 }
 
 type deleteSinkEvent struct {
-	sinkID    string
-	token string
+	sinkID  string
+	ownerID string
 }
 
 func (dse deleteSinkEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
 		"sink_id":   dse.sinkID,
-		"token":     dse.token,
+		"owner_id":  dse.ownerID,
 		"operation": SinkDelete,
 	}
 }

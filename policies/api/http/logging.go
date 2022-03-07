@@ -18,7 +18,7 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
-func (l loggingMiddleware) InactivateDatasetByID(ctx context.Context, datasetID string, token string) (err error) {
+func (l loggingMiddleware) InactivateDatasetByID(ctx context.Context, datasetID string, ownerID string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: inactivate_dataset_by_id",
@@ -29,7 +29,7 @@ func (l loggingMiddleware) InactivateDatasetByID(ctx context.Context, datasetID 
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.InactivateDatasetByID(ctx, datasetID, token)
+	return l.svc.InactivateDatasetByID(ctx, datasetID, ownerID)
 }
 
 func (l loggingMiddleware) ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (_ policies.Dataset, err error) {
@@ -270,18 +270,18 @@ func (l loggingMiddleware) ListDatasets(ctx context.Context, token string, pm po
 	return l.svc.ListDatasets(ctx, token, pm)
 }
 
-func (l loggingMiddleware) DeleteSinkFromDataset(ctx context.Context, sinkID string, token string) (ds []policies.Dataset, err error) {
+func (l loggingMiddleware) DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) (ds []policies.Dataset, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: delete_sink_from_dataset",
+			l.logger.Warn("method call: delete_sink_from_all_datasets",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: delete_sink_from_dataset",
+			l.logger.Info("method call: delete_sink_from_all_datasets",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.DeleteSinkFromDataset(ctx, sinkID, token)
+	return l.svc.DeleteSinkFromAllDatasets(ctx, sinkID, ownerID)
 }
 
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {

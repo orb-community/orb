@@ -109,7 +109,7 @@ func (es eventStore) SubscribeToSink(context context.Context) error {
 			switch event["operation"] {
 			case sinkRemove:
 				rte := decodeSinkRemove(event)
-				err = es.handleSinkRemove(context, rte.sinkID, rte.token)
+				err = es.handleSinkRemove(context, rte.sinkID, rte.ownerID)
 			}
 
 			if err != nil {
@@ -130,8 +130,8 @@ func decodeAgentGroupRemove(event map[string]interface{}) removeAgentGroupEvent 
 
 func decodeSinkRemove(event map[string]interface{}) removeSinkEvent {
 	return removeSinkEvent{
-		sinkID: read(event, "sink_id", ""),
-		token:  read(event, "token", ""),
+		sinkID:  read(event, "sink_id", ""),
+		ownerID: read(event, "owner_id", ""),
 	}
 }
 
@@ -145,16 +145,16 @@ func (es eventStore) handleAgentGroupRemove(ctx context.Context, groupID string,
 	return nil
 }
 
-func (es eventStore) handleSinkRemove(ctx context.Context, sinkID string, token string) error {
+func (es eventStore) handleSinkRemove(ctx context.Context, sinkID string, ownerID string) error {
 
-	datasets, err := es.policiesService.DeleteSinkFromDataset(ctx, sinkID, token)
+	datasets, err := es.policiesService.DeleteSinkFromAllDatasets(ctx, sinkID, ownerID)
 	if err != nil {
 		return err
 	}
 
-	for _, ds := range datasets{
-		if len(ds.SinkIDs) == 0{
-			err = es.policiesService.InactivateDatasetByID(ctx, ds.ID, token)
+	for _, ds := range datasets {
+		if len(ds.SinkIDs) == 0 {
+			err = es.policiesService.InactivateDatasetByID(ctx, ds.ID, ownerID)
 			if err != nil {
 				return err
 			}
