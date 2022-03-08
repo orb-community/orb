@@ -342,7 +342,7 @@ func (s policiesService) DeleteSinkFromAllDatasetsInternal(ctx context.Context, 
 	return datasets, nil
 }
 
-func (s policiesService) InactivateDatasetByIDInternal(ctx context.Context, datasetID string, ownerID string) error {
+func (s policiesService) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error {
 	if datasetID == "" || ownerID == ""{
 		return ErrMalformedEntity
 	}

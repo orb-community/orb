@@ -233,13 +233,13 @@ func (e eventStore) DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkI
 	return e.svc.DeleteSinkFromAllDatasetsInternal(ctx, sinkID, token)
 }
 
-func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, datasetID string, ownerID string) error {
+func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error {
 	ds, err := e.svc.ViewDatasetByIDInternal(ctx, ownerID, datasetID)
 	if err != nil {
 		return err
 	}
 
-	if err := e.svc.InactivateDatasetByIDInternal(ctx, datasetID, ownerID); err != nil {
+	if err := e.svc.InactivateDatasetByIDInternal(ctx, ownerID, datasetID); err != nil {
 		return err
 	}
 

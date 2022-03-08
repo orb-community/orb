@@ -22,10 +22,10 @@ type metricsMiddleware struct {
 	svc     policies.Service
 }
 
-func (m metricsMiddleware) InactivateDatasetByIDInternal(ctx context.Context, datasetID string, ownerID string) error {
+func (m metricsMiddleware) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error {
 	defer func(begin time.Time) {
 		labels := []string{
-			"method", "inactivateDatasetByID",
+			"method", "inactivateDatasetByIDInternal",
 			"owner_id", ownerID,
 			"policy_id", "",
 			"dataset_id", datasetID,
@@ -36,7 +36,7 @@ func (m metricsMiddleware) InactivateDatasetByIDInternal(ctx context.Context, da
 
 	}(time.Now())
 
-	return m.svc.InactivateDatasetByIDInternal(ctx, datasetID, ownerID)
+	return m.svc.InactivateDatasetByIDInternal(ctx, ownerID, datasetID)
 }
 
 func (m metricsMiddleware) ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (policies.Dataset, error) {
@@ -396,7 +396,7 @@ func (m metricsMiddleware) ListDatasets(ctx context.Context, token string, pm po
 func (m metricsMiddleware) DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]policies.Dataset, error) {
 	defer func(begin time.Time) {
 		labels := []string{
-			"method", "deleteSinkFromAllDatasets",
+			"method", "deleteSinkFromAllDatasetsInternal",
 			"owner_id", ownerID,
 			"policy_id", "",
 			"dataset_id", "",

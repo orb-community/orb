@@ -1247,7 +1247,7 @@ func TestInactivateDatasetByID(t *testing.T) {
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			for _, id := range tc.datasetIDs {
-				err := svc.InactivateDatasetByIDInternal(context.Background(), id, tc.ownerID)
+				err := svc.InactivateDatasetByIDInternal(context.Background(), tc.ownerID, id)
 				assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 			}
 		})

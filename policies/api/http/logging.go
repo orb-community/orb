@@ -18,18 +18,18 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
-func (l loggingMiddleware) InactivateDatasetByIDInternal(ctx context.Context, datasetID string, ownerID string) (err error) {
+func (l loggingMiddleware) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: inactivate_dataset_by_id",
+			l.logger.Warn("method call: inactivate_dataset_by_id_internal",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: inactivate_dataset_by_id",
+			l.logger.Info("method call: inactivate_dataset_by_id_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.InactivateDatasetByIDInternal(ctx, datasetID, ownerID)
+	return l.svc.InactivateDatasetByIDInternal(ctx, ownerID, datasetID)
 }
 
 func (l loggingMiddleware) ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (_ policies.Dataset, err error) {

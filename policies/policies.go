@@ -104,7 +104,7 @@ type Service interface {
 	ListDatasets(ctx context.Context, token string, pm PageMetadata) (PageDataset, error)
 
 	// InactivateDatasetByIDInternal inactivate a dataset
-	InactivateDatasetByIDInternal(ctx context.Context, datasetID string, ownerID string) error
+	InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error
 
 	// DeleteSinkFromAllDatasetsInternal removes a sink from a dataset
 	DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
