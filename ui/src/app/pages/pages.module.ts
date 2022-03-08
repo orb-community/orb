@@ -12,7 +12,7 @@ import {
   NbMenuModule,
   NbSelectModule,
   NbStepperModule,
-  NbTabsetModule, NbTooltipModule,
+  NbTabsetModule, NbToggleModule, NbTooltipModule,
   NbWindowService,
 } from '@nebular/theme';
 import { ThemeModule } from '../@theme/theme.module';
@@ -92,6 +92,7 @@ import { MonacoEditorModule } from 'ngx-monaco-editor';
     NbAlertModule,
     NbAccordionModule,
     MonacoEditorModule,
+    NbToggleModule,
   ],
   exports: [
     SharedModule,

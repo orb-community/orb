@@ -150,22 +150,13 @@ nb-accordion {
 }
 
 .code-editor {
-  height: 100%;
-  width: 100%;
-  padding: 1rem;
+  height: calc(100%);
+  width: calc(100%);
+  padding: calc(1rem);
 }
 
 .code-editor-wrapper {
-  height: 35vh;
-  width: 100%;
-}
-
-.editor-hr-container {
+  height: calc(35vh);
+  width: calc(100%);
   display: flex;
-  justify-content: center;
-  padding: 1.0rem 0 1.0rem 0 !important;
-}
-
-.editor-hr {
-
 }

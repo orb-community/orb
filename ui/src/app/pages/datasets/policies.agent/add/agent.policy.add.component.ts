@@ -94,12 +94,12 @@ export class AgentPolicyAddComponent {
 
   isEdit: boolean;
 
-  editorOptions = { theme: 'vs-dark', language: 'yaml' };
+  editorOptions = { theme: 'vs-dark', language: 'yaml', automaticLayout: true };
 
   code = '# Paste your yaml here for manual policy configuration';
 
-  // is config specified in YAML or JSON
-  isManual = false;
+  // is config specified wizard mode or in YAML or JSON
+  isWizard = true;
 
   // format definition
   format = 'yaml';
@@ -124,6 +124,7 @@ export class AgentPolicyAddComponent {
     this.isEdit = !!this.agentPolicyID;
 
     this.readyForms();
+    
 
     Promise.all([
       this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(),
@@ -193,6 +194,7 @@ export class AgentPolicyAddComponent {
     this.detailsFG = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
+      wizard: [{value: true}],
       backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFG = this._formBuilder.group({
