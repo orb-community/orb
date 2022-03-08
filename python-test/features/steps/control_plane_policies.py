@@ -1,6 +1,6 @@
 from hamcrest import *
 import requests
-from behave import given, when, then, step
+from behave import given, then, step
 from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json
 from local_agent import get_orb_agent_logs
 from test_config import TestConfig
@@ -13,15 +13,14 @@ policy_name_prefix = "test_policy_name_"
 base_orb_url = TestConfig.configs().get('base_orb_url')
 
 
-@when("a new policy is created using: {kwargs}")
+@step("a new policy is created using: {kwargs}")
 def create_new_policy(context, kwargs):
-
-    acceptable_keys = ['policy_name', 'handler_label', 'handler', 'description', 'tap', 'input_type',
+    acceptable_keys = ['name', 'handler_label', 'handler', 'description', 'tap', 'input_type',
                        'host_specification', 'bpf_filter_expression', 'pcap_source', 'only_qname_suffix',
                        'only_rcode', 'backend_type']
-    policy_name = policy_name_prefix + random_string(10)
+    name = policy_name_prefix + random_string(10)
 
-    kwargs_dict = {'policy_name': policy_name, 'handler': None, 'description': None, 'tap': "default_pcap",
+    kwargs_dict = {'name': name, 'handler': None, 'description': None, 'tap': "default_pcap",
                    'input_type': "pcap", 'host_specification': None, 'bpf_filter_expression': None,
                    'pcap_source': None, 'only_qname_suffix': None, 'only_rcode': None, 'backend_type': "pktvisor"}
 
@@ -38,21 +37,115 @@ def create_new_policy(context, kwargs):
         kwargs_dict["only_qname_suffix"] = kwargs_dict["only_qname_suffix"].replace("]", "")
         kwargs_dict["only_qname_suffix"] = kwargs_dict["only_qname_suffix"].split("/ ")
 
+    if policy_name_prefix not in kwargs_dict["name"]:
+        kwargs_dict["name"] + policy_name_prefix + kwargs_dict["name"]
+
+    assert_that(kwargs_dict["handler"], any_of(equal_to("dns"), equal_to("dhcp"), equal_to("net")),
+                "Unexpected handler for policy")
     handle_label = f"default_{kwargs_dict['handler']}_{random_string(3)}"
 
-    context.policy = create_policy(context.token, kwargs_dict["policy_name"], handle_label,
+    policy_json = make_policy_json(kwargs_dict["name"], handle_label,
                                    kwargs_dict["handler"], kwargs_dict["description"], kwargs_dict["tap"],
                                    kwargs_dict["input_type"], kwargs_dict["host_specification"],
                                    kwargs_dict["bpf_filter_expression"], kwargs_dict["pcap_source"],
                                    kwargs_dict["only_qname_suffix"], kwargs_dict["only_rcode"],
                                    kwargs_dict["backend_type"])
 
-    assert_that(context.policy['name'], equal_to(policy_name))
+    context.policy = create_policy(context.token, policy_json)
+
+    assert_that(context.policy['name'], equal_to(name))
     if 'policies_created' in context:
         context.policies_created[context.policy['id']] = context.policy['name']
     else:
         context.policies_created = dict()
         context.policies_created[context.policy['id']] = context.policy['name']
+
+
+@step("editing a policy using {kwargs}")
+def policy_editing(context, kwargs):
+    acceptable_keys = ['name', 'handler_label', 'handler', 'description', 'tap', 'input_type',
+                       'host_specification', 'bpf_filter_expression', 'pcap_source', 'only_qname_suffix',
+                       'only_rcode', 'backend_type']
+
+    handler_label = list(context.policy["policy"]["handlers"]["modules"].keys())[0]
+
+    edited_attributes = {
+        'host_specification': return_policy_attribute(context.policy, 'host_specification'),
+        'bpf_filter_expression': return_policy_attribute(context.policy, 'bpf_filter_expression'),
+        'pcap_source': return_policy_attribute(context.policy, 'pcap_source'),
+        'only_qname_suffix': return_policy_attribute(context.policy, 'only_qname_suffix'),
+        'only_rcode': return_policy_attribute(context.policy, 'only_rcode'),
+        'description': return_policy_attribute(context.policy, 'description'),
+        "name": return_policy_attribute(context.policy, 'name'),
+        "handler": return_policy_attribute(context.policy, 'handler'),
+        "backend_type": return_policy_attribute(context.policy, 'backend'),
+        "tap": return_policy_attribute(context.policy, 'tap'),
+        "input_type": return_policy_attribute(context.policy, 'input_type'),
+        "handler_label": return_policy_attribute(context.policy, 'handler_label')}
+
+    if "host_spec" in context.policy["policy"]["input"]["config"].keys():
+        edited_attributes["host_specification"] = context.policy["policy"]["input"]["config"]["host_spec"]
+    if "pcap_source" in context.policy["policy"]["input"]["config"].keys():
+        edited_attributes["pcap_source"] = context.policy["policy"]["input"]["config"]["pcap_source"]
+    if "bpf" in context.policy["policy"]["input"]["filter"].keys():
+        edited_attributes["bpf_filter_expression"] = context.policy["policy"]["input"]["filter"]["bpf"]
+    if "description" in context.policy.keys():
+        edited_attributes["description"] = context.policy['description']
+    if "only_qname_suffix" in context.policy["policy"]["handlers"]["modules"][handler_label]['filter'].keys():
+        edited_attributes["only_qname_suffix"] = context.policy["policy"]["handlers"]["modules"][handler_label]["filter"][
+            "only_qname_suffix"]
+    if "only_rcode" in context.policy["policy"]["handlers"]["modules"][handler_label]['filter'].keys():
+        edited_attributes["only_rcode"] = context.policy["policy"]["handlers"]["modules"][handler_label]["filter"]["only_rcode"]
+
+    for i in kwargs.split(", "):
+        assert_that(i, matches_regexp("^.+=.+$"), f"Unexpected format for param {i}")
+        item = i.split("=")
+        edited_attributes[item[0]] = item[1]
+        if item[1].isdigit() is False and str(item[1]).lower() == "none":
+            edited_attributes[item[0]] = None
+        if item[0] == "handler":
+            edited_attributes["handler_label"] = f"default_{edited_attributes['handler']}_{random_string(3)}"
+
+    for attribute in acceptable_keys:
+        if attribute not in edited_attributes.keys():
+            edited_attributes[attribute] = None
+
+    assert_that(all(key in acceptable_keys for key, value in edited_attributes.items()), equal_to(True),
+                f"Unexpected parameters for policy. Options are {acceptable_keys}")
+
+    if edited_attributes["only_qname_suffix"] is not None:
+        edited_attributes["only_qname_suffix"] = edited_attributes["only_qname_suffix"].replace("[", "")
+        edited_attributes["only_qname_suffix"] = edited_attributes["only_qname_suffix"].replace("]", "")
+        edited_attributes["only_qname_suffix"] = edited_attributes["only_qname_suffix"].split("/ ")
+
+    if policy_name_prefix not in edited_attributes["name"]:
+        edited_attributes["name"] = policy_name_prefix + edited_attributes["name"]
+
+    policy_json = make_policy_json(edited_attributes["name"], edited_attributes["handler_label"],
+                                   edited_attributes["handler"], edited_attributes["description"],
+                                   edited_attributes["tap"],
+                                   edited_attributes["input_type"], edited_attributes["host_specification"],
+                                   edited_attributes["bpf_filter_expression"], edited_attributes["pcap_source"],
+                                   edited_attributes["only_qname_suffix"], edited_attributes["only_rcode"],
+                                   edited_attributes["backend_type"])
+
+    context.policy = edit_policy(context.token, context.policy['id'], policy_json)
+
+    assert_that(context.policy['name'], equal_to(edited_attributes["name"]))
+
+
+@step("policy {attribute} must be {value}")
+def check_policy_attribute(context, attribute, value):
+    acceptable_attributes = ['name', 'handler_label', 'handler', 'description', 'tap', 'input_type',
+                             'host_specification', 'bpf_filter_expression', 'pcap_source', 'only_qname_suffix',
+                             'only_rcode', 'backend_type', 'version']
+    if attribute in acceptable_attributes:
+        if attribute == "name":
+            value = policy_name_prefix + value
+        policy_value = return_policy_attribute(context.policy, attribute)
+        assert_that(str(policy_value), equal_to(value), f"Unexpected value for policy {attribute}")
+    else:
+        raise Exception(f"Attribute {attribute} not found on policy")
 
 
 @then("referred policy {condition} be listed on the orb policies list")
@@ -191,15 +284,53 @@ def apply_n_policies_x_times(context, amount_of_policies, type_of_policies, amou
             create_new_dataset(context)
 
 
-def create_policy(token, policy_name, handler_label, handler, description=None, tap="default_pcap",
-                  input_type="pcap", host_specification=None, bpf_filter_expression=None, pcap_source=None,
-                  only_qname_suffix=None, only_rcode=None, backend_type="pktvisor"):
+def create_policy(token, json_request):
     """
 
     Creates a new policy in Orb control plane
 
     :param (str) token: used for API authentication
-    :param (str) policy_name:  of the policy to be created
+    :param (dict) json_request: policy json
+    :return: response of policy creation
+
+    """
+
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+
+    response = requests.post(base_orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
+    assert_that(response.status_code, equal_to(201),
+                'Request to create policy failed with status=' + str(response.status_code))
+
+    return response.json()
+
+
+def edit_policy(token, policy_id, json_request):
+    """
+    Editing a policy on Orb control plane
+
+    :param (str) token: used for API authentication
+    :param (str) policy_id: that identifies the policy to be edited
+    :param (dict) json_request: policy json
+    :return: response of policy editing
+    """
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+
+    response = requests.put(base_orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
+                            headers=headers_request)
+    assert_that(response.status_code, equal_to(200),
+                'Request to create policy failed with status=' + str(response.status_code))
+
+    return response.json()
+
+
+def make_policy_json(name, handler_label, handler, description=None, tap="default_pcap",
+                     input_type="pcap", host_specification=None, bpf_filter_expression=None, pcap_source=None,
+                     only_qname_suffix=None, only_rcode=None, backend_type="pktvisor"):
+    """
+
+    Generate a policy json
+
+    :param (str) name:  of the policy to be created
     :param (str) handler_label:  of the handler
     :param (str) handler: to be added
     :param (str) description: description of policy
@@ -226,8 +357,10 @@ def create_policy(token, policy_name, handler_label, handler, description=None, 
                 "Unexpected type of pcap_source")
     assert_that(only_rcode, any_of(equal_to(None), equal_to(0), equal_to(2), equal_to(3), equal_to(5)),
                 "Unexpected type of only_rcode")
+    assert_that(handler, any_of(equal_to("dns"), equal_to("dhcp"), equal_to("net")), "Unexpected handler for policy")
+    assert_that(name, not_none(), "Unable to create policy without name")
 
-    json_request = {"name": policy_name,
+    json_request = {"name": name,
                     "description": description,
                     "backend": backend_type,
                     "policy": {
@@ -253,13 +386,7 @@ def create_policy(token, policy_name, handler_label, handler, description=None, 
                     }
                     }
     json_request = remove_empty_from_json(json_request.copy())
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
-
-    response = requests.post(base_orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
-    assert_that(response.status_code, equal_to(201),
-                'Request to create policy failed with status=' + str(response.status_code))
-
-    return response.json()
+    return json_request
 
 
 def get_policy(token, policy_id, expected_status_code=200):
@@ -436,7 +563,6 @@ def list_datasets_for_a_policy(policy_id, datasets_list):
 
 
 def return_policies_type(k, policies_type='mixed'):
-
     assert_that(policies_type, any_of(equal_to('mixed'), any_of('simple'), any_of('advanced')),
                 "Unexpected value for policies type")
 
@@ -449,7 +575,7 @@ def return_policies_type(k, policies_type='mixed'):
         'advanced_net': "handler=net, description='policy_net', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
 
         'advanced_dhcp': "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
-        }
+    }
 
     simple = {
 
@@ -468,3 +594,43 @@ def return_policies_type(k, policies_type='mixed'):
         return sample(list(master_dict[policies_type].items()), k=k)
 
     return choices(list(master_dict[policies_type].items()), k=k)
+
+
+def return_policy_attribute(policy, attribute):
+    """
+
+    :param (dict) policy: json of policy
+    :param (str) attribute: policy attribute whose value is to be returned
+    :return: (str, bool or None) value referring to policy attribute
+
+    """
+
+    handler_label = list(policy["policy"]["handlers"]["modules"].keys())[0]
+    if attribute == "name":
+        return policy['name']
+    elif attribute == "handler_label":
+        return handler_label
+    elif attribute == "handler":
+        return list(policy["policy"]["handlers"]["modules"].values())[0]["type"]
+    elif attribute == "backend_type":
+        return policy["backend"]
+    elif attribute == "tap":
+        return policy["policy"]["input"]["tap"]
+    elif attribute == "input_type":
+        return policy["policy"]["input"]["input_type"]
+    elif attribute == "version" and "version" in policy.keys():
+        return policy["version"]
+    elif attribute == "description" and "description" in policy.keys():
+        return policy['description']
+    elif attribute == "host_specification" and "host_spec" in policy["policy"]["input"]["config"].keys():
+        return policy["policy"]["input"]["config"]["host_spec"]
+    elif attribute == "bpf_filter_expression" and "bpf" in policy["policy"]["input"]["filter"].keys():
+        return policy["policy"]["input"]["filter"]["bpf"]
+    elif attribute == "pcap_source" and "pcap_source" in policy["policy"]["input"]["config"].keys():
+        return policy["policy"]["input"]["config"]["pcap_source"]
+    elif attribute == "only_qname_suffix" and "only_qname_suffix" in policy["policy"]["handlers"]["modules"][handler_label]["filter"].keys():
+        return policy["policy"]["handlers"]["modules"][handler_label]["filter"]["only_qname_suffix"]
+    elif attribute == "only_rcode" and "only_rcode" in policy["policy"]["handlers"]["modules"][handler_label]["filter"].keys():
+        return policy["policy"]["handlers"]["modules"][handler_label]["filter"]["only_rcode"]
+    else:
+        return None
