@@ -1,25 +1,25 @@
-<nb-card size="large" class="nb-card-large" xmlns="http://www.w3.org/1999/html">
+<nb-card class="nb-card-large" size="large" xmlns="http://www.w3.org/1999/html">
   <nb-card-header>
     Handler Configuration
-    <button nbButton
-            ghost="true"
-            size="small"
+    <button (click)="onClose()"
             class="orb-close-dialog"
-            (click)="onClose()">
+            ghost="true"
+            nbButton
+            size="small">
       <span class="nb-close"></span>
     </button>
   </nb-card-header>
   <nb-card-body *ngIf="!isLoading">
     <form [formGroup]="handlerSelectorFG">
-      <label for="selected_handler" class="font-weight-bold">Handler</label>
+      <label class="font-weight-bold" for="selected_handler">Handler</label>
       <span class="required">*</span>
       <!-- Select a Handler -->
       <nb-select (selectedChange)="onHandlerSelected($event)"
                  appearance="filled"
                  data-orb-qa-id="backend_selector"
                  formControlName="selected_handler"
-                 id="selected_handler"
                  fullWidth="true"
+                 id="selected_handler"
                  nbTooltip="Select and configure individual policies from a list of available handlers."
                  placeholder="Select Handler"
                  size="medium">
@@ -31,7 +31,7 @@
       <hr/>
       <div *ngIf="!!selectedHandler">
         <div>
-          <label for="name" class="font-weight-bold">Handler Label</label>
+          <label class="font-weight-bold" for="name">Handler Label</label>
           <span class="required">*</span>
         </div>
         <input class="col-10"
@@ -45,8 +45,8 @@
                placeholder="Handler Name"/>
         <hr/>
         <div *ngFor="let group of dynConfigList;">
-          <div [formGroupName]="group"
-               *ngFor="let control of handlerProps[group] | keyvalue">
+          <div *ngFor="let control of handlerProps[group] | keyvalue"
+               [formGroupName]="group">
             <div>
               <label [for]="control.key" class="font-weight-bold">{{control.value.label}}</label>
             </div>
@@ -54,8 +54,8 @@
               <input *ngSwitchCase="'text'"
                      [attr.data-orb-qa-id]="control.value.name"
                      [autofocus]="true"
-                     [id]="control.key"
                      [formControlName]="control.key"
+                     [id]="control.key"
                      [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                      [type]="control.value.type"
                      fieldSize="medium"
@@ -65,8 +65,8 @@
               <input *ngSwitchCase="'number'"
                      [attr.data-orb-qa-id]="control.value.name"
                      [autofocus]="true"
-                     [id]="control.key"
                      [formControlName]="control.key"
+                     [id]="control.key"
                      [max]="control.value?.props?.max"
                      [min]="control.value?.props?.min"
                      [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
@@ -75,8 +75,8 @@
                      nbTooltip="{{ control.value.description }}">
               <nb-select *ngSwitchCase="'select'"
                          [attr.data-orb-qa-id]="control.value.name"
-                         [id]="control.key"
                          [formControlName]="control.key"
+                         [id]="control.key"
                          [id]="control.value.name"
                          [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                          appearance="filled"
@@ -90,8 +90,8 @@
               </nb-select>
               <nb-checkbox *ngSwitchCase="'checkbox'"
                            [attr.data-orb-qa-id]="control.value.name"
-                           [id]="control.key"
                            [formControlName]="control.key"
+                           [id]="control.key"
                            [id]="control.value.name"
                            nbTooltip="{{ control.value.description }}">
                 {{control.value.name}}
@@ -104,20 +104,24 @@
     </form>
   </nb-card-body>
   <nb-card-footer>
-    <button (click)="onClose()"
-            data-orb-qa-id="back"
-            ghost
-            nbButton
-            status="primary">
-      Cancel
-    </button>
-    <button nbButton
-            nbTooltip="Click to Save Handler"
-            status="primary"
-            data-orb-qa-id="addHandler"
-            (click)="onSaveHandler()"
-            [disabled]="!checkValidName()">
-      Save</button>
+    <div class="d-flex justify-content-end">
+      <button (click)="onClose()"
+              data-orb-qa-id="back"
+              nbButton
+              shape="round"
+              status="primary">
+        Cancel
+      </button>
+      <button (click)="onSaveHandler()"
+              [disabled]="!checkValidName()"
+              data-orb-qa-id="addHandler"
+              nbButton
+              nbTooltip="Click to Save Handler"
+              shape="round"
+              status="primary">
+        Save
+      </button>
+    </div>
   </nb-card-footer>
 </nb-card>
 
