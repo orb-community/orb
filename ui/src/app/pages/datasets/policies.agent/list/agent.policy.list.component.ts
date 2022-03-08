@@ -109,7 +109,7 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
 
   ngOnInit() {
     this.agentPoliciesService.clean();
-    this.getAgentsPolicies();
+    this.getAllPolicies();
   }
 
   ngAfterViewInit() {
