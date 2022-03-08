@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface
 import { NbDialogService } from '@nebular/theme';
 import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
 import { STRINGS } from '../../../../../assets/text/strings';
+import { EditorComponent } from 'ngx-monaco-editor';
 
 const CONFIG = {
   TAPS: 'TAPS',
@@ -26,7 +27,7 @@ const CONFIG = {
 })
 export class AgentPolicyAddComponent {
   // page vars
-  strings = {stepper: STRINGS.stepper};
+  strings = { stepper: STRINGS.stepper };
 
   // #forms
   // agent policy general information - name, desc, backend
@@ -88,19 +89,20 @@ export class AgentPolicyAddComponent {
 
   agentPolicyID: string;
 
+  @ViewChild('editorComponent')
+  editor: EditorComponent;
+
   isEdit: boolean;
 
-  editorOptions = {theme: 'vs-dark', language: 'yaml'};
-  code: string = 'version: "1.0"\n' +
-    '\n' +
-    'visor:\n' +
-    '  taps:\n' +
-    '\n' +
-    'orb:\n' +
-    '  backends:\n' +
-    '    pktvisor:\n' +
-    '      binary: "/usr/local/sbin/pktvisord"\n' +
-    '      config_file: "/etc/orb/agent.yaml"\n';
+  editorOptions = { theme: 'vs-dark', language: 'yaml' };
+
+  code = '# Paste your yaml here for manual policy configuration';
+
+  // is config specified in YAML or JSON
+  isManual = false;
+
+  // format definition
+  format = 'yaml';
 
   // #load controls
   isLoading = Object.entries(CONFIG)
@@ -166,6 +168,9 @@ export class AgentPolicyAddComponent {
     return !Object.values(this.isLoading).reduce((prev, curr) => prev || curr, false);
   }
 
+  onEditorUpdate(changes) {
+    console.log(changes);
+  }
 
   readyForms() {
     const {

@@ -11,8 +11,8 @@
   </header>
   <div *ngIf="!isLoading['backend'] && !isLoading['taps'] && !isLoading['inputs'] && !isLoading['handlers']"
        class="d-flex row">
-    <div class="d-flex col-12 mt-5">
-      <nb-stepper class="stepper w-100 ml-2"
+    <div class="d-flex col-12 mt-2">
+      <nb-stepper class="stepper w-100 ml-1"
                   disableStepNavigation
                   orientation="vertical">
         <nb-step [label]="firstStepTemplate"
@@ -35,6 +35,7 @@
                      fieldSize="medium"
                      formControlName="name"
                      fullWidth="true"
+                     class="w-50"
                      id="name"
                      nbInput/>
             </div>
@@ -47,13 +48,18 @@
                    formControlName="description"
                    fullWidth="true"
                    id="description"
+                   class="w-50"
                    nbInput/>
-            <hr/>
           </form>
-          <div style="height: calc(50vh) !important; width: calc(100vh) !important;">
-            <ngx-monaco-editor class="my-code-editor"
+          <div class="editor-hr-container">
+            <span class="editor-hr"> {{ '&#8213;'.repeat(20) + '  OR  ' + '&#8213;'.repeat(20) }}</span>
+          </div>
+          <div class="code-editor-wrapper">
+            <ngx-monaco-editor #editorComponent
+                               [(ngModel)]="code"
+                               (ngModelChange)="onEditorUpdate($event)"
                                [options]="editorOptions"
-                               [(ngModel)]="code">
+                               class="code-editor">
             </ngx-monaco-editor>
           </div>
           <hr/>
@@ -95,6 +101,7 @@
                 <span class="required">*</span>
               </div>
               <nb-select (selectedChange)="onTapSelected($event)"
+                         class="w-50"
                          appearance="filled"
                          data-orb-qa-id="taps"
                          formControlName="selected_tap"
@@ -129,12 +136,13 @@
                            [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="i == 0"
                            [formControlName]="control.key"
+                           [placeholder]="'e.g.: '.concat(control.value?.props?.example)"
                            [type]="control.value.type"
+                           class="w-50"
                            fieldSize="medium"
                            fullWidth="true"
                            nbInput
-                           nbTooltip="{{ control.value.description }}"
-                           [placeholder]="'e.g.: '.concat(control.value?.props?.example)">
+                           nbTooltip="{{ control.value.description }}">
                     <input *ngSwitchCase="'number'"
                            [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="i == 0"
@@ -144,13 +152,15 @@
                            [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                            [step]="control.value.props.step"
                            [type]="control.value.type"
+                           class="w-50"
                            nbTooltip="{{ control.value.description }}">
                     <nb-select *ngSwitchCase="'select'"
-                               [selected]="agentPolicy?.policy?.input?.tap"
                                [attr.data-orb-qa-id]="control.value.name"
                                [formControlName]="control.key"
                                [id]="control.value.name"
                                [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
+                               [selected]="agentPolicy?.policy?.input?.tap"
+                               class="w-50"
                                appearance="filled"
                                fullWidth="true"
                                nbTooltip="{{ control.value.description }}"
@@ -179,12 +189,13 @@
                                  [attr.data-orb-qa-id]="control.value.name"
                                  [autofocus]="i == 0"
                                  [formControlName]="control.key"
+                                 [placeholder]="'e.g.: '.concat(control.value?.props?.example)"
                                  [type]="control.value.type"
+                                 class="w-50"
                                  fieldSize="medium"
                                  fullWidth="true"
                                  nbInput
-                                 nbTooltip="{{ control.value.description }}"
-                                 [placeholder]="'e.g.: '.concat(control.value?.props?.example)">
+                                 nbTooltip="{{ control.value.description }}">
                           <input *ngSwitchCase="'number'"
                                  [attr.data-orb-qa-id]="control.value.name"
                                  [autofocus]="i == 0"
@@ -194,12 +205,14 @@
                                  [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                                  [step]="control.value.props.step"
                                  [type]="control.value.type"
+                                 class="w-50"
                                  nbTooltip="{{ control.value.description }}">
                           <nb-select *ngSwitchCase="'select'"
                                      [attr.data-orb-qa-id]="control.value.name"
                                      [formControlName]="control.key"
                                      [id]="control.value.name"
                                      [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
+                                     class="w-50"
                                      appearance="filled"
                                      fullWidth="true"
                                      nbTooltip="{{ control.value.description }}"
@@ -232,12 +245,13 @@
                            [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="i == 0"
                            [formControlName]="control.key"
+                           [placeholder]="'e.g.: '.concat(control.value?.props?.example)"
                            [type]="control.value.type"
+                           class="w-50"
                            fieldSize="medium"
                            fullWidth="true"
                            nbInput
-                           nbTooltip="{{ control.value.description }}"
-                           [placeholder]="'e.g.: '.concat(control.value?.props?.example)">
+                           nbTooltip="{{ control.value.description }}">
                     <input *ngSwitchCase="'number'"
                            [attr.data-orb-qa-id]="control.value.name"
                            [autofocus]="i == 0"
@@ -247,12 +261,14 @@
                            [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                            [step]="control.value.props.step"
                            [type]="control.value.type"
+                           class="w-50"
                            nbTooltip="{{ control.value.description }}">
                     <nb-select *ngSwitchCase="'select'"
                                [attr.data-orb-qa-id]="control.value.name"
                                [formControlName]="control.key"
                                [id]="control.value.name"
                                [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
+                               class="w-50"
                                appearance="filled"
                                fullWidth="true"
                                nbTooltip="{{ control.value.description }}"
@@ -297,9 +313,9 @@
             </button>
           </div>
         </nb-step>
-        <nb-step [label]="thirdStepTemplate"
+        <nb-step [completed]="isEdit"
 
-                 [completed]="isEdit"
+                 [label]="thirdStepTemplate"
                  data-orb-qa-id="step_2">
           <ng-template #thirdStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -307,39 +323,39 @@
               <p>Setup any number of handlers</p>
             </div>
           </ng-template>
-            <!-- Added Handlers List -->
-            <div class="d-flex">
-              <mat-chip-list data-orb-qa-id="handlers-list">
-                <mat-chip
-                  *ngFor="let handler of modules | keyvalue; index as i"
-                  [attr.data-orb-qa-id]="'handler_' + i"
-                  [style.background-color]="handler.key | tagcolor"
-                  [value]="i"
-                  class="orb-selected-handler ">
-                  {{ handler.key }}
-                  <nb-icon (click)="onHandlerRemoved(handler.key)"
-                           class="ml-1"
-                           icon="close-outline"
-                           size="12"></nb-icon>
-                </mat-chip>
-              </mat-chip-list>
-            </div>
-            <button (click)="addHandler()"
-                    class="next-button"
-                    data-orb-qa-id="addHandler"
-                    nbButton
-                    status="primary"
-                    shape="round"
-                    nbTooltip="Click to Add Handler">
-              <nb-icon icon="plus-outline"
-                       size="14"
-                       status="primary"
-                       style="color: #df316f;">
-              </nb-icon>
-              Add Handler
-            </button>
+          <!-- Added Handlers List -->
+          <div class="d-flex m-2">
+            <mat-chip-list data-orb-qa-id="handlers-list">
+              <mat-chip
+                *ngFor="let handler of modules | keyvalue; index as i"
+                [attr.data-orb-qa-id]="'handler_' + i"
+                [style.background-color]="handler.key | tagcolor"
+                [value]="i"
+                class="orb-selected-handler ">
+                {{ handler.key }}
+                <nb-icon (click)="onHandlerRemoved(handler.key)"
+                         class="ml-1"
+                         icon="close-outline"
+                         size="12"></nb-icon>
+              </mat-chip>
+            </mat-chip-list>
+          </div>
+          <button (click)="addHandler()"
+                  class="next-button"
+                  data-orb-qa-id="addHandler"
+                  nbButton
+                  nbTooltip="Click to Add Handler"
+                  shape="round"
+                  status="primary">
+            <nb-icon icon="plus-outline"
+                     size="14"
+                     status="primary"
+                     style="color: #df316f;">
+            </nb-icon>
+            Add Handler
+          </button>
           <div class="d-flex justify-content-start"
-               style="padding-left: 35%;">
+               style="padding-left: 35%; margin-top: 3vh;">
             <button
               data-orb-qa-id="button#back"
               ghost

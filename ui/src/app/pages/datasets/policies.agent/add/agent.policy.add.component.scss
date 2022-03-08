@@ -62,7 +62,7 @@ mat-chip nb-icon {
   }
 
   .step-content {
-    width: 500px !important;
+    width: 55vw !important;
   }
 
   .connector {
@@ -149,8 +149,23 @@ nb-accordion {
   }
 }
 
-.my-code-editor {
-  height: calc(100% - 100px);
+.code-editor {
+  height: 100%;
   width: 100%;
-  padding: 15px;
+  padding: 1rem;
+}
+
+.code-editor-wrapper {
+  height: 35vh;
+  width: 100%;
+}
+
+.editor-hr-container {
+  display: flex;
+  justify-content: center;
+  padding: 1.0rem 0 1.0rem 0 !important;
+}
+
+.editor-hr {
+
 }
