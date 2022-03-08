@@ -1,4 +1,4 @@
-from behave import given, when, then, step
+from behave import given, then, step
 from utils import random_string, filter_list_by_parameter_start_with
 from hamcrest import *
 import requests
@@ -11,7 +11,7 @@ dataset_name_prefix = "test_dataset_name_"
 base_orb_url = TestConfig.configs().get('base_orb_url')
 
 
-@when("a new dataset is created using referred group, sink and policy ID")
+@step("a new dataset is created using referred group, sink and policy ID")
 def create_new_dataset(context):
     context.considered_timestamp = datetime.now().timestamp()
     token = context.token

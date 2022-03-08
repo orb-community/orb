@@ -296,7 +296,7 @@ Scenario: Insert tags in agents created without tags and apply policies to group
         And the agent container is started on port default
         And that a sink already exists
     When edit the agent tags and use 2 orb tag(s)
-        And an Agent Group is created with same tag as the agent
+        And an Agent Group is created with same tag as the agent and without description
         And 1 simple policies are applied to the group
     Then this agent's heartbeat shows that 1 policies are successfully applied and has status running
         And the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
@@ -443,3 +443,73 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
         And the agent status in Orb should be online
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
+
+
+
+@smoke
+Scenario: Edit an advanced policy with handler dns changing the handler to net
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And that an agent with 1 orb tag(s) already exists and is online
+        And an Agent Group is created with same tag as the agent
+        And a new policy is created using: handler=dns, description='policy_dns', bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=0
+        And a new dataset is created using referred group, sink and policy ID
+    When editing a policy using name=my_policy, handler=net, only_qname_suffix=None, only_rcode=None
+    Then policy version must be 1
+        And policy name must be my_policy
+        And policy handler must be net
+        And policy only_qname_suffix must be None
+        And policy only_rcode must be None
+        And this agent's heartbeat shows that 1 policies are successfully applied and has status running
+
+
+
+@smoke
+Scenario: Edit an advanced policy with handler dns changing the handler to dhcp
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And that an agent with 1 orb tag(s) already exists and is online
+        And an Agent Group is created with same tag as the agent
+        And a new policy is created using: handler=dns, host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=2
+        And a new dataset is created using referred group, sink and policy ID
+    When editing a policy using name=second_policy, handler=dhcp, only_qname_suffix=None, only_rcode=None
+    Then policy version must be 1
+        And policy name must be second_policy
+        And policy handler must be dhcp
+        And this agent's heartbeat shows that 1 policies are successfully applied and has status running
+
+
+@smoke
+Scenario: Edit a simple policy with handler dhcp changing the handler to net
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And that an agent with 1 orb tag(s) already exists and is online
+        And an Agent Group is created with same tag as the agent
+        And a new policy is created using: handler=dhcp
+        And a new dataset is created using referred group, sink and policy ID
+    When editing a policy using handler=net, description="policy_net"
+    Then policy version must be 1
+        And policy handler must be net
+        And this agent's heartbeat shows that 1 policies are successfully applied and has status running
+
+
+@smoke
+Scenario: Edit a simple policy with handler net changing the handler to dns and inserting advanced parameters
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And that an agent with 1 orb tag(s) already exists and is online
+        And an Agent Group is created with same tag as the agent
+        And a new policy is created using: handler=net
+        And a new dataset is created using referred group, sink and policy ID
+    When editing a policy using handler=dns, host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=2
+    Then policy version must be 1
+        And policy handler must be dns
+        And policy host_specification must be 10.0.1.0/24,10.0.2.1/32,2001:db8::/64
+        And policy bpf_filter_expression must be udp port 53
+        And policy only_qname_suffix must be ['.foo.com', '.example.com']
+        And policy only_rcode must be 2
+        And this agent's heartbeat shows that 1 policies are successfully applied and has status running
