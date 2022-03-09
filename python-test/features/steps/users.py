@@ -32,7 +32,7 @@ def request_account_registration(context, company, fullname):
         status_code = 400
     else:
         status_code = 201
-    context.status_code, context.registration_response = register_account(context.email[0], context.password,
+    context.registration_response, context.status_code = register_account(context.email[0], context.password,
                                                                           context.company, context.full_name,
                                                                           status_code)
 
@@ -127,7 +127,7 @@ def register_account(user_email, user_password, company_name=None, user_full_nam
     assert_that(response.status_code, equal_to(expected_status_code),
                 f"Current value of is_credentials_registered parameter = {configs.get('is_credentials_registered')}."
                 f"\nExpected status code for registering an account failed with status= {str(response.status_code)}.")
-    return response.status_code, response.json
+    return response, response.status_code,
 
 
 def get_account_information(token, expected_status_code=200):
