@@ -315,10 +315,7 @@ func (r agentRepository) RetrieveByIDWithChannel(ctx context.Context, thingID st
 }
 
 func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
-	tx, err := r.db.BeginTxx(ctx, nil)
-	if err != nil {
-		return err
-	}
+
 	q := `INSERT INTO agents (name, mf_thing_id, mf_owner_id, mf_channel_id, orb_tags, agent_tags, agent_metadata, state)         
 			  VALUES (:name, :mf_thing_id, :mf_owner_id, :mf_channel_id, :orb_tags, :agent_tags, :agent_metadata, :state)`
 
@@ -331,25 +328,18 @@ func (r agentRepository) Save(ctx context.Context, agent fleet.Agent) error {
 		return errors.Wrap(db.ErrSaveDB, err)
 	}
 
-	_, err = tx.NamedExecContext(ctx, q, dba)
+	_, err = r.db.NamedExecContext(ctx, q, dba)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			switch pqErr.Code.Name() {
 			case db.ErrInvalid, db.ErrTruncation:
-				tx.Rollback()
 				return errors.Wrap(errors.ErrMalformedEntity, err)
 			case db.ErrDuplicate:
-				tx.Rollback()
 				return errors.Wrap(errors.ErrConflict, err)
 			}
 		}
-		tx.Rollback()
 		return errors.Wrap(db.ErrSaveDB, err)
-	}
-
-	if err = tx.Commit(); err != nil {
-		return err
 	}
 
 	return nil
