@@ -124,7 +124,7 @@ export class AgentPolicyAddComponent {
     this.isEdit = !!this.agentPolicyID;
 
     this.readyForms();
-    
+
 
     Promise.all([
       this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(),
@@ -194,7 +194,7 @@ export class AgentPolicyAddComponent {
     this.detailsFG = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
-      wizard: [{value: true}],
+      wizard: [{ value: true }],
       backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFG = this._formBuilder.group({
@@ -407,6 +407,18 @@ export class AgentPolicyAddComponent {
     this.router.navigateByUrl('/pages/datasets/policies');
   }
 
+  onYAMLSubmit() {
+    const payload = {
+      name: this.detailsFG.controls.name.value,
+      description: this.detailsFG.controls.description.value,
+      format: this.format,
+      policy_data: this.code,
+      version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
+    };
+
+    this.submit(payload);
+  }
+
   onFormSubmit() {
     const payload = {
       name: this.detailsFG.controls.name.value,
@@ -456,6 +468,10 @@ export class AgentPolicyAddComponent {
     if (Object.keys(payload.policy?.input?.filter).length <= 0)
       delete payload.policy.input.filter;
 
+    this.submit(payload);
+  }
+
+  submit(payload) {
     if (this.isEdit) {
       // updating existing sink
       this.agentPoliciesService.editAgentPolicy({ ...payload, id: this.agentPolicyID }).subscribe(() => {
