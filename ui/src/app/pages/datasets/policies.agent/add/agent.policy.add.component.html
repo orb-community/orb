@@ -56,6 +56,7 @@
                          data-orb-qa-id="wizard-selector"
                          formControlName="wizard"
                          id="wizard"
+                         (click)="resizeComponents()"
                          labelPosition="end">Create Policy through wizard
               </nb-toggle>
             </div>
@@ -75,6 +76,7 @@
                     nbButton
                     nbStepperNext
                     shape="round"
+                    (click)="resizeComponents()"
                     status="primary">
               {{ strings.stepper.next }}
             </button>
@@ -117,12 +119,12 @@
               {{ strings.stepper.back }}
             </button>
             <button (click)="onYAMLSubmit()"
-                    [disabled]="code !== ''"
+                    [disabled]="!code"
                     class="next-button"
                     data-orb-qa-id="button#save"
                     nbButton
                     nbStepperNext
-                    nbTooltip="At least one handler must be configure and added to the policies."
+                    nbTooltip="Paste your YAML configuration in the code editor above"
                     shape="round"
                     status="primary"
                     type="submit">

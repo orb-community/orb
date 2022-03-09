@@ -94,7 +94,16 @@ export class AgentPolicyAddComponent {
 
   isEdit: boolean;
 
-  editorOptions = { theme: 'vs-dark', language: 'yaml', automaticLayout: true };
+  editorOptions = {
+    theme: 'vs-dark',
+    language: 'yaml',
+    automaticLayout: true,
+    glyphMargin: false,
+    folding: false,
+    // Undocumented see https://github.com/Microsoft/vscode/issues/30795#issuecomment-410998882
+    lineDecorationsWidth: 0,
+    lineNumbersMinChars: 0,
+  };
 
   code = '# Paste your yaml here for manual policy configuration';
 
@@ -132,6 +141,12 @@ export class AgentPolicyAddComponent {
     ]).catch(reason => console.warn(`Couldn't fetch data. Reason: ${ reason }`))
       .then(() => this.updateForms())
       .catch((reason) => console.warn(`Couldn't fetch ${ this.agentPolicy?.backend } data. Reason: ${ reason }`));
+  }
+
+  resizeComponents() {
+    // setTimeout(() => {
+    window.dispatchEvent(new Event('resize'));
+    // }, 50);
   }
 
   newAgent() {
@@ -411,6 +426,7 @@ export class AgentPolicyAddComponent {
     const payload = {
       name: this.detailsFG.controls.name.value,
       description: this.detailsFG.controls.description.value,
+      backend: this.detailsFG.controls.backend.value,
       format: this.format,
       policy_data: this.code,
       version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,

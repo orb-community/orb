@@ -156,7 +156,9 @@ nb-accordion {
 }
 
 .code-editor-wrapper {
-  height: calc(35vh);
+  min-height: 350px;
+  min-width: 200px;
+  height: calc(58vh);
   width: calc(100%);
-  display: flex;
+  display: block;
 }
