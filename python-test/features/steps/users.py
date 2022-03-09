@@ -1,14 +1,70 @@
 from hamcrest import *
-from behave import given
+from behave import given, step, then
 from test_config import TestConfig
 import requests
+from utils import random_string
 
 configs = TestConfig.configs()
 base_orb_url = configs.get('base_orb_url')
 
 
+@step("that there is an unregistered {email} email with {password} password")
+def check_non_registered_account(context, email, password):
+    assert_that(email, any_of(equal_to("valid"), equal_to("invalid")), "Unexpected value for email")
+    if email == "valid":
+        context.email = [f"tester_{random_string(4)}@email.com", email]
+        status_code = 403
+    else:
+        context.email = [f"tester.com", email]
+        status_code = 400
+    context.password = password
+    authenticate(context.email[0], context.password, status_code)
+
+
+@step("the Orb user request this account registration with {company} as company and {fullname} as fullname")
+def request_account_registration(context, company, fullname):
+    if company.lower() == "none": company = None
+    if fullname.lower() == "none": fullname = None
+    context.company = company
+    context.full_name = fullname
+
+    if context.email[1] == "invalid" or not (8 <= len(context.password) <= 50):
+        status_code = 400
+    else:
+        status_code = 201
+    context.registration_response, context.status_code = register_account(context.email[0], context.password,
+                                                                          context.company, context.full_name,
+                                                                          status_code)
+
+@then("the status code must be {status_code}")
+def register_orb_account(context, status_code):
+    status_code = int(status_code)
+    assert_that(context.status_code, equal_to(status_code), "Unexpected status code for account registration")
+
+
+
+@step("account is registered with email, with password, {company_status} company and {fullname_status} full name")
+def check_account_information(context, company_status, fullname_status):
+    if company_status.lower() == "none": company_status = None
+    if fullname_status.lower() == "none": fullname_status = None
+    context.token = authenticate(context.email[0], context.password)["token"]
+    account_details = get_account_information(context.token)
+    expected_keys = ["id", "email", "metadata"]
+    for key in expected_keys:
+        assert_that(account_details, has_key(key), f"key {key} not present in account data")
+    expected_metadata = dict()
+    if company_status is not None:
+        expected_metadata["company"] = context.company
+    if fullname_status is not None:
+        expected_metadata["fullName"] = context.full_name
+    for metadata in expected_metadata.keys():
+        assert_that(account_details["metadata"], has_key(metadata), f"Missing {metadata} in account metadata")
+        assert_that(account_details["metadata"][metadata], equal_to(expected_metadata[metadata]),
+                f"Unexpected value for {metadata}")
+
+
 @given("the Orb user has a registered account")
-def register_orb_account(context):
+def check_account_registration(context):
     email = configs.get('email')
     password = configs.get('password')
     if configs.get('is_credentials_registered') == 'false':
@@ -71,4 +127,17 @@ def register_account(user_email, user_password, company_name=None, user_full_nam
     assert_that(response.status_code, equal_to(expected_status_code),
                 f"Current value of is_credentials_registered parameter = {configs.get('is_credentials_registered')}."
                 f"\nExpected status code for registering an account failed with status= {str(response.status_code)}.")
-    return response
+    return response, response.status_code,
+
+
+def get_account_information(token, expected_status_code=200):
+    """
+
+    :param (str) token: used for API authentication
+    :param (int) expected_status_code: expected request's status code. Default:200 (happy path).
+    :return: (dict) account_response
+    """
+    response = requests.get(base_orb_url + '/api/v1/users/profile',
+                            headers={'Authorization': token})
+    assert_that(response.status_code, equal_to(expected_status_code), "Unexpected status code for get account data")
+    return response.json()

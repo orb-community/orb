@@ -57,3 +57,28 @@
         |   without  | without  |   with   |   with  |
         |   without  | without  |   with   | without |
       Then user should not be able to authenticate
+
+
+  @smoke
+  Scenario Outline: Request account registration of an unregistered account with invalid values
+    Given that there is an unregistered <email> email with <password> password
+    When the Orb user request this account registration with <company> as company and <fullname> as fullname
+    Then the status code must be <status_code>
+    Examples:
+    |   email   |   password  | company | fullname | status_code |
+    |   valid    |    1234      |   "email used for testing process"      |    "Test process"      | 400 |
+    | invalid    |    12345678     |    "email used for testing process"      |    "Test process"     | 400  |
+    | invalid    |    1234567     |    "email used for testing process"      |    "Test process"     | 400  |
+
+
+  @smoke
+  Scenario Outline: Request account registration of an unregistered account with company and full name
+    Given that there is an unregistered <email> email with <password> password
+    When the Orb user request this account registration with <company> as company and <fullname> as fullname
+    Then the status code must be <status_code>
+      And account is registered with email, with password, <company> company and <fullname> full name
+    Examples:
+      |   email   |      password  |             company                   |      fullname      | status_code |
+      |   valid   |    12345678    |   email used for testing process      |    Test process    |     201     |
+      |   valid   |    12345678    |                 None                  |    Test process    |     201     |
+      |   valid   |    12345678    |    email used for testing process     |        None        |     201     |
