@@ -109,4 +109,5 @@ def check_status_on_orb_ui(context, status, time_to_wait):
     agent_view_status = WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located(
             (By.XPATH, AgentsPage.agent_status())))[0].text
+    agent_view_status = agent_view_status.replace(".", "")
     assert_that(agent_view_status, equal_to(status), f"Agent {context.agent['id']} status failed")
