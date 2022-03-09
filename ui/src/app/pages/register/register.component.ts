@@ -76,7 +76,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     this.errors = this.messages = [];
     this.submitted = true;
 
-    const _ps = window['_ps'];
+    const _ps = !!window['_ps'] && window['_ps'];
 
     event?.preventDefault();
     if (!this.blockSubmission()) {
@@ -86,12 +86,15 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
       this.authService.register(this.strategy, {
         email,
         password,
-        company,
+        metadata: {
+          company: company,
+          fullName: this.user.fullName,
+        },
       }).subscribe(
         respReg => {
           const first_name = this.user.fullName.split(' ')[0];
           const last_name = this.user.fullName.replace(`${ first_name } `, '');
-          _ps.getByKey(this._groupKey).send('updated', { custom_data: { first_name, last_name } });
+          !!_ps && _ps.getByKey(this._groupKey).send('updated', { custom_data: { first_name, last_name } });
 
           this.submitted = false;
 
@@ -118,13 +121,15 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     } else {
       // We can get the alert message if set on the group
       // or define our own if it's not.
-      const acceptanceAlertLanguage =
-        (_ps.getByKey(this._groupKey) && _ps.getByKey(this._groupKey).get('alert_message')) ?
-          _ps.getByKey(this._groupKey).get('alert_message') :
-          'Please accept our Terms and Conditions.';
+      if (_ps) {
+        const acceptanceAlertLanguage =
+          (_ps.getByKey(this._groupKey) && _ps.getByKey(this._groupKey).get('alert_message')) ?
+            _ps.getByKey(this._groupKey).get('alert_message') :
+            'Please accept our Terms and Conditions.';
 
-      // Alert the user that the Terms need to be accepted before continuing.
-      alert(acceptanceAlertLanguage);
+        // Alert the user that the Terms need to be accepted before continuing.
+        alert(acceptanceAlertLanguage);
+      }
     }
   }
 }
