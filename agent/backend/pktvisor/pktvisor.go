@@ -478,9 +478,11 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 
 func (p *pktvisorBackend) FullReset() error {
 
+	// State always will have a value, even if error is not null
+	// State it's been used to identify broken pktvisor
 	state, errMsg, err := p.GetState()
 	if err != nil {
-		p.logger.Error("failed to retrieve backend state", zap.String("error_message", errMsg), zap.Error(err))
+		p.logger.Warn("broken pktvisor, trying to start", zap.String("broken_reason", errMsg))
 	}
 
 	if  state == backend.Running {
