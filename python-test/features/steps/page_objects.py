@@ -47,11 +47,11 @@ class AgentsPage:
 
     @classmethod
     def agent_view_id(cls):
-        return "//label[contains(text(), 'Agent ID')]/following::p"
+        return "//label[contains(text(), 'Agent ID')]/following::span"
 
     @classmethod
     def agent_status(cls):
-        return "//label[contains(text(), 'Health Status')]/following::p"
+        return "//span[@class='float-right']//child::span"
 
 
 class UtilButton:
