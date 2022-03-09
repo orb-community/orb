@@ -86,12 +86,18 @@ func (es eventStore) ViewSink(ctx context.Context, token string, key string) (_ 
 }
 
 func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err error) {
+	sink, err := es.svc.ViewSink(ctx, token, id)
+	if err != nil{
+		return err
+	}
+
 	if err := es.svc.DeleteSink(ctx, token, id); err != nil {
 		return err
 	}
 
 	event := deleteSinkEvent{
-		id: id,
+		sinkID: id,
+		ownerID:  sink.MFOwnerID,
 	}
 
 	record := &redis.XAddArgs{

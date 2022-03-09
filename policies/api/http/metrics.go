@@ -22,6 +22,23 @@ type metricsMiddleware struct {
 	svc     policies.Service
 }
 
+func (m metricsMiddleware) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error {
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "inactivateDatasetByIDInternal",
+			"owner_id", ownerID,
+			"policy_id", "",
+			"dataset_id", datasetID,
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.InactivateDatasetByIDInternal(ctx, ownerID, datasetID)
+}
+
 func (m metricsMiddleware) ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (policies.Dataset, error) {
 	defer func(begin time.Time) {
 		labels := []string{
@@ -374,6 +391,23 @@ func (m metricsMiddleware) ListDatasets(ctx context.Context, token string, pm po
 	}(time.Now())
 
 	return m.svc.ListDatasets(ctx, token, pm)
+}
+
+func (m metricsMiddleware) DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]policies.Dataset, error) {
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "deleteSinkFromAllDatasetsInternal",
+			"owner_id", ownerID,
+			"policy_id", "",
+			"dataset_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.DeleteSinkFromAllDatasetsInternal(ctx, sinkID, ownerID)
 }
 
 func (m metricsMiddleware) identify(token string) (string, error) {
