@@ -30,11 +30,11 @@ var (
 )
 
 func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) error {
-	// first we get the agent group to connect the new agent to the correct group channel
 	groupList, err := svc.agentGroupRepository.RetrieveAllByAgent(context.Background(), a)
 	if err != nil {
 		return err
 	}
+
 	if len(groupList) == 0 {
 		return nil
 	}
@@ -160,6 +160,7 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 		// TODO should we roll back?
 		svc.logger.Error("failed to add agent to a existing group channel", zap.String("agent_id", a.MFThingID), zap.Error(err))
 	}
+
 	return a, nil
 }
 
