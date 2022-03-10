@@ -49,7 +49,7 @@ export class DatasetDetailsComponent implements OnInit, OnDestroy {
         switchMap(dataset => forkJoin({
           agentGroup: this.agentGroupsService.getAgentGroupById(dataset.agent_group_id),
           agentPolicy: this.agentPoliciesService.getAgentPolicyById(dataset.agent_policy_id),
-          sinks: this.sinksService.getSinks(null),
+          sinks: this.sinksService.getAllSinks(),
         })),
       )
       .subscribe(result => {
