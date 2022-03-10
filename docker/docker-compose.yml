@@ -24,6 +24,7 @@ volumes:
   orb-fleet-db-volume:
   orb-policies-db-volume:
   orb-sinks-db-volume:
+  orb-sinker-redis-volume:
 
 services:
 
@@ -449,6 +450,15 @@ services:
       ORB_SINKS_GRPC_TIMEOUT: ${ORB_SINKS_GRPC_TIMEOUT}
     networks:
       - orb-base-net
+
+  sinker-redis:
+    image: redis:6.2-alpine
+    container_name: sinker-redis
+    restart: on-failure
+    networks:
+      - orb-base-net
+    volumes:
+      - orb-sinker-redis-volume:/data
 
   ui:
     image: "ns1labs/orb-ui:${ORB_RELEASE_TAG}"
