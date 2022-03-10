@@ -96,6 +96,13 @@ func migrateDB(db *sqlx.DB) error {
 					ts_last_modified TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL`,
 				},
 			},
+			{
+				Id: "policies_4",
+				Up: []string{
+					`ALTER TABLE IF EXISTS agent_policies ADD COLUMN IF NOT EXISTS
+					policy_data TEXT NOT NULL DEFAULT ''`,
+				},
+			},
 		},
 	}
 

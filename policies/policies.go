@@ -20,6 +20,7 @@ type Policy struct {
 	Version       int32
 	OrbTags       types.Tags
 	Policy        types.Metadata
+	PolicyData    string
 	Created       time.Time
 	LastModified  time.Time
 }

@@ -34,6 +34,7 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Policy:        req.Policy,
 			Description:   req.Description,
 			OrbTags:       req.Tags,
+			PolicyData:    req.PolicyData,
 		}
 
 		saved, err := svc.AddPolicy(ctx, req.token, policy, req.Format, req.PolicyData)
@@ -79,6 +80,7 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Policy:        policy.Policy,
 			Version:       policy.Version,
 			LastModified:  policy.LastModified,
+			PolicyData:    policy.PolicyData,
 		}
 		return res, nil
 	}
@@ -139,6 +141,7 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Description: req.Description,
 			OrbTags:     req.Tags,
 			Policy:      req.Policy,
+			PolicyData: req.PolicyData,
 		}
 
 		res, err := svc.EditPolicy(ctx, req.token, plcy, req.Format, req.PolicyData)
