@@ -9,8 +9,8 @@ import (
 var _ AgentCommsService = (*commsMetricsMiddleware)(nil)
 
 type commsMetricsMiddleware struct {
-	counter metrics.Counter
-	latency metrics.Histogram
+	requestCounter metrics.Counter
+	requestLatency metrics.Histogram
 	svc     AgentCommsService
 }
 
@@ -33,8 +33,8 @@ func (c commsMetricsMiddleware) NotifyAgentNewGroupMembership(a Agent, ag AgentG
 			"owner_id", a.MFOwnerID,
 		}
 
-		c.counter.With(labels...).Add(1)
-		c.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+		c.requestCounter.With(labels...).Add(1)
+		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 
@@ -52,8 +52,8 @@ func (c commsMetricsMiddleware) NotifyAgentGroupMemberships(a Agent) error {
 			"owner_id", a.MFOwnerID,
 		}
 
-		c.counter.With(labels...).Add(1)
-		c.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+		c.requestCounter.With(labels...).Add(1)
+		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 	return c.svc.NotifyAgentGroupMemberships(a)
@@ -70,29 +70,29 @@ func (c commsMetricsMiddleware) NotifyAgentAllDatasets(a Agent) error {
 			"owner_id", a.MFOwnerID,
 		}
 
-		c.counter.With(labels...).Add(1)
-		c.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+		c.requestCounter.With(labels...).Add(1)
+		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 	return c.svc.NotifyAgentAllDatasets(a)
 }
 
-func (c commsMetricsMiddleware) NotifyAgentStop(MFChannelID string, reason string) error {
+func (c commsMetricsMiddleware) NotifyAgentStop(agent Agent, reason string) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyAgentStop",
-			"agent_id", "",
-			"agent_name", "",
+			"agent_id", agent.MFThingID,
+			"agent_name", agent.Name.String(),
 			"group_id", "",
 			"group_name", "",
-			"owner_id", "",
+			"owner_id", agent.MFOwnerID,
 		}
 
-		c.counter.With(labels...).Add(1)
-		c.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+		c.requestCounter.With(labels...).Add(1)
+		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
-	return c.svc.NotifyAgentStop(MFChannelID, reason)
+	return c.svc.NotifyAgentStop(agent, reason)
 }
 
 func (c commsMetricsMiddleware) NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error {
@@ -106,8 +106,8 @@ func (c commsMetricsMiddleware) NotifyGroupNewDataset(ctx context.Context, ag Ag
 			"owner_id", ownerID,
 		}
 
-		c.counter.With(labels...).Add(1)
-		c.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+		c.requestCounter.With(labels...).Add(1)
+		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 	return c.svc.NotifyGroupNewDataset(ctx, ag, datasetID, policyID, ownerID)
@@ -124,8 +124,8 @@ func (c commsMetricsMiddleware) NotifyGroupRemoval(ag AgentGroup) error {
 			"owner_id", ag.MFOwnerID,
 		}
 
-		c.counter.With(labels...).Add(1)
-		c.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+		c.requestCounter.With(labels...).Add(1)
+		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 	return c.svc.NotifyGroupRemoval(ag)
@@ -142,8 +142,8 @@ func (c commsMetricsMiddleware) NotifyGroupPolicyRemoval(ag AgentGroup, policyID
 			"owner_id", ag.MFOwnerID,
 		}
 
-		c.counter.With(labels...).Add(1)
-		c.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+		c.requestCounter.With(labels...).Add(1)
+		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 	return c.svc.NotifyGroupPolicyRemoval(ag, policyID, policyName, backend)
@@ -160,8 +160,8 @@ func (c commsMetricsMiddleware) NotifyGroupDatasetRemoval(ag AgentGroup, dsID st
 			"owner_id", ag.MFOwnerID,
 		}
 
-		c.counter.With(labels...).Add(1)
-		c.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+		c.requestCounter.With(labels...).Add(1)
+		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 	return c.svc.NotifyGroupDatasetRemoval(ag, dsID, policyID)
@@ -178,35 +178,35 @@ func (c commsMetricsMiddleware) NotifyGroupPolicyUpdate(ctx context.Context, ag 
 			"owner_id", ownerID,
 		}
 
-		c.counter.With(labels...).Add(1)
-		c.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+		c.requestCounter.With(labels...).Add(1)
+		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
 	return c.svc.NotifyGroupPolicyUpdate(ctx, ag, policyID, ownerID)
 }
 
-func (c commsMetricsMiddleware) NotifyAgentReset(channelID string, fullReset bool, reason string) error {
+func (c commsMetricsMiddleware) NotifyAgentReset(agent Agent, fullReset bool, reason string) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyAgentReset",
-			"agent_id", "",
-			"agent_name", "",
+			"agent_id", agent.MFThingID,
+			"agent_name", agent.Name.String(),
 			"group_id", "",
 			"group_name", "",
-			"owner_id", "",
+			"owner_id", agent.MFOwnerID,
 		}
 
-		c.counter.With(labels...).Add(1)
-		c.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+		c.requestCounter.With(labels...).Add(1)
+		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
-	return c.svc.NotifyAgentReset(channelID, fullReset, reason)
+	return c.svc.NotifyAgentReset(agent, fullReset, reason)
 }
 
 func CommsMetricsMiddleware(svc AgentCommsService, counter metrics.Counter, latency metrics.Histogram) AgentCommsService {
 	return &commsMetricsMiddleware{
-		counter: counter,
-		latency: latency,
+		requestCounter: counter,
+		requestLatency: latency,
 		svc:     svc,
 	}
 }

@@ -25,7 +25,6 @@ import (
 	"go.uber.org/zap"
 	"strings"
 	"time"
-	"unsafe"
 )
 
 const (
@@ -61,8 +60,8 @@ type sinkerService struct {
 	fleetClient    fleetpb.FleetServiceClient
 	sinksClient    sinkspb.SinkServiceClient
 
-	gauge   metrics.Gauge
-	counter metrics.Counter
+	requestGauge   metrics.Gauge
+	requestCounter metrics.Counter
 }
 
 func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkID string) error {
@@ -237,8 +236,8 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 				"sink_id", id,
 				"owner_id", agent.OwnerID,
 			}
-			svc.counter.With(labels...).Add(1)
-			svc.gauge.With(labels...).Add(float64(unsafe.Sizeof(m)))
+			svc.requestCounter.With(labels...).Add(1)
+			svc.requestGauge.With(labels...).Add(float64(len(m.Data)))
 		}
 	}
 
@@ -309,20 +308,20 @@ func New(logger *zap.Logger,
 	policiesClient policiespb.PolicyServiceClient,
 	fleetClient fleetpb.FleetServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
-	gauge metrics.Gauge,
-	counter metrics.Counter,
+	requestGauge metrics.Gauge,
+	requestCounter metrics.Counter,
 ) Service {
 
 	pktvisor.Register(logger)
 	return &sinkerService{
-		logger:         logger,
-		pubSub:         pubSub,
-		esclient:       esclient,
-		configRepo:     configRepo,
-		policiesClient: policiesClient,
-		fleetClient:    fleetClient,
-		sinksClient:    sinksClient,
-		gauge:          gauge,
-		counter:        counter,
+		logger:          logger,
+		pubSub:          pubSub,
+		esclient:        esclient,
+		configRepo:      configRepo,
+		policiesClient:  policiesClient,
+		fleetClient:     fleetClient,
+		sinksClient:     sinksClient,
+		requestGauge:   requestGauge,
+		requestCounter: requestCounter,
 	}
 }

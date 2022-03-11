@@ -14,11 +14,11 @@ type agentCommsServiceMock struct {
 	commsMock      map[string][]fleet.Agent
 }
 
-func (ac agentCommsServiceMock) NotifyAgentReset(channelID string, fullReset bool, reason string) error {
+func (ac agentCommsServiceMock) NotifyAgentReset(agent fleet.Agent, fullReset bool, reason string) error {
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyAgentStop(MFChannelID string, reason string) error {
+func (ac agentCommsServiceMock) NotifyAgentStop(agent fleet.Agent, reason string) error {
 	return nil
 }
 

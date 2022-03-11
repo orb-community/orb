@@ -36,7 +36,7 @@ type AgentCommsService interface {
 	// NotifyAgentAllDatasets RPC Core -> Agent: Notify Agent of all Policy it should currently run based on group membership and current Datasets
 	NotifyAgentAllDatasets(a Agent) error
 	// NotifyAgentStop RPC Core -> Agent: Notify Agent that it should Stop (Send the message to Agent Channel)
-	NotifyAgentStop(MFChannelID string, reason string) error
+	NotifyAgentStop(agent Agent, reason string) error
 	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
 	NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 	// NotifyGroupRemoval RPC core -> Agent: Notify AgentGroup that the group has been removed
@@ -48,7 +48,7 @@ type AgentCommsService interface {
 	// NotifyGroupPolicyUpdate RPC core -> Agent: Notify AgentGroup that a Policy has been updated
 	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 	//NotifyAgentReset RPC core -> Agent: Notify Agent to reset the backend
-	NotifyAgentReset(channelID string, fullReset bool, reason string) error
+	NotifyAgentReset(agent Agent, fullReset bool, reason string) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -411,7 +411,7 @@ func (svc fleetCommsService) NotifyGroupDatasetRemoval(ag AgentGroup, dsID strin
 	return nil
 }
 
-func (svc fleetCommsService) NotifyAgentStop(MFChannelID string, reason string) error {
+func (svc fleetCommsService) NotifyAgentStop(agent Agent, reason string) error {
 	payload := AgentStopRPCPayload{Reason: reason}
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
@@ -425,7 +425,7 @@ func (svc fleetCommsService) NotifyAgentStop(MFChannelID string, reason string) 
 	}
 
 	msg := messaging.Message{
-		Channel:   MFChannelID,
+		Channel:   agent.MFChannelID,
 		Subtopic:  RPCFromCoreTopic,
 		Publisher: publisher,
 		Payload:   body,
@@ -437,7 +437,7 @@ func (svc fleetCommsService) NotifyAgentStop(MFChannelID string, reason string) 
 	return nil
 }
 
-func (svc fleetCommsService) NotifyAgentReset(MFChannelID string, fullReset bool, reason string) error {
+func (svc fleetCommsService) NotifyAgentReset(agent Agent, fullReset bool, reason string) error {
 	payload := AgentResetRPCPayload{
 		FullReset: fullReset,
 		Reason:    reason,
@@ -454,7 +454,7 @@ func (svc fleetCommsService) NotifyAgentReset(MFChannelID string, fullReset bool
 	}
 
 	msg := messaging.Message{
-		Channel:   MFChannelID,
+		Channel:   agent.MFChannelID,
 		Subtopic:  RPCFromCoreTopic,
 		Publisher: publisher,
 		Payload:   body,
@@ -516,8 +516,9 @@ func (svc fleetCommsService) checkVersion(minVersion string, agentVersion string
 		return err
 	}
 
+	var ag = *agent
 	if aVersion.LessThan(mVersion) {
-		svc.NotifyAgentStop(agent.MFChannelID, fmt.Sprintf("The orb-agent version is too old to connect to the control plane. Minimum required version: {%s}", mVersion.String()))
+		svc.NotifyAgentStop(ag, fmt.Sprintf("The orb-agent version is too old to connect to the control plane. Minimum required version: {%s}", mVersion.String()))
 		agent.State = UpgradeRequired
 	}
 	return nil
