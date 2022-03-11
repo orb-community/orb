@@ -1,6 +1,7 @@
 @login
   Feature: login tests
 
+  @smoke
   Scenario Outline: Request registration of a registered email using <password_status> password
       Given there is a registered account
       When request referred account registration using registered email, <password_status> password, <username> user name and <company> company name
@@ -16,6 +17,7 @@
         |    unregistered   |   None   |    NS1  |
       Then account register should not be changed
 
+    @smoke
     Scenario Outline: Login with invalid credentials
       Given there is a registered account
       When the Orb user request an authentication token using <email_status> email and <password_status> password
@@ -26,6 +28,7 @@
         | correct   | incorrect         |
       Then user should not be able to authenticate
 
+  @smoke
   Scenario Outline: Check if email is a required field
       When user request account registration <email> email, <password> password, <username> user name and <company> company name
       Examples:
@@ -40,7 +43,7 @@
         |   without  | without  |   with   | without |
       Then user should not be able to authenticate
 
-
+  @smoke
   Scenario Outline: Check if password is a required field
       When user request account registration <email> email, <password> password, <username> user name and <company> company name
       Examples:

@@ -81,11 +81,11 @@ func Run(cmd *cobra.Command, args []string) {
 	}
 
 	// handle signals
-	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 		<-sigs
 		a.Stop()
 		done <- true

@@ -7,11 +7,16 @@ import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { delay, expand, reduce } from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 20;
 const defOrder: string = 'name';
 const defDir = 'desc';
+
+export enum AvailableOS {
+  DOCKER = 'docker',
+}
 
 @Injectable()
 export class AgentsService {
@@ -157,6 +162,24 @@ export class AgentsService {
       );
   }
 
+  getAllAgents() {
+    const pageInfo = AgentsService.getDefaultPagination();
+    pageInfo.limit = 100;
+
+    return this.getAgents(pageInfo)
+      .pipe(
+        expand(data => {
+          return data.next ? this.getAgents(data.next) : Observable.empty();
+        }),
+        delay(250),
+        reduce<OrbPagination<Agent>>((acc, value) => {
+          acc.data.splice(value.offset, value.limit, ...value.data);
+          acc.offset = 0;
+          return acc;
+        }, this.cache),
+      );
+  }
+
   getAgents(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     const { limit, offset, name, tags } = pageInfo || this.cache;
     let params = new HttpParams()
@@ -185,16 +208,28 @@ export class AgentsService {
           this.paginationCache[offset || 0] = true;
           // This is the position to insert the new data
           const start = resp.offset;
+
           const newData = [...this.cache.data];
-          newData.splice(start, resp.limit, ...resp.agents);
+
+          newData.splice(start, resp.limit,
+            // TODO - check rule for combination/concatenation of tags
+            // should we start to represent multiple values for a key here already or
+            // simply override value for key, assuming agent_tag is precedent.
+            ...resp.agents.map(agent => {
+            agent.combined_tags = {...agent?.orb_tags, ...agent?.agent_tags};
+            return agent;
+          }));
+
           this.cache = {
             ...this.cache,
             offset: Math.floor(resp.offset / resp.limit),
             total: resp.total,
             data: newData,
           };
+
           if (name) this.cache.name = name;
           if (tags) this.cache.tags = tags;
+
           return this.cache;
         },
       )
