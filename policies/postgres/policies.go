@@ -201,13 +201,14 @@ func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID str
 }
 
 func (r policiesRepository) UpdateDataset(ctx context.Context, ownerID string, ds policies.Dataset) error {
-	q := `UPDATE datasets SET tags = :tags, sink_ids = :sink_ids WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE datasets SET tags = :tags, sink_ids = :sink_ids, name = :name WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 
 	params := map[string]interface{}{
 		"mf_owner_id": ds.MFOwnerID,
 		"tags":        db.Tags(ds.Tags),
 		"sink_ids":    pq.Array(ds.SinkIDs),
 		"id":          ds.ID,
+		"name":        ds.Name,
 	}
 
 	res, err := r.db.NamedExecContext(ctx, q, params)
