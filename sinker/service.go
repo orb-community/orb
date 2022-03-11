@@ -20,6 +20,7 @@ import (
 	"github.com/ns1labs/orb/sinker/backend/pktvisor"
 	"github.com/ns1labs/orb/sinker/config"
 	"github.com/ns1labs/orb/sinker/prometheus"
+	rediscache "github.com/ns1labs/orb/sinker/redis"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 	"strings"
@@ -45,8 +46,9 @@ type Service interface {
 type sinkerService struct {
 	pubSub mfnats.PubSub
 
-	esclient *redis.Client
-	logger   *zap.Logger
+	sinkerCache config.ConfigRepo
+	esclient    *redis.Client
+	logger      *zap.Logger
 
 	hbTicker *time.Ticker
 	hbDone   chan bool
@@ -286,6 +288,7 @@ func (svc sinkerService) Stop() error {
 // New instantiates the sinker service implementation.
 func New(logger *zap.Logger,
 	pubSub mfnats.PubSub,
+	cacheClient *redis.Client,
 	esclient *redis.Client,
 	configRepo config.ConfigRepo,
 	policiesClient policiespb.PolicyServiceClient,
@@ -293,10 +296,13 @@ func New(logger *zap.Logger,
 	sinksClient sinkspb.SinkServiceClient,
 ) Service {
 
+	sinkerCache := rediscache.NewSinkerCache(cacheClient)
+
 	pktvisor.Register(logger)
 	return &sinkerService{
 		logger:         logger,
 		pubSub:         pubSub,
+		sinkerCache:    sinkerCache,
 		esclient:       esclient,
 		configRepo:     configRepo,
 		policiesClient: policiesClient,

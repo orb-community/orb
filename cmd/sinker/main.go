@@ -52,6 +52,7 @@ func main() {
 
 	natsCfg := config.LoadNatsConfig(envPrefix)
 	esCfg := config.LoadEsConfig(envPrefix)
+	cacheCfg := config.LoadCacheConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
@@ -72,6 +73,8 @@ func main() {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+
+	cacheClient := connectToRedis(cacheCfg.URL, cacheCfg.Pass, cacheCfg.DB, logger)
 
 	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
 	defer esClient.Close()
@@ -115,7 +118,7 @@ func main() {
 
 	configRepo := sinkerconfig.NewMemRepo(logger)
 	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient)
-	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient)
+	svc := sinker.New(logger, pubSub, cacheClient, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient)
 	defer svc.Stop()
 
 	errs := make(chan error, 2)
