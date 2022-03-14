@@ -10,7 +10,6 @@ import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface
 import { NbDialogService } from '@nebular/theme';
 import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
 import { STRINGS } from '../../../../../assets/text/strings';
-import { EditorComponent } from 'ngx-monaco-editor';
 
 const CONFIG = {
   TAPS: 'TAPS',
@@ -90,7 +89,7 @@ export class AgentPolicyAddComponent {
   agentPolicyID: string;
 
   @ViewChild('editorComponent')
-  editor: EditorComponent;
+  editor;
 
   isEdit: boolean;
 
@@ -144,9 +143,10 @@ export class AgentPolicyAddComponent {
   }
 
   resizeComponents() {
-    // setTimeout(() => {
-    window.dispatchEvent(new Event('resize'));
-    // }, 50);
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+    !!this.editor && this.editor?.layout();
   }
 
   newAgent() {
@@ -184,10 +184,6 @@ export class AgentPolicyAddComponent {
     return !Object.values(this.isLoading).reduce((prev, curr) => prev || curr, false);
   }
 
-  onEditorUpdate(changes) {
-    console.log(changes);
-  }
-
   readyForms() {
     const {
       name,
@@ -223,18 +219,30 @@ export class AgentPolicyAddComponent {
       name,
       description,
       backend,
+      format,
+      policy_data,
       policy: {
-        handlers: {
-          modules,
-        },
+        handlers,
       },
     } = this.agentPolicy;
 
-    this.detailsFG.patchValue({ name, description, backend });
+    const wizard = format !== this.format;
 
-    this.modules = modules;
+    if (policy_data) {
+      this.code = policy_data;
+    }
 
-    this.onBackendSelected(backend).catch(reason => console.warn(`${ reason }`));
+    this.detailsFG.patchValue({ name, description, backend, wizard });
+
+    if (this.isEdit) {
+      this.detailsFG.controls.wizard.disable();
+    }
+
+    this.modules = handlers?.modules || {};
+
+    if (wizard) {
+      this.onBackendSelected(backend).catch(reason => console.warn(`${ reason }`));
+    }
   }
 
   getBackendsList() {
@@ -268,7 +276,7 @@ export class AgentPolicyAddComponent {
   getBackendData() {
     return Promise.all([this.getTaps(), this.getInputs()])
       .then(value => {
-        if (this.isEdit && this.agentPolicy) {
+        if (this.isEdit && this.agentPolicy && this.isWizard) {
           const selected_tap = this.agentPolicy.policy.input.tap;
           this.tapFG.patchValue({ selected_tap }, { emitEvent: true });
           this.onTapSelected(selected_tap);

@@ -56,7 +56,6 @@
                          data-orb-qa-id="wizard-selector"
                          formControlName="wizard"
                          id="wizard"
-                         (click)="resizeComponents()"
                          labelPosition="end">Create Policy through wizard
               </nb-toggle>
             </div>
@@ -70,13 +69,13 @@
               status="primary">
               {{ strings.stepper.back }}
             </button>
-            <button [disabled]="!detailsFG?.valid"
+            <button (click)="resizeComponents()"
+                    [disabled]="!detailsFG?.valid"
                     class="next-button"
                     data-orb-qa-id="button#next"
                     nbButton
                     nbStepperNext
                     shape="round"
-                    (click)="resizeComponents()"
                     status="primary">
               {{ strings.stepper.next }}
             </button>
@@ -94,7 +93,6 @@
           </ng-template>
           <div class="code-editor-wrapper">
             <ngx-monaco-editor #editorComponent
-                               (ngModelChange)="onEditorUpdate($event)"
                                [(ngModel)]="code"
                                [options]="editorOptions"
                                class="code-editor">
