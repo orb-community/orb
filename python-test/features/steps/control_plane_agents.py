@@ -96,7 +96,7 @@ def list_policies_applied_to_an_agent(context, amount_of_policies, policies_stat
 def list_groups_matching_an_agent(context, amount_of_groups):
     time_waiting = 0
     sleep_time = 0.5
-    timeout = 10
+    timeout = 30
     context.list_groups_id = list()
     groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups, context.agent)
     while time_waiting < timeout:
