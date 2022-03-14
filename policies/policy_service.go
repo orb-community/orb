@@ -258,7 +258,6 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 	if err != nil {
 		return Dataset{}, err
 	}
-	// TODO after merge the other branches retrieve a dataset by id
 	return datasetEdited, nil
 }
 
