@@ -205,7 +205,6 @@ export class AgentPolicyAddComponent {
     this.detailsFG = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
-      wizard: [{ value: true }],
       backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFG = this._formBuilder.group({
@@ -232,11 +231,7 @@ export class AgentPolicyAddComponent {
       this.code = policy_data;
     }
 
-    this.detailsFG.patchValue({ name, description, backend, wizard });
-
-    if (this.isEdit) {
-      this.detailsFG.controls.wizard.disable();
-    }
+    this.detailsFG.patchValue({ name, description, backend });
 
     this.modules = handlers?.modules || {};
 
