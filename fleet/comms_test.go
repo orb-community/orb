@@ -535,13 +535,17 @@ func createPolicy(t *testing.T, svc policies.Service, name string) policies.Poli
 		Version:     0,
 		OrbTags:     map[string]string{"region": "eu"},
 	}
-	policy_data := `version: "1.0"
-visor:
-  taps:
-    anycast:
-      type: pcap
-      config:
-        iface: eth0`
+	policy_data := `
+handlers:
+  modules:
+    default_dns:
+      type: dns
+    default_net:
+      type: net
+input:
+  input_type: pcap
+  tap: default_pcap
+kind: collection`
 
 	res, err := svc.AddPolicy(context.Background(), token, policy, "yaml", policy_data)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))

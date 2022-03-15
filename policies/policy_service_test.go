@@ -22,13 +22,16 @@ const (
 	invalidToken = "invalid"
 	email        = "user@example.com"
 	format       = "yaml"
-	policy_data  = `version: "1.0"
-visor:
-  taps:
-    anycast:
-      type: pcap
-      config:
-        iface: eth0`
+	policy_data  = `handlers:
+  modules:
+    default_dns:
+      type: dns
+    default_net:
+      type: net
+input:
+  input_type: pcap
+  tap: default_pcap
+kind: collection`
 	limit   = 10
 	wrongID = "28ea82e7-0224-4798-a848-899a75cdc650"
 )
