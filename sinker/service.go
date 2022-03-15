@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-kit/kit/metrics"
 	"github.com/go-redis/redis/v8"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
@@ -33,9 +34,6 @@ const (
 
 var (
 	ErrPayloadTooBig = errors.New("payload too big")
-	ErrCreateEntity  = errors.New("create entity failed")
-	// ErrNotFound indicates a non-existent entity request.
-	ErrNotFound = errors.New("non-existent entity")
 )
 
 type Service interface {
@@ -55,13 +53,16 @@ type sinkerService struct {
 	hbTicker *time.Ticker
 	hbDone   chan bool
 
-	//configRepo config.ConfigRepo
+	configRepo config.ConfigRepo
 
 	promClient prometheus.Client
 
 	policiesClient policiespb.PolicyServiceClient
 	fleetClient    fleetpb.FleetServiceClient
 	sinksClient    sinkspb.SinkServiceClient
+
+	requestGauge   metrics.Gauge
+	requestCounter metrics.Counter
 }
 
 func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkID string) error {
@@ -225,6 +226,19 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 			if err != nil {
 				svc.logger.Warn(fmt.Sprintf("unable to remote write to sinkID: %s", id), zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
 			}
+
+			// send operational metrics
+			labels := []string{
+				"method", "sinker_payload_size",
+				"agent_id", agentID,
+				"agent", agent.AgentName,
+				"policy_id", m.PolicyID,
+				"policy", m.PolicyName,
+				"sink_id", id,
+				"owner_id", agent.OwnerID,
+			}
+			svc.requestCounter.With(labels...).Add(1)
+			svc.requestGauge.With(labels...).Add(float64(len(m.Data)))
 		}
 	}
 
@@ -290,25 +304,25 @@ func (svc sinkerService) Stop() error {
 // New instantiates the sinker service implementation.
 func New(logger *zap.Logger,
 	pubSub mfnats.PubSub,
-//cacheClient *redis.Client,
 	esclient *redis.Client,
 	configRepo config.ConfigRepo,
 	policiesClient policiespb.PolicyServiceClient,
 	fleetClient fleetpb.FleetServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
+	requestGauge metrics.Gauge,
+	requestCounter metrics.Counter,
 ) Service {
-
-	//sinkerCache := rediscache.NewSinkerCache(cacheClient)
 
 	pktvisor.Register(logger)
 	return &sinkerService{
-		logger: logger,
-		pubSub: pubSub,
-		//sinkerCache:    sinkerCache,
-		esclient:       esclient,
-		sinkerCache:    configRepo,
-		policiesClient: policiesClient,
-		fleetClient:    fleetClient,
-		sinksClient:    sinksClient,
+		logger:          logger,
+		pubSub:          pubSub,
+		esclient:        esclient,
+		configRepo:      configRepo,
+		policiesClient:  policiesClient,
+		fleetClient:     fleetClient,
+		sinksClient:     sinksClient,
+		requestGauge:   requestGauge,
+		requestCounter: requestCounter,
 	}
 }
