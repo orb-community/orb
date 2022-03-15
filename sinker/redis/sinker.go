@@ -24,7 +24,14 @@ func NewSinkerCache(client *redis.Client) config.ConfigRepo {
 }
 
 func (s *sinkerCache) Exists(sinkID string) bool {
-	panic("implement me")
+	sinkConfig, err := s.Get(sinkID)
+	if err != nil {
+		return false
+	}
+	if sinkConfig.SinkID != "" {
+		return true
+	}
+	return false
 }
 
 func (s *sinkerCache) Add(config config.SinkConfig) error {
@@ -53,7 +60,10 @@ func (s *sinkerCache) Get(sinkID string) (config.SinkConfig, error) {
 }
 
 func (s *sinkerCache) Edit(config config.SinkConfig) error {
-	panic("implement me")
+	if err := s.Add(config); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *sinkerCache) GetAll() ([]config.SinkConfig, error) {
