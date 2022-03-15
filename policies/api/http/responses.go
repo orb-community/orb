@@ -20,7 +20,7 @@ type policyRes struct {
 	Policy        types.Metadata `json:"policy,omitempty"`
 	Format        string         `json:"format,omitempty"`
 	PolicyData    string         `json:"policy_data,omitempty"`
-	Version       int32          `json:"version,omitempty"`
+	Version       int32          `json:"version"`
 	LastModified  time.Time      `json:"ts_last_modified"`
 	created       bool
 }

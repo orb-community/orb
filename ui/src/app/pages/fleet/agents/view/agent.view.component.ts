@@ -28,7 +28,7 @@ export class AgentViewComponent implements OnInit, OnDestroy {
 
   agent: Agent;
 
-  datasets: Dataset[];
+  datasets: {[id: string]: Dataset};
 
   policies: AgentPolicy[];
 
@@ -62,7 +62,7 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     this.agent = this.router.getCurrentNavigation()?.extras?.state?.agent as Agent || null;
     this.agentID = this.route.snapshot.paramMap.get('id');
 
-    this.datasets = [];
+    this.datasets = {};
     this.groups = [];
     this.policies = [];
     this.command2copy = '';
@@ -79,7 +79,10 @@ export class AgentViewComponent implements OnInit, OnDestroy {
       .subscribe({
         next: resp => {
           this.agent = resp.agent;
-          this.datasets = resp?.datasets;
+          this.datasets = resp?.datasets.reduce((acc, dataset) => {
+            acc[dataset.id] = dataset;
+            return acc;
+          }, {});
           this.policies = resp?.policies;
           this.groups = resp?.groups;
         },
