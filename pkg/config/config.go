@@ -140,7 +140,7 @@ func LoadCacheConfig(prefix string) CacheConfig {
 
 	cfg.SetDefault("url", "localhost:6379")
 	cfg.SetDefault("pass", "")
-	cfg.SetDefault("db", "0")
+	cfg.SetDefault("db", "1")
 
 	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()

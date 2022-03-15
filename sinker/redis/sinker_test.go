@@ -17,7 +17,7 @@ import (
 var idProvider = uuid.New()
 
 func TestSinkerConfigSave(t *testing.T) {
-	sinkerCache := redis.NewSinkerCache(redisClient)
+	sinkerCache := redis.NewSinkerCache(redisClient, logger)
 	config := config2.SinkConfig{
 		SinkID:          "123",
 		OwnerID:         "test",
@@ -64,7 +64,7 @@ func TestSinkerConfigSave(t *testing.T) {
 }
 
 func TestGetSinkerConfig(t *testing.T) {
-	sinkerCache := redis.NewSinkerCache(redisClient)
+	sinkerCache := redis.NewSinkerCache(redisClient, logger)
 	config := config2.SinkConfig{
 		SinkID:          "123",
 		OwnerID:         "test",
@@ -106,7 +106,7 @@ func TestGetSinkerConfig(t *testing.T) {
 }
 
 func TestGetAllSinkerConfig(t *testing.T) {
-	sinkerCache := redis.NewSinkerCache(redisClient)
+	sinkerCache := redis.NewSinkerCache(redisClient, logger)
 
 	sinksConfig := map[string]struct {
 		config config2.SinkConfig

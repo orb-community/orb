@@ -53,8 +53,6 @@ type sinkerService struct {
 	hbTicker *time.Ticker
 	hbDone   chan bool
 
-	configRepo config.ConfigRepo
-
 	promClient prometheus.Client
 
 	policiesClient policiespb.PolicyServiceClient
@@ -315,13 +313,13 @@ func New(logger *zap.Logger,
 
 	pktvisor.Register(logger)
 	return &sinkerService{
-		logger:          logger,
-		pubSub:          pubSub,
-		esclient:        esclient,
-		configRepo:      configRepo,
-		policiesClient:  policiesClient,
-		fleetClient:     fleetClient,
-		sinksClient:     sinksClient,
+		logger:         logger,
+		pubSub:         pubSub,
+		esclient:       esclient,
+		sinkerCache:    configRepo,
+		policiesClient: policiesClient,
+		fleetClient:    fleetClient,
+		sinksClient:    sinksClient,
 		requestGauge:   requestGauge,
 		requestCounter: requestCounter,
 	}
