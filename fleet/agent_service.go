@@ -15,6 +15,7 @@ import (
 	"github.com/ns1labs/orb/fleet/backend"
 	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
+	"strings"
 )
 
 var (
@@ -29,11 +30,11 @@ var (
 )
 
 func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) error {
-	// first we get the agent group to connect the new agent to the correct group channel
 	groupList, err := svc.agentGroupRepository.RetrieveAllByAgent(context.Background(), a)
 	if err != nil {
 		return err
 	}
+
 	if len(groupList) == 0 {
 		return nil
 	}
@@ -47,7 +48,11 @@ func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) erro
 		}
 		err = svc.mfsdk.Connect(ids, token)
 		if err != nil {
-			return err
+			if strings.Contains(err.Error(), "409") {
+				svc.logger.Warn("agent already connected, skipping...")
+			} else {
+				return err
+			}
 		}
 	}
 
@@ -155,6 +160,7 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 		// TODO should we roll back?
 		svc.logger.Error("failed to add agent to a existing group channel", zap.String("agent_id", a.MFThingID), zap.Error(err))
 	}
+
 	return a, nil
 }
 

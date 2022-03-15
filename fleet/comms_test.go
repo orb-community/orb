@@ -52,7 +52,8 @@ func newFleetService(auth mainflux.AuthServiceClient, url string, agentGroupRepo
 
 	mfsdk := mfsdk.NewSDK(config)
 	pktvisor.Register(auth, agentRepo)
-	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
+	aDone := make(chan bool)
+	return fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, aDone)
 }
 
 func newPoliciesService(auth mainflux.AuthServiceClient) policies.Service {

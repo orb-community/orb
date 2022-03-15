@@ -477,13 +477,25 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 }
 
 func (p *pktvisorBackend) FullReset() error {
-	if err := p.Stop(); err != nil {
-		p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
-		return err
+
+	// State always will have a value, even if error is not null
+	// State it's been used to identify broken pktvisor
+	state, errMsg, err := p.GetState()
+	if err != nil {
+		p.logger.Warn("broken pktvisor, trying to start", zap.String("broken_reason", errMsg))
 	}
-	if err := p.Start(); err != nil {
-		p.logger.Error("failed to start backend on restart procedure", zap.Error(err))
-		return err
+
+	if  state == backend.Running {
+		if err := p.Stop(); err != nil {
+			p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
+			return err
+		}
+	} else {
+		if err := p.Start(); err != nil {
+			p.logger.Error("failed to start backend on restart procedure", zap.Error(err))
+			return err
+		}
 	}
+
 	return nil
 }

@@ -229,6 +229,42 @@ func (e eventStore) ValidatePolicy(ctx context.Context, token string, p policies
 	return e.svc.ValidatePolicy(ctx, token, p, format, policyData)
 }
 
+func (e eventStore) DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, token string) ([]policies.Dataset, error) {
+	return e.svc.DeleteSinkFromAllDatasetsInternal(ctx, sinkID, token)
+}
+
+func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error {
+	ds, err := e.svc.ViewDatasetByIDInternal(ctx, ownerID, datasetID)
+	if err != nil {
+		return err
+	}
+
+	if err := e.svc.InactivateDatasetByIDInternal(ctx, ownerID, datasetID); err != nil {
+		return err
+	}
+
+	event := removeDatasetEvent{
+		id:           datasetID,
+		ownerID:      ds.MFOwnerID,
+		agentGroupID: ds.AgentGroupID,
+		policyID:     ds.PolicyID,
+		datasetID:    ds.ID,
+	}
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+
+	err = e.client.XAdd(ctx, record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
 // NewEventStoreMiddleware returns wrapper around policies service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc policies.Service, client *redis.Client, logger *zap.Logger) policies.Service {

@@ -53,7 +53,7 @@ export const STRINGS = {
       error: 'Error',
       backend: 'Service Type',
       config: 'Connection Details',
-      config_remote_host: 'Remote Host',
+      config_remote_host: 'Remote Write URL',
       config_username: 'Username',
       config_password: 'Password',
       ts_created: 'Date Created',

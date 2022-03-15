@@ -5,11 +5,11 @@
     <h4>{{strings[isEdit ? 'edit' : 'add']['header']}}</h4>
   </header>
   <div class="d-flex row">
-    <div class="d-flex col-12 mt-5">
-      <nb-stepper orientation="vertical"
-                  class="stepper w-100 ml-5"
-                  *ngIf="!isLoading"
-                  disableStepNavigation>
+    <div class="d-flex col-12 mt-md-0 mt-lg-3">
+      <nb-stepper *ngIf="!isLoading"
+                  class="stepper w-100 ml-sm-0 ml-lg-2"
+                  disableStepNavigation
+                  orientation="vertical">
         <nb-step [label]="firstStepTemplate"
                  [stepControl]="firstFormGroup">
           <ng-template #firstStepTemplate>
@@ -18,19 +18,19 @@
               <p>{{strings.add.step.desc1}}</p>
             </div>
           </ng-template>
-          <form [formGroup]="firstFormGroup"
-                (ngSubmit)="onFormSubmit()">
+          <form (ngSubmit)="onFormSubmit()"
+                [formGroup]="firstFormGroup">
             <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
                   <label class="font-weight-bold">{{strings.propNames.name}}</label>
                   <span class="required">*</span>
                 </div>
-                <input nbInput
-                       autofocus
-                       fullWidth="true"
+                <input autofocus
                        fieldSize="medium"
-                       formControlName="name"/>
+                       formControlName="name"
+                       fullWidth="true"
+                       nbInput/>
               </div>
             </nb-form-field>
             <hr/>
@@ -38,28 +38,28 @@
               <div>
                 <label class="font-weight-bold">{{strings.propNames.description}}</label>
               </div>
-              <input nbInput
+              <input fieldSize="medium"
+                     formControlName="description"
                      fullWidth="true"
-                     fieldSize="medium"
-                     formControlName="description"/>
+                     nbInput/>
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button data-orb-qa-id="button#cancel"
-                      nbButton
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
                       ghost
-                      (click)="goBack()"
-                      type="button"
-                      status="primary">
+                      nbButton
+                      status="primary"
+                      type="button">
                 {{ strings.stepper.cancel }}
               </button>
-              <button data-orb-qa-id="button#next"
+              <button [disabled]="!firstFormGroup.valid"
                       class="next-button"
+                      data-orb-qa-id="button#next"
                       nbButton
+                      nbStepperNext
                       shape="round"
-                      status="primary"
-                      type="submit"
-                      [disabled]="!firstFormGroup.valid" nbStepperNext>
+                      status="primary" type="submit">
                 {{ strings.stepper.next }}
               </button>
             </div>
@@ -76,19 +76,19 @@
             <div class="d-flex">
               <mat-chip-list>
                 <mat-chip
-                  class="orb-tag-sink "
                   *ngFor="let tag of selectedTags | keyvalue"
-                  [style.background-color]="tag | tagcolor">
+                  [style.background-color]="tag | tagcolor"
+                  class="orb-tag-chip ">
                   {{tag | tagchip}}
-                  <nb-icon class="ml-1"
-                           (click)="onRemoveTag(tag.key)"
+                  <nb-icon (click)="onRemoveTag(tag.key)"
+                           class="ml-1"
                            icon="close-outline"
                            size="12"></nb-icon>
                 </mat-chip>
                 <mat-chip
                   *ngIf="(selectedTags | json) === '{}'"
                   [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-sink ">
+                  class="orb-tag-chip ">
                   No tag added
                 </mat-chip>
               </mat-chip-list>
@@ -102,15 +102,15 @@
                     <span class="required">*</span>
                   </div>
                   <div>
-                    <input nbInput
-                           autofocus
-                           fullWidth="true"
+                    <input autofocus
                            fieldSize="medium"
-                           formControlName="key"/>
+                           formControlName="key"
+                           fullWidth="true"
+                           nbInput/>
                   </div>
                 </div>
                 <div class="d-flex justify-content-center align-items-center col-1 mt-4 px-0 mx-0">
-                  <nb-icon style="color: #df316f;" icon="plus-outline" size="14"></nb-icon>
+                  <nb-icon icon="plus-outline" size="14" style="color: #df316f;"></nb-icon>
                 </div>
                 <div class="d-flex flex-column col-5 px-0 mx-0">
                   <div>
@@ -118,24 +118,24 @@
                     <span class="required">*</span>
                   </div>
                   <div>
-                    <input nbInput
-                           autofocus
-                           fullWidth="true"
+                    <input autofocus
                            fieldSize="medium"
-                           formControlName="value"/>
+                           formControlName="value"
+                           fullWidth="true"
+                           nbInput/>
                   </div>
                 </div>
                 <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
                      style="transform: translateY(14px);">
-                  <button nbButton
-                          ghost
-                          (click)="onAddTag()"
+                  <button (click)="onAddTag()"
                           [disabled]="(secondFormGroup.controls['key'].value === '' ||
-                          secondFormGroup.controls['value'].value === '')">
-                    <nb-icon style="color: #df316f;"
+                          secondFormGroup.controls['value'].value === '')"
+                          ghost
+                          nbButton>
+                    <nb-icon icon="plus-outline"
+                             size="14"
                              status="primary"
-                             icon="plus-outline"
-                             size="14">
+                             style="color: #df316f;">
                     </nb-icon>
                   </button>
                 </div>
@@ -155,31 +155,31 @@
               </div>
             </div>
             <hr/>
-            <div class="d-flex justify-content-end"
-                 *ngIf="secondFormGroup">
-              <button data-orb-qa-id="button#cancel"
-                      nbButton
+            <div *ngIf="secondFormGroup"
+                 class="d-flex justify-content-end">
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
                       ghost
-                      (click)="goBack()"
-                      type="button"
-                      status="primary">
+                      nbButton
+                      status="primary"
+                      type="button">
                 {{ strings.stepper.cancel }}
               </button>
               <button data-orb-qa-id="button#back"
-                      nbButton
                       ghost
-                      status="primary"
-                      nbStepperPrevious>
+                      nbButton
+                      nbStepperPrevious
+                      status="primary">
                 {{ strings.stepper.back }}
               </button>
-              <button data-orb-qa-id="button#next"
+              <button [disabled]="(selectedTags | json) === '{}'"
                       class="next-button"
+                      data-orb-qa-id="button#next"
                       nbButton
+                      nbStepperNext
                       shape="round"
                       status="primary"
-                      type="submit"
-                      [disabled]="(selectedTags | json) === '{}'"
-                      nbStepperNext>
+                      type="submit">
                 {{ strings.stepper.next }}
               </button>
             </div>
@@ -191,7 +191,7 @@
               <strong>{{strings.add.step.title3}}</strong>
             </div>
           </ng-template>
-          <div class="d-flex row" *ngIf="!expanded">
+          <div *ngIf="!expanded" class="d-flex row">
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">{{strings.propNames.name}}</label>
@@ -205,21 +205,21 @@
                 <p>{{firstFormGroup.controls.description.value}}</p>
               </div>
             </div>
+            <hr/>
           </div>
-          <hr/>
           <div class="d-flex row">
             <div class="col-12">
               <mat-chip-list>
                 <mat-chip
-                  class="orb-tag-sink "
                   *ngFor="let tag of selectedTags | keyvalue"
-                  [style.background-color]="tag | tagcolor">
+                  [style.background-color]="tag | tagcolor"
+                  class="orb-tag-chip ">
                   {{tag | tagchip}}
                 </mat-chip>
                 <mat-chip
                   *ngIf="(selectedTags | json) === '{}'"
                   [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-sink ">
+                  class="orb-tag-chip ">
                   No tag added
                 </mat-chip>
               </mat-chip-list>
@@ -231,9 +231,9 @@
               <div>
                 <p *ngIf="tagMatch?.total && tagMatch.total > 0">
                   {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}
-                  .&nbsp;<button nbButton
+                  .&nbsp;<button (click)="toggleExpandMatches()"
                                  class="appearance-ghost size-small status-basic button-expand"
-                                 (click)="toggleExpandMatches()">{{expanded
+                                 nbButton>{{expanded
                   ? strings.match.collapse
                   : strings.match.expand}}</button>
                 </p>
@@ -243,46 +243,47 @@
               </div>
             </div>
           </div>
-          <hr/>
-          <div class="d-flex row" *ngIf="expanded">
+          <div *ngIf="expanded" class="d-flex row">
             <div class="tag-table">
-              <ngx-datatable
-                class="orb w-100"
-                style="height: 500px;"
-                [rows]="matchingAgents"
-                [scrollbarV]="true"
-                [columns]="columns"
-                [columnMode]="columnMode.flex"
-                [headerHeight]="50"
-                [footerHeight]="50"
-                [rowHeight]="50">
+              <ngx-datatable #table
+                             *ngIf="columns"
+                             [columnMode]="columnMode.standard"
+                             [columns]="columns"
+                             [footerHeight]="50"
+                             [headerHeight]="50"
+                             [rowHeight]="50"
+                             [rows]="matchingAgents"
+                             [scrollbarV]="true"
+                             [virtualization]="false"
+                             class="orb"
+                             style="height: 100%;">
               </ngx-datatable>
             </div>
           </div>
           <hr/>
-          <div class="d-flex justify-content-end"
-               *ngIf="secondFormGroup">
-            <button data-orb-qa-id="button#cancel"
-                    nbButton
+          <div *ngIf="secondFormGroup"
+               class="d-flex justify-content-end">
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
                     ghost
-                    (click)="goBack()"
-                    type="button"
-                    status="primary">
+                    nbButton
+                    status="primary"
+                    type="button">
               {{ strings.stepper.cancel }}
             </button>
             <button data-orb-qa-id="button#back"
-                    nbButton
                     ghost
-                    status="primary"
-                    nbStepperPrevious>
+                    nbButton
+                    nbStepperPrevious
+                    status="primary">
               {{ strings.stepper.back }}
             </button>
-            <button data-orb-qa-id="button#save"
+            <button (click)="onFormSubmit()"
                     class="next-button"
+                    data-orb-qa-id="button#save"
                     nbButton
                     shape="round"
                     status="primary"
-                    (click)="onFormSubmit()"
                     type="submit">
               {{ strings.stepper.save }}
             </button>
@@ -293,30 +294,31 @@
   </div>
 </div>
 
-<ng-template #agentStateTemplateCell let-row="row" let-value="value" let-i="index">
+<ng-template #agentStateTemplateCell let-i="index" let-row="row" let-value="value">
   <div>
-    <div *ngIf="row.state === 'active'">
-      <i class="fa fa-circle orb-service-active"
-         aria-hidden="true"></i>
-      {{ row.state | titlecase }}
-    </div>
-    <div *ngIf="row.state !== 'active'">
-      <i class="fa fa-circle orb-service-inactive"
-         aria-hidden="true"></i>
+    <div>
+      <i aria-hidden="true"
+         class="fa fa-circle orb-service-{{ row.state }}"></i>
       {{ row.state | titlecase }}
     </div>
   </div>
 </ng-template>
 
-<ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
-  <div class="d-flex">
+<ng-template #agentTagsTemplateCell let-i="index" let-row="row" let-value="value">
+  <div class="d-block">
     <mat-chip-list>
       <mat-chip
-        class="orb-tag-sink "
         *ngFor="let tag of value | keyvalue"
-        [style.background-color]="tag | tagcolor">
+        [style.background-color]="tag | tagcolor"
+        class="orb-tag-chip ">
         {{tag | tagchip}}
       </mat-chip>
     </mat-chip-list>
+  </div>
+</ng-template>
+
+<ng-template #agentLastHBTemplateCell let-i="index" let-row="row" let-value="value">
+  <div>
+    {{ row.ts_last_hb | date: 'M/d/yy, HH:mm z' }}
   </div>
 </ng-template>

@@ -74,6 +74,12 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
         minWidth: 100,
         flexGrow: 2,
         cellTemplate: this.agentTagsTemplateCell,
+        comparator: (a, b) => Object.entries(a)
+          .map(([key, value]) => `${key}:${value}`)
+          .join(',')
+          .localeCompare(Object.entries(b)
+            .map(([key, value]) => `${key}:${value}`)
+            .join(',')),
       },
       {
         prop: 'state',

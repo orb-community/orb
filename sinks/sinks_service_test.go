@@ -145,7 +145,7 @@ func TestUpdateSink(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			err := service.UpdateSink(context.Background(), tc.token, tc.sink)
+			_, err := service.UpdateSink(context.Background(), tc.token, tc.sink)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})
 	}

@@ -47,7 +47,7 @@ func (l loggingMiddleware) CreateSink(ctx context.Context, token string, s sinks
 	return l.svc.CreateSink(ctx, token, s)
 }
 
-func (l loggingMiddleware) UpdateSink(ctx context.Context, token string, s sinks.Sink) (err error) {
+func (l loggingMiddleware) UpdateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: edit_sink",

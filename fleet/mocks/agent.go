@@ -5,6 +5,7 @@ import (
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
+	"time"
 )
 
 var _ fleet.AgentRepository = (*agentRepositoryMock)(nil)
@@ -12,6 +13,10 @@ var _ fleet.AgentRepository = (*agentRepositoryMock)(nil)
 type agentRepositoryMock struct {
 	counter    uint64
 	agentsMock map[string]fleet.Agent
+}
+
+func (a agentRepositoryMock) SetStaleStatus(ctx context.Context, minutes time.Duration) (int64, error) {
+	return 0, nil
 }
 
 func (a agentRepositoryMock) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {

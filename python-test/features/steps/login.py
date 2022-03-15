@@ -61,10 +61,10 @@ def request_account_registration(context, password_status, username, company):
         passwords_to_test.append(password[:8])
         if len(password) > 8: passwords_to_test.append(password[:-1])
         for current_password in passwords_to_test:
-            response = register_account(email, current_password, company, username, 409)
+            response, status_code = register_account(email, current_password, company, username, 409)
             assert_that(response.json()['error'], equal_to('email already taken'), 'Wrong message on API response')
     else:
-        response = register_account(email, password, company, username, 409)
+        response, status_code = register_account(email, password, company, username, 409)
         assert_that(response.json()['error'], equal_to('email already taken'), 'Wrong message on API response')
 
 

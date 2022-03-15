@@ -1,6 +1,7 @@
 @agents
 Feature: agent provider
-   
+
+    @smoke
     Scenario: Provision agent
         Given the Orb user has a registered account
             And the Orb user logs in
@@ -9,6 +10,7 @@ Feature: agent provider
         Then the agent status in Orb should be online
             And the container logs should contain the message "sending capabilities" within 10 seconds
 
+    @smoke
     Scenario: Run two orb agents on the same port
         Given the Orb user has a registered account
             And the Orb user logs in
@@ -19,6 +21,7 @@ Feature: agent provider
             And the container logs should contain the message "agent startup error" within 2 seconds
             And container on port default is running after 2 seconds
 
+    @smoke
     Scenario: Run two orb agents on different ports
         Given the Orb user has a registered account
             And the Orb user logs in
@@ -29,6 +32,7 @@ Feature: agent provider
             And container on port default is running after 2 seconds
 
 
+    @smoke
     Scenario: Provision agent without tags
         Given the Orb user has a registered account
             And the Orb user logs in
@@ -38,6 +42,7 @@ Feature: agent provider
             And the container logs should contain the message "sending capabilities" within 10 seconds
 
 
+    @smoke
     Scenario: Provision agent with multiple tags
         Given the Orb user has a registered account
             And the Orb user logs in
@@ -47,6 +52,7 @@ Feature: agent provider
             And the container logs should contain the message "sending capabilities" within 10 seconds
 
 
+    @smoke
     Scenario: Edit agent tag
         Given the Orb user has a registered account
             And the Orb user logs in
@@ -58,6 +64,7 @@ Feature: agent provider
             And the agent status in Orb should be online
 
 
+    @smoke
     Scenario: Save agent without tag
         Given the Orb user has a registered account
             And the Orb user logs in
@@ -69,6 +76,7 @@ Feature: agent provider
             And the agent status in Orb should be online
 
 
+    @smoke
     Scenario: Insert tags in agents created without tags
         Given the Orb user has a registered account
             And the Orb user logs in
@@ -80,6 +88,7 @@ Feature: agent provider
             And the agent status in Orb should be online
 
 
+    @smoke
     Scenario: Edit agent name
         Given the Orb user has a registered account
             And the Orb user logs in
@@ -91,6 +100,7 @@ Feature: agent provider
             And the agent status in Orb should be online
 
 
+    @smoke
     Scenario: Edit agent name and tags
         Given the Orb user has a registered account
             And the Orb user logs in

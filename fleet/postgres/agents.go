@@ -481,6 +481,36 @@ func (r agentRepository) RetrieveOwnerByChannelID(ctx context.Context, channelID
 	return toAgent(ownerScan)
 }
 
+func (r agentRepository) SetStaleStatus(ctx context.Context, duration time.Duration) (int64, error) {
+
+	q := `UPDATE agents SET state = :state WHERE state <> 'stale' AND ts_last_hb <= now() - :duration * interval '1 seconds';`
+
+	params := map[string]interface{}{
+		"duration": duration.Seconds(),
+		"state":   fleet.Stale,
+	}
+	res, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return 0, errors.Wrap(errors.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return 0, errors.Wrap(errors.ErrConflict, err)
+			}
+		}
+		return 0, errors.Wrap(db.ErrUpdateDB, err)
+	}
+
+	cnt, errdb := res.RowsAffected()
+	if errdb != nil {
+		return 0, errors.Wrap(errors.ErrUpdateEntity, errdb)
+	}
+
+	return cnt, nil
+}
+
 type dbAgent struct {
 	Name          types.Identifier `db:"name"`
 	MFOwnerID     string           `db:"mf_owner_id"`

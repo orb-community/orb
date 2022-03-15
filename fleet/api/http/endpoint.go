@@ -176,6 +176,7 @@ func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		agent := fleet.Agent{
 			Name:    nID,
 			OrbTags: req.OrbTags,
+			AgentTags: req.AgentTags,
 		}
 		saved, err := svc.CreateAgent(c, req.token, agent)
 		if err != nil {

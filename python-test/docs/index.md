@@ -1,4 +1,4 @@
-## Login
+## Login Scenarios:
 
 - [Request registration of a registered account using registered password username and company](login/request_registration_of_a_registered_account_using_registered_password_username_and_company.md)
 - [Request registration of a registered account using registered password and username](login/request_registration_of_a_registered_account_using_registered_password_and_username.md)
@@ -18,8 +18,7 @@
 - [Request password with registered email address](login/request_password_with_registered_email_address.md)
 - [Request password with unregistered email address](login/request_password_with_unregistered_email_address.md)
 
-
-## Agents
+## Agents Scenarios:
 
 - [Check if total agent on agents' page is correct](agents/check_if_total_agent_on_agents'_page_is_correct.md)
 - [Create agent without tags](agents/create_agent_without_tags.md)
@@ -37,13 +36,10 @@
 - [Check if is possible cancel operations with no change](agents/check_if_is_possible_cancel_operations_with_no_change.md)
 - [Remove agent using correct name](agents/remove_agent_using_correct_name.md)
 - [Remove agent using incorrect name](agents/remove_agent_using_incorrect_name.md)
-- [Run two orb agents on the same port](agents/run_two_orb_agents_on_the_same_port.md)
-- [Run two orb agents on different ports](agents/run_two_orb_agents_on_different_ports.md)
 - [Edit agent name and tag](agents/edit_agent_name_and_tags.md)
 
 
-## Agent Groups
-      
+## Agent Groups Scenarios:
 - [Check if total agent groups on agent groups' page is correct](agent_groups/check_if_total_agent_groups_on_agent_groups'_page_is_correct.md)
 - [Create agent group with invalid name (regex)](agent_groups/create_agent_group_with_invalid_name_(regex).md)
 - [Create agent group with duplicate name](agent_groups/create_agent_group_with_duplicate_name.md)
@@ -57,15 +53,21 @@
 - [Check agent groups details](agent_groups/check_agent_groups_details.md)
 - [Edit an agent group through the details modal](agent_groups/edit_an_agent_group_through_the_details_modal.md)
 - [Check if is possible cancel operations with no change](agent_groups/check_if_is_possible_cancel_operations_with_no_change.md)
-- [Edit agent group name](agent_groups/edit_agent_group_name.md)
-- [Edit agent group description](agent_groups/edit_agent_group_description.md)
-- [Edit agent group tag](agent_groups/edit_agent_group_tag.md)
 - [Remove agent group using correct name](agent_groups/remove_agent_group_using_correct_name.md)
 - [Remove agent group using incorrect name](agent_groups/remove_agent_group_using_incorrect_name.md)
+- [Run two orb agents on the same port](agents/run_two_orb_agents_on_the_same_port.md)
+- [Run two orb agents on different ports](agents/run_two_orb_agents_on_different_ports.md)
+- [Edit Agent Group name removing name](agent_groups/edit_agent_group_name_removing_name.md)
+- [Edit agent group name](agent_groups/edit_agent_group_name.md)
+- [Edit agent group description](agent_groups/edit_agent_group_description.md)
+- [Edit Agent Group description removing description](agent_groups/edit_agent_group_description_removing_description.md)
+- [Edit agent group tag](agent_groups/edit_agent_group_tag.md)
+- [Edit Agent Group tags to subscribe agent](agent_groups/edit_agent_group_tags_to_subscribe_agent.md)
+- [Edit Agent Group tags to unsubscribe agent](agent_groups/edit_agent_group_tags_to_unsubscribe_agent.md)
+- [Edit Agent Group removing tags](agent_groups/edit_agent_group_removing_tags.md)
+- [Edit Agent Group name, description and tags](agent_groups/edit_agent_group_name,_description_and_tags.md)
 
-
-## Sinks
-
+## Sink Scenarios:
 - [Check if total sinks on sinks' page is correct](sinks/check_if_total_sinks_on_sinks'_page_is_correct.md)
 - [Create sink with invalid name (regex)](sinks/create_sink_with_invalid_name_(regex).md)
 - [Create sink with duplicate name](sinks/create_sink_with_duplicate_name.md)
@@ -88,8 +90,7 @@
 - [Remove sink using correct name](sinks/remove_sink_using_correct_name.md)
 - [Remove sink using incorrect name](sinks/remove_sink_using_incorrect_name.md)
 
-## Policies
-
+## Policies Scenarios:
 - [Check if total policies on policies' page is correct](policies/check_if_total_policies_on_policies'_page_is_correct.md)
 - [Create policy with invalid name (regex)](policies/create_policy_with_invalid_name_(regex).md)
 - [Create policy with no agent provisioned](policies/create_policy_with_no_agent_provisioned.md)
@@ -104,14 +105,18 @@
 - [Check policies details](policies/check_policies_details.md)
 - [Edit a policy through the details modal](policies/edit_a_policy_through_the_details_modal.md)
 - [Edit policy name](policies/edit_policy_name.md)
+- [Edit policy host_specification](policies/edit_policy_host_specification.md)
+- [Edit policy bpf_filter_expression](policies/edit_policy_bpf_filter_expression.md)
+- [Edit policy pcap_source](policies/edit_policy_pcap_source.md)
+- [Edit policy only_qname_suffix](policies/edit_policy_only_qname_suffix.md)
+- [Edit policy only_rcode](policies/edit_policy_only_rcode.md)
 - [Edit policy description](policies/edit_policy_description.md)
 - [Edit policy handler](policies/edit_policy_handler.md)
 - [Check if is possible cancel operations with no change](policies/check_if_is_possible_cancel_operations_with_no_change.md)
 - [Remove policy using correct name](policies/remove_policy_using_correct_name.md)
 - [Remove policy using incorrect name](policies/remove_policy_using_incorrect_name.md)
 
-## Datasets
-
+## Datasets Scenarios:
 - [Check if total datasets on datasets' page is correct](datasets/check_if_total_datasets_on_datasets'_page_is_correct.md)
 - [Create dataset with invalid name (regex)](datasets/create_dataset_with_invalid_name_(regex).md)
 - [Create dataset](datasets/create_dataset.md)
@@ -124,14 +129,13 @@
 - [Remove dataset using correct name](datasets/remove_dataset_using_correct_name.md)
 - [Remove dataset using incorrect name](datasets/remove_dataset_using_incorrect_name.md)
 
-## Integration tests
-
+## Integration Scenarios:
 - [Check if sink is active while scraping metrics](integration/sink_active_while_scraping_metrics.md)
 - [Check if sink with invalid credentials becomes active](integration/sink_error_invalid_credentials.md)
 - [Check if after 30 minutes without data sink becomes idle](integration/sink_idle_30_minutes.md)
 - [Provision agent before group (check if agent subscribes to the group)](integration/provision_agent_before_group.md)
 - [Provision agent after group (check if agent subscribes to the group)](integration/provision_agent_after_group.md)
-- [Create agent with tag matching existing group linked to a valid dataset](integration/multiple_agents_subscribed_to_a_group.md)
+- [Provision agent with tag matching existing group linked to a valid dataset](integration/multiple_agents_subscribed_to_a_group.md)
 - [Apply multiple policies to a group](integration/apply_multiple_policies.md)
 - [Apply multiple policies to a group and remove one policy](integration/remove_one_of_multiple_policies.md)
 - [Apply multiple policies to a group and remove all of them](integration/remove_all_policies.md)
@@ -153,6 +157,14 @@
 - [Agent subscription to group with policies after editing agent's tags](integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags.md)
 - [Edit agent name and apply policies to then](integration/edit_agent_name_and_apply_policies_to_then.md)
 - [Insert tags in agents created without tags and apply policies to group matching new tags.md](integration/insert_tags_in_agents_created_without_tags_and_apply_policies_to_group_matching_new_tags.md)
+- [Agent unsubscription to group with policies after editing agent group's tags (editing tags after agent provision)](integration/agent_unsubscription_to_group_with_policies_after_editing_agent_group's_tags_editing_tags_after_agent_provision.md)
+- [Agent subscription to group with policies after editing agent group's tags (editing tags after agent provision)](integration/agent_subscription_to_group_with_policies_after_editing_agent_group's_tags_editing_tags_after_agent_provision.md)
+- [Agent unsubscription to group with policies after editing agent group's tags (editing tags before agent provision)](integration/agent_unsubscription_to_group_with_policies_after_editing_agent_group's_tags_editing_tags_before_agent_provision.md)
+- [Agent subscription to group with policies after editing agent group's tags (editing tags before agent provision)](integration/agent_subscription_to_group_with_policies_after_editing_agent_group's_tags_editing_tags_before_agent_provision.md)
+- [Agent unsubscription to group with policies after editing agent's tags and agent group's tags (editing tags after agent provision)](integration/agent_unsubscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_after_agent_provision.md)
+- [Agent subscription to group with policies after editing agent's tags and agent group's tags (editing tags after agent provision)](integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_after_agent_provision.md)
+- [Agent unsubscription to group with policies after editing agent's tags and agent group's tags (editing tags before agent provision)](integration/agent_unsubscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_before_agent_provision.md)
+- [Agent subscription to group with policies after editing agent's tags and agent group's tags (editing tags before agent provision)](integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_before_agent_provision.md)
 
 ## Pktvisor Agent
 
