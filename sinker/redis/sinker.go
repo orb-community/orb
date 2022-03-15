@@ -10,7 +10,7 @@ import (
 
 const (
 	keyPrefix = "sinker_key"
-	idPrefix = "sinker"
+	idPrefix  = "sinker"
 )
 
 var _ config.ConfigRepo = (*sinkerCache)(nil)
@@ -67,5 +67,19 @@ func (s *sinkerCache) Edit(config config.SinkConfig) error {
 }
 
 func (s *sinkerCache) GetAll() ([]config.SinkConfig, error) {
-	panic("implement me")
+	iter := s.client.Scan(context.Background(), 0, fmt.Sprintf("%s-*",keyPrefix), 0).Iterator()
+	for iter.Next(context.Background()) {
+		fmt.Println("keys", iter.Val())
+	}
+	if err := iter.Err(); err != nil {
+		panic(err)
+	}
+
+	list := s.client.ZRange(context.Background(), "sinker", 0, -1)
+	for k, v := range list.Val() {
+		fmt.Println("keys", k)
+		fmt.Println("value", v)
+	}
+
+	return nil, nil
 }
