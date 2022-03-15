@@ -7,6 +7,7 @@ package config
 type ConfigRepo interface {
 	Exists(sinkID string) bool
 	Add(config SinkConfig) error
+	Remove(sinkID string) error
 	Get(sinkID string) (SinkConfig, error)
 	Edit(config SinkConfig) error
 	GetAll() ([]SinkConfig, error)

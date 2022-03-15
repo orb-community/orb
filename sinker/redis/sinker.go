@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinker/config"
+	"strings"
 )
 
 const (
@@ -46,6 +47,14 @@ func (s *sinkerCache) Add(config config.SinkConfig) error {
 	return nil
 }
 
+func (s *sinkerCache) Remove(sinkID string) error {
+	skey := fmt.Sprintf("%s-%s", keyPrefix, sinkID)
+	if err := s.client.Del(context.Background(), skey).Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *sinkerCache) Get(sinkID string) (config.SinkConfig, error) {
 	skey := fmt.Sprintf("%s-%s", keyPrefix, sinkID)
 	cachedConfig, err := s.client.Get(context.Background(), skey).Result()
@@ -60,6 +69,9 @@ func (s *sinkerCache) Get(sinkID string) (config.SinkConfig, error) {
 }
 
 func (s *sinkerCache) Edit(config config.SinkConfig) error {
+	if err := s.Remove(config.SinkID); err != nil {
+		return err
+	}
 	if err := s.Add(config); err != nil {
 		return err
 	}
@@ -68,18 +80,19 @@ func (s *sinkerCache) Edit(config config.SinkConfig) error {
 
 func (s *sinkerCache) GetAll() ([]config.SinkConfig, error) {
 	iter := s.client.Scan(context.Background(), 0, fmt.Sprintf("%s-*",keyPrefix), 0).Iterator()
+	var configs []config.SinkConfig
 	for iter.Next(context.Background()) {
+		cfg, err := s.Get(strings.TrimPrefix(iter.Val(), fmt.Sprintf("%s-", keyPrefix)))
+		if err != nil {
+			fmt.Println("error", err)
+			continue
+		}
+		configs = append(configs, cfg)
 		fmt.Println("keys", iter.Val())
 	}
 	if err := iter.Err(); err != nil {
 		panic(err)
 	}
 
-	list := s.client.ZRange(context.Background(), "sinker", 0, -1)
-	for k, v := range list.Val() {
-		fmt.Println("keys", k)
-		fmt.Println("value", v)
-	}
-
-	return nil, nil
+	return configs, nil
 }

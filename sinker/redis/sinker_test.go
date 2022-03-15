@@ -143,7 +143,7 @@ func TestGetAllSinkerConfig(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		size int64
+		size int
 		err  error
 	}{
 		"Get Config by existing sinker-key": {
@@ -156,7 +156,7 @@ func TestGetAllSinkerConfig(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			sinksConfig, err := sinkerCache.GetAll()
 			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
-			assert.Equal(t, tc.size, len(sinksConfig), fmt.Sprintf("%s: expected %d got %d", desc, tc.size, len(sinksConfig)))
+			assert.GreaterOrEqual(t, len(sinksConfig), tc.size, fmt.Sprintf("%s: expected %d got %d", desc, tc.size, len(sinksConfig)))
 		})
 	}
 }

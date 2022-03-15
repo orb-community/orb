@@ -50,6 +50,10 @@ func (e eventStore) Add(config config.SinkConfig) error {
 	return nil
 }
 
+func (e eventStore) Remove(sinkID string) error {
+	return e.repo.Remove(sinkID)
+}
+
 func (e eventStore) Get(sinkID string) (config.SinkConfig, error) {
 	return e.repo.Get(sinkID)
 }
