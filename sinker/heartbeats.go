@@ -22,7 +22,7 @@ const (
 
 func (svc *sinkerService) sendSingleHeartbeat(t time.Time) {
 	svc.logger.Info("heartbeat")
-	configs, err := svc.configRepo.GetAll()
+	configs, err := svc.sinkerCache.GetAll()
 	if err != nil {
 		svc.logger.Error("unable to retrieve policy state", zap.Error(err))
 		return

@@ -18,7 +18,8 @@ import (
 	"github.com/ns1labs/orb/pkg/config"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	"github.com/ns1labs/orb/sinker"
-	sinkerconfig "github.com/ns1labs/orb/sinker/config"
+	config2 "github.com/ns1labs/orb/sinker/config"
+	sinkerconfig "github.com/ns1labs/orb/sinker/redis"
 	"github.com/ns1labs/orb/sinker/redis/consumer"
 	"github.com/ns1labs/orb/sinker/redis/producer"
 	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
@@ -116,9 +117,9 @@ func main() {
 	}
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
 
-	configRepo := sinkerconfig.NewMemRepo(logger)
+	configRepo := sinkerconfig.NewSinkerCache(cacheClient, logger)
 	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient)
-	svc := sinker.New(logger, pubSub, cacheClient, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient)
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient)
 	defer svc.Stop()
 
 	errs := make(chan error, 2)
@@ -222,7 +223,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func subscribeToSinksES(svc sinker.Service, configRepo sinkerconfig.ConfigRepo, client *redis.Client, cfg config.EsConfig, logger *zap.Logger) {
+func subscribeToSinksES(svc sinker.Service, configRepo config2.ConfigRepo, client *redis.Client, cfg config.EsConfig, logger *zap.Logger) {
 	eventStore := consumer.NewEventStore(svc, configRepo, client, cfg.Consumer, logger)
 	logger.Info("Subscribed to Redis Event Store for sinks")
 	if err := eventStore.Subscribe(context.Background()); err != nil {

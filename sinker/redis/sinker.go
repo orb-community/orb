@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinker/config"
+	"go.uber.org/zap"
 	"strings"
 )
 
@@ -18,10 +19,11 @@ var _ config.ConfigRepo = (*sinkerCache)(nil)
 
 type sinkerCache struct {
 	client *redis.Client
+	logger *zap.Logger
 }
 
-func NewSinkerCache(client *redis.Client) config.ConfigRepo {
-	return &sinkerCache{client: client}
+func NewSinkerCache(client *redis.Client, logger *zap.Logger) config.ConfigRepo {
+	return &sinkerCache{client: client, logger: logger}
 }
 
 func (s *sinkerCache) Exists(sinkID string) bool {
@@ -84,11 +86,10 @@ func (s *sinkerCache) GetAll() ([]config.SinkConfig, error) {
 	for iter.Next(context.Background()) {
 		cfg, err := s.Get(strings.TrimPrefix(iter.Val(), fmt.Sprintf("%s-", keyPrefix)))
 		if err != nil {
-			fmt.Println("error", err)
+			s.logger.Error("failed to retrieve config", zap.Error(err))
 			continue
 		}
 		configs = append(configs, cfg)
-		fmt.Println("keys", iter.Val())
 	}
 	if err := iter.Err(); err != nil {
 		panic(err)

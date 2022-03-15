@@ -20,7 +20,6 @@ import (
 	"github.com/ns1labs/orb/sinker/backend/pktvisor"
 	"github.com/ns1labs/orb/sinker/config"
 	"github.com/ns1labs/orb/sinker/prometheus"
-	rediscache "github.com/ns1labs/orb/sinker/redis"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 	"strings"
@@ -56,7 +55,7 @@ type sinkerService struct {
 	hbTicker *time.Ticker
 	hbDone   chan bool
 
-	configRepo config.ConfigRepo
+	//configRepo config.ConfigRepo
 
 	promClient prometheus.Client
 
@@ -66,7 +65,7 @@ type sinkerService struct {
 }
 
 func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkID string) error {
-	cfgRepo, err := svc.configRepo.Get(sinkID)
+	cfgRepo, err := svc.sinkerCache.Get(sinkID)
 	if err != nil {
 		svc.logger.Error("unable to retrieve the sink config", zap.Error(err))
 		return err
@@ -91,7 +90,7 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 			cfgRepo.State = config.Error
 			cfgRepo.Msg = fmt.Sprint(err)
 			cfgRepo.LastRemoteWrite = time.Now()
-			svc.configRepo.Edit(cfgRepo)
+			svc.sinkerCache.Edit(cfgRepo)
 		}
 
 		svc.logger.Error("remote write error", zap.String("sink_id", sinkID), zap.Error(err))
@@ -104,7 +103,7 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 		cfgRepo.State = config.Active
 		cfgRepo.Msg = ""
 		cfgRepo.LastRemoteWrite = time.Now()
-		svc.configRepo.Edit(cfgRepo)
+		svc.sinkerCache.Edit(cfgRepo)
 	}
 
 	return nil
@@ -171,7 +170,7 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 				continue
 			}
 			for _, sid := range dataset.SinkIds {
-				if !svc.configRepo.Exists(sid) {
+				if !svc.sinkerCache.Exists(sid) {
 					// Use the retrieved sinkID to get the backend config
 					sink, err := svc.sinksClient.RetrieveSink(context.Background(), &sinkspb.SinkByIDReq{
 						SinkID:  sid,
@@ -188,7 +187,7 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 
 					data.SinkID = sid
 					data.OwnerID = agent.OwnerID
-					svc.configRepo.Add(data)
+					svc.sinkerCache.Add(data)
 				}
 				datasetSinkIDs[sid] = true
 			}
@@ -291,7 +290,7 @@ func (svc sinkerService) Stop() error {
 // New instantiates the sinker service implementation.
 func New(logger *zap.Logger,
 	pubSub mfnats.PubSub,
-	cacheClient *redis.Client,
+//cacheClient *redis.Client,
 	esclient *redis.Client,
 	configRepo config.ConfigRepo,
 	policiesClient policiespb.PolicyServiceClient,
@@ -299,15 +298,15 @@ func New(logger *zap.Logger,
 	sinksClient sinkspb.SinkServiceClient,
 ) Service {
 
-	sinkerCache := rediscache.NewSinkerCache(cacheClient)
+	//sinkerCache := rediscache.NewSinkerCache(cacheClient)
 
 	pktvisor.Register(logger)
 	return &sinkerService{
-		logger:         logger,
-		pubSub:         pubSub,
-		sinkerCache:    sinkerCache,
+		logger: logger,
+		pubSub: pubSub,
+		//sinkerCache:    sinkerCache,
 		esclient:       esclient,
-		configRepo:     configRepo,
+		sinkerCache:    configRepo,
 		policiesClient: policiesClient,
 		fleetClient:    fleetClient,
 		sinksClient:    sinksClient,

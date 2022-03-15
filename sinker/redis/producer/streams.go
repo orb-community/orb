@@ -16,17 +16,17 @@ const (
 var _ config.ConfigRepo = (*eventStore)(nil)
 
 type eventStore struct {
-	repo   config.ConfigRepo
-	client *redis.Client
-	logger *zap.Logger
+	sinkCache config.ConfigRepo
+	client    *redis.Client
+	logger    *zap.Logger
 }
 
 func (e eventStore) Exists(sinkID string) bool {
-	return e.repo.Exists(sinkID)
+	return e.sinkCache.Exists(sinkID)
 }
 
 func (e eventStore) Add(config config.SinkConfig) error {
-	err := e.repo.Add(config)
+	err := e.sinkCache.Add(config)
 	if err != nil {
 		return err
 	}
@@ -51,15 +51,15 @@ func (e eventStore) Add(config config.SinkConfig) error {
 }
 
 func (e eventStore) Remove(sinkID string) error {
-	return e.repo.Remove(sinkID)
+	return e.sinkCache.Remove(sinkID)
 }
 
 func (e eventStore) Get(sinkID string) (config.SinkConfig, error) {
-	return e.repo.Get(sinkID)
+	return e.sinkCache.Get(sinkID)
 }
 
 func (e eventStore) Edit(config config.SinkConfig) error {
-	err := e.repo.Edit(config)
+	err := e.sinkCache.Edit(config)
 	if err != nil {
 		return err
 	}
@@ -84,12 +84,12 @@ func (e eventStore) Edit(config config.SinkConfig) error {
 }
 
 func (e eventStore) GetAll() ([]config.SinkConfig, error) {
-	return e.repo.GetAll()
+	return e.sinkCache.GetAll()
 }
 
 func NewEventStoreMiddleware(repo config.ConfigRepo, client *redis.Client) config.ConfigRepo {
 	return eventStore{
-		repo:   repo,
-		client: client,
+		sinkCache: repo,
+		client:    client,
 	}
 }
