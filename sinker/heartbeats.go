@@ -48,6 +48,10 @@ func (svc *sinkerService) sendSingleHeartbeat(t time.Time) {
 				svc.logger.Error("error sending event to event store", zap.Error(err))
 				continue
 			}
+			if err := svc.sinkerCache.Edit(cfg); err != nil {
+				svc.logger.Error("error updating sink config cache", zap.Error(err))
+				return
+			}
 		}
 	}
 }
