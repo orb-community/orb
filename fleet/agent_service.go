@@ -78,7 +78,7 @@ func (svc fleetService) ResetAgent(ctx context.Context, token string, agentID st
 		return err
 	}
 
-	return svc.agentComms.NotifyAgentReset(agent.MFChannelID, true, "Reset initiated from control plane")
+	return svc.agentComms.NotifyAgentReset(agent, true, "Reset initiated from control plane")
 }
 
 func (svc fleetService) ViewAgentByIDInternal(ctx context.Context, ownerID string, id string) (Agent, error) {

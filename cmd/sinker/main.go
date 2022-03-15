@@ -11,6 +11,7 @@ package main
 import (
 	"context"
 	"fmt"
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/go-redis/redis/v8"
 	"github.com/go-zoo/bone"
 	"github.com/ns1labs/orb/buildinfo"
@@ -23,6 +24,7 @@ import (
 	"github.com/ns1labs/orb/sinker/redis/producer"
 	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
 	"github.com/opentracing/opentracing-go"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	jconfig "github.com/uber/jaeger-client-go/config"
 	"go.uber.org/zap"
@@ -115,12 +117,25 @@ func main() {
 
 	configRepo := sinkerconfig.NewMemRepo(logger)
 	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient)
-	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient)
+	gauge := kitprometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+		Namespace: "sinker",
+		Subsystem: "sink",
+		Name:      "payload_size",
+		Help:      "Total size of payloads",
+	}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
+	counter := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "sinker",
+		Subsystem: "sink",
+		Name:      "payload_count",
+		Help:      "Number of payloads received",
+	}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
+
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, gauge, counter)
 	defer svc.Stop()
 
 	errs := make(chan error, 2)
 
-	go startHTTPServer(svcCfg.HttpPort, errs, logger)
+	go startHTTPServer(svcCfg, errs, logger)
 	go subscribeToSinksES(svc, configRepo, esClient, esCfg, logger)
 
 	err = svc.Start()
@@ -146,9 +161,15 @@ func makeHandler(svcName string) http.Handler {
 	return r
 }
 
-func startHTTPServer(port string, errs chan error, logger *zap.Logger) {
-	p := fmt.Sprintf(":%s", port)
-	logger.Info("sinker service started, exposed port", zap.String("port", port))
+func startHTTPServer(cfg config.BaseSvcConfig, errs chan error, logger *zap.Logger) {
+	p := fmt.Sprintf(":%s", cfg.HttpPort)
+	if cfg.HttpServerCert != "" || cfg.HttpServerKey != "" {
+		logger.Info(fmt.Sprintf("Sinker service started using https on port %s with cert %s key %s",
+			cfg.HttpPort, cfg.HttpServerCert, cfg.HttpServerKey))
+		errs <- http.ListenAndServeTLS(p, cfg.HttpServerCert, cfg.HttpServerKey, makeHandler(svcName))
+		return
+	}
+	logger.Info(fmt.Sprintf("Sinker service started using http on port %s", cfg.HttpPort))
 	errs <- http.ListenAndServe(p, makeHandler(svcName))
 }
 
