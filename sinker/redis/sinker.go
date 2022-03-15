@@ -1,6 +1,9 @@
 package redis
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinker/config"
 )
@@ -20,22 +23,39 @@ func NewSinkerCache(client *redis.Client) config.ConfigRepo {
 	return &sinkerCache{client: client}
 }
 
-func (s sinkerCache) Exists(sinkID string) bool {
+func (s *sinkerCache) Exists(sinkID string) bool {
 	panic("implement me")
 }
 
-func (s sinkerCache) Add(config config.SinkConfig) error {
+func (s *sinkerCache) Add(config config.SinkConfig) error {
+	skey := fmt.Sprintf("%s-%s", keyPrefix, config.SinkID)
+	bytes, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+	if err = s.client.Set(context.Background(), skey, bytes, 0).Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *sinkerCache) Get(sinkID string) (config.SinkConfig, error) {
+	skey := fmt.Sprintf("%s-%s", keyPrefix, sinkID)
+	cachedConfig, err := s.client.Get(context.Background(), skey).Result()
+	if err != nil {
+		return config.SinkConfig{}, err
+	}
+	var cfgSinker config.SinkConfig
+	if err := json.Unmarshal([]byte(cachedConfig), &cfgSinker); err != nil {
+		return config.SinkConfig{}, err
+	}
+	return cfgSinker, nil
+}
+
+func (s *sinkerCache) Edit(config config.SinkConfig) error {
 	panic("implement me")
 }
 
-func (s sinkerCache) Get(sinkID string) (config.SinkConfig, error) {
-	panic("implement me")
-}
-
-func (s sinkerCache) Edit(config config.SinkConfig) error {
-	panic("implement me")
-}
-
-func (s sinkerCache) GetAll() ([]config.SinkConfig, error) {
+func (s *sinkerCache) GetAll() ([]config.SinkConfig, error) {
 	panic("implement me")
 }

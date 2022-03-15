@@ -34,6 +34,9 @@ const (
 
 var (
 	ErrPayloadTooBig = errors.New("payload too big")
+	ErrCreateEntity  = errors.New("create entity failed")
+	// ErrNotFound indicates a non-existent entity request.
+	ErrNotFound = errors.New("non-existent entity")
 )
 
 type Service interface {
