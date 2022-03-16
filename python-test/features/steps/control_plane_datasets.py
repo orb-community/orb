@@ -11,20 +11,29 @@ dataset_name_prefix = "test_dataset_name_"
 base_orb_url = TestConfig.configs().get('base_orb_url')
 
 
-@step("a new dataset is created using referred group, sink and policy ID")
-def create_new_dataset(context):
+@step("a new dataset is created using referred group, policy and {amount_of_sinks} {sink_number} ID")
+def create_new_dataset(context, amount_of_sinks, sink_number):
+    assert_that(sink_number, any_of(equal_to("sink"), equal_to("sinks")), "Unexpected value for sink")
     context.considered_timestamp = datetime.now().timestamp()
     token = context.token
     agent_groups_id = context.agent_group_data['id']
-    sink_id = context.sink['id']
+    context.used_sinks_id = context.existent_sinks_id[:int(amount_of_sinks)]
     policy_id = context.policy['id']
     dataset_name = dataset_name_prefix + random_string(10)
-    context.dataset = create_dataset(token, dataset_name, policy_id, agent_groups_id, sink_id)
+    context.dataset = create_dataset(token, dataset_name, policy_id, agent_groups_id, context.used_sinks_id)
     if 'datasets_created' in context:
         context.datasets_created[context.dataset['id']] = context.dataset['name']
     else:
         context.datasets_created = dict()
         context.datasets_created[context.dataset['id']] = context.dataset['name']
+
+
+@step("the dataset is edited and {amount_of_sinks} sinks are linked")
+def edit_sinks_on_dataset(context, amount_of_sinks):
+    dataset = get_dataset(context.token, context.dataset['id'])
+    sinks = context.existent_sinks_id[:int(amount_of_sinks)]
+    edit_dataset(context.token, dataset['id'], dataset['name'], dataset['agent_policy_id'], dataset['agent_group_id'],
+                 sinks)
 
 
 @step('datasets related to removed policy has validity invalid')
@@ -93,12 +102,35 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
     """
 
     json_request = {"name": name_label, "agent_group_id": agent_group_id, "agent_policy_id": policy_id,
-                    "sink_ids": [sink_id]}
+                    "sink_ids": sink_id}
     header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
     response = requests.post(base_orb_url + '/api/v1/policies/dataset', json=json_request, headers=header_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create dataset failed with status=' + str(response.status_code))
+
+    return response.json()
+
+
+def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_id):
+    """
+
+    :param (str) dataset_id: that identifies dataset to be edited
+    :param (str) token: used for API authentication
+    :param (str) name_label:  of the dataset to be created
+    :param (str) policy_id: that identifies policy to be bound
+    :param (str) agent_group_id: that identifies agent_group to be bound
+    :param (str) sink_id: that identifies sink to be bound
+    :return: edited dataset json
+    """
+
+    json_request = {"name": name_label, "agent_group_id": agent_group_id, "agent_policy_id": policy_id,
+                    "sink_ids": sink_id}
+    header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+
+    response = requests.put(f"{base_orb_url}/api/v1/policies/dataset/{dataset_id}", json=json_request, headers=header_request)
+    assert_that(response.status_code, equal_to(200),
+                'Request to edit dataset failed with status=' + str(response.status_code))
 
     return response.json()
 
