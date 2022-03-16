@@ -547,9 +547,9 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 	// accept "offline" state request to indicate agent is going offline
 	if hb.State == Offline {
 		agent.State = Offline
-		agent.LastHBData["backend_state"] = BackendStateInfo{}
-		agent.LastHBData["policy_state"] = PolicyStateInfo{}
-		agent.LastHBData["group_state"] = GroupStateInfo{}
+		agent.LastHBData["backend_state"] = hb.BackendState
+		agent.LastHBData["policy_state"] = hb.PolicyState
+		agent.LastHBData["group_state"] = hb.GroupState
 	} else {
 		// otherwise, state is always "online"
 		agent.State = Online
