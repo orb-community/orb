@@ -19,8 +19,8 @@ import (
 	"github.com/ns1labs/orb/pkg/config"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	"github.com/ns1labs/orb/sinker"
-	config2 "github.com/ns1labs/orb/sinker/config"
-	sinkerconfig "github.com/ns1labs/orb/sinker/redis"
+	sinkconfig "github.com/ns1labs/orb/sinker/config"
+	cacheconfig "github.com/ns1labs/orb/sinker/redis"
 	"github.com/ns1labs/orb/sinker/redis/consumer"
 	"github.com/ns1labs/orb/sinker/redis/producer"
 	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
@@ -119,7 +119,7 @@ func main() {
 	}
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
 
-	configRepo := sinkerconfig.NewSinkerCache(cacheClient, logger)
+	configRepo := cacheconfig.NewSinkerCache(cacheClient, logger)
 	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient)
 	gauge := kitprometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 		Namespace: "sinker",
@@ -244,7 +244,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func subscribeToSinksES(svc sinker.Service, configRepo config2.ConfigRepo, client *redis.Client, cfg config.EsConfig, logger *zap.Logger) {
+func subscribeToSinksES(svc sinker.Service, configRepo sinkconfig.ConfigRepo, client *redis.Client, cfg config.EsConfig, logger *zap.Logger) {
 	eventStore := consumer.NewEventStore(svc, configRepo, client, cfg.Consumer, logger)
 	logger.Info("Subscribed to Redis Event Store for sinks")
 	if err := eventStore.Subscribe(context.Background()); err != nil {
