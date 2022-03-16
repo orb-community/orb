@@ -11,7 +11,7 @@ dataset_name_prefix = "test_dataset_name_"
 base_orb_url = TestConfig.configs().get('base_orb_url')
 
 
-@step("a new dataset is created using referred group, policy and {amount_of_sinks} {sink_number} ID")
+@step("a new dataset is created using referred group, policy and {amount_of_sinks} {sink_number}")
 def create_new_dataset(context, amount_of_sinks, sink_number):
     assert_that(sink_number, any_of(equal_to("sink"), equal_to("sinks")), "Unexpected value for sink")
     context.considered_timestamp = datetime.now().timestamp()
