@@ -141,7 +141,7 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Description: req.Description,
 			OrbTags:     req.Tags,
 			Policy:      req.Policy,
-			PolicyData: req.PolicyData,
+			PolicyData:  req.PolicyData,
 		}
 
 		res, err := svc.EditPolicy(ctx, req.token, plcy, req.Format, req.PolicyData)
