@@ -457,19 +457,19 @@ func TestNotifyAgentStop(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	cases := map[string]struct {
-		channelID string
-		reason    string
-		err       error
+		agent  fleet.Agent
+		reason string
+		err    error
 	}{
 		"Notify agent to stop": {
-			channelID: agent.MFChannelID,
-			reason:    "",
-			err:       nil,
+			agent:  agent,
+			reason: "",
+			err:    nil,
 		},
 	}
 
 	for desc, tc := range cases {
-		err := commsSVC.NotifyAgentStop(tc.channelID, tc.reason)
+		err := commsSVC.NotifyAgentStop(tc.agent, tc.reason)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }

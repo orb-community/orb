@@ -70,16 +70,25 @@ def multiple_dataset_for_policy(context, amount_of_datasets):
                     f"Amount of datasets linked with policy {policy_id} failed")
 
 
-@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied and has status {policies_status}")
-def list_policies_applied_to_an_agent(context, amount_of_policies, policies_status):
+@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied and has status {"
+      "policies_status}")
+def list_policies_applied_to_an_agent_and_referred_status(context, amount_of_policies, policies_status):
+    list_policies_applied_to_an_agent(context, amount_of_policies)
+    for policy_id in context.list_agent_policies_id:
+        assert_that(context.agent['last_hb_data']['policy_state'][policy_id]["state"], equal_to(policies_status),
+                    f"policy {policy_id} is not {policies_status}")
+
+
+@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied to the agent")
+def list_policies_applied_to_an_agent(context, amount_of_policies):
     time_waiting = 0
     sleep_time = 0.5
     timeout = 30
     context.list_agent_policies_id = list()
     while time_waiting < timeout:
-        agent = get_agent(context.token, context.agent['id'])
-        if 'policy_state' in agent['last_hb_data'].keys():
-            context.list_agent_policies_id = list(agent['last_hb_data']['policy_state'].keys())
+        context.agent = get_agent(context.token, context.agent['id'])
+        if 'policy_state' in context.agent['last_hb_data'].keys():
+            context.list_agent_policies_id = list(context.agent['last_hb_data']['policy_state'].keys())
             if len(context.list_agent_policies_id) == int(amount_of_policies):
                 break
         time.sleep(sleep_time)
@@ -87,16 +96,13 @@ def list_policies_applied_to_an_agent(context, amount_of_policies, policies_stat
 
     assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)),
                 f"Amount of policies applied to this agent failed with {context.list_agent_policies_id} policies")
-    for policy_id in context.list_agent_policies_id:
-        assert_that(agent['last_hb_data']['policy_state'][policy_id]["state"], equal_to(policies_status),
-                    f"policy {policy_id} is not {policies_status}")
 
 
 @step("this agent's heartbeat shows that {amount_of_groups} groups are matching the agent")
 def list_groups_matching_an_agent(context, amount_of_groups):
     time_waiting = 0
     sleep_time = 0.5
-    timeout = 10
+    timeout = 30
     context.list_groups_id = list()
     groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups, context.agent)
     while time_waiting < timeout:

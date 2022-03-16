@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-kit/kit/metrics"
 	"github.com/go-redis/redis/v8"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
@@ -58,6 +59,9 @@ type sinkerService struct {
 	policiesClient policiespb.PolicyServiceClient
 	fleetClient    fleetpb.FleetServiceClient
 	sinksClient    sinkspb.SinkServiceClient
+
+	requestGauge   metrics.Gauge
+	requestCounter metrics.Counter
 }
 
 func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkID string) error {
@@ -221,6 +225,19 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 			if err != nil {
 				svc.logger.Warn(fmt.Sprintf("unable to remote write to sinkID: %s", id), zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
 			}
+
+			// send operational metrics
+			labels := []string{
+				"method", "sinker_payload_size",
+				"agent_id", agentID,
+				"agent", agent.AgentName,
+				"policy_id", m.PolicyID,
+				"policy", m.PolicyName,
+				"sink_id", id,
+				"owner_id", agent.OwnerID,
+			}
+			svc.requestCounter.With(labels...).Add(1)
+			svc.requestGauge.With(labels...).Add(float64(len(m.Data)))
 		}
 	}
 
@@ -291,16 +308,20 @@ func New(logger *zap.Logger,
 	policiesClient policiespb.PolicyServiceClient,
 	fleetClient fleetpb.FleetServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
+	requestGauge metrics.Gauge,
+	requestCounter metrics.Counter,
 ) Service {
 
 	pktvisor.Register(logger)
 	return &sinkerService{
-		logger:         logger,
-		pubSub:         pubSub,
-		esclient:       esclient,
-		configRepo:     configRepo,
-		policiesClient: policiesClient,
-		fleetClient:    fleetClient,
-		sinksClient:    sinksClient,
+		logger:          logger,
+		pubSub:          pubSub,
+		esclient:        esclient,
+		configRepo:      configRepo,
+		policiesClient:  policiesClient,
+		fleetClient:     fleetClient,
+		sinksClient:     sinksClient,
+		requestGauge:   requestGauge,
+		requestCounter: requestCounter,
 	}
 }

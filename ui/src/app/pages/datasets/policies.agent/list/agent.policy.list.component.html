@@ -64,11 +64,8 @@
 </ng-template>
 
 <ng-template #versionTemplateCell let-i="index" let-row="row" let-value="value">
-  <div *ngIf="!!row?.version" nbTooltip="{{ 'Policy Version: ' + row.version }}">
+  <div *ngIf="row?.version >= 0" nbTooltip="{{ 'Policy Version: ' + row.version }}">
     {{ row.version }}
-  </div>
-  <div *ngIf="!row?.version" nbTooltip="{{ 'Policy Version not available.' }}">
-    {{ 'N/A' }}
   </div>
 </ng-template>
 
