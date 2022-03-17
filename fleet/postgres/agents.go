@@ -483,7 +483,7 @@ func (r agentRepository) RetrieveOwnerByChannelID(ctx context.Context, channelID
 
 func (r agentRepository) SetStaleStatus(ctx context.Context, duration time.Duration) (int64, error) {
 
-	q := `UPDATE agents SET state = :state WHERE state <> 'stale' AND ts_last_hb <= now() - :duration * interval '1 seconds';`
+	q := `UPDATE agents SET state = :state WHERE state <> 'stale' AND state <> 'offline' AND ts_last_hb <= now() - :duration * interval '1 seconds';`
 
 	params := map[string]interface{}{
 		"duration": duration.Seconds(),

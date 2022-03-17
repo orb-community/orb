@@ -7,6 +7,7 @@ package agent
 import (
 	"encoding/json"
 	"github.com/ns1labs/orb/agent/backend"
+	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"time"
@@ -20,24 +21,37 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
 	bes := make(map[string]fleet.BackendStateInfo)
 	for name, be := range a.backends {
-		state, errmsg, err := be.GetState()
-		if err != nil {
-			a.logger.Error("failed to retrieve backend state", zap.String("backend", name), zap.Error(err))
-			bes[name] = fleet.BackendStateInfo{State: backend.AgentError.String(), Error: err.Error()}
-			continue
+		if state == fleet.Offline {
+			bes[name] = fleet.BackendStateInfo{State: backend.Offline.String()}
+		} else {
+			state, errmsg, err := be.GetState()
+			if err != nil {
+				a.logger.Error("failed to retrieve backend state", zap.String("backend", name), zap.Error(err))
+				bes[name] = fleet.BackendStateInfo{State: backend.AgentError.String(), Error: err.Error()}
+				continue
+			}
+			bes[name] = fleet.BackendStateInfo{State: state.String(), Error: errmsg}
 		}
-		bes[name] = fleet.BackendStateInfo{State: state.String(), Error: errmsg}
 	}
 
 	ps := make(map[string]fleet.PolicyStateInfo)
 	pdata, err := a.policyManager.GetPolicyState()
 	if err == nil {
 		for _, pd := range pdata {
-			ps[pd.ID] = fleet.PolicyStateInfo{
-				Name:     pd.Name,
-				State:    pd.State.String(),
-				Error:    pd.BackendErr,
-				Datasets: pd.GetDatasetIDs(),
+			if state == fleet.Offline {
+				ps[pd.ID] = fleet.PolicyStateInfo{
+					Name:     pd.Name,
+					State:    policies.Offline.String(),
+					Error:    pd.BackendErr,
+					Datasets: pd.GetDatasetIDs(),
+				}
+			} else {
+				ps[pd.ID] = fleet.PolicyStateInfo{
+					Name:     pd.Name,
+					State:    pd.State.String(),
+					Error:    pd.BackendErr,
+					Datasets: pd.GetDatasetIDs(),
+				}
 			}
 		}
 	} else {
