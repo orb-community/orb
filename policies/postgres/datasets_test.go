@@ -816,6 +816,94 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 	}
 }
 
+func TestAactivateDatasetByID(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	oID2, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	groupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sinkIDs := make([]string, 2)
+	for i := 0; i < 2; i++ {
+		sinkID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		sinkIDs[i] = sinkID.String()
+	}
+
+	nameID, err := types.NewIdentifier("mydataset")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID2, err := types.NewIdentifier("mydataset-2")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		Name:         nameID,
+		MFOwnerID:    oID.String(),
+		Valid:        false,
+		AgentGroupID: groupID.String(),
+		PolicyID:     policyID.String(),
+		SinkIDs:      sinkIDs,
+		Metadata:     types.Metadata{"testkey": "testvalue"},
+		Created:      time.Time{},
+	}
+
+	dataset2 := dataset
+	dataset2.Name = nameID2
+	dataset2.MFOwnerID = oID2.String()
+
+	dsID, err := repo.SaveDataset(context.Background(), dataset)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset.ID = dsID
+
+	dsID2, err := repo.SaveDataset(context.Background(), dataset2)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset2.ID = dsID2
+
+	cases := map[string]struct {
+		ownerID string
+		id      string
+		dataset policies.Dataset
+		valid   bool
+		err     error
+	}{
+		"activate a existing dataset by ID": {
+			ownerID: dataset.MFOwnerID,
+			id:      dataset.ID,
+			dataset: dataset,
+			valid:   true,
+			err:     nil,
+		},
+		"inactivate dataset with an invalid ownerID": {
+			id:      dataset2.ID,
+			ownerID: "",
+			dataset: dataset2,
+			valid:   false,
+			err:     policies.ErrMalformedEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := repo.ActivateDatasetByID(context.Background(), tc.id, tc.ownerID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
+
+			check, _ := repo.RetrieveDatasetByID(context.Background(), tc.dataset.ID, tc.ownerID)
+			assert.Equal(t, tc.valid, check.Valid, fmt.Sprintf("%s: expected '%t' got '%t'", desc, tc.valid, check.Valid))
+		})
+	}
+}
+
 func testSortDataset(t *testing.T, pm policies.PageMetadata, ags []policies.Dataset) {
 	t.Helper()
 	switch pm.Order {

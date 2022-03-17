@@ -253,8 +253,21 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 	if err != nil {
 		return Dataset{}, err
 	}
+
+	datasetEdited, err := s.repo.RetrieveDatasetByID(ctx, ds.ID, ds.MFOwnerID)
+	if err != nil {
+		return Dataset{}, err
+	}
 	// TODO after merge the other branches retrieve a dataset by id
-	return ds, nil
+
+	if datasetEdited.Valid == false && len(datasetEdited.SinkIDs) > 0 && datasetEdited.PolicyID != "" && datasetEdited.AgentGroupID != ""{
+		err = s.repo.ActivateDatasetByID(ctx, datasetEdited.ID, datasetEdited.MFOwnerID)
+		if err != nil {
+			return Dataset{}, err
+		}
+		datasetEdited.Valid = true
+	}
+	return datasetEdited, nil
 }
 
 func (s policiesService) RemoveDataset(ctx context.Context, token string, dsID string) error {

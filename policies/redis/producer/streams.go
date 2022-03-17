@@ -73,7 +73,36 @@ func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string
 }
 
 func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.Dataset) (policies.Dataset, error) {
-	return e.svc.EditDataset(ctx, token, ds)
+	ds, err := e.svc.EditDataset(ctx, token, ds)
+	if err != nil {
+		return ds, err
+	}
+
+	datasetEdited, err := e.svc.ViewDatasetByIDInternal(ctx, ds.MFOwnerID, ds.ID)
+	if err != nil {
+		return ds, err
+	}
+
+	event := createDatasetEvent{
+		id:           datasetEdited.ID,
+		ownerID:      datasetEdited.MFOwnerID,
+		name:         datasetEdited.Name.String(),
+		agentGroupID: datasetEdited.AgentGroupID,
+		policyID:     datasetEdited.PolicyID,
+		sinkIDs:      strings.Join(ds.SinkIDs, ","),
+	}
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+	err = e.client.XAdd(ctx, record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+		return ds, err
+	}
+
+	return datasetEdited, nil
 }
 
 func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID string) error {
