@@ -350,8 +350,8 @@ func TestPolicyEdition(t *testing.T) {
 	policy := createPolicy(t, &cli, "policy")
 
 	var (
-		invalidNamePolicyJson = "{\"name\": \"*#simple_dns#*\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
-		emptyFormatPolicyYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
+		invalidNamePolicyJson    = "{\"name\": \"*#simple_dns#*\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
+		emptyFormatPolicyYaml    = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
 		notEmptyFormatPolicyJson = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"format\": \"json\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
 	)
 
@@ -630,7 +630,7 @@ func TestCreatePolicy(t *testing.T) {
 	defer cli.server.Close()
 
 	var (
-		emptyFormatPolicyYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
+		emptyFormatPolicyYaml    = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
 		notEmptyFormatPolicyJson = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"format\": \"json\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
 	)
 
@@ -1294,12 +1294,14 @@ func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy 
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	policy := policies.Policy{
-		ID:      ID.String(),
-		Name:    validName,
-		Backend: "pktvisor",
+		ID:         ID.String(),
+		Name:       validName,
+		Backend:    "pktvisor",
+		PolicyData: policy_data,
+		Format:     format,
 	}
 
-	res, err := cli.service.AddPolicy(context.Background(), token, policy, format, policy_data)
+	res, err := cli.service.AddPolicy(context.Background(), token, policy)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 	return res
 }

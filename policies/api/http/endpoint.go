@@ -35,9 +35,10 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Description:   req.Description,
 			OrbTags:       req.Tags,
 			PolicyData:    req.PolicyData,
+			Format:        req.Format,
 		}
 
-		saved, err := svc.AddPolicy(ctx, req.token, policy, req.Format, req.PolicyData)
+		saved, err := svc.AddPolicy(ctx, req.token, policy)
 		if err != nil {
 			return nil, err
 		}
@@ -81,6 +82,7 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Version:       policy.Version,
 			LastModified:  policy.LastModified,
 			PolicyData:    policy.PolicyData,
+			Format:        policy.Format,
 		}
 		return res, nil
 	}
@@ -142,9 +144,10 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 			OrbTags:     req.Tags,
 			Policy:      req.Policy,
 			PolicyData:  req.PolicyData,
+			Format:      req.Format,
 		}
 
-		res, err := svc.EditPolicy(ctx, req.token, plcy, req.Format, req.PolicyData)
+		res, err := svc.EditPolicy(ctx, req.token, plcy)
 		if err != nil {
 			return policyUpdateRes{}, err
 		}
@@ -256,9 +259,11 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Policy:      req.Policy,
 			OrbTags:     req.Tags,
 			Description: req.Description,
+			Format:      req.Format,
+			PolicyData:  req.PolicyData,
 		}
 
-		validated, err := svc.ValidatePolicy(ctx, req.token, policy, req.Format, req.PolicyData)
+		validated, err := svc.ValidatePolicy(ctx, req.token, policy)
 		if err != nil {
 			return nil, err
 		}

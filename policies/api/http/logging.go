@@ -88,7 +88,7 @@ func (l loggingMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, p
 	return l.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
 }
 
-func (l loggingMiddleware) EditPolicy(ctx context.Context, token string, pol policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
+func (l loggingMiddleware) EditPolicy(ctx context.Context, token string, pol policies.Policy) (_ policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: edit_policy",
@@ -99,10 +99,10 @@ func (l loggingMiddleware) EditPolicy(ctx context.Context, token string, pol pol
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.EditPolicy(ctx, token, pol, format, policyData)
+	return l.svc.EditPolicy(ctx, token, pol)
 }
 
-func (l loggingMiddleware) AddPolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
+func (l loggingMiddleware) AddPolicy(ctx context.Context, token string, p policies.Policy) (_ policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: add_policy",
@@ -113,7 +113,7 @@ func (l loggingMiddleware) AddPolicy(ctx context.Context, token string, p polici
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.AddPolicy(ctx, token, p, format, policyData)
+	return l.svc.AddPolicy(ctx, token, p)
 }
 
 func (l loggingMiddleware) ViewPolicyByID(ctx context.Context, token string, policyID string) (_ policies.Policy, err error) {
@@ -200,7 +200,7 @@ func (l loggingMiddleware) InactivateDatasetByGroupID(ctx context.Context, group
 	return l.svc.InactivateDatasetByGroupID(ctx, groupID, token)
 }
 
-func (l loggingMiddleware) ValidatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
+func (l loggingMiddleware) ValidatePolicy(ctx context.Context, token string, p policies.Policy) (_ policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: validate_policy",
@@ -211,7 +211,7 @@ func (l loggingMiddleware) ValidatePolicy(ctx context.Context, token string, p p
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.ValidatePolicy(ctx, token, p, format, policyData)
+	return l.svc.ValidatePolicy(ctx, token, p)
 }
 
 func (l loggingMiddleware) ValidateDataset(ctx context.Context, token string, d policies.Dataset) (_ policies.Dataset, err error) {

@@ -182,7 +182,7 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 }
 
 func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, ts_last_modified, policy_data 
+	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, ts_last_modified, policy_data, format 
 			FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
 
 	if policyID == "" || ownerID == "" {
@@ -359,8 +359,8 @@ func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, pol
 
 func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 
-	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, schema_version, policy, orb_tags, description, policy_data)         
-			  VALUES (:name, :mf_owner_id, :backend, :schema_version, :policy, :orb_tags, :description, :policy_data) RETURNING id`
+	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, schema_version, policy, orb_tags, description, policy_data, format)         
+			  VALUES (:name, :mf_owner_id, :backend, :schema_version, :policy, :orb_tags, :description, :policy_data, :format) RETURNING id`
 
 	if !policy.Name.IsValid() || policy.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -514,6 +514,7 @@ type dbPolicy struct {
 	OrbTags       db.Tags          `db:"orb_tags"`
 	Policy        db.Metadata      `db:"policy"`
 	PolicyData    string           `db:"policy_data"`
+	Format        string           `db:"format"`
 	Version       int32            `db:"version"`
 	Created       time.Time        `db:"ts_created"`
 	DataSetID     string           `db:"dataset_id"`
@@ -539,6 +540,7 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 		OrbTags:       db.Tags(policy.OrbTags),
 		Policy:        db.Metadata(policy.Policy),
 		PolicyData:    policy.PolicyData,
+		Format:        policy.Format,
 	}, nil
 
 }
@@ -611,6 +613,7 @@ func toPolicy(dba dbPolicy) policies.Policy {
 		Created:       dba.Created,
 		LastModified:  dba.LastModified,
 		PolicyData:    dba.PolicyData,
+		Format:        dba.Format,
 	}
 
 	return policy

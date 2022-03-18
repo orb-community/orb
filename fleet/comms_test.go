@@ -527,14 +527,6 @@ func createPolicy(t *testing.T, svc policies.Service, name string) policies.Poli
 	validName, err := types.NewIdentifier(name)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
-	policy := policies.Policy{
-		Name:        validName,
-		MFOwnerID:   ID.String(),
-		Description: "An example policy",
-		Backend:     "pktvisor",
-		Version:     0,
-		OrbTags:     map[string]string{"region": "eu"},
-	}
 	policy_data := `
 handlers:
   modules:
@@ -547,7 +539,17 @@ input:
   tap: default_pcap
 kind: collection`
 
-	res, err := svc.AddPolicy(context.Background(), token, policy, "yaml", policy_data)
+	policy := policies.Policy{
+		Name:        validName,
+		MFOwnerID:   ID.String(),
+		Description: "An example policy",
+		Backend:     "pktvisor",
+		Version:     0,
+		OrbTags:     map[string]string{"region": "eu"},
+		PolicyData:  policy_data,
+		Format:      "yaml",
+	}
+	res, err := svc.AddPolicy(context.Background(), token, policy)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 	return res
 }
