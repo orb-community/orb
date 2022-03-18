@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,7 +26,7 @@ const CONFIG = {
 })
 export class AgentPolicyAddComponent {
   // page vars
-  strings = {stepper: STRINGS.stepper};
+  strings = { stepper: STRINGS.stepper };
 
   // #forms
   // agent policy general information - name, desc, backend
@@ -88,7 +88,29 @@ export class AgentPolicyAddComponent {
 
   agentPolicyID: string;
 
+  @ViewChild('editorComponent')
+  editor;
+
   isEdit: boolean;
+
+  editorOptions = {
+    theme: 'vs-dark',
+    language: 'yaml',
+    automaticLayout: true,
+    glyphMargin: false,
+    folding: false,
+    // Undocumented see https://github.com/Microsoft/vscode/issues/30795#issuecomment-410998882
+    lineDecorationsWidth: 0,
+    lineNumbersMinChars: 0,
+  };
+
+  code = '# Paste your yaml here for manual policy configuration';
+
+  // is config specified wizard mode or in YAML or JSON
+  isWizard = true;
+
+  // format definition
+  format = 'yaml';
 
   // #load controls
   isLoading = Object.entries(CONFIG)
@@ -111,12 +133,20 @@ export class AgentPolicyAddComponent {
 
     this.readyForms();
 
+
     Promise.all([
       this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(),
       this.getBackendsList(),
     ]).catch(reason => console.warn(`Couldn't fetch data. Reason: ${ reason }`))
       .then(() => this.updateForms())
       .catch((reason) => console.warn(`Couldn't fetch ${ this.agentPolicy?.backend } data. Reason: ${ reason }`));
+  }
+
+  resizeComponents() {
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+    !!this.editor && this.editor?.layout();
   }
 
   newAgent() {
@@ -154,7 +184,6 @@ export class AgentPolicyAddComponent {
     return !Object.values(this.isLoading).reduce((prev, curr) => prev || curr, false);
   }
 
-
   readyForms() {
     const {
       name,
@@ -189,18 +218,26 @@ export class AgentPolicyAddComponent {
       name,
       description,
       backend,
+      format,
+      policy_data,
       policy: {
-        handlers: {
-          modules,
-        },
+        handlers,
       },
     } = this.agentPolicy;
 
+    const wizard = format !== this.format;
+
+    if (policy_data) {
+      this.code = policy_data;
+    }
+
     this.detailsFG.patchValue({ name, description, backend });
 
-    this.modules = modules;
+    this.modules = handlers?.modules || {};
 
-    this.onBackendSelected(backend).catch(reason => console.warn(`${ reason }`));
+    if (wizard) {
+      this.onBackendSelected(backend).catch(reason => console.warn(`${ reason }`));
+    }
   }
 
   getBackendsList() {
@@ -234,7 +271,7 @@ export class AgentPolicyAddComponent {
   getBackendData() {
     return Promise.all([this.getTaps(), this.getInputs()])
       .then(value => {
-        if (this.isEdit && this.agentPolicy) {
+        if (this.isEdit && this.agentPolicy && this.isWizard) {
           const selected_tap = this.agentPolicy.policy.input.tap;
           this.tapFG.patchValue({ selected_tap }, { emitEvent: true });
           this.onTapSelected(selected_tap);
@@ -388,6 +425,19 @@ export class AgentPolicyAddComponent {
     this.router.navigateByUrl('/pages/datasets/policies');
   }
 
+  onYAMLSubmit() {
+    const payload = {
+      name: this.detailsFG.controls.name.value,
+      description: this.detailsFG.controls.description.value,
+      backend: this.detailsFG.controls.backend.value,
+      format: this.format,
+      policy_data: this.code,
+      version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
+    };
+
+    this.submit(payload);
+  }
+
   onFormSubmit() {
     const payload = {
       name: this.detailsFG.controls.name.value,
@@ -437,6 +487,10 @@ export class AgentPolicyAddComponent {
     if (Object.keys(payload.policy?.input?.filter).length <= 0)
       delete payload.policy.input.filter;
 
+    this.submit(payload);
+  }
+
+  submit(payload) {
     if (this.isEdit) {
       // updating existing sink
       this.agentPoliciesService.editAgentPolicy({ ...payload, id: this.agentPolicyID }).subscribe(() => {

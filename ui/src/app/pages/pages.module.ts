@@ -12,7 +12,7 @@ import {
   NbMenuModule,
   NbSelectModule,
   NbStepperModule,
-  NbTabsetModule, NbTooltipModule,
+  NbTabsetModule, NbToggleModule, NbTooltipModule,
   NbWindowService,
 } from '@nebular/theme';
 import { ThemeModule } from '../@theme/theme.module';
@@ -60,6 +60,7 @@ import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete
 import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.component';
 import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.details.component';
 import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
 
 @NgModule({
   imports: [
@@ -90,6 +91,8 @@ import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add
     NbTooltipModule,
     NbAlertModule,
     NbAccordionModule,
+    MonacoEditorModule,
+    NbToggleModule,
   ],
   exports: [
     SharedModule,
