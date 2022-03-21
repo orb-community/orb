@@ -1,0 +1,12 @@
+<nb-card>
+  <nb-card-header>Active Groups</nb-card-header>
+  <nb-card-body>
+    <p>
+            <span (click)="showAgentGroupDetail(group)"
+                  *ngFor="let group of groups; last as isLast">
+              <span class="agent-group-link">{{ group.name }}</span>
+              <span *ngIf="!isLast">,</span>
+            </span>
+    </p>
+  </nb-card-body>
+</nb-card>

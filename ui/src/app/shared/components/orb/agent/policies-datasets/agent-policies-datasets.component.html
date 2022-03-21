@@ -1,0 +1,26 @@
+<nb-card>
+  <nb-card-header>Active Policies/Datasets</nb-card-header>
+  <nb-card-body>
+          <span *ngIf="!policies"
+                class="summary-accent">Agent has not been provisioned.</span>
+    <nb-accordion *ngFor="let policy of policies">
+      <nb-accordion-item>
+        <nb-accordion-item-header>
+          <span class="summary-accent">Policy:&nbsp;</span>
+          {{ policy.name }}
+          <span class="summary-accent">&nbsp;&nbsp;Status:&nbsp;</span>
+          <span
+            class="policy-{{ agent?.last_hb_data.policy_state[policy.id].state }}">{{
+            agent?.last_hb_data.policy_state[policy.id].state }}</span>
+        </nb-accordion-item-header>
+        <nb-accordion-item-body>
+          <nb-list>
+            <nb-list-item *ngFor="let id of agent?.last_hb_data.policy_state[policy.id].datasets">
+              <span>Dataset:&nbsp;&quot;{{ datasets[id].name }}&quot;</span>
+            </nb-list-item>
+          </nb-list>
+        </nb-accordion-item-body>
+      </nb-accordion-item>
+    </nb-accordion>
+  </nb-card-body>
+</nb-card>

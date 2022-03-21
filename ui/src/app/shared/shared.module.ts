@@ -27,7 +27,12 @@ import { TagColorPipe } from 'app/shared/pipes/tag-color.pipe';
 import { TagChipPipe } from 'app/shared/pipes/tag-chip.pipe';
 import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.directive';
 import { AdvancedOptionsPipe } from 'app/shared/pipes/advanced-options.pipe';
-import { PrettyJsonPipe} from 'app/shared/pipes/pretty-json.pipe';
+import { PrettyJsonPipe } from 'app/shared/pipes/pretty-json.pipe';
+import { AgentInformationComponent } from './components/orb/agent/information/agent-information.component';
+import { AgentCapabilitiesComponent } from './components/orb/agent/capabilities/agent-capabilities.component';
+import { AgentPoliciesDatasetsComponent } from './components/orb/agent/policies-datasets/agent-policies-datasets.component';
+import { AgentGroupsComponent } from './components/orb/agent/groups/agent-groups.component';
+import { AgentProvisioningComponent } from './components/orb/agent/provisioning/agent-provisioning.component';
 
 @NgModule({
   imports: [
@@ -58,6 +63,11 @@ import { PrettyJsonPipe} from 'app/shared/pipes/pretty-json.pipe';
     TaglistChipPipe,
     ValidTagInputDirective,
     PrettyJsonPipe,
+    AgentInformationComponent,
+    AgentCapabilitiesComponent,
+    AgentPoliciesDatasetsComponent,
+    AgentGroupsComponent,
+    AgentProvisioningComponent,
   ],
   exports: [
     ThemeModule,
@@ -75,6 +85,11 @@ import { PrettyJsonPipe} from 'app/shared/pipes/pretty-json.pipe';
     TaglistChipPipe,
     ValidTagInputDirective,
     PrettyJsonPipe,
+    AgentInformationComponent,
+    AgentCapabilitiesComponent,
+    AgentPoliciesDatasetsComponent,
+    AgentGroupsComponent,
+    AgentProvisioningComponent,
   ],
   providers: [
     MessageValuePipe,
