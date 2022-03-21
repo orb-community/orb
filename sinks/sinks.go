@@ -84,6 +84,14 @@ func (s *State) Scan(value interface{}) error {
 }
 func (s State) Value() (driver.Value, error) { return s.String(), nil }
 
+type SinkConfig struct {
+	SinkID          string          `json:"sink_id"`
+	OwnerID         string          `json:"owner_id"`
+	Url             string          `json:"remote_host"`
+	User            string          `json:"username"`
+	Password        string          `json:"password"`
+}
+
 type Sink struct {
 	ID          string
 	Name        types.Identifier

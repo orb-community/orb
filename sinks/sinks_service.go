@@ -10,8 +10,14 @@ package sinks
 
 import (
 	"context"
+	b64 "encoding/base64"
+	"encoding/json"
+	"fmt"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
+	"github.com/ns1labs/orb/sinks/prometheus"
+	"time"
 )
 
 var (
@@ -54,6 +60,12 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	}
 
 	sink.MFOwnerID = skOwnerID
+
+	err = validateConfig(sink.Config)
+	if err != nil {
+		return Sink{}, err
+	}
+
 	err = svc.sinkRepo.Update(ctx, sink)
 	if err != nil {
 		return Sink{}, err
@@ -147,4 +159,53 @@ func validateBackend(sink *Sink) error {
 		return ErrInvalidBackend
 	}
 	return nil
+}
+
+func validateConfig(config types.Metadata) error {
+	var cfgRepo SinkConfig
+	data, _ := json.Marshal(config)
+	err := json.Unmarshal(data, &cfgRepo)
+
+	cfg := prometheus.NewConfig(
+		prometheus.WriteURLOption(cfgRepo.Url),
+	)
+
+	promClient, err := prometheus.NewClient(cfg)
+	if err != nil {
+		return err
+	}
+
+	var dpFlag prometheus.Datapoint
+	dpFlag.Value = 1
+	dpFlag.Timestamp = time.Now()
+
+	var labelsListFlag []prometheus.Label
+	label := prometheus.Label{
+		Name:  "__name__",
+		Value: "login",
+	}
+
+	labelsListFlag = append(labelsListFlag, label)
+
+	tsList := prometheus.TSList{
+		struct {
+			Labels    []prometheus.Label
+			Datapoint prometheus.Datapoint
+		}{Labels: labelsListFlag, Datapoint: dpFlag},
+	}
+
+	var headers = make(map[string]string)
+	headers["Authorization"] = encodeBase64(cfgRepo.User, cfgRepo.Password)
+	_, writeErr := promClient.WriteTimeSeries(context.Background(), tsList,
+		prometheus.WriteOptions{Headers: headers})
+	if err := error(writeErr); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func encodeBase64(user string, password string) string {
+	sEnc := b64.URLEncoding.EncodeToString([]byte(user + ":" + password))
+	return fmt.Sprintf("Basic %s", sEnc)
 }
