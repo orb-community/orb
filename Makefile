@@ -128,4 +128,4 @@ ui:
 		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile .
 
-platform: dockers_dev docker_sinker agent ui
+platform: dockers_dev docker_sinker docker_sinks agent ui

@@ -199,7 +199,7 @@ func validateConfig(config types.Metadata) error {
 	_, writeErr := promClient.WriteTimeSeries(context.Background(), tsList,
 		prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
-		return err
+		return errors.Wrap(errors.New(err.Error()), err)
 	}
 
 	return nil

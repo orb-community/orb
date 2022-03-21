@@ -231,7 +231,7 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		case errors.Contains(errorVal, io.ErrUnexpectedEOF),
 			errors.Contains(errorVal, io.EOF):
 			w.WriteHeader(http.StatusBadRequest)
-		case errors.Contains(errorVal, sinks.ErrInvalidBackend):
+		case errors.Contains(errorVal, sinks.ErrInvalidBackend), errors.Contains(errorVal, sinks.ErrValidateSink):
 			w.WriteHeader(http.StatusBadRequest)
 
 		default:
