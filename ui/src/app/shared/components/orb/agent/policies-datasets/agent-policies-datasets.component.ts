@@ -1,6 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Agent, AgentPolicyState } from 'app/common/interfaces/orb/agent.interface';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { forkJoin } from 'rxjs';
 import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
@@ -13,7 +12,7 @@ import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 export class AgentPoliciesDatasetsComponent implements OnInit {
   @Input() agent: Agent;
 
-  datasets: Dataset[];
+  datasets: { [id: string]: Dataset };
 
   policies: AgentPolicyState[];
 
@@ -24,7 +23,7 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
   constructor(
     protected datasetService: DatasetPoliciesService,
   ) {
-    this.datasets = [];
+    this.datasets = {};
     this.errors = {};
   }
 
@@ -34,7 +33,7 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
     this.retrieveDatasets(datasetIds);
   }
 
-  getPoliciesStates(policyStates: {[id: string]: AgentPolicyState}) {
+  getPoliciesStates(policyStates: { [id: string]: AgentPolicyState }) {
     return Object.entries(policyStates)
       .map(([id, policy]) => {
         policy.id = id;
@@ -62,7 +61,10 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
     this.isLoading = true;
     forkJoin(datasetIds.map(id => this.datasetService.getDatasetById(id)))
       .subscribe(resp => {
-        this.datasets = resp;
+        this.datasets = resp.reduce((acc: { [id: string]: Dataset }, curr: Dataset) => {
+          acc[curr.id] = curr;
+          return acc;
+        }, {});
         this.isLoading = false;
       });
   }
