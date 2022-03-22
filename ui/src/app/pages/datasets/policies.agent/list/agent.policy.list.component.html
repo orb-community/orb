@@ -5,7 +5,21 @@
     <h4>All Policies</h4>
   </header>
   <div #tableWrapper class="d-flex flex-column mt-4">
-    <div class="d-flex justify-content-end align-items-end mb-2">
+    <div class="d-flex justify-content-between align-items-end mb-2">
+      <div class="d-flex">
+        <p *ngIf=" paginationControls.data && paginationControls.data.length === 1"
+           class="sink-info-regular mb-0">
+          You have <a><strong>{{paginationControls.total}}</strong> policy</a>.
+        </p>
+        <p *ngIf=" paginationControls.data && paginationControls.data.length > 1"
+           class="sink-info-regular mb-0">
+          You have <a><strong>{{paginationControls.total}}</strong> policies</a>.
+        </p>
+        <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
+           class="sink-info-accent mb-0">
+          There are no policies yet.
+        </p>
+      </div>
       <div class="d-flex">
         <div class="mr-3">
           <nb-select
