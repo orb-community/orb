@@ -95,25 +95,6 @@ export class AgentAddComponent {
     this.router.navigateByUrl('/pages/fleet/agents');
   }
 
-  checkValidName() {
-    const { value } = this.secondFormGroup?.controls?.key;
-    const hasTagForKey = Object.keys(this.selectedTags).find(key => key === value);
-    return value !== '' && !hasTagForKey;
-  }
-
-  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
-  onAddTag() {
-    const { key, value } = this.secondFormGroup.controls;
-
-    this.selectedTags[key.value] = value.value;
-    key.reset('');
-    value.reset('');
-  }
-
-  onRemoveTag(tag: any) {
-    delete this.selectedTags[tag];
-  }
-
   wrapPayload(validate: boolean) {
     const { name } = this.firstFormGroup.controls;
     return {
