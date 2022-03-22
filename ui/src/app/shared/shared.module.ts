@@ -8,9 +8,12 @@ import {
   NbButtonModule,
   NbCardModule,
   NbCheckboxModule,
-  NbDatepickerModule, NbDialogModule, NbDialogService,
+  NbDatepickerModule,
+  NbDialogModule,
+  NbDialogService,
   NbIconModule,
-  NbInputModule, NbListModule,
+  NbInputModule,
+  NbListModule,
   NbSelectModule,
 } from '@nebular/theme';
 import { FormsModule } from '@angular/forms';
@@ -31,7 +34,9 @@ import { AdvancedOptionsPipe } from 'app/shared/pipes/advanced-options.pipe';
 import { PrettyJsonPipe } from 'app/shared/pipes/pretty-json.pipe';
 import { AgentInformationComponent } from './components/orb/agent/information/agent-information.component';
 import { AgentCapabilitiesComponent } from './components/orb/agent/capabilities/agent-capabilities.component';
-import { AgentPoliciesDatasetsComponent } from './components/orb/agent/policies-datasets/agent-policies-datasets.component';
+import {
+  AgentPoliciesDatasetsComponent,
+} from './components/orb/agent/policies-datasets/agent-policies-datasets.component';
 import { AgentGroupsComponent } from './components/orb/agent/groups/agent-groups.component';
 import { AgentProvisioningComponent } from './components/orb/agent/provisioning/agent-provisioning.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';

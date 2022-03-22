@@ -23,6 +23,7 @@ export interface AgentGroupState {
 }
 
 export interface AgentPolicyState {
+  id?: string;
   name?: string;
   state?: string;
   datasets?: string[];

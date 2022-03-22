@@ -15,6 +15,8 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
 
   datasets: Dataset[];
 
+  policies: AgentPolicyState[];
+
   isLoading: boolean;
 
   errors;
@@ -27,17 +29,26 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const datasetIds = this.getDatasetIds(this?.agent?.last_hb_data?.policy_state);
+    this.policies = this.getPoliciesStates(this?.agent?.last_hb_data?.policy_state);
+    const datasetIds = this.getDatasetIds(this.policies);
     this.retrieveDatasets(datasetIds);
   }
 
-  getDatasetIds(policyState: AgentPolicyState[]) {
-    if (!policyState) {
+  getPoliciesStates(policyStates: {[id: string]: AgentPolicyState}) {
+    return Object.entries(policyStates)
+      .map(([id, policy]) => {
+        policy.id = id;
+        return policy;
+      });
+  }
+
+  getDatasetIds(policiesStates: AgentPolicyState[]) {
+    if (!policiesStates || policiesStates === []) {
       this.errors['nodatasets'] = 'Agent has no defined datasets.';
       return [];
     }
 
-    const datasetIds = Object.values(policyState)
+    const datasetIds = policiesStates
       .map(state => state?.datasets)
       .reduce((acc, curr) => curr.concat(acc), []);
 

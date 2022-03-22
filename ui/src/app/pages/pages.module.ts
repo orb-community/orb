@@ -12,7 +12,9 @@ import {
   NbMenuModule,
   NbSelectModule,
   NbStepperModule,
-  NbTabsetModule, NbToggleModule, NbTooltipModule,
+  NbTabsetModule,
+  NbToggleModule,
+  NbTooltipModule,
   NbWindowService,
 } from '@nebular/theme';
 import { ThemeModule } from '../@theme/theme.module';

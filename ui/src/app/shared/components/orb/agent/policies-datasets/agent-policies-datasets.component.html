@@ -4,19 +4,19 @@
     <span *ngIf="errors?.nodatasets"
           class="summary-accent">{{ errors.nodatasets }}</span>
     <div *ngIf="!isLoading">
-      <nb-accordion *ngFor="let policy of datasets">
+      <nb-accordion *ngFor="let policy of policies">
         <nb-accordion-item>
           <nb-accordion-item-header>
             <span class="summary-accent">Policy:&nbsp;</span>
             {{ policy.name }}
             <span class="summary-accent">&nbsp;&nbsp;Status:&nbsp;</span>
             <span
-              class="policy-{{ agent?.last_hb_data.policy_state[policy.id].state }}">{{
-              agent?.last_hb_data.policy_state[policy.id].state }}</span>
+              class="policy-{{ policy.state }}">{{
+              policy.state }}</span>
           </nb-accordion-item-header>
           <nb-accordion-item-body>
             <nb-list>
-              <nb-list-item *ngFor="let id of agent?.last_hb_data.policy_state[policy.id].datasets">
+              <nb-list-item *ngFor="let id of policy.datasets">
                 <span>Dataset:&nbsp;&quot;{{ datasets[id].name }}&quot;</span>
               </nb-list-item>
             </nb-list>

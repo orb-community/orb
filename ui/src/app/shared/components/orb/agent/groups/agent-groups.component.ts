@@ -32,11 +32,11 @@ export class AgentGroupsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.retrieveGroups(this.agent?.last_hb_data?.group_state);
+    this.retrieveGroups(Object.keys(this.agent?.last_hb_data?.group_state));
   }
 
   retrieveGroups(groupIds: string[]) {
-    if (!groupIds) {
+    if (!groupIds || groupIds === []) {
       this.errors['nogroup'] = 'This agent does not belong to any group.';
 
       return;
