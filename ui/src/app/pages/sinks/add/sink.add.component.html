@@ -65,7 +65,7 @@
               >
                 <nb-option *ngFor="let type of sinkTypesList"
                            [value]="type">{{ type | titlecase }}</nb-option>
-              </nb-select>
+              </nb-select>                                      
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
@@ -99,7 +99,7 @@
             </div>
           </ng-template>
           <form [formGroup]="secondFormGroup">
-            <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index">
+            <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index; first as isFirst">
               <div>
                 <label class="font-weight-bold">{{control.label}}</label>
                 <span *ngIf="control.required" class="required">*</span>
@@ -107,7 +107,7 @@
               <div [ngSwitch]="control.input">
                 <input *ngSwitchCase="'text'"
                        [attr.data-orb-qa-id]="control.prop"
-                       [autofocus]="i == 0"
+                       [autofocus]="isFirst"
                        [formControlName]="control.prop"
                        [type]="control.type"
                        fieldSize="medium"
@@ -115,7 +115,7 @@
                        nbInput>
                 <input *ngSwitchCase="'number'"
                        [attr.data-orb-qa-id]="control.prop"
-                       [autofocus]="i == 0"
+                       [autofocus]="isFirst"
                        [formControlName]="control.prop"
                        [max]="control.max"
                        [min]="control.min"
@@ -125,6 +125,7 @@
                        fullWidth="true"
                        nbInput>
                 <nb-select *ngSwitchCase="'select'"
+                           autofocus="{{ isFirst }}"  
                            appearance="filled"
                            data-orb-qa-id="backend"
                            formControlName="backend"
