@@ -21,17 +21,19 @@
     </mat-chip-list>
   </div>
   <hr/>
-  <nb-form-field>
+  <div>
     <div class="container d-flex row px-0 mx-0">
       <div class="d-flex flex-column col-5 px-0 mx-0">
         <div>
-          <label class="font-weight-bold">{{strings.propNames.key}}</label>
+          <label class="font-weight-bold">{{strings.key}}</label>
         </div>
         <div>
-          <input autofocus
+          <input #keyInput
+                 autofocus
                  data-orb-qa-id="input#orb_tag_key"
                  fieldSize="medium"
                  formControlName="key"
+                 [formGroup]="fg"
                  fullWidth="true"
                  nbInput/>
         </div>
@@ -41,13 +43,14 @@
       </div>
       <div class="d-flex flex-column col-5 px-0 mx-0">
         <div>
-          <label class="font-weight-bold">{{strings.propNames.value}}</label>
+          <label class="font-weight-bold">{{strings.value}}</label>
         </div>
         <div>
           <input autofocus
                  data-orb-qa-id="input#orb_tag_value"
                  fieldSize="medium"
                  formControlName="value"
+                 [formGroup]="fg"
                  fullWidth="true"
                  nbInput/>
         </div>
@@ -55,8 +58,8 @@
       <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
            style="transform: translateY(14px);">
         <button (click)="onAddTag()"
-                [disabled]="(secondFormGroup.controls['key'].value === '' ||
-                          secondFormGroup.controls['value'].value === '')"
+                [disabled]="(fg.controls['key'].value === '' ||
+                          fg.controls['value'].value === '')"
                 data-orb-qa-id="button#addTag"
                 ghost
                 nbButton>
@@ -68,6 +71,6 @@
         </button>
       </div>
     </div>
-  </nb-form-field>
+  </div>
   <hr/>
 </div>

@@ -25,9 +25,6 @@ const CONFIG = {
   styleUrls: ['./agent.policy.add.component.scss'],
 })
 export class AgentPolicyAddComponent {
-  // page vars
-  strings = { stepper: STRINGS.stepper };
-
   // #forms
   // agent policy general information - name, desc, backend
   detailsFG: FormGroup;

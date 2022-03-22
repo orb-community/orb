@@ -16,7 +16,7 @@ import {
   NbListModule,
   NbSelectModule,
 } from '@nebular/theme';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { MapModule } from './components/map/map.module';
 import { ConfirmationComponent } from './components/confirmation/confirmation.component';
@@ -60,6 +60,7 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     NbCheckboxModule,
     MatChipsModule,
     MatIconModule,
+    ReactiveFormsModule,
     ClipboardModule,
   ],
   declarations: [
@@ -98,6 +99,7 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     TaglistChipPipe,
     ValidTagInputDirective,
     PrettyJsonPipe,
+    TagControlComponent,
     AgentInformationComponent,
     AgentCapabilitiesComponent,
     AgentPoliciesDatasetsComponent,
@@ -112,7 +114,6 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,
-    NbDialogService,
   ],
 })
 
