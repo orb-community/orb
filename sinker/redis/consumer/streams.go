@@ -88,6 +88,7 @@ func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
 		sinkID:    read(event, "sink_id", ""),
 		owner:     read(event, "owner", ""),
 		timestamp: time.Time{},
+		state:     read(event, "state", ""),
 	}
 
 	var config types.Metadata
@@ -108,6 +109,19 @@ func (es eventStore) handleSinksUpdate(ctx context.Context, e updateSinkEvent) e
 		return err
 	}
 
+	switch e.state {
+	case "unknown":
+		cfg.State = config.Unknown
+	case "active":
+		cfg.State = config.Active
+	case "error":
+		cfg.State = config.Error
+	case "idle":
+		cfg.State = config.Idle
+	default:
+		cfg.State = config.Unknown
+	}
+
 	if ok := es.configRepo.Exists(e.sinkID); ok {
 		sinkConfig, err := es.configRepo.Get(e.sinkID)
 		if err != nil {
@@ -119,6 +133,7 @@ func (es eventStore) handleSinksUpdate(ctx context.Context, e updateSinkEvent) e
 		if sinkConfig.OwnerID == "" {
 			sinkConfig.OwnerID = e.owner
 		}
+		sinkConfig.State = cfg.State
 
 		es.configRepo.Edit(sinkConfig)
 	} else {

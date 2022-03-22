@@ -69,7 +69,7 @@ func (s sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, err
 }
 
 func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
-	q := `UPDATE sinks SET description = :description, tags = :tags, metadata = :metadata WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE sinks SET description = :description, tags = :tags, metadata = :metadata, state = :state, error = :error WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 
 	sinkDB, err := toDBSink(sink)
 	if err != nil {

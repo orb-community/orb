@@ -17,5 +17,6 @@ type updateSinkEvent struct {
 	sinkID    string
 	owner     string
 	config    types.Metadata
+	state     string
 	timestamp time.Time
 }

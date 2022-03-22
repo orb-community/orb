@@ -44,9 +44,10 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink,err error) {
 	defer func() {
 		event := updateSinkEvent{
-			sinkID: sink.ID,
-			owner:  sink.MFOwnerID,
-			config: sink.Config,
+			sinkID:    sink.ID,
+			owner:     sink.MFOwnerID,
+			config:    sink.Config,
+			state:     sink.State.String(),
 		}
 
 		encode, err := event.Encode()

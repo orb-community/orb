@@ -65,6 +65,7 @@ type updateSinkEvent struct {
 	sinkID    string
 	owner     string
 	config    types.Metadata
+	state     string
 	timestamp time.Time
 }
 
@@ -77,6 +78,7 @@ func (cce updateSinkEvent) Encode() (map[string]interface{}, error) {
 		"sink_id":   cce.sinkID,
 		"owner":     cce.owner,
 		"config":    config,
+		"state":     cce.state,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": SinkUpdate,
 	}, nil

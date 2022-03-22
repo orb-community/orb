@@ -41,6 +41,13 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
+	if err := validateConfig(sink.Config); err != nil {
+		sink.State = Error
+		sink.Error = err.Error()
+	} else {
+		sink.State = Active
+	}
+
 	id, err := svc.sinkRepo.Save(ctx, sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
@@ -63,7 +70,10 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 
 	err = validateConfig(sink.Config)
 	if err != nil {
-		return Sink{}, err
+		sink.State = Error
+		sink.Error = err.Error()
+	} else {
+		sink.State = Active
 	}
 
 	err = svc.sinkRepo.Update(ctx, sink)
@@ -153,9 +163,7 @@ func (svc sinkService) ChangeSinkStateInternal(ctx context.Context, sinkID strin
 }
 
 func validateBackend(sink *Sink) error {
-	if backend.HaveBackend(sink.Backend) {
-		sink.State = Unknown
-	} else {
+	if !backend.HaveBackend(sink.Backend) {
 		return ErrInvalidBackend
 	}
 	return nil
