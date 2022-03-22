@@ -142,34 +142,34 @@
               </div>
             </nb-form-field>
             <hr/>
-            <div *ngIf="secondFormGroup"
-                 class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
-              <button data-orb-qa-id="button#back"
-                      ghost
-                      nbButton
-                      nbStepperPrevious
-                      status="primary">
-                {{ strings.stepper.back }}
-              </button>
-              <button class="next-button"
-                      data-orb-qa-id="button#next"
-                      nbButton
-                      nbStepperNext
-                      shape="round"
-                      status="primary"
-                      type="submit">
-                {{ strings.stepper.next }}
-              </button>
-            </div>
           </form>
+          <div *ngIf="secondFormGroup"
+               class="d-flex justify-content-end">
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button class="next-button"
+                    data-orb-qa-id="button#next"
+                    nbButton
+                    nbStepperNext
+                    shape="round"
+                    status="primary"
+                    type="submit">
+              {{ strings.stepper.next }}
+            </button>
+          </div>
         </nb-step>
         <nb-step [label]="thirdStepLabel"
                  data-orb-qa-id="step_3">
