@@ -570,6 +570,10 @@ func (r policiesRepository) DeleteSinkFromAllDatasets(ctx context.Context, sinkI
 func (r policiesRepository) ActivateDatasetByID(ctx context.Context, id string, ownerID string) error {
 	q := `UPDATE datasets SET valid = true WHERE mf_owner_id = :mf_owner_id AND :id = id`
 
+	if ownerID == "" || id == ""{
+		return errors.ErrMalformedEntity
+	}
+
 	params := map[string]interface{}{
 		"mf_owner_id": ownerID,
 		"id":          id,

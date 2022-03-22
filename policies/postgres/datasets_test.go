@@ -816,7 +816,7 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 	}
 }
 
-func TestAactivateDatasetByID(t *testing.T) {
+func TestActivateDatasetByID(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
 	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
 
@@ -889,7 +889,7 @@ func TestAactivateDatasetByID(t *testing.T) {
 			ownerID: "",
 			dataset: dataset2,
 			valid:   false,
-			err:     policies.ErrMalformedEntity,
+			err:     errors.ErrMalformedEntity,
 		},
 	}
 

@@ -249,6 +249,22 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 		return Dataset{}, err
 	}
 	ds.MFOwnerID = mfOwnerID
+
+	for _, sinkID := range ds.SinkIDs {
+		_, err = uuid.FromString(sinkID)
+		if err != nil {
+			return Dataset{}, errors.Wrap(errors.New("invalid sink id"), ErrMalformedEntity)
+		}
+
+		_, err = s.sinksGrpcClient.RetrieveSink(ctx, &sinkpb.SinkByIDReq{
+			SinkID:  sinkID,
+			OwnerID: mfOwnerID,
+		})
+		if err != nil {
+			return Dataset{}, errors.Wrap(errors.New("sink id does not exist"), err)
+		}
+	}
+
 	err = s.repo.UpdateDataset(ctx, mfOwnerID, ds)
 	if err != nil {
 		return Dataset{}, err
@@ -259,12 +275,12 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 		return Dataset{}, err
 	}
 
-	if datasetEdited.Valid == false && len(datasetEdited.SinkIDs) > 0 && datasetEdited.PolicyID != "" && datasetEdited.AgentGroupID != ""{
+	_, err = s.ValidateDataset(ctx, token, datasetEdited)
+	if err == nil{
 		err = s.repo.ActivateDatasetByID(ctx, datasetEdited.ID, datasetEdited.MFOwnerID)
-		if err != nil {
+		if err != nil{
 			return Dataset{}, err
 		}
-		datasetEdited.Valid = true
 	}
 	return datasetEdited, nil
 }
