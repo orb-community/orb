@@ -35,6 +35,7 @@ const (
 	Unknown PolicyState = iota
 	Running
 	FailedToApply
+	Offline
 )
 
 type PolicyState int
@@ -54,12 +55,14 @@ var policyStateMap = [...]string{
 	"unknown",
 	"running",
 	"failed_to_apply",
+	"offline",
 }
 
 var policyStateRevMap = map[string]PolicyState{
 	"unknown":         Unknown,
 	"running":         Running,
 	"failed_to_apply": FailedToApply,
+	"offline":         Offline,
 }
 
 func (s PolicyState) String() string {

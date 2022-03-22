@@ -188,6 +188,7 @@ func (req *listResourcesReq) validate() error {
 }
 
 type updateDatasetReq struct {
+	Name    string `json:"name,omitempty"`
 	id      string
 	token   string
 	Tags    types.Tags `json:"tags,omitempty"`

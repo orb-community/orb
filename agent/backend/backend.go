@@ -15,6 +15,7 @@ const (
 	Running
 	BackendError
 	AgentError
+	Offline
 )
 
 type BackendState int
@@ -24,6 +25,7 @@ var backendStateMap = [...]string{
 	"running",
 	"backend_error",
 	"agent_error",
+	"offline",
 }
 
 var backendStateRevMap = map[string]BackendState{
@@ -31,6 +33,7 @@ var backendStateRevMap = map[string]BackendState{
 	"running":       Running,
 	"backend_error": BackendError,
 	"agent_error":   AgentError,
+	"offline":       Offline,
 }
 
 func (s BackendState) String() string {
