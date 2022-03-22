@@ -1,6 +1,10 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { STRINGS } from '../../../../../assets/text/strings';
-import { FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+
+export interface Tag {
+  [key: string]: string;
+}
 
 @Component({
   selector: 'ngx-tag-control',
@@ -17,12 +21,20 @@ export class TagControlComponent implements OnInit {
   keyInput: ElementRef;
 
   @Input()
-  selectedTags: { [propName: string]: string };
+  selectedTags: Tag;
 
   @Output()
-  selectedTagsChange: EventEmitter<{ [propName: string]: string }>;
+  selectedTagsChange: EventEmitter<Tag>;
 
-  constructor() {
+  constructor(
+    formBuilder: FormBuilder,
+  ) {
+    this.selectedTags = {};
+    this.selectedTagsChange = new EventEmitter<Tag>();
+    this.fg = formBuilder.group({
+      key: ['', [Validators.required]],
+      value: [''],
+    });
   }
 
   ngOnInit(): void {

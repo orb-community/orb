@@ -15,7 +15,7 @@ import { AgentKeyComponent } from '../key/agent.key.component';
 })
 export class AgentAddComponent {
   // page vars
-  strings = {...STRINGS.agents, stepper: STRINGS.stepper};
+  strings = { ...STRINGS.agents, stepper: STRINGS.stepper };
 
   isEdit: boolean;
 
@@ -54,7 +54,7 @@ export class AgentAddComponent {
       this.agent = agent;
       this.initializeForms();
       this.isLoading = false;
-    }).catch(reason => console.warn(`Couldn't fetch data. Reason: ${reason}`));
+    }).catch(reason => console.warn(`Couldn't fetch data. Reason: ${ reason }`));
   }
 
   newAgent() {
@@ -115,10 +115,10 @@ export class AgentAddComponent {
   }
 
   wrapPayload(validate: boolean) {
-    const {name} = this.firstFormGroup.controls;
+    const { name } = this.firstFormGroup.controls;
     return {
       name: name.value,
-      orb_tags: {...this.selectedTags},
+      orb_tags: { ...this.selectedTags },
       validate_only: !!validate && validate, // Apparently this guy is required..
     };
   }
@@ -139,7 +139,7 @@ export class AgentAddComponent {
     const payload = this.wrapPayload(false);
 
     if (this.isEdit) {
-      this.agentsService.editAgent({...payload, id: this.agentID}).subscribe(() => {
+      this.agentsService.editAgent({ ...payload, id: this.agentID }).subscribe(() => {
         this.notificationsService.success('Agent successfully updated', '');
         this.goBack();
       });

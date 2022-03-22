@@ -21,7 +21,7 @@
     </mat-chip-list>
   </div>
   <hr/>
-  <div>
+  <form [formGroup]="fg">
     <div class="container d-flex row px-0 mx-0">
       <div class="d-flex flex-column col-5 px-0 mx-0">
         <div>
@@ -32,8 +32,8 @@
                  autofocus
                  data-orb-qa-id="input#orb_tag_key"
                  fieldSize="medium"
+                 id="key"
                  formControlName="key"
-                 [formGroup]="fg"
                  fullWidth="true"
                  nbInput/>
         </div>
@@ -49,8 +49,8 @@
           <input autofocus
                  data-orb-qa-id="input#orb_tag_value"
                  fieldSize="medium"
+                 id="value"
                  formControlName="value"
-                 [formGroup]="fg"
                  fullWidth="true"
                  nbInput/>
         </div>
@@ -71,6 +71,6 @@
         </button>
       </div>
     </div>
-  </div>
+  </form>
   <hr/>
 </div>
