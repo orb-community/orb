@@ -1,9 +1,9 @@
 <nb-card>
   <nb-card-header>Active Policies/Datasets</nb-card-header>
   <nb-card-body>
-          <span *ngIf="!policies"
+          <span *ngIf="!datasets"
                 class="summary-accent">Agent has not been provisioned.</span>
-    <nb-accordion *ngFor="let policy of policies">
+    <nb-accordion *ngFor="let policy of datasets">
       <nb-accordion-item>
         <nb-accordion-item-header>
           <span class="summary-accent">Policy:&nbsp;</span>

@@ -4,12 +4,13 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { ThemeModule } from 'app/@theme/theme.module';
 import {
+  NbAccordionModule,
   NbButtonModule,
   NbCardModule,
   NbCheckboxModule,
-  NbDatepickerModule,
+  NbDatepickerModule, NbDialogModule, NbDialogService,
   NbIconModule,
-  NbInputModule,
+  NbInputModule, NbListModule,
   NbSelectModule,
 } from '@nebular/theme';
 import { FormsModule } from '@angular/forms';
@@ -33,22 +34,27 @@ import { AgentCapabilitiesComponent } from './components/orb/agent/capabilities/
 import { AgentPoliciesDatasetsComponent } from './components/orb/agent/policies-datasets/agent-policies-datasets.component';
 import { AgentGroupsComponent } from './components/orb/agent/groups/agent-groups.component';
 import { AgentProvisioningComponent } from './components/orb/agent/provisioning/agent-provisioning.component';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 
 @NgModule({
   imports: [
     ThemeModule,
     NbButtonModule,
     NbCardModule,
+    NbDialogModule,
     MapModule,
     ChartModule,
     NbSelectModule,
     NbDatepickerModule,
     NbInputModule,
+    NbAccordionModule,
+    NbListModule,
     FormsModule,
     NbIconModule,
     NbCheckboxModule,
     MatChipsModule,
     MatIconModule,
+    ClipboardModule,
   ],
   declarations: [
     ConfirmationComponent,
@@ -99,6 +105,7 @@ import { AgentProvisioningComponent } from './components/orb/agent/provisioning/
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,
+    NbDialogService,
   ],
 })
 

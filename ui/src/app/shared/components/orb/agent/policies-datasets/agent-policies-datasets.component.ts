@@ -1,6 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { Agent, AgentPolicyState } from 'app/common/interfaces/orb/agent.interface';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { forkJoin } from 'rxjs';
+import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
+import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 
 @Component({
   selector: 'ngx-agent-policies-datasets',
@@ -10,11 +13,41 @@ import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 export class AgentPoliciesDatasetsComponent implements OnInit {
   @Input() agent: Agent;
 
-  @Input() policies: AgentPolicy[];
+  datasets: Dataset[];
 
-  constructor() { }
+  isLoading: boolean;
+
+  constructor(
+    protected datasetService: DatasetPoliciesService,
+  ) {
+    this.datasets = [];
+  }
 
   ngOnInit(): void {
+    const datasetIds = this.getDatasetIds(this?.agent?.last_hb_data?.policy_state);
+    this.retrieveDatasets(datasetIds);
+  }
+
+  getDatasetIds(policyState: AgentPolicyState[]) {
+    if (!policyState) return [];
+
+    const datasetIds = Object.values(policyState)
+      .map(state => state?.datasets)
+      .reduce((acc, curr) => curr.concat(acc), []);
+
+    return datasetIds;
+  }
+
+  retrieveDatasets(datasetIds: string[]) {
+    if (!datasetIds) {
+      return;
+    }
+    this.isLoading = true;
+    forkJoin(datasetIds.map(id => this.datasetService.getDatasetById(id)))
+      .subscribe(resp => {
+        this.datasets = resp;
+        this.isLoading = false;
+      });
   }
 
 }
