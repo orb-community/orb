@@ -221,7 +221,13 @@ func editDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
+		nID, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return nil, err
+		}
+
 		dataset := policies.Dataset{
+			Name:    nID,
 			ID:      req.id,
 			Tags:    req.Tags,
 			SinkIDs: req.SinkIDs,
@@ -231,7 +237,19 @@ func editDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		if err != nil {
 			return nil, err
 		}
-		return ds, nil
+
+		res := datasetRes{
+			ID:           ds.ID,
+			Name:         ds.Name.String(),
+			Valid:        ds.Valid,
+			AgentGroupID: ds.AgentGroupID,
+			PolicyID:     ds.PolicyID,
+			SinkIDs:      ds.SinkIDs,
+			Metadata:     ds.Metadata,
+			Tags:         ds.Tags,
+		}
+
+		return res, nil
 	}
 }
 
