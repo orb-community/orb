@@ -17,10 +17,13 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
 
   isLoading: boolean;
 
+  errors;
+
   constructor(
     protected datasetService: DatasetPoliciesService,
   ) {
     this.datasets = [];
+    this.errors = {};
   }
 
   ngOnInit(): void {
@@ -29,7 +32,10 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
   }
 
   getDatasetIds(policyState: AgentPolicyState[]) {
-    if (!policyState) return [];
+    if (!policyState) {
+      this.errors['nodatasets'] = 'Agent has no defined datasets.';
+      return [];
+    }
 
     const datasetIds = Object.values(policyState)
       .map(state => state?.datasets)

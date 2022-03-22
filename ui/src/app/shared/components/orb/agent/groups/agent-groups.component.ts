@@ -37,7 +37,7 @@ export class AgentGroupsComponent implements OnInit {
 
   retrieveGroups(groupIds: string[]) {
     if (!groupIds) {
-      this.errors['nogroup'] = 'no groups';
+      this.errors['nogroup'] = 'This agent does not belong to any group.';
 
       return;
     }
@@ -47,6 +47,7 @@ export class AgentGroupsComponent implements OnInit {
     forkJoin(groupIds.map(id => this.groupsService.getAgentGroupById(id)))
       .subscribe(resp => {
         this.groups = resp;
+        this.errors = {};
         this.isLoading = false;
       });
   }

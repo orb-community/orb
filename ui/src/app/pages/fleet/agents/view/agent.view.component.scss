@@ -143,36 +143,3 @@ nb-card {
     color: #df316f !important;
   }
 }
-
-::ng-deep nb-accordion {
-  border: none !important;
-  border-radius: 8px !important;
-  display: grid;
-  padding: 0;
-  text-subtitle-line-height: 1rem;
-
-  nb-accordion-item {
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 0;
-
-    nb-accordion-item-header {
-      border: none !important;
-      border-radius: 8px !important;
-      padding: 10px 0;
-    }
-
-    nb-accordion-item-body {
-      border: none !important;
-      border-radius: 8px !important;
-      display: grid;
-      padding: 0;
-    }
-  }
-}
-
-nb-list-item {
-  background: #171c30;
-  border: none;
-  border-radius: 8px;
-}
