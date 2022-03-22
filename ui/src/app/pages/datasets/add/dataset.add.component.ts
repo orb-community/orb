@@ -28,7 +28,7 @@ const CONFIG = {
 })
 export class DatasetAddComponent {
   // page vars
-  strings = {stepper: STRINGS.stepper};
+  strings = { stepper: STRINGS.stepper };
 
   // stepper form groups
   detailsFormGroup: FormGroup;
@@ -148,7 +148,7 @@ export class DatasetAddComponent {
       };
     });
     if (this.availableSinks.length > 0 && this.selectedSinks.length > 0)
-    this.availableSinks = this.availableSinks.filter(sink => !this.selectedSinks.includes({id: sink.id}));
+      this.availableSinks = this.availableSinks.filter(sink => !this.selectedSinks.includes({ id: sink.id }));
 
     this.loading[CONFIG.SINKS] = true;
     this.getAvailableSinks()

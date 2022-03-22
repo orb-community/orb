@@ -14,9 +14,9 @@
       <nb-stepper class="stepper w-100 ml-2"
                   disableStepNavigation
                   orientation="vertical">
-        <nb-step [label]="firstStepTemplate"
+        <nb-step [completed]="isEdit"
+                 [label]="firstStepTemplate"
                  [stepControl]="detailsFormGroup"
-                 [completed]="isEdit"
                  data-orb-qa-id="step_1">
           <ng-template #firstStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -60,9 +60,9 @@
             </div>
           </form>
         </nb-step>
-        <nb-step [label]="secondStepTemplate"
+        <nb-step [completed]="isEdit"
+                 [label]="secondStepTemplate"
                  [stepControl]="agentFormGroup"
-                 [completed]="isEdit"
                  data-orb-qa-id="step_2">
           <ng-template #secondStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -121,8 +121,8 @@
             </div>
           </form>
         </nb-step>
-        <nb-step [label]="thirdStepTemplate"
-                 [completed]="isEdit"
+        <nb-step [completed]="isEdit"
+                 [label]="thirdStepTemplate"
                  data-orb-qa-id="step_3">
           <ng-template #thirdStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -180,8 +180,8 @@
             </div>
           </form>
         </nb-step>
-        <nb-step [label]="fourthStepTemplate"
-                 [completed]="isEdit"
+        <nb-step [completed]="isEdit"
+                 [label]="fourthStepTemplate"
                  data-orb-qa-id="step_4">
           <ng-template #fourthStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -195,7 +195,6 @@
                 <mat-chip
                   *ngFor="let sink of selectedSinks; index as i"
                   [attr.data-orb-qa-id]="'sink_' + i"
-                  [style.background-color]="sink.id | tagcolor"
                   class="orb-selected-sink ">
                   {{sink.name}}
                   <nb-icon (click)="onRemoveSink(sink)"
@@ -205,34 +204,33 @@
                 </mat-chip>
               </mat-chip-list>
             </div>
-            <nb-form-field>
+            <hr>
+            <div>
               <div>
                 <label class="font-weight-bold">Where</label>
                 <span class="required">*</span>
               </div>
               <nb-select appearance="filled"
+                         class="sink-dropdown-selector"
                          data-orb-qa-id="sink_selector"
                          formControlName="selected_sink"
-                         fullWidth="true"
-                         placeholder="Sink Name"
-                         size="medium"
-              >
+                         placeholder="Sink Name">
                 <nb-option *ngFor="let sink of availableSinks"
                            [attr.data-orb-qa-id]="'available_sink: '+sink.id" [id]="sink.id"
                            [value]="sink">{{ sink.name }}</nb-option>
               </nb-select>
-            </nb-form-field>
-            <button (click)="onAddSink()"
-                    [disabled]="(sinkFormGroup.controls['selected_sink'].value === '')"
-                    data-orb-qa-id="addSink"
-                    ghost
-                    nbButton>
-              <nb-icon icon="plus-outline"
-                       size="14"
-                       status="primary"
-                       style="color: #df316f;">
-              </nb-icon>
-            </button>
+              <button (click)="onAddSink()"
+                      [disabled]="(sinkFormGroup.controls['selected_sink'].value === '')"
+                      data-orb-qa-id="addSink"
+                      ghost
+                      nbButton>
+                <nb-icon icon="plus-outline"
+                         size="14"
+                         status="primary"
+                         style="color: #df316f;">
+                </nb-icon>
+              </button>
+            </div>
             <hr/>
             <div *ngIf="sinkFormGroup" class="d-flex justify-content-start"
                  style="padding-left: 35%;">
@@ -264,8 +262,8 @@
             </div>
           </form>
         </nb-step>
-        <nb-step [label]="fifthStepTemplate"
-                 [completed]="isEdit"
+        <nb-step [completed]="isEdit"
+                 [label]="fifthStepTemplate"
                  data-orb-qa-id="step_5">
           <ng-template #fifthStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -294,17 +292,12 @@
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">Sinks</label>
-                <div class="d-flex row mt-4">
-                  <mat-chip-list data-orb-qa-id="sinkList">
-                    <mat-chip
-                      *ngFor="let sink of selectedSinks; index as i"
-                      [attr.data-orb-qa-id]="'sink_' + i"
-                      [style.background-color]="sink.id | tagcolor"
-                      class="orb-selected-sink ">
-                      {{sink.name}}
-                    </mat-chip>
-                  </mat-chip-list>
-                </div>
+                <p>
+                  <span *ngFor="let sink of selectedSinks; last as isLast">
+                    <span>{{ sink.name }}</span>
+                    <span *ngIf="!isLast">,&nbsp;</span>
+                  </span>
+                </p>
               </div>
             </div>
           </div>
