@@ -4,9 +4,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { Subscription } from 'rxjs';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -30,7 +27,8 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     protected agentsService: AgentsService,
     protected route: ActivatedRoute,
     protected router: Router,
-  ) {}
+  ) {
+  }
 
   ngOnInit() {
     this.agentID = this.route.snapshot.paramMap.get('id');
