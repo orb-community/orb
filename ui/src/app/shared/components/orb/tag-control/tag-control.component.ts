@@ -1,6 +1,5 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { STRINGS } from '../../../../../assets/text/strings';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 export interface Tag {
   [key: string]: string;
@@ -11,14 +10,19 @@ export interface Tag {
   templateUrl: './tag-control.component.html',
   styleUrls: ['./tag-control.component.scss'],
 })
-export class TagControlComponent implements OnInit {
+export class TagControlComponent implements AfterViewInit {
 
   strings = { ...STRINGS.tags };
 
-  fg: FormGroup;
+  key: string;
+
+  value: string;
 
   @ViewChild('keyInput')
   keyInput: ElementRef;
+
+  @Input()
+  focusAfterViewInit: boolean;
 
   @Input()
   selectedTags: Tag;
@@ -26,29 +30,28 @@ export class TagControlComponent implements OnInit {
   @Output()
   selectedTagsChange: EventEmitter<Tag>;
 
-  constructor(
-    formBuilder: FormBuilder,
-  ) {
+  constructor() {
     this.selectedTags = {};
     this.selectedTagsChange = new EventEmitter<Tag>();
-    this.fg = formBuilder.group({
-      key: ['', [Validators.required]],
-      value: [''],
-    });
+    this.key = '';
+    this.value = '';
   }
 
-  ngOnInit(): void {
+  ngAfterViewInit() {
+    if (this.focusAfterViewInit) this.focus();
+  }
+
+  public focus() {
+    this.keyInput.nativeElement.focus();
   }
 
   onAddTag() {
-    const { key, value } = this.fg.controls;
-
-    this.selectedTags[key.value] = value.value;
+    this.selectedTags[this.key] = this.value;
 
     this.selectedTagsChange.emit(this.selectedTags);
 
-    key.reset('');
-    value.reset('');
+    this.key = '';
+    this.value = '';
 
     this.keyInput.nativeElement.focus();
   }
