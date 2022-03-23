@@ -5,10 +5,7 @@
 package sinker
 
 import (
-	"context"
-	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinker/config"
-	"github.com/ns1labs/orb/sinker/redis/producer"
 	"go.uber.org/zap"
 	"time"
 )
@@ -30,23 +27,6 @@ func (svc *sinkerService) sendSingleHeartbeat(t time.Time) {
 		// Set idle if the sinker is more then 30 minutes not been sending metrics
 		if cfg.LastRemoteWrite.Add(DefaultTimeout).Before(time.Now()) {
 			cfg.State = config.Idle
-			event := producer.SinkerUpdateEvent{
-				SinkID:    cfg.SinkID,
-				Owner:     cfg.OwnerID,
-				State:     cfg.State.String(),
-				Msg:       cfg.Msg,
-				Timestamp: t,
-			}
-			record := &redis.XAddArgs{
-				Stream:       streamID,
-				MaxLenApprox: streamLen,
-				Values:       event.Encode(),
-			}
-			err = svc.esclient.XAdd(context.Background(), record).Err()
-			if err != nil {
-				svc.logger.Error("error sending event to event store", zap.Error(err))
-				continue
-			}
 			if err := svc.sinkerCache.Edit(cfg); err != nil {
 				svc.logger.Error("error updating sink config cache", zap.Error(err))
 				return
