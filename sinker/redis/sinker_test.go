@@ -2,7 +2,6 @@ package redis_test
 
 import (
 	"fmt"
-	r "github.com/go-redis/redis/v8"
 	"github.com/mainflux/mainflux/pkg/uuid"
 	"github.com/ns1labs/orb/pkg/errors"
 	config2 "github.com/ns1labs/orb/sinker/config"
@@ -92,13 +91,13 @@ func TestGetSinkerConfig(t *testing.T) {
 		"Get Config by non-existing sinker-key": {
 			sinkID: "000",
 			config: config2.SinkConfig{},
-			err:    r.Nil,
+			err:    errors.ErrNotFound,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			sinkConfig, err := sinkerCache.Get(tc.sinkID)
+			sinkConfig, err := sinkerCache.Get(tc.config.OwnerID, tc.sinkID)
 			assert.True(t, reflect.DeepEqual(tc.config, sinkConfig), fmt.Sprintf("%s: expected %v got %v", desc, tc.config, sinkConfig))
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		})

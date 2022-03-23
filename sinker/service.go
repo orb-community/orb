@@ -34,7 +34,7 @@ const (
 
 var (
 	ErrPayloadTooBig = errors.New("payload too big")
-	ErrNotFound = errors.New("object not found")
+	ErrNotFound = errors.New("non-existent entity")
 )
 
 type Service interface {
