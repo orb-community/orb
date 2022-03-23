@@ -4,12 +4,16 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { ThemeModule } from 'app/@theme/theme.module';
 import {
+  NbAccordionModule,
   NbButtonModule,
   NbCardModule,
   NbCheckboxModule,
   NbDatepickerModule,
+  NbDialogModule,
+  NbDialogService,
   NbIconModule,
   NbInputModule,
+  NbListModule,
   NbSelectModule,
 } from '@nebular/theme';
 import { FormsModule } from '@angular/forms';
@@ -27,23 +31,35 @@ import { TagColorPipe } from 'app/shared/pipes/tag-color.pipe';
 import { TagChipPipe } from 'app/shared/pipes/tag-chip.pipe';
 import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.directive';
 import { AdvancedOptionsPipe } from 'app/shared/pipes/advanced-options.pipe';
-import { PrettyJsonPipe} from 'app/shared/pipes/pretty-json.pipe';
+import { PrettyJsonPipe } from 'app/shared/pipes/pretty-json.pipe';
+import { AgentInformationComponent } from './components/orb/agent/information/agent-information.component';
+import { AgentCapabilitiesComponent } from './components/orb/agent/capabilities/agent-capabilities.component';
+import {
+  AgentPoliciesDatasetsComponent,
+} from './components/orb/agent/policies-datasets/agent-policies-datasets.component';
+import { AgentGroupsComponent } from './components/orb/agent/groups/agent-groups.component';
+import { AgentProvisioningComponent } from './components/orb/agent/provisioning/agent-provisioning.component';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 
 @NgModule({
   imports: [
     ThemeModule,
     NbButtonModule,
     NbCardModule,
+    NbDialogModule,
     MapModule,
     ChartModule,
     NbSelectModule,
     NbDatepickerModule,
     NbInputModule,
+    NbAccordionModule,
+    NbListModule,
     FormsModule,
     NbIconModule,
     NbCheckboxModule,
     MatChipsModule,
     MatIconModule,
+    ClipboardModule,
   ],
   declarations: [
     ConfirmationComponent,
@@ -58,6 +74,11 @@ import { PrettyJsonPipe} from 'app/shared/pipes/pretty-json.pipe';
     TaglistChipPipe,
     ValidTagInputDirective,
     PrettyJsonPipe,
+    AgentInformationComponent,
+    AgentCapabilitiesComponent,
+    AgentPoliciesDatasetsComponent,
+    AgentGroupsComponent,
+    AgentProvisioningComponent,
   ],
   exports: [
     ThemeModule,
@@ -75,6 +96,11 @@ import { PrettyJsonPipe} from 'app/shared/pipes/pretty-json.pipe';
     TaglistChipPipe,
     ValidTagInputDirective,
     PrettyJsonPipe,
+    AgentInformationComponent,
+    AgentCapabilitiesComponent,
+    AgentPoliciesDatasetsComponent,
+    AgentGroupsComponent,
+    AgentProvisioningComponent,
   ],
   providers: [
     MessageValuePipe,
@@ -84,6 +110,7 @@ import { PrettyJsonPipe} from 'app/shared/pipes/pretty-json.pipe';
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,
+    NbDialogService,
   ],
 })
 
