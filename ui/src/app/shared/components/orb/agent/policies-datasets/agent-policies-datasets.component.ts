@@ -34,6 +34,10 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
   }
 
   getPoliciesStates(policyStates: { [id: string]: AgentPolicyState }) {
+    if (!policyStates || policyStates === {}) {
+      this.errors['nodatasets'] = 'Agent has no defined policies.';
+      return [];
+    }
     return Object.entries(policyStates)
       .map(([id, policy]) => {
         policy.id = id;

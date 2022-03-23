@@ -1,13 +1,13 @@
 <nb-card>
   <nb-card-header>Active Groups</nb-card-header>
   <nb-card-body>
-    <p *ngIf="!isLoading">
-            <span (click)="showAgentGroupDetail(group)"
+    <div *ngIf="!isLoading">
+            <p (click)="showAgentGroupDetail(group)"
                   *ngFor="let group of groups; last as isLast">
               <span class="agent-group-link">{{ group.name }}</span>
               <span *ngIf="!isLast">,</span>
-            </span>
-    </p>
+            </p>
+    </div>
     <p *ngIf="errors?.nogroup">
       <span class="summary-accent">{{ errors.nogroup }}</span>
     </p>
