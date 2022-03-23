@@ -51,7 +51,8 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Backend:       saved.Backend,
 			SchemaVersion: saved.SchemaVersion,
 			Policy:        saved.Policy,
-			Version:       saved.Version,
+			Format:        saved.Format,
+			PolicyData:    saved.PolicyData,
 			created:       true,
 		}
 
@@ -158,6 +159,8 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Description: res.Description,
 			Tags:        res.OrbTags,
 			Policy:      res.Policy,
+			Format:      res.Format,
+			PolicyData:  res.PolicyData,
 			Version:     res.Version,
 		}
 
@@ -273,6 +276,8 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Backend:     validated.Backend,
 			Tags:        validated.OrbTags,
 			Policy:      validated.Policy,
+			PolicyData:  validated.PolicyData,
+			Format:      validated.Format,
 			Description: validated.Description,
 		}
 
