@@ -314,7 +314,8 @@
               status="primary">
               {{ strings.stepper.back }}
             </button>
-            <button (click)="isWizard ? onFormSubmit() : onYAMLSubmit()"
+            <button *ngIf="!isWizard"
+                    (click)="onYAMLSubmit()"
                     [disabled]="!code"
                     class="next-button"
                     data-orb-qa-id="button#save"
@@ -324,7 +325,17 @@
                     shape="round"
                     status="primary"
                     type="submit">
-              {{ isWizard ? strings.stepper.next : strings.stepper.save }}
+              {{ strings.stepper.save }}
+            </button>
+            <button *ngIf="isWizard"
+                    [disabled]="!tapFG?.valid"
+                    class="next-button"
+                    data-orb-qa-id="button#next"
+                    nbButton
+                    nbStepperNext
+                    shape="round"
+                    status="primary">
+              {{ strings.stepper.next }}
             </button>
           </div>
         </nb-step>

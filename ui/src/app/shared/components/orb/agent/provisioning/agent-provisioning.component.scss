@@ -93,48 +93,6 @@ nb-card {
   .summary-accent {
     color: #969fb9 !important;
   }
-
-  header p {
-    align-items: center;
-    display: flex;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 14px !important;
-    font-style: normal;
-
-    font-weight: normal;
-    height: 20px;
-    line-height: 20px;
-    margin-left: 16px;
-
-    margin-top: 24px;
-    width: 250px;
-  }
-
-  .orb-breadcrumb {
-    display: flex;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 12px;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 12px;
-
-    ::ng-deep {
-      .xng-breadcrumb-trail {
-        color: #fff;
-        margin-bottom: 0;
-      }
-
-      .xng-breadcrumb-link {
-        color: #969fb9 !important;
-        text-decoration: none !important;
-      }
-
-      .xng-breadcrumb-separator {
-        color: #969fb9 !important;
-        text-decoration: none !important;
-      }
-    }
-  }
 }
 
 ::ng-deep {

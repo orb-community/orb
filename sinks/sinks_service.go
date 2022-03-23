@@ -80,7 +80,13 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if err != nil {
 		return Sink{}, err
 	}
-	return sink, nil
+
+	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	if err != nil {
+		return Sink{}, err
+	}
+
+	return sinkEdited, nil
 }
 
 func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string, error) {

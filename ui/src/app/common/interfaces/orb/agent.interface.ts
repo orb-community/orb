@@ -23,6 +23,7 @@ export interface AgentGroupState {
 }
 
 export interface AgentPolicyState {
+  id?: string;
   name?: string;
   state?: string;
   datasets?: string[];
@@ -60,7 +61,7 @@ export interface Agent extends OrbEntity {
    * Agent Metadata {{[propName: string]: string}}
    * Sent in by agent, defining its capabilities.
    */
-  agent_metadata?: any;
+  agent_metadata?: {[propname: string]: any};
 
   /**
    * State {string} = 'new'|'online'|'offline'|'stale'|'removed'
