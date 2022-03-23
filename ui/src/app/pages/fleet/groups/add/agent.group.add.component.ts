@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  OnChanges,
-  OnInit,
-  TemplateRef,
-  ViewChild,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnChanges, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -44,8 +35,6 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
 
   @ViewChild('agentLastHBTemplateCell') agentLastHBTemplateRef: TemplateRef<any>;
-
-  @ViewChild('inputFocusLead') inputFocusLead: ElementRef;
 
   tableFilters: DropdownFilterItem[] = [
     {
@@ -129,8 +118,6 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
   }
 
   ngAfterViewInit() {
-    this.inputFocusLead.nativeElement.focus();
-
     this.columns = [
       {
         prop: 'name',

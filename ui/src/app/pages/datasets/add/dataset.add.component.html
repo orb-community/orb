@@ -30,8 +30,7 @@
                 <label class="font-weight-bold">Name Label</label>
                 <span class="required">*</span>
               </div>
-              <input #inputFocusLead
-                     autofocus
+              <input autofocus
                      data-orb-qa-id="name"
                      fieldSize="medium"
                      formControlName="name"
@@ -47,7 +46,6 @@
                       nbStepperNext
                       shape="round"
                       status="primary"
-                      (click)="inputFocusLead2.button.nativeElement.focus()"
                       type="submit">
                 {{ strings.stepper.next }}
               </button>

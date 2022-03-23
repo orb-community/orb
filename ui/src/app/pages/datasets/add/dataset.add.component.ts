@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,9 +26,7 @@ const CONFIG = {
   templateUrl: './dataset.add.component.html',
   styleUrls: ['./dataset.add.component.scss'],
 })
-export class DatasetAddComponent implements AfterViewInit {
-  @ViewChild('inputFocusLead') inputFocusLead: ElementRef;
-
+export class DatasetAddComponent {
   @ViewChild('sinkSelLead') sinkSelLead: ElementRef;
 
   // page vars
@@ -95,10 +93,6 @@ export class DatasetAddComponent implements AfterViewInit {
     });
 
     this.updateForms();
-  }
-
-  ngAfterViewInit() {
-    this.inputFocusLead.nativeElement.focus();
   }
 
   readyForms() {
