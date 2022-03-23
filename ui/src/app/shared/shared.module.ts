@@ -10,7 +10,6 @@ import {
   NbCheckboxModule,
   NbDatepickerModule,
   NbDialogModule,
-  NbDialogService,
   NbIconModule,
   NbInputModule,
   NbListModule,

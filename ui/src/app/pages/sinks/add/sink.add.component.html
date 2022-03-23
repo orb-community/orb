@@ -65,18 +65,10 @@
               >
                 <nb-option *ngFor="let type of sinkTypesList"
                            [value]="type">{{ type | titlecase }}</nb-option>
-              </nb-select>                                      
+              </nb-select>
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
               <button [disabled]="!firstFormGroup?.valid"
                       class="next-button"
                       data-orb-qa-id="button#next"
@@ -86,6 +78,15 @@
                       status="primary"
                       type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -125,8 +126,8 @@
                        fullWidth="true"
                        nbInput>
                 <nb-select *ngSwitchCase="'select'"
-                           autofocus="{{ isFirst }}"  
                            appearance="filled"
+                           autofocus="{{ isFirst }}"
                            data-orb-qa-id="backend"
                            formControlName="backend"
                            fullWidth="true"
@@ -141,21 +142,6 @@
               <hr/>
             </nb-form-field>
             <div *ngIf="secondFormGroup" class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
-              <button data-orb-qa-id="button#back"
-                      ghost
-                      nbButton
-                      nbStepperPrevious
-                      status="primary">
-                {{ strings.stepper.back }}
-              </button>
               <button [disabled]="!secondFormGroup?.valid"
                       class="next-button"
                       data-orb-qa-id="button#next"
@@ -165,6 +151,23 @@
                       status="primary"
                       type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button data-orb-qa-id="button#back"
+                      ghost
+                      nbButton
+                      nbStepperPrevious
+                      shape="round"
+                      status="primary">
+                {{ strings.stepper.back }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -184,21 +187,6 @@
 
             <div class="d-flex justify-content-start"
                  style="padding-left: 35%;">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
-              <button data-orb-qa-id="button#back"
-                      ghost
-                      nbButton
-                      nbStepperPrevious
-                      status="primary">
-                {{ strings.stepper.back }}
-              </button>
               <button class="next-button"
                       data-orb-qa-id="button#next"
                       nbButton
@@ -207,6 +195,23 @@
                       status="primary"
                       type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button data-orb-qa-id="button#back"
+                      ghost
+                      nbButton
+                      nbStepperPrevious
+                      shape="round"
+                      status="primary">
+                {{ strings.stepper.back }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </div>
@@ -272,21 +277,6 @@
             </div>
           </div>
           <div class="d-flex justify-content-end">
-            <button (click)="goBack()"
-                    data-orb-qa-id="button#cancel"
-                    ghost
-                    nbButton
-                    status="primary"
-                    type="button">
-              {{ strings.stepper.cancel }}
-            </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    status="primary">
-              {{ strings.stepper.back }}
-            </button>
             <button (click)="onFormSubmit()"
                     class="next-button"
                     data-orb-qa-id="button#save"
@@ -295,6 +285,23 @@
                     status="primary"
                     type="submit">
               {{ strings.stepper.save }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    shape="round"
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    shape="round"
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
             </button>
           </div>
         </nb-step>
