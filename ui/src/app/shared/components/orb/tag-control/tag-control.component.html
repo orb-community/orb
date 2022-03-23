@@ -2,10 +2,11 @@
   <div class="d-flex">
     <mat-chip-list data-orb-qa-id="orb_tagsList">
       <mat-chip
-        *ngFor="let tag of selectedTags | keyvalue; index as i;"
+        *ngFor="let tag of tags | keyvalue; index as i;"
         [attr.data-orb-qa-id]="'orb_tag_' + i"
         [style.background-color]="tag | tagcolor"
-        class="orb-tag-chip ">
+        class="orb-tag-chip "
+        [value]="tag.key">
         {{tag | tagchip}}
         <nb-icon (click)="onRemoveTag(tag.key)"
                  class="ml-1"
@@ -13,7 +14,7 @@
                  size="12"></nb-icon>
       </mat-chip>
       <mat-chip
-        *ngIf="(selectedTags | json) === '{}'"
+        *ngIf="(tags | json) === '{}'"
         [style.background-color]="'notag' | tagcolor"
         class="orb-tag-chip ">
         No tag added

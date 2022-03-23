@@ -6,8 +6,8 @@
     <h4>{{isEdit ? 'Edit Agent' : 'New Agent'}}</h4>
   </header>
   <div class="d-flex row">
-    <div class="d-flex col-12 mt-5"
-         *ngIf="!isLoading">
+    <div *ngIf="!isLoading"
+         class="d-flex col-12 mt-5">
       <nb-stepper class="stepper w-100 ml-2"
                   disableStepNavigation
                   orientation="vertical">
@@ -28,7 +28,8 @@
                   <label class="font-weight-bold">{{strings.propNames.name}}</label>
                   <span class="required">*</span>
                 </div>
-                <input autofocus
+                <input #inputFocusLead
+                       autofocus
                        data-orb-qa-id="input#name"
                        fieldSize="medium"
                        formControlName="name"
@@ -38,14 +39,6 @@
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
               <button [disabled]="!firstFormGroup.valid"
                       class="next-button"
                       data-orb-qa-id="button#next"
@@ -55,6 +48,15 @@
                       status="primary"
                       type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -70,24 +72,8 @@
           <p *ngIf="(selectedTags | json) === '{}'">Agent tags are optional and may be set here or when you are
             provisioning an Agent.<br> The lack of tags will block an Agent to be matched during the Agent Group
             creation.</p>
-          <ngx-tag-control [(selectedTags)]="selectedTags"></ngx-tag-control>
-          <div *ngIf="secondFormGroup"
-               class="d-flex justify-content-end">
-            <button (click)="goBack()"
-                    data-orb-qa-id="button#cancel"
-                    ghost
-                    nbButton
-                    status="primary"
-                    type="button">
-              {{ strings.stepper.cancel }}
-            </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    status="primary">
-              {{ strings.stepper.back }}
-            </button>
+          <ngx-tag-control [(tags)]="selectedTags" autofocus></ngx-tag-control>
+          <div class="d-flex justify-content-end">
             <button class="next-button"
                     data-orb-qa-id="button#next"
                     nbButton
@@ -96,6 +82,23 @@
                     status="primary"
                     type="submit">
               {{ strings.stepper.next }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    shape="round"
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    shape="round"
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
             </button>
           </div>
         </nb-step>
@@ -118,42 +121,13 @@
           <div class="d-flex row">
             <div class="col-12">
               <label class="font-weight-bold">Orb Tags</label>
-              <mat-chip-list data-orb-qa-id="review-orb_tagsList">
-                <mat-chip
-                  *ngFor="let tag of selectedTags | keyvalue; index as i;"
-                  [attr.data-orb-qa-id]="'review-tag_' + i"
-                  [style.background-color]="tag | tagcolor"
-                  class="orb-tag-chip ">
-                  {{tag | tagchip}}
-                </mat-chip>
-                <mat-chip
-                  *ngIf="(selectedTags | json) === '{}'"
-                  [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-chip ">
-                  No tag added
-                </mat-chip>
-              </mat-chip-list>
+              <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
             </div>
           </div>
           <hr/>
-          <div *ngIf="secondFormGroup"
-               class="d-flex justify-content-end">
-            <button (click)="goBack()"
-                    data-orb-qa-id="button#cancel"
-                    ghost
-                    nbButton
-                    status="primary"
-                    type="button">
-              {{ strings.stepper.cancel }}
-            </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    status="primary">
-              {{ strings.stepper.back }}
-            </button>
+          <div class="d-flex justify-content-end">
             <button (click)="onFormSubmit()"
+                    autofocus
                     class="next-button"
                     data-orb-qa-id="button#save"
                     nbButton
@@ -161,6 +135,23 @@
                     status="primary"
                     type="submit">
               {{ strings.stepper.save }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    shape="round"
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    shape="round"
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
             </button>
           </div>
         </nb-step>

@@ -182,7 +182,7 @@
           </ng-template>
           <div>
             <label class="font-weight-bold">Selected Sink Tags</label>
-            <ngx-tag-control [(selectedTags)]="selectedTags"></ngx-tag-control>
+            <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
             <hr/>
 
             <div class="d-flex justify-content-start"
@@ -259,21 +259,7 @@
           <div class="d-flex row">
             <div class="col-12">
               <label class="font-weight-bold">Sink Tags</label>
-              <mat-chip-list data-orb-qaid="review-tagList">
-                <mat-chip
-                  *ngFor="let tag of selectedTags | keyvalue; index as i;"
-                  [attr.data-orb-qa-id]="'review-tag_' + i"
-                  [style.background-color]="tag | tagcolor"
-                  class="orb-tag-chip ">
-                  {{tag | tagchip}}
-                </mat-chip>
-                <mat-chip
-                  *ngIf="(selectedTags | json) === '{}'"
-                  [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-chip ">
-                  No tag added
-                </mat-chip>
-              </mat-chip-list>
+              <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
             </div>
           </div>
           <div class="d-flex justify-content-end">

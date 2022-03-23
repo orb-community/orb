@@ -25,8 +25,6 @@ export class AgentAddComponent {
   // stepper vars
   firstFormGroup: FormGroup;
 
-  secondFormGroup: FormGroup;
-
   selectedTags: { [propName: string]: string };
 
   // agent vars
@@ -83,11 +81,6 @@ export class AgentAddComponent {
 
     this.firstFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
-    });
-
-    this.secondFormGroup = this._formBuilder.group({
-      key: [''],
-      value: [''],
     });
   }
 

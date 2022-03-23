@@ -40,6 +40,7 @@ import {
 import { AgentGroupsComponent } from './components/orb/agent/groups/agent-groups.component';
 import { AgentProvisioningComponent } from './components/orb/agent/provisioning/agent-provisioning.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
+import { TagDisplayComponent } from './components/orb/tag-display/tag-display.component';
 
 @NgModule({
   imports: [
@@ -81,6 +82,7 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     AgentGroupsComponent,
     AgentProvisioningComponent,
     TagControlComponent,
+    TagDisplayComponent,
   ],
   exports: [
     ThemeModule,
@@ -104,6 +106,7 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     AgentPoliciesDatasetsComponent,
     AgentGroupsComponent,
     AgentProvisioningComponent,
+    TagDisplayComponent,
   ],
   providers: [
     MessageValuePipe,

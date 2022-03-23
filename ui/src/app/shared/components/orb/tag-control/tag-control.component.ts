@@ -1,9 +1,6 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { STRINGS } from '../../../../../assets/text/strings';
-
-export interface Tag {
-  [key: string]: string;
-}
+import { Tags } from 'app/common/interfaces/orb/tag';
 
 @Component({
   selector: 'ngx-tag-control',
@@ -25,14 +22,14 @@ export class TagControlComponent implements AfterViewInit {
   focusAfterViewInit: boolean;
 
   @Input()
-  selectedTags: Tag;
+  tags: Tags;
 
   @Output()
-  selectedTagsChange: EventEmitter<Tag>;
+  tagsChange: EventEmitter<Tags>;
 
   constructor() {
-    this.selectedTags = {};
-    this.selectedTagsChange = new EventEmitter<Tag>();
+    this.tags = {};
+    this.tagsChange = new EventEmitter<Tags>();
     this.key = '';
     this.value = '';
   }
@@ -46,9 +43,9 @@ export class TagControlComponent implements AfterViewInit {
   }
 
   onAddTag() {
-    this.selectedTags[this.key] = this.value;
+    this.tags[this.key] = this.value;
 
-    this.selectedTagsChange.emit(this.selectedTags);
+    this.tagsChange.emit(this.tags);
 
     this.key = '';
     this.value = '';
@@ -57,7 +54,7 @@ export class TagControlComponent implements AfterViewInit {
   }
 
   onRemoveTag(tag: any) {
-    delete this.selectedTags[tag];
-    this.selectedTagsChange.emit(this.selectedTags);
+    delete this.tags[tag];
+    this.tagsChange.emit(this.tags);
   }
 }
