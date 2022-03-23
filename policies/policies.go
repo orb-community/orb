@@ -108,6 +108,9 @@ type Service interface {
 
 	// DeleteSinkFromAllDatasetsInternal removes a sink from a dataset
 	DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
+
+	// DuplicatePolicy duplicates existing agent Policy
+	DuplicatePolicy(ctx context.Context, token string, policyID string) (Policy, error)
 }
 
 type Repository interface {

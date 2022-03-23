@@ -265,6 +265,10 @@ func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID s
 	return nil
 }
 
+func (e eventStore) DuplicatePolicy(ctx context.Context, token string, policyID string) (policies.Policy, error) {
+	return e.svc.DuplicatePolicy(ctx, token, policyID)
+}
+
 // NewEventStoreMiddleware returns wrapper around policies service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc policies.Service, client *redis.Client, logger *zap.Logger) policies.Service {

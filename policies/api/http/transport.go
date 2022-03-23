@@ -105,6 +105,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 		decodeAddDatasetRequest,
 		types.EncodeResponse,
 		opts...))
+	r.Post("/policies/agent/duplicate/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "duplicate_policy")(duplicatePolicyEndpoint(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...))
 
 	r.GetFunc("/version", buildinfo.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())

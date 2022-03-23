@@ -14,6 +14,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies/backend"
 	sinkpb "github.com/ns1labs/orb/sinks/pb"
 )
@@ -357,4 +358,30 @@ func (s policiesService) InactivateDatasetByIDInternal(ctx context.Context, owne
 	}
 
 	return nil
+}
+
+func (s policiesService) DuplicatePolicy(ctx context.Context, token string, policyID string) (Policy, error) {
+
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	existingPolicy, err := s.repo.RetrievePolicyByID(ctx, policyID, mfOwnerID)
+
+	name, err := types.NewIdentifier(existingPolicy.Name.String() + "-copy")
+	if err != nil {
+		return Policy{}, err
+	}
+
+	policy := existingPolicy
+	policy.Name = name
+
+	id, err := s.repo.SavePolicy(ctx, policy)
+	if err != nil {
+		return Policy{}, errors.Wrap(ErrCreatePolicy, err)
+	}
+	policy.ID = id
+
+	return policy, nil
 }
