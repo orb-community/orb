@@ -26,7 +26,8 @@
                   <label class="font-weight-bold">{{strings.propNames.name}}</label>
                   <span class="required">*</span>
                 </div>
-                <input autofocus
+                <input #inputFocusLead
+                       autofocus
                        fieldSize="medium"
                        formControlName="name"
                        fullWidth="true"
@@ -45,14 +46,6 @@
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
               <button [disabled]="!firstFormGroup.valid"
                       class="next-button"
                       data-orb-qa-id="button#next"
@@ -61,6 +54,15 @@
                       shape="round"
                       status="primary" type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -73,6 +75,32 @@
             </div>
           </ng-template>
           <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
+          <div class="d-flex justify-content-end">
+            <button (click)="onFormSubmit()"
+                    class="next-button"
+                    data-orb-qa-id="button#save"
+                    nbButton
+                    shape="round"
+                    status="primary"
+                    type="submit">
+              {{ strings.stepper.save }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
+            </button>
+          </div>
         </nb-step>
         <nb-step [label]="thirdStepLabel">
           <ng-template #thirdStepLabel>
@@ -98,20 +126,7 @@
           </div>
           <div class="d-flex row">
             <div class="col-12">
-              <mat-chip-list>
-                <mat-chip
-                  *ngFor="let tag of selectedTags | keyvalue"
-                  [style.background-color]="tag | tagcolor"
-                  class="orb-tag-chip ">
-                  {{tag | tagchip}}
-                </mat-chip>
-                <mat-chip
-                  *ngIf="(selectedTags | json) === '{}'"
-                  [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-chip ">
-                  No tag added
-                </mat-chip>
-              </mat-chip-list>
+              <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
             </div>
           </div>
           <hr/>
@@ -150,23 +165,7 @@
             </div>
           </div>
           <hr/>
-          <div *ngIf="secondFormGroup"
-               class="d-flex justify-content-end">
-            <button (click)="goBack()"
-                    data-orb-qa-id="button#cancel"
-                    ghost
-                    nbButton
-                    status="primary"
-                    type="button">
-              {{ strings.stepper.cancel }}
-            </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    status="primary">
-              {{ strings.stepper.back }}
-            </button>
+          <div class="d-flex justify-content-end">
             <button (click)="onFormSubmit()"
                     class="next-button"
                     data-orb-qa-id="button#save"
@@ -175,6 +174,21 @@
                     status="primary"
                     type="submit">
               {{ strings.stepper.save }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
             </button>
           </div>
         </nb-step>

@@ -1,4 +1,4 @@
-import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, TemplateRef, ViewChild } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
@@ -7,13 +7,14 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { AgentKeyComponent } from '../key/agent.key.component';
+import { Tags } from 'app/common/interfaces/orb/tag';
 
 @Component({
   selector: 'ngx-agent-add-component',
   templateUrl: './agent.add.component.html',
   styleUrls: ['./agent.add.component.scss'],
 })
-export class AgentAddComponent {
+export class AgentAddComponent implements AfterViewInit {
   // page vars
   strings = { ...STRINGS.agents, stepper: STRINGS.stepper };
 
@@ -22,10 +23,12 @@ export class AgentAddComponent {
   // templates
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
 
+  @ViewChild('inputFocusLead') inputFocusLead: ElementRef;
+
   // stepper vars
   firstFormGroup: FormGroup;
 
-  selectedTags: { [propName: string]: string };
+  selectedTags: Tags;
 
   // agent vars
   agent: Agent;
@@ -53,6 +56,10 @@ export class AgentAddComponent {
       this.initializeForms();
       this.isLoading = false;
     }).catch(reason => console.warn(`Couldn't fetch data. Reason: ${ reason }`));
+  }
+
+  ngAfterViewInit() {
+    this.inputFocusLead.nativeElement.focus();
   }
 
   newAgent() {
