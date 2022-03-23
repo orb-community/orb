@@ -34,6 +34,7 @@ const (
 
 var (
 	ErrPayloadTooBig = errors.New("payload too big")
+	ErrNotFound = errors.New("object not found")
 )
 
 type Service interface {
@@ -63,8 +64,8 @@ type sinkerService struct {
 	requestCounter metrics.Counter
 }
 
-func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkID string) error {
-	cfgRepo, err := svc.sinkerCache.Get(sinkID)
+func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, ownerID string, sinkID string) error {
+	cfgRepo, err := svc.sinkerCache.Get(ownerID, sinkID)
 	if err != nil {
 		svc.logger.Error("unable to retrieve the sink config", zap.Error(err))
 		return err
@@ -169,7 +170,7 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 				continue
 			}
 			for _, sid := range dataset.SinkIds {
-				if !svc.sinkerCache.Exists(sid) {
+				if !svc.sinkerCache.Exists(agent.OwnerID, sid) {
 					// Use the retrieved sinkID to get the backend config
 					sink, err := svc.sinksClient.RetrieveSink(context.Background(), &sinkspb.SinkByIDReq{
 						SinkID:  sid,
@@ -220,7 +221,7 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 			zap.Strings("sinks", sinkIDList))
 
 		for _, id := range sinkIDList {
-			err = svc.remoteWriteToPrometheus(tsList, id)
+			err = svc.remoteWriteToPrometheus(tsList, agent.OwnerID, id)
 			if err != nil {
 				svc.logger.Warn(fmt.Sprintf("unable to remote write to sinkID: %s", id), zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
 			}

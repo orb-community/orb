@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/ns1labs/orb/sinker"
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
 	"strings"
@@ -26,8 +27,8 @@ func NewSinkerCache(client *redis.Client, logger *zap.Logger) config.ConfigRepo 
 	return &sinkerCache{client: client, logger: logger}
 }
 
-func (s *sinkerCache) Exists(sinkID string) bool {
-	sinkConfig, err := s.Get(sinkID)
+func (s *sinkerCache) Exists(ownerID string, sinkID string) bool {
+	sinkConfig, err := s.Get(ownerID, sinkID)
 	if err != nil {
 		return false
 	}
@@ -38,7 +39,7 @@ func (s *sinkerCache) Exists(sinkID string) bool {
 }
 
 func (s *sinkerCache) Add(config config.SinkConfig) error {
-	skey := fmt.Sprintf("%s-%s", keyPrefix, config.SinkID)
+	skey := fmt.Sprintf("%s-%s:%s", keyPrefix, config.OwnerID, config.SinkID)
 	bytes, err := json.Marshal(config)
 	if err != nil {
 		return err
@@ -49,16 +50,19 @@ func (s *sinkerCache) Add(config config.SinkConfig) error {
 	return nil
 }
 
-func (s *sinkerCache) Remove(sinkID string) error {
-	skey := fmt.Sprintf("%s-%s", keyPrefix, sinkID)
+func (s *sinkerCache) Remove(ownerID string, sinkID string) error {
+	skey := fmt.Sprintf("%s-%s:%s", keyPrefix, ownerID, sinkID)
 	if err := s.client.Del(context.Background(), skey).Err(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *sinkerCache) Get(sinkID string) (config.SinkConfig, error) {
-	skey := fmt.Sprintf("%s-%s", keyPrefix, sinkID)
+func (s *sinkerCache) Get(ownerID string, sinkID string) (config.SinkConfig, error) {
+	if ownerID == "" || sinkID == "" {
+		return config.SinkConfig{}, sinker.ErrNotFound
+	}
+	skey := fmt.Sprintf("%s-%s:%s", keyPrefix, ownerID, sinkID)
 	cachedConfig, err := s.client.Get(context.Background(), skey).Result()
 	if err != nil {
 		return config.SinkConfig{}, err
@@ -71,7 +75,7 @@ func (s *sinkerCache) Get(sinkID string) (config.SinkConfig, error) {
 }
 
 func (s *sinkerCache) Edit(config config.SinkConfig) error {
-	if err := s.Remove(config.SinkID); err != nil {
+	if err := s.Remove(config.OwnerID, config.SinkID); err != nil {
 		return err
 	}
 	if err := s.Add(config); err != nil {
@@ -84,7 +88,14 @@ func (s *sinkerCache) GetAll() ([]config.SinkConfig, error) {
 	iter := s.client.Scan(context.Background(), 0, fmt.Sprintf("%s-*",keyPrefix), 0).Iterator()
 	var configs []config.SinkConfig
 	for iter.Next(context.Background()) {
-		cfg, err := s.Get(strings.TrimPrefix(iter.Val(), fmt.Sprintf("%s-", keyPrefix)))
+		keys := strings.Split(strings.TrimPrefix(iter.Val(), fmt.Sprintf("%s-", keyPrefix)), ":")
+		ownerID := ""
+		sinkID := ""
+		if len(keys) > 1 {
+			ownerID = keys[0]
+			sinkID = keys[1]
+		}
+		cfg, err := s.Get(ownerID, sinkID)
 		if err != nil {
 			s.logger.Error("failed to retrieve config", zap.Error(err))
 			continue
@@ -92,7 +103,7 @@ func (s *sinkerCache) GetAll() ([]config.SinkConfig, error) {
 		configs = append(configs, cfg)
 	}
 	if err := iter.Err(); err != nil {
-		panic(err)
+		s.logger.Error("failed to retrieve config", zap.Error(err))
 	}
 
 	return configs, nil

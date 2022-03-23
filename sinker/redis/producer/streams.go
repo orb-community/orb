@@ -21,8 +21,8 @@ type eventStore struct {
 	logger    *zap.Logger
 }
 
-func (e eventStore) Exists(sinkID string) bool {
-	return e.sinkCache.Exists(sinkID)
+func (e eventStore) Exists(ownerID string, sinkID string) bool {
+	return e.sinkCache.Exists(ownerID, sinkID)
 }
 
 func (e eventStore) Add(config config.SinkConfig) error {
@@ -50,12 +50,12 @@ func (e eventStore) Add(config config.SinkConfig) error {
 	return nil
 }
 
-func (e eventStore) Remove(sinkID string) error {
-	return e.sinkCache.Remove(sinkID)
+func (e eventStore) Remove(ownerID string, sinkID string) error {
+	return e.sinkCache.Remove(ownerID, sinkID)
 }
 
-func (e eventStore) Get(sinkID string) (config.SinkConfig, error) {
-	return e.sinkCache.Get(sinkID)
+func (e eventStore) Get(ownerID string, sinkID string) (config.SinkConfig, error) {
+	return e.sinkCache.Get(ownerID, sinkID)
 }
 
 func (e eventStore) Edit(config config.SinkConfig) error {
