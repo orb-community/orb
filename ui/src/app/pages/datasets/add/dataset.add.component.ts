@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,7 +26,11 @@ const CONFIG = {
   templateUrl: './dataset.add.component.html',
   styleUrls: ['./dataset.add.component.scss'],
 })
-export class DatasetAddComponent {
+export class DatasetAddComponent implements AfterViewInit {
+  @ViewChild('inputFocusLead') inputFocusLead: ElementRef;
+
+  @ViewChild('sinkSelLead') sinkSelLead: ElementRef;
+
   // page vars
   strings = { stepper: STRINGS.stepper };
 
@@ -91,6 +95,10 @@ export class DatasetAddComponent {
     });
 
     this.updateForms();
+  }
+
+  ngAfterViewInit() {
+    this.inputFocusLead.nativeElement.focus();
   }
 
   readyForms() {
@@ -254,6 +262,7 @@ export class DatasetAddComponent {
     const sink = this.sinkFormGroup.controls.selected_sink.value;
     this.selectedSinks.push(sink);
     this.sinkFormGroup.controls.selected_sink.reset('');
+    this.sinkSelLead.nativeElement.focus();
     this.getAvailableSinks();
   }
 
