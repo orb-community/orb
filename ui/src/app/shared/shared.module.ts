@@ -10,13 +10,12 @@ import {
   NbCheckboxModule,
   NbDatepickerModule,
   NbDialogModule,
-  NbDialogService,
   NbIconModule,
   NbInputModule,
   NbListModule,
   NbSelectModule,
 } from '@nebular/theme';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { MapModule } from './components/map/map.module';
 import { ConfirmationComponent } from './components/confirmation/confirmation.component';
@@ -32,6 +31,7 @@ import { TagChipPipe } from 'app/shared/pipes/tag-chip.pipe';
 import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.directive';
 import { AdvancedOptionsPipe } from 'app/shared/pipes/advanced-options.pipe';
 import { PrettyJsonPipe } from 'app/shared/pipes/pretty-json.pipe';
+import { TagControlComponent } from './components/orb/tag-control/tag-control.component';
 import { AgentInformationComponent } from './components/orb/agent/information/agent-information.component';
 import { AgentCapabilitiesComponent } from './components/orb/agent/capabilities/agent-capabilities.component';
 import {
@@ -40,6 +40,7 @@ import {
 import { AgentGroupsComponent } from './components/orb/agent/groups/agent-groups.component';
 import { AgentProvisioningComponent } from './components/orb/agent/provisioning/agent-provisioning.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
+import { TagDisplayComponent } from './components/orb/tag-display/tag-display.component';
 
 @NgModule({
   imports: [
@@ -59,6 +60,7 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     NbCheckboxModule,
     MatChipsModule,
     MatIconModule,
+    ReactiveFormsModule,
     ClipboardModule,
   ],
   declarations: [
@@ -79,6 +81,8 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     AgentPoliciesDatasetsComponent,
     AgentGroupsComponent,
     AgentProvisioningComponent,
+    TagControlComponent,
+    TagDisplayComponent,
   ],
   exports: [
     ThemeModule,
@@ -96,11 +100,13 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     TaglistChipPipe,
     ValidTagInputDirective,
     PrettyJsonPipe,
+    TagControlComponent,
     AgentInformationComponent,
     AgentCapabilitiesComponent,
     AgentPoliciesDatasetsComponent,
     AgentGroupsComponent,
     AgentProvisioningComponent,
+    TagDisplayComponent,
   ],
   providers: [
     MessageValuePipe,
@@ -110,7 +116,6 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,
-    NbDialogService,
   ],
 })
 

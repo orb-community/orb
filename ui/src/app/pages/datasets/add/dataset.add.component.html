@@ -39,14 +39,6 @@
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
               <button [disabled]="!detailsFormGroup?.valid"
                       class="next-button"
                       data-orb-qa-id="button#next"
@@ -56,6 +48,15 @@
                       status="primary"
                       type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -78,6 +79,7 @@
               </div>
               <nb-select (selectedChange)="onAgentGroupSelected($event)"
                          [(selected)]="dataset.agent_group_id"
+                         autofocus
                          appearance="filled"
                          data-orb-qa-id="agent_group_id"
                          formControlName="agent_group_id"
@@ -92,22 +94,6 @@
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
-              <button data-orb-qa-id="button#back"
-                      ghost
-                      nbButton
-                      nbStepperPrevious
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.back }}
-              </button>
               <button [disabled]="!isEdit && !agentFormGroup?.valid"
                       class="next-button"
                       data-orb-qa-id="button#next"
@@ -117,6 +103,22 @@
                       status="primary"
                       type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button data-orb-qa-id="button#back"
+                      ghost
+                      nbButton
+                      nbStepperPrevious
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.back }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -138,6 +140,7 @@
               </div>
               <nb-select (selectedChange)="onAgentPolicySelected($event)"
                          [(selected)]="dataset.agent_policy_id"
+                         autofocus
                          appearance="filled"
                          data-orb-qa-id="agent_policy_id"
                          formControlName="agent_policy_id"
@@ -152,21 +155,6 @@
             </nb-form-field>
             <hr/>
             <div *ngIf="policyFormGroup" class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
-              <button data-orb-qa-id="button#back"
-                      ghost
-                      nbButton
-                      nbStepperPrevious
-                      status="primary">
-                {{ strings.stepper.back }}
-              </button>
               <button [disabled]="!isEdit && !policyFormGroup?.valid"
                       class="next-button"
                       data-orb-qa-id="button#next"
@@ -176,6 +164,21 @@
                       status="primary"
                       type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button data-orb-qa-id="button#back"
+                      ghost
+                      nbButton
+                      nbStepperPrevious
+                      status="primary">
+                {{ strings.stepper.back }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -210,7 +213,9 @@
                 <label class="font-weight-bold">Where</label>
                 <span class="required">*</span>
               </div>
-              <nb-select appearance="filled"
+              <nb-select #sinkSelLead
+                         appearance="filled"
+                         autofocus
                          class="sink-dropdown-selector"
                          data-orb-qa-id="sink_selector"
                          formControlName="selected_sink"
@@ -234,21 +239,6 @@
             <hr/>
             <div *ngIf="sinkFormGroup" class="d-flex justify-content-start"
                  style="padding-left: 35%;">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
-              <button data-orb-qa-id="button#back"
-                      ghost
-                      nbButton
-                      nbStepperPrevious
-                      status="primary">
-                {{ strings.stepper.back }}
-              </button>
               <button [disabled]="selectedSinks.length === 0"
                       class="next-button"
                       data-orb-qa-id="button#next"
@@ -258,6 +248,21 @@
                       status="primary"
                       type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button data-orb-qa-id="button#back"
+                      ghost
+                      nbButton
+                      nbStepperPrevious
+                      status="primary">
+                {{ strings.stepper.back }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -303,21 +308,6 @@
           </div>
           <hr/>
           <div *ngIf="sinkFormGroup" class="d-flex justify-content-end">
-            <button (click)="goBack()"
-                    data-orb-qa-id="button#cancel"
-                    ghost
-                    nbButton
-                    status="primary"
-                    type="button">
-              {{ strings.stepper.cancel }}
-            </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    status="primary">
-              {{ strings.stepper.back }}
-            </button>
             <button (click)="onFormSubmit()"
                     class="next-button"
                     data-orb-qa-id="button#save"
@@ -326,6 +316,21 @@
                     status="primary"
                     type="submit">
               {{ strings.stepper.save }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
             </button>
           </div>
         </nb-step>

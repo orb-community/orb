@@ -63,6 +63,7 @@ import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.componen
 import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.details.component';
 import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { A11yModule } from '@angular/cdk/a11y';
 
 @NgModule({
   imports: [
@@ -95,6 +96,7 @@ import { MonacoEditorModule } from 'ngx-monaco-editor';
     NbAccordionModule,
     MonacoEditorModule,
     NbToggleModule,
+    A11yModule,
   ],
   exports: [
     SharedModule,
