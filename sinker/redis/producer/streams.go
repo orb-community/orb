@@ -83,8 +83,12 @@ func (e eventStore) Edit(config config.SinkConfig) error {
 	return nil
 }
 
-func (e eventStore) GetAll() ([]config.SinkConfig, error) {
-	return e.sinkCache.GetAll()
+func (e eventStore) GetAll(ownerID string) ([]config.SinkConfig, error) {
+	return e.sinkCache.GetAll(ownerID)
+}
+
+func (e eventStore) GetAllOwners() ([]string, error) {
+	return e.sinkCache.GetAllOwners()
 }
 
 func NewEventStoreMiddleware(repo config.ConfigRepo, client *redis.Client) config.ConfigRepo {

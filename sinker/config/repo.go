@@ -7,8 +7,9 @@ package config
 type ConfigRepo interface {
 	Exists(ownerID string, sinkID string) bool
 	Add(config SinkConfig) error
-	Remove(ownerID, sinkID string) error
+	Remove(ownerID string, sinkID string) error
 	Get(ownerID string, sinkID string) (SinkConfig, error)
 	Edit(config SinkConfig) error
-	GetAll() ([]SinkConfig, error)
+	GetAll(ownerID string) ([]SinkConfig, error)
+	GetAllOwners() ([]string, error)
 }

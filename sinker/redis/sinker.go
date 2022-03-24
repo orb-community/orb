@@ -84,15 +84,29 @@ func (s *sinkerCache) Edit(config config.SinkConfig) error {
 	return nil
 }
 
-func (s *sinkerCache) GetAll() ([]config.SinkConfig, error) {
+func (s *sinkerCache) 	GetAllOwners() ([]string, error){
 	iter := s.client.Scan(context.Background(), 0, fmt.Sprintf("%s-*",keyPrefix), 0).Iterator()
+	var owners []string
+	for iter.Next(context.Background()) {
+		keys := strings.Split(strings.TrimPrefix(iter.Val(), fmt.Sprintf("%s-", keyPrefix)), ":")
+		if len(keys) > 1 {
+			owners = append(owners, keys[0])
+		}
+	}
+	if err := iter.Err(); err != nil {
+		s.logger.Error("failed to retrieve config", zap.Error(err))
+		return owners, err
+	}
+	return owners, nil
+}
+
+func (s *sinkerCache) GetAll(ownerID string) ([]config.SinkConfig, error) {
+	iter := s.client.Scan(context.Background(), 0, fmt.Sprintf("%s-%s",keyPrefix, ownerID), 0).Iterator()
 	var configs []config.SinkConfig
 	for iter.Next(context.Background()) {
 		keys := strings.Split(strings.TrimPrefix(iter.Val(), fmt.Sprintf("%s-", keyPrefix)), ":")
-		ownerID := ""
 		sinkID := ""
 		if len(keys) > 1 {
-			ownerID = keys[0]
 			sinkID = keys[1]
 		}
 		cfg, err := s.Get(ownerID, sinkID)
@@ -104,6 +118,7 @@ func (s *sinkerCache) GetAll() ([]config.SinkConfig, error) {
 	}
 	if err := iter.Err(); err != nil {
 		s.logger.Error("failed to retrieve config", zap.Error(err))
+		return configs, err
 	}
 
 	return configs, nil

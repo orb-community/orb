@@ -142,18 +142,20 @@ func TestGetAllSinkerConfig(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		size int
-		err  error
+		size    int
+		ownerID string
+		err     error
 	}{
 		"Get Config by existing sinker-key": {
 			size: 2,
+			ownerID: "test",
 			err:  nil,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			sinksConfig, err := sinkerCache.GetAll()
+			sinksConfig, err := sinkerCache.GetAll(tc.ownerID)
 			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
 			assert.GreaterOrEqual(t, len(sinksConfig), tc.size, fmt.Sprintf("%s: expected %d got %d", desc, tc.size, len(sinksConfig)))
 		})

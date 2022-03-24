@@ -280,9 +280,9 @@ func (svc sinkerService) Start() error {
 	}
 	svc.logger.Info("started metrics consumer", zap.String("topic", topic))
 
-	svc.hbTicker = time.NewTicker(HeartbeatFreq)
+	svc.hbTicker = time.NewTicker(CheckerFreq)
 	svc.hbDone = make(chan bool)
-	go svc.sendHeartbeats()
+	go svc.checkSinker()
 
 	return nil
 }
