@@ -3,7 +3,7 @@ import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { NbDialogService } from '@nebular/theme';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { Agent, AgentGroupState } from 'app/common/interfaces/orb/agent.interface';
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 import { forkJoin } from 'rxjs';
 
@@ -32,17 +32,18 @@ export class AgentGroupsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.retrieveGroups(Object.keys(this.agent?.last_hb_data?.group_state));
+    this.retrieveGroups(this.agent?.last_hb_data?.group_state);
   }
 
-  retrieveGroups(groupIds: string[]) {
-    if (!groupIds || groupIds === []) {
+  retrieveGroups(groupState: AgentGroupState) {
+    if (!groupState || groupState === {}) {
       this.errors['nogroup'] = 'This agent does not belong to any group.';
-
       return;
     }
 
     this.isLoading = true;
+
+    const groupIds = Object.keys(groupState);
 
     forkJoin(groupIds.map(id => this.groupsService.getAgentGroupById(id)))
       .subscribe(resp => {
