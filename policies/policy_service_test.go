@@ -1273,6 +1273,43 @@ func testSortPolicies(t *testing.T, pm policies.PageMetadata, ags []policies.Pol
 	}
 }
 
+func TestDuplicatePolicy(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	policy := createPolicy(t, svc, "policy")
+
+	cases := map[string]struct {
+		policyID string
+		token    string
+		err      error
+	}{
+		"duplicate a existing policy": {
+			policyID: policy.ID,
+			token:    token,
+			err:      nil,
+		},
+		"duplicate a existing policy with an invalid token": {
+			policyID: policy.ID,
+			token:    invalidToken,
+			err:      policies.ErrUnauthorizedAccess,
+		},
+		"duplicate a existing policy with empty ID": {
+			policyID: "",
+			token:    token,
+			err:      policies.ErrNotFound,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := svc.DuplicatePolicy(context.Background(), tc.token, tc.policyID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
+			t.Log(tc.token)
+		})
+	}
+}
+
 func testSortDataset(t *testing.T, pm policies.PageMetadata, ags []policies.Dataset) {
 	t.Helper()
 	switch pm.Order {

@@ -347,8 +347,8 @@ func TestPolicyEdition(t *testing.T) {
 	policy := createPolicy(t, &cli, "policy")
 
 	var (
-		invalidNamePolicyJson = "{\"name\": \"*#simple_dns#*\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
-		emptyFormatPolicyYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
+		invalidNamePolicyJson    = "{\"name\": \"*#simple_dns#*\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
+		emptyFormatPolicyYaml    = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
 		notEmptyFormatPolicyJson = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"format\": \"json\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
 	)
 
@@ -627,7 +627,7 @@ func TestCreatePolicy(t *testing.T) {
 	defer cli.server.Close()
 
 	var (
-		emptyFormatPolicyYaml = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
+		emptyFormatPolicyYaml    = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
 		notEmptyFormatPolicyJson = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"format\": \"json\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
 	)
 
@@ -1278,6 +1278,56 @@ func TestListDataset(t *testing.T) {
 			total := uint64(len(body.Datasets))
 			assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 			assert.Equal(t, total, tc.total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
+		})
+	}
+}
+
+func TestDuplicatePolicy(t *testing.T) {
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	policyYaml := createPolicy(t, &cli, "policyYaml")
+	policyJson := createPolicy(t, &cli, "policyJson")
+
+	cases := map[string]struct {
+		ID          string
+		auth        string
+		status      int
+		location    string
+	}{
+		"duplicate a existing yaml policy": {
+			ID:          policyYaml.ID,
+			auth:        token,
+			status:      http.StatusCreated,
+		},
+		"duplicate a existing json policy": {
+			ID:          policyJson.ID,
+			auth:        token,
+			status:      http.StatusCreated,
+		},
+		"duplicate a existing yaml policy with an invalid token": {
+			ID:          policyYaml.ID,
+			auth:        invalidToken,
+			status:      http.StatusUnauthorized,
+		},
+		"duplicate a existing json policy with empty ID": {
+			ID:          "",
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodPost,
+				url:    fmt.Sprintf("%s/policies/agent/duplicate/%s", cli.server.URL, tc.ID),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 		})
 	}
 }

@@ -368,6 +368,9 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 	}
 
 	existingPolicy, err := s.repo.RetrievePolicyByID(ctx, policyID, mfOwnerID)
+	if err != nil {
+		return Policy{}, err
+	}
 
 	name, err := types.NewIdentifier(existingPolicy.Name.String() + "-copy")
 	if err != nil {
