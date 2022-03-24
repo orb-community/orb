@@ -232,6 +232,24 @@ paths:
           description: Missing or invalid access token provided.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /policies/agent/{id}/duplicate:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/PolicyId"
+    post:
+      summary: 'Duplicate an existing Agent Policy'
+      operationId: duplicatePolicy
+      tags:
+        - policy
+      responses:
+        '201':
+          $ref: "#/components/responses/PolicyObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
   /policies/dataset/validate:
     parameters:
       - $ref: "#/components/parameters/Authorization"

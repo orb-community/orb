@@ -63,6 +63,11 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 		decodePolicyUpdate,
 		types.EncodeResponse,
 		opts...))
+	r.Post("/policies/agent/:id/duplicate", kithttp.NewServer(
+		kitot.TraceServer(tracer, "duplicate_policy")(duplicatePolicyEndpoint(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...))
 	r.Delete("/policies/agent/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "remove_policy")(removePolicyEndpoint(svc)),
 		decodeView,
@@ -103,11 +108,6 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 	r.Post("/policies/dataset/validate", kithttp.NewServer(
 		kitot.TraceServer(tracer, "validate_dataset")(validateDatasetEndpoint(svc)),
 		decodeAddDatasetRequest,
-		types.EncodeResponse,
-		opts...))
-	r.Post("/policies/agent/duplicate/:id", kithttp.NewServer(
-		kitot.TraceServer(tracer, "duplicate_policy")(duplicatePolicyEndpoint(svc)),
-		decodeView,
 		types.EncodeResponse,
 		opts...))
 
