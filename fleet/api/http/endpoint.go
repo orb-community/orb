@@ -174,8 +174,8 @@ func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		agent := fleet.Agent{
-			Name:    nID,
-			OrbTags: req.OrbTags,
+			Name:      nID,
+			OrbTags:   req.OrbTags,
 			AgentTags: req.AgentTags,
 		}
 		saved, err := svc.CreateAgent(c, req.token, agent)
@@ -215,16 +215,17 @@ func viewAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		res := agentRes{
-			ID:            ag.MFThingID,
-			Name:          ag.Name.String(),
-			ChannelID:     ag.MFChannelID,
-			AgentTags:     ag.AgentTags,
-			OrbTags:       ag.OrbTags,
-			TsCreated:     ag.Created,
-			AgentMetadata: ag.AgentMetadata,
-			State:         ag.State.String(),
-			LastHBData:    ag.LastHBData,
-			TsLastHB:      ag.LastHB,
+			ID:             ag.MFThingID,
+			Name:           ag.Name.String(),
+			ChannelID:      ag.MFChannelID,
+			AgentTags:      ag.AgentTags,
+			OrbTags:        ag.OrbTags,
+			TsCreated:      ag.Created,
+			AgentMetadata:  ag.AgentMetadata,
+			State:          ag.State.String(),
+			LastHBData:     ag.LastHBData,
+			MatchingGroups: ag.MatchingGroups,
+			TsLastHB:       ag.LastHB,
 		}
 		return res, nil
 	}

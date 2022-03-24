@@ -48,18 +48,19 @@ func (s *State) Scan(value interface{}) error { *s = stateRevMap[string(value.([
 func (s State) Value() (driver.Value, error)  { return s.String(), nil }
 
 type Agent struct {
-	Name          types.Identifier
-	MFOwnerID     string
-	MFThingID     string
-	MFKeyID       string
-	MFChannelID   string
-	Created       time.Time
-	OrbTags       types.Tags
-	AgentTags     types.Tags
-	AgentMetadata types.Metadata
-	State         State
-	LastHBData    types.Metadata
-	LastHB        time.Time
+	Name           types.Identifier
+	MFOwnerID      string
+	MFThingID      string
+	MFKeyID        string
+	MFChannelID    string
+	Created        time.Time
+	OrbTags        types.Tags
+	AgentTags      types.Tags
+	AgentMetadata  types.Metadata
+	State          State
+	LastHBData     types.Metadata
+	LastHB         time.Time
+	MatchingGroups types.Metadata
 }
 
 // Page contains page related metadata as well as list of agents that
@@ -123,7 +124,7 @@ type AgentRepository interface {
 	// RetrieveOwnerByChannelID retrieves a ownerID by a provided channelID
 	RetrieveOwnerByChannelID(ctx context.Context, channelID string) (Agent, error)
 	// SetStaleStatus change status to stale according provided duration without heartbeats
-	SetStaleStatus(ctx context.Context,  minutes time.Duration) (int64, error)
+	SetStaleStatus(ctx context.Context, minutes time.Duration) (int64, error)
 }
 
 type AgentHeartbeatRepository interface {

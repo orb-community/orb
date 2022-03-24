@@ -391,7 +391,7 @@ func (r agentRepository) RetrieveByID(ctx context.Context, ownerID string, thing
 	q := `SELECT 
 			mf_thing_id, 
 			name, 
-			mf_owner_id, 
+			agents.mf_owner_id, 
 			mf_channel_id, 
 			ts_created, 
 			orb_tags, 
@@ -399,11 +399,14 @@ func (r agentRepository) RetrieveByID(ctx context.Context, ownerID string, thing
 			agent_metadata, 
 			state, 
 			last_hb_data, 
-			ts_last_hb 
+			ts_last_hb,
+			json_build_object('groups', json_strip_nulls(json_agg(json_build_object('group_id', agm.agent_groups_id, 'name', agm.agent_groups_name, 'channel', agm.group_mf_channel_id)))) matching_groups
 		FROM agents 
+			LEFT JOIN agent_group_membership agm on agents.mf_owner_id = agm.mf_owner_id and agents.mf_thing_id = agm.agent_mf_thing_id
 		WHERE 
-			mf_thing_id = $1 
-			AND mf_owner_id = $2;`
+		mf_thing_id = $1 
+		AND agents.mf_owner_id = $2
+		group by mf_thing_id, name, agents.mf_owner_id, mf_channel_id, ts_created, orb_tags, agent_tags, agent_metadata, state, last_hb_data, ts_last_hb;`
 
 	dba := dbAgent{}
 
@@ -487,7 +490,7 @@ func (r agentRepository) SetStaleStatus(ctx context.Context, duration time.Durat
 
 	params := map[string]interface{}{
 		"duration": duration.Seconds(),
-		"state":   fleet.Stale,
+		"state":    fleet.Stale,
 	}
 	res, err := r.db.NamedExecContext(ctx, q, params)
 	if err != nil {
@@ -512,17 +515,18 @@ func (r agentRepository) SetStaleStatus(ctx context.Context, duration time.Durat
 }
 
 type dbAgent struct {
-	Name          types.Identifier `db:"name"`
-	MFOwnerID     string           `db:"mf_owner_id"`
-	MFThingID     string           `db:"mf_thing_id"`
-	MFChannelID   string           `db:"mf_channel_id"`
-	OrbTags       db.Tags          `db:"orb_tags"`
-	AgentTags     db.Tags          `db:"agent_tags"`
-	AgentMetadata db.Metadata      `db:"agent_metadata"`
-	State         fleet.State      `db:"state"`
-	Created       time.Time        `db:"ts_created"`
-	LastHBData    db.Metadata      `db:"last_hb_data"`
-	LastHB        sql.NullTime     `db:"ts_last_hb"`
+	Name           types.Identifier `db:"name"`
+	MFOwnerID      string           `db:"mf_owner_id"`
+	MFThingID      string           `db:"mf_thing_id"`
+	MFChannelID    string           `db:"mf_channel_id"`
+	OrbTags        db.Tags          `db:"orb_tags"`
+	AgentTags      db.Tags          `db:"agent_tags"`
+	AgentMetadata  db.Metadata      `db:"agent_metadata"`
+	State          fleet.State      `db:"state"`
+	Created        time.Time        `db:"ts_created"`
+	LastHBData     db.Metadata      `db:"last_hb_data"`
+	LastHB         sql.NullTime     `db:"ts_last_hb"`
+	MatchingGroups types.Metadata   `db:"matching_groups"`
 }
 
 type dbMatchingAgent struct {
@@ -556,17 +560,18 @@ func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 func toAgent(dba dbAgent) (fleet.Agent, error) {
 
 	agent := fleet.Agent{
-		Name:          dba.Name,
-		MFOwnerID:     dba.MFOwnerID,
-		MFThingID:     dba.MFThingID,
-		MFChannelID:   dba.MFChannelID,
-		Created:       dba.Created,
-		OrbTags:       types.Tags(dba.OrbTags),
-		AgentTags:     types.Tags(dba.AgentTags),
-		AgentMetadata: types.Metadata(dba.AgentMetadata),
-		State:         dba.State,
-		LastHBData:    types.Metadata(dba.LastHBData),
-		LastHB:        dba.LastHB.Time,
+		Name:           dba.Name,
+		MFOwnerID:      dba.MFOwnerID,
+		MFThingID:      dba.MFThingID,
+		MFChannelID:    dba.MFChannelID,
+		Created:        dba.Created,
+		OrbTags:        types.Tags(dba.OrbTags),
+		AgentTags:      types.Tags(dba.AgentTags),
+		AgentMetadata:  types.Metadata(dba.AgentMetadata),
+		State:          dba.State,
+		LastHBData:     types.Metadata(dba.LastHBData),
+		LastHB:         dba.LastHB.Time,
+		MatchingGroups: dba.MatchingGroups,
 	}
 
 	return agent, nil
