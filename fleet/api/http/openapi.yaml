@@ -742,6 +742,28 @@ components:
           type: string
           format: uuid
           description: Communication channel ID (UUIDv4), unique to this agent and created at agent creation
+        matching_groups:
+          type: object
+          description: Groups currently matching this agent
+          properties:
+            groups:
+              type: array
+              items:
+                type: object
+                description: total agents matching
+                properties:
+                  group_id:
+                    type: string
+                    format: uuid
+                    description: group id
+                  name:
+                    type: string
+                    description: group name
+                    example: 'group-1'
+                  channel:
+                    type: string
+                    format: uuid
+                    description: group id
     AgentValidateObjSchema:
       type: object
       required:
