@@ -1213,3 +1213,99 @@ func TestSetAgentStale(t *testing.T) {
 	}
 
 }
+
+func TestAgentMatchingGroup(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+	agentGroupRepo := postgres.NewAgentGroupRepository(dbMiddleware, logger)
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	agentNoMatchingID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	channelID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	name, err := types.NewIdentifier("agent-1")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameNoMatching, err := types.NewIdentifier("agent-no-matching")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	tags := types.Tags{
+		"matching": "ok",
+	}
+
+	agent := fleet.Agent{
+		Name:        name,
+		MFOwnerID:   ownerID.String(),
+		MFThingID:   agentID.String(),
+		MFChannelID: channelID.String(),
+		OrbTags:     tags,
+		AgentTags:   nil,
+	}
+
+	agentNoMatching := fleet.Agent{
+		Name:        nameNoMatching,
+		MFOwnerID:   ownerID.String(),
+		MFThingID:   agentNoMatchingID.String(),
+		MFChannelID: channelID.String(),
+		AgentTags:   nil,
+	}
+
+	agentGroup := fleet.AgentGroup{
+		MFOwnerID:   ownerID.String(),
+		Name:        name,
+		Description: "",
+		MFChannelID: channelID.String(),
+		Tags:        tags,
+	}
+
+	err = agentRepo.Save(context.Background(), agent)
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	err = agentRepo.Save(context.Background(), agentNoMatching)
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	groupID, err := agentGroupRepo.Save(context.Background(), agentGroup)
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	cases := map[string]struct {
+		agentID       string
+		ownerID       string
+		matchingGroup types.Metadata
+	}{
+		"get matching groups for an existing agent": {
+			agentID: agentID.String(),
+			ownerID: ownerID.String(),
+			matchingGroup: map[string]interface{}{
+				"groups": []interface{}{
+					map[string]interface{}{
+						"group_id": groupID,
+						"name":     name.String(),
+						"channel":  channelID.String(),
+					},
+				},
+			},
+		},
+		"get no matching groups for an existing agent": {
+			agentID: agentNoMatchingID.String(),
+			ownerID: ownerID.String(),
+			matchingGroup: map[string]interface{}{
+				"groups": []interface{}{
+					map[string]interface{}{},
+				},
+			},
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			tcAgent, err := agentRepo.RetrieveByID(context.Background(), tc.ownerID, tc.agentID)
+			require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+			require.Equal(t, tc.matchingGroup, tcAgent.MatchingGroups, "%s: expected %v got %v", desc, tc.matchingGroup, tcAgent.MatchingGroups)
+		})
+	}
+}
