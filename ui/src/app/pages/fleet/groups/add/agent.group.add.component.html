@@ -73,16 +73,30 @@
               <p>{{strings.add.step.desc2}}</p>
             </div>
           </ng-template>
-          <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
+          <ngx-tag-control [(tags)]="selectedTags" (tagsChange)="updateMatches()"></ngx-tag-control>
+          <hr/>
+          <div class="d-flex row">
+            <div class="col-12">
+              <div>
+                <p *ngIf="tagMatch?.total && tagMatch.total > 0">
+                  {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}.
+                </p>
+                <p *ngIf="!tagMatch.total || tagMatch.total === 0">
+                  {{strings.match.matchNone}}
+                </p>
+              </div>
+            </div>
+          </div>
+          <hr/>
           <div class="d-flex justify-content-end">
-            <button (click)="onFormSubmit()"
+            <button nbStepperNext
                     class="next-button"
                     data-orb-qa-id="button#save"
                     nbButton
                     shape="round"
                     status="primary"
                     type="submit">
-              {{ strings.stepper.save }}
+              {{ strings.stepper.next }}
             </button>
             <button data-orb-qa-id="button#back"
                     ghost
