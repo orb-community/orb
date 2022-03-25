@@ -1322,7 +1322,7 @@ func TestDuplicatePolicy(t *testing.T) {
 			req := testRequest{
 				client: cli.server.Client(),
 				method: http.MethodPost,
-				url:    fmt.Sprintf("%s/policies/agent/duplicate/%s", cli.server.URL, tc.ID),
+				url:    fmt.Sprintf("%s/policies/agent/%s/duplicate", cli.server.URL, tc.ID),
 				token:  tc.auth,
 			}
 			res, err := req.make()
