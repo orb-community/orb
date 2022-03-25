@@ -488,7 +488,7 @@ func TestEditDataset(t *testing.T) {
 		"update a non-existing dataset": {
 			ds:    wrongDataset,
 			token: token,
-			err:   policies.ErrNotFound,
+			err:   policies.ErrMalformedEntity,
 		},
 	}
 
