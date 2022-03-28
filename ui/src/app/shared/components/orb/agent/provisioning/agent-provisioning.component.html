@@ -31,9 +31,9 @@
           <button
             [cdkCopyToClipboard]="command2copy"
             ghost="true"
+            (click)="toggleIcon('command')"
             nbButton>
-            <nb-icon (click)="toggleIcon('command')"
-                     [icon]="copyCommandIcon"
+            <nb-icon [icon]="copyCommandIcon"
                      pack="eva">
             </nb-icon>
           </button>
