@@ -60,7 +60,7 @@ jobs:
         run: echo ${{ env.BRANCH_NAME }}
 
       - name: Generate ref tag (production)
-        if: ${{ env.BRANCH_NAME != 'main' && env.BRANCH_NAME != 'production' }}
+        if: ${{ env.BRANCH_NAME == 'main' }}
         run: |
           echo "REF_TAG=production" >> $GITHUB_ENV
 
