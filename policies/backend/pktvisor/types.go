@@ -9,6 +9,7 @@ import "github.com/ns1labs/orb/pkg/types"
 const CurrentSchemaVersion = "1.0"
 
 type collectionPolicy struct {
-	Version string         `json:"version"`
-	Visor   types.Metadata `json:"visor"`
+	Handlers types.Metadata `json:"handlers"`
+	Input    types.Metadata `json:"input"`
+	Kind     string         `json:"kind"`
 }

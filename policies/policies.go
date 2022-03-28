@@ -20,6 +20,8 @@ type Policy struct {
 	Version       int32
 	OrbTags       types.Tags
 	Policy        types.Metadata
+	PolicyData    string
+	Format        string
 	Created       time.Time
 	LastModified  time.Time
 }
@@ -54,7 +56,7 @@ type PageDataset struct {
 
 type Service interface {
 	// AddPolicy creates new agent Policy
-	AddPolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+	AddPolicy(ctx context.Context, token string, p Policy) (Policy, error)
 
 	// ViewPolicyByID retrieving policy by id with token
 	ViewPolicyByID(ctx context.Context, token string, policyID string) (Policy, error)
@@ -69,7 +71,7 @@ type Service interface {
 	ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]PolicyInDataset, error)
 
 	// EditPolicy edit a existing policy by id with a valid token
-	EditPolicy(ctx context.Context, token string, pol Policy, format string, policyData string) (Policy, error)
+	EditPolicy(ctx context.Context, token string, pol Policy) (Policy, error)
 
 	// RemovePolicy remove a existing policy owned by the specified user
 	RemovePolicy(ctx context.Context, token string, policyID string) error
@@ -84,7 +86,7 @@ type Service interface {
 	ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error)
 
 	// ValidatePolicy validates an agent Policy without saving
-	ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+	ValidatePolicy(ctx context.Context, token string, p Policy) (Policy, error)
 
 	// EditDataset edit a existing dataset by id with a valid token
 	EditDataset(ctx context.Context, token string, ds Dataset) (Dataset, error)
