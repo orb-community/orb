@@ -41,6 +41,8 @@ import { AgentGroupsComponent } from './components/orb/agent/groups/agent-groups
 import { AgentProvisioningComponent } from './components/orb/agent/provisioning/agent-provisioning.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { TagDisplayComponent } from './components/orb/tag-display/tag-display.component';
+import { SinkDisplayComponent } from './components/orb/sink/sink-display/sink-display.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
   imports: [
@@ -62,6 +64,7 @@ import { TagDisplayComponent } from './components/orb/tag-display/tag-display.co
     MatIconModule,
     ReactiveFormsModule,
     ClipboardModule,
+    MatTooltipModule,
   ],
   declarations: [
     ConfirmationComponent,
@@ -83,6 +86,7 @@ import { TagDisplayComponent } from './components/orb/tag-display/tag-display.co
     AgentProvisioningComponent,
     TagControlComponent,
     TagDisplayComponent,
+    SinkDisplayComponent,
   ],
   exports: [
     ThemeModule,
@@ -107,6 +111,7 @@ import { TagDisplayComponent } from './components/orb/tag-display/tag-display.co
     AgentGroupsComponent,
     AgentProvisioningComponent,
     TagDisplayComponent,
+    SinkDisplayComponent,
   ],
   providers: [
     MessageValuePipe,

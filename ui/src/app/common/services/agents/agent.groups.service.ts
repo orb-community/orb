@@ -7,7 +7,7 @@ import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { delay, expand, reduce } from 'rxjs/operators';
+import { catchError, delay, expand, reduce } from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 20;
@@ -88,17 +88,12 @@ export class AgentGroupsService {
 
   getAgentGroupById(id: string): Observable<AgentGroup> {
     return this.http.get(`${ environment.agentGroupsUrl }/${ id }`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
+      .pipe(
+        catchError(err => {
           this.notificationsService.error('Failed to fetch Agent Group',
             `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
-        },
+          return of(err);
+        }),
       );
   }
 
