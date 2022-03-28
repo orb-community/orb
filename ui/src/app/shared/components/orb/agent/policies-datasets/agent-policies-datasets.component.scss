@@ -21,6 +21,9 @@ nb-card {
   }
 
   nb-card-body {
+    margin: 0.3rem;
+    padding: 0.3rem;
+
     label {
       color: #969fb9;
     }
@@ -55,7 +58,7 @@ nb-card {
       }
 
       code {
-        color: #ffffff;
+        color: #fff;
         line-height: 2.5 !important;
       }
     }
@@ -63,6 +66,17 @@ nb-card {
 }
 
 ::ng-deep {
+  .error-item {
+    border: 1px !important;
+    border-style: solid !important;
+    border-color: #df316f !important;
+    background-color: rgba(223, 49, 111, 0.08) !important;
+  }
+
+  .error-title {
+    color: #df316f;
+    font-weight: bolder;
+  }
 
   .agent-group-link {
     color: #0c5dc5;
@@ -78,7 +92,7 @@ nb-card {
     color: #6fcf97 !important;
   }
 
-  .agent-offline, .dataset-invalid, .policy-error {
+  .agent-offline, .dataset-invalid, .policy-failed_to_apply {
     color: #df316f !important;
   }
 
