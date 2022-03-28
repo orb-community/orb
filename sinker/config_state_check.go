@@ -33,10 +33,12 @@ func (svc *sinkerService) checkState(t time.Time) {
 		for _, cfg := range configs {
 			// Set idle if the sinker is more then 30 minutes not been sending metrics
 			if cfg.LastRemoteWrite.Add(DefaultTimeout).Before(time.Now()) {
-				cfg.State = config.Idle
-				if err := svc.sinkerCache.Edit(cfg); err != nil {
-					svc.logger.Error("error updating sink config cache", zap.Error(err))
-					return
+				if cfg.State == config.Active {
+					cfg.State = config.Idle
+					if err := svc.sinkerCache.Edit(cfg); err != nil {
+						svc.logger.Error("error updating sink config cache", zap.Error(err))
+						return
+					}
 				}
 			}
 		}
