@@ -5,7 +5,7 @@
             <button class='agent-group-button'
                     (click)="showAgentGroupDetail(group)"
                     *ngFor="let group of groups; last as isLast">
-              <span class="summary-accent">{{ group.name }}</span>
+              <span class="agent-group-accent">{{ group.name }}</span>
               <span *ngIf="!isLast">,</span>
             </button>
     </div>
