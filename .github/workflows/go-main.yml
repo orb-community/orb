@@ -1,0 +1,211 @@
+name: Go
+
+on:
+  workflow_dispatch:
+    inputs:
+      pktvisor_tag:
+        description: 'pktvisor agent docker tag to package'
+        required: true
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            agent:
+              - 'agent/**'
+              - 'cmd/agent/**'
+            fleet:
+              - 'fleet/**'
+              - 'cmd/fleet/**'
+            policies:
+              - 'policies/**'
+              - 'cmd/policies/**'
+            sinks:
+              - 'sinks/**'
+              - 'cmd/sinks/**'
+            sinker:
+              - 'sinker/**'
+              - 'cmd/sinker/**'
+            ui:
+              - 'ui/**'
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Get branch name for push
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+      - name: Get branch name for pull request
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=$(echo ${GITHUB_BASE_REF} | tr / -)" >> $GITHUB_ENV
+
+      - name: Debug branch name
+        run: echo ${{ env.BRANCH_NAME }}
+
+      - name: Generate ref tag (production)
+        if: ${{ env.BRANCH_NAME != 'main' && env.BRANCH_NAME != 'production' }}
+        run: |
+          echo "REF_TAG=production" >> $GITHUB_ENV
+
+      - name: Generate ref tag (main)
+        if: ${{ env.BRANCH_NAME == 'main' }}
+        run: |
+          echo "REF_TAG=latest" >> $GITHUB_ENV
+
+      - name: Get VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
+
+      - name: Build services (go build only)
+        run: make services
+
+      - name: Build orb agent (go build only)
+        if: steps.filter.outputs.agent == 'true'
+        run: make agent_bin
+
+      - name: Go unit tests
+        run: make test
+
+      - name: Build UI
+        if: steps.filter.outputs.ui == 'true'
+        run: make ui
+
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    # if this is a push into one of our main branches (rather than just a pull request), we will also package
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            agent:
+              - 'agent/**'
+              - 'cmd/agent/**'
+            fleet:
+              - 'fleet/**'
+              - 'cmd/fleet/**'
+            policies:
+              - 'policies/**'
+              - 'cmd/policies/**'
+            sinks:
+              - 'sinks/**'
+              - 'cmd/sinks/**'
+            sinker:
+              - 'sinker/**'
+              - 'cmd/sinker/**'
+            ui:
+              - 'ui/**'
+
+      - name: Get branch name
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+      - name: Generate ref tag (main)
+        if: ${{ env.BRANCH_NAME == 'main' }}
+        run: |
+          echo "REF_TAG=latest" >> $GITHUB_ENV
+
+      - name: Get VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build service containers
+        if: env.BRANCH_NAME == 'main'
+        run: make dockers
+
+      - name: Build orb-agent
+        shell: bash
+        if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'main'
+        env:
+          IMAGE_NAME: ns1labs/orb-agent
+        run: |
+          if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
+            make agent
+            make agent_debug
+          else
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
+          fi
+
+      - name: Build orb-ui
+        if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'main'
+        env:
+          IMAGE_NAME: ns1labs/orb-ui
+        run: |
+          make ui
+
+      - name: Push service containers
+        if: env.BRANCH_NAME == 'main'
+        run: |
+          docker push -a ns1labs/orb-fleet
+          docker push -a ns1labs/orb-policies
+          docker push -a ns1labs/orb-sinks
+          docker push -a ns1labs/orb-sinker
+
+      - name: Push agent container
+        if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'main'
+        run: |
+          docker push -a ns1labs/orb-agent
+
+      - name: Push ui container
+        if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'main'
+        run: |
+          docker push -a ns1labs/orb-ui
+
+
+  release:
+    needs: package
+    runs-on: ubuntu-latest
+    # if this is a push into one of our main branches (rather than just a pull request), we will also package
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Generating Changelog
+        uses: scottbrenner/generate-changelog-action@master
+        id: build_changelog
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: "v${{ env.VERSION }}"
+          release_name: ${{ env.VERSION }}
+          body: ${{steps.build_changelog.outputs.changelog}}
+          draft: false
+          prerelease: false
+
