@@ -103,7 +103,25 @@ export class AgentPolicyAddComponent {
     lineNumbersMinChars: 0,
   };
 
-  code = '# Paste your yaml here for manual policy configuration';
+  code = `# This is an example policy
+version: "1.0"
+
+visor:
+  policies:
+    default_view:
+      kind: collection
+      input:
+        tap: default
+        input_type: pcap
+      handlers:
+        window_config:
+          num_periods: 5
+          deep_sample_rate: 100
+        modules:
+          default_dns:
+            type: dns
+          default_net:
+            type: net`;
 
   // is config specified wizard mode or in YAML or JSON
   isWizard = true;
