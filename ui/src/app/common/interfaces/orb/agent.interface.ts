@@ -22,10 +22,16 @@ export interface AgentGroupState {
   channel?: string;
 }
 
+export enum AgentPolicyStates {
+  running = 'running',
+  failedToApply = 'failed_to_apply',
+}
+
 export interface AgentPolicyState {
   id?: string;
   name?: string;
-  state?: string;
+  state?: AgentPolicyStates;
+  error?: string;
   datasets?: string[];
 }
 
