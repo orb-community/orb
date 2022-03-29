@@ -164,11 +164,11 @@ jobs:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
-            make agent
-            make agent_debug
+            make agent_production
+            make agent_debug_production
           else
-            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
-            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_production
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug_production
           fi
 
       - name: Push agent container
