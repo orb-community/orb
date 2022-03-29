@@ -35,7 +35,7 @@ func (svc *sinkerService) checkState(t time.Time) {
 			if cfg.LastRemoteWrite.Add(DefaultTimeout).Before(time.Now()) {
 				if cfg.State == config.Active {
 					cfg.State = config.Idle
-					if err := svc.sinkerCache.Edit(cfg); err != nil {
+					if err := svc.sinkerCache.Remove(cfg.OwnerID, cfg.SinkID); err != nil {
 						svc.logger.Error("error updating sink config cache", zap.Error(err))
 						return
 					}

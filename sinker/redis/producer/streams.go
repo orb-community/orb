@@ -51,7 +51,27 @@ func (e eventStore) Add(config config.SinkConfig) error {
 }
 
 func (e eventStore) Remove(ownerID string, sinkID string) error {
-	return e.sinkCache.Remove(ownerID, sinkID)
+	err := e.sinkCache.Remove(ownerID, sinkID)
+	if err != nil {
+		return err
+	}
+
+	event := SinkerUpdateEvent{
+		SinkID:    sinkID,
+		Owner:     ownerID,
+		State:     config.Idle.String(),
+		Timestamp: time.Now(),
+	}
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+	err = e.client.XAdd(context.Background(), record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+	}
+	return nil
 }
 
 func (e eventStore) Get(ownerID string, sinkID string) (config.SinkConfig, error) {
