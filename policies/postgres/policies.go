@@ -567,6 +567,35 @@ func (r policiesRepository) DeleteSinkFromAllDatasets(ctx context.Context, sinkI
 	return datasets, nil
 }
 
+func (r policiesRepository) DeleteAGroupFromAllDatasets(ctx context.Context, aGroup string, ownerID string) error {
+	q := `UPDATE datasets SET agent_group_id = null WHERE mf_owner_id = :mf_owner_id AND agent_group_id = :agent_group_id`
+
+	if ownerID == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	params := map[string]interface{}{
+		"mf_owner_id":    ownerID,
+		"agent_group_id": aGroup,
+	}
+
+	res, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	defer res.Close()
+
+	return nil
+}
+
 type dbPolicy struct {
 	ID            string           `db:"id"`
 	Name          types.Identifier `db:"name"`

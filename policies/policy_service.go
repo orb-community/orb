@@ -361,3 +361,21 @@ func (s policiesService) InactivateDatasetByIDInternal(ctx context.Context, owne
 
 	return nil
 }
+
+func (s policiesService) DeleteAgentGroupFromAllDatasets(ctx context.Context, aGroupID string, token string) error {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return err
+	}
+
+	if aGroupID == ""{
+		return ErrMalformedEntity
+	}
+
+	err = s.repo.DeleteAGroupFromAllDatasets(ctx, aGroupID, ownerID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

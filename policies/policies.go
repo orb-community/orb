@@ -110,6 +110,9 @@ type Service interface {
 
 	// DeleteSinkFromAllDatasetsInternal removes a sink from a dataset
 	DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
+
+	// DeleteAgentGroupFromAllDatasets removes an agent group from a dataset
+	DeleteAgentGroupFromAllDatasets(ctx context.Context, aGroupID string, token string) error
 }
 
 type Repository interface {
@@ -162,4 +165,7 @@ type Repository interface {
 
 	// DeleteSinkFromAllDatasets removes a sink from a dataset
 	DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
+
+	// DeleteAGroupFromAllDatasets removes agent group from a dataset
+	DeleteAGroupFromAllDatasets(ctx context.Context, aGroup string, ownerID string) error
 }
