@@ -44,20 +44,10 @@ jobs:
         with:
           go-version: 1.16
 
-      - name: Get branch name for push
-        if: github.event_name != 'pull_request'
+      - name: Set branch name
         shell: bash
         run: |
-          echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
-
-      - name: Get branch name for pull request
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=$(echo ${GITHUB_BASE_REF} | tr / -)" >> $GITHUB_ENV
-
-      - name: Debug branch name
-        run: echo ${{ env.BRANCH_NAME }}
+          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
 
       - name: Generate ref tag (develop)
         run: |
@@ -118,15 +108,27 @@ jobs:
             ui:
               - 'ui/**'
 
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=production" >> $GITHUB_ENV
+
+      - name: Generate ref tag (production)
+        run: |
+          echo "REF_TAG=production" >> $GITHUB_ENV
+
+      - name: Append sufix on VERSION file for production build
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
+
+      - name: Set VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
-      - name: Get version to a variable
-        id: version
-        run: |
-          echo "::set-output name=version::$(cat VERSION)"
 
       - name: Commit orb-ui-live on orb-live repo develop
         run: |
@@ -183,7 +185,6 @@ jobs:
           docker push -a ns1labs/orb-ui
 
       - name: Push service containers
-        if: env.BRANCH_NAME == 'develop'
         run: |
           docker push -a ns1labs/orb-fleet
           docker push -a ns1labs/orb-policies
@@ -199,7 +200,7 @@ jobs:
           cd orb-live-manifest/stg
           mv values.yaml .template/values.old
           cat .template/values.yaml.tpl >> values.yaml
-          sed -i -e "s/IMAGE_TAG/${{ steps.version.outputs.version }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
+          sed -i -e "s/IMAGE_TAG/${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
           git add values.yaml
           git add .template/values.old
           git commit -m "[NS1 Orb Bot] Update image tag on stg environment"

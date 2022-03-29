@@ -108,15 +108,27 @@ jobs:
             ui:
               - 'ui/**'
 
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=production" >> $GITHUB_ENV
+
+      - name: Generate ref tag (production)
+        run: |
+          echo "REF_TAG=production" >> $GITHUB_ENV
+
+      - name: Append sufix on VERSION file for production build
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
+
+      - name: Set VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
-      - name: Get version to a variable
-        id: version
-        run: |
-          echo "::set-output name=version::$(cat VERSION)"
 
       - name: Commit orb-ui-live on orb-live repo production
         run: |
@@ -188,7 +200,7 @@ jobs:
           cd orb-live-manifest/prod
           mv values.yaml .template/values.old
           cat .template/values.yaml.tpl >> values.yaml
-          sed -i -e "s/IMAGE_TAG/${{ steps.version.outputs.version }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
+          sed -i -e "s/IMAGE_TAG/${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
           git add values.yaml
           git add .template/values.old
           git commit -m "[NS1 Orb Bot] Update image tag on stg environment"
