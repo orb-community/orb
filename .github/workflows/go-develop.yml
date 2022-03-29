@@ -158,7 +158,7 @@ jobs:
 
       - name: Build orb-agent
         shell: bash
-        if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'develop'
+        if: steps.filter.outputs.agent == 'true'
         env:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
