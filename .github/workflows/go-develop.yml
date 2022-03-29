@@ -111,19 +111,22 @@ jobs:
       - name: Set branch name
         shell: bash
         run: |
-          echo "BRANCH_NAME=production" >> $GITHUB_ENV
+          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
 
-      - name: Generate ref tag (production)
+      - name: Generate ref tag (develop)
         run: |
-          echo "REF_TAG=production" >> $GITHUB_ENV
+          echo "REF_TAG=develop" >> $GITHUB_ENV
 
-      - name: Append sufix on VERSION file for production build
+      - name: Append suffix on VERSION file for develop build
         run: |
           echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
-      - name: Set VERSION
+      - name: Get VERSION
         run: |
           echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
 
       - name: Get short commit hash to a variable
         id: commit_hash

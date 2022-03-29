@@ -121,9 +121,12 @@ jobs:
         run: |
           echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
-      - name: Set VERSION
+      - name: Get VERSION
         run: |
           echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
 
       - name: Get short commit hash to a variable
         id: commit_hash
