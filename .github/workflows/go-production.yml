@@ -157,6 +157,7 @@ jobs:
         run: make dockers
 
       - name: Build orb-agent
+        # make this as "latest" tag
         shell: bash
         if: steps.filter.outputs.agent == 'true'
         env:
