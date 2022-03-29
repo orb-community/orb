@@ -7,7 +7,7 @@ import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { delay, expand, reduce } from 'rxjs/operators';
+import { catchError, delay, expand, reduce } from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 20;
@@ -72,17 +72,13 @@ export class AgentPoliciesService {
 
   getAgentPolicyById(id: string): Observable<AgentPolicy> {
     return this.http.get(`${ environment.agentPoliciesUrl }/${ id }`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
+      .pipe(
+        catchError(err => {
           this.notificationsService.error('Failed to fetch Agent Policy',
             `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
-        },
+          err['id'] = id;
+          return of(err);
+        }),
       );
   }
 

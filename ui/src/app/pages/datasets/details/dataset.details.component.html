@@ -14,6 +14,7 @@
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">Dataset Name<span class="ns1red">*</span></p>
         <p>{{ dataset?.name }}</p>
+        <p *ngIf="errors?.dataset">{{ errors.dataset }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">Validity</p>
@@ -24,18 +25,19 @@
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">Agent Group Name<span class="ns1red">*</span></p>
         <p>{{ agentGroup?.name }}</p>
+        <p *ngIf="errors?.agentGroup" class="detail-title">{{ errors.agentGroup }}<span class="ns1red">
+          {{ this.dataset.agent_group_id }}</span></p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">Agent Policy Name<span class="ns1red">*</span></p>
         <p>{{ agentPolicy?.name }}</p>
+        <p *ngIf="errors?.agentPolicy"
+           class="detail-title">{{ errors.agentPolicy }}<span class="ns1red"> {{ this.dataset.agent_policy_id }}</span></p>
       </div>
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Sinks<span class="ns1red">*</span></p>
-        <p><span *ngFor="let sink of sinks; last as last">
-          {{ sink?.name }}<span *ngIf="!last">, </span>
-        </span></p>
+        <ngx-sink-display [sinkIDs]="dataset.sink_ids"></ngx-sink-display>
       </div>
     </div>
   </nb-card-body>

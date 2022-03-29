@@ -7,7 +7,7 @@ import { environment } from 'environments/environment';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { delay, expand, reduce } from 'rxjs/operators';
+import { catchError, delay, expand, reduce } from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 10;
@@ -68,19 +68,15 @@ export class SinksService {
       );
   }
 
-  getSinkById(sinkId: string): any {
+  getSinkById(sinkId: string): Observable<Sink> {
     return this.http.get(`${ environment.sinksUrl }/${ sinkId }`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
+      .pipe(
+        catchError(err => {
           this.notificationsService.error('Failed to fetch Sink',
             `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
-        },
+          err['id'] = sinkId;
+          return of(err);
+        }),
       );
   }
 
