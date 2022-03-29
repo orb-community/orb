@@ -44,23 +44,12 @@ jobs:
         with:
           go-version: 1.16
 
-      - name: Get branch name for push
-        if: github.event_name != 'pull_request'
+      - name: Set branch name
         shell: bash
         run: |
-          echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
-
-      - name: Get branch name for pull request
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=$(echo ${GITHUB_BASE_REF} | tr / -)" >> $GITHUB_ENV
-
-      - name: Debug branch name
-        run: echo ${{ env.BRANCH_NAME }}
+          echo "BRANCH_NAME=production" >> $GITHUB_ENV
 
       - name: Generate ref tag (production)
-        if: ${{ env.BRANCH_NAME == 'production' }}
         run: |
           echo "REF_TAG=production" >> $GITHUB_ENV
 
@@ -130,7 +119,6 @@ jobs:
           echo "::set-output name=version::$(cat VERSION)"
 
       - name: Commit orb-ui-live on orb-live repo production
-        if: env.BRANCH_NAME == 'production'
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"
@@ -151,12 +139,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build service containers
-        if: env.BRANCH_NAME == 'production'
         run: make dockers
 
       - name: Build orb-agent
         shell: bash
-        if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'production'
+        if: steps.filter.outputs.agent == 'true'
         env:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
@@ -169,24 +156,23 @@ jobs:
           fi
 
       - name: Push agent container
-        if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'production'
+        if: steps.filter.outputs.agent == 'true'
         run: |
           docker push -a ns1labs/orb-agent
 
       - name: Build orb-ui
-        if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'production'
+        if: steps.filter.outputs.ui == 'true'
         env:
           IMAGE_NAME: ns1labs/orb-ui
         run: |
           make ui
 
       - name: Push ui container
-        if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'production'
+        if: steps.filter.outputs.ui == 'true'
         run: |
           docker push -a ns1labs/orb-ui
 
       - name: Push service containers
-        if: env.BRANCH_NAME == 'production'
         run: |
           docker push -a ns1labs/orb-fleet
           docker push -a ns1labs/orb-policies
@@ -194,7 +180,6 @@ jobs:
           docker push -a ns1labs/orb-sinker
 
       - name: Commit image tag on orb-live-manifest environment dev
-        if: env.BRANCH_NAME == 'production'
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"

@@ -59,13 +59,7 @@ jobs:
       - name: Debug branch name
         run: echo ${{ env.BRANCH_NAME }}
 
-      - name: Generate ref tag (production)
-        if: ${{ env.BRANCH_NAME == 'main' }}
-        run: |
-          echo "REF_TAG=production" >> $GITHUB_ENV
-
       - name: Generate ref tag (main)
-        if: ${{ env.BRANCH_NAME == 'main' }}
         run: |
           echo "REF_TAG=latest" >> $GITHUB_ENV
 
@@ -124,7 +118,6 @@ jobs:
         run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
 
       - name: Generate ref tag (main)
-        if: ${{ env.BRANCH_NAME == 'main' }}
         run: |
           echo "REF_TAG=latest" >> $GITHUB_ENV
 
@@ -139,7 +132,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build service containers
-        if: env.BRANCH_NAME == 'main'
         run: make dockers
 
       - name: Build orb-agent
@@ -164,7 +156,6 @@ jobs:
           make ui
 
       - name: Push service containers
-        if: env.BRANCH_NAME == 'main'
         run: |
           docker push -a ns1labs/orb-fleet
           docker push -a ns1labs/orb-policies
@@ -172,12 +163,12 @@ jobs:
           docker push -a ns1labs/orb-sinker
 
       - name: Push agent container
-        if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'main'
+        if: steps.filter.outputs.agent == 'true'
         run: |
           docker push -a ns1labs/orb-agent
 
       - name: Push ui container
-        if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'main'
+        if: steps.filter.outputs.ui == 'true'
         run: |
           docker push -a ns1labs/orb-ui
 

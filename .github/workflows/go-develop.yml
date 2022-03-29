@@ -60,11 +60,10 @@ jobs:
         run: echo ${{ env.BRANCH_NAME }}
 
       - name: Generate ref tag (develop)
-        if: ${{ env.BRANCH_NAME != 'main' && env.BRANCH_NAME != 'production' }}
         run: |
           echo "REF_TAG=develop" >> $GITHUB_ENV
 
-      - name: Append sufix on VERSION file for develop build
+      - name: Append suffix on VERSION file for develop build
         run: |
           echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
@@ -130,7 +129,6 @@ jobs:
           echo "::set-output name=version::$(cat VERSION)"
 
       - name: Commit orb-ui-live on orb-live repo develop
-        if: env.BRANCH_NAME == 'develop'
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"
@@ -151,7 +149,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build service containers
-        if: env.BRANCH_NAME == 'develop'
         run: make dockers
 
       - name: Build orb-agent
@@ -169,19 +166,19 @@ jobs:
           fi
 
       - name: Push agent container
-        if: steps.filter.outputs.agent == 'true' || env.BRANCH_NAME == 'develop'
+        if: steps.filter.outputs.agent == 'true'
         run: |
           docker push -a ns1labs/orb-agent
 
       - name: Build orb-ui
-        if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'develop'
+        if: steps.filter.outputs.ui == 'true'
         env:
           IMAGE_NAME: ns1labs/orb-ui
         run: |
           make ui
 
       - name: Push ui container
-        if: steps.filter.outputs.ui == 'true' || env.BRANCH_NAME == 'develop'
+        if: steps.filter.outputs.ui == 'true'
         run: |
           docker push -a ns1labs/orb-ui
 
@@ -194,7 +191,6 @@ jobs:
           docker push -a ns1labs/orb-sinker
 
       - name: Commit image tag on orb-live-manifest environment dev
-        if: env.BRANCH_NAME == 'develop'
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"
