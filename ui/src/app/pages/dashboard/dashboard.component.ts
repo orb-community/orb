@@ -1,21 +1,33 @@
 import { Component } from '@angular/core';
-import { STRINGS } from 'assets/text/strings';
+import { map } from 'rxjs/operators';
+import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 
 @Component({
-  selector: 'ngx-dashboard',
+  selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss'],
+  styleUrls: ['./dashboard.component.scss']
 })
-
 export class DashboardComponent {
-  title: string = STRINGS.home.title;
-  message: string = STRINGS.home.step.message;
-  agent: string = STRINGS.home.step.agent;
-  agent_groups: string = STRINGS.home.step.agent_groups;
-  policy: string = STRINGS.home.step.policy;
-  sink: string = STRINGS.home.step.sink;
-  dataset: string = STRINGS.home.step.dataset;
+  /** Based on the screen size, switch from standard to one column per row */
+  cards = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
+    map(({ matches }) => {
+      if (matches) {
+        return [
+          { title: 'Card 1', cols: 1, rows: 1 },
+          { title: 'Card 2', cols: 1, rows: 1 },
+          { title: 'Card 3', cols: 1, rows: 1 },
+          { title: 'Card 4', cols: 1, rows: 1 }
+        ];
+      }
 
-  constructor() {
-  }
+      return [
+        { title: 'Card 1', cols: 2, rows: 1 },
+        { title: 'Card 2', cols: 1, rows: 1 },
+        { title: 'Card 3', cols: 1, rows: 2 },
+        { title: 'Card 4', cols: 1, rows: 1 }
+      ];
+    })
+  );
+
+  constructor(private breakpointObserver: BreakpointObserver) {}
 }

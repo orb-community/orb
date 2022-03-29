@@ -1,25 +1,10 @@
-/**
- * @license
- * Copyright Akveo. All Rights Reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- */
-import { Component, OnInit } from '@angular/core';
-import { GoogleAnalyticsService } from './common/services/analytics/google-service-analytics.service';
-import { environment } from 'environments/environment';
+import { Component } from '@angular/core';
 
 @Component({
-  selector: 'ngx-app',
-  template: '<router-outlet></router-outlet>',
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
-
-  constructor(private gtagService: GoogleAnalyticsService) {
-  }
-
-  ngOnInit() {
-    if (!!environment.production) {
-      this.gtagService.setGtagID(environment.GTAGID);
-      this.gtagService.init();
-    }
-  }
+export class AppComponent {
+  title = 'ui';
 }

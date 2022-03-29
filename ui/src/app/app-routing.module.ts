@@ -1,32 +1,26 @@
-import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
 
-// Mfx- Custom Logout and Register components that
-// replace NbLogoutComponent and NbRegisterComponent
-
-export const routes: Routes = [
+const routes: Routes = [
   {
     path: 'pages',
     loadChildren: () => import('./pages/pages.module')
-      .then(m => m.PagesModule),
-    data: {breadcrumb: {skip: true}},
+      .then(module => module.PagesModule),
+    data: { breadcrumb: { skip: true } },
   },
   {
-    path: 'auth',
-    loadChildren: () => import('./auth/auth.module')
-      .then(m => m.AuthModule),
-    data: {breadcrumb: {skip: true}},
+    path: '',
+    redirectTo: 'pages/home',
+    pathMatch: 'full'
   },
-  {path: '', redirectTo: 'pages/home', pathMatch: 'full'},
-  {path: '**', redirectTo: 'pages/home'},
+  {
+    path: '**',
+    redirectTo: 'pages/home'
+  },
 ];
 
-const config: ExtraOptions = {
-  useHash: false,
-};
-
 @NgModule({
-  imports: [RouterModule.forRoot(routes, config)],
+  imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule],
 })
 export class AppRoutingModule {
