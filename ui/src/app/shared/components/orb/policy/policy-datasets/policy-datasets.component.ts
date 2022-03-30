@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 
 @Component({
   selector: 'ngx-policy-datasets',
@@ -6,6 +7,8 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./policy-datasets.component.scss'],
 })
 export class PolicyDatasetsComponent implements OnInit {
+  @Input()
+  policy: AgentPolicy;
 
   constructor() { }
 
