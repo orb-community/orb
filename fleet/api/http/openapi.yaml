@@ -744,13 +744,13 @@ components:
           description: Communication channel ID (UUIDv4), unique to this agent and created at agent creation
         matching_groups:
           type: object
-          description: Groups currently matching this agent
+          description: Groups this Agent currently belongs to, according to matching agent and group tags
           properties:
             groups:
               type: array
               items:
                 type: object
-                description: total agents matching
+                description: total groups matching
                 properties:
                   group_id:
                     type: string

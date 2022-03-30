@@ -224,8 +224,31 @@ func viewAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			AgentMetadata:  ag.AgentMetadata,
 			State:          ag.State.String(),
 			LastHBData:     ag.LastHBData,
-			MatchingGroups: ag.MatchingGroups,
 			TsLastHB:       ag.LastHB,
+		}
+		return res, nil
+	}
+}
+
+func viewAgentMatchingGroups(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		matchingGroups, err := svc.ViewAgentMatchingGroupsByID(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+
+		var res []matchingGroupsRes
+		for _, group := range matchingGroups.Groups {
+			res = append(res, matchingGroupsRes{
+				GroupID:   group.GroupID,
+				GroupName: group.GroupName.String(),
+			})
 		}
 		return res, nil
 	}

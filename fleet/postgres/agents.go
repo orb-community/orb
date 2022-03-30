@@ -391,7 +391,7 @@ func (r agentRepository) RetrieveByID(ctx context.Context, ownerID string, thing
 	q := `SELECT 
 			mf_thing_id, 
 			name, 
-			agents.mf_owner_id, 
+			mf_owner_id, 
 			mf_channel_id, 
 			ts_created, 
 			orb_tags, 
@@ -399,14 +399,11 @@ func (r agentRepository) RetrieveByID(ctx context.Context, ownerID string, thing
 			agent_metadata, 
 			state, 
 			last_hb_data, 
-			ts_last_hb,
-			json_build_object('groups', json_strip_nulls(json_agg(json_build_object('group_id', agm.agent_groups_id, 'name', agm.agent_groups_name, 'channel', agm.group_mf_channel_id)))) matching_groups
+			ts_last_hb 
 		FROM agents 
-			LEFT JOIN agent_group_membership agm on agents.mf_owner_id = agm.mf_owner_id and agents.mf_thing_id = agm.agent_mf_thing_id
 		WHERE 
-		mf_thing_id = $1 
-		AND agents.mf_owner_id = $2
-		group by mf_thing_id, name, agents.mf_owner_id, mf_channel_id, ts_created, orb_tags, agent_tags, agent_metadata, state, last_hb_data, ts_last_hb;`
+			mf_thing_id = $1 
+			AND mf_owner_id = $2;`
 
 	dba := dbAgent{}
 
@@ -526,7 +523,6 @@ type dbAgent struct {
 	Created        time.Time        `db:"ts_created"`
 	LastHBData     db.Metadata      `db:"last_hb_data"`
 	LastHB         sql.NullTime     `db:"ts_last_hb"`
-	MatchingGroups types.Metadata   `db:"matching_groups"`
 }
 
 type dbMatchingAgent struct {
@@ -571,7 +567,6 @@ func toAgent(dba dbAgent) (fleet.Agent, error) {
 		State:          dba.State,
 		LastHBData:     types.Metadata(dba.LastHBData),
 		LastHB:         dba.LastHB.Time,
-		MatchingGroups: dba.MatchingGroups,
 	}
 
 	return agent, nil

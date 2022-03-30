@@ -70,7 +70,6 @@ type agentRes struct {
 	LastHBData     types.Metadata `json:"last_hb_data"`
 	TsCreated      time.Time      `json:"ts_created"`
 	TsLastHB       time.Time      `json:"ts_last_hb"`
-	MatchingGroups types.Metadata `json:"matching_groups,omitempty"`
 	created        bool
 }
 
@@ -179,5 +178,22 @@ func (s agentBackendsRes) Headers() map[string]string {
 }
 
 func (s agentBackendsRes) Empty() bool {
+	return false
+}
+
+type matchingGroupsRes struct {
+	GroupID   string `json:"group_id"`
+	GroupName string `json:"group_name"`
+}
+
+func (s matchingGroupsRes) Code() int {
+	return http.StatusOK
+}
+
+func (s matchingGroupsRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s matchingGroupsRes) Empty() bool {
 	return false
 }

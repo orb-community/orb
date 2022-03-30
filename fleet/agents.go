@@ -70,12 +70,24 @@ type Page struct {
 	Agents []Agent
 }
 
+type Group struct {
+	GroupID string
+	GroupName types.Identifier
+}
+
+type MatchingGroups struct {
+	OwnerID string
+	Groups []Group
+}
+
 // AgentService Agent CRUD interface
 type AgentService interface {
 	// CreateAgent creates new agent
 	CreateAgent(ctx context.Context, token string, a Agent) (Agent, error)
 	// ViewAgentByID retrieves a Agent by provided thingID
 	ViewAgentByID(ctx context.Context, token string, thingID string) (Agent, error)
+	// ViewAgentMatchingGroupsByID Groups this Agent currently belongs to, according to matching agent and group tags
+	ViewAgentMatchingGroupsByID(ctx context.Context, token string, thingID string) (MatchingGroups, error)
 	// ViewAgentByIDInternal retrieves a Agent by provided thingID
 	ViewAgentByIDInternal(ctx context.Context, ownerID string, thingID string) (Agent, error)
 	// ListAgents retrieves data about subset of agents that belongs to the

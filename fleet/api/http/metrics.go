@@ -139,6 +139,23 @@ func (m metricsMiddleware) ViewAgentByID(ctx context.Context, token string, thin
 	return m.svc.ViewAgentByID(ctx, token, thingID)
 }
 
+func (m metricsMiddleware) ViewAgentMatchingGroupsByID(ctx context.Context, token string, thingID string) (a fleet.MatchingGroups, _ error) {
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "viewAgentMatchingGroupsByID",
+			"owner_id", a.OwnerID,
+			"agent_id", thingID,
+			"group_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.ViewAgentMatchingGroupsByID(ctx, token, thingID)
+}
+
 func (m metricsMiddleware) EditAgent(ctx context.Context, token string, agent fleet.Agent) (a fleet.Agent, _ error) {
 	defer func(begin time.Time) {
 		labels := []string{
