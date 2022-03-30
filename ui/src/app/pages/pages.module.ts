@@ -16,6 +16,7 @@ import { SinkListComponent } from './sinks/sink-list/sink-list.component';
 import { DatasetListComponent } from './datasets/dataset-list/dataset-list.component';
 import { PolicyListComponent } from './policies/policy-list/policy-list.component';
 import { PagesViewComponent } from './pages-view/pages-view.component';
+import { SettingsComponent } from './settings/settings.component';
 
 
 @NgModule({
@@ -27,6 +28,7 @@ import { PagesViewComponent } from './pages-view/pages-view.component';
     DatasetListComponent,
     PolicyListComponent,
     PagesViewComponent,
+    SettingsComponent,
   ],
   imports: [
     CommonModule,

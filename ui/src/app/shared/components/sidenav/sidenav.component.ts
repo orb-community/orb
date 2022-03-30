@@ -5,11 +5,11 @@ import { map, shareReplay } from 'rxjs/operators';
 import { MenuItem } from '../../interfaces/menu-item.interface';
 
 @Component({
-  selector: 'app-menu',
-  templateUrl: './menu.component.html',
-  styleUrls: ['./menu.component.scss']
+  selector: 'app-sidenav',
+  templateUrl: './sidenav.component.html',
+  styleUrls: ['./sidenav.component.scss']
 })
-export class MenuComponent {
+export class SidenavComponent {
 
   @Input()
   items: MenuItem[];

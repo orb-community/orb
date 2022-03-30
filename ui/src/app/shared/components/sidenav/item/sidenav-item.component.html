@@ -1,0 +1,25 @@
+<div *ngIf="!!item?.link; then linkItem; else titleItem">
+</div>
+
+<ng-template #linkItem>
+  <a mat-list-item
+     routerLink="{{ item?.link }}"
+     routerLinkActive="active">
+    {{ item?.title }}
+  </a>
+</ng-template>
+
+<ng-template #titleItem>
+  <mat-list-item>
+    {{ item?.title }}
+  </mat-list-item>
+</ng-template>
+
+<div *ngIf="!!item?.children">
+  <app-sidenav-item *ngFor="let subItem of item.children;"
+                    [item]="subItem">
+  </app-sidenav-item>
+</div>
+
+
+
