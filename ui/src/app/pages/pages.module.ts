@@ -37,8 +37,8 @@ import { PagesViewComponent } from './pages-view/pages-view.component';
     MatButtonModule,
     LayoutModule,
     RouterModule,
-    PagesRoutingModule,
     SharedModule,
+    PagesRoutingModule,
   ],
 })
 export class PagesModule {

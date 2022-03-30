@@ -8,6 +8,7 @@ import { SinkListComponent } from './sinks/sink-list/sink-list.component';
 import { DatasetListComponent } from './datasets/dataset-list/dataset-list.component';
 import { PolicyListComponent } from './policies/policy-list/policy-list.component';
 import { PagesViewComponent } from './pages-view/pages-view.component';
+import { DevComponent } from '../shared/components/dev/dev.component';
 
 
 const children: Routes = [
@@ -40,30 +41,30 @@ const children: Routes = [
           },
         ],
       },
+    ],
+  },
+  {
+    path: 'sinks',
+    children: [
       {
-        path: 'sinks',
-        children: [
-          {
-            path: '',
-            component: SinkListComponent,
-            data: { breadcrumb: 'Sink Management' },
-          },
-        ],
+        path: '',
+        component: SinkListComponent,
+        data: { breadcrumb: 'Sink Management' },
+      },
+    ],
+  },
+  {
+    path: 'datasets',
+    children: [
+      {
+        path: 'list',
+        component: DatasetListComponent,
+        data: { breadcrumb: 'Dataset Explorer' },
       },
       {
-        path: 'datasets',
-        children: [
-          {
-            path: 'list',
-            component: DatasetListComponent,
-            data: { breadcrumb: 'Dataset Explorer' },
-          },
-          {
-            path: 'policies',
-            component: PolicyListComponent,
-            data: { breadcrumb: 'Policy Management' },
-          },
-        ],
+        path: 'policies',
+        component: PolicyListComponent,
+        data: { breadcrumb: 'Policy Management' },
       },
     ],
   },
@@ -72,6 +73,7 @@ const children: Routes = [
 const DEV_ROUTES = [
   {
     path: 'dev',
+    component: DevComponent,
   },
 ];
 
@@ -87,6 +89,7 @@ const routes: Routes = [{
 @NgModule({
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
+  bootstrap: [PagesViewComponent],
 })
 export class PagesRoutingModule {
 }
