@@ -80,28 +80,8 @@ jobs:
     # if this is a push into one of our main branches (rather than just a pull request), we will also package
     if: github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            agent:
-              - 'agent/**'
-              - 'cmd/agent/**'
-            fleet:
-              - 'fleet/**'
-              - 'cmd/fleet/**'
-            policies:
-              - 'policies/**'
-              - 'cmd/policies/**'
-            sinks:
-              - 'sinks/**'
-              - 'cmd/sinks/**'
-            sinker:
-              - 'sinker/**'
-              - 'cmd/sinker/**'
-            ui:
-              - 'ui/**'
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Set branch name
         shell: bash
@@ -130,7 +110,6 @@ jobs:
 
       - name: Build orb-agent
         shell: bash
-        if: steps.filter.outputs.agent == 'true'
         env:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
@@ -143,7 +122,6 @@ jobs:
           fi
 
       - name: Build orb-ui
-        if: steps.filter.outputs.ui == 'true'
         env:
           IMAGE_NAME: ns1labs/orb-ui
         run: |
@@ -157,12 +135,10 @@ jobs:
           docker push -a ns1labs/orb-sinker
 
       - name: Push agent container
-        if: steps.filter.outputs.agent == 'true'
         run: |
           docker push -a ns1labs/orb-agent
 
       - name: Push ui container
-        if: steps.filter.outputs.ui == 'true'
         run: |
           docker push -a ns1labs/orb-ui
 

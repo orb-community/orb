@@ -175,6 +175,18 @@ jobs:
         run: |
           docker push -a ns1labs/orb-agent
 
+      - name: Build orb-ui
+        if: steps.filter.outputs.ui == 'true'
+        env:
+          IMAGE_NAME: ns1labs/orb-ui
+        run: |
+          make ui
+
+      - name: Push ui container
+        if: steps.filter.outputs.ui == 'true'
+        run: |
+          docker push -a ns1labs/orb-ui
+
       - name: Push service containers
         run: |
           docker push -a ns1labs/orb-fleet
