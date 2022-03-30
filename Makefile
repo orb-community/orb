@@ -7,8 +7,8 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 # expects to be set as env var
-PRODUCTION_REF_TAG ?= latest
-PRODUCTION_DEBUG_REF_TAG ?= latest-debug
+PRODUCTION_AGENT_REF_TAG ?= latest
+PRODUCTION_AGENT_DEBUG_REF_TAG ?= latest-debug
 REF_TAG ?= develop
 DEBUG_REF_TAG ?= develop-debug
 PKTVISOR_TAG ?= latest-develop
@@ -123,7 +123,7 @@ agent_debug:
 agent_production:
 	docker build \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_REF_TAG) \
+	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_REF_TAG) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
 	  -f agent/docker/Dockerfile .
@@ -131,7 +131,7 @@ agent_production:
 agent_debug_production:
 	docker build \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_DEBUG_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_DEBUG_REF_TAG) \
+	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_DEBUG_REF_TAG) \
 	  -f agent/docker/Dockerfile .
 
 ui:
