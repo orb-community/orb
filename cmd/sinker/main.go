@@ -19,7 +19,8 @@ import (
 	"github.com/ns1labs/orb/pkg/config"
 	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
 	"github.com/ns1labs/orb/sinker"
-	sinkerconfig "github.com/ns1labs/orb/sinker/config"
+	sinkconfig "github.com/ns1labs/orb/sinker/config"
+	cacheconfig "github.com/ns1labs/orb/sinker/redis"
 	"github.com/ns1labs/orb/sinker/redis/consumer"
 	"github.com/ns1labs/orb/sinker/redis/producer"
 	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
@@ -54,6 +55,7 @@ func main() {
 
 	natsCfg := config.LoadNatsConfig(envPrefix)
 	esCfg := config.LoadEsConfig(envPrefix)
+	cacheCfg := config.LoadCacheConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
@@ -74,6 +76,8 @@ func main() {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+
+	cacheClient := connectToRedis(cacheCfg.URL, cacheCfg.Pass, cacheCfg.DB, logger)
 
 	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
 	defer esClient.Close()
@@ -115,7 +119,7 @@ func main() {
 	}
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
 
-	configRepo := sinkerconfig.NewMemRepo(logger)
+	configRepo := cacheconfig.NewSinkerCache(cacheClient, logger)
 	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient)
 	gauge := kitprometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 		Namespace: "sinker",
@@ -240,7 +244,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func subscribeToSinksES(svc sinker.Service, configRepo sinkerconfig.ConfigRepo, client *redis.Client, cfg config.EsConfig, logger *zap.Logger) {
+func subscribeToSinksES(svc sinker.Service, configRepo sinkconfig.ConfigRepo, client *redis.Client, cfg config.EsConfig, logger *zap.Logger) {
 	eventStore := consumer.NewEventStore(svc, configRepo, client, cfg.Consumer, logger)
 	logger.Info("Subscribed to Redis Event Store for sinks")
 	if err := eventStore.Subscribe(context.Background()); err != nil {

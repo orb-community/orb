@@ -29,6 +29,11 @@ type NatsConfig struct {
 	ConsumerCfgPath string `mapstructure:"config_path"`
 }
 
+type CacheConfig struct {
+	URL  string `mapstructure:"url"`
+	Pass string `mapstructure:"pass"`
+	DB   string `mapstructure:"db"`
+}
 type EsConfig struct {
 	URL      string `mapstructure:"url"`
 	Pass     string `mapstructure:"pass"`
@@ -127,6 +132,21 @@ func LoadJaegerConfig(prefix string) JaegerConfig {
 	cfg.Unmarshal(&jC)
 
 	return jC
+}
+
+func LoadCacheConfig(prefix string) CacheConfig {
+	cfg := viper.New()
+	cfg.SetEnvPrefix(fmt.Sprintf("%s_cache", prefix))
+
+	cfg.SetDefault("url", "localhost:6379")
+	cfg.SetDefault("pass", "")
+	cfg.SetDefault("db", "1")
+
+	cfg.AllowEmptyEnv(true)
+	cfg.AutomaticEnv()
+	var cacheC CacheConfig
+	cfg.Unmarshal(&cacheC)
+	return cacheC
 }
 
 func LoadEsConfig(prefix string) EsConfig {
