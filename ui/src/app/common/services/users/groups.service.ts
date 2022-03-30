@@ -6,7 +6,7 @@ import { environment } from 'environments/environment';
 import { UserGroup } from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
-const defLimit: number = 20;
+const defLimit: number = 100;
 
 @Injectable()
 export class UserGroupsService {

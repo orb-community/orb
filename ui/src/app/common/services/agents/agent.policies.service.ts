@@ -10,7 +10,7 @@ import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { catchError, delay, expand, reduce } from 'rxjs/operators';
 
 // default filters
-const defLimit: number = 20;
+const defLimit: number = 100;
 const defOrder: string = 'name';
 const defDir = 'desc';
 
