@@ -55,7 +55,7 @@ nb-card {
       }
 
       code {
-        color: #ffffff;
+        color: #fff;
         line-height: 2.5 !important;
       }
     }
@@ -123,11 +123,12 @@ nb-card {
   background-repeat: no-repeat !important;
   border: none !important;
   cursor: pointer !important;
-  overflow: hidden !important;
   outline: none !important;
+  overflow: hidden !important;
 }
 
 .agent-group-accent {
-  color: #969fb9 !important;
+  color: #ffffff !important;
   text-decoration: underline !important;
+  font-weight: bolder;
 }

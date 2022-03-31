@@ -66,7 +66,7 @@ export class AgentGroupsComponent implements OnInit {
   }
 
   onOpenEditAgentGroup(agentGroup: any) {
-    this.router.navigate([`../../../groups/edit/${ agentGroup.id }`], {
+    this.router.navigate([`/pages/fleet/groups/edit/${ agentGroup.id }`], {
       state: { agentGroup: agentGroup, edit: true },
       relativeTo: this.route,
     });
