@@ -229,6 +229,24 @@ paths:
           description: Missing or invalid access token provided.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /agents/{id}/matching_groups:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/AgentGroupId"
+    get:
+      summary: 'Get matching groups for an existing Agent'
+      operationId: readAgent
+      tags:
+        - agents
+      responses:
+        '201':
+          $ref: "#/components/responses/AgentMatchingGroupsObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
   /agents/validate:
     parameters:
       - $ref: "#/components/parameters/Authorization"
@@ -454,6 +472,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AgentObjSchema"
+    AgentMatchingGroupsObjRes:
+      description: Agent Matching Groups object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentMatchingGroupsObjSchema"
     AgentValidateObjRes:
       description: Agent validation object
       content:
@@ -742,28 +766,19 @@ components:
           type: string
           format: uuid
           description: Communication channel ID (UUIDv4), unique to this agent and created at agent creation
-        matching_groups:
-          type: object
-          description: Groups this Agent currently belongs to, according to matching agent and group tags
-          properties:
-            groups:
-              type: array
-              items:
-                type: object
-                description: total groups matching
-                properties:
-                  group_id:
-                    type: string
-                    format: uuid
-                    description: group id
-                  name:
-                    type: string
-                    description: group name
-                    example: 'group-1'
-                  channel:
-                    type: string
-                    format: uuid
-                    description: group id
+    AgentMatchingGroupsObjSchema:
+      type: array
+      items:
+        type: object
+        properties:
+          group_id:
+            type: string
+            format: uuid
+            description: group id
+          name:
+            type: string
+            description: group name
+            example: 'group-1'
     AgentValidateObjSchema:
       type: object
       required:
