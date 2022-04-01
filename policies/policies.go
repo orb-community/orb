@@ -163,4 +163,7 @@ type Repository interface {
 
 	// DeleteSinkFromAllDatasets removes a sink from a dataset
 	DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
+
+	// RetrieveAllPoliciesInternal retrieves the subset of Policies owned by the specified user
+	RetrieveAllPoliciesInternal(ctx context.Context, ownerID string) ([]Policy, error)
 }

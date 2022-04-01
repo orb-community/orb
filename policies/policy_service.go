@@ -17,6 +17,7 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies/backend"
 	sinkpb "github.com/ns1labs/orb/sinks/pb"
+	"regexp"
 )
 
 var (
@@ -372,7 +373,32 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 		return Policy{}, err
 	}
 
-	name, err := types.NewIdentifier(existingPolicy.Name.String() + "-copy")
+	policyList, err := s.repo.RetrieveAllPoliciesInternal(ctx, mfOwnerID)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	regex := regexp.MustCompile(fmt.Sprintf(`%s.*`, existingPolicy.Name.String()))
+
+	policyNames := make([]string, 0)
+	for _, p := range policyList {
+		matches := regex.FindString(p.Name.String())
+		if matches != ""{
+			policyNames = append(policyNames, matches)
+		}
+	}
+
+	var nameSufix string
+	if len(policyNames) > 1{
+		nameSufix = fmt.Sprintf("_copy"+"_%d", len(policyNames))
+		if err != nil {
+			return Policy{}, err
+		}
+	} else {
+		nameSufix = fmt.Sprintf(("_copy"))
+	}
+
+	name, err := types.NewIdentifier(existingPolicy.Name.String() + nameSufix)
 	if err != nil {
 		return Policy{}, err
 	}
