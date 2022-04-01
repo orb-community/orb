@@ -70,7 +70,7 @@ func TestPolicySave(t *testing.T) {
 				Name:      nameID,
 				MFOwnerID: "",
 			},
-			err:    errors.ErrMalformedEntity,
+			err: errors.ErrMalformedEntity,
 		},
 	}
 
@@ -120,15 +120,15 @@ func TestAgentPolicyDataRetrieve(t *testing.T) {
 		},
 		"retrieve policies by ID with empty owner": {
 			policyID: id,
-			ownerID: "",
-			tags: types.Tags{"testkey": "testvalue"},
-			err:   errors.ErrMalformedEntity,
+			ownerID:  "",
+			tags:     types.Tags{"testkey": "testvalue"},
+			err:      errors.ErrMalformedEntity,
 		},
 		"retrieve policies by ID with empty policyID": {
 			policyID: "",
-			ownerID: policy.MFOwnerID,
-			tags: types.Tags{"testkey": "testvalue"},
-			err:   errors.ErrMalformedEntity,
+			ownerID:  policy.MFOwnerID,
+			tags:     types.Tags{"testkey": "testvalue"},
+			err:      errors.ErrMalformedEntity,
 		},
 	}
 
@@ -333,14 +333,14 @@ func TestAgentPoliciesRetrieveByGroup(t *testing.T) {
 			ownerID: "",
 			dsID:    dsID,
 			results: 0,
-			err:   errors.ErrMalformedEntity,
+			err:     errors.ErrMalformedEntity,
 		},
 		"retrieve policies by groupID with empty groupID": {
 			groupID: []string{},
 			ownerID: policy.MFOwnerID,
 			dsID:    dsID,
 			results: 0,
-			err:   errors.ErrMalformedEntity,
+			err:     errors.ErrMalformedEntity,
 		},
 	}
 
@@ -466,6 +466,58 @@ func TestPolicyDelete(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			err := repo.DeletePolicy(context.Background(), tc.owner, tc.id)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
+	}
+}
+
+func TestMultiPolicyRetrievalInternal(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	wrongID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		nameID, err := types.NewIdentifier(fmt.Sprintf("mypolicy-%d", i))
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+		policy := policies.Policy{
+			Name:      nameID,
+			MFOwnerID: oID.String(),
+			Policy:    types.Metadata{"pkey1": "pvalue1"},
+		}
+		if math.Mod(float64(i), 2) == 0 {
+			policy.OrbTags = types.Tags{"node_type": "dns"}
+		}
+
+		_, err = repo.SavePolicy(context.Background(), policy)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner string
+		size  uint64
+	}{
+		"retrieve all policies with existing owner": {
+			owner: oID.String(),
+			size:  n,
+		},
+		"retrieve policies with no-existing owner": {
+			owner: wrongID.String(),
+			size:  0,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			policies, err := repo.RetrieveAllPoliciesInternal(context.Background(), tc.owner)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s\n", desc, err))
+			size := uint64(len(policies))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
 		})
 	}
 }

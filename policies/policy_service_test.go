@@ -1303,9 +1303,11 @@ func TestDuplicatePolicy(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := svc.DuplicatePolicy(context.Background(), tc.token, tc.policyID)
+			policyDuplicated, err := svc.DuplicatePolicy(context.Background(), tc.token, tc.policyID)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
-			t.Log(tc.token)
+			if err == nil{
+				assert.Equal(t, policy.Policy, policyDuplicated.Policy, fmt.Sprintf("%s: expected %v got %v", desc, policy, policyDuplicated))
+			}
 		})
 	}
 }
