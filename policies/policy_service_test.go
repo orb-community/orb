@@ -1109,7 +1109,6 @@ func createDataset(t *testing.T, svc policies.Service, name string) policies.Dat
 	for i := 0; i < 2; i++ {
 		sinkID, err := uuid.NewV4()
 		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-		//sinkIDs = append(sinkIDs, sinkID.String())
 		sinkIDs[i] = sinkID.String()
 	}
 
