@@ -423,7 +423,27 @@ func TestEditDataset(t *testing.T) {
 	users := flmocks.NewAuthService(map[string]string{token: email})
 	svc := newService(users)
 
-	policy := createDataset(t, svc, "policy")
+	policy := createPolicy(t, svc, "policy")
+
+	groupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	sinkID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	validName, err := types.NewIdentifier("dataset")
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		Name:         validName,
+		Valid:        true,
+		AgentGroupID: groupID.String(),
+		PolicyID:     policy.ID,
+		SinkIDs:      []string{sinkID.String()},
+	}
+
+	dataset, err = svc.AddDataset(context.Background(), token, dataset)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	nameID, err := types.NewIdentifier("new-policy")
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
@@ -431,11 +451,18 @@ func TestEditDataset(t *testing.T) {
 	wrongOwnerID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
+	wrongSinkID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	wrongSinkDs := createDataset(t, svc, "wrong_sink")
+	wrongSinkDs.SinkIDs = []string{wrongSinkID.String()}
+
 	wrongDataset := policies.Dataset{MFOwnerID: wrongOwnerID.String()}
 	newDataset := policies.Dataset{
-		ID:        policy.ID,
-		Name:      nameID,
-		MFOwnerID: policy.MFOwnerID,
+		ID:           dataset.ID,
+		Name:         nameID,
+		MFOwnerID:    dataset.MFOwnerID,
+		SinkIDs:      dataset.SinkIDs,
 	}
 
 	cases := map[string]struct {
@@ -456,7 +483,7 @@ func TestEditDataset(t *testing.T) {
 		"update a non-existing dataset": {
 			ds:    wrongDataset,
 			token: token,
-			err:   policies.ErrNotFound,
+			err:   policies.ErrMalformedEntity,
 		},
 	}
 
@@ -1079,7 +1106,7 @@ func createDataset(t *testing.T, svc policies.Service, name string) policies.Dat
 	for i := 0; i < 2; i++ {
 		sinkID, err := uuid.NewV4()
 		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-		sinkIDs = append(sinkIDs, sinkID.String())
+		sinkIDs[i] = sinkID.String()
 	}
 
 	validName, err := types.NewIdentifier(name)

@@ -567,6 +567,33 @@ func (r policiesRepository) DeleteSinkFromAllDatasets(ctx context.Context, sinkI
 	return datasets, nil
 }
 
+func (r policiesRepository) ActivateDatasetByID(ctx context.Context, id string, ownerID string) error {
+	q := `UPDATE datasets SET valid = true WHERE mf_owner_id = :mf_owner_id AND :id = id`
+
+	if ownerID == "" || id == ""{
+		return errors.ErrMalformedEntity
+	}
+
+	params := map[string]interface{}{
+		"mf_owner_id": ownerID,
+		"id":          id,
+	}
+
+	_, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	return nil
+}
+
 type dbPolicy struct {
 	ID            string           `db:"id"`
 	Name          types.Identifier `db:"name"`
