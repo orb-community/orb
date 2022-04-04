@@ -53,7 +53,7 @@ jobs:
         run: |
           echo "REF_TAG=production" >> $GITHUB_ENV
 
-      - name: Append sufix on VERSION file for production build
+      - name: Append suffix on VERSION file for production build
         run: |
           echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
@@ -158,7 +158,7 @@ jobs:
       - name: Build orb-agent
         # make this as "latest" tag
         shell: bash
-         env:
+        env:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
