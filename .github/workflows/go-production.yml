@@ -53,7 +53,7 @@ jobs:
         run: |
           echo "REF_TAG=production" >> $GITHUB_ENV
 
-      - name: Append sufix on VERSION file for production build
+      - name: Append suffix on VERSION file for production build
         run: |
           echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
@@ -68,7 +68,6 @@ jobs:
         run: make services
 
       - name: Build orb agent (go build only)
-        if: steps.filter.outputs.agent == 'true'
         run: make agent_bin
 
       - name: Go unit tests
@@ -117,7 +116,7 @@ jobs:
         run: |
           echo "REF_TAG=production" >> $GITHUB_ENV
 
-      - name: Append sufix on VERSION file for production build
+      - name: Append suffix on VERSION file for production build
         run: |
           echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
@@ -159,7 +158,6 @@ jobs:
       - name: Build orb-agent
         # make this as "latest" tag
         shell: bash
-        if: steps.filter.outputs.agent == 'true'
         env:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
@@ -172,7 +170,6 @@ jobs:
           fi
 
       - name: Push agent container
-        if: steps.filter.outputs.agent == 'true'
         run: |
           docker push -a ns1labs/orb-agent
 
@@ -183,7 +180,7 @@ jobs:
           docker push -a ns1labs/orb-sinks
           docker push -a ns1labs/orb-sinker
 
-      - name: Commit image tag on orb-live-manifest environment dev
+      - name: Commit image tag on orb-live-manifest environment prod
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"
@@ -195,5 +192,5 @@ jobs:
           sed -i -e "s/IMAGE_TAG/${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
           git add values.yaml
           git add .template/values.old
-          git commit -m "[NS1 Orb Bot] Update image tag on stg environment"
+          git commit -m "[NS1 Orb Bot] Update image tag on prod environment"
           git push origin main
