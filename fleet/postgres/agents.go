@@ -487,7 +487,7 @@ func (r agentRepository) SetStaleStatus(ctx context.Context, duration time.Durat
 
 	params := map[string]interface{}{
 		"duration": duration.Seconds(),
-		"state":   fleet.Stale,
+		"state":    fleet.Stale,
 	}
 	res, err := r.db.NamedExecContext(ctx, q, params)
 	if err != nil {
@@ -512,17 +512,17 @@ func (r agentRepository) SetStaleStatus(ctx context.Context, duration time.Durat
 }
 
 type dbAgent struct {
-	Name          types.Identifier `db:"name"`
-	MFOwnerID     string           `db:"mf_owner_id"`
-	MFThingID     string           `db:"mf_thing_id"`
-	MFChannelID   string           `db:"mf_channel_id"`
-	OrbTags       db.Tags          `db:"orb_tags"`
-	AgentTags     db.Tags          `db:"agent_tags"`
-	AgentMetadata db.Metadata      `db:"agent_metadata"`
-	State         fleet.State      `db:"state"`
-	Created       time.Time        `db:"ts_created"`
-	LastHBData    db.Metadata      `db:"last_hb_data"`
-	LastHB        sql.NullTime     `db:"ts_last_hb"`
+	Name           types.Identifier `db:"name"`
+	MFOwnerID      string           `db:"mf_owner_id"`
+	MFThingID      string           `db:"mf_thing_id"`
+	MFChannelID    string           `db:"mf_channel_id"`
+	OrbTags        db.Tags          `db:"orb_tags"`
+	AgentTags      db.Tags          `db:"agent_tags"`
+	AgentMetadata  db.Metadata      `db:"agent_metadata"`
+	State          fleet.State      `db:"state"`
+	Created        time.Time        `db:"ts_created"`
+	LastHBData     db.Metadata      `db:"last_hb_data"`
+	LastHB         sql.NullTime     `db:"ts_last_hb"`
 }
 
 type dbMatchingAgent struct {
@@ -556,17 +556,17 @@ func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 func toAgent(dba dbAgent) (fleet.Agent, error) {
 
 	agent := fleet.Agent{
-		Name:          dba.Name,
-		MFOwnerID:     dba.MFOwnerID,
-		MFThingID:     dba.MFThingID,
-		MFChannelID:   dba.MFChannelID,
-		Created:       dba.Created,
-		OrbTags:       types.Tags(dba.OrbTags),
-		AgentTags:     types.Tags(dba.AgentTags),
-		AgentMetadata: types.Metadata(dba.AgentMetadata),
-		State:         dba.State,
-		LastHBData:    types.Metadata(dba.LastHBData),
-		LastHB:        dba.LastHB.Time,
+		Name:           dba.Name,
+		MFOwnerID:      dba.MFOwnerID,
+		MFThingID:      dba.MFThingID,
+		MFChannelID:    dba.MFChannelID,
+		Created:        dba.Created,
+		OrbTags:        types.Tags(dba.OrbTags),
+		AgentTags:      types.Tags(dba.AgentTags),
+		AgentMetadata:  types.Metadata(dba.AgentMetadata),
+		State:          dba.State,
+		LastHBData:     types.Metadata(dba.LastHBData),
+		LastHB:         dba.LastHB.Time,
 	}
 
 	return agent, nil
