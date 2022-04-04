@@ -121,6 +121,16 @@ func TestAgentGroupRetrieve(t *testing.T) {
 			groupID: group.MFOwnerID,
 			err:     errors.ErrNotFound,
 		},
+		"retrieve agent group with empty owner": {
+			ownerID: "",
+			groupID: id,
+			err:     errors.ErrMalformedEntity,
+		},
+		"retrieve agent group with empty groupID": {
+			ownerID: group.MFOwnerID,
+			groupID: "",
+			err:     errors.ErrMalformedEntity,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -233,6 +243,16 @@ func TestMultiAgentGroupRetrieval(t *testing.T) {
 			},
 			size: n,
 		},
+		"retrieve all groups filtered by tags": {
+			owner: oID.String(),
+			pageMetadata: fleet.PageMetadata{
+				Offset: 0,
+				Limit:  n,
+				Total:  n,
+				Tags: types.Tags{"testkey": "testvalue"},
+			},
+			size: n,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -310,6 +330,13 @@ func TestAgentGroupUpdate(t *testing.T) {
 			},
 			err: fleet.ErrNotFound,
 		},
+		"update existing agent by thingID with invalid ownerID": {
+			group: fleet.AgentGroup{
+				ID:        groupID,
+				MFOwnerID: "123",
+			},
+			err:     errors.ErrMalformedEntity,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -372,6 +399,90 @@ func TestAgentGroupDelete(t *testing.T) {
 
 			_, err = groupRepo.RetrieveByID(context.Background(), tc.ID, tc.ownerID)
 			require.True(t, errors.Contains(err, fleet.ErrNotFound), fmt.Sprintf("%s: expected %s got %s", desc, fleet.ErrNotFound, err))
+		})
+	}
+}
+
+func TestAgentGroupRetrieveAllByAgent(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentGroupRepo := postgres.NewAgentGroupRepository(dbMiddleware, logger)
+	agentRepo := postgres.NewAgentRepository(db, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("myagent")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	thID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	wrongID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	agent := fleet.Agent{
+		Name:        nameID,
+		MFThingID:   thID.String(),
+		MFOwnerID:   oID.String(),
+		MFChannelID: chID.String(),
+		OrbTags:     types.Tags{"testkey": "testvalue"},
+		AgentTags:   types.Tags{"testkey": "testvalue"},
+		LastHBData:  types.Metadata{"heartbeatdata": "testvalue"},
+	}
+
+	err = agentRepo.Save(context.Background(), agent)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+
+		nameID, err := types.NewIdentifier(fmt.Sprintf("ue-agent-group-%d", i))
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+		group := fleet.AgentGroup{
+			Name:        nameID,
+			Description: "a example",
+			MFOwnerID:   oID.String(),
+			MFChannelID: chID.String(),
+			Tags:        types.Tags{"testkey": "testvalue"},
+		}
+
+		ag, err := agentGroupRepo.Save(context.Background(), group)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+		fmt.Sprint(ag)
+	}
+
+	cases := map[string]struct {
+		agent fleet.Agent
+		size  uint64
+	}{
+		"retrieve all groups with existing owner": {
+			agent: agent,
+			size: n,
+		},
+		"retrieve all groups with non-existing agent": {
+			agent: fleet.Agent{
+				Name:        nameID,
+				MFThingID:   wrongID.String(),
+				MFOwnerID:   oID.String(),
+				MFChannelID: chID.String(),
+				OrbTags:     types.Tags{"testkey": "testvalue"},
+				AgentTags:   types.Tags{"testkey": "testvalue"},
+				LastHBData:  types.Metadata{"heartbeatdata": "testvalue"},
+			},
+			size: 0,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			groups, err := agentGroupRepo.RetrieveAllByAgent(context.Background(), tc.agent)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s\n", desc, err))
+			size := uint64(len(groups))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
 		})
 	}
 }

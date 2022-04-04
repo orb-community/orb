@@ -1,18 +1,18 @@
 h4 {
   font-family: 'Montserrat', sans-serif;
+  font-size: 24px;
   font-style: normal;
   font-weight: normal;
-  font-size: 24px;
   line-height: 32px;
 }
 
 .dataset-summary {
   .dataset-info-regular {
-    color: #ffffff;
+    color: #fff;
 
     &::before {
-      content: 'You have\00a0';
       color: #969fb9;
+      content: 'You have\00a0';
     }
   }
 
@@ -27,19 +27,19 @@ h4 {
 
 .filter-dropdown {
   display: flex;
+  padding-right: 50px;
   position: absolute;
   right: 0;
-  padding-right: 50px;
   transform: translateY(-50px);
 }
 
 .button-new-dataset {
-  width: 155px;
-  height: 236px;
-  border: 1px solid #969fb9;
   background: #232940;
+  border: 1px solid #969fb9;
   box-sizing: border-box;
+  height: 236px;
   justify-content: flex-end;
+  width: 155px;
 
   &::ng-deep div {
     display: flex !important;
@@ -49,22 +49,22 @@ h4 {
   &:hover {
     background: #232940;
     border: 1px solid #3089fc;
-    box-sizing: border-box;
     border-radius: 4px;
+    box-sizing: border-box;
   }
 
   &:active {
     background: #232940;
     border: 1px solid #3089fc;
-    box-sizing: border-box;
     border-radius: 4px;
+    box-sizing: border-box;
   }
 
   &:default {
     background: #232940;
     border: 1px solid #969fb9;
-    box-sizing: border-box;
     border-radius: 4px;
+    box-sizing: border-box;
   }
 }
 
@@ -76,55 +76,67 @@ tr div p {
 
 ::ng-deep {
   header p {
-    font-family: 'Montserrat', sans-serif;
-    font-style: normal;
-    font-weight: normal;
-    font-size: 14px !important;
-    line-height: 20px;
-
-    width: 250px;
-    height: 20px;
-    margin-left: 16px;
-    margin-top: 24px;
-
-    display: flex;
     align-items: center;
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px !important;
+    font-style: normal;
+
+    font-weight: normal;
+    height: 20px;
+    line-height: 20px;
+    margin-left: 16px;
+
+    margin-top: 24px;
+    width: 250px;
   }
 
   .orb-breadcrumb {
     display: flex;
     font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
     font-style: normal;
     font-weight: 500;
-    font-size: 12px;
     line-height: 12px;
 
     ::ng-deep {
       .xng-breadcrumb-trail {
-        color: #ffffff;
+        color: #fff;
         margin-bottom: 0;
       }
+
       .xng-breadcrumb-link {
-        text-decoration: none !important;
         color: #969fb9 !important;
+        text-decoration: none !important;
       }
-     .xng-breadcrumb-separator {
-        text-decoration: none !important;
+
+      .xng-breadcrumb-separator {
         color: #969fb9 !important;
+        text-decoration: none !important;
       }
     }
   }
 }
 
 .add-dataset-container {
-  position: relative;
   height: 0;
+  position: relative;
 
   button {
     float: right;
-    top: 5px;
     position: relative;
-    z-index: 2;
     right: 5px;
+    top: 5px;
+    z-index: 2;
+  }
+}
+
+.orb-service- {
+  &true {
+    color: #6fcf97;
+  }
+
+  &false {
+    color: #df316f;
   }
 }

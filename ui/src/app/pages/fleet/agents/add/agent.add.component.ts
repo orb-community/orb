@@ -7,6 +7,7 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { AgentKeyComponent } from '../key/agent.key.component';
+import { Tags } from 'app/common/interfaces/orb/tag';
 
 @Component({
   selector: 'ngx-agent-add-component',
@@ -15,7 +16,7 @@ import { AgentKeyComponent } from '../key/agent.key.component';
 })
 export class AgentAddComponent {
   // page vars
-  strings = {...STRINGS.agents, stepper: STRINGS.stepper};
+  strings = { ...STRINGS.agents, stepper: STRINGS.stepper };
 
   isEdit: boolean;
 
@@ -25,9 +26,7 @@ export class AgentAddComponent {
   // stepper vars
   firstFormGroup: FormGroup;
 
-  secondFormGroup: FormGroup;
-
-  selectedTags: { [propName: string]: string };
+  selectedTags: Tags;
 
   // agent vars
   agent: Agent;
@@ -54,7 +53,7 @@ export class AgentAddComponent {
       this.agent = agent;
       this.initializeForms();
       this.isLoading = false;
-    }).catch(reason => console.warn(`Couldn't fetch data. Reason: ${reason}`));
+    }).catch(reason => console.warn(`Couldn't fetch data. Reason: ${ reason }`));
   }
 
   newAgent() {
@@ -84,41 +83,17 @@ export class AgentAddComponent {
     this.firstFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
     });
-
-    this.secondFormGroup = this._formBuilder.group({
-      key: [''],
-      value: [''],
-    });
   }
 
   goBack() {
     this.router.navigateByUrl('/pages/fleet/agents');
   }
 
-  checkValidName() {
-    const { value } = this.secondFormGroup?.controls?.key;
-    const hasTagForKey = Object.keys(this.selectedTags).find(key => key === value);
-    return value !== '' && !hasTagForKey;
-  }
-
-  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
-  onAddTag() {
-    const { key, value } = this.secondFormGroup.controls;
-
-    this.selectedTags[key.value] = value.value;
-    key.reset('');
-    value.reset('');
-  }
-
-  onRemoveTag(tag: any) {
-    delete this.selectedTags[tag];
-  }
-
   wrapPayload(validate: boolean) {
-    const {name} = this.firstFormGroup.controls;
+    const { name } = this.firstFormGroup.controls;
     return {
       name: name.value,
-      orb_tags: {...this.selectedTags},
+      orb_tags: { ...this.selectedTags },
       validate_only: !!validate && validate, // Apparently this guy is required..
     };
   }
@@ -139,7 +114,7 @@ export class AgentAddComponent {
     const payload = this.wrapPayload(false);
 
     if (this.isEdit) {
-      this.agentsService.editAgent({...payload, id: this.agentID}).subscribe(() => {
+      this.agentsService.editAgent({ ...payload, id: this.agentID }).subscribe(() => {
         this.notificationsService.success('Agent successfully updated', '');
         this.goBack();
       });

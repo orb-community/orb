@@ -52,7 +52,7 @@ func (r policiesRepository) DeletePolicy(ctx context.Context, ownerID string, po
 }
 
 func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, plcy policies.Policy) error {
-	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy, version = :version WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy, version = :version, ts_last_modified = CURRENT_TIMESTAMP, policy_data = :policy_data WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 	plcyDB, err := toDBPolicy(plcy)
 	if err != nil {
 		return errors.Wrap(policies.ErrUpdateEntity, err)
@@ -93,7 +93,7 @@ func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm po
 		return policies.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	q := fmt.Sprintf(`SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created 
+	q := fmt.Sprintf(`SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, ts_last_modified 
 			FROM agent_policies
 			WHERE mf_owner_id = :mf_owner_id %s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, tagsQuery, orderQuery, dirQuery)
 
@@ -182,7 +182,8 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 }
 
 func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
+	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, ts_last_modified, policy_data, format 
+			FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
 
 	if policyID == "" || ownerID == "" {
 		return policies.Policy{}, errors.ErrMalformedEntity
@@ -200,13 +201,14 @@ func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID str
 }
 
 func (r policiesRepository) UpdateDataset(ctx context.Context, ownerID string, ds policies.Dataset) error {
-	q := `UPDATE datasets SET tags = :tags, sink_ids = :sink_ids WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE datasets SET tags = :tags, sink_ids = :sink_ids, name = :name WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 
 	params := map[string]interface{}{
 		"mf_owner_id": ds.MFOwnerID,
 		"tags":        db.Tags(ds.Tags),
 		"sink_ids":    pq.Array(ds.SinkIDs),
 		"id":          ds.ID,
+		"name":        ds.Name,
 	}
 
 	res, err := r.db.NamedExecContext(ctx, q, params)
@@ -358,8 +360,8 @@ func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, pol
 
 func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 
-	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, policy, orb_tags, description)         
-			  VALUES (:name, :mf_owner_id, :backend, :policy, :orb_tags, :description) RETURNING id`
+	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, schema_version, policy, orb_tags, description, policy_data, format)         
+			  VALUES (:name, :mf_owner_id, :backend, :schema_version, :policy, :orb_tags, :description, :policy_data, :format) RETURNING id`
 
 	if !policy.Name.IsValid() || policy.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -503,17 +505,83 @@ func (r policiesRepository) RetrieveAllDatasetsByOwner(ctx context.Context, owne
 	return pageDataset, nil
 }
 
+func (r policiesRepository) InactivateDatasetByID(ctx context.Context, id string, ownerID string) error {
+	q := `UPDATE datasets SET valid = false WHERE mf_owner_id = :mf_owner_id AND :id = id`
+
+	params := map[string]interface{}{
+		"mf_owner_id": ownerID,
+		"id":          id,
+	}
+
+	_, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	return nil
+}
+
+func (r policiesRepository) DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]policies.Dataset, error) {
+	q := `UPDATE datasets SET sink_ids = array_remove(sink_ids, :sink_ids) WHERE mf_owner_id = :mf_owner_id RETURNING *`
+
+	if ownerID == "" {
+		return []policies.Dataset{}, errors.ErrMalformedEntity
+	}
+
+	params := map[string]interface{}{
+		"mf_owner_id": ownerID,
+		"sink_ids":    sinkID,
+	}
+
+	res, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return []policies.Dataset{}, errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return []policies.Dataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	defer res.Close()
+
+	var datasets []policies.Dataset
+	for res.Next() {
+		dbDataset := dbDataset{MFOwnerID: ownerID}
+		if err := res.StructScan(&dbDataset); err != nil {
+			return []policies.Dataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		dataset := toDataset(dbDataset)
+		datasets = append(datasets, dataset)
+	}
+
+	return datasets, nil
+}
+
 type dbPolicy struct {
-	ID          string           `db:"id"`
-	Name        types.Identifier `db:"name"`
-	MFOwnerID   string           `db:"mf_owner_id"`
-	Backend     string           `db:"backend"`
-	Description string           `db:"description"`
-	OrbTags     db.Tags          `db:"orb_tags"`
-	Policy      db.Metadata      `db:"policy"`
-	Version     int32            `db:"version"`
-	Created     time.Time        `db:"ts_created"`
-	DataSetID   string           `db:"dataset_id"`
+	ID            string           `db:"id"`
+	Name          types.Identifier `db:"name"`
+	MFOwnerID     string           `db:"mf_owner_id"`
+	Backend       string           `db:"backend"`
+	SchemaVersion string           `db:"schema_version"`
+	Description   string           `db:"description"`
+	OrbTags       db.Tags          `db:"orb_tags"`
+	Policy        db.Metadata      `db:"policy"`
+	PolicyData    string           `db:"policy_data"`
+	Format        string           `db:"format"`
+	Version       int32            `db:"version"`
+	Created       time.Time        `db:"ts_created"`
+	DataSetID     string           `db:"dataset_id"`
+	LastModified  time.Time        `db:"ts_last_modified"`
 }
 
 func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
@@ -525,14 +593,17 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 	}
 
 	return dbPolicy{
-		ID:          policy.ID,
-		Name:        policy.Name,
-		Description: policy.Description,
-		Version:     policy.Version,
-		MFOwnerID:   uID.String(),
-		Backend:     policy.Backend,
-		OrbTags:     db.Tags(policy.OrbTags),
-		Policy:      db.Metadata(policy.Policy),
+		ID:            policy.ID,
+		Name:          policy.Name,
+		Description:   policy.Description,
+		Version:       policy.Version,
+		MFOwnerID:     uID.String(),
+		Backend:       policy.Backend,
+		SchemaVersion: policy.SchemaVersion,
+		OrbTags:       db.Tags(policy.OrbTags),
+		Policy:        db.Metadata(policy.Policy),
+		PolicyData:    policy.PolicyData,
+		Format:        policy.Format,
 	}, nil
 
 }
@@ -593,15 +664,19 @@ func NewPoliciesRepository(db Database, log *zap.Logger) policies.Repository {
 func toPolicy(dba dbPolicy) policies.Policy {
 
 	policy := policies.Policy{
-		ID:          dba.ID,
-		Name:        dba.Name,
-		Description: dba.Description,
-		MFOwnerID:   dba.MFOwnerID,
-		Backend:     dba.Backend,
-		Version:     dba.Version,
-		OrbTags:     types.Tags(dba.OrbTags),
-		Policy:      types.Metadata(dba.Policy),
-		Created:     dba.Created,
+		ID:            dba.ID,
+		Name:          dba.Name,
+		Description:   dba.Description,
+		MFOwnerID:     dba.MFOwnerID,
+		Backend:       dba.Backend,
+		SchemaVersion: dba.SchemaVersion,
+		Version:       dba.Version,
+		OrbTags:       types.Tags(dba.OrbTags),
+		Policy:        types.Metadata(dba.Policy),
+		Created:       dba.Created,
+		LastModified:  dba.LastModified,
+		PolicyData:    dba.PolicyData,
+		Format:        dba.Format,
 	}
 
 	return policy

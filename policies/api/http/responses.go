@@ -11,16 +11,18 @@ import (
 )
 
 type policyRes struct {
-	ID          string         `json:"id"`
-	Name        string         `json:"name"`
-	Description string         `json:"description,omitempty"`
-	Tags        types.Tags     `json:"tags"`
-	Backend     string         `json:"backend"`
-	Policy      types.Metadata `json:"policy,omitempty"`
-	Format      string         `json:"format,omitempty"`
-	PolicyData  string         `json:"policy_data,omitempty"`
-	Version     int32          `json:"version,omitempty"`
-	created     bool
+	ID            string         `json:"id"`
+	Name          string         `json:"name"`
+	Description   string         `json:"description,omitempty"`
+	Tags          types.Tags     `json:"tags"`
+	Backend       string         `json:"backend"`
+	SchemaVersion string         `json:"schema_version"`
+	Policy        types.Metadata `json:"policy,omitempty"`
+	Format        string         `json:"format,omitempty"`
+	PolicyData    string         `json:"policy_data,omitempty"`
+	Version       int32          `json:"version"`
+	LastModified  time.Time      `json:"ts_last_modified"`
+	created       bool
 }
 
 func (s policyRes) Code() int {
@@ -45,6 +47,8 @@ type policyUpdateRes struct {
 	Description string         `json:"description"`
 	Tags        types.Tags     `json:"tags,omitempty"`
 	Policy      types.Metadata `json:"policy,omitempty"`
+	Format      string         `json:"format,omitempty"`
+	PolicyData  string         `json:"policy_data,omitempty"`
 	Version     int32          `json:"version,omitempty"`
 }
 
@@ -97,6 +101,8 @@ type policyValidateRes struct {
 	Description string         `json:"description"`
 	Tags        types.Tags     `json:"tags"`
 	Policy      types.Metadata `json:"policy"`
+	Format      string         `json:"format,omitempty"`
+	PolicyData  string         `json:"policy_data,omitempty"`
 }
 
 func (s policyValidateRes) Code() int {

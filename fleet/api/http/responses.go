@@ -89,34 +89,9 @@ func (s agentRes) Empty() bool {
 	return false
 }
 
-type viewAgentRes struct {
-	ID            string         `json:"id"`
-	Name          string         `json:"name"`
-	ChannelID     string         `json:"channel_id,omitempty"`
-	AgentTags     types.Tags     `json:"agent_tags"`
-	OrbTags       types.Tags     `json:"orb_tags"`
-	TsCreated     time.Time      `json:"ts_created"`
-	AgentMetadata types.Metadata `json:"agent_metadata"`
-	State         string         `json:"state"`
-	LastHBData    types.Metadata `json:"last_hb_data"`
-	LastHB        time.Time      `json:"ts_last_hb"`
-}
-
-func (res viewAgentRes) Code() int {
-	return http.StatusOK
-}
-
-func (res viewAgentRes) Headers() map[string]string {
-	return map[string]string{}
-}
-
-func (res viewAgentRes) Empty() bool {
-	return false
-}
-
 type agentsPageRes struct {
 	pageRes
-	Agents []viewAgentRes `json:"agents"`
+	Agents []agentRes `json:"agents"`
 }
 
 func (res agentsPageRes) Code() int {

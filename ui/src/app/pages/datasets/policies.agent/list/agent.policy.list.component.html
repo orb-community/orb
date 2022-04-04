@@ -4,89 +4,104 @@
     </xng-breadcrumb>
     <h4>All Policies</h4>
   </header>
-  <div class="d-flex flex-column mt-4" #tableWrapper>
+  <div #tableWrapper class="d-flex flex-column mt-4">
     <div class="d-flex justify-content-between align-items-end mb-2">
+      <div class="d-flex">
+        <p *ngIf=" paginationControls.data && paginationControls.data.length === 1"
+           class="sink-info-regular mb-0">
+          You have <a><strong>{{paginationControls.total}}</strong> policy</a>.
+        </p>
+        <p *ngIf=" paginationControls.data && paginationControls.data.length > 1"
+           class="sink-info-regular mb-0">
+          You have <a><strong>{{paginationControls.total}}</strong> policies</a>.
+        </p>
+        <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
+           class="sink-info-accent mb-0">
+          There are no policies yet.
+        </p>
+      </div>
       <div class="d-flex">
         <div class="mr-3">
           <nb-select
-            *ngIf="tableFilters && tableFilters.length"
-            [(selected)]="filterSelectedIndex"
             (selectedChange)="onFilterSelected($event)"
+            *ngIf="tableFilters && tableFilters.length"
+            [(selected)]="selectedFilter"
             appearance="filled"
-            size="medium"
             class="d-flex justify-content-end"
-            style="width: 160px; height: 100%"
-            placeholder="Filter by">
-            <nb-option *ngFor="let conf of tableFilters" [value]="conf.id">{{ conf.label }}</nb-option>
+            placeholder="Filter by"
+            size="medium"
+            style="width: 160px; height: 100%">
+            <nb-option *ngFor="let conf of tableFilters" [value]="conf">{{ conf.label }}</nb-option>
           </nb-select>
         </div>
-        <nb-form-field *ngIf="filterSelectedIndex =='1'">
-          <nb-icon nbPrefix icon="search-outline" pack="eva"></nb-icon>
-          <input nbInput
-                 (keyup)="getAgentsPolicies()"
+        <nb-form-field *ngIf="selectedFilter">
+          <nb-icon icon="search-outline" nbPrefix pack="eva"></nb-icon>
+          <input (input)="applyFilter()"
+                 [(ngModel)]="filterValue"
                  [placeholder]="searchPlaceholder"
-                 type="text"
                  fieldSize="medium"
-                 [(ngModel)]="paginationControls.tags"/>
-        </nb-form-field>
-        <nb-form-field *ngIf="filterSelectedIndex =='0'">
-          <nb-icon nbPrefix icon="search-outline" pack="eva"></nb-icon>
-          <input nbInput
-                 (keyup)="getAgentsPolicies()"
-                 [placeholder]="searchPlaceholder"
-                 type="text"
-                 fieldSize="medium"
-                 [(ngModel)]="paginationControls.name"/>
+                 nbInput
+                 type="text"/>
         </nb-form-field>
       </div>
     </div>
     <div class="add-agent-policy-container">
-      <button nbButton
+      <button (click)="onOpenAdd()"
               ghost="true"
-              status="primary"
-              (click)="onOpenAdd()">
-        <i class="fa fa-plus">&nbsp;</i>New Policy</button>
+              nbButton
+              status="primary">
+        <i class="fa fa-plus">&nbsp;</i>New Policy
+      </button>
     </div>
     <ngx-datatable
       #table
-      class="orb"
-      style="height: calc(100vh - 300px)"
-      [loadingIndicator]="loading"
-      [externalPaging]="true"
-      [externalSorting]="true"
-      [count]="paginationControls.total"
+      [columnMode]="columnMode.flex"
+      [columns]="columns"
+      [footerHeight]="50"
+      [headerHeight]="50"
       [limit]="paginationControls.limit"
-      [offset]="paginationControls.offset"
+      [loadingIndicator]="loading"
+      [rowHeight]="50"
       [rows]="paginationControls.data"
       [scrollbarV]="true"
-      (page)='getAgentsPolicies($event)'
-      [columns]="columns"
-      [columnMode]="columnMode.flex"
-      [headerHeight]="50"
-      [footerHeight]="50"
-      [rowHeight]="50">
+      [sorts]="tableSorts"
+      class="orb"
+      style="height: calc(62vh)">
     </ngx-datatable>
   </div>
 </div>
 
-<ng-template #actionsTemplateCell let-row="row" let-value="value" let-i="index">
+<ng-template #nameTemplateCell let-i="index" let-row="row" let-value="value">
+  <div (click)="onOpenView(row)"
+    nbTooltip="View Details for {{ row.id }}">
+    {{ row.name }}
+  </div>
+</ng-template>
+
+<ng-template #versionTemplateCell let-i="index" let-row="row" let-value="value">
+  <div *ngIf="row?.version >= 0" nbTooltip="{{ 'Policy Version: ' + row.version }}">
+    {{ row.version }}
+  </div>
+</ng-template>
+
+<ng-template #actionsTemplateCell let-i="index" let-row="row" let-value="value">
   <div class="d-flex flex-row">
-    <button nbButton
-            ghost
+    <button (click)="openDetailsModal(row)"
             class="orb-action-hover detail-button"
-            (click)="openDetailsModal(row)">
+            ghost
+            nbButton>
       <nb-icon icon="search-outline"></nb-icon>
     </button>
-    <button nbButton
-            ghost
+    <button (click)="onOpenEdit(row)"
             class="orb-action-hover edit-button"
-            (click)="onOpenEdit(row)">
+            ghost
+            nbButton>
       <nb-icon icon="edit-outline"></nb-icon>
     </button>
-    <button nbButton
-            ghost
+    <button (click)="openDeleteModal(row)"
             class="orb-action-hover del-button"
-            (click)="openDeleteModal(row)">
+            ghost
+            nbButton>
       <nb-icon icon="trash-2-outline"></nb-icon>
     </button>
   </div>

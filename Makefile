@@ -7,8 +7,12 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 # expects to be set as env var
+PRODUCTION_AGENT_REF_TAG ?= latest
+PRODUCTION_AGENT_DEBUG_REF_TAG ?= latest-debug
 REF_TAG ?= develop
+DEBUG_REF_TAG ?= develop-debug
 PKTVISOR_TAG ?= latest-develop
+PKTVISOR_DEBUG_TAG ?= latest-develop-debug
 DOCKER_IMAGE_NAME_PREFIX ?= orb
 DOCKERHUB_REPO = ns1labs
 BUILD_DIR = build
@@ -110,11 +114,34 @@ agent:
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
 	  -f agent/docker/Dockerfile .
 
+agent_debug:
+	docker build \
+	  --build-arg PKTVISOR_TAG=$(PKTVISOR_DEBUG_TAG) \
+	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(DEBUG_REF_TAG) \
+	  -f agent/docker/Dockerfile .
+
+agent_production:
+	docker build \
+	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
+	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_REF_TAG) \
+	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
+	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
+	  -f agent/docker/Dockerfile .
+
+agent_debug_production:
+	docker build \
+	  --build-arg PKTVISOR_TAG=$(PKTVISOR_DEBUG_TAG) \
+	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_DEBUG_REF_TAG) \
+	  -f agent/docker/Dockerfile .
+
 ui:
 	cd ui/ && docker build \
-    		  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(REF_TAG) \
-    		  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION) \
-    		  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
-    		  -f docker/Dockerfile .
+		--build-arg ENV_PS_SID=${PS_SID} \
+		--build-arg ENV_PS_GROUP_KEY=${PS_GROUP_KEY} \
+		--build-arg ENV=${ENVIRONMENT} \
+		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(REF_TAG) \
+		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION) \
+		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
+		-f docker/Dockerfile .
 
 platform: dockers_dev docker_sinker agent ui

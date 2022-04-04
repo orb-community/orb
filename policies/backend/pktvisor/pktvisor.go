@@ -27,16 +27,16 @@ func (p pktvisorBackend) convertFromYAML(policy string) (types.Metadata, error) 
 	if err != nil {
 		return types.Metadata{}, err
 	}
-	if j.Version != CurrentSchemaVersion {
-		return types.Metadata{}, errors.New("unsupported version")
-	}
-	if j.Visor == nil {
+
+	if j.Input == nil || j.Handlers == nil || j.Kind == ""{
 		return types.Metadata{}, errors.New("malformed yaml policy")
 	}
 
 	ret := types.Metadata{}
-	ret["version"] = j.Version
-	ret["visor"] = j.Visor
+
+	ret["kind"] = j.Kind
+	ret["input"] = j.Input
+	ret["handlers"] = j.Handlers
 
 	return ret, nil
 }

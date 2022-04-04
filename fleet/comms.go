@@ -36,7 +36,7 @@ type AgentCommsService interface {
 	// NotifyAgentAllDatasets RPC Core -> Agent: Notify Agent of all Policy it should currently run based on group membership and current Datasets
 	NotifyAgentAllDatasets(a Agent) error
 	// NotifyAgentStop RPC Core -> Agent: Notify Agent that it should Stop (Send the message to Agent Channel)
-	NotifyAgentStop(MFChannelID string, reason string) error
+	NotifyAgentStop(agent Agent, reason string) error
 	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
 	NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 	// NotifyGroupRemoval RPC core -> Agent: Notify AgentGroup that the group has been removed
@@ -47,6 +47,8 @@ type AgentCommsService interface {
 	NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error
 	// NotifyGroupPolicyUpdate RPC core -> Agent: Notify AgentGroup that a Policy has been updated
 	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
+	//NotifyAgentReset RPC core -> Agent: Notify Agent to reset the backend
+	NotifyAgentReset(agent Agent, fullReset bool, reason string) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -88,10 +90,11 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 		DatasetID: datasetID,
 	}}
 
-	data := RPC{
+	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
 		Payload:       payload,
+		FullList:      false,
 	}
 
 	body, err := json.Marshal(data)
@@ -115,7 +118,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 
 func (svc fleetCommsService) NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error {
 	payload := GroupMembershipRPCPayload{
-		Groups:   []GroupMembershipData{{Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
+		Groups:   []GroupMembershipData{{GroupID: ag.ID, Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
 		FullList: false,
 	}
 
@@ -155,11 +158,6 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 		return err
 	}
 
-	if len(groups) == 0 {
-		// no groups, nothing to do
-		return nil
-	}
-
 	groupIDs := make([]string, len(groups))
 	for i, group := range groups {
 		groupIDs[i] = group.ID
@@ -171,35 +169,44 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 		return err
 	}
 
-	p, err := svc.policyClient.RetrievePoliciesByGroups(ctx, &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: a.MFOwnerID})
-	if err != nil {
-		return err
-	}
-
-	payload := make([]AgentPolicyRPCPayload, len(p.Policies))
-	for i, policy := range p.Policies {
-
-		var pdata interface{}
-		if err := json.Unmarshal(policy.Data, &pdata); err != nil {
+	var payload []AgentPolicyRPCPayload
+	if len(groups) > 0 {
+		p, err := svc.policyClient.RetrievePoliciesByGroups(ctx, &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: a.MFOwnerID})
+		if err != nil {
 			return err
 		}
+		payload = make([]AgentPolicyRPCPayload, len(p.Policies))
+		for i, policy := range p.Policies {
 
-		payload[i] = AgentPolicyRPCPayload{
-			Action:    "manage",
-			ID:        policy.Id,
-			Name:      policy.Name,
-			Backend:   policy.Backend,
-			Version:   policy.Version,
-			Data:      pdata,
-			DatasetID: policy.DatasetId,
+			var pdata interface{}
+			if err := json.Unmarshal(policy.Data, &pdata); err != nil {
+				return err
+			}
+
+			payload[i] = AgentPolicyRPCPayload{
+				Action:    "manage",
+				ID:        policy.Id,
+				Name:      policy.Name,
+				Backend:   policy.Backend,
+				Version:   policy.Version,
+				Data:      pdata,
+				DatasetID: policy.DatasetId,
+			}
+
 		}
-
+	} else {
+		// Even with no policies, we should send the signal to agent for policy sanitization
+		payload = make([]AgentPolicyRPCPayload, 1)
+		payload[0] = AgentPolicyRPCPayload{
+			Action: "sanitize",
+		}
 	}
 
-	data := RPC{
+	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
 		Payload:       payload,
+		FullList:      true,
 	}
 
 	body, err := json.Marshal(data)
@@ -230,6 +237,7 @@ func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 
 	fullList := make([]GroupMembershipData, len(list))
 	for i, agentGroup := range list {
+		fullList[i].GroupID = agentGroup.ID
 		fullList[i].Name = agentGroup.Name.String()
 		fullList[i].ChannelID = agentGroup.MFChannelID
 	}
@@ -316,10 +324,11 @@ func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag Age
 		Data:    pdata,
 	}}
 
-	data := RPC{
+	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
 		Payload:       payload,
+		FullList:      false,
 	}
 
 	body, err := json.Marshal(data)
@@ -357,6 +366,7 @@ func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID st
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
 		Payload:       payloads,
+		FullList:      false,
 	}
 
 	body, err := json.Marshal(data)
@@ -408,7 +418,7 @@ func (svc fleetCommsService) NotifyGroupDatasetRemoval(ag AgentGroup, dsID strin
 	return nil
 }
 
-func (svc fleetCommsService) NotifyAgentStop(MFChannelID string, reason string) error {
+func (svc fleetCommsService) NotifyAgentStop(agent Agent, reason string) error {
 	payload := AgentStopRPCPayload{Reason: reason}
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
@@ -422,7 +432,36 @@ func (svc fleetCommsService) NotifyAgentStop(MFChannelID string, reason string) 
 	}
 
 	msg := messaging.Message{
-		Channel:   MFChannelID,
+		Channel:   agent.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (svc fleetCommsService) NotifyAgentReset(agent Agent, fullReset bool, reason string) error {
+	payload := AgentResetRPCPayload{
+		FullReset: fullReset,
+		Reason:    reason,
+	}
+	data := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentResetRPCFunc,
+		Payload:       payload,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   agent.MFChannelID,
 		Subtopic:  RPCFromCoreTopic,
 		Publisher: publisher,
 		Payload:   body,
@@ -484,8 +523,9 @@ func (svc fleetCommsService) checkVersion(minVersion string, agentVersion string
 		return err
 	}
 
+	var ag = *agent
 	if aVersion.LessThan(mVersion) {
-		svc.NotifyAgentStop(agent.MFChannelID, fmt.Sprintf("The orb-agent version is too old to connect to the control plane. Minimum required version: {%s}", mVersion.String()))
+		svc.NotifyAgentStop(ag, fmt.Sprintf("The orb-agent version is too old to connect to the control plane. Minimum required version: {%s}", mVersion.String()))
 		agent.State = UpgradeRequired
 	}
 	return nil
@@ -508,13 +548,16 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 	// accept "offline" state request to indicate agent is going offline
 	if hb.State == Offline {
 		agent.State = Offline
-		agent.LastHBData["backend_state"] = BackendStateInfo{}
-		agent.LastHBData["policy_state"] = PolicyStateInfo{}
+		agent.LastHBData["backend_state"] = hb.BackendState
+		agent.LastHBData["policy_state"] = hb.PolicyState
+		agent.LastHBData["group_state"] = hb.GroupState
 	} else {
 		// otherwise, state is always "online"
 		agent.State = Online
 		agent.LastHBData["backend_state"] = hb.BackendState
 		agent.LastHBData["policy_state"] = hb.PolicyState
+		agent.LastHBData["group_state"] = hb.GroupState
+
 	}
 	err := svc.agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), agent)
 	if err != nil {

@@ -77,42 +77,28 @@ type AppMetrics struct {
 }
 
 // note this needs to be stateless because it is calledfor multiple go routines
-func (p *pktvisorBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string) error {
-	var backoffSchedule = []time.Duration{
-		5 * time.Second,
-		10 * time.Second,
+func (p *pktvisorBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string, timeout int32) error {
+	client := http.Client{
+		Timeout: time.Second * time.Duration(timeout),
 	}
-	var res *http.Response
-	var getErr error
-	for _, backoff := range backoffSchedule {
-		client := http.Client{
-			Timeout: backoff,
-		}
 
-		alive, err := p.checkAlive()
-		if !alive {
-			return err
-		}
-
-		URL := fmt.Sprintf("%s://%s:%s/api/v1/%s", p.adminAPIProtocol, p.adminAPIHost, p.adminAPIPort, url)
-
-		req, err := http.NewRequest(method, URL, body)
-		if err != nil {
-			return err
-		}
-		if contentType == "" {
-			contentType = "application/json"
-		}
-		req.Header.Add("Content-Type", contentType)
-
-		res, getErr = client.Do(req)
-		if getErr != nil {
-			continue
-		}
-		if res.StatusCode == 200 {
-			break
-		}
+	alive, err := p.checkAlive()
+	if !alive {
+		return err
 	}
+
+	URL := fmt.Sprintf("%s://%s:%s/api/v1/%s", p.adminAPIProtocol, p.adminAPIHost, p.adminAPIPort, url)
+
+	req, err := http.NewRequest(method, URL, body)
+	if err != nil {
+		return err
+	}
+	if contentType == "" {
+		contentType = "application/json"
+	}
+	req.Header.Add("Content-Type", contentType)
+
+	res, getErr := client.Do(req)
 
 	if getErr != nil {
 		return getErr
@@ -136,7 +122,7 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 		}
 	}
 
-	err := json.NewDecoder(res.Body).Decode(&payload)
+	err = json.NewDecoder(res.Body).Decode(&payload)
 	if err != nil {
 		return err
 	}
@@ -160,7 +146,15 @@ func (p *pktvisorBackend) checkAlive() (bool, error) {
 	return true, nil
 }
 
-func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
+func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool) error {
+
+	if updatePolicy {
+		// To update a policy it's necessary first remove it and then apply a new version
+		err := p.RemovePolicy(data)
+		if err != nil {
+			p.logger.Warn("policy failed to remove", zap.String("policy_id", data.ID), zap.String("policy_name", data.Name), zap.Error(err))
+		}
+	}
 
 	p.logger.Debug("pktvisor policy apply", zap.String("policy_id", data.ID), zap.Any("data", data.Data))
 
@@ -180,7 +174,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 	}
 
 	var resp map[string]interface{}
-	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(pyaml), "application/x-yaml")
+	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(pyaml), "application/x-yaml", 5)
 	if err != nil {
 		p.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", pyaml))
 		return err
@@ -192,7 +186,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData) error {
 
 func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	var resp interface{}
-	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, nil, "")
+	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, nil, "", 10)
 	if err != nil {
 		return err
 	}
@@ -201,7 +195,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 
 func (p *pktvisorBackend) Version() (string, error) {
 	var appMetrics AppMetrics
-	err := p.request("metrics/app", &appMetrics, http.MethodGet, nil, "")
+	err := p.request("metrics/app", &appMetrics, http.MethodGet, nil, "", 5)
 	if err != nil {
 		return "", err
 	}
@@ -396,8 +390,11 @@ func (p *pktvisorBackend) Stop() error {
 	}
 	p.scraper.Stop()
 
-	p.exporter.Shutdown(context.Background())
-	p.receiver.Shutdown(context.Background())
+	if p.scrapeOtel {
+		p.exporter.Shutdown(context.Background())
+		p.receiver.Shutdown(context.Background())
+	}
+
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
 	return nil
 }
@@ -432,7 +429,7 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 
 func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, error) {
 	var metrics map[string]interface{}
-	err := p.request(fmt.Sprintf("policies/__all/metrics/bucket/%d", period), &metrics, http.MethodGet, nil, "")
+	err := p.request(fmt.Sprintf("policies/__all/metrics/bucket/%d", period), &metrics, http.MethodGet, nil, "", 5)
 	if err != nil {
 		return nil, err
 	}
@@ -441,7 +438,7 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 
 func (p *pktvisorBackend) GetCapabilities() (map[string]interface{}, error) {
 	var taps interface{}
-	err := p.request("taps", &taps, http.MethodGet, nil, "")
+	err := p.request("taps", &taps, http.MethodGet, nil, "", 5)
 	if err != nil {
 		return nil, err
 	}
@@ -477,4 +474,28 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 		return nil, err
 	}
 	return receiver, nil
+}
+
+func (p *pktvisorBackend) FullReset() error {
+
+	// State always will have a value, even if error is not null
+	// State it's been used to identify broken pktvisor
+	state, errMsg, err := p.GetState()
+	if err != nil {
+		p.logger.Warn("broken pktvisor, trying to start", zap.String("broken_reason", errMsg))
+	}
+
+	if  state == backend.Running {
+		if err := p.Stop(); err != nil {
+			p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
+			return err
+		}
+	} else {
+		if err := p.Start(); err != nil {
+			p.logger.Error("failed to start backend on restart procedure", zap.Error(err))
+			return err
+		}
+	}
+
+	return nil
 }

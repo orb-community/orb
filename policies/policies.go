@@ -11,15 +11,19 @@ import (
 )
 
 type Policy struct {
-	ID          string
-	Name        types.Identifier
-	Description string
-	MFOwnerID   string
-	Backend     string
-	Version     int32
-	OrbTags     types.Tags
-	Policy      types.Metadata
-	Created     time.Time
+	ID            string
+	Name          types.Identifier
+	Description   string
+	MFOwnerID     string
+	Backend       string
+	SchemaVersion string
+	Version       int32
+	OrbTags       types.Tags
+	Policy        types.Metadata
+	PolicyData    string
+	Format        string
+	Created       time.Time
+	LastModified  time.Time
 }
 
 type Dataset struct {
@@ -52,7 +56,7 @@ type PageDataset struct {
 
 type Service interface {
 	// AddPolicy creates new agent Policy
-	AddPolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+	AddPolicy(ctx context.Context, token string, p Policy) (Policy, error)
 
 	// ViewPolicyByID retrieving policy by id with token
 	ViewPolicyByID(ctx context.Context, token string, policyID string) (Policy, error)
@@ -67,7 +71,7 @@ type Service interface {
 	ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]PolicyInDataset, error)
 
 	// EditPolicy edit a existing policy by id with a valid token
-	EditPolicy(ctx context.Context, token string, pol Policy, format string, policyData string) (Policy, error)
+	EditPolicy(ctx context.Context, token string, pol Policy) (Policy, error)
 
 	// RemovePolicy remove a existing policy owned by the specified user
 	RemovePolicy(ctx context.Context, token string, policyID string) error
@@ -82,7 +86,7 @@ type Service interface {
 	ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error)
 
 	// ValidatePolicy validates an agent Policy without saving
-	ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+	ValidatePolicy(ctx context.Context, token string, p Policy) (Policy, error)
 
 	// EditDataset edit a existing dataset by id with a valid token
 	EditDataset(ctx context.Context, token string, ds Dataset) (Dataset, error)
@@ -100,6 +104,12 @@ type Service interface {
 
 	// ListDatasets retrieve a list of Dataset by owner
 	ListDatasets(ctx context.Context, token string, pm PageMetadata) (PageDataset, error)
+
+	// InactivateDatasetByIDInternal inactivate a dataset
+	InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error
+
+	// DeleteSinkFromAllDatasetsInternal removes a sink from a dataset
+	DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
 }
 
 type Repository interface {
@@ -146,4 +156,10 @@ type Repository interface {
 
 	// RetrieveAllDatasetsByOwner retrieves the subset of Datasets owned by the specified user
 	RetrieveAllDatasetsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageDataset, error)
+
+	// InactivateDatasetByID inactivate a dataset
+	InactivateDatasetByID(ctx context.Context, sinkID string, ownerID string) error
+
+	// DeleteSinkFromAllDatasets removes a sink from a dataset
+	DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
 }

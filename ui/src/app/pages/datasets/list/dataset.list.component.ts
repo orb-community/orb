@@ -11,7 +11,6 @@ import {
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { Debounce } from 'app/shared/decorators/utils';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -36,9 +35,13 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
 
   searchPlaceholder = 'Search by name';
 
-  filterSelectedIndex = '0';
-
   // templates
+  @ViewChild('nameTemplateCell') nameTemplateCell: TemplateRef<any>;
+
+  @ViewChild('validTemplateCell') validTemplateCell: TemplateRef<any>;
+
+  @ViewChild('sinksTemplateCell') sinksTemplateCell: TemplateRef<any>;
+
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
@@ -47,12 +50,25 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
       label: 'Name',
       prop: 'name',
       selected: false,
+      filter: (dataset, name) => dataset?.name.includes(name),
     },
     {
       id: '1',
-      label: 'Tags',
-      prop: 'tags',
+      label: 'Valid',
+      prop: 'valid',
       selected: false,
+      filter: (dataset, valid) => `${ dataset?.valid }`.includes(name),
+    },
+  ];
+
+  selectedFilter = this.tableFilters[0];
+
+  filterValue = null;
+
+  tableSorts = [
+    {
+      prop: 'name',
+      dir: 'asc',
     },
   ];
 
@@ -85,7 +101,7 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
 
   ngOnInit() {
     this.datasetPoliciesService.clean();
-    this.getDatasets();
+    this.getAllDatasets();
   }
 
   ngAfterViewInit() {
@@ -96,6 +112,23 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
         resizeable: false,
         flexGrow: 5,
         minWidth: 90,
+        cellTemplate: this.nameTemplateCell,
+      },
+      {
+        prop: 'valid',
+        name: 'Valid',
+        resizeable: false,
+        flexGrow: 1,
+        minWidth: 25,
+        cellTemplate: this.validTemplateCell,
+      },
+      {
+        prop: 'sink_ids',
+        name: 'Sinks',
+        resizeable: false,
+        flexGrow: 1,
+        minWidth: 25,
+        cellTemplate: this.sinksTemplateCell,
       },
       {
         name: '',
@@ -111,22 +144,25 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
     this.cdr.detectChanges();
   }
 
+  getAllDatasets(): void {
+    this.datasetPoliciesService.getAllDatasets().subscribe(resp => {
+      this.paginationControls.data = resp.data;
+      this.paginationControls.total = resp.data.length;
+      this.paginationControls.offset = resp.offset / resp.limit;
+      this.loading = false;
+      this.cdr.markForCheck();
+    });
+  }
 
-  @Debounce(500)
   getDatasets(pageInfo: NgxDatabalePageInfo = null): void {
-    const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
-
-    if (isFilter) {
-      pageInfo = {
-        offset: this.paginationControls.offset,
-        limit: this.paginationControls.limit,
-      };
-      if (this.paginationControls.name?.length > 0) pageInfo.name = this.paginationControls.name;
-      if (this.paginationControls.tags?.length > 0) pageInfo.tags = this.paginationControls.tags;
-    }
+    const finalPageInfo = { ...pageInfo };
+    finalPageInfo.dir = 'desc';
+    finalPageInfo.order = 'name';
+    finalPageInfo.limit = this.paginationControls.limit;
+    finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
 
     this.loading = true;
-    this.datasetPoliciesService.getDatasetPolicies(pageInfo, isFilter).subscribe(
+    this.datasetPoliciesService.getDatasetPolicies(pageInfo).subscribe(
       (resp: OrbPagination<Dataset>) => {
         this.paginationControls = resp;
         this.paginationControls.offset = pageInfo?.offset || 0;
@@ -144,22 +180,36 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
 
   onOpenEdit(dataset: any) {
     this.router.navigate(
-      [`edit/${dataset.id}`],
+      [`edit/${ dataset.id }`],
       {
         relativeTo: this.route.parent,
-        state: {dataset: dataset, edit: true},
+        state: { dataset: dataset, edit: true },
       },
     );
   }
 
-  onFilterSelected(selectedIndex) {
-    this.searchPlaceholder = `Search by ${ this.tableFilters[selectedIndex].label }`;
+  onFilterSelected(filter) {
+    this.searchPlaceholder = `Search by ${ filter.label }`;
+    this.filterValue = null;
+  }
+
+  applyFilter() {
+    if (!this.paginationControls || !this.paginationControls?.data) return;
+
+    if (!this.filterValue || this.filterValue === '') {
+      this.table.rows = this.paginationControls.data;
+    } else {
+      this.table.rows = this.paginationControls.data.filter(sink => this.filterValue.split(/[,;]+/gm).reduce((prev, curr) => {
+        return this.selectedFilter.filter(sink, curr) && prev;
+      }, true));
+    }
+    this.paginationControls.offset = 0;
   }
 
   openDeleteModal(row: any) {
-    const {id} = row;
+    const { id } = row;
     this.dialogService.open(DatasetDeleteComponent, {
-      context: {name: row.name},
+      context: { name: row.name },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
@@ -176,7 +226,7 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
 
   openDetailsModal(row: any) {
     this.dialogService.open(DatasetDetailsComponent, {
-      context: {dataset: row},
+      context: { dataset: row },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe((resp) => {
@@ -185,13 +235,6 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
       } else {
         this.getDatasets();
       }
-    });
-  }
-
-  searchDatasetItemByName(input) {
-    this.getDatasets({
-      ...this.paginationControls,
-      [this.tableFilters[this.filterSelectedIndex].prop]: input,
     });
   }
 }

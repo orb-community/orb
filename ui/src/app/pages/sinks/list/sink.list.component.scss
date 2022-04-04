@@ -128,3 +128,15 @@ tr div p {
     right: 5px;
   }
 }
+
+.orb-service- {
+  &active {
+    color: #6fcf97;
+  }
+  &unknown {
+    color: #f2994a;
+  }
+  &error {
+    color: #df316f;
+  }
+}

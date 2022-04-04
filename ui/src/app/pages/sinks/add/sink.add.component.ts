@@ -22,8 +22,6 @@ export class SinkAddComponent {
 
   secondFormGroup: FormGroup;
 
-  thirdFormGroup: FormGroup;
-
   customSinkSettings: {};
 
   selectedSinkSetting: any[];
@@ -94,11 +92,6 @@ export class SinkAddComponent {
     });
 
     this.selectedTags = { ...tags };
-
-    this.thirdFormGroup = this._formBuilder.group({
-      key: [''],
-      value: [''],
-    });
   }
 
   getSink() {
@@ -172,24 +165,5 @@ export class SinkAddComponent {
     }, {});
 
     this.secondFormGroup = this._formBuilder.group(dynamicFormControls);
-  }
-
-  checkValidName() {
-    const { value } = this.thirdFormGroup?.controls?.key;
-    const hasTagForKey = Object.keys(this.selectedTags).find(key => key === value);
-    return value && value !== '' && !hasTagForKey;
-  }
-
-  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
-  onAddTag() {
-    const { key, value } = this.thirdFormGroup.controls;
-
-    this.selectedTags[key.value] = value.value;
-    key.reset('');
-    value.reset('');
-  }
-
-  onRemoveTag(tag: any) {
-    delete this.selectedTags[tag];
   }
 }

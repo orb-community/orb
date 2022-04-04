@@ -16,17 +16,21 @@ import (
 )
 
 const (
-	stream = "orb.fleet"
-	group  = "orb.policies"
+	stream     = "orb.fleet"
+	streamSink = "orb.sinks"
+	group      = "orb.policies"
 
 	agentGroupPrefix = "agent_group."
 	agentGroupRemove = agentGroupPrefix + "remove"
+	sinkPrefix       = "sinks."
+	sinkRemove       = sinkPrefix + "remove"
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
 
 type Subscriber interface {
-	Subscribe(context context.Context) error
+	SubscribeToFleet(context context.Context) error
+	SubscribeToSink(context context.Context) error
 }
 
 type eventStore struct {
@@ -46,7 +50,7 @@ func NewEventStore(policiesService policies.Service, client *redis.Client, escon
 	}
 }
 
-func (es eventStore) Subscribe(context context.Context) error {
+func (es eventStore) SubscribeToFleet(context context.Context) error {
 	err := es.client.XGroupCreateMkStream(context, stream, group, "$").Err()
 	if err != nil && err.Error() != exists {
 		return err
@@ -81,10 +85,53 @@ func (es eventStore) Subscribe(context context.Context) error {
 	}
 }
 
+func (es eventStore) SubscribeToSink(context context.Context) error {
+	err := es.client.XGroupCreateMkStream(context, streamSink, group, "$").Err()
+	if err != nil && err.Error() != exists {
+		return err
+	}
+
+	for {
+		streams, err := es.client.XReadGroup(context, &redis.XReadGroupArgs{
+			Group:    group,
+			Consumer: es.esconsumer,
+			Streams:  []string{streamSink, ">"},
+			Count:    100,
+		}).Result()
+		if err != nil || len(streams) == 0 {
+			continue
+		}
+
+		for _, msg := range streams[0].Messages {
+			event := msg.Values
+
+			var err error
+			switch event["operation"] {
+			case sinkRemove:
+				rte := decodeSinkRemove(event)
+				err = es.handleSinkRemove(context, rte.sinkID, rte.ownerID)
+			}
+
+			if err != nil {
+				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
+				break
+			}
+			es.client.XAck(context, streamSink, group, msg.ID)
+		}
+	}
+}
+
 func decodeAgentGroupRemove(event map[string]interface{}) removeAgentGroupEvent {
 	return removeAgentGroupEvent{
 		groupID: read(event, "group_id", ""),
 		token:   read(event, "token", ""),
+	}
+}
+
+func decodeSinkRemove(event map[string]interface{}) removeSinkEvent {
+	return removeSinkEvent{
+		sinkID:  read(event, "sink_id", ""),
+		ownerID: read(event, "owner_id", ""),
 	}
 }
 
@@ -95,6 +142,25 @@ func (es eventStore) handleAgentGroupRemove(ctx context.Context, groupID string,
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (es eventStore) handleSinkRemove(ctx context.Context, sinkID string, ownerID string) error {
+
+	datasets, err := es.policiesService.DeleteSinkFromAllDatasetsInternal(ctx, sinkID, ownerID)
+	if err != nil {
+		return err
+	}
+
+	for _, ds := range datasets {
+		if len(ds.SinkIDs) == 0 {
+			err = es.policiesService.InactivateDatasetByIDInternal(ctx, ownerID, ds.ID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 

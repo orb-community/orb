@@ -15,3 +15,9 @@ type removeAgentGroupEvent struct {
 	token     string
 	timestamp time.Time
 }
+
+type removeSinkEvent struct {
+	sinkID    string
+	ownerID   string
+	timestamp time.Time
+}

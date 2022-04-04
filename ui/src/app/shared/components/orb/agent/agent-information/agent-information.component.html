@@ -1,0 +1,44 @@
+<nb-card>
+  <nb-card-header>Agent Information</nb-card-header>
+  <nb-card-body>
+    <div class="row">
+      <div class="col-6">
+        <label>Agent Name</label>
+        <p>{{ agent?.name }}</p>
+      </div>
+      <div class="col-6">
+        <div class="float-right">
+          <label>Version</label>
+          <p>{{ agent?.agent_metadata?.orb_agent?.version }}</p>
+        </div>
+      </div>
+    </div>
+  <p>
+      <label>Agent ID</label>
+      <span class="float-right">{{ agent?.id }}</span>
+    </p>
+    <p>
+      <label>Channel ID</label>
+      <span class="float-right">{{ agent?.channel_id }}</span>
+    </p>
+    <div>
+      <label>Key Value Pairs</label>
+      <div class="d-flex">
+        <mat-chip-list>
+          <mat-chip
+            *ngFor="let tag of agent?.orb_tags | keyvalue"
+            [style.background-color]="tag | tagcolor"
+            class="orb-tag-chip">
+            {{ tag | tagchip }}
+          </mat-chip>
+          <mat-chip
+            *ngFor="let tag of agent?.agent_tags | keyvalue"
+            [style.background-color]="tag | tagcolor"
+            class="orb-tag-chip">
+            {{tag | tagchip}}
+          </mat-chip>
+        </mat-chip-list>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>

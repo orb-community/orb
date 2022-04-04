@@ -53,9 +53,15 @@ type BackendStateInfo struct {
 }
 
 type PolicyStateInfo struct {
+	Name     string   `json:"name"`
 	Datasets []string `json:"datasets"`
 	State    string   `json:"state"`
 	Error    string   `json:"error,omitempty"`
+}
+
+type GroupStateInfo struct {
+	GroupName    string `json:"name"`
+	GroupChannel string `json:"channel"`
 }
 
 type Heartbeat struct {
@@ -64,4 +70,5 @@ type Heartbeat struct {
 	State         State                       `json:"state"`
 	BackendState  map[string]BackendStateInfo `json:"backend_state"`
 	PolicyState   map[string]PolicyStateInfo  `json:"policy_state"`
+	GroupState    map[string]GroupStateInfo   `json:"group_state"`
 }

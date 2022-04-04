@@ -47,9 +47,22 @@ Then fill in the correct values:
 - **orb_address**:
   - Mandatory!
   - URL of the Orb deployment. Do NOT include the protocol (`https://`, `http://` or `mqtt://`).
+- **prometheus_username**
+  - Mandatory!
+  - Your Grafana Cloud Prometheus username
+- **prometheus_key**
+  - Mandatory!
+  - Your Grafana Cloud API Key. Be sure to grant the key a role with metrics push privileges
+- **remote_prometheus_endpoint**
+  - Mandatory!
+  - base URL to send Prometheus metrics to Grafana Cloud> `(ex. prometheus-prod-10-prod-us-central-0.grafana.net)`
 - **ignore_ssl_and_certificate_errors**:
   - Bool
   - Replaces HTTPS connections with HTTP and disables SSL certificate validation in MQTT connections.
+  - Default value: `False`
+- **is_credentials_registered**:
+  - Bool
+  - If false, register an account with credentials (email and password) used
   - Default value: `False`
 - **agent_docker_image**:
   - Docker image of the orb agent.
@@ -60,15 +73,6 @@ Then fill in the correct values:
 - **orb_agent_interface**:
   - Network interface that will be used by pktvisor when running the Orb agent.
   - Default value: `mock`
-- **prometheus_username**
-  - Mandatory for running the tests in [sinks feature](./features/sinks.feature)
-  - Your Grafana Cloud Prometheus username
-- **prometheus_key**
-  - Mandatory for running the tests in [sinks feature](./features/sinks.feature)
-  - Your Grafana Cloud API Key. Be sure to grant the key a role with metrics push privileges
-- **remote_prometheus_endpoint**
-  - Mandatory for running the tests in [sinks feature](./features/sinks.feature)
-  - base URL to send Prometheus metrics to Grafana Cloud> `(ex. prometheus-prod-10-prod-us-central-0.grafana.net)`
 
 ## Run behave
 Simply run `behave`, optionally passing the feature file as follows:

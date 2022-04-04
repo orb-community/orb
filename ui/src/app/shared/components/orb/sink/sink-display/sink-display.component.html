@@ -1,0 +1,13 @@
+<p class="detail-title">Sinks<span class="ns1red">*</span></p>
+<p>
+  <span *ngFor="let sink of sinks; last as last;">
+          {{ sink?.name }}
+    <span *ngIf="!last">, </span>
+  </span>
+  <span *ngFor="let sink of errors; last as last;"
+        [matTooltip]="sink?.message"
+        class="ns1red">
+          {{ sink?.id }}
+    <span *ngIf="!last">, </span>
+  </span>
+</p>

@@ -161,3 +161,4 @@ type StatSnapshot struct {
 	Packets PacketPayload
 	Pcap    PcapPayload
 }
+

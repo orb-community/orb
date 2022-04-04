@@ -39,11 +39,13 @@ type BackendTaps struct {
 
 func (p pktvisorBackend) Metadata() interface{} {
 	return struct {
-		Backend     string `json:"backend"`
-		Description string `json:"description"`
+		Backend       string `json:"backend"`
+		Description   string `json:"description"`
+		SchemaVersion string `json:"schema_version"`
 	}{
-		Backend:     p.Backend,
-		Description: p.Description,
+		Backend:       p.Backend,
+		Description:   p.Description,
+		SchemaVersion: CurrentSchemaVersion,
 	}
 }
 
