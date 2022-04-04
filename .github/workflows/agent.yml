@@ -49,6 +49,11 @@ jobs:
       - name: Debug ref tag
         run: echo ${{ env.REF_TAG }}
 
+      - name: Append suffix on VERSION file for develop build
+        if: ${{ env.BRANCH_NAME == 'develop' }}
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
+
       - name: Get VERSION
         run: |
           echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
