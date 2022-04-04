@@ -68,7 +68,6 @@ jobs:
         run: make services
 
       - name: Build orb agent (go build only)
-        if: steps.filter.outputs.agent == 'true'
         run: make agent_bin
 
       - name: Go unit tests
