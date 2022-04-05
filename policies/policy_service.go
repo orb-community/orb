@@ -378,7 +378,8 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 		return Policy{}, err
 	}
 
-	regex := regexp.MustCompile(fmt.Sprintf(`%s.*`, existingPolicy.Name.String()))
+	nameRegex := fmt.Sprintf("%s_copy", existingPolicy.Name.String())
+	regex := regexp.MustCompile(fmt.Sprintf(`%s.*`, nameRegex))
 
 	policyNames := make([]string, 0)
 	for _, p := range policyList {
@@ -388,17 +389,17 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 		}
 	}
 
-	var nameSufix string
-	if len(policyNames) > 1{
-		nameSufix = fmt.Sprintf("_copy"+"_%d", len(policyNames))
+	var nameSuffix string
+	if len(policyNames) >= 1{
+		nameSuffix = fmt.Sprintf("_copy_%d", len(policyNames)+1)
 		if err != nil {
 			return Policy{}, err
 		}
 	} else {
-		nameSufix = fmt.Sprintf(("_copy"))
+		nameSuffix = fmt.Sprintf("_copy")
 	}
 
-	name, err := types.NewIdentifier(existingPolicy.Name.String() + nameSufix)
+	name, err := types.NewIdentifier(existingPolicy.Name.String() + nameSuffix)
 	if err != nil {
 		return Policy{}, err
 	}
