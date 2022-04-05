@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -24,7 +24,7 @@ const CONFIG = {
   templateUrl: './agent.policy.add.component.html',
   styleUrls: ['./agent.policy.add.component.scss'],
 })
-export class AgentPolicyAddComponent {
+export class AgentPolicyAddComponent implements OnInit, OnDestroy {
   strings = { stepper: STRINGS.stepper };
 
   // #forms
@@ -151,10 +151,11 @@ kind: collection`;
   }
 
   resizeComponents() {
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
+      clearTimeout(timeoutId);
     }, 50);
-    !!this.editor && this.editor?.layout();
+    !!this.editor?.layout && this.editor.layout();
   }
 
   newAgent() {
@@ -197,6 +198,7 @@ kind: collection`;
       name,
       description,
       backend,
+      policy_data,
       policy: {
         input: {
           tap,
@@ -207,6 +209,10 @@ kind: collection`;
         },
       },
     } = this.agentPolicy;
+
+    if (policy_data) {
+      this.code = policy_data;
+    }
 
     this.modules = modules;
 
@@ -236,6 +242,7 @@ kind: collection`;
     const wizard = format !== this.format;
 
     if (policy_data) {
+      this.isWizard = false;
       this.code = policy_data;
     }
 
