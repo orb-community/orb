@@ -1277,20 +1277,29 @@ func TestDuplicatePolicy(t *testing.T) {
 	users := flmocks.NewAuthService(map[string]string{token: email})
 	svc := newService(users)
 
-	policy := createPolicy(t, svc, "policy")
+	policySingleCopy := createPolicy(t, svc, "policy-single")
+
+	policyMultipleCopy := createPolicy(t, svc, "policy")
+	copy := createPolicy(t, svc, "policy_copy")
+	for i := 2; i <= 10; i++ {
+		name := fmt.Sprintf("policy_copy_%d", i)
+		_ = createPolicy(t, svc, name)
+	}
 
 	cases := map[string]struct {
-		policyID string
-		token    string
-		err      error
+		policyID     string
+		expectedName string
+		token        string
+		err          error
 	}{
 		"duplicate a existing policy": {
-			policyID: policy.ID,
+			policyID: policySingleCopy.ID,
+			expectedName: "policy-single_copy",
 			token:    token,
 			err:      nil,
 		},
 		"duplicate a existing policy with an invalid token": {
-			policyID: policy.ID,
+			policyID: policySingleCopy.ID,
 			token:    invalidToken,
 			err:      policies.ErrUnauthorizedAccess,
 		},
@@ -1299,14 +1308,29 @@ func TestDuplicatePolicy(t *testing.T) {
 			token:    token,
 			err:      policies.ErrNotFound,
 		},
+		"duplicate two times a existing policy": {
+			policyID: policyMultipleCopy.ID,
+			expectedName: "policy_copy_11",
+			token:    token,
+			err:      nil,
+		},
+		"duplicate a copy of a policy": {
+			policyID: copy.ID,
+			expectedName: "policy_copy_copy",
+			token:    token,
+			err:      nil,
+		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			policyDuplicated, err := svc.DuplicatePolicy(context.Background(), tc.token, tc.policyID)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
-			if err == nil{
-				assert.Equal(t, policy.Policy, policyDuplicated.Policy, fmt.Sprintf("%s: expected %v got %v", desc, policy, policyDuplicated))
+
+			originalPolicy, _ := svc.ViewPolicyByID(context.Background(), token, tc.policyID)
+			if err == nil {
+				assert.Equal(t, originalPolicy.Policy, policyDuplicated.Policy, fmt.Sprintf("%s: expected %v got %v", desc, originalPolicy, policyDuplicated))
+				assert.Equal(t, tc.expectedName, policyDuplicated.Name.String(),  fmt.Sprintf("%s: expected %v got %v", desc, tc.expectedName, policyDuplicated.Name))
 			}
 		})
 	}
