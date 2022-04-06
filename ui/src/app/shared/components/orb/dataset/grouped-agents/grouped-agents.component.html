@@ -1,0 +1,16 @@
+
+  <label class="font-weight-bold">Agent Policy</label>
+  <div *ngIf="!isLoading">
+    <ul>
+      <li>
+        <button (click)="showAgentDetails(agent)"
+                *ngFor="let agent of agents;"
+                class='agent-group-button'>
+          <span class="agent-group-accent">{{ agent.name }}</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+  <p *ngIf="errors?.nogroup">
+    <span class="summary-accent">{{ errors.nogroup }}</span>
+  </p>

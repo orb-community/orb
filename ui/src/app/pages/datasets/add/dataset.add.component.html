@@ -282,15 +282,14 @@
                 <p data-orb-qa-id="review-agent-group">{{detailsFormGroup?.controls.name.value}}</p>
               </div>
             </div>
-            <div class="col-md-12 col-xl-6">
-              <div>
-                <label class="font-weight-bold">Agent Group Name</label>
-                <p data-orb-qa-id="review-agent-group">{{availableAgentGroups[selectedGroup]?.name}}</p>
-              </div>
+            <div class="col-md-12 col-xl-6" *ngIf="availableAgentGroups.length > 0">
+              <ngx-grouped-agents
+                [agentGroup]="availableAgentGroups[selectedGroup]">
+              </ngx-grouped-agents>
             </div>
             <div class="col-md-12 col-xl-6">
               <div>
-                <label class="font-weight-bold">Agent Policy Name</label>
+                <label class="font-weight-bold">Agent Policy</label>
                 <p data-orb-qa-id="review-agent-policy">{{availableAgentPolicies[selectedPolicy]?.name}}</p>
               </div>
             </div>

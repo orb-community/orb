@@ -43,7 +43,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { PolicyDetailsComponent } from './components/orb/policy/policy-details/policy-details.component';
 import { PolicyInterfaceComponent } from './components/orb/policy/policy-interface/policy-interface.component';
 import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets/policy-datasets.component';
- import { PolicyGroupsComponent } from 'app/shared/components/orb/policy/policy-groups/policy-groups.component';
+import { GroupedAgentsComponent } from './components/orb/dataset/grouped-agents/grouped-agents.component';
+import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/policy-groups.component';
 
 @NgModule({
   imports: [
@@ -89,6 +90,7 @@ import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets
     PolicyInterfaceComponent,
     PolicyDatasetsComponent,
     PolicyGroupsComponent,
+    GroupedAgentsComponent,
   ],
   exports: [
     ThemeModule,
@@ -114,6 +116,8 @@ import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets
     PolicyDetailsComponent,
     PolicyInterfaceComponent,
     PolicyDatasetsComponent,
+    GroupedAgentsComponent,
+    PolicyGroupsComponent,
   ],
   providers: [
     MessageValuePipe,
