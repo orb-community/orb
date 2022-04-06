@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -24,7 +24,7 @@ const CONFIG = {
   templateUrl: './agent.policy.add.component.html',
   styleUrls: ['./agent.policy.add.component.scss'],
 })
-export class AgentPolicyAddComponent implements OnInit, OnDestroy {
+export class AgentPolicyAddComponent {
   strings = { stepper: STRINGS.stepper };
 
   // #forms
