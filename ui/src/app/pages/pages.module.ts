@@ -63,6 +63,8 @@ import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.componen
 import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.details.component';
 import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { A11yModule } from '@angular/cdk/a11y';
+import { AgentPolicyViewComponent } from 'app/pages/datasets/policies.agent/view/agent.policy.view.component';
 
 @NgModule({
   imports: [
@@ -95,6 +97,7 @@ import { MonacoEditorModule } from 'ngx-monaco-editor';
     NbAccordionModule,
     MonacoEditorModule,
     NbToggleModule,
+    A11yModule,
   ],
   exports: [
     SharedModule,
@@ -134,6 +137,7 @@ import { MonacoEditorModule } from 'ngx-monaco-editor';
     AgentPolicyDeleteComponent,
     AgentPolicyDetailsComponent,
     AgentPolicyListComponent,
+    AgentPolicyViewComponent,
     HandlerPolicyAddComponent,
     // Sink Management
     SinkListComponent,

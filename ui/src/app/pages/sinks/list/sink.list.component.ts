@@ -38,7 +38,6 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
 
   searchPlaceholder = 'Search by name';
 
-
   // templates
   @ViewChild('sinkNameTemplateCell') sinkNameTemplateCell: TemplateRef<any>;
 

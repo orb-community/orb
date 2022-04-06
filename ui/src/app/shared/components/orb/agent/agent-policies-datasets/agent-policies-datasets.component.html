@@ -1,8 +1,6 @@
 <nb-card>
   <nb-card-header>Active Policies/Datasets</nb-card-header>
   <nb-card-body>
-    <span *ngIf="errors?.nodatasets"
-          class="summary-accent">{{ errors.nodatasets }}</span>
     <div *ngIf="!isLoading">
       <nb-accordion *ngFor="let policy of policies">
         <nb-accordion-item>
@@ -16,6 +14,10 @@
           </nb-accordion-item-header>
           <nb-accordion-item-body>
             <nb-list>
+              <nb-list-item *ngIf="policy.state === policyStates.failedToApply"
+                            class="error-item">
+                <span><span class="error-title">Error Details: </span>{{ policy?.error }}</span>
+              </nb-list-item>
               <nb-list-item *ngFor="let id of policy.datasets">
                 <span>Dataset:&nbsp;&quot;{{ datasets[id].name }}&quot;</span>
               </nb-list-item>
@@ -24,5 +26,8 @@
         </nb-accordion-item>
       </nb-accordion>
     </div>
+    <p *ngIf="errors?.nodatasets">
+      <span class="summary-accent">{{ errors.nodatasets }}</span>
+    </p>
   </nb-card-body>
 </nb-card>

@@ -34,6 +34,7 @@ const (
 
 var (
 	ErrPayloadTooBig = errors.New("payload too big")
+	ErrNotFound = errors.New("non-existent entity")
 )
 
 type Service interface {
@@ -46,13 +47,12 @@ type Service interface {
 type sinkerService struct {
 	pubSub mfnats.PubSub
 
-	esclient *redis.Client
-	logger   *zap.Logger
+	sinkerCache config.ConfigRepo
+	esclient    *redis.Client
+	logger      *zap.Logger
 
 	hbTicker *time.Ticker
 	hbDone   chan bool
-
-	configRepo config.ConfigRepo
 
 	promClient prometheus.Client
 
@@ -64,8 +64,8 @@ type sinkerService struct {
 	requestCounter metrics.Counter
 }
 
-func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkID string) error {
-	cfgRepo, err := svc.configRepo.Get(sinkID)
+func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, ownerID string, sinkID string) error {
+	cfgRepo, err := svc.sinkerCache.Get(ownerID, sinkID)
 	if err != nil {
 		svc.logger.Error("unable to retrieve the sink config", zap.Error(err))
 		return err
@@ -90,7 +90,7 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 			cfgRepo.State = config.Error
 			cfgRepo.Msg = fmt.Sprint(err)
 			cfgRepo.LastRemoteWrite = time.Now()
-			svc.configRepo.Edit(cfgRepo)
+			svc.sinkerCache.Edit(cfgRepo)
 		}
 
 		svc.logger.Error("remote write error", zap.String("sink_id", sinkID), zap.Error(err))
@@ -103,7 +103,7 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 		cfgRepo.State = config.Active
 		cfgRepo.Msg = ""
 		cfgRepo.LastRemoteWrite = time.Now()
-		svc.configRepo.Edit(cfgRepo)
+		svc.sinkerCache.Edit(cfgRepo)
 	}
 
 	return nil
@@ -170,7 +170,7 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 				continue
 			}
 			for _, sid := range dataset.SinkIds {
-				if !svc.configRepo.Exists(sid) {
+				if !svc.sinkerCache.Exists(agent.OwnerID, sid) {
 					// Use the retrieved sinkID to get the backend config
 					sink, err := svc.sinksClient.RetrieveSink(context.Background(), &sinkspb.SinkByIDReq{
 						SinkID:  sid,
@@ -187,7 +187,7 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 
 					data.SinkID = sid
 					data.OwnerID = agent.OwnerID
-					svc.configRepo.Add(data)
+					svc.sinkerCache.Add(data)
 				}
 				datasetSinkIDs[sid] = true
 			}
@@ -221,7 +221,7 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 			zap.Strings("sinks", sinkIDList))
 
 		for _, id := range sinkIDList {
-			err = svc.remoteWriteToPrometheus(tsList, id)
+			err = svc.remoteWriteToPrometheus(tsList, agent.OwnerID, id)
 			if err != nil {
 				svc.logger.Warn(fmt.Sprintf("unable to remote write to sinkID: %s", id), zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
 			}
@@ -280,9 +280,9 @@ func (svc sinkerService) Start() error {
 	}
 	svc.logger.Info("started metrics consumer", zap.String("topic", topic))
 
-	svc.hbTicker = time.NewTicker(HeartbeatFreq)
+	svc.hbTicker = time.NewTicker(CheckerFreq)
 	svc.hbDone = make(chan bool)
-	go svc.sendHeartbeats()
+	go svc.checkSinker()
 
 	return nil
 }
@@ -314,13 +314,13 @@ func New(logger *zap.Logger,
 
 	pktvisor.Register(logger)
 	return &sinkerService{
-		logger:          logger,
-		pubSub:          pubSub,
-		esclient:        esclient,
-		configRepo:      configRepo,
-		policiesClient:  policiesClient,
-		fleetClient:     fleetClient,
-		sinksClient:     sinksClient,
+		logger:         logger,
+		pubSub:         pubSub,
+		esclient:       esclient,
+		sinkerCache:    configRepo,
+		policiesClient: policiesClient,
+		fleetClient:    fleetClient,
+		sinksClient:    sinksClient,
 		requestGauge:   requestGauge,
 		requestCounter: requestCounter,
 	}

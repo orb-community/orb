@@ -12,9 +12,9 @@
     </nb-select>
     <button
       ghost="true"
-      nbButton>
-      <nb-icon (click)="toggleProvisioningCommand()"
-               icon="plus-outline"
+      nbButton
+      (click)="toggleProvisioningCommand()">
+      <nb-icon icon="plus-outline"
                pack="eva">
       </nb-icon>
     </button>
@@ -31,9 +31,9 @@
           <button
             [cdkCopyToClipboard]="command2copy"
             ghost="true"
+            (click)="toggleIcon('command')"
             nbButton>
-            <nb-icon (click)="toggleIcon('command')"
-                     [icon]="copyCommandIcon"
+            <nb-icon [icon]="copyCommandIcon"
                      pack="eva">
             </nb-icon>
           </button>

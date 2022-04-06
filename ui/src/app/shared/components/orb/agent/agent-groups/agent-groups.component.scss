@@ -55,7 +55,7 @@ nb-card {
       }
 
       code {
-        color: #ffffff;
+        color: #fff;
         line-height: 2.5 !important;
       }
     }
@@ -118,35 +118,17 @@ nb-card {
   }
 }
 
-::ng-deep nb-accordion {
+::ng-deep .agent-group-button {
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
   border: none !important;
-  border-radius: 8px !important;
-  display: grid;
-  padding: 0;
-  text-subtitle-line-height: 1rem;
-
-  nb-accordion-item {
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 0;
-
-    nb-accordion-item-header {
-      border: none !important;
-      border-radius: 8px !important;
-      padding: 10px 0;
-    }
-
-    nb-accordion-item-body {
-      border: none !important;
-      border-radius: 8px !important;
-      display: grid;
-      padding: 0;
-    }
-  }
+  cursor: pointer !important;
+  outline: none !important;
+  overflow: hidden !important;
 }
 
-nb-list-item {
-  background: #171c30;
-  border: none;
-  border-radius: 8px;
+.agent-group-accent {
+  color: #ffffff !important;
+  text-decoration: underline !important;
+  font-weight: bolder;
 }

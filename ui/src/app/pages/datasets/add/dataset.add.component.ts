@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -27,6 +27,8 @@ const CONFIG = {
   styleUrls: ['./dataset.add.component.scss'],
 })
 export class DatasetAddComponent {
+  @ViewChild('sinkSelLead') sinkSelLead: ElementRef;
+
   // page vars
   strings = { stepper: STRINGS.stepper };
 
@@ -254,6 +256,7 @@ export class DatasetAddComponent {
     const sink = this.sinkFormGroup.controls.selected_sink.value;
     this.selectedSinks.push(sink);
     this.sinkFormGroup.controls.selected_sink.reset('');
+    this.sinkSelLead.nativeElement.focus();
     this.getAvailableSinks();
   }
 

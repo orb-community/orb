@@ -108,8 +108,8 @@ func (es eventStore) handleSinksUpdate(ctx context.Context, e updateSinkEvent) e
 		return err
 	}
 
-	if ok := es.configRepo.Exists(e.sinkID); ok {
-		sinkConfig, err := es.configRepo.Get(e.sinkID)
+	if ok := es.configRepo.Exists(e.owner, e.sinkID); ok {
+		sinkConfig, err := es.configRepo.Get(e.owner, e.sinkID)
 		if err != nil {
 			return err
 		}

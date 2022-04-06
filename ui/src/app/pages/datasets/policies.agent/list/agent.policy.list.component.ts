@@ -201,6 +201,12 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
     });
   }
 
+  onOpenView(agentPolicy: any) {
+    this.router.navigate([`view/${ agentPolicy.id }`], {
+      relativeTo: this.route,
+    });
+  }
+
   onFilterSelected(filter) {
     this.searchPlaceholder = `Search by ${ filter.label }`;
     this.filterValue = null;

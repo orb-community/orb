@@ -69,14 +69,6 @@
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
               <button [disabled]="!firstFormGroup?.valid"
                       class="next-button"
                       data-orb-qa-id="button#next"
@@ -86,6 +78,15 @@
                       status="primary"
                       type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -99,7 +100,7 @@
             </div>
           </ng-template>
           <form [formGroup]="secondFormGroup">
-            <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index">
+            <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index; first as isFirst">
               <div>
                 <label class="font-weight-bold">{{control.label}}</label>
                 <span *ngIf="control.required" class="required">*</span>
@@ -107,7 +108,7 @@
               <div [ngSwitch]="control.input">
                 <input *ngSwitchCase="'text'"
                        [attr.data-orb-qa-id]="control.prop"
-                       [autofocus]="i == 0"
+                       [autofocus]="isFirst"
                        [formControlName]="control.prop"
                        [type]="control.type"
                        fieldSize="medium"
@@ -115,7 +116,7 @@
                        nbInput>
                 <input *ngSwitchCase="'number'"
                        [attr.data-orb-qa-id]="control.prop"
-                       [autofocus]="i == 0"
+                       [autofocus]="isFirst"
                        [formControlName]="control.prop"
                        [max]="control.max"
                        [min]="control.min"
@@ -126,6 +127,7 @@
                        nbInput>
                 <nb-select *ngSwitchCase="'select'"
                            appearance="filled"
+                           autofocus="{{ isFirst }}"
                            data-orb-qa-id="backend"
                            formControlName="backend"
                            fullWidth="true"
@@ -140,21 +142,6 @@
               <hr/>
             </nb-form-field>
             <div *ngIf="secondFormGroup" class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
-              <button data-orb-qa-id="button#back"
-                      ghost
-                      nbButton
-                      nbStepperPrevious
-                      status="primary">
-                {{ strings.stepper.back }}
-              </button>
               <button [disabled]="!secondFormGroup?.valid"
                       class="next-button"
                       data-orb-qa-id="button#next"
@@ -164,6 +151,23 @@
                       status="primary"
                       type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button data-orb-qa-id="button#back"
+                      ghost
+                      nbButton
+                      nbStepperPrevious
+                      shape="round"
+                      status="primary">
+                {{ strings.stepper.back }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -176,96 +180,13 @@
               <p>Enter tags for this Sink</p>
             </div>
           </ng-template>
-          <form [formGroup]="thirdFormGroup">
+          <div>
             <label class="font-weight-bold">Selected Sink Tags</label>
-            <div class="d-flex">
-              <mat-chip-list data-orb-qa-id="tagList">
-                <mat-chip
-                  *ngFor="let tag of this.selectedTags | keyvalue; index as i;"
-                  [attr.data-orb-qa-id]="'tag_' + i"
-                  [style.background-color]="tag | tagcolor"
-                  class="orb-tag-chip">
-                  {{tag | tagchip}}
-                  <nb-icon (click)="onRemoveTag(tag.key)"
-                           class="ml-1"
-                           icon="close-outline"
-                           size="12"></nb-icon>
-                </mat-chip>
-                <mat-chip
-                  *ngIf="(selectedTags | json) === '{}'"
-                  [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-chip ">
-                  No tag added
-                </mat-chip>
-              </mat-chip-list>
-            </div>
-            <hr/>
-            <nb-form-field *ngIf="thirdFormGroup">
-              <div class="container d-flex row px-0 mx-0" style="width:75%;">
-                <div class="d-flex flex-column col-5 px-0 mx-0">
-                  <div>
-                    <label class="font-weight-bold">Key</label>
-                  </div>
-                  <div>
-                    <input autofocus
-                           data-orb-qa-id="key"
-                           fieldSize="medium"
-                           formControlName="key"
-                           fullWidth="true"
-                           nbInput/>
-                  </div>
-                </div>
-                <div class="d-flex justify-content-center align-items-center col-1 mt-4 px-0 mx-0">
-                  <nb-icon icon="plus-outline" size="14" style="color: #df316f;"></nb-icon>
-                </div>
-                <div class="d-flex flex-column col-5 px-0 mx-0">
-                  <div>
-                    <label class="font-weight-bold">Value</label>
-                  </div>
-                  <div>
-                    <input autofocus
-                           data-orb-qa-id="value"
-                           fieldSize="medium"
-                           formControlName="value"
-                           fullWidth="true"
-                           nbInput/>
-                  </div>
-                </div>
-                <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
-                     style="transform: translateY(14px);">
-                  <button (click)="onAddTag()"
-                          [disabled]="!checkValidName()"
-                          data-orb-qa-id="addTag"
-                          ghost
-                          nbButton>
-                    <nb-icon icon="plus-outline"
-                             size="14"
-                             status="primary"
-                             style="color: #df316f;">
-                    </nb-icon>
-                  </button>
-                </div>
-              </div>
-            </nb-form-field>
+            <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
             <hr/>
 
-            <div *ngIf="thirdFormGroup" class="d-flex justify-content-start"
+            <div class="d-flex justify-content-start"
                  style="padding-left: 35%;">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
-              <button data-orb-qa-id="button#back"
-                      ghost
-                      nbButton
-                      nbStepperPrevious
-                      status="primary">
-                {{ strings.stepper.back }}
-              </button>
               <button class="next-button"
                       data-orb-qa-id="button#next"
                       nbButton
@@ -275,8 +196,25 @@
                       type="submit">
                 {{ strings.stepper.next }}
               </button>
+              <button data-orb-qa-id="button#back"
+                      ghost
+                      nbButton
+                      nbStepperPrevious
+                      shape="round"
+                      status="primary">
+                {{ strings.stepper.back }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
+              </button>
             </div>
-          </form>
+          </div>
         </nb-step>
         <nb-step [label]="fourthStepLabel"
                  data-orb-qa-id="step_4">
@@ -321,39 +259,10 @@
           <div class="d-flex row">
             <div class="col-12">
               <label class="font-weight-bold">Sink Tags</label>
-              <mat-chip-list data-orb-qaid="review-tagList">
-                <mat-chip
-                  *ngFor="let tag of selectedTags | keyvalue; index as i;"
-                  [attr.data-orb-qa-id]="'review-tag_' + i"
-                  [style.background-color]="tag | tagcolor"
-                  class="orb-tag-chip ">
-                  {{tag | tagchip}}
-                </mat-chip>
-                <mat-chip
-                  *ngIf="(selectedTags | json) === '{}'"
-                  [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-chip ">
-                  No tag added
-                </mat-chip>
-              </mat-chip-list>
+              <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
             </div>
           </div>
-          <div *ngIf="thirdFormGroup" class="d-flex justify-content-end">
-            <button (click)="goBack()"
-                    data-orb-qa-id="button#cancel"
-                    ghost
-                    nbButton
-                    status="primary"
-                    type="button">
-              {{ strings.stepper.cancel }}
-            </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    status="primary">
-              {{ strings.stepper.back }}
-            </button>
+          <div class="d-flex justify-content-end">
             <button (click)="onFormSubmit()"
                     class="next-button"
                     data-orb-qa-id="button#save"
@@ -362,6 +271,23 @@
                     status="primary"
                     type="submit">
               {{ strings.stepper.save }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    shape="round"
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    shape="round"
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
             </button>
           </div>
         </nb-step>

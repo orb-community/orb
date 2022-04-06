@@ -109,6 +109,32 @@ nb-card {
     margin-top: 24px;
     width: 250px;
   }
+
+  .orb-breadcrumb {
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 12px;
+
+    ::ng-deep {
+      .xng-breadcrumb-trail {
+        color: #fff;
+        margin-bottom: 0;
+      }
+
+      .xng-breadcrumb-link {
+        color: #969fb9 !important;
+        text-decoration: none !important;
+      }
+
+      .xng-breadcrumb-separator {
+        color: #969fb9 !important;
+        text-decoration: none !important;
+      }
+    }
+  }
 }
 
 ::ng-deep {

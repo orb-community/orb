@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Agent, AgentPolicyState } from 'app/common/interfaces/orb/agent.interface';
+import { Agent, AgentPolicyState, AgentPolicyStates } from 'app/common/interfaces/orb/agent.interface';
 import { forkJoin } from 'rxjs';
 import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
@@ -12,6 +12,8 @@ import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 export class AgentPoliciesDatasetsComponent implements OnInit {
   @Input() agent: Agent;
 
+  policyStates = AgentPolicyStates;
+
   datasets: { [id: string]: Dataset };
 
   policies: AgentPolicyState[];
@@ -20,9 +22,7 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
 
   errors;
 
-  constructor(
-    protected datasetService: DatasetPoliciesService,
-  ) {
+  constructor(protected datasetService: DatasetPoliciesService) {
     this.datasets = {};
     this.errors = {};
   }
@@ -34,6 +34,10 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
   }
 
   getPoliciesStates(policyStates: { [id: string]: AgentPolicyState }) {
+    if (!policyStates || policyStates === {}) {
+      this.errors['nodatasets'] = 'Agent has no defined policies.';
+      return [];
+    }
     return Object.entries(policyStates)
       .map(([id, policy]) => {
         policy.id = id;

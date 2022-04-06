@@ -25,7 +25,6 @@ const CONFIG = {
   styleUrls: ['./agent.policy.add.component.scss'],
 })
 export class AgentPolicyAddComponent {
-  // page vars
   strings = { stepper: STRINGS.stepper };
 
   // #forms
@@ -104,7 +103,16 @@ export class AgentPolicyAddComponent {
     lineNumbersMinChars: 0,
   };
 
-  code = '# Paste your yaml here for manual policy configuration';
+  code = `handlers:
+  modules:
+    default_dns:
+      type: dns
+    default_net:
+      type: net
+input:
+  input_type: pcap
+  tap: default_pcap
+kind: collection`;
 
   // is config specified wizard mode or in YAML or JSON
   isWizard = true;
