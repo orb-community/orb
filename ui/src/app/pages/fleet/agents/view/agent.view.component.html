@@ -38,4 +38,12 @@
     <ngx-agent-policies-datasets [agent]="agent"></ngx-agent-policies-datasets>
     <ngx-agent-groups [agent]="agent"></ngx-agent-groups>
   </div>
+  <button (click)="resetAgent()"
+          [disabled]="isResetting"
+          class="agent-reset"
+          data-orb-qa-id="button#reset"
+          nbButton
+          shape="round">
+    Reset Agent
+  </button>
 </div>

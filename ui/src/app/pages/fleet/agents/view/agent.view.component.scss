@@ -55,7 +55,7 @@ nb-card {
       }
 
       code {
-        color: #ffffff;
+        color: #fff;
         line-height: 2.5 !important;
       }
     }
@@ -141,5 +141,23 @@ nb-card {
   mark {
     background: #1c2339 !important;
     color: #df316f !important;
+  }
+}
+
+.agent-reset {
+  bottom: 2rem;
+  color: #fff !important;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+  position: fixed;
+  right: 3rem;
+  text-transform: none !important;
+
+  &.btn-disabled {
+    background: #2b3148;
+  }
+
+  &:not(.btn-disabled) {
+    background-color: #3089fc !important;
   }
 }
