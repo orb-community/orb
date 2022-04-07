@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { Subscription } from 'rxjs';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -23,11 +24,17 @@ export class AgentViewComponent implements OnInit, OnDestroy {
 
   agentSubscription: Subscription;
 
+  isResetting: boolean;
+
   constructor(
     protected agentsService: AgentsService,
     protected route: ActivatedRoute,
     protected router: Router,
+    protected notificationService: NotificationsService,
   ) {
+    this.agent = {};
+    this.isLoading = false;
+    this.isResetting = false;
   }
 
   ngOnInit() {
@@ -43,6 +50,20 @@ export class AgentViewComponent implements OnInit, OnDestroy {
         this.agent = agent;
         this.isLoading = false;
       });
+  }
+
+  resetAgent() {
+    if (!this.isResetting) {
+      this.isResetting = true;
+      this.agentsService.resetAgent(this.agentID).subscribe(() => {
+        this.isResetting = false;
+        this.notifyResetSuccess();
+      });
+    }
+  }
+
+  notifyResetSuccess() {
+    this.notificationService.success('Agent Reset Requested', '');
   }
 
   isToday() {
