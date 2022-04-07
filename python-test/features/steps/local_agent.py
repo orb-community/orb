@@ -37,6 +37,24 @@ def run_local_agent_container(context, port):
     if port not in context.containers_id.keys():
         context.containers_id[str(port)] = context.container_id
 
+@step('the container logs that were output after {condition} contain the message "{text_to_match}" within'
+      '{time_to_wait} seconds')
+def check_agent_logs_considering_timestamp(context, condition, text_to_match, time_to_wait):
+    time_waiting = 0
+    sleep_time = 0.5
+    timeout = int(time_to_wait)
+    text_found = False
+
+    while time_waiting < timeout:
+        logs = get_orb_agent_logs(context.container_id)
+        text_found = check_logs_contain_message(logs, text_to_match, context.considered_timestamp)
+        if text_found is True:
+            break
+        time.sleep(sleep_time)
+        time_waiting += sleep_time
+
+    assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+
 
 @then('the container logs should contain the message "{text_to_match}" within {time_to_wait} seconds')
 def check_agent_log(context, text_to_match, time_to_wait):
@@ -117,19 +135,20 @@ def get_orb_agent_logs(container_id):
     return container.logs().decode("utf-8").split("\n")
 
 
-def check_logs_contain_message(logs, expected_message):
+def check_logs_contain_message(logs, expected_message, start_time=0):
     """
     Gets the logs from Orb agent container
 
     :param (list) logs: list of log lines
     :param (str) expected_message: message that we expect to find in the logs
+    :param (int) start_time: time to be considered as initial time. Default: None
     :returns: (bool) whether expected message was found in the logs
     """
 
     for log_line in logs:
         log_line = safe_load_json(log_line)
 
-        if log_line is not None and log_line['msg'] == expected_message:
+        if log_line is not None and log_line['msg'] == expected_message and log_line['ts'] > start_time:
             return True
 
     return False

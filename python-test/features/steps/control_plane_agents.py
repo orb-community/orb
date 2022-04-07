@@ -6,6 +6,7 @@ from behave import given, when, then, step
 from hamcrest import *
 import time
 import requests
+from datetime import datetime
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
@@ -150,6 +151,15 @@ def editing_agent_name_and_tags(context, orb_tags):
 def check_agent_tags(context, amount_of_tags):
     agent = get_agent(context.token, context.agent["id"])
     assert_that(len(dict(agent["orb_tags"])), equal_to(int(amount_of_tags)), "Amount of orb tags failed")
+
+
+@step("remotely restart the agent")
+def reset_agent_remotely(context):
+    context.considered_timestamp = datetime.now().timestamp()
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': context.token}
+    response = requests.post(f"{base_orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request)
+    assert_that(response.status_code, equal_to(200),
+            'Request to restart agent failed with status=' + str(response.status_code))
 
 
 def expect_container_status(token, agent_id, status):
