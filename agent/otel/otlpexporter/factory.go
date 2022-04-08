@@ -4,6 +4,7 @@ import (
 	"context"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configauth"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/consumer"
@@ -14,15 +15,16 @@ import (
 )
 
 const (
-	typeStr        = "otlp"
-	defaultEnpoint = "localhost:4317"
+	typeStr            = "otlp"
+	defaultEnpoint     = "localhost:4317"
+	defaultBearerToken = "somerandomtoken"
 )
 
 func NewFactory() component.ExporterFactory {
-	return exporterhelper.NewFactory(
+	return component.NewExporterFactory(
 		typeStr,
 		CreateDefaultConfig,
-		exporterhelper.WithMetrics(CreateMetricsExporter))
+		component.WithMetricsExporter(CreateMetricsExporter))
 }
 
 func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings {
@@ -30,18 +32,19 @@ func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings 
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.GetMeterProvider(),
+			MeterProvider:  global.MeterProvider(),
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
 }
 
 func CreateDefaultConfig() config.Exporter {
+	bearertokenauthextension.
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
-		TimeoutSettings:  exporterhelper.DefaultTimeoutSettings(),
-		QueueSettings:    exporterhelper.DefaultQueueSettings(),
-		RetrySettings:    exporterhelper.DefaultRetrySettings(),
+		TimeoutSettings:  exporterhelper.NewDefaultTimeoutSettings(),
+		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
+		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
 			Endpoint:    defaultEnpoint,
 			Compression: "",
@@ -54,7 +57,7 @@ func CreateDefaultConfig() config.Exporter {
 			WaitForReady:    false,
 			Headers:         map[string]string{},
 			BalancerName:    "",
-			Auth:            nil,
+			Auth:            configauth.Authentication.GetClientAuthenticator(),
 		},
 	}
 }

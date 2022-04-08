@@ -1,5 +1,7 @@
 extensions:
   nop:
+  bearertokenauth:
+    token: "somerandomtoken"
 
 receivers:
   nop:
@@ -35,11 +37,21 @@ exporters:
       timeout: 30s
       permit_without_stream: true
     balancer_name: "round_robin"
+  otlp/withauth:
+    endpoint: 0.0.0.0:5000
+    ca_file: /var/lib/mycert.pem
+    auth:
+      authenticator: bearertokenauth
+
+  otlphttp/withauth:
+    endpoint: http://localhost:9090
+    auth:
+      authenticator: bearertokenauth
 
 service:
-  extensions: [ nop ]
+  extensions: [ v ]
   pipelines:
     traces:
       receivers: [ nop ]
       processors: [ nop ]
-      exporters: [ otlp ]
+      exporters: [ otlp, otlp/withauth, otlphttp/withauth ]

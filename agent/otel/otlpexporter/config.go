@@ -16,3 +16,18 @@ type Config struct {
 }
 
 var _ config.Exporter = (*Config)(nil)
+
+// Validate checks if the extension configuration is valid
+func (cfg *Config) Validate() error {
+	return nil
+}
+
+// SetIDName sets the receiver name.
+func (cfg *Config) ID() config.ComponentID {
+	return cfg.ExporterSettings.ID()
+}
+
+// SetIDName sets the receiver name.
+func (cfg *Config) SetIDName(idName string) {
+	cfg.ExporterSettings.SetIDName(idName)
+}
