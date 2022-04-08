@@ -264,8 +264,8 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
       confirm => {
         if (confirm) {
           this.sinkService.deleteSink(id).subscribe(() => {
-            this.getSinks();
             this.notificationsService.success('Sink successfully deleted', '');
+            this.getAllSinks();
           });
         }
       },

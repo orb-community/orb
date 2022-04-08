@@ -235,8 +235,8 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
       confirm => {
         if (confirm) {
           this.agentPoliciesService.deleteAgentPolicy(id).subscribe(() => {
-            this.getAgentsPolicies();
             this.notificationsService.success('Agent Policy successfully deleted', '');
+            this.getAllPolicies();
           });
         }
       },
