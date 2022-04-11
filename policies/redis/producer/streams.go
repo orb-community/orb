@@ -265,8 +265,8 @@ func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID s
 	return nil
 }
 
-func (e eventStore) DeleteAgentGroupFromAllDatasets(ctx context.Context, aGroupID string, token string) error {
-	return e.svc.DeleteAgentGroupFromAllDatasets(ctx, aGroupID, token)
+func (e eventStore) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error {
+	return e.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
 }
 
 // NewEventStoreMiddleware returns wrapper around policies service that sends

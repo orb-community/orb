@@ -337,7 +337,7 @@ func (s policiesService) ListDatasets(ctx context.Context, token string, pm Page
 }
 
 func (s policiesService) DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error) {
-	if sinkID == "" || ownerID == ""{
+	if sinkID == "" || ownerID == "" {
 		return []Dataset{}, ErrMalformedEntity
 	}
 
@@ -350,7 +350,7 @@ func (s policiesService) DeleteSinkFromAllDatasetsInternal(ctx context.Context, 
 }
 
 func (s policiesService) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error {
-	if datasetID == "" || ownerID == ""{
+	if datasetID == "" || ownerID == "" {
 		return ErrMalformedEntity
 	}
 
@@ -362,17 +362,17 @@ func (s policiesService) InactivateDatasetByIDInternal(ctx context.Context, owne
 	return nil
 }
 
-func (s policiesService) DeleteAgentGroupFromAllDatasets(ctx context.Context, aGroupID string, token string) error {
+func (s policiesService) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error {
 	ownerID, err := s.identify(token)
 	if err != nil {
 		return err
 	}
 
-	if aGroupID == ""{
+	if groupID == "" {
 		return ErrMalformedEntity
 	}
 
-	err = s.repo.DeleteAGroupFromAllDatasets(ctx, aGroupID, ownerID)
+	err = s.repo.DeleteAgentGroupFromAllDatasets(ctx, groupID, ownerID)
 	if err != nil {
 		return err
 	}

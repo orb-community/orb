@@ -567,7 +567,7 @@ func (r policiesRepository) DeleteSinkFromAllDatasets(ctx context.Context, sinkI
 	return datasets, nil
 }
 
-func (r policiesRepository) DeleteAGroupFromAllDatasets(ctx context.Context, aGroup string, ownerID string) error {
+func (r policiesRepository) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, ownerID string) error {
 	q := `UPDATE datasets SET agent_group_id = null WHERE mf_owner_id = :mf_owner_id AND agent_group_id = :agent_group_id`
 
 	if ownerID == "" {
@@ -576,7 +576,7 @@ func (r policiesRepository) DeleteAGroupFromAllDatasets(ctx context.Context, aGr
 
 	params := map[string]interface{}{
 		"mf_owner_id":    ownerID,
-		"agent_group_id": aGroup,
+		"agent_group_id": groupID,
 	}
 
 	res, err := r.db.NamedQueryContext(ctx, q, params)

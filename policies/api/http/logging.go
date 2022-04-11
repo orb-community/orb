@@ -284,18 +284,18 @@ func (l loggingMiddleware) DeleteSinkFromAllDatasetsInternal(ctx context.Context
 	return l.svc.DeleteSinkFromAllDatasetsInternal(ctx, sinkID, ownerID)
 }
 
-func (l loggingMiddleware) DeleteAgentGroupFromAllDatasets(ctx context.Context, aGroupID string, token string) (err error) {
+func (l loggingMiddleware) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: delete_agroup_from_all_datasets",
+			l.logger.Warn("method call: delete_agent_group_from_all_datasets",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: delete_agroup_from_all_datasets",
+			l.logger.Info("method call: delete_agent_group_from_all_datasets",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.DeleteAgentGroupFromAllDatasets(ctx, aGroupID, token)
+	return l.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
 }
 
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {

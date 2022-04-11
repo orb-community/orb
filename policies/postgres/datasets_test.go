@@ -875,27 +875,27 @@ func TestDeleteAgentGroupFromDataset(t *testing.T) {
 
 	cases := map[string]struct {
 		owner    string
-		aGroup   string
+		groupID  string
 		contains bool
 		dataset  policies.Dataset
 		err      error
 	}{
 		"delete a agent group from existing dataset": {
 			owner:    dataset.MFOwnerID,
-			aGroup:   dataset.AgentGroupID,
+			groupID:  dataset.AgentGroupID,
 			contains: false,
 			dataset:  dataset,
 			err:      nil,
 		},
 		"delete a non-existing agent group from a dataset": {
 			owner:    dataset.MFOwnerID,
-			aGroup:   wrongAGroupID.String(),
+			groupID:  wrongAGroupID.String(),
 			contains: false,
 			dataset:  dataset,
 			err:      nil,
 		},
 		"delete a agent group from a dataset with an invalid ownerID": {
-			aGroup:   dataset2.AgentGroupID,
+			groupID:  dataset2.AgentGroupID,
 			owner:    "",
 			contains: true,
 			dataset:  dataset2,
@@ -905,7 +905,7 @@ func TestDeleteAgentGroupFromDataset(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			err := repo.DeleteAGroupFromAllDatasets(context.Background(), tc.aGroup, tc.owner)
+			err := repo.DeleteAgentGroupFromAllDatasets(context.Background(), tc.groupID, tc.owner)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
 
 			d, err := repo.RetrieveDatasetByID(context.Background(), tc.dataset.ID, tc.dataset.MFOwnerID)
@@ -913,9 +913,9 @@ func TestDeleteAgentGroupFromDataset(t *testing.T) {
 
 			switch tc.contains {
 			case false:
-				assert.NotEqual(t, d.AgentGroupID, tc.aGroup, fmt.Sprintf("%s: expected '%s' to not contains '%s'", desc, d.AgentGroupID, tc.aGroup))
+				assert.NotEqual(t, d.AgentGroupID, tc.groupID, fmt.Sprintf("%s: expected '%s' to not contains '%s'", desc, d.AgentGroupID, tc.groupID))
 			case true:
-				assert.Equal(t, d.AgentGroupID, tc.aGroup, fmt.Sprintf("%s: expected '%s' to contains '%s'", desc, d.AgentGroupID, tc.aGroup))
+				assert.Equal(t, d.AgentGroupID, tc.groupID, fmt.Sprintf("%s: expected '%s' to contains '%s'", desc, d.AgentGroupID, tc.groupID))
 			}
 		})
 	}
