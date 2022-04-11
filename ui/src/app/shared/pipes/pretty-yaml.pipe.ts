@@ -1,9 +1,9 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'prettyJson',
+  name: 'prettyYaml',
 })
-export class PrettyJsonPipe implements PipeTransform {
+export class PrettyYamlPipe implements PipeTransform {
 
   transform(value: any, args: any[]): any {
     try {
@@ -12,22 +12,18 @@ export class PrettyJsonPipe implements PipeTransform {
        * if it fails to parse which means it is an invalid JSON
        */
       return this.applyColors(
-        typeof value === 'object' ? value : JSON.parse(value),
+        value,
         args[0],
         args[1],
       );
     } catch (e) {
-      return this.applyColors({ error: 'Invalid JSON' }, args[0], args[1]);
+      return this.applyColors({ error: 'Invalid YAML' }, args[0], args[1]);
     }
   }
 
   applyColors(obj: any, showNumberLine: boolean = false, padding: number = 4) {
     // line number start from 1
     let line = 1;
-
-    if (typeof obj !== 'string') {
-      obj = JSON.stringify(obj, undefined, 3);
-    }
 
     /**
      * Converts special charaters like &, <, > to equivalent HTML code of it
@@ -36,10 +32,15 @@ export class PrettyJsonPipe implements PipeTransform {
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      .replace(/\n( *)/g, function (match, p1) {
+      .replace(/\n/g, function (match, p1) {
         return '<br>' + '&nbsp;'.repeat(p1.length);
       });
     /* taken from https://stackoverflow.com/a/7220510 */
+
+    /**
+     * Replace identation empty spaces
+     */
+    obj = obj.replace(/\s/g, '&nbsp;');
 
     /**
      * wraps every datatype, key for e.g

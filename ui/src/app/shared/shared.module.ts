@@ -44,6 +44,7 @@ import { PolicyDetailsComponent } from './components/orb/policy/policy-details/p
 import { PolicyInterfaceComponent } from './components/orb/policy/policy-interface/policy-interface.component';
 import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets/policy-datasets.component';
 import { GroupedAgentsComponent } from './components/orb/dataset/grouped-agents/grouped-agents.component';
+import { PrettyYamlPipe } from './pipes/pretty-yaml.pipe';
 import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/policy-groups.component';
 
 @NgModule({
@@ -91,6 +92,7 @@ import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/pol
     PolicyDatasetsComponent,
     PolicyGroupsComponent,
     GroupedAgentsComponent,
+    PrettyYamlPipe,
   ],
   exports: [
     ThemeModule,

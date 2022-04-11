@@ -287,16 +287,17 @@
                 [agentGroup]="availableAgentGroups[selectedGroup]">
               </ngx-grouped-agents>
             </div>
+            <div class="col-md-12 col-xl-12">
+              <ngx-policy-interface [policy]="availableAgentPolicies[selectedPolicy]"></ngx-policy-interface>
+            </div>
             <div class="col-md-12 col-xl-6">
-              <div>
-                <label class="font-weight-bold">Sinks</label>
-                <p>
-                  <span *ngFor="let sink of selectedSinks; last as isLast">
-                    <span>{{ sink.name }}</span>
-                    <span *ngIf="!isLast">,&nbsp;</span>
-                  </span>
-                </p>
-              </div>
+              <label class="font-weight-bold">Sinks</label>
+              <p>
+                <span *ngFor="let sink of selectedSinks; last as isLast">
+                  <span>{{ sink.name }}</span>
+                  <span *ngIf="!isLast">,&nbsp;</span>
+                </span>
+              </p>
             </div>
           </div>
           <hr/>
