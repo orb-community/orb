@@ -62,8 +62,16 @@ export class PolicyGroupsComponent implements OnInit, OnDestroy {
   retrieveAgentGroups(datasets: Dataset[]) {
     const groupsIds = datasets.map(dataset => dataset.agent_group_id);
 
+    if (!groupsIds || groupsIds.length === 0) {
+      this.errors['nogroup'] = 'This agent does not belong to any group.';
+    }
+
     return forkJoin(groupsIds.map(id => this.groupService.getAgentGroupById(id))).map(groups => {
-      this.groups = groups;
+      this.groups = groups.filter(group => !group.error);
+      this.errors.notfound = groups
+        .filter(group => !!group.error)
+        .map(value => `${ value.id }: ${ value.status } ${ value.statusText }`)
+        .join(',\n');
       return groups;
     });
   }
