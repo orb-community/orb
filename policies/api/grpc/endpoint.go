@@ -52,13 +52,13 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 		if err != nil {
 			return policyInDSListRes{}, err
 		}
-		policies := make([]policyInDSRes, len(plist))
+		policiesInDS := make([]policyInDSRes, len(plist))
 		for i, policy := range plist {
 			data, err := json.Marshal(policy.Policy.Policy)
 			if err != nil {
 				return policyInDSListRes{}, err
 			}
-			policies[i] = policyInDSRes{
+			policiesInDS[i] = policyInDSRes{
 				id:        policy.ID,
 				name:      policy.Name.String(),
 				backend:   policy.Backend,
@@ -68,11 +68,11 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 			}
 		}
 
-		return policyInDSListRes{policies: policies}, nil
+		return policyInDSListRes{policies: policiesInDS}, nil
 	}
 }
 
-func retrieveDatasetEnpoint(svc policies.Service) endpoint.Endpoint {
+func retrieveDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(accessDatasetByIDReq)
 		if err := req.validate(); err != nil {

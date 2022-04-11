@@ -43,7 +43,7 @@ func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyService
 			encodePolicyInDSListResponse,
 		),
 		retrieveDataset: kitgrpc.NewServer(
-			kitot.TraceServer(tracer, "retrieve_dataset")(retrieveDatasetEnpoint(svc)),
+			kitot.TraceServer(tracer, "retrieve_dataset")(retrieveDatasetEndpoint(svc)),
 			decodeRetrieveDatasetRequest,
 			encodeDatasetResponse,
 		),
