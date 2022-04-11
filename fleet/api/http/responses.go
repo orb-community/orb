@@ -59,18 +59,18 @@ func (res agentGroupsPageRes) Empty() bool {
 }
 
 type agentRes struct {
-	ID            string         `json:"id"`
-	Name          string         `json:"name"`
-	State         string         `json:"state"`
-	Key           string         `json:"key,omitempty"`
-	ChannelID     string         `json:"channel_id,omitempty"`
-	AgentTags     types.Tags     `json:"agent_tags"`
-	OrbTags       types.Tags     `json:"orb_tags"`
-	AgentMetadata types.Metadata `json:"agent_metadata"`
-	LastHBData    types.Metadata `json:"last_hb_data"`
-	TsCreated     time.Time      `json:"ts_created"`
-	TsLastHB      time.Time      `json:"ts_last_hb"`
-	created       bool
+	ID             string         `json:"id"`
+	Name           string         `json:"name"`
+	State          string         `json:"state"`
+	Key            string         `json:"key,omitempty"`
+	ChannelID      string         `json:"channel_id,omitempty"`
+	AgentTags      types.Tags     `json:"agent_tags"`
+	OrbTags        types.Tags     `json:"orb_tags"`
+	AgentMetadata  types.Metadata `json:"agent_metadata"`
+	LastHBData     types.Metadata `json:"last_hb_data"`
+	TsCreated      time.Time      `json:"ts_created"`
+	TsLastHB       time.Time      `json:"ts_last_hb"`
+	created        bool
 }
 
 func (s agentRes) Code() int {
@@ -178,5 +178,22 @@ func (s agentBackendsRes) Headers() map[string]string {
 }
 
 func (s agentBackendsRes) Empty() bool {
+	return false
+}
+
+type matchingGroupsRes struct {
+	GroupID   string `json:"group_id"`
+	GroupName string `json:"group_name"`
+}
+
+func (s matchingGroupsRes) Code() int {
+	return http.StatusOK
+}
+
+func (s matchingGroupsRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s matchingGroupsRes) Empty() bool {
 	return false
 }

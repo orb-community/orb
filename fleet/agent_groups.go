@@ -80,4 +80,6 @@ type AgentGroupRepository interface {
 	Update(ctx context.Context, ownerID string, group AgentGroup) (AgentGroup, error)
 	// Delete a existing agent group by owner and id
 	Delete(ctx context.Context, groupID string, ownerID string) error
+	// RetrieveMatchingGroups Groups this Agent currently belongs to, according to matching agent and group tags
+	RetrieveMatchingGroups(ctx context.Context, ownerID string, thingID string) (MatchingGroups, error)
 }

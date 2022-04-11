@@ -21,9 +21,6 @@ nb-card {
   }
 
   nb-card-body {
-    margin: 0.3rem;
-    padding: 0.3rem;
-
     label {
       color: #969fb9;
     }
@@ -75,7 +72,7 @@ nb-card {
 
   .error-title {
     color: #df316f;
-    font-weight: bolder;
+    font-weight: 600;
   }
 
   .agent-group-link {
@@ -136,25 +133,28 @@ nb-card {
   border: none !important;
   border-radius: 8px !important;
   display: grid;
-  padding: 0;
+  padding: -0.1rem !important;
+  margin: -0.1rem !important;
   text-subtitle-line-height: 1rem;
 
   nb-accordion-item {
     border: none !important;
     border-radius: 8px !important;
-    padding: 0;
+    padding: -0.1rem !important;
+    margin: -0.1rem !important;
 
     nb-accordion-item-header {
       border: none !important;
       border-radius: 8px !important;
-      padding: 10px 0;
+      padding: 0.1rem 0;
     }
 
     nb-accordion-item-body {
       border: none !important;
       border-radius: 8px !important;
       display: grid;
-      padding: 0;
+      padding: -0.1rem !important;
+      margin: -0.1rem !important;
     }
   }
 }
@@ -163,4 +163,9 @@ nb-list-item {
   background: #171c30;
   border: none;
   border-radius: 8px;
+}
+
+.error-accent {
+  color: #df316f !important;
+  font-weight: 600;
 }

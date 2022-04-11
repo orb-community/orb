@@ -28,6 +28,8 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     protected route: ActivatedRoute,
     protected router: Router,
   ) {
+    this.agent = {};
+    this.isLoading = false;
   }
 
   ngOnInit() {
