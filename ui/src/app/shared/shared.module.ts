@@ -120,6 +120,7 @@ import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/pol
     PolicyDatasetsComponent,
     GroupedAgentsComponent,
     PolicyGroupsComponent,
+    PrettyYamlPipe,
   ],
   providers: [
     MessageValuePipe,

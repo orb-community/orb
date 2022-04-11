@@ -35,15 +35,11 @@ export class DatasetAddComponent {
   // stepper form groups
   detailsFormGroup: FormGroup;
 
-  agentFormGroup: FormGroup;
-
-  policyFormGroup: FormGroup;
-
   sinkFormGroup: FormGroup;
 
-  selectedGroup = 0;
+  selectedGroup: AgentGroup;
 
-  selectedPolicy = 0;
+  selectedPolicy: AgentPolicy;
 
   // stores user selected sinks
   selectedSinks: { id: string, name?: string }[] = [];
@@ -118,12 +114,6 @@ export class DatasetAddComponent {
     this.detailsFormGroup = this._formBuilder.group({
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
     });
-    this.agentFormGroup = this._formBuilder.group({
-      agent_group_id: [agent_group_id, [Validators.required, Validators.minLength(1)]],
-    });
-    this.policyFormGroup = this._formBuilder.group({
-      agent_policy_id: [agent_policy_id, [Validators.required, Validators.minLength(1)]],
-    });
     this.sinkFormGroup = this._formBuilder.group({
       selected_sink: ['', [Validators.minLength(1)]],
     });
@@ -156,21 +146,11 @@ export class DatasetAddComponent {
     this.getAvailableSinks()
       .catch(reason => console.warn(`Couldn't fetch available sinks. Reason: ${ reason }`));
 
-    this.selectedGroup = this.availableAgentGroups.findIndex(agent => agent.id === agent_group_id);
-    this.selectedPolicy = this.availableAgentPolicies.findIndex(policy => policy.id === agent_policy_id);
+    this.selectedGroup = !!agent_group_id && this.availableAgentGroups.findIndex(agent => agent.id === agent_group_id);
+    this.selectedPolicy = !!agent_policy_id && this.availableAgentPolicies.findIndex(policy => policy.id === agent_policy_id);
 
     this.detailsFormGroup.controls.name.patchValue(name);
-    this.agentFormGroup.controls.agent_group_id.setValue(agent_group_id);
-    this.policyFormGroup.controls.agent_policy_id.setValue(agent_policy_id);
     this.detailsFormGroup.updateValueAndValidity();
-    this.agentFormGroup.updateValueAndValidity();
-    this.policyFormGroup.updateValueAndValidity();
-
-    // when editing, do not change agent group or policy
-    if (this.isEdit) {
-      this.agentFormGroup.controls.agent_group_id.disable();
-      this.policyFormGroup.controls.agent_policy_id.disable();
-    }
   }
 
   isLoading() {
@@ -242,16 +222,6 @@ export class DatasetAddComponent {
     this.router.navigateByUrl('/pages/datasets/list');
   }
 
-  onAgentGroupSelected(agentGroup: any) {
-    this.selectedGroup = this.availableAgentGroups.findIndex(agent => agent.id === agentGroup);
-    this.agentFormGroup.controls.agent_group_id.setValue(agentGroup);
-  }
-
-  onAgentPolicySelected(agentPolicy: any) {
-    this.selectedPolicy = this.availableAgentPolicies.findIndex(policy => policy.id === agentPolicy);
-    this.policyFormGroup.controls.agent_policy_id.setValue(agentPolicy);
-  }
-
   onAddSink() {
     const sink = this.sinkFormGroup.controls.selected_sink.value;
     this.selectedSinks.push(sink);
@@ -265,11 +235,19 @@ export class DatasetAddComponent {
     this.getAvailableSinks();
   }
 
+  onPolicySelected(policy) {
+    this.selectedPolicy = policy;
+    this.agentPoliciesService.getAgentPolicyById(policy.id)
+      .subscribe(fullPolicy => {
+      this.selectedPolicy = { ...policy, ...fullPolicy};
+    });
+  }
+
   onFormSubmit() {
     const payload = {
       name: this.detailsFormGroup.controls.name.value,
-      agent_group_id: this.agentFormGroup.controls.agent_group_id.value,
-      agent_policy_id: this.policyFormGroup.controls.agent_policy_id.value,
+      agent_group_id: this.selectedGroup.id,
+      agent_policy_id: this.selectedPolicy.id,
       sink_ids: this.selectedSinks.map(sink => sink.id),
     } as Dataset;
     if (this.isEdit) {
