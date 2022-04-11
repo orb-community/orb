@@ -1,16 +1,11 @@
-
-  <label class="font-weight-bold">Agent Policy</label>
-  <div *ngIf="!isLoading">
-    <ul>
-      <li>
-        <button (click)="showAgentDetails(agent)"
-                *ngFor="let agent of agents;"
-                class='agent-group-button'>
-          <span class="agent-group-accent">{{ agent.name }}</span>
-        </button>
-      </li>
-    </ul>
-  </div>
-  <p *ngIf="errors?.nogroup">
-    <span class="summary-accent">{{ errors.nogroup }}</span>
-  </p>
+<label class="font-weight-bold">Agent Group</label>
+<div *ngIf="!isLoading">
+  <button (click)="showAgentDetails(agent)"
+          *ngFor="let agent of agents; first as isFirst; last as isLast;"
+          class='agent-group-button'>
+    <span class="agent-group-accent">{{ agent.name }}{{ !isLast ? ', ' : '' }}</span>
+  </button>
+</div>
+<p *ngIf="errors?.nogroup">
+  <span class="summary-accent">{{ errors.nogroup }}</span>
+</p>

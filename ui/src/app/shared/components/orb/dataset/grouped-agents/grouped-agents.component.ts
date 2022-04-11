@@ -1,11 +1,8 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 import { AgentsService } from 'app/common/services/agents/agents.service';
-import { tap } from 'rxjs/operators';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { from, Subscription } from 'rxjs';
-import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
+import { Subscription } from 'rxjs';
 import { NbDialogService } from '@nebular/theme';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -54,7 +51,7 @@ export class GroupedAgentsComponent implements OnInit, OnChanges {
   }
 
   getMatchingAgents(tags) {
-    if (this.isTagsValid(tags )) {
+    if (this.isTagsValid(tags)) {
       this.isLoading = true;
       this.subscription?.unsubscribe();
 

@@ -79,8 +79,8 @@
               </div>
               <nb-select (selectedChange)="onAgentGroupSelected($event)"
                          [(selected)]="dataset.agent_group_id"
-                         autofocus
                          appearance="filled"
+                         autofocus
                          data-orb-qa-id="agent_group_id"
                          formControlName="agent_group_id"
                          fullWidth="true"
@@ -140,8 +140,8 @@
               </div>
               <nb-select (selectedChange)="onAgentPolicySelected($event)"
                          [(selected)]="dataset.agent_policy_id"
-                         autofocus
                          appearance="filled"
+                         autofocus
                          data-orb-qa-id="agent_policy_id"
                          formControlName="agent_policy_id"
                          fullWidth="true"
@@ -282,16 +282,10 @@
                 <p data-orb-qa-id="review-agent-group">{{detailsFormGroup?.controls.name.value}}</p>
               </div>
             </div>
-            <div class="col-md-12 col-xl-6" *ngIf="availableAgentGroups.length > 0">
+            <div *ngIf="availableAgentGroups.length > 0" class="col-md-12 col-xl-6">
               <ngx-grouped-agents
                 [agentGroup]="availableAgentGroups[selectedGroup]">
               </ngx-grouped-agents>
-            </div>
-            <div class="col-md-12 col-xl-6">
-              <div>
-                <label class="font-weight-bold">Agent Policy</label>
-                <p data-orb-qa-id="review-agent-policy">{{availableAgentPolicies[selectedPolicy]?.name}}</p>
-              </div>
             </div>
             <div class="col-md-12 col-xl-6">
               <div>
