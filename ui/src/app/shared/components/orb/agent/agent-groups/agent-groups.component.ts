@@ -47,8 +47,11 @@ export class AgentGroupsComponent implements OnInit {
 
     forkJoin(groupIds.map(id => this.groupsService.getAgentGroupById(id)))
       .subscribe(resp => {
-        this.groups = resp;
-        this.errors = {};
+        this.groups = resp.filter(group => !group.error);
+        this.errors.notfound = resp
+          .filter(group => !!group.error)
+          .map(value => `${value.id}: ${value.status} ${value.statusText}`)
+          .join(',\n');
         this.isLoading = false;
       });
   }
@@ -66,7 +69,7 @@ export class AgentGroupsComponent implements OnInit {
   }
 
   onOpenEditAgentGroup(agentGroup: any) {
-    this.router.navigate([`../../../groups/edit/${ agentGroup.id }`], {
+    this.router.navigate([`/pages/fleet/groups/edit/${ agentGroup.id }`], {
       state: { agentGroup: agentGroup, edit: true },
       relativeTo: this.route,
     });

@@ -72,7 +72,8 @@
 </div>
 
 <ng-template #nameTemplateCell let-i="index" let-row="row" let-value="value">
-  <div nbTooltip="{{ row.id }}">
+  <div (click)="onOpenView(row)"
+    nbTooltip="View Details for {{ row.id }}">
     {{ row.name }}
   </div>
 </ng-template>

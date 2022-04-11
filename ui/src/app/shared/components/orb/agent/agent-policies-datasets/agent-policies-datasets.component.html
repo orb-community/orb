@@ -14,6 +14,10 @@
           </nb-accordion-item-header>
           <nb-accordion-item-body>
             <nb-list>
+              <nb-list-item *ngIf="policy.state === policyStates.failedToApply"
+                            class="error-item">
+                <span><span class="error-title">Error Details: </span>{{ policy?.error }}</span>
+              </nb-list-item>
               <nb-list-item *ngFor="let id of policy.datasets">
                 <span>Dataset:&nbsp;&quot;{{ datasets[id].name }}&quot;</span>
               </nb-list-item>
@@ -23,7 +27,7 @@
       </nb-accordion>
     </div>
     <p *ngIf="errors?.nodatasets">
-      <span class="summary-accent">{{ errors.nodatasets }}</span>
+      <span class="error-accent">{{ errors.nodatasets }}</span>
     </p>
   </nb-card-body>
 </nb-card>

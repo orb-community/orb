@@ -166,6 +166,9 @@ type Repository interface {
 	// DeleteSinkFromAllDatasets removes a sink from a dataset
 	DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
 
+	// ActivateDatasetByID Activate a dataset
+	ActivateDatasetByID(ctx context.Context, datasetID string, ownerID string) error
+
 	// DeleteAgentGroupFromAllDatasets removes agent group from a dataset
 	DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, ownerID string) error
 }

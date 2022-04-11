@@ -19,6 +19,31 @@ jobs:
         with:
           go-version: 1.16
 
+      - name: Get branch name
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+      - name: Debug branch name
+        run: echo ${{ env.BRANCH_NAME }}
+
+      - name: Generate ref tag (main)
+        if: ${{ env.BRANCH_NAME == 'main' }}
+        run: |
+          echo "REF_TAG=latest" >> $GITHUB_ENV
+
+      - name: Generate ref tag (develop)
+        if: ${{ env.BRANCH_NAME == 'develop' }}
+        run: |
+          echo "REF_TAG=develop" >> $GITHUB_ENV
+
+      - name: Debug ref tag
+        run: echo ${{ env.REF_TAG }}
+
+      - name: Append suffix on VERSION file for develop build
+        if: ${{ env.BRANCH_NAME == 'develop' }}
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
+
       - name: Build orb agent (go build only)
         run: make agent_bin
 
@@ -48,6 +73,11 @@ jobs:
 
       - name: Debug ref tag
         run: echo ${{ env.REF_TAG }}
+
+      - name: Append suffix on VERSION file for develop build
+        if: ${{ env.BRANCH_NAME == 'develop' }}
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
       - name: Get VERSION
         run: |

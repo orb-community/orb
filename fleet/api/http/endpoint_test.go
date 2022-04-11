@@ -806,6 +806,54 @@ func TestViewAgent(t *testing.T) {
 	}
 }
 
+func TestViewAgentMatchingGroups(t *testing.T) {
+	cli := newClientServer(t)
+
+	ag, err := createAgent(t, "my-agent1", &cli)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	cases := map[string]struct {
+		id     string
+		auth   string
+		status int
+	}{
+		"view a existing agent matching groups": {
+			id:     ag.MFThingID,
+			auth:   token,
+			status: http.StatusOK,
+		},
+		"view a agent matching groups with a invalid token": {
+			id:     ag.MFThingID,
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+		},
+		"view a agent matching groups with a empty token": {
+			id:     ag.MFThingID,
+			auth:   "",
+			status: http.StatusUnauthorized,
+		},
+		"view agent matching groups with empty id": {
+			id:     "",
+			auth:   token,
+			status: http.StatusBadRequest,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/agents/%s/matching_groups", cli.server.URL, tc.id),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
 func TestListAgent(t *testing.T) {
 	cli := newClientServer(t)
 

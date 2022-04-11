@@ -109,6 +109,32 @@ nb-card {
     margin-top: 24px;
     width: 250px;
   }
+
+  .orb-breadcrumb {
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 12px;
+
+    ::ng-deep {
+      .xng-breadcrumb-trail {
+        color: #fff;
+        margin-bottom: 0;
+      }
+
+      .xng-breadcrumb-link {
+        color: #969fb9 !important;
+        text-decoration: none !important;
+      }
+
+      .xng-breadcrumb-separator {
+        color: #969fb9 !important;
+        text-decoration: none !important;
+      }
+    }
+  }
 }
 
 ::ng-deep {
@@ -116,37 +142,4 @@ nb-card {
     background: #1c2339 !important;
     color: #df316f !important;
   }
-}
-
-::ng-deep nb-accordion {
-  border: none !important;
-  border-radius: 8px !important;
-  display: grid;
-  padding: 0;
-  text-subtitle-line-height: 1rem;
-
-  nb-accordion-item {
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 0;
-
-    nb-accordion-item-header {
-      border: none !important;
-      border-radius: 8px !important;
-      padding: 10px 0;
-    }
-
-    nb-accordion-item-body {
-      border: none !important;
-      border-radius: 8px !important;
-      display: grid;
-      padding: 0;
-    }
-  }
-}
-
-nb-list-item {
-  background: #171c30;
-  border: none;
-  border-radius: 8px;
 }

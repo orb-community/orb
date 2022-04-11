@@ -55,7 +55,7 @@ nb-card {
       }
 
       code {
-        color: #ffffff;
+        color: #fff;
         line-height: 2.5 !important;
       }
     }
@@ -116,4 +116,24 @@ nb-card {
     background: #1c2339 !important;
     color: #df316f !important;
   }
+}
+
+::ng-deep .agent-group-button {
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  border: none !important;
+  cursor: pointer !important;
+  outline: none !important;
+  overflow: hidden !important;
+}
+
+.agent-group-accent {
+  color: #ffffff !important;
+  text-decoration: underline !important;
+  font-weight: 600;
+}
+
+.error-accent {
+  color: #df316f !important;
+  font-weight: 600;
 }

@@ -102,6 +102,20 @@ func (l loggingMiddleware) ViewAgentByID(ctx context.Context, token string, thin
 	return l.svc.ViewAgentByID(ctx, token, thingID)
 }
 
+func (l loggingMiddleware) ViewAgentMatchingGroupsByID(ctx context.Context, token string, thingID string) (_ fleet.MatchingGroups, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: view_agent_matching_groups_by_id",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: view_agent_matching_groups_by_id",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ViewAgentMatchingGroupsByID(ctx, token, thingID)
+}
+
 func (l loggingMiddleware) EditAgent(ctx context.Context, token string, agent fleet.Agent) (_ fleet.Agent, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

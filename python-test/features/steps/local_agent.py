@@ -142,6 +142,7 @@ def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pk
     :param (str or int) pktvisor_port: Port on which pktvisor should run
     :return: agent container ID
     """
+    command = command.replace("\\\n", " ")
     args = shlex.split(command)
     if ignore_ssl_and_certificate_errors == 'true':
         args.insert(-1, "-e")
