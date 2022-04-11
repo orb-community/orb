@@ -286,8 +286,8 @@
             </div>
             <div class="col-md-12 col-xl-12">
               <label class="font-weight-bold">Agent Policy</label>
-                <pre
-                  innerHtml="{{ (selectedPolicy?.policy_data | prettyYaml:[false, 2]) || (selectedPolicy?.policy |
+              <pre
+                innerHtml="{{ (selectedPolicy?.policy_data | prettyYaml:[false, 2]) || (selectedPolicy?.policy |
                   prettyJson:
                   [false, 2]) }}"></pre>
             </div>

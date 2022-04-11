@@ -93,7 +93,7 @@ export class DatasetAddComponent {
 
   readyForms() {
     const {
-      name, agent_group_id, agent_policy_id,
+      name,
       sink_ids,
     } = this.dataset
       = {
@@ -146,8 +146,8 @@ export class DatasetAddComponent {
     this.getAvailableSinks()
       .catch(reason => console.warn(`Couldn't fetch available sinks. Reason: ${ reason }`));
 
-    this.selectedGroup = !!agent_group_id && this.availableAgentGroups.findIndex(agent => agent.id === agent_group_id);
-    this.selectedPolicy = !!agent_policy_id && this.availableAgentPolicies.findIndex(policy => policy.id === agent_policy_id);
+    this.selectedGroup = !!agent_group_id && this.availableAgentGroups.find(agent => agent.id === agent_group_id);
+    this.selectedPolicy = !!agent_policy_id && this.availableAgentPolicies.find(policy => policy.id === agent_policy_id);
 
     this.detailsFormGroup.controls.name.patchValue(name);
     this.detailsFormGroup.updateValueAndValidity();
@@ -239,8 +239,8 @@ export class DatasetAddComponent {
     this.selectedPolicy = policy;
     this.agentPoliciesService.getAgentPolicyById(policy.id)
       .subscribe(fullPolicy => {
-      this.selectedPolicy = { ...policy, ...fullPolicy};
-    });
+        this.selectedPolicy = { ...policy, ...fullPolicy };
+      });
   }
 
   onFormSubmit() {
