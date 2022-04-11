@@ -1,10 +1,10 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { tap } from 'rxjs/operators';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { from } from 'rxjs';
+import { from, Subscription } from 'rxjs';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { NbDialogService } from '@nebular/theme';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
@@ -15,13 +15,15 @@ import { ActivatedRoute, Router } from '@angular/router';
   templateUrl: './grouped-agents.component.html',
   styleUrls: ['./grouped-agents.component.scss'],
 })
-export class GroupedAgentsComponent implements OnInit {
+export class GroupedAgentsComponent implements OnInit, OnChanges {
   @Input()
   agentGroup: AgentGroup;
 
   agents: Agent[];
 
   isLoading = true;
+
+  subscription: Subscription;
 
   errors;
 
@@ -36,21 +38,32 @@ export class GroupedAgentsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.getMatchingAgents().subscribe(() => {
-      this.isLoading = false;
-    });
-  }
-
-  getMatchingAgents() {
-    this.isLoading = true;
     const { tags } = this.agentGroup;
 
-    return this.agentsService.getMatchingAgents(tags)
-      .pipe(
-        tap(agents => {
+    this.getMatchingAgents(tags);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    const { tags } = changes.agentGroup.currentValue;
+
+    this.getMatchingAgents(tags);
+  }
+
+  isTagsValid(tags) {
+    return !!tags && Object.keys(tags).length !== 0;
+  }
+
+  getMatchingAgents(tags) {
+    if (this.isTagsValid(tags )) {
+      this.isLoading = true;
+      this.subscription?.unsubscribe();
+
+      this.agentsService.getMatchingAgents(tags)
+        .subscribe(agents => {
           this.agents = agents;
-        }),
-      );
+          this.isLoading = false;
+        });
+    }
   }
 
   showAgentDetails(agent) {
