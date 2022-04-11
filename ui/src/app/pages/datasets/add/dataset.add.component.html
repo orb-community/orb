@@ -274,32 +274,31 @@
               <strong>Review & Confirm</strong>
             </div>
           </ng-template>
-          <div class="d-flex row">
-            <div class="col-md-12 col-xl-12">
-              <label class="font-weight-bold">Dataset Name</label>
-              <p data-orb-qa-id="review-agent-group">{{detailsFormGroup?.controls.name.value}}</p>
-            </div>
-            <div *ngIf="availableAgentGroups.length > 0" class="col-md-12 col-xl-6">
-              <ngx-grouped-agents
-                [agentGroup]="selectedGroup">
-              </ngx-grouped-agents>
-            </div>
-            <div class="col-md-12 col-xl-12">
-              <label class="font-weight-bold">Agent Policy</label>
-              <pre
-                innerHtml="{{ (selectedPolicy?.policy_data | prettyYaml:[false, 2]) || (selectedPolicy?.policy |
+          <div class="col-md-12 col-xl-12">
+            <label class="font-weight-bold">Dataset Name</label>
+            <p data-orb-qa-id="review-agent-group">{{detailsFormGroup?.controls.name.value}}</p>
+          </div>
+          <div *ngIf="availableAgentGroups.length > 0" class="col-md-12 col-xl-12">
+            <ngx-grouped-agents
+              [agentGroup]="selectedGroup">
+            </ngx-grouped-agents>
+          </div>
+          <div class="col-md-12 col-xl-12">
+            <br/>
+            <label class="font-weight-bold">Agent Policy</label>
+            <pre
+              innerHtml="{{ (selectedPolicy?.policy_data | prettyYaml:[false, 2]) || (selectedPolicy?.policy |
                   prettyJson:
                   [false, 2]) }}"></pre>
-            </div>
-            <div class="col-md-12 col-xl-6">
-              <label class="font-weight-bold">Sinks</label>
-              <p>
+          </div>
+          <div class="col-md-12 col-xl-12">
+            <label class="font-weight-bold">Sinks</label>
+            <p>
                 <span *ngFor="let sink of selectedSinks; last as isLast">
                   <span>{{ sink.name }}</span>
                   <span *ngIf="!isLast">,&nbsp;</span>
                 </span>
-              </p>
-            </div>
+            </p>
           </div>
           <hr/>
           <div *ngIf="sinkFormGroup" class="d-flex justify-content-end">
