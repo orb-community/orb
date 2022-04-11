@@ -142,6 +142,11 @@ func (es eventStore) handleAgentGroupRemove(ctx context.Context, groupID string,
 	if err != nil {
 		return err
 	}
+
+	err = es.policiesService.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

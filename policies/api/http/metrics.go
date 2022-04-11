@@ -410,6 +410,28 @@ func (m metricsMiddleware) DeleteSinkFromAllDatasetsInternal(ctx context.Context
 	return m.svc.DeleteSinkFromAllDatasetsInternal(ctx, sinkID, ownerID)
 }
 
+func (m metricsMiddleware) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return err
+	}
+
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "deleteAgentGroupFromAllDatasets",
+			"owner_id", ownerID,
+			"policy_id", "",
+			"dataset_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
+}
+
 func (m metricsMiddleware) identify(token string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
