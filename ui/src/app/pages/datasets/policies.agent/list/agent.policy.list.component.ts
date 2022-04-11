@@ -16,9 +16,9 @@ import { NbDialogService } from '@nebular/theme';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Debounce } from 'app/shared/decorators/utils';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
 import { AgentPolicyDetailsComponent } from 'app/pages/datasets/policies.agent/details/agent.policy.details.component';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'ngx-agent-policy-list-component',
@@ -38,7 +38,9 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
 
   searchPlaceholder = 'Search by name';
 
-  filterSelectedIndex = '0';
+  @ViewChild('nameTemplateCell') nameTemplateCell: TemplateRef<any>;
+
+  @ViewChild('versionTemplateCell') versionTemplateCell: TemplateRef<any>;
 
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
@@ -48,12 +50,32 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
       label: 'Name',
       prop: 'name',
       selected: false,
+      filter: (policy, name) => policy?.name.includes(name),
     },
     {
       id: '1',
+      label: 'Description',
+      prop: 'description',
+      selected: false,
+      filter: (policy, description) => policy?.description.includes(description),
+    },
+    {
+      id: '2',
       label: 'Version',
       prop: 'version',
       selected: false,
+      filter: (policy, version) => policy?.version.includes(version),
+    },
+  ];
+
+  selectedFilter = this.tableFilters[0];
+
+  filterValue = null;
+
+  tableSorts = [
+    {
+      prop: 'name',
+      dir: 'asc',
     },
   ];
 
@@ -66,6 +88,7 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
+    private datePipe: DatePipe,
     private agentPoliciesService: AgentPoliciesService,
     private notificationsService: NotificationsService,
     private route: ActivatedRoute,
@@ -86,7 +109,7 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
 
   ngOnInit() {
     this.agentPoliciesService.clean();
-    this.getAgentsPolicies();
+    this.getAllPolicies();
   }
 
   ngAfterViewInit() {
@@ -95,34 +118,38 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
         prop: 'name',
         name: 'Policy Name',
         resizeable: false,
-        flexGrow: 3,
-        minWidth: 90,
+        canAutoResize: true,
+        flexGrow: 2,
+        minWidth: 120,
+        cellTemplate: this.nameTemplateCell,
       },
       {
         prop: 'description',
         name: 'Description',
         resizeable: false,
         flexGrow: 4,
-        minWidth: 180,
+        minWidth: 120,
       },
       {
         prop: 'version',
         name: 'Version',
         resizeable: false,
-        flexGrow: 2,
-        minWidth: 60,
+        flexGrow: 1,
+        minWidth: 50,
+        cellTemplate: this.versionTemplateCell,
       },
       {
-        prop: 'ts_created',
+        prop: 'ts_last_modified',
+        pipe: { transform: (value) => this.datePipe.transform(value, 'M/d/yy, HH:mm z') },
         name: 'Last Modified',
-        minWidth: 90,
+        minWidth: 140,
         flexGrow: 2,
         resizeable: false,
       },
       {
         name: '',
         prop: 'actions',
-        minWidth: 130,
+        minWidth: 100,
         resizeable: false,
         sortable: false,
         flexGrow: 2,
@@ -133,21 +160,25 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
     this.cdr.detectChanges();
   }
 
-  @Debounce(500)
-  getAgentsPolicies(pageInfo: NgxDatabalePageInfo = null): void {
-    const isFilter = this.paginationControls.name?.length > 0 || this.paginationControls.tags?.length > 0;
+  getAllPolicies(): void {
+    this.agentPoliciesService.getAllAgentPolicies().subscribe(resp => {
+      this.paginationControls.data = resp.data;
+      this.paginationControls.total = resp.data.length;
+      this.paginationControls.offset = resp.offset / resp.limit;
+      this.loading = false;
+      this.cdr.markForCheck();
+    });
+  }
 
-    if (isFilter) {
-      pageInfo = {
-        offset: this.paginationControls.offset,
-        limit: this.paginationControls.limit,
-      };
-      if (this.paginationControls.name?.length > 0) pageInfo.name = this.paginationControls.name;
-      if (this.paginationControls.tags?.length > 0) pageInfo.tags = this.paginationControls.tags;
-    }
+  getAgentsPolicies(pageInfo: NgxDatabalePageInfo = null): void {
+    const finalPageInfo = { ...pageInfo };
+    finalPageInfo.dir = 'desc';
+    finalPageInfo.order = 'name';
+    finalPageInfo.limit = this.paginationControls.limit;
+    finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
 
     this.loading = true;
-    this.agentPoliciesService.getAgentsPolicies(pageInfo, isFilter).subscribe(
+    this.agentPoliciesService.getAgentsPolicies(finalPageInfo).subscribe(
       (resp: OrbPagination<AgentPolicy>) => {
         this.paginationControls = resp;
         this.paginationControls.offset = pageInfo?.offset || 0;
@@ -170,8 +201,28 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
     });
   }
 
-  onFilterSelected(selectedIndex) {
-    this.searchPlaceholder = `Search by ${ this.tableFilters[selectedIndex].label }`;
+  onOpenView(agentPolicy: any) {
+    this.router.navigate([`view/${ agentPolicy.id }`], {
+      relativeTo: this.route,
+    });
+  }
+
+  onFilterSelected(filter) {
+    this.searchPlaceholder = `Search by ${ filter.label }`;
+    this.filterValue = null;
+  }
+
+  applyFilter() {
+    if (!this.paginationControls || !this.paginationControls?.data) return;
+
+    if (!this.filterValue || this.filterValue === '') {
+      this.table.rows = this.paginationControls.data;
+    } else {
+      this.table.rows = this.paginationControls.data.filter(sink => this.filterValue.split(/[,;]+/gm).reduce((prev, curr) => {
+        return this.selectedFilter.filter(sink, curr) && prev;
+      }, true));
+    }
+    this.paginationControls.offset = 0;
   }
 
   openDeleteModal(row: any) {
@@ -203,13 +254,6 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
       } else {
         this.getAgentsPolicies();
       }
-    });
-  }
-
-  searchAgentByName(input) {
-    this.getAgentsPolicies({
-      ...this.paginationControls,
-      [this.tableFilters[this.filterSelectedIndex].prop]: input,
     });
   }
 }

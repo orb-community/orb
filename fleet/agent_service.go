@@ -15,6 +15,7 @@ import (
 	"github.com/ns1labs/orb/fleet/backend"
 	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
+	"strings"
 )
 
 var (
@@ -28,12 +29,56 @@ var (
 	errThingNotFound = errors.New("thing not found")
 )
 
+func (svc fleetService) addAgentToAgentGroupChannels(token string, a Agent) error {
+	groupList, err := svc.agentGroupRepository.RetrieveAllByAgent(context.Background(), a)
+	if err != nil {
+		return err
+	}
+
+	if len(groupList) == 0 {
+		return nil
+	}
+
+	var idList = make([]string, 1)
+	idList[0] = a.MFThingID
+	for _, group := range groupList {
+		ids := mfsdk.ConnectionIDs{
+			ChannelIDs: []string{group.MFChannelID},
+			ThingIDs:   idList,
+		}
+		err = svc.mfsdk.Connect(ids, token)
+		if err != nil {
+			if strings.Contains(err.Error(), "409") {
+				svc.logger.Warn("agent already connected, skipping...")
+			} else {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func (svc fleetService) ViewAgentByID(ctx context.Context, token string, thingID string) (Agent, error) {
 	ownerID, err := svc.identify(token)
 	if err != nil {
 		return Agent{}, err
 	}
 	return svc.agentRepo.RetrieveByID(ctx, ownerID, thingID)
+}
+
+func (svc fleetService) ResetAgent(ctx context.Context, token string, agentID string) error {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return err
+	}
+
+	agent, err := svc.agentRepo.RetrieveByID(ctx, ownerID, agentID)
+	if err != nil {
+		return err
+	}
+
+	return svc.agentComms.NotifyAgentReset(agent, true, "Reset initiated from control plane")
 }
 
 func (svc fleetService) ViewAgentByIDInternal(ctx context.Context, ownerID string, id string) (Agent, error) {
@@ -110,6 +155,12 @@ func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) 
 		return Agent{}, errors.Wrap(ErrCreateAgent, err)
 	}
 
+	err = svc.addAgentToAgentGroupChannels(token, a)
+	if err != nil {
+		// TODO should we roll back?
+		svc.logger.Error("failed to add agent to a existing group channel", zap.String("agent_id", a.MFThingID), zap.Error(err))
+	}
+
 	return a, nil
 }
 
@@ -128,6 +179,12 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 	res, err := svc.agentRepo.RetrieveByID(ctx, ownerID, agent.MFThingID)
 	if err != nil {
 		return Agent{}, err
+	}
+
+	err = svc.addAgentToAgentGroupChannels(token, res)
+	if err != nil {
+		// TODO should we roll back?
+		svc.logger.Error("failed to add agent to a existing group channel", zap.String("agent_id", res.MFThingID), zap.Error(err))
 	}
 
 	err = svc.agentComms.NotifyAgentGroupMemberships(res)

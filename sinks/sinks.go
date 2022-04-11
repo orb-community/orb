@@ -109,7 +109,7 @@ type SinkService interface {
 	// CreateSink creates new data sink
 	CreateSink(ctx context.Context, token string, s Sink) (Sink, error)
 	// UpdateSink by id
-	UpdateSink(ctx context.Context, token string, s Sink) error
+	UpdateSink(ctx context.Context, token string, s Sink) (Sink, error)
 	// ListSinks retrieves data about sinks
 	ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error)
 	// ListBackends retrieves a list of available backends

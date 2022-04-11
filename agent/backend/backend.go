@@ -15,6 +15,7 @@ const (
 	Running
 	BackendError
 	AgentError
+	Offline
 )
 
 type BackendState int
@@ -24,6 +25,7 @@ var backendStateMap = [...]string{
 	"running",
 	"backend_error",
 	"agent_error",
+	"offline",
 }
 
 var backendStateRevMap = map[string]BackendState{
@@ -31,6 +33,7 @@ var backendStateRevMap = map[string]BackendState{
 	"running":       Running,
 	"backend_error": BackendError,
 	"agent_error":   AgentError,
+	"offline":       Offline,
 }
 
 func (s BackendState) String() string {
@@ -43,11 +46,12 @@ type Backend interface {
 	Version() (string, error)
 	Start() error
 	Stop() error
+	FullReset() error
 
 	GetCapabilities() (map[string]interface{}, error)
 	GetState() (BackendState, string, error)
 
-	ApplyPolicy(data policies.PolicyData) error
+	ApplyPolicy(data policies.PolicyData, updatePolicy bool) error
 	RemovePolicy(data policies.PolicyData) error
 }
 

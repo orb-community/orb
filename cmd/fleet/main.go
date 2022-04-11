@@ -122,7 +122,24 @@ func main() {
 	agentGroupRepo := postgres.NewAgentGroupRepository(db, logger)
 
 	commsSvc := fleet.NewFleetCommsService(logger, policiesGRPCClient, agentRepo, agentGroupRepo, pubSub)
-	svc := newFleetService(authGRPCClient, db, logger, esClient, sdkCfg, agentRepo, agentGroupRepo, commsSvc)
+	commsSvc = fleet.CommsMetricsMiddleware(
+		commsSvc,
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "fleet",
+			Subsystem: "comms",
+			Name:      "request_count",
+			Help:      "Number of requests received.",
+		}, []string{"method", "agent_id", "agent_name", "group_id", "group_name", "owner_id"}),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "fleet",
+			Subsystem: "comms",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, []string{"method", "agent_id", "agent_name", "group_id", "group_name", "owner_id"}))
+
+	aDone := make(chan bool)
+
+	svc := newFleetService(authGRPCClient, db, logger, esClient, sdkCfg, agentRepo, agentGroupRepo, commsSvc, aDone)
 	defer commsSvc.Stop()
 
 	errs := make(chan error, 2)
@@ -141,6 +158,7 @@ func main() {
 		c := make(chan os.Signal)
 		signal.Notify(c, syscall.SIGINT)
 		errs <- fmt.Errorf("%s", <-c)
+		aDone <- true
 	}()
 
 	err = <-errs
@@ -194,7 +212,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, agentRepo fleet.AgentRepository, agentGroupRepo fleet.AgentGroupRepository, agentComms fleet.AgentCommsService) fleet.Service {
+func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, agentRepo fleet.AgentRepository, agentGroupRepo fleet.AgentGroupRepository, agentComms fleet.AgentCommsService, aDone chan bool) fleet.Service {
 
 	config := mfsdk.Config{
 		BaseURL:      sdkCfg.BaseURL,
@@ -205,7 +223,7 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 
 	pktvisor.Register(auth, agentRepo)
 
-	svc := fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk)
+	svc := fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, aDone)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = fleethttp.NewLoggingMiddleware(svc, logger)
 	svc = fleethttp.MetricsMiddleware(

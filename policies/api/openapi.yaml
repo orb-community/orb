@@ -426,11 +426,51 @@ components:
             node_type: dns
         policy:
           type: object
+          properties:
+            kind:
+              type: string
+              example: "collection"
+            input:
+              type: object
+              properties:
+                tap:
+                  type: string
+                  example: "default_pcap"
+                input_type:
+                  type: string
+                  example: "pcap"
+                config:
+                  type: object
+                  properties:
+                    host_spec:
+                      type: string
+                      example: "host_spec"
+                filter:
+                  type: object
+                  properties:
+                    bpf:
+                      type: string
+                      example: "filter_exp"
+            handlers:
+              type: object
+              properties:
+                modules:
+                  type: object
+                  properties:
+                    handlers_label:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "dns"
           description: Agent backend specific policy data in json format
           example:
-            version: 1.0
-            visor:
-              foo: bar
+            handlers:
+              modules:
+                default_dns:
+                  type: dns
+                default_net:
+                  type: net
     PolicyUpdateReqSchemaYaml:
       type: object
       properties:
@@ -451,7 +491,7 @@ components:
         policy_data:
           type: string
           description: Agent backend specific policy data in yaml format
-          example: "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+          example: "handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: default_pcap\nkind: collection"
         format:
           type: string
           example: yaml
@@ -461,7 +501,6 @@ components:
       required:
         - name
         - backend
-        - description
         - tags
         - policy
       properties:
@@ -479,23 +518,74 @@ components:
           example:
             region: eu
             node_type: dns
+        version:
+          type: integer
+          description: Currente version of agent policy
+          example: 1
         backend:
           type: string
           example: pktvisor
           description: Agent backend this policy is for. Cannot change once created.
+        schema_version:
+          type: string
+          example: '1.0'
+          description: Schema version which needs to match the schema defined by the backend which will use the policy.
         policy:
           type: object
+          properties:
+            kind:
+              type: string
+              example: "collection"
+            input:
+              type: object
+              properties:
+                tap:
+                  type: string
+                  example: "default_pcap"
+                input_type:
+                  type: string
+                  example: "pcap"
+                config:
+                  type: object
+                  properties:
+                    host_spec:
+                      type: string
+                      example: "host_spec"
+                filter:
+                  type: object
+                  properties:
+                    bpf:
+                      type: string
+                      example: "filter_exp"
+            handlers:
+              type: object
+              properties:
+                modules:
+                  type: object
+                  properties:
+                    handlers_label:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "dns"
           description: Agent backend specific policy data in json format
           example:
-              version: 1.0
-              visor:
-                foo: bar
+            handlers:
+              modules:
+                default_dns:
+                  type: dns
+                default_net:
+                  type: net
+            input:
+              input_type: pcap
+              tap: default_pcap
+            kind: collection
     PolicyCreateReqSchemaYaml:
       type: object
       required:
         - name
         - backend
-        - description
         - tags
         - policy_data
         - format
@@ -518,10 +608,25 @@ components:
           type: string
           example: pktvisor
           description: Agent backend this policy is for. Cannot change once created.
+        schema_version:
+          type: string
+          example: '1.0'
+          description: Schema version which needs to match the schema defined by the backend which will use the policy.
         policy_data:
           type: string
           description: Agent backend specific policy data in yaml format
-          example: "version: \"1.0\"\nvisor:\n    foo: \"bar\""
+          example: "kind: collection
+                    input:
+                      tap: default_pcap
+                      input_type: pcap
+                      config:
+                        host_spec: host_spec
+                      filter:
+                        bpf: filter_exp
+                    handlers:
+                      modules:
+                        handler_label:
+                          type: dns"
         format:
           type: string
           example: yaml
@@ -612,9 +717,24 @@ components:
           type: object
           description: Agent backend specific policy data in json format
           example:
-            version: 1.0
-            visor:
-              foo: bar
+            handlers:
+              modules:
+                default_dns:
+                  type: dns
+                default_net:
+                  type: net
+            input:
+              input_type: pcap
+              tap: default_pcap
+            kind: collection
+        format:
+          type: string
+          example: yaml
+          description: Policy text format needed to specify when a policy was created in yaml format.
+        policy_data:
+          type: string
+          description: Agent backend specific policy data in yaml format
+          example: "handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: default_pcap\nkind: collection"
     PolicyBackendResSchema:
       type: object
       properties:
@@ -664,12 +784,6 @@ components:
           minItems: 1
           uniqueItems: true
           description: An array of one or more sink unique identifier
-        tags:
-          type: object
-          description: User defined key/values for organization and searching
-          example:
-            region: eu
-            node_type: dns
     DatasetCreateReqSchema:
       type: object
       required:
@@ -677,7 +791,6 @@ components:
         - agent_group_id
         - agent_policy_id
         - sink_id
-        - tags
       properties:
         name:
           type: string
@@ -698,12 +811,6 @@ components:
             format: uuid
           minItems: 1
           description: An array of one or more sink unique identifier
-        tags:
-          type: object
-          description: User defined key/values for organization and searching
-          example:
-            region: eu
-            node_type: dns
     DatasetPageSchema:
       type: object
       properties:

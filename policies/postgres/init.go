@@ -82,6 +82,29 @@ func migrateDB(db *sqlx.DB) error {
 					"DROP TABLE datasets",
 				},
 			},
+			{
+				Id: "policies_2",
+				Up: []string{
+					`ALTER TABLE IF EXISTS agent_policies ADD COLUMN IF NOT EXISTS
+					 schema_version TEXT NOT NULL DEFAULT '1.0'`,
+				},
+			},
+			{
+				Id: "policies_3",
+				Up: []string{
+					`ALTER TABLE IF EXISTS agent_policies ADD COLUMN IF NOT EXISTS
+					ts_last_modified TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL`,
+				},
+			},
+			{
+				Id: "policies_4",
+				Up: []string{
+					`ALTER TABLE IF EXISTS agent_policies ADD COLUMN IF NOT EXISTS
+					policy_data TEXT NOT NULL DEFAULT ''`,
+					`ALTER TABLE IF EXISTS agent_policies ADD COLUMN IF NOT EXISTS
+					format TEXT NOT NULL DEFAULT ''`,
+				},
+			},
 		},
 	}
 

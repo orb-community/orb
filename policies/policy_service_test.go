@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 const (
@@ -21,13 +22,16 @@ const (
 	invalidToken = "invalid"
 	email        = "user@example.com"
 	format       = "yaml"
-	policy_data  = `version: "1.0"
-visor:
-  taps:
-    anycast:
-      type: pcap
-      config:
-        iface: eth0`
+	policy_data  = `handlers:
+  modules:
+    default_dns:
+      type: dns
+    default_net:
+      type: net
+input:
+  input_type: pcap
+  tap: default_pcap
+kind: collection`
 	limit   = 10
 	wrongID = "28ea82e7-0224-4798-a848-899a75cdc650"
 )
@@ -195,58 +199,54 @@ func TestEditPolicy(t *testing.T) {
 
 	wrongPolicy := policies.Policy{MFOwnerID: wrongOwnerID.String()}
 	newPolicy := policies.Policy{
-		ID:        policy.ID,
-		Name:      nameID,
-		MFOwnerID: policy.MFOwnerID,
+		ID:         policy.ID,
+		Name:       nameID,
+		MFOwnerID:  policy.MFOwnerID,
+		PolicyData: policy_data,
+		Format:     format,
 	}
 
+	invalidFormatPolicy := newPolicy
+	invalidFormatPolicy.Format = "invalid"
+
+	invalidPolicyData := newPolicy
+	invalidPolicyData.PolicyData = "invalid"
+
 	cases := map[string]struct {
-		pol        policies.Policy
-		token      string
-		format     string
-		policyData string
-		err        error
+		pol   policies.Policy
+		token string
+		err   error
 	}{
 		"update a existing policy": {
-			pol:        newPolicy,
-			token:      token,
-			format:     format,
-			policyData: policy_data,
-			err:        nil,
+			pol:   newPolicy,
+			token: token,
+			err:   nil,
 		},
 		"update policy with wrong credentials": {
-			pol:        newPolicy,
-			token:      "invalidToken",
-			format:     format,
-			policyData: policy_data,
-			err:        policies.ErrUnauthorizedAccess,
+			pol:   newPolicy,
+			token: "invalidToken",
+			err:   policies.ErrUnauthorizedAccess,
 		},
 		"update a non-existing policy": {
-			pol:        wrongPolicy,
-			token:      token,
-			format:     format,
-			policyData: policy_data,
-			err:        policies.ErrNotFound,
+			pol:   wrongPolicy,
+			token: token,
+			err:   policies.ErrNotFound,
 		},
 		"update a existing policy with invalid format": {
-			pol:        newPolicy,
-			token:      token,
-			format:     "invalid",
-			policyData: policy_data,
-			err:        policies.ErrValidatePolicy,
+			pol:   invalidFormatPolicy,
+			token: token,
+			err:   policies.ErrValidatePolicy,
 		},
 		"update a existing policy with invalid policy_data": {
-			pol:        newPolicy,
-			token:      token,
-			format:     format,
-			policyData: "invalid",
-			err:        policies.ErrValidatePolicy,
+			pol:   invalidPolicyData,
+			token: token,
+			err:   policies.ErrValidatePolicy,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			res, err := svc.EditPolicy(context.Background(), tc.token, tc.pol, tc.format, tc.policyData)
+			res, err := svc.EditPolicy(context.Background(), tc.token, tc.pol)
 			if err == nil {
 				assert.Equal(t, tc.pol.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.pol.Name.String(), res.Name.String()))
 			}
@@ -295,9 +295,11 @@ func TestRemovePolicy(t *testing.T) {
 func TestValidatePolicy(t *testing.T) {
 	var nameID, _ = types.NewIdentifier("my-policy")
 	var policy = policies.Policy{
-		Name:    nameID,
-		Backend: "pktvisor",
-		OrbTags: map[string]string{"region": "eu", "node_type": "dns"},
+		Name:       nameID,
+		Backend:    "pktvisor",
+		OrbTags:    map[string]string{"region": "eu", "node_type": "dns"},
+		Format:     format,
+		PolicyData: policy_data,
 	}
 
 	users := flmocks.NewAuthService(map[string]string{token: email})
@@ -306,29 +308,23 @@ func TestValidatePolicy(t *testing.T) {
 	cases := map[string]struct {
 		policy     policies.Policy
 		token      string
-		format     string
-		policyData string
 		err        error
 	}{
 		"validate a new policy": {
 			policy:     policy,
 			token:      token,
-			format:     format,
-			policyData: policy_data,
 			err:        nil,
 		},
 		"validate a policy with a invalid token": {
 			policy:     policy,
 			token:      invalidToken,
-			format:     format,
-			policyData: policy_data,
 			err:        policies.ErrUnauthorizedAccess,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := svc.ValidatePolicy(context.Background(), tc.token, policy, format, policy_data)
+			_, err := svc.ValidatePolicy(context.Background(), tc.token, policy)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		})
 	}
@@ -352,17 +348,17 @@ func TestCreatePolicy(t *testing.T) {
 		Backend:     "pktvisor",
 		Version:     0,
 		OrbTags:     map[string]string{"region": "eu"},
+		PolicyData:  policy_data,
+		Format:      format,
 	}
 
 	cases := map[string]struct {
 		policy policies.Policy
-		format string
 		token  string
 		err    error
 	}{
 		"create a new policy": {
 			policy: policy,
-			format: format,
 			token:  token,
 			err:    nil,
 		},
@@ -375,7 +371,7 @@ func TestCreatePolicy(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := svc.AddPolicy(context.Background(), tc.token, tc.policy, tc.format, policy_data)
+			_, err := svc.AddPolicy(context.Background(), tc.token, tc.policy)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
 			t.Log(tc.token)
 		})
@@ -724,6 +720,329 @@ func TestListDataset(t *testing.T) {
 	}
 }
 
+func TestListPoliciesByGroupIDInternal(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	agentGroupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	policy := createPolicy(t, svc, "policy")
+
+	var total = 10
+
+	datasetsID := make([]string, total)
+
+	for i := 0; i < total; i++ {
+		ID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		sinkIDs := make([]string, 2)
+		for i := 0; i < 2; i++ {
+			sinkID, err := uuid.NewV4()
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+			sinkIDs = append(sinkIDs, sinkID.String())
+		}
+
+		validName, err := types.NewIdentifier(fmt.Sprintf("dataset-%d", i))
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		dataset := policies.Dataset{
+			ID:           ID.String(),
+			Name:         validName,
+			PolicyID:     policy.ID,
+			AgentGroupID: agentGroupID.String(),
+			SinkIDs:      sinkIDs,
+		}
+
+		ds, err := svc.AddDataset(context.Background(), token, dataset)
+		if err != nil {
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+		}
+
+		datasetsID[i] = ds.ID
+	}
+	oID, _ := identify(token, users)
+
+	listPlTest := make([]policies.PolicyInDataset, total)
+	for i := 0; i < total; i++ {
+		listPlTest[i] = policies.PolicyInDataset{
+			Policy:    policy,
+			DatasetID: datasetsID[i],
+		}
+	}
+
+	cases := map[string]struct {
+		ownerID  string
+		groupID  []string
+		policies []policies.PolicyInDataset
+		size     uint64
+		err      error
+	}{
+		"retrieve a list of policies by groupID": {
+			ownerID:  oID,
+			groupID:  []string{agentGroupID.String()},
+			policies: listPlTest,
+			size:     uint64(total),
+			err:      nil,
+		},
+		"retrieve a list of policies by non-existent groupID": {
+			ownerID:  oID,
+			groupID:  []string{oID},
+			policies: []policies.PolicyInDataset{},
+			size:     uint64(0),
+			err:      nil,
+		},
+		"list with empty ownerID": {
+			ownerID:  "",
+			groupID:  []string{agentGroupID.String()},
+			policies: nil,
+			size:     0,
+			err:      policies.ErrMalformedEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			policies, err := svc.ListPoliciesByGroupIDInternal(context.Background(), tc.groupID, tc.ownerID)
+			size := uint64(len(policies))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected %d got %d", desc, tc.size, size))
+			assert.Equal(t, tc.policies, policies, fmt.Sprintf("%s: expected %p got %p", desc, tc.policies, policies))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+
+	}
+}
+
+func TestRetrievePolicyByIDInternal(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	policy := createPolicy(t, svc, "policy")
+
+	oID, _ := identify(token, users)
+
+	wrongPlID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	cases := map[string]struct {
+		policyID string
+		ownerID  string
+		err      error
+	}{
+		"view a existing policy": {
+			policyID: policy.ID,
+			ownerID:  oID,
+			err:      nil,
+		},
+		"view policy with empty ownerID": {
+			policyID: policy.ID,
+			ownerID:  "",
+			err:      policies.ErrMalformedEntity,
+		},
+		"view non-existing policy": {
+			policyID: wrongPlID.String(),
+			ownerID:  oID,
+			err:      policies.ErrNotFound,
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := svc.ViewPolicyByIDInternal(context.Background(), tc.policyID, tc.ownerID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
+func TestListDatasetsByPolicyIDInternal(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	wrongPlID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	policy := createPolicy(t, svc, "policy")
+
+	var total = 10
+
+	datasetsTest := make([]policies.Dataset, total)
+
+	for i := 0; i < total; i++ {
+		ID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		agentGroupID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		sinkIDs := make([]string, 2)
+		for i := 0; i < 2; i++ {
+			sinkID, err := uuid.NewV4()
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+			sinkIDs = append(sinkIDs, sinkID.String())
+		}
+
+		validName, err := types.NewIdentifier(fmt.Sprintf("dataset-%d", i))
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		dataset := policies.Dataset{
+			ID:           ID.String(),
+			Name:         validName,
+			PolicyID:     policy.ID,
+			AgentGroupID: agentGroupID.String(),
+			SinkIDs:      sinkIDs,
+		}
+
+		ds, err := svc.AddDataset(context.Background(), token, dataset)
+		if err != nil {
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+		}
+
+		datasetsTest[i] = ds
+	}
+
+	cases := map[string]struct {
+		token    string
+		policyId string
+		size     uint64
+		err      error
+	}{
+		"retrieve a list of datasets by policyID": {
+			policyId: policy.ID,
+			token:    token,
+			size:     uint64(total),
+			err:      nil,
+		},
+		"retrieve a list of datasets by non-existent policyID": {
+			policyId: wrongPlID.String(),
+			token:    token,
+			size:     uint64(0),
+			err:      nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			datasets, err := svc.ListDatasetsByPolicyIDInternal(context.Background(), tc.policyId, tc.token)
+			size := uint64(len(datasets))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected %d got %d", desc, tc.size, size))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+
+	}
+}
+
+func TestRetrieveDatasetByIDInternal(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	dataset := createDataset(t, svc, "dataset")
+
+	oID, _ := identify(token, users)
+
+	wrongPlID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	cases := map[string]struct {
+		datasetID string
+		ownerID   string
+		err       error
+	}{
+		"view a existing dataset": {
+			datasetID: dataset.ID,
+			ownerID:   oID,
+			err:       nil,
+		},
+		"view non-existing policy": {
+			datasetID: wrongPlID.String(),
+			ownerID:   oID,
+			err:       policies.ErrNotFound,
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := svc.ViewDatasetByIDInternal(context.Background(), tc.ownerID, tc.datasetID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
+func TestInactivateDatasetsByGroupID(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	wrongGroupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	agentGroupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	policy := createPolicy(t, svc, "policy")
+
+	var total = 10
+
+	datasetsTest := make([]policies.Dataset, total)
+
+	for i := 0; i < total; i++ {
+		ID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		sinkIDs := make([]string, 2)
+		for i := 0; i < 2; i++ {
+			sinkID, err := uuid.NewV4()
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+			sinkIDs = append(sinkIDs, sinkID.String())
+		}
+
+		validName, err := types.NewIdentifier(fmt.Sprintf("dataset-%d", i))
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		dataset := policies.Dataset{
+			ID:           ID.String(),
+			Name:         validName,
+			PolicyID:     policy.ID,
+			AgentGroupID: agentGroupID.String(),
+			SinkIDs:      sinkIDs,
+		}
+
+		ds, err := svc.AddDataset(context.Background(), token, dataset)
+		if err != nil {
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+		}
+
+		datasetsTest[i] = ds
+	}
+
+	cases := map[string]struct {
+		token   string
+		groupID string
+		err     error
+	}{
+		"inactivate a set of datasets by groupID": {
+			groupID: agentGroupID.String(),
+			token:   token,
+			err:     nil,
+		},
+		"inactivate datasets with a non-existent groupID": {
+			groupID: wrongGroupID.String(),
+			token:   token,
+			err:     policies.ErrNotFound,
+		},
+		"inactivate datasets with empty groupID": {
+			groupID: "",
+			token:   token,
+			err:     policies.ErrMalformedEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := svc.InactivateDatasetByGroupID(context.Background(), tc.groupID, tc.token)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+
+	}
+}
+
 func createPolicy(t *testing.T, svc policies.Service, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
@@ -733,12 +1052,14 @@ func createPolicy(t *testing.T, svc policies.Service, name string) policies.Poli
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	policy := policies.Policy{
-		ID:      ID.String(),
-		Name:    validName,
-		Backend: "pktvisor",
+		ID:         ID.String(),
+		Name:       validName,
+		Backend:    "pktvisor",
+		Format:     format,
+		PolicyData: policy_data,
 	}
 
-	res, err := svc.AddPolicy(context.Background(), token, policy, format, policy_data)
+	res, err := svc.AddPolicy(context.Background(), token, policy)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 	return res
 }
@@ -779,6 +1100,157 @@ func createDataset(t *testing.T, svc policies.Service, name string) policies.Dat
 	return res
 }
 
+func TestDeleteSinkFromDataset(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	agentGroupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	policy := createPolicy(t, svc, "policy")
+
+	var total = 10
+
+	datasetsTest := make([]policies.Dataset, total)
+
+	sinkIDs := make([]string, 0)
+	for i := 0; i < total; i++ {
+		ID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		for i := 0; i < 2; i++ {
+			sinkID, err := uuid.NewV4()
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+			sinkIDs = append(sinkIDs, sinkID.String())
+		}
+
+		validName, err := types.NewIdentifier(fmt.Sprintf("dataset-%d", i))
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		dataset := policies.Dataset{
+			ID:           ID.String(),
+			Name:         validName,
+			PolicyID:     policy.ID,
+			AgentGroupID: agentGroupID.String(),
+			SinkIDs:      sinkIDs,
+		}
+
+		ds, err := svc.AddDataset(context.Background(), token, dataset)
+		if err != nil {
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+		}
+
+		datasetsTest[i] = ds
+	}
+
+	cases := map[string]struct {
+		ownerID string
+		sinkID  string
+		err     error
+	}{
+		"delete sinkID of a set of datasets": {
+			sinkID:  sinkIDs[0],
+			ownerID: datasetsTest[0].MFOwnerID,
+			err:     nil,
+		},
+		"delete sinkID of a set of datasets with empty sinkID": {
+			sinkID:  "",
+			ownerID: datasetsTest[0].MFOwnerID,
+			err:     policies.ErrMalformedEntity,
+		},
+		"delete sinkID of a set of datasets with empty owner": {
+			sinkID:  sinkIDs[0],
+			ownerID: "",
+			err:     policies.ErrMalformedEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			_, err := svc.DeleteSinkFromAllDatasetsInternal(context.Background(), tc.sinkID, tc.ownerID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
+func TestInactivateDatasetByID(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	agentGroupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	policy := createPolicy(t, svc, "policy")
+
+	var total = 10
+
+	datasetsTest := make([]policies.Dataset, total)
+	datasetsID := make([]string, 0, total)
+
+	sinkIDs := make([]string, 0)
+	for i := 0; i < total; i++ {
+		ID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		datasetsID = append(datasetsID, ID.String())
+
+		for i := 0; i < 2; i++ {
+			sinkID, err := uuid.NewV4()
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+			sinkIDs = append(sinkIDs, sinkID.String())
+		}
+
+		validName, err := types.NewIdentifier(fmt.Sprintf("dataset-%d", i))
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		dataset := policies.Dataset{
+			ID:           ID.String(),
+			Name:         validName,
+			PolicyID:     policy.ID,
+			AgentGroupID: agentGroupID.String(),
+			SinkIDs:      sinkIDs,
+		}
+
+		ds, err := svc.AddDataset(context.Background(), token, dataset)
+		if err != nil {
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+		}
+
+		datasetsTest[i] = ds
+	}
+
+	cases := map[string]struct {
+		ownerID    string
+		datasetIDs []string
+		err        error
+	}{
+		"inactivate a set of datasets by ID": {
+			datasetIDs: datasetsID,
+			ownerID:    datasetsTest[0].MFOwnerID,
+			err:        nil,
+		},
+		"inactivate datasets with empty ownerID": {
+			datasetIDs: datasetsID,
+			ownerID:    "",
+			err:        policies.ErrMalformedEntity,
+		},
+		"inactivate datasets with empty ID": {
+			datasetIDs: []string{""},
+			ownerID:    datasetsTest[0].MFOwnerID,
+			err:        policies.ErrMalformedEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			for _, id := range tc.datasetIDs {
+				err := svc.InactivateDatasetByIDInternal(context.Background(), tc.ownerID, id)
+				assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+			}
+		})
+	}
+}
+
 func testSortPolicies(t *testing.T, pm policies.PageMetadata, ags []policies.Policy) {
 	t.Helper()
 	switch pm.Order {
@@ -815,4 +1287,16 @@ func testSortDataset(t *testing.T, pm policies.PageMetadata, ags []policies.Data
 	default:
 		break
 	}
+}
+
+func identify(token string, auth mainflux.AuthServiceClient) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	res, err := auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+
+	return res.GetId(), nil
 }

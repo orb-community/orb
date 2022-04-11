@@ -21,6 +21,51 @@ type mockPoliciesRepository struct {
 	gdb            map[string][]policies.PolicyInDataset
 }
 
+func (m *mockPoliciesRepository) RetrieveAllDatasetsInternal(ctx context.Context, owner string) ([]policies.Dataset, error) {
+	var datasetList []policies.Dataset
+	id := uint64(0)
+	for _, d := range m.ddb {
+		if d.MFOwnerID == owner {
+			datasetList = append(datasetList, d)
+		}
+		id++
+	}
+
+	return datasetList, nil
+}
+
+func (m *mockPoliciesRepository) InactivateDatasetByID(ctx context.Context, sinkID string, ownerID string) error {
+	for _, ds := range m.ddb{
+		if ds.MFOwnerID == ownerID{
+			for _, sID := range ds.SinkIDs {
+				if sID == sinkID{
+					ds.Valid = false
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (m *mockPoliciesRepository) DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]policies.Dataset, error) {
+	var datasets []policies.Dataset
+
+	for _, ds := range m.ddb{
+		if ds.MFOwnerID == ownerID{
+			for i, sID := range ds.SinkIDs {
+				if sID == sinkID{
+					ds.SinkIDs[i] = ds.SinkIDs[len(ds.SinkIDs)-1]
+					ds.SinkIDs[len(ds.SinkIDs)-1] = ""
+					ds.SinkIDs = ds.SinkIDs[:len(ds.SinkIDs)-1]
+
+					datasets = append(datasets, ds)
+				}
+			}
+		}
+	}
+	return datasets, nil
+}
+
 func (m *mockPoliciesRepository) DeleteDataset(ctx context.Context, ownerID string, dsID string) error {
 	if _, ok := m.ddb[dsID]; ok {
 		if m.ddb[dsID].MFOwnerID != ownerID {
@@ -43,7 +88,14 @@ func (m *mockPoliciesRepository) UpdateDataset(ctx context.Context, ownerID stri
 }
 
 func (m *mockPoliciesRepository) InactivateDatasetByPolicyID(ctx context.Context, policyID string, ownerID string) error {
-	//todo implement when create unit tests to dataset
+	if ds, ok := m.ddb[policyID]; ok {
+		if m.ddb[policyID].MFOwnerID != ownerID {
+			return policies.ErrUpdateEntity
+		}
+		ds.Valid = false
+		return nil
+	}
+
 	return nil
 }
 
@@ -136,8 +188,13 @@ func (m *mockPoliciesRepository) RetrievePolicyByID(ctx context.Context, policyI
 }
 
 func (m *mockPoliciesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) (ret []policies.PolicyInDataset, err error) {
+	if len(groupIDs) == 0 || ownerID == "" {
+		return nil, errors.ErrMalformedEntity
+	}
+
 	for _, d := range groupIDs {
-		ret = append(ret, m.gdb[d][0])
+		ret = make([]policies.PolicyInDataset, len(m.gdb[d]))
+		copy(ret, m.gdb[d])
 	}
 	return ret, nil
 }
@@ -152,8 +209,13 @@ func (m *mockPoliciesRepository) SaveDataset(ctx context.Context, dataset polici
 	ID, _ := uuid.NewV4()
 	dataset.ID = ID.String()
 	m.ddb[dataset.ID] = dataset
-	m.gdb[dataset.AgentGroupID] = make([]policies.PolicyInDataset, 1)
-	m.gdb[dataset.AgentGroupID][0] = policies.PolicyInDataset{Policy: m.pdb[dataset.PolicyID], DatasetID: dataset.ID}
+
+	if _, ok := m.gdb[dataset.AgentGroupID]; !ok {
+		m.gdb[dataset.AgentGroupID] = make([]policies.PolicyInDataset, 1)
+		m.gdb[dataset.AgentGroupID][0] = policies.PolicyInDataset{Policy: m.pdb[dataset.PolicyID], DatasetID: dataset.ID}
+	} else {
+		m.gdb[dataset.AgentGroupID] = append(m.gdb[dataset.AgentGroupID], policies.PolicyInDataset{Policy: m.pdb[dataset.PolicyID], DatasetID: dataset.ID})
+	}
 	m.dataSetCounter++
 	return ID.String(), nil
 }
@@ -169,7 +231,14 @@ func (m *mockPoliciesRepository) RetrieveDatasetByID(ctx context.Context, datase
 }
 
 func (m *mockPoliciesRepository) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
-	panic("implement me")
+	for _, ds := range m.ddb{
+		if ds.AgentGroupID == groupID && ds.MFOwnerID == ownerID{
+			ds.Valid = false
+			return nil
+		}
+	}
+
+	return policies.ErrNotFound
 }
 
 func (m *mockPoliciesRepository) RetrieveAllDatasetsByOwner(ctx context.Context, owner string, pm policies.PageMetadata) (policies.PageDataset, error) {

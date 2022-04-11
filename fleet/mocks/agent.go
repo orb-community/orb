@@ -3,7 +3,9 @@ package mocks
 import (
 	"context"
 	"github.com/ns1labs/orb/fleet"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
+	"time"
 )
 
 var _ fleet.AgentRepository = (*agentRepositoryMock)(nil)
@@ -13,8 +15,17 @@ type agentRepositoryMock struct {
 	agentsMock map[string]fleet.Agent
 }
 
+func (a agentRepositoryMock) SetStaleStatus(ctx context.Context, minutes time.Duration) (int64, error) {
+	return 0, nil
+}
+
 func (a agentRepositoryMock) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {
-	return fleet.Agent{}, nil
+	for _, ag := range a.agentsMock{
+		if ag.MFChannelID == channelID{
+			return ag, nil
+		}
+	}
+	return fleet.Agent{}, fleet.ErrNotFound
 }
 
 func (a agentRepositoryMock) RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error) {
@@ -47,6 +58,7 @@ func (a agentRepositoryMock) Save(ctx context.Context, agent fleet.Agent) error 
 		}
 	}
 	a.agentsMock[agent.MFThingID] = agent
+	a.counter++
 	return nil
 }
 
@@ -66,7 +78,13 @@ func (a agentRepositoryMock) UpdateDataByIDWithChannel(ctx context.Context, agen
 }
 
 func (a agentRepositoryMock) RetrieveByIDWithChannel(ctx context.Context, thingID string, channelID string) (fleet.Agent, error) {
-	panic("implement me")
+	if _, ok := a.agentsMock[thingID]; ok {
+		if a.agentsMock[thingID].MFChannelID != channelID {
+			return fleet.Agent{}, fleet.ErrNotFound
+		}
+		return a.agentsMock[thingID], nil
+	}
+	return fleet.Agent{}, fleet.ErrNotFound
 }
 
 func (a agentRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm fleet.PageMetadata) (fleet.Page, error) {
@@ -94,7 +112,20 @@ func (a agentRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm f
 }
 
 func (a agentRepositoryMock) RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]fleet.Agent, error) {
-	return []fleet.Agent{}, nil
+	if agentGroupID == "" || owner == "" {
+		return nil, errors.ErrMalformedEntity
+	}
+
+	var agents []fleet.Agent
+	id := uint64(0)
+	for _, v := range a.agentsMock {
+		if v.MFOwnerID == owner {
+			agents = append(agents, v)
+		}
+		id++
+	}
+
+	return agents, nil
 }
 
 func (a agentRepositoryMock) Delete(ctx context.Context, ownerID, thingID string) error {

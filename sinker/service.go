@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-kit/kit/metrics"
 	"github.com/go-redis/redis/v8"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
@@ -40,6 +41,7 @@ const (
 
 var (
 	ErrPayloadTooBig = errors.New("payload too big")
+	ErrNotFound = errors.New("non-existent entity")
 )
 
 type Service interface {
@@ -52,23 +54,25 @@ type Service interface {
 type sinkerService struct {
 	pubSub mfnats.PubSub
 
-	esclient *redis.Client
-	logger   *zap.Logger
+	sinkerCache config.ConfigRepo
+	esclient    *redis.Client
+	logger      *zap.Logger
 
 	hbTicker *time.Ticker
 	hbDone   chan bool
-
-	configRepo config.ConfigRepo
 
 	promClient prometheus.Client
 
 	policiesClient policiespb.PolicyServiceClient
 	fleetClient    fleetpb.FleetServiceClient
 	sinksClient    sinkspb.SinkServiceClient
+
+	requestGauge   metrics.Gauge
+	requestCounter metrics.Counter
 }
 
-func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkID string) error {
-	cfgRepo, err := svc.configRepo.Get(sinkID)
+func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, ownerID string, sinkID string) error {
+	cfgRepo, err := svc.sinkerCache.Get(ownerID, sinkID)
 	if err != nil {
 		svc.logger.Error("unable to retrieve the sink config", zap.Error(err))
 		return err
@@ -93,7 +97,7 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 			cfgRepo.State = config.Error
 			cfgRepo.Msg = fmt.Sprint(err)
 			cfgRepo.LastRemoteWrite = time.Now()
-			svc.configRepo.Edit(cfgRepo)
+			svc.sinkerCache.Edit(cfgRepo)
 		}
 
 		svc.logger.Error("remote write error", zap.String("sink_id", sinkID), zap.Error(err))
@@ -106,7 +110,7 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, sinkI
 		cfgRepo.State = config.Active
 		cfgRepo.Msg = ""
 		cfgRepo.LastRemoteWrite = time.Now()
-		svc.configRepo.Edit(cfgRepo)
+		svc.sinkerCache.Edit(cfgRepo)
 	}
 
 	return nil
@@ -173,7 +177,7 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 				continue
 			}
 			for _, sid := range dataset.SinkIds {
-				if !svc.configRepo.Exists(sid) {
+				if !svc.sinkerCache.Exists(agent.OwnerID, sid) {
 					// Use the retrieved sinkID to get the backend config
 					sink, err := svc.sinksClient.RetrieveSink(context.Background(), &sinkspb.SinkByIDReq{
 						SinkID:  sid,
@@ -190,7 +194,7 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 
 					data.SinkID = sid
 					data.OwnerID = agent.OwnerID
-					svc.configRepo.Add(data)
+					svc.sinkerCache.Add(data)
 				}
 				datasetSinkIDs[sid] = true
 			}
@@ -224,10 +228,23 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 			zap.Strings("sinks", sinkIDList))
 
 		for _, id := range sinkIDList {
-			err = svc.remoteWriteToPrometheus(tsList, id)
+			err = svc.remoteWriteToPrometheus(tsList, agent.OwnerID, id)
 			if err != nil {
 				svc.logger.Warn(fmt.Sprintf("unable to remote write to sinkID: %s", id), zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
 			}
+
+			// send operational metrics
+			labels := []string{
+				"method", "sinker_payload_size",
+				"agent_id", agentID,
+				"agent", agent.AgentName,
+				"policy_id", m.PolicyID,
+				"policy", m.PolicyName,
+				"sink_id", id,
+				"owner_id", agent.OwnerID,
+			}
+			svc.requestCounter.With(labels...).Add(1)
+			svc.requestGauge.With(labels...).Add(float64(len(m.Data)))
 		}
 	}
 
@@ -270,9 +287,9 @@ func (svc sinkerService) Start() error {
 	}
 	svc.logger.Info("started metrics consumer", zap.String("topic", topic))
 
-	svc.hbTicker = time.NewTicker(HeartbeatFreq)
+	svc.hbTicker = time.NewTicker(CheckerFreq)
 	svc.hbDone = make(chan bool)
-	go svc.sendHeartbeats()
+	go svc.checkSinker()
 
 	ctx := context.Background()
 	exporter, err := createExporter(ctx, svc.logger)
@@ -323,6 +340,8 @@ func New(logger *zap.Logger,
 	policiesClient policiespb.PolicyServiceClient,
 	fleetClient fleetpb.FleetServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
+	requestGauge metrics.Gauge,
+	requestCounter metrics.Counter,
 ) Service {
 
 	pktvisor.Register(logger)
@@ -330,10 +349,12 @@ func New(logger *zap.Logger,
 		logger:         logger,
 		pubSub:         pubSub,
 		esclient:       esclient,
-		configRepo:     configRepo,
+		sinkerCache:    configRepo,
 		policiesClient: policiesClient,
 		fleetClient:    fleetClient,
 		sinksClient:    sinksClient,
+		requestGauge:   requestGauge,
+		requestCounter: requestCounter,
 	}
 }
 

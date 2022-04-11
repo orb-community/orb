@@ -22,6 +22,28 @@ type metricsMiddleware struct {
 	auth    mainflux.AuthServiceClient
 }
 
+func (m metricsMiddleware) ResetAgent(ct context.Context, token string, agentID string) error {
+	ownerID, err := m.identify(token)
+	if err!= nil {
+		return err
+	}
+
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "resetAgent",
+			"owner_id", ownerID,
+			"agent_id", agentID,
+			"group_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.ResetAgent(ct, token, agentID)
+}
+
 func (m metricsMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (agent fleet.Agent, _ error) {
 	defer func(begin time.Time) {
 		labels := []string{

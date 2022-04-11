@@ -43,18 +43,28 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	return sink, nil
 }
 
-func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) error {
+func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) (Sink, error) {
 	skOwnerID, err := svc.identify(token)
 	if err != nil {
-		return err
+		return Sink{}, err
 	}
 
 	if sink.Backend != "" || sink.Error != "" {
-		return errors.ErrUpdateEntity
+		return Sink{}, errors.ErrUpdateEntity
 	}
 
 	sink.MFOwnerID = skOwnerID
-	return svc.sinkRepo.Update(ctx, sink)
+	err = svc.sinkRepo.Update(ctx, sink)
+	if err != nil {
+		return Sink{}, err
+	}
+
+	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	if err != nil {
+		return Sink{}, err
+	}
+
+	return sinkEdited, nil
 }
 
 func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string, error) {

@@ -24,6 +24,7 @@ volumes:
   orb-fleet-db-volume:
   orb-policies-db-volume:
   orb-sinks-db-volume:
+  orb-sinker-redis-volume:
 
 services:
 
@@ -430,6 +431,15 @@ services:
     networks:
       - orb-base-net
 
+  sinker-redis:
+    image: redis:6.2-alpine
+    container_name: sinker-redis
+    restart: on-failure
+    networks:
+      - orb-base-net
+    volumes:
+      - orb-sinker-redis-volume:/data
+
   sinker:
     image: "ns1labs/orb-sinker:${ORB_RELEASE_TAG}"
     container_name: orb-sinker
@@ -441,6 +451,7 @@ services:
       ORB_SINKER_LOG_LEVEL: debug
       ORB_SINKER_NATS_URL: ${MF_NATS_URL}
       ORB_SINKER_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
+      ORB_SINKER_CACHE_URL: sinker-redis:${MF_REDIS_TCP_PORT}
       ORB_POLICIES_GRPC_URL: ${ORB_POLICIES_GRPC_URL}
       ORB_POLICIES_GRPC_TIMEOUT: ${ORB_POLICIES_GRPC_TIMEOUT}
       ORB_FLEET_GRPC_URL: ${ORB_FLEET_GRPC_URL}
@@ -461,6 +472,9 @@ services:
     environment:
       MF_UI_PORT: ${MF_UI_PORT}
       MF_UI_MQTT_WS_URL: ${MF_UI_MQTT_WS_URL}
+      PS_SID: ${PS_SID}
+      PS_GROUP_KEY: ${PS_GROUP_KEY}
+      
     command: /entrypoint.sh
 
   ## main LB ##

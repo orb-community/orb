@@ -13,5 +13,13 @@
     "../src/*.ts",
     "../src/**/*.ts",
     "../node_modules/@nebular/**/*.ts"
-  ]
+  ],
+  "paths": {
+    "@angular/*": [
+      "../node_modules/@angular/*"
+    ],
+    "@monaco/*": [
+      "../node_modules/monaco/*"
+    ]
+  },
 }

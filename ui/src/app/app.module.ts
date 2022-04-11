@@ -38,6 +38,7 @@ import { BreadcrumbModule } from 'xng-breadcrumb';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { ProfileComponent } from 'app/pages/profile/profile.component';
 import { GoogleAnalyticsService } from './common/services/analytics/google-service-analytics.service';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   connectOnCreate: false,
@@ -53,10 +54,10 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
+
     AppRoutingModule,
 
     ThemeModule.forRoot(),
-
     NbSidebarModule.forRoot(),
     NbMenuModule.forRoot(),
     NbDatepickerModule.forRoot(),
@@ -66,12 +67,12 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     NbChatModule.forRoot({
       messageGoogleMapKey: 'AIzaSyA_wNuCzia92MAmdLRzmqitRGvCF7wCZPY',
     }),
-    CoreModule.forRoot(),
     // Mfx dependencies
+    CoreModule.forRoot(),
     MqttModule.forRoot(MQTT_SERVICE_OPTIONS),
-    FormsModule,
 
     // 3rd party
+    FormsModule,
     NbInputModule,
     NbCardModule,
     NbIconModule,
@@ -83,6 +84,7 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     NbLayoutModule,
     NbAlertModule,
     NbCheckboxModule,
+    MonacoEditorModule.forRoot(),
   ],
   bootstrap: [AppComponent],
   // Mfx dependencies

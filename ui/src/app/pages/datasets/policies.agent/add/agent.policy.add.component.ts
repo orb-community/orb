@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,6 +7,9 @@ import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { DynamicFormConfig } from 'app/common/interfaces/orb/dynamic.form.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface';
+import { NbDialogService } from '@nebular/theme';
+import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
+import { STRINGS } from '../../../../../assets/text/strings';
 
 const CONFIG = {
   TAPS: 'TAPS',
@@ -22,6 +25,8 @@ const CONFIG = {
   styleUrls: ['./agent.policy.add.component.scss'],
 })
 export class AgentPolicyAddComponent {
+  strings = { stepper: STRINGS.stepper };
+
   // #forms
   // agent policy general information - name, desc, backend
   detailsFG: FormGroup;
@@ -35,12 +40,6 @@ export class AgentPolicyAddComponent {
   // dynamic input filter config
   inputFilterFG: FormGroup;
 
-  // handlers
-  handlerSelectorFG: FormGroup;
-
-  dynamicHandlerConfigFG: FormGroup;
-  dynamicHandlerFilterFG: FormGroup;
-
   // #key inputs holders
   // selected backend object
   backend: { [propName: string]: any };
@@ -53,15 +52,6 @@ export class AgentPolicyAddComponent {
     version?: string,
     config?: DynamicFormConfig,
     filter?: DynamicFormConfig,
-  };
-
-  // holds selected handler conf.
-  // handler template currently selected, to be edited by user and then added to the handlers list or discarded
-  liveHandler: {
-    version?: string,
-    config?: DynamicFormConfig,
-    filter?: DynamicFormConfig,
-    type?: string,
   };
 
   // holds all handlers added by user
@@ -93,29 +83,49 @@ export class AgentPolicyAddComponent {
     },
   };
 
-  availableHandlers: {
-    [propName: string]: {
-      version?: string,
-      config?: DynamicFormConfig,
-      filter?: DynamicFormConfig,
-      metrics?: DynamicFormConfig,
-      metrics_groups?: DynamicFormConfig,
-    },
-  } = {};
-
-  // #if edit
   agentPolicy: AgentPolicy;
 
   agentPolicyID: string;
 
+  @ViewChild('editorComponent')
+  editor;
+
   isEdit: boolean;
+
+  editorOptions = {
+    theme: 'vs-dark',
+    language: 'yaml',
+    automaticLayout: true,
+    glyphMargin: false,
+    folding: false,
+    // Undocumented see https://github.com/Microsoft/vscode/issues/30795#issuecomment-410998882
+    lineDecorationsWidth: 0,
+    lineNumbersMinChars: 0,
+  };
+
+  code = `handlers:
+  modules:
+    default_dns:
+      type: dns
+    default_net:
+      type: net
+input:
+  input_type: pcap
+  tap: default_pcap
+kind: collection`;
+
+  // is config specified wizard mode or in YAML or JSON
+  isWizard = true;
+
+  // format definition
+  format = 'yaml';
 
   // #load controls
   isLoading = Object.entries(CONFIG)
     .reduce((acc, [value]) => {
       acc[value] = false;
       return acc;
-    }, {});
+    }, {}) as { [propName: string]: boolean };
 
   constructor(
     private agentPoliciesService: AgentPoliciesService,
@@ -123,6 +133,7 @@ export class AgentPolicyAddComponent {
     private router: Router,
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
+    private dialogService: NbDialogService,
   ) {
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.newAgent();
@@ -130,12 +141,20 @@ export class AgentPolicyAddComponent {
 
     this.readyForms();
 
+
     Promise.all([
       this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(),
       this.getBackendsList(),
     ]).catch(reason => console.warn(`Couldn't fetch data. Reason: ${ reason }`))
       .then(() => this.updateForms())
       .catch((reason) => console.warn(`Couldn't fetch ${ this.agentPolicy?.backend } data. Reason: ${ reason }`));
+  }
+
+  resizeComponents() {
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+    !!this.editor && this.editor?.layout();
   }
 
   newAgent() {
@@ -169,6 +188,10 @@ export class AgentPolicyAddComponent {
     });
   }
 
+  isLoadComplete() {
+    return !Object.values(this.isLoading).reduce((prev, curr) => prev || curr, false);
+  }
+
   readyForms() {
     const {
       name,
@@ -196,14 +219,6 @@ export class AgentPolicyAddComponent {
       selected_tap: [tap, Validators.required],
       input_type: [input_type, Validators.required],
     });
-
-    this.handlerSelectorFG = this._formBuilder.group({
-      'selected_handler': ['', [Validators.required]],
-      'label': ['', [Validators.required]],
-    });
-
-    this.dynamicHandlerConfigFG = this._formBuilder.group({});
-    this.dynamicHandlerFilterFG = this._formBuilder.group({});
   }
 
   updateForms() {
@@ -211,23 +226,26 @@ export class AgentPolicyAddComponent {
       name,
       description,
       backend,
+      format,
+      policy_data,
       policy: {
-        handlers: {
-          modules,
-        },
+        handlers,
       },
     } = this.agentPolicy;
 
+    const wizard = format !== this.format;
+
+    if (policy_data) {
+      this.code = policy_data;
+    }
+
     this.detailsFG.patchValue({ name, description, backend });
 
-    this.modules = modules;
+    this.modules = handlers?.modules || {};
 
-    this.dynamicHandlerConfigFG = this._formBuilder.group({});
-    this.dynamicHandlerFilterFG = this._formBuilder.group({});
-
-    this.onBackendSelected(backend).catch(reason => console.warn(`${ reason }`));
-
-
+    if (wizard) {
+      this.onBackendSelected(backend).catch(reason => console.warn(`${ reason }`));
+    }
   }
 
   getBackendsList() {
@@ -259,9 +277,9 @@ export class AgentPolicyAddComponent {
   }
 
   getBackendData() {
-    return Promise.all([this.getTaps(), this.getInputs(), this.getHandlers()])
+    return Promise.all([this.getTaps(), this.getInputs()])
       .then(value => {
-        if (this.isEdit && this.agentPolicy) {
+        if (this.isEdit && this.agentPolicy && this.isWizard) {
           const selected_tap = this.agentPolicy.policy.input.tap;
           this.tapFG.patchValue({ selected_tap }, { emitEvent: true });
           this.onTapSelected(selected_tap);
@@ -342,7 +360,7 @@ export class AgentPolicyAddComponent {
     // if editing, some values might not be overrideable any longer, all should be prefilled in form
     const { config: agentConfig, filter: agentFilter } = this.agentPolicy.policy.input;
     // tap config values, cannot be overridden if set
-    const {config_predefined: preConfig, filter_predefined: preFilter} = this.tap;
+    const { config_predefined: preConfig, filter_predefined: preFilter } = this.tap;
 
     // populate form controls for config
     const inputConfDynamicCtrl = Object.entries(inputConfig)
@@ -376,103 +394,56 @@ export class AgentPolicyAddComponent {
 
   }
 
-  getHandlers() {
-    return new Promise((resolve) => {
-      this.isLoading[CONFIG.HANDLERS] = true;
-
-      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'handlers'])
-        .subscribe(handlers => {
-          this.availableHandlers = handlers || {};
-
-          this.isLoading[CONFIG.HANDLERS] = false;
-          resolve(handlers);
-        });
+  addHandler() {
+    this.dialogService.open(HandlerPolicyAddComponent, {
+      context: {
+        backend: this.backend,
+        modules: this.modules,
+      },
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe((handler) => {
+      // save handler to the policy being created/edited
+      if (handler) {
+        this.onHandlerAdded(handler);
+      }
     });
   }
 
-  onHandlerSelected(selectedHandler) {
-    if (this.dynamicHandlerConfigFG) {
-      this.dynamicHandlerConfigFG = null;
-    }
-    if (this.dynamicHandlerFilterFG) {
-      this.dynamicHandlerFilterFG = null;
-    }
+  onHandlerAdded(handler) {
+    const { config, filter, type, name } = handler;
 
-    // TODO - hardcoded for v: 1.0 -: always retrieve latest
-    this.liveHandler = selectedHandler !== '' && !!this.availableHandlers[selectedHandler] ?
-      { ...this.availableHandlers[selectedHandler]['1.0'], type: selectedHandler } : null;
-
-    const { config, filter } = this.liveHandler || { config: {}, filter: {} };
-
-    const dynamicConfigControls = Object.entries(config || {}).reduce((controls, [key]) => {
-      controls[key] = ['', [Validators.required]];
-      return controls;
-    }, {});
-
-    this.dynamicHandlerConfigFG = Object.keys(dynamicConfigControls).length > 0 ? this._formBuilder.group(dynamicConfigControls) : null;
-
-    const dynamicFilterControls = Object.entries(filter || {}).reduce((controls, [key]) => {
-      controls[key] = ['', [Validators.required]];
-      return controls;
-    }, {});
-
-    const suggestName = this.getSeriesHandlerName(selectedHandler);
-    this.handlerSelectorFG.patchValue({label: suggestName});
-
-    this.dynamicHandlerFilterFG = Object.keys(dynamicFilterControls).length > 0 ? this._formBuilder.group(dynamicFilterControls) : null;
-  }
-
-  getSeriesHandlerName(handlerType) {
-    const count = 1 + Object.values(this.modules || {}).filter(({type}) => type === handlerType).length;
-    return `handler_${handlerType}_${count}`;
-  }
-
-  checkValidName() {
-    const { value } = this.handlerSelectorFG.controls.label;
-    const hasTagForKey = Object.keys(this.modules).find(key => key === value);
-    return value && value !== '' && !hasTagForKey;
-  }
-
-  onHandlerAdded() {
-    let config = {};
-    let filter = {};
-
-    if (this.dynamicHandlerConfigFG !== null) {
-      config = Object.entries(this.dynamicHandlerConfigFG.controls)
-        .reduce((acc, [key, control]) => {
-          acc[key] = control.value;
-          return acc;
-        }, {});
-    }
-
-    if (this.dynamicHandlerFilterFG !== null) {
-      filter = Object.entries(this.dynamicHandlerFilterFG.controls)
-        .reduce((acc, [key, control]) => {
-          acc[key] = control.value;
-          return acc;
-        }, {});
-    }
-
-    const handlerName = this.handlerSelectorFG.controls.label.value;
-    this.modules[handlerName] = ({
-      type: this.liveHandler.type,
+    this.modules[name] = ({
+      type,
       config,
       filter,
     });
 
-    this.handlerSelectorFG.reset({
-      selected_handler: { value: '', disabled: false },
-      label: { value: '', disabled: false },
-    });
-    this.onHandlerSelected('');
   }
 
-  onHandlerRemoved(handlerName) {
-    delete this.modules[handlerName];
+  onHandlerRemoved(name) {
+    delete this.modules[name];
+  }
+
+  hasModules() {
+    return Object.keys(this.modules).length > 0;
   }
 
   goBack() {
     this.router.navigateByUrl('/pages/datasets/policies');
+  }
+
+  onYAMLSubmit() {
+    const payload = {
+      name: this.detailsFG.controls.name.value,
+      description: this.detailsFG.controls.description.value,
+      backend: this.detailsFG.controls.backend.value,
+      format: this.format,
+      policy_data: this.code,
+      version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
+    };
+
+    this.submit(payload);
   }
 
   onFormSubmit() {
@@ -494,7 +465,7 @@ export class AgentPolicyAddComponent {
                 if (!!value && value !== '') acc.config[key] = value;
               }
               return acc;
-            }, {config: {}}),
+            }, { config: {} }),
           ...Object.entries(this.inputFilterFG.controls)
             .map(([key, control]) => ({ [key]: control.value }))
             .reduce((acc, curr) => {
@@ -502,15 +473,15 @@ export class AgentPolicyAddComponent {
                 if (!!value && value !== '') acc.filter[key] = value;
               }
               return acc;
-            }, {filter: {}}),
+            }, { filter: {} }),
         },
         handlers: {
           modules: Object.entries(this.modules).reduce((acc, [key, value]) => {
-            const {type, config, filter} = value;
+            const { type, config, filter } = value;
             acc[key] = {
-              type: type,
-              config: config,
-              filter: filter,
+              type,
+              config,
+              filter,
             };
             if (Object.keys(config || {}).length > 0) acc[key][config] = config;
             return acc;
@@ -524,6 +495,10 @@ export class AgentPolicyAddComponent {
     if (Object.keys(payload.policy?.input?.filter).length <= 0)
       delete payload.policy.input.filter;
 
+    this.submit(payload);
+  }
+
+  submit(payload) {
     if (this.isEdit) {
       // updating existing sink
       this.agentPoliciesService.editAgentPolicy({ ...payload, id: this.agentPolicyID }).subscribe(() => {

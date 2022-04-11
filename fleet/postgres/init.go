@@ -100,6 +100,22 @@ func migrateDB(db *sqlx.DB) error {
 					"DROP TABLE agent_groups",
 					"DROP VIEW agent_group_membership",
 				},
+			}, {
+				Id: "fleet_2",
+				Up: []string{
+					`CREATE or REPLACE VIEW agent_group_membership(agent_groups_id, agent_groups_name, agent_mf_thing_id, agent_mf_channel_id, group_mf_channel_id, mf_owner_id, agent_state) as
+					SELECT agent_groups.id,
+						   agent_groups.name,
+						   agents.mf_thing_id,
+						   agents.mf_channel_id,
+						   agent_groups.mf_channel_id,
+						   agent_groups.mf_owner_id,
+						   agents.state
+					FROM agents,
+						 agent_groups
+					WHERE agent_groups.mf_owner_id = agents.mf_owner_id
+					  AND (agent_groups.tags <@ coalesce(agents.agent_tags || agents.orb_tags, agents.agent_tags, agents.orb_tags))`,
+				},
 			},
 		},
 	}

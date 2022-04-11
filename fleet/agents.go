@@ -92,6 +92,8 @@ type AgentService interface {
 	ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error)
 	//ViewOwnerByChannelIDInternal return a correspondent ownerID by a provided channel id
 	ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (Agent, error)
+	// ResetAgent reset a agent on edge by a provided agent
+	ResetAgent(ct context.Context, token string, agentID string) error
 }
 
 type AgentRepository interface {
@@ -120,6 +122,8 @@ type AgentRepository interface {
 	RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error)
 	// RetrieveOwnerByChannelID retrieves a ownerID by a provided channelID
 	RetrieveOwnerByChannelID(ctx context.Context, channelID string) (Agent, error)
+	// SetStaleStatus change status to stale according provided duration without heartbeats
+	SetStaleStatus(ctx context.Context,  minutes time.Duration) (int64, error)
 }
 
 type AgentHeartbeatRepository interface {

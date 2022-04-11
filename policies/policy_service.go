@@ -81,14 +81,14 @@ func (s policiesService) InactivateDatasetByGroupID(ctx context.Context, groupID
 	return s.repo.InactivateDatasetByGroupID(ctx, groupID, ownerID)
 }
 
-func (s policiesService) AddPolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error) {
+func (s policiesService) AddPolicy(ctx context.Context, token string, p Policy) (Policy, error) {
 
 	mfOwnerID, err := s.identify(token)
 	if err != nil {
 		return Policy{}, err
 	}
 
-	err = validatePolicyBackend(&p, format, policyData)
+	err = validatePolicyBackend(&p)
 	if err != nil {
 		return Policy{}, err
 	}
@@ -116,7 +116,7 @@ func (s policiesService) ViewPolicyByID(ctx context.Context, token string, polic
 	return res, nil
 }
 
-func (s policiesService) EditPolicy(ctx context.Context, token string, pol Policy, format string, policyData string) (Policy, error) {
+func (s policiesService) EditPolicy(ctx context.Context, token string, pol Policy) (Policy, error) {
 	ownerID, err := s.identify(token)
 	if err != nil {
 		return Policy{}, err
@@ -131,7 +131,7 @@ func (s policiesService) EditPolicy(ctx context.Context, token string, pol Polic
 	pol.MFOwnerID = ownerID
 	pol.Version = plcy.Version
 
-	err = validatePolicyBackend(&pol, format, policyData)
+	err = validatePolicyBackend(&pol)
 	if err != nil {
 		return Policy{}, err
 	}
@@ -201,22 +201,25 @@ func (s policiesService) ViewDatasetByIDInternal(ctx context.Context, ownerID st
 	}
 	return res, nil
 }
-func validatePolicyBackend(p *Policy, format string, policyData string) (err error) {
+func validatePolicyBackend(p *Policy) (err error) {
 	if !backend.HaveBackend(p.Backend) {
 		return errors.Wrap(ErrValidatePolicy, errors.New(fmt.Sprintf("unsupported backend: '%s'", p.Backend)))
 	}
 
 	if p.Policy == nil {
 		// if not already in json, make sure the back end can convert it
-		if !backend.GetBackend(p.Backend).SupportsFormat(format) {
+		if !backend.GetBackend(p.Backend).SupportsFormat(p.Format) {
 			return errors.Wrap(ErrValidatePolicy,
-				errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", format, p.Backend)))
+				errors.New(fmt.Sprintf("unsupported policy format '%s' for given backend '%s'", p.Format, p.Backend)))
 		}
 
-		p.Policy, err = backend.GetBackend(p.Backend).ConvertFromFormat(format, policyData)
+		p.Policy, err = backend.GetBackend(p.Backend).ConvertFromFormat(p.Format, p.PolicyData)
 		if err != nil {
 			return errors.Wrap(ErrValidatePolicy, err)
 		}
+	} else {
+		// policy was already received as a json
+		p.Format = "json"
 	}
 
 	err = backend.GetBackend(p.Backend).Validate(p.Policy)
@@ -226,14 +229,14 @@ func validatePolicyBackend(p *Policy, format string, policyData string) (err err
 	return nil
 }
 
-func (s policiesService) ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error) {
+func (s policiesService) ValidatePolicy(ctx context.Context, token string, p Policy) (Policy, error) {
 
 	mfOwnerID, err := s.identify(token)
 	if err != nil {
 		return Policy{}, err
 	}
 
-	err = validatePolicyBackend(&p, format, policyData)
+	err = validatePolicyBackend(&p)
 	if err != nil {
 		return p, errors.Wrap(ErrCreatePolicy, err)
 	}
@@ -253,8 +256,12 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 	if err != nil {
 		return Dataset{}, err
 	}
-	// TODO after merge the other branches retrieve a dataset by id
-	return ds, nil
+
+	datasetEdited, err := s.repo.RetrieveDatasetByID(ctx, ds.ID, ds.MFOwnerID)
+	if err != nil {
+		return Dataset{}, err
+	}
+	return datasetEdited, nil
 }
 
 func (s policiesService) RemoveDataset(ctx context.Context, token string, dsID string) error {
@@ -327,4 +334,30 @@ func (s policiesService) ListDatasets(ctx context.Context, token string, pm Page
 		return PageDataset{}, err
 	}
 	return s.repo.RetrieveAllDatasetsByOwner(ctx, ownerID, pm)
+}
+
+func (s policiesService) DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error) {
+	if sinkID == "" || ownerID == ""{
+		return []Dataset{}, ErrMalformedEntity
+	}
+
+	datasets, err := s.repo.DeleteSinkFromAllDatasets(ctx, sinkID, ownerID)
+	if err != nil {
+		return []Dataset{}, err
+	}
+
+	return datasets, nil
+}
+
+func (s policiesService) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error {
+	if datasetID == "" || ownerID == ""{
+		return ErrMalformedEntity
+	}
+
+	err := s.repo.InactivateDatasetByID(ctx, datasetID, ownerID)
+	if err != nil {
+		return errors.Wrap(ErrInactivateDataset, err)
+	}
+
+	return nil
 }

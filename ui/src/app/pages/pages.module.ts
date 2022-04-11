@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import {
+  NbAccordionModule,
   NbAlertModule,
   NbButtonModule,
   NbCardModule,
@@ -11,7 +12,9 @@ import {
   NbMenuModule,
   NbSelectModule,
   NbStepperModule,
-  NbTabsetModule, NbTooltipModule,
+  NbTabsetModule,
+  NbToggleModule,
+  NbTooltipModule,
   NbWindowService,
 } from '@nebular/theme';
 import { ThemeModule } from '../@theme/theme.module';
@@ -58,6 +61,10 @@ import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.compo
 import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
 import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.component';
 import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.details.component';
+import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { A11yModule } from '@angular/cdk/a11y';
+import { AgentPolicyViewComponent } from 'app/pages/datasets/policies.agent/view/agent.policy.view.component';
 
 @NgModule({
   imports: [
@@ -87,6 +94,10 @@ import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.deta
     DebounceModule,
     NbTooltipModule,
     NbAlertModule,
+    NbAccordionModule,
+    MonacoEditorModule,
+    NbToggleModule,
+    A11yModule,
   ],
   exports: [
     SharedModule,
@@ -126,6 +137,8 @@ import { DatasetDetailsComponent } from 'app/pages/datasets/details/dataset.deta
     AgentPolicyDeleteComponent,
     AgentPolicyDetailsComponent,
     AgentPolicyListComponent,
+    AgentPolicyViewComponent,
+    HandlerPolicyAddComponent,
     // Sink Management
     SinkListComponent,
     SinkAddComponent,

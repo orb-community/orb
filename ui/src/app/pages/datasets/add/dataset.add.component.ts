@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -12,6 +12,7 @@ import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { STRINGS } from '../../../../assets/text/strings';
 
 const CONFIG = {
   SINKS: 'SINKS',
@@ -26,6 +27,11 @@ const CONFIG = {
   styleUrls: ['./dataset.add.component.scss'],
 })
 export class DatasetAddComponent {
+  @ViewChild('sinkSelLead') sinkSelLead: ElementRef;
+
+  // page vars
+  strings = { stepper: STRINGS.stepper };
+
   // stepper form groups
   detailsFormGroup: FormGroup;
 
@@ -144,7 +150,7 @@ export class DatasetAddComponent {
       };
     });
     if (this.availableSinks.length > 0 && this.selectedSinks.length > 0)
-    this.availableSinks = this.availableSinks.filter(sink => !this.selectedSinks.includes({id: sink.id}));
+      this.availableSinks = this.availableSinks.filter(sink => !this.selectedSinks.includes({ id: sink.id }));
 
     this.loading[CONFIG.SINKS] = true;
     this.getAvailableSinks()
@@ -250,6 +256,7 @@ export class DatasetAddComponent {
     const sink = this.sinkFormGroup.controls.selected_sink.value;
     this.selectedSinks.push(sink);
     this.sinkFormGroup.controls.selected_sink.reset('');
+    this.sinkSelLead.nativeElement.focus();
     this.getAvailableSinks();
   }
 

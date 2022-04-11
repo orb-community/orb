@@ -7,6 +7,35 @@
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
 
 /**
+ * @enum AgentStates
+ */
+export enum AgentStates {
+  new = 'new',
+  online = 'online',
+  offline = 'offline',
+  stale = 'stale',
+  removed = 'removed',
+}
+
+export interface AgentGroupState {
+  name?: string;
+  channel?: string;
+}
+
+export enum AgentPolicyStates {
+  running = 'running',
+  failedToApply = 'failed_to_apply',
+}
+
+export interface AgentPolicyState {
+  id?: string;
+  name?: string;
+  state?: AgentPolicyStates;
+  error?: string;
+  datasets?: string[];
+}
+
+/**
  * @interface Agent
  */
 export interface Agent extends OrbEntity {
@@ -38,7 +67,7 @@ export interface Agent extends OrbEntity {
    * Agent Metadata {{[propName: string]: string}}
    * Sent in by agent, defining its capabilities.
    */
-  agent_metadata?: any;
+  agent_metadata?: {[propname: string]: any};
 
   /**
    * State {string} = 'new'|'online'|'offline'|'stale'|'removed'
@@ -49,7 +78,11 @@ export interface Agent extends OrbEntity {
   /**
    * Last Heartbeat Data {{[propName: string]: string}}
    */
-  last_hb_data?: any;
+  last_hb_data?: any | {
+    backend_state?: any;
+    group_state?: {[id: string]: AgentGroupState};
+    policy_state?: {[id: string]: AgentPolicyState};
+  };
 
   /**
    * Last Heartbeat timestamp {string}
@@ -62,6 +95,16 @@ export interface Agent extends OrbEntity {
    */
   error_state?: boolean;
 
+  /**
+   * MQTT KEY
+   */
   key?: string;
+
+  /**
+   * Combines tags for display in UI
+   * Internal use
+   * See
+   */
+  combined_tags?: any;
 
 }
