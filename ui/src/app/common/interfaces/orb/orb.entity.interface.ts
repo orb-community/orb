@@ -23,4 +23,24 @@ export interface OrbEntity {
    */
   mf_owner_id?: string;
 
+  /**
+   * Error - dict of errors
+   */
+  error?: any;
+
+  /**
+   * Error Message
+   */
+  message?: string;
+
+  /**
+   * Error Status
+   */
+  status?: string;
+
+  /**
+   * Error Status Message
+   */
+  statusText?: string;
+
 }

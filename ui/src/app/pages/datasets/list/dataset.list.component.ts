@@ -216,8 +216,8 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
       confirm => {
         if (confirm) {
           this.datasetPoliciesService.deleteDataset(id).subscribe(() => {
-            this.getDatasets();
             this.notificationsService.success('Dataset successfully deleted', '');
+            this.getAllDatasets();
           });
         }
       },

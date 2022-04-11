@@ -130,5 +130,10 @@ nb-card {
 .agent-group-accent {
   color: #ffffff !important;
   text-decoration: underline !important;
-  font-weight: bolder;
+  font-weight: 600;
+}
+
+.error-accent {
+  color: #df316f !important;
+  font-weight: 600;
 }

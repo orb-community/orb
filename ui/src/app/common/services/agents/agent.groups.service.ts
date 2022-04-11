@@ -69,6 +69,7 @@ export class AgentGroupsService {
     return this.http.get(`${ environment.agentGroupsUrl }/${ id }`)
       .pipe(catchError(err => {
         this.notificationsService.error('Failed to fetch Agent Group', `Error: ${ err.status } - ${ err.statusText }`);
+        err['id'] = id;
         return of(err);
       }));
   }
