@@ -121,30 +121,38 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 	return nil
 }
 
+func subscribeWithRetry(attempt int, a *orbAgent, groupData fleet.GroupMembershipData) {
+	base := fmt.Sprintf("channels/%s/messages", groupData.ChannelID)
+	rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
+
+	token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore)
+	if token.Error() != nil {
+		a.logger.Error("failed to subscribe to group channel/topic", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+		return
+	}
+	ok := token.WaitTimeout(time.Second * 5)
+	if ok && token.Error() != nil {
+		a.logger.Error("failed to subscribe to group channel/topic", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+		return
+	}
+	if !ok {
+		if attempt >= 3 {
+			a.logger.Error("failed to subscribe to group channel/topic: failed after 3 retries", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic))
+			return
+		}
+		subscribeWithRetry(attempt+1, a, groupData)
+	}
+	a.logger.Info("completed RPC subscription to group", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic))
+	a.groupsInfos[groupData.GroupID] = GroupInfo{
+		Name:      groupData.Name,
+		ChannelID: groupData.ChannelID,
+	}
+	return
+}
+
 func (a *orbAgent) subscribeGroupChannels(groups []fleet.GroupMembershipData) {
 	for _, groupData := range groups {
-
-		base := fmt.Sprintf("channels/%s/messages", groupData.ChannelID)
-		rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
-
-		token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore)
-		if token.Error() != nil {
-			a.logger.Error("failed to subscribe to group channel/topic", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
-			continue
-		}
-		ok := token.WaitTimeout(time.Second * 5)
-		if ok && token.Error() != nil {
-			a.logger.Error("failed to subscribe to group channel/topic", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
-			continue
-		}
-		if !ok {
-			a.logger.Error("failed to subscribe to group channel/topic: time out", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic))
-			continue
-		}
-		a.logger.Info("completed RPC subscription to group", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic))
-		a.groupsInfos[groupData.GroupID] = GroupInfo{
-			Name:      groupData.Name,
-			ChannelID: groupData.ChannelID,
-		}
+		// because we are using retry on each connection, create go routines to
+		go subscribeWithRetry(0, a, groupData)
 	}
 }
