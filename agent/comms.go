@@ -11,6 +11,7 @@ import (
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"sync"
 	"time"
 )
 
@@ -151,8 +152,14 @@ func subscribeWithRetry(attempt int, a *orbAgent, groupData fleet.GroupMembershi
 }
 
 func (a *orbAgent) subscribeGroupChannels(groups []fleet.GroupMembershipData) {
+	var wg sync.WaitGroup
 	for _, groupData := range groups {
-		// because we are using retry on each connection, create go routines to
-		go subscribeWithRetry(0, a, groupData)
+		wg.Add(1)
+		groupData := groupData
+		go func() {
+			defer wg.Done()
+			subscribeWithRetry(0, a, groupData)
+		}()
 	}
+	wg.Wait()
 }
