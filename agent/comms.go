@@ -122,18 +122,18 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 	return nil
 }
 
-func subscribeWithRetry(attempt int, a *orbAgent, groupData fleet.GroupMembershipData) {
+func (a *orbAgent) subscribeWithRetry(attempt int, groupData fleet.GroupMembershipData) {
 	base := fmt.Sprintf("channels/%s/messages", groupData.ChannelID)
 	rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
 
 	token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore)
 	if token.Error() != nil {
-		a.logger.Error("failed to subscribe to group channel/topic", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+		a.logger.Error("failed to subscribe to group channel/topic", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic), zap.Int("subscription_attempt", attempt), zap.Error(token.Error()))
 		return
 	}
 	ok := token.WaitTimeout(time.Second * 5)
 	if ok && token.Error() != nil {
-		a.logger.Error("failed to subscribe to group channel/topic", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
+		a.logger.Error("failed to subscribe to group channel/topic", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic), zap.Int("subscription_attempt", attempt), zap.Error(token.Error()))
 		return
 	}
 	if !ok {
@@ -141,7 +141,7 @@ func subscribeWithRetry(attempt int, a *orbAgent, groupData fleet.GroupMembershi
 			a.logger.Error("failed to subscribe to group channel/topic: failed after 3 retries", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic))
 			return
 		}
-		subscribeWithRetry(attempt+1, a, groupData)
+		a.subscribeWithRetry(attempt+1, groupData)
 	}
 	a.logger.Info("completed RPC subscription to group", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic))
 	a.groupsInfos[groupData.GroupID] = GroupInfo{
@@ -158,7 +158,7 @@ func (a *orbAgent) subscribeGroupChannels(groups []fleet.GroupMembershipData) {
 		groupData := groupData
 		go func() {
 			defer wg.Done()
-			subscribeWithRetry(0, a, groupData)
+			a.subscribeWithRetry(0, groupData)
 		}()
 	}
 	wg.Wait()
