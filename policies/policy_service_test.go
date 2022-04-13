@@ -1426,7 +1426,11 @@ func TestDuplicatePolicy(t *testing.T) {
 
 			originalPolicy, _ := svc.ViewPolicyByID(context.Background(), token, tc.policyID)
 			if err == nil {
-				assert.Equal(t, originalPolicy.Policy, policyDuplicated.Policy, fmt.Sprintf("%s: expected %v got %v", desc, originalPolicy, policyDuplicated))
+				assert.Equal(t, originalPolicy.Policy, policyDuplicated.Policy, fmt.Sprintf("%s: expected %v got %v", desc, originalPolicy.Policy, policyDuplicated.Policy))
+				assert.Equal(t, originalPolicy.PolicyData, policyDuplicated.PolicyData, fmt.Sprintf("%s: expected %v got %v", desc, originalPolicy.PolicyData, policyDuplicated.PolicyData))
+				assert.Equal(t, originalPolicy.Format, policyDuplicated.Format, fmt.Sprintf("%s: expected %v got %v", desc, originalPolicy.Format, policyDuplicated.Format))
+				assert.Equal(t, originalPolicy.Backend, policyDuplicated.Backend, fmt.Sprintf("%s: expected %v got %v", desc, originalPolicy.Backend, policyDuplicated.Backend))
+
 				assert.Equal(t, tc.expectedName, policyDuplicated.Name.String(),  fmt.Sprintf("%s: expected %v got %v", desc, tc.expectedName, policyDuplicated.Name))
 			}
 		})
