@@ -1,7 +1,10 @@
 extensions:
   nop:
-  bearertokenauth:
-    token: "somerandomtoken"
+  oauth2client:
+    client_id: agent
+    client_secret: Dl76n1p8P2SEdqhcyfcqtmNJi8Kf5LG3
+    token_url: http://localhost:8080/auth/realms/opentelemetry/protocol/openid-connect/token
+
 
 receivers:
   nop:
@@ -41,12 +44,12 @@ exporters:
     endpoint: 0.0.0.0:5000
     ca_file: /var/lib/mycert.pem
     auth:
-      authenticator: bearertokenauth
+      authenticator: oauth2client
 
   otlphttp/withauth:
     endpoint: http://localhost:9090
     auth:
-      authenticator: bearertokenauth
+      authenticator: oauth2client
 
 service:
   extensions: [ v ]

@@ -485,7 +485,7 @@ func (p *pktvisorBackend) FullReset() error {
 		p.logger.Warn("broken pktvisor, trying to start", zap.String("broken_reason", errMsg))
 	}
 
-	if  state == backend.Running {
+	if state == backend.Running {
 		if err := p.Stop(); err != nil {
 			p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
 			return err

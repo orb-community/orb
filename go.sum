@@ -1039,6 +1039,7 @@ github.com/klauspost/compress v1.11.12/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdY
 github.com/klauspost/compress v1.11.13/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYsUV+/s2qKfXs=
 github.com/klauspost/compress v1.13.6 h1:P76CopJELS0TiO2mebmnzgWaajssP/EszplttgQxcgc=
 github.com/klauspost/compress v1.13.6/go.mod h1:/3/Vjq9QcHkK5uEr5lBEmyoZ1iFhe47etQ6QUkpK6sk=
+github.com/klauspost/compress v1.15.1/go.mod h1:/3/Vjq9QcHkK5uEr5lBEmyoZ1iFhe47etQ6QUkpK6sk=
 github.com/klauspost/cpuid v0.0.0-20170728055534-ae7887de9fa5/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
 github.com/klauspost/crc32 v0.0.0-20161016154125-cb6bfca970f6/go.mod h1:+ZoRqAPRLkC4NPOvfYeR5KNOrY6TD+/sAC3HXPZgDYg=
 github.com/klauspost/pgzip v1.0.2-0.20170402124221-0bf5dcad4ada/go.mod h1:Ch1tH69qFZu15pkjo5kYi6mth2Zzwzt50oCQKQE9RUs=
@@ -1088,6 +1089,7 @@ github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czP
 github.com/magiconair/properties v1.8.1/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/magiconair/properties v1.8.5 h1:b6kJs+EmPFMYGkow9GiUyCyOvIwYetYJ3fSaWak/Gls=
 github.com/magiconair/properties v1.8.5/go.mod h1:y3VJvCyxH9uVvJTWEGAELF3aiYNyPKd5NZ3oSwXrF60=
+github.com/magiconair/properties v1.8.6/go.mod h1:y3VJvCyxH9uVvJTWEGAELF3aiYNyPKd5NZ3oSwXrF60=
 github.com/mailru/easyjson v0.0.0-20160728113105-d5b7844b561a/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.0.0-20180823135443-60711f1a8329/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.0.0-20190312143242-1de009706dbe/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
@@ -1283,6 +1285,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusrem
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.40.0/go.mod h1:w0fvrEO4ZpvmdfWFRimRBed6qrsJQKW9A1XaWFzwX6g=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.48.0 h1:xH76BxokPYEfnm7SvINmi4gA2WvBMuhl2aj/v182KUA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.48.0/go.mod h1:kpf8t0+HshlWo/BnYzGBXV2FTuT2U4ZV9gV2lGH8F04=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.48.0 h1:Sm573LJMCApYDHt1pKg2VaHFR8uc+hwugrU9qhSwugA=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.48.0/go.mod h1:TK5AP+IHDWOEXKfPIVm4e6qadHyEeoRPAN7KDQk99Os=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.40.0 h1:FDoxyvSRJumeWNMMtwmyS6qz+5vDogkOAViz7EUvF6s=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.40.0/go.mod h1:a56dESln9qTQfvLlG4iVrDSVsLzWaFS5363i8sAxqDo=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.40.0 h1:/1/5iPuDkLD8/4UkOnbUbkvtTbQz0s27QN1m8RezjdM=

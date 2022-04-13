@@ -4,7 +4,6 @@ import (
 	"context"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configauth"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/consumer"
@@ -39,7 +38,6 @@ func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings 
 }
 
 func CreateDefaultConfig() config.Exporter {
-	bearertokenauthextension.
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		TimeoutSettings:  exporterhelper.NewDefaultTimeoutSettings(),
@@ -57,7 +55,6 @@ func CreateDefaultConfig() config.Exporter {
 			WaitForReady:    false,
 			Headers:         map[string]string{},
 			BalancerName:    "",
-			Auth:            configauth.Authentication.GetClientAuthenticator(),
 		},
 	}
 }

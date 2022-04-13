@@ -11,8 +11,7 @@ type Config struct {
 	exporterhelper.TimeoutSettings `mapstructure:",squash"`
 	exporterhelper.QueueSettings   `mapstructure:"sending_queue"`
 	exporterhelper.RetrySettings   `mapstructure:"retry_on_failure"`
-
-	configgrpc.GRPCClientSettings `mapstructure:",squash"`
+	configgrpc.GRPCClientSettings  `mapstructure:",squash"`
 }
 
 var _ config.Exporter = (*Config)(nil)
@@ -22,7 +21,7 @@ func (cfg *Config) Validate() error {
 	return nil
 }
 
-// SetIDName sets the receiver name.
+// ID gets the receiver name.
 func (cfg *Config) ID() config.ComponentID {
 	return cfg.ExporterSettings.ID()
 }
