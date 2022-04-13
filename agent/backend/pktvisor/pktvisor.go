@@ -400,7 +400,6 @@ func (p *pktvisorBackend) Stop() error {
 	finalStatus := <-p.statusChan
 	if err != nil {
 		p.logger.Error("pktvisor shutdown error", zap.Error(err))
-		return err
 	}
 	p.scraper.Stop()
 
@@ -492,18 +491,10 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 
 func (p *pktvisorBackend) FullReset() error {
 
-	// State always will have a value, even if error is not null
-	state, errMsg, err := p.GetState()
-	if err != nil {
-		p.logger.Warn("FullReset: attempting pktvisor restart", zap.String("current_error", errMsg))
-	}
-
-	// if it's still running, stop it
-	if state == backend.Running {
-		if err := p.Stop(); err != nil {
-			p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
-			return err
-		}
+	// force a stop, which stops scrape as well. if proc is dead, it no ops.
+	if err := p.Stop(); err != nil {
+		p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
+		return err
 	}
 
 	// start it
