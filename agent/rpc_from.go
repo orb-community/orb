@@ -135,7 +135,15 @@ func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {
 }
 
 func (a *orbAgent) handleAgentReset(payload fleet.AgentResetRPCPayload) {
-	a.Restart(payload.FullReset, payload.Reason)
+	if payload.FullReset {
+		err := a.RestartAll(payload.Reason)
+		if err != nil {
+			a.logger.Error("RestartAll failure", zap.Error(err))
+		}
+	} else {
+		// TODO backend specific restart
+		// a.RestartBackend()
+	}
 }
 
 func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {

@@ -8,6 +8,7 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/agent/policies"
 	"go.uber.org/zap"
+	"time"
 )
 
 const (
@@ -48,6 +49,7 @@ type Backend interface {
 	Stop() error
 	FullReset() error
 
+	GetStartTime() time.Time
 	GetCapabilities() (map[string]interface{}, error)
 	GetState() (BackendState, string, error)
 

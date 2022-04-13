@@ -26,7 +26,8 @@ var (
 type Agent interface {
 	Start() error
 	Stop()
-	Restart(fullReset bool, reason string)
+	RestartAll(reason string) error
+	RestartBackend(backend string, reason string) error
 }
 
 type orbAgent struct {
@@ -54,7 +55,7 @@ type orbAgent struct {
 }
 
 type GroupInfo struct {
-	Name string
+	Name      string
 	ChannelID string
 }
 
@@ -145,23 +146,35 @@ func (a *orbAgent) Stop() {
 	a.client.Disconnect(250)
 }
 
-func (a *orbAgent) Restart(fullReset bool, reason string) {
-	if fullReset {
-		a.logger.Info("restarting all backends", zap.String("reason", reason))
-		for name, be := range a.backends {
-			a.logger.Info("removing policies", zap.String("backend", name))
-			if err := a.policyManager.RemoveBackendPolicies(be, false); err != nil {
-				a.logger.Error("failed to remove policies", zap.String("backend", name), zap.Error(err))
-			}
-			a.logger.Info("resetting backend", zap.String("backend",name))
-			if err := be.FullReset(); err != nil {
-				a.logger.Error("failed to reset backend", zap.String("backend", name), zap.Error(err))
-			}
-			a.logger.Info("reapplying policies", zap.String("backend", name))
-			if err := a.policyManager.ApplyBackendPolicies(be); err != nil {
-				a.logger.Error("failed to reapply policies", zap.String("backend", name), zap.Error(err))
-			}
-		}
-		a.logger.Info("all backends were restarted")
+func (a *orbAgent) RestartBackend(name string, reason string) error {
+	if !backend.HaveBackend(name) {
+		return errors.New("specified backend does not exist: " + name)
 	}
+	be := a.backends[name]
+	a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
+	a.logger.Info("removing policies", zap.String("backend", name))
+	if err := a.policyManager.RemoveBackendPolicies(be, false); err != nil {
+		a.logger.Error("failed to remove policies", zap.String("backend", name), zap.Error(err))
+	}
+	a.logger.Info("resetting backend", zap.String("backend", name))
+	if err := be.FullReset(); err != nil {
+		a.logger.Error("failed to reset backend", zap.String("backend", name), zap.Error(err))
+	}
+	a.logger.Info("reapplying policies", zap.String("backend", name))
+	if err := a.policyManager.ApplyBackendPolicies(be); err != nil {
+		a.logger.Error("failed to reapply policies", zap.String("backend", name), zap.Error(err))
+	}
+	return nil
+}
+
+func (a *orbAgent) RestartAll(reason string) error {
+	a.logger.Info("restarting all backends", zap.String("reason", reason))
+	for name := range a.backends {
+		err := a.RestartBackend(name, reason)
+		if err != nil {
+			a.logger.Error("failed to restart backend", zap.Error(err))
+		}
+	}
+	a.logger.Info("all backends were restarted")
+	return nil
 }
