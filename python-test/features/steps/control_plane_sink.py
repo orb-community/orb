@@ -77,7 +77,7 @@ def create_invalid_sink(context, credential):
     token = context.token
     prometheus_credentials = {'endpoint': context.remote_prometheus_endpoint, 'username': context.prometheus_username,
                               'password': context.prometheus_key}
-    prometheus_credentials[credential] = prometheus_credentials[credential][:-1]
+    prometheus_credentials[credential] = prometheus_credentials[credential][:-2]
     context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
                                    prometheus_credentials['username'], prometheus_credentials['password'])
     context.existent_sinks_id = list()

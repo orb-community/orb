@@ -257,6 +257,12 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 		return Dataset{}, err
 	}
 	ds.MFOwnerID = mfOwnerID
+
+	err = s.validateDatasetSink(ctx, ds.MFOwnerID, ds.SinkIDs)
+	if err != nil{
+		return Dataset{}, err
+	}
+
 	err = s.repo.UpdateDataset(ctx, mfOwnerID, ds)
 	if err != nil {
 		return Dataset{}, err
@@ -266,6 +272,17 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 	if err != nil {
 		return Dataset{}, err
 	}
+
+	errValidatePolicy := s.validateDatasetPolicy(ctx, datasetEdited.MFOwnerID, datasetEdited.PolicyID)
+	errValidateAGroup := s.validateDatasetAgentGroup(ctx, datasetEdited.MFOwnerID, datasetEdited.AgentGroupID)
+
+	if errValidatePolicy == nil && errValidateAGroup == nil{
+		err = s.repo.ActivateDatasetByID(ctx, datasetEdited.ID, datasetEdited.MFOwnerID)
+		if err != nil{
+			return Dataset{}, err
+		}
+	}
+
 	return datasetEdited, nil
 }
 
@@ -289,45 +306,19 @@ func (s policiesService) ValidateDataset(ctx context.Context, token string, d Da
 
 	d.MFOwnerID = mfOwnerID
 
-	if len(d.SinkIDs) == 0 {
-		return Dataset{}, errors.Wrap(ErrMalformedEntity, err)
-	}
-	for _, sinkID := range d.SinkIDs {
-		_, err = uuid.FromString(sinkID)
-		if err != nil {
-			return Dataset{}, errors.Wrap(errors.New("invalid sink id"), ErrMalformedEntity)
-		}
-
-		_, err = s.sinksGrpcClient.RetrieveSink(ctx, &sinkpb.SinkByIDReq{
-			SinkID:  sinkID,
-			OwnerID: mfOwnerID,
-		})
-		if err != nil {
-			return Dataset{}, errors.Wrap(errors.New("sink id does not exist"), err)
-		}
+	err = s.validateDatasetSink(ctx, d.MFOwnerID, d.SinkIDs)
+	if err != nil{
+		return Dataset{}, err
 	}
 
-	_, err = uuid.FromString(d.PolicyID)
-	if err != nil {
-		return Dataset{}, errors.Wrap(errors.New("invalid policy id"), ErrMalformedEntity)
+	err = s.validateDatasetPolicy(ctx, d.MFOwnerID, d.PolicyID)
+	if err != nil{
+		return Dataset{}, err
 	}
 
-	_, err = s.repo.RetrievePolicyByID(ctx, d.PolicyID, mfOwnerID)
-	if err != nil {
-		return Dataset{}, errors.Wrap(errors.New("policy id does not exist"), err)
-	}
-
-	_, err = uuid.FromString(d.AgentGroupID)
-	if err != nil {
-		return Dataset{}, errors.Wrap(errors.New("invalid agent group id"), ErrMalformedEntity)
-	}
-
-	_, err = s.fleetGrpcClient.RetrieveAgentGroup(ctx, &pb.AgentGroupByIDReq{
-		AgentGroupID: d.AgentGroupID,
-		OwnerID:      mfOwnerID,
-	})
-	if err != nil {
-		return Dataset{}, errors.Wrap(errors.New("agent group id does not exist"), err)
+	err = s.validateDatasetAgentGroup(ctx, d.MFOwnerID, d.AgentGroupID)
+	if err != nil{
+		return Dataset{}, err
 	}
 
 	return d, nil
@@ -342,7 +333,7 @@ func (s policiesService) ListDatasets(ctx context.Context, token string, pm Page
 }
 
 func (s policiesService) DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error) {
-	if sinkID == "" || ownerID == ""{
+	if sinkID == "" || ownerID == "" {
 		return []Dataset{}, ErrMalformedEntity
 	}
 
@@ -355,13 +346,82 @@ func (s policiesService) DeleteSinkFromAllDatasetsInternal(ctx context.Context, 
 }
 
 func (s policiesService) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error {
-	if datasetID == "" || ownerID == ""{
+	if datasetID == "" || ownerID == "" {
 		return ErrMalformedEntity
 	}
 
 	err := s.repo.InactivateDatasetByID(ctx, datasetID, ownerID)
 	if err != nil {
 		return errors.Wrap(ErrInactivateDataset, err)
+	}
+
+	return nil
+}
+
+func (s policiesService) validateDatasetSink(ctx context.Context, ownerID string, sinkIDs []string) error {
+
+	if len(sinkIDs) == 0 {
+		return errors.Wrap(ErrMalformedEntity, errors.New("empty sink IDs"))
+	}
+	for _, sinkID := range sinkIDs {
+		_, err := uuid.FromString(sinkID)
+		if err != nil {
+			return errors.Wrap(errors.New("invalid sink id"), ErrMalformedEntity)
+		}
+
+		_, err = s.sinksGrpcClient.RetrieveSink(ctx, &sinkpb.SinkByIDReq{
+			SinkID:  sinkID,
+			OwnerID: ownerID,
+		})
+		if err != nil {
+			return errors.Wrap(errors.New("sink id does not exist"), err)
+		}
+	}
+	return nil
+}
+
+func (s policiesService) validateDatasetPolicy(ctx context.Context, ownerID string, policyID string) error {
+	_, err := uuid.FromString(policyID)
+	if err != nil {
+		return errors.Wrap(errors.New("invalid policy id"), ErrMalformedEntity)
+	}
+
+	_, err = s.repo.RetrievePolicyByID(ctx, policyID, ownerID)
+	if err != nil {
+		return errors.Wrap(errors.New("policy id does not exist"), err)
+	}
+	return nil
+}
+
+func (s policiesService) validateDatasetAgentGroup(ctx context.Context, ownerID string, aGroupID string) error {
+	_, err := uuid.FromString(aGroupID)
+	if err != nil {
+		return errors.Wrap(errors.New("invalid agent group id"), ErrMalformedEntity)
+	}
+
+	_, err = s.fleetGrpcClient.RetrieveAgentGroup(ctx, &pb.AgentGroupByIDReq{
+		AgentGroupID: aGroupID,
+		OwnerID:      ownerID,
+	})
+	if err != nil {
+		return errors.Wrap(errors.New("agent group id does not exist"), err)
+	}
+	return nil
+}
+
+func (s policiesService) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return err
+	}
+
+	if groupID == "" {
+		return ErrMalformedEntity
+	}
+
+	err = s.repo.DeleteAgentGroupFromAllDatasets(ctx, groupID, ownerID)
+	if err != nil {
+		return err
 	}
 
 	return nil

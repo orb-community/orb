@@ -13,7 +13,7 @@
         </div>
       </div>
     </div>
-  <p>
+    <p>
       <label>Agent ID</label>
       <span class="float-right">{{ agent?.id }}</span>
     </p>
@@ -39,6 +39,16 @@
           </mat-chip>
         </mat-chip-list>
       </div>
+    </div>
+    <div class="block">
+      <button (click)="resetAgent()"
+              [disabled]="isResetting"
+              class="agent-reset"
+              data-orb-qa-id="button#reset"
+              nbButton
+              shape="round">
+        Reset Agent
+      </button>
     </div>
   </nb-card-body>
 </nb-card>

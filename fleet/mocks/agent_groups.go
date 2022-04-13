@@ -47,7 +47,7 @@ func (a *agentGroupRepositoryMock) Save(ctx context.Context, group fleet.AgentGr
 func (a *agentGroupRepositoryMock) RetrieveAllByAgent(ctx context.Context, agent fleet.Agent) ([]fleet.AgentGroup, error) {
 	var agentGroups []fleet.AgentGroup
 
-	if agent.MFThingID == ""{
+	if agent.MFThingID == "" {
 		return agentGroups, errors.ErrMalformedEntity
 	}
 
@@ -109,4 +109,18 @@ func (a *agentGroupRepositoryMock) Delete(ctx context.Context, groupID string, o
 		}
 	}
 	return nil
+}
+
+func (a *agentGroupRepositoryMock) RetrieveMatchingGroups(ctx context.Context, ownerID string, thingID string) (fleet.MatchingGroups, error) {
+	//TODO find a way to correlation Agents and Agents Groups on Mock
+	var groups []fleet.Group
+	for _, group := range a.agentGroupMock {
+		if group.MFOwnerID == ownerID {
+			groups = append(groups, fleet.Group{
+				GroupID:   group.ID,
+				GroupName: group.Name,
+			})
+		}
+	}
+	return fleet.MatchingGroups{OwnerID: ownerID, Groups: groups}, nil
 }

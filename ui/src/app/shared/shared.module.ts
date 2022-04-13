@@ -32,15 +32,20 @@ import { ValidTagInputDirective } from 'app/shared/directives/valid-tag-input.di
 import { AdvancedOptionsPipe } from 'app/shared/pipes/advanced-options.pipe';
 import { PrettyJsonPipe } from 'app/shared/pipes/pretty-json.pipe';
 import { TagControlComponent } from './components/orb/tag-control/tag-control.component';
-import { AgentInformationComponent } from './components/orb/agent/information/agent-information.component';
-import { AgentCapabilitiesComponent } from './components/orb/agent/capabilities/agent-capabilities.component';
+import { AgentInformationComponent } from './components/orb/agent/agent-information/agent-information.component';
+import { AgentCapabilitiesComponent } from './components/orb/agent/agent-capabilities/agent-capabilities.component';
 import {
   AgentPoliciesDatasetsComponent,
-} from './components/orb/agent/policies-datasets/agent-policies-datasets.component';
-import { AgentGroupsComponent } from './components/orb/agent/groups/agent-groups.component';
-import { AgentProvisioningComponent } from './components/orb/agent/provisioning/agent-provisioning.component';
+} from './components/orb/agent/agent-policies-datasets/agent-policies-datasets.component';
+import { AgentGroupsComponent } from './components/orb/agent/agent-groups/agent-groups.component';
+import { AgentProvisioningComponent } from './components/orb/agent/agent-provisioning/agent-provisioning.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { TagDisplayComponent } from './components/orb/tag-display/tag-display.component';
+import { SinkDisplayComponent } from './components/orb/sink/sink-display/sink-display.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { PolicyDetailsComponent } from './components/orb/policy/policy-details/policy-details.component';
+import { PolicyInterfaceComponent } from './components/orb/policy/policy-interface/policy-interface.component';
+import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets/policy-datasets.component';
 
 @NgModule({
   imports: [
@@ -62,6 +67,7 @@ import { TagDisplayComponent } from './components/orb/tag-display/tag-display.co
     MatIconModule,
     ReactiveFormsModule,
     ClipboardModule,
+    MatTooltipModule,
   ],
   declarations: [
     ConfirmationComponent,
@@ -83,6 +89,10 @@ import { TagDisplayComponent } from './components/orb/tag-display/tag-display.co
     AgentProvisioningComponent,
     TagControlComponent,
     TagDisplayComponent,
+    SinkDisplayComponent,
+    PolicyDetailsComponent,
+    PolicyInterfaceComponent,
+    PolicyDatasetsComponent,
   ],
   exports: [
     ThemeModule,
@@ -107,6 +117,10 @@ import { TagDisplayComponent } from './components/orb/tag-display/tag-display.co
     AgentGroupsComponent,
     AgentProvisioningComponent,
     TagDisplayComponent,
+    SinkDisplayComponent,
+    PolicyDetailsComponent,
+    PolicyInterfaceComponent,
+    PolicyDatasetsComponent,
   ],
   providers: [
     MessageValuePipe,

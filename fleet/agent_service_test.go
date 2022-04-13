@@ -78,6 +78,53 @@ func TestViewAgent(t *testing.T) {
 	}
 }
 
+func TestViewAgentMatchingGroups(t *testing.T) {
+
+	//Setup
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	ag, err := createAgent(t, "my-agent1", fleetService)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	aGroup, err := createAgentGroup(t, "my-group1", fleetService)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	// Test cases
+	cases := map[string]struct {
+		id    string
+		token string
+		err   error
+		mg    fleet.MatchingGroups
+	}{
+		"view a existing agent": {
+			id:    ag.MFThingID,
+			token: token,
+			err:   nil,
+			mg: fleet.MatchingGroups{
+				OwnerID: aGroup.MFOwnerID,
+				Groups:  []fleet.Group{{GroupID: aGroup.ID, GroupName: aGroup.Name}},
+			},
+		},
+		"view matching groups with wrong credentials": {
+			id:    ag.MFThingID,
+			token: "wrong",
+			err:   fleet.ErrUnauthorizedAccess,
+			mg:    fleet.MatchingGroups{},
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			matchingGroups, err := fleetService.ViewAgentMatchingGroupsByID(context.Background(), tc.token, tc.id)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+			assert.Equal(t, tc.mg, matchingGroups, fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
 func TestListAgents(t *testing.T) {
 	users := flmocks.NewAuthService(map[string]string{token: email})
 

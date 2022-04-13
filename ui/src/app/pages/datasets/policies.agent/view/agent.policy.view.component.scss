@@ -21,9 +21,6 @@ nb-card {
   }
 
   nb-card-body {
-    margin: 0.3rem;
-    padding: 0.3rem;
-
     label {
       color: #969fb9;
     }
@@ -58,7 +55,7 @@ nb-card {
       }
 
       code {
-        color: #fff;
+        color: #ffffff;
         line-height: 2.5 !important;
       }
     }
@@ -66,17 +63,6 @@ nb-card {
 }
 
 ::ng-deep {
-  .error-item {
-    border: 1px !important;
-    border-style: solid !important;
-    border-color: #df316f !important;
-    background-color: rgba(223, 49, 111, 0.08) !important;
-  }
-
-  .error-title {
-    color: #df316f;
-    font-weight: bolder;
-  }
 
   .agent-group-link {
     color: #0c5dc5;
@@ -92,7 +78,7 @@ nb-card {
     color: #6fcf97 !important;
   }
 
-  .agent-offline, .dataset-invalid, .policy-failed_to_apply {
+  .agent-offline, .dataset-invalid, .policy-error {
     color: #df316f !important;
   }
 
@@ -123,6 +109,32 @@ nb-card {
     margin-top: 24px;
     width: 250px;
   }
+
+  .orb-breadcrumb {
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 12px;
+
+    ::ng-deep {
+      .xng-breadcrumb-trail {
+        color: #fff;
+        margin-bottom: 0;
+      }
+
+      .xng-breadcrumb-link {
+        color: #969fb9 !important;
+        text-decoration: none !important;
+      }
+
+      .xng-breadcrumb-separator {
+        color: #969fb9 !important;
+        text-decoration: none !important;
+      }
+    }
+  }
 }
 
 ::ng-deep {
@@ -130,37 +142,4 @@ nb-card {
     background: #1c2339 !important;
     color: #df316f !important;
   }
-}
-
-::ng-deep nb-accordion {
-  border: none !important;
-  border-radius: 8px !important;
-  display: grid;
-  padding: 0;
-  text-subtitle-line-height: 1rem;
-
-  nb-accordion-item {
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 0;
-
-    nb-accordion-item-header {
-      border: none !important;
-      border-radius: 8px !important;
-      padding: 10px 0;
-    }
-
-    nb-accordion-item-body {
-      border: none !important;
-      border-radius: 8px !important;
-      display: grid;
-      padding: 0;
-    }
-  }
-}
-
-nb-list-item {
-  background: #171c30;
-  border: none;
-  border-radius: 8px;
 }

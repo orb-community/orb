@@ -816,6 +816,199 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 	}
 }
 
+func TestActivateDatasetByID(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	oID2, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	groupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sinkIDs := make([]string, 2)
+	for i := 0; i < 2; i++ {
+		sinkID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		sinkIDs[i] = sinkID.String()
+	}
+
+	nameID, err := types.NewIdentifier("mydataset")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID2, err := types.NewIdentifier("mydataset-2")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		Name:         nameID,
+		MFOwnerID:    oID.String(),
+		Valid:        false,
+		AgentGroupID: groupID.String(),
+		PolicyID:     policyID.String(),
+		SinkIDs:      sinkIDs,
+		Metadata:     types.Metadata{"testkey": "testvalue"},
+		Created:      time.Time{},
+	}
+
+	dataset2 := dataset
+	dataset2.Name = nameID2
+	dataset2.MFOwnerID = oID2.String()
+
+	dsID, err := repo.SaveDataset(context.Background(), dataset)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset.ID = dsID
+
+	dsID2, err := repo.SaveDataset(context.Background(), dataset2)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset2.ID = dsID2
+
+	cases := map[string]struct {
+		ownerID string
+		id      string
+		dataset policies.Dataset
+		valid   bool
+		err     error
+	}{
+		"activate a existing dataset by ID": {
+			ownerID: dataset.MFOwnerID,
+			id:      dataset.ID,
+			dataset: dataset,
+			valid:   true,
+			err:     nil,
+		},
+		"inactivate dataset with an invalid ownerID": {
+			id:      dataset2.ID,
+			ownerID: "",
+			dataset: dataset2,
+			valid:   false,
+			err:     errors.ErrMalformedEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := repo.ActivateDatasetByID(context.Background(), tc.id, tc.ownerID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
+
+			check, _ := repo.RetrieveDatasetByID(context.Background(), tc.dataset.ID, tc.ownerID)
+			assert.Equal(t, tc.valid, check.Valid, fmt.Sprintf("%s: expected '%t' got '%t'", desc, tc.valid, check.Valid))
+		})
+	}
+}
+
+func TestDeleteAgentGroupFromDataset(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	oID2, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	wrongAGroupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	groupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sinkIDs := make([]string, 2)
+	for i := 0; i < 2; i++ {
+		sinkID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		sinkIDs[i] = sinkID.String()
+	}
+
+	nameID, err := types.NewIdentifier("mydataset")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID2, err := types.NewIdentifier("mydataset2")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		Name:         nameID,
+		MFOwnerID:    oID.String(),
+		Valid:        true,
+		AgentGroupID: groupID.String(),
+		PolicyID:     policyID.String(),
+		SinkIDs:      sinkIDs,
+		Metadata:     types.Metadata{"testkey": "testvalue"},
+		Created:      time.Time{},
+	}
+
+	dataset2 := dataset
+	dataset2.Name = nameID2
+	dataset2.MFOwnerID = oID2.String()
+
+	dsID, err := repo.SaveDataset(context.Background(), dataset)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset.ID = dsID
+
+	dsID2, err := repo.SaveDataset(context.Background(), dataset2)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset2.ID = dsID2
+
+	cases := map[string]struct {
+		owner    string
+		groupID  string
+		contains bool
+		dataset  policies.Dataset
+		err      error
+	}{
+		"delete a agent group from existing dataset": {
+			owner:    dataset.MFOwnerID,
+			groupID:  dataset.AgentGroupID,
+			contains: false,
+			dataset:  dataset,
+			err:      nil,
+		},
+		"delete a non-existing agent group from a dataset": {
+			owner:    dataset.MFOwnerID,
+			groupID:  wrongAGroupID.String(),
+			contains: false,
+			dataset:  dataset,
+			err:      nil,
+		},
+		"delete a agent group from a dataset with an invalid ownerID": {
+			groupID:  dataset2.AgentGroupID,
+			owner:    "",
+			contains: true,
+			dataset:  dataset2,
+			err:      errors.ErrMalformedEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := repo.DeleteAgentGroupFromAllDatasets(context.Background(), tc.groupID, tc.owner)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
+
+			d, err := repo.RetrieveDatasetByID(context.Background(), tc.dataset.ID, tc.dataset.MFOwnerID)
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+			switch tc.contains {
+			case false:
+				assert.NotEqual(t, d.AgentGroupID, tc.groupID, fmt.Sprintf("%s: expected '%s' to not contains '%s'", desc, d.AgentGroupID, tc.groupID))
+			case true:
+				assert.Equal(t, d.AgentGroupID, tc.groupID, fmt.Sprintf("%s: expected '%s' to contains '%s'", desc, d.AgentGroupID, tc.groupID))
+			}
+		})
+	}
+}
+
 func TestDeletePolicyFromDataset(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
 	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)

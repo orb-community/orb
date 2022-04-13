@@ -24,6 +24,7 @@ import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 import { DashboardComponent } from 'app/pages/dashboard/dashboard.component';
 import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.component';
 import { ProfileComponent } from './profile/profile.component';
+import { AgentPolicyViewComponent } from 'app/pages/datasets/policies.agent/view/agent.policy.view.component';
 
 const children = [
   {
@@ -153,6 +154,11 @@ const children = [
             path: 'edit/:id',
             component: AgentPolicyAddComponent,
             data: {breadcrumb: 'Edit Agent Policy'},
+          },
+          {
+            path: 'view/:id',
+            component: AgentPolicyViewComponent,
+            data: {breadcrumb: 'View Agent Policy'},
           },
         ],
       },
