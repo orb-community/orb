@@ -111,6 +111,9 @@ type Service interface {
 	// DeleteSinkFromAllDatasetsInternal removes a sink from a dataset
 	DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
 
+	// DeleteAgentGroupFromAllDatasets removes an agent group from a dataset
+	DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error
+
 	// DuplicatePolicy duplicates existing agent Policy
 	DuplicatePolicy(ctx context.Context, token string, policyID string) (Policy, error)
 }
@@ -168,6 +171,9 @@ type Repository interface {
 
 	// ActivateDatasetByID Activate a dataset
 	ActivateDatasetByID(ctx context.Context, datasetID string, ownerID string) error
+
+	// DeleteAgentGroupFromAllDatasets removes agent group from a dataset
+	DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, ownerID string) error
 
 	// RetrieveAllPoliciesInternal retrieves the subset of Policies owned by the specified user
 	RetrieveAllPoliciesInternal(ctx context.Context, ownerID string) ([]Policy, error)

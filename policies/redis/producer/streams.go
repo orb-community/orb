@@ -265,6 +265,10 @@ func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID s
 	return nil
 }
 
+func (e eventStore) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error {
+	return e.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
+}
+
 func (e eventStore) DuplicatePolicy(ctx context.Context, token string, policyID string) (policies.Policy, error) {
 	return e.svc.DuplicatePolicy(ctx, token, policyID)
 }

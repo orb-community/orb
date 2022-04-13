@@ -594,6 +594,35 @@ func (r policiesRepository) ActivateDatasetByID(ctx context.Context, id string, 
 	return nil
 }
 
+func (r policiesRepository) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, ownerID string) error {
+	q := `UPDATE datasets SET agent_group_id = null WHERE mf_owner_id = :mf_owner_id AND agent_group_id = :agent_group_id`
+
+	if ownerID == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	params := map[string]interface{}{
+		"mf_owner_id":    ownerID,
+		"agent_group_id": groupID,
+	}
+
+	res, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	defer res.Close()
+
+	return nil
+}
+
 func (r policiesRepository) RetrieveAllPoliciesInternal(ctx context.Context, ownerID string) ([]policies.Policy, error) {
 	var policies []policies.Policy
 

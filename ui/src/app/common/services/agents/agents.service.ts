@@ -72,6 +72,15 @@ export class AgentsService {
       );
   }
 
+  resetAgent(id: string) {
+    return this.http.post(`${environment.agentsUrl}/${id}/rpc/reset`, {}, {observe: 'response'})
+      .catch(err => {
+        this.notificationsService.error('Failed to reset Agent',
+          `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
+        return Observable.throwError(err);
+      });
+  }
+
   validateAgent(agentItem: Agent) {
     return this.http.post(environment.validateAgentsUrl,
         { ...agentItem, validate_only: true },

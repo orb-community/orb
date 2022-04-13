@@ -248,8 +248,8 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
       confirm => {
         if (confirm) {
           this.agentService.deleteAgent(id).subscribe(() => {
-            this.getAgents();
             this.notificationsService.success('Agent successfully deleted', '');
+            this.getAllAgents();
           });
         }
       },

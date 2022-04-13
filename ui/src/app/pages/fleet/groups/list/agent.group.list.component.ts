@@ -242,7 +242,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
         if (confirm) {
           this.agentGroupsService.deleteAgentGroup(id).subscribe(() => {
             this.notificationsService.success('Agent Group successfully deleted', '');
-            this.getAgentGroups();
+            this.getAllAgentGroups();
           });
         }
       },
