@@ -155,5 +155,4 @@ import { AgentPolicyViewComponent } from 'app/pages/datasets/policies.agent/view
     ConfirmationComponent,
   ],
 })
-export class PagesModule {
-}
+export class PagesModule {}
