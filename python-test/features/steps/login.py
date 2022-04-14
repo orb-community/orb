@@ -6,7 +6,7 @@ from utils import random_string, insert_str
 from random import randint
 
 configs = TestConfig.configs()
-base_orb_url = configs.get('base_orb_url')
+orb_url = configs.get('orb_url')
 
 
 @given('there is a registered account')

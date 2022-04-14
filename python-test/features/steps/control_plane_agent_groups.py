@@ -11,7 +11,7 @@ import time
 configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
 agent_group_description = "This is an agent group"
-base_orb_url = configs.get('base_orb_url')
+orb_url = configs.get('orb_url')
 
 
 @step("an Agent Group is created with same tag as the agent")
@@ -22,6 +22,7 @@ def create_agent_group_matching_agent(context, **kwargs):
     else:
         group_description = agent_group_description
     tags = context.agent["orb_tags"]
+    tags.update(context.agent["agent_tags"])
     context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
                                                   tags)
     group_id = context.agent_group_data['id']
@@ -177,7 +178,7 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
     json_request = {"name": name, "description": description, "tags": tags}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
-    response = requests.post(base_orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
+    response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create agent group failed with status=' + str(response.status_code))
 
@@ -193,7 +194,7 @@ def get_agent_group(token, agent_group_id):
     :returns: (dict) the fetched agent group
     """
 
-    get_groups_response = requests.get(base_orb_url + '/api/v1/agent_groups/' + agent_group_id,
+    get_groups_response = requests.get(orb_url + '/api/v1/agent_groups/' + agent_group_id,
                                        headers={'Authorization': token})
 
     assert_that(get_groups_response.status_code, equal_to(200),
@@ -212,7 +213,7 @@ def list_agent_groups(token, limit=100):
     :returns: (list) a list of agent groups
     """
 
-    response = requests.get(base_orb_url + '/api/v1/agent_groups', headers={'Authorization': token},
+    response = requests.get(orb_url + '/api/v1/agent_groups', headers={'Authorization': token},
                             params={"limit": limit})
 
     assert_that(response.status_code, equal_to(200),
@@ -242,7 +243,7 @@ def delete_agent_group(token, agent_group_id):
     :param (str) agent_group_id: that identifies the agent group to be deleted
     """
 
-    response = requests.delete(base_orb_url + '/api/v1/agent_groups/' + agent_group_id,
+    response = requests.delete(orb_url + '/api/v1/agent_groups/' + agent_group_id,
                                headers={'Authorization': token})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete agent group id='
@@ -293,7 +294,7 @@ def edit_agent_group(token, agent_group_id, name, description, tags, expected_st
 
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
-    group_edited_response = requests.put(base_orb_url + '/api/v1/agent_groups/' + agent_group_id, json=json_request,
+    group_edited_response = requests.put(orb_url + '/api/v1/agent_groups/' + agent_group_id, json=json_request,
                                          headers=headers_request)
 
     if name is None or tags is None:

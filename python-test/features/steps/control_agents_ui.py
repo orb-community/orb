@@ -11,7 +11,7 @@ from hamcrest import *
 from page_objects import *
 
 configs = TestConfig.configs()
-base_orb_url = configs.get('base_orb_url')
+orb_url = configs.get('orb_url')
 
 
 @given("that fleet Management is clickable on ORB Menu")
@@ -24,7 +24,7 @@ def agent_page(context):
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, LeftMenu.agents())))
     context.driver.find_element_by_xpath(LeftMenu.agents()).click()
-    WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{base_orb_url}/pages/fleet/agents"), message="Orb agents "
+    WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{orb_url}/pages/fleet/agents"), message="Orb agents "
                                                                                                        "page not "
                                                                                                        "available")
 
@@ -34,7 +34,7 @@ def orb_page(context):
     expand_fleet_management(context)
     agent_page(context)
     current_url = context.driver.current_url
-    assert_that(current_url, equal_to(f"{base_orb_url}/pages/fleet/agents"),
+    assert_that(current_url, equal_to(f"{orb_url}/pages/fleet/agents"),
                 "user not enabled to access orb login page")
 
 
@@ -43,7 +43,7 @@ def create_agent_through_the_agents_page(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, AgentsPage.new_agent_button()))).click()
-    WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{base_orb_url}/pages/fleet/agents/add"), message="Orb add"
+    WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{orb_url}/pages/fleet/agents/add"), message="Orb add"
                                                                                                            "agents "
                                                                                                            "page not "
                                                                                                            "available")
@@ -82,7 +82,7 @@ def create_agent_through_the_agents_page(context, orb_tags):
 
 @then("the agents list and the agents view should display agent's status as {status} within {time_to_wait} seconds")
 def check_status_on_orb_ui(context, status, time_to_wait):
-    context.driver.get(f"{base_orb_url}/pages/fleet/agents")
+    context.driver.get(f"{orb_url}/pages/fleet/agents")
 
     time_waiting = 0
     sleep_time = 0.5
