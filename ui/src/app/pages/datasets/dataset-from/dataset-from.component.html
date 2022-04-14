@@ -10,10 +10,62 @@
     </button>
   </nb-card-header>
   <nb-card-body>
-
+    <form>
+<!--      NAME-->
+      <nb-form-field>
+        <div>
+          <label class="font-weight-bold">Name Label</label>
+          <span class="required">*</span>
+        </div>
+        <input autofocus
+               data-orb-qa-id="name"
+               fieldSize="medium"
+               formControlName="name"
+               fullWidth="true"
+               nbInput/>
+      </nb-form-field>
+<!--      GROUP-->
+      <nb-form-field>
+        <div>
+          <label class="font-weight-bold">Who</label>
+          <span class="required">*</span>
+        </div>
+        <nb-select [(selected)]="selectedGroup"
+                   [disabled]="isEdit"
+                   appearance="filled"
+                   autofocus
+                   data-orb-qa-id="agent_group_id"
+                   formControlName="agent_group_id"
+                   fullWidth="true"
+                   placeholder="Agent Group Name"
+                   size="medium"
+        >
+          <nb-option *ngFor="let agentGroup of availableAgentGroups"
+                     [attr.data-orb-qa-id]="'available_agent_group: '+agentGroup.id" [id]="agentGroup.id"
+                     [value]="agentGroup">{{ agentGroup.name }}</nb-option>
+        </nb-select>
+      </nb-form-field>
+<!--      POLICY-->
+      <nb-form-field>
+        <div>
+          <label class="font-weight-bold">What</label>
+          <span class="required">*</span>
+        </div>
+        <nb-select (selectedChange)="onPolicySelected($event)"
+                   [disabled]="isEdit"
+                   appearance="filled"
+                   autofocus
+                   data-orb-qa-id="agent_policy_id"
+                   formControlName="agent_policy_id"
+                   fullWidth="true"
+                   placeholder="Policy"
+                   size="medium"
+        >
+          <nb-option *ngFor="let agentPolicy of availableAgentPolicies"
+                     [attr.data-orb-qa-id]="'available_agent_policy: '+agentPolicy.id" [id]="agentPolicy.id"
+                     [value]="agentPolicy">{{ agentPolicy.name }}</nb-option>
+        </nb-select>
+      </nb-form-field>
+    </form>
   </nb-card-body>
-
-  <nb-card-footer>
-    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(dataset)">Edit</button>
-  </nb-card-footer>
 </nb-card>
