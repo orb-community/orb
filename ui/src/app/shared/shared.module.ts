@@ -45,6 +45,8 @@ import { PolicyInterfaceComponent } from './components/orb/policy/policy-interfa
 import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets/policy-datasets.component';
 import { GroupedAgentsComponent } from './components/orb/dataset/grouped-agents/grouped-agents.component';
 import { PrettyYamlPipe } from './pipes/pretty-yaml.pipe';
+import { SinkControlComponent } from './components/orb/sink-control/sink-control.component';
+import { UnSelectedSinksPipe } from './pipes/available-sinks.pipe';
 import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/policy-groups.component';
 
 @NgModule({
@@ -93,6 +95,10 @@ import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/pol
     PolicyGroupsComponent,
     GroupedAgentsComponent,
     PrettyYamlPipe,
+    UnSelectedSinksPipe,
+    SinkControlComponent,
+    SinkDisplayComponent,
+    UnSelectedSinksPipe,
   ],
   exports: [
     ThemeModule,
@@ -121,6 +127,9 @@ import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/pol
     GroupedAgentsComponent,
     PolicyGroupsComponent,
     PrettyYamlPipe,
+    UnSelectedSinksPipe,
+    SinkControlComponent,
+    SinkDisplayComponent,
   ],
   providers: [
     MessageValuePipe,

@@ -219,7 +219,7 @@
                          data-orb-qa-id="sink_selector"
                          formControlName="selected_sink"
                          placeholder="Sink Name">
-                <nb-option *ngFor="let sink of availableSinks"
+                <nb-option *ngFor="let sink of availableSinks | unSelectedSinks:selectedSinks"
                            [attr.data-orb-qa-id]="'available_sink: '+sink.id" [id]="sink.id"
                            [value]="sink">{{ sink.name }}</nb-option>
               </nb-select>

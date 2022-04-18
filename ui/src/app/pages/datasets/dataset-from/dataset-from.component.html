@@ -10,7 +10,7 @@
     </button>
   </nb-card-header>
   <nb-card-body>
-    <form>
+    <form [formGroup]="form">
 <!--      NAME-->
       <nb-form-field>
         <div>
@@ -31,7 +31,7 @@
           <span class="required">*</span>
         </div>
         <nb-select [(selected)]="selectedGroup"
-                   [disabled]="isEdit"
+                   [disabled]="isEdit || !!group"
                    appearance="filled"
                    autofocus
                    data-orb-qa-id="agent_group_id"
@@ -42,7 +42,7 @@
         >
           <nb-option *ngFor="let agentGroup of availableAgentGroups"
                      [attr.data-orb-qa-id]="'available_agent_group: '+agentGroup.id" [id]="agentGroup.id"
-                     [value]="agentGroup">{{ agentGroup.name }}</nb-option>
+                     [value]="agentGroup.id">{{ agentGroup.name }}</nb-option>
         </nb-select>
       </nb-form-field>
 <!--      POLICY-->
@@ -51,8 +51,8 @@
           <label class="font-weight-bold">What</label>
           <span class="required">*</span>
         </div>
-        <nb-select (selectedChange)="onPolicySelected($event)"
-                   [disabled]="isEdit"
+        <nb-select [(selected)]="selectedPolicy"
+                   [disabled]="isEdit || !!policy"
                    appearance="filled"
                    autofocus
                    data-orb-qa-id="agent_policy_id"
@@ -63,9 +63,11 @@
         >
           <nb-option *ngFor="let agentPolicy of availableAgentPolicies"
                      [attr.data-orb-qa-id]="'available_agent_policy: '+agentPolicy.id" [id]="agentPolicy.id"
-                     [value]="agentPolicy">{{ agentPolicy.name }}</nb-option>
+                     [value]="agentPolicy.id">{{ agentPolicy.name }}</nb-option>
         </nb-select>
       </nb-form-field>
+      <ngx-sink-display [(sinks)]="selectedSinks"></ngx-sink-display>
+      <ngx-sink-control [(selectedSinks)]="selectedSinks" [availableSinks]="availableSinks"></ngx-sink-control>
     </form>
   </nb-card-body>
 </nb-card>

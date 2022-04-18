@@ -5,10 +5,9 @@ import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
-import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 const CONFIG = {
   SINKS: 'SINKS',
@@ -24,16 +23,21 @@ const CONFIG = {
 })
 export class DatasetFromComponent implements OnInit {
   @Input()
+  dataset: Dataset;
+
+  @Input()
   policy: AgentPolicy;
 
   @Input()
   group: AgentGroup;
 
-  selectedGroup: AgentGroup;
+  isEdit: boolean;
 
-  selectedPolicy: AgentPolicy;
+  selectedGroup: string;
 
-  selectedSinks: { id: string, name?: string }[];
+  selectedPolicy: string;
+
+  selectedSinks: Sink[];
 
   availableAgentGroups: AgentGroup[];
 
@@ -41,9 +45,7 @@ export class DatasetFromComponent implements OnInit {
 
   availableSinks: Sink[];
 
-  isEdit: boolean;
-
-  dataset: Dataset;
+  form: FormGroup;
 
   // #load controls
   loading = Object.entries(CONFIG)
@@ -55,9 +57,8 @@ export class DatasetFromComponent implements OnInit {
   constructor(
     private agentGroupsService: AgentGroupsService,
     private agentPoliciesService: AgentPoliciesService,
-    private datasetPoliciesService: DatasetPoliciesService,
     private sinksService: SinksService,
-    private notificationsService: NotificationsService,
+    private _formBuilder: FormBuilder,
   ) {
     this.isEdit = false;
     this.availableAgentGroups = [];
@@ -66,12 +67,47 @@ export class DatasetFromComponent implements OnInit {
     this.selectedSinks = [];
   }
 
+  readyForms() {
+    const {
+      name,
+      agent_policy_id,
+      agent_group_id,
+      sink_ids,
+    } = this?.dataset || {
+      name: '',
+      agent_group_id: '',
+      agent_policy_id: '',
+      sink_ids: [],
+    } as Dataset;
+
+    this.form = this._formBuilder.group({
+      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
+      agent_policy_id: [agent_policy_id, [Validators.required]],
+      agent_group_id: [agent_group_id, [Validators.required]],
+      sink_ids: [sink_ids, [Validators.minLength(1)]],
+    });
+  }
+
+  ngOnInit(): void {
+    if (!!this.dataset) {
+      this.isEdit = true;
+    }
+
+    if (!!this.group) {
+      this.selectedGroup = this.group.id;
+    }
+
+    if (!!this.policy) {
+      this.selectedPolicy = this.policy.id;
+    }
+
+    this.getDatasetAvailableConfigList();
+  }
+
   getDatasetAvailableConfigList() {
     Promise.all([this.getAvailableAgentGroups(), this.getAvailableAgentPolicies(), this.getAvailableSinks()])
       .then(value => {
-        if (this.isEdit && this.dataset) {
-          this.updateForms();
-        }
+
       }, reason => console.warn(`Cannot retrieve available configurations - reason: ${ JSON.parse(reason) }`))
       .catch(reason => {
         console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`);
@@ -132,10 +168,6 @@ export class DatasetFromComponent implements OnInit {
   }
 
   onClose() {
-
-  }
-
-  ngOnInit(): void {
 
   }
 
