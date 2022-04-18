@@ -172,7 +172,4 @@ type Repository interface {
 
 	// DeleteAgentGroupFromAllDatasets removes agent group from a dataset
 	DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, ownerID string) error
-
-	// DeletePolicyFromAllDatasets removes policy from a dataset
-	DeletePolicyFromAllDatasets(ctx context.Context, policyID string, ownerID string) error
 }
