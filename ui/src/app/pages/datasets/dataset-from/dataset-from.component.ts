@@ -8,6 +8,9 @@ import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { NbDialogRef } from '@nebular/theme';
 
 const CONFIG = {
   SINKS: 'SINKS',
@@ -45,27 +48,34 @@ export class DatasetFromComponent implements OnInit {
 
   availableSinks: Sink[];
 
-  form: FormGroup;
-
-  // #load controls
-  loading = Object.entries(CONFIG)
-    .reduce((acc, [value]) => {
-      acc[value] = false;
-      return acc;
-    }, {});
-
   constructor(
     private agentGroupsService: AgentGroupsService,
     private agentPoliciesService: AgentPoliciesService,
+    private datasetService: DatasetPoliciesService,
     private sinksService: SinksService,
+    private notificationsService: NotificationsService,
     private _formBuilder: FormBuilder,
+    protected dialogRef: NbDialogRef<DatasetFromComponent>,
   ) {
     this.isEdit = false;
     this.availableAgentGroups = [];
     this.availableAgentPolicies = [];
     this.availableSinks = [];
     this.selectedSinks = [];
+
+    this.getDatasetAvailableConfigList();
+
+    this.readyForms();
   }
+
+  form: FormGroup;
+  // #load controls
+
+  loading = Object.entries(CONFIG)
+    .reduce((acc, [value]) => {
+      acc[value] = false;
+      return acc;
+    }, {});
 
   readyForms() {
     const {
@@ -100,14 +110,12 @@ export class DatasetFromComponent implements OnInit {
     if (!!this.policy) {
       this.selectedPolicy = this.policy.id;
     }
-
-    this.getDatasetAvailableConfigList();
   }
 
   getDatasetAvailableConfigList() {
     Promise.all([this.getAvailableAgentGroups(), this.getAvailableAgentPolicies(), this.getAvailableSinks()])
       .then(value => {
-
+        console.log('warning');
       }, reason => console.warn(`Cannot retrieve available configurations - reason: ${ JSON.parse(reason) }`))
       .catch(reason => {
         console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`);
@@ -117,9 +125,7 @@ export class DatasetFromComponent implements OnInit {
   getAvailableAgentGroups() {
     return new Promise((resolve) => {
       this.loading[CONFIG.GROUPS] = true;
-      const pageInfo = { ...AgentGroupsService.getDefaultPagination(), limit: 100 };
-      this.agentGroupsService
-        .getAgentGroups(pageInfo, false)
+      this.agentGroupsService.getAllAgentGroups()
         .subscribe((resp: OrbPagination<AgentGroup>) => {
           this.availableAgentGroups = resp.data;
           this.loading[CONFIG.GROUPS] = false;
@@ -132,9 +138,9 @@ export class DatasetFromComponent implements OnInit {
   getAvailableAgentPolicies() {
     return new Promise((resolve) => {
       this.loading[CONFIG.POLICIES] = true;
-      const pageInfo = { ...AgentPoliciesService.getDefaultPagination(), limit: 100 };
+
       this.agentPoliciesService
-        .getAgentsPolicies(pageInfo, false)
+        .getAllAgentPolicies()
         .subscribe((resp: OrbPagination<AgentPolicy>) => {
           this.availableAgentPolicies = resp.data;
           this.loading[CONFIG.POLICIES] = false;
@@ -165,6 +171,25 @@ export class DatasetFromComponent implements OnInit {
 
   isLoading() {
     return Object.values<boolean>(this.loading).reduce((prev, curr) => prev && curr);
+  }
+
+  onFormSubmit() {
+    const payload = {
+      name: this.form.controls.name.value,
+      agent_group_id: this.form.controls.agent_group_id.value,
+      agent_policy_id: this.form.controls.agent_policy_id.value,
+      sink_ids: this.selectedSinks.map(sink => sink.id),
+    } as Dataset;
+    if (this.isEdit) {
+      // updating existing dataset
+      this.datasetService.editDataset({ ...payload, id: this.dataset.id}).subscribe(() => {
+        this.notificationsService.success('Dataset successfully updated', '');
+      });
+    } else {
+      this.datasetService.addDataset(payload).subscribe(() => {
+        this.notificationsService.success('Dataset successfully created', '');
+      });
+    }
   }
 
   onClose() {

@@ -38,7 +38,6 @@ import { AgentGroupsComponent } from './components/orb/agent/agent-groups/agent-
 import { AgentProvisioningComponent } from './components/orb/agent/agent-provisioning/agent-provisioning.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { TagDisplayComponent } from './components/orb/tag-display/tag-display.component';
-import { SinkDisplayComponent } from './components/orb/sink/sink-display/sink-display.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PolicyDetailsComponent } from './components/orb/policy/policy-details/policy-details.component';
 import { PolicyInterfaceComponent } from './components/orb/policy/policy-interface/policy-interface.component';
@@ -48,6 +47,7 @@ import { PrettyYamlPipe } from './pipes/pretty-yaml.pipe';
 import { SinkControlComponent } from './components/orb/sink-control/sink-control.component';
 import { UnSelectedSinksPipe } from './pipes/available-sinks.pipe';
 import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/policy-groups.component';
+import { SinkDisplayComponent } from 'app/shared/components/orb/sink-display/sink-display.component';
 
 @NgModule({
   imports: [
@@ -99,6 +99,7 @@ import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/pol
     SinkControlComponent,
     SinkDisplayComponent,
     UnSelectedSinksPipe,
+    SinkDisplayComponent,
   ],
   exports: [
     ThemeModule,
@@ -129,6 +130,7 @@ import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/pol
     PrettyYamlPipe,
     UnSelectedSinksPipe,
     SinkControlComponent,
+    SinkDisplayComponent,
     SinkDisplayComponent,
   ],
   providers: [
