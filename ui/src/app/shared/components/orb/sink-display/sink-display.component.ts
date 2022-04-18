@@ -13,7 +13,10 @@ export class SinkDisplayComponent implements OnInit {
   @Output()
   sinksChange: EventEmitter<Sink[]>;
 
-  constructor() { }
+  constructor() {
+    this.sinks = [];
+    this.sinksChange = new EventEmitter<Sink[]>();
+  }
 
   ngOnInit(): void {
   }
