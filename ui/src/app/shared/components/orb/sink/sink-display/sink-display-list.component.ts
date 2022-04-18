@@ -4,11 +4,11 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { forkJoin, Subscription } from 'rxjs';
 
 @Component({
-  selector: 'ngx-sink-display',
-  templateUrl: './sink-display.component.html',
-  styleUrls: ['./sink-display.component.scss'],
+  selector: 'ngx-sink-display-list',
+  templateUrl: './sink-display-list.component.html',
+  styleUrls: ['./sink-display-list.component.scss'],
 })
-export class SinkDisplayComponent implements OnInit, OnDestroy {
+export class SinkDisplayListComponent implements OnInit, OnDestroy {
   @Input() sinkIDs: string[];
 
   sinks: Sink[];

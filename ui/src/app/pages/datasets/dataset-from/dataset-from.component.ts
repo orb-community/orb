@@ -115,7 +115,7 @@ export class DatasetFromComponent implements OnInit {
   getDatasetAvailableConfigList() {
     Promise.all([this.getAvailableAgentGroups(), this.getAvailableAgentPolicies(), this.getAvailableSinks()])
       .then(value => {
-        console.log('warning');
+        // console.log('warning');
       }, reason => console.warn(`Cannot retrieve available configurations - reason: ${ JSON.parse(reason) }`))
       .catch(reason => {
         console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`);
