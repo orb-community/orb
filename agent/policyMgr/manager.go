@@ -217,7 +217,7 @@ func (a *policyManager) ApplyBackendPolicies(be backend.Backend) error {
 	}
 
 	for _, policy := range plcies {
-		be.ApplyPolicy(policy, false)
+		err := be.ApplyPolicy(policy, false)
 		if err != nil {
 			a.logger.Warn("policy failed to apply", zap.String("policy_id", policy.ID), zap.String("policy_name", policy.Name), zap.Error(err))
 			policy.State = policies.FailedToApply

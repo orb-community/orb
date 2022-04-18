@@ -48,18 +48,19 @@ func (s *State) Scan(value interface{}) error { *s = stateRevMap[string(value.([
 func (s State) Value() (driver.Value, error)  { return s.String(), nil }
 
 type Agent struct {
-	Name          types.Identifier
-	MFOwnerID     string
-	MFThingID     string
-	MFKeyID       string
-	MFChannelID   string
-	Created       time.Time
-	OrbTags       types.Tags
-	AgentTags     types.Tags
-	AgentMetadata types.Metadata
-	State         State
-	LastHBData    types.Metadata
-	LastHB        time.Time
+	Name           types.Identifier
+	MFOwnerID      string
+	MFThingID      string
+	MFKeyID        string
+	MFChannelID    string
+	Created        time.Time
+	OrbTags        types.Tags
+	AgentTags      types.Tags
+	AgentMetadata  types.Metadata
+	State          State
+	LastHBData     types.Metadata
+	LastHB         time.Time
+	MatchingGroups types.Metadata
 }
 
 // Page contains page related metadata as well as list of agents that
@@ -69,12 +70,24 @@ type Page struct {
 	Agents []Agent
 }
 
+type Group struct {
+	GroupID string
+	GroupName types.Identifier
+}
+
+type MatchingGroups struct {
+	OwnerID string
+	Groups []Group
+}
+
 // AgentService Agent CRUD interface
 type AgentService interface {
 	// CreateAgent creates new agent
 	CreateAgent(ctx context.Context, token string, a Agent) (Agent, error)
 	// ViewAgentByID retrieves a Agent by provided thingID
 	ViewAgentByID(ctx context.Context, token string, thingID string) (Agent, error)
+	// ViewAgentMatchingGroupsByID Groups this Agent currently belongs to, according to matching agent and group tags
+	ViewAgentMatchingGroupsByID(ctx context.Context, token string, thingID string) (MatchingGroups, error)
 	// ViewAgentByIDInternal retrieves a Agent by provided thingID
 	ViewAgentByIDInternal(ctx context.Context, ownerID string, thingID string) (Agent, error)
 	// ListAgents retrieves data about subset of agents that belongs to the
@@ -123,7 +136,7 @@ type AgentRepository interface {
 	// RetrieveOwnerByChannelID retrieves a ownerID by a provided channelID
 	RetrieveOwnerByChannelID(ctx context.Context, channelID string) (Agent, error)
 	// SetStaleStatus change status to stale according provided duration without heartbeats
-	SetStaleStatus(ctx context.Context,  minutes time.Duration) (int64, error)
+	SetStaleStatus(ctx context.Context, minutes time.Duration) (int64, error)
 }
 
 type AgentHeartbeatRepository interface {

@@ -4,8 +4,23 @@
 
 package types
 
+import (
+    "encoding/json"
+    "github.com/ns1labs/orb/pkg/errors"
+)
+
 // Tags A flat kv pair object
 type Tags map[string]string
 
 // Metadata Maybe a full object hierarchy
 type Metadata map[string]interface{}
+
+func (s *Metadata) Scan(src interface{}) error {
+   switch v := src.(type) {
+   case []byte:
+       return json.Unmarshal(v, s)
+   case string:
+       return json.Unmarshal([]byte(v), s)
+   }
+   return errors.New("type assertion failed")
+}

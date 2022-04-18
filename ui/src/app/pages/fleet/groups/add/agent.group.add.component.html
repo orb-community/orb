@@ -45,14 +45,6 @@
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
               <button [disabled]="!firstFormGroup.valid"
                       class="next-button"
                       data-orb-qa-id="button#next"
@@ -61,6 +53,15 @@
                       shape="round"
                       status="primary" type="submit">
                 {{ strings.stepper.next }}
+              </button>
+              <button (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -72,118 +73,47 @@
               <p>{{strings.add.step.desc2}}</p>
             </div>
           </ng-template>
-          <form [formGroup]="secondFormGroup">
-            <div class="d-flex">
-              <mat-chip-list>
-                <mat-chip
-                  *ngFor="let tag of selectedTags | keyvalue"
-                  [style.background-color]="tag | tagcolor"
-                  class="orb-tag-chip ">
-                  {{tag | tagchip}}
-                  <nb-icon (click)="onRemoveTag(tag.key)"
-                           class="ml-1"
-                           icon="close-outline"
-                           size="12"></nb-icon>
-                </mat-chip>
-                <mat-chip
-                  *ngIf="(selectedTags | json) === '{}'"
-                  [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-chip ">
-                  No tag added
-                </mat-chip>
-              </mat-chip-list>
-            </div>
-            <hr/>
-            <nb-form-field>
-              <div class="container d-flex row px-0 mx-0">
-                <div class="d-flex flex-column col-5 px-0 mx-0">
-                  <div>
-                    <label class="font-weight-bold">{{strings.propNames.key}}</label>
-                    <span class="required">*</span>
-                  </div>
-                  <div>
-                    <input autofocus
-                           fieldSize="medium"
-                           formControlName="key"
-                           fullWidth="true"
-                           nbInput/>
-                  </div>
-                </div>
-                <div class="d-flex justify-content-center align-items-center col-1 mt-4 px-0 mx-0">
-                  <nb-icon icon="plus-outline" size="14" style="color: #df316f;"></nb-icon>
-                </div>
-                <div class="d-flex flex-column col-5 px-0 mx-0">
-                  <div>
-                    <label class="font-weight-bold">{{strings.propNames.value}}</label>
-                    <span class="required">*</span>
-                  </div>
-                  <div>
-                    <input autofocus
-                           fieldSize="medium"
-                           formControlName="value"
-                           fullWidth="true"
-                           nbInput/>
-                  </div>
-                </div>
-                <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
-                     style="transform: translateY(14px);">
-                  <button (click)="onAddTag()"
-                          [disabled]="(secondFormGroup.controls['key'].value === '' ||
-                          secondFormGroup.controls['value'].value === '')"
-                          ghost
-                          nbButton>
-                    <nb-icon icon="plus-outline"
-                             size="14"
-                             status="primary"
-                             style="color: #df316f;">
-                    </nb-icon>
-                  </button>
-                </div>
-              </div>
-            </nb-form-field>
-            <hr/>
-            <div class="d-flex row">
-              <div class="col-12">
-                <div>
-                  <p *ngIf="tagMatch?.total && tagMatch.total > 0">
-                    {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}.
-                  </p>
-                  <p *ngIf="!tagMatch.total || tagMatch.total === 0">
-                    {{strings.match.matchNone}}
-                  </p>
-                </div>
+          <ngx-tag-control [(tags)]="selectedTags" (tagsChange)="updateMatches()"></ngx-tag-control>
+          <hr/>
+          <div class="d-flex row">
+            <div class="col-12">
+              <div>
+                <p *ngIf="tagMatch?.total && tagMatch.total > 0">
+                  {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}.
+                </p>
+                <p *ngIf="!tagMatch.total || tagMatch.total === 0">
+                  {{strings.match.matchNone}}
+                </p>
               </div>
             </div>
-            <hr/>
-            <div *ngIf="secondFormGroup"
-                 class="d-flex justify-content-end">
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      status="primary"
-                      type="button">
-                {{ strings.stepper.cancel }}
-              </button>
-              <button data-orb-qa-id="button#back"
-                      ghost
-                      nbButton
-                      nbStepperPrevious
-                      status="primary">
-                {{ strings.stepper.back }}
-              </button>
-              <button [disabled]="(selectedTags | json) === '{}'"
-                      class="next-button"
-                      data-orb-qa-id="button#next"
-                      nbButton
-                      nbStepperNext
-                      shape="round"
-                      status="primary"
-                      type="submit">
-                {{ strings.stepper.next }}
-              </button>
-            </div>
-          </form>
+          </div>
+          <hr/>
+          <div class="d-flex justify-content-end">
+            <button nbStepperNext
+                    class="next-button"
+                    data-orb-qa-id="button#save"
+                    nbButton
+                    shape="round"
+                    status="primary"
+                    type="submit">
+              {{ strings.stepper.next }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
+            </button>
+          </div>
         </nb-step>
         <nb-step [label]="thirdStepLabel">
           <ng-template #thirdStepLabel>
@@ -209,20 +139,7 @@
           </div>
           <div class="d-flex row">
             <div class="col-12">
-              <mat-chip-list>
-                <mat-chip
-                  *ngFor="let tag of selectedTags | keyvalue"
-                  [style.background-color]="tag | tagcolor"
-                  class="orb-tag-chip ">
-                  {{tag | tagchip}}
-                </mat-chip>
-                <mat-chip
-                  *ngIf="(selectedTags | json) === '{}'"
-                  [style.background-color]="'notag' | tagcolor"
-                  class="orb-tag-chip ">
-                  No tag added
-                </mat-chip>
-              </mat-chip-list>
+              <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
             </div>
           </div>
           <hr/>
@@ -261,23 +178,7 @@
             </div>
           </div>
           <hr/>
-          <div *ngIf="secondFormGroup"
-               class="d-flex justify-content-end">
-            <button (click)="goBack()"
-                    data-orb-qa-id="button#cancel"
-                    ghost
-                    nbButton
-                    status="primary"
-                    type="button">
-              {{ strings.stepper.cancel }}
-            </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    status="primary">
-              {{ strings.stepper.back }}
-            </button>
+          <div class="d-flex justify-content-end">
             <button (click)="onFormSubmit()"
                     class="next-button"
                     data-orb-qa-id="button#save"
@@ -286,6 +187,21 @@
                     status="primary"
                     type="submit">
               {{ strings.stepper.save }}
+            </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button (click)="goBack()"
+                    data-orb-qa-id="button#cancel"
+                    ghost
+                    nbButton
+                    status="primary"
+                    type="button">
+              {{ strings.stepper.cancel }}
             </button>
           </div>
         </nb-step>

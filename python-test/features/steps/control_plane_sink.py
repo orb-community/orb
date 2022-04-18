@@ -35,6 +35,37 @@ def create_sink(context):
     username = context.prometheus_username
     password = context.prometheus_key
     context.sink = create_new_sink(token, sink_label_name, endpoint, username, password)
+    context.existent_sinks_id = list()
+    for sink_json in list_sinks(token):
+        context.existent_sinks_id.append(sink_json['id'])
+
+
+@step("{amount_of_sinks} new sinks are created")
+def create_multiple_sinks(context, amount_of_sinks):
+    check_prometheus_grafana_credentials(context)
+    for sink in range(int(amount_of_sinks)):
+        create_sink(context)
+        
+        
+@given("that a sink already exists")
+def new_sink(context):
+    check_prometheus_grafana_credentials(context)
+    create_sink(context)
+    
+    
+@step("that {amount_of_sinks} sinks already exists")
+def new_multiple_sinks(context, amount_of_sinks):
+    check_prometheus_grafana_credentials(context)
+    for sink in range(int(amount_of_sinks)):
+        create_sink(context)
+
+
+@step("remove {amount_of_sinks} of the linked sinks from orb")
+def remove_sink_from_orb(context, amount_of_sinks):
+    for i in range(int(amount_of_sinks)):
+        delete_sink(context.token, context.used_sinks_id[i])
+        context.existent_sinks_id.remove(context.used_sinks_id[i])
+        context.used_sinks_id.remove(context.used_sinks_id[i])
 
 
 @step("that a sink with invalid {credential} already exists")
@@ -46,9 +77,12 @@ def create_invalid_sink(context, credential):
     token = context.token
     prometheus_credentials = {'endpoint': context.remote_prometheus_endpoint, 'username': context.prometheus_username,
                               'password': context.prometheus_key}
-    prometheus_credentials[credential] = prometheus_credentials[credential][:-1]
+    prometheus_credentials[credential] = prometheus_credentials[credential][:-2]
     context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
                                    prometheus_credentials['username'], prometheus_credentials['password'])
+    context.existent_sinks_id = list()
+    for sink_json in list_sinks(token):
+        context.existent_sinks_id.append(sink_json['id'])
 
 
 @step("referred sink must have {status} state on response within {time_to_wait} seconds")
@@ -80,11 +114,6 @@ def clean_sinks(context):
     sinks_filtered_list = filter_list_by_parameter_start_with(sinks_list, 'name', sink_label_name_prefix)
     delete_sinks(token, sinks_filtered_list)
 
-
-@given("that a sink already exists")
-def new_sink(context):
-    check_prometheus_grafana_credentials(context)
-    create_sink(context)
 
 
 def create_new_sink(token, name_label, remote_host, username, password, description=None, tag_key='',

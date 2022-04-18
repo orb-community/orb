@@ -336,6 +336,35 @@ func (a agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) 
 	return id, nil
 }
 
+func (a agentGroupRepository) RetrieveMatchingGroups(ctx context.Context, ownerID string, thingID string) (fleet.MatchingGroups, error) {
+	q := `select agent_groups_id as group_id, agent_groups_name as group_name from agent_group_membership where agent_mf_thing_id = :mf_thing_id and mf_owner_id = :mf_owner_id`
+
+	params := map[string]interface{}{
+		"mf_thing_id": thingID,
+		"mf_owner_id": ownerID,
+	}
+
+	rows, err := a.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return fleet.MatchingGroups{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var groups []fleet.Group
+	for rows.Next() {
+		db := dbMatchingGroups{}
+		if err := rows.StructScan(&db); err != nil {
+			return fleet.MatchingGroups{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		groups = append(groups, fleet.Group{
+			GroupID:   db.GroupID,
+			GroupName: db.GroupName,
+		})
+	}
+
+	return fleet.MatchingGroups{OwnerID: ownerID, Groups: groups}, nil
+}
+
 type dbAgentGroup struct {
 	ID             string           `db:"id"`
 	Name           types.Identifier `db:"name"`
@@ -345,6 +374,11 @@ type dbAgentGroup struct {
 	Tags           db.Tags          `db:"tags"`
 	Created        time.Time        `db:"ts_created"`
 	MatchingAgents db.Metadata      `db:"matching_agents"`
+}
+
+type dbMatchingGroups struct {
+	GroupID   string           `db:"group_id"`
+	GroupName types.Identifier `db:"group_name"`
 }
 
 func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {

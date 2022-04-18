@@ -1,0 +1,36 @@
+nb-card {
+  border: transparent;
+  border-radius: 0.5rem;
+
+  nb-card-header {
+    background-color: #232940;
+    border-bottom: transparent;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    color: #969fb9;
+    padding: 0.5rem 1rem;
+  }
+
+  nb-card-body {
+    label {
+      color: #969fb9;
+    }
+
+    span {
+      text-align: end;
+    }
+
+    div .row {
+      display: block;
+    }
+  }
+}
+
+.summary-accent {
+  color: #969fb9 !important;
+}
+
+.required {
+  color: #df316f;
+  padding-left: 2px;
+}

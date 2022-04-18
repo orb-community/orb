@@ -52,6 +52,10 @@ func (es eventStore) ViewAgentByID(ctx context.Context, token string, thingID st
 	return es.svc.ViewAgentByID(ctx, token, thingID)
 }
 
+func (es eventStore) ViewAgentMatchingGroupsByID(ctx context.Context, token string, thingID string) (fleet.MatchingGroups, error) {
+	return es.svc.ViewAgentMatchingGroupsByID(ctx, token, thingID)
+}
+
 func (es eventStore) EditAgent(ctx context.Context, token string, agent fleet.Agent) (fleet.Agent, error) {
 	return es.svc.EditAgent(ctx, token, agent)
 }

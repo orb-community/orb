@@ -10,7 +10,7 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { delay, expand, reduce } from 'rxjs/operators';
 
 // default filters
-const defLimit: number = 20;
+const defLimit: number = 100;
 const defOrder: string = 'name';
 const defDir = 'desc';
 
@@ -70,6 +70,15 @@ export class AgentsService {
           return Observable.throwError(err);
         },
       );
+  }
+
+  resetAgent(id: string) {
+    return this.http.post(`${environment.agentsUrl}/${id}/rpc/reset`, {}, {observe: 'response'})
+      .catch(err => {
+        this.notificationsService.error('Failed to reset Agent',
+          `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
+        return Observable.throwError(err);
+      });
   }
 
   validateAgent(agentItem: Agent) {
@@ -164,7 +173,7 @@ export class AgentsService {
 
   getAllAgents() {
     const pageInfo = AgentsService.getDefaultPagination();
-    pageInfo.limit = 100;
+
 
     return this.getAgents(pageInfo)
       .pipe(
@@ -173,66 +182,89 @@ export class AgentsService {
         }),
         delay(250),
         reduce<OrbPagination<Agent>>((acc, value) => {
-          acc.data.splice(value.offset, value.limit, ...value.data);
+          acc.data = value.data;
           acc.offset = 0;
+          acc.total = acc.data.length;
           return acc;
         }, this.cache),
       );
   }
 
   getAgents(pageInfo: NgxDatabalePageInfo, isFilter = false) {
-    const { limit, offset, name, tags } = pageInfo || this.cache;
-    let params = new HttpParams()
-      .set('offset', (offset * limit).toString())
-      .set('limit', limit.toString())
-      .set('order', this.cache.order)
-      .set('dir', this.cache.dir);
+    let limit = pageInfo?.limit || this.cache.limit;
+    let order = pageInfo?.order || this.cache.order;
+    let dir = pageInfo?.dir || this.cache.dir;
+    let offset = pageInfo?.offset || 0;
+    let doClean = false;
+    let params = new HttpParams();
 
     if (isFilter) {
-      if (name) {
-        params = params.append('name', name);
+      if (pageInfo?.name) {
+        params = params.set('name', pageInfo.name);
+        // is filter different than last filter?
+        doClean = !this.paginationCache?.name || this.paginationCache?.name !== pageInfo.name;
       }
-      if (tags) {
-        params.append('tags', JSON.stringify(tags));
-      }
-      this.paginationCache[offset] = false;
+      // was filtered, no longer
+    } else if (this.paginationCache?.isFilter === true) {
+      doClean = true;
+    }
+
+    if (pageInfo.order !== this.cache.order || pageInfo.dir !== this.cache.dir) {
+      doClean = true;
+    }
+
+    if (doClean) {
+      this.clean();
+      offset = 0;
+      limit = this.cache.limit = pageInfo.limit;
+      dir = pageInfo.dir;
+      order = pageInfo.order;
     }
 
     if (this.paginationCache[offset]) {
       return of(this.cache);
     }
+    params = params
+      .set('offset', (offset).toString())
+      .set('limit', limit.toString())
+      .set('order', order)
+      .set('dir', dir);
 
     return this.http.get(environment.agentsUrl, { params })
       .map(
         (resp: any) => {
-          this.paginationCache[offset || 0] = true;
+          this.paginationCache[pageInfo?.offset / pageInfo?.limit || 0] = true;
+
           // This is the position to insert the new data
-          const start = resp.offset;
+          const start = pageInfo?.offset;
 
           const newData = [...this.cache.data];
 
           newData.splice(start, resp.limit,
-            // TODO - check rule for combination/concatenation of tags
-            // should we start to represent multiple values for a key here already or
-            // simply override value for key, assuming agent_tag is precedent.
             ...resp.agents.map(agent => {
-            agent.combined_tags = {...agent?.orb_tags, ...agent?.agent_tags};
-            return agent;
-          }));
+              agent.combined_tags = { ...agent?.orb_tags, ...agent?.agent_tags };
+              return agent;
+            }));
 
           this.cache = {
             ...this.cache,
-            offset: Math.floor(resp.offset / resp.limit),
+            next: resp.offset + resp.limit < resp.total && {
+              limit: resp.limit,
+              offset: (parseInt(resp.offset, 10) + parseInt(resp.limit, 10)).toString(),
+              order: 'name',
+              dir: 'desc',
+            },
+            limit: resp.limit,
+            offset: resp.offset,
+            dir: resp.direction,
+            order: resp.order,
             total: resp.total,
             data: newData,
+            name: pageInfo?.name,
           };
 
-          if (name) this.cache.name = name;
-          if (tags) this.cache.tags = tags;
-
           return this.cache;
-        },
-      )
+        })
       .catch(
         err => {
           this.notificationsService.error('Failed to get Agents',

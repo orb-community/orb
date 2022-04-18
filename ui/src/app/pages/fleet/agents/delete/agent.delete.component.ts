@@ -28,6 +28,6 @@ export class AgentDeleteComponent {
   }
 
   isEnabled(): boolean {
-    return this.validationInput.toLowerCase() === this.name.toLowerCase();
+    return this.validationInput === this.name;
   }
 }

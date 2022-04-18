@@ -6,8 +6,9 @@ package policies
 
 import (
 	"context"
-	"github.com/ns1labs/orb/pkg/types"
 	"time"
+
+	"github.com/ns1labs/orb/pkg/types"
 )
 
 type Policy struct {
@@ -20,6 +21,8 @@ type Policy struct {
 	Version       int32
 	OrbTags       types.Tags
 	Policy        types.Metadata
+	PolicyData    string
+	Format        string
 	Created       time.Time
 	LastModified  time.Time
 }
@@ -54,7 +57,7 @@ type PageDataset struct {
 
 type Service interface {
 	// AddPolicy creates new agent Policy
-	AddPolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+	AddPolicy(ctx context.Context, token string, p Policy) (Policy, error)
 
 	// ViewPolicyByID retrieving policy by id with token
 	ViewPolicyByID(ctx context.Context, token string, policyID string) (Policy, error)
@@ -69,7 +72,7 @@ type Service interface {
 	ListPoliciesByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]PolicyInDataset, error)
 
 	// EditPolicy edit a existing policy by id with a valid token
-	EditPolicy(ctx context.Context, token string, pol Policy, format string, policyData string) (Policy, error)
+	EditPolicy(ctx context.Context, token string, pol Policy) (Policy, error)
 
 	// RemovePolicy remove a existing policy owned by the specified user
 	RemovePolicy(ctx context.Context, token string, policyID string) error
@@ -84,7 +87,7 @@ type Service interface {
 	ListDatasetsByPolicyIDInternal(ctx context.Context, policyID string, token string) ([]Dataset, error)
 
 	// ValidatePolicy validates an agent Policy without saving
-	ValidatePolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
+	ValidatePolicy(ctx context.Context, token string, p Policy) (Policy, error)
 
 	// EditDataset edit a existing dataset by id with a valid token
 	EditDataset(ctx context.Context, token string, ds Dataset) (Dataset, error)
@@ -108,6 +111,9 @@ type Service interface {
 
 	// DeleteSinkFromAllDatasetsInternal removes a sink from a dataset
 	DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
+
+	// DeleteAgentGroupFromAllDatasets removes an agent group from a dataset
+	DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error
 }
 
 type Repository interface {
@@ -160,4 +166,10 @@ type Repository interface {
 
 	// DeleteSinkFromAllDatasets removes a sink from a dataset
 	DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
+
+	// ActivateDatasetByID Activate a dataset
+	ActivateDatasetByID(ctx context.Context, datasetID string, ownerID string) error
+
+	// DeleteAgentGroupFromAllDatasets removes agent group from a dataset
+	DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, ownerID string) error
 }

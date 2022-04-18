@@ -249,7 +249,7 @@ func TestMultiAgentGroupRetrieval(t *testing.T) {
 				Offset: 0,
 				Limit:  n,
 				Total:  n,
-				Tags: types.Tags{"testkey": "testvalue"},
+				Tags:   types.Tags{"testkey": "testvalue"},
 			},
 			size: n,
 		},
@@ -335,7 +335,7 @@ func TestAgentGroupUpdate(t *testing.T) {
 				ID:        groupID,
 				MFOwnerID: "123",
 			},
-			err:     errors.ErrMalformedEntity,
+			err: errors.ErrMalformedEntity,
 		},
 	}
 
@@ -461,7 +461,7 @@ func TestAgentGroupRetrieveAllByAgent(t *testing.T) {
 	}{
 		"retrieve all groups with existing owner": {
 			agent: agent,
-			size: n,
+			size:  n,
 		},
 		"retrieve all groups with non-existing agent": {
 			agent: fleet.Agent{
@@ -482,6 +482,79 @@ func TestAgentGroupRetrieveAllByAgent(t *testing.T) {
 			groups, err := agentGroupRepo.RetrieveAllByAgent(context.Background(), tc.agent)
 			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s\n", desc, err))
 			size := uint64(len(groups))
+			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
+		})
+	}
+}
+
+func TestRetrieveMatchingGroups(t *testing.T) {
+
+	// Setup
+	dbMiddleware := postgres.NewDatabase(db)
+	agentGroupRepo := postgres.NewAgentGroupRepository(dbMiddleware, logger)
+	agentRepo := postgres.NewAgentRepository(db, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("myagent")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	thID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	agent := fleet.Agent{
+		Name:        nameID,
+		MFThingID:   thID.String(),
+		MFOwnerID:   oID.String(),
+		MFChannelID: chID.String(),
+		OrbTags:     types.Tags{"testkey": "testvalue"},
+		LastHBData:  types.Metadata{"heartbeatdata": "testvalue"},
+	}
+
+	err = agentRepo.Save(context.Background(), agent)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+
+		nameID, err := types.NewIdentifier(fmt.Sprintf("ue-agent-group-%d", i))
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+		group := fleet.AgentGroup{
+			Name:        nameID,
+			Description: "a example",
+			MFOwnerID:   oID.String(),
+			MFChannelID: chID.String(),
+			Tags:        types.Tags{"testkey": "testvalue"},
+		}
+
+		ag, err := agentGroupRepo.Save(context.Background(), group)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+		fmt.Sprint(ag)
+	}
+
+	// Test cases
+	cases := map[string]struct {
+		agentID string
+		ownerID string
+		size    uint64
+	}{
+		"retrieve all groups with existing owner": {
+			agentID: agent.MFThingID,
+			ownerID: agent.MFOwnerID,
+			size:    n,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			groups, err := agentGroupRepo.RetrieveMatchingGroups(context.Background(), tc.ownerID, tc.agentID)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s\n", desc, err))
+			size := uint64(len(groups.Groups))
 			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
 		})
 	}

@@ -146,10 +146,12 @@ Scenario: Sink with invalid endpoint
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink with invalid endpoint already exists
+        And 3 simple policies are applied to the group
         And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=2 already exists
-    When a new dataset is created using referred group, sink and policy ID
-    Then the container logs should contain the message "managing agent policy from core" within 10 seconds
-        And the container logs should contain the message "policy applied successfully" within 10 seconds
+    When a new dataset is created using referred group, policy and 1 sink
+    Then this agent's heartbeat shows that 4 policies are successfully applied and has status running
+        And the container logs should contain the message "managing agent policy from core" within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 10 seconds
         And dataset related have validity valid
@@ -163,7 +165,7 @@ Scenario: Sink with invalid username
         And referred agent is subscribed to a group
         And that a sink with invalid username already exists
         And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=3 already exists
-    When a new dataset is created using referred group, sink and policy ID
+    When a new dataset is created using referred group, policy and 1 sink
     Then the container logs should contain the message "managing agent policy from core" within 10 seconds
         And the container logs should contain the message "policy applied successfully" within 10 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
@@ -171,18 +173,19 @@ Scenario: Sink with invalid username
         And dataset related have validity valid
 
 
-#@smoke
-@fail
+@smoke
 Scenario: Sink with invalid password
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink with invalid password already exists
+        And 3 simple policies are applied to the group
         And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=5 already exists
-    When a new dataset is created using referred group, sink and policy ID
-    Then the container logs should contain the message "managing agent policy from core" within 10 seconds
-        And the container logs should contain the message "policy applied successfully" within 10 seconds
+    When a new dataset is created using referred group, policy and 1 sink
+    Then this agent's heartbeat shows that 4 policies are successfully applied and has status running
+        And the container logs should contain the message "managing agent policy from core" within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 10 seconds
         And dataset related have validity valid
@@ -454,7 +457,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to net
         And that an agent with 1 orb tag(s) already exists and is online
         And an Agent Group is created with same tag as the agent
         And a new policy is created using: handler=dns, description='policy_dns', bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=0
-        And a new dataset is created using referred group, sink and policy ID
+        And a new dataset is created using referred group, policy and 1 sink
     When editing a policy using name=my_policy, handler=net, only_qname_suffix=None, only_rcode=None
     Then policy version must be 1
         And policy name must be my_policy
@@ -473,7 +476,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to dhcp
         And that an agent with 1 orb tag(s) already exists and is online
         And an Agent Group is created with same tag as the agent
         And a new policy is created using: handler=dns, host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=2
-        And a new dataset is created using referred group, sink and policy ID
+        And a new dataset is created using referred group, policy and 1 sink
     When editing a policy using name=second_policy, handler=dhcp, only_qname_suffix=None, only_rcode=None
     Then policy version must be 1
         And policy name must be second_policy
@@ -489,7 +492,7 @@ Scenario: Edit a simple policy with handler dhcp changing the handler to net
         And that an agent with 1 orb tag(s) already exists and is online
         And an Agent Group is created with same tag as the agent
         And a new policy is created using: handler=dhcp
-        And a new dataset is created using referred group, sink and policy ID
+        And a new dataset is created using referred group, policy and 1 sink
     When editing a policy using handler=net, description="policy_net"
     Then policy version must be 1
         And policy handler must be net
@@ -504,7 +507,7 @@ Scenario: Edit a simple policy with handler net changing the handler to dns and 
         And that an agent with 1 orb tag(s) already exists and is online
         And an Agent Group is created with same tag as the agent
         And a new policy is created using: handler=net
-        And a new dataset is created using referred group, sink and policy ID
+        And a new dataset is created using referred group, policy and 1 sink
     When editing a policy using handler=dns, host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=2
     Then policy version must be 1
         And policy handler must be dns
@@ -513,3 +516,88 @@ Scenario: Edit a simple policy with handler net changing the handler to dns and 
         And policy only_qname_suffix must be ['.foo.com', '.example.com']
         And policy only_rcode must be 2
         And this agent's heartbeat shows that 1 policies are successfully applied and has status running
+
+
+@smoke
+Scenario: remove 1 sink from a dataset with 2 sinks
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that 2 sinks already exists
+        And that an agent with 1 orb tag(s) already exists and is online
+        And an Agent Group is created with same tag as the agent
+        And a new policy is created using: handler=dhcp
+        And a new dataset is created using referred group, policy and 2 sinks
+    When remove 1 of the linked sinks from orb
+    Then dataset related have validity valid
+        And this agent's heartbeat shows that 1 policies are successfully applied and has status running
+
+
+@smoke
+Scenario: remove 1 sink from a dataset with 1 sinks
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that 2 sinks already exists
+        And that an agent with 1 orb tag(s) already exists and is online
+        And an Agent Group is created with same tag as the agent
+        And a new policy is created using: handler=dhcp
+        And a new dataset is created using referred group, policy and 1 sinks
+    When remove 1 of the linked sinks from orb
+    Then dataset related have validity invalid
+        And this agent's heartbeat shows that 0 policies are successfully applied to the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+
+
+@smoke
+Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and insert another sink
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that 2 sinks already exists
+        And that an agent with 1 orb tag(s) already exists and is online
+        And an Agent Group is created with same tag as the agent
+        And a new policy is created using: handler=dns
+        And a new dataset is created using referred group, policy and 1 sinks
+        And remove 1 of the linked sinks from orb
+        And dataset related have validity invalid
+        And this agent's heartbeat shows that 0 policies are successfully applied to the agent
+    When the dataset is edited and 1 sinks are linked
+    Then dataset related have validity valid
+        And this agent's heartbeat shows that 1 policies are successfully applied and has status running
+
+
+@smoke
+Scenario: Remotely restart agents with policies applied
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And referred agent is subscribed to a group
+        And that a sink already exists
+        And 2 simple policies are applied to the group
+        And this agent's heartbeat shows that 2 policies are successfully applied and has status running
+    When remotely restart the agent
+    Then the container logs should contain the message "restarting all backends" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "removing policies" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "resetting backend" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "reapplying policies" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "all backends were restarted" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "completed RPC subscription to group" within 10 seconds
+        And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 10 seconds
+        And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+
+@smoke
+Scenario: Remotely restart agents without policies applied
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And referred agent is subscribed to a group
+        And that a sink already exists
+    When remotely restart the agent
+        And the container logs that were output after reset the agent contain the message "resetting backend" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "all backends were restarted" within 5 seconds
+        And 2 simple policies are applied to the group
+    Then the container logs should contain the message "restarting all backends" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "completed RPC subscription to group" within 10 seconds
+        And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 10 seconds
+        And this agent's heartbeat shows that 2 policies are successfully applied and has status running
+        And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds

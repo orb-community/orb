@@ -102,7 +102,7 @@ func (l loggingMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, p
 	return l.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
 }
 
-func (l loggingMiddleware) EditPolicy(ctx context.Context, token string, pol policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
+func (l loggingMiddleware) EditPolicy(ctx context.Context, token string, pol policies.Policy) (_ policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: edit_policy",
@@ -113,10 +113,10 @@ func (l loggingMiddleware) EditPolicy(ctx context.Context, token string, pol pol
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.EditPolicy(ctx, token, pol, format, policyData)
+	return l.svc.EditPolicy(ctx, token, pol)
 }
 
-func (l loggingMiddleware) AddPolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
+func (l loggingMiddleware) AddPolicy(ctx context.Context, token string, p policies.Policy) (_ policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: add_policy",
@@ -127,7 +127,7 @@ func (l loggingMiddleware) AddPolicy(ctx context.Context, token string, p polici
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.AddPolicy(ctx, token, p, format, policyData)
+	return l.svc.AddPolicy(ctx, token, p)
 }
 
 func (l loggingMiddleware) ViewPolicyByID(ctx context.Context, token string, policyID string) (_ policies.Policy, err error) {
@@ -214,7 +214,7 @@ func (l loggingMiddleware) InactivateDatasetByGroupID(ctx context.Context, group
 	return l.svc.InactivateDatasetByGroupID(ctx, groupID, token)
 }
 
-func (l loggingMiddleware) ValidatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (_ policies.Policy, err error) {
+func (l loggingMiddleware) ValidatePolicy(ctx context.Context, token string, p policies.Policy) (_ policies.Policy, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: validate_policy",
@@ -225,7 +225,7 @@ func (l loggingMiddleware) ValidatePolicy(ctx context.Context, token string, p p
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.ValidatePolicy(ctx, token, p, format, policyData)
+	return l.svc.ValidatePolicy(ctx, token, p)
 }
 
 func (l loggingMiddleware) ValidateDataset(ctx context.Context, token string, d policies.Dataset) (_ policies.Dataset, err error) {
@@ -282,6 +282,20 @@ func (l loggingMiddleware) DeleteSinkFromAllDatasetsInternal(ctx context.Context
 		}
 	}(time.Now())
 	return l.svc.DeleteSinkFromAllDatasetsInternal(ctx, sinkID, ownerID)
+}
+
+func (l loggingMiddleware) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: delete_agent_group_from_all_datasets",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: delete_agent_group_from_all_datasets",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
 }
 
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {
