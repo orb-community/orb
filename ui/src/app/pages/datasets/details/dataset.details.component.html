@@ -25,14 +25,19 @@
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">Agent Group Name<span class="ns1red">*</span></p>
         <p>{{ agentGroup?.name }}</p>
-        <p *ngIf="errors?.agentGroup" class="detail-title">{{ errors.agentGroup }}<span class="ns1red">
-          {{ this.dataset.agent_group_id }}</span></p>
+        <p *ngIf="errors?.agentGroup" class="detail-title">{{ errors.agentGroup }}
+          <span class="ns1red">{{ this.dataset.agent_group_id }}</span>
+        <br/>The group may have been deleted.
+        </p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">Agent Policy Name<span class="ns1red">*</span></p>
         <p>{{ agentPolicy?.name }}</p>
         <p *ngIf="errors?.agentPolicy"
-           class="detail-title">{{ errors.agentPolicy }}<span class="ns1red"> {{ this.dataset.agent_policy_id }}</span></p>
+           class="detail-title">{{ errors.agentPolicy }}
+          <span class="ns1red">{{ this.dataset.agent_policy_id}}</span>
+          <br/>The policy may have been deleted.
+        </p>
       </div>
     </div>
     <div class="row">
