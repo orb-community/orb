@@ -169,6 +169,25 @@ func (es eventStore) handleSinkRemove(ctx context.Context, sinkID string, ownerI
 	return nil
 }
 
+func (es eventStore) handleSinkRemove(ctx context.Context, sinkID string, ownerID string) error {
+
+	datasets, err := es.policiesService.DeleteSinkFromAllDatasetsInternal(ctx, sinkID, ownerID)
+	if err != nil {
+		return err
+	}
+
+	for _, ds := range datasets {
+		if len(ds.SinkIDs) == 0 {
+			err = es.policiesService.InactivateDatasetByIDInternal(ctx, ownerID, ds.ID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func read(event map[string]interface{}, key, def string) string {
 	val, ok := event[key].(string)
 	if !ok {
