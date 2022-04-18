@@ -5,7 +5,7 @@ import requests
 from utils import random_string
 
 configs = TestConfig.configs()
-base_orb_url = configs.get('base_orb_url')
+orb_url = configs.get('orb_url')
 
 
 @step("that there is an unregistered {email} email with {password} password")
@@ -95,7 +95,7 @@ def authenticate(user_email, user_password, expected_status_code=201):
     headers = {'Content-type': 'application/json', 'Accept': '*/*'}
     json_request = {'email': user_email, 'password': user_password}
     json_request = {parameter: value for parameter, value in json_request.items() if value}
-    response = requests.post(base_orb_url + '/api/v1/tokens',
+    response = requests.post(orb_url + '/api/v1/tokens',
                              json=json_request,
                              headers=headers)
     assert_that(response.status_code, equal_to(expected_status_code),
@@ -121,7 +121,7 @@ def register_account(user_email, user_password, company_name=None, user_full_nam
     json_request['metadata'] = {parameter: value for parameter, value in json_request['metadata'].items() if value}
     json_request = {parameter: value for parameter, value in json_request.items() if value}
     headers = {'Content-type': 'application/json', 'Accept': '*/*'}
-    response = requests.post(base_orb_url + '/api/v1/users',
+    response = requests.post(orb_url + '/api/v1/users',
                              json=json_request,
                              headers=headers)
     assert_that(response.status_code, equal_to(expected_status_code),
@@ -137,7 +137,7 @@ def get_account_information(token, expected_status_code=200):
     :param (int) expected_status_code: expected request's status code. Default:200 (happy path).
     :return: (dict) account_response
     """
-    response = requests.get(base_orb_url + '/api/v1/users/profile',
+    response = requests.get(orb_url + '/api/v1/users/profile',
                             headers={'Authorization': token})
     assert_that(response.status_code, equal_to(expected_status_code), "Unexpected status code for get account data")
     return response.json()

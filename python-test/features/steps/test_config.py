@@ -47,9 +47,9 @@ def _read_configs():
                 'Invalid value to ignore_ssl_and_certificate_errors parameter. A boolean value is expected.')
     configs['ignore_ssl_and_certificate_errors'] = ignore_ssl_and_certificate_errors
     if ignore_ssl_and_certificate_errors.lower() == 'true':
-        configs['base_orb_url'] = f"http://{configs.get('orb_address')}"
+        configs['orb_url'] = f"http://{configs.get('orb_address')}"
     else:
-        configs['base_orb_url'] = f"https://{configs.get('orb_address')}"
+        configs['orb_url'] = f"https://{configs.get('orb_address')}"
 
     is_credentials_registered = configs.get('is_credentials_registered').lower()
     assert_that(is_credentials_registered, any_of(equal_to('true'), equal_to('false')),

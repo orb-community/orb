@@ -1,11 +1,12 @@
-from utils import safe_load_json, random_string
-from behave import when, then, step
+from utils import safe_load_json, random_string, create_tags_set
+from behave import then, step
 from hamcrest import *
 from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
 import time
 import subprocess
 import shlex
+from retry import retry
 
 configs = TestConfig.configs()
 ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
@@ -158,12 +159,17 @@ def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pk
     return container_id[0]
 
 
+@retry(tries=5, delay=0.2)
 def rename_container(container_id, container_name):
     """
 
     :param container_id: agent container ID
     :param container_name: base of agent container name
     """
+    docker_client = docker.from_env()
+    containers = docker_client.containers.list(all=True)
+    is_container_up = any(container_id in container.id for container in containers)
+    assert_that(is_container_up, equal_to(True), f"Container {container_id} not found")
     container_name = container_name + random_string(5)
     rename_container_command = f"docker rename {container_id} {container_name}"
     rename_container_args = shlex.split(rename_container_command)
@@ -181,3 +187,25 @@ def check_container_status(container_id, status):
     assert_that(container, has_length(1))
     container = container[0]
     assert_that(container.status, equal_to(status), f"Container {container_id} failed with status {container.status}")
+
+
+
+def run_agent_config_file(orb_path, agent_name):
+    """
+    Run an agent container using an agent config file
+
+    :param orb_path: path to orb directory
+    :param agent_name: name of the orb agent
+    :return: agent container id
+    """
+    agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
+    agent_image = f"{agent_docker_image}:{configs.get('agent_docker_tag', 'latest')}"
+    volume = f"{orb_path}:/usr/local/orb/"
+    agent_command = f"/usr/local/orb/{agent_name}.yaml"
+    command = f"docker run -d -v {volume} --net=host {agent_image} run -c {agent_command}"
+    args = shlex.split(command)
+    terminal_running = subprocess.Popen(args, stdout=subprocess.PIPE)
+    subprocess_return = terminal_running.stdout.read().decode()
+    container_id = subprocess_return.split()[0]
+    rename_container(container_id, LOCAL_AGENT_CONTAINER_NAME)
+    return container_id
