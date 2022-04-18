@@ -294,3 +294,14 @@ func (m *mockPoliciesRepository) DeleteAgentGroupFromAllDatasets(ctx context.Con
 	}
 	return nil
 }
+
+func (m *mockPoliciesRepository) DeletePolicyFromAllDatasets(ctx context.Context, policyID string, ownerID string) error {
+	for _, ds := range m.ddb{
+		if ds.MFOwnerID == ownerID{
+			if ds.PolicyID == policyID {
+				ds.PolicyID = ""
+			}
+		}
+	}
+	return nil
+}

@@ -1009,6 +1009,111 @@ func TestDeleteAgentGroupFromDataset(t *testing.T) {
 	}
 }
 
+func TestDeletePolicyFromDataset(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	oID2, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	wrongPolicyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	groupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sinkIDs := make([]string, 2)
+	for i := 0; i < 2; i++ {
+		sinkID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		sinkIDs[i] = sinkID.String()
+	}
+
+	nameID, err := types.NewIdentifier("mydataset")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID2, err := types.NewIdentifier("mydataset")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		Name:         nameID,
+		MFOwnerID:    oID.String(),
+		Valid:        true,
+		AgentGroupID: groupID.String(),
+		PolicyID:     policyID.String(),
+		SinkIDs:      sinkIDs,
+		Metadata:     types.Metadata{"testkey": "testvalue"},
+		Created:      time.Time{},
+	}
+
+	dataset2 := dataset
+	dataset2.Name = nameID2
+	dataset2.MFOwnerID = oID2.String()
+
+	dsID, err := repo.SaveDataset(context.Background(), dataset)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset.ID = dsID
+
+	dsID2, err := repo.SaveDataset(context.Background(), dataset2)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset2.ID = dsID2
+
+	cases := map[string]struct {
+		owner    string
+		policyID string
+		contains bool
+		dataset  policies.Dataset
+		err      error
+	}{
+		"delete a policy from existing dataset": {
+			owner:    dataset.MFOwnerID,
+			policyID: dataset.PolicyID,
+			contains: false,
+			dataset:  dataset,
+			err:      nil,
+		},
+		"delete a non-existing policy from a dataset": {
+			owner:    dataset.MFOwnerID,
+			policyID: wrongPolicyID.String(),
+			contains: false,
+			dataset:  dataset,
+			err:      nil,
+		},
+		"delete a policy from a dataset with an invalid ownerID": {
+			policyID: dataset2.PolicyID,
+			owner:    "",
+			contains: true,
+			dataset:  dataset2,
+			err:      errors.ErrMalformedEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := repo.DeletePolicyFromAllDatasets(context.Background(), tc.policyID, tc.owner)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
+
+			d, err := repo.RetrieveDatasetByID(context.Background(), tc.dataset.ID, tc.dataset.MFOwnerID)
+			require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+			switch tc.contains {
+			case false:
+				assert.NotEqual(t, d.PolicyID, tc.policyID, fmt.Sprintf("%s: expected '%s' to not contains '%s'", desc, d.PolicyID, tc.policyID))
+			case true:
+				assert.Equal(t, d.PolicyID, tc.policyID, fmt.Sprintf("%s: expected '%s' to contains '%s'", desc, d.PolicyID, tc.policyID))
+			}
+		})
+	}
+}
+
 func testSortDataset(t *testing.T, pm policies.PageMetadata, ags []policies.Dataset) {
 	t.Helper()
 	switch pm.Order {
