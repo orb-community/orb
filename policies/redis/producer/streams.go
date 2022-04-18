@@ -233,6 +233,10 @@ func (e eventStore) DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkI
 	return e.svc.DeleteSinkFromAllDatasetsInternal(ctx, sinkID, token)
 }
 
+func (e eventStore) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error {
+	return e.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
+}
+
 func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error {
 	ds, err := e.svc.ViewDatasetByIDInternal(ctx, ownerID, datasetID)
 	if err != nil {
@@ -263,10 +267,6 @@ func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID s
 	}
 
 	return nil
-}
-
-func (e eventStore) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error {
-	return e.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
 }
 
 // NewEventStoreMiddleware returns wrapper around policies service that sends
