@@ -15,13 +15,18 @@ export class SinkDisplayListComponent implements OnInit, OnDestroy {
 
   errors: any[];
 
+  isLoading: boolean;
+
   subscription: Subscription;
 
   constructor(protected sinkService: SinksService) {
+    this.isLoading = false;
+    this.sinks = [];
   }
 
   ngOnInit() {
     if (!!this.sinkIDs) {
+      this.isLoading = true;
       this.subscription = forkJoin(this.sinkIDs
         .map(id => this.sinkService.getSinkById(id)))
         .subscribe(sinks => {
