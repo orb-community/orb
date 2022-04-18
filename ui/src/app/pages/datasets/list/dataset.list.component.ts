@@ -86,7 +86,6 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
     private router: Router,
     private datasetPoliciesService: DatasetPoliciesService,
   ) {
-    this.datasetPoliciesService.clean();
     this.paginationControls = DatasetPoliciesService.getDefaultPagination();
   }
 
@@ -100,7 +99,6 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
   }
 
   ngOnInit() {
-    this.datasetPoliciesService.clean();
     this.getAllDatasets();
   }
 
@@ -145,6 +143,7 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
   }
 
   getAllDatasets(): void {
+    this.datasetPoliciesService.clean();
     this.datasetPoliciesService.getAllDatasets().subscribe(resp => {
       this.paginationControls.data = resp.data;
       this.paginationControls.total = resp.data.length;
@@ -233,7 +232,7 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
       if (resp) {
         this.onOpenEdit(row);
       } else {
-        this.getDatasets();
+        this.getAllDatasets();
       }
     });
   }
