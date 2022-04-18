@@ -16,6 +16,7 @@ import { NbDialogService } from '@nebular/theme';
 import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
+import { concatMap } from 'rxjs/operators';
 
 @Component({
   selector: 'ngx-policy-datasets',
@@ -37,6 +38,13 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
   columnMode = ColumnMode;
 
   columns: TableColumn[];
+
+  tableSorts = [
+    {
+      prop: 'name',
+      dir: 'asc',
+    },
+  ];
 
   // templates
   @ViewChild('nameTemplateCell') nameTemplateCell: TemplateRef<any>;
@@ -66,6 +74,7 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
 
   ngOnInit(): void {
     this.subscription = this.retrievePolicyDatasets()
+      .pipe(concatMap(datasets => this.retrieveAgentGroups()))
       .subscribe(resp => {
         this.isLoading = false;
       });
@@ -131,8 +140,12 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
   retrieveAgentGroups() {
     return this.groupsService.getAllAgentGroups()
       .map(resp => {
-        
-      })
+        const groups = resp.data;
+        this.datasets.forEach(dataset => {
+          dataset['agent_group_name'] = groups.find(group => group.id === dataset.agent_group_id).name;
+        });
+        return resp.data;
+      });
   }
 
   onCreateDataset() {

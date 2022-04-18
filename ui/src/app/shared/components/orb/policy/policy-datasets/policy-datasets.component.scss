@@ -34,3 +34,16 @@ nb-card {
   color: #df316f;
   padding-left: 2px;
 }
+
+.add-dataset-container {
+  height: 0;
+  position: relative;
+
+  button {
+    float: right;
+    position: relative;
+    right: 5px;
+    top: 5px;
+    z-index: 2;
+  }
+}

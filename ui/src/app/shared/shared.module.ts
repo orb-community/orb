@@ -49,6 +49,7 @@ import { UnSelectedSinksPipe } from './pipes/available-sinks.pipe';
 import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/policy-groups.component';
 import { SinkDisplayComponent } from 'app/shared/components/orb/sink-display/sink-display.component';
 import { SinkDisplayListComponent } from 'app/shared/components/orb/sink/sink-display/sink-display-list.component';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 
 @NgModule({
   imports: [
@@ -69,6 +70,7 @@ import { SinkDisplayListComponent } from 'app/shared/components/orb/sink/sink-di
     ReactiveFormsModule,
     ClipboardModule,
     MatTooltipModule,
+    NgxDatatableModule,
   ],
   declarations: [
     ConfirmationComponent,
