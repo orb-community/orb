@@ -11,6 +11,7 @@ package policies
 import (
 	"context"
 	"fmt"
+
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -254,7 +255,7 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 	ds.MFOwnerID = mfOwnerID
 
 	err = s.validateDatasetSink(ctx, ds.MFOwnerID, ds.SinkIDs)
-	if err != nil{
+	if err != nil {
 		return Dataset{}, err
 	}
 
@@ -271,9 +272,9 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 	errValidatePolicy := s.validateDatasetPolicy(ctx, datasetEdited.MFOwnerID, datasetEdited.PolicyID)
 	errValidateAGroup := s.validateDatasetAgentGroup(ctx, datasetEdited.MFOwnerID, datasetEdited.AgentGroupID)
 
-	if errValidatePolicy == nil && errValidateAGroup == nil{
+	if errValidatePolicy == nil && errValidateAGroup == nil {
 		err = s.repo.ActivateDatasetByID(ctx, datasetEdited.ID, datasetEdited.MFOwnerID)
-		if err != nil{
+		if err != nil {
 			return Dataset{}, err
 		}
 	}
@@ -302,17 +303,17 @@ func (s policiesService) ValidateDataset(ctx context.Context, token string, d Da
 	d.MFOwnerID = mfOwnerID
 
 	err = s.validateDatasetSink(ctx, d.MFOwnerID, d.SinkIDs)
-	if err != nil{
+	if err != nil {
 		return Dataset{}, err
 	}
 
 	err = s.validateDatasetPolicy(ctx, d.MFOwnerID, d.PolicyID)
-	if err != nil{
+	if err != nil {
 		return Dataset{}, err
 	}
 
 	err = s.validateDatasetAgentGroup(ctx, d.MFOwnerID, d.AgentGroupID)
-	if err != nil{
+	if err != nil {
 		return Dataset{}, err
 	}
 

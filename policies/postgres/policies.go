@@ -13,6 +13,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -22,8 +25,6 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 )
 
 var _ policies.Repository = (*policiesRepository)(nil)
@@ -570,7 +571,7 @@ func (r policiesRepository) DeleteSinkFromAllDatasets(ctx context.Context, sinkI
 func (r policiesRepository) ActivateDatasetByID(ctx context.Context, id string, ownerID string) error {
 	q := `UPDATE datasets SET valid = true WHERE mf_owner_id = :mf_owner_id AND :id = id`
 
-	if ownerID == "" || id == ""{
+	if ownerID == "" || id == "" {
 		return errors.ErrMalformedEntity
 	}
 

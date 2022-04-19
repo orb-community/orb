@@ -5,6 +5,7 @@ from control_plane_agent_groups import return_matching_groups
 from behave import given, when, then, step
 from hamcrest import *
 import time
+from datetime import datetime
 import requests
 import os
 from agent_config_file import FleetAgent
@@ -190,6 +191,15 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     existing_agents = get_agent(context.token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
     expect_container_status(context.token, agent_id, status)
+
+
+@step("remotely restart the agent")
+def reset_agent_remotely(context):
+    context.considered_timestamp = datetime.now().timestamp()
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': context.token}
+    response = requests.post(f"{orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request)
+    assert_that(response.status_code, equal_to(200),
+            'Request to restart agent failed with status=' + str(response.status_code))
 
 
 def expect_container_status(token, agent_id, status):
