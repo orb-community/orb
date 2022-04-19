@@ -144,7 +144,7 @@ func (m metricsMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, p
 	return m.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
 }
 
-func (m metricsMiddleware) EditPolicy(ctx context.Context, token string, pol policies.Policy, format string, policyData string) (policies.Policy, error) {
+func (m metricsMiddleware) EditPolicy(ctx context.Context, token string, pol policies.Policy) (policies.Policy, error) {
 	ownerID, err := m.identify(token)
 	if err != nil {
 		return policies.Policy{}, err
@@ -163,7 +163,7 @@ func (m metricsMiddleware) EditPolicy(ctx context.Context, token string, pol pol
 
 	}(time.Now())
 
-	return m.svc.EditPolicy(ctx, token, pol, format, policyData)
+	return m.svc.EditPolicy(ctx, token, pol)
 }
 
 func (m metricsMiddleware) ListPolicies(ctx context.Context, token string, pm policies.PageMetadata) (policies.Page, error) {
@@ -266,7 +266,7 @@ func (m metricsMiddleware) AddDataset(ctx context.Context, token string, d polic
 	return m.svc.AddDataset(ctx, token, d)
 }
 
-func (m metricsMiddleware) AddPolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policy policies.Policy, _ error) {
+func (m metricsMiddleware) AddPolicy(ctx context.Context, token string, p policies.Policy) (policy policies.Policy, _ error) {
 	ownerID, err := m.identify(token)
 	if err != nil {
 		return policies.Policy{}, err
@@ -285,7 +285,7 @@ func (m metricsMiddleware) AddPolicy(ctx context.Context, token string, p polici
 
 	}(time.Now())
 
-	return m.svc.AddPolicy(ctx, token, p, format, policyData)
+	return m.svc.AddPolicy(ctx, token, p)
 }
 
 func (m metricsMiddleware) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
@@ -305,7 +305,7 @@ func (m metricsMiddleware) InactivateDatasetByGroupID(ctx context.Context, group
 	return m.svc.InactivateDatasetByGroupID(ctx, groupID, ownerID)
 }
 
-func (m metricsMiddleware) ValidatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
+func (m metricsMiddleware) ValidatePolicy(ctx context.Context, token string, p policies.Policy) (policies.Policy, error) {
 	ownerID, err := m.identify(token)
 	if err != nil {
 		return policies.Policy{}, err
@@ -324,7 +324,7 @@ func (m metricsMiddleware) ValidatePolicy(ctx context.Context, token string, p p
 
 	}(time.Now())
 
-	return m.svc.ValidatePolicy(ctx, token, p, format, policyData)
+	return m.svc.ValidatePolicy(ctx, token, p)
 }
 
 func (m metricsMiddleware) ValidateDataset(ctx context.Context, token string, d policies.Dataset) (policies.Dataset, error) {
@@ -408,6 +408,28 @@ func (m metricsMiddleware) DeleteSinkFromAllDatasetsInternal(ctx context.Context
 	}(time.Now())
 
 	return m.svc.DeleteSinkFromAllDatasetsInternal(ctx, sinkID, ownerID)
+}
+
+func (m metricsMiddleware) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return err
+	}
+
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "deleteAgentGroupFromAllDatasets",
+			"owner_id", ownerID,
+			"policy_id", "",
+			"dataset_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
 }
 
 func (m metricsMiddleware) identify(token string) (string, error) {

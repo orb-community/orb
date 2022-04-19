@@ -99,7 +99,6 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
     private route: ActivatedRoute,
     private router: Router,
   ) {
-    this.agentGroupsService.clean();
     this.paginationControls = AgentGroupsService.getDefaultPagination();
   }
 
@@ -113,7 +112,6 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
   }
 
   ngOnInit() {
-    this.agentGroupsService.clean();
     this.getAllAgentGroups();
   }
 
@@ -173,6 +171,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
   }
 
   getAllAgentGroups(): void {
+    this.agentGroupsService.clean();
     this.agentGroupsService.getAllAgentGroups().subscribe(resp => {
       this.paginationControls.data = resp.data;
       this.paginationControls.total = resp.data.length;
@@ -242,7 +241,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
         if (confirm) {
           this.agentGroupsService.deleteAgentGroup(id).subscribe(() => {
             this.notificationsService.success('Agent Group successfully deleted', '');
-            this.getAgentGroups();
+            this.getAllAgentGroups();
           });
         }
       },
@@ -258,7 +257,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
       if (resp) {
         this.onOpenEdit(row);
       } else {
-        this.getAgentGroups();
+        this.getAllAgentGroups();
       }
     });
   }

@@ -38,7 +38,6 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
 
   searchPlaceholder = 'Search by name';
 
-
   // templates
   @ViewChild('sinkNameTemplateCell') sinkNameTemplateCell: TemplateRef<any>;
 
@@ -112,7 +111,6 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     private route: ActivatedRoute,
     private router: Router,
   ) {
-    this.sinkService.clean();
     this.paginationControls = SinksService.getDefaultPagination();
   }
 
@@ -126,7 +124,6 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   }
 
   ngOnInit() {
-    this.sinkService.clean();
     this.getAllSinks();
   }
 
@@ -192,6 +189,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   }
 
   getAllSinks(): void {
+    this.sinkService.clean();
     this.sinkService.getAllSinks().subscribe(resp => {
       this.paginationControls.data = resp.data;
       this.paginationControls.total = resp.data.length;
@@ -265,8 +263,8 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
       confirm => {
         if (confirm) {
           this.sinkService.deleteSink(id).subscribe(() => {
-            this.getSinks();
             this.notificationsService.success('Sink successfully deleted', '');
+            this.getAllSinks();
           });
         }
       },
@@ -282,7 +280,7 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
       if (resp) {
         this.onOpenEdit(row);
       } else {
-        this.getSinks();
+        this.getAllSinks();
       }
     });
   }

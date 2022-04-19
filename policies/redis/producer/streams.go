@@ -126,8 +126,8 @@ func (e eventStore) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID
 	return e.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
 }
 
-func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.Policy, format string, policyData string) (policies.Policy, error) {
-	res, err := e.svc.EditPolicy(ctx, token, pol, format, policyData)
+func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.Policy) (policies.Policy, error) {
+	res, err := e.svc.EditPolicy(ctx, token, pol)
 	if err != nil {
 		return policies.Policy{}, err
 	}
@@ -149,7 +149,7 @@ func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.P
 	pol.Backend = p.Backend
 	pol.MFOwnerID = p.MFOwnerID
 
-	err = validatePolicyBackend(&pol, format, policyData)
+	err = validatePolicyBackend(&pol, pol.Format, pol.PolicyData)
 	if err != nil {
 		return policies.Policy{}, err
 	}
@@ -173,8 +173,8 @@ func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.P
 	return res, nil
 }
 
-func (e eventStore) AddPolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
-	return e.svc.AddPolicy(ctx, token, p, format, policyData)
+func (e eventStore) AddPolicy(ctx context.Context, token string, p policies.Policy) (policies.Policy, error) {
+	return e.svc.AddPolicy(ctx, token, p)
 }
 
 func (e eventStore) ViewPolicyByID(ctx context.Context, token string, policyID string) (policies.Policy, error) {
@@ -225,8 +225,8 @@ func (e eventStore) InactivateDatasetByGroupID(ctx context.Context, groupID stri
 	return e.svc.InactivateDatasetByGroupID(ctx, groupID, ownerID)
 }
 
-func (e eventStore) ValidatePolicy(ctx context.Context, token string, p policies.Policy, format string, policyData string) (policies.Policy, error) {
-	return e.svc.ValidatePolicy(ctx, token, p, format, policyData)
+func (e eventStore) ValidatePolicy(ctx context.Context, token string, p policies.Policy) (policies.Policy, error) {
+	return e.svc.ValidatePolicy(ctx, token, p)
 }
 
 func (e eventStore) DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, token string) ([]policies.Dataset, error) {
@@ -263,6 +263,10 @@ func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID s
 	}
 
 	return nil
+}
+
+func (e eventStore) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error {
+	return e.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
 }
 
 // NewEventStoreMiddleware returns wrapper around policies service that sends

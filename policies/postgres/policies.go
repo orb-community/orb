@@ -13,6 +13,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -22,8 +25,6 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 )
 
 var _ policies.Repository = (*policiesRepository)(nil)
@@ -52,7 +53,7 @@ func (r policiesRepository) DeletePolicy(ctx context.Context, ownerID string, po
 }
 
 func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, plcy policies.Policy) error {
-	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy, version = :version, ts_last_modified = CURRENT_TIMESTAMP WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE agent_policies SET name = :name, description = :description, orb_tags = :orb_tags, policy = :policy, version = :version, ts_last_modified = CURRENT_TIMESTAMP, policy_data = :policy_data WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 	plcyDB, err := toDBPolicy(plcy)
 	if err != nil {
 		return errors.Wrap(policies.ErrUpdateEntity, err)
@@ -182,7 +183,7 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 }
 
 func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, ts_last_modified 
+	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, ts_last_modified, policy_data, format 
 			FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
 
 	if policyID == "" || ownerID == "" {
@@ -201,13 +202,14 @@ func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID str
 }
 
 func (r policiesRepository) UpdateDataset(ctx context.Context, ownerID string, ds policies.Dataset) error {
-	q := `UPDATE datasets SET tags = :tags, sink_ids = :sink_ids WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE datasets SET tags = :tags, sink_ids = :sink_ids, name = :name WHERE mf_owner_id = :mf_owner_id AND id = :id;`
 
 	params := map[string]interface{}{
 		"mf_owner_id": ds.MFOwnerID,
 		"tags":        db.Tags(ds.Tags),
 		"sink_ids":    pq.Array(ds.SinkIDs),
 		"id":          ds.ID,
+		"name":        ds.Name,
 	}
 
 	res, err := r.db.NamedExecContext(ctx, q, params)
@@ -359,8 +361,8 @@ func (r policiesRepository) InactivateDatasetByPolicyID(ctx context.Context, pol
 
 func (r policiesRepository) SavePolicy(ctx context.Context, policy policies.Policy) (string, error) {
 
-	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, schema_version, policy, orb_tags, description)         
-			  VALUES (:name, :mf_owner_id, :backend, :schema_version, :policy, :orb_tags, :description) RETURNING id`
+	q := `INSERT INTO agent_policies (name, mf_owner_id, backend, schema_version, policy, orb_tags, description, policy_data, format)         
+			  VALUES (:name, :mf_owner_id, :backend, :schema_version, :policy, :orb_tags, :description, :policy_data, :format) RETURNING id`
 
 	if !policy.Name.IsValid() || policy.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -566,6 +568,62 @@ func (r policiesRepository) DeleteSinkFromAllDatasets(ctx context.Context, sinkI
 	return datasets, nil
 }
 
+func (r policiesRepository) ActivateDatasetByID(ctx context.Context, id string, ownerID string) error {
+	q := `UPDATE datasets SET valid = true WHERE mf_owner_id = :mf_owner_id AND :id = id`
+
+	if ownerID == "" || id == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	params := map[string]interface{}{
+		"mf_owner_id": ownerID,
+		"id":          id,
+	}
+
+	_, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(policies.ErrUpdateEntity, err)
+	}
+
+	return nil
+}
+
+func (r policiesRepository) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, ownerID string) error {
+	q := `UPDATE datasets SET agent_group_id = null WHERE mf_owner_id = :mf_owner_id AND agent_group_id = :agent_group_id`
+
+	if ownerID == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	params := map[string]interface{}{
+		"mf_owner_id":    ownerID,
+		"agent_group_id": groupID,
+	}
+
+	res, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	defer res.Close()
+
+	return nil
+}
+
 type dbPolicy struct {
 	ID            string           `db:"id"`
 	Name          types.Identifier `db:"name"`
@@ -575,6 +633,8 @@ type dbPolicy struct {
 	Description   string           `db:"description"`
 	OrbTags       db.Tags          `db:"orb_tags"`
 	Policy        db.Metadata      `db:"policy"`
+	PolicyData    string           `db:"policy_data"`
+	Format        string           `db:"format"`
 	Version       int32            `db:"version"`
 	Created       time.Time        `db:"ts_created"`
 	DataSetID     string           `db:"dataset_id"`
@@ -599,6 +659,8 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 		SchemaVersion: policy.SchemaVersion,
 		OrbTags:       db.Tags(policy.OrbTags),
 		Policy:        db.Metadata(policy.Policy),
+		PolicyData:    policy.PolicyData,
+		Format:        policy.Format,
 	}, nil
 
 }
@@ -670,6 +732,8 @@ func toPolicy(dba dbPolicy) policies.Policy {
 		Policy:        types.Metadata(dba.Policy),
 		Created:       dba.Created,
 		LastModified:  dba.LastModified,
+		PolicyData:    dba.PolicyData,
+		Format:        dba.Format,
 	}
 
 	return policy

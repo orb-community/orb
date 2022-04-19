@@ -56,8 +56,6 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
   // stepper vars
   firstFormGroup: FormGroup;
 
-  secondFormGroup: FormGroup;
-
   // agent vars
   agentGroup: AgentGroup;
 
@@ -117,11 +115,6 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
       name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
     });
-
-    this.secondFormGroup = this._formBuilder.group({
-      key: [''],
-      value: [''],
-    });
   }
 
   ngAfterViewInit() {
@@ -145,10 +138,10 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
         flexGrow: 10,
         cellTemplate: this.agentTagsTemplateCell,
         comparator: (a, b) => Object.entries(a)
-          .map(([key, value]) => `${key}:${value}`)
+          .map(([key, value]) => `${ key }:${ value }`)
           .join(',')
           .localeCompare(Object.entries(b)
-            .map(([key, value]) => `${key}:${value}`)
+            .map(([key, value]) => `${ key }:${ value }`)
             .join(',')),
       },
       {
@@ -196,25 +189,6 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
 
   goBack() {
     this.router.navigateByUrl('/pages/fleet/groups');
-  }
-
-  // addTag button should be [disabled] = `$sf.controls.key.value !== ''`
-  onAddTag() {
-    const { key, value } = this.secondFormGroup.controls;
-
-    this.selectedTags[key.value] = value.value;
-
-    // key and value fields
-    key.reset('');
-    value.reset('');
-
-    this.updateMatches();
-  }
-
-  onRemoveTag(tag: any) {
-    delete this.selectedTags[tag];
-
-    this.updateMatches();
   }
 
   // query agent group matches

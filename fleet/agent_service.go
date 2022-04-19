@@ -67,6 +67,20 @@ func (svc fleetService) ViewAgentByID(ctx context.Context, token string, thingID
 	return svc.agentRepo.RetrieveByID(ctx, ownerID, thingID)
 }
 
+func (svc fleetService) ViewAgentMatchingGroupsByID(ctx context.Context, token string, thingID string) (MatchingGroups, error) {
+	ownerID, err := svc.identify(token)
+	if err != nil {
+		return MatchingGroups{}, err
+	}
+
+	matchingGroups, err := svc.agentGroupRepository.RetrieveMatchingGroups(ctx, ownerID, thingID)
+	if err != nil {
+		return MatchingGroups{}, err
+	}
+
+	return matchingGroups, nil
+}
+
 func (svc fleetService) ResetAgent(ctx context.Context, token string, agentID string) error {
 	ownerID, err := svc.identify(token)
 	if err != nil {
@@ -78,7 +92,7 @@ func (svc fleetService) ResetAgent(ctx context.Context, token string, agentID st
 		return err
 	}
 
-	return svc.agentComms.NotifyAgentReset(agent.MFChannelID, true, "Reset initiated from control plane")
+	return svc.agentComms.NotifyAgentReset(agent, true, "Reset initiated from control plane")
 }
 
 func (svc fleetService) ViewAgentByIDInternal(ctx context.Context, ownerID string, id string) (Agent, error) {

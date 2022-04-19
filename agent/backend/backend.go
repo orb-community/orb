@@ -8,6 +8,7 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/agent/policies"
 	"go.uber.org/zap"
+	"time"
 )
 
 const (
@@ -15,6 +16,7 @@ const (
 	Running
 	BackendError
 	AgentError
+	Offline
 )
 
 type BackendState int
@@ -24,6 +26,7 @@ var backendStateMap = [...]string{
 	"running",
 	"backend_error",
 	"agent_error",
+	"offline",
 }
 
 var backendStateRevMap = map[string]BackendState{
@@ -31,6 +34,7 @@ var backendStateRevMap = map[string]BackendState{
 	"running":       Running,
 	"backend_error": BackendError,
 	"agent_error":   AgentError,
+	"offline":       Offline,
 }
 
 func (s BackendState) String() string {
@@ -45,6 +49,7 @@ type Backend interface {
 	Stop() error
 	FullReset() error
 
+	GetStartTime() time.Time
 	GetCapabilities() (map[string]interface{}, error)
 	GetState() (BackendState, string, error)
 

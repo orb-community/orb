@@ -122,6 +122,20 @@ func main() {
 	agentGroupRepo := postgres.NewAgentGroupRepository(db, logger)
 
 	commsSvc := fleet.NewFleetCommsService(logger, policiesGRPCClient, agentRepo, agentGroupRepo, pubSub)
+	commsSvc = fleet.CommsMetricsMiddleware(
+		commsSvc,
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "fleet",
+			Subsystem: "comms",
+			Name:      "request_count",
+			Help:      "Number of requests received.",
+		}, []string{"method", "agent_id", "agent_name", "group_id", "group_name", "owner_id"}),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "fleet",
+			Subsystem: "comms",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, []string{"method", "agent_id", "agent_name", "group_id", "group_name", "owner_id"}))
 
 	aDone := make(chan bool)
 
@@ -144,7 +158,6 @@ func main() {
 		c := make(chan os.Signal)
 		signal.Notify(c, syscall.SIGINT)
 		errs <- fmt.Errorf("%s", <-c)
-		//aTicker.Stop()
 		aDone <- true
 	}()
 

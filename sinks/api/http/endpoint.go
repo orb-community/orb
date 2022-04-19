@@ -71,18 +71,19 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			Description: req.Description,
 		}
 
-		if _, err := svc.UpdateSink(ctx, req.token, sink); err != nil {
+		sinkEdited, err := svc.UpdateSink(ctx, req.token, sink)
+		if err != nil {
 			return nil, err
 		}
 		res := sinkRes{
-			ID:          sink.ID,
-			Name:        sink.Name.String(),
-			Description: sink.Description,
-			Tags:        sink.Tags,
-			State:       sink.State.String(),
-			Error:       sink.Error,
-			Backend:     sink.Backend,
-			Config:      sink.Config,
+			ID:          sinkEdited.ID,
+			Name:        sinkEdited.Name.String(),
+			Description: sinkEdited.Description,
+			Tags:        sinkEdited.Tags,
+			State:       sinkEdited.State.String(),
+			Error:       sinkEdited.Error,
+			Backend:     sinkEdited.Backend,
+			Config:      sinkEdited.Config,
 			created:     false,
 		}
 		return res, nil
