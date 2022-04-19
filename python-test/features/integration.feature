@@ -571,7 +571,7 @@ Scenario: agent with only agent tags subscription to a group with policies creat
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink already exists
-    When an agent is self-provisioned via a configuration file on port port default with 3 agent tags and has status online
+    When an agent is self-provisioned via a configuration file on port default with 3 agent tags and has status online
         And an Agent Group is created with same tag as the agent
         And 3 simple policies are applied to the group
     Then dataset related have validity valid
@@ -606,7 +606,7 @@ Scenario: agent with mixed tags subscription to a group with policies created af
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink already exists
-    When an agent is self-provisioned via a configuration file on port on port default with 3 agent tags and has status online
+    When an agent is self-provisioned via a configuration file on port default with 3 agent tags and has status online
         And edit the agent tags and use 2 orb tag(s)
         And an Agent Group is created with same tag as the agent
         And 3 simple policies are applied to the group

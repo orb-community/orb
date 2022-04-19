@@ -149,7 +149,11 @@ def check_policy_attribute(context, attribute, value):
 
 
 @then("referred policy {condition} be listed on the orb policies list")
-def check_policies(context, condition='must'):
+def check_policies(context, **condition):
+    if len(condition) > 0:
+        condition = condition["condition"]
+    else:
+        condition = "must"
     policy_id = context.policy['id']
     all_existing_policies = list_policies(context.token)
     is_policy_listed = bool()
