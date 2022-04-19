@@ -145,3 +145,4 @@ ui:
 		-f docker/Dockerfile .
 
 platform: dockers_dev docker_sinker agent ui
+
