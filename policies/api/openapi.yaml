@@ -241,6 +241,9 @@ paths:
       operationId: duplicatePolicy
       tags:
         - policy
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/PolicyDuplicateReq"
       responses:
         '201':
           $ref: "#/components/responses/PolicyObjRes"
@@ -305,6 +308,13 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/DatasetUpdateReqSchema"
+    PolicyDuplicateReq:
+      description: JSON-formatted document describing the Policy to be duplicate
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyDuplicateReqSchema"
   parameters:
     Name:
       name: name
@@ -649,6 +659,13 @@ components:
           type: string
           example: yaml
           description: Policy text format needed to specify when a policy is a yaml
+    PolicyDuplicateReqSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-policy
     PolicyPageSchema:
       type: object
       properties:

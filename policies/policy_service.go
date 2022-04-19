@@ -17,7 +17,6 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies/backend"
 	sinkpb "github.com/ns1labs/orb/sinks/pb"
-	"regexp"
 )
 
 var (
@@ -424,55 +423,65 @@ func (s policiesService) DeleteAgentGroupFromAllDatasets(ctx context.Context, gr
 	return nil
 }
 
-func (s policiesService) DuplicatePolicy(ctx context.Context, token string, policyID string) (Policy, error) {
+func (s policiesService) DuplicatePolicy(ctx context.Context, token string, policyID string, name string) (Policy, error) {
 
 	mfOwnerID, err := s.identify(token)
 	if err != nil {
 		return Policy{}, err
 	}
 
+	//first get existing policy
 	existingPolicy, err := s.repo.RetrievePolicyByID(ctx, policyID, mfOwnerID)
 	if err != nil {
 		return Policy{}, err
 	}
 
-	policyList, err := s.repo.RetrieveAllPoliciesInternal(ctx, mfOwnerID)
-	if err != nil {
-		return Policy{}, err
-	}
-
-	nameRegex := fmt.Sprintf("%s_copy", existingPolicy.Name.String())
-	regex := regexp.MustCompile(fmt.Sprintf(`%s.*`, nameRegex))
-
-	policyNames := make([]string, 0)
-	for _, p := range policyList {
-		matches := regex.FindString(p.Name.String())
-		if matches != ""{
-			policyNames = append(policyNames, matches)
-		}
-	}
+	//set version back to zero
+	policy := existingPolicy
+	policy.Version = 0
 
 	var nameSuffix string
-	if len(policyNames) >= 1{
-		nameSuffix = fmt.Sprintf("_copy_%d", len(policyNames)+1)
+	var id string
+	var errCreate error
+
+	//checks if a name was given and tries to save
+	if name != ""{
+		policyName, err := types.NewIdentifier(name)
 		if err != nil {
 			return Policy{}, err
 		}
+		policy.Name = policyName
+		id, err = s.repo.SavePolicy(ctx, policy)
+		if err != nil {
+			return Policy{}, errors.Wrap(ErrCreatePolicy, err)
+		}
 	} else {
+	//otherwise, tries to save with three different names: "OLDNAME_Copy", "OLDNAME_Copy2" and "OLDNAME_Copy3"
 		nameSuffix = fmt.Sprintf("_copy")
-	}
+		var i = 1
+		for {
+			policyName, err := types.NewIdentifier(existingPolicy.Name.String() + nameSuffix)
+			if err != nil {
+				return Policy{}, err
+			}
 
-	name, err := types.NewIdentifier(existingPolicy.Name.String() + nameSuffix)
-	if err != nil {
-		return Policy{}, err
-	}
-
-	policy := existingPolicy
-	policy.Name = name
-
-	id, err := s.repo.SavePolicy(ctx, policy)
-	if err != nil {
-		return Policy{}, errors.Wrap(ErrCreatePolicy, err)
+			policy.Name = policyName
+			id, errCreate = s.repo.SavePolicy(ctx, policy)
+			if errCreate != nil {
+				if i < 3{
+					i++
+					nameSuffix = fmt.Sprintf("_copy%d", i)
+					continue
+				} else {
+					//if already exists policies named with those three options then call fails
+					return Policy{}, errors.Wrap(errors.New("limit of copies of a single policy exceeded"), errors.ErrConflict)
+				}
+			}
+			break
+		}
+		if errCreate != nil{
+			return Policy{}, err
+		}
 	}
 	policy.ID = id
 

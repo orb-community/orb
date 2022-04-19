@@ -65,7 +65,7 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 		opts...))
 	r.Post("/policies/agent/:id/duplicate", kithttp.NewServer(
 		kitot.TraceServer(tracer, "duplicate_policy")(duplicatePolicyEndpoint(svc)),
-		decodeView,
+		decodePolicyDuplicate,
 		types.EncodeResponse,
 		opts...))
 	r.Delete("/policies/agent/:id", kithttp.NewServer(
@@ -230,6 +230,22 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 			Metadata: m,
 			Tags:     t,
 		},
+	}
+
+	return req, nil
+}
+
+func decodePolicyDuplicate(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), contentType) {
+		return nil, errors.ErrUnsupportedContentType
+	}
+
+	req := duplicatePolicyReq{
+		token: r.Header.Get("Authorization"),
+		id:    bone.GetValue(r, "id"),
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(fleet.ErrMalformedEntity, err)
 	}
 
 	return req, nil

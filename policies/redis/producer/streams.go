@@ -269,8 +269,8 @@ func (e eventStore) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID
 	return e.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
 }
 
-func (e eventStore) DuplicatePolicy(ctx context.Context, token string, policyID string) (policies.Policy, error) {
-	return e.svc.DuplicatePolicy(ctx, token, policyID)
+func (e eventStore) DuplicatePolicy(ctx context.Context, token string, policyID string, name string) (policies.Policy, error) {
+	return e.svc.DuplicatePolicy(ctx, token, policyID, name)
 }
 
 // NewEventStoreMiddleware returns wrapper around policies service that sends

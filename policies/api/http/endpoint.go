@@ -418,12 +418,12 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 
 func duplicatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(viewResourceReq)
+		req := request.(duplicatePolicyReq)
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
 
-		duplicatedPolicy, err := svc.DuplicatePolicy(ctx, req.token, req.id)
+		duplicatedPolicy, err := svc.DuplicatePolicy(ctx, req.token, req.id, req.Name)
 		if err != nil {
 			return nil, err
 		}

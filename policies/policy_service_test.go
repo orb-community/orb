@@ -459,10 +459,10 @@ func TestEditDataset(t *testing.T) {
 
 	wrongDataset := policies.Dataset{MFOwnerID: wrongOwnerID.String()}
 	newDataset := policies.Dataset{
-		ID:           dataset.ID,
-		Name:         nameID,
-		MFOwnerID:    dataset.MFOwnerID,
-		SinkIDs:      dataset.SinkIDs,
+		ID:        dataset.ID,
+		Name:      nameID,
+		MFOwnerID: dataset.MFOwnerID,
+		SinkIDs:   dataset.SinkIDs,
 	}
 
 	cases := map[string]struct {
@@ -1379,21 +1379,30 @@ func TestDuplicatePolicy(t *testing.T) {
 	policyMultipleCopy := createPolicy(t, svc, "policy")
 	copy := createPolicy(t, svc, "policy_copy")
 	for i := 2; i <= 10; i++ {
-		name := fmt.Sprintf("policy_copy_%d", i)
+		name := fmt.Sprintf("policy_copy%d", i)
 		_ = createPolicy(t, svc, name)
 	}
 
 	cases := map[string]struct {
 		policyID     string
+		policyName   string
 		expectedName string
 		token        string
 		err          error
 	}{
-		"duplicate a existing policy": {
-			policyID: policySingleCopy.ID,
+		"duplicate a existing policy with no name specified": {
+			policyID:     policySingleCopy.ID,
+			policyName:   "",
 			expectedName: "policy-single_copy",
-			token:    token,
-			err:      nil,
+			token:        token,
+			err:          nil,
+		},
+		"duplicate a existing policy with a specified name": {
+			policyID:     policySingleCopy.ID,
+			policyName:   "policyDuplicated",
+			expectedName: "policyDuplicated",
+			token:        token,
+			err:          nil,
 		},
 		"duplicate a existing policy with an invalid token": {
 			policyID: policySingleCopy.ID,
@@ -1405,23 +1414,23 @@ func TestDuplicatePolicy(t *testing.T) {
 			token:    token,
 			err:      policies.ErrNotFound,
 		},
-		"duplicate two times a existing policy": {
-			policyID: policyMultipleCopy.ID,
-			expectedName: "policy_copy_11",
-			token:    token,
-			err:      nil,
+		"duplicate a existing policy with more than three copies": {
+			policyID:     policyMultipleCopy.ID,
+			expectedName: "",
+			token:        token,
+			err:          errors.ErrConflict,
 		},
 		"duplicate a copy of a policy": {
-			policyID: copy.ID,
+			policyID:     copy.ID,
 			expectedName: "policy_copy_copy",
-			token:    token,
-			err:      nil,
+			token:        token,
+			err:          nil,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			policyDuplicated, err := svc.DuplicatePolicy(context.Background(), tc.token, tc.policyID)
+			policyDuplicated, err := svc.DuplicatePolicy(context.Background(), tc.token, tc.policyID, tc.policyName)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
 
 			originalPolicy, _ := svc.ViewPolicyByID(context.Background(), token, tc.policyID)
@@ -1431,7 +1440,7 @@ func TestDuplicatePolicy(t *testing.T) {
 				assert.Equal(t, originalPolicy.Format, policyDuplicated.Format, fmt.Sprintf("%s: expected %v got %v", desc, originalPolicy.Format, policyDuplicated.Format))
 				assert.Equal(t, originalPolicy.Backend, policyDuplicated.Backend, fmt.Sprintf("%s: expected %v got %v", desc, originalPolicy.Backend, policyDuplicated.Backend))
 
-				assert.Equal(t, tc.expectedName, policyDuplicated.Name.String(),  fmt.Sprintf("%s: expected %v got %v", desc, tc.expectedName, policyDuplicated.Name))
+				assert.Equal(t, tc.expectedName, policyDuplicated.Name.String(), fmt.Sprintf("%s: expected %v got %v", desc, tc.expectedName, policyDuplicated.Name))
 			}
 		})
 	}
