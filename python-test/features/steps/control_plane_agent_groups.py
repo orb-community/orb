@@ -22,7 +22,8 @@ def create_agent_group_matching_agent(context, **kwargs):
     else:
         group_description = agent_group_description
     tags = context.agent["orb_tags"]
-    tags.update(context.agent["agent_tags"])
+    if context.agent["agent_tags"] is not None:
+        tags.update(context.agent["agent_tags"])
     context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
                                                   tags)
     group_id = context.agent_group_data['id']

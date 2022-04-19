@@ -164,10 +164,12 @@ Scenario: Sink with invalid username
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
         And that a sink with invalid username already exists
+        And 3 simple policies are applied to the group
         And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=3 already exists
     When a new dataset is created using referred group, policy and 1 sink
     Then the container logs should contain the message "managing agent policy from core" within 10 seconds
-        And the container logs should contain the message "policy applied successfully" within 10 seconds
+        And this agent's heartbeat shows that 4 policies are successfully applied and has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 10 seconds
         And dataset related have validity valid
