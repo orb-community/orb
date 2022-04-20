@@ -76,6 +76,7 @@ jobs:
     - name: eslint
       if: steps.filter.outputs.jslint == 'true'
       uses: icrawl/action-eslint@v1
+      
 
   trigger-build-services:
     runs-on: ubuntu-latest
@@ -124,14 +125,13 @@ jobs:
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
     outputs:
-      should-build-agent: ${{ steps.changes.outputs.agent }}
-      should-build-orb: ${{ steps.changes.outputs.orb }}
+      should-build-agent: ${{ steps.filters.outputs.agent }}
+      should-build-orb: ${{ steps.filters.outputs.orb }}
 
   test-agent:
     runs-on: ubuntu-latest
     needs: trigger-build-services
-    if: ${{ steps.trigger-build-services.outputs.should-build-agent == 'true' }}
-
+    if: ${{ needs.trigger-build-services.outputs.should-build-agent == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -145,7 +145,7 @@ jobs:
   test-fleet:
     runs-on: ubuntu-latest
     needs: trigger-build-services
-    if: ${{ steps.trigger-build-services.outputs.should-build-orb == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
