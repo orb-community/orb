@@ -1,16 +1,16 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
-import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
-import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
-import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
-import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { NbDialogRef } from '@nebular/theme';
+import {Component, Input, OnInit} from '@angular/core';
+import {AgentPolicy} from 'app/common/interfaces/orb/agent.policy.interface';
+import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
+import {Sink} from 'app/common/interfaces/orb/sink.interface';
+import {Dataset} from 'app/common/interfaces/orb/dataset.policy.interface';
+import {AgentGroupsService} from 'app/common/services/agents/agent.groups.service';
+import {AgentPoliciesService} from 'app/common/services/agents/agent.policies.service';
+import {SinksService} from 'app/common/services/sinks/sinks.service';
+import {OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {DatasetPoliciesService} from 'app/common/services/dataset/dataset.policies.service';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import {NbDialogRef} from '@nebular/theme';
 
 const CONFIG = {
   SINKS: 'SINKS',
@@ -47,15 +47,22 @@ export class DatasetFromComponent implements OnInit {
   availableAgentPolicies: AgentPolicy[];
 
   availableSinks: Sink[];
+  form: FormGroup;
+  loading = Object.entries(CONFIG)
+      .reduce((acc, [value]) => {
+        acc[value] = false;
+        return acc;
+      }, {});
+  // #load controls
 
   constructor(
-    private agentGroupsService: AgentGroupsService,
-    private agentPoliciesService: AgentPoliciesService,
-    private datasetService: DatasetPoliciesService,
-    private sinksService: SinksService,
-    private notificationsService: NotificationsService,
-    private _formBuilder: FormBuilder,
-    protected dialogRef: NbDialogRef<DatasetFromComponent>,
+      private agentGroupsService: AgentGroupsService,
+      private agentPoliciesService: AgentPoliciesService,
+      private datasetService: DatasetPoliciesService,
+      private sinksService: SinksService,
+      private notificationsService: NotificationsService,
+      private _formBuilder: FormBuilder,
+      protected dialogRef: NbDialogRef<DatasetFromComponent>,
   ) {
     this.isEdit = false;
     this.availableAgentGroups = [];
@@ -67,15 +74,6 @@ export class DatasetFromComponent implements OnInit {
 
     this.readyForms();
   }
-
-  form: FormGroup;
-  // #load controls
-
-  loading = Object.entries(CONFIG)
-    .reduce((acc, [value]) => {
-      acc[value] = false;
-      return acc;
-    }, {});
 
   readyForms() {
     const {
@@ -99,39 +97,39 @@ export class DatasetFromComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (!!this.dataset) {
-      this.isEdit = true;
-    }
-
     if (!!this.group) {
       this.selectedGroup = this.group.id;
+      this.form.patchValue({agent_group_id: this.group.id});
     }
-
     if (!!this.policy) {
       this.selectedPolicy = this.policy.id;
+      this.form.patchValue({agent_policy_id: this.policy.id});
+    }
+    if (!!this.dataset) {
+      this.isEdit = true;
     }
   }
 
   getDatasetAvailableConfigList() {
     Promise.all([this.getAvailableAgentGroups(), this.getAvailableAgentPolicies(), this.getAvailableSinks()])
-      .then(value => {
-        // console.log('warning');
-      }, reason => console.warn(`Cannot retrieve available configurations - reason: ${ JSON.parse(reason) }`))
-      .catch(reason => {
-        console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`);
-      });
+        .then(value => {
+          // console.log('warning');
+        }, reason => console.warn(`Cannot retrieve available configurations - reason: ${JSON.parse(reason)}`))
+        .catch(reason => {
+          console.warn(`Cannot retrieve backend data - reason: ${JSON.parse(reason)}`);
+        });
   }
 
   getAvailableAgentGroups() {
     return new Promise((resolve) => {
       this.loading[CONFIG.GROUPS] = true;
       this.agentGroupsService.getAllAgentGroups()
-        .subscribe((resp: OrbPagination<AgentGroup>) => {
-          this.availableAgentGroups = resp.data;
-          this.loading[CONFIG.GROUPS] = false;
+          .subscribe((resp: OrbPagination<AgentGroup>) => {
+            this.availableAgentGroups = resp.data;
+            this.loading[CONFIG.GROUPS] = false;
 
-          resolve(this.availableAgentGroups);
-        });
+            resolve(this.availableAgentGroups);
+          });
     });
   }
 
@@ -140,32 +138,32 @@ export class DatasetFromComponent implements OnInit {
       this.loading[CONFIG.POLICIES] = true;
 
       this.agentPoliciesService
-        .getAllAgentPolicies()
-        .subscribe((resp: OrbPagination<AgentPolicy>) => {
-          this.availableAgentPolicies = resp.data;
-          this.loading[CONFIG.POLICIES] = false;
+          .getAllAgentPolicies()
+          .subscribe((resp: OrbPagination<AgentPolicy>) => {
+            this.availableAgentPolicies = resp.data;
+            this.loading[CONFIG.POLICIES] = false;
 
-          resolve(this.availableAgentPolicies);
-        });
+            resolve(this.availableAgentPolicies);
+          });
     });
   }
 
   getAvailableSinks() {
     return new Promise((resolve) => {
       this.loading[CONFIG.SINKS] = true;
-      const pageInfo = { ...SinksService.getDefaultPagination(), limit: 100 };
+      const pageInfo = {...SinksService.getDefaultPagination(), limit: 100};
       this.sinksService
-        .getSinks(pageInfo, false)
-        .subscribe((resp: OrbPagination<Sink>) => {
-          this.selectedSinks.forEach((sink) => {
-            sink.name = resp.data.find(anotherSink => anotherSink.id === sink.id).name;
-          });
-          const sinkIDMap = this.selectedSinks.map(sink => sink.id);
-          this.availableSinks = resp.data.filter(sink => !sinkIDMap.includes(sink.id));
-          this.loading[CONFIG.SINKS] = false;
+          .getSinks(pageInfo, false)
+          .subscribe((resp: OrbPagination<Sink>) => {
+            this.selectedSinks.forEach((sink) => {
+              sink.name = resp.data.find(anotherSink => anotherSink.id === sink.id).name;
+            });
+            const sinkIDMap = this.selectedSinks.map(sink => sink.id);
+            this.availableSinks = resp.data.filter(sink => !sinkIDMap.includes(sink.id));
+            this.loading[CONFIG.SINKS] = false;
 
-          resolve(this.availableSinks);
-        });
+            resolve(this.availableSinks);
+          });
     });
   }
 
@@ -182,7 +180,7 @@ export class DatasetFromComponent implements OnInit {
     } as Dataset;
     if (this.isEdit) {
       // updating existing dataset
-      this.datasetService.editDataset({ ...payload, id: this.dataset.id}).subscribe(() => {
+      this.datasetService.editDataset({...payload, id: this.dataset.id}).subscribe(() => {
         this.notificationsService.success('Dataset successfully updated', '');
       });
     } else {
@@ -190,10 +188,12 @@ export class DatasetFromComponent implements OnInit {
         this.notificationsService.success('Dataset successfully created', '');
       });
     }
+
+    this.dialogRef.close(true);
   }
 
   onClose() {
-
+    this.dialogRef.close(false);
   }
 
 }

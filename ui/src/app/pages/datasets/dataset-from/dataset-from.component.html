@@ -1,20 +1,20 @@
 <nb-card size="large" class="nb-card-medium">
   <nb-card-header>
     Dataset Details
-    <button nbButton
-            ghost="true"
-            size="small"
-            class="orb-close-dialog"
-            (click)="onClose()">
-      <span class="nb-close"></span>
-    </button>
+      <button nbButton
+              ghost="true"
+              size="small"
+              class="orb-close-dialog"
+              (click)="onClose()">
+          <span class="nb-close"></span>
+      </button>
   </nb-card-header>
   <nb-card-body>
     <form [formGroup]="form">
 <!--      NAME-->
       <nb-form-field>
         <div>
-          <label class="font-weight-bold">Name Label</label>
+          <label class="font-weight-bold">Dataset Name</label>
           <span class="required">*</span>
         </div>
         <input autofocus
@@ -27,7 +27,7 @@
 <!--      GROUP-->
       <nb-form-field>
         <div>
-          <label class="font-weight-bold">Who</label>
+          <label class="font-weight-bold">Agent Group</label>
           <span class="required">*</span>
         </div>
         <nb-select [(selected)]="selectedGroup"
@@ -48,7 +48,7 @@
 <!--      POLICY-->
       <nb-form-field>
         <div>
-          <label class="font-weight-bold">What</label>
+          <label class="font-weight-bold">Collection Policy</label>
           <span class="required">*</span>
         </div>
         <nb-select [(selected)]="selectedPolicy"
@@ -66,8 +66,14 @@
                      [value]="agentPolicy.id">{{ agentPolicy.name }}</nb-option>
         </nb-select>
       </nb-form-field>
-      <ngx-sink-display [(sinks)]="selectedSinks"></ngx-sink-display>
-      <ngx-sink-control [(selectedSinks)]="selectedSinks" [availableSinks]="availableSinks"></ngx-sink-control>
+
+            <div>
+                <label class="font-weight-bold">Sinks</label>
+                <span class="required">*</span>
+            </div>
+            <ngx-sink-display [(sinks)]="selectedSinks"></ngx-sink-display>
+            <ngx-sink-control [(selectedSinks)]="selectedSinks" [availableSinks]="availableSinks"></ngx-sink-control>
+
     </form>
   </nb-card-body>
 </nb-card>
