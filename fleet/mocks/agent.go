@@ -28,7 +28,7 @@ func (a agentRepositoryMock) RetrieveOwnerByChannelID(ctx context.Context, chann
 	return fleet.Agent{}, fleet.ErrNotFound
 }
 
-func (a agentRepositoryMock) RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error) {
+func (a agentRepositoryMock) RetrieveAgentMetadataByOwner(_ context.Context, ownerID string) ([]types.Metadata, error) {
 	var taps []types.Metadata
 	return taps, nil
 }
