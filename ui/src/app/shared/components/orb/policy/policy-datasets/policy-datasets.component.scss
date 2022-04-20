@@ -35,15 +35,10 @@ nb-card {
   padding-left: 2px;
 }
 
-.add-dataset-container {
-  height: 0;
-  position: relative;
-
-  button {
-    float: right;
-    position: relative;
-    right: 5px;
-    top: 5px;
-    z-index: 2;
-  }
+::ng-deep button.add-dataset-button {
+  display: flex !important;
+  float: right !important;
+  padding: 0.2rem 1.125rem !important;
+  z-index: 2;
 }
+

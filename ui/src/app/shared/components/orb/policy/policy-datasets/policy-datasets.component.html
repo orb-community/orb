@@ -1,13 +1,12 @@
 <nb-card *ngIf="!isLoading">
   <nb-card-header class="summary-accent">Active Datasets {{ this.datasets.length }}
-    <div class="add-dataset-container">
-      <button (click)="onCreateDataset()"
-              ghost="true"
-              nbButton
-              status="primary">
-        <i class="fa fa-plus">&nbsp;</i>Create Dataset
-      </button>
-    </div>
+    <button (click)="onCreateDataset()"
+            ghost="true"
+            class="add-dataset-button"
+            nbButton
+            status="primary">
+      <i class="fa fa-plus">&nbsp;</i>Create Dataset
+    </button>
   </nb-card-header>
   <nb-card-body>
     <div class="col-12">
