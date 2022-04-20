@@ -12,8 +12,7 @@ on:
     branches: [ develop ]
 
 jobs:
-
-  build:
+  trigger-build-services:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -24,20 +23,26 @@ jobs:
             agent:
               - 'agent/**'
               - 'cmd/agent/**'
-            fleet:
+            orb:
               - 'fleet/**'
               - 'cmd/fleet/**'
-            policies:
               - 'policies/**'
               - 'cmd/policies/**'
-            sinks:
               - 'sinks/**'
               - 'cmd/sinks/**'
-            sinker:
               - 'sinker/**'
               - 'cmd/sinker/**'
-            ui:
               - 'ui/**'
+    outputs:
+      should-build-agent: ${{ steps.changes.outputs.agent }}
+      should-build-orb: ${{ steps.changes.outputs.orb }}
+
+  build-agent:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-agent == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
 
       - name: Set up Go
         uses: actions/setup-go@v2
@@ -65,18 +70,212 @@ jobs:
         run: echo ${{ env.VERSION }}
 
       - name: Build services (go build only)
-        run: make services
+        run: make agent
 
       - name: Build orb agent (go build only)
         if: steps.filter.outputs.agent == 'true'
         run: make agent_bin
 
       - name: Go unit tests
-        run: make test
+        run: SERVICE=agent make test_service
+
+  build-fleet:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
+
+      - name: Generate ref tag (develop)
+        run: |
+          echo "REF_TAG=develop" >> $GITHUB_ENV
+
+      - name: Append suffix on VERSION file for develop build
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
+
+      - name: Get VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
+
+      - name: Build services (go build only)
+        run: make fleet
+
+      - name: Go unit tests
+        run: SERVICE=fleet make test_service
+
+  build-policies:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
+
+      - name: Generate ref tag (develop)
+        run: |
+          echo "REF_TAG=develop" >> $GITHUB_ENV
+
+      - name: Append suffix on VERSION file for develop build
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
+
+      - name: Get VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
+
+      - name: Build services (go build only)
+        run: make policies
+
+      - name: Go unit tests
+        run: SERVICE=policies make test_service
+
+  build-sinks:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
+
+      - name: Generate ref tag (develop)
+        run: |
+          echo "REF_TAG=develop" >> $GITHUB_ENV
+
+      - name: Append suffix on VERSION file for develop build
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
+
+      - name: Get VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
+
+      - name: Build services (go build only)
+        run: make sinks
+
+      - name: Go unit tests
+        run: SERVICE=sinks make test_service
+
+  build-sinker:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
+
+      - name: Generate ref tag (develop)
+        run: |
+          echo "REF_TAG=develop" >> $GITHUB_ENV
+
+      - name: Append suffix on VERSION file for develop build
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
+
+      - name: Get VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
+
+      - name: Build services (go build only)
+        run: make sinker
+
+      - name: Go unit tests
+        run: SERVICE=sinker make test_service
+
+      - name: Upload sinker artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name:
+
+  build-ui:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-agent == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
+
+      - name: Generate ref tag (develop)
+        run: |
+          echo "REF_TAG=develop" >> $GITHUB_ENV
+
+      - name: Append suffix on VERSION file for develop build
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
+
+      - name: Get VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
 
       - name: Build UI
-        if: steps.filter.outputs.ui == 'true'
         run: make ui
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ui
+          path:
 
   package:
     needs: build
