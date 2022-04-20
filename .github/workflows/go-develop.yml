@@ -208,7 +208,9 @@ jobs:
         with:
           node-version: 12
       - name: yarn install
-        run: yarn install
+        run: | 
+          cd ui/ 
+          yarn install
       - name: Test UI
         run: make test_ui
 
