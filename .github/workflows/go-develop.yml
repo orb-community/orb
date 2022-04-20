@@ -12,6 +12,60 @@ on:
     branches: [ develop ]
 
 jobs:
+  linters:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          golint:
+            - 'agent/**'
+            - 'cmd/agent/**'
+            - 'fleet/**'
+            - 'cmd/fleet/**'
+            - 'policies/**'
+            - 'cmd/policies/**'
+            - 'sinks/**'
+            - 'cmd/sinks/**'
+            - 'sinker/**'
+            - 'cmd/sinker/**'
+          jslint:
+            - 'ui/**'
+
+    - name: Lint commits
+      uses: actions-ecosystem/action-lint-commits@v1
+      id: lint-commits
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        regex: '^\w+\(.+\): .+' # e.g.) "feat(api): Add /users/get"
+        format: markdown
+
+      - name: Post warning comment
+        uses: actions-ecosystem/action-create-comment@v1
+        if: ${{ steps.lint-commits.outputs.unmatched_commits != '' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            The following commits needs their message changes:
+            
+            ${{ steps.lint-commits.outputs.unmatched_commits }}
+            
+            The format `<type>(<scope>): <subject>` (`^\w+\(.+\): .+`) is acceptable. e.g., `feat(api): Add /users/get`
+
+      - name: Fail when commits don't pass lint
+        if: ${{ steps.lint-commits.outputs.unmatched_commits != '' }}
+        run: exit 1
+
+      - name: golangci-lint
+        if: steps.filter.outputs.golint == 'true'
+        uses: golangci/golangci-lint-action@v3
+
+      - name: jslint
+        if: steps.filter.outputs.jslint == 'true'
+
   trigger-build-services:
     runs-on: ubuntu-latest
     steps:
