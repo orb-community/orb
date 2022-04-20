@@ -43,28 +43,43 @@ jobs:
         regex: '^\w+\(.+\): .+' # e.g.) "feat(api): Add /users/get"
         format: markdown
 
-      - name: Post warning comment
-        uses: actions-ecosystem/action-create-comment@v1
-        if: ${{ steps.lint-commits.outputs.unmatched_commits != '' }}
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          body: |
-            The following commits needs their message changes:
-            
-            ${{ steps.lint-commits.outputs.unmatched_commits }}
-            
-            The format `<type>(<scope>): <subject>` (`^\w+\(.+\): .+`) is acceptable. e.g., `feat(api): Add /users/get`
+    - name: Post warning comment
+      uses: actions-ecosystem/action-create-comment@v1
+      if:  steps.lint-commits.outputs.unmatched_commits != '' 
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        body: |
+          The following commits needs their message changes:
+          
+          ${{ steps.lint-commits.outputs.unmatched_commits }}
+          
+          The format `<type>(<scope>): <subject>` (`^\w+\(.+\): .+`) is acceptable. e.g., `feat(api): Add /users/get`
 
-      - name: Fail when commits don't pass lint
-        if: ${{ steps.lint-commits.outputs.unmatched_commits != '' }}
-        run: exit 1
+    - name: Fail when commits don't pass lint
+      if: steps.lint-commits.outputs.unmatched_commits != ''
+      run: exit 1
 
-      - name: golangci-lint
-        if: steps.filter.outputs.golint == 'true'
-        uses: golangci/golangci-lint-action@v3
+# Go Lang Linter
+    - uses: actions/setup-go@v3
+      with:
+        go-version: 1.16
+    - name: golangci-lint
+      if: steps.filter.outputs.golint == 'true'
+      uses: golangci/golangci-lint-action@v3
 
-      - name: jslint
-        if: steps.filter.outputs.jslint == 'true'
+## JS Linter
+    - name: install node v12
+      uses: actions/setup-node@v1
+      if: steps.filter.outputs.jslint == 'true'
+      with:
+        node-version: 12
+    - name: yarn install
+      if: steps.filter.outputs.jslint == 'true'
+      run: yarn install
+    - name: eslint
+      if: steps.filter.outputs.jslint == 'true'
+      uses: icrawl/action-eslint@v1
+      
 
   trigger-build-services:
     runs-on: ubuntu-latest
