@@ -391,7 +391,6 @@ jobs:
     if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
-
       - name: Build orb-ui
         env:
           IMAGE_NAME: ns1labs/orb-ui
