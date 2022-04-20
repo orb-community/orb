@@ -78,9 +78,8 @@ jobs:
       uses: icrawl/action-eslint@v1
       
 
-  trigger-build-services:
+  prebuild:
     runs-on: ubuntu-latest
-    id: prebuild
     steps:
       - uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
@@ -131,7 +130,7 @@ jobs:
 
   debug-filter:
     runs-on: ubuntu-latest
-    needs: trigger-build-services
+    needs: prebuild
     steps:
       - name: debug filter
         run: |
@@ -140,8 +139,8 @@ jobs:
 
   test-agent:
     runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.agent == 'true' }}
+    needs: prebuild
+    if: ${{ needs.prebuild.outputs.agent == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -154,8 +153,8 @@ jobs:
 
   test-fleet:
     runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
+    needs: prebuild
+    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -167,8 +166,8 @@ jobs:
 
   test-policies:
     runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
+    needs: prebuild
+    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -180,8 +179,8 @@ jobs:
 
   test-sinks:
     runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
+    needs: prebuild
+    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -193,8 +192,8 @@ jobs:
 
   test-sinker:
     runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
+    needs: prebuild
+    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -206,8 +205,8 @@ jobs:
 
   test-ui:
     runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
+    needs: prebuild
+    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Test UI
@@ -215,15 +214,15 @@ jobs:
 
   package-agent:
     needs: 
-     - trigger-build-services
+     - prebuild
      - test-agent
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.agent == 'true' }}
+    if: ${{ needs.prebuild.outputs.agent == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Debug values
         run: |
-          echo ${{ needs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.prebuild.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ github.event.inputs.pktvisor_tag }}
 
@@ -256,17 +255,17 @@ jobs:
 
   package-fleet:
     needs: 
-     - trigger-build-services
+     - prebuild
      - test-fleet
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
+    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
 
       - name: Debug values
         run: | 
           echo ${{ env.VERSION }}
-          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.jobs.prebuild.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
@@ -288,17 +287,17 @@ jobs:
 
   package-policies:
     needs: 
-     - trigger-build-services
+     - prebuild
      - test-policies
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
+    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
 
       - name: Debug values
         run: |
           echo ${{ env.VERSION }}
-          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.jobs.prebuild.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
@@ -320,17 +319,17 @@ jobs:
 
   package-sinker:
     needs: 
-     - trigger-build-services
+     - prebuild
      - test-sinker
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
+    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
 
       - name: Debug values
         run: |
           echo ${{ env.VERSION }}
-          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.jobs.prebuild.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
@@ -352,17 +351,17 @@ jobs:
 
   package-sinks:
     needs: 
-     - trigger-build-services
+     - prebuild
      - test-sinks
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
+    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
 
       - name: Debug values
         run: |
           echo ${{ env.VERSION }}
-          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.jobs.prebuild.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
@@ -384,10 +383,10 @@ jobs:
 
   package-ui:
     needs: 
-     - trigger-build-services
+     - prebuild
      - test-ui
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
+    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
 
@@ -428,7 +427,7 @@ jobs:
 
   publish-orb-live-stg:
     needs:
-      - trigger-build-services
+      - prebuild
       - package-fleet
       - package-policies
       - package-sinker
@@ -444,12 +443,12 @@ jobs:
 
       - name: Debug values
         run: |
-          echo ${{ needs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.prebuild.env.VERSION }}
           echo ${{ steps.commit_hash.outputs.sha_short }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ github.event.inputs.pktvisor_tag }}
         env:
-          VERSION: ${{ needs.trigger-build-services.env.VERSION }}
+          VERSION: ${{ needs.prebuild.env.VERSION }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
