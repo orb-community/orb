@@ -36,9 +36,9 @@ jobs:
             - 'ui/**'
     - name: debug filter
       run: |
-        echo $ {{ steps.filter.outputs }}
-        echo $ {{ steps.filter.outputs.golint }}
-        echo $ {{ steps.filter.outputs.jslint }}
+        echo ${{ steps.filter.outputs }}
+        echo ${{ steps.filter.outputs.golint }}
+        echo ${{ steps.filter.outputs.jslint }}
 
     - name: Lint commits
       uses: actions-ecosystem/action-lint-commits@v1
@@ -139,9 +139,9 @@ jobs:
     steps:
       - name: debug filter
         run: |
-         echo $ {{ needs.trigger-build-services.outputs }}
-         echo $ {{ needs.trigger-build-services.outputs.should-build-agent }}
-         echo $ {{ needs.trigger-build-services.outputs.should-build-orb }}
+         echo ${{ needs.trigger-build-services.outputs }}
+         echo ${{ needs.trigger-build-services.outputs.should-build-agent }}
+         echo ${{ needs.trigger-build-services.outputs.should-build-orb }}
 
   test-agent:
     runs-on: ubuntu-latest
