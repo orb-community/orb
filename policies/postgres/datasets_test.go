@@ -11,6 +11,9 @@ package postgres_test
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
@@ -18,8 +21,6 @@ import (
 	"github.com/ns1labs/orb/policies/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestDatasetSave(t *testing.T) {

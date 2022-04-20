@@ -100,7 +100,6 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     private route: ActivatedRoute,
     private router: Router,
   ) {
-    this.agentService.clean();
     this.paginationControls = AgentsService.getDefaultPagination();
   }
 
@@ -114,7 +113,6 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
   }
 
   ngOnInit() {
-    this.agentService.clean();
     this.getAllAgents();
   }
 
@@ -173,6 +171,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
   }
 
   getAllAgents(): void {
+    this.agentService.clean();
     this.agentService.getAllAgents().subscribe(resp => {
       this.paginationControls.data = resp.data;
       this.paginationControls.total = resp.data.length;
@@ -265,7 +264,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
       if (resp) {
         this.onOpenEdit(row);
       } else {
-        this.getAgents();
+        this.getAllAgents();
       }
     });
   }

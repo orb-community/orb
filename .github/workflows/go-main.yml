@@ -153,9 +153,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generating Changelog
-        uses: scottbrenner/generate-changelog-action@master
+      - name: Generate release changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          onlyLastTag: true # changelog only from last tag
+          stripHeaders: true # Strip headers
+          stripGeneratorNotice: true # Strip generator notice
+          author: false # No author on PR
+          pullRequests: true # Add PR number and link
+          headerLabel: "What's changed"
         id: build_changelog
+
+      - name: Set variables
+        run: |
+          echo "TAG=v`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
 
       - name: Create release
         id: create_release
@@ -163,7 +176,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: "v${{ env.VERSION }}"
+          tag_name: ${{ env.TAG }}
           release_name: ${{ env.VERSION }}
           body: ${{steps.build_changelog.outputs.changelog}}
           draft: false

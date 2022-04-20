@@ -13,7 +13,11 @@ import (
 	"time"
 )
 
+// HeartbeatFreq how often to heartbeat
 const HeartbeatFreq = 60 * time.Second
+
+// RestartTimeMin minimum time to wait between restarts
+const RestartTimeMin = 5 * time.Minute
 
 func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
@@ -28,6 +32,13 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 			if err != nil {
 				a.logger.Error("failed to retrieve backend state", zap.String("backend", name), zap.Error(err))
 				bes[name] = fleet.BackendStateInfo{State: backend.AgentError.String(), Error: err.Error()}
+				if time.Now().Sub(be.GetStartTime()) >= RestartTimeMin {
+					a.logger.Info("attempting backend restart due to failed status during heartbeat")
+					err := a.RestartBackend(name, "failed during heartbeat")
+					if err != nil {
+						a.logger.Error("failed to restart backend", zap.Error(err), zap.String("backend", name))
+					}
+				}
 				continue
 			}
 			bes[name] = fleet.BackendStateInfo{State: state.String(), Error: errmsg}
