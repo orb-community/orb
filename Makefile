@@ -40,7 +40,8 @@ define run_test
 endef
 
 define make_docker
-	if [ -z "$(SERVICE)" ]; then
+	if [ -z "$(SERVICE)" ]
+	then
 		$(eval SERVICE=$(subst docker_,,$(1)))
 	else
 		svc=$(SERVICE)
