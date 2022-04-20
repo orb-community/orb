@@ -203,6 +203,14 @@ jobs:
     if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
+      - name: install node v12
+        uses: actions/setup-node@v1
+        if: steps.filter.outputs.jslint == 'true'
+        with:
+          node-version: 12
+      - name: yarn install
+        if: steps.filter.outputs.jslint == 'true'
+        run: yarn install
       - name: Test UI
         run: make test_ui
 

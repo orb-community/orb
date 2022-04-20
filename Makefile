@@ -150,8 +150,7 @@ agent_debug_production:
 	  -f agent/docker/Dockerfile .
 
 test_ui:
-	cd ui/ && yarn install
-		&& yarn test
+	cd ui/ && yarn test
 
 ui:
 	cd ui/ && docker build \
