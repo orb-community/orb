@@ -199,23 +199,6 @@ jobs:
       - name: Go unit tests
         run: SERVICE=sinker make test_service
 
-  test-ui:
-    runs-on: ubuntu-latest
-    needs: prebuild
-    if: ${{ needs.prebuild.outputs.orb == 'true' }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: install node v12
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - name: yarn install
-        run: | 
-          cd ui/ 
-          yarn install
-      - name: Test UI
-        run: make test_ui
-
   package-agent:
     needs: 
      - prebuild
@@ -388,7 +371,6 @@ jobs:
   package-ui:
     needs: 
      - prebuild
-     - test-ui
     runs-on: ubuntu-latest
     if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
