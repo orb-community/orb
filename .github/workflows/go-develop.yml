@@ -138,14 +138,16 @@ jobs:
         run: make test_ui
 
   package-agent:
-    needs: test-agent
+    needs: 
+     - trigger-build-services
+     - test-agent
     runs-on: ubuntu-latest
     if: ${{ needs.trigger-build-services.outputs.should-build-agent == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Debug values
         run: |
-          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.trigger-build-services.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ github.event.inputs.pktvisor_tag }}
 
@@ -177,7 +179,9 @@ jobs:
           docker push -a ns1labs/orb-agent
 
   package-fleet:
-    needs: build
+    needs: 
+     - trigger-build-services
+     - test-fleet
     runs-on: ubuntu-latest
     if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
     steps:
@@ -207,7 +211,9 @@ jobs:
         run: docker push -a ns1labs/orb-fleet
 
   package-policies:
-    needs: build
+    needs: 
+     - trigger-build-services
+     - test-policies
     runs-on: ubuntu-latest
     if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
     steps:
@@ -237,7 +243,9 @@ jobs:
         run: docker push -a ns1labs/orb-policies
 
   package-sinker:
-    needs: build
+    needs: 
+     - trigger-build-services
+     - test-sinker
     runs-on: ubuntu-latest
     if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
     steps:
@@ -267,7 +275,9 @@ jobs:
         run: docker push -a ns1labs/orb-sinker
 
   package-sinks:
-    needs: build
+    needs: 
+     - trigger-build-services
+     - test-sinks
     runs-on: ubuntu-latest
     if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
     steps:
@@ -297,7 +307,9 @@ jobs:
         run: docker push -a ns1labs/orb-sinks
 
   package-ui:
-    needs: build
+    needs: 
+     - trigger-build-services
+     - test-ui
     runs-on: ubuntu-latest
     if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
     steps:
@@ -340,6 +352,7 @@ jobs:
 
   publish-orb-live-stg:
     needs:
+      - trigger-build-services
       - package-fleet
       - package-policies
       - package-sinker
@@ -355,11 +368,12 @@ jobs:
 
       - name: Debug values
         run: |
-          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.trigger-build-services.env.VERSION }}
+          echo ${{ steps.commit_hash.outputs.sha_short }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ github.event.inputs.pktvisor_tag }}
         env:
-          VERSION: ${{ needs.jobs.trigger-build-services.env.VERSION }}
+          VERSION: ${{ needs.trigger-build-services.env.VERSION }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
