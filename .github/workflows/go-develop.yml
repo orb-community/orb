@@ -76,10 +76,12 @@ jobs:
     - name: eslint
       if: steps.filter.outputs.jslint == 'true'
       uses: icrawl/action-eslint@v1
-      
 
   prebuild:
     runs-on: ubuntu-latest
+    outputs:
+      agent: ${{ steps.filter.outputs.agent }}
+      orb: ${{ steps.filter.outputs.orb }}
     steps:
       - uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
@@ -123,10 +125,6 @@ jobs:
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
-    outputs:
-      agent: ${{ steps.filters.outputs.agent }}
-      orb: ${{ steps.filters.outputs.orb }}
 
   debug-filter:
     runs-on: ubuntu-latest
