@@ -267,7 +267,7 @@ jobs:
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
-        run: SVC=fleet make docker
+        run: SERVICE=fleet make build_docker
 
       # If it is a Pull Request, only build to make sure that everything is running
       # If it is not a pull request, then should publish the image built
@@ -299,7 +299,7 @@ jobs:
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
-        run: SVC=policies make docker
+        run: SERVICE=policies make build_docker
 
       # If it is a Pull Request, only build to make sure that everything is running
       # If it is not a pull request, then should publish the image built
@@ -331,7 +331,7 @@ jobs:
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
-        run: SVC=sinker make docker
+        run: SERVICE=sinker make build_docker
 
       # If it is a Pull Request, only build to make sure that everything is running
       # If it is not a pull request, then should publish the image built
@@ -363,7 +363,7 @@ jobs:
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
-        run: SVC=sinks make docker
+        run: SERVICE=sinks make build_docker
 
       # If it is a Pull Request, only build to make sure that everything is running
       # If it is not a pull request, then should publish the image built

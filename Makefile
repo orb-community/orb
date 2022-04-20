@@ -112,7 +112,7 @@ services: $(SERVICES)
 dockers: $(DOCKERS)
 dockers_dev: $(DOCKERS_DEV)
 
-docker:
+build_docker:
 	$(call make_docker,$(@),$(GOARCH))
 
 run:
