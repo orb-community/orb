@@ -89,6 +89,7 @@ jobs:
     outputs:
       agent: ${{ steps.filter.outputs.agent }}
       orb: ${{ steps.filter.outputs.orb }}
+      VERSION: ${{ env.VERSION }}
     steps:
       - uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
@@ -428,7 +429,7 @@ jobs:
 
       - name: Debug values
         run: |
-          echo ${{ needs.prebuild.env.VERSION }}
+          echo ${{ needs.prebuild.outputs.VERSION }}
           echo ${{ steps.commit_hash.outputs.sha_short }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ github.event.inputs.pktvisor_tag }}
