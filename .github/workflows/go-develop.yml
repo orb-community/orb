@@ -125,8 +125,8 @@ jobs:
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
     outputs:
-      should-build-agent: ${{ steps.filters.outputs.agent }}
-      should-build-orb: ${{ steps.filters.outputs.orb }}
+      agent: ${{ steps.filters.outputs.agent }}
+      orb: ${{ steps.filters.outputs.orb }}
 
   debug-filter:
     runs-on: ubuntu-latest
@@ -134,13 +134,13 @@ jobs:
     steps:
       - name: debug filter
         run: |
-         echo ${{ needs.trigger-build-services.outputs['should-build-agent'] }}
-         echo ${{ needs.trigger-build-services.outputs['should-build-orb'] }}
+         echo ${{ needs.trigger-build-services.outputs.agent }}
+         echo ${{ needs.trigger-build-services.outputs.orb }}
 
   test-agent:
     runs-on: ubuntu-latest
     needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-agent == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.agent == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -154,7 +154,7 @@ jobs:
   test-fleet:
     runs-on: ubuntu-latest
     needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -167,7 +167,7 @@ jobs:
   test-policies:
     runs-on: ubuntu-latest
     needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -180,7 +180,7 @@ jobs:
   test-sinks:
     runs-on: ubuntu-latest
     needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -193,7 +193,7 @@ jobs:
   test-sinker:
     runs-on: ubuntu-latest
     needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -206,7 +206,7 @@ jobs:
   test-ui:
     runs-on: ubuntu-latest
     needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Test UI
@@ -217,7 +217,7 @@ jobs:
      - trigger-build-services
      - test-agent
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.should-build-agent == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.agent == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Debug values
@@ -258,7 +258,7 @@ jobs:
      - trigger-build-services
      - test-fleet
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
 
@@ -290,7 +290,7 @@ jobs:
      - trigger-build-services
      - test-policies
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
 
@@ -322,7 +322,7 @@ jobs:
      - trigger-build-services
      - test-sinker
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
 
@@ -354,7 +354,7 @@ jobs:
      - trigger-build-services
      - test-sinks
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
 
@@ -386,7 +386,7 @@ jobs:
      - trigger-build-services
      - test-ui
     runs-on: ubuntu-latest
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    if: ${{ needs.trigger-build-services.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
 
