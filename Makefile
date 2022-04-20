@@ -149,6 +149,9 @@ agent_debug_production:
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_DEBUG_REF_TAG) \
 	  -f agent/docker/Dockerfile .
 
+test_ui:
+	cd ui/ && yarn test
+
 ui:
 	cd ui/ && docker build \
 		--build-arg ENV_PS_SID=${PS_SID} \

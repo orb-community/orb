@@ -33,280 +33,6 @@ jobs:
               - 'sinker/**'
               - 'cmd/sinker/**'
               - 'ui/**'
-    outputs:
-      should-build-agent: ${{ steps.changes.outputs.agent }}
-      should-build-orb: ${{ steps.changes.outputs.orb }}
-
-  build-agent:
-    runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-agent == 'true' }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.16
-
-      - name: Set branch name
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
-
-      - name: Generate ref tag (develop)
-        run: |
-          echo "REF_TAG=develop" >> $GITHUB_ENV
-
-      - name: Append suffix on VERSION file for develop build
-        run: |
-          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
-
-      - name: Get VERSION
-        run: |
-          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
-
-      - name: Debug VERSION
-        run: echo ${{ env.VERSION }}
-
-      - name: Build services (go build only)
-        run: make agent
-
-      - name: Build orb agent (go build only)
-        if: steps.filter.outputs.agent == 'true'
-        run: make agent_bin
-
-      - name: Go unit tests
-        run: SERVICE=agent make test_service
-
-  build-fleet:
-    runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.16
-
-      - name: Set branch name
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
-
-      - name: Generate ref tag (develop)
-        run: |
-          echo "REF_TAG=develop" >> $GITHUB_ENV
-
-      - name: Append suffix on VERSION file for develop build
-        run: |
-          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
-
-      - name: Get VERSION
-        run: |
-          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
-
-      - name: Debug VERSION
-        run: echo ${{ env.VERSION }}
-
-      - name: Build services (go build only)
-        run: make fleet
-
-      - name: Go unit tests
-        run: SERVICE=fleet make test_service
-
-  build-policies:
-    runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.16
-
-      - name: Set branch name
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
-
-      - name: Generate ref tag (develop)
-        run: |
-          echo "REF_TAG=develop" >> $GITHUB_ENV
-
-      - name: Append suffix on VERSION file for develop build
-        run: |
-          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
-
-      - name: Get VERSION
-        run: |
-          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
-
-      - name: Debug VERSION
-        run: echo ${{ env.VERSION }}
-
-      - name: Build services (go build only)
-        run: make policies
-
-      - name: Go unit tests
-        run: SERVICE=policies make test_service
-
-  build-sinks:
-    runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.16
-
-      - name: Set branch name
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
-
-      - name: Generate ref tag (develop)
-        run: |
-          echo "REF_TAG=develop" >> $GITHUB_ENV
-
-      - name: Append suffix on VERSION file for develop build
-        run: |
-          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
-
-      - name: Get VERSION
-        run: |
-          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
-
-      - name: Debug VERSION
-        run: echo ${{ env.VERSION }}
-
-      - name: Build services (go build only)
-        run: make sinks
-
-      - name: Go unit tests
-        run: SERVICE=sinks make test_service
-
-  build-sinker:
-    runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.16
-
-      - name: Set branch name
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
-
-      - name: Generate ref tag (develop)
-        run: |
-          echo "REF_TAG=develop" >> $GITHUB_ENV
-
-      - name: Append suffix on VERSION file for develop build
-        run: |
-          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
-
-      - name: Get VERSION
-        run: |
-          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
-
-      - name: Debug VERSION
-        run: echo ${{ env.VERSION }}
-
-      - name: Build services (go build only)
-        run: make sinker
-
-      - name: Go unit tests
-        run: SERVICE=sinker make test_service
-
-      - name: Upload sinker artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name:
-
-  build-ui:
-    runs-on: ubuntu-latest
-    needs: trigger-build-services
-    if: ${{ needs.trigger-build-services.outputs.should-build-agent == 'true' }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.16
-
-      - name: Set branch name
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
-
-      - name: Generate ref tag (develop)
-        run: |
-          echo "REF_TAG=develop" >> $GITHUB_ENV
-
-      - name: Append suffix on VERSION file for develop build
-        run: |
-          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
-
-      - name: Get VERSION
-        run: |
-          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
-
-      - name: Debug VERSION
-        run: echo ${{ env.VERSION }}
-
-      - name: Build UI
-        run: make ui
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ui
-          path:
-
-  package:
-    needs: build
-    runs-on: ubuntu-latest
-    # if this is a push into one of our main branches (rather than just a pull request), we will also package
-    if: github.event_name != 'pull_request'
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            agent:
-              - 'agent/**'
-              - 'cmd/agent/**'
-            fleet:
-              - 'fleet/**'
-              - 'cmd/fleet/**'
-            policies:
-              - 'policies/**'
-              - 'cmd/policies/**'
-            sinks:
-              - 'sinks/**'
-              - 'cmd/sinks/**'
-            sinker:
-              - 'sinker/**'
-              - 'cmd/sinker/**'
-            ui:
-              - 'ui/**'
-
       - name: Set branch name
         shell: bash
         run: |
@@ -332,7 +58,261 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
+    outputs:
+      should-build-agent: ${{ steps.changes.outputs.agent }}
+      should-build-orb: ${{ steps.changes.outputs.orb }}
+
+  test-agent:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-agent == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Go unit tests
+        run: SERVICE=agent make test_service
+
+  test-fleet:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - name: Go unit tests
+        run: SERVICE=fleet make test_service
+
+  test-policies:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - name: Go unit tests
+        run: SERVICE=policies make test_service
+
+  test-sinks:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - name: Go unit tests
+        run: SERVICE=sinks make test_service
+
+  test-sinker:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - name: Go unit tests
+        run: SERVICE=sinker make test_service
+
+  test-ui:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test UI
+        run: make test_ui
+
+  package-agent:
+    needs: test-agent
+    runs-on: ubuntu-latest
+    if: ${{ needs.trigger-build-services.outputs.should-build-agent == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Debug values
+        run: |
+          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ github.event.inputs.pktvisor_tag }}
+
+      - name: Build orb-agent
+        shell: bash
+        env:
+          IMAGE_NAME: ns1labs/orb-agent
+        run: |
+          if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
+            make agent
+            make agent_debug
+          else
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
+          fi
+
+      # If it is a Pull Request, only build to make sure that everything is running
+      # If it is not a pull request, then should publish the image built
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push agent container
+        if: github.event_name != 'pull_request'
+        run: |
+          docker push -a ns1labs/orb-agent
+
+  package-fleet:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Debug values
+        run: | 
+          echo ${{ env.VERSION }}
+          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Build service containers
+        run: SVC=fleet make docker
+
+      # If it is a Pull Request, only build to make sure that everything is running
+      # If it is not a pull request, then should publish the image built
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-fleet
+
+  package-policies:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Debug values
+        run: |
+          echo ${{ env.VERSION }}
+          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Build service containers
+        run: SVC=policies make docker
+
+      # If it is a Pull Request, only build to make sure that everything is running
+      # If it is not a pull request, then should publish the image built
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-policies
+
+  package-sinker:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Debug values
+        run: |
+          echo ${{ env.VERSION }}
+          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Build service containers
+        run: SVC=sinker make docker
+
+      # If it is a Pull Request, only build to make sure that everything is running
+      # If it is not a pull request, then should publish the image built
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-sinker
+
+  package-sinks:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Debug values
+        run: |
+          echo ${{ env.VERSION }}
+          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Build service containers
+        run: SVC=sinks make docker
+
+      # If it is a Pull Request, only build to make sure that everything is running
+      # If it is not a pull request, then should publish the image built
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-sinks
+
+  package-ui:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ needs.trigger-build-services.outputs.should-build-orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build orb-ui
+        env:
+          IMAGE_NAME: ns1labs/orb-ui
+        run: |
+          make ui
+
+      # If it is a Pull Request, only build to make sure that everything is running
+      # If it is not a pull request, then should publish the image built
       - name: Commit orb-ui-live on orb-live repo develop
+        if: github.event_name != 'pull_request'
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"
@@ -348,50 +328,44 @@ jobs:
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build service containers
-        run: make dockers
-
-      - name: Build orb-agent
-        shell: bash
-        if: steps.filter.outputs.agent == 'true'
-        env:
-          IMAGE_NAME: ns1labs/orb-agent
-        run: |
-          if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
-            make agent
-            make agent_debug
-          else
-            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
-            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
-          fi
-
-      - name: Push agent container
-        if: steps.filter.outputs.agent == 'true'
-        run: |
-          docker push -a ns1labs/orb-agent
-
-      - name: Build orb-ui
-        if: steps.filter.outputs.ui == 'true'
-        env:
-          IMAGE_NAME: ns1labs/orb-ui
-        run: |
-          make ui
-
       - name: Push ui container
-        if: steps.filter.outputs.ui == 'true'
+        if: github.event_name != 'pull_request'
         run: |
           docker push -a ns1labs/orb-ui
 
-      - name: Push service containers
+  publish-orb-live-stg:
+    needs:
+      - package-fleet
+      - package-policies
+      - package-sinker
+      - package-sinks
+      - package-ui
+
+    runs-on: ubuntu-latest
+    # if this is a push into one of our main branches (rather than just a pull request), we will also package
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Debug values
         run: |
-          docker push -a ns1labs/orb-fleet
-          docker push -a ns1labs/orb-policies
-          docker push -a ns1labs/orb-sinks
-          docker push -a ns1labs/orb-sinker
+          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ github.event.inputs.pktvisor_tag }}
+        env:
+          VERSION: ${{ jobs.trigger-build-services.env.VERSION }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Commit image tag on orb-live-manifest environment dev
         run: |
