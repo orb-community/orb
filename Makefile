@@ -41,7 +41,7 @@ endef
 
 define make_docker
 	if [ -z "$(SERVICE)" ]; then \
-		$(eval SERVICE=$(subst docker_,,$(1))); \
+		SERVICE=$(subst docker_,,$(1)); \
 	else \
 		svc=$(SERVICE); \
 	fi

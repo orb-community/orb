@@ -131,15 +131,6 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
-  debug-filter:
-    runs-on: ubuntu-latest
-    needs: prebuild
-    steps:
-      - name: debug filter
-        run: |
-         echo ${{ needs.prebuild.outputs.agent }}
-         echo ${{ needs.prebuild.outputs.orb }}
-
   test-agent:
     runs-on: ubuntu-latest
     needs: prebuild
