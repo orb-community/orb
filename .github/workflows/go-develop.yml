@@ -81,6 +81,8 @@ jobs:
     - name: eslint
       if: steps.filter.outputs.jslint == 'true'
       uses: icrawl/action-eslint@v1
+      with:
+        custom-glob: ui/src
 
   prebuild:
     runs-on: ubuntu-latest
