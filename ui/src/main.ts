@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright Akveo. All Rights Reserved.
+ * Copyright Akveo. All Rights Reserved. test
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 import { enableProdMode } from '@angular/core';
