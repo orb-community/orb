@@ -145,7 +145,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Debug values
         run: |
-          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ github.event.inputs.pktvisor_tag }}
 
@@ -186,7 +186,7 @@ jobs:
       - name: Debug values
         run: | 
           echo ${{ env.VERSION }}
-          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
@@ -216,7 +216,7 @@ jobs:
       - name: Debug values
         run: |
           echo ${{ env.VERSION }}
-          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
@@ -246,7 +246,7 @@ jobs:
       - name: Debug values
         run: |
           echo ${{ env.VERSION }}
-          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
@@ -276,7 +276,7 @@ jobs:
       - name: Debug values
         run: |
           echo ${{ env.VERSION }}
-          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Build service containers
@@ -355,11 +355,11 @@ jobs:
 
       - name: Debug values
         run: |
-          echo ${{ jobs.trigger-build-services.env.VERSION }}
+          echo ${{ needs.jobs.trigger-build-services.env.VERSION }}
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ github.event.inputs.pktvisor_tag }}
         env:
-          VERSION: ${{ jobs.trigger-build-services.env.VERSION }}
+          VERSION: ${{ needs.jobs.trigger-build-services.env.VERSION }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
