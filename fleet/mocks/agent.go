@@ -15,13 +15,13 @@ type agentRepositoryMock struct {
 	agentsMock map[string]fleet.Agent
 }
 
-func (a agentRepositoryMock) SetStaleStatus(ctx context.Context, minutes time.Duration) (int64, error) {
+func (a agentRepositoryMock) SetStaleStatus(_ context.Context, _ time.Duration) (int64, error) {
 	return 0, nil
 }
 
 func (a agentRepositoryMock) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {
-	for _, ag := range a.agentsMock{
-		if ag.MFChannelID == channelID{
+	for _, ag := range a.agentsMock {
+		if ag.MFChannelID == channelID {
 			return ag, nil
 		}
 	}
