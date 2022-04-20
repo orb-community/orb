@@ -34,6 +34,11 @@ jobs:
             - 'cmd/sinker/**'
           jslint:
             - 'ui/**'
+    - name: debug filter
+      run: |
+        echo $ {{ steps.filter.outputs }}
+        echo $ {{ steps.filter.outputs.golint }}
+        echo $ {{ steps.filter.outputs.jslint }}
 
     - name: Lint commits
       uses: actions-ecosystem/action-lint-commits@v1
@@ -127,6 +132,16 @@ jobs:
     outputs:
       should-build-agent: ${{ steps.filters.outputs.agent }}
       should-build-orb: ${{ steps.filters.outputs.orb }}
+
+  debug-filter:
+    runs-on: ubuntu-latest
+    needs: trigger-build-services
+    steps:
+      - name: debug filter
+        run: |
+         echo $ {{ needs.trigger-build-services.outputs }}
+         echo $ {{ needs.trigger-build-services.outputs.should-build-agent }}
+         echo $ {{ needs.trigger-build-services.outputs.should-build-orb }}
 
   test-agent:
     runs-on: ubuntu-latest
