@@ -198,7 +198,6 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
           closeOnEsc: true,
           context: {
             dataset,
-            policy: this.policy,
           },
         }).onClose.subscribe(resp => {
           if (resp === 'changed' || 'deleted') {

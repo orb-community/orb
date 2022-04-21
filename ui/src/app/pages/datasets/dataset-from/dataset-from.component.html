@@ -11,22 +11,8 @@
     </nb-card-header>
     <nb-card-body>
         <form [formGroup]="form">
-            <!--      NAME-->
-            <nb-form-field>
-                <div>
-                    <label class="font-weight-bold">Dataset Name</label>
-                    <span class="required">*</span>
-                </div>
-                <input autofocus
-                       data-orb-qa-id="name"
-                       fieldSize="medium"
-                       formControlName="name"
-                       fullWidth="true"
-                       nbInput/>
-            </nb-form-field>
-            <br>
 <!--      GROUP-->
-            <nb-form-field>
+            <nb-form-field [hidden]="!!group">
                 <div>
                     <label class="font-weight-bold">Agent Group</label>
                     <span class="required">*</span>
@@ -45,10 +31,10 @@
                                [attr.data-orb-qa-id]="'available_agent_group: '+agentGroup.id" [id]="agentGroup.id"
                                [value]="agentGroup.id">{{ agentGroup.name }}</nb-option>
                 </nb-select>
+                <br>
             </nb-form-field>
-            <br>
 <!--      POLICY-->
-            <nb-form-field>
+            <nb-form-field [hidden]="policy">
                 <div>
                     <label class="font-weight-bold">Collection Policy</label>
                     <span class="required">*</span>
@@ -67,8 +53,8 @@
                                [attr.data-orb-qa-id]="'available_agent_policy: '+agentPolicy.id" [id]="agentPolicy.id"
                                [value]="agentPolicy.id">{{ agentPolicy.name }}</nb-option>
                 </nb-select>
+                <br>g
             </nb-form-field>
-            <br>
 <!--      SINK-->
             <div>
                 <label class="font-weight-bold">Sinks</label>
@@ -76,7 +62,21 @@
             </div>
             <ngx-sink-display [(sinks)]="selectedSinks"></ngx-sink-display>
             <ngx-sink-control [(selectedSinks)]="selectedSinks" [availableSinks]="availableSinks"></ngx-sink-control>
-
+            <br>
+<!--      NAME-->
+            <br>
+            <nb-form-field>
+                <div>
+                    <label class="font-weight-bold">Dataset Name</label>
+                    <span class="required">*</span>
+                </div>
+                <input autofocus
+                       data-orb-qa-id="name"
+                       fieldSize="medium"
+                       formControlName="name"
+                       fullWidth="true"
+                       nbInput/>
+            </nb-form-field>
         </form>
     </nb-card-body>
     <nb-card-footer>
