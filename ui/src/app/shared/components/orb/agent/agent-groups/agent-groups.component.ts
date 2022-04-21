@@ -50,7 +50,7 @@ export class AgentGroupsComponent implements OnInit {
         this.groups = resp.filter(group => !group.error);
         this.errors.notfound = resp
           .filter(group => !!group.error)
-          .map(value => `${value.id}: ${value.status} ${value.statusText}`)
+          .map(value => `${ value.id }: ${ value.status } ${ value.statusText }`)
           .join(',\n');
         this.isLoading = false;
       });
