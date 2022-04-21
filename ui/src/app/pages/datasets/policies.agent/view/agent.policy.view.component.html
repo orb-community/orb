@@ -11,10 +11,10 @@
 <div *ngIf="!isLoading" class="row">
   <div class="card-col col-4">
     <ngx-policy-details [policy]="policy"></ngx-policy-details>
-    <ngx-policy-interface [policy]="policy"></ngx-policy-interface>
+    <ngx-policy-groups [policy]="policy"></ngx-policy-groups>
   </div>
   <div class="card-col col-8">
-    <ngx-policy-groups [policy]="policy"></ngx-policy-groups>
+    <ngx-policy-interface [policy]="policy"></ngx-policy-interface>
     <ngx-policy-datasets [policy]="policy"></ngx-policy-datasets>
   </div>
 </div>
