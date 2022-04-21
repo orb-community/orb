@@ -14,7 +14,9 @@ import (
 	"github.com/go-cmd/cmd"
 	"github.com/go-co-op/gocron"
 	"github.com/ns1labs/orb/agent/backend"
+	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/agent/otel/otlpexporter"
+	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
 	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
@@ -40,6 +42,9 @@ type pktvisorBackend struct {
 	proc            *cmd.Cmd
 	statusChan      <-chan cmd.Status
 	startTime       time.Time
+
+	// MQTT Config for OTEL MQTT
+	mqttConfig config.MQTTConfig
 
 	mqttClient   mqtt.Client
 	metricsTopic string
@@ -290,7 +295,7 @@ func (p *pktvisorBackend) Start() error {
 	p.scraper.StartAsync()
 
 	if p.scrapeOtel {
-		if err := p.scrapeOpentelemetry(); err != nil {
+		if err := p.scrapeOpenTelemetry(); err != nil {
 			return err
 		}
 	} else {
@@ -369,9 +374,9 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
-func (p *pktvisorBackend) scrapeOpentelemetry() (err error) {
+func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 	ctx := context.Background()
-	p.exporter, err = createOtlpExporter(ctx, p.logger)
+	p.exporter, err = createOtlpMqttExporter(ctx, p.mqttConfig, p.logger)
 	if err != nil {
 		p.logger.Error("failed to create a exporter", zap.Error(err))
 	}
@@ -382,7 +387,7 @@ func (p *pktvisorBackend) scrapeOpentelemetry() (err error) {
 
 	err = p.exporter.Start(ctx, nil)
 	if err != nil {
-		p.logger.Error("otel exporter startup error", zap.Error(err))
+		p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
 		return err
 	}
 
@@ -478,10 +483,21 @@ func createOtlpExporter(ctx context.Context, logger *zap.Logger) (component.Metr
 	return exporter, nil
 }
 
+func createOtlpMqttExporter(ctx context.Context, mqcfg config.MQTTConfig, logger *zap.Logger) (component.MetricsExporter, error) {
+	cfg := otlpmqttexporter.CreateConfig(mqcfg.Address, mqcfg.Id, mqcfg.Key, mqcfg.ChannelID)
+	set := otlpmqttexporter.CreateDefaultSettings(logger)
+	// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+	exporter, err := otlpexporter.CreateMetricsExporter(ctx, set, cfg)
+	if err != nil {
+		return nil, err
+	}
+	return exporter, nil
+}
+
 func createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
 	set := pktvisorreceiver.CreateDefaultSettings(logger)
 	cfg := pktvisorreceiver.CreateDefaultConfig()
-	// Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
+	// Create the Prometheus receiver and pass in the previously created Prometheus exporter.
 	receiver, err := pktvisorreceiver.CreateMetricsReceiver(ctx, set, cfg, exporter)
 	if err != nil {
 		return nil, err
