@@ -1,5 +1,5 @@
 <nb-card *ngIf="!isLoading">
-  <nb-card-header class="summary-accent">Active Datasets {{ this.datasets.length }}
+  <nb-card-header class="summary-accent">Active Datasets ({{ this.datasets.length }})
     <button (click)="onCreateDataset()"
             ghost="true"
             class="add-dataset-button"
@@ -15,7 +15,7 @@
           #table
           [columnMode]="columnMode.flex"
           [columns]="columns"
-          [footerHeight]="50"
+          [footerHeight]="0"
           [headerHeight]="50"
           [loadingIndicator]="isLoading"
           [rowHeight]="50"
@@ -23,7 +23,7 @@
           [scrollbarV]="true"
           [sorts]="tableSorts"
           class="orb"
-          style="height: calc(62vh)">
+          style="height: calc(49vh)">
         </ngx-datatable>
       </div>
 
@@ -37,21 +37,20 @@
   </div>
 </ng-template>
 
-<ng-template #nameTemplateCell let-i="index" let-row="row" let-value="value">
-  <div nbTooltip="{{ row.agent_group_id }}">
-    {{ row.agent_group_name }}
+<ng-template #groupTemplateCell let-i="index" let-row="row" let-value="value">
+  <div nbTooltip="{{ row?.agent_group?.id }}">
+    {{ row?.agent_group?.name }}
   </div>
 </ng-template>
 
 <ng-template #validTemplateCell let-i="index" let-row="row" let-value="value">
   <div>
     <i aria-hidden="true" class="fa fa-circle orb-service-{{ row.valid }}"></i>
-    {{ row.valid ? 'True' : 'False' }}
   </div>
 </ng-template>
 
 <ng-template #sinksTemplateCell let-i="index" let-row="row" let-value="value">
   <div nbTooltip="{{ value | json }}">
-    {{ value?.length }}
+    <span *ngFor="let sink of value; last as isLast">{{ sink?.name }}{{ isLast ? '' : ', '}}</span>
   </div>
 </ng-template>

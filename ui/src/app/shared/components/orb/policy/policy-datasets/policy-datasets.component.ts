@@ -5,18 +5,27 @@ import {
   Component,
   Input,
   OnDestroy,
-  OnInit, TemplateRef,
+  OnInit,
+  TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
-import { Subscription } from 'rxjs';
-import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
-import { NbDialogService } from '@nebular/theme';
-import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
-import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
-import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
-import { concatMap } from 'rxjs/operators';
+import {AgentPolicy} from 'app/common/interfaces/orb/agent.policy.interface';
+import {Dataset} from 'app/common/interfaces/orb/dataset.policy.interface';
+import {Subscription} from 'rxjs';
+import {DatasetPoliciesService} from 'app/common/services/dataset/dataset.policies.service';
+import {NbDialogService} from '@nebular/theme';
+import {DatasetFromComponent} from 'app/pages/datasets/dataset-from/dataset-from.component';
+import {ColumnMode, DatatableComponent, TableColumn} from '@swimlane/ngx-datatable';
+import {AgentGroupsService} from 'app/common/services/agents/agent.groups.service';
+import {concatMap} from 'rxjs/operators';
+import {SinksService} from 'app/common/services/sinks/sinks.service';
+import {Sink} from 'app/common/interfaces/orb/sink.interface';
+import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
+
+interface FlexDataset extends Dataset {
+  sinks?: Sink[];
+  agent_group?: AgentGroup;
+}
 
 @Component({
   selector: 'ngx-policy-datasets',
@@ -27,7 +36,7 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
   @Input()
   policy: AgentPolicy;
 
-  datasets: Dataset[];
+  datasets: FlexDataset[];
 
   isLoading: boolean;
 
@@ -62,22 +71,33 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
   private currentComponentWidth;
 
   constructor(
-    protected datasetService: DatasetPoliciesService,
-    protected groupsService: AgentGroupsService,
-    protected dialogService: NbDialogService,
-    protected cdr: ChangeDetectorRef,
-    ) {
+      private datasetService: DatasetPoliciesService,
+      private groupsService: AgentGroupsService,
+      private sinksService: SinksService,
+      private dialogService: NbDialogService,
+      private cdr: ChangeDetectorRef,
+  ) {
     this.policy = {};
     this.datasets = [];
     this.errors = {};
   }
 
   ngOnInit(): void {
+    this.retrieveInfo();
+  }
+
+  retrieveInfo() {
+    if (this.isLoading) {
+      return;
+    }
     this.subscription = this.retrievePolicyDatasets()
-      .pipe(concatMap(datasets => this.retrieveAgentGroups()))
-      .subscribe(resp => {
-        this.isLoading = false;
-      });
+        .pipe(
+            concatMap(datasets => this.retrieveAgentGroups()),
+            concatMap(sinks => this.retrieveSinks()))
+        .subscribe(resp => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        });
   }
 
   ngAfterViewInit() {
@@ -86,32 +106,28 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
         prop: 'name',
         name: 'Name',
         resizeable: false,
-        flexGrow: 5,
-        minWidth: 90,
+        flexGrow: 3,
         cellTemplate: this.nameTemplateCell,
       },
       {
-        prop: 'agent_group_name',
-        name: 'Agent Group Name',
+        prop: 'agent_group',
+        name: 'Agent Group',
         resizeable: false,
-        flexGrow: 5,
-        minWidth: 90,
+        flexGrow: 3,
         cellTemplate: this.groupTemplateCell,
       },
       {
         prop: 'valid',
         name: 'Valid',
         resizeable: false,
-        flexGrow: 1,
-        minWidth: 25,
+        flexGrow: 2,
         cellTemplate: this.validTemplateCell,
       },
       {
-        prop: 'sink_ids',
+        prop: 'sinks',
         name: 'Sinks',
         resizeable: false,
-        flexGrow: 1,
-        minWidth: 25,
+        flexGrow: 9,
         cellTemplate: this.sinksTemplateCell,
       },
     ];
@@ -130,33 +146,46 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
 
   retrievePolicyDatasets() {
     return this.datasetService.getAllDatasets()
-      .map(resp => {
-        this.datasets = resp.data.filter(dataset => dataset.agent_policy_id === this.policy.id);
-        return this.datasets;
-      });
+        .map(resp => {
+          this.datasets = resp.data.filter(dataset => dataset.agent_policy_id === this.policy.id);
+          return this.datasets;
+        });
   }
 
   // TODO this should be avoided
   retrieveAgentGroups() {
     return this.groupsService.getAllAgentGroups()
-      .map(resp => {
-        const groups = resp.data;
-        this.datasets.forEach(dataset => {
-          dataset['agent_group_name'] = groups.find(group => group.id === dataset.agent_group_id).name;
+        .map(resp => {
+          const groups = resp.data;
+          this.datasets = this.datasets.map(dataset => {
+            dataset.agent_group = groups.find(group => group.id === dataset.agent_group_id);
+            return dataset;
+          });
+          return resp;
         });
-        return resp.data;
-      });
+  }
+
+  retrieveSinks() {
+    return this.sinksService.getAllSinks()
+        .map(resp => {
+          const sinks = resp.data;
+          this.datasets = this.datasets.map(dataset => {
+            dataset.sinks = dataset.sink_ids.map(id => sinks.find(sink => sink.id === id));
+            return dataset;
+          });
+        });
   }
 
   onCreateDataset() {
     this.dialogService.open(DatasetFromComponent,
-      {
-        autoFocus: true,
-        closeOnEsc: true,
-        context: {
-          policy: this.policy,
-        },
-      }).onClose.subscribe(() => {});
+        {
+          autoFocus: true,
+          closeOnEsc: true,
+          context: {
+            policy: this.policy,
+          },
+        }).onClose.subscribe(() => {
+    });
   }
 
   ngOnDestroy() {

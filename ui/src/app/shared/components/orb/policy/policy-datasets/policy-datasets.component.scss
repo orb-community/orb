@@ -12,6 +12,8 @@ nb-card {
   }
 
   nb-card-body {
+    padding: 0 0.25rem 1rem 0.25rem !important;
+
     label {
       color: #969fb9;
     }
@@ -40,5 +42,15 @@ nb-card {
   float: right !important;
   padding: 0.2rem 1.125rem !important;
   z-index: 2;
+}
+
+.orb-service- {
+  &true {
+    color: #6fcf97;
+  }
+
+  &false {
+    color: #df316f;
+  }
 }
 
