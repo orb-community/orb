@@ -32,7 +32,8 @@
 </nb-card>
 
 <ng-template #nameTemplateCell let-i="index" let-row="row" let-value="value">
-  <div nbTooltip="{{ row.id }}">
+  <div (click)="onOpenEdit(row)"
+       nbTooltip="{{ row.id }}">
     {{ row.name }}
   </div>
 </ng-template>

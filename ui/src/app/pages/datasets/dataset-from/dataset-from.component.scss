@@ -46,11 +46,13 @@ nb-tabset {
 }
 
 .dataset-save-button {
+  margin-top: 6px;
   background-color: blue;
 }
 
 .dataset-delete-button {
-  background-color: #df316f;
+  color: #df316f !important;
+  float: left;
 }
 
 .orb-close-dialog {

@@ -184,7 +184,26 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
           context: {
             policy: this.policy,
           },
-        }).onClose.subscribe(() => {
+        }).onClose.subscribe(resp  => {
+          if (resp === 'created') {
+            this.retrieveInfo();
+          }
+    });
+  }
+
+  onOpenEdit(dataset) {
+    this.dialogService.open(DatasetFromComponent,
+        {
+          autoFocus: true,
+          closeOnEsc: true,
+          context: {
+            dataset,
+            policy: this.policy,
+          },
+        }).onClose.subscribe(resp => {
+          if (resp === 'changed' || 'deleted') {
+            this.retrieveInfo();
+          }
     });
   }
 

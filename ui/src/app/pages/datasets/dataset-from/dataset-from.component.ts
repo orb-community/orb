@@ -10,7 +10,8 @@ import {OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {DatasetPoliciesService} from 'app/common/services/dataset/dataset.policies.service';
 import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {NbDialogRef} from '@nebular/theme';
+import {NbDialogRef, NbDialogService} from '@nebular/theme';
+import {DatasetDeleteComponent} from 'app/pages/datasets/delete/dataset.delete.component';
 
 const CONFIG = {
   SINKS: 'SINKS',
@@ -63,6 +64,7 @@ export class DatasetFromComponent implements OnInit {
       private notificationsService: NotificationsService,
       private _formBuilder: FormBuilder,
       protected dialogRef: NbDialogRef<DatasetFromComponent>,
+      protected dialogService: NbDialogService,
   ) {
     this.isEdit = false;
     this.availableAgentGroups = [];
@@ -106,6 +108,8 @@ export class DatasetFromComponent implements OnInit {
       this.form.patchValue({agent_policy_id: this.policy.id});
     }
     if (!!this.dataset) {
+      const {name, agent_group_id, agent_policy_id, sink_ids} = this.dataset;
+      this.form.patchValue({name, agent_group_id, agent_policy_id, sink_ids});
       this.isEdit = true;
     }
   }
@@ -182,18 +186,35 @@ export class DatasetFromComponent implements OnInit {
       // updating existing dataset
       this.datasetService.editDataset({...payload, id: this.dataset.id}).subscribe(() => {
         this.notificationsService.success('Dataset successfully updated', '');
+        this.dialogRef.close('edited');
       });
     } else {
       this.datasetService.addDataset(payload).subscribe(() => {
         this.notificationsService.success('Dataset successfully created', '');
+        this.dialogRef.close('created');
       });
     }
+  }
 
-    this.dialogRef.close(true);
+  onDelete() {
+    this.dialogService.open(DatasetDeleteComponent, {
+      context: { name: this.dataset.name },
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe(
+        confirm => {
+          if (confirm) {
+            this.datasetService.deleteDataset(this.dataset.id).subscribe(() => {
+              this.notificationsService.success('Dataset successfully deleted', '');
+              this.dialogRef.close('deleted');
+            });
+          }
+        },
+    );
   }
 
   onClose() {
-    this.dialogRef.close(false);
+    this.dialogRef.close('canceled');
   }
 
 }

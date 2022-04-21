@@ -91,11 +91,12 @@
                 shape="round"
                 type="button"
                 (click)="onClose()">Cancel</button>
-        <button nbButton
+        <button *ngIf="isEdit"
+                nbButton
                 class="dataset-delete-button"
                 ghost
                 shape="round"
                 type="button"
-                (click)="onClose()">Delete</button>
+                (click)="onDelete()"><span>Delete Dataset</span></button>
     </nb-card-footer>
 </nb-card>
