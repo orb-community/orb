@@ -17,10 +17,7 @@ import {
 } from '@nebular/theme';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { MapModule } from './components/map/map.module';
 import { ConfirmationComponent } from './components/confirmation/confirmation.component';
-import { ChartModule } from './components/chart/chart.module';
-import { MessageMonitorComponent } from './components/message-monitor/message-monitor.component';
 import { MessageValuePipe } from './pipes/message-value.pipe';
 import { ToMillisecsPipe } from './pipes/time.pipe';
 import { TableComponent } from './components/table/table.component';
@@ -46,6 +43,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { PolicyDetailsComponent } from './components/orb/policy/policy-details/policy-details.component';
 import { PolicyInterfaceComponent } from './components/orb/policy/policy-interface/policy-interface.component';
 import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets/policy-datasets.component';
+ import { PolicyGroupsComponent } from 'app/shared/components/orb/policy/policy-groups/policy-groups.component';
 
 @NgModule({
   imports: [
@@ -53,8 +51,6 @@ import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets
     NbButtonModule,
     NbCardModule,
     NbDialogModule,
-    MapModule,
-    ChartModule,
     NbSelectModule,
     NbDatepickerModule,
     NbInputModule,
@@ -71,7 +67,6 @@ import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets
   ],
   declarations: [
     ConfirmationComponent,
-    MessageMonitorComponent,
     MessageValuePipe,
     ToMillisecsPipe,
     TableComponent,
@@ -93,15 +88,13 @@ import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets
     PolicyDetailsComponent,
     PolicyInterfaceComponent,
     PolicyDatasetsComponent,
+    PolicyGroupsComponent,
   ],
   exports: [
     ThemeModule,
     NbCardModule,
     NbIconModule,
-    MapModule,
-    ChartModule,
     ConfirmationComponent,
-    MessageMonitorComponent,
     TableComponent,
     PaginationComponent,
     AdvancedOptionsPipe,

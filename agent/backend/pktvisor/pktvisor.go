@@ -39,6 +39,7 @@ type pktvisorBackend struct {
 	pktvisorVersion string
 	proc            *cmd.Cmd
 	statusChan      <-chan cmd.Status
+	startTime       time.Time
 
 	mqttClient   mqtt.Client
 	metricsTopic string
@@ -53,6 +54,10 @@ type pktvisorBackend struct {
 	adminAPIProtocol string
 
 	scrapeOtel bool
+}
+
+func (p *pktvisorBackend) GetStartTime() time.Time {
+	return p.startTime
 }
 
 func (p *pktvisorBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
@@ -138,8 +143,10 @@ func (p *pktvisorBackend) checkAlive() (bool, error) {
 	}
 
 	if status.Complete {
-		p.proc.Stop()
-		// TODO auto restart
+		err := p.proc.Stop()
+		if err != nil {
+			p.logger.Error("proc.Stop error", zap.Error(err))
+		}
 		return false, errors.New("pktvisor process ended")
 	}
 
@@ -210,6 +217,10 @@ func (p *pktvisorBackend) Write(payload []byte) (n int, err error) {
 
 func (p *pktvisorBackend) Start() error {
 
+	// this should record the start time whether it's successful or not
+	// because it is used by the automatic restart system for last attempt
+	p.startTime = time.Now()
+
 	_, err := exec.LookPath(p.binary)
 	if err != nil {
 		p.logger.Error("pktvisor startup error: binary not found", zap.Error(err))
@@ -266,7 +277,10 @@ func (p *pktvisorBackend) Start() error {
 	}
 
 	if status.Complete {
-		p.proc.Stop()
+		err = p.proc.Stop()
+		if err != nil {
+			p.logger.Error("proc.Stop error", zap.Error(err))
+		}
 		return errors.New("pktvisor startup error, check log")
 	}
 
@@ -386,7 +400,6 @@ func (p *pktvisorBackend) Stop() error {
 	finalStatus := <-p.statusChan
 	if err != nil {
 		p.logger.Error("pktvisor shutdown error", zap.Error(err))
-		return err
 	}
 	p.scraper.Stop()
 
@@ -478,23 +491,16 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 
 func (p *pktvisorBackend) FullReset() error {
 
-	// State always will have a value, even if error is not null
-	// State it's been used to identify broken pktvisor
-	state, errMsg, err := p.GetState()
-	if err != nil {
-		p.logger.Warn("broken pktvisor, trying to start", zap.String("broken_reason", errMsg))
+	// force a stop, which stops scrape as well. if proc is dead, it no ops.
+	if err := p.Stop(); err != nil {
+		p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
+		return err
 	}
 
-	if state == backend.Running {
-		if err := p.Stop(); err != nil {
-			p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
-			return err
-		}
-	} else {
-		if err := p.Start(); err != nil {
-			p.logger.Error("failed to start backend on restart procedure", zap.Error(err))
-			return err
-		}
+	// start it
+	if err := p.Start(); err != nil {
+		p.logger.Error("failed to start backend on restart procedure", zap.Error(err))
+		return err
 	}
 
 	return nil

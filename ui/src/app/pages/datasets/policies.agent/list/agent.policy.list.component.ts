@@ -94,7 +94,6 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
     private route: ActivatedRoute,
     private router: Router,
   ) {
-    this.agentPoliciesService.clean();
     this.paginationControls = AgentPoliciesService.getDefaultPagination();
   }
 
@@ -108,7 +107,6 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
   }
 
   ngOnInit() {
-    this.agentPoliciesService.clean();
     this.getAllPolicies();
   }
 
@@ -161,6 +159,7 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
   }
 
   getAllPolicies(): void {
+    this.agentPoliciesService.clean();
     this.agentPoliciesService.getAllAgentPolicies().subscribe(resp => {
       this.paginationControls.data = resp.data;
       this.paginationControls.total = resp.data.length;
@@ -252,7 +251,7 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
       if (resp) {
         this.onOpenEdit(agentPolicy);
       } else {
-        this.getAgentsPolicies();
+        this.getAllPolicies();
       }
     });
   }

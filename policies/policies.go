@@ -6,8 +6,9 @@ package policies
 
 import (
 	"context"
-	"github.com/ns1labs/orb/pkg/types"
 	"time"
+
+	"github.com/ns1labs/orb/pkg/types"
 )
 
 type Policy struct {
@@ -110,6 +111,9 @@ type Service interface {
 
 	// DeleteSinkFromAllDatasetsInternal removes a sink from a dataset
 	DeleteSinkFromAllDatasetsInternal(ctx context.Context, sinkID string, ownerID string) ([]Dataset, error)
+
+	// DeleteAgentGroupFromAllDatasets removes an agent group from a dataset
+	DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error
 }
 
 type Repository interface {
@@ -165,4 +169,7 @@ type Repository interface {
 
 	// ActivateDatasetByID Activate a dataset
 	ActivateDatasetByID(ctx context.Context, datasetID string, ownerID string) error
+
+	// DeleteAgentGroupFromAllDatasets removes agent group from a dataset
+	DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, ownerID string) error
 }

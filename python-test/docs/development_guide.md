@@ -41,7 +41,8 @@
 |    [Agent subscription to group with policies after editing agent's tags and agent group's tags (editing tags after agent provision)](integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_after_agent_provision.md)    |         ✅         |                  |  👍   |   👍   |
 | [Agent unsubscription to group with policies after editing agent's tags and agent group's tags (editing tags before agent provision)](integration/agent_unsubscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_before_agent_provision.md) |         ✅         |                  |  👍   |   👍   |
 |   [Agent subscription to group with policies after editing agent's tags and agent group's tags (editing tags before agent provision)](integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_before_agent_provision.md)   |         ✅         |                  |  👍   |   👍   |
-
+|                                                                                                      [Remotely reset an agent with policies](integration/reset_agent_remotely.md)                                                                                                       |         ✅         |        ✅         |  👍   |   👍   |
+|                                                                                                     [Remotely reset an agent without policies](integration/reset_agent_remotely.md)                                                                                                     |         ✅         |        ✅         |  👍   |   👍   |
 ---------------------------------
 ## **LOGIN**
 
