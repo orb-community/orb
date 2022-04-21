@@ -45,9 +45,12 @@ nb-tabset {
   margin: 0;
 }
 
-// ORB
-.sink-edit-button {
+.dataset-save-button {
   background-color: blue;
+}
+
+.dataset-delete-button {
+  background-color: #df316f;
 }
 
 .orb-close-dialog {

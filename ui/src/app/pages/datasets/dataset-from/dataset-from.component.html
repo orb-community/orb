@@ -80,7 +80,22 @@
         </form>
     </nb-card-body>
     <nb-card-footer>
-        <button nbButton status="primary" class="sink-edit-button" (click)="onFormSubmit()">Save</button>
-        <button nbButton status="primary" class="sink-edit-button" (click)="onClose()">Edit</button>
+        <button nbButton
+                status="primary"
+                class="dataset-save-button"
+                shape="round"
+                (click)="onFormSubmit()">Save</button>
+        <button nbButton
+                status="primary"
+                ghost
+                shape="round"
+                type="button"
+                (click)="onClose()">Cancel</button>
+        <button nbButton
+                class="dataset-delete-button"
+                ghost
+                shape="round"
+                type="button"
+                (click)="onClose()">Delete</button>
     </nb-card-footer>
 </nb-card>
