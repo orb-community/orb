@@ -63,7 +63,7 @@ func newExporter(cfg config.Exporter, set component.ExporterCreateSettings) (*ex
 	userAgent := fmt.Sprintf("%s/%s (%s/%s)",
 		set.BuildInfo.Description, set.BuildInfo.Version, runtime.GOOS, runtime.GOARCH)
 
-	// client construction is deferred to start
+	// Client construction is deferred to start
 	return &exporter{
 		config:    oCfg,
 		logger:    set.Logger,
@@ -74,23 +74,27 @@ func newExporter(cfg config.Exporter, set component.ExporterCreateSettings) (*ex
 
 // start actually creates the HTTP client. The client construction is deferred till this point as this
 // is the only place we get hold of Extensions which are required to construct auth round tripper.
-func (e *exporter) start(_ context.Context, host component.Host) error {
-	opts := mqtt.NewClientOptions().AddBroker(e.config.Address).SetClientID(e.config.Id)
-	opts.SetUsername(e.config.Id)
-	opts.SetPassword(e.config.Key)
-	opts.SetKeepAlive(10 * time.Second)
-	opts.SetDefaultPublishHandler(func(client mqtt.Client, message mqtt.Message) {
-		e.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
-	})
-	opts.SetPingTimeout(5 * time.Second)
-	opts.SetAutoReconnect(true)
+func (e *exporter) start(_ context.Context, _ component.Host) error {
+	client := e.config.Client
+	if client == nil {
+		opts := mqtt.NewClientOptions().AddBroker(e.config.Address).SetClientID(e.config.Id)
+		opts.SetUsername(e.config.Id)
+		opts.SetPassword(e.config.Key)
+		opts.SetKeepAlive(10 * time.Second)
+		opts.SetDefaultPublishHandler(func(client mqtt.Client, message mqtt.Message) {
+			e.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
+		})
+		opts.SetPingTimeout(5 * time.Second)
+		opts.SetAutoReconnect(true)
 
-	if e.config.TLS {
-		opts.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		if e.config.TLS {
+			opts.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		}
+
+		client = mqtt.NewClient(opts)
 	}
 
-	c := mqtt.NewClient(opts)
-	if token := c.Connect(); token.Wait() && token.Error() != nil {
+	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 

@@ -3,6 +3,7 @@ package otlpmqttexporter
 import (
 	"context"
 	"fmt"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
@@ -70,6 +71,15 @@ func composeSignalURL(oCfg *Config, signalOverrideURL string, signalName string)
 		return "", fmt.Errorf("either endpoint or %s_endpoint must be specified", signalName)
 	default:
 		return oCfg.Endpoint + "/v1/" + signalName, nil
+	}
+}
+
+func CreateConfigClient(token mqtt.Token) config.Exporter {
+	return &Config{
+		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
+		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
+		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
+		Token:            token,
 	}
 }
 

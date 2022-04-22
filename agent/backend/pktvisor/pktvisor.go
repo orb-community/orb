@@ -374,6 +374,71 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
+func (p *pktvisorBackend) scrapeOtelWithoutExporter() (err error) {
+	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
+		metrics, err := p.scrapeMetrics(1)
+		if err != nil {
+			p.logger.Error("scrape failed", zap.Error(err))
+			return
+		}
+		if len(metrics) == 0 {
+			p.logger.Warn("scrape: no policies found, skipping")
+			return
+		}
+
+		var batchPayload []fleet.AgentMetricsRPCPayload
+		totalSize := 0
+		for pName, pMetrics := range metrics {
+			data, err := p.policyRepo.GetByName(pName)
+			if err != nil {
+				p.logger.Error("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.Error(err))
+				continue
+			}
+			payloadData, err := json.Marshal(pMetrics)
+			if err != nil {
+				p.logger.Error("error marshalling scraped metric json", zap.String("policy", pName), zap.Error(err))
+				continue
+			}
+			metricPayload := fleet.AgentMetricsRPCPayload{
+				PolicyID:   data.ID,
+				PolicyName: data.Name,
+				Datasets:   data.GetDatasetIDs(),
+				Format:     "otlp",
+				BEVersion:  p.pktvisorVersion,
+				Data:       payloadData,
+			}
+			batchPayload = append(batchPayload, metricPayload)
+			totalSize += len(payloadData)
+			p.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", data.ID), zap.Int("payload_size_b", len(payloadData)))
+		}
+
+		rpc := fleet.AgentMetricsRPC{
+			SchemaVersion: fleet.CurrentRPCSchemaVersion,
+			Func:          fleet.AgentMetricsRPCFunc,
+			Payload:       batchPayload,
+		}
+
+		body, err := json.Marshal(rpc)
+		if err != nil {
+			p.logger.Error("error marshalling metric rpc payload", zap.Error(err))
+			return
+		}
+
+		if token := p.mqttClient.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
+			p.logger.Error("error sending metrics RPC", zap.String("topic", p.metricsTopic), zap.Error(token.Error()))
+		}
+		p.logger.Info("scraped and published metrics", zap.String("topic", p.metricsTopic), zap.Int("payload_size_b", totalSize), zap.Int("batch_count", len(batchPayload)))
+
+	})
+
+	if err != nil {
+		return err
+	}
+
+	job.SingletonMode()
+	return nil
+}
+
 func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 	ctx := context.Background()
 	p.exporter, err = createOtlpMqttExporter(ctx, p.mqttConfig, p.logger)
