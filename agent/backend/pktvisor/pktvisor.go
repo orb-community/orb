@@ -441,7 +441,7 @@ func (p *pktvisorBackend) scrapeOtelWithoutExporter() (err error) {
 
 func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 	ctx := context.Background()
-	p.exporter, err = createOtlpMqttExporter(ctx, p.mqttConfig, p.logger)
+	p.exporter, err = createOtlpMqttExporter(ctx, p.mqttConfig, p.mqttClient, p.logger)
 	if err != nil {
 		p.logger.Error("failed to create a exporter", zap.Error(err))
 	}
@@ -548,15 +548,28 @@ func createOtlpExporter(ctx context.Context, logger *zap.Logger) (component.Metr
 	return exporter, nil
 }
 
-func createOtlpMqttExporter(ctx context.Context, mqttConfig config.MQTTConfig, logger *zap.Logger) (component.MetricsExporter, error) {
-	cfg := otlpmqttexporter.CreateConfig(mqttConfig.Address, mqttConfig.Id, mqttConfig.Key, mqttConfig.ChannelID)
-	set := otlpmqttexporter.CreateDefaultSettings(logger)
-	// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
-	exporter, err := otlpexporter.CreateMetricsExporter(ctx, set, cfg)
-	if err != nil {
-		return nil, err
+func createOtlpMqttExporter(ctx context.Context, mqttConfig config.MQTTConfig, client mqtt.Client, logger *zap.Logger) (component.MetricsExporter, error) {
+
+	if client != nil {
+		cfg := otlpmqttexporter.CreateConfigClient(client)
+		set := otlpmqttexporter.CreateDefaultSettings(logger)
+		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		exporter, err := otlpexporter.CreateMetricsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return exporter, nil
+	} else {
+		cfg := otlpmqttexporter.CreateConfig(mqttConfig.Address, mqttConfig.Id, mqttConfig.Key, mqttConfig.ChannelID)
+		set := otlpmqttexporter.CreateDefaultSettings(logger)
+		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		exporter, err := otlpexporter.CreateMetricsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return exporter, nil
 	}
-	return exporter, nil
+
 }
 
 func createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {

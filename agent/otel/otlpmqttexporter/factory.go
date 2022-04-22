@@ -74,12 +74,11 @@ func composeSignalURL(oCfg *Config, signalOverrideURL string, signalName string)
 	}
 }
 
-func CreateConfigClient(token mqtt.Token, client mqtt.Client) config.Exporter {
+func CreateConfigClient(client mqtt.Client) config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
 		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
-		Token:            token,
 		Client:           client,
 	}
 }

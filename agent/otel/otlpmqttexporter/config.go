@@ -17,7 +17,6 @@ type Config struct {
 	exporterhelper.RetrySettings  `mapstructure:"retry_on_failure"`
 
 	// Add Client directly to only re-use an existing connection - requires "github.com/eclipse/paho.mqtt.golang"
-	Token  mqtt.Token
 	Client mqtt.Client
 
 	// Configuration to connect to MQTT
@@ -34,7 +33,7 @@ var _ config.Exporter = (*Config)(nil)
 // Validate checks if the exporter configuration is valid
 func (cfg *Config) Validate() error {
 	if (cfg.Address == "" && cfg.Id == "" && cfg.Key == "" && cfg.ChannelID == "") ||
-		cfg.Token != nil && cfg.Client != nil {
+		cfg.Client != nil {
 		return fmt.Errorf("invalid mqtt configuration")
 	}
 	return nil
