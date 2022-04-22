@@ -403,7 +403,7 @@ func (p *pktvisorBackend) scrapeOtelWithoutExporter() (err error) {
 				PolicyID:   data.ID,
 				PolicyName: data.Name,
 				Datasets:   data.GetDatasetIDs(),
-				Format:     "otlp",
+				Format:     "json",
 				BEVersion:  p.pktvisorVersion,
 				Data:       payloadData,
 			}

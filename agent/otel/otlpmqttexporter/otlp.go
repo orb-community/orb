@@ -65,7 +65,7 @@ func newExporter(cfg config.Exporter, set component.ExporterCreateSettings) (*ex
 // start actually creates the HTTP client. The client construction is deferred till this point as this
 // is the only place we get hold of Extensions which are required to construct auth round tripper.
 func (e *exporter) start(_ context.Context, _ component.Host) error {
-	token := e.config.Token
+	token := e.config.Client
 	if token == nil {
 		opts := mqtt.NewClientOptions().AddBroker(e.config.Address).SetClientID(e.config.Id)
 		opts.SetUsername(e.config.Id)
