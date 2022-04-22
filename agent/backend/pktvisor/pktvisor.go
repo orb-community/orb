@@ -86,7 +86,7 @@ type AppMetrics struct {
 	} `json:"app"`
 }
 
-// note this needs to be stateless because it is calledfor multiple go routines
+// note this needs to be stateless because it is called for multiple go routines
 func (p *pktvisorBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string, timeout int32) error {
 	client := http.Client{
 		Timeout: time.Second * time.Duration(timeout),
@@ -179,16 +179,16 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 		},
 	}
 
-	pyaml, err := yaml.Marshal(fullPolicy)
+	policyYaml, err := yaml.Marshal(fullPolicy)
 	if err != nil {
 		p.logger.Warn("yaml policy marshal failure", zap.String("policy_id", data.ID), zap.Any("policy", fullPolicy))
 		return err
 	}
 
 	var resp map[string]interface{}
-	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(pyaml), "application/x-yaml", 5)
+	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(policyYaml), "application/x-yaml", 5)
 	if err != nil {
-		p.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", pyaml))
+		p.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", policyYaml))
 		return err
 	}
 
@@ -474,8 +474,8 @@ func (p *pktvisorBackend) Stop() error {
 	p.scraper.Stop()
 
 	if p.scrapeOtel {
-		p.exporter.Shutdown(context.Background())
-		p.receiver.Shutdown(context.Background())
+		_ = p.exporter.Shutdown(context.Background())
+		_ = p.receiver.Shutdown(context.Background())
 	}
 
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
@@ -548,8 +548,8 @@ func createOtlpExporter(ctx context.Context, logger *zap.Logger) (component.Metr
 	return exporter, nil
 }
 
-func createOtlpMqttExporter(ctx context.Context, mqcfg config.MQTTConfig, logger *zap.Logger) (component.MetricsExporter, error) {
-	cfg := otlpmqttexporter.CreateConfig(mqcfg.Address, mqcfg.Id, mqcfg.Key, mqcfg.ChannelID)
+func createOtlpMqttExporter(ctx context.Context, mqttConfig config.MQTTConfig, logger *zap.Logger) (component.MetricsExporter, error) {
+	cfg := otlpmqttexporter.CreateConfig(mqttConfig.Address, mqttConfig.Id, mqttConfig.Key, mqttConfig.ChannelID)
 	set := otlpmqttexporter.CreateDefaultSettings(logger)
 	// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 	exporter, err := otlpexporter.CreateMetricsExporter(ctx, set, cfg)

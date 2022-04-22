@@ -1,34 +1,24 @@
 package otlpmqttexporter
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"runtime"
-	"strconv"
 	"time"
-
-	"go.uber.org/zap"
-	"google.golang.org/genproto/googleapis/rpc/status"
-	"google.golang.org/protobuf/proto"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumererror"
-	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/collector/pdata/plog"
-	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"go.uber.org/zap"
 )
 
 type exporter struct {
@@ -75,8 +65,8 @@ func newExporter(cfg config.Exporter, set component.ExporterCreateSettings) (*ex
 // start actually creates the HTTP client. The client construction is deferred till this point as this
 // is the only place we get hold of Extensions which are required to construct auth round tripper.
 func (e *exporter) start(_ context.Context, _ component.Host) error {
-	client := e.config.Client
-	if client == nil {
+	token := e.config.Token
+	if token == nil {
 		opts := mqtt.NewClientOptions().AddBroker(e.config.Address).SetClientID(e.config.Id)
 		opts.SetUsername(e.config.Id)
 		opts.SetPassword(e.config.Key)
@@ -91,134 +81,45 @@ func (e *exporter) start(_ context.Context, _ component.Host) error {
 			opts.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 		}
 
-		client = mqtt.NewClient(opts)
-	}
-
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		return token.Error()
+		client := mqtt.NewClient(opts)
+		if token := client.Connect(); token.Wait() && token.Error() != nil {
+			return token.Error()
+		}
 	}
 
 	return nil
 }
 
-func (e *exporter) pushTraces(ctx context.Context, td ptrace.Traces) error {
-	tr := ptraceotlp.NewRequest()
-	tr.SetTraces(td)
-	request, err := tr.MarshalProto()
-	if err != nil {
-		return consumererror.NewPermanent(err)
-	}
-
-	return e.export(ctx, e.tracesURL, request)
+func (e *exporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
+	return fmt.Errorf("not implemented")
 }
 
+// pushMetrics Exports metrics converting from OTLP to Json to push to
 func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewRequest()
 	md.MoveTo(md)
-	request, err := tr.MarshalProto()
+	metricsPayload, err := tr.MarshalJSON()
+	decoder := pmetric.NewJSONUnmarshaler()
+	var got interface{}
+	got, err = decoder.UnmarshalMetrics(metricsPayload)
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
-	return e.export(ctx, e.metricsURL, request)
+	return e.export(ctx, e.config.MetricsTopic, got)
 }
 
-func (e *exporter) pushLogs(ctx context.Context, ld plog.Logs) error {
-	tr := plogotlp.NewRequest()
-	tr.SetLogs(ld)
-	request, err := tr.MarshalProto()
-	if err != nil {
-		return consumererror.NewPermanent(err)
-	}
-
-	return e.export(ctx, e.logsURL, request)
+func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
+	return fmt.Errorf("not implemented")
 }
 
-func (e *exporter) export(ctx context.Context, url string, request []byte) error {
-	e.logger.Debug("Preparing to make MQTT request", zap.String("url", url))
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(request))
-	if err != nil {
-		return consumererror.NewPermanent(err)
+func (e *exporter) export(_ context.Context, metricsTopic string, metricPayloadData interface{}) error {
+	// convert metrics to interface
+	body := metricPayloadData
+	if token := e.config.Client.Publish(metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
+		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
+		return token.Error()
 	}
-	req.Header.Set("Content-Type", "application/x-protobuf")
-	req.Header.Set("User-Agent", e.userAgent)
+	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", 0), zap.Int("batch_count", 0))
 
-	resp, err := e.client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to make an HTTP request: %w", err)
-	}
-
-	defer func() {
-		// Discard any remaining response body when we are done reading.
-		io.CopyN(ioutil.Discard, resp.Body, maxHTTPResponseReadBytes) // nolint:errcheck
-		resp.Body.Close()
-	}()
-
-	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
-		// Request is successful.
-		return nil
-	}
-
-	respStatus := readResponse(resp)
-
-	// Format the error message. Use the status if it is present in the response.
-	var formattedErr error
-	if respStatus != nil {
-		formattedErr = fmt.Errorf(
-			"error exporting items, request to %s responded with HTTP Status Code %d, Message=%s, Details=%v",
-			url, resp.StatusCode, respStatus.Message, respStatus.Details)
-	} else {
-		formattedErr = fmt.Errorf(
-			"error exporting items, request to %s responded with HTTP Status Code %d",
-			url, resp.StatusCode)
-	}
-
-	// Check if the server is overwhelmed.
-	// See spec https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md#throttling-1
-	if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusServiceUnavailable {
-		// Fallback to 0 if the Retry-After header is not present. This will trigger the
-		// default backoff policy by our caller (retry handler).
-		retryAfter := 0
-		if val := resp.Header.Get(headerRetryAfter); val != "" {
-			if seconds, err2 := strconv.Atoi(val); err2 == nil {
-				retryAfter = seconds
-			}
-		}
-		// Indicate to our caller to pause for the specified number of seconds.
-		return exporterhelper.NewThrottleRetry(formattedErr, time.Duration(retryAfter)*time.Second)
-	}
-
-	if resp.StatusCode == http.StatusBadRequest {
-		// Report the failure as permanent if the server thinks the request is malformed.
-		return consumererror.NewPermanent(formattedErr)
-	}
-
-	// All other errors are retryable, so don't wrap them in consumererror.NewPermanent().
-	return formattedErr
-}
-
-// Read the response and decode the status.Status from the body.
-// Returns nil if the response is empty or cannot be decoded.
-func readResponse(resp *http.Response) *status.Status {
-	var respStatus *status.Status
-	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
-		// Request failed. Read the body. OTLP spec says:
-		// "Response body for all HTTP 4xx and HTTP 5xx responses MUST be a
-		// Protobuf-encoded Status message that describes the problem."
-		maxRead := resp.ContentLength
-		if maxRead == -1 || maxRead > maxHTTPResponseReadBytes {
-			maxRead = maxHTTPResponseReadBytes
-		}
-		respBytes := make([]byte, maxRead)
-		n, err := io.ReadFull(resp.Body, respBytes)
-		if err == nil && n > 0 {
-			// Decode it as Status struct. See https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md#failures
-			respStatus = &status.Status{}
-			err = proto.Unmarshal(respBytes, respStatus)
-			if err != nil {
-				respStatus = nil
-			}
-		}
-	}
-
-	return respStatus
+	return nil
 }
