@@ -1,64 +1,64 @@
-@import '../../@theme/styles/themes';
+@import '../../../@theme/styles/themes';
 
 .login-layout {
-  background: url('assets/images/login-background.png');
+  background: url('../../../../assets/images/login-background.png');
   transform: translateY(-2px);
 
   .orb-pane {
     background-blend-mode: normal;
     background-color: transparent;
-    padding: 0;
-    margin: 0.2vh 350px 0.2vh 144px;
     display: flex;
+    margin: 0.2vh 350px 0.2vh 144px;
+    padding: 0;
 
     div {
       max-width: 331px;
 
       img {
-        width: 313px;
         height: 119px;
         margin-bottom: 47px;
+        width: 313px;
       }
 
       p {
+        color: #969fb9;
         font-family: 'Montserrat', serif;
         font-size: 24px;
         font-style: normal;
         font-weight: 200 !important;
-        line-height: 32px;
         letter-spacing: 0;
+        line-height: 32px;
         text-align: left;
-        color: #969fb9;
       }
 
       strong {
+        color: #fff;
         font-family: 'Montserrat', serif;
         font-size: 24px;
         font-style: normal;
         font-weight: 400 !important;
-        line-height: 32px;
         letter-spacing: 0;
+        line-height: 32px;
         text-align: left;
-        color: #ffffff;
       }
     }
   }
 }
 
 .form-pane {
-  position: absolute;
   height: 100%;
-  top: 0;
+  position: absolute;
   right: 0;
+  top: 0;
   width: 600px;
 
   a {
-    font-family: 'Montserrat', serif;
     color: #62d9ff;
+    font-family: 'Montserrat', serif;
   }
 
   .label {
-    color: #ffffff;
+    color: #fff;
   }
 
   .big {
@@ -67,17 +67,17 @@
   }
 
   .bg {
-    width: 100%;
+    background: #fff;
+    background-blend-mode: overlay;
     height: 100%;
-    background: #ffffff;
     opacity: 0.2;
     position: absolute;
-    background-blend-mode: overlay;
+    width: 100%;
   }
 
   .pane {
-    padding: 0 6rem;
     height: 100%;
+    padding: 0 6rem;
     position: relative;
     z-index: 3;
 
@@ -100,25 +100,25 @@
       padding: 0;
 
       li {
+        list-style: none;
         margin: 0;
         padding: 0;
-        list-style: none;
       }
     }
 
     .alert-error {
       background: linear-gradient(0deg, rgba(175, 80, 255, 0.25), rgba(175, 80, 255, 0.25)), #313e5d;
       border: 1px solid #af50ff;
-      box-sizing: border-box;
       border-radius: 2px;
+      box-sizing: border-box;
     }
   }
 
   .password-icon {
-    position: relative;
-    float: right;
-    margin-top: -40px;
-    margin-right: 22px;
     color: nb-theme(color-basic-600);
+    float: right;
+    margin-right: 22px;
+    margin-top: -40px;
+    position: relative;
   }
 }

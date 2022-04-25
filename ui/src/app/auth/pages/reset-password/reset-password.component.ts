@@ -1,8 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Router } from '@angular/router';
-import {NbResetPasswordComponent, NB_AUTH_OPTIONS, getDeepFromObject, NbAuthResult} from '@nebular/auth';
-
-import { NbAuthService } from '@nebular/auth';
+import {
+  getDeepFromObject,
+  NB_AUTH_OPTIONS,
+  NbAuthResult,
+  NbAuthService,
+  NbResetPasswordComponent,
+} from '@nebular/auth';
 
 @Component({
   selector: 'ngx-reset-password-page',
@@ -13,18 +17,23 @@ import { NbAuthService } from '@nebular/auth';
 export class ResetPasswordComponent extends NbResetPasswordComponent {
 
   redirectDelay: number = 0;
+
   showMessages: any = {};
+
   strategy: string = '';
 
   submitted = false;
+
   errors: string[] = [];
+
   messages: string[] = [];
+
   user: any = {};
 
   constructor(protected service: NbAuthService,
-              @Inject(NB_AUTH_OPTIONS) protected options = {},
-              protected cd: ChangeDetectorRef,
-              protected router: Router) {
+    @Inject(NB_AUTH_OPTIONS) protected options = {},
+    protected cd: ChangeDetectorRef,
+    protected router: Router) {
 
     super(service, options, cd, router);
   }
