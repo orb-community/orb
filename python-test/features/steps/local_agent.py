@@ -1,4 +1,4 @@
-from utils import safe_load_json, random_string
+from utils import safe_load_json, random_string, threading_wait_until
 from behave import then, step
 from hamcrest import *
 from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
@@ -6,7 +6,6 @@ import docker
 import time
 import subprocess
 import shlex
-import threading
 
 configs = TestConfig.configs()
 ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
@@ -42,38 +41,20 @@ def run_local_agent_container(context, port):
 @step('the container logs that were output after {condition} contain the message "{text_to_match}" within'
       '{time_to_wait} seconds')
 def check_agent_logs_considering_timestamp(context, condition, text_to_match, time_to_wait):
-    event = threading.Event()
-    time_waiting = 0
-    wait_time = 0.5
-    timeout = int(time_to_wait)
-    text_found = False
-
-    while not event.is_set() and time_waiting < timeout:
-        logs = get_orb_agent_logs(context.container_id)
-        text_found = check_logs_contain_message(logs, text_to_match, event, context.considered_timestamp)
-        if text_found is True:
-            break
-        event.wait(wait_time)
-        time_waiting += wait_time
+    #todo improve the logic for timestamp
+    if "reset" in condition:
+        considered_timestamp = context.considered_timestamp_reset
+    else:
+        considered_timestamp = context.considered_timestamp
+    text_found = get_logs_and_check(context.container_id, text_to_match, considered_timestamp,
+                                    timeout=time_to_wait)
 
     assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
 
 
 @then('the container logs should contain the message "{text_to_match}" within {time_to_wait} seconds')
 def check_agent_log(context, text_to_match, time_to_wait):
-    event = threading.Event()
-    time_waiting = 0
-    wait_time = 0.5
-    timeout = int(time_to_wait)
-    text_found = False
-
-    while not event.is_set() and time_waiting < timeout:
-        logs = get_orb_agent_logs(context.container_id)
-        text_found = check_logs_contain_message(logs, text_to_match, event)
-        if text_found is True:
-            break
-        time.sleep(wait_time)
-        time_waiting += wait_time
+    text_found = get_logs_and_check(context.container_id, text_to_match, timeout=time_to_wait)
 
     assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
 
@@ -86,13 +67,17 @@ def check_container_on_port_status(context, port, status, seconds):
     if port == "default":
         port = str(10853)
     time.sleep(int(seconds))
-    check_container_status(context.containers_id[str(port)], status)
+    container_status = check_container_status(context.containers_id[str(port)], status, timeout=seconds)
+    assert_that(container_status, equal_to(status), f"Container {context.container_id} failed with status"
+                                                    f"{container_status}")
 
 
 @step("last container created is {status} after {seconds} seconds")
 def check_last_container_status(context, status, seconds):
     time.sleep(int(seconds))
-    check_container_status(context.container_id, status)
+    container_status = check_container_status(context.container_id, status, timeout=seconds)
+    assert_that(container_status, equal_to(status), f"Container {context.container_id} failed with status"
+                                                    f"{container_status}")
 
 
 @step("the agent container is started using the command provided by the UI on port {port}")
@@ -133,7 +118,6 @@ def get_orb_agent_logs(container_id):
     :param (str) container_id: specifying the orb agent container
     :returns: (list) of log lines
     """
-
     docker_client = docker.from_env()
     container = docker_client.containers.get(container_id)
     return container.logs().decode("utf-8").split("\n")
@@ -145,6 +129,7 @@ def check_logs_contain_message(logs, expected_message, event, start_time=0):
 
     :param (list) logs: list of log lines
     :param (str) expected_message: message that we expect to find in the logs
+    :param (obj) event: threading.event
     :param (int) start_time: time to be considered as initial time. Default: None
     :returns: (bool) whether expected message was found in the logs
     """
@@ -194,14 +179,34 @@ def rename_container(container_id, container_name):
     subprocess.Popen(rename_container_args, stdout=subprocess.PIPE)
 
 
-def check_container_status(container_id, status):
+@threading_wait_until
+def check_container_status(container_id, status, event=None):
     """
 
     :param container_id: agent container ID
     :param status: status that we expect to find in the container
+    :param event: threading.event
+    :return status of the container
     """
     docker_client = docker.from_env()
     container = docker_client.containers.list(all=True, filters={'id': container_id})
     assert_that(container, has_length(1))
     container = container[0]
-    assert_that(container.status, equal_to(status), f"Container {container_id} failed with status {container.status}")
+    if container.status == status:
+        event.set()
+    return container.status
+
+
+@threading_wait_until
+def get_logs_and_check(container_id, expected_message, start_time=0, event=None):
+    """
+
+    :param container_id: agent container ID
+    :param (str) expected_message: message that we expect to find in the logs
+    :param (int) start_time: time to be considered as initial time. Default: None
+    :param (obj) event: threading.event
+    :return: (bool) if the expected message is found return True, if not, False
+    """
+    logs = get_orb_agent_logs(container_id)
+    text_found = check_logs_contain_message(logs, expected_message, event, start_time)
+    return text_found

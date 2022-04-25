@@ -1,5 +1,6 @@
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, create_tags_set
+from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
+    create_tags_set, threading_wait_until
 from local_agent import run_local_agent_container
 from control_plane_agent_groups import return_matching_groups
 from behave import given, when, then, step
@@ -24,7 +25,10 @@ def check_if_agents_exist(context, orb_tags, status):
     agent_id = context.agent['id']
     existing_agents = get_agent(token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
-    expect_container_status(token, agent_id, status)
+    timeout = 30
+    agent_status = expect_container_status(token, agent_id, status, timeout=timeout)
+    assert_that(agent_status, is_(equal_to(status)),
+                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
 
 
 @step('a new agent is created with {orb_tags} orb tag(s)')
@@ -45,9 +49,12 @@ def agent_is_created_matching_group(context):
 
 @then('the agent status in Orb should be {status}')
 def check_agent_online(context, status):
+    timeout = 10
     token = context.token
     agent_id = context.agent['id']
-    expect_container_status(token, agent_id, status)
+    agent_status = expect_container_status(token, agent_id, status, timeout=timeout)
+    assert_that(agent_status, is_(equal_to(status)),
+                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
 
 
 @then('cleanup agents')
@@ -67,7 +74,8 @@ def clean_agents(context):
 def multiple_dataset_for_policy(context, amount_of_datasets):
     agent = get_agent(context.token, context.agent['id'])
     for policy_id in context.list_agent_policies_id:
-        assert_that(len(agent['last_hb_data']['policy_state'][policy_id]['datasets']), equal_to(int(amount_of_datasets)),
+        assert_that(len(agent['last_hb_data']['policy_state'][policy_id]['datasets']),
+                    equal_to(int(amount_of_datasets)),
                     f"Amount of datasets linked with policy {policy_id} failed")
 
 
@@ -82,18 +90,8 @@ def list_policies_applied_to_an_agent_and_referred_status(context, amount_of_pol
 
 @step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied to the agent")
 def list_policies_applied_to_an_agent(context, amount_of_policies):
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = 30
-    context.list_agent_policies_id = list()
-    while time_waiting < timeout:
-        context.agent = get_agent(context.token, context.agent['id'])
-        if 'policy_state' in context.agent['last_hb_data'].keys():
-            context.list_agent_policies_id = list(context.agent['last_hb_data']['policy_state'].keys())
-            if len(context.list_agent_policies_id) == int(amount_of_policies):
-                break
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
+    context.agent, context.list_agent_policies_id = get_policies_applied_to_an_agent(context.token, context.agent['id'],
+                                                                                     amount_of_policies, timeout=180)
 
     assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)),
                 f"Amount of policies applied to this agent failed with {context.list_agent_policies_id} policies")
@@ -101,20 +99,10 @@ def list_policies_applied_to_an_agent(context, amount_of_policies):
 
 @step("this agent's heartbeat shows that {amount_of_groups} groups are matching the agent")
 def list_groups_matching_an_agent(context, amount_of_groups):
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = 30
-    context.list_groups_id = list()
-    groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups, context.agent)
-    while time_waiting < timeout:
-        agent = get_agent(context.token, context.agent['id'])
-        if 'group_state' in agent['last_hb_data'].keys():
-            context.list_groups_id = list(agent['last_hb_data']['group_state'].keys())
-            if sorted(context.list_groups_id) == sorted(context.groups_matching_id):
-                break
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
-
+    groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups,
+                                                                         context.agent)
+    context.list_groups_id = get_groups_to_which_agent_is_matching(context.token, context.agent['id'],
+                                                                   context.groups_matching_id, timeout=180)
     assert_that(len(context.list_groups_id), equal_to(int(amount_of_groups)),
                 f"Amount of groups matching the agent failed with {context.list_groups_id} groups")
     assert_that(sorted(context.list_groups_id), equal_to(sorted(context.groups_matching_id)),
@@ -155,14 +143,16 @@ def check_agent_tags(context, amount_of_tags):
 
 @step("remotely restart the agent")
 def reset_agent_remotely(context):
-    context.considered_timestamp = datetime.now().timestamp()
+    context.considered_timestamp_reset = datetime.now().timestamp()
+    # print(context.considered_timestamp) #remove
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': context.token}
     response = requests.post(f"{base_orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request)
     assert_that(response.status_code, equal_to(200),
-            'Request to restart agent failed with status=' + str(response.status_code))
+                'Request to restart agent failed with status=' + str(response.status_code))
 
 
-def expect_container_status(token, agent_id, status):
+@threading_wait_until
+def expect_container_status(token, agent_id, status, event=None):
     """
     Keeps fetching agent data from Orb control plane until it gets to
     the expected agent status or this operation times out
@@ -170,22 +160,15 @@ def expect_container_status(token, agent_id, status):
     :param (str) token: used for API authentication
     :param (str) agent_id: whose status will be evaluated
     :param (str) status: expected agent status
+    :param (obj) event: threading.event
     """
 
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = 10
-
-    while time_waiting < timeout:
-        agent = get_agent(token, agent_id)
-        agent_status = agent['state']
-        if agent_status == status:
-            break
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
-
-    assert_that(agent_status, is_(equal_to(status)),
-                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
+    agent = get_agent(token, agent_id)
+    agent_status = agent['state']
+    if agent_status == status:
+        event.set()
+        return agent_status
+    return agent_status
 
 
 def get_agent(token, agent_id):
@@ -289,3 +272,44 @@ def edit_agent(token, agent_id, name, tags, expected_status_code=200):
                 'Request to edit agent failed with status=' + str(response.status_code))
 
     return response.json()
+
+
+@threading_wait_until
+def get_policies_applied_to_an_agent(token, agent_id, amount_of_policies, event=None):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: that identifies the agent to be deleted
+    :param (int) amount_of_policies: amount of policies that is expected to be applied to the agents
+    :param (obj) event: threading.event
+    :return:  (dict) agent -> the fetched agent and (list) list_agent_policies_id -> list with the ids of the policies
+    that are applied to the agent
+    """
+    list_agent_policies_id = list()
+    agent = get_agent(token, agent_id)
+    if 'policy_state' in agent['last_hb_data'].keys():
+        list_agent_policies_id = list(agent['last_hb_data']['policy_state'].keys())
+        if len(list_agent_policies_id) == int(amount_of_policies):
+            event.set()
+            return agent, list_agent_policies_id
+    return agent, list_agent_policies_id
+
+
+@threading_wait_until
+def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, event=None):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: that identifies the agent to be deleted
+    :param (list) groups_matching_ids: list with the ids of the groups to with the agent should be subscribed
+    :param (obj) event: threading.event
+    :return: (list) list_groups_id -> list with the ids of the groups to with the agent is subscribed
+    """
+    list_groups_id = list()
+    agent = get_agent(token, agent_id)
+    if 'group_state' in agent['last_hb_data'].keys():
+        list_groups_id = list(agent['last_hb_data']['group_state'].keys())
+        if sorted(list_groups_id) == sorted(groups_matching_ids):
+            event.set()
+            return list_groups_id
+    return list_groups_id

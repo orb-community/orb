@@ -2,6 +2,8 @@ import random
 import string
 from json import loads, JSONDecodeError
 from hamcrest import *
+import threading
+from datetime import datetime
 
 tag_prefix = "test_tag_"
 
@@ -116,3 +118,18 @@ def remove_empty_from_json(json_file):
         elif isinstance(value, dict):
             remove_empty_from_json(value)
     return json_file
+
+
+def threading_wait_until(func):
+    def wait_event(*args, wait_time=0.5, timeout=10, start_func_value=False, **kwargs):
+        event = threading.Event()
+        func_value = start_func_value
+        start = datetime.now().timestamp()
+        time_running = 0
+        while not event.is_set() and time_running < int(timeout):
+            func_value = func(*args, event=event, **kwargs)
+            event.wait(wait_time)
+            time_running = datetime.now().timestamp() - start
+        return func_value
+
+    return wait_event

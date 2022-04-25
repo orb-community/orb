@@ -2,7 +2,7 @@ from test_config import TestConfig
 from local_agent import get_orb_agent_logs
 from users import get_auth_token
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
-    create_tags_set, check_logs_contain_message_and_name
+    create_tags_set, check_logs_contain_message_and_name, threading_wait_until
 from behave import given, then, step
 from hamcrest import *
 import requests
@@ -156,8 +156,8 @@ def subscribe_agent_to_a_group(context):
       '{time_to_wait} seconds')
 def check_logs_for_group(context, text_to_match, time_to_wait):
     groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups, context.agent)
-    text_found, groups_to_which_subscribed = check_subscription(time_to_wait, groups_matching,
-                                                                text_to_match, context.container_id)
+    text_found, groups_to_which_subscribed = check_subscription(groups_matching, text_to_match, context.container_id,
+                                                                timeout=time_to_wait)
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)"
                                        f"{set(groups_matching).difference(groups_to_which_subscribed)}!")
 
@@ -249,30 +249,27 @@ def delete_agent_group(token, agent_group_id):
                 + agent_group_id + ' failed with status=' + str(response.status_code))
 
 
-def check_subscription(time_to_wait, agent_groups_names, expected_message, container_id):
+@threading_wait_until
+def check_subscription(agent_groups_names, expected_message, container_id, event=None):
     """
 
-    :param (int) time_to_wait: timout (seconds)
     :param (list) agent_groups_names: groups to which the agent must be subscribed
     :param (str) expected_message: message that we expect to find in the logs
     :param (str) container_id: agent container id
+    :param (obj) event: threading.event
     :return: (bool) True if agent is subscribed to all matching groups, (list) names of the groups to which agent is subscribed
     """
     groups_to_which_subscribed = set()
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = int(time_to_wait)
-    while time_waiting < timeout:
-        for name in agent_groups_names:
-            logs = get_orb_agent_logs(container_id)
-            text_found, log_line = check_logs_contain_message_and_name(logs, expected_message, name, "group_name")
-            if text_found is True:
-                groups_to_which_subscribed.add(log_line["group_name"])
-                if set(groups_to_which_subscribed) == set(agent_groups_names):
-                    return True, groups_to_which_subscribed
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
-    return False, groups_to_which_subscribed
+    for name in agent_groups_names:
+        logs = get_orb_agent_logs(container_id)
+        text_found, log_line = check_logs_contain_message_and_name(logs, expected_message, name, "group_name")
+        if text_found is True:
+            groups_to_which_subscribed.add(log_line["group_name"])
+            if set(groups_to_which_subscribed) == set(agent_groups_names):
+                event.set()
+                return event.is_set(), groups_to_which_subscribed
+
+    return event.is_set(), groups_to_which_subscribed
 
 
 def edit_agent_group(token, agent_group_id, name, description, tags, expected_status_code=200):
