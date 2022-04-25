@@ -212,8 +212,8 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
     const matchingAgents = new Promise<Agent[]>(resolve => {
       if (Object.keys(this.selectedTags).length !== 0) {
         this.agentsService.getMatchingAgents(this.selectedTags).subscribe(
-          resp => {
-            resolve(resp.agents);
+          agents => {
+            resolve(agents);
           });
       } else {
         resolve([]);

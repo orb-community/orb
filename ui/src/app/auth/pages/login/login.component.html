@@ -26,6 +26,14 @@
                 class="alert-message">{{ error }}</li>
           </ul>
         </nb-alert>
+
+        <nb-alert *ngIf="showMessages.maintenance"
+                  role="alert"
+                  class="alert-error">
+          <p class="alert-message">ORB is down due to maintenance.
+          <br/>Sorry for the inconvenient, come back soon!
+          <br/>ETA: {{ dueTime | date:'short' }}</p>
+        </nb-alert>
         
         <h2 id="title"
         class="label big">{{strings.form.title}}</h2>
@@ -105,7 +113,7 @@
                 fullWidth
                 status="primary"
                 size="large"
-                [disabled]="submitted || !form.valid"
+                [disabled]="loginDisabled() || !form.valid"
                 [class.btn-pulse]="submitted">
           Log In
         </button>
