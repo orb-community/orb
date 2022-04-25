@@ -7,7 +7,7 @@ const targetPath = `./src/environments/environment.env.ts`;
 
 // PACTSAFE
 const enablePS = () => {
-  if (process.env.PS_SID !== '' && process.env.PS_GROUP_KEY !== '') {
+  if (process.env.PS_SID && process.env?.PS_GROUP_KEY) {
     return `
   PS: {
     // site id
@@ -17,16 +17,24 @@ const enablePS = () => {
   },
 `;
   } else {
-    return ``;
+    return '';
+  }
+};
+
+const enableMaintenace = () => {
+  if (process.env.MAINTENANCE) {
+    return `
+  MAINTENANCE: '${ process.env.MAINTENANCE }',
+    `;
+  } else {
+    return '';
   }
 };
 
 // we have access to our environment variables
 // in the process.env object thanks to dotenv
 const environmentFileContent = `
-export const environment = {
-  ${enablePS()}
-};
+export const environment = {${enablePS()}${enableMaintenace()}};
 `;
 
 // write the content to the respective file

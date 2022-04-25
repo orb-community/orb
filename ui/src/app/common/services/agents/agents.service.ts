@@ -148,7 +148,7 @@ export class AgentsService {
       );
   }
 
-  getMatchingAgents(tagsInfo: any) {
+  getMatchingAgents(tagsInfo: any): Observable<Agent[]> {
     const params = new HttpParams()
       .set('offset', AgentsService.getDefaultPagination().offset.toString())
       .set('limit', AgentsService.getDefaultPagination().limit.toString())
@@ -159,7 +159,7 @@ export class AgentsService {
     return this.http.get(environment.agentsUrl, { params })
       .map(
         (resp: any) => {
-          return resp;
+          return resp.agents;
         },
       )
       .catch(
