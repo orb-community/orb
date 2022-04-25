@@ -175,7 +175,4 @@ type Repository interface {
 
 	// DeleteAgentGroupFromAllDatasets removes agent group from a dataset
 	DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, ownerID string) error
-
-	// RetrieveAllPoliciesInternal retrieves the subset of Policies owned by the specified user
-	RetrieveAllPoliciesInternal(ctx context.Context, ownerID string) ([]Policy, error)
 }

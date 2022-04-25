@@ -624,34 +624,6 @@ func (r policiesRepository) DeleteAgentGroupFromAllDatasets(ctx context.Context,
 	return nil
 }
 
-func (r policiesRepository) RetrieveAllPoliciesInternal(ctx context.Context, ownerID string) ([]policies.Policy, error) {
-	var policies []policies.Policy
-
-	q := fmt.Sprintf(`SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, ts_last_modified 
-			FROM agent_policies
-			WHERE mf_owner_id = :mf_owner_id;`)
-
-	params := map[string]interface{}{
-		"mf_owner_id": ownerID,
-	}
-	rows, err := r.db.NamedQueryContext(ctx, q, params)
-	if err != nil {
-		return policies, errors.Wrap(errors.ErrSelectEntity, err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		dbPolicy := dbPolicy{MFOwnerID: ownerID}
-		if err := rows.StructScan(&dbPolicy); err != nil {
-			return policies, errors.Wrap(errors.ErrSelectEntity, err)
-		}
-		policy := toPolicy(dbPolicy)
-		policies = append(policies, policy)
-	}
-
-	return policies, nil
-}
-
 type dbPolicy struct {
 	ID            string           `db:"id"`
 	Name          types.Identifier `db:"name"`
