@@ -9,6 +9,7 @@ import { forkJoin, Subscription } from 'rxjs';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { NbDialogService } from '@nebular/theme';
 import { ActivatedRoute, Router } from '@angular/router';
+import {AgentMatchComponent} from 'app/pages/fleet/agents/match/agent.match.component';
 
 @Component({
   selector: 'ngx-policy-groups',
@@ -83,6 +84,14 @@ export class PolicyGroupsComponent implements OnInit, OnDestroy {
       if (resp) {
         this.onOpenEditAgentGroup(agentGroup);
       }
+    });
+  }
+
+  showAgentGroupMatches(agentGroup) {
+    this.dialogService.open(AgentMatchComponent, {
+      context: { agentGroup },
+      autoFocus: true,
+      closeOnEsc: true,
     });
   }
 

@@ -13,7 +13,7 @@ import {
   NbIconModule,
   NbInputModule,
   NbListModule,
-  NbSelectModule,
+  NbSelectModule, NbTooltipModule,
 } from '@nebular/theme';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -71,6 +71,7 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
     ClipboardModule,
     MatTooltipModule,
     NgxDatatableModule,
+    NbTooltipModule,
   ],
   declarations: [
     ConfirmationComponent,
