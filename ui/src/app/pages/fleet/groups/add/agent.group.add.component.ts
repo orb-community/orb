@@ -246,6 +246,10 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
     };
   }
 
+  selectedTagsValid() {
+    return Object.keys(this.selectedTags).length > 0;
+  }
+
   // saves current agent group
   onFormSubmit() {
     // validate:false
