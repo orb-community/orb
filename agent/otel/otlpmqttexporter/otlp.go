@@ -34,11 +34,6 @@ type exporter struct {
 	userAgent string
 }
 
-const (
-	headerRetryAfter         = "Retry-After"
-	maxHTTPResponseReadBytes = 64 * 1024
-)
-
 // Crete new exporter.
 func newExporter(cfg config.Exporter, set component.ExporterCreateSettings) (*exporter, error) {
 	oCfg := cfg.(*Config)

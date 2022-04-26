@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config/configtest"
+	"go.opentelemetry.io/collector/service/servicetest"
 	"path"
 	"testing"
 )
@@ -19,7 +19,7 @@ func TestLoadConfig(t *testing.T) {
 		factories.Receivers[typeStr] = pktvisorreceiver.NewFactory()
 		factories.Exporters["prometheus"] = prometheusexporter.NewFactory()
 		cfgPath := path.Join(".", "testdata", "config.yaml")
-		cfg, err := configtest.LoadConfig(cfgPath, factories)
+		cfg, err := servicetest.LoadConfigAndValidate(cfgPath, factories)
 
 		require.NoError(t, err)
 		require.NotNil(t, cfg)
