@@ -44,6 +44,16 @@ nb-card {
   z-index: 2;
 }
 
+.edit-dataset-button {
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  border: none !important;
+  cursor: pointer !important;
+  outline: none !important;
+  overflow: hidden !important;
+  color: #ffffff;
+}
+
 .orb-service- {
   &true {
     color: #6fcf97;
