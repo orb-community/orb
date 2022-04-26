@@ -10,7 +10,8 @@ export class PolicyInterfaceComponent implements OnInit {
   @Input()
   policy: AgentPolicy = {};
 
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit(): void {
   }

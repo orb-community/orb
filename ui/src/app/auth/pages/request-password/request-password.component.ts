@@ -1,12 +1,13 @@
 import {
   getDeepFromObject,
-  NB_AUTH_OPTIONS, NbAuthResult,
+  NB_AUTH_OPTIONS,
+  NbAuthResult,
   NbAuthService,
   NbRequestPasswordComponent,
 } from '@nebular/auth';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { STRINGS } from '../../../assets/text/strings';
+import { STRINGS } from '../../../../assets/text/strings';
 
 @Component({
   selector: 'ngx-orb-request-password',
@@ -16,6 +17,7 @@ import { STRINGS } from '../../../assets/text/strings';
 })
 export class RequestPasswordComponent extends NbRequestPasswordComponent {
   strings = STRINGS.login;
+
   showPassword = false;
 
   constructor(protected service: NbAuthService,
