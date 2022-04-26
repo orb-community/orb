@@ -4,6 +4,8 @@ visor:
   taps:
 
 orb:
+  otel:
+    enable: true
   backends:
     pktvisor:
       binary: "/usr/local/sbin/pktvisord"

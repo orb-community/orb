@@ -554,7 +554,7 @@ func createOtlpMqttExporter(ctx context.Context, mqttConfig config.MQTTConfig, c
 		cfg := otlpmqttexporter.CreateConfigClient(client)
 		set := otlpmqttexporter.CreateDefaultSettings(logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
-		exporter, err := otlpexporter.CreateMetricsExporter(ctx, set, cfg)
+		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 		if err != nil {
 			return nil, err
 		}
@@ -563,7 +563,7 @@ func createOtlpMqttExporter(ctx context.Context, mqttConfig config.MQTTConfig, c
 		cfg := otlpmqttexporter.CreateConfig(mqttConfig.Address, mqttConfig.Id, mqttConfig.Key, mqttConfig.ChannelID)
 		set := otlpmqttexporter.CreateDefaultSettings(logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
-		exporter, err := otlpexporter.CreateMetricsExporter(ctx, set, cfg)
+		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 		if err != nil {
 			return nil, err
 		}
