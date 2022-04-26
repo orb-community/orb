@@ -551,6 +551,8 @@ func createOtlpExporter(ctx context.Context, logger *zap.Logger) (component.Metr
 func createOtlpMqttExporter(ctx context.Context, mqttConfig config.MQTTConfig, client mqtt.Client, logger *zap.Logger) (component.MetricsExporter, error) {
 
 	if client != nil {
+
+		logger.Debug("Setting up OTLP MQTT Exporter with setup client")
 		cfg := otlpmqttexporter.CreateConfigClient(client)
 		set := otlpmqttexporter.CreateDefaultSettings(logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
@@ -560,6 +562,7 @@ func createOtlpMqttExporter(ctx context.Context, mqttConfig config.MQTTConfig, c
 		}
 		return exporter, nil
 	} else {
+		logger.Debug("Setting up OTLP MQTT Exporter with configuration")
 		cfg := otlpmqttexporter.CreateConfig(mqttConfig.Address, mqttConfig.Id, mqttConfig.Key, mqttConfig.ChannelID)
 		set := otlpmqttexporter.CreateDefaultSettings(logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.

@@ -38,10 +38,10 @@ type exporter struct {
 func newExporter(cfg config.Exporter, set component.ExporterCreateSettings) (*exporter, error) {
 	oCfg := cfg.(*Config)
 
-	if oCfg.Endpoint != "" {
-		_, err := url.Parse(oCfg.Endpoint)
+	if oCfg.Address != "" {
+		_, err := url.Parse(oCfg.Address)
 		if err != nil {
-			return nil, errors.New("endpoint must be a valid URL")
+			return nil, errors.New("address must be a valid mqtt server")
 		}
 	}
 

@@ -2,7 +2,6 @@ package otlpmqttexporter
 
 import (
 	"context"
-	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -11,7 +10,6 @@ import (
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"net/url"
 )
 
 const (
@@ -59,21 +57,6 @@ func CreateDefaultConfig() config.Exporter {
 	}
 }
 
-func composeSignalURL(oCfg *Config, signalOverrideURL string, signalName string) (string, error) {
-	switch {
-	case signalOverrideURL != "":
-		_, err := url.Parse(signalOverrideURL)
-		if err != nil {
-			return "", fmt.Errorf("%s_endpoint must be a valid URL", signalName)
-		}
-		return signalOverrideURL, nil
-	case oCfg.Endpoint == "":
-		return "", fmt.Errorf("either endpoint or %s_endpoint must be specified", signalName)
-	default:
-		return oCfg.Endpoint + "/v1/" + signalName, nil
-	}
-}
-
 func CreateConfigClient(client mqtt.Client) config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
@@ -105,11 +88,6 @@ func createTracesExporter(
 	}
 	oCfg := cfg.(*Config)
 
-	oce.tracesURL, err = composeSignalURL(oCfg, oCfg.ChannelID, "traces")
-	if err != nil {
-		return nil, err
-	}
-
 	return exporterhelper.NewTracesExporter(
 		cfg,
 		set,
@@ -133,11 +111,6 @@ func CreateMetricsExporter(
 	}
 	oCfg := cfg.(*Config)
 
-	oce.metricsURL, err = composeSignalURL(oCfg, oCfg.ChannelID, "metrics")
-	if err != nil {
-		return nil, err
-	}
-
 	return exporterhelper.NewMetricsExporter(
 		cfg,
 		set,
@@ -160,11 +133,6 @@ func createLogsExporter(
 		return nil, err
 	}
 	oCfg := cfg.(*Config)
-
-	oce.logsURL, err = composeSignalURL(oCfg, oCfg.ChannelID, "logs")
-	if err != nil {
-		return nil, err
-	}
 
 	return exporterhelper.NewLogsExporter(
 		cfg,
