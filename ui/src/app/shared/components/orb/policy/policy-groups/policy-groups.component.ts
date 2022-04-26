@@ -63,7 +63,7 @@ export class PolicyGroupsComponent implements OnInit, OnDestroy {
     const groupsIds = datasets.map(dataset => dataset.agent_group_id);
 
     if (!groupsIds || groupsIds.length === 0) {
-      this.errors['nogroup'] = 'This agent does not belong to any group.';
+      this.errors['nogroup'] = 'This policy is not in use by any agent group.';
     }
 
     return forkJoin(groupsIds.map(id => this.groupService.getAgentGroupById(id))).map(groups => {
