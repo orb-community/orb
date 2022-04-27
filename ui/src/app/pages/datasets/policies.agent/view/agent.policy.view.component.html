@@ -6,22 +6,22 @@
     </xng-breadcrumb>
     <div>
       <h4>Policy View</h4>
-      <div *ngIf="isEditMode()">
-        <button (click)="save()"
-                class="add-dataset-button"
-                nbButton
-                status="primary">
-          Save
-        </button>
-        <button (click)="discard()"
-                ghost="true"
-                class="add-dataset-button"
-                nbButton
-                status="danger">
-          Discard
-        </button>
-      </div>
     </div>
+  </div>
+  <div *ngIf="isEditMode()">
+    <button (click)="save()"
+            class="add-dataset-button"
+            nbButton
+            status="primary">
+      Save
+    </button>
+    <button (click)="discard()"
+            ghost="true"
+            class="add-dataset-button"
+            nbButton
+            status="danger">
+      Discard
+    </button>
   </div>
 </header>
 

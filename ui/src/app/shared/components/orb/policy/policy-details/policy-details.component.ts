@@ -1,6 +1,6 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import {AgentPolicy} from 'app/common/interfaces/orb/agent.policy.interface';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'ngx-policy-details',
@@ -20,7 +20,7 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
   formGroup: FormGroup;
 
   constructor(
-      private fb: FormBuilder,
+    private fb: FormBuilder,
   ) {
     this.policy = {};
     this.editMode = false;
@@ -40,7 +40,7 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
 
   updateForm() {
     if (this.editMode) {
-      const {name, description} = this.policy;
+      const { name, description } = this.policy;
       this.formGroup = this.fb.group({
         name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
         description: [description],

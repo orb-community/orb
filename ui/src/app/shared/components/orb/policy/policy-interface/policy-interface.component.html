@@ -1,5 +1,14 @@
 <nb-card>
-  <nb-card-header class="summary-accent">Agent Policy Configuration</nb-card-header>
+  <nb-card-header class="summary-accent">Agent Policy Configuration
+    <button *ngIf="!editMode"
+            (click)="toggleEdit(true)"
+            ghost="true"
+            class="add-dataset-button"
+            nbButton
+            status="primary">
+      Edit
+    </button>
+  </nb-card-header>
   <nb-card-body>
     <div class="col-12">
       <pre
