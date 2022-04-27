@@ -2,6 +2,7 @@ import random
 import string
 from json import loads, JSONDecodeError
 from hamcrest import *
+import os
 
 tag_prefix = "test_tag_"
 
@@ -116,3 +117,20 @@ def remove_empty_from_json(json_file):
         elif isinstance(value, dict):
             remove_empty_from_json(value)
     return json_file
+
+
+def find_files(prefix, suffix, path):
+    """
+    Find files that match with prefix and suffix condition
+
+    :param prefix: string with which the file should start with
+    :param suffix: string with which the file should end with
+    :param path: directory where the files will be searched
+    :return: (list) path to all files that matches
+    """
+    result = list()
+    for root, dirs, files in os.walk(path):
+        for name in files:
+            if name.startswith(prefix) and name.endswith(suffix):
+                result.append(os.path.join(root, name))
+    return result
