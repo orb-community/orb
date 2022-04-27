@@ -50,6 +50,18 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     return Object.values(this.editMode).reduce((prev, cur) => prev || cur, false);
   }
 
+  canSave() {
+    const detailsValid = this.editMode.details ?
+      this.detailsComponent?.formGroup?.status === 'VALID' :
+      true;
+
+    const interfaceValid = this.editMode.interface ?
+      this.interfaceComponent?.formControl?.status === 'VALID' :
+      true;
+
+    return detailsValid && interfaceValid;
+  }
+
   discard() {
     this.editMode.details = false;
     this.editMode.interface = false;
@@ -57,8 +69,23 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   save() {
     // get values from all modified sections' forms and submit through service.
-    this.discard();
-    this.cdr.markForCheck();
+    const policyDetails = this.detailsComponent.formGroup?.value;
+    // const policyInterface = this.interfaceComponent.formControl?.value;
+
+    const payload = {
+      ...policyDetails,
+      format: this.policy.format,
+      policy_data: this.policy.policy_data,
+      version: 1,
+    } as AgentPolicy;
+
+    this.policiesService.editAgentPolicy({ id: this.policyId, ...payload })
+      .subscribe(resp => {
+        this.discard();
+        this.cdr.markForCheck();
+      });
+
+
   }
 
   retrievePolicy() {

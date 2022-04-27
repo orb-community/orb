@@ -34,7 +34,6 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes?.editMode) {
       this.toggleEdit(changes.editMode.currentValue, false);
-      this.updateForm();
     }
   }
 
