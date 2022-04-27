@@ -1,6 +1,6 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { STRINGS } from 'assets/text/strings';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
