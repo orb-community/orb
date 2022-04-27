@@ -8,7 +8,7 @@ ARG ENV_PS_GROUP_KEY=""
 ARG ENV=""
 
 WORKDIR /app
-COPY package.json /app/
+COPY package-lock.json package.json /app/
 RUN yarn install
 COPY ./ /app/
 

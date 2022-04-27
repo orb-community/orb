@@ -55,7 +55,7 @@ jobs:
           
           The format `<type>(<scope>): <subject>` (`^\w+\(.+\): .+`) is acceptable. e.g., `feat(api): Add /users/get`
 
-# Go Lang Linter
+    # Go Lang Linter
     - uses: actions/setup-go@v3
       if: steps.filter.outputs.golint == 'true'
       with:
@@ -69,20 +69,6 @@ jobs:
         only-new-issues: true
         args: --timeout 5m0s
 
-## JS Linter
-    - name: install node v12
-      uses: actions/setup-node@v1
-      if: steps.filter.outputs.jslint == 'true'
-      with:
-        node-version: 12
-    - name: yarn install
-      if: steps.filter.outputs.jslint == 'true'
-      run: yarn install
-    - name: eslint
-      if: steps.filter.outputs.jslint == 'true'
-      uses: icrawl/action-eslint@v1
-      with:
-        custom-glob: ui/src
 
   prebuild:
     runs-on: ubuntu-latest
