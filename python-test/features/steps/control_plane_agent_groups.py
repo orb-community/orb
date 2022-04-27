@@ -6,7 +6,7 @@ from utils import random_string, filter_list_by_parameter_start_with, generate_r
 from behave import given, then, step
 from hamcrest import *
 import requests
-import time
+from random import sample
 
 configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
@@ -14,16 +14,28 @@ agent_group_description = "This is an agent group"
 base_orb_url = configs.get('base_orb_url')
 
 
-@step("an Agent Group is created with same tag as the agent")
-def create_agent_group_matching_agent(context, **kwargs):
+@step("an Agent Group is created with {amount_of_tags} tags contained in the agent")
+def create_agent_group_matching_agent(context, amount_of_tags, **kwargs):
+    if amount_of_tags.isdigit() is False:
+        assert_that(amount_of_tags, equal_to("all"), 'Unexpected value for amount of tags')
     agent_group_name = agent_group_name_prefix + random_string()
     if "group_description" in kwargs.keys():
         group_description = kwargs["group_description"]
     else:
         group_description = agent_group_description
-    tags = context.agent["orb_tags"]
+
+    tags_in_agent = context.agent["orb_tags"]
+    tags_keys = tags_in_agent.keys()
+
+    if amount_of_tags.isdigit() is True:
+        amount_of_tags = int(amount_of_tags)
+    else:
+        amount_of_tags = len(tags_keys)
+    assert_that(tags_keys, has_length(greater_than_or_equal_to(amount_of_tags)), "Amount of tags greater than tags"
+                                                                                      "contained in agent")
+    tags_to_group = {key: tags_in_agent[key] for key in sample(tags_keys, amount_of_tags)}
     context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
-                                                  tags)
+                                                  tags_to_group)
     group_id = context.agent_group_data['id']
     context.agent_groups[group_id] = agent_group_name
 

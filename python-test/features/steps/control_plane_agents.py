@@ -5,7 +5,6 @@ from local_agent import run_local_agent_container
 from control_plane_agent_groups import return_matching_groups
 from behave import given, when, then, step
 from hamcrest import *
-import time
 import requests
 from datetime import datetime
 
@@ -21,7 +20,7 @@ def check_if_agents_exist(context, orb_tags, status):
     context.agent = create_agent(context.token, context.agent_name, context.orb_tags)
     context.agent_key = context.agent["key"]
     token = context.token
-    run_local_agent_container(context, "default")
+    run_local_agent_container(context, "available")
     agent_id = context.agent['id']
     existing_agents = get_agent(token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")

@@ -1,21 +1,20 @@
-from utils import safe_load_json, random_string, threading_wait_until
+from utils import safe_load_json, random_string, threading_wait_until, check_port_is_available
 from behave import then, step
 from hamcrest import *
 from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
-import time
 import subprocess
 import shlex
+import threading
 
 configs = TestConfig.configs()
 ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
 
 
-@step('the agent container is started on port {port}')
-def run_local_agent_container(context, port):
-    if port.isdigit():
-        port = int(port)
-    assert_that(port, any_of(equal_to('default'), instance_of(int)), "Unexpected value for port")
+@step('the agent container is started on an {status_port} port')
+def run_local_agent_container(context, status_port):
+    assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
+    availability = {"available": True, "unavailable": False}
     orb_address = configs.get('orb_address')
     interface = configs.get('orb_agent_interface', 'mock')
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
@@ -28,14 +27,15 @@ def run_local_agent_container(context, port):
                 "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
     if ignore_ssl_and_certificate_errors == 'true':
         env_vars["ORB_TLS_VERIFY"] = "false"
-    if port == "default":
-        port = str(10853)
-    else:
-        env_vars["ORB_BACKENDS_PKTVISOR_API_PORT"] = str(port)
+
+    context.port = check_port_is_available(availability[status_port])
+
+    if context.port != 10583:
+        env_vars["ORB_BACKENDS_PKTVISOR_API_PORT"] = str(context.port)
 
     context.container_id = run_agent_container(agent_image, env_vars, LOCAL_AGENT_CONTAINER_NAME)
-    if port not in context.containers_id.keys():
-        context.containers_id[str(port)] = context.container_id
+    if context.container_id not in context.containers_id.keys():
+        context.containers_id[context.container_id] = str(context.port)
 
 
 @step('the container logs that were output after {condition} contain the message "{text_to_match}" within'
@@ -59,40 +59,30 @@ def check_agent_log(context, text_to_match, time_to_wait):
     assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
 
 
-@then("container on port {port} is {status} after {seconds} seconds")
-def check_container_on_port_status(context, port, status, seconds):
-    if port.isdigit():
-        port = int(port)
-    assert_that(port, any_of(equal_to('default'), instance_of(int)), "Unexpected value for port")
-    if port == "default":
-        port = str(10853)
-    time.sleep(int(seconds))
-    container_status = check_container_status(context.containers_id[str(port)], status, timeout=seconds)
-    assert_that(container_status, equal_to(status), f"Container {context.container_id} failed with status"
-                                                    f"{container_status}")
+@step("{order} container created is {status} after {seconds} seconds")
+def check_last_container_status(context, order, status, seconds):
+    event = threading.Event()
+    event.wait(int(seconds))
+    event.set()
+    if event.is_set() is True:
+        order_convert = {"first": 0, "last": -1, "second": 1}
+        container = list(context.containers_id.keys())[order_convert[order]]
+        container_status = check_container_status(container, status, timeout=seconds)
+        assert_that(container_status, equal_to(status), f"Container {context.container_id} failed with status"
+                                                        f"{container_status}")
 
 
-@step("last container created is {status} after {seconds} seconds")
-def check_last_container_status(context, status, seconds):
-    time.sleep(int(seconds))
-    container_status = check_container_status(context.container_id, status, timeout=seconds)
-    assert_that(container_status, equal_to(status), f"Container {context.container_id} failed with status"
-                                                    f"{container_status}")
-
-
-@step("the agent container is started using the command provided by the UI on port {port}")
-def run_container_using_ui_command(context, port):
-    if port.isdigit():
-        port = int(port)
-    assert_that(port, any_of(equal_to('default'), instance_of(int)), "Unexpected value for port")
+@step("the agent container is started using the command provided by the UI on an {status_port} port")
+def run_container_using_ui_command(context, status_port):
+    assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
+    availability = {"available": True, "unavailable": False}
+    context.port = check_port_is_available(availability[status_port])
     context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
-                                                         ignore_ssl_and_certificate_errors, str(port))
+                                                         ignore_ssl_and_certificate_errors, str(context.port))
     assert_that(context.container_id, is_not((none())))
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME)
-    if port == "default":
-        port = str(10853)
-    if port not in context.containers_id.keys():
-        context.containers_id[str(port)] = context.container_id
+    if context.container_id not in context.containers_id.keys():
+        context.containers_id[context.container_id] = str(context.port)
 
 
 def run_agent_container(container_image, env_vars, container_name):

@@ -4,6 +4,7 @@ from json import loads, JSONDecodeError
 from hamcrest import *
 import threading
 from datetime import datetime
+import socket
 
 tag_prefix = "test_tag_"
 
@@ -133,3 +134,25 @@ def threading_wait_until(func):
         return func_value
 
     return wait_event
+
+
+def check_port_is_available(availability=True):
+    assert_that(availability, any_of(equal_to(True), equal_to(False)), "Unexpected value for availability")
+    available_port = None
+    port_options = range(10853, 10860)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    for port in port_options:
+        result = sock.connect_ex(('127.0.0.1', port))
+        if result == 0:
+            sock.close()
+            available_port = port
+            if availability is True:
+                continue
+            else:
+                return available_port
+        else:
+            available_port = port
+            sock.close()
+            break
+    assert_that(available_port, is_not(equal_to(None)), "No available ports to bind")
+    return available_port

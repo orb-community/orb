@@ -16,7 +16,7 @@ base_orb_url = configs.get('base_orb_url')
 
 @given("that fleet Management is clickable on ORB Menu")
 def expand_fleet_management(context):
-    context.driver.find_elements_by_xpath(LeftMenu.fleet_management())[0].click()
+    context.driver.find_elements_by_xpath(LeftMenu.agents())[0].click()
 
 
 @given('that Agents is clickable on ORB Menu')
