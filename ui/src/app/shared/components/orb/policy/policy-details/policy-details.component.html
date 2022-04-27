@@ -1,15 +1,65 @@
 <nb-card>
-  <nb-card-header class="summary-accent">Agent Policy Details</nb-card-header>
+  <nb-card-header class="summary-accent">Agent Policy Details
+    <button *ngIf="!editMode"
+            (click)="toggleEdit(true)"
+            ghost="true"
+            class="add-dataset-button"
+            nbButton
+            status="primary">
+      Edit
+    </button>
+    <button *ngIf="editMode"
+            (click)="toggleEdit(false)"
+            ghost="true"
+            class="add-dataset-button"
+            nbButton
+            status="danger">
+      Discard
+    </button>
+  </nb-card-header>
   <nb-card-body>
-    <div class="col-12">
-      <div class="row">
-        <label class="summary-accent">Policy Name<span class="required">*</span></label>
-        <p>{{ policy?.name }}</p>
-      </div>
-      <div class="row">
-        <label class="summary-accent">Policy Description</label>
-        <p>{{ policy?.description }}</p>
-      </div>
-    </div>
+    <div *ngIf="editMode; then editcontainer else viewcontainer"></div>
   </nb-card-body>
 </nb-card>
+
+<ng-template #viewcontainer>
+  <div class="d-flex flex-column">
+    <div class="flex-row">
+      <label class="summary-accent">Policy Name<span class="required">*</span></label>
+      <p>{{ policy?.name }}</p>
+    </div>
+    <div class="flex-row">
+      <label class="summary-accent">Policy Description</label>
+      <p>{{ policy?.description }}</p>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #editcontainer>
+  <form [formGroup]="formGroup">
+    <nb-form-field>
+      <div class="d-flex flex-column">
+        <div>
+          <label class="font-weight-bold">Policy Name</label>
+          <span class="required">*</span>
+        </div>
+        <input autofocus
+               data-orb-qa-id="name"
+               fieldSize="medium"
+               formControlName="name"
+               fullWidth="true"
+               nbInput/>
+      </div>
+    </nb-form-field>
+    <nb-form-field>
+      <div>
+        <label class="font-weight-bold">Policy Description</label>
+      </div>
+      <input data-orb-qa-id="description"
+             fieldSize="medium"
+             formControlName="description"
+             fullWidth="true"
+             nbInput/>
+    </nb-form-field>
+  </form>
+</ng-template>

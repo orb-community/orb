@@ -21,6 +21,12 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   policySubscription: Subscription;
 
+  editMode = {
+    details: false,
+    groups: false,
+    interface: false,
+  };
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -31,6 +37,20 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.policyId = this.route.snapshot.paramMap.get('id');
     this.retrievePolicy();
+  }
+
+  isEditMode() {
+    return Object.values(this.editMode).reduce((prev, cur) => prev || cur, false);
+  }
+
+  discard() {
+    this.editMode.details = false;
+    this.editMode.groups = false;
+    this.editMode.interface = false;
+  }
+
+  save() {
+    // get values from all modified sections' forms and submit through service.
   }
 
   retrievePolicy() {
