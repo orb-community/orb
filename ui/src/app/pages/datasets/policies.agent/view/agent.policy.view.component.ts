@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { STRINGS } from 'assets/text/strings';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
@@ -64,7 +64,6 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   discard() {
     this.editMode.details = false;
-    this.editMode.groups = false;
     this.editMode.interface = false;
   }
 
@@ -95,7 +94,6 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
       .getAgentPolicyById(this.policyId)
       .subscribe(policy => {
         this.policy = policy;
-
         this.isLoading = false;
       });
   }
