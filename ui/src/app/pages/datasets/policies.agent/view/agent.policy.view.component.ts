@@ -64,6 +64,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   discard() {
     this.editMode.details = false;
+    this.editMode.groups = false;
     this.editMode.interface = false;
   }
 
@@ -94,6 +95,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
       .getAgentPolicyById(this.policyId)
       .subscribe(policy => {
         this.policy = policy;
+
         this.isLoading = false;
       });
   }
