@@ -1,6 +1,6 @@
 <header class="row"
         data-orb-qa-id="agent#view">
-  <div class="col-5">
+  <div class="col-8">
     <xng-breadcrumb class="orb-breadcrumb"
                     data-orb-qa-id="breadcrumb">
     </xng-breadcrumb>
@@ -9,11 +9,12 @@
 </header>
 
 <div *ngIf="!isLoading" class="row">
-  <div class="card-col col-5">
+  <div class="card-col col-4">
     <ngx-policy-details [policy]="policy"></ngx-policy-details>
-    <ngx-policy-interface [policy]="policy"></ngx-policy-interface>
-  </div>
-  <div class="card-col col-7">
     <ngx-policy-groups [policy]="policy"></ngx-policy-groups>
+  </div>
+  <div class="card-col col-8">
+    <ngx-policy-interface [policy]="policy"></ngx-policy-interface>
+    <ngx-policy-datasets [policy]="policy"></ngx-policy-datasets>
   </div>
 </div>

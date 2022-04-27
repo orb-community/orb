@@ -12,6 +12,8 @@ nb-card {
   }
 
   nb-card-body {
+    padding: 0 0.25rem 1rem !important;
+
     label {
       color: #969fb9;
     }
@@ -34,3 +36,21 @@ nb-card {
   color: #df316f;
   padding-left: 2px;
 }
+
+::ng-deep button.add-dataset-button {
+  display: flex !important;
+  float: right !important;
+  padding: 0.2rem 1.125rem !important;
+  z-index: 2;
+}
+
+.orb-service- {
+  &true {
+    color: #6fcf97;
+  }
+
+  &false {
+    color: #df316f;
+  }
+}
+
