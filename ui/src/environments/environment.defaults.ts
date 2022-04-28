@@ -62,8 +62,6 @@ export const environment = {
   readerUrl: '/reader',
   readerPrefix: 'channels',
   readerSuffix: 'messages',
-
-  mqttWsUrl: window['env']['mqttWsUrl'] || 'ws://localhost/mqtt',
   exportConfigFile: '/configs/export/config.toml',
 
   // PACTSAFE
