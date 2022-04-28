@@ -13,7 +13,7 @@ import {
   NbIconModule,
   NbInputModule,
   NbListModule,
-  NbSelectModule,
+  NbSelectModule, NbTooltipModule,
 } from '@nebular/theme';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -45,7 +45,6 @@ import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets
 import { GroupedAgentsComponent } from './components/orb/dataset/grouped-agents/grouped-agents.component';
 import { PrettyYamlPipe } from './pipes/pretty-yaml.pipe';
 import { SinkControlComponent } from './components/orb/sink-control/sink-control.component';
-import { UnSelectedSinksPipe } from './pipes/available-sinks.pipe';
 import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/policy-groups.component';
 import { SinkDisplayComponent } from 'app/shared/components/orb/sink-display/sink-display.component';
 import { SinkDisplayListComponent } from 'app/shared/components/orb/sink/sink-display/sink-display-list.component';
@@ -71,6 +70,7 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
     ClipboardModule,
     MatTooltipModule,
     NgxDatatableModule,
+    NbTooltipModule,
   ],
   declarations: [
     ConfirmationComponent,
@@ -97,8 +97,6 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
     PolicyGroupsComponent,
     GroupedAgentsComponent,
     PrettyYamlPipe,
-    UnSelectedSinksPipe,
-    UnSelectedSinksPipe,
     SinkControlComponent,
     SinkDisplayComponent,
     SinkDisplayListComponent,
@@ -129,7 +127,6 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
     GroupedAgentsComponent,
     PolicyGroupsComponent,
     PrettyYamlPipe,
-    UnSelectedSinksPipe,
     SinkControlComponent,
     SinkDisplayComponent,
     SinkDisplayListComponent,

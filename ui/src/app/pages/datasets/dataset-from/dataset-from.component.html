@@ -53,7 +53,7 @@
                                [attr.data-orb-qa-id]="'available_agent_policy: '+agentPolicy.id" [id]="agentPolicy.id"
                                [value]="agentPolicy.id">{{ agentPolicy.name }}</nb-option>
                 </nb-select>
-                <br>g
+                <br>
             </nb-form-field>
 <!--      SINK-->
             <div>
@@ -61,7 +61,7 @@
                 <span class="required">*</span>
             </div>
             <ngx-sink-display [(sinks)]="selectedSinks"></ngx-sink-display>
-            <ngx-sink-control [(selectedSinks)]="selectedSinks" [availableSinks]="availableSinks"></ngx-sink-control>
+            <ngx-sink-control [(selectedSinks)]="selectedSinks" [sinksList]="availableSinks"></ngx-sink-control>
             <br>
 <!--      NAME-->
             <br>

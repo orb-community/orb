@@ -72,10 +72,11 @@
 </div>
 
 <ng-template #nameTemplateCell let-i="index" let-row="row" let-value="value">
-  <div (click)="onOpenView(row)"
-    nbTooltip="View Details for {{ row.id }}">
+  <button (click)="onOpenView(row)"
+          class="view-policy-button"
+          nbTooltip="View Details for {{ row.id }}">
     {{ row.name }}
-  </div>
+  </button>
 </ng-template>
 
 <ng-template #versionTemplateCell let-i="index" let-row="row" let-value="value">
