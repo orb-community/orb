@@ -183,7 +183,7 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 }
 
 func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID string, ownerID string) (policies.Policy, error) {
-	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, ts_last_modified, policy_data, format 
+	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, schema_version, ts_last_modified, policy_data, format 
 			FROM agent_policies WHERE id = $1 AND mf_owner_id = $2`
 
 	if policyID == "" || ownerID == "" {
