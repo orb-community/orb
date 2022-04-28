@@ -30,8 +30,8 @@ var _ config.Exporter = (*Config)(nil)
 // Validate checks if the exporter configuration is valid
 func (cfg *Config) Validate() error {
 	if (cfg.Address == "" && cfg.Id == "" && cfg.Key == "" && cfg.ChannelID == "") ||
-		cfg.Client != nil {
-		return fmt.Errorf("invalid mqtt configuration")
+		cfg.Client == nil {
+		return nil
 	}
-	return nil
+	return fmt.Errorf("invalid mqtt configuration")
 }
