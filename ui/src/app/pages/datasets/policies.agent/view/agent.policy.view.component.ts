@@ -82,10 +82,9 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     this.policiesService.editAgentPolicy({ id: this.policyId, ...payload })
       .subscribe(resp => {
         this.discard();
+        this.retrievePolicy();
         this.cdr.markForCheck();
       });
-
-
   }
 
   retrievePolicy() {
