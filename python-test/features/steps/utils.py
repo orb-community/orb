@@ -5,6 +5,7 @@ from hamcrest import *
 import threading
 from datetime import datetime
 import socket
+import os
 
 tag_prefix = "test_tag_"
 
@@ -137,6 +138,11 @@ def threading_wait_until(func):
 
 
 def check_port_is_available(availability=True):
+    """
+
+    :param (str) availability: Status of the port on which agent must try to run. Default: available.
+    :return: (int) port number
+    """
     assert_that(availability, any_of(equal_to(True), equal_to(False)), "Unexpected value for availability")
     available_port = None
     port_options = range(10853, 10860)
@@ -156,3 +162,21 @@ def check_port_is_available(availability=True):
             break
     assert_that(available_port, is_not(equal_to(None)), "No available ports to bind")
     return available_port
+
+
+def find_files(prefix, suffix, path):
+    """
+    Find files that match with prefix and suffix condition
+
+    :param prefix: string with which the file should start with
+    :param suffix: string with which the file should end with
+    :param path: directory where the files will be searched
+    :return: (list) path to all files that matches
+    """
+    result = list()
+    for root, dirs, files in os.walk(path):
+        for name in files:
+            if name.startswith(prefix) and name.endswith(suffix):
+                result.append(os.path.join(root, name))
+    return result
+

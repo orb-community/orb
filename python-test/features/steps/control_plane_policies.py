@@ -10,7 +10,7 @@ from control_plane_datasets import create_new_dataset, list_datasets
 from random import choice, choices, sample
 
 policy_name_prefix = "test_policy_name_"
-base_orb_url = TestConfig.configs().get('base_orb_url')
+orb_url = TestConfig.configs().get('orb_url')
 
 
 @step("a new policy is created using: {kwargs}")
@@ -149,7 +149,11 @@ def check_policy_attribute(context, attribute, value):
 
 
 @then("referred policy {condition} be listed on the orb policies list")
-def check_policies(context, condition='must'):
+def check_policies(context, **condition):
+    if len(condition) > 0:
+        condition = condition["condition"]
+    else:
+        condition = "must"
     policy_id = context.policy['id']
     all_existing_policies = list_policies(context.token)
     is_policy_listed = bool()
@@ -289,7 +293,7 @@ def create_policy(token, json_request):
 
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
-    response = requests.post(base_orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
+    response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create policy failed with status=' + str(response.status_code))
 
@@ -307,7 +311,7 @@ def edit_policy(token, policy_id, json_request):
     """
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
-    response = requests.put(base_orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
+    response = requests.put(orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
                             headers=headers_request)
     assert_that(response.status_code, equal_to(200),
                 'Request to create policy failed with status=' + str(response.status_code))
@@ -391,7 +395,7 @@ def get_policy(token, policy_id, expected_status_code=200):
     :returns: (dict) the fetched policy
     """
 
-    get_policy_response = requests.get(base_orb_url + '/api/v1/policies/agent/' + policy_id,
+    get_policy_response = requests.get(orb_url + '/api/v1/policies/agent/' + policy_id,
                                        headers={'Authorization': token})
 
     assert_that(get_policy_response.status_code, equal_to(expected_status_code),
@@ -408,7 +412,7 @@ def list_policies(token, limit=100):
     :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
     :returns: (list) a list of policies
     """
-    response = requests.get(base_orb_url + '/api/v1/policies/agent', headers={'Authorization': token},
+    response = requests.get(orb_url + '/api/v1/policies/agent', headers={'Authorization': token},
                             params={'limit': limit})
 
     assert_that(response.status_code, equal_to(200),
@@ -438,7 +442,7 @@ def delete_policy(token, policy_id):
     :param (str) policy_id: that identifies the policy to be deleted
     """
 
-    response = requests.delete(base_orb_url + '/api/v1/policies/agent/' + policy_id,
+    response = requests.delete(orb_url + '/api/v1/policies/agent/' + policy_id,
                                headers={'Authorization': token})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete policy id='

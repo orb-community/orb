@@ -6,7 +6,7 @@ import requests
 
 configs = TestConfig.configs()
 sink_label_name_prefix = "test_sink_label_name_"
-base_orb_url = configs.get('base_orb_url')
+orb_url = configs.get('orb_url')
 
 
 @given("that the user has the prometheus/grafana credentials")
@@ -128,7 +128,7 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': token}
 
-    response = requests.post(base_orb_url + '/api/v1/sinks', json=json_request, headers=headers_request)
+    response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create sink failed with status=' + str(response.status_code))
 
@@ -144,7 +144,7 @@ def get_sink(token, sink_id):
     :returns: (dict) the fetched sink
     """
 
-    get_sink_response = requests.get(base_orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': token})
+    get_sink_response = requests.get(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': token})
 
     assert_that(get_sink_response.status_code, equal_to(200),
                 'Request to get sink id=' + sink_id + ' failed with status=' + str(get_sink_response.status_code))
@@ -161,7 +161,7 @@ def list_sinks(token, limit=100):
     :returns: (list) a list of sinks
     """
 
-    response = requests.get(base_orb_url + '/api/v1/sinks', headers={'Authorization': token}, params={'limit': limit})
+    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': token}, params={'limit': limit})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list sinks failed with status=' + str(response.status_code))
@@ -190,7 +190,7 @@ def delete_sink(token, sink_id):
     :param (str) sink_id: that identifies the sink to be deleted
     """
 
-    response = requests.delete(base_orb_url + '/api/v1/sinks/' + sink_id,
+    response = requests.delete(orb_url + '/api/v1/sinks/' + sink_id,
                                headers={'Authorization': token})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete sink id='

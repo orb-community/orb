@@ -1,16 +1,20 @@
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
-    create_tags_set, threading_wait_until
-from local_agent import run_local_agent_container
+from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix,\
+    create_tags_set, find_files, threading_wait_until, check_port_is_available
+from local_agent import run_local_agent_container, run_agent_config_file
 from control_plane_agent_groups import return_matching_groups
 from behave import given, when, then, step
 from hamcrest import *
-import requests
 from datetime import datetime
+import requests
+import os
+from agent_config_file import FleetAgent
+import yaml
+from yaml.loader import SafeLoader
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
-base_orb_url = configs.get('base_orb_url')
+orb_url = configs.get('orb_url')
 
 
 @given("that an agent with {orb_tags} orb tag(s) already exists and is {status}")
@@ -140,12 +144,49 @@ def check_agent_tags(context, amount_of_tags):
     assert_that(len(dict(agent["orb_tags"])), equal_to(int(amount_of_tags)), "Amount of orb tags failed")
 
 
+@then("remove all the agents .yaml generated on test process")
+def remove_agent_config_files(context):
+    all_files_generated = find_files(agent_name_prefix, ".yaml", context.dir_path)
+    if len(all_files_generated) > 0:
+        for file in all_files_generated:
+            os.remove(file)
+
+
+@threading_wait_until
+def check_agent_exists_on_backend(token, agent_name, event=None):
+    agent = None
+    all_agents = list_agents(token)
+    for agent in all_agents:
+        if agent_name == agent['name']:
+            event.set()
+            return agent, event.is_set()
+    return agent, event.is_set()
+
+
+@step("an agent is self-provisioned via a configuration file on port {port} with {agent_tags} agent tags and has "
+      "status {status}")
+def provision_agent_using_config_file(context, port, agent_tags, status):
+    agent_name = f"{agent_name_prefix}{random_string(3)}"
+    interface = configs.get('orb_agent_interface', 'mock')
+    orb_url = configs.get('orb_url')
+    base_orb_address = configs.get('orb_address')
+    context.dir_path = create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url,
+                                                base_orb_address, port)
+    context.container_id = run_agent_config_file(context.dir_path, agent_name)
+    context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=10)
+    assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found")
+    assert_that(context.agent, is_not(None), f"Agent {agent_name} not correctly created")
+    agent_id = context.agent['id']
+    existing_agents = get_agent(context.token, agent_id)
+    assert_that(len(existing_agents), greater_than(0), "Agent not created")
+    expect_container_status(context.token, agent_id, status)
+
+
 @step("remotely restart the agent")
 def reset_agent_remotely(context):
     context.considered_timestamp_reset = datetime.now().timestamp()
-    # print(context.considered_timestamp) #remove
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': context.token}
-    response = requests.post(f"{base_orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request)
+    response = requests.post(f"{orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request)
     assert_that(response.status_code, equal_to(200),
                 'Request to restart agent failed with status=' + str(response.status_code))
 
@@ -179,7 +220,7 @@ def get_agent(token, agent_id):
     :returns: (dict) the fetched agent
     """
 
-    get_agents_response = requests.get(base_orb_url + '/api/v1/agents/' + agent_id, headers={'Authorization': token})
+    get_agents_response = requests.get(orb_url + '/api/v1/agents/' + agent_id, headers={'Authorization': token})
 
     assert_that(get_agents_response.status_code, equal_to(200),
                 'Request to get agent id=' + agent_id + ' failed with status=' + str(get_agents_response.status_code))
@@ -196,7 +237,7 @@ def list_agents(token, limit=100):
     :returns: (list) a list of agents
     """
 
-    response = requests.get(base_orb_url + '/api/v1/agents', headers={'Authorization': token}, params={"limit": limit})
+    response = requests.get(orb_url + '/api/v1/agents', headers={'Authorization': token}, params={"limit": limit})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list agents failed with status=' + str(response.status_code))
@@ -225,7 +266,7 @@ def delete_agent(token, agent_id):
     :param (str) agent_id: that identifies the agent to be deleted
     """
 
-    response = requests.delete(base_orb_url + '/api/v1/agents/' + agent_id,
+    response = requests.delete(orb_url + '/api/v1/agents/' + agent_id,
                                headers={'Authorization': token})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete agent id='
@@ -246,7 +287,7 @@ def create_agent(token, name, tags):
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': token}
 
-    response = requests.post(base_orb_url + '/api/v1/agents', json=json_request, headers=headers_request)
+    response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create agent failed with status=' + str(response.status_code))
 
@@ -266,7 +307,7 @@ def edit_agent(token, agent_id, name, tags, expected_status_code=200):
     json_request = {"name": name, "orb_tags": tags, "validate_only": False}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': token}
-    response = requests.put(base_orb_url + '/api/v1/agents/' + agent_id, json=json_request, headers=headers_request)
+    response = requests.put(orb_url + '/api/v1/agents/' + agent_id, json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to edit agent failed with status=' + str(response.status_code))
 
@@ -312,3 +353,32 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
             event.set()
             return list_groups_id
     return list_groups_id
+
+
+def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, status_port='available'):
+    """
+    Create a file .yaml with configs of the agent that will be provisioned
+
+    :param (str) token: used for API authentication
+    :param agent_name:
+    :param (str) iface: network interface
+    :param (dict) agent_tags: agent tags
+    :param (str) orb_url: entire orb url
+    :param (str) base_orb_address: base orb url address
+    :param (str) status_port: status of the port on which agent must try to run. Default: available
+    :return: path to the directory where the agent config file was created
+    """
+    assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
+    availability = {"available": True, "unavailable": False}
+    tags = {"tags": create_tags_set(agent_tags)}
+    agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, base_orb_address)
+    agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
+    agent_config_file['orb'].update(tags)
+    port = check_port_is_available(availability[status_port])
+    agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
+    agent_config_file = yaml.dump(agent_config_file)
+    cwd = os.getcwd()
+    dir_path = os.path.dirname(cwd)
+    with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
+        f.write(agent_config_file)
+    return dir_path
