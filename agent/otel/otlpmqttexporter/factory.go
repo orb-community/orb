@@ -2,6 +2,7 @@ package otlpmqttexporter
 
 import (
 	"context"
+	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -18,7 +19,8 @@ const (
 	defaultMQTTAddr    = "localhost"
 	defaultMQTTId      = "uuid1"
 	defaultMQTTKey     = "uuid1"
-	defaultMQTTChannel = "agent_test_metrics"
+	defaultMQTTChannel = "uuid1"
+	defaultName        = "pktvisor"
 	// For testing will disable  TLS
 	defaultTLS = false
 )
@@ -45,6 +47,8 @@ func CreateConfig(addr, id, key, channel string) config.Exporter {
 }
 
 func CreateDefaultConfig() config.Exporter {
+	base := fmt.Sprintf("channels/%s/messages", defaultMQTTChannel)
+	metricsTopic := fmt.Sprintf("%s/be/%s", base, defaultName)
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
@@ -54,15 +58,17 @@ func CreateDefaultConfig() config.Exporter {
 		Key:              defaultMQTTKey,
 		ChannelID:        defaultMQTTChannel,
 		TLS:              defaultTLS,
+		MetricsTopic:     metricsTopic,
 	}
 }
 
-func CreateConfigClient(client mqtt.Client) config.Exporter {
+func CreateConfigClient(client mqtt.Client, metricsTopic string) config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
 		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
 		Client:           client,
+		MetricsTopic:     metricsTopic,
 	}
 }
 

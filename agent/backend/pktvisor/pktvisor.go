@@ -15,7 +15,6 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/config"
-	"github.com/ns1labs/orb/agent/otel/otlpexporter"
 	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
 	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	"github.com/ns1labs/orb/agent/policies"
@@ -374,74 +373,9 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
-func (p *pktvisorBackend) scrapeOtelWithoutExporter() (err error) {
-	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
-		metrics, err := p.scrapeMetrics(1)
-		if err != nil {
-			p.logger.Error("scrape failed", zap.Error(err))
-			return
-		}
-		if len(metrics) == 0 {
-			p.logger.Warn("scrape: no policies found, skipping")
-			return
-		}
-
-		var batchPayload []fleet.AgentMetricsRPCPayload
-		totalSize := 0
-		for pName, pMetrics := range metrics {
-			data, err := p.policyRepo.GetByName(pName)
-			if err != nil {
-				p.logger.Error("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.Error(err))
-				continue
-			}
-			payloadData, err := json.Marshal(pMetrics)
-			if err != nil {
-				p.logger.Error("error marshalling scraped metric json", zap.String("policy", pName), zap.Error(err))
-				continue
-			}
-			metricPayload := fleet.AgentMetricsRPCPayload{
-				PolicyID:   data.ID,
-				PolicyName: data.Name,
-				Datasets:   data.GetDatasetIDs(),
-				Format:     "json",
-				BEVersion:  p.pktvisorVersion,
-				Data:       payloadData,
-			}
-			batchPayload = append(batchPayload, metricPayload)
-			totalSize += len(payloadData)
-			p.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", data.ID), zap.Int("payload_size_b", len(payloadData)))
-		}
-
-		rpc := fleet.AgentMetricsRPC{
-			SchemaVersion: fleet.CurrentRPCSchemaVersion,
-			Func:          fleet.AgentMetricsRPCFunc,
-			Payload:       batchPayload,
-		}
-
-		body, err := json.Marshal(rpc)
-		if err != nil {
-			p.logger.Error("error marshalling metric rpc payload", zap.Error(err))
-			return
-		}
-
-		if token := p.mqttClient.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
-			p.logger.Error("error sending metrics RPC", zap.String("topic", p.metricsTopic), zap.Error(token.Error()))
-		}
-		p.logger.Info("scraped and published metrics", zap.String("topic", p.metricsTopic), zap.Int("payload_size_b", totalSize), zap.Int("batch_count", len(batchPayload)))
-
-	})
-
-	if err != nil {
-		return err
-	}
-
-	job.SingletonMode()
-	return nil
-}
-
 func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 	ctx := context.Background()
-	p.exporter, err = createOtlpMqttExporter(ctx, p.mqttConfig, p.mqttClient, p.logger)
+	p.exporter, err = p.createOtlpMqttExporter(ctx)
 	if err != nil {
 		p.logger.Error("failed to create a exporter", zap.Error(err))
 	}
@@ -537,24 +471,11 @@ func Register() bool {
 	return true
 }
 
-func createOtlpExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
-	cfg := otlpexporter.CreateDefaultConfig()
-	set := otlpexporter.CreateDefaultSettings(logger)
-	// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
-	exporter, err := otlpexporter.CreateMetricsExporter(ctx, set, cfg)
-	if err != nil {
-		return nil, err
-	}
-	return exporter, nil
-}
+func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component.MetricsExporter, error) {
 
-func createOtlpMqttExporter(ctx context.Context, mqttConfig config.MQTTConfig, client mqtt.Client, logger *zap.Logger) (component.MetricsExporter, error) {
-
-	if client != nil {
-
-		logger.Debug("Setting up OTLP MQTT Exporter with setup client")
-		cfg := otlpmqttexporter.CreateConfigClient(client)
-		set := otlpmqttexporter.CreateDefaultSettings(logger)
+	if p.mqttClient != nil {
+		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.metricsTopic)
+		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 		if err != nil {
@@ -562,9 +483,8 @@ func createOtlpMqttExporter(ctx context.Context, mqttConfig config.MQTTConfig, c
 		}
 		return exporter, nil
 	} else {
-		logger.Debug("Setting up OTLP MQTT Exporter with configuration")
-		cfg := otlpmqttexporter.CreateConfig(mqttConfig.Address, mqttConfig.Id, mqttConfig.Key, mqttConfig.ChannelID)
-		set := otlpmqttexporter.CreateDefaultSettings(logger)
+		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key, p.mqttConfig.ChannelID)
+		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 		if err != nil {

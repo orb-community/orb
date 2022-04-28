@@ -3,13 +3,12 @@ package otlpmqttexporter
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.uber.org/zap"
-	"reflect"
 	"testing"
 	"time"
 
@@ -18,19 +17,18 @@ import (
 )
 
 func TestCreateDefaultConfig(t *testing.T) {
-	t.Skip("Configuration is not done yet")
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 	assert.NotNil(t, cfg, "failed to create default config")
 	assert.NoError(t, configtest.CheckConfigStruct(cfg))
-	ocfg, ok := factory.CreateDefaultConfig().(*Config)
+	testedCfg, ok := factory.CreateDefaultConfig().(*Config)
 	assert.True(t, ok)
-	assert.Equal(t, ocfg.Address, "localhost", "default address is localhost")
-	assert.Equal(t, ocfg.Id, "uuid", "default id is uuid1")
-	assert.Equal(t, ocfg.Key, "uuid", "default key uuid1")
-	assert.Equal(t, ocfg.ChannelID, "agent_test_metrics", "default channel ID agent_test_metrics ")
-	assert.Equal(t, ocfg.TLS, false, "default TLS is disabled")
-	assert.Nil(t, ocfg.MetricsTopic, "default metrics topic is nil, only passed in the export function")
+	assert.Equal(t, "localhost", testedCfg.Address, "default address is localhost")
+	assert.Equal(t, "uuid1", testedCfg.Id, "default id is uuid1")
+	assert.Equal(t, "uuid1", testedCfg.Key, "default key uuid1")
+	assert.Equal(t, "uuid1", testedCfg.ChannelID, "default channel ID agent_test_metrics ")
+	assert.False(t, testedCfg.TLS, "default TLS is disabled")
+	assert.Equal(t, "channels/uuid1/messages/be/pktvisor", testedCfg.MetricsTopic, "default metrics topic is nil, only passed in the export function")
 }
 
 func TestCreateMetricsExporter(t *testing.T) {
@@ -66,7 +64,8 @@ func makeMQTTConnectedClient(t *testing.T) (client mqtt.Client, err error) {
 
 func TestCreateConfigClient(t *testing.T) {
 	type args struct {
-		client mqtt.Client
+		client       mqtt.Client
+		metricsTopic string
 	}
 
 	client, err := makeMQTTConnectedClient(t)
@@ -75,47 +74,84 @@ func TestCreateConfigClient(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want config.Exporter
+		want error
 	}{
 		{
 			name: "ok client",
 			args: args{
-				client: client,
+				client:       client,
+				metricsTopic: "topic",
 			},
 			want: nil,
 		},
 		{
 			name: "nil client",
 			args: args{
-				client: nil,
+				client:       nil,
+				metricsTopic: "",
 			},
-			want: nil,
+			want: fmt.Errorf("invalid mqtt configuration"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := CreateConfigClient(tt.args.client)
-			assert.NoError(t, got.Validate())
+			got := CreateConfigClient(tt.args.client, tt.args.metricsTopic)
+			assert.Equal(t, tt.want, got.Validate(), "expected %s but got %s", tt.want, got.Validate())
 		})
 	}
 }
 
 func TestCreateDefaultSettings(t *testing.T) {
+	logger, _ := zap.NewDevelopment()
 	type args struct {
 		logger *zap.Logger
 	}
 	tests := []struct {
 		name string
 		args args
-		want component.ExporterCreateSettings
 	}{
-		// TODO: Add test cases.
+		{
+			name: "ok default",
+			args: args{
+				logger: logger,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := CreateDefaultSettings(tt.args.logger); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CreateDefaultSettings() = %v, want %v", got, tt.want)
-			}
+			got := CreateDefaultSettings(tt.args.logger)
+			assert.NotNil(t, got.TelemetrySettings.Logger, "expected to not be nil")
+		})
+	}
+}
+
+func TestCreateConfig(t *testing.T) {
+	t.Skip(" only run this if local mqtt is installed locally at port 1889")
+	type args struct {
+		addr    string
+		id      string
+		key     string
+		channel string
+	}
+	tests := []struct {
+		name string
+		args args
+		want config.Exporter
+	}{
+		{
+			name: "local mqtt",
+			args: args{
+				addr:    "localhost:1889",
+				id:      "uuid1",
+				key:     "uuid1",
+				channel: "channels/uuid1/channel/metrics",
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, CreateConfig(tt.args.addr, tt.args.id, tt.args.key, tt.args.channel), "CreateConfig(%v, %v, %v, %v)", tt.args.addr, tt.args.id, tt.args.key, tt.args.channel)
 		})
 	}
 }
