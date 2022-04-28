@@ -140,6 +140,9 @@ jobs:
           git config --global credential.helper cache
           git clone -b develop https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live.git          
           cd orb-live
+          rm -rf ui
+          git add .
+          git commit -m "[NS1 Orb Bot] clean ui folder"
           cp -rf ../ui .
           cp -rf ../VERSION .
           echo "${{ steps.commit_hash.outputs.sha_short }}" > COMMIT_HASH          
