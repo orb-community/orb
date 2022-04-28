@@ -19,7 +19,6 @@ orb:
     pktvisor:
       binary: "/usr/local/sbin/pktvisord"
       config_file: /usr/local/orb/{name}.yaml
-      # api_port: "10856"
   tls:
     verify: {tls_verify}
   cloud:

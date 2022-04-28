@@ -1,10 +1,10 @@
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, create_tags_set, find_files
+from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix,\
+    create_tags_set, find_files, threading_wait_until, check_port_is_available
 from local_agent import run_local_agent_container, run_agent_config_file
 from control_plane_agent_groups import return_matching_groups
 from behave import given, when, then, step
 from hamcrest import *
-import time
 from datetime import datetime
 import requests
 import os
@@ -24,11 +24,14 @@ def check_if_agents_exist(context, orb_tags, status):
     context.agent = create_agent(context.token, context.agent_name, context.orb_tags)
     context.agent_key = context.agent["key"]
     token = context.token
-    run_local_agent_container(context, "default")
+    run_local_agent_container(context, "available")
     agent_id = context.agent['id']
     existing_agents = get_agent(token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
-    expect_container_status(token, agent_id, status)
+    timeout = 30
+    agent_status = expect_container_status(token, agent_id, status, timeout=timeout)
+    assert_that(agent_status, is_(equal_to(status)),
+                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
 
 
 @step('a new agent is created with {orb_tags} orb tag(s)')
@@ -49,9 +52,12 @@ def agent_is_created_matching_group(context):
 
 @then('the agent status in Orb should be {status}')
 def check_agent_online(context, status):
+    timeout = 10
     token = context.token
     agent_id = context.agent['id']
-    expect_container_status(token, agent_id, status)
+    agent_status = expect_container_status(token, agent_id, status, timeout=timeout)
+    assert_that(agent_status, is_(equal_to(status)),
+                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
 
 
 @then('cleanup agents')
@@ -71,7 +77,8 @@ def clean_agents(context):
 def multiple_dataset_for_policy(context, amount_of_datasets):
     agent = get_agent(context.token, context.agent['id'])
     for policy_id in context.list_agent_policies_id:
-        assert_that(len(agent['last_hb_data']['policy_state'][policy_id]['datasets']), equal_to(int(amount_of_datasets)),
+        assert_that(len(agent['last_hb_data']['policy_state'][policy_id]['datasets']),
+                    equal_to(int(amount_of_datasets)),
                     f"Amount of datasets linked with policy {policy_id} failed")
 
 
@@ -86,18 +93,8 @@ def list_policies_applied_to_an_agent_and_referred_status(context, amount_of_pol
 
 @step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied to the agent")
 def list_policies_applied_to_an_agent(context, amount_of_policies):
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = 30
-    context.list_agent_policies_id = list()
-    while time_waiting < timeout:
-        context.agent = get_agent(context.token, context.agent['id'])
-        if 'policy_state' in context.agent['last_hb_data'].keys():
-            context.list_agent_policies_id = list(context.agent['last_hb_data']['policy_state'].keys())
-            if len(context.list_agent_policies_id) == int(amount_of_policies):
-                break
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
+    context.agent, context.list_agent_policies_id = get_policies_applied_to_an_agent(context.token, context.agent['id'],
+                                                                                     amount_of_policies, timeout=180)
 
     assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)),
                 f"Amount of policies applied to this agent failed with {context.list_agent_policies_id} policies")
@@ -105,20 +102,10 @@ def list_policies_applied_to_an_agent(context, amount_of_policies):
 
 @step("this agent's heartbeat shows that {amount_of_groups} groups are matching the agent")
 def list_groups_matching_an_agent(context, amount_of_groups):
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = 30
-    context.list_groups_id = list()
-    groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups, context.agent)
-    while time_waiting < timeout:
-        agent = get_agent(context.token, context.agent['id'])
-        if 'group_state' in agent['last_hb_data'].keys():
-            context.list_groups_id = list(agent['last_hb_data']['group_state'].keys())
-            if sorted(context.list_groups_id) == sorted(context.groups_matching_id):
-                break
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
-
+    groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups,
+                                                                         context.agent)
+    context.list_groups_id = get_groups_to_which_agent_is_matching(context.token, context.agent['id'],
+                                                                   context.groups_matching_id, timeout=180)
     assert_that(len(context.list_groups_id), equal_to(int(amount_of_groups)),
                 f"Amount of groups matching the agent failed with {context.list_groups_id} groups")
     assert_that(sorted(context.list_groups_id), equal_to(sorted(context.groups_matching_id)),
@@ -165,28 +152,30 @@ def remove_agent_config_files(context):
             os.remove(file)
 
 
-@step("an agent is self-provisioned via a configuration file on port {port} with {agent_tags} agent tags and has status {status}")
+@threading_wait_until
+def check_agent_exists_on_backend(token, agent_name, event=None):
+    agent = None
+    all_agents = list_agents(token)
+    for agent in all_agents:
+        if agent_name == agent['name']:
+            event.set()
+            return agent, event.is_set()
+    return agent, event.is_set()
+
+
+@step("an agent is self-provisioned via a configuration file on port {port} with {agent_tags} agent tags and has "
+      "status {status}")
 def provision_agent_using_config_file(context, port, agent_tags, status):
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = 5
     agent_name = f"{agent_name_prefix}{random_string(3)}"
     interface = configs.get('orb_agent_interface', 'mock')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
-    context.dir_path = create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url, base_orb_address, port)
+    context.dir_path = create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url,
+                                                base_orb_address, port)
     context.container_id = run_agent_config_file(context.dir_path, agent_name)
-    is_agent_created = None
-    while is_agent_created is None and time_waiting < timeout:
-        all_agents = list_agents(context.token)
-        for agent in all_agents:
-            if agent_name == agent['name']:
-                context.agent = agent
-                is_agent_created = True
-                break
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
+    context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=10)
     assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found")
+    assert_that(context.agent, is_not(None), f"Agent {agent_name} not correctly created")
     agent_id = context.agent['id']
     existing_agents = get_agent(context.token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
@@ -195,14 +184,15 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
 
 @step("remotely restart the agent")
 def reset_agent_remotely(context):
-    context.considered_timestamp = datetime.now().timestamp()
+    context.considered_timestamp_reset = datetime.now().timestamp()
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': context.token}
     response = requests.post(f"{orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request)
     assert_that(response.status_code, equal_to(200),
-            'Request to restart agent failed with status=' + str(response.status_code))
+                'Request to restart agent failed with status=' + str(response.status_code))
 
 
-def expect_container_status(token, agent_id, status):
+@threading_wait_until
+def expect_container_status(token, agent_id, status, event=None):
     """
     Keeps fetching agent data from Orb control plane until it gets to
     the expected agent status or this operation times out
@@ -210,22 +200,15 @@ def expect_container_status(token, agent_id, status):
     :param (str) token: used for API authentication
     :param (str) agent_id: whose status will be evaluated
     :param (str) status: expected agent status
+    :param (obj) event: threading.event
     """
 
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = 10
-
-    while time_waiting < timeout:
-        agent = get_agent(token, agent_id)
-        agent_status = agent['state']
-        if agent_status == status:
-            break
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
-
-    assert_that(agent_status, is_(equal_to(status)),
-                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
+    agent = get_agent(token, agent_id)
+    agent_status = agent['state']
+    if agent_status == status:
+        event.set()
+        return agent_status
+    return agent_status
 
 
 def get_agent(token, agent_id):
@@ -331,7 +314,48 @@ def edit_agent(token, agent_id, name, tags, expected_status_code=200):
     return response.json()
 
 
-def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, port='default'):
+@threading_wait_until
+def get_policies_applied_to_an_agent(token, agent_id, amount_of_policies, event=None):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: that identifies the agent to be deleted
+    :param (int) amount_of_policies: amount of policies that is expected to be applied to the agents
+    :param (obj) event: threading.event
+    :return:  (dict) agent -> the fetched agent and (list) list_agent_policies_id -> list with the ids of the policies
+    that are applied to the agent
+    """
+    list_agent_policies_id = list()
+    agent = get_agent(token, agent_id)
+    if 'policy_state' in agent['last_hb_data'].keys():
+        list_agent_policies_id = list(agent['last_hb_data']['policy_state'].keys())
+        if len(list_agent_policies_id) == int(amount_of_policies):
+            event.set()
+            return agent, list_agent_policies_id
+    return agent, list_agent_policies_id
+
+
+@threading_wait_until
+def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, event=None):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: that identifies the agent to be deleted
+    :param (list) groups_matching_ids: list with the ids of the groups to with the agent should be subscribed
+    :param (obj) event: threading.event
+    :return: (list) list_groups_id -> list with the ids of the groups to with the agent is subscribed
+    """
+    list_groups_id = list()
+    agent = get_agent(token, agent_id)
+    if 'group_state' in agent['last_hb_data'].keys():
+        list_groups_id = list(agent['last_hb_data']['group_state'].keys())
+        if sorted(list_groups_id) == sorted(groups_matching_ids):
+            event.set()
+            return list_groups_id
+    return list_groups_id
+
+
+def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, status_port='available'):
     """
     Create a file .yaml with configs of the agent that will be provisioned
 
@@ -341,18 +365,17 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     :param (dict) agent_tags: agent tags
     :param (str) orb_url: entire orb url
     :param (str) base_orb_address: base orb url address
-    :param (str) port: port on which the agent should run. Default: default
+    :param (str) status_port: status of the port on which agent must try to run. Default: available
     :return: path to the directory where the agent config file was created
     """
+    assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
+    availability = {"available": True, "unavailable": False}
     tags = {"tags": create_tags_set(agent_tags)}
     agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, base_orb_address)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)
-    if port.isdigit():
-        port = int(port)
-        agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
-    else:
-        assert_that(port.lower(), equal_to("default"), "Unexpected value for port")
+    port = check_port_is_available(availability[status_port])
+    agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
     agent_config_file = yaml.dump(agent_config_file)
     cwd = os.getcwd()
     dir_path = os.path.dirname(cwd)
