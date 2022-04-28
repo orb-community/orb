@@ -424,7 +424,6 @@ func (s policiesService) DeleteAgentGroupFromAllDatasets(ctx context.Context, gr
 	return nil
 }
 
-
 func (s policiesService) DuplicatePolicy(ctx context.Context, token string, policyID string, name string) (Policy, error) {
 
 	mfOwnerID, err := s.identify(token)
@@ -432,13 +431,11 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 		return Policy{}, err
 	}
 
-	//first get existing policy
 	existingPolicy, err := s.repo.RetrievePolicyByID(ctx, policyID, mfOwnerID)
 	if err != nil {
 		return Policy{}, err
 	}
 
-	//set version back to zero
 	policy := existingPolicy
 	policy.Version = 0
 
@@ -446,8 +443,7 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 	var id string
 	var errCreate error
 
-	//checks if a name was given and tries to save
-	if name != ""{
+	if name != "" {
 		policyName, err := types.NewIdentifier(name)
 		if err != nil {
 			return Policy{}, err
@@ -458,7 +454,6 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 			return Policy{}, errors.Wrap(ErrCreatePolicy, err)
 		}
 	} else {
-	//otherwise, tries to save with three different names: "OLDNAME_Copy", "OLDNAME_Copy2" and "OLDNAME_Copy3"
 		nameSuffix = fmt.Sprintf("_copy")
 		var i = 1
 		for {
@@ -469,19 +464,18 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 
 			policy.Name = policyName
 			id, errCreate = s.repo.SavePolicy(ctx, policy)
-			if errCreate != nil {
-				if i < 3{
+			if errCreate != nil && errCreate == errors.ErrConflict {
+				if i < 3 {
 					i++
 					nameSuffix = fmt.Sprintf("_copy%d", i)
 					continue
 				} else {
-					//if already exists policies named with those three options then call fails
 					return Policy{}, errors.Wrap(errors.New("limit of copies of a single policy exceeded"), errors.ErrConflict)
 				}
 			}
 			break
 		}
-		if errCreate != nil{
+		if errCreate != nil {
 			return Policy{}, err
 		}
 	}
