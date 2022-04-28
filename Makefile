@@ -152,8 +152,13 @@ agent_debug_production:
 test_ui:
 	cd ui/ && yarn test
 
+ui-modules:
+	cd ui/ && docker build \
+		-f docker/Dockerfile.buildyarn .
+
 ui:
 	cd ui/ && docker build \
+		--rm=false
 		--build-arg ENV_PS_SID=${PS_SID} \
 		--build-arg ENV_PS_GROUP_KEY=${PS_GROUP_KEY} \
 		--build-arg ENV=${ENVIRONMENT} \
