@@ -6,6 +6,7 @@ import threading
 from datetime import datetime
 import socket
 import os
+import re
 
 tag_prefix = "test_tag_"
 
@@ -77,14 +78,17 @@ def create_tags_set(orb_tags):
     """
     tag_set = dict()
     if orb_tags.isdigit() is False:
-        assert_that(orb_tags, matches_regexp("^.+\:.+"), "Unexpected tags")
-        for tag in orb_tags.split(", "):
-            key, value = tag.split(":")
-            tag_set[key] = value
-    else:
-        amount_of_tags = int(orb_tags.split()[0])
-        for tag in range(amount_of_tags):
-            tag_set[tag_prefix + random_string(4)] = tag_prefix + random_string(2)
+        assert_that(orb_tags, any_of(matches_regexp("^.+\:.+"), matches_regexp("\d+ orb tag\(s\)"),
+                                     matches_regexp("\d+ orb tag")), "Unexpected tags")
+        if re.match(r"^.+\:.+", orb_tags):
+            for tag in orb_tags.split(", "):
+                key, value = tag.split(":")
+                tag_set[key] = value
+                assert_that(False, equal_to(True), "unexpected regex for tags")
+                return tag_set
+    amount_of_tags = int(orb_tags.split()[0])
+    for tag in range(amount_of_tags):
+        tag_set[tag_prefix + random_string(6)] = tag_prefix + random_string(4)
     return tag_set
 
 
