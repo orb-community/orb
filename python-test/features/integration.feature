@@ -612,7 +612,7 @@ Scenario: agent with mixed tags subscription to a group with policies created af
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink already exists
-    When an agent is self-provisioned via a configuration file on port default with 3 agent tags and has status online
+    When an agent is self-provisioned via a configuration file on port available with 3 agent tags and has status online
         And edit the agent tags and use 2 orb tag(s)
         And an Agent Group is created with all tags contained in the agent
         And 3 simple policies are applied to the group
