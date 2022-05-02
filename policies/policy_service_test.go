@@ -212,6 +212,12 @@ func TestEditPolicy(t *testing.T) {
 	invalidPolicyData := newPolicy
 	invalidPolicyData.PolicyData = "invalid"
 
+	invalidYamlPolicy := newPolicy
+	invalidYamlPolicy.Format = ""
+
+	invalidJsonPolicy := newPolicy
+	invalidJsonPolicy.Format = "json"
+
 	cases := map[string]struct {
 		pol   policies.Policy
 		token string
@@ -239,6 +245,16 @@ func TestEditPolicy(t *testing.T) {
 		},
 		"update a existing policy with invalid policy_data": {
 			pol:   invalidPolicyData,
+			token: token,
+			err:   policies.ErrValidatePolicy,
+		},
+		"update a policy with invalid yaml - empty Format field": {
+			pol:   invalidYamlPolicy,
+			token: token,
+			err:   policies.ErrValidatePolicy,
+		},
+		"update a policy with invalid json - not empty Format field": {
+			pol:   invalidJsonPolicy,
 			token: token,
 			err:   policies.ErrValidatePolicy,
 		},
@@ -459,10 +475,10 @@ func TestEditDataset(t *testing.T) {
 
 	wrongDataset := policies.Dataset{MFOwnerID: wrongOwnerID.String()}
 	newDataset := policies.Dataset{
-		ID:           dataset.ID,
-		Name:         nameID,
-		MFOwnerID:    dataset.MFOwnerID,
-		SinkIDs:      dataset.SinkIDs,
+		ID:        dataset.ID,
+		Name:      nameID,
+		MFOwnerID: dataset.MFOwnerID,
+		SinkIDs:   dataset.SinkIDs,
 	}
 
 	cases := map[string]struct {
