@@ -161,7 +161,6 @@ ui-modules:
 
 ui:
 	cd ui/ && docker build \
-		--rm=false
 		--build-arg ENV_PS_SID=${PS_SID} \
 		--build-arg ENV_PS_GROUP_KEY=${PS_GROUP_KEY} \
 		--build-arg ENV=${ENVIRONMENT} \
