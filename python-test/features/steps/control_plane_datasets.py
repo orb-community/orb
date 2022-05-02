@@ -8,7 +8,7 @@ from random import choice
 
 dataset_name_prefix = "test_dataset_name_"
 
-base_orb_url = TestConfig.configs().get('base_orb_url')
+orb_url = TestConfig.configs().get('orb_url')
 
 
 @step("a new dataset is created using referred group, policy and {amount_of_sinks} {sink_number}")
@@ -17,7 +17,11 @@ def create_new_dataset(context, amount_of_sinks, sink_number):
     context.considered_timestamp = datetime.now().timestamp()
     token = context.token
     agent_groups_id = context.agent_group_data['id']
-    context.used_sinks_id = context.existent_sinks_id[:int(amount_of_sinks)]
+    if amount_of_sinks == 1:
+        context.used_sinks_id = [context.sink['id']]
+    else:
+        # todo create scenario with multiple sinks
+        context.used_sinks_id = context.existent_sinks_id[:int(amount_of_sinks)]
     policy_id = context.policy['id']
     dataset_name = dataset_name_prefix + random_string(10)
     context.dataset = create_dataset(token, dataset_name, policy_id, agent_groups_id, context.used_sinks_id)
@@ -105,7 +109,7 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
                     "sink_ids": sink_id}
     header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
-    response = requests.post(base_orb_url + '/api/v1/policies/dataset', json=json_request, headers=header_request)
+    response = requests.post(orb_url + '/api/v1/policies/dataset', json=json_request, headers=header_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create dataset failed with status=' + str(response.status_code))
 
@@ -128,7 +132,7 @@ def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_
                     "sink_ids": sink_id}
     header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
-    response = requests.put(f"{base_orb_url}/api/v1/policies/dataset/{dataset_id}", json=json_request, headers=header_request)
+    response = requests.put(f"{orb_url}/api/v1/policies/dataset/{dataset_id}", json=json_request, headers=header_request)
     assert_that(response.status_code, equal_to(200),
                 'Request to edit dataset failed with status=' + str(response.status_code))
 
@@ -162,7 +166,7 @@ def list_datasets(token, limit=100):
     :returns: (list) a list of datasets
     """
 
-    response = requests.get(base_orb_url + '/api/v1/policies/dataset', headers={'Authorization': token},
+    response = requests.get(orb_url + '/api/v1/policies/dataset', headers={'Authorization': token},
                             params={"limit": limit})
 
     assert_that(response.status_code, equal_to(200),
@@ -192,7 +196,7 @@ def delete_dataset(token, dataset_id):
     :param (str) dataset_id: that identifies the dataset to be deleted
     """
 
-    response = requests.delete(base_orb_url + '/api/v1/policies/dataset/' + dataset_id,
+    response = requests.delete(orb_url + '/api/v1/policies/dataset/' + dataset_id,
                                headers={'Authorization': token})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete dataset id='
@@ -209,7 +213,7 @@ def get_dataset(token, dataset_id, expected_status_code=200):
     :returns: (dict) the fetched dataset
     """
 
-    get_dataset_response = requests.get(base_orb_url + '/api/v1/policies/dataset/' + dataset_id,
+    get_dataset_response = requests.get(orb_url + '/api/v1/policies/dataset/' + dataset_id,
                                        headers={'Authorization': token})
 
     assert_that(get_dataset_response.status_code, equal_to(expected_status_code),

@@ -1,9 +1,37 @@
 <nb-card>
-  <nb-card-header class="summary-accent">Agent Policy Configuration</nb-card-header>
+  <nb-card-header class="summary-accent">Agent Policy Configuration
+    <button
+      (click)="toggleEdit(true)"
+      *ngIf="!editMode"
+      class="card-ghost-button"
+      ghost="true"
+      nbButton
+      status="primary">
+      Edit
+    </button>
+    <button
+      (click)="toggleEdit(false)"
+      *ngIf="editMode"
+      class="card-ghost-button"
+      ghost="true"
+      nbButton
+      status="danger">
+      Discard
+    </button>
+  </nb-card-header>
   <nb-card-body>
-    <div class="col-12">
-      <pre
-        innerHtml="{{ (policy?.policy_data | prettyYaml:[false, 2]) || (policy?.policy | prettyJson: [false, 2]) }}"></pre>
-    </div>
+    <div *ngIf="editMode; then updateView else readView"></div>
   </nb-card-body>
 </nb-card>
+
+<ng-template #readView>
+  <div class="d-flex flex-column">
+      <pre
+        innerHtml="{{ (policy?.policy_data | prettyYaml:[false, 2]) || (policy?.policy | prettyJson: [false, 2]) }}"></pre>
+  </div>
+</ng-template>
+
+<ng-template #updateView>
+        <pre
+          innerHtml="{{ (policy?.policy_data | prettyYaml:[false, 2]) || (policy?.policy | prettyJson: [false, 2]) }}"></pre>
+</ng-template>

@@ -37,11 +37,21 @@ nb-card {
   padding-left: 2px;
 }
 
-::ng-deep button.add-dataset-button {
+::ng-deep button.card-ghost-button {
   display: flex !important;
   float: right !important;
   padding: 0.2rem 1.125rem !important;
   z-index: 2;
+}
+
+.edit-dataset-button {
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  border: none !important;
+  cursor: pointer !important;
+  outline: none !important;
+  overflow: hidden !important;
+  color: #ffffff;
 }
 
 .orb-service- {
