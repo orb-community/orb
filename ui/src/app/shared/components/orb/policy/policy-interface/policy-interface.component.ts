@@ -11,7 +11,6 @@ import {
 } from '@angular/core';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
-import ICodeEditor = monaco.editor.ICodeEditor;
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
 
 @Component({
@@ -92,7 +91,7 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
 
   toggleEdit(edit, notify = true) {
     this.editMode = edit;
-    this.editorOptions = {...this.editorOptions, readOnly: !edit};
+    this.editorOptions = { ...this.editorOptions, readOnly: !edit };
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
   }

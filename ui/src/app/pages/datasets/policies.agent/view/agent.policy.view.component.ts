@@ -82,15 +82,15 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
     const interFacePartial = !!this.editMode.interface &&
       (format === 'yaml' ?
-      {
-        format: 'yaml',
-        // this should be refactored out.
-        policy_data: policyInterface,
-      } :
-      {
-        format: 'json',
-        policy: policyInterface,
-      });
+        {
+          format: 'yaml',
+          // this should be refactored out.
+          policy_data: policyInterface,
+        } :
+        {
+          format: 'json',
+          policy: policyInterface,
+        });
 
     const payload = {
       ...detailsPartial,
