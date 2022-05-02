@@ -120,7 +120,7 @@ const children = [
   },
   {
     path: 'datasets',
-    data: {breadcrumb: 'Datasets Explorer'},
+    data: {breadcrumb: {'skip': true}},
     children: [
       {
         path: 'list',
