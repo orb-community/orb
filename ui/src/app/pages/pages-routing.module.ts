@@ -43,52 +43,58 @@ const children = [
     data: {breadcrumb: 'Library Showcase - DEV'},
   },
   {
-    path: 'agents',
+    path: 'fleet',
+    data: {breadcrumb: {'skip': true}},
     children: [
       {
-        path: '',
-        component: AgentListComponent,
-        data: {breadcrumb: 'Agents List'},
+        path: 'agents',
+        children: [
+          {
+            path: '',
+            component: AgentListComponent,
+            data: {breadcrumb: 'Agents List'},
+          },
+          {
+            path: 'add',
+            component: AgentAddComponent,
+            data: {breadcrumb: 'New Agent'},
+          },
+          {
+            path: 'edit/:id',
+            component: AgentAddComponent,
+            data: {breadcrumb: 'Edit Agent'},
+          },
+          {
+            path: 'details/:id',
+            component: AgentDetailsComponent,
+            data: {breadcrumb: 'Agent Detail'},
+          },
+          {
+            path: 'view/:id',
+            component: AgentViewComponent,
+            data: {breadcrumb: 'Agent View'},
+          },
+        ],
       },
       {
-        path: 'add',
-        component: AgentAddComponent,
-        data: {breadcrumb: 'New Agent'},
-      },
-      {
-        path: 'edit/:id',
-        component: AgentAddComponent,
-        data: {breadcrumb: 'Edit Agent'},
-      },
-      {
-        path: 'details/:id',
-        component: AgentDetailsComponent,
-        data: {breadcrumb: 'Agent Detail'},
-      },
-      {
-        path: 'view/:id',
-        component: AgentViewComponent,
-        data: {breadcrumb: 'Agent View'},
-      },
-    ],
-  },
-  {
-    path: 'groups',
-    children: [
-      {
-        path: '',
-        component: AgentGroupListComponent,
-        data: {breadcrumb: 'Agent Groups List'},
-      },
-      {
-        path: 'add',
-        component: AgentGroupAddComponent,
-        data: {breadcrumb: 'New Agent Group'},
-      },
-      {
-        path: 'edit/:id',
-        component: AgentGroupAddComponent,
-        data: {breadcrumb: 'Edit Agent Group'},
+        path: 'groups',
+        children: [
+          {
+            path: '',
+            component: AgentGroupListComponent,
+            data: {breadcrumb: 'Agent Groups List'},
+          },
+          {
+            path: 'add',
+            component: AgentGroupAddComponent,
+            data: {breadcrumb: 'New Agent Group'},
+          },
+          {
+            path: 'edit/:id',
+            component: AgentGroupAddComponent,
+            data: {breadcrumb: 'Edit Agent Group'},
+          },
+        ],
       },
     ],
   },
