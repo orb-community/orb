@@ -31,19 +31,12 @@ import {
 // MFx- Foorm dependency
 import { FormsModule } from '@angular/forms';
 // Mfx - MQTT dependencies for Gateways page
-import { IMqttServiceOptions, MqttModule, MqttService } from 'ngx-mqtt';
-import { environment } from 'environments/environment';
 // Mfx - Auth and Profile pages
 import { BreadcrumbModule } from 'xng-breadcrumb';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { ProfileComponent } from 'app/pages/profile/profile.component';
 import { GoogleAnalyticsService } from './common/services/analytics/google-service-analytics.service';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-
-export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
-  connectOnCreate: false,
-  url: environment.mqttWsUrl,
-};
 
 @NgModule({
   declarations: [
@@ -69,7 +62,6 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     }),
     // Mfx dependencies
     CoreModule.forRoot(),
-    MqttModule.forRoot(MQTT_SERVICE_OPTIONS),
 
     // 3rd party
     FormsModule,
@@ -89,7 +81,6 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   bootstrap: [AppComponent],
   // Mfx dependencies
   providers: [
-    MqttService,
     GoogleAnalyticsService,
   ],
 })
