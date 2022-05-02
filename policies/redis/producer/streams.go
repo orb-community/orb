@@ -127,12 +127,12 @@ func (e eventStore) ListDatasetsByPolicyIDInternal(ctx context.Context, policyID
 }
 
 func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.Policy) (policies.Policy, error) {
-	res, err := e.svc.EditPolicy(ctx, token, pol)
+	editedPol, err := e.svc.EditPolicy(ctx, token, pol)
 	if err != nil {
 		return policies.Policy{}, err
 	}
 
-	datasets, err := e.svc.ListDatasetsByPolicyIDInternal(ctx, res.ID, token)
+	datasets, err := e.svc.ListDatasetsByPolicyIDInternal(ctx, editedPol.ID, token)
 	if err != nil {
 		return policies.Policy{}, err
 	}
@@ -142,14 +142,7 @@ func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.P
 		groupsIDs = append(groupsIDs, ds.AgentGroupID)
 	}
 
-	p, err := e.svc.ViewPolicyByID(ctx, token, pol.ID)
-	if err != nil {
-		return policies.Policy{}, err
-	}
-	pol.Backend = p.Backend
-	pol.MFOwnerID = p.MFOwnerID
-
-	err = validatePolicyBackend(&pol, pol.Format, pol.PolicyData)
+	err = validatePolicyBackend(&editedPol, editedPol.Format, editedPol.PolicyData)
 	if err != nil {
 		return policies.Policy{}, err
 	}
@@ -167,10 +160,10 @@ func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.P
 	err = e.client.XAdd(ctx, record).Err()
 	if err != nil {
 		e.logger.Error("error sending event to event store", zap.Error(err))
-		return res, err
+		return editedPol, err
 	}
 
-	return res, nil
+	return editedPol, nil
 }
 
 func (e eventStore) AddPolicy(ctx context.Context, token string, p policies.Policy) (policies.Policy, error) {

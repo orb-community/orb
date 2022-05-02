@@ -106,18 +106,6 @@ func (req updatePolicyReq) validate() error {
 		return errors.ErrMalformedEntity
 	}
 
-	if req.Policy == nil {
-		// passing policy data blob in the specified format
-		if req.Format == "" || req.PolicyData == "" {
-			return errors.ErrMalformedEntity
-		}
-	} else {
-		// policy is in json, verified by the back ends later
-		if req.Format != "" || req.PolicyData != "" {
-			return errors.ErrMalformedEntity
-		}
-	}
-
 	_, err := types.NewIdentifier(req.Name)
 	if err != nil {
 		return errors.Wrap(errors.ErrMalformedEntity, err)
