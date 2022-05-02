@@ -30,7 +30,7 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
   editModeChange: EventEmitter<boolean>;
 
   @ViewChild('editorComponent')
-  editor: ICodeEditor;
+  editor;
 
   editorOptions: IStandaloneEditorConstructionOptions = {
     theme: 'vs-dark',
@@ -82,7 +82,8 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
   updateForm() {
     const { policy_data, policy } = this.policy;
     if (this.editMode) {
-      this.formControl = this.fb.control(policy_data, [Validators.required]);
+      this.code = policy_data || JSON.stringify(policy, null, 2);
+      this.formControl = this.fb.control(this.code, [Validators.required]);
     } else {
       this.formControl = this.fb.control(null, [Validators.required]);
       this.code = policy_data || JSON.stringify(policy, null, 2);
