@@ -56,6 +56,8 @@ Scenario: Remove group to which agent is linked
         And this agent's heartbeat shows that 1 policies are successfully applied and has status running
     When the group to which the agent is linked is removed
     Then the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
+        And this agent's heartbeat shows that 0 policies are successfully applied to the agent
+        And this agent's heartbeat shows that 0 groups are matching the agent
         And dataset related have validity invalid
 
 

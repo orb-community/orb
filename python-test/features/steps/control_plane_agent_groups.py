@@ -148,6 +148,7 @@ def matching_agent(context, amount_agent_matching):
 @step("the group to which the agent is linked is removed")
 def remove_group(context):
     delete_agent_group(context.token, context.agent_group_data['id'])
+    context.agent_groups.pop(context.agent_group_data['id'])
 
 
 @then('cleanup agent group')
