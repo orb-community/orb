@@ -145,9 +145,9 @@ kind: collection`;
     Promise.all([
       this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(),
       this.getBackendsList(),
-    ]).catch(reason => console.warn(`Couldn't fetch data. Reason: ${ reason }`))
+    ]).catch(reason => console.warn(`Couldn't fetch data. Reason: ${reason}`))
       .then(() => this.updateForms())
-      .catch((reason) => console.warn(`Couldn't fetch ${ this.agentPolicy?.backend } data. Reason: ${ reason }`));
+      .catch((reason) => console.warn(`Couldn't fetch ${this.agentPolicy?.backend} data. Reason: ${reason}`));
   }
 
   resizeComponents() {
@@ -251,7 +251,7 @@ kind: collection`;
     this.modules = handlers?.modules || {};
 
     if (wizard) {
-      this.onBackendSelected(backend).catch(reason => console.warn(`${ reason }`));
+      this.onBackendSelected(backend).catch(reason => console.warn(`${reason}`));
     }
   }
 
@@ -293,9 +293,9 @@ kind: collection`;
           this.tapFG.controls.selected_tap.disable();
         }
 
-      }, reason => console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`))
+      }, reason => console.warn(`Cannot retrieve backend data - reason: ${JSON.parse(reason)}`))
       .catch(reason => {
-        console.warn(`Cannot retrieve backend data - reason: ${ JSON.parse(reason) }`);
+        console.warn(`Cannot retrieve backend data - reason: ${JSON.parse(reason)}`);
       });
   }
 
