@@ -17,6 +17,7 @@ jobs:
     outputs:
       agent: ${{ steps.filter.outputs.agent }}
       orb: ${{ steps.filter.outputs.orb }}
+      ui: ${{ steps.filter.outputs.ui }}
       VERSION: ${{ env.VERSION }}
     steps:
       - uses: actions/checkout@v2
