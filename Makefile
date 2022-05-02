@@ -154,8 +154,8 @@ test_ui:
 
 ui-modules:
 	cd ui/ && docker build \
+		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:latest \
 		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:$(REF_TAG) \
-		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:$(ORB_VERSION) \
 		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile.buildyarn .
 
