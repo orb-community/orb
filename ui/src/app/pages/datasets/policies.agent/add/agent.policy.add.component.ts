@@ -97,7 +97,7 @@ export class AgentPolicyAddComponent {
     language: 'yaml',
     automaticLayout: true,
     glyphMargin: false,
-    folding: false,
+    folding: true,
     // Undocumented see https://github.com/Microsoft/vscode/issues/30795#issuecomment-410998882
     lineDecorationsWidth: 0,
     lineNumbersMinChars: 0,
