@@ -35,17 +35,24 @@ define compile_service_linux
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=linux GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-extldflags "-static" -X 'github.com/ns1labs/orb/buildinfo.version=$(ORB_VERSION)'" -o ${BUILD_DIR}/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc) cmd/$(svc)/main.go
 endef
 
-define make_docker
-	$(eval svc=$(subst docker_,,$(1)))
+define run_test
+	 go test -mod=mod -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd' | grep '$(SERVICE)')
+endef
 
+define make_docker
+	if [ -z "$(SERVICE)" ]; then \
+		SERVICE=$(subst docker_,,$(1)); \
+	else \
+		svc=$(SERVICE); \
+	fi
 	docker build \
 		--no-cache \
-		--build-arg SVC=$(svc) \
+		--build-arg SVC=$(SERVICE) \
 		--build-arg GOARCH=$(GOARCH) \
 		--build-arg GOARM=$(GOARM) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(REF_TAG) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION)-$(COMMIT_HASH) \
+		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(REF_TAG) \
+		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION) \
+		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile .
 endef
 
@@ -81,6 +88,11 @@ endif
 test:
 	go test -mod=mod -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd')
 
+run_test_service: test_service $(2)
+
+test_service:
+	$(call run_test,$(@))
+
 proto:
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative policies/pb/policies.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative fleet/pb/fleet.proto
@@ -99,6 +111,9 @@ $(DOCKERS_DEV):
 services: $(SERVICES)
 dockers: $(DOCKERS)
 dockers_dev: $(DOCKERS_DEV)
+
+build_docker:
+	$(call make_docker,$(@),$(GOARCH))
 
 run:
 	docker-compose -f docker/docker-compose.yml up -d
@@ -133,6 +148,16 @@ agent_debug_production:
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_DEBUG_TAG) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_DEBUG_REF_TAG) \
 	  -f agent/docker/Dockerfile .
+
+test_ui:
+	cd ui/ && yarn test
+
+ui-modules:
+	cd ui/ && docker build \
+		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:latest \
+		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:$(REF_TAG) \
+		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:$(ORB_VERSION)-$(COMMIT_HASH) \
+		-f docker/Dockerfile.buildyarn .
 
 ui:
 	cd ui/ && docker build \

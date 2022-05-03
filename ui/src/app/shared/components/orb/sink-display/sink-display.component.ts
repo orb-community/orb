@@ -21,8 +21,9 @@ export class SinkDisplayComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  onRemoveSink(sinkID) {
-    this.sinksChange.emit(this.sinks.filter(sink => sink.id !== sinkID));
+  onRemoveSink(sink) {
+    this.sinks.splice(this.sinks.indexOf(sink), 1);
+    this.sinksChange.emit(this.sinks);
   }
 
 }

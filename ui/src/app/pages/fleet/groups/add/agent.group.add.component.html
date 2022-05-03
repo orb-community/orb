@@ -90,6 +90,7 @@
           <hr/>
           <div class="d-flex justify-content-end">
             <button nbStepperNext
+                    [disabled]="!selectedTagsValid()"
                     class="next-button"
                     data-orb-qa-id="button#save"
                     nbButton

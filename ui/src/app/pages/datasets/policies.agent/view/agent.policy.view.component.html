@@ -1,16 +1,41 @@
-<header class="row"
-        data-orb-qa-id="agent#view">
+<header
+  class="row"
+  data-orb-qa-id="agent#view">
   <div class="col-8">
-    <xng-breadcrumb class="orb-breadcrumb"
-                    data-orb-qa-id="breadcrumb">
-    </xng-breadcrumb>
-    <div><h4>Policy View</h4></div>
+    <xng-breadcrumb
+      class="orb-breadcrumb"
+      data-orb-qa-id="breadcrumb"></xng-breadcrumb>
+    <div>
+      <h4>Policy View</h4>
+    </div>
+  </div>
+  <div *ngIf="isEditMode()">
+    <button
+      (click)="save()"
+      [disabled]="!canSave()"
+      class="card-ghost-button"
+      nbButton
+      status="primary">
+      Save
+    </button>
+    <button
+      (click)="discard()"
+      class="card-ghost-button"
+      ghost="true"
+      nbButton
+      status="danger">
+      Discard
+    </button>
   </div>
 </header>
 
-<div *ngIf="!isLoading" class="row">
+<div
+  *ngIf="!isLoading"
+  class="row">
   <div class="card-col col-4">
-    <ngx-policy-details [policy]="policy"></ngx-policy-details>
+    <ngx-policy-details
+      [(editMode)]="editMode.details"
+      [policy]="policy"></ngx-policy-details>
     <ngx-policy-groups [policy]="policy"></ngx-policy-groups>
   </div>
   <div class="card-col col-8">

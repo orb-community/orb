@@ -116,6 +116,16 @@ tr div p {
   }
 }
 
+.view-policy-button {
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  border: none !important;
+  cursor: pointer !important;
+  outline: none !important;
+  overflow: hidden !important;
+  color: #ffffff;
+}
+
 .add-agent-policy-container {
   position: relative;
   height: 0;

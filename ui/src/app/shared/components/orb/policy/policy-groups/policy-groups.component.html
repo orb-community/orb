@@ -1,11 +1,13 @@
 <nb-card>
-  <nb-card-header>Active Groups</nb-card-header>
+  <nb-card-header>Assigned Groups</nb-card-header>
   <nb-card-body>
     <div *ngIf="!isLoading">
-      <button (click)="showAgentGroupDetail(group)"
+      <button (click)="showAgentGroupMatches(group)"
               *ngFor="let group of groups; last as isLast"
+              nbButton
+              nbTooltip="{{group.matching_agents.online}} online out of {{group.matching_agents.total}} agent(s)"
               class='agent-group-button'>
-        <span class="agent-group-accent">{{ group.name }}</span>
+        <span class="agent-group-accent">{{ group.name }}({{ group.matching_agents.online}})</span>
         <span *ngIf="!isLast">,</span>
       </button>
     </div>

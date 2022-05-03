@@ -1,7 +1,7 @@
 from hamcrest import *
 import requests
 from behave import given, then, step
-from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json
+from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, threading_wait_until
 from local_agent import get_orb_agent_logs
 from test_config import TestConfig
 import time
@@ -10,7 +10,7 @@ from control_plane_datasets import create_new_dataset, list_datasets
 from random import choice, choices, sample
 
 policy_name_prefix = "test_policy_name_"
-base_orb_url = TestConfig.configs().get('base_orb_url')
+orb_url = TestConfig.configs().get('orb_url')
 
 
 @step("a new policy is created using: {kwargs}")
@@ -149,7 +149,11 @@ def check_policy_attribute(context, attribute, value):
 
 
 @then("referred policy {condition} be listed on the orb policies list")
-def check_policies(context, condition='must'):
+def check_policies(context, **condition):
+    if len(condition) > 0:
+        condition = condition["condition"]
+    else:
+        condition = "must"
     policy_id = context.policy['id']
     all_existing_policies = list_policies(context.token)
     is_policy_listed = bool()
@@ -182,27 +186,12 @@ def remove_policy_applied(context):
 
 @step('container logs should inform that removed policy was stopped and removed within {time_to_wait} seconds')
 def check_test(context, time_to_wait):
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = int(time_to_wait)
-    found = {'stop': False, 'remove': False}
     stop_log_info = f"policy [{context.policy['name']}]: stopping"
     remove_log_info = f"DELETE /api/v1/policies/{context.policy['name']} 200"
+    policy_removed = policy_stopped_and_removed(context.container_id, stop_log_info, remove_log_info,
+                                                context.considered_timestamp,  timeout=time_to_wait)
+    assert_that(policy_removed, equal_to(True), f"Policy {context.policy['name']} failed to be unapplied")
 
-    while time_waiting < timeout and (found['stop'] is False or found['remove'] is False):
-        logs = get_orb_agent_logs(context.container_id)
-        for log_line in logs:
-            log_line = safe_load_json(log_line)
-            if found['stop'] is False:
-                found['stop'] = is_expected_log_info_in_log_line(log_line, stop_log_info, context.considered_timestamp)
-
-            if found['remove'] is False:
-                found['remove'] = is_expected_log_info_in_log_line(log_line, remove_log_info,
-                                                                   context.considered_timestamp)
-            if found['stop'] is True and found['remove'] is True:
-                break
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
 
 
 @then('cleanup policies')
@@ -228,7 +217,7 @@ def new_policy(context, kwargs):
       'to deleted policy anymore')
 def check_agent_logs_for_deleted_policies_considering_timestamp(context, condition, text_to_match):
     policies_have_expected_message = \
-        check_agent_log_for_policies(text_to_match, 0, context.container_id, list(context.policy['id']),
+        check_agent_log_for_policies(text_to_match, context.container_id, list(context.policy['id']),
                                      context.considered_timestamp)
     assert_that(len(policies_have_expected_message), equal_to(0),
                 f"Message '{text_to_match}' for policy "
@@ -239,10 +228,16 @@ def check_agent_logs_for_deleted_policies_considering_timestamp(context, conditi
 @step('the container logs that were output after {condition} contain the message "{'
       'text_to_match}" referred to each applied policy within {time_to_wait} seconds')
 def check_agent_logs_for_policies_considering_timestamp(context, condition, text_to_match, time_to_wait):
+
+    #todo improve the logic for timestamp
+    if "reset" in condition:
+        considered_timestamp = context.considered_timestamp_reset
+    else:
+        considered_timestamp = context.considered_timestamp
     policies_data = list()
     policies_have_expected_message = \
-        check_agent_log_for_policies(text_to_match, time_to_wait, context.container_id, context.list_agent_policies_id,
-                                     context.considered_timestamp)
+        check_agent_log_for_policies(text_to_match, context.container_id, context.list_agent_policies_id,
+                                     considered_timestamp, timeout=time_to_wait)
     if len(set(context.list_agent_policies_id).difference(policies_have_expected_message)) > 0:
         policies_without_message = set(context.list_agent_policies_id).difference(policies_have_expected_message)
         for policy in policies_without_message:
@@ -258,7 +253,8 @@ def check_agent_logs_for_policies_considering_timestamp(context, condition, text
       'time_to_wait} seconds')
 def check_agent_logs_for_policies(context, text_to_match, time_to_wait):
     policies_have_expected_message = \
-        check_agent_log_for_policies(text_to_match, time_to_wait, context.container_id, context.list_agent_policies_id)
+        check_agent_log_for_policies(text_to_match, context.container_id, context.list_agent_policies_id,
+                                     timeout=time_to_wait)
     assert_that(policies_have_expected_message, equal_to(set(context.list_agent_policies_id)),
                 f"Message '{text_to_match}' for policy "
                 f"'{set(context.list_agent_policies_id).difference(policies_have_expected_message)}'"
@@ -297,7 +293,7 @@ def create_policy(token, json_request):
 
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
-    response = requests.post(base_orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
+    response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
                 'Request to create policy failed with status=' + str(response.status_code))
 
@@ -315,7 +311,7 @@ def edit_policy(token, policy_id, json_request):
     """
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
-    response = requests.put(base_orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
+    response = requests.put(orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
                             headers=headers_request)
     assert_that(response.status_code, equal_to(200),
                 'Request to create policy failed with status=' + str(response.status_code))
@@ -399,7 +395,7 @@ def get_policy(token, policy_id, expected_status_code=200):
     :returns: (dict) the fetched policy
     """
 
-    get_policy_response = requests.get(base_orb_url + '/api/v1/policies/agent/' + policy_id,
+    get_policy_response = requests.get(orb_url + '/api/v1/policies/agent/' + policy_id,
                                        headers={'Authorization': token})
 
     assert_that(get_policy_response.status_code, equal_to(expected_status_code),
@@ -416,7 +412,7 @@ def list_policies(token, limit=100):
     :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
     :returns: (list) a list of policies
     """
-    response = requests.get(base_orb_url + '/api/v1/policies/agent', headers={'Authorization': token},
+    response = requests.get(orb_url + '/api/v1/policies/agent', headers={'Authorization': token},
                             params={'limit': limit})
 
     assert_that(response.status_code, equal_to(200),
@@ -446,7 +442,7 @@ def delete_policy(token, policy_id):
     :param (str) policy_id: that identifies the policy to be deleted
     """
 
-    response = requests.delete(base_orb_url + '/api/v1/policies/agent/' + policy_id,
+    response = requests.delete(orb_url + '/api/v1/policies/agent/' + policy_id,
                                headers={'Authorization': token})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete policy id='
@@ -478,31 +474,27 @@ def check_logs_contain_message_for_policies(logs, expected_message, list_agent_p
     return policies_have_expected_message
 
 
-def check_agent_log_for_policies(expected_message, time_to_wait, container_id, list_agent_policies_id,
-                                 considered_timestamp=datetime.now().timestamp()):
+@threading_wait_until
+def check_agent_log_for_policies(expected_message, container_id, list_agent_policies_id,
+                                 considered_timestamp=datetime.now().timestamp(), event=None):
     """
     Checks agent container logs for expected message for each applied policy over a period of time
 
     :param (str) expected_message: message that we expect to find in the logs
-    :param time_to_wait: seconds to wait for the log
     :param (str) container_id: agent container id
     :param (list) list_agent_policies_id: list with all policy id applied to the agent
     :param (float) considered_timestamp: timestamp from which the log will be considered.
                                                                 Default: timestamp at which behave execution is started
+    :param (obj) event: threading.event
     """
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = int(time_to_wait)
-    policies_have_expected_message = set()
-    while time_waiting < timeout:
-        logs = get_orb_agent_logs(container_id)
-        policies_have_expected_message = \
-            check_logs_contain_message_for_policies(logs, expected_message, list_agent_policies_id,
-                                                    considered_timestamp)
-        if len(policies_have_expected_message) == len(list_agent_policies_id):
-            break
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
+    logs = get_orb_agent_logs(container_id)
+    policies_have_expected_message = \
+        check_logs_contain_message_for_policies(logs, expected_message, list_agent_policies_id,
+                                                considered_timestamp)
+    if len(policies_have_expected_message) == len(list_agent_policies_id):
+        event.set()
+        return policies_have_expected_message
+
     return policies_have_expected_message
 
 
@@ -634,3 +626,30 @@ def return_policy_attribute(policy, attribute):
         return policy["policy"]["handlers"]["modules"][handler_label]["filter"]["only_rcode"]
     else:
         return None
+
+
+@threading_wait_until
+def policy_stopped_and_removed(container_id, stop_policy_info, remove_policy_info, start_considering_time, event=None):
+    """
+
+    :param (str) container_id: agent container id
+    :param (str) stop_policy_info: log info that confirms that the policy was stopped
+    :param (str) remove_policy_info: log info that confirms that the policy was removed
+    :param (str) start_considering_time: timestamp after which logs must be validated
+    :param (obj) event: threading.event
+    :return: (bool) if the expected message is found return True, if not, False
+    """
+    found = {'stop': False, 'remove': False}
+    logs = get_orb_agent_logs(container_id)
+    for log_line in logs:
+        log_line = safe_load_json(log_line)
+        if found['stop'] is False:
+            found['stop'] = is_expected_log_info_in_log_line(log_line, stop_policy_info, start_considering_time)
+
+        if found['remove'] is False:
+            found['remove'] = is_expected_log_info_in_log_line(log_line, remove_policy_info,
+                                                               start_considering_time)
+        if found['stop'] is True and found['remove'] is True:
+            event.set()
+            return event.is_set()
+    return event.is_set()

@@ -61,7 +61,7 @@ export class DatasetPoliciesService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to create Dataset Policy',
+          this.notificationsService.error('Failed to create Dataset for this Policy',
             `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
           return Observable.throwError(err);
         },
@@ -77,7 +77,7 @@ export class DatasetPoliciesService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to fetch Dataset Policy',
+          this.notificationsService.error('Failed to fetch Dataset of this Policy',
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
@@ -93,7 +93,7 @@ export class DatasetPoliciesService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to edit Dataset Policy',
+          this.notificationsService.error('Failed to edit Dataset',
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },
@@ -206,7 +206,7 @@ export class DatasetPoliciesService {
       })
       .catch(
         err => {
-          this.notificationsService.error('Failed to get Dataset Policies',
+          this.notificationsService.error('Failed to get Datasets of Policy',
             `Error: ${ err.status } - ${ err.statusText }`);
           return Observable.throwError(err);
         },

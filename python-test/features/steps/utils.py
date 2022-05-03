@@ -2,6 +2,10 @@ import random
 import string
 from json import loads, JSONDecodeError
 from hamcrest import *
+import threading
+from datetime import datetime
+import socket
+import os
 
 tag_prefix = "test_tag_"
 
@@ -116,3 +120,63 @@ def remove_empty_from_json(json_file):
         elif isinstance(value, dict):
             remove_empty_from_json(value)
     return json_file
+
+
+def threading_wait_until(func):
+    def wait_event(*args, wait_time=0.5, timeout=10, start_func_value=False, **kwargs):
+        event = threading.Event()
+        func_value = start_func_value
+        start = datetime.now().timestamp()
+        time_running = 0
+        while not event.is_set() and time_running < int(timeout):
+            func_value = func(*args, event=event, **kwargs)
+            event.wait(wait_time)
+            time_running = datetime.now().timestamp() - start
+        return func_value
+
+    return wait_event
+
+
+def check_port_is_available(availability=True):
+    """
+
+    :param (str) availability: Status of the port on which agent must try to run. Default: available.
+    :return: (int) port number
+    """
+    assert_that(availability, any_of(equal_to(True), equal_to(False)), "Unexpected value for availability")
+    available_port = None
+    port_options = range(10853, 10860)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    for port in port_options:
+        result = sock.connect_ex(('127.0.0.1', port))
+        if result == 0:
+            sock.close()
+            available_port = port
+            if availability is True:
+                continue
+            else:
+                return available_port
+        else:
+            available_port = port
+            sock.close()
+            break
+    assert_that(available_port, is_not(equal_to(None)), "No available ports to bind")
+    return available_port
+
+
+def find_files(prefix, suffix, path):
+    """
+    Find files that match with prefix and suffix condition
+
+    :param prefix: string with which the file should start with
+    :param suffix: string with which the file should end with
+    :param path: directory where the files will be searched
+    :return: (list) path to all files that matches
+    """
+    result = list()
+    for root, dirs, files in os.walk(path):
+        for name in files:
+            if name.startswith(prefix) and name.endswith(suffix):
+                result.append(os.path.join(root, name))
+    return result
+

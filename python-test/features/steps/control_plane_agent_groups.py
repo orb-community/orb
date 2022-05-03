@@ -2,28 +2,42 @@ from test_config import TestConfig
 from local_agent import get_orb_agent_logs
 from users import get_auth_token
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
-    create_tags_set, check_logs_contain_message_and_name
+    create_tags_set, check_logs_contain_message_and_name, threading_wait_until
 from behave import given, then, step
 from hamcrest import *
 import requests
-import time
+from random import sample
 
 configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
 agent_group_description = "This is an agent group"
-base_orb_url = configs.get('base_orb_url')
+orb_url = configs.get('orb_url')
 
 
-@step("an Agent Group is created with same tag as the agent")
-def create_agent_group_matching_agent(context, **kwargs):
+@step("an Agent Group is created with {amount_of_tags} tags contained in the agent")
+def create_agent_group_matching_agent(context, amount_of_tags, **kwargs):
+    if amount_of_tags.isdigit() is False:
+        assert_that(amount_of_tags, equal_to("all"), 'Unexpected value for amount of tags')
     agent_group_name = agent_group_name_prefix + random_string()
     if "group_description" in kwargs.keys():
         group_description = kwargs["group_description"]
     else:
         group_description = agent_group_description
-    tags = context.agent["orb_tags"]
+
+    tags_in_agent = context.agent["orb_tags"]
+    if context.agent["agent_tags"] is not None:
+        tags_in_agent.update(context.agent["agent_tags"])
+    tags_keys = tags_in_agent.keys()
+
+    if amount_of_tags.isdigit() is True:
+        amount_of_tags = int(amount_of_tags)
+    else:
+        amount_of_tags = len(tags_keys)
+    assert_that(tags_keys, has_length(greater_than_or_equal_to(amount_of_tags)), "Amount of tags greater than tags"
+                                                                                      "contained in agent")
+    tags_to_group = {key: tags_in_agent[key] for key in sample(tags_keys, amount_of_tags)}
     context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
-                                                  tags)
+                                                  tags_to_group)
     group_id = context.agent_group_data['id']
     context.agent_groups[group_id] = agent_group_name
 
@@ -156,8 +170,8 @@ def subscribe_agent_to_a_group(context):
       '{time_to_wait} seconds')
 def check_logs_for_group(context, text_to_match, time_to_wait):
     groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups, context.agent)
-    text_found, groups_to_which_subscribed = check_subscription(time_to_wait, groups_matching,
-                                                                text_to_match, context.container_id)
+    text_found, groups_to_which_subscribed = check_subscription(groups_matching, text_to_match, context.container_id,
+                                                                timeout=time_to_wait)
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)"
                                        f"{set(groups_matching).difference(groups_to_which_subscribed)}!")
 
@@ -177,7 +191,7 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
     json_request = {"name": name, "description": description, "tags": tags}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
-    response = requests.post(base_orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
+    response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create agent group failed with status=' + str(response.status_code))
 
@@ -193,7 +207,7 @@ def get_agent_group(token, agent_group_id):
     :returns: (dict) the fetched agent group
     """
 
-    get_groups_response = requests.get(base_orb_url + '/api/v1/agent_groups/' + agent_group_id,
+    get_groups_response = requests.get(orb_url + '/api/v1/agent_groups/' + agent_group_id,
                                        headers={'Authorization': token})
 
     assert_that(get_groups_response.status_code, equal_to(200),
@@ -212,7 +226,7 @@ def list_agent_groups(token, limit=100):
     :returns: (list) a list of agent groups
     """
 
-    response = requests.get(base_orb_url + '/api/v1/agent_groups', headers={'Authorization': token},
+    response = requests.get(orb_url + '/api/v1/agent_groups', headers={'Authorization': token},
                             params={"limit": limit})
 
     assert_that(response.status_code, equal_to(200),
@@ -242,37 +256,34 @@ def delete_agent_group(token, agent_group_id):
     :param (str) agent_group_id: that identifies the agent group to be deleted
     """
 
-    response = requests.delete(base_orb_url + '/api/v1/agent_groups/' + agent_group_id,
+    response = requests.delete(orb_url + '/api/v1/agent_groups/' + agent_group_id,
                                headers={'Authorization': token})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete agent group id='
                 + agent_group_id + ' failed with status=' + str(response.status_code))
 
 
-def check_subscription(time_to_wait, agent_groups_names, expected_message, container_id):
+@threading_wait_until
+def check_subscription(agent_groups_names, expected_message, container_id, event=None):
     """
 
-    :param (int) time_to_wait: timout (seconds)
     :param (list) agent_groups_names: groups to which the agent must be subscribed
     :param (str) expected_message: message that we expect to find in the logs
     :param (str) container_id: agent container id
+    :param (obj) event: threading.event
     :return: (bool) True if agent is subscribed to all matching groups, (list) names of the groups to which agent is subscribed
     """
     groups_to_which_subscribed = set()
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = int(time_to_wait)
-    while time_waiting < timeout:
-        for name in agent_groups_names:
-            logs = get_orb_agent_logs(container_id)
-            text_found, log_line = check_logs_contain_message_and_name(logs, expected_message, name, "group_name")
-            if text_found is True:
-                groups_to_which_subscribed.add(log_line["group_name"])
-                if set(groups_to_which_subscribed) == set(agent_groups_names):
-                    return True, groups_to_which_subscribed
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
-    return False, groups_to_which_subscribed
+    for name in agent_groups_names:
+        logs = get_orb_agent_logs(container_id)
+        text_found, log_line = check_logs_contain_message_and_name(logs, expected_message, name, "group_name")
+        if text_found is True:
+            groups_to_which_subscribed.add(log_line["group_name"])
+            if set(groups_to_which_subscribed) == set(agent_groups_names):
+                event.set()
+                return event.is_set(), groups_to_which_subscribed
+
+    return event.is_set(), groups_to_which_subscribed
 
 
 def edit_agent_group(token, agent_group_id, name, description, tags, expected_status_code=200):
@@ -293,7 +304,7 @@ def edit_agent_group(token, agent_group_id, name, description, tags, expected_st
 
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
 
-    group_edited_response = requests.put(base_orb_url + '/api/v1/agent_groups/' + agent_group_id, json=json_request,
+    group_edited_response = requests.put(orb_url + '/api/v1/agent_groups/' + agent_group_id, json=json_request,
                                          headers=headers_request)
 
     if name is None or tags is None:

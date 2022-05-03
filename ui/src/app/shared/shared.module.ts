@@ -4,16 +4,16 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { ThemeModule } from 'app/@theme/theme.module';
 import {
-  NbAccordionModule,
-  NbButtonModule,
-  NbCardModule,
-  NbCheckboxModule,
-  NbDatepickerModule,
-  NbDialogModule,
-  NbIconModule,
-  NbInputModule,
-  NbListModule,
-  NbSelectModule,
+    NbAccordionModule,
+    NbButtonModule,
+    NbCardModule,
+    NbCheckboxModule,
+    NbDatepickerModule,
+    NbDialogModule, NbFormFieldModule,
+    NbIconModule,
+    NbInputModule,
+    NbListModule,
+    NbSelectModule, NbTooltipModule,
 } from '@nebular/theme';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -45,33 +45,34 @@ import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets
 import { GroupedAgentsComponent } from './components/orb/dataset/grouped-agents/grouped-agents.component';
 import { PrettyYamlPipe } from './pipes/pretty-yaml.pipe';
 import { SinkControlComponent } from './components/orb/sink-control/sink-control.component';
-import { UnSelectedSinksPipe } from './pipes/available-sinks.pipe';
 import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/policy-groups.component';
 import { SinkDisplayComponent } from 'app/shared/components/orb/sink-display/sink-display.component';
 import { SinkDisplayListComponent } from 'app/shared/components/orb/sink/sink-display/sink-display-list.component';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 
 @NgModule({
-  imports: [
-    ThemeModule,
-    NbButtonModule,
-    NbCardModule,
-    NbDialogModule,
-    NbSelectModule,
-    NbDatepickerModule,
-    NbInputModule,
-    NbAccordionModule,
-    NbListModule,
-    FormsModule,
-    NbIconModule,
-    NbCheckboxModule,
-    MatChipsModule,
-    MatIconModule,
-    ReactiveFormsModule,
-    ClipboardModule,
-    MatTooltipModule,
-    NgxDatatableModule,
-  ],
+    imports: [
+        ThemeModule,
+        NbButtonModule,
+        NbCardModule,
+        NbDialogModule,
+        NbSelectModule,
+        NbDatepickerModule,
+        NbInputModule,
+        NbAccordionModule,
+        NbListModule,
+        FormsModule,
+        NbIconModule,
+        NbCheckboxModule,
+        MatChipsModule,
+        MatIconModule,
+        ReactiveFormsModule,
+        ClipboardModule,
+        MatTooltipModule,
+        NgxDatatableModule,
+        NbTooltipModule,
+        NbFormFieldModule,
+    ],
   declarations: [
     ConfirmationComponent,
     MessageValuePipe,
@@ -97,8 +98,6 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
     PolicyGroupsComponent,
     GroupedAgentsComponent,
     PrettyYamlPipe,
-    UnSelectedSinksPipe,
-    UnSelectedSinksPipe,
     SinkControlComponent,
     SinkDisplayComponent,
     SinkDisplayListComponent,
@@ -129,7 +128,6 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
     GroupedAgentsComponent,
     PolicyGroupsComponent,
     PrettyYamlPipe,
-    UnSelectedSinksPipe,
     SinkControlComponent,
     SinkDisplayComponent,
     SinkDisplayListComponent,

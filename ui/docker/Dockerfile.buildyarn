@@ -1,0 +1,6 @@
+# Stage 0, based on Node.js, install all dependencies
+FROM node:12.21.0 as node
+
+WORKDIR /app
+COPY package.json /app/
+RUN yarn install
