@@ -6,31 +6,35 @@
   </header>
   <div class="d-flex row">
     <div class="d-flex col-12 mt-md-0 mt-lg-3">
-      <nb-stepper *ngIf="!isLoading"
-                  class="stepper w-100 ml-sm-0 ml-lg-2"
-                  disableStepNavigation
-                  orientation="vertical">
-        <nb-step [label]="firstStepTemplate"
-                 [stepControl]="firstFormGroup">
+      <nb-stepper
+        *ngIf="!isLoading"
+        class="stepper w-100 ml-sm-0 ml-lg-2"
+        disableStepNavigation
+        orientation="vertical">
+        <nb-step
+          [label]="firstStepTemplate"
+          [stepControl]="firstFormGroup">
           <ng-template #firstStepTemplate>
             <div class="step-label d-flex flex-column">
               <strong>{{strings.add.step.title1}}</strong>
               <p>{{strings.add.step.desc1}}</p>
             </div>
           </ng-template>
-          <form (ngSubmit)="onFormSubmit()"
-                [formGroup]="firstFormGroup">
+          <form
+            (ngSubmit)="onFormSubmit()"
+            [formGroup]="firstFormGroup">
             <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
                   <label class="font-weight-bold">{{strings.propNames.name}}</label>
                   <span class="required">*</span>
                 </div>
-                <input autofocus
-                       fieldSize="medium"
-                       formControlName="name"
-                       fullWidth="true"
-                       nbInput/>
+                <input
+                  autofocus
+                  fieldSize="medium"
+                  formControlName="name"
+                  fullWidth="true"
+                  nbInput/>
               </div>
             </nb-form-field>
             <hr/>
@@ -38,29 +42,33 @@
               <div>
                 <label class="font-weight-bold">{{strings.propNames.description}}</label>
               </div>
-              <input fieldSize="medium"
-                     formControlName="description"
-                     fullWidth="true"
-                     nbInput/>
+              <input
+                fieldSize="medium"
+                formControlName="description"
+                fullWidth="true"
+                nbInput/>
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button [disabled]="!firstFormGroup.valid"
-                      class="next-button"
-                      data-orb-qa-id="button#next"
-                      nbButton
-                      nbStepperNext
-                      shape="round"
-                      status="primary" type="submit">
+              <button
+                [disabled]="!firstFormGroup.valid"
+                class="next-button"
+                data-orb-qa-id="button#next"
+                nbButton
+                nbStepperNext
+                shape="round"
+                status="primary"
+                type="submit">
                 {{ strings.stepper.next }}
               </button>
-              <button (click)="goBack()"
-                      data-orb-qa-id="button#cancel"
-                      ghost
-                      nbButton
-                      shape="round"
-                      status="primary"
-                      type="button">
+              <button
+                (click)="goBack()"
+                data-orb-qa-id="button#cancel"
+                ghost
+                nbButton
+                shape="round"
+                status="primary"
+                type="button">
                 {{ strings.stepper.cancel }}
               </button>
             </div>
@@ -73,7 +81,9 @@
               <p>{{strings.add.step.desc2}}</p>
             </div>
           </ng-template>
-          <ngx-tag-control [(tags)]="selectedTags" (tagsChange)="updateMatches()"></ngx-tag-control>
+          <ngx-tag-control
+            (tagsChange)="updateMatches()"
+            [(tags)]="selectedTags"></ngx-tag-control>
           <hr/>
           <div class="d-flex row">
             <div class="col-12">
@@ -89,29 +99,32 @@
           </div>
           <hr/>
           <div class="d-flex justify-content-end">
-            <button nbStepperNext
-                    [disabled]="!selectedTagsValid()"
-                    class="next-button"
-                    data-orb-qa-id="button#save"
-                    nbButton
-                    shape="round"
-                    status="primary"
-                    type="submit">
+            <button
+              [disabled]="!selectedTagsValid()"
+              class="next-button"
+              data-orb-qa-id="button#save"
+              nbButton
+              nbStepperNext
+              shape="round"
+              status="primary"
+              type="submit">
               {{ strings.stepper.next }}
             </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    status="primary">
+            <button
+              data-orb-qa-id="button#back"
+              ghost
+              nbButton
+              nbStepperPrevious
+              status="primary">
               {{ strings.stepper.back }}
             </button>
-            <button (click)="goBack()"
-                    data-orb-qa-id="button#cancel"
-                    ghost
-                    nbButton
-                    status="primary"
-                    type="button">
+            <button
+              (click)="goBack()"
+              data-orb-qa-id="button#cancel"
+              ghost
+              nbButton
+              status="primary"
+              type="button">
               {{ strings.stepper.cancel }}
             </button>
           </div>
@@ -122,7 +135,9 @@
               <strong>{{strings.add.step.title3}}</strong>
             </div>
           </ng-template>
-          <div *ngIf="!expanded" class="d-flex row">
+          <div
+            *ngIf="!expanded"
+            class="d-flex row">
             <div class="col-md-12 col-xl-6">
               <div>
                 <label class="font-weight-bold">{{strings.propNames.name}}</label>
@@ -149,11 +164,12 @@
               <div>
                 <p *ngIf="tagMatch?.total && tagMatch.total > 0">
                   {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}
-                  .&nbsp;<button (click)="toggleExpandMatches()"
-                                 class="appearance-ghost size-small status-basic button-expand"
-                                 nbButton>{{expanded
-                  ? strings.match.collapse
-                  : strings.match.expand}}</button>
+                                            .&nbsp;<button
+                  (click)="toggleExpandMatches()"
+                  class="appearance-ghost size-small status-basic button-expand"
+                  nbButton>{{expanded
+                    ? strings.match.collapse
+                    : strings.match.expand}}</button>
                 </p>
                 <p *ngIf="!tagMatch.total || tagMatch.total === 0">
                   {{strings.match.matchNone}}
@@ -161,47 +177,53 @@
               </div>
             </div>
           </div>
-          <div *ngIf="expanded" class="d-flex row">
+          <div
+            *ngIf="expanded"
+            class="d-flex row">
             <div class="tag-table">
-              <ngx-datatable #table
-                             *ngIf="columns"
-                             [columnMode]="columnMode.standard"
-                             [columns]="columns"
-                             [footerHeight]="50"
-                             [headerHeight]="50"
-                             [rowHeight]="50"
-                             [rows]="matchingAgents"
-                             [scrollbarV]="true"
-                             [virtualization]="false"
-                             class="orb"
-                             style="height: 100%;">
+              <ngx-datatable
+                  #table
+                  *ngIf="columns"
+                  [columnMode]="columnMode.standard"
+                  [columns]="columns"
+                  [footerHeight]="50"
+                  [headerHeight]="50"
+                  [rowHeight]="50"
+                  [rows]="matchingAgents"
+                  [scrollbarV]="true"
+                  [virtualization]="false"
+                  class="orb"
+                  style="height: 100%;">
               </ngx-datatable>
             </div>
           </div>
           <hr/>
           <div class="d-flex justify-content-end">
-            <button (click)="onFormSubmit()"
-                    class="next-button"
-                    data-orb-qa-id="button#save"
-                    nbButton
-                    shape="round"
-                    status="primary"
-                    type="submit">
+            <button
+              (click)="onFormSubmit()"
+              class="next-button"
+              data-orb-qa-id="button#save"
+              nbButton
+              shape="round"
+              status="primary"
+              type="submit">
               {{ strings.stepper.save }}
             </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    status="primary">
+            <button
+              data-orb-qa-id="button#back"
+              ghost
+              nbButton
+              nbStepperPrevious
+              status="primary">
               {{ strings.stepper.back }}
             </button>
-            <button (click)="goBack()"
-                    data-orb-qa-id="button#cancel"
-                    ghost
-                    nbButton
-                    status="primary"
-                    type="button">
+            <button
+              (click)="goBack()"
+              data-orb-qa-id="button#cancel"
+              ghost
+              nbButton
+              status="primary"
+              type="button">
               {{ strings.stepper.cancel }}
             </button>
           </div>
@@ -211,17 +233,26 @@
   </div>
 </div>
 
-<ng-template #agentStateTemplateCell let-i="index" let-row="row" let-value="value">
+<ng-template
+    #agentStateTemplateCell
+    let-i="index"
+    let-row="row"
+    let-value="value">
   <div>
     <div>
-      <i aria-hidden="true"
-         class="fa fa-circle orb-service-{{ row.state }}"></i>
+      <i
+        aria-hidden="true"
+        class="fa fa-circle orb-service-{{ row.state }}"></i>
       {{ row.state | titlecase }}
     </div>
   </div>
 </ng-template>
 
-<ng-template #agentTagsTemplateCell let-i="index" let-row="row" let-value="value">
+<ng-template
+    #agentTagsTemplateCell
+    let-i="index"
+    let-row="row"
+    let-value="value">
   <div class="d-block">
     <mat-chip-list>
       <mat-chip
@@ -234,7 +265,11 @@
   </div>
 </ng-template>
 
-<ng-template #agentLastHBTemplateCell let-i="index" let-row="row" let-value="value">
+<ng-template
+    #agentLastHBTemplateCell
+    let-i="index"
+    let-row="row"
+    let-value="value">
   <div>
     {{ row.ts_last_hb | date: 'M/d/yy, HH:mm z' }}
   </div>

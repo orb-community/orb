@@ -99,7 +99,7 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
         this.isLoading = false;
       })
       .then(() => this.updateMatches())
-      .catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
+      .catch(reason => console.warn(`Couldn't retrieve data. Reason: ${reason}`));
   }
 
   ngOnChanges() {
@@ -136,10 +136,10 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
         flexGrow: 9,
         cellTemplate: this.agentTagsTemplateCell,
         comparator: (a, b) => Object.entries(a)
-          .map(([key, value]) => `${ key }:${ value }`)
+          .map(([key, value]) => `${key}:${value}`)
           .join(',')
           .localeCompare(Object.entries(b)
-            .map(([key, value]) => `${ key }:${ value }`)
+            .map(([key, value]) => `${key}:${value}`)
             .join(',')),
       },
       {
@@ -224,7 +224,7 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
       this.matchingAgents = matches;
       this.cdr.markForCheck();
 
-    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
+    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${reason}`));
   }
 
   toggleExpandMatches() {
