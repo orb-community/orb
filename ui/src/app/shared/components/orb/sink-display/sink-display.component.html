@@ -1,14 +1,15 @@
 <div class="d-flex">
   <mat-chip-list data-orb-qa-id="sinkList">
     <mat-chip
-      *ngFor="let sink of sinks; index as i"
+      *ngFor="let sink of selectedSinks; index as i"
       [attr.data-orb-qa-id]="'sink_' + i"
       class="orb-selected-sink ">
       {{sink.name}}
-      <nb-icon (click)="onRemoveSink(sink)"
-               class="ml-1"
-               icon="close-outline"
-               size="12"></nb-icon>
+      <nb-icon
+        (click)="onRemoveSink(sink)"
+        class="ml-1"
+        icon="close-outline"
+        size="12"></nb-icon>
     </mat-chip>
   </mat-chip-list>
 </div>
