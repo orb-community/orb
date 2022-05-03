@@ -116,6 +116,7 @@ export class AgentPoliciesService {
   }
 
   getAllAgentPolicies() {
+    this.clean();
     const pageInfo = AgentPoliciesService.getDefaultPagination();
 
 

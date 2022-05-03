@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
@@ -12,12 +12,15 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 
 @Component({
-  selector: 'ngx-policy-groups',
-  templateUrl: './policy-groups.component.html',
-  styleUrls: ['./policy-groups.component.scss'],
-})
-export class PolicyGroupsComponent implements OnInit, OnDestroy {
+             selector: 'ngx-policy-groups',
+             templateUrl: './policy-groups.component.html',
+             styleUrls: ['./policy-groups.component.scss'],
+           })
+export class PolicyGroupsComponent implements OnInit, OnChanges, OnDestroy {
   @Input() policy: AgentPolicy;
+
+  @Output()
+  refreshPolicy: EventEmitter<string>;
 
   datasets: Dataset[];
 
@@ -29,11 +32,14 @@ export class PolicyGroupsComponent implements OnInit, OnDestroy {
 
   errors;
 
-  constructor(protected datasetService: DatasetPoliciesService,
-              protected groupService: AgentGroupsService,
-              protected dialogService: NbDialogService,
-              protected router: Router,
-              protected route: ActivatedRoute) {
+  constructor(
+    protected datasetService: DatasetPoliciesService,
+    protected groupService: AgentGroupsService,
+    protected dialogService: NbDialogService,
+    protected router: Router,
+    protected route: ActivatedRoute,
+  ) {
+    this.refreshPolicy = new EventEmitter<string>();
     this.policy = {};
     this.datasets = [];
     this.groups = [];
@@ -41,16 +47,25 @@ export class PolicyGroupsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.subscription = this.retrievePolicyDatasets()
-      .pipe(mergeMap(datasets => this.retrieveAgentGroups(datasets))).subscribe(resp => {
-        this.datasets = resp;
 
-        if (!this.datasets || this.datasets.length === 0) {
-          this.errors['nogroup'] = 'This policy is not applied to any group.';
-        }
+  }
 
-        this.isLoading = false;
-      });
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.policy) {
+      if (this.subscription) {
+        this.subscription?.unsubscribe();
+      }
+      this.subscription = this.retrievePolicyDatasets()
+        .pipe(mergeMap(datasets => this.retrieveAgentGroups(datasets))).subscribe(resp => {
+          this.datasets = resp;
+
+          if (!this.datasets || this.datasets.length === 0) {
+            this.errors['nogroup'] = 'This policy is not applied to any group.';
+          }
+
+          this.isLoading = false;
+        });
+    }
   }
 
   retrievePolicyDatasets() {

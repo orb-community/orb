@@ -97,6 +97,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
       .subscribe(policy => {
         this.policy = policy;
         this.isLoading = false;
+        this.cdr.markForCheck();
       });
   }
 
