@@ -9,7 +9,7 @@ import { forkJoin, Subscription } from 'rxjs';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { NbDialogService } from '@nebular/theme';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
+import {AgentMatchComponent} from 'app/pages/fleet/agents/match/agent.match.component';
 
 @Component({
   selector: 'ngx-policy-groups',
@@ -30,10 +30,10 @@ export class PolicyGroupsComponent implements OnInit, OnDestroy {
   errors;
 
   constructor(protected datasetService: DatasetPoliciesService,
-              protected groupService: AgentGroupsService,
-              protected dialogService: NbDialogService,
-              protected router: Router,
-              protected route: ActivatedRoute) {
+    protected groupService: AgentGroupsService,
+    protected dialogService: NbDialogService,
+    protected router: Router,
+    protected route: ActivatedRoute) {
     this.policy = {};
     this.datasets = [];
     this.groups = [];
@@ -71,7 +71,7 @@ export class PolicyGroupsComponent implements OnInit, OnDestroy {
       this.groups = groups.filter(group => !group.error);
       this.errors.notfound = groups
         .filter(group => !!group.error)
-        .map(value => `${value.id}: ${value.status} ${value.statusText}`)
+        .map(value => `${ value.id }: ${ value.status } ${ value.statusText }`)
         .join(',\n');
       return groups;
     });
@@ -96,7 +96,7 @@ export class PolicyGroupsComponent implements OnInit, OnDestroy {
   }
 
   onOpenEditAgentGroup(agentGroup: any) {
-    this.router.navigate([`/pages/fleet/groups/edit/${agentGroup.id}`], {
+    this.router.navigate([`/pages/fleet/groups/edit/${ agentGroup.id }`], {
       state: { agentGroup: agentGroup, edit: true }, relativeTo: this.route,
     });
   }
