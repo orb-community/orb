@@ -170,6 +170,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
   }
 
   getAllAgentGroups(): void {
+    this.loading = true;
     this.agentGroupsService.clean();
     this.agentGroupsService.getAllAgentGroups().subscribe(resp => {
       this.paginationControls.data = resp.data;
@@ -187,13 +188,11 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
     finalPageInfo.limit = this.paginationControls.limit;
     finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
 
-    this.loading = true;
     this.agentGroupsService.getAgentGroups(pageInfo).subscribe(
         (resp: OrbPagination<AgentGroup>) => {
           this.paginationControls = resp;
           this.paginationControls.offset = pageInfo?.offset || 0;
           this.paginationControls.total = resp.total;
-          this.loading = false;
         },
     );
   }
