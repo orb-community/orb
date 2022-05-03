@@ -1,17 +1,17 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
-import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
-import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
-import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
-import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { NbDialogRef, NbDialogService } from '@nebular/theme';
-import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
+import {Component, Input, OnInit} from '@angular/core';
+import {AgentPolicy} from 'app/common/interfaces/orb/agent.policy.interface';
+import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
+import {Sink} from 'app/common/interfaces/orb/sink.interface';
+import {Dataset} from 'app/common/interfaces/orb/dataset.policy.interface';
+import {AgentGroupsService} from 'app/common/services/agents/agent.groups.service';
+import {AgentPoliciesService} from 'app/common/services/agents/agent.policies.service';
+import {SinksService} from 'app/common/services/sinks/sinks.service';
+import {OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {DatasetPoliciesService} from 'app/common/services/dataset/dataset.policies.service';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import {NbDialogRef, NbDialogService} from '@nebular/theme';
+import {DatasetDeleteComponent} from 'app/pages/datasets/delete/dataset.delete.component';
 
 const CONFIG = {
   SINKS: 'SINKS',
@@ -21,10 +21,10 @@ const CONFIG = {
 };
 
 @Component({
-             selector: 'ngx-dataset-from',
-             templateUrl: './dataset-from.component.html',
-             styleUrls: ['./dataset-from.component.scss'],
-           })
+  selector: 'ngx-dataset-from',
+  templateUrl: './dataset-from.component.html',
+  styleUrls: ['./dataset-from.component.scss'],
+})
 export class DatasetFromComponent implements OnInit {
   @Input()
   dataset: Dataset;
@@ -130,8 +130,6 @@ export class DatasetFromComponent implements OnInit {
       this.selectedPolicy = agent_policy_id;
       this.form.patchValue({ name, agent_group_id, agent_policy_id, sink_ids });
       this.isEdit = true;
-
-      this.unselectedSinks = this.availableSinks.filter(sink => !this._selectedSinks.includes(sink));
     }
   }
 
