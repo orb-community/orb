@@ -68,34 +68,15 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   save() {
-    const { format, version } = this.policy;
-
     // get values from all modified sections' forms and submit through service.
     const policyDetails = this.detailsComponent.formGroup?.value;
-    const policyInterface = this.interfaceComponent.formControl?.value;
-
-    console.table(this.editMode);
-
-    const detailsPartial = !!this.editMode.details && {
-      ...policyDetails,
-    };
-
-    const interFacePartial = !!this.editMode.interface &&
-      (format === 'yaml' ?
-        {
-          format: 'yaml',
-          // this should be refactored out.
-          policy_data: policyInterface,
-        } :
-        {
-          format: 'json',
-          policy: policyInterface,
-        });
+    // const policyInterface = this.interfaceComponent.formControl?.value;
 
     const payload = {
-      ...detailsPartial,
-      ...interFacePartial,
-      version,
+      ...policyDetails,
+      format: this.policy.format,
+      policy_data: this.policy.policy_data,
+      version: 1,
     } as AgentPolicy;
 
     this.policiesService.editAgentPolicy({ id: this.policyId, ...payload })
