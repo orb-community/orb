@@ -7,18 +7,18 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import {NbDialogService} from '@nebular/theme';
+import { NbDialogService } from '@nebular/theme';
 
-import {DropdownFilterItem} from 'app/common/interfaces/mainflux.interface';
-import {ActivatedRoute, Router} from '@angular/router';
-import {STRINGS} from 'assets/text/strings';
-import {AgentGroupDeleteComponent} from 'app/pages/fleet/groups/delete/agent.group.delete.component';
-import {ColumnMode, DatatableComponent, TableColumn} from '@swimlane/ngx-datatable';
-import {AgentGroupsService} from 'app/common/services/agents/agent.groups.service';
-import {NgxDatabalePageInfo, OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
-import {AgentGroup} from 'app/common/interfaces/orb/agent.group.interface';
-import {AgentMatchComponent} from 'app/pages/fleet/agents/match/agent.match.component';
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
+import { ActivatedRoute, Router } from '@angular/router';
+import { STRINGS } from 'assets/text/strings';
+import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
+import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
+import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
+import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
+import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 
 @Component({
@@ -62,7 +62,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
       prop: 'tags',
       selected: false,
       filter: (agent, tag) => Object.entries(agent?.tags)
-          .filter(([key, value]) => `${key}:${value}`.includes(tag.replace(' ', ''))).length > 0,
+        .filter(([key, value]) => `${key}:${value}`.includes(tag.replace(' ', ''))).length > 0,
     },
     {
       id: '2',
@@ -91,12 +91,12 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
   private currentComponentWidth;
 
   constructor(
-      private cdr: ChangeDetectorRef,
-      private dialogService: NbDialogService,
-      private agentGroupsService: AgentGroupsService,
-      private notificationsService: NotificationsService,
-      private route: ActivatedRoute,
-      private router: Router,
+    private cdr: ChangeDetectorRef,
+    private dialogService: NbDialogService,
+    private agentGroupsService: AgentGroupsService,
+    private notificationsService: NotificationsService,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {
     this.paginationControls = AgentGroupsService.getDefaultPagination();
   }
@@ -149,11 +149,11 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
         resizeable: false,
         cellTemplate: this.agentGroupTagsTemplateCell,
         comparator: (a, b) => Object.entries(a)
+          .map(([key, value]) => `${key}:${value}`)
+          .join(',')
+          .localeCompare(Object.entries(b)
             .map(([key, value]) => `${key}:${value}`)
-            .join(',')
-            .localeCompare(Object.entries(b)
-                .map(([key, value]) => `${key}:${value}`)
-                .join(',')),
+            .join(',')),
       },
       {
         name: '',
@@ -170,6 +170,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
   }
 
   getAllAgentGroups(): void {
+    this.loading = true;
     this.agentGroupsService.clean();
     this.agentGroupsService.getAllAgentGroups().subscribe(resp => {
       this.paginationControls.data = resp.data;
@@ -181,20 +182,18 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
   }
 
   getAgentGroups(pageInfo: NgxDatabalePageInfo = null): void {
-    const finalPageInfo = {...pageInfo};
+    const finalPageInfo = { ...pageInfo };
     finalPageInfo.dir = 'desc';
     finalPageInfo.order = 'name';
     finalPageInfo.limit = this.paginationControls.limit;
     finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
 
-    this.loading = true;
     this.agentGroupsService.getAgentGroups(pageInfo).subscribe(
-        (resp: OrbPagination<AgentGroup>) => {
-          this.paginationControls = resp;
-          this.paginationControls.offset = pageInfo?.offset || 0;
-          this.paginationControls.total = resp.total;
-          this.loading = false;
-        },
+      (resp: OrbPagination<AgentGroup>) => {
+        this.paginationControls = resp;
+        this.paginationControls.offset = pageInfo?.offset || 0;
+        this.paginationControls.total = resp.total;
+      },
     );
   }
 
@@ -206,7 +205,7 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
 
   onOpenEdit(agentGroup: any) {
     this.router.navigate([`edit/${agentGroup.id}`], {
-      state: {agentGroup: agentGroup, edit: true},
+      state: { agentGroup: agentGroup, edit: true },
       relativeTo: this.route,
     });
   }
@@ -230,26 +229,26 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit, AfterView
   }
 
   openDeleteModal(row: any) {
-    const {name, id} = row;
+    const { name, id } = row;
     this.dialogService.open(AgentGroupDeleteComponent, {
-      context: {name},
+      context: { name },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(
-        confirm => {
-          if (confirm) {
-            this.agentGroupsService.deleteAgentGroup(id).subscribe(() => {
-              this.notificationsService.success('Agent Group successfully deleted', '');
-              this.getAllAgentGroups();
-            });
-          }
-        },
+      confirm => {
+        if (confirm) {
+          this.agentGroupsService.deleteAgentGroup(id).subscribe(() => {
+            this.notificationsService.success('Agent Group successfully deleted', '');
+            this.getAllAgentGroups();
+          });
+        }
+      },
     );
   }
 
   onMatchingAgentsModal(row: any) {
     this.dialogService.open(AgentMatchComponent, {
-      context: {agentGroup: row},
+      context: { agentGroup: row },
       autoFocus: true,
       closeOnEsc: true,
     }).onClose.subscribe(_ => {
