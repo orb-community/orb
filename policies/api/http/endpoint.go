@@ -134,9 +134,12 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 			return policyUpdateRes{}, err
 		}
 
-		nameID, err := types.NewIdentifier(req.Name)
-		if err != nil {
-			return policyUpdateRes{}, err
+		var nameID types.Identifier
+		if req.Name != "" {
+			nameID, err = types.NewIdentifier(req.Name)
+			if err != nil {
+				return policyUpdateRes{}, err
+			}
 		}
 		plcy := policies.Policy{
 			ID:          req.id,

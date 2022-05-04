@@ -99,16 +99,8 @@ type updatePolicyReq struct {
 
 func (req updatePolicyReq) validate() error {
 
-	if req.token == "" {
+	if req.token == "" || req.id == "" {
 		return errors.ErrUnauthorizedAccess
-	}
-	if req.Name == "" {
-		return errors.ErrMalformedEntity
-	}
-
-	_, err := types.NewIdentifier(req.Name)
-	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return nil

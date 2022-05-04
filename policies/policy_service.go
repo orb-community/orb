@@ -11,7 +11,6 @@ package policies
 import (
 	"context"
 	"fmt"
-
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -132,6 +131,7 @@ func (s policiesService) EditPolicy(ctx context.Context, token string, pol Polic
 	pol.MFOwnerID = ownerID
 	pol.Version = currentPol.Version
 
+	// If backend policy is not being edited, retrieve saved one
 	if pol.PolicyData == "" && pol.Policy == nil {
 		pol.Policy = currentPol.Policy
 		pol.PolicyData = currentPol.PolicyData
@@ -142,6 +142,12 @@ func (s policiesService) EditPolicy(ctx context.Context, token string, pol Polic
 	if err != nil {
 		return Policy{}, err
 	}
+
+	// If policy name is not being edited, retrieve saved one
+	if pol.Name.String() == "" {
+		pol.Name = currentPol.Name
+	}
+
 	pol.Version++
 	err = s.repo.UpdatePolicy(ctx, ownerID, pol)
 	if err != nil {
