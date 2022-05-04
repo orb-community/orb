@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"go.opentelemetry.io/collector/consumer/consumererror"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -13,7 +14,6 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
@@ -80,6 +80,7 @@ func (e *exporter) start(_ context.Context, _ component.Host) error {
 		if token := client.Connect(); token.Wait() && token.Error() != nil {
 			return token.Error()
 		}
+		e.config.Client = client
 	}
 
 	return nil
@@ -89,27 +90,24 @@ func (e *exporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
 	return fmt.Errorf("not implemented")
 }
 
-// pushMetrics Exports metrics converting from OTLP to Json to push to
+// pushMetrics Exports metrics
 func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewRequest()
-	md.MoveTo(md)
-	metricsPayload, err := tr.MarshalJSON()
-	decoder := pmetric.NewJSONUnmarshaler()
-	var got interface{}
-	got, err = decoder.UnmarshalMetrics(metricsPayload)
+	tr.SetMetrics(md)
+	request, err := tr.MarshalJSON()
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
-	return e.export(ctx, e.config.MetricsTopic, got)
+	return e.export(ctx, e.config.MetricsTopic, request)
 }
 
 func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (e *exporter) export(_ context.Context, metricsTopic string, metricPayloadData interface{}) error {
+func (e *exporter) export(_ context.Context, metricsTopic string, request []byte) error {
 	// convert metrics to interface
-	body := metricPayloadData
+	body := request
 	if token := e.config.Client.Publish(metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
 		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
 		return token.Error()

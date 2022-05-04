@@ -15,12 +15,11 @@ import (
 
 const (
 	// The value of "type" key in configuration.
-	typeStr            = "otlpmqtt"
-	defaultMQTTAddr    = "localhost"
-	defaultMQTTId      = "uuid1"
-	defaultMQTTKey     = "uuid1"
-	defaultMQTTChannel = "uuid1"
-	defaultName        = "pktvisor"
+	typeStr         = "otlpmqtt"
+	defaultMQTTAddr = "localhost:1883"
+	defaultMQTTId   = "uuid1"
+	defaultMQTTKey  = "uuid2"
+	defaultName     = "pktvisor"
 	// For testing will disable  TLS
 	defaultTLS = false
 )
@@ -47,7 +46,7 @@ func CreateConfig(addr, id, key, channel string) config.Exporter {
 }
 
 func CreateDefaultConfig() config.Exporter {
-	base := fmt.Sprintf("channels/%s/messages", defaultMQTTChannel)
+	base := fmt.Sprintf("channels/%s/messages", defaultMQTTId)
 	metricsTopic := fmt.Sprintf("%s/be/%s", base, defaultName)
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
@@ -56,7 +55,7 @@ func CreateDefaultConfig() config.Exporter {
 		Address:          defaultMQTTAddr,
 		Id:               defaultMQTTId,
 		Key:              defaultMQTTKey,
-		ChannelID:        defaultMQTTChannel,
+		ChannelID:        base,
 		TLS:              defaultTLS,
 		MetricsTopic:     metricsTopic,
 	}

@@ -6,7 +6,19 @@ visor:
 orb:
   otel:
     enable: true
+  cloud:
+    config:
+      agent_name: test
+      auto_provision: true
+    api:
+      token:
+    mqtt:
+      address: tls://127.0.0.1:8883
+      # if not auto provisioning, specify agent connection details here
+      id: "4a979ca3-4f76-4125-b122-46c3e46ee8ff"
+      key: "c145ad34-1924-4ac1-bf4f-96e84f4a02e2"
+      channel_id: "f9972a0f-f9db-4210-bd00-6e30c814ab07"
   backends:
     pktvisor:
       binary: "/usr/local/sbin/pktvisord"
-      config_file: "/etc/orb/agent.yaml"
+      config_file: "/home/lpegoraro/workspace/orb/agent/docker/agent.yaml"

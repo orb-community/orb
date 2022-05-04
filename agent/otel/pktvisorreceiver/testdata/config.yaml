@@ -13,7 +13,14 @@ processors:
   nop:
 
 exporters:
-  nop:
+  otlpmqtt:
+    address: "localhost:1889"
+    id: "f420a133-7651-412d-852a-6141fafeaea5"
+    key: "14ae65ae-092f-4fdc-be6a-0cfb378119dc"
+    channelId: "9610b0a4-b05f-46e5-a32d-000d8a2ec1fd"
+    channel: "channels/9610b0a4-b05f-46e5-a32d-000d8a2ec1fd/messages"
+    metricsTopic: "channels/9610b0a4-b05f-46e5-a32d-000d8a2ec1fd/messages/be/pktvisor"
+
 
 service:
   pipelines:
@@ -22,4 +29,4 @@ service:
         - pktvisor_prometheus
         - pktvisor_prometheus/all_settings
       processors: [ nop ]
-      exporters: [ nop ]
+      exporters: [ otlpmqtt ]

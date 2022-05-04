@@ -23,10 +23,10 @@ func TestCreateDefaultConfig(t *testing.T) {
 	assert.NoError(t, configtest.CheckConfigStruct(cfg))
 	testedCfg, ok := factory.CreateDefaultConfig().(*Config)
 	assert.True(t, ok)
-	assert.Equal(t, "localhost", testedCfg.Address, "default address is localhost")
+	assert.Equal(t, "localhost:1883", testedCfg.Address, "default address is localhost")
 	assert.Equal(t, "uuid1", testedCfg.Id, "default id is uuid1")
-	assert.Equal(t, "uuid1", testedCfg.Key, "default key uuid1")
-	assert.Equal(t, "uuid1", testedCfg.ChannelID, "default channel ID agent_test_metrics ")
+	assert.Equal(t, "uuid2", testedCfg.Key, "default key uuid1")
+	assert.Equal(t, "channels/uuid1/messages", testedCfg.ChannelID, "default channel ID agent_test_metrics ")
 	assert.False(t, testedCfg.TLS, "default TLS is disabled")
 	assert.Equal(t, "channels/uuid1/messages/be/pktvisor", testedCfg.MetricsTopic, "default metrics topic is nil, only passed in the export function")
 }
