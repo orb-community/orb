@@ -8,10 +8,10 @@ import { PolicyDetailsComponent } from 'app/shared/components/orb/policy/policy-
 import { PolicyInterfaceComponent } from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
 
 @Component({
-  selector: 'ngx-agent-view',
-  templateUrl: './agent.policy.view.component.html',
-  styleUrls: ['./agent.policy.view.component.scss'],
-})
+             selector: 'ngx-agent-view',
+             templateUrl: './agent.policy.view.component.html',
+             styleUrls: ['./agent.policy.view.component.scss'],
+           })
 export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   strings = STRINGS.agents;
 
@@ -24,21 +24,15 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   policySubscription: Subscription;
 
   editMode = {
-    details: false,
-    interface: false,
+    details: false, interface: false,
   };
 
-  @ViewChild(PolicyDetailsComponent)
-  detailsComponent: PolicyDetailsComponent;
+  @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
 
-  @ViewChild(PolicyInterfaceComponent)
-  interfaceComponent: PolicyInterfaceComponent;
+  @ViewChild(PolicyInterfaceComponent) interfaceComponent: PolicyInterfaceComponent;
 
   constructor(
-    private route: ActivatedRoute,
-    private policiesService: AgentPoliciesService,
-    private cdr: ChangeDetectorRef,
-  ) {
+    private route: ActivatedRoute, private policiesService: AgentPoliciesService, private cdr: ChangeDetectorRef) {
   }
 
   ngOnInit() {
@@ -51,13 +45,9 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   canSave() {
-    const detailsValid = this.editMode.details ?
-      this.detailsComponent?.formGroup?.status === 'VALID' :
-      true;
+    const detailsValid = this.editMode.details ? this.detailsComponent?.formGroup?.status === 'VALID' : true;
 
-    const interfaceValid = this.editMode.interface ?
-      this.interfaceComponent?.formControl?.status === 'VALID' :
-      true;
+    const interfaceValid = this.editMode.interface ? this.interfaceComponent?.formControl?.status === 'VALID' : true;
 
     return detailsValid && interfaceValid;
   }
@@ -80,22 +70,15 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
       ...policyDetails,
     };
 
-    const interFacePartial = !!this.editMode.interface &&
-      (format === 'yaml' ?
-        {
-          format: 'yaml',
-          // this should be refactored out.
-          policy_data: policyInterface,
-        } :
-        {
-          format: 'json',
-          policy: policyInterface,
-        });
+    const interFacePartial = !!this.editMode.interface && (format === 'yaml' ? {
+      format: 'yaml', // this should be refactored out.
+      policy_data: policyInterface,
+    } : {
+      format: 'json', policy: policyInterface,
+    });
 
     const payload = {
-      ...detailsPartial,
-      ...interFacePartial,
-      version,
+      ...detailsPartial, ...interFacePartial, version,
     } as AgentPolicy;
 
     this.policiesService.editAgentPolicy({ id: this.policyId, ...payload })

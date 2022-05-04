@@ -2,28 +2,28 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 
 @Component({
-  selector: 'ngx-sink-display',
-  templateUrl: './sink-display.component.html',
-  styleUrls: ['./sink-display.component.scss'],
-})
+             selector: 'ngx-sink-display',
+             templateUrl: './sink-display.component.html',
+             styleUrls: ['./sink-display.component.scss'],
+           })
 export class SinkDisplayComponent implements OnInit {
   @Input()
-  sinks: Sink[];
+  selectedSinks: Sink[];
 
   @Output()
-  sinksChange: EventEmitter<Sink[]>;
+  selectedSinksChange: EventEmitter<Sink[]>;
 
   constructor() {
-    this.sinks = [];
-    this.sinksChange = new EventEmitter<Sink[]>();
+    this.selectedSinks = [];
+    this.selectedSinksChange = new EventEmitter<Sink[]>();
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
   }
 
   onRemoveSink(sink) {
-    this.sinks.splice(this.sinks.indexOf(sink), 1);
-    this.sinksChange.emit(this.sinks);
+    this.selectedSinks.splice(this.selectedSinks.indexOf(sink), 1);
+    this.selectedSinksChange.emit(this.selectedSinks);
   }
 
 }
