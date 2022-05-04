@@ -67,7 +67,6 @@ jobs:
   test-agent:
     runs-on: ubuntu-latest
     needs: prebuild
-    if: ${{ needs.prebuild.outputs.agent == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -76,66 +75,81 @@ jobs:
           go-version: 1.16
 
       - name: Go unit tests
-        run: SERVICE=agent make test_service
+        run: |
+          if [ "${{ needs.prebuild.outputs.agent }}" == "true" ]; then
+            SERVICE=agent make test_service
+          fi
 
   test-fleet:
     runs-on: ubuntu-latest
     needs: prebuild
-    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.16
+
       - name: Go unit tests
-        run: SERVICE=fleet make test_service
+        run: |
+          if [ "${{ needs.prebuild.outputs.orb }}" == "true" ]; then
+            SERVICE=fleet make test_service
+          fi
 
   test-policies:
     runs-on: ubuntu-latest
     needs: prebuild
-    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.16
+
       - name: Go unit tests
-        run: SERVICE=policies make test_service
+        run: |
+          if [ "${{ needs.prebuild.outputs.orb }}" == "true" ]; then
+            SERVICE=policies make test_service
+          fi
 
   test-sinks:
     runs-on: ubuntu-latest
     needs: prebuild
-    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.16
+
       - name: Go unit tests
-        run: SERVICE=sinks make test_service
+        run: |
+          if [ "${{ needs.prebuild.outputs.orb }}" == "true" ]; then
+            SERVICE=sinks make test_service
+          fi
 
   test-sinker:
     runs-on: ubuntu-latest
     needs: prebuild
-    if: ${{ needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.16
+
       - name: Go unit tests
-        run: SERVICE=sinker make test_service
+        run: |
+          if [ "${{ needs.prebuild.outputs.orb }}" == "true" ]; then
+            SERVICE=sinker make test_service
+          fi
 
   package-agent:
     needs: 
      - prebuild
      - test-agent
     runs-on: ubuntu-latest
-    if: ${{ needs.prebuild.outputs.agent == 'true' }}
+    if: ${{ needs.prebuild.outputs.agent == 'true' && github.event_name != 'pull_request' }}
     steps:
       - uses: actions/checkout@v2
       - name: Debug values
@@ -157,17 +171,13 @@ jobs:
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
 
-      # If it is a Pull Request, only build to make sure that everything is running
-      # If it is not a pull request, then should publish the image built
       - name: Login to Docker Hub
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push agent container
-        if: github.event_name != 'pull_request'
         run: |
           docker push -a ns1labs/orb-agent
 
@@ -176,10 +186,9 @@ jobs:
      - prebuild
      - test-fleet
     runs-on: ubuntu-latest
-    if: ${{ needs.prebuild.outputs.orb == 'true' }}
+    if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v2
-
       - name: Debug values
         run: | 
           echo ${{ env.VERSION }}
@@ -189,18 +198,13 @@ jobs:
       - name: Build service containers
         run: SERVICE=fleet make build_docker
 
-      # If it is a Pull Request, only build to make sure that everything is running
-      # If it is not a pull request, then should publish the image built
-
       - name: Login to Docker Hub
         uses: docker/login-action@v1
-        if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push service containers
-        if: github.event_name != 'pull_request'
         run: docker push -a ns1labs/orb-fleet
 
   package-policies:
@@ -208,10 +212,9 @@ jobs:
      - prebuild
      - test-policies
     runs-on: ubuntu-latest
-    if: ${{ needs.prebuild.outputs.orb == 'true' }}
+    if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v2
-
       - name: Debug values
         run: |
           echo ${{ env.VERSION }}
@@ -221,18 +224,13 @@ jobs:
       - name: Build service containers
         run: SERVICE=policies make build_docker
 
-      # If it is a Pull Request, only build to make sure that everything is running
-      # If it is not a pull request, then should publish the image built
-
       - name: Login to Docker Hub
         uses: docker/login-action@v1
-        if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push service containers
-        if: github.event_name != 'pull_request'
         run: docker push -a ns1labs/orb-policies
 
   package-sinker:
@@ -240,10 +238,9 @@ jobs:
      - prebuild
      - test-sinker
     runs-on: ubuntu-latest
-    if: ${{ needs.prebuild.outputs.orb == 'true' }}
+    if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v2
-
       - name: Debug values
         run: |
           echo ${{ env.VERSION }}
@@ -253,18 +250,13 @@ jobs:
       - name: Build service containers
         run: SERVICE=sinker make build_docker
 
-      # If it is a Pull Request, only build to make sure that everything is running
-      # If it is not a pull request, then should publish the image built
-
       - name: Login to Docker Hub
         uses: docker/login-action@v1
-        if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push service containers
-        if: github.event_name != 'pull_request'
         run: docker push -a ns1labs/orb-sinker
 
   package-sinks:
@@ -272,10 +264,9 @@ jobs:
      - prebuild
      - test-sinks
     runs-on: ubuntu-latest
-    if: ${{ needs.prebuild.outputs.orb == 'true' }}
+    if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v2
-
       - name: Debug values
         run: |
           echo ${{ env.VERSION }}
@@ -285,25 +276,20 @@ jobs:
       - name: Build service containers
         run: SERVICE=sinks make build_docker
 
-      # If it is a Pull Request, only build to make sure that everything is running
-      # If it is not a pull request, then should publish the image built
-
       - name: Login to Docker Hub
         uses: docker/login-action@v1
-        if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push service containers
-        if: github.event_name != 'pull_request'
         run: docker push -a ns1labs/orb-sinks
 
   package-ui-dependencies:
     needs:
       - prebuild
     runs-on: ubuntu-latest
-    if: ${{ needs.prebuild.outputs.ui == 'true' }}
+    if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
@@ -312,18 +298,21 @@ jobs:
           filters: |
             yarn:
               ui/package.json
+
       - name: Login to Docker Hub
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build orb yarn image
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         env:
           IMAGE_NAME: ns1labs/orb-ui-modules
         run: |
           make ui-modules
+
       - name: Push ui image
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         run: |
@@ -333,7 +322,7 @@ jobs:
     needs: 
      - package-ui-dependencies
     runs-on: ubuntu-latest
-    if: ${{ needs.prebuild.outputs.ui == 'true' }}
+    if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v2
       - name: Build orb-ui
@@ -342,10 +331,7 @@ jobs:
         run: |
           make ui
 
-      # If it is a Pull Request, only build to make sure that everything is running
-      # If it is not a pull request, then should publish the image built
       - name: Commit orb-ui-live on orb-live repo develop
-        if: github.event_name != 'pull_request'
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"
@@ -364,13 +350,11 @@ jobs:
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
-        if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push ui container
-        if: github.event_name != 'pull_request'
         run: |
           docker push -a ns1labs/orb-ui
 
@@ -384,9 +368,7 @@ jobs:
       - package-ui
 
     runs-on: ubuntu-latest
-    # if this is a push into one of our main branches (rather than just a pull request), we will also package
     if: github.event_name != 'pull_request'
-
     steps:
       - uses: actions/checkout@v2
 
