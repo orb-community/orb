@@ -94,6 +94,7 @@
   <nb-card-footer>
     <button
       (click)="onFormSubmit()"
+      [disabled]="form.invalid"
       class="dataset-save-button"
       nbButton
       shape="round"
