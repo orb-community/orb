@@ -392,6 +392,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
       - name: Commit image tag on orb-live-manifest environment dev
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
