@@ -320,8 +320,9 @@ jobs:
           docker push -a ns1labs/orb-ui-modules
 
   package-ui:
-    needs: 
-     - package-ui-dependencies
+    needs:
+      - prebuild
+      - package-ui-dependencies
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
