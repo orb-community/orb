@@ -1,12 +1,5 @@
 # OTLP/MQTT Exporter
 
-# TODO
-1. Find nats/use from orb lib to connect to the NAT port
-2. Erase OTLP tests of metrics and implement by listening to NAT 
-   1. TestUserAgent 
-   2. TestInvalidConfig
-   3. TestMetricsError
-   4. TestMetricsRoundTrip
 
 Alt 1. Test Orb Agent with Open Telemetry
 use this config in localconifg/config.yaml

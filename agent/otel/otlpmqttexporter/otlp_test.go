@@ -24,6 +24,7 @@ func TestInvalidConfig(t *testing.T) {
 
 func TestUserAgent(t *testing.T) {
 	// This test also requires you to use a local mqtt broker, for this I will use mosquitto on port 1887
+	t.Skip("This test requires a local mqtt broker, unskip it locally")
 	mqttAddr := "localhost:1887"
 	set := componenttest.NewNopExporterCreateSettings()
 	set.BuildInfo.Description = "Collector"

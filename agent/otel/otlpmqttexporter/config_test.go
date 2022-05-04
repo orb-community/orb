@@ -15,7 +15,7 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	t.Skip("Configuration is not done yet")
+	t.Skip("this ")
 	factories, err := componenttest.NopFactories()
 	assert.NoError(t, err)
 

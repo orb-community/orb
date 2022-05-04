@@ -63,6 +63,7 @@ func makeMQTTConnectedClient(t *testing.T) (client mqtt.Client, err error) {
 }
 
 func TestCreateConfigClient(t *testing.T) {
+	t.Skip("This test requires a local mqtt broker, unskip it locally")
 	type args struct {
 		client       mqtt.Client
 		metricsTopic string

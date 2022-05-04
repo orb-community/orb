@@ -1,6 +1,7 @@
 package pktvisorreceiver_test
 
 import (
+	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
 	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/stretchr/testify/assert"
@@ -18,6 +19,7 @@ func TestLoadConfig(t *testing.T) {
 
 		factories.Receivers[typeStr] = pktvisorreceiver.NewFactory()
 		factories.Exporters["prometheus"] = prometheusexporter.NewFactory()
+		factories.Exporters["otlpmqtt"] = otlpmqttexporter.NewFactory()
 		cfgPath := path.Join(".", "testdata", "config.yaml")
 		cfg, err := servicetest.LoadConfigAndValidate(cfgPath, factories)
 
