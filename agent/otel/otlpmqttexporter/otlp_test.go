@@ -11,14 +11,14 @@ import (
 
 func TestInvalidConfig(t *testing.T) {
 	t.Skip("TODO Not sure how to solve this")
-	config := &Config{}
+	c := &Config{}
 	f := NewFactory()
 	set := componenttest.NewNopExporterCreateSettings()
-	_, err := f.CreateTracesExporter(context.Background(), set, config)
+	_, err := f.CreateTracesExporter(context.Background(), set, c)
 	require.Error(t, err)
-	_, err = f.CreateMetricsExporter(context.Background(), set, config)
+	_, err = f.CreateMetricsExporter(context.Background(), set, c)
 	require.Error(t, err)
-	_, err = f.CreateLogsExporter(context.Background(), set, config)
+	_, err = f.CreateLogsExporter(context.Background(), set, c)
 	require.Error(t, err)
 }
 
