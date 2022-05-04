@@ -325,6 +325,11 @@ jobs:
     if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v2
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
       - name: Build orb-ui
         env:
           IMAGE_NAME: ns1labs/orb-ui
