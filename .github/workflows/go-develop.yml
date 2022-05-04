@@ -330,7 +330,7 @@ jobs:
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          echo ${{ jobs.prebuild.outputs.VERSION }} > VERSION
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
 
       - name: Build orb-ui
         env:
