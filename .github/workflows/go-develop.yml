@@ -39,6 +39,7 @@ jobs:
               - 'cmd/sinker/**'
             ui: 
               - 'ui/**'
+
       - name: Set branch name
         shell: bash
         run: |
