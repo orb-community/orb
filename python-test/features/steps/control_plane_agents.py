@@ -2,8 +2,8 @@ from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix,\
     create_tags_set, find_files, threading_wait_until, check_port_is_available
 from local_agent import run_local_agent_container, run_agent_config_file
-from control_plane_agent_groups import return_matching_groups
-from behave import given, when, then, step
+from control_plane_agent_groups import return_matching_groups, tags_to_match_k_groups
+from behave import given, then, step
 from hamcrest import *
 from datetime import datetime
 import requests
@@ -11,6 +11,7 @@ import os
 from agent_config_file import FleetAgent
 import yaml
 from yaml.loader import SafeLoader
+import re
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
@@ -42,10 +43,11 @@ def agent_is_created(context, orb_tags):
     context.agent_key = context.agent["key"]
 
 
-@when('a new agent is created with tags matching an existing group')
-def agent_is_created_matching_group(context):
+@step('a new agent is created with orb tags matching {amount_of_group} existing group')
+def agent_is_created_matching_group(context, amount_of_group):
     context.agent_name = agent_name_prefix + random_string(10)
-    agent = create_agent(context.token, context.agent_name, context.orb_tags)
+    all_used_tags = tags_to_match_k_groups(context.token, amount_of_group, context.agent_groups)
+    agent = create_agent(context.token, context.agent_name, all_used_tags)
     context.agent = agent
     context.agent_key = context.agent["key"]
 
@@ -120,6 +122,14 @@ def editing_agent_tags(context, orb_tags):
     context.agent = get_agent(context.token, context.agent["id"])
 
 
+@step("edit the agent tags and use orb tags matching {amount_of_group} existing group")
+def agent_is_edited_matching_group(context, amount_of_group):
+    all_used_tags = tags_to_match_k_groups(context.token, amount_of_group, context.agent_groups)
+    agent = get_agent(context.token, context.agent["id"])
+    edit_agent(context.token, agent["id"], agent["name"], all_used_tags, expected_status_code=200)
+    context.agent = get_agent(context.token, context.agent["id"])
+
+
 @step("edit the agent name")
 def editing_agent_name(context):
     agent = get_agent(context.token, context.agent["id"])
@@ -171,7 +181,7 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
     context.dir_path = create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url,
-                                                base_orb_address, port)
+                                                base_orb_address, port, existing_agent_groups=context.agent_groups)
     context.container_id = run_agent_config_file(context.dir_path, agent_name)
     context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=10)
     assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found")
@@ -355,14 +365,15 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
     return list_groups_id
 
 
-def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, status_port='available'):
+def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, status_port='available',
+                             existing_agent_groups=None):
     """
     Create a file .yaml with configs of the agent that will be provisioned
 
     :param (str) token: used for API authentication
-    :param agent_name:
+    :param agent_name: name of the agent that will be created
     :param (str) iface: network interface
-    :param (dict) agent_tags: agent tags
+    :param (str) agent_tags: agent tags
     :param (str) orb_url: entire orb url
     :param (str) base_orb_address: base orb url address
     :param (str) status_port: status of the port on which agent must try to run. Default: available
@@ -370,7 +381,12 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     """
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
-    tags = {"tags": create_tags_set(agent_tags)}
+    if re.match(r"matching (\d+|all|the) group*", agent_tags):
+        amount_of_group = re.search(r"(\d+|all|the)", agent_tags).groups()[0]
+        all_used_tags = tags_to_match_k_groups(token, amount_of_group, existing_agent_groups)
+        tags = {"tags": all_used_tags}
+    else:
+        tags = {"tags": create_tags_set(agent_tags)}
     agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, base_orb_address)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)

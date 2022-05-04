@@ -6,6 +6,7 @@ import threading
 from datetime import datetime
 import socket
 import os
+import re
 
 tag_prefix = "test_tag_"
 
@@ -77,14 +78,21 @@ def create_tags_set(orb_tags):
     """
     tag_set = dict()
     if orb_tags.isdigit() is False:
-        assert_that(orb_tags, matches_regexp("^.+\:.+"), "Unexpected tags")
-        for tag in orb_tags.split(", "):
-            key, value = tag.split(":")
-            tag_set[key] = value
-    else:
-        amount_of_tags = int(orb_tags.split()[0])
-        for tag in range(amount_of_tags):
-            tag_set[tag_prefix + random_string(4)] = tag_prefix + random_string(2)
+        assert_that(orb_tags, any_of(matches_regexp("^.+\:.+"), matches_regexp("\d+ orb tag\(s\)"),
+                                     matches_regexp("\d+ orb tag")), f"Unexpected regex for tags. Passed: {orb_tags}."
+                                                                     f"Expected (examples):"
+                                                                     f"If you want 1 randomized tag: 1 orb tag."
+                                                                     f"If you want more than 1 randomized tags: 2 orb tags. Note that you can use any int. 2 its only an example."
+                                                                     f"If you want specified tags: test_key:test_value, second_key:second_value.")
+        if re.match(r"^.+\:.+", orb_tags): # We expected key values separated by a colon ":" and multiple tags separated
+            # by a comma ",". Example: test_key:test_value, my_orb_key:my_orb_value
+            for tag in orb_tags.split(", "):
+                key, value = tag.split(":")
+                tag_set[key] = value
+                return tag_set
+    amount_of_tags = int(orb_tags.split()[0])
+    for tag in range(amount_of_tags):
+        tag_set[tag_prefix + random_string(6)] = tag_prefix + random_string(4)
     return tag_set
 
 
@@ -145,12 +153,12 @@ def check_port_is_available(availability=True):
     """
     assert_that(availability, any_of(equal_to(True), equal_to(False)), "Unexpected value for availability")
     available_port = None
-    port_options = range(10853, 10860)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    port_options = range(10853, 10900)
     for port in port_options:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = sock.connect_ex(('127.0.0.1', port))
+        sock.close()
         if result == 0:
-            sock.close()
             available_port = port
             if availability is True:
                 continue
@@ -158,7 +166,6 @@ def check_port_is_available(availability=True):
                 return available_port
         else:
             available_port = port
-            sock.close()
             break
     assert_that(available_port, is_not(equal_to(None)), "No available ports to bind")
     return available_port

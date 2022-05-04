@@ -34,7 +34,7 @@ def run_local_agent_container(context, status_port):
     if context.port != 10583:
         env_vars["ORB_BACKENDS_PKTVISOR_API_PORT"] = str(context.port)
 
-    context.container_id = run_agent_container(agent_image, env_vars, LOCAL_AGENT_CONTAINER_NAME)
+    context.container_id = run_agent_container(agent_image, env_vars, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
 
@@ -81,7 +81,7 @@ def run_container_using_ui_command(context, status_port):
     context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
                                                          ignore_ssl_and_certificate_errors, str(context.port))
     assert_that(context.container_id, is_not((none())))
-    rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME)
+    rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
 
@@ -225,5 +225,5 @@ def run_agent_config_file(orb_path, agent_name):
     terminal_running = subprocess.Popen(args, stdout=subprocess.PIPE)
     subprocess_return = terminal_running.stdout.read().decode()
     container_id = subprocess_return.split()[0]
-    rename_container(container_id, LOCAL_AGENT_CONTAINER_NAME)
+    rename_container(container_id, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
     return container_id
