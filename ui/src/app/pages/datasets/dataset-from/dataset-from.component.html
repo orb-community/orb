@@ -39,7 +39,7 @@
           </nb-select>
           <div
             *ngIf="form.controls?.agent_group_id.invalid
-          && (form.controls?.agent_group_id.dirty || form.controls?.agent_group_id.touched)"
+          && (form.controls?.agent_group_id.dirty)"
             class="required">
             <div *ngIf="form.controls?.agent_group_id.errors?.required">
               You must select an Agent Group.
@@ -83,30 +83,26 @@
         <br>
       </div>
       <!--      SINK-->
-      <nb-form-field>
-        <div>
-          <label class="font-weight-bold">Sinks</label>
-          <span class="required">*</span>
-        </div>
-        <input
-          [hidden]="true"
-          [value]="sinkIDs"
-          formControlName="sink_ids"
-          nbInput/>
+
+      <div>
+        <label class="font-weight-bold">Sinks</label>
+        <span class="required">*</span>
+      </div>
+      <div>
         <ngx-sink-display [(selectedSinks)]="selectedSinks"></ngx-sink-display>
         <ngx-sink-control
           [(selectedSinks)]="selectedSinks"
           [sinksList]="unselectedSinks"></ngx-sink-control>
         <div
           *ngIf="sinkIDs.length === 0
-          && (form.controls?.sink_ids.dirty || form.controls?.sink_ids.touched)"
+          && (form.controls?.sink_ids.dirty)"
           class="required">
           At least one Sink is required.
         </div>
-      </nb-form-field>
+      </div>
       <!--      NAME-->
-      <br>
       <nb-form-field>
+        <br>
         <div>
           <label class="font-weight-bold">Dataset Name</label>
           <span class="required">*</span>
@@ -121,7 +117,7 @@
       </nb-form-field>
       <div
         *ngIf="form.controls?.name.invalid
-          && (form.controls?.name.dirty || form.controls?.name.touched)"
+          && (form.controls?.name.dirty)"
         class="required">
         <div *ngIf="form.controls?.name.errors?.required">
           Name is required.

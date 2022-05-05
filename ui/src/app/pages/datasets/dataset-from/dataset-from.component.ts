@@ -45,9 +45,11 @@ export class DatasetFromComponent implements OnInit {
     return this._selectedSinks;
   }
 
-  set selectedSinks( sinks: Sink[] ) {
+  set selectedSinks(sinks: Sink[]) {
     this._selectedSinks = sinks;
     this.sinkIDs = sinks.map(sink => sink.id);
+    this.form.controls.sink_ids.patchValue(this.sinkIDs);
+    this.form.controls.sink_ids.markAsDirty();
     this.cdr.markForCheck();
     this.updateUnselectedSinks();
   }
@@ -67,7 +69,7 @@ export class DatasetFromComponent implements OnInit {
   form: FormGroup;
 
   loading = Object.entries(CONFIG)
-    .reduce(( acc, [value] ) => {
+    .reduce((acc, [value]) => {
       acc[value] = false;
       return acc;
     }, {});
@@ -134,17 +136,17 @@ export class DatasetFromComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if ( !!this.group ) {
+    if (!!this.group) {
       this.selectedGroup = this.group.id;
       this.form.patchValue({ agent_group_id: this.group.id });
       this.form.controls.agent_group_id.disable();
     }
-    if ( !!this.policy ) {
+    if (!!this.policy) {
       this.selectedPolicy = this.policy.id;
       this.form.patchValue({ agent_policy_id: this.policy.id });
       this.form.controls.agent_policy_id.disable();
     }
-    if ( !!this.dataset ) {
+    if (!!this.dataset) {
       const { name, agent_group_id, agent_policy_id, sink_ids } = this.dataset;
       this.selectedGroup = agent_group_id;
       this.selectedSinks = this.availableSinks.filter(
@@ -182,10 +184,10 @@ export class DatasetFromComponent implements OnInit {
   }
 
   getAvailableAgentGroups() {
-    return new Promise(( resolve ) => {
+    return new Promise((resolve) => {
       this.loading[CONFIG.GROUPS] = true;
       this.agentGroupsService.getAllAgentGroups()
-        .subscribe(( resp: OrbPagination<AgentGroup> ) => {
+        .subscribe((resp: OrbPagination<AgentGroup>) => {
           this.availableAgentGroups = resp.data;
           this.loading[CONFIG.GROUPS] = false;
 
@@ -195,12 +197,12 @@ export class DatasetFromComponent implements OnInit {
   }
 
   getAvailableAgentPolicies() {
-    return new Promise(( resolve ) => {
+    return new Promise((resolve) => {
       this.loading[CONFIG.POLICIES] = true;
 
       this.agentPoliciesService
         .getAllAgentPolicies()
-        .subscribe(( resp: OrbPagination<AgentPolicy> ) => {
+        .subscribe((resp: OrbPagination<AgentPolicy>) => {
           this.availableAgentPolicies = resp.data;
           this.loading[CONFIG.POLICIES] = false;
 
@@ -210,13 +212,13 @@ export class DatasetFromComponent implements OnInit {
   }
 
   getAvailableSinks() {
-    return new Promise(( resolve ) => {
+    return new Promise((resolve) => {
       this.loading[CONFIG.SINKS] = true;
       const pageInfo = { ...SinksService.getDefaultPagination(), limit: 100 };
       this.sinksService
         .getSinks(pageInfo, false)
-        .subscribe(( resp: OrbPagination<Sink> ) => {
-          this._selectedSinks.forEach(( sink ) => {
+        .subscribe((resp: OrbPagination<Sink>) => {
+          this._selectedSinks.forEach((sink) => {
             sink.name = resp.data.find(
               anotherSink => anotherSink.id === sink.id).name;
           });
@@ -233,7 +235,7 @@ export class DatasetFromComponent implements OnInit {
 
   isLoading() {
     return Object.values<boolean>(this.loading)
-      .reduce(( prev, curr ) => prev && curr);
+      .reduce((prev, curr) => prev && curr);
   }
 
   onFormSubmit() {
@@ -243,7 +245,7 @@ export class DatasetFromComponent implements OnInit {
       agent_policy_id: this.form.controls.agent_policy_id.value,
       sink_ids: this._selectedSinks.map(sink => sink.id),
     } as Dataset;
-    if ( this.isEdit ) {
+    if (this.isEdit) {
       // updating existing dataset
       this.datasetService.editDataset({ ...payload, id: this.dataset.id })
         .subscribe(() => {
@@ -266,7 +268,7 @@ export class DatasetFromComponent implements OnInit {
       closeOnEsc: true,
     }).onClose.subscribe(
       confirm => {
-        if ( confirm ) {
+        if (confirm) {
           this.datasetService.deleteDataset(this.dataset.id).subscribe(() => {
             this.notificationsService.success('Dataset successfully deleted',
               '');

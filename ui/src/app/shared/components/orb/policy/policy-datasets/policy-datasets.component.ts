@@ -1,30 +1,28 @@
 import {
-  AfterViewChecked,
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  Output,
-  SimpleChanges,
-  TemplateRef,
+  AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, EventEmitter,
+  Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, TemplateRef,
   ViewChild,
 } from '@angular/core';
+import { NbDialogService } from '@nebular/theme';
+import {
+  ColumnMode, DatatableComponent, TableColumn,
+} from '@swimlane/ngx-datatable';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
-import { Subscription } from 'rxjs';
-import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
-import { NbDialogService } from '@nebular/theme';
-import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
-import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
-import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
-import { concatMap } from 'rxjs/operators';
-import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
+import {
+  AgentGroupsService,
+} from 'app/common/services/agents/agent.groups.service';
+import {
+  DatasetPoliciesService,
+} from 'app/common/services/dataset/dataset.policies.service';
+import { SinksService } from 'app/common/services/sinks/sinks.service';
+import {
+  DatasetFromComponent,
+} from 'app/pages/datasets/dataset-from/dataset-from.component';
+import { Subscription } from 'rxjs';
+import { concatMap } from 'rxjs/operators';
 
 interface FlexDataset extends Dataset {
   sinks?: Sink[];
@@ -32,11 +30,12 @@ interface FlexDataset extends Dataset {
 }
 
 @Component({
-             selector: 'ngx-policy-datasets',
-             templateUrl: './policy-datasets.component.html',
-             styleUrls: ['./policy-datasets.component.scss'],
-           })
-export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit, AfterViewChecked, OnChanges {
+  selector: 'ngx-policy-datasets',
+  templateUrl: './policy-datasets.component.html',
+  styleUrls: ['./policy-datasets.component.scss'],
+})
+export class PolicyDatasetsComponent implements OnInit, OnDestroy,
+  AfterViewInit, AfterViewChecked, OnChanges {
   @Input()
   policy: AgentPolicy;
 
@@ -153,7 +152,9 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   ngAfterViewChecked() {
-    if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
+    if (this.table && this.table.recalculate && (
+      this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth
+    )) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
       this.table.recalculate();
       this.cdr.detectChanges();
@@ -164,7 +165,8 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
   retrievePolicyDatasets() {
     return this.datasetService.getAllDatasets()
       .map(resp => {
-        this.datasets = resp.data.filter(dataset => dataset.agent_policy_id === this.policy.id);
+        this.datasets = resp.data.filter(
+          dataset => dataset.agent_policy_id === this.policy.id);
         if (this.table) {
           this.table.rows = this.datasets;
         }
@@ -178,7 +180,8 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
       .map(resp => {
         const groups = resp.data;
         this.datasets = this.datasets.map(dataset => {
-          dataset.agent_group = groups.find(group => group.id === dataset.agent_group_id);
+          dataset.agent_group = groups.find(
+            group => group.id === dataset.agent_group_id);
           return dataset;
         });
         if (this.table) {
@@ -193,7 +196,8 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
       .map(resp => {
         const sinks = resp.data;
         this.datasets = this.datasets.map(dataset => {
-          dataset.sinks = dataset.sink_ids.map(id => sinks.find(sink => sink.id === id));
+          dataset.sinks = dataset.sink_ids.map(
+            id => sinks.find(sink => sink.id === id));
           return dataset;
         });
         if (this.table) {
@@ -204,15 +208,15 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
 
   onCreateDataset() {
     this.dialogService.open(DatasetFromComponent,
-                            {
-                              autoFocus: true,
-                              closeOnEsc: true,
-                              context: {
-                                policy: this.policy,
-                              },
-                              hasScroll: false,
-                              hasBackdrop: false,
-                            }).onClose.subscribe(resp => {
+      {
+        autoFocus: true,
+        closeOnEsc: true,
+        context: {
+          policy: this.policy,
+        },
+        hasScroll: false,
+        hasBackdrop: false,
+      }).onClose.subscribe(resp => {
       if (resp === 'created') {
         // this.retrieveInfo();
         this.refreshPolicy.emit('refresh-from-dataset');
@@ -222,15 +226,15 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
 
   onOpenEdit(dataset) {
     this.dialogService.open(DatasetFromComponent,
-                            {
-                              autoFocus: true,
-                              closeOnEsc: true,
-                              context: {
-                                dataset,
-                              },
-                              hasScroll: false,
-                              hasBackdrop: false,
-                            }).onClose.subscribe(resp => {
+      {
+        autoFocus: true,
+        closeOnEsc: true,
+        context: {
+          dataset,
+        },
+        hasScroll: false,
+        hasBackdrop: false,
+      }).onClose.subscribe(resp => {
       if (resp === 'changed' || 'deleted') {
         // this.retrieveInfo();
         this.refreshPolicy.emit('refresh-from-dataset');

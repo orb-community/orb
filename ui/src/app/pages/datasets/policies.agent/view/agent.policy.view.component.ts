@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.config.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { PolicyDetailsComponent } from 'app/shared/components/orb/policy/policy-details/policy-details.component';
 import { PolicyInterfaceComponent } from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
@@ -45,7 +46,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   isEditMode() {
     return Object.values(this.editMode)
-      .reduce(( prev, cur ) => prev || cur, false);
+      .reduce((prev, cur) => prev || cur, false);
   }
 
   canSave() {
@@ -64,7 +65,9 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   save() {
-    const { format, version } = this.policy;
+    const {
+      format, version, name, description, policy, policy_data, id, tags, backend,
+    } = this.policy;
 
     // get values from all modified sections' forms and submit through service.
     const policyDetails = this.detailsComponent.formGroup?.value;
@@ -74,22 +77,24 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
     const detailsPartial = !!this.editMode.details && {
       ...policyDetails,
-    };
+    } || { name, description };
 
     const interFacePartial = !!this.editMode.interface && (
       format === 'yaml' ? {
         format: 'yaml', // this should be refactored out.
         policy_data: policyInterface,
       } : {
-        format: 'json', policy: policyInterface,
+        policy: JSON.parse(policyInterface) as PolicyConfig,
       }
-    );
+    ) || format === 'yaml' ? { policy_data, format, backend } : { policy, backend };
 
     const payload = {
-      ...detailsPartial, ...interFacePartial, version,
+      ...detailsPartial,
+      ...interFacePartial,
+      version, id, tags,
     } as AgentPolicy;
 
-    this.policiesService.editAgentPolicy({ id: this.policyId, ...payload })
+    this.policiesService.editAgentPolicy(payload)
       .subscribe(resp => {
         this.discard();
         this.retrievePolicy();
