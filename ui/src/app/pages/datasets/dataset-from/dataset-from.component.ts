@@ -109,8 +109,14 @@ export class DatasetFromComponent implements OnInit {
       sink_ids: [],
     } as Dataset;
 
-    this.form = this._formBuilder.group({
+    this.form = this.fb.group({
                                           name: [name, [Validators.required, Validators.pattern(
+                                            // https://github.com/ns1labs/orb/wiki/Architecture:-Common-Patterns#name-labels
+                                            // anything starting with alpha chars or underscore followed by any number
+                                            // of alphanumeric chars, dash '-' or underscore '_'.
+                                            // e.g.:
+                                            // valid: my_name, _name0, name__anything
+                                            // invalid: 0something, 000, 0_bla
                                             '^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
                                           agent_policy_id: [agent_policy_id, [Validators.required]],
                                           agent_group_id: [agent_group_id, [Validators.required]],
