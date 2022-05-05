@@ -6,6 +6,7 @@ package agent
 
 import (
 	"errors"
+	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/fatih/structs"
 	"github.com/jmoiron/sqlx"
@@ -90,6 +91,8 @@ func (a *orbAgent) startBackends() error {
 		if err := be.Configure(a.logger, a.policyManager.GetRepo(), config, structs.Map(a.config.OrbAgent.Otel)); err != nil {
 			return err
 		}
+		be.SetCommsClient(a.config.OrbAgent.Cloud.MQTT.Id, a.client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
+
 		if err := be.Start(); err != nil {
 			return err
 		}
@@ -118,11 +121,11 @@ func (a *orbAgent) Start() error {
 		return err
 	}
 
-	if err := a.startBackends(); err != nil {
+	if err := a.startComms(cloudConfig); err != nil {
 		return err
 	}
 
-	if err := a.startComms(cloudConfig); err != nil {
+	if err := a.startBackends(); err != nil {
 		return err
 	}
 

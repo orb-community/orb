@@ -438,12 +438,6 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 		switch k {
 		case "Enable":
 			p.scrapeOtel = v.(bool)
-		case "MQTT":
-			mappedValue := v.(map[string]interface{})
-			p.mqttConfig.Address = mappedValue["Address"].(string)
-			p.mqttConfig.Id = mappedValue["Id"].(string)
-			p.mqttConfig.Key = mappedValue["Key"].(string)
-			p.mqttConfig.ChannelID = mappedValue["ChannelID"].(string)
 		}
 	}
 
