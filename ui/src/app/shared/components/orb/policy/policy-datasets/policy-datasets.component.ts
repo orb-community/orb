@@ -210,6 +210,8 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
                               context: {
                                 policy: this.policy,
                               },
+                              hasScroll: false,
+                              hasBackdrop: false,
                             }).onClose.subscribe(resp => {
       if (resp === 'created') {
         // this.retrieveInfo();
@@ -226,6 +228,8 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy, AfterViewInit
                               context: {
                                 dataset,
                               },
+                              hasScroll: false,
+                              hasBackdrop: false,
                             }).onClose.subscribe(resp => {
       if (resp === 'changed' || 'deleted') {
         // this.retrieveInfo();

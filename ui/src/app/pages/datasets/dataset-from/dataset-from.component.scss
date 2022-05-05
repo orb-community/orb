@@ -220,6 +220,7 @@ nb-accordion {
   border-width: thin;
 }
 
-* {
-  zoom: reset !important;
+::ng-deep .cdk-global-scrollblock {
+  position: static !important;
+  overflow-y: inherit !important;
 }
