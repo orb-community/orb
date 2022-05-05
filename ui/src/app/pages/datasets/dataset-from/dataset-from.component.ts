@@ -47,10 +47,13 @@ export class DatasetFromComponent implements OnInit {
 
   set selectedSinks(sinks: Sink[]) {
     this._selectedSinks = sinks;
+    this.sinkIDs = sinks.map(sink => sink.id);
     this.updateUnselectedSinks();
   }
 
   private _selectedSinks: Sink[];
+
+  sinkIDs: string[];
 
   availableAgentGroups: AgentGroup[];
 
@@ -77,8 +80,8 @@ export class DatasetFromComponent implements OnInit {
     private sinksService: SinksService,
     private notificationsService: NotificationsService,
     private _formBuilder: FormBuilder,
-    protected dialogRef: NbDialogRef<DatasetFromComponent>,
-    protected dialogService: NbDialogService,
+    private dialogRef: NbDialogRef<DatasetFromComponent>,
+    private dialogService: NbDialogService,
   ) {
     this.isEdit = false;
     this.availableAgentGroups = [];
@@ -86,6 +89,7 @@ export class DatasetFromComponent implements OnInit {
     this.availableSinks = [];
     this._selectedSinks = [];
     this.unselectedSinks = [];
+    this.sinkIDs = [];
 
     this.getDatasetAvailableConfigList();
 
@@ -110,7 +114,7 @@ export class DatasetFromComponent implements OnInit {
                                             '^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
                                           agent_policy_id: [agent_policy_id, [Validators.required]],
                                           agent_group_id: [agent_group_id, [Validators.required]],
-                                          sink_ids: [sink_ids, [Validators.minLength(1)]],
+                                          sink_ids: [sink_ids],
                                         });
   }
 
@@ -118,18 +122,24 @@ export class DatasetFromComponent implements OnInit {
     if (!!this.group) {
       this.selectedGroup = this.group.id;
       this.form.patchValue({ agent_group_id: this.group.id });
+      this.form.controls.agent_group_id.disable();
     }
     if (!!this.policy) {
       this.selectedPolicy = this.policy.id;
       this.form.patchValue({ agent_policy_id: this.policy.id });
+      this.form.controls.agent_policy_id.disable();
     }
     if (!!this.dataset) {
       const { name, agent_group_id, agent_policy_id, sink_ids } = this.dataset;
       this.selectedGroup = agent_group_id;
-      this._selectedSinks = this.availableSinks.filter(sink => sink_ids.includes(sink.id));
+      this.selectedSinks = this.availableSinks.filter(sink => sink_ids.includes(sink.id));
       this.selectedPolicy = agent_policy_id;
       this.form.patchValue({ name, agent_group_id, agent_policy_id, sink_ids });
       this.isEdit = true;
+      this.form.controls.agent_group_id.disable();
+      this.form.controls.agent_policy_id.disable();
+
+      this.unselectedSinks = this.availableSinks.filter(sink => !this._selectedSinks.includes(sink));
     }
   }
 
