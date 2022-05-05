@@ -37,6 +37,14 @@
               [id]="agentGroup.id"
               [value]="agentGroup.id">{{ agentGroup.name }}</nb-option>
           </nb-select>
+          <div
+            *ngIf="form.controls?.agent_group_id.invalid
+          && (form.controls?.agent_group_id.dirty || form.controls?.agent_group_id.touched)"
+            class="required">
+            <div *ngIf="form.controls?.agent_group_id.errors?.required">
+              You must select an Agent Group.
+            </div>
+          </div>
         </nb-form-field>
         <br>
       </div>
@@ -63,6 +71,14 @@
               [id]="agentPolicy.id"
               [value]="agentPolicy.id">{{ agentPolicy.name }}</nb-option>
           </nb-select>
+          <div
+            *ngIf="form.controls?.agent_policy_id.invalid
+          && (form.controls?.agent_policy_id.dirty || form.controls?.agent_policy_id.touched)"
+            class="required">
+            <div *ngIf="form.controls?.agent_policy_id.errors?.required">
+              You must select a Collection Policy.
+            </div>
+          </div>
         </nb-form-field>
         <br>
       </div>
@@ -81,6 +97,12 @@
         <ngx-sink-control
           [(selectedSinks)]="selectedSinks"
           [sinksList]="unselectedSinks"></ngx-sink-control>
+        <div
+          *ngIf="sinkIDs.length === 0
+          && (form.controls?.sink_ids.dirty || form.controls?.sink_ids.touched)"
+          class="required">
+            At least one Sink is required.
+        </div>
       </nb-form-field>
       <!--      NAME-->
       <br>
@@ -97,6 +119,17 @@
           fullWidth="true"
           nbInput/>
       </nb-form-field>
+      <div
+        *ngIf="form.controls?.name.invalid
+          && (form.controls?.name.dirty || form.controls?.name.touched)"
+        class="required">
+        <div *ngIf="form.controls?.name.errors?.required">
+          Name is required.
+        </div>
+        <div *ngIf="form.controls?.name.errors?.pattern">
+          Name does not match the pattern.
+        </div>
+      </div>
     </form>
   </nb-card-body>
   <nb-card-footer>
