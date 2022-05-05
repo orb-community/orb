@@ -2,10 +2,10 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 
 @Component({
-             selector: 'ngx-sink-control',
-             templateUrl: './sink-control.component.html',
-             styleUrls: ['./sink-control.component.scss'],
-           })
+  selector: 'ngx-sink-control',
+  templateUrl: './sink-control.component.html',
+  styleUrls: ['./sink-control.component.scss'],
+})
 export class SinkControlComponent implements OnInit {
   @Input()
   selectedSinks: Sink[];

@@ -1,17 +1,18 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { STRINGS } from 'assets/text/strings';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.config.interface';
+import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { PolicyDetailsComponent } from 'app/shared/components/orb/policy/policy-details/policy-details.component';
 import { PolicyInterfaceComponent } from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
+import { STRINGS } from 'assets/text/strings';
+import { Subscription } from 'rxjs';
 
 @Component({
-             selector: 'ngx-agent-view',
-             templateUrl: './agent.policy.view.component.html',
-             styleUrls: ['./agent.policy.view.component.scss'],
-           })
+  selector: 'ngx-agent-view',
+  templateUrl: './agent.policy.view.component.html',
+  styleUrls: ['./agent.policy.view.component.scss'],
+})
 export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   strings = STRINGS.agents;
 
@@ -29,11 +30,14 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
 
-  @ViewChild(PolicyInterfaceComponent) interfaceComponent: PolicyInterfaceComponent;
+  @ViewChild(
+    PolicyInterfaceComponent) interfaceComponent: PolicyInterfaceComponent;
 
   constructor(
-    private route: ActivatedRoute, private policiesService: AgentPoliciesService, private cdr: ChangeDetectorRef) {
-  }
+    private route: ActivatedRoute,
+    private policiesService: AgentPoliciesService,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit() {
     this.policyId = this.route.snapshot.paramMap.get('id');
@@ -41,13 +45,16 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   isEditMode() {
-    return Object.values(this.editMode).reduce((prev, cur) => prev || cur, false);
+    return Object.values(this.editMode)
+      .reduce((prev, cur) => prev || cur, false);
   }
 
   canSave() {
-    const detailsValid = this.editMode.details ? this.detailsComponent?.formGroup?.status === 'VALID' : true;
+    const detailsValid = this.editMode.details
+      ? this.detailsComponent?.formGroup?.status === 'VALID' : true;
 
-    const interfaceValid = this.editMode.interface ? this.interfaceComponent?.formControl?.status === 'VALID' : true;
+    const interfaceValid = this.editMode.interface
+      ? this.interfaceComponent?.formControl?.status === 'VALID' : true;
 
     return detailsValid && interfaceValid;
   }
@@ -58,30 +65,39 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   save() {
-    const { format, version } = this.policy;
+    const {
+      format, version, name, description, id, tags, backend,
+    } = this.policy;
 
     // get values from all modified sections' forms and submit through service.
     const policyDetails = this.detailsComponent.formGroup?.value;
-    const policyInterface = this.interfaceComponent.formControl?.value;
+    const policyInterface = this.interfaceComponent.code;
 
-    console.table(this.editMode);
-
+    // trying to work around rest api
     const detailsPartial = !!this.editMode.details && {
       ...policyDetails,
-    };
+    } || { name, description };
 
-    const interFacePartial = !!this.editMode.interface && (format === 'yaml' ? {
-      format: 'yaml', // this should be refactored out.
-      policy_data: policyInterface,
-    } : {
-      format: 'json', policy: policyInterface,
-    });
+    let interfacePartial = {};
+
+    if (format === 'yaml') {
+      interfacePartial = {
+        format,
+        policy_data: policyInterface,
+      };
+    } else {
+      interfacePartial = {
+        policy: JSON.parse(policyInterface) as PolicyConfig,
+      };
+    }
 
     const payload = {
-      ...detailsPartial, ...interFacePartial, version,
+      ...detailsPartial,
+      ...interfacePartial,
+      version, id, tags, backend,
     } as AgentPolicy;
 
-    this.policiesService.editAgentPolicy({ id: this.policyId, ...payload })
+    this.policiesService.editAgentPolicy(payload)
       .subscribe(resp => {
         this.discard();
         this.retrievePolicy();
@@ -97,6 +113,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
       .subscribe(policy => {
         this.policy = policy;
         this.isLoading = false;
+        this.cdr.markForCheck();
       });
   }
 

@@ -46,6 +46,7 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
     glyphMargin: false,
     folding: true,
     readOnly: true,
+    scrollBeyondLastLine: false,
     // Undocumented see https://github.com/Microsoft/vscode/issues/30795#issuecomment-410998882
     lineDecorationsWidth: 0,
     lineNumbersMinChars: 0,
