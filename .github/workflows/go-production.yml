@@ -68,7 +68,7 @@ jobs:
 
       - name: Debug VERSION
         run: |
-          echo "${{ env.VERSION }}-${{ env.REF_TAG }}-${{ steps.commit_hash.outputs.sha_short }}"
+          echo "${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}"
 
       - name: Build services (go build only)
         run: make services
