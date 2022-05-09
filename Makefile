@@ -20,7 +20,7 @@ SERVICES = fleet policies sinks sinker
 DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
 CGO_ENABLED ?= 0
-GOARCH ?= amd64
+GOARCH ?= $(shell dpkg-architecture -q DEB_BUILD_ARCH)
 ORB_VERSION = $(shell cat VERSION)
 COMMIT_HASH = $(shell git rev-parse --short HEAD)
 
