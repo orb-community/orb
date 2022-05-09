@@ -269,6 +269,10 @@ func (e eventStore) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID
 	return e.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
 }
 
+func (e eventStore) DuplicatePolicy(ctx context.Context, token string, policyID string, name string) (policies.Policy, error) {
+	return e.svc.DuplicatePolicy(ctx, token, policyID, name)
+}
+
 // NewEventStoreMiddleware returns wrapper around policies service that sends
 // events to event store.
 func NewEventStoreMiddleware(svc policies.Service, client *redis.Client, logger *zap.Logger) policies.Service {

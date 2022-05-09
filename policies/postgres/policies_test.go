@@ -70,7 +70,7 @@ func TestPolicySave(t *testing.T) {
 				Name:      nameID,
 				MFOwnerID: "",
 			},
-			err:    errors.ErrMalformedEntity,
+			err: errors.ErrMalformedEntity,
 		},
 	}
 
@@ -120,15 +120,15 @@ func TestAgentPolicyDataRetrieve(t *testing.T) {
 		},
 		"retrieve policies by ID with empty owner": {
 			policyID: id,
-			ownerID: "",
-			tags: types.Tags{"testkey": "testvalue"},
-			err:   errors.ErrMalformedEntity,
+			ownerID:  "",
+			tags:     types.Tags{"testkey": "testvalue"},
+			err:      errors.ErrMalformedEntity,
 		},
 		"retrieve policies by ID with empty policyID": {
 			policyID: "",
-			ownerID: policy.MFOwnerID,
-			tags: types.Tags{"testkey": "testvalue"},
-			err:   errors.ErrMalformedEntity,
+			ownerID:  policy.MFOwnerID,
+			tags:     types.Tags{"testkey": "testvalue"},
+			err:      errors.ErrMalformedEntity,
 		},
 	}
 
@@ -333,14 +333,14 @@ func TestAgentPoliciesRetrieveByGroup(t *testing.T) {
 			ownerID: "",
 			dsID:    dsID,
 			results: 0,
-			err:   errors.ErrMalformedEntity,
+			err:     errors.ErrMalformedEntity,
 		},
 		"retrieve policies by groupID with empty groupID": {
 			groupID: []string{},
 			ownerID: policy.MFOwnerID,
 			dsID:    dsID,
 			results: 0,
-			err:   errors.ErrMalformedEntity,
+			err:     errors.ErrMalformedEntity,
 		},
 	}
 

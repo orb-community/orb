@@ -205,3 +205,27 @@ func (req updateDatasetReq) validate() error {
 
 	return nil
 }
+
+type duplicatePolicyReq struct {
+	id          string
+	token       string
+	Name        string         `json:"name,omitempty"`
+}
+
+func (req duplicatePolicyReq) validate() error {
+
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+	if req.id == "" {
+		return errors.ErrMalformedEntity
+	}
+	if req.Name != "" {
+		_, err := types.NewIdentifier(req.Name)
+		if err != nil {
+			return errors.Wrap(errors.ErrMalformedEntity, err)
+		}
+	}
+
+	return nil
+}
