@@ -405,7 +405,7 @@ jobs:
           cd orb-live-manifest/prod
           mv values.yaml .template/values.old
           cat .template/values.yaml.tpl >> values.yaml
-          sed -i -e "s/IMAGE_TAG/${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
+          sed -i -e "s/IMAGE_TAG/${{ needs.prebuild.outputs.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
           git add values.yaml
           git add .template/values.old
           git commit -m "[NS1 Orb Bot] Update image tag on prod environment"
