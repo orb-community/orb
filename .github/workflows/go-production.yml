@@ -363,7 +363,7 @@ jobs:
         run: |
           docker push -a ns1labs/orb-ui
 
-  publish-orb-live-stg:
+  publish-orb-live-prd:
     needs:
       - prebuild
       - package-fleet
