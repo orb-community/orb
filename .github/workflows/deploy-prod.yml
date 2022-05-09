@@ -2,9 +2,9 @@ name: Deploy Production
 
 on:
   pull_request:
-    branches: [ production ]
+    branches: [ production2 ]
   push:
-    branches: [ production ]
+    branches: [ production2 ]
 
 jobs:
   check:
@@ -51,8 +51,6 @@ jobs:
   update-image-tag-push:
     needs: check
     runs-on: ubuntu-latest
-    # if this is a push into one of our main branches (rather than just a pull request), we will also package
-    if: github.event_name != 'pull_request'
 
     steps:
       - uses: actions/checkout@v2

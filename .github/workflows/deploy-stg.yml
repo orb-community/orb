@@ -1,4 +1,4 @@
-name: Deploy Production
+name: Deploy Staging
 
 on:
   workflow_dispatch:
@@ -11,52 +11,8 @@ on:
     branches: [ staging ]
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            agent:
-              - 'agent/**'
-              - 'cmd/agent/**'
-            orb:
-              - 'fleet/**'
-              - 'cmd/fleet/**'
-              - 'policies/**'
-              - 'cmd/policies/**'
-              - 'sinks/**'
-              - 'cmd/sinks/**'
-              - 'sinker/**'
-              - 'cmd/sinker/**'
-            ui:
-              - 'ui/**'
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.16
-
-      - name: Build services (go build only)
-        run: make services
-
-      - name: Build orb agent (go build only)
-        run: make agent_bin
-
-      - name: Go unit tests
-        run: make test
-
-      - name: Build UI
-        if: steps.filter.outputs.ui == 'true'
-        run: make ui
-
   update-image-tag-push:
-    needs: check
     runs-on: ubuntu-latest
-    # if this is a push into one of our main branches (rather than just a pull request), we will also package
-    if: github.event_name != 'pull_request'
 
     steps:
       - uses: actions/checkout@v2
@@ -104,23 +60,23 @@ jobs:
       - name: Debug VERSION
         run: |
           echo ${{ env.VERSION }}
-
-      - name: Commit orb-ui-live on orb-live repo production
-        run: |
-          git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
-          git config --global user.name "${{secrets.GH_ORB_USER}}"
-          git config --global credential.helper cache
-          git clone -b main https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live.git
-          cd orb-live
-          rm -rf ui
-          git add .
-          git commit -m "[NS1 Orb Bot] clean ui folder"
-          cp -rf ../ui .
-          cp -rf ../VERSION .
-          echo "${{ steps.commit_hash.outputs.sha_short }}" > COMMIT_HASH
-          git add .
-          git commit -m "[NS1 Orb Bot] Update Orb Live UI for production"
-          git push origin main
+#
+#      - name: Commit orb-ui-live on orb-live repo staging
+#        run: |
+#          git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
+#          git config --global user.name "${{secrets.GH_ORB_USER}}"
+#          git config --global credential.helper cache
+#          git clone -b main https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live.git
+#          cd orb-live
+#          rm -rf ui
+#          git add .
+#          git commit -m "[NS1 Orb Bot] clean ui folder"
+#          cp -rf ../ui .
+#          cp -rf ../VERSION .
+#          echo "${{ steps.commit_hash.outputs.sha_short }}" > COMMIT_HASH
+#          git add .
+#          git commit -m "[NS1 Orb Bot] Update Orb Live UI for staging"
+#          git push origin main
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -176,7 +132,6 @@ jobs:
           docker tag $(UI_IMG_ID) ns1labs/orb-ui:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
           docker push -a ns1labs/orb-ui
 
-
       - name: Commit image tag on orb-live-manifest environment stg
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
@@ -189,5 +144,5 @@ jobs:
           sed -i -e "s/IMAGE_TAG/${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
           git add values.yaml
           git add .template/values.old
-          git commit -m "[NS1 Orb Bot] Update image tag on prod environment"
+          git commit -m "[NS1 Orb Bot] Update image tag on staging environment"
           git push origin main
