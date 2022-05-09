@@ -7,6 +7,8 @@ on:
         description: 'The docker image tag that you want to promote to staging'
         required: true
         default: 'develop'
+  pull_request:
+    branches: [ staging ]
   push:
     branches: [ staging ]
 
