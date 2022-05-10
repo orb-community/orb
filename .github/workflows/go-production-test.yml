@@ -391,7 +391,7 @@ jobs:
 #          git push origin main
 
   buildx:
-    needs: package
+    needs: publish-orb-live-prd
     runs-on: ubuntu-latest
     # if this is a push into one of our main branches (rather than just a pull request), we will also package
     if: github.event_name != 'pull_request'
