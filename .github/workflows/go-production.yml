@@ -138,7 +138,7 @@ jobs:
         run: SERVICE=sinker make test_service
 
   package-agent:
-    needs: 
+    needs:
      - prebuild
      - test-agent
     runs-on: ubuntu-latest
@@ -176,7 +176,7 @@ jobs:
         run: docker push -a ns1labs/orb-agent
 
   package-fleet:
-    needs: 
+    needs:
      - prebuild
      - test-fleet
     runs-on: ubuntu-latest
@@ -203,7 +203,7 @@ jobs:
         run: docker push -a ns1labs/orb-fleet
 
   package-policies:
-    needs: 
+    needs:
      - prebuild
      - test-policies
     runs-on: ubuntu-latest
@@ -230,7 +230,7 @@ jobs:
         run: docker push -a ns1labs/orb-policies
 
   package-sinker:
-    needs: 
+    needs:
      - prebuild
      - test-sinker
     runs-on: ubuntu-latest
@@ -257,7 +257,7 @@ jobs:
         run: docker push -a ns1labs/orb-sinker
 
   package-sinks:
-    needs: 
+    needs:
      - prebuild
      - test-sinks
     runs-on: ubuntu-latest
