@@ -273,20 +273,60 @@ func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 
 }
 
-func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
+func contains(s []groupRemovedPolicy, e string) bool {
+	for _, a := range s {
+		if a.PolicyID == e {
+			return true
+		}
+	}
+	return false
+}
 
+func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
 	groupIDs := make([]string, 1)
 	groupIDs[0] = ag.ID
-	groupPolicies, err := svc.policyClient.RetrievePoliciesByGroups(context.Background(), &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: ag.MFOwnerID})
+	groupRemovedPolicies, err := svc.policyClient.RetrievePoliciesByGroups(context.Background(), &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: ag.MFOwnerID})
+	if err != nil {
+		return err
+	}
+	policies := make([]groupRemovedPolicy, len(groupRemovedPolicies.Policies))
+	for i, p := range groupRemovedPolicies.Policies {
+		policies[i].PolicyID = p.Id
+		policies[i].PolicyName = p.Name
+		policies[i].Backend = p.Backend
+	}
+
+	agentsAffected, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ag.MFOwnerID, ag.ID, false)
 	if err != nil {
 		return err
 	}
 
-	policies := make([]groupRemovedPolicy, len(groupPolicies.Policies))
-	for i, p := range groupPolicies.Policies {
-		policies[i].PolicyID = p.Id
-		policies[i].PolicyName = p.Name
-		policies[i].Backend = p.Backend
+	var removePolicy bool
+	for _, agent := range agentsAffected {
+		groups, err := svc.agentGroupRepo.RetrieveMatchingGroups(context.Background(), ag.MFOwnerID, agent.MFThingID)
+		if err != nil {
+			return err
+		}
+
+		groupIDs := make([]string, len(groups.Groups))
+		for i, group := range groups.Groups {
+			groupIDs[i] = group.GroupID
+		}
+		groupPolicies, err := svc.policyClient.RetrievePoliciesByGroups(context.Background(), &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: ag.MFOwnerID})
+		if err != nil {
+			return err
+		}
+
+		for _, pol := range groupPolicies.Policies {
+			if !contains(policies, pol.Id) {
+				removePolicy = true
+			}
+		}
+
+	}
+
+	if !removePolicy {
+		policies = make([]groupRemovedPolicy, 0)
 	}
 
 	payload := GroupRemovedRPCPayload{
