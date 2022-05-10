@@ -40,7 +40,7 @@ define run_test
 endef
 
 define make_docker
-	$(shell if [ -z "$(SERVICE)" ]; then $(eval SERVICE=$(subst docker_,,$(1))); fi )
+	$(shell [ -z "$(SERVICE)" ] && SERVICE=$(subst docker_,,$(1)))
 	docker build \
 		--no-cache \
 		--build-arg SVC=$(SERVICE) \
