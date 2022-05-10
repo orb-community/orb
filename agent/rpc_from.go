@@ -128,6 +128,25 @@ func (a *orbAgent) handleAgentStop(payload fleet.AgentStopRPCPayload) {
 
 func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 	a.unsubscribeGroupChannel(rpc.ChannelID)
+	delete(a.groupsInfos, rpc.AgentGroupID)
+
+	for _, policy := range rpc.Policies {
+		//err := a.policyManager.RemovePolicy(policy.PolicyID, policy.PolicyName, policy.Backend)
+		//if err != nil {
+		//	return
+		//}
+		p, err := a.policyManager.GetRepo().Get(policy.PolicyID)
+		if err != nil {
+			a.logger.Warn("failed to retrieve policy", zap.String("policy_id", p.ID), zap.Error(err))
+			continue
+		}
+		err = a.policyManager.RemovePolicy(p.ID, p.Name, p.Backend)
+		if err != nil {
+			a.logger.Warn("failed to remove a policy, ignoring", zap.String("policy_id", p.ID), zap.String("policy_name", p.Name), zap.Error(err))
+			continue
+		}
+		a.logger.Debug("DELETED FROM REPO")
+	}
 }
 
 func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {

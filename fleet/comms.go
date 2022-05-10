@@ -275,9 +275,24 @@ func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 
 func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
 
+	groupIDs := make([]string, 1)
+	groupIDs[0] = ag.ID
+	groupPolicies, err := svc.policyClient.RetrievePoliciesByGroups(context.Background(), &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: ag.MFOwnerID})
+	if err != nil {
+		return err
+	}
+
+	policies := make([]groupRemovedPolicy, len(groupPolicies.Policies))
+	for i, p := range groupPolicies.Policies {
+		policies[i].PolicyID = p.Id
+		policies[i].PolicyName = p.Name
+		policies[i].Backend = p.Backend
+	}
+
 	payload := GroupRemovedRPCPayload{
 		AgentGroupID: ag.ID,
 		ChannelID:    ag.MFChannelID,
+		Policies:     policies,
 	}
 
 	data := RPC{
