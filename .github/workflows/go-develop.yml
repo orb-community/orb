@@ -1,4 +1,4 @@
-name: Go
+name: Check PR and Update Develop
 
 on:
   workflow_dispatch:
