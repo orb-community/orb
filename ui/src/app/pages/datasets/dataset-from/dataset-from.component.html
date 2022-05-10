@@ -1,102 +1,157 @@
-<nb-card class="nb-card-medium" size="large">
-    <nb-card-header>
-        Dataset Details
-        <button (click)="onClose()"
-                class="orb-close-dialog"
-                ghost="true"
-                nbButton
-                size="small">
-            <span class="nb-close"></span>
-        </button>
-    </nb-card-header>
-    <nb-card-body>
-        <form [formGroup]="form">
-<!--      GROUP-->
-            <nb-form-field [hidden]="!!group">
-                <div>
-                    <label class="font-weight-bold">Agent Group</label>
-                    <span class="required">*</span>
-                </div>
-                <nb-select [(selected)]="selectedGroup"
-                           [disabled]="isEdit || !!group"
-                           appearance="filled"
-                           autofocus
-                           data-orb-qa-id="agent_group_id"
-                           formControlName="agent_group_id"
-                           fullWidth="true"
-                           placeholder="Agent Group Name"
-                           size="medium"
-                >
-                    <nb-option *ngFor="let agentGroup of availableAgentGroups"
-                               [attr.data-orb-qa-id]="'available_agent_group: '+agentGroup.id" [id]="agentGroup.id"
-                               [value]="agentGroup.id">{{ agentGroup.name }}</nb-option>
-                </nb-select>
-                <br>
-            </nb-form-field>
-<!--      POLICY-->
-            <nb-form-field [hidden]="policy">
-                <div>
-                    <label class="font-weight-bold">Collection Policy</label>
-                    <span class="required">*</span>
-                </div>
-                <nb-select [(selected)]="selectedPolicy"
-                           [disabled]="isEdit || !!policy"
-                           appearance="filled"
-                           autofocus
-                           data-orb-qa-id="agent_policy_id"
-                           formControlName="agent_policy_id"
-                           fullWidth="true"
-                           placeholder="Policy"
-                           size="medium"
-                >
-                    <nb-option *ngFor="let agentPolicy of availableAgentPolicies"
-                               [attr.data-orb-qa-id]="'available_agent_policy: '+agentPolicy.id" [id]="agentPolicy.id"
-                               [value]="agentPolicy.id">{{ agentPolicy.name }}</nb-option>
-                </nb-select>
-                <br>
-            </nb-form-field>
-<!--      SINK-->
-            <div>
-                <label class="font-weight-bold">Sinks</label>
-                <span class="required">*</span>
+<nb-card
+  class="nb-card-medium"
+  size="large">
+  <nb-card-header>
+    Dataset Details
+    <button
+      (click)="onClose()"
+      class="orb-close-dialog"
+      ghost="true"
+      nbButton
+      size="small">
+      <span class="nb-close"></span>
+    </button>
+  </nb-card-header>
+  <nb-card-body>
+    <form [formGroup]="form">
+      <!--      GROUP-->
+      <div [hidden]="!!group || isEdit">
+        <nb-form-field>
+          <div>
+            <label class="font-weight-bold">Agent Group</label>
+            <span class="required">*</span>
+          </div>
+          <nb-select
+            [(selected)]="selectedGroup"
+            appearance="filled"
+            autofocus
+            data-orb-qa-id="agent_group_id"
+            formControlName="agent_group_id"
+            fullWidth="true"
+            placeholder="Agent Group Name"
+            size="medium"
+          >
+            <nb-option
+              *ngFor="let agentGroup of availableAgentGroups"
+              [attr.data-orb-qa-id]="'available_agent_group: '+agentGroup.id"
+              [id]="agentGroup.id"
+              [value]="agentGroup.id">{{ agentGroup.name }}</nb-option>
+          </nb-select>
+          <div
+            *ngIf="form.controls?.agent_group_id.invalid
+          && (form.controls?.agent_group_id.dirty)"
+            class="required">
+            <div *ngIf="form.controls?.agent_group_id.errors?.required">
+              You must select an Agent Group.
             </div>
-            <ngx-sink-display [(sinks)]="selectedSinks"></ngx-sink-display>
-            <ngx-sink-control [(selectedSinks)]="selectedSinks" [sinksList]="availableSinks"></ngx-sink-control>
-            <br>
-<!--      NAME-->
-            <br>
-            <nb-form-field>
-                <div>
-                    <label class="font-weight-bold">Dataset Name</label>
-                    <span class="required">*</span>
-                </div>
-                <input autofocus
-                       data-orb-qa-id="name"
-                       fieldSize="medium"
-                       formControlName="name"
-                       fullWidth="true"
-                       nbInput/>
-            </nb-form-field>
-        </form>
-    </nb-card-body>
-    <nb-card-footer>
-        <button nbButton
-                status="primary"
-                class="dataset-save-button"
-                shape="round"
-                (click)="onFormSubmit()">Save</button>
-        <button nbButton
-                status="primary"
-                ghost
-                shape="round"
-                type="button"
-                (click)="onClose()">Cancel</button>
-        <button *ngIf="isEdit"
-                nbButton
-                class="dataset-delete-button"
-                ghost
-                shape="round"
-                type="button"
-                (click)="onDelete()"><span>Delete Dataset</span></button>
-    </nb-card-footer>
+          </div>
+        </nb-form-field>
+        <br>
+      </div>
+      <!--      POLICY-->
+      <div [hidden]="!!policy || isEdit">
+        <nb-form-field>
+          <div>
+            <label class="font-weight-bold">Collection Policy</label>
+            <span class="required">*</span>
+          </div>
+          <nb-select
+            [(selected)]="selectedPolicy"
+            appearance="filled"
+            autofocus
+            data-orb-qa-id="agent_policy_id"
+            formControlName="agent_policy_id"
+            fullWidth="true"
+            placeholder="Policy"
+            size="medium"
+          >
+            <nb-option
+              *ngFor="let agentPolicy of availableAgentPolicies"
+              [attr.data-orb-qa-id]="'available_agent_policy: '+agentPolicy.id"
+              [id]="agentPolicy.id"
+              [value]="agentPolicy.id">{{ agentPolicy.name }}</nb-option>
+          </nb-select>
+          <div
+            *ngIf="form.controls?.agent_policy_id.invalid
+          && (form.controls?.agent_policy_id.dirty || form.controls?.agent_policy_id.touched)"
+            class="required">
+            <div *ngIf="form.controls?.agent_policy_id.errors?.required">
+              You must select a Collection Policy.
+            </div>
+          </div>
+        </nb-form-field>
+        <br>
+      </div>
+      <!--      SINK-->
+
+      <div>
+        <label class="font-weight-bold">Sinks</label>
+        <span class="required">*</span>
+      </div>
+      <div>
+        <ngx-sink-display [(selectedSinks)]="selectedSinks"></ngx-sink-display>
+        <ngx-sink-control
+          [(selectedSinks)]="selectedSinks"
+          [sinksList]="unselectedSinks"></ngx-sink-control>
+        <div
+          *ngIf="sinkIDs.length === 0
+          && (form.controls?.sink_ids.dirty)"
+          class="required">
+          At least one Sink is required.
+        </div>
+      </div>
+      <!--      NAME-->
+      <nb-form-field>
+        <br>
+        <div>
+          <label class="font-weight-bold">Dataset Name</label>
+          <span class="required">*</span>
+        </div>
+        <input
+          autofocus
+          data-orb-qa-id="name"
+          fieldSize="medium"
+          formControlName="name"
+          fullWidth="true"
+          nbInput/>
+      </nb-form-field>
+      <div
+        *ngIf="form.controls?.name.invalid
+          && (form.controls?.name.dirty)"
+        class="required">
+        <div *ngIf="form.controls?.name.errors?.required">
+          Name is required.
+        </div>
+        <div *ngIf="form.controls?.name.errors?.pattern">
+          Name does not match the pattern.
+        </div>
+      </div>
+    </form>
+  </nb-card-body>
+  <nb-card-footer>
+    <button
+      (click)="onFormSubmit()"
+      [disabled]="form.invalid || sinkIDs.length === 0"
+      class="dataset-save-button"
+      nbButton
+      shape="round"
+      status="primary">Save
+    </button>
+    <button
+      (click)="onClose()"
+      ghost
+      nbButton
+      shape="round"
+      status="primary"
+      type="button">Cancel
+    </button>
+    <button
+      (click)="onDelete()"
+      *ngIf="isEdit"
+      class="dataset-delete-button"
+      ghost
+      nbButton
+      shape="round"
+      type="button"><span>Delete Dataset</span></button>
+  </nb-card-footer>
 </nb-card>

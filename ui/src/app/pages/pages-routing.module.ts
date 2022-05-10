@@ -44,7 +44,7 @@ const children = [
   },
   {
     path: 'fleet',
-    data: {breadcrumb: 'Fleet Management'},
+    data: {breadcrumb: {'skip': true}},
     children: [
       {
         path: 'agents',
@@ -120,7 +120,7 @@ const children = [
   },
   {
     path: 'datasets',
-    data: {breadcrumb: 'Datasets Explorer'},
+    data: {breadcrumb: {'skip': true}},
     children: [
       {
         path: 'list',

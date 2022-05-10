@@ -776,7 +776,7 @@ components:
           type: string
           description: A unique name label
           example: my-dataset
-        sink_id:
+        sink_ids:
           type: array
           items:
             type: string
@@ -790,7 +790,7 @@ components:
         - name
         - agent_group_id
         - agent_policy_id
-        - sink_id
+        - sink_ids
       properties:
         name:
           type: string
@@ -804,7 +804,7 @@ components:
           type: string
           format: uuid
           description: A unique identifier of an agent_policy
-        sink_id:
+        sink_ids:
           type: array
           items:
             type: string
@@ -853,7 +853,7 @@ components:
           type: string
           format: uuid
           description: Unique identifier (UUID) of an agent_policy
-        sink_id:
+        sink_ids:
           type: array
           items:
             type: string

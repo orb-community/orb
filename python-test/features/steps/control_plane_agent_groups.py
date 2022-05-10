@@ -1,3 +1,4 @@
+import re
 from test_config import TestConfig
 from local_agent import get_orb_agent_logs
 from users import get_auth_token
@@ -73,11 +74,11 @@ def create_new_agent_group_with_defined_description(context, orb_tags, descripti
 @step("an Agent Group is created with same tag as the agent and {description} description")
 def create_agent_group_with_defined_description_and_matching_agent(context, description):
     if description == "without":
-        create_agent_group_matching_agent(context, group_description=None)
+        create_agent_group_matching_agent(context, "all", group_description=None)
     else:
         description = description.replace('"', '')
         description = description.replace(' as', '')
-        create_agent_group_matching_agent(context, group_description=description)
+        create_agent_group_matching_agent(context, "all", group_description=description)
 
 
 @step("the {edited_parameters} of Agent Group is edited using: {parameters_values}")
@@ -106,9 +107,15 @@ def edit_multiple_groups_parameters(context, edited_parameters, parameters_value
                 "All parameter must have referenced value")
 
     if "tags" in editing_param_dict.keys() and editing_param_dict["tags"] is not None:
-        editing_param_dict["tags"] = create_tags_set(editing_param_dict["tags"])
+        if re.match(r"matching (\d+|all|the) agent*", editing_param_dict["tags"]):
+            #todo improve logic for multiple agents
+            editing_param_dict["tags"] = context.agent["orb_tags"]
+            if context.agent["agent_tags"] is not None:
+                editing_param_dict["tags"].update(context.agent["agent_tags"])
+        else:
+            editing_param_dict["tags"] = create_tags_set(editing_param_dict["tags"])
     if "name" in editing_param_dict.keys() and editing_param_dict["name"] is not None:
-        editing_param_dict["name"] = agent_group_name_prefix + editing_param_dict["name"]
+        editing_param_dict["name"] = f"{agent_group_name_prefix}{editing_param_dict['name']}_{random_string(5)}"
 
     for parameter, value in editing_param_dict.items():
         group_data[parameter] = value
@@ -141,6 +148,7 @@ def matching_agent(context, amount_agent_matching):
 @step("the group to which the agent is linked is removed")
 def remove_group(context):
     delete_agent_group(context.token, context.agent_group_data['id'])
+    context.agent_groups.pop(context.agent_group_data['id'])
 
 
 @then('cleanup agent group')
@@ -334,3 +342,29 @@ def return_matching_groups(token, existing_agent_groups, agent_json):
             groups_matching.append(existing_agent_groups[group])
             groups_matching_id.append(group)
     return groups_matching, groups_matching_id
+
+
+def tags_to_match_k_groups(token, k, all_existing_groups):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) k: amount of groups that the agent must match
+    :param (dict) all_existing_groups: full data of all existing groups
+    :return: (dict) with all tags that must be on the agent
+    """
+    if k.isdigit() is False:
+        assert_that(k, any_of(equal_to("all"), equal_to("last"), equal_to("first")),
+                    "Unexpected amount of groups to match.")
+    if k == "last":
+        id_of_groups_to_match = [list(all_existing_groups.keys())[-1]]
+    elif k == "first":
+        id_of_groups_to_match = [list(all_existing_groups.keys())[0]]
+    else:
+        if k == "all":
+            k = len(list(all_existing_groups.keys()))
+        id_of_groups_to_match = sample(list(all_existing_groups.keys()), int(k))
+    all_used_tags = dict()
+    for agent_group_id in id_of_groups_to_match:
+        group_data = get_agent_group(token, agent_group_id)
+        all_used_tags.update(group_data["tags"])
+    return all_used_tags

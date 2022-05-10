@@ -28,10 +28,6 @@ export const MENU: NbMenuItem[] = [
     icon: 'cloud-upload-outline',
     link: 'sinks',
   },
-  {
-    title: 'Settings',
-    icon: 'settings-2-outline',
-  },
 ];
 
 const DEV_ITEMS: NbMenuItem[] = [

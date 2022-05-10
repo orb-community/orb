@@ -36,10 +36,16 @@
     <ngx-policy-details
       [(editMode)]="editMode.details"
       [policy]="policy"></ngx-policy-details>
-    <ngx-policy-groups [policy]="policy"></ngx-policy-groups>
+    <ngx-policy-groups
+      (refreshPolicy)="retrievePolicy()"
+      [policy]="policy"></ngx-policy-groups>
   </div>
   <div class="card-col col-8">
-    <ngx-policy-interface [policy]="policy"></ngx-policy-interface>
-    <ngx-policy-datasets [policy]="policy"></ngx-policy-datasets>
+    <ngx-policy-interface
+      [(editMode)]="editMode.interface"
+      [policy]="policy"></ngx-policy-interface>
+    <ngx-policy-datasets
+      (refreshPolicy)="retrievePolicy()"
+      [policy]="policy"></ngx-policy-datasets>
   </div>
 </div>

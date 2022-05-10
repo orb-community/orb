@@ -99,7 +99,7 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
         this.isLoading = false;
       })
       .then(() => this.updateMatches())
-      .catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
+      .catch(reason => console.warn(`Couldn't retrieve data. Reason: ${reason}`));
   }
 
   ngOnChanges() {
@@ -125,30 +125,27 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
         resizeable: false,
         canAutoResize: true,
         flexGrow: 1,
-        minWidth: 150,
-        width: 175,
+        minWidth: 170,
       },
       {
         prop: 'orb_tags',
         name: 'Tags',
         resizeable: false,
-        minWidth: 250,
-        width: 350,
+        minWidth: 325,
         canAutoResize: true,
-        flexGrow: 10,
+        flexGrow: 9,
         cellTemplate: this.agentTagsTemplateCell,
         comparator: (a, b) => Object.entries(a)
-          .map(([key, value]) => `${ key }:${ value }`)
+          .map(([key, value]) => `${key}:${value}`)
           .join(',')
           .localeCompare(Object.entries(b)
-            .map(([key, value]) => `${ key }:${ value }`)
+            .map(([key, value]) => `${key}:${value}`)
             .join(',')),
       },
       {
         prop: 'state',
         name: 'Status',
-        minWidth: 100,
-        width: 100,
+        minWidth: 90,
         canAutoResize: true,
         flexGrow: 1,
         cellTemplate: this.agentStateTemplateRef,
@@ -157,8 +154,7 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
         name: 'Last Activity',
         prop: 'ts_last_hb',
         cellTemplate: this.agentLastHBTemplateRef,
-        minWidth: 130,
-        width: 140,
+        minWidth: 160,
         resizeable: false,
         canAutoResize: true,
         sortable: false,
@@ -228,7 +224,7 @@ export class AgentGroupAddComponent implements OnInit, OnChanges, AfterViewInit 
       this.matchingAgents = matches;
       this.cdr.markForCheck();
 
-    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
+    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${reason}`));
   }
 
   toggleExpandMatches() {

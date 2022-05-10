@@ -75,6 +75,7 @@ export class AgentGroupsService {
   }
 
   getAllAgentGroups() {
+    this.clean();
     const pageInfo = AgentGroupsService.getDefaultPagination();
 
     return this.getAgentGroups(pageInfo)
