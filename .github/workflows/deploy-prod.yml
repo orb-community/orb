@@ -1,10 +1,12 @@
 name: Deploy Production
 
 on:
-  pull_request:
-    branches: [ production2 ]
-  push:
-    branches: [ production2 ]
+  workflow_dispatch:
+    inputs:
+      develop_image_id:
+        description: 'The docker image tag that you want to promote to staging'
+        required: true
+        default: 'develop'
 
 jobs:
   check:
