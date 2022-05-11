@@ -684,7 +684,6 @@ Scenario: Remotely restart agents without policies applied
 
 
 @smoke
-@dev
 Scenario: Create duplicated policy
     Given the Orb user has a registered account
     And the Orb user logs in
