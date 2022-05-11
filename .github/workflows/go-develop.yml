@@ -330,6 +330,7 @@ jobs:
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
 
       - name: Build orb-ui
+        if: ${{ needs.prebuild.outputs.ui == 'true' }}
         env:
           IMAGE_NAME: ns1labs/orb-ui
         run: |
