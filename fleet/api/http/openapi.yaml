@@ -62,7 +62,7 @@ paths:
       tags:
         - agent_groups
       responses:
-        '201':
+        '200':
           $ref: "#/components/responses/AgentGroupObjRes"
         '400':
           description: Failed due to malformed JSON.
@@ -79,7 +79,7 @@ paths:
         required: true
         $ref: "#/components/requestBodies/AgentGroupUpdateReq"
       responses:
-        '201':
+        '200':
           $ref: "#/components/responses/AgentGroupObjRes"
         '400':
           description: Failed due to malformed JSON.
@@ -184,7 +184,7 @@ paths:
       tags:
         - agents
       responses:
-        '201':
+        '200':
           $ref: "#/components/responses/AgentObjRes"
         '400':
           description: Failed due to malformed JSON.
@@ -203,7 +203,7 @@ paths:
         required: true
         $ref: "#/components/requestBodies/AgentUpdateReq"
       responses:
-        '201':
+        '200':
           $ref: "#/components/responses/AgentObjRes"
         '400':
           description: Failed due to malformed JSON.
@@ -239,7 +239,7 @@ paths:
       tags:
         - agents
       responses:
-        '201':
+        '200':
           $ref: "#/components/responses/AgentMatchingGroupsObjRes"
         '400':
           description: Failed due to malformed JSON.
