@@ -1298,6 +1298,89 @@ func TestListDataset(t *testing.T) {
 	}
 }
 
+func TestDuplicatePolicy(t *testing.T) {
+	cli := newClientServer(t)
+	defer cli.server.Close()
+
+	policyYaml := createPolicy(t, &cli, "policyYaml")
+	policyJson := createPolicy(t, &cli, "policyJson")
+
+	specifiedName := duplicatePolicyReq{
+		Name: "policyDuplicated",
+	}
+	specifiedNameJson, _ := json.Marshal(specifiedName)
+
+	specifiedNameY := duplicatePolicyReq{
+		Name: "policyDuplicated2",
+	}
+	specifiedNameYJson, _ := json.Marshal(specifiedNameY)
+
+	noSpecifiedName := duplicatePolicyReq{
+		Name: "",
+	}
+	noSpecifiedNameJson, _ := json.Marshal(noSpecifiedName)
+
+	cases := map[string]struct {
+		req    string
+		id     string
+		auth   string
+		status int
+	}{
+		"duplicate a existing yaml policy with specified name": {
+			req:    string(specifiedNameYJson),
+			id:     policyYaml.ID,
+			auth:   token,
+			status: http.StatusCreated,
+		},
+		"duplicate a existing json policy with specified name": {
+			req:    string(specifiedNameJson),
+			id:     policyJson.ID,
+			auth:   token,
+			status: http.StatusCreated,
+		},
+		"duplicate a existing yaml policy with an invalid token": {
+			id:     policyYaml.ID,
+			req:    string(specifiedNameJson),
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+		},
+		"duplicate a existing json policy with empty ID": {
+			req:    string(specifiedNameJson),
+			id:     "",
+			auth:   token,
+			status: http.StatusBadRequest,
+		},
+		"duplicate a existing yaml policy with no specified name": {
+			req:    string(noSpecifiedNameJson),
+			id:     policyYaml.ID,
+			auth:   token,
+			status: http.StatusCreated,
+		},
+		"duplicate a existing json policy with no specified name": {
+			req:    string(noSpecifiedNameJson),
+			id:     policyJson.ID,
+			auth:   token,
+			status: http.StatusCreated,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/policies/agent/%s/duplicate", cli.server.URL, tc.id),
+				contentType: contentType,
+				token:       tc.auth,
+				body:        strings.NewReader(tc.req),
+			}
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
@@ -1396,4 +1479,10 @@ type datasetPageRes struct {
 	Offset   uint64       `json:"offset"`
 	Limit    uint64       `json:"limit"`
 	Datasets []datasetRes `json:"datasets"`
+}
+
+type duplicatePolicyReq struct {
+	id    string
+	token string
+	Name  string `json:"name,omitempty"`
 }
