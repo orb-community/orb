@@ -301,28 +301,33 @@ func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
 		return err
 	}
 
-	var removePolicy bool
+	var removePolicy = true
 	for _, agent := range agentsAffected {
 		groups, err := svc.agentGroupRepo.RetrieveMatchingGroups(context.Background(), ag.MFOwnerID, agent.MFThingID)
 		if err != nil {
 			return err
 		}
 
-		groupIDs := make([]string, len(groups.Groups))
-		for i, group := range groups.Groups {
-			groupIDs[i] = group.GroupID
-		}
-		groupPolicies, err := svc.policyClient.RetrievePoliciesByGroups(context.Background(), &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: ag.MFOwnerID})
-		if err != nil {
-			return err
-		}
-
-		for _, pol := range groupPolicies.Policies {
-			if !contains(policies, pol.Id) {
-				removePolicy = true
+		var getPolicies bool
+		groupIDs := make([]string, 0)
+		for _, group := range groups.Groups {
+			if group.GroupID != ag.ID {
+				groupIDs = append(groupIDs, group.GroupID)
+				getPolicies = true
 			}
 		}
 
+		if getPolicies {
+			groupPolicies, err := svc.policyClient.RetrievePoliciesByGroups(context.Background(), &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: ag.MFOwnerID})
+			if err != nil {
+				return err
+			}
+			for _, pol := range groupPolicies.Policies {
+				if contains(policies, pol.Id) {
+					removePolicy = false
+				}
+			}
+		}
 	}
 
 	if !removePolicy {

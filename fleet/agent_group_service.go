@@ -235,21 +235,9 @@ func (svc fleetService) RemoveAgentGroup(ctx context.Context, token, groupId str
 		svc.logger.Error("removing agents from group channel", zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
 	}
 
-	agentsAffected, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ownerID, groupId, false)
-	if err != nil {
-		return err
-	}
-
 	err = svc.agentGroupRepository.Delete(ctx, groupId, ownerID)
 	if err != nil {
 		return err
-	}
-
-	for _, agent := range agentsAffected {
-		err := svc.agentComms.NotifyAgentAllDatasets(agent)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil

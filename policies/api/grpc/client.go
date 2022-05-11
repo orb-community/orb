@@ -156,9 +156,9 @@ func decodeDatasetResponse(_ context.Context, grpcRes interface{}) (interface{},
 
 func decodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*pb.PolicyInDSListRes)
-	policies := make([]PolicyInDSRes, len(res.Policies))
+	policies := make([]policyInDSRes, len(res.Policies))
 	for i, p := range res.Policies {
-		policies[i] = PolicyInDSRes{id: p.GetId(), name: p.GetName(), data: p.GetData(), version: p.GetVersion(), backend: p.GetBackend(), datasetID: p.GetDatasetId()}
+		policies[i] = policyInDSRes{id: p.GetId(), name: p.GetName(), data: p.GetData(), version: p.GetVersion(), backend: p.GetBackend(), datasetID: p.GetDatasetId()}
 	}
 	return policyInDSListRes{policies: policies}, nil
 }
