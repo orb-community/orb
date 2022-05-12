@@ -114,6 +114,9 @@ type Service interface {
 
 	// DeleteAgentGroupFromAllDatasets removes an agent group from a dataset
 	DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, token string) error
+
+	// DuplicatePolicy duplicates existing agent Policy
+	DuplicatePolicy(ctx context.Context, token string, policyID string, name string) (Policy, error)
 }
 
 type Repository interface {

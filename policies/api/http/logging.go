@@ -298,6 +298,20 @@ func (l loggingMiddleware) DeleteAgentGroupFromAllDatasets(ctx context.Context, 
 	return l.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
 }
 
+func (l loggingMiddleware) DuplicatePolicy(ctx context.Context, token string, policyID string, name string) (_ policies.Policy, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: duplicate_policy",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: duplicate_policy",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.DuplicatePolicy(ctx, token, policyID, name)
+}
+
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {
 	return &loggingMiddleware{logger, svc}
 }

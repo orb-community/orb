@@ -138,7 +138,7 @@ jobs:
         run: SERVICE=sinker make test_service
 
   package-agent:
-    needs: 
+    needs:
      - prebuild
      - test-agent
     runs-on: ubuntu-latest
@@ -157,11 +157,9 @@ jobs:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
-            make agent
-            make agent_debug
+            make agent_debug_production
           else
-            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
-            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug_production
           fi
 
       - name: Login to Docker Hub
