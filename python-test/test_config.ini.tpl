@@ -11,5 +11,5 @@ remote_prometheus_endpoint= <base URL to send Prometheus metrics to Grafana Clou
 # agent_docker_image=ns1labs/orb-agent
 # agent_docker_tag=latest
 # orb_agent_interface=mock
-# ignore_ssl_and_certificate_errors=False
+# ignore_ssl_and_certificate_errors=True
 # is_credentials_registered=False
