@@ -105,31 +105,31 @@ jobs:
           docker push -a ns1labs/orb-agent
 
           docker pull ns1labs/orb-fleet:${{ github.event.inputs.develop_image_id }}
-          eval FLEET_IMG_ID=$(docker images ns1labs/orb-fleet:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")
+          echo "FLEET_IMG_ID=$(docker images ns1labs/orb-fleet:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
           docker tag $(FLEET_IMG_ID) ns1labs/orb-fleet:${{ env.VERSION }}
           docker tag $(FLEET_IMG_ID) ns1labs/orb-fleet:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
           docker push -a ns1labs/orb-fleet
 
           docker pull ns1labs/orb-policies:${{ github.event.inputs.develop_image_id }}
-          eval POLICIES_IMG_ID=$(docker images ns1labs/orb-policies:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")
+          echo "POLICIES_IMG_ID=$(docker images ns1labs/orb-policies:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
           docker tag $(POLICIES_IMG_ID) ns1labs/orb-policies:${{ env.VERSION }}
           docker tag $(POLICIES_IMG_ID) ns1labs/orb-policies:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
           docker push -a ns1labs/orb-policies
 
           docker pull ns1labs/orb-sinks:${{ github.event.inputs.develop_image_id }}
-          eval SINKS_IMG_ID=$(docker images ns1labs/orb-sinks:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")
+          echo "SINKS_IMG_ID=$(docker images ns1labs/orb-sinks:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
           docker tag $(SINKS_IMG_ID) ns1labs/orb-sinks:${{ env.VERSION }}
           docker tag $(SINKS_IMG_ID) ns1labs/orb-sinks:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
           docker push -a ns1labs/orb-sinks
 
           docker pull ns1labs/orb-sinker:${{ github.event.inputs.develop_image_id }}
-          eval SINKER_IMG_ID=$(docker images ns1labs/orb-sinker:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")
+          echo "SINKER_IMG_ID=$(docker images ns1labs/orb-sinker:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
           docker tag $(SINKER_IMG_ID) ns1labs/orb-sinker:${{ env.VERSION }}
           docker tag $(SINKER_IMG_ID) ns1labs/orb-sinker:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
           docker push -a ns1labs/orb-sinker
 
           docker pull ns1labs/orb-ui:${{ github.event.inputs.develop_image_id }}
-          eval UI_IMG_ID=$(docker images ns1labs/orb-ui:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")
+          echo "UI_IMG_ID=$(docker images ns1labs/orb-ui:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
           docker tag $(UI_IMG_ID) ns1labs/orb-ui:${{ env.VERSION }}
           docker tag $(UI_IMG_ID) ns1labs/orb-ui:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
           docker push -a ns1labs/orb-ui
