@@ -35,6 +35,8 @@ visor:
       input_type: dnstap
     default_sflow:
       input_type: flow
+      config:
+        flow_type: sflow
     default_netflow:
       input_type: flow
       config:
