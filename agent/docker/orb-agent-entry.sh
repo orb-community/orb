@@ -31,6 +31,14 @@ version: "1.0"
 
 visor:
   taps:
+    default_dnstap:
+      input_type: dnstap
+    default_sflow:
+      input_type: flow
+    default_netflow:
+      input_type: flow
+      config:
+        flow_type: netflow
     default_pcap:
       input_type: pcap
       config:
