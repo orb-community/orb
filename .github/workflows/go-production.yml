@@ -1,4 +1,4 @@
-name: Go
+name: Build and Deploy to Production
 
 on:
   workflow_dispatch:
@@ -343,6 +343,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           docker push -a ns1labs/orb-ui
+
   publish-orb-live-prd:
     needs:
       - prebuild
