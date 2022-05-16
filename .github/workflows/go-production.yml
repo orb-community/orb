@@ -7,9 +7,9 @@ on:
         description: 'pktvisor agent docker tag to package'
         required: true
   pull_request:
-    branches: [ production, multi-arch-images ]
+    branches: [ production ]
   push:
-    branches: [ production, multi-arch-images ]
+    branches: [ production ]
 
 jobs:
   prebuild:
