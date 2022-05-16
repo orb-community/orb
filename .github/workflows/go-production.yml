@@ -39,6 +39,7 @@ jobs:
               - 'cmd/sinker/**'
             ui: 
               - 'ui/**'
+
       - name: Set branch name
         shell: bash
         run: |
@@ -59,6 +60,7 @@ jobs:
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
   test-agent:
     runs-on: ubuntu-latest
     needs: prebuild
@@ -88,6 +90,7 @@ jobs:
           if [ "${{ needs.prebuild.outputs.orb }}" == "true" ]; then
             SERVICE=fleet make test_service
           fi
+
   test-policies:
     runs-on: ubuntu-latest
     needs: prebuild
@@ -131,6 +134,7 @@ jobs:
         run: SERVICE=sinker make test_service
 
   package-agent:
+# This is just for debug agent
     needs:
       - prebuild
       - test-agent
@@ -149,10 +153,8 @@ jobs:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
-            make agent
             make agent_debug
           else
-            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
       - name: Login to Docker Hub
@@ -299,6 +301,7 @@ jobs:
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         run: |
           docker push -a ns1labs/orb-ui-modules
+
   package-ui:
     needs:
       - prebuild

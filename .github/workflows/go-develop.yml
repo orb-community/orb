@@ -64,7 +64,6 @@ jobs:
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"  
-      
 
   test-agent:
     runs-on: ubuntu-latest
