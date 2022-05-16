@@ -131,10 +131,6 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 	delete(a.groupsInfos, rpc.AgentGroupID)
 
 	for _, policy := range rpc.Policies {
-		//err := a.policyManager.RemovePolicy(policy.PolicyID, policy.PolicyName, policy.Backend)
-		//if err != nil {
-		//	return
-		//}
 		p, err := a.policyManager.GetRepo().Get(policy.PolicyID)
 		if err != nil {
 			a.logger.Warn("failed to retrieve policy", zap.String("policy_id", p.ID), zap.Error(err))

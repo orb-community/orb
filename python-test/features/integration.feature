@@ -97,7 +97,7 @@ Scenario: Remove dataset from agent with just one dataset linked
         And the container logs that were output after removing dataset does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
 
-@smoke
+@smoke @test-dev
 Scenario: Remove dataset from agent with more than one dataset linked
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -109,7 +109,7 @@ Scenario: Remove dataset from agent with more than one dataset linked
     When a dataset linked to this agent is removed
     Then referred dataset must not be listed on the orb datasets list
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
-        And container logs should inform that removed policy was stopped and removed within 10 seconds
+        And container logs should inform that removed policy was stopped and removed within 30 seconds
         And the container logs that were output after removing dataset contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And the container logs that were output after removing dataset does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
