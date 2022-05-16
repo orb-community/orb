@@ -139,8 +139,8 @@ jobs:
 
   package-agent:
     needs: 
-     - prebuild
-     - test-agent
+      - prebuild
+      - test-agent
     runs-on: ubuntu-latest
     if: ${{ needs.prebuild.outputs.agent == 'true' }}
     steps:
