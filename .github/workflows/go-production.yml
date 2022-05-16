@@ -39,7 +39,6 @@ jobs:
               - 'cmd/sinker/**'
             ui: 
               - 'ui/**'
-
       - name: Set branch name
         shell: bash
         run: |
@@ -301,7 +300,6 @@ jobs:
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         run: |
           docker push -a ns1labs/orb-ui-modules
-
   package-ui:
     needs:
       - prebuild
