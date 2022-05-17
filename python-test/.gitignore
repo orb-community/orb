@@ -1,4 +1,5 @@
-test_config.ini
+*.ini
+!test_config.ini.tpl
 reports/
 behave_test/
 /site

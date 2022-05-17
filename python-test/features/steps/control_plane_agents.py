@@ -12,6 +12,7 @@ from agent_config_file import FleetAgent
 import yaml
 from yaml.loader import SafeLoader
 import re
+import threading
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
@@ -180,9 +181,12 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     interface = configs.get('orb_agent_interface', 'mock')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
-    context.dir_path = create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url,
+    context.dir_path, lock_thread = create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url,
                                                 base_orb_address, port, existing_agent_groups=context.agent_groups)
     context.container_id = run_agent_config_file(context.dir_path, agent_name)
+    if context.container_id not in context.containers_id.keys():
+        context.containers_id[context.container_id] = str(port)
+    lock_thread.release()
     context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=10)
     assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found")
     assert_that(context.agent, is_not(None), f"Agent {agent_name} not correctly created")
@@ -390,11 +394,11 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, base_orb_address)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)
-    port = check_port_is_available(availability[status_port])
+    port, lock_thread = check_port_is_available(availability[status_port])
     agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
     agent_config_file = yaml.dump(agent_config_file)
     cwd = os.getcwd()
     dir_path = os.path.dirname(cwd)
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file)
-    return dir_path
+    return dir_path, lock_thread

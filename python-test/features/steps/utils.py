@@ -7,6 +7,7 @@ from datetime import datetime
 import socket
 import os
 import re
+import multiprocessing
 
 tag_prefix = "test_tag_"
 
@@ -163,12 +164,15 @@ def threading_wait_until(func):
 def check_port_is_available(availability=True):
     """
 
-    :param (str) availability: Status of the port on which agent must try to run. Default: available.
+    :param (bool) availability: Status of the port on which agent must try to run. Default: available.
     :return: (int) port number
     """
+    lock_thread = multiprocessing.Lock()
+    lock_thread.acquire()
     assert_that(availability, any_of(equal_to(True), equal_to(False)), "Unexpected value for availability")
     available_port = None
-    port_options = range(10853, 10900)
+    # port_options = range(10853, 10999)
+    port_options = [10800+int(str(multiprocessing.current_process().pid)[-2:])]
     for port in port_options:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = sock.connect_ex(('127.0.0.1', port))
@@ -178,12 +182,16 @@ def check_port_is_available(availability=True):
             if availability is True:
                 continue
             else:
+                # print(f"port {available_port} and availability {availability}")
+                # print(multiprocessing.current_process().pid)
                 return available_port
         else:
             available_port = port
             break
     assert_that(available_port, is_not(equal_to(None)), "No available ports to bind")
-    return available_port
+    # print(f"port {available_port} and availability {availability}")
+    # print(multiprocessing.current_process().pid)
+    return available_port, lock_thread
 
 
 def find_files(prefix, suffix, path):
@@ -201,4 +209,3 @@ def find_files(prefix, suffix, path):
             if name.startswith(prefix) and name.endswith(suffix):
                 result.append(os.path.join(root, name))
     return result
-

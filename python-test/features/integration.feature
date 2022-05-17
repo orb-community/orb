@@ -46,6 +46,7 @@ Scenario: apply one policy using multiple datasets to the same group
 
 
 @smoke
+@MUTE
 Scenario: Remove group to which agent is linked
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -209,6 +210,7 @@ Scenario: Agent subscription to multiple groups created after provisioning agent
 
 
 @smoke
+@outro
 Scenario: Agent subscription to multiple groups created before provisioning agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -234,6 +236,7 @@ Scenario: Agent subscription to group after editing agent's tags (agent provisio
 
 
 @smoke
+@outro
 Scenario: Agent subscription to group after editing agent's tags (editing tags after agent provision)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -556,6 +559,7 @@ Scenario: remove 1 sink from a dataset with 1 sinks
 
 
 @smoke
+@MUTE
 Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and insert another sink
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -591,6 +595,7 @@ Scenario: agent with only agent tags subscription to a group with policies creat
 
 
 @smoke
+@MUTE
 Scenario: agent with only agent tags subscription to a group with policies created before provision the agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -658,7 +663,7 @@ Scenario: Remotely restart agents with policies applied
     When remotely restart the agent
     Then the container logs should contain the message "restarting all backends" within 5 seconds
         And the container logs that were output after reset the agent contain the message "removing policies" within 5 seconds
-        And the container logs that were output after reset the agent contain the message "resetting backend" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "resetting backend" within 10 seconds
         And the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 5 seconds
         And the container logs that were output after reset the agent contain the message "reapplying policies" within 5 seconds
         And the container logs that were output after reset the agent contain the message "all backends were restarted" within 5 seconds

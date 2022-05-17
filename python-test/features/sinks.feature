@@ -1,4 +1,5 @@
 @sinks
+@MUTE
 Feature: sink creation
 
   @smoke
@@ -8,4 +9,3 @@ Feature: sink creation
       And the Orb user logs in
     When a new sink is created
     Then referred sink must have new state on response within 10 seconds
-
