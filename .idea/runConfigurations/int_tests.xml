@@ -10,7 +10,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <WHAT_TO_RUN WHAT_TO_RUN="$PROJECT_DIR$/python-test/features/integration.feature" />
-    <option name="ADDITIONAL_ARGS" value="--tags=dev" />
+    <option name="ADDITIONAL_ARGS" value="" />
     <method v="2" />
   </configuration>
 </component>

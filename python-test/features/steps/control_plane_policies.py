@@ -4,10 +4,10 @@ from behave import given, then, step
 from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, threading_wait_until
 from local_agent import get_orb_agent_logs
 from test_config import TestConfig
-import time
 from datetime import datetime
 from control_plane_datasets import create_new_dataset, list_datasets
 from random import choice, choices, sample
+from deepdiff import DeepDiff
 
 policy_name_prefix = "test_policy_name_"
 orb_url = TestConfig.configs().get('orb_url')
@@ -278,6 +278,34 @@ def apply_n_policies_x_times(context, amount_of_policies, type_of_policies, amou
         check_policies(context)
         for x in range(int(amount_of_datasets)):
             create_new_dataset(context, 1, 'sink')
+
+
+@step("{amount_of_policies} duplicated policies is applied to the group")
+def duplicate_policy(context, amount_of_policies):
+
+    for i in range(int(amount_of_policies)):
+        context.policy = create_duplicated_policy(context.token, context.policy["id"], policy_name_prefix+random_string(10))
+        check_policies(context)
+        create_new_dataset(context, 1, 'sink')
+
+
+def create_duplicated_policy(token, policy_id, new_policy_name):
+
+    json_request = {"name": new_policy_name}
+    headers_request = {'Content-type': 'application/json', 'Accept': 'application/json', 'Authorization': token}
+    post_url = f"{orb_url}/api/v1/policies/agent/{policy_id}/duplicate"
+    response = requests.post(post_url, json=json_request, headers=headers_request)
+    assert_that(response.status_code, equal_to(201),
+                'Request to create duplicated policy failed with status=' + str(response.status_code))
+    compare_two_policies(token, policy_id, response.json()['id'])
+    return response.json()
+
+
+def compare_two_policies(token, id_policy_one, id_policy_two):
+    policy_one = get_policy(token, id_policy_one)
+    policy_two = get_policy(token, id_policy_two)
+    diff = DeepDiff(policy_one, policy_two, exclude_paths={"root['name']", "root['id']", "root['ts_last_modified']"})
+    assert_that(diff, equal_to({}), "Policy duplicated is not equal the one that generate it")
 
 
 def create_policy(token, json_request):
