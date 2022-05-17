@@ -127,7 +127,7 @@ func (a *orbAgent) handleAgentStop(payload fleet.AgentStopRPCPayload) {
 }
 
 func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
-	a.unsubscribeGroupChannel(rpc.ChannelID)
+	defer a.unsubscribeGroupChannel(rpc.ChannelID)
 	delete(a.groupsInfos, rpc.AgentGroupID)
 
 	for _, policy := range rpc.Policies {
