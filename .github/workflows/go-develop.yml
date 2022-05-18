@@ -64,7 +64,6 @@ jobs:
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"  
-      
 
   test-agent:
     runs-on: ubuntu-latest
@@ -140,8 +139,8 @@ jobs:
 
   package-agent:
     needs: 
-     - prebuild
-     - test-agent
+      - prebuild
+      - test-agent
     runs-on: ubuntu-latest
     if: ${{ needs.prebuild.outputs.agent == 'true' }}
     steps:
@@ -303,19 +302,16 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Build orb yarn image
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         env:
           IMAGE_NAME: ns1labs/orb-ui-modules
         run: |
           make ui-modules
-
       - name: Push ui image
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         run: |
           docker push -a ns1labs/orb-ui-modules
-
   package-ui:
     needs:
       - prebuild
@@ -330,7 +326,6 @@ jobs:
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
 
       - name: Build orb-ui
-        if: ${{ needs.prebuild.outputs.ui == 'true' }}
         env:
           IMAGE_NAME: ns1labs/orb-ui
         run: |
