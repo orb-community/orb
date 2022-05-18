@@ -1,5 +1,3 @@
-import threading
-
 from behave import given, when, then, step
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until

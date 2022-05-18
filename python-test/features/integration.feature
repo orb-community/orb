@@ -210,7 +210,6 @@ Scenario: Agent subscription to multiple groups created after provisioning agent
 
 
 @smoke
-@outro
 Scenario: Agent subscription to multiple groups created before provisioning agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -236,7 +235,6 @@ Scenario: Agent subscription to group after editing agent's tags (agent provisio
 
 
 @smoke
-@outro
 Scenario: Agent subscription to group after editing agent's tags (editing tags after agent provision)
     Given the Orb user has a registered account
         And the Orb user logs in
