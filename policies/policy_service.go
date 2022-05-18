@@ -15,6 +15,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies/backend"
 	sinkpb "github.com/ns1labs/orb/sinks/pb"
 )
@@ -421,4 +422,64 @@ func (s policiesService) DeleteAgentGroupFromAllDatasets(ctx context.Context, gr
 	}
 
 	return nil
+}
+
+func (s policiesService) DuplicatePolicy(ctx context.Context, token string, policyID string, name string) (Policy, error) {
+
+	mfOwnerID, err := s.identify(token)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	existingPolicy, err := s.repo.RetrievePolicyByID(ctx, policyID, mfOwnerID)
+	if err != nil {
+		return Policy{}, err
+	}
+
+	policy := existingPolicy
+	policy.Version = 0
+
+	var nameSuffix string
+	var id string
+	var errCreate error
+
+	if name != "" {
+		policyName, err := types.NewIdentifier(name)
+		if err != nil {
+			return Policy{}, err
+		}
+		policy.Name = policyName
+		id, err = s.repo.SavePolicy(ctx, policy)
+		if err != nil {
+			return Policy{}, errors.Wrap(ErrCreatePolicy, err)
+		}
+	} else {
+		nameSuffix = fmt.Sprintf("_copy")
+		var i = 1
+		for {
+			policyName, err := types.NewIdentifier(existingPolicy.Name.String() + nameSuffix)
+			if err != nil {
+				return Policy{}, err
+			}
+
+			policy.Name = policyName
+			id, errCreate = s.repo.SavePolicy(ctx, policy)
+			if errCreate != nil && errCreate == errors.ErrConflict {
+				if i < 3 {
+					i++
+					nameSuffix = fmt.Sprintf("_copy%d", i)
+					continue
+				} else {
+					return Policy{}, errors.Wrap(errors.New("limit of copies of a single policy exceeded"), errors.ErrConflict)
+				}
+			}
+			break
+		}
+		if errCreate != nil {
+			return Policy{}, err
+		}
+	}
+	policy.ID = id
+
+	return policy, nil
 }

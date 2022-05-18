@@ -130,6 +130,21 @@ def remove_empty_from_json(json_file):
     return json_file
 
 
+def remove_key_from_json(json_file, key_to_be_removed):
+    """
+
+    :param json_file: json object
+    :param key_to_be_removed: key that need to be removed
+    :return: json object without keys removed
+    """
+    for key, value in list(json_file.items()):
+        if key == key_to_be_removed:
+            del json_file[key]
+        elif isinstance(value, dict):
+            remove_key_from_json(value, key_to_be_removed)
+    return json_file
+
+
 def threading_wait_until(func):
     def wait_event(*args, wait_time=0.5, timeout=10, start_func_value=False, **kwargs):
         event = threading.Event()

@@ -1,4 +1,4 @@
-name: Go
+name: Build and Deploy to Production
 
 on:
   workflow_dispatch:
@@ -39,31 +39,26 @@ jobs:
               - 'cmd/sinker/**'
             ui: 
               - 'ui/**'
-
       - name: Set branch name
         shell: bash
         run: |
           echo "BRANCH_NAME=production" >> $GITHUB_ENV
-
       - name: Generate ref tag (production)
         run: |
           echo "REF_TAG=production" >> $GITHUB_ENV
-
       - name: Append suffix on VERSION file for production build
         run: |
           echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
-
       - name: Get VERSION
         run: |
           echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
-
       - name: Debug VERSION
         run: echo ${{ env.VERSION }}
 
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
-          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"  
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
   test-agent:
     runs-on: ubuntu-latest
@@ -138,9 +133,10 @@ jobs:
         run: SERVICE=sinker make test_service
 
   package-agent:
-    needs: 
-     - prebuild
-     - test-agent
+# This is just for debug agent
+    needs:
+      - prebuild
+      - test-agent
     runs-on: ubuntu-latest
     if: ${{ needs.prebuild.outputs.agent == 'true' }}
     steps:
@@ -150,20 +146,16 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
-
       - name: Build orb-agent
         shell: bash
         env:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
-            make agent
             make agent_debug
           else
-            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
-
       - name: Login to Docker Hub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v1
@@ -176,9 +168,9 @@ jobs:
         run: docker push -a ns1labs/orb-agent
 
   package-fleet:
-    needs: 
-     - prebuild
-     - test-fleet
+    needs:
+      - prebuild
+      - test-fleet
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -187,7 +179,6 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
-
       - name: Build service containers
         run: SERVICE=fleet make build_docker
 
@@ -203,9 +194,9 @@ jobs:
         run: docker push -a ns1labs/orb-fleet
 
   package-policies:
-    needs: 
-     - prebuild
-     - test-policies
+    needs:
+      - prebuild
+      - test-policies
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -214,7 +205,6 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
-
       - name: Build service containers
         run: SERVICE=policies make build_docker
 
@@ -230,9 +220,9 @@ jobs:
         run: docker push -a ns1labs/orb-policies
 
   package-sinker:
-    needs: 
-     - prebuild
-     - test-sinker
+    needs:
+      - prebuild
+      - test-sinker
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -241,7 +231,6 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
-
       - name: Build service containers
         run: SERVICE=sinker make build_docker
 
@@ -257,9 +246,9 @@ jobs:
         run: docker push -a ns1labs/orb-sinker
 
   package-sinks:
-    needs: 
-     - prebuild
-     - test-sinks
+    needs:
+      - prebuild
+      - test-sinks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -268,7 +257,6 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
-
       - name: Build service containers
         run: SERVICE=sinks make build_docker
 
@@ -295,7 +283,6 @@ jobs:
           filters: |
             yarn:
               ui/package.json
-
       - name: Login to Docker Hub
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         uses: docker/login-action@v1
@@ -309,12 +296,10 @@ jobs:
           IMAGE_NAME: ns1labs/orb-ui-modules
         run: |
           make ui-modules
-
       - name: Push ui image
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         run: |
           docker push -a ns1labs/orb-ui-modules
-
   package-ui:
     needs:
       - prebuild
@@ -327,30 +312,27 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
-
       - name: Build orb-ui
         env:
           IMAGE_NAME: ns1labs/orb-ui
         run: |
           make ui
-
       - name: Commit orb-ui-live on orb-live repo production
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"
           git config --global credential.helper cache
-          git clone -b main https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live.git          
+          git clone -b main https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live.git
           cd orb-live
           rm -rf ui
           git add .
           git commit -m "[NS1 Orb Bot] clean ui folder"
           cp -rf ../ui .
           cp -rf ../VERSION .
-          echo "${{ steps.commit_hash.outputs.sha_short }}" > COMMIT_HASH          
+          echo "${{ steps.commit_hash.outputs.sha_short }}" > COMMIT_HASH
           git add .
           git commit -m "[NS1 Orb Bot] Update Orb Live UI for production"
           git push origin main
-
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         if: github.event_name != 'pull_request'
@@ -395,7 +377,6 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
-
       - name: Commit image tag on orb-live-manifest environment prod
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
@@ -410,3 +391,65 @@ jobs:
           git add .template/values.old
           git commit -m "[NS1 Orb Bot] Update image tag on prod environment"
           git push origin main
+
+  buildx:
+    needs: publish-orb-live-prd
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=production" >> $GITHUB_ENV
+
+      - name: Generate ref tag (production)
+        run: |
+          echo "REF_TAG=production" >> $GITHUB_ENV
+
+      - name: Append suffix on VERSION file for production build
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
+
+      - name: Get VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
+
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build + push - agent (multi-arch)
+        env:
+          IMAGE_NAME: ns1labs/orb-agent:latest
+        uses: docker/build-push-action@v3
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          file: ./agent/docker/Dockerfile
+          platforms: linux/amd64, linux/arm64, linux/arm/v7
+          push: true
+          tags: ${{ env.IMAGE_NAME }}
+          build-args: |
+            PKTVISOR_TAG=latest

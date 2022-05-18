@@ -42,7 +42,7 @@ def _read_configs():
     assert_that(configs.get('remote_prometheus_endpoint'), not_none(), 'No Orb user password was provided!')
     assert_that(configs.get('remote_prometheus_endpoint'), not_(""), 'No Orb user password was provided!')
 
-    ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors', 'false').lower()
+    ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors', 'true').lower()
     assert_that(ignore_ssl_and_certificate_errors, any_of(equal_to('true'), equal_to('false')),
                 'Invalid value to ignore_ssl_and_certificate_errors parameter. A boolean value is expected.')
     configs['ignore_ssl_and_certificate_errors'] = ignore_ssl_and_certificate_errors

@@ -681,3 +681,19 @@ Scenario: Remotely restart agents without policies applied
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 20 seconds
         And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+
+
+@smoke
+Scenario: Create duplicated policy
+    Given the Orb user has a registered account
+    And the Orb user logs in
+    And that an agent with 1 orb tag(s) already exists and is online
+    And referred agent is subscribed to a group
+    And that a sink already exists
+    When 1 simple policies are applied to the group
+        And 1 duplicated policies is applied to the group
+    Then this agent's heartbeat shows that 2 policies are successfully applied and has status running
+    And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+    And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+    And referred sink must have active state on response within 10 seconds
+    And datasets related to all existing policies have validity valid
