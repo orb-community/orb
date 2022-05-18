@@ -7,7 +7,6 @@ from datetime import datetime
 import socket
 import os
 import re
-import multiprocessing
 
 tag_prefix = "test_tag_"
 
@@ -161,37 +160,23 @@ def threading_wait_until(func):
     return wait_event
 
 
-def check_port_is_available(availability=True):
+def return_port_to_run_docker_container(context, available=True):
     """
 
-    :param (bool) availability: Status of the port on which agent must try to run. Default: available.
+    :param (bool) available: Status of the port on which agent must try to run. Default: available.
     :return: (int) port number
     """
-    lock_thread = multiprocessing.Lock()
-    lock_thread.acquire()
-    assert_that(availability, any_of(equal_to(True), equal_to(False)), "Unexpected value for availability")
-    available_port = None
-    # port_options = range(10853, 10999)
-    port_options = [10800+int(str(multiprocessing.current_process().pid)[-2:])]
-    for port in port_options:
+
+    assert_that(available, any_of(equal_to(True), equal_to(False)), "Unexpected value for 'available' parameter")
+    if not available:
+        available_port = list(context.containers_id.values())[-1]
+    else:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex(('127.0.0.1', port))
+        sock.bind(('', 0)) #Select a random free port from 1024 to 65535
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        available_port = sock.getsockname()[1]
         sock.close()
-        if result == 0:
-            available_port = port
-            if availability is True:
-                continue
-            else:
-                # print(f"port {available_port} and availability {availability}")
-                # print(multiprocessing.current_process().pid)
-                return available_port
-        else:
-            available_port = port
-            break
-    assert_that(available_port, is_not(equal_to(None)), "No available ports to bind")
-    # print(f"port {available_port} and availability {availability}")
-    # print(multiprocessing.current_process().pid)
-    return available_port, lock_thread
+    return available_port
 
 
 def find_files(prefix, suffix, path):
