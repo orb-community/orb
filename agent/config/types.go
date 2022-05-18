@@ -36,9 +36,7 @@ type Cloud struct {
 }
 
 type Opentelemetry struct {
-	Enable       bool       `mapstructure:"enable"`
-	MQTT         MQTTConfig `mapstructure:"mqtt"`
-	MetricsTopic string     `mapstructure:"metrics_topic"`
+	Enable bool `mapstructure:"enable"`
 }
 
 type Debug struct {

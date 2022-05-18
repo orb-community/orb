@@ -474,7 +474,7 @@ func Register() bool {
 func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component.MetricsExporter, error) {
 
 	if p.mqttClient != nil {
-		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.metricsTopic)
+		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.metricsTopic, p.pktvisorVersion)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
@@ -483,7 +483,7 @@ func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component
 		}
 		return exporter, nil
 	} else {
-		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key, p.mqttConfig.ChannelID)
+		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key, p.mqttConfig.ChannelID, p.pktvisorVersion)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)

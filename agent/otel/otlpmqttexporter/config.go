@@ -23,6 +23,9 @@ type Config struct {
 	ChannelID    string `mapstructure:"channel_id"`
 	TLS          bool   `mapstructure:"enable_tls"`
 	MetricsTopic string `mapstructure:"metrics_topic"`
+
+	// Specific for ORB Agent
+	PktVisorVersion string
 }
 
 var _ config.Exporter = (*Config)(nil)

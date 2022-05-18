@@ -33,7 +33,7 @@ func NewFactory() component.ExporterFactory {
 		component.WithMetricsExporter(CreateMetricsExporter))
 }
 
-func CreateConfig(addr, id, key, channel string) config.Exporter {
+func CreateConfig(addr, id, key, channel, pktvisor string) config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
@@ -42,6 +42,7 @@ func CreateConfig(addr, id, key, channel string) config.Exporter {
 		Id:               id,
 		Key:              key,
 		ChannelID:        channel,
+		PktVisorVersion:  pktvisor,
 	}
 }
 
@@ -61,13 +62,14 @@ func CreateDefaultConfig() config.Exporter {
 	}
 }
 
-func CreateConfigClient(client mqtt.Client, metricsTopic string) config.Exporter {
+func CreateConfigClient(client mqtt.Client, metricsTopic, pktvisor string) config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
 		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
 		Client:           client,
 		MetricsTopic:     metricsTopic,
+		PktVisorVersion:  pktvisor,
 	}
 }
 

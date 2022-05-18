@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/ns1labs/orb/fleet"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"net/http"
 	"net/url"
@@ -57,8 +58,7 @@ func newExporter(cfg config.Exporter, set component.ExporterCreateSettings) (*ex
 	}, nil
 }
 
-// start actually creates the HTTP client. The client construction is deferred till this point as this
-// is the only place we get hold of Extensions which are required to construct auth round tripper.
+// start actually creates the MQTT client.
 func (e *exporter) start(_ context.Context, _ component.Host) error {
 	token := e.config.Client
 	if token == nil {
@@ -94,21 +94,41 @@ func (e *exporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
 func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewRequest()
 	tr.SetMetrics(md)
-	request, err := tr.MarshalJSON()
+	request, err := tr.MarshalProto()
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
-	return e.export(ctx, e.config.MetricsTopic, request)
+	// Adding a for here for now, but only seen 1 at each ResourceMetric and ScopeMetric will remove later if not found
+	for mIndex := 0; mIndex >= tr.Metrics().MetricCount(); mIndex++ {
+		metric := tr.Metrics().ResourceMetrics().At(mIndex)
+		for smIndex := 0; smIndex >= metric.ScopeMetrics().Len(); smIndex++ {
+			scopeMetric := metric.ScopeMetrics().At(smIndex)
+			for metricIndex := 0; metricIndex >= scopeMetric.Metrics().Len(); metricIndex++ {
+
+			}
+		}
+	}
+	metricRPC := fleet.AgentMetricsRPC{
+		SchemaVersion: fleet.CurrentRPCSchemaVersion,
+		Func:          fleet.AgentMetricsRPCFunc,
+		Payload: []fleet.AgentMetricsRPCPayload{
+			{
+				Format:    "otlp",
+				BEVersion: e.config.PktVisorVersion,
+				Data:      request,
+			},
+		},
+	}
+	return e.export(ctx, e.config.MetricsTopic, metricRPC)
 }
 
 func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (e *exporter) export(_ context.Context, metricsTopic string, request []byte) error {
+func (e *exporter) export(_ context.Context, metricsTopic string, request fleet.AgentMetricsRPC) error {
 	// convert metrics to interface
-	body := request
-	if token := e.config.Client.Publish(metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
+	if token := e.config.Client.Publish(metricsTopic, 1, false, request); token.Wait() && token.Error() != nil {
 		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
 		return token.Error()
 	}
