@@ -96,7 +96,7 @@ func TestCreateConfigClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := CreateConfigClient(tt.args.client, tt.args.metricsTopic)
+			got := CreateConfigClient(tt.args.client, tt.args.metricsTopic, " 1.0")
 			assert.Equal(t, tt.want, got.Validate(), "expected %s but got %s", tt.want, got.Validate())
 		})
 	}
@@ -152,7 +152,7 @@ func TestCreateConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, CreateConfig(tt.args.addr, tt.args.id, tt.args.key, tt.args.channel), "CreateConfig(%v, %v, %v, %v)", tt.args.addr, tt.args.id, tt.args.key, tt.args.channel)
+			assert.Equalf(t, tt.want, CreateConfig(tt.args.addr, tt.args.id, tt.args.key, tt.args.channel, "1.0"), "CreateConfig(%v, %v, %v, %v)", tt.args.addr, tt.args.id, tt.args.key, tt.args.channel)
 		})
 	}
 }
