@@ -25,7 +25,7 @@ type Config struct {
 	MetricsTopic string `mapstructure:"metrics_topic"`
 
 	// Specific for ORB Agent
-	PktVisorVersion string
+	PktVisorVersion string `mapstructure:"pktvisor_version"`
 }
 
 var _ config.Exporter = (*Config)(nil)
