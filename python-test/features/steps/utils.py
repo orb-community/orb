@@ -7,6 +7,7 @@ from datetime import datetime
 import socket
 import os
 import re
+import multiprocessing
 
 tag_prefix = "test_tag_"
 
@@ -84,7 +85,8 @@ def create_tags_set(orb_tags):
                                                                      f"If you want 1 randomized tag: 1 orb tag."
                                                                      f"If you want more than 1 randomized tags: 2 orb tags. Note that you can use any int. 2 its only an example."
                                                                      f"If you want specified tags: test_key:test_value, second_key:second_value.")
-        if re.match(r"^.+\:.+", orb_tags): # We expected key values separated by a colon ":" and multiple tags separated
+        if re.match(r"^.+\:.+",
+                    orb_tags):  # We expected key values separated by a colon ":" and multiple tags separated
             # by a comma ",". Example: test_key:test_value, my_orb_key:my_orb_value
             for tag in orb_tags.split(", "):
                 key, value = tag.split(":")
@@ -169,13 +171,29 @@ def return_port_to_run_docker_container(context, available=True):
 
     assert_that(available, any_of(equal_to(True), equal_to(False)), "Unexpected value for 'available' parameter")
     if not available:
-        available_port = list(context.containers_id.values())[-1]
+        unavailable_port = list(context.containers_id.values())[-1]
+        return unavailable_port
     else:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind(('', 0)) #Select a random free port from 1024 to 65535
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        available_port = sock.getsockname()[1]
-        sock.close()
+        available_port = None
+        process_number = multiprocessing.current_process().name.split('-')[-1]
+        if process_number.isnumeric():  # if parallel process
+            lower_lim_port = 10800 + int(process_number) * 10
+            upper_lim_port = lower_lim_port + 10
+            port_options_for_process = range(lower_lim_port, upper_lim_port)
+        else:  # if sequential process
+            port_options_for_process = range(10800, 11000)
+
+        for port in port_options_for_process:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            res = sock.connect_ex(('localhost', port))
+            sock.close()
+            if res != 0:
+                available_port = port
+                return available_port
+            else:
+                # port not available
+                continue
+    assert_that(available_port, is_not(None), "Unable to find an available port to run orb agent")
     return available_port
 
 
