@@ -76,7 +76,7 @@ export class AgentPoliciesService {
       { observe: 'response'})
       .catch(
         err => {
-          this.notificationsService.error('Failed to create Agent Policy',
+          this.notificationsService.error('Failed to duplicate Agent Policy',
             `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
           return Observable.throwError(err);
         },
