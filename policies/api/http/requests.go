@@ -103,6 +103,10 @@ func (req updatePolicyReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 
+	if (req.Name == "" && req.Description == "") && (req.PolicyData == "" && req.Policy == nil) {
+		return errors.ErrMalformedEntity
+	}
+
 	return nil
 }
 
