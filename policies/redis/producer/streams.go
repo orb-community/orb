@@ -73,12 +73,12 @@ func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string
 }
 
 func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.Dataset) (policies.Dataset, error) {
-	previousDataset, err := e.svc.EditDataset(ctx, token, ds)
+	previousDataset, err := e.svc.ViewDatasetByIDInternal(ctx, ds.MFOwnerID, ds.ID)
 	if err != nil {
 		return policies.Dataset{}, err
 	}
 
-	editedDataset, err := e.svc.ViewDatasetByIDInternal(ctx, previousDataset.MFOwnerID, previousDataset.ID)
+	editedDataset, err := e.svc.EditDataset(ctx, token, ds)
 	if err != nil {
 		return policies.Dataset{}, err
 	}

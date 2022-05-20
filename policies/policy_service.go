@@ -278,6 +278,7 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 		if err != nil {
 			return Dataset{}, err
 		}
+		datasetEdited.Valid = true
 	}
 
 	return datasetEdited, nil
