@@ -2,6 +2,21 @@ nb-card {
   width: 400px;
 }
 
+pre {
+  background: #1c2339;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-weight: 400;
+  padding: 0.75rem;
+
+  white-space: pre-line;
+
+  code {
+    color: #fff;
+    line-height: 2.5 !important;
+  }
+}
+
 button {
   margin: 10px;
 }
@@ -50,7 +65,7 @@ mat-chip nb-icon {
   }
 
   .step.selected {
-    -webkit-text-stroke: rgba(255, 255, 255, 0.15);
+    -webkit-text-stroke-color: rgba(255, 255, 255, 0.15);
     -webkit-text-stroke-width: 1px;
     text-shadow: 0 0 20px #ffffff8f;
 

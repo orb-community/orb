@@ -8,17 +8,6 @@ def before_scenario(context, scenario):
     context.agent_groups = dict()
 
 
-def after_scenario(context, scenario):
-    context.execute_steps('''
-    Given the Orb user logs in
-    Then cleanup agents
-    Then cleanup agent group
-    Then cleanup sinks
-    Then cleanup policies
-    Then cleanup datasets
-    ''')
-
-
 def after_feature(context, feature):
     cleanup_container()
     context.execute_steps('''

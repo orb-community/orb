@@ -12,8 +12,9 @@
     </button>
   </nb-card-header>
   <nb-card-body>
-    <p>Are you sure you want to delete this Policy? This action cannot be undone.<span class="ns1-red">*</span></p>
-    <p class="ns1-red">*To confirm, type your Policy name exactly as it appears.</p>
+    <p>Are you sure you want to delete Policy <span class="ns1-red">{{name}}</span>? This action cannot be undone.<span class="ns1-red">*</span></p>
+    <p><span class="ns1-red">Warning: </span>All Datasets related to this policy will be deleted<span class="ns1-red">*</span></p>
+    <p class="ns1-red">*To confirm, type your Policy name exactly as it appears: {{name}}</p>
     <input type="text"
            nbInput
            fullWidth
@@ -26,7 +27,7 @@
             class="orb-delete-warning-button"
             [disabled]="!isEnabled()"
             (click)="onDelete()"
-            data-orb-qa-id="button#delete">I Understand, Delete This Policy
+            data-orb-qa-id="button#delete">I Understand, Delete This Policy and Datasets.
     </button>
   </nb-card-footer>
 </nb-card>

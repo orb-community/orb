@@ -1,0 +1,150 @@
+name: Deploy Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      develop_image_id:
+        description: 'The docker image tag that you want to promote to staging'
+        required: true
+        default: 'develop'
+  pull_request:
+    branches: [ staging ]
+  push:
+    branches: [ staging ]
+
+jobs:
+  update-image-tag-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            agent:
+              - 'agent/**'
+              - 'cmd/agent/**'
+            orb:
+              - 'fleet/**'
+              - 'cmd/fleet/**'
+              - 'policies/**'
+              - 'cmd/policies/**'
+              - 'sinks/**'
+              - 'cmd/sinks/**'
+              - 'sinker/**'
+              - 'cmd/sinker/**'
+            ui:
+              - 'ui/**'
+
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=production" >> $GITHUB_ENV
+
+      - name: Generate ref tag (production)
+        run: |
+          echo "REF_TAG=production" >> $GITHUB_ENV
+
+      - name: Append suffix on VERSION file for production build
+        run: |
+          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
+
+      - name: Get VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Debug VERSION
+        run: |
+          echo ${{ env.VERSION }}
+#
+#      - name: Commit orb-ui-live on orb-live repo staging
+#        run: |
+#          git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
+#          git config --global user.name "${{secrets.GH_ORB_USER}}"
+#          git config --global credential.helper cache
+#          git clone -b main https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live.git
+#          cd orb-live
+#          rm -rf ui
+#          git add .
+#          git commit -m "[NS1 Orb Bot] clean ui folder"
+#          cp -rf ../ui .
+#          cp -rf ../VERSION .
+#          echo "${{ steps.commit_hash.outputs.sha_short }}" > COMMIT_HASH
+#          git add .
+#          git commit -m "[NS1 Orb Bot] Update Orb Live UI for staging"
+#          git push origin main
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build orb-agent
+        # make this as "latest" tag
+        shell: bash
+        env:
+          IMAGE_NAME: ns1labs/orb-agent
+        run: |
+          if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
+            make agent_production
+            make agent_debug_production
+          else
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_production
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug_production
+          fi
+
+      - name: Update new branches
+        run: |
+          docker push -a ns1labs/orb-agent
+
+          docker pull ns1labs/orb-fleet:${{ github.event.inputs.develop_image_id }}
+          echo "FLEET_IMG_ID=$(docker images ns1labs/orb-fleet:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
+          docker tag $(FLEET_IMG_ID) ns1labs/orb-fleet:${{ env.VERSION }}
+          docker tag $(FLEET_IMG_ID) ns1labs/orb-fleet:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
+          docker push -a ns1labs/orb-fleet
+
+          docker pull ns1labs/orb-policies:${{ github.event.inputs.develop_image_id }}
+          echo "POLICIES_IMG_ID=$(docker images ns1labs/orb-policies:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
+          docker tag $(POLICIES_IMG_ID) ns1labs/orb-policies:${{ env.VERSION }}
+          docker tag $(POLICIES_IMG_ID) ns1labs/orb-policies:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
+          docker push -a ns1labs/orb-policies
+
+          docker pull ns1labs/orb-sinks:${{ github.event.inputs.develop_image_id }}
+          echo "SINKS_IMG_ID=$(docker images ns1labs/orb-sinks:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
+          docker tag $(SINKS_IMG_ID) ns1labs/orb-sinks:${{ env.VERSION }}
+          docker tag $(SINKS_IMG_ID) ns1labs/orb-sinks:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
+          docker push -a ns1labs/orb-sinks
+
+          docker pull ns1labs/orb-sinker:${{ github.event.inputs.develop_image_id }}
+          echo "SINKER_IMG_ID=$(docker images ns1labs/orb-sinker:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
+          docker tag $(SINKER_IMG_ID) ns1labs/orb-sinker:${{ env.VERSION }}
+          docker tag $(SINKER_IMG_ID) ns1labs/orb-sinker:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
+          docker push -a ns1labs/orb-sinker
+
+          docker pull ns1labs/orb-ui:${{ github.event.inputs.develop_image_id }}
+          echo "UI_IMG_ID=$(docker images ns1labs/orb-ui:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
+          docker tag $(UI_IMG_ID) ns1labs/orb-ui:${{ env.VERSION }}
+          docker tag $(UI_IMG_ID) ns1labs/orb-ui:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
+          docker push -a ns1labs/orb-ui
+
+      - name: Commit image tag on orb-live-manifest environment stg
+        run: |
+          git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
+          git config --global user.name "${{secrets.GH_ORB_USER}}"
+          git config --global credential.helper cache
+          git clone https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live-manifest.git
+          cd orb-live-manifest/stg
+          mv values.yaml .template/values.old
+          cat .template/values.yaml.tpl >> values.yaml
+          sed -i -e "s/IMAGE_TAG/${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
+          git add values.yaml
+          git add .template/values.old
+          git commit -m "[NS1 Orb Bot] Update image tag on staging environment"
+          git push origin main

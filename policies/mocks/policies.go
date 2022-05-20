@@ -32,6 +32,17 @@ func (m *mockPoliciesRepository) ActivateDatasetByID(ctx context.Context, datase
 	return nil
 }
 
+func (m *mockPoliciesRepository) RetrieveAllPoliciesInternal(ctx context.Context, ownerID string) ([]policies.Policy, error) {
+	var policyList []policies.Policy
+	for _, p := range m.pdb {
+		if p.MFOwnerID == ownerID {
+			policyList = append(policyList, p)
+		}
+	}
+
+	return policyList, nil
+}
+
 func (m *mockPoliciesRepository) RetrieveAllDatasetsInternal(ctx context.Context, owner string) ([]policies.Dataset, error) {
 	var datasetList []policies.Dataset
 	id := uint64(0)

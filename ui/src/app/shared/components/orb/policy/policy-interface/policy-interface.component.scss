@@ -12,6 +12,8 @@ nb-card {
   }
 
   nb-card-body {
+    padding: 0.25rem !important;
+
     label {
       color: #969fb9;
     }
@@ -23,6 +25,31 @@ nb-card {
     div .row {
       display: block;
     }
+
+    pre {
+      background: #1c2339;
+      border-radius: 0.5rem;
+      color: #fff;
+      font-weight: 400;
+      padding: 0.75rem;
+
+      white-space: pre-line;
+
+      button {
+        background: transparent;
+        border: 0 transparent;
+        color: #969fb9;
+        float: right;
+        position: relative;
+        right: -0.5rem;
+        top: -0.25rem;
+      }
+
+      code {
+        color: #ffffff;
+        line-height: 2.5 !important;
+      }
+    }
   }
 }
 
@@ -33,4 +60,18 @@ nb-card {
 .required {
   color: #df316f;
   padding-left: 2px;
+}
+
+.code-editor {
+  height: calc(100%);
+  width: calc(100%);
+  padding: calc(1rem);
+}
+
+.code-editor-wrapper {
+  min-height: 350px;
+  min-width: 200px;
+  height: calc(58vh);
+  width: calc(100%);
+  display: block;
 }

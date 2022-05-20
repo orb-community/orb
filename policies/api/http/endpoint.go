@@ -415,3 +415,31 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func duplicatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(duplicatePolicyReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		duplicatedPolicy, err := svc.DuplicatePolicy(ctx, req.token, req.id, req.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		res := policyRes{
+			ID:            duplicatedPolicy.ID,
+			Name:          duplicatedPolicy.Name.String(),
+			Description:   duplicatedPolicy.Description,
+			Tags:          duplicatedPolicy.OrbTags,
+			Backend:       duplicatedPolicy.Backend,
+			SchemaVersion: duplicatedPolicy.SchemaVersion,
+			Policy:        duplicatedPolicy.Policy,
+			Version:       duplicatedPolicy.Version,
+			created:       true,
+		}
+
+		return res, nil
+	}
+}

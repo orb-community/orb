@@ -7,43 +7,26 @@ export const MENU: NbMenuItem[] = [
     icon: 'layout-outline',
     link: 'home',
     home: true,
+},
+  {
+    title: 'Agents',
+    icon: 'pin-outline',
+    link: 'fleet/agents',
   },
   {
-    title: 'Fleet Management',
-    icon: 'cube-outline',
-    children: [
-      {
-        title: 'Agents',
-        link: 'fleet/agents',
-      },
-      {
-        title: 'Agent Groups',
-        link: 'fleet/groups',
-      },
-    ],
+    title: 'Agent Groups',
+    icon: 'globe-outline',
+    link: 'fleet/groups',
+  },
+  {
+    title: 'Policy Management',
+    icon: 'layers-outline',
+    link: 'datasets/policies',
   },
   {
     title: 'Sink Management',
     icon: 'cloud-upload-outline',
     link: 'sinks',
-  },
-  {
-    title: 'Dataset Explorer',
-    icon: 'layers-outline',
-    children: [
-      {
-        title: 'Policy Management',
-        link: 'datasets/policies',
-      },
-      {
-        title: 'Datasets',
-        link: 'datasets/list',
-      },
-    ],
-  },
-  {
-    title: 'Settings',
-    icon: 'settings-2-outline',
   },
 ];
 

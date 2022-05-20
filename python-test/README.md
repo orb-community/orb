@@ -8,6 +8,9 @@ Here's what you'll need to do in order to run these tests:
 - Run behave
 
 ## Setup your Python environment
+
+<b>You need to have python >= 3.8 installed</b> 
+
 Create a virtual environment: `python3 -m venv name_of_virtualenv`
 
 Activate your virtual environment: `source name_of_virtualenv/bin/activate`

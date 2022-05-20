@@ -63,7 +63,6 @@
         </nb-step>
         <nb-step [completed]="isEdit"
                  [label]="secondStepTemplate"
-                 [stepControl]="agentFormGroup"
                  data-orb-qa-id="step_2">
           <ng-template #secondStepTemplate>
             <div class="step-label d-flex flex-column">
@@ -71,16 +70,16 @@
               <p>Create dynamic groups to filter your data by matching against your tags</p>
             </div>
           </ng-template>
-          <form [formGroup]="agentFormGroup">
+          <form>
             <nb-form-field>
               <div>
                 <label class="font-weight-bold">Who</label>
                 <span class="required">*</span>
               </div>
-              <nb-select (selectedChange)="onAgentGroupSelected($event)"
-                         [(selected)]="dataset.agent_group_id"
-                         autofocus
+              <nb-select [(selected)]="selectedGroup"
+                         [disabled]="isEdit"
                          appearance="filled"
+                         autofocus
                          data-orb-qa-id="agent_group_id"
                          formControlName="agent_group_id"
                          fullWidth="true"
@@ -89,12 +88,12 @@
               >
                 <nb-option *ngFor="let agentGroup of availableAgentGroups"
                            [attr.data-orb-qa-id]="'available_agent_group: '+agentGroup.id" [id]="agentGroup.id"
-                           [value]="agentGroup.id">{{ agentGroup.name }}</nb-option>
+                           [value]="agentGroup">{{ agentGroup.name }}</nb-option>
               </nb-select>
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button [disabled]="!isEdit && !agentFormGroup?.valid"
+              <button [disabled]="!isEdit && !selectedGroup"
                       class="next-button"
                       data-orb-qa-id="button#next"
                       nbButton
@@ -132,16 +131,16 @@
               <p>Define how to map your data; view the available collection paths based on your Selectors</p>
             </div>
           </ng-template>
-          <form [formGroup]="policyFormGroup">
+          <form>
             <nb-form-field>
               <div>
                 <label class="font-weight-bold">What</label>
                 <span class="required">*</span>
               </div>
-              <nb-select (selectedChange)="onAgentPolicySelected($event)"
-                         [(selected)]="dataset.agent_policy_id"
-                         autofocus
+              <nb-select (selectedChange)="onPolicySelected($event)"
+                         [disabled]="isEdit"
                          appearance="filled"
+                         autofocus
                          data-orb-qa-id="agent_policy_id"
                          formControlName="agent_policy_id"
                          fullWidth="true"
@@ -150,12 +149,12 @@
               >
                 <nb-option *ngFor="let agentPolicy of availableAgentPolicies"
                            [attr.data-orb-qa-id]="'available_agent_policy: '+agentPolicy.id" [id]="agentPolicy.id"
-                           [value]="agentPolicy.id">{{ agentPolicy.name }}</nb-option>
+                           [value]="agentPolicy">{{ agentPolicy.name }}</nb-option>
               </nb-select>
             </nb-form-field>
             <hr/>
-            <div *ngIf="policyFormGroup" class="d-flex justify-content-end">
-              <button [disabled]="!isEdit && !policyFormGroup?.valid"
+            <div class="d-flex justify-content-end">
+              <button [disabled]="!isEdit && !selectedPolicy"
                       class="next-button"
                       data-orb-qa-id="button#next"
                       nbButton
@@ -220,7 +219,7 @@
                          data-orb-qa-id="sink_selector"
                          formControlName="selected_sink"
                          placeholder="Sink Name">
-                <nb-option *ngFor="let sink of availableSinks"
+                <nb-option *ngFor="let sink of availableSinks | unSelectedSinks:selectedSinks"
                            [attr.data-orb-qa-id]="'available_sink: '+sink.id" [id]="sink.id"
                            [value]="sink">{{ sink.name }}</nb-option>
               </nb-select>
@@ -275,36 +274,31 @@
               <strong>Review & Confirm</strong>
             </div>
           </ng-template>
-          <div class="d-flex row">
-            <div class="col-md-12 col-xl-12">
-              <div>
-                <label class="font-weight-bold">Dataset Name</label>
-                <p data-orb-qa-id="review-agent-group">{{detailsFormGroup?.controls.name.value}}</p>
-              </div>
-            </div>
-            <div class="col-md-12 col-xl-6">
-              <div>
-                <label class="font-weight-bold">Agent Group Name</label>
-                <p data-orb-qa-id="review-agent-group">{{availableAgentGroups[selectedGroup]?.name}}</p>
-              </div>
-            </div>
-            <div class="col-md-12 col-xl-6">
-              <div>
-                <label class="font-weight-bold">Agent Policy Name</label>
-                <p data-orb-qa-id="review-agent-policy">{{availableAgentPolicies[selectedPolicy]?.name}}</p>
-              </div>
-            </div>
-            <div class="col-md-12 col-xl-6">
-              <div>
-                <label class="font-weight-bold">Sinks</label>
-                <p>
-                  <span *ngFor="let sink of selectedSinks; last as isLast">
-                    <span>{{ sink.name }}</span>
-                    <span *ngIf="!isLast">,&nbsp;</span>
-                  </span>
-                </p>
-              </div>
-            </div>
+          <div class="col-md-12 col-xl-12">
+            <label class="font-weight-bold">Dataset Name</label>
+            <p data-orb-qa-id="review-agent-group">{{detailsFormGroup?.controls.name.value}}</p>
+          </div>
+          <div *ngIf="availableAgentGroups.length > 0" class="col-md-12 col-xl-12">
+            <ngx-grouped-agents
+              [agentGroup]="selectedGroup">
+            </ngx-grouped-agents>
+          </div>
+          <div class="col-md-12 col-xl-12">
+            <br/>
+            <label class="font-weight-bold">Agent Policy</label>
+            <pre
+              innerHtml="{{ (selectedPolicy?.policy_data | prettyYaml:[false, 2]) || (selectedPolicy?.policy |
+                  prettyJson:
+                  [false, 2]) }}"></pre>
+          </div>
+          <div class="col-md-12 col-xl-12">
+            <label class="font-weight-bold">Sinks</label>
+            <p>
+                <span *ngFor="let sink of selectedSinks; last as isLast">
+                  <span>{{ sink.name }}</span>
+                  <span *ngIf="!isLast">,&nbsp;</span>
+                </span>
+            </p>
           </div>
           <hr/>
           <div *ngIf="sinkFormGroup" class="d-flex justify-content-end">

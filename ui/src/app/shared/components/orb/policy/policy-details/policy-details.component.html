@@ -1,15 +1,83 @@
 <nb-card>
-  <nb-card-header class="summary-accent">Agent Policy Details</nb-card-header>
+  <nb-card-header class="summary-accent">Agent Policy Details
+    <button
+      (click)="toggleEdit(true)"
+      *ngIf="!editMode"
+      class="card-ghost-button"
+      ghost="true"
+      nbButton
+      status="primary">
+      Edit
+    </button>
+    <button
+      (click)="toggleEdit(false)"
+      *ngIf="editMode"
+      class="card-ghost-button"
+      ghost="true"
+      nbButton
+      status="danger">
+      Discard
+    </button>
+  </nb-card-header>
   <nb-card-body>
-    <div class="col-12">
-      <div class="row">
-        <label class="summary-accent">Policy Name<span class="required">*</span></label>
-        <p>{{ policy?.name }}</p>
-      </div>
-      <div class="row">
-        <label class="summary-accent">Policy Description</label>
-        <p>{{ policy?.description }}</p>
-      </div>
-    </div>
+    <div *ngIf="editMode; then updateView else readView"></div>
   </nb-card-body>
 </nb-card>
+
+<ng-template #readView>
+  <div class="d-flex flex-column">
+    <div class="flex-row">
+      <label class="summary-accent">Policy Name<span class="required">*</span></label>
+      <p>{{ policy?.name }}</p>
+    </div>
+    <div class="flex-row">
+      <label class="summary-accent">Policy Description</label>
+      <p>{{ policy?.description }}</p>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #updateView>
+  <form [formGroup]="formGroup">
+    <nb-form-field>
+      <div class="d-flex flex-column">
+        <div>
+          <label class="font-weight-bold">Policy Name</label>
+          <span class="required">*</span>
+        </div>
+        <input
+          [placeholder]="policy?.name"
+          autofocus
+          class="form-control"
+          data-orb-qa-id="name"
+          fieldSize="medium"
+          formControlName="name"
+          fullWidth="true"
+          nbInput/>
+        <div
+          *ngIf="formGroup.controls?.name.invalid
+          && (formGroup.controls?.name.dirty || formGroup.controls?.name.touched)"
+          class="required">
+          <div *ngIf="formGroup.controls?.name.errors?.required">
+            Name is required.
+          </div>
+          <div *ngIf="formGroup.controls?.name.errors?.pattern">
+            Name does not match the pattern.
+          </div>
+        </div>
+      </div>
+    </nb-form-field>
+    <nb-form-field>
+      <div>
+        <label class="font-weight-bold">Policy Description</label>
+      </div>
+      <input
+        [placeholder]="policy?.description"
+        data-orb-qa-id="description"
+        fieldSize="medium"
+        formControlName="description"
+        fullWidth="true"
+        nbInput/>
+    </nb-form-field>
+  </form>
+</ng-template>

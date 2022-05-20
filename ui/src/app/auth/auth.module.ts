@@ -11,7 +11,7 @@ import {
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthComponent } from 'app/auth/components/auth.component';
-import { LoginComponent } from 'app/pages/login/login.component';
+import { LoginComponent } from 'app/auth/pages/login/login.component';
 import {
   NB_AUTH_FALLBACK_TOKEN,
   NB_AUTH_INTERCEPTOR_HEADER,
@@ -37,10 +37,10 @@ import {
   NbTokenStorage,
 } from '@nebular/auth';
 import { AuthRoutingModule } from 'app/auth/auth.routing.module';
-import { RegisterComponent } from 'app/pages/register/register.component';
-import { LogoutComponent } from 'app/pages/logout/logout.component';
-import { RequestPasswordComponent } from 'app/pages/request-password/request-password.component';
-import { ResetPasswordComponent } from 'app/pages/reset-password/reset-password.component';
+import { RegisterComponent } from 'app/auth/pages/register/register.component';
+import { LogoutComponent } from 'app/auth/pages/logout/logout.component';
+import { RequestPasswordComponent } from 'app/auth/pages/request-password/request-password.component';
+import { ResetPasswordComponent } from 'app/auth/pages/reset-password/reset-password.component';
 import { PSModule } from '@pactsafe/pactsafe-angular-sdk';
 
 @NgModule({

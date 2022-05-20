@@ -56,8 +56,8 @@ export class AgentsService {
 
   addAgent(agentItem: Agent) {
     return this.http.post(environment.agentsUrl,
-        { ...agentItem, validate_only: false },
-        { observe: 'response' })
+                          { ...agentItem, validate_only: false },
+                          { observe: 'response' })
       .map(
         resp => {
           return resp;
@@ -66,25 +66,25 @@ export class AgentsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to create Agent',
-            `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
+                                          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
           return Observable.throwError(err);
         },
       );
   }
 
   resetAgent(id: string) {
-    return this.http.post(`${environment.agentsUrl}/${id}/rpc/reset`, {}, {observe: 'response'})
+    return this.http.post(`${environment.agentsUrl}/${id}/rpc/reset`, {}, { observe: 'response' })
       .catch(err => {
         this.notificationsService.error('Failed to reset Agent',
-          `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
+                                        `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
         return Observable.throwError(err);
       });
   }
 
   validateAgent(agentItem: Agent) {
     return this.http.post(environment.validateAgentsUrl,
-        { ...agentItem, validate_only: true },
-        { observe: 'response' })
+                          { ...agentItem, validate_only: true },
+                          { observe: 'response' })
       .map(
         resp => {
           return resp;
@@ -93,14 +93,14 @@ export class AgentsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to Validate Agent',
-            `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
+                                          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
           return Observable.throwError(err);
         },
       );
   }
 
   getAgentById(id: string): Observable<Agent> {
-    return this.http.get<Agent>(`${ environment.agentsUrl }/${ id }`)
+    return this.http.get<Agent>(`${environment.agentsUrl}/${id}`)
       .map(
         resp => {
           return resp;
@@ -109,14 +109,14 @@ export class AgentsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to fetch Agent',
-            `Error: ${ err.status } - ${ err.statusText }`);
+                                          `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );
   }
 
   editAgent(agent: Agent): any {
-    return this.http.put(`${ environment.agentsUrl }/${ agent.id }`, agent)
+    return this.http.put(`${environment.agentsUrl}/${agent.id}`, agent)
       .map(
         resp => {
           return resp;
@@ -125,14 +125,14 @@ export class AgentsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to edit Agent',
-            `Error: ${ err.status } - ${ err.statusText }`);
+                                          `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );
   }
 
   deleteAgent(agentId: string) {
-    return this.http.delete(`${ environment.agentsUrl }/${ agentId }`)
+    return this.http.delete(`${environment.agentsUrl}/${agentId}`)
       .map(
         resp => {
           this.cache.data.splice(this.cache.data.map(a => a.id).indexOf(agentId), 1);
@@ -142,13 +142,13 @@ export class AgentsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to Delete Agent',
-            `Error: ${ err.status } - ${ err.statusText }`);
+                                          `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );
   }
 
-  getMatchingAgents(tagsInfo: any) {
+  getMatchingAgents(tagsInfo: any): Observable<Agent[]> {
     const params = new HttpParams()
       .set('offset', AgentsService.getDefaultPagination().offset.toString())
       .set('limit', AgentsService.getDefaultPagination().limit.toString())
@@ -159,19 +159,20 @@ export class AgentsService {
     return this.http.get(environment.agentsUrl, { params })
       .map(
         (resp: any) => {
-          return resp;
+          return resp.agents;
         },
       )
       .catch(
         err => {
           this.notificationsService.error('Failed to get Matching Agents',
-            `Error: ${ err.status } - ${ err.statusText }`);
+                                          `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );
   }
 
   getAllAgents() {
+    this.clean();
     const pageInfo = AgentsService.getDefaultPagination();
 
 
@@ -241,10 +242,10 @@ export class AgentsService {
           const newData = [...this.cache.data];
 
           newData.splice(start, resp.limit,
-            ...resp.agents.map(agent => {
-              agent.combined_tags = { ...agent?.orb_tags, ...agent?.agent_tags };
-              return agent;
-            }));
+                         ...resp.agents.map(agent => {
+                           agent.combined_tags = { ...agent?.orb_tags, ...agent?.agent_tags };
+                           return agent;
+                         }));
 
           this.cache = {
             ...this.cache,
@@ -268,7 +269,7 @@ export class AgentsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to get Agents',
-            `Error: ${ err.status } - ${ err.statusText }`);
+                                          `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );

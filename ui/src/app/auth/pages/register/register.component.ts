@@ -3,12 +3,10 @@ import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { NB_AUTH_OPTIONS, NbAuthService, NbRegisterComponent } from '@nebular/auth';
 import { Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 @Component({
-  selector: 'ngx-register-component',
-  templateUrl: 'register.component.html',
-  styleUrls: ['register.component.scss'],
+  selector: 'ngx-register-component', templateUrl: 'register.component.html', styleUrls: ['register.component.scss'],
 })
 export class RegisterComponent extends NbRegisterComponent implements OnInit {
   strings = STRINGS.login;
@@ -30,8 +28,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     @Inject(NB_AUTH_OPTIONS) protected options: {},
     protected authService: NbAuthService,
     protected cd: ChangeDetectorRef,
-    protected router: Router,
-  ) {
+    protected router: Router) {
     super(authService, options, cd, router);
   }
 
@@ -84,48 +81,40 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
       // so submit the form.
       const { email, password, company } = this.user;
       this.authService.register(this.strategy, {
-        email,
-        password,
-        metadata: {
-          company: company,
-          fullName: this.user.fullName,
+        email, password, metadata: {
+          company: company, fullName: this.user.fullName,
         },
-      }).subscribe(
-        respReg => {
-          const first_name = this.user.fullName.split(' ')[0];
-          const last_name = this.user.fullName.replace(`${ first_name } `, '');
-          !!_ps && _ps.getByKey(this._groupKey).send('updated', { custom_data: { first_name, last_name } });
+      }).subscribe(respReg => {
+        const first_name = this.user.fullName.split(' ')[0];
+        const last_name = this.user.fullName.replace(`${ first_name } `, '');
+        !!_ps && _ps.getByKey(this._groupKey).send('updated', { custom_data: { first_name, last_name } });
 
-          this.submitted = false;
+        this.submitted = false;
 
-          if (respReg.isSuccess()) {
-            this.messages = respReg.getMessages();
-          } else {
-            this.errors = respReg.getErrors();
-          }
+        if (respReg.isSuccess()) {
+          this.messages = respReg.getMessages();
+        } else {
+          this.errors = respReg.getErrors();
+        }
 
-          this.cd.detectChanges();
+        this.cd.detectChanges();
 
-          this.authService.authenticate(this.strategy, {
-            email,
-            password,
-          }).subscribe(
-            respAuth => {
-              this.router.navigateByUrl('/pages/dashboard');
-            },
-          );
+        this.authService.authenticate(this.strategy, {
+          email, password,
+        }).subscribe(respAuth => {
+          this.router.navigateByUrl('/pages/dashboard');
+        });
 
 
-        },
-      );
+      });
     } else {
       // We can get the alert message if set on the group
       // or define our own if it's not.
       if (_ps) {
-        const acceptanceAlertLanguage =
-          (_ps.getByKey(this._groupKey) && _ps.getByKey(this._groupKey).get('alert_message')) ?
-            _ps.getByKey(this._groupKey).get('alert_message') :
-            'Please accept our Terms and Conditions.';
+        const acceptanceAlertLanguage = (_ps.getByKey(this._groupKey)
+          && _ps.getByKey(this._groupKey).get('alert_message'))
+          ? _ps.getByKey(this._groupKey).get('alert_message')
+          : 'Please accept our Terms and Conditions.';
 
         // Alert the user that the Terms need to be accepted before continuing.
         alert(acceptanceAlertLanguage);

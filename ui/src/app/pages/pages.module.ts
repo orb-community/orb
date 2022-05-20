@@ -65,6 +65,7 @@ import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { A11yModule } from '@angular/cdk/a11y';
 import { AgentPolicyViewComponent } from 'app/pages/datasets/policies.agent/view/agent.policy.view.component';
+import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
 
 @NgModule({
   imports: [
@@ -132,6 +133,7 @@ import { AgentPolicyViewComponent } from 'app/pages/datasets/policies.agent/view
     DatasetListComponent,
     DatasetDeleteComponent,
     DatasetDetailsComponent,
+    DatasetFromComponent,
     // Dataset Explorer - Agent Policies
     AgentPolicyAddComponent,
     AgentPolicyDeleteComponent,

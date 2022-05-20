@@ -1,0 +1,11 @@
+<label class="font-weight-bold">Agent Group</label>
+<div *ngIf="!isLoading">
+  <button (click)="showAgentDetails(agent)"
+          *ngFor="let agent of agents; first as isFirst; last as isLast;"
+          class='agent-group-button'>
+    <span class="agent-group-accent">{{ agent.name }}{{ !isLast ? ', ' : '' }}</span>
+  </button>
+</div>
+<p *ngIf="errors?.nogroup">
+  <span class="summary-accent">{{ errors.nogroup }}</span>
+</p>

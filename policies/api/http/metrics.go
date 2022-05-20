@@ -432,6 +432,28 @@ func (m metricsMiddleware) DeleteAgentGroupFromAllDatasets(ctx context.Context, 
 	return m.svc.DeleteAgentGroupFromAllDatasets(ctx, groupID, token)
 }
 
+func (m metricsMiddleware) DuplicatePolicy(ctx context.Context, token string, policyID string, name string) (policies.Policy, error) {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return policies.Policy{}, err
+	}
+
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "duplicatePolicy",
+			"owner_id", ownerID,
+			"policy_id", policyID,
+			"dataset_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.DuplicatePolicy(ctx, token, policyID, name)
+}
+
 func (m metricsMiddleware) identify(token string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

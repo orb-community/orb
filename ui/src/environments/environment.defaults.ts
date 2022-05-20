@@ -62,8 +62,6 @@ export const environment = {
   readerUrl: '/reader',
   readerPrefix: 'channels',
   readerSuffix: 'messages',
-
-  mqttWsUrl: window['env']['mqttWsUrl'] || 'ws://localhost/mqtt',
   exportConfigFile: '/configs/export/config.toml',
 
   // PACTSAFE
@@ -73,6 +71,9 @@ export const environment = {
     // group key
     GROUP_KEY: '',
   },
+
+  // MAINTENANCE
+  MAINTENANCE: '',
 
   // expose ORB routes and api versioning
   orbApi: {urlKeys: Object.keys(ORB.servicesUrls), ...ORB.orbApi, servicesUrls: ORB.servicesUrls},

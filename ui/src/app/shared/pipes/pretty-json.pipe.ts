@@ -21,7 +21,7 @@ export class PrettyJsonPipe implements PipeTransform {
     }
   }
 
-  applyColors(obj: any, showNumebrLine: boolean = false, padding: number = 4) {
+  applyColors(obj: any, showNumberLine: boolean = false, padding: number = 4) {
     // line number start from 1
     let line = 1;
 
@@ -71,7 +71,7 @@ export class PrettyJsonPipe implements PipeTransform {
     /**
      * Regex for the start of the line, insert a number-line themeClass tag before each line
      */
-    return showNumebrLine
+    return showNumberLine
       ? obj.replace(
         /^/gm,
         () =>

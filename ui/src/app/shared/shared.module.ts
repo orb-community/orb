@@ -4,16 +4,16 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { ThemeModule } from 'app/@theme/theme.module';
 import {
-  NbAccordionModule,
-  NbButtonModule,
-  NbCardModule,
-  NbCheckboxModule,
-  NbDatepickerModule,
-  NbDialogModule,
-  NbIconModule,
-  NbInputModule,
-  NbListModule,
-  NbSelectModule,
+    NbAccordionModule,
+    NbButtonModule,
+    NbCardModule,
+    NbCheckboxModule,
+    NbDatepickerModule,
+    NbDialogModule, NbFormFieldModule,
+    NbIconModule,
+    NbInputModule,
+    NbListModule,
+    NbSelectModule, NbTooltipModule,
 } from '@nebular/theme';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -38,12 +38,18 @@ import { AgentGroupsComponent } from './components/orb/agent/agent-groups/agent-
 import { AgentProvisioningComponent } from './components/orb/agent/agent-provisioning/agent-provisioning.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { TagDisplayComponent } from './components/orb/tag-display/tag-display.component';
-import { SinkDisplayComponent } from './components/orb/sink/sink-display/sink-display.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PolicyDetailsComponent } from './components/orb/policy/policy-details/policy-details.component';
 import { PolicyInterfaceComponent } from './components/orb/policy/policy-interface/policy-interface.component';
 import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets/policy-datasets.component';
- import { PolicyGroupsComponent } from 'app/shared/components/orb/policy/policy-groups/policy-groups.component';
+import { GroupedAgentsComponent } from './components/orb/dataset/grouped-agents/grouped-agents.component';
+import { PrettyYamlPipe } from './pipes/pretty-yaml.pipe';
+import { SinkControlComponent } from './components/orb/sink-control/sink-control.component';
+import { PolicyGroupsComponent } from './components/orb/policy/policy-groups/policy-groups.component';
+import { SinkDisplayComponent } from 'app/shared/components/orb/sink-display/sink-display.component';
+import { SinkDisplayListComponent } from 'app/shared/components/orb/sink/sink-display/sink-display-list.component';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
 
 @NgModule({
   imports: [
@@ -64,6 +70,10 @@ import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets
     ReactiveFormsModule,
     ClipboardModule,
     MatTooltipModule,
+    NgxDatatableModule,
+    NbTooltipModule,
+    NbFormFieldModule,
+    MonacoEditorModule,
   ],
   declarations: [
     ConfirmationComponent,
@@ -84,11 +94,15 @@ import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets
     AgentProvisioningComponent,
     TagControlComponent,
     TagDisplayComponent,
-    SinkDisplayComponent,
     PolicyDetailsComponent,
     PolicyInterfaceComponent,
     PolicyDatasetsComponent,
     PolicyGroupsComponent,
+    GroupedAgentsComponent,
+    PrettyYamlPipe,
+    SinkControlComponent,
+    SinkDisplayComponent,
+    SinkDisplayListComponent,
   ],
   exports: [
     ThemeModule,
@@ -110,10 +124,15 @@ import { PolicyDatasetsComponent } from './components/orb/policy/policy-datasets
     AgentGroupsComponent,
     AgentProvisioningComponent,
     TagDisplayComponent,
-    SinkDisplayComponent,
     PolicyDetailsComponent,
     PolicyInterfaceComponent,
     PolicyDatasetsComponent,
+    GroupedAgentsComponent,
+    PolicyGroupsComponent,
+    PrettyYamlPipe,
+    SinkControlComponent,
+    SinkDisplayComponent,
+    SinkDisplayListComponent,
   ],
   providers: [
     MessageValuePipe,
