@@ -98,16 +98,6 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
-	// Adding a for here for now, but only seen 1 at each ResourceMetric and ScopeMetric will remove later if not found
-	for mIndex := 0; mIndex >= tr.Metrics().MetricCount(); mIndex++ {
-		metric := tr.Metrics().ResourceMetrics().At(mIndex)
-		for smIndex := 0; smIndex >= metric.ScopeMetrics().Len(); smIndex++ {
-			scopeMetric := metric.ScopeMetrics().At(smIndex)
-			for metricIndex := 0; metricIndex >= scopeMetric.Metrics().Len(); metricIndex++ {
-
-			}
-		}
-	}
 	metricRPC := fleet.AgentMetricsRPC{
 		SchemaVersion: fleet.CurrentRPCSchemaVersion,
 		Func:          fleet.AgentMetricsRPCFunc,
