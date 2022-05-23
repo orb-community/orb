@@ -16,6 +16,6 @@ type Config struct {
 	MetricsPath string `mapstructure:"metrics_path"`
 	// Params the parameters to the metrics endpoint.
 	Params url.Values `mapstructure:"params,omitempty"`
-	// Whether or not to use pod service account to authenticate.
+	// Whether to use pod service account to authenticate.
 	UseServiceAccount bool `mapstructure:"use_service_account"`
 }

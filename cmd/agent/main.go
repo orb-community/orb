@@ -34,12 +34,12 @@ func init() {
 
 }
 
-func Version(cmd *cobra.Command, args []string) {
+func Version(_ *cobra.Command, _ []string) {
 	fmt.Printf("orb-agent %s\n", buildinfo.GetVersion())
 	os.Exit(0)
 }
 
-func Run(cmd *cobra.Command, args []string) {
+func Run(_ *cobra.Command, _ []string) {
 
 	// logger
 	var logger *zap.Logger
@@ -54,27 +54,27 @@ func Run(cmd *cobra.Command, args []string) {
 	initConfig()
 
 	// configuration
-	var config config.Config
-	err = viper.Unmarshal(&config)
+	var configData config.Config
+	err = viper.Unmarshal(&configData)
 	if err != nil {
 		logger.Error("agent start up error (config)", zap.Error(err))
 		os.Exit(1)
 	}
 
-	config.Debug = Debug
+	configData.Debug = Debug
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
-	if err == nil && config.OrbAgent.Backends == nil {
-		config.OrbAgent.Backends = make(map[string]map[string]string)
-		config.OrbAgent.Backends["pktvisor"] = make(map[string]string)
-		config.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
+	if err == nil && configData.OrbAgent.Backends == nil {
+		configData.OrbAgent.Backends = make(map[string]map[string]string)
+		configData.OrbAgent.Backends["pktvisor"] = make(map[string]string)
+		configData.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
 		if len(cfgFiles) > 0 {
-			config.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
+			configData.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
 		}
 	}
 
 	// new agent
-	a, err := agent.New(logger, config)
+	a, err := agent.New(logger, configData)
 	if err != nil {
 		logger.Error("agent start up error", zap.Error(err))
 		os.Exit(1)
@@ -192,5 +192,5 @@ func main() {
 
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.Execute()
+	_ = rootCmd.Execute()
 }

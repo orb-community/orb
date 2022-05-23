@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="int-tests" type="PyBehaveRunConfigurationType" factoryName="Behave">
+  <configuration default="false" name="int-tests" type="PyBehaveRunConfigurationType" factoryName="Behave" singleton="false">
     <module name="orb" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />

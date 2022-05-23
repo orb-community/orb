@@ -66,7 +66,7 @@ Then fill in the correct values:
 - **is_credentials_registered**:
   - Bool
   - If false, register an account with credentials (email and password) used
-  - Default value: `False`
+  - Default value: `True`
 - **agent_docker_image**:
   - Docker image of the orb agent.
   - Default value: `ns1labs/orb-agent`
@@ -99,3 +99,17 @@ Feature: agent provider # features/agentsProvider.feature:2
 Took 0m4.858s
 
 ```
+
+## Run behave using parallel process
+ 
+You can use [behavex](https://github.com/hrcorval/behavex) to run the scenarios using multiprocess by simply run:
+
+Examples:
+
+> behavex -t @\<TAG\> --parallel-processes=2 --parallel-schema=scenario
+
+> behavex -t @\<TAG\> --parallel-processes=5 --parallel-schema=feature
+
+Running smoke tests:
+
+> behavex -t=@smoke --parallel-processes=8 --parallel-scheme=scenario
