@@ -143,20 +143,3 @@ nb-card {
     color: #df316f !important;
   }
 }
-
-
-.policy-duplicate {
-  float: right;
-  color: #fff !important;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 500;
-  text-transform: none !important;
-
-  &.btn-disabled {
-    background: #2b3148;
-  }
-
-  &:not(.btn-disabled) {
-    background-color: #3089fc !important;
-  }
-}
