@@ -149,14 +149,14 @@ jobs:
           else
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
-  #      - name: Login to Docker Hub
-  #        uses: docker/login-action@v1
-  #        with:git log --pretty=format:"$ad- %s [%an]" --since=30.days
-  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:git log --pretty=format:"$ad- %s [%an]" --since=30.days
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  #      - name: Push agent container
-  #        run: docker push -a ns1labs/orb-agent
+      - name: Push agent container
+        run: docker push -a ns1labs/orb-agent
 
   package-fleet:
     needs:
@@ -173,16 +173,16 @@ jobs:
       - name: Build service containers
         run: SERVICE=fleet make build_docker
 
-  #      - name: Login to Docker Hub
-  #        uses: docker/login-action@v1
-  #        if: github.event_name != 'pull_request'
-  #        with:
-  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  #      - name: Push service containers
-  #        if: github.event_name != 'pull_request'
-  #        run: docker push -a ns1labs/orb-fleet
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-fleet
 
   package-policies:
     needs:
@@ -199,16 +199,16 @@ jobs:
       - name: Build service containers
         run: SERVICE=policies make build_docker
 
-  #      - name: Login to Docker Hub
-  #        uses: docker/login-action@v1
-  #        if: github.event_name != 'pull_request'
-  #        with:
-  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  #      - name: Push service containers
-  #        if: github.event_name != 'pull_request'
-  #       run: docker push -a ns1labs/orb-policies
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+       run: docker push -a ns1labs/orb-policies
 
   package-sinker:
     needs:
@@ -225,16 +225,16 @@ jobs:
       - name: Build service containers
         run: SERVICE=sinker make build_docker
 
-  #      - name: Login to Docker Hub
-  #        uses: docker/login-action@v1
-  #        if: github.event_name != 'pull_request'
-  #        with:
-  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  #      - name: Push service containers
-  #        if: github.event_name != 'pull_request'
-  #        run: docker push -a ns1labs/orb-sinker
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-sinker
 
   package-sinks:
     needs:
@@ -251,16 +251,16 @@ jobs:
       - name: Build service containers
         run: SERVICE=sinks make build_docker
 
-  #      - name: Login to Docker Hub
-  #        uses: docker/login-action@v1
-  #        if: github.event_name != 'pull_request'
-  #        with:
-  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  #      - name: Push service containers
-  #        if: github.event_name != 'pull_request'
-  #        run: docker push -a ns1labs/orb-sinks
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-sinks
 
   package-ui-dependencies:
     needs:
@@ -274,12 +274,12 @@ jobs:
           filters: |
             yarn:
               ui/package.json
-      #      - name: Login to Docker Hub
-      #        if: ${{ steps.filter.outputs.yarn == 'true' }}
-      #        uses: docker/login-action@v1
-      #        with:
-      #          username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build orb yarn image
         if: ${{ steps.filter.outputs.yarn == 'true' }}
@@ -287,10 +287,10 @@ jobs:
           IMAGE_NAME: ns1labs/orb-ui-modules
         run: |
           make ui-modules
-  #      - name: Push ui image
-  #        if: ${{ steps.filter.outputs.yarn == 'true' }}
-  #        run: |
-  #          docker push -a ns1labs/orb-ui-modules
+      - name: Push ui image
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        run: |
+          docker push -a ns1labs/orb-ui-modules
 
   package-ui:
     needs:
@@ -309,16 +309,16 @@ jobs:
           IMAGE_NAME: ns1labs/orb-ui
         run: make ui
 
-  #      - name: Login to Docker Hub
-  #        uses: docker/login-action@v1
-  #        if: github.event_name != 'pull_request'
-  #        with:
-  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  #      - name: Push ui container
-  #        if: github.event_name != 'pull_request'
-  #        run: docker push -a ns1labs/orb-ui
+      - name: Push ui container
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-ui
 
   release:
     needs:
