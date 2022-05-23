@@ -208,7 +208,7 @@ jobs:
 
       - name: Push service containers
         if: github.event_name != 'pull_request'
-       run: docker push -a ns1labs/orb-policies
+        run: docker push -a ns1labs/orb-policies
 
   package-sinker:
     needs:
