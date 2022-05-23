@@ -225,23 +225,45 @@ def get_agent_group(token, agent_group_id):
     return get_groups_response.json()
 
 
-def list_agent_groups(token, limit=100):
+def list_agent_groups(token, limit=100, offset=0):
+    """
+    Lists all agent_groups from Orb control plane that belong to this user
+
+    :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
+    :returns: (list) a list of agent_groups
+    """
+    all_agent_groups, total, offset = list_up_to_limit_agent_groups(token, limit, offset)
+
+    new_offset = limit + offset
+
+    while new_offset < total:
+        agent_groups_from_offset, total, offset = list_up_to_limit_agent_groups(token, limit, new_offset)
+        all_agent_groups = all_agent_groups + agent_groups_from_offset
+        new_offset = limit + offset
+
+    return all_agent_groups
+
+
+def list_up_to_limit_agent_groups(token, limit=100, offset=0):
     """
     Lists up to 100 agent groups from Orb control plane that belong to this user
 
     :param (str) token: used for API authentication
     :param (int) limit: Size of the subset to retrieve (max 100). Default = 100
-    :returns: (list) a list of agent groups
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
+    :returns: (list) a list of agent groups, (int) total groups on orb, (int) offset
     """
 
     response = requests.get(orb_url + '/api/v1/agent_groups', headers={'Authorization': token},
-                            params={"limit": limit})
+                            params={"limit": limit, "offset": offset})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list agent groups failed with status=' + str(response.status_code))
 
     agent_groups_as_json = response.json()
-    return agent_groups_as_json['agentGroups']
+    return agent_groups_as_json['agentGroups'], agent_groups_as_json['total'], agent_groups_as_json['offset']
 
 
 def delete_agent_groups(token, list_of_agent_groups):

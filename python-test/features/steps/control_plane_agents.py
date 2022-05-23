@@ -1,6 +1,6 @@
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix,\
-    create_tags_set, find_files, threading_wait_until, check_port_is_available
+    create_tags_set, find_files, threading_wait_until, return_port_to_run_docker_container
 from local_agent import run_local_agent_container, run_agent_config_file
 from control_plane_agent_groups import return_matching_groups, tags_to_match_k_groups
 from behave import given, then, step
@@ -99,7 +99,7 @@ def list_policies_applied_to_an_agent(context, amount_of_policies):
                                                                                      amount_of_policies, timeout=180)
 
     assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)),
-                f"Amount of policies applied to this agent failed with {context.list_agent_policies_id} policies")
+                f"Amount of policies applied to this agent failed with {len(context.list_agent_policies_id)} policies")
 
 
 @step("this agent's heartbeat shows that {amount_of_groups} groups are matching the agent")
@@ -181,8 +181,11 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
     context.dir_path = create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url,
-                                                base_orb_address, port, existing_agent_groups=context.agent_groups)
+                                                base_orb_address, port, existing_agent_groups=context.agent_groups,
+                                                context=context)
     context.container_id = run_agent_config_file(context.dir_path, agent_name)
+    if context.container_id not in context.containers_id.keys():
+        context.containers_id[context.container_id] = str(port)
     context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=10)
     assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found")
     assert_that(context.agent, is_not(None), f"Agent {agent_name} not correctly created")
@@ -238,22 +241,45 @@ def get_agent(token, agent_id):
     return get_agents_response.json()
 
 
-def list_agents(token, limit=100):
+def list_agents(token, limit=100, offset=0):
+
+    """
+    Lists all agents from Orb control plane that belong to this user
+
+    :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
+    :returns: (list) a list of agents
+    """
+
+    all_agents, total, offset = list_up_to_limit_agents(token, limit, offset)
+
+    new_offset = limit + offset
+
+    while new_offset < total:
+        agents_from_offset, total, offset = list_up_to_limit_agents(token, limit, new_offset)
+        all_agents = all_agents + agents_from_offset
+        new_offset = limit + offset
+
+    return all_agents
+
+
+def list_up_to_limit_agents(token, limit=100, offset=0):
     """
     Lists up to 100 agents from Orb control plane that belong to this user
 
     :param (str) token: used for API authentication
     :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
-    :returns: (list) a list of agents
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
+    :returns: (list) a list of agents, (int) total agents on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/agents', headers={'Authorization': token}, params={"limit": limit})
-
+    response = requests.get(orb_url + '/api/v1/agents', headers={'Authorization': token}, params={"limit": limit,
+                                                                                                  "offset": offset})
     assert_that(response.status_code, equal_to(200),
                 'Request to list agents failed with status=' + str(response.status_code))
-
     agents_as_json = response.json()
-    return agents_as_json['agents']
+    return agents_as_json['agents'], agents_as_json['total'], agents_as_json['offset']
 
 
 def delete_agents(token, list_of_agents):
@@ -366,7 +392,7 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
 
 
 def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, status_port='available',
-                             existing_agent_groups=None):
+                             existing_agent_groups=None, context=None):
     """
     Create a file .yaml with configs of the agent that will be provisioned
 
@@ -390,7 +416,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, base_orb_address)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)
-    port = check_port_is_available(availability[status_port])
+    port = return_port_to_run_docker_container(context, availability[status_port])
     agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
     agent_config_file = yaml.dump(agent_config_file)
     cwd = os.getcwd()

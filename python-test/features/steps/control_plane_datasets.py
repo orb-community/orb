@@ -157,23 +157,46 @@ def new_dataset(context):
     create_new_dataset(context)
 
 
-def list_datasets(token, limit=100):
+def list_datasets(token, limit=100, offset=0):
+
+    """
+    Lists all datasets from Orb control plane that belong to this user
+
+    :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
+    :returns: (list) a list of datasets
+    """
+
+    all_datasets, total, offset = list_up_to_limit_datasets(token, limit, offset)
+
+    new_offset = limit + offset
+
+    while new_offset < total:
+        datasets_from_offset, total, offset = list_up_to_limit_datasets(token, limit, new_offset)
+        all_datasets = all_datasets + datasets_from_offset
+        new_offset = limit + offset
+
+    return all_datasets
+
+
+def list_up_to_limit_datasets(token, limit=100, offset=0):
     """
     Lists up to 100 datasets from Orb control plane that belong to this user
 
     :param (str) token: used for API authentication
     :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
-    :returns: (list) a list of datasets
+    :returns: (list) a list of datasets, (int) total datasets on orb, (int) offset
     """
 
     response = requests.get(orb_url + '/api/v1/policies/dataset', headers={'Authorization': token},
-                            params={"limit": limit})
+                            params={"limit": limit, "offset": offset})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list datasets failed with status=' + str(response.status_code))
 
     datasets_as_json = response.json()
-    return datasets_as_json['datasets']
+    return datasets_as_json['datasets'], datasets_as_json['total'], datasets_as_json['offset']
 
 
 def delete_datasets(token, list_of_datasets):
