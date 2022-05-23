@@ -138,7 +138,6 @@ jobs:
       - prebuild
       - test-agent
     runs-on: ubuntu-latest
-    if: ${{ needs.prebuild.outputs.agent == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Get short commit hash to a variable

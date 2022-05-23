@@ -12,9 +12,13 @@ on:
     branches: [ main ]
 
 jobs:
-
-  build:
+  prebuild:
     runs-on: ubuntu-latest
+    outputs:
+      agent: ${{ steps.filter.outputs.agent }}
+      orb: ${{ steps.filter.outputs.orb }}
+      ui: ${{ steps.filter.outputs.ui }}
+      VERSION: ${{ env.VERSION }}
     steps:
       - uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
@@ -24,126 +28,306 @@ jobs:
             agent:
               - 'agent/**'
               - 'cmd/agent/**'
-            fleet:
+            orb:
               - 'fleet/**'
               - 'cmd/fleet/**'
-            policies:
               - 'policies/**'
               - 'cmd/policies/**'
-            sinks:
               - 'sinks/**'
               - 'cmd/sinks/**'
-            sinker:
               - 'sinker/**'
               - 'cmd/sinker/**'
-            ui:
+            ui: 
               - 'ui/**'
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=main" >> $GITHUB_ENV
+      - name: Generate ref tag (main)
+        run: |
+          echo "REF_TAG=latest" >> $GITHUB_ENV
+      - name: Set VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
 
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+  test-agent:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    steps:
+      - uses: actions/checkout@v2
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.16
 
-      - name: Set branch name
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=main" >> $GITHUB_ENV
+      - name: Go unit tests
+        run: SERVICE=agent make test_service
 
-      - name: Generate ref tag (main)
-        run: |
-          echo "REF_TAG=latest" >> $GITHUB_ENV
-
-      - name: Set VERSION
-        run: |
-          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
-
-      - name: Debug VERSION
-        run: echo ${{ env.VERSION }}
-
-      - name: Build services (go build only)
-        run: make services
-
-      - name: Build orb agent (go build only)
-        if: steps.filter.outputs.agent == 'true'
-        run: make agent_bin
+  test-fleet:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
 
       - name: Go unit tests
-        run: make test
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: SERVICE=fleet make test_service
 
-      - name: Build UI
-        if: steps.filter.outputs.ui == 'true'
-        run: make ui
-
-  package:
-    needs: build
+  test-policies:
     runs-on: ubuntu-latest
-    # if this is a push into one of our main branches (rather than just a pull request), we will also package
-    if: github.event_name != 'pull_request'
+    needs: prebuild
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set branch name
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=main" >> $GITHUB_ENV
-
-      - name: Generate ref tag (main)
-        run: |
-          echo "REF_TAG=latest" >> $GITHUB_ENV
-
-      - name: Set VERSION
-        run: |
-          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
-
-      - name: Debug VERSION
-        run: echo ${{ env.VERSION }}
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          go-version: 1.16
 
-      - name: Build service containers
-        run: make dockers
+      - name: Go unit tests
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: SERVICE=policies make test_service
 
+  test-sinks:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Go unit tests
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: SERVICE=sinks make test_service
+
+  test-sinker:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Go unit tests
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: SERVICE=sinker make test_service
+
+  package-agent:
+    # This is just for debug agent
+    needs:
+      - prebuild
+      - test-agent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
       - name: Build orb-agent
         shell: bash
         env:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
-            make agent
             make agent_debug
           else
-            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
+  #      - name: Login to Docker Hub
+  #        uses: docker/login-action@v1
+  #        with:git log --pretty=format:"$ad- %s [%an]" --since=30.days
+  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+  #      - name: Push agent container
+  #        run: docker push -a ns1labs/orb-agent
+
+  package-fleet:
+    needs:
+      - prebuild
+      - test-fleet
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+      - name: Build service containers
+        run: SERVICE=fleet make build_docker
+
+  #      - name: Login to Docker Hub
+  #        uses: docker/login-action@v1
+  #        if: github.event_name != 'pull_request'
+  #        with:
+  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  #      - name: Push service containers
+  #        if: github.event_name != 'pull_request'
+  #        run: docker push -a ns1labs/orb-fleet
+
+  package-policies:
+    needs:
+      - prebuild
+      - test-policies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+      - name: Build service containers
+        run: SERVICE=policies make build_docker
+
+  #      - name: Login to Docker Hub
+  #        uses: docker/login-action@v1
+  #        if: github.event_name != 'pull_request'
+  #        with:
+  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  #      - name: Push service containers
+  #        if: github.event_name != 'pull_request'
+  #       run: docker push -a ns1labs/orb-policies
+
+  package-sinker:
+    needs:
+      - prebuild
+      - test-sinker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+      - name: Build service containers
+        run: SERVICE=sinker make build_docker
+
+  #      - name: Login to Docker Hub
+  #        uses: docker/login-action@v1
+  #        if: github.event_name != 'pull_request'
+  #        with:
+  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  #      - name: Push service containers
+  #        if: github.event_name != 'pull_request'
+  #        run: docker push -a ns1labs/orb-sinker
+
+  package-sinks:
+    needs:
+      - prebuild
+      - test-sinks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+      - name: Build service containers
+        run: SERVICE=sinks make build_docker
+
+  #      - name: Login to Docker Hub
+  #        uses: docker/login-action@v1
+  #        if: github.event_name != 'pull_request'
+  #        with:
+  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  #      - name: Push service containers
+  #        if: github.event_name != 'pull_request'
+  #        run: docker push -a ns1labs/orb-sinks
+
+  package-ui-dependencies:
+    needs:
+      - prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            yarn:
+              ui/package.json
+      #      - name: Login to Docker Hub
+      #        if: ${{ steps.filter.outputs.yarn == 'true' }}
+      #        uses: docker/login-action@v1
+      #        with:
+      #          username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build orb yarn image
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        env:
+          IMAGE_NAME: ns1labs/orb-ui-modules
+        run: |
+          make ui-modules
+  #      - name: Push ui image
+  #        if: ${{ steps.filter.outputs.yarn == 'true' }}
+  #        run: |
+  #          docker push -a ns1labs/orb-ui-modules
+
+  package-ui:
+    needs:
+      - prebuild
+      - package-ui-dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
       - name: Build orb-ui
         env:
           IMAGE_NAME: ns1labs/orb-ui
-        run: |
-          make ui
+        run: make ui
 
-      - name: Push service containers
-        run: |
-          docker push -a ns1labs/orb-fleet
-          docker push -a ns1labs/orb-policies
-          docker push -a ns1labs/orb-sinks
-          docker push -a ns1labs/orb-sinker
+  #      - name: Login to Docker Hub
+  #        uses: docker/login-action@v1
+  #        if: github.event_name != 'pull_request'
+  #        with:
+  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push agent container
-        run: |
-          docker push -a ns1labs/orb-agent
-
-      - name: Push ui container
-        run: |
-          docker push -a ns1labs/orb-ui
+  #      - name: Push ui container
+  #        if: github.event_name != 'pull_request'
+  #        run: docker push -a ns1labs/orb-ui
 
   release:
-    needs: package
+    needs:
+      - prebuild
+      - package-fleet
+      - package-policies
+      - package-sinker
+      - package-sinks
+      - package-ui
     runs-on: ubuntu-latest
     # if this is a push into one of our main branches (rather than just a pull request), we will also package
     if: github.event_name != 'pull_request'
@@ -154,16 +338,9 @@ jobs:
           fetch-depth: 0
 
       - name: Generate release changelog
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          onlyLastTag: true # changelog only from last tag
-          stripHeaders: true # Strip headers
-          stripGeneratorNotice: true # Strip generator notice
-          author: false # No author on PR
-          pullRequests: true # Add PR number and link
-          headerLabel: "What's changed"
-        id: build_changelog
+        run: |
+          echo "# What's new" > changelog.md
+          git log --pretty=format:"$ad- %s [%an]" --since=30.days >> changelog.md
 
       - name: Set variables
         run: |
@@ -178,6 +355,6 @@ jobs:
         with:
           tag_name: ${{ env.TAG }}
           release_name: ${{ env.VERSION }}
-          body: ${{steps.build_changelog.outputs.changelog}}
+          body_path: ./changelog.md
           draft: false
           prerelease: false
