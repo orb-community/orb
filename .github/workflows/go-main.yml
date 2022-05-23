@@ -340,7 +340,6 @@ jobs:
       - name: Generate release changelog
         run: |
           echo "# What's new" > changelog.md
-          echo "---" >> changelog.md
           git log --pretty=format:"$ad- %s [%an]" --since=30.days >> changelog.md
 
       - name: Set variables
