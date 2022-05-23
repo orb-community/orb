@@ -1,23 +1,10 @@
-import {
-  ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import {
-  PolicyConfig,
-} from 'app/common/interfaces/orb/policy/config/policy.config.interface';
-import {
-  AgentPoliciesService,
-} from 'app/common/services/agents/agent.policies.service';
-import {
-  NotificationsService,
-} from 'app/common/services/notifications/notifications.service';
-import {
-  PolicyDetailsComponent,
-} from 'app/shared/components/orb/policy/policy-details/policy-details.component';
-import {
-  PolicyInterfaceComponent,
-} from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
+import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.config.interface';
+import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
+import { PolicyDetailsComponent } from 'app/shared/components/orb/policy/policy-details/policy-details.component';
+import { PolicyInterfaceComponent } from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
 import { STRINGS } from 'assets/text/strings';
 import { Subscription } from 'rxjs';
 
@@ -50,7 +37,6 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private policiesService: AgentPoliciesService,
     private cdr: ChangeDetectorRef,
-    private notifications: NotificationsService,
   ) {}
 
   ngOnInit() {
@@ -128,19 +114,6 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
         this.policy = policy;
         this.isLoading = false;
         this.cdr.markForCheck();
-      });
-  }
-
-  duplicatePolicy() {
-    this.policiesService.duplicateAgentPolicy(this.policyId || this.policy.id)
-      .subscribe(resp => {
-        if (resp?.name) {
-          this.notifications.success('Agent Policy Duplicated',
-            `New Agent Policy Name: ${resp?.name}`);
-        } else {
-          this.notifications.error('Cannot duplicate this policy', 'This'
-            + ' policy cannot be duplicated');
-        }
       });
   }
 

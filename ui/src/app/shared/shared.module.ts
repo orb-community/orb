@@ -16,6 +16,7 @@ import {
     NbSelectModule, NbTooltipModule,
 } from '@nebular/theme';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
 import { ConfirmationComponent } from './components/confirmation/confirmation.component';
 import { MessageValuePipe } from './pipes/message-value.pipe';
 import { ToMillisecsPipe } from './pipes/time.pipe';
