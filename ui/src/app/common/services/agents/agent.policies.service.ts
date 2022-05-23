@@ -70,19 +70,6 @@ export class AgentPoliciesService {
       );
   }
 
-  duplicateAgentPolicy(id: string): any {
-    return this.http.post(`${ environment.agentPoliciesUrl }/${ id }/duplicate`,
-      {},
-      { observe: 'response'})
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to create Agent Policy',
-            `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
-          return Observable.throwError(err);
-        },
-      );
-  }
-
   getAgentPolicyById(id: string): Observable<AgentPolicy> {
     return this.http.get(`${ environment.agentPoliciesUrl }/${ id }`)
       .pipe(

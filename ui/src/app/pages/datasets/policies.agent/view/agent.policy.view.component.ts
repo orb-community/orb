@@ -117,11 +117,6 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
       });
   }
 
-  duplicatePolicy() {
-    this.policiesService.duplicateAgentPolicy(this.policyId)
-      .subscribe();
-  }
-
   ngOnDestroy() {
     this.policySubscription?.unsubscribe();
   }
