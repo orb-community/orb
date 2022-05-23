@@ -6,6 +6,7 @@ package agent
 
 import (
 	"errors"
+	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/fatih/structs"
 	"github.com/jmoiron/sqlx"
@@ -75,7 +76,7 @@ func New(logger *zap.Logger, c config.Config) (Agent, error) {
 	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db, groupsInfos: make(map[string]GroupInfo)}, nil
 }
 
-func (a *orbAgent) startBackends() error {
+func (a *orbAgent) startBackends(cloudConfig config.MQTTConfig) error {
 	a.logger.Info("registered backends", zap.Strings("values", backend.GetList()))
 	a.logger.Info("requested backends", zap.Any("values", a.config.OrbAgent.Backends))
 	if len(a.config.OrbAgent.Backends) == 0 {
@@ -90,6 +91,8 @@ func (a *orbAgent) startBackends() error {
 		if err := be.Configure(a.logger, a.policyManager.GetRepo(), config, structs.Map(a.config.OrbAgent.Otel)); err != nil {
 			return err
 		}
+		be.SetCommsClient(cloudConfig.Id, a.client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
+
 		if err := be.Start(); err != nil {
 			return err
 		}
@@ -118,11 +121,11 @@ func (a *orbAgent) Start() error {
 		return err
 	}
 
-	if err := a.startBackends(); err != nil {
+	if err := a.startComms(cloudConfig); err != nil {
 		return err
 	}
 
-	if err := a.startComms(cloudConfig); err != nil {
+	if err := a.startBackends(cloudConfig); err != nil {
 		return err
 	}
 

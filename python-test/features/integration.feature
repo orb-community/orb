@@ -45,7 +45,8 @@ Scenario: apply one policy using multiple datasets to the same group
         And datasets related to all existing policies have validity valid
 
 
-@smoke
+#@smoke
+@MUTE
 Scenario: Remove group to which agent is linked
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -535,6 +536,7 @@ Scenario: remove 1 sink from a dataset with 2 sinks
         And an Agent Group is created with all tags contained in the agent
         And a new policy is created using: handler=dhcp
         And a new dataset is created using referred group, policy and 2 sinks
+        And dataset related have validity valid
     When remove 1 of the linked sinks from orb
     Then dataset related have validity valid
         And this agent's heartbeat shows that 1 policies are successfully applied and has status running
@@ -549,13 +551,15 @@ Scenario: remove 1 sink from a dataset with 1 sinks
         And an Agent Group is created with all tags contained in the agent
         And a new policy is created using: handler=dhcp
         And a new dataset is created using referred group, policy and 1 sinks
+        And dataset related have validity valid
     When remove 1 of the linked sinks from orb
     Then dataset related have validity invalid
         And this agent's heartbeat shows that 0 policies are successfully applied to the agent
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
 
 
-@smoke
+#@smoke
+@MUTE
 Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and insert another sink
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -590,7 +594,8 @@ Scenario: agent with only agent tags subscription to a group with policies creat
         And remove all the agents .yaml generated on test process
 
 
-@smoke
+#@smoke
+@MUTE
 Scenario: agent with only agent tags subscription to a group with policies created before provision the agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -656,10 +661,10 @@ Scenario: Remotely restart agents with policies applied
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
     When remotely restart the agent
-    Then the container logs should contain the message "restarting all backends" within 5 seconds
+    Then the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 10 seconds
+        And the container logs should contain the message "restarting all backends" within 5 seconds
         And the container logs that were output after reset the agent contain the message "removing policies" within 5 seconds
-        And the container logs that were output after reset the agent contain the message "resetting backend" within 5 seconds
-        And the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "resetting backend" within 10 seconds
         And the container logs that were output after reset the agent contain the message "reapplying policies" within 5 seconds
         And the container logs that were output after reset the agent contain the message "all backends were restarted" within 5 seconds
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 10 seconds
