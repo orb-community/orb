@@ -114,7 +114,7 @@ def list_groups_matching_an_agent(context, amount_of_groups):
                 "Groups matching the agent is not the same as the created by test process")
 
 
-@step("edit the agent tags and use {orb_tags} orb tag(s)")
+@step("edit the orb tags on agent and use {orb_tags} orb tag(s)")
 def editing_agent_tags(context, orb_tags):
     agent = get_agent(context.token, context.agent["id"])
     context.orb_tags = create_tags_set(orb_tags)
@@ -122,7 +122,7 @@ def editing_agent_tags(context, orb_tags):
     context.agent = get_agent(context.token, context.agent["id"])
 
 
-@step("edit the agent tags and use orb tags matching {amount_of_group} existing group")
+@step("edit the orb tags on agent and use orb tags matching {amount_of_group} existing group")
 def agent_is_edited_matching_group(context, amount_of_group):
     all_used_tags = tags_to_match_k_groups(context.token, amount_of_group, context.agent_groups)
     agent = get_agent(context.token, context.agent["id"])
@@ -139,7 +139,7 @@ def editing_agent_name(context):
     assert_that(context.agent["name"], equal_to(agent_new_name), "Agent name editing failed")
 
 
-@step("edit the agent name and edit agent tags using {orb_tags} orb tag(s)")
+@step("edit the agent name and edit orb tags on agent using {orb_tags} orb tag(s)")
 def editing_agent_name_and_tags(context, orb_tags):
     agent_new_name = generate_random_string_with_predefined_prefix(agent_name_prefix, 5)
     context.orb_tags = create_tags_set(orb_tags)
@@ -162,6 +162,17 @@ def remove_agent_config_files(context):
             os.remove(file)
 
 
+@then("remove the agent .yaml generated on each scenario")
+def remove_one_agent_config_files(context):
+    cwd = os.getcwd()
+    dir_path = os.path.dirname(cwd)
+    all_files_generated = find_files(context.agent_file_name, ".yaml", dir_path)
+    if len(all_files_generated) > 0:
+        for file in all_files_generated:
+            os.remove(file)
+
+
+
 @threading_wait_until
 def check_agent_exists_on_backend(token, agent_name, event=None):
     agent = None
@@ -180,7 +191,7 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     interface = configs.get('orb_agent_interface', 'mock')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
-    context.dir_path = create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url,
+    context.dir_path, context.agent_file_name = create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url,
                                                 base_orb_address, port, existing_agent_groups=context.agent_groups,
                                                 context=context)
     context.container_id = run_agent_config_file(context.dir_path, agent_name)
@@ -423,4 +434,4 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     dir_path = os.path.dirname(cwd)
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file)
-    return dir_path
+    return dir_path, agent_name
