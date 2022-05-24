@@ -26,16 +26,10 @@
       <div class="d-flex">
         <mat-chip-list>
           <mat-chip
-            *ngFor="let tag of agent?.orb_tags | keyvalue"
+            *ngFor="let tag of agent?.combined_tags | keyvalue"
             [style.background-color]="tag | tagcolor"
             class="orb-tag-chip">
             {{ tag | tagchip }}
-          </mat-chip>
-          <mat-chip
-            *ngFor="let tag of agent?.agent_tags | keyvalue"
-            [style.background-color]="tag | tagcolor"
-            class="orb-tag-chip">
-            {{tag | tagchip}}
           </mat-chip>
         </mat-chip-list>
       </div>
