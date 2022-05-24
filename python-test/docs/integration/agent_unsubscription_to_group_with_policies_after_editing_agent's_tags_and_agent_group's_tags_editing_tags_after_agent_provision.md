@@ -6,7 +6,7 @@ Steps:
 3. Create a sink
 4. Create 1 policy
 5. Create a dataset linking the group, the sink and the policy
-6. Edit agent tags using the same tag as the group
+6. Edit orb tags on agent using the same tag as the group
 7. Edit groups' tags using a different one
 
 
