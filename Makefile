@@ -51,6 +51,7 @@ define make_docker
 		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile .
 endef
+
 define make_docker_dev
 	$(eval svc=$(subst docker_dev_,,$(1)))
 
