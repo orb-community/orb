@@ -1,7 +1,7 @@
 @agents_ui
 Feature: Create agents using orb ui
 
-    @smoke
+    @smoke_ui
     Scenario: Create agent
         Given the Orb user logs in through the UI
             And that fleet Management is clickable on ORB Menu
@@ -9,7 +9,7 @@ Feature: Create agents using orb ui
         When a new agent is created through the UI with 3 orb tag(s)
         Then the agents list and the agents view should display agent's status as New within 10 seconds
 
-    @smoke
+    @smoke_ui
     Scenario: Provision agent
         Given the Orb user logs in through the UI
             And that fleet Management is clickable on ORB Menu
@@ -20,7 +20,7 @@ Feature: Create agents using orb ui
             And the agent status in Orb should be online
             And the container logs should contain the message "sending capabilities" within 10 seconds
 
-    @smoke
+    @smoke_ui
     Scenario: Run two orb agents on the same port
         Given the Orb user logs in through the UI
             And that the user is on the orb Agent page
@@ -33,7 +33,7 @@ Feature: Create agents using orb ui
             And the container logs should contain the message "agent startup error" within 2 seconds
             And first container created is running after 5 seconds
 
-    @smoke
+    @smoke_ui
     Scenario: Run two orb agents on different ports
         Given the Orb user logs in through the UI
             And that the user is on the orb Agent page

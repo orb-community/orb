@@ -2,5 +2,8 @@
 !test_config.ini.tpl
 reports/
 behave_test/
+output/
 /site
 /env_doc
+/venv
+*.ipynb

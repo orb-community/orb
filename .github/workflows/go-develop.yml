@@ -138,11 +138,10 @@ jobs:
         run: SERVICE=sinker make test_service
 
   package-agent:
-    needs: 
+    needs:
       - prebuild
       - test-agent
     runs-on: ubuntu-latest
-    if: ${{ needs.prebuild.outputs.agent == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Get short commit hash to a variable
@@ -176,9 +175,9 @@ jobs:
         run: docker push -a ns1labs/orb-agent
 
   package-fleet:
-    needs: 
-     - prebuild
-     - test-fleet
+    needs:
+      - prebuild
+      - test-fleet
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -203,9 +202,9 @@ jobs:
         run: docker push -a ns1labs/orb-fleet
 
   package-policies:
-    needs: 
-     - prebuild
-     - test-policies
+    needs:
+      - prebuild
+      - test-policies
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -230,9 +229,9 @@ jobs:
         run: docker push -a ns1labs/orb-policies
 
   package-sinker:
-    needs: 
-     - prebuild
-     - test-sinker
+    needs:
+      - prebuild
+      - test-sinker
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -257,9 +256,9 @@ jobs:
         run: docker push -a ns1labs/orb-sinker
 
   package-sinks:
-    needs: 
-     - prebuild
-     - test-sinks
+    needs:
+      - prebuild
+      - test-sinks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
