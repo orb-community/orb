@@ -10,6 +10,7 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"reflect"
 	"time"
 )
 
@@ -65,6 +66,20 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullLi
 	for _, payload := range rpc {
 		if payload.Action != "sanitize" {
 			a.policyManager.ManagePolicy(payload)
+			if _, ok := a.groupsInfos[payload.GroupID]; ok {
+				groupInfo := a.groupsInfos[payload.GroupID]
+
+				policyIDs := groupInfo.policyIDs
+				if alreadyAdded, _ := contains(groupInfo.policyIDs, payload.ID); !alreadyAdded {
+					policyIDs = append(policyIDs, payload.ID)
+				}
+
+				a.groupsInfos[payload.GroupID] = GroupInfo{
+					Name:      groupInfo.Name,
+					ChannelID: groupInfo.ChannelID,
+					policyIDs: policyIDs,
+				}
+			}
 		}
 	}
 
@@ -126,12 +141,34 @@ func (a *orbAgent) handleAgentStop(payload fleet.AgentStopRPCPayload) {
 	panic(fmt.Sprintf("control plane requested we terminate, reason: %s", payload.Reason))
 }
 
-func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
-	defer a.unsubscribeGroupChannel(rpc.ChannelID)
-	delete(a.groupsInfos, rpc.AgentGroupID)
+func contains(s []string, e string) (bool, int) {
+	for i, a := range s {
+		if a == e {
+			return true, i
+		}
+	}
+	return false, 0
+}
 
-	for _, policy := range rpc.Policies {
-		p, err := a.policyManager.GetRepo().Get(policy.PolicyID)
+func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
+	a.unsubscribeGroupChannel(rpc.ChannelID)
+
+	groupRemoved := a.groupsInfos[rpc.AgentGroupID]
+
+	for _, groupInfo := range a.groupsInfos {
+		if !reflect.DeepEqual(groupInfo, groupRemoved) {
+			for _, groupPolicy := range groupInfo.policyIDs {
+				if removePolicy, index := contains(groupRemoved.policyIDs, groupPolicy); removePolicy {
+					groupRemoved.policyIDs[index] = groupRemoved.policyIDs[len(groupRemoved.policyIDs)-1]
+					groupRemoved.policyIDs[len(groupRemoved.policyIDs)-1] = ""
+					groupRemoved.policyIDs = groupRemoved.policyIDs[:len(groupRemoved.policyIDs)-1]
+				}
+			}
+		}
+	}
+
+	for _, policy := range groupRemoved.policyIDs {
+		p, err := a.policyManager.GetRepo().Get(policy)
 		if err != nil {
 			a.logger.Warn("failed to retrieve policy", zap.String("policy_id", p.ID), zap.Error(err))
 			continue
@@ -141,8 +178,9 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 			a.logger.Warn("failed to remove a policy, ignoring", zap.String("policy_id", p.ID), zap.String("policy_name", p.Name), zap.Error(err))
 			continue
 		}
-		a.logger.Debug("DELETED FROM REPO")
 	}
+
+	delete(a.groupsInfos, rpc.AgentGroupID)
 }
 
 func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {

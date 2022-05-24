@@ -57,6 +57,7 @@ type orbAgent struct {
 type GroupInfo struct {
 	Name      string
 	ChannelID string
+	policyIDs []string
 }
 
 var _ Agent = (*orbAgent)(nil)

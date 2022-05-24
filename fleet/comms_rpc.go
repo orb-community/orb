@@ -46,6 +46,7 @@ type AgentPolicyRPCPayload struct {
 	Action    string      `json:"action"`
 	ID        string      `json:"id"`
 	DatasetID string      `json:"dataset_id"`
+	GroupID   string      `json:"group_id"`
 	Name      string      `json:"name"`
 	Backend   string      `json:"backend"`
 	Version   int32       `json:"version"`
@@ -67,9 +68,8 @@ type groupRemovedPolicy struct {
 }
 
 type GroupRemovedRPCPayload struct {
-	AgentGroupID string               `json:"agent_group_id"`
-	ChannelID    string               `json:"channel_id"`
-	Policies     []groupRemovedPolicy `json:"policies"`
+	AgentGroupID string `json:"agent_group_id"`
+	ChannelID    string `json:"channel_id"`
 }
 
 const DatasetRemovedRPCFunc = "dataset_removed"

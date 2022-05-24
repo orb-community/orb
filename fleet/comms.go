@@ -88,6 +88,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 		Version:   p.Version,
 		Data:      pdata,
 		DatasetID: datasetID,
+		GroupID:   ag.ID,
 	}}
 
 	data := AgentPolicyRPC{
@@ -273,71 +274,11 @@ func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 
 }
 
-func contains(s []groupRemovedPolicy, e string) bool {
-	for _, a := range s {
-		if a.PolicyID == e {
-			return true
-		}
-	}
-	return false
-}
-
 func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
-	groupIDs := make([]string, 1)
-	groupIDs[0] = ag.ID
-	groupRemovedPolicies, err := svc.policyClient.RetrievePoliciesByGroups(context.Background(), &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: ag.MFOwnerID})
-	if err != nil {
-		return err
-	}
-	policies := make([]groupRemovedPolicy, len(groupRemovedPolicies.Policies))
-	for i, p := range groupRemovedPolicies.Policies {
-		policies[i].PolicyID = p.Id
-		policies[i].PolicyName = p.Name
-		policies[i].Backend = p.Backend
-	}
-
-	agentsAffected, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), ag.MFOwnerID, ag.ID, false)
-	if err != nil {
-		return err
-	}
-
-	var removePolicy = true
-	for _, agent := range agentsAffected {
-		groups, err := svc.agentGroupRepo.RetrieveMatchingGroups(context.Background(), ag.MFOwnerID, agent.MFThingID)
-		if err != nil {
-			return err
-		}
-
-		var getPolicies bool
-		groupIDs := make([]string, 0)
-		for _, group := range groups.Groups {
-			if group.GroupID != ag.ID {
-				groupIDs = append(groupIDs, group.GroupID)
-				getPolicies = true
-			}
-		}
-
-		if getPolicies {
-			groupPolicies, err := svc.policyClient.RetrievePoliciesByGroups(context.Background(), &pb.PoliciesByGroupsReq{GroupIDs: groupIDs, OwnerID: ag.MFOwnerID})
-			if err != nil {
-				return err
-			}
-			for _, pol := range groupPolicies.Policies {
-				if contains(policies, pol.Id) {
-					removePolicy = false
-				}
-			}
-		}
-	}
-
-	if !removePolicy {
-		policies = make([]groupRemovedPolicy, 0)
-	}
 
 	payload := GroupRemovedRPCPayload{
 		AgentGroupID: ag.ID,
 		ChannelID:    ag.MFChannelID,
-		Policies:     policies,
 	}
 
 	data := RPC{
