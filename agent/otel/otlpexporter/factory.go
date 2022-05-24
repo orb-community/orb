@@ -19,10 +19,10 @@ const (
 )
 
 func NewFactory() component.ExporterFactory {
-	return component.NewExporterFactory(
+	return exporterhelper.NewFactory(
 		typeStr,
 		CreateDefaultConfig,
-		component.WithMetricsExporter(CreateMetricsExporter))
+		exporterhelper.WithMetrics(CreateMetricsExporter))
 }
 
 func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings {
@@ -30,7 +30,7 @@ func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings 
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
+			MeterProvider:  global.GetMeterProvider(),
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
@@ -39,9 +39,9 @@ func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings 
 func CreateDefaultConfig() config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
-		TimeoutSettings:  exporterhelper.NewDefaultTimeoutSettings(),
-		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
-		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
+		TimeoutSettings:  exporterhelper.DefaultTimeoutSettings(),
+		QueueSettings:    exporterhelper.DefaultQueueSettings(),
+		RetrySettings:    exporterhelper.DefaultRetrySettings(),
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
 			Endpoint:        defaultEnpoint,
 			Headers:         map[string]string{},
