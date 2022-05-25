@@ -10,7 +10,15 @@ on:
     branches: [ develop ]
   push:
     branches: [ develop, coverage ]
-
+env:
+  TEST_COVERAGE_THRESHOLD: 90
+  DIFF_COVERAGE_THRESHOLD: 70
+  #envs for github-commenter
+  GITHUB_OWNER: "ns1orb"
+  GITHUB_REPO: "ns1labs"
+  GITHUB_COMMENT_TYPE: "pr"
+  GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+  DIFFCOVER_EXCLUDE: ""
 jobs:
   prebuild:
     runs-on: ubuntu-latest
