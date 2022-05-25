@@ -76,7 +76,7 @@ jobs:
       - name: Run go report
         uses: ./.github/actions/go-report
         with:
-          go_report_threshold: 85.0 #grade A+
+          go_report_threshold: 90.1 #grade A+
 
   go-lint:
     needs: prebuild

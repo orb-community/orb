@@ -3,7 +3,7 @@
 function run() {
   echo "========================= Running Go Lint ========================="
   cd /github/workspace
-  result=$(/golangci-lint/golangci-lint run --config=./.github/.golangci.yml --new-from-rev origin/${GITHUB_BASE_REF} ./...)
+  result=$(/golangci-lint/golangci-lint run --config=./.github/actions/go-lint/.golangci.yml --new-from-rev origin/${GITHUB_BASE_REF} ./...)
   echo "lint result: ""$result"
   export LINT_RESULT=$result
 }
