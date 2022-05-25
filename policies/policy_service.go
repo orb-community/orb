@@ -11,6 +11,7 @@ package policies
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc/status"
 
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet/pb"
@@ -125,18 +126,31 @@ func (s policiesService) EditPolicy(ctx context.Context, token string, pol Polic
 	}
 
 	// Used to get the policy backend and validate it
-	plcy, err := s.repo.RetrievePolicyByID(ctx, pol.ID, ownerID)
+	currentPol, err := s.repo.RetrievePolicyByID(ctx, pol.ID, ownerID)
 	if err != nil {
 		return Policy{}, err
 	}
-	pol.Backend = plcy.Backend
+	pol.Backend = currentPol.Backend
 	pol.MFOwnerID = ownerID
-	pol.Version = plcy.Version
+	pol.Version = currentPol.Version
+
+	// If backend policy is not being edited, retrieve saved one
+	if pol.PolicyData == "" && pol.Policy == nil {
+		pol.Policy = currentPol.Policy
+		pol.PolicyData = currentPol.PolicyData
+		pol.Format = currentPol.Format
+	}
 
 	err = validatePolicyBackend(&pol)
 	if err != nil {
 		return Policy{}, err
 	}
+
+	// If policy name is not being edited, retrieve saved one
+	if pol.Name.String() == "" {
+		pol.Name = currentPol.Name
+	}
+
 	pol.Version++
 	err = s.repo.UpdatePolicy(ctx, ownerID, pol)
 	if err != nil {
@@ -464,7 +478,7 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 
 			policy.Name = policyName
 			id, errCreate = s.repo.SavePolicy(ctx, policy)
-			if errCreate != nil && errCreate == errors.ErrConflict {
+			if errCreate != nil && status.Code(errCreate) == status.Code(errors.ErrConflict) {
 				if i < 3 {
 					i++
 					nameSuffix = fmt.Sprintf("_copy%d", i)
@@ -476,7 +490,7 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 			break
 		}
 		if errCreate != nil {
-			return Policy{}, err
+			return Policy{}, errCreate
 		}
 	}
 	policy.ID = id

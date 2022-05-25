@@ -20,9 +20,9 @@ func TestCreateDefaultConfig(t *testing.T) {
 
 	ocfg, ok := factory.CreateDefaultConfig().(*otlpexporter.Config)
 	assert.True(t, ok)
-	assert.Equal(t, ocfg.RetrySettings, exporterhelper.NewDefaultRetrySettings())
-	assert.Equal(t, ocfg.QueueSettings, exporterhelper.NewDefaultQueueSettings())
-	assert.Equal(t, ocfg.TimeoutSettings, exporterhelper.NewDefaultTimeoutSettings())
+	assert.Equal(t, ocfg.RetrySettings, exporterhelper.DefaultRetrySettings())
+	assert.Equal(t, ocfg.QueueSettings, exporterhelper.DefaultQueueSettings())
+	assert.Equal(t, ocfg.TimeoutSettings, exporterhelper.DefaultTimeoutSettings())
 }
 
 func TestCreateMetricsExporter(t *testing.T) {

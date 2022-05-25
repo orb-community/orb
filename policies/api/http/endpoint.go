@@ -11,6 +11,7 @@ package http
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies"
 )
@@ -134,9 +135,12 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 			return policyUpdateRes{}, err
 		}
 
-		nameID, err := types.NewIdentifier(req.Name)
-		if err != nil {
-			return policyUpdateRes{}, err
+		var nameID types.Identifier
+		if req.Name != "" {
+			nameID, err = types.NewIdentifier(req.Name)
+			if err != nil {
+				return policyUpdateRes{}, errors.Wrap(errors.ErrMalformedEntity, err)
+			}
 		}
 		plcy := policies.Policy{
 			ID:          req.id,
