@@ -1,12 +1,13 @@
+import re
 from test_config import TestConfig
 from local_agent import get_orb_agent_logs
 from users import get_auth_token
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
-    create_tags_set, check_logs_contain_message_and_name
+    create_tags_set, check_logs_contain_message_and_name, threading_wait_until
 from behave import given, then, step
 from hamcrest import *
 import requests
-import time
+from random import sample
 
 configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
@@ -14,18 +15,30 @@ agent_group_description = "This is an agent group"
 orb_url = configs.get('orb_url')
 
 
-@step("an Agent Group is created with same tag as the agent")
-def create_agent_group_matching_agent(context, **kwargs):
+@step("an Agent Group is created with {amount_of_tags} tags contained in the agent")
+def create_agent_group_matching_agent(context, amount_of_tags, **kwargs):
+    if amount_of_tags.isdigit() is False:
+        assert_that(amount_of_tags, equal_to("all"), 'Unexpected value for amount of tags')
     agent_group_name = agent_group_name_prefix + random_string()
     if "group_description" in kwargs.keys():
         group_description = kwargs["group_description"]
     else:
         group_description = agent_group_description
-    tags = context.agent["orb_tags"]
+
+    tags_in_agent = context.agent["orb_tags"]
     if context.agent["agent_tags"] is not None:
-        tags.update(context.agent["agent_tags"])
+        tags_in_agent.update(context.agent["agent_tags"])
+    tags_keys = tags_in_agent.keys()
+
+    if amount_of_tags.isdigit() is True:
+        amount_of_tags = int(amount_of_tags)
+    else:
+        amount_of_tags = len(tags_keys)
+    assert_that(tags_keys, has_length(greater_than_or_equal_to(amount_of_tags)), "Amount of tags greater than tags"
+                                                                                      "contained in agent")
+    tags_to_group = {key: tags_in_agent[key] for key in sample(tags_keys, amount_of_tags)}
     context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
-                                                  tags)
+                                                  tags_to_group)
     group_id = context.agent_group_data['id']
     context.agent_groups[group_id] = agent_group_name
 
@@ -61,11 +74,11 @@ def create_new_agent_group_with_defined_description(context, orb_tags, descripti
 @step("an Agent Group is created with same tag as the agent and {description} description")
 def create_agent_group_with_defined_description_and_matching_agent(context, description):
     if description == "without":
-        create_agent_group_matching_agent(context, group_description=None)
+        create_agent_group_matching_agent(context, "all", group_description=None)
     else:
         description = description.replace('"', '')
         description = description.replace(' as', '')
-        create_agent_group_matching_agent(context, group_description=description)
+        create_agent_group_matching_agent(context, "all", group_description=description)
 
 
 @step("the {edited_parameters} of Agent Group is edited using: {parameters_values}")
@@ -94,9 +107,15 @@ def edit_multiple_groups_parameters(context, edited_parameters, parameters_value
                 "All parameter must have referenced value")
 
     if "tags" in editing_param_dict.keys() and editing_param_dict["tags"] is not None:
-        editing_param_dict["tags"] = create_tags_set(editing_param_dict["tags"])
+        if re.match(r"matching (\d+|all|the) agent*", editing_param_dict["tags"]):
+            #todo improve logic for multiple agents
+            editing_param_dict["tags"] = context.agent["orb_tags"]
+            if context.agent["agent_tags"] is not None:
+                editing_param_dict["tags"].update(context.agent["agent_tags"])
+        else:
+            editing_param_dict["tags"] = create_tags_set(editing_param_dict["tags"])
     if "name" in editing_param_dict.keys() and editing_param_dict["name"] is not None:
-        editing_param_dict["name"] = agent_group_name_prefix + editing_param_dict["name"]
+        editing_param_dict["name"] = f"{agent_group_name_prefix}{editing_param_dict['name']}_{random_string(5)}"
 
     for parameter, value in editing_param_dict.items():
         group_data[parameter] = value
@@ -129,6 +148,7 @@ def matching_agent(context, amount_agent_matching):
 @step("the group to which the agent is linked is removed")
 def remove_group(context):
     delete_agent_group(context.token, context.agent_group_data['id'])
+    context.agent_groups.pop(context.agent_group_data['id'])
 
 
 @then('cleanup agent group')
@@ -158,8 +178,8 @@ def subscribe_agent_to_a_group(context):
       '{time_to_wait} seconds')
 def check_logs_for_group(context, text_to_match, time_to_wait):
     groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups, context.agent)
-    text_found, groups_to_which_subscribed = check_subscription(time_to_wait, groups_matching,
-                                                                text_to_match, context.container_id)
+    text_found, groups_to_which_subscribed = check_subscription(groups_matching, text_to_match, context.container_id,
+                                                                timeout=time_to_wait)
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)"
                                        f"{set(groups_matching).difference(groups_to_which_subscribed)}!")
 
@@ -205,23 +225,45 @@ def get_agent_group(token, agent_group_id):
     return get_groups_response.json()
 
 
-def list_agent_groups(token, limit=100):
+def list_agent_groups(token, limit=100, offset=0):
+    """
+    Lists all agent_groups from Orb control plane that belong to this user
+
+    :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
+    :returns: (list) a list of agent_groups
+    """
+    all_agent_groups, total, offset = list_up_to_limit_agent_groups(token, limit, offset)
+
+    new_offset = limit + offset
+
+    while new_offset < total:
+        agent_groups_from_offset, total, offset = list_up_to_limit_agent_groups(token, limit, new_offset)
+        all_agent_groups = all_agent_groups + agent_groups_from_offset
+        new_offset = limit + offset
+
+    return all_agent_groups
+
+
+def list_up_to_limit_agent_groups(token, limit=100, offset=0):
     """
     Lists up to 100 agent groups from Orb control plane that belong to this user
 
     :param (str) token: used for API authentication
     :param (int) limit: Size of the subset to retrieve (max 100). Default = 100
-    :returns: (list) a list of agent groups
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
+    :returns: (list) a list of agent groups, (int) total groups on orb, (int) offset
     """
 
     response = requests.get(orb_url + '/api/v1/agent_groups', headers={'Authorization': token},
-                            params={"limit": limit})
+                            params={"limit": limit, "offset": offset})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list agent groups failed with status=' + str(response.status_code))
 
     agent_groups_as_json = response.json()
-    return agent_groups_as_json['agentGroups']
+    return agent_groups_as_json['agentGroups'], agent_groups_as_json['total'], agent_groups_as_json['offset']
 
 
 def delete_agent_groups(token, list_of_agent_groups):
@@ -251,30 +293,27 @@ def delete_agent_group(token, agent_group_id):
                 + agent_group_id + ' failed with status=' + str(response.status_code))
 
 
-def check_subscription(time_to_wait, agent_groups_names, expected_message, container_id):
+@threading_wait_until
+def check_subscription(agent_groups_names, expected_message, container_id, event=None):
     """
 
-    :param (int) time_to_wait: timout (seconds)
     :param (list) agent_groups_names: groups to which the agent must be subscribed
     :param (str) expected_message: message that we expect to find in the logs
     :param (str) container_id: agent container id
+    :param (obj) event: threading.event
     :return: (bool) True if agent is subscribed to all matching groups, (list) names of the groups to which agent is subscribed
     """
     groups_to_which_subscribed = set()
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = int(time_to_wait)
-    while time_waiting < timeout:
-        for name in agent_groups_names:
-            logs = get_orb_agent_logs(container_id)
-            text_found, log_line = check_logs_contain_message_and_name(logs, expected_message, name, "group_name")
-            if text_found is True:
-                groups_to_which_subscribed.add(log_line["group_name"])
-                if set(groups_to_which_subscribed) == set(agent_groups_names):
-                    return True, groups_to_which_subscribed
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
-    return False, groups_to_which_subscribed
+    for name in agent_groups_names:
+        logs = get_orb_agent_logs(container_id)
+        text_found, log_line = check_logs_contain_message_and_name(logs, expected_message, name, "group_name")
+        if text_found is True:
+            groups_to_which_subscribed.add(log_line["group_name"])
+            if set(groups_to_which_subscribed) == set(agent_groups_names):
+                event.set()
+                return event.is_set(), groups_to_which_subscribed
+
+    return event.is_set(), groups_to_which_subscribed
 
 
 def edit_agent_group(token, agent_group_id, name, description, tags, expected_status_code=200):
@@ -325,3 +364,29 @@ def return_matching_groups(token, existing_agent_groups, agent_json):
             groups_matching.append(existing_agent_groups[group])
             groups_matching_id.append(group)
     return groups_matching, groups_matching_id
+
+
+def tags_to_match_k_groups(token, k, all_existing_groups):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) k: amount of groups that the agent must match
+    :param (dict) all_existing_groups: full data of all existing groups
+    :return: (dict) with all tags that must be on the agent
+    """
+    if k.isdigit() is False:
+        assert_that(k, any_of(equal_to("all"), equal_to("last"), equal_to("first")),
+                    "Unexpected amount of groups to match.")
+    if k == "last":
+        id_of_groups_to_match = [list(all_existing_groups.keys())[-1]]
+    elif k == "first":
+        id_of_groups_to_match = [list(all_existing_groups.keys())[0]]
+    else:
+        if k == "all":
+            k = len(list(all_existing_groups.keys()))
+        id_of_groups_to_match = sample(list(all_existing_groups.keys()), int(k))
+    all_used_tags = dict()
+    for agent_group_id in id_of_groups_to_match:
+        group_data = get_agent_group(token, agent_group_id)
+        all_used_tags.update(group_data["tags"])
+    return all_used_tags

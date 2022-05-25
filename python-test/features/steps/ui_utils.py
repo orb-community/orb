@@ -1,4 +1,3 @@
-from hamcrest import *
 from selenium import webdriver
 
 

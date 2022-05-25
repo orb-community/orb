@@ -2,10 +2,10 @@
   <nb-card-header class="summary-accent">Active Datasets ({{ this.datasets.length }})
     <button (click)="onCreateDataset()"
             ghost="true"
-            class="add-dataset-button"
+            class="card-ghost-button"
             nbButton
             status="primary">
-      <i class="fa fa-plus">&nbsp;</i>Create Dataset
+      <i class="fa fa-plus">&nbsp;</i>New Dataset
     </button>
   </nb-card-header>
   <nb-card-body>
@@ -32,10 +32,11 @@
 </nb-card>
 
 <ng-template #nameTemplateCell let-i="index" let-row="row" let-value="value">
-  <div (click)="onOpenEdit(row)"
+  <button (click)="onOpenEdit(row)"
+          class="edit-dataset-button"
        nbTooltip="{{ row.id }}">
     {{ row.name }}
-  </div>
+  </button>
 </ng-template>
 
 <ng-template #groupTemplateCell let-i="index" let-row="row" let-value="value">

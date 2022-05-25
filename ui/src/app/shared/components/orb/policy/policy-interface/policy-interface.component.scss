@@ -61,3 +61,17 @@ nb-card {
   color: #df316f;
   padding-left: 2px;
 }
+
+.code-editor {
+  height: calc(100%);
+  width: calc(100%);
+  padding: calc(1rem);
+}
+
+.code-editor-wrapper {
+  min-height: 350px;
+  min-width: 200px;
+  height: calc(58vh);
+  width: calc(100%);
+  display: block;
+}

@@ -1,11 +1,13 @@
 <nb-card>
-  <nb-card-header>Active Groups</nb-card-header>
+  <nb-card-header>Assigned Groups</nb-card-header>
   <nb-card-body>
     <div *ngIf="!isLoading">
-      <button (click)="showAgentGroupDetail(group)"
-              *ngFor="let group of groups; last as isLast"
-              class='agent-group-button'>
-        <span class="agent-group-accent">{{ group.name }}</span>
+      <button
+        (click)="showAgentGroupMatches(group)"
+        *ngFor="let group of groups; last as isLast"
+        class="agent-group-button">
+        <span class="agent-group-accent">{{ group.name }} ( {{ group.matching_agents.online}}
+                                                          / {{ group.matching_agents.total }} )</span>
         <span *ngIf="!isLast">,</span>
       </button>
     </div>

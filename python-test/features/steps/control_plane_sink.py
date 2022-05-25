@@ -1,9 +1,8 @@
 from behave import given, when, then, step
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with
+from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until
 from hamcrest import *
 import requests
-import time
 
 configs = TestConfig.configs()
 sink_label_name_prefix = "test_sink_label_name_"
@@ -35,9 +34,7 @@ def create_sink(context):
     username = context.prometheus_username
     password = context.prometheus_key
     context.sink = create_new_sink(token, sink_label_name, endpoint, username, password)
-    context.existent_sinks_id = list()
-    for sink_json in list_sinks(token):
-        context.existent_sinks_id.append(sink_json['id'])
+    context.existent_sinks_id.append(context.sink['id'])
 
 
 @step("{amount_of_sinks} new sinks are created")
@@ -80,24 +77,13 @@ def create_invalid_sink(context, credential):
     prometheus_credentials[credential] = prometheus_credentials[credential][:-2]
     context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
                                    prometheus_credentials['username'], prometheus_credentials['password'])
-    context.existent_sinks_id = list()
-    for sink_json in list_sinks(token):
-        context.existent_sinks_id.append(sink_json['id'])
+    context.existent_sinks_id.append(context.sink['id'])
 
 
 @step("referred sink must have {status} state on response within {time_to_wait} seconds")
 def check_sink_status(context, status, time_to_wait):
-    time_waiting = 0
-    sleep_time = 0.5
-    timeout = int(time_to_wait)
     sink_id = context.sink["id"]
-
-    while time_waiting < timeout:
-        get_sink_response = get_sink(context.token, sink_id)
-        if get_sink_response['state'] == status:
-            break
-        time.sleep(sleep_time)
-        time_waiting += sleep_time
+    get_sink_response = get_sink_status_and_check(context.token, sink_id, status, timeout=time_to_wait)
 
     assert_that(get_sink_response['state'], equal_to(status), f"Sink {sink_id} state failed")
 
@@ -113,7 +99,6 @@ def clean_sinks(context):
     sinks_list = list_sinks(token)
     sinks_filtered_list = filter_list_by_parameter_start_with(sinks_list, 'name', sink_label_name_prefix)
     delete_sinks(token, sinks_filtered_list)
-
 
 
 def create_new_sink(token, name_label, remote_host, username, password, description=None, tag_key='',
@@ -163,22 +148,45 @@ def get_sink(token, sink_id):
     return get_sink_response.json()
 
 
-def list_sinks(token, limit=100):
+def list_sinks(token, limit=100, offset=0):
     """
     Lists all sinks from Orb control plane that belong to this user
 
     :param (str) token: used for API authentication
     :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
     :returns: (list) a list of sinks
     """
+    all_sinks, total, offset = list_up_to_limit_sinks(token, limit, offset)
 
-    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': token}, params={'limit': limit})
+    new_offset = limit + offset
+
+    while new_offset < total:
+        sinks_from_offset, total, offset = list_up_to_limit_sinks(token, limit, new_offset)
+        all_sinks = all_sinks + sinks_from_offset
+        new_offset = limit + offset
+
+    return all_sinks
+
+
+def list_up_to_limit_sinks(token, limit=100, offset=0):
+    """
+    Lists up to 100 sinks from Orb control plane that belong to this user
+
+    :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
+    :returns: (list) a list of sinks, (int) total sinks on orb, (int) offset
+    """
+
+    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': token}, params={'limit': limit,
+                                                                                                 'offset': offset})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list sinks failed with status=' + str(response.status_code))
 
     sinks_as_json = response.json()
-    return sinks_as_json['sinks']
+    return sinks_as_json['sinks'], sinks_as_json['total'], sinks_as_json['offset']
 
 
 def delete_sinks(token, list_of_sinks):
@@ -206,3 +214,20 @@ def delete_sink(token, sink_id):
 
     assert_that(response.status_code, equal_to(204), 'Request to delete sink id='
                 + sink_id + ' failed with status=' + str(response.status_code))
+
+
+@threading_wait_until
+def get_sink_status_and_check(token, sink_id, status, event=None):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) sink_id: that identifies the sink to be deleted
+    :param status: expected status for referred sink
+    :param (obj) event: threading.event
+    :returns: (dict) data of the fetched sink
+    """
+    get_sink_response = get_sink(token, sink_id)
+    if get_sink_response['state'] == status:
+        event.set()
+        return get_sink_response
+    return get_sink_response

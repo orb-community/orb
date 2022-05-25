@@ -1,20 +1,60 @@
-<header class="row"
-        data-orb-qa-id="agent#view">
-  <div class="col-8">
-    <xng-breadcrumb class="orb-breadcrumb"
-                    data-orb-qa-id="breadcrumb">
-    </xng-breadcrumb>
-    <div><h4>Policy View</h4></div>
+<header
+  class="row"
+  data-orb-qa-id="agent#view">
+  <div class="col-10">
+    <xng-breadcrumb
+      class="orb-breadcrumb"
+      data-orb-qa-id="breadcrumb"></xng-breadcrumb>
+
+      <h4>Policy View</h4>
+  </div>
+    <div class="col-2">
+      <button (click)="duplicatePolicy()"
+              class="policy-duplicate"
+              data-orb-qa-id="button#reset"
+              nbButton
+              shape="round">
+        Duplicate Policy
+      </button>
+    </div>
+
+  <div *ngIf="isEditMode()">
+    <button
+      (click)="save()"
+      [disabled]="!canSave()"
+      class="card-ghost-button"
+      nbButton
+      status="primary">
+      Save
+    </button>
+    <button
+      (click)="discard()"
+      class="card-ghost-button"
+      ghost="true"
+      nbButton
+      status="danger">
+      Discard
+    </button>
   </div>
 </header>
 
-<div *ngIf="!isLoading" class="row">
+<div
+  *ngIf="!isLoading"
+  class="row">
   <div class="card-col col-4">
-    <ngx-policy-details [policy]="policy"></ngx-policy-details>
-    <ngx-policy-groups [policy]="policy"></ngx-policy-groups>
+    <ngx-policy-details
+      [(editMode)]="editMode.details"
+      [policy]="policy"></ngx-policy-details>
+    <ngx-policy-groups
+      (refreshPolicy)="retrievePolicy()"
+      [policy]="policy"></ngx-policy-groups>
   </div>
   <div class="card-col col-8">
-    <ngx-policy-interface [policy]="policy"></ngx-policy-interface>
-    <ngx-policy-datasets [policy]="policy"></ngx-policy-datasets>
+    <ngx-policy-interface
+      [(editMode)]="editMode.interface"
+      [policy]="policy"></ngx-policy-interface>
+    <ngx-policy-datasets
+      (refreshPolicy)="retrievePolicy()"
+      [policy]="policy"></ngx-policy-datasets>
   </div>
 </div>

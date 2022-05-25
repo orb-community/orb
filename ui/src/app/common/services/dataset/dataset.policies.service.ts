@@ -52,8 +52,8 @@ export class DatasetPoliciesService {
 
   addDataset(datasetItem: Dataset) {
     return this.http.post(environment.datasetPoliciesUrl,
-        { ...datasetItem },
-        { observe: 'response' })
+                          { ...datasetItem },
+                          { observe: 'response' })
       .map(
         resp => {
           return resp;
@@ -61,15 +61,15 @@ export class DatasetPoliciesService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to create Dataset Policy',
-            `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
+          this.notificationsService.error('Failed to create Dataset for this Policy',
+                                          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
           return Observable.throwError(err);
         },
       );
   }
 
   getDatasetById(id: string): Observable<Dataset> {
-    return this.http.get<Dataset>(`${ environment.datasetPoliciesUrl }/${ id }`)
+    return this.http.get<Dataset>(`${environment.datasetPoliciesUrl}/${id}`)
       .map(
         resp => {
           return resp;
@@ -77,15 +77,15 @@ export class DatasetPoliciesService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to fetch Dataset Policy',
-            `Error: ${ err.status } - ${ err.statusText }`);
+          this.notificationsService.error('Failed to fetch Dataset of this Policy',
+                                          `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );
   }
 
   editDataset(datasetItem: Dataset): any {
-    return this.http.put(`${ environment.datasetPoliciesUrl }/${ datasetItem.id }`, datasetItem)
+    return this.http.put(`${environment.datasetPoliciesUrl}/${datasetItem.id}`, datasetItem)
       .map(
         resp => {
           return resp;
@@ -93,15 +93,15 @@ export class DatasetPoliciesService {
       )
       .catch(
         err => {
-          this.notificationsService.error('Failed to edit Dataset Policy',
-            `Error: ${ err.status } - ${ err.statusText }`);
+          this.notificationsService.error('Failed to edit Dataset',
+                                          `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );
   }
 
   deleteDataset(id: string) {
-    return this.http.delete(`${ environment.datasetPoliciesUrl }/${ id }`)
+    return this.http.delete(`${environment.datasetPoliciesUrl}/${id}`)
       .map(
         resp => {
           return resp;
@@ -110,13 +110,14 @@ export class DatasetPoliciesService {
       .catch(
         err => {
           this.notificationsService.error('Failed to Delete Dataset Policies',
-            `Error: ${ err.status } - ${ err.statusText }`);
+                                          `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );
   }
 
   getAllDatasets() {
+    this.clean();
     const pageInfo = DatasetPoliciesService.getDefaultPagination();
 
 
@@ -206,8 +207,8 @@ export class DatasetPoliciesService {
       })
       .catch(
         err => {
-          this.notificationsService.error('Failed to get Dataset Policies',
-            `Error: ${ err.status } - ${ err.statusText }`);
+          this.notificationsService.error('Failed to get Datasets of Policy',
+                                          `Error: ${err.status} - ${err.statusText}`);
           return Observable.throwError(err);
         },
       );

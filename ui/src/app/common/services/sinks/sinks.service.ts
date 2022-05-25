@@ -43,15 +43,16 @@ export class SinksService {
         return resp;
       })
       .catch(err => {
-        this.notificationsService.error('Failed to create Sink', `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
+        this.notificationsService.error('Failed to create Sink',
+                                        `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
         return Observable.throwError(err);
       });
   }
 
   getSinkById(sinkId: string): Observable<Sink> {
-    return this.http.get(`${ environment.sinksUrl }/${ sinkId }`)
+    return this.http.get(`${environment.sinksUrl}/${sinkId}`)
       .pipe(catchError(err => {
-        this.notificationsService.error('Failed to fetch Sink', `Error: ${ err.status } - ${ err.statusText }`);
+        this.notificationsService.error('Failed to fetch Sink', `Error: ${err.status} - ${err.statusText}`);
         err['id'] = sinkId;
         return of(err);
       }));
@@ -62,12 +63,13 @@ export class SinksService {
       .map((resp: any) => {
         return resp.backends;
       }).catch(err => {
-        this.notificationsService.error('Failed to get Sink Backends', `Error: ${ err.status } - ${ err.statusText }`);
+        this.notificationsService.error('Failed to get Sink Backends', `Error: ${err.status} - ${err.statusText}`);
         return Observable.throwError(err);
       });
   }
 
   getAllSinks() {
+    this.clean();
     const pageInfo = SinksService.getDefaultPagination();
 
     return this.getSinks(pageInfo)
@@ -152,30 +154,30 @@ export class SinksService {
         return this.cache;
       })
       .catch(err => {
-        this.notificationsService.error('Failed to get Sinks', `Error: ${ err.status } - ${ err.statusText }`);
+        this.notificationsService.error('Failed to get Sinks', `Error: ${err.status} - ${err.statusText}`);
         return Observable.throwError(err);
       });
   }
 
   editSink(sinkItem: Sink): any {
-    return this.http.put(`${ environment.sinksUrl }/${ sinkItem.id }`, sinkItem)
+    return this.http.put(`${environment.sinksUrl}/${sinkItem.id}`, sinkItem)
       .map(resp => {
         return resp;
       })
       .catch(err => {
-        this.notificationsService.error('Failed to edit Sink', `Error: ${ err.status } - ${ err.statusText }`);
+        this.notificationsService.error('Failed to edit Sink', `Error: ${err.status} - ${err.statusText}`);
         return Observable.throwError(err);
       });
   }
 
   deleteSink(sinkId: string) {
-    return this.http.delete(`${ environment.sinksUrl }/${ sinkId }`)
+    return this.http.delete(`${environment.sinksUrl}/${sinkId}`)
       .map(resp => {
         this.cache.data.splice(this.cache.data.map(s => s.id).indexOf(sinkId), 1);
         return resp;
       })
       .catch(err => {
-        this.notificationsService.error('Failed to delete Sink', `Error: ${ err.status } - ${ err.statusText }`);
+        this.notificationsService.error('Failed to delete Sink', `Error: ${err.status} - ${err.statusText}`);
         return Observable.throwError(err);
       });
   }

@@ -14,22 +14,23 @@ export class SinkControlComponent implements OnInit {
   selectedSinksChange: EventEmitter<Sink[]>;
 
   @Input()
-  availableSinks: Sink[];
+  sinksList: Sink[];
 
   selectedSink: Sink;
 
   constructor() {
     this.selectedSinks = [];
     this.selectedSinksChange = new EventEmitter<Sink[]>();
-    this.availableSinks = [];
+    this.sinksList = [];
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
   }
 
   onAddSink(sink) {
-    this.selectedSinks.push(sink);
+    this.selectedSinks = [...this.selectedSinks, sink];
     this.selectedSinksChange.emit(this.selectedSinks);
+    this.selectedSink = null;
   }
 
 }

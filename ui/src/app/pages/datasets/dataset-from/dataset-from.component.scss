@@ -219,3 +219,8 @@ nb-accordion {
   border-style: solid;
   border-width: thin;
 }
+
+::ng-deep .cdk-global-scrollblock {
+  position: static !important;
+  overflow-y: inherit !important;
+}

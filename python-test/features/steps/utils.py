@@ -2,7 +2,12 @@ import random
 import string
 from json import loads, JSONDecodeError
 from hamcrest import *
+import threading
+from datetime import datetime
+import socket
 import os
+import re
+import multiprocessing
 
 tag_prefix = "test_tag_"
 
@@ -74,14 +79,22 @@ def create_tags_set(orb_tags):
     """
     tag_set = dict()
     if orb_tags.isdigit() is False:
-        assert_that(orb_tags, matches_regexp("^.+\:.+"), "Unexpected tags")
-        for tag in orb_tags.split(", "):
-            key, value = tag.split(":")
-            tag_set[key] = value
-    else:
-        amount_of_tags = int(orb_tags.split()[0])
-        for tag in range(amount_of_tags):
-            tag_set[tag_prefix + random_string(4)] = tag_prefix + random_string(2)
+        assert_that(orb_tags, any_of(matches_regexp("^.+\:.+"), matches_regexp("\d+ orb tag\(s\)"),
+                                     matches_regexp("\d+ orb tag")), f"Unexpected regex for tags. Passed: {orb_tags}."
+                                                                     f"Expected (examples):"
+                                                                     f"If you want 1 randomized tag: 1 orb tag."
+                                                                     f"If you want more than 1 randomized tags: 2 orb tags. Note that you can use any int. 2 its only an example."
+                                                                     f"If you want specified tags: test_key:test_value, second_key:second_value.")
+        if re.match(r"^.+\:.+",
+                    orb_tags):  # We expected key values separated by a colon ":" and multiple tags separated
+            # by a comma ",". Example: test_key:test_value, my_orb_key:my_orb_value
+            for tag in orb_tags.split(", "):
+                key, value = tag.split(":")
+                tag_set[key] = value
+                return tag_set
+    amount_of_tags = int(orb_tags.split()[0])
+    for tag in range(amount_of_tags):
+        tag_set[tag_prefix + random_string(6)] = tag_prefix + random_string(4)
     return tag_set
 
 
@@ -117,6 +130,71 @@ def remove_empty_from_json(json_file):
         elif isinstance(value, dict):
             remove_empty_from_json(value)
     return json_file
+
+
+def remove_key_from_json(json_file, key_to_be_removed):
+    """
+
+    :param json_file: json object
+    :param key_to_be_removed: key that need to be removed
+    :return: json object without keys removed
+    """
+    for key, value in list(json_file.items()):
+        if key == key_to_be_removed:
+            del json_file[key]
+        elif isinstance(value, dict):
+            remove_key_from_json(value, key_to_be_removed)
+    return json_file
+
+
+def threading_wait_until(func):
+    def wait_event(*args, wait_time=0.5, timeout=10, start_func_value=False, **kwargs):
+        event = threading.Event()
+        func_value = start_func_value
+        start = datetime.now().timestamp()
+        time_running = 0
+        while not event.is_set() and time_running < int(timeout):
+            func_value = func(*args, event=event, **kwargs)
+            event.wait(wait_time)
+            time_running = datetime.now().timestamp() - start
+        return func_value
+
+    return wait_event
+
+
+def return_port_to_run_docker_container(context, available=True):
+    """
+
+    :param (bool) available: Status of the port on which agent must try to run. Default: available.
+    :return: (int) port number
+    """
+
+    assert_that(available, any_of(equal_to(True), equal_to(False)), "Unexpected value for 'available' parameter")
+    if not available:
+        unavailable_port = list(context.containers_id.values())[-1]
+        return unavailable_port
+    else:
+        available_port = None
+        process_number = multiprocessing.current_process().name.split('-')[-1]
+        if process_number.isnumeric():  # if parallel process
+            lower_lim_port = 10800 + int(process_number) * 10
+            upper_lim_port = lower_lim_port + 10
+            port_options_for_process = range(lower_lim_port, upper_lim_port)
+        else:  # if sequential process
+            port_options_for_process = range(10800, 11000)
+
+        for port in port_options_for_process:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            res = sock.connect_ex(('localhost', port))
+            sock.close()
+            if res != 0:
+                available_port = port
+                return available_port
+            else:
+                # port not available
+                continue
+    assert_that(available_port, is_not(None), "Unable to find an available port to run orb agent")
+    return available_port
 
 
 def find_files(prefix, suffix, path):
