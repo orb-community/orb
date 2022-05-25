@@ -531,8 +531,8 @@ func TestNotifyGroupDatasetEdit(t *testing.T) {
 	ag, err := createAgentGroup(t, "group", fleetSVC)
 	assert.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	policy := createPolicy(t, policiesSVC, "policy")
-	dataset := createDataset(t, policiesSVC, "dataset", ag.ID)
+	policy := createPolicy(t, policiesSVC, "policy4")
+	dataset := createDataset(t, policiesSVC, "dataset3", ag.ID)
 
 	invalidDataset := dataset
 	invalidDataset.Valid = false
