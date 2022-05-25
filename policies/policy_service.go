@@ -126,18 +126,31 @@ func (s policiesService) EditPolicy(ctx context.Context, token string, pol Polic
 	}
 
 	// Used to get the policy backend and validate it
-	plcy, err := s.repo.RetrievePolicyByID(ctx, pol.ID, ownerID)
+	currentPol, err := s.repo.RetrievePolicyByID(ctx, pol.ID, ownerID)
 	if err != nil {
 		return Policy{}, err
 	}
-	pol.Backend = plcy.Backend
+	pol.Backend = currentPol.Backend
 	pol.MFOwnerID = ownerID
-	pol.Version = plcy.Version
+	pol.Version = currentPol.Version
+
+	// If backend policy is not being edited, retrieve saved one
+	if pol.PolicyData == "" && pol.Policy == nil {
+		pol.Policy = currentPol.Policy
+		pol.PolicyData = currentPol.PolicyData
+		pol.Format = currentPol.Format
+	}
 
 	err = validatePolicyBackend(&pol)
 	if err != nil {
 		return Policy{}, err
 	}
+
+	// If policy name is not being edited, retrieve saved one
+	if pol.Name.String() == "" {
+		pol.Name = currentPol.Name
+	}
+
 	pol.Version++
 	err = s.repo.UpdatePolicy(ctx, ownerID, pol)
 	if err != nil {
