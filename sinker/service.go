@@ -34,7 +34,7 @@ const (
 
 var (
 	ErrPayloadTooBig = errors.New("payload too big")
-	ErrNotFound      = errors.New("non-existent entity")
+	ErrNotFound = errors.New("non-existent entity")
 )
 
 type Service interface {
@@ -151,7 +151,6 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 		return err
 	}
 
-	// TODO do the strategy p to otlp format extract the loop below to function as JSON format handler and add new function for OTLP
 	for _, m := range metricsRPC.Payload {
 		// this payload loop is per policy. each policy has a list of datasets it is associated with, and each dataset may contain multiple sinks
 		// however, per policy, we want a unique set of sink IDs as we don't want to send the same metrics twice to the same sink for the same policy
