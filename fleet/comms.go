@@ -49,7 +49,7 @@ type AgentCommsService interface {
 	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 	//NotifyAgentReset RPC core -> Agent: Notify Agent to reset the backend
 	NotifyAgentReset(agent Agent, fullReset bool, reason string) error
-	// NotifyGroupDatasetReactivate RPC core -> Agent: Notify Agent an already created Dataset goes active after a while as invalid
+	// NotifyGroupDatasetEdit RPC core -> Agent: Notify Agent an already created Dataset goes active after a while as invalid
 	NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 }
 
@@ -93,7 +93,6 @@ func (svc fleetCommsService) NotifyGroupDatasetEdit(ctx context.Context, ag Agen
 	var action string
 	if dataset.Valid {
 		action = "manage"
-		svc.logger.Info("MANAGE SELECTED")
 	} else {
 		action = "remove"
 	}
@@ -130,8 +129,6 @@ func (svc fleetCommsService) NotifyGroupDatasetEdit(ctx context.Context, ag Agen
 	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
 		return err
 	}
-
-	svc.logger.Info("RPC SENT")
 
 	return nil
 }

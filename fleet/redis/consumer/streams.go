@@ -84,7 +84,6 @@ func (es eventStore) Subscribe(context context.Context) error {
 				rte := decodeDatasetRemove(event)
 				err = es.handleDatasetRemove(context, rte)
 			case datasetUpdate:
-				es.logger.Info("RPC RECEIVED")
 				rte := decodeDatasetUpdate(event)
 				err = es.handleDatasetUpdate(context, rte)
 

@@ -14,6 +14,10 @@ type agentCommsServiceMock struct {
 	commsMock      map[string][]fleet.Agent
 }
 
+func (ac agentCommsServiceMock) NotifyGroupDatasetEdit(ctx context.Context, ag fleet.AgentGroup, datasetID string, policyID string, ownerID string) error {
+	return nil
+}
+
 func (ac agentCommsServiceMock) NotifyAgentReset(agent fleet.Agent, fullReset bool, reason string) error {
 	return nil
 }
@@ -38,7 +42,7 @@ func NewFleetCommService(agentRepo fleet.AgentRepository, agentGroupRepo fleet.A
 	return &agentCommsServiceMock{
 		aRepoMock:      agentRepo,
 		aGroupRepoMock: agentGroupRepo,
-		commsMock: make(map[string][]fleet.Agent),
+		commsMock:      make(map[string][]fleet.Agent),
 	}
 }
 
@@ -56,8 +60,8 @@ func (ac agentCommsServiceMock) NotifyAgentNewGroupMembership(a fleet.Agent, ag 
 		return err
 	}
 
-	for _, group := range aGroups.AgentGroups{
-		if reflect.DeepEqual(group.Tags, a.AgentTags){
+	for _, group := range aGroups.AgentGroups {
+		if reflect.DeepEqual(group.Tags, a.AgentTags) {
 			ac.commsMock[group.ID] = append(ac.commsMock[group.ID], a)
 		}
 	}
@@ -74,7 +78,7 @@ func (ac agentCommsServiceMock) NotifyAgentGroupMemberships(a fleet.Agent) error
 	for _, agentGroup := range list {
 		agentList, _ := ac.commsMock[agentGroup.ID]
 		for i, agent := range agentList {
-			if reflect.DeepEqual(agent.AgentTags, a.AgentTags){
+			if reflect.DeepEqual(agent.AgentTags, a.AgentTags) {
 				agentList[i].Name = a.Name
 			} else {
 				agentList[i] = agentList[len(agentList)-1]
