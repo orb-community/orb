@@ -18,7 +18,7 @@ env:
   GITHUB_REPO: "ns1labs"
   GITHUB_COMMENT_TYPE: "pr"
   GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-  DIFFCOVER_EXCLUDE: "receiver.go transport.go"
+  DIFFCOVER_EXCLUDE: ""
 jobs:
   prebuild:
     runs-on: ubuntu-latest
