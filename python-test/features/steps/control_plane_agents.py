@@ -190,9 +190,10 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     interface = configs.get('orb_agent_interface', 'mock')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
-    context.dir_path = create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url,
-                                                base_orb_address, port, existing_agent_groups=context.agent_groups,
-                                                context=context)
+    context.dir_path, context.agent_file_name = create_agent_config_file(context.token, agent_name, interface,
+                                                                         agent_tags, orb_url, base_orb_address, port,
+                                                                         existing_agent_groups=context.agent_groups,
+                                                                         context=context)
     context.container_id = run_agent_config_file(context.dir_path, agent_name)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(port)

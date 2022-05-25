@@ -1,4 +1,4 @@
-## Scenario: Agent subscription to group with policies after editing agent's tags 
+## Scenario: Agent subscription to group with policies after editing orb agent's tags 
 Steps:
 -  
 1. Provision an agent with tags
@@ -19,7 +19,7 @@ Expected result:
 - The container logs that were output after all policies have been applied contains the message "scraped metrics for policy" referred to each applied policy
 
 
-## Scenario: Agent subscription to multiple groups with policies after editing agent's tags
+## Scenario: Agent subscription to multiple groups with policies after editing orb agent's tags
 Steps:
 -  
 1. Provision an agent with tags

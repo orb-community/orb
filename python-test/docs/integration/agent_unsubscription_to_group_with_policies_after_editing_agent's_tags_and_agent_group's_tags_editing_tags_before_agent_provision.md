@@ -1,4 +1,4 @@
-## Scenario: Agent unsubscription to group with policies after editing agent's tags and agent group's tags (editing tags before agent provision) 
+## Scenario: Agent unsubscription to group with policies after editing orb agent's tags and agent group's tags (editing tags before agent provision) 
 Steps:
 -  
 1. Create an agent with tags

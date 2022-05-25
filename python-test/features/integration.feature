@@ -223,7 +223,7 @@ Scenario: Agent subscription to multiple groups created before provisioning agen
 
 
 @smoke
-Scenario: Agent subscription to group after editing agent's tags (agent provisioned before editing and group created after)
+Scenario: Agent subscription to group after editing orb agent's tags (agent provisioned before editing and group created after)
     Given the Orb user has a registered account
         And the Orb user logs in
         And a new agent is created with 1 orb tag(s)
@@ -235,7 +235,7 @@ Scenario: Agent subscription to group after editing agent's tags (agent provisio
 
 
 @smoke
-Scenario: Agent subscription to group after editing agent's tags (editing tags after agent provision)
+Scenario: Agent subscription to group after editing orb agent's tags (editing tags after agent provision)
     Given the Orb user has a registered account
         And the Orb user logs in
         And an Agent Group is created with 2 orb tag(s)
@@ -248,7 +248,7 @@ Scenario: Agent subscription to group after editing agent's tags (editing tags a
 
 
 @smoke
-Scenario: Agent subscription to group after editing agent's tags (editing tags before agent provision)
+Scenario: Agent subscription to group after editing orb agent's tags (editing tags before agent provision)
     Given the Orb user has a registered account
         And the Orb user logs in
         And a new agent is created with 2 orb tag(s)
@@ -260,7 +260,7 @@ Scenario: Agent subscription to group after editing agent's tags (editing tags b
 
 
 @smoke
-Scenario: Agent subscription to multiple group with policies after editing agent's tags (editing tags after agent provision)
+Scenario: Agent subscription to multiple group with policies after editing orb agent's tags (editing tags after agent provision)
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
@@ -279,7 +279,7 @@ Scenario: Agent subscription to multiple group with policies after editing agent
 
 
 @smoke
-Scenario: Agent subscription to group with policies after editing agent's tags (editing tags after agent provision)
+Scenario: Agent subscription to group with policies after editing orb agent's tags (editing tags after agent provision)
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
