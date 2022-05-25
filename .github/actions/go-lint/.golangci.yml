@@ -1,7 +1,4 @@
 run:
-  skip-files:
-    - receiver.go
-    - transport.go
   # timeout for analysis, e.g. 30s, 5m, default is 1m
   timeout: 15m
 
@@ -12,7 +9,7 @@ run:
   # "/" will be replaced by current OS file path separator to properly work
   # on Windows.
   skip-dirs:
-    - swagger
+    - agent
 
 linters:
   enable:
