@@ -63,7 +63,32 @@ jobs:
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
-          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"  
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          
+  go-report:
+    needs: prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          name: workspace
+      - name: Run go report
+        uses: ./.github/actions/go-report
+        with:
+          go_report_threshold: 85.0 #grade A+
+
+  go-lint:
+    needs: prebuild
+    runs-on: ubuntu-latest
+    continue-on-error: true #for now we'll keep this step optional until we fix the lint issues
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Run go linter
+        uses: ./.github/actions/go-lint
 
   test-agent:
     runs-on: ubuntu-latest
