@@ -16,6 +16,7 @@ const (
 	DatasetPrefix = "dataset."
 	DatasetCreate = DatasetPrefix + "create"
 	DatasetRemove = DatasetPrefix + "remove"
+	DatasetUpdate = DatasetPrefix + "update"
 	PolicyPrefix  = "policy."
 	PolicyCreate  = PolicyPrefix + "create"
 	PolicyUpdate  = PolicyPrefix + "update"
@@ -45,6 +46,15 @@ type createDatasetEvent struct {
 }
 
 type removeDatasetEvent struct {
+	id           string
+	ownerID      string
+	agentGroupID string
+	datasetID    string
+	policyID     string
+	timestamp    time.Time
+}
+
+type updateDatasetEvent struct {
 	id           string
 	ownerID      string
 	agentGroupID string
@@ -98,6 +108,17 @@ func (cce removeDatasetEvent) Encode() map[string]interface{} {
 		"policy_id":  cce.policyID,
 		"timestamp":  cce.timestamp.Unix(),
 		"operation":  DatasetRemove,
+	}
+}
+
+func (cce updateDatasetEvent) Encode() map[string]interface{} {
+	return map[string]interface{}{
+		"id":        cce.id,
+		"owner_id":  cce.ownerID,
+		"group_id":  cce.agentGroupID,
+		"policy_id": cce.policyID,
+		"timestamp": cce.timestamp.Unix(),
+		"operation": DatasetUpdate,
 	}
 }
 

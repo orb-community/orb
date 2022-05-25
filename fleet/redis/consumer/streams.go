@@ -23,6 +23,7 @@ const (
 	datasetPrefix = "dataset."
 	datasetCreate = datasetPrefix + "create"
 	datasetRemove = datasetPrefix + "remove"
+	datasetUpdate = datasetPrefix + "update"
 	policyPrefix  = "policy."
 	policyCreate  = policyPrefix + "create"
 	policyUpdate  = policyPrefix + "update"
@@ -82,6 +83,10 @@ func (es eventStore) Subscribe(context context.Context) error {
 			case datasetRemove:
 				rte := decodeDatasetRemove(event)
 				err = es.handleDatasetRemove(context, rte)
+			case datasetUpdate:
+				es.logger.Info("RPC RECEIVED")
+				rte := decodeDatasetUpdate(event)
+				err = es.handleDatasetUpdate(context, rte)
 
 			case policyUpdate:
 				rte, derr := decodePolicyUpdate(event)
@@ -145,6 +150,25 @@ func (es eventStore) handleDatasetRemove(ctx context.Context, e removeDatasetEve
 	}
 
 	return es.commsService.NotifyGroupDatasetRemoval(ag, e.datasetID, e.policyID)
+}
+
+func decodeDatasetUpdate(event map[string]interface{}) updateDatasetEvent {
+	return updateDatasetEvent{
+		id:           read(event, "id", ""),
+		ownerID:      read(event, "owner_id", ""),
+		agentGroupID: read(event, "group_id", ""),
+		datasetID:    read(event, "dataset_id", ""),
+		policyID:     read(event, "policy_id", ""),
+	}
+}
+
+func (es eventStore) handleDatasetUpdate(ctx context.Context, e updateDatasetEvent) error {
+	ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, e.agentGroupID, e.ownerID)
+	if err != nil {
+		return err
+	}
+
+	return es.commsService.NotifyGroupDatasetEdit(ctx, ag, e.id, e.policyID, e.ownerID)
 }
 
 func decodePolicyUpdate(event map[string]interface{}) (updatePolicyEvent, error) {

@@ -49,6 +49,8 @@ type AgentCommsService interface {
 	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 	//NotifyAgentReset RPC core -> Agent: Notify Agent to reset the backend
 	NotifyAgentReset(agent Agent, fullReset bool, reason string) error
+	// NotifyGroupDatasetReactivate RPC core -> Agent: Notify Agent an already created Dataset goes active after a while as invalid
+	NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -67,6 +69,71 @@ type fleetCommsService struct {
 
 	// agent comms
 	agentPubSub mfnats.PubSub
+}
+
+func (svc fleetCommsService) NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error {
+	p, err := svc.policyClient.RetrievePolicy(ctx, &pb.PolicyByIDReq{PolicyID: policyID, OwnerID: ownerID})
+	if err != nil {
+		return err
+	}
+
+	var pdata interface{}
+	if err := json.Unmarshal(p.Data, &pdata); err != nil {
+		return err
+	}
+
+	dataset, err := svc.policyClient.RetrieveDataset(ctx, &pb.DatasetByIDReq{
+		DatasetID: datasetID,
+		OwnerID:   ag.MFOwnerID,
+	})
+	if err != nil {
+		return err
+	}
+
+	var action string
+	if dataset.Valid {
+		action = "manage"
+		svc.logger.Info("MANAGE SELECTED")
+	} else {
+		action = "remove"
+	}
+
+	payload := []AgentPolicyRPCPayload{{
+		Action:    action,
+		ID:        policyID,
+		Name:      p.Name,
+		Backend:   p.Backend,
+		Version:   p.Version,
+		Data:      pdata,
+		DatasetID: datasetID,
+	}}
+
+	data := AgentPolicyRPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentPolicyRPCFunc,
+		Payload:       payload,
+		FullList:      false,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   ag.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+
+	svc.logger.Info("RPC SENT")
+
+	return nil
 }
 
 func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error {

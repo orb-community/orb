@@ -73,7 +73,7 @@ func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string
 }
 
 func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.Dataset) (policies.Dataset, error) {
-	previousDataset, err := e.svc.ViewDatasetByIDInternal(ctx, ds.MFOwnerID, ds.ID)
+	previousDataset, err := e.svc.ViewDatasetByID(ctx, token, ds.ID)
 	if err != nil {
 		return policies.Dataset{}, err
 	}
@@ -83,14 +83,14 @@ func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.D
 		return policies.Dataset{}, err
 	}
 
+	e.logger.Info(fmt.Sprintf("previous: %t and actual: %t", previousDataset.Valid, editedDataset.Valid))
+
 	if previousDataset.Valid == false && editedDataset.Valid == true {
-		event := createDatasetEvent{
+		event := updateDatasetEvent{
 			id:           editedDataset.ID,
 			ownerID:      editedDataset.MFOwnerID,
-			name:         editedDataset.Name.String(),
 			agentGroupID: editedDataset.AgentGroupID,
 			policyID:     editedDataset.PolicyID,
-			sinkIDs:      strings.Join(editedDataset.SinkIDs, ","),
 		}
 		record := &redis.XAddArgs{
 			Stream:       streamID,
@@ -102,6 +102,7 @@ func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.D
 			e.logger.Error("error sending event to event store", zap.Error(err))
 			return ds, err
 		}
+		e.logger.Info("RPC SENT")
 	}
 
 	return editedDataset, nil
@@ -274,7 +275,7 @@ func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID s
 		return err
 	}
 
-	event := removeDatasetEvent{
+	event := updateDatasetEvent{
 		id:           datasetID,
 		ownerID:      ds.MFOwnerID,
 		agentGroupID: ds.AgentGroupID,

@@ -34,6 +34,7 @@ type datasetRes struct {
 	agentGroupID string
 	policyID     string
 	sinkIDs      []string
+	valid        bool
 }
 
 type emptyRes struct {

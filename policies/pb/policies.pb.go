@@ -407,6 +407,7 @@ type DatasetRes struct {
 	AgentGroupId string   `protobuf:"bytes,2,opt,name=agent_group_id,json=agentGroupId,proto3" json:"agent_group_id,omitempty"`
 	PolicyId     string   `protobuf:"bytes,3,opt,name=policy_id,json=policyId,proto3" json:"policy_id,omitempty"`
 	SinkIds      []string `protobuf:"bytes,4,rep,name=sink_ids,json=sinkIds,proto3" json:"sink_ids,omitempty"`
+	Valid        bool     `protobuf:"bytes,5,rep,name=valid,json=valid,proto3" json:"valid,omitempty"`
 }
 
 func (x *DatasetRes) Reset() {
