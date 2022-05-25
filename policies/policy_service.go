@@ -11,6 +11,7 @@ package policies
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc/status"
 
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet/pb"
@@ -464,7 +465,7 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 
 			policy.Name = policyName
 			id, errCreate = s.repo.SavePolicy(ctx, policy)
-			if errCreate != nil && errCreate == errors.ErrConflict {
+			if errCreate != nil && status.Code(errCreate) == status.Code(errors.ErrConflict) {
 				if i < 3 {
 					i++
 					nameSuffix = fmt.Sprintf("_copy%d", i)
@@ -476,7 +477,7 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 			break
 		}
 		if errCreate != nil {
-			return Policy{}, err
+			return Policy{}, errCreate
 		}
 	}
 	policy.ID = id
