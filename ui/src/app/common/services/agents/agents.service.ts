@@ -55,11 +55,13 @@ export class AgentsService {
   }
 
   addAgent(agentItem: Agent) {
-    return this.http.post(environment.agentsUrl,
+    return this.http.post<Agent>(environment.agentsUrl,
                           { ...agentItem, validate_only: false },
                           { observe: 'response' })
       .map(
         resp => {
+          let { body: agent } = resp;
+          agent = {...agent, combined_tags: { ...agent?.orb_tags, ...agent?.agent_tags }};
           return resp;
         },
       )
@@ -102,8 +104,8 @@ export class AgentsService {
   getAgentById(id: string): Observable<Agent> {
     return this.http.get<Agent>(`${environment.agentsUrl}/${id}`)
       .map(
-        resp => {
-          return resp;
+        agent => {
+          return {...agent, combined_tags: { ...agent?.orb_tags, ...agent?.agent_tags }};
         },
       )
       .catch(
@@ -116,10 +118,10 @@ export class AgentsService {
   }
 
   editAgent(agent: Agent): any {
-    return this.http.put(`${environment.agentsUrl}/${agent.id}`, agent)
+    return this.http.put<Agent>(`${environment.agentsUrl}/${agent.id}`, agent)
       .map(
-        resp => {
-          return resp;
+        agent => {
+          return {...agent, combined_tags: { ...agent?.orb_tags, ...agent?.agent_tags }};
         },
       )
       .catch(
@@ -159,7 +161,7 @@ export class AgentsService {
     return this.http.get(environment.agentsUrl, { params })
       .map(
         (resp: any) => {
-          return resp.agents;
+          return this.mapCombinedTags(resp.agents);
         },
       )
       .catch(
@@ -239,13 +241,11 @@ export class AgentsService {
           // This is the position to insert the new data
           const start = pageInfo?.offset;
 
-          const newData = [...this.cache.data];
+          const newCache = [...this.cache.data];
 
-          newData.splice(start, resp.limit,
-                         ...resp.agents.map(agent => {
-                           agent.combined_tags = { ...agent?.orb_tags, ...agent?.agent_tags };
-                           return agent;
-                         }));
+          const newAgents = this.mapCombinedTags(resp.agents);
+
+          newCache.splice(start, resp.limit, ...newAgents);
 
           this.cache = {
             ...this.cache,
@@ -260,7 +260,7 @@ export class AgentsService {
             dir: resp.direction,
             order: resp.order,
             total: resp.total,
-            data: newData,
+            data: newCache,
             name: pageInfo?.name,
           };
 
@@ -273,5 +273,12 @@ export class AgentsService {
           return Observable.throwError(err);
         },
       );
+  }
+
+  mapCombinedTags(agents) {
+    return agents.map(agent => {
+      agent.combined_tags = { ...agent?.orb_tags, ...agent?.agent_tags };
+      return agent;
+    });
   }
 }
