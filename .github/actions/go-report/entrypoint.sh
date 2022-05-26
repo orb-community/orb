@@ -18,7 +18,7 @@ function run() {
   echo "========================= Running Go Report ========================="
   cd /github/workspace
   echo "threshold: "${INPUT_GO_REPORT_THRESHOLD}
-  goreportcard-cli -t ${INPUT_GO_REPORT_THRESHOLD} >go-report.txt
+  goreportcard-cli -v -t ${INPUT_GO_REPORT_THRESHOLD} >go-report.txt
   export GO_RESULT=$?
 }
 
