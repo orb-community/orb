@@ -10,7 +10,6 @@ on:
     branches: [ develop ]
   push:
     branches: [ develop ]
-
 jobs:
   prebuild:
     runs-on: ubuntu-latest
@@ -63,7 +62,20 @@ jobs:
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
-          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"  
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          
+  go-report:
+    needs: prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          name: workspace
+      - name: Run go report
+        uses: ./.github/actions/go-report
+        with:
+          go_report_threshold: 90.1 #grade A+
 
   test-agent:
     runs-on: ubuntu-latest
