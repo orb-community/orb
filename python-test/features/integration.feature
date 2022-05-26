@@ -45,7 +45,7 @@ Feature: Integration tests
     And datasets related to all existing policies have validity valid
 
 
-  @smoke @test-dev
+  @smoke
   Scenario: Remove group to which agent is linked
     Given the Orb user has a registered account
     And the Orb user logs in
