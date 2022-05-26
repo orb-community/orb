@@ -9,7 +9,7 @@ on:
   pull_request:
     branches: [ develop ]
   push:
-    branches: [ develop, coverage ]
+    branches: [ develop ]
 jobs:
   prebuild:
     runs-on: ubuntu-latest
