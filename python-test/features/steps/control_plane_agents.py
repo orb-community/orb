@@ -38,7 +38,7 @@ def check_if_agents_exist(context, orb_tags, status):
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
     agents = get_agent(token, agent_id)
     local_orb_path = configs.get("orb_path", os.path.dirname(os.getcwd()))
-    agent_schema_path = f"{local_orb_path}/python-test/features/steps/agent_schema.json"
+    agent_schema_path = local_orb_path + "/python-test/features/steps/agent_schema.json"
     is_schema_valid = validate_json(agents, agent_schema_path)
     assert_that(is_schema_valid, equal_to(True))
 
@@ -62,6 +62,16 @@ def agent_is_created_matching_group(context, amount_of_group):
 
 @then('the agent status in Orb should be {status}')
 def check_agent_online(context, status):
+    timeout = 10
+    token = context.token
+    agent_id = context.agent['id']
+    agent_status = expect_container_status(token, agent_id, status, timeout=timeout)
+    assert_that(agent_status, is_(equal_to(status)),
+                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
+
+
+@step('the agent status is {status}')
+def check_agent_status(context, status):
     timeout = 10
     token = context.token
     agent_id = context.agent['id']

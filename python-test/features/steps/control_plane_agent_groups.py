@@ -183,7 +183,8 @@ def check_logs_for_group(context, text_to_match, time_to_wait):
     container_logs = get_orb_agent_logs(context.container_id)
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)" 
                                        f"{set(groups_matching).difference(groups_to_which_subscribed)}!.\n\n"
-                                       f"Logs = {container_logs}")
+                                       f"Logs = {container_logs}. \n\n"
+                                       f"Agent = {context.agent}. \n\n")
 
 
 def create_agent_group(token, name, description, tags, expected_status_code=201):

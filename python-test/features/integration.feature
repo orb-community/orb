@@ -228,6 +228,7 @@ Scenario: Agent subscription to group after editing orb agent's tags (agent prov
         And the Orb user logs in
         And a new agent is created with 1 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     When edit the orb tags on agent and use 2 orb tag(s)
         And an Agent Group is created with all tags contained in the agent
     Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 30 seconds
@@ -353,7 +354,6 @@ Scenario: Editing tags of an Agent Group with policies (subscription - provision
     When the name, tags, description of Agent Group is edited using: name=new_name/ tags=matching the agent/ description=None
     Then 1 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
-        And the agent status in Orb should be online
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
 
