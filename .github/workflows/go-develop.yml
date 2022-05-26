@@ -10,15 +10,6 @@ on:
     branches: [ develop ]
   push:
     branches: [ develop, coverage ]
-env:
-  TEST_COVERAGE_THRESHOLD: 90
-  DIFF_COVERAGE_THRESHOLD: 70
-  #envs for github-commenter
-  GITHUB_OWNER: "ns1orb"
-  GITHUB_REPO: "ns1labs"
-  GITHUB_COMMENT_TYPE: "pr"
-  GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-  DIFFCOVER_EXCLUDE: ""
 jobs:
   prebuild:
     runs-on: ubuntu-latest
@@ -85,18 +76,6 @@ jobs:
         uses: ./.github/actions/go-report
         with:
           go_report_threshold: 90.1 #grade A+
-
-  go-lint:
-    needs: prebuild
-    runs-on: ubuntu-latest
-    continue-on-error: true #for now we'll keep this step optional until we fix the lint issues
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Run go linter
-        uses: ./.github/actions/go-lint
 
   test-agent:
     runs-on: ubuntu-latest
