@@ -240,6 +240,7 @@ def get_dataset(token, dataset_id, expected_status_code=200):
                                        headers={'Authorization': token})
 
     assert_that(get_dataset_response.status_code, equal_to(expected_status_code),
-                'Request to get policy id=' + dataset_id + ' failed with status=' + str(get_dataset_response.status_code))
+                'Request to get policy id=' + dataset_id + ' failed with status=' +
+                str(get_dataset_response.status_code) + "response=" + str(get_dataset_response.json()))
 
     return get_dataset_response.json()

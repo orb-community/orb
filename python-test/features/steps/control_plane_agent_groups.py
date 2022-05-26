@@ -181,8 +181,8 @@ def check_logs_for_group(context, text_to_match, time_to_wait):
     text_found, groups_to_which_subscribed = check_subscription(groups_matching, text_to_match, context.container_id,
                                                                 timeout=time_to_wait)
     container_logs = get_orb_agent_logs(context.container_id)
-    assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)"
-                                       f"{set(groups_matching).difference(groups_to_which_subscribed)}!."
+    assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)" 
+                                       f"{set(groups_matching).difference(groups_to_which_subscribed)}!.\n\n"
                                        f"Logs = {container_logs}")
 
 
@@ -203,7 +203,8 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
 
     response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to create agent group failed with status=' + str(response.status_code))
+                'Request to create agent group failed with status=' + str(response.status_code) +
+                "response=" + str(response.json()))
 
     return response.json()
 
@@ -342,7 +343,8 @@ def edit_agent_group(token, agent_group_id, name, description, tags, expected_st
     if name is None or tags is None:
         expected_status_code = 400
     assert_that(group_edited_response.status_code, equal_to(expected_status_code),
-                'Request to edit agent group failed with status=' + str(group_edited_response.status_code))
+                'Request to edit agent group failed with status=' + "status code =" +
+                str(group_edited_response.status_code) + "response =" + str(group_edited_response.json()))
 
     return group_edited_response.json()
 

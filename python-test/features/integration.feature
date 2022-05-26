@@ -307,8 +307,8 @@ Scenario: Insert tags in agents created without tags and apply policies to group
     When edit the orb tags on agent and use 2 orb tag(s)
         And an Agent Group is created with same tag as the agent and without description
         And 1 simple policies are applied to the group
-    Then this agent's heartbeat shows that 1 policies are successfully applied and has status running
-        And the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+        And this agent's heartbeat shows that 1 policies are successfully applied and has status running
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds

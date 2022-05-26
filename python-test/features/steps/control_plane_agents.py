@@ -12,6 +12,9 @@ from agent_config_file import FleetAgent
 import yaml
 from yaml.loader import SafeLoader
 import re
+import json
+import jsonschema
+from jsonschema import validate
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
@@ -33,6 +36,11 @@ def check_if_agents_exist(context, orb_tags, status):
     agent_status = expect_container_status(token, agent_id, status, timeout=timeout)
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
+    agents = get_agent(token, agent_id)
+    local_orb_path = configs.get("orb_path", os.path.dirname(os.getcwd()))
+    agent_schema_path = f"{local_orb_path}/python-test/features/steps/agent_schema.json"
+    is_schema_valid = validate_json(agents, agent_schema_path)
+    assert_that(is_schema_valid, equal_to(True))
 
 
 @step('a new agent is created with {orb_tags} orb tag(s)')
@@ -435,3 +443,35 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file)
     return dir_path, agent_name
+
+
+def get_schema(path_to_file):
+    """
+        Loads the given schema available
+
+    :param path_to_file: path to schema json file
+    :return: schema json
+    """
+    with open(path_to_file, 'r') as file:
+        schema = json.load(file)
+    return schema
+
+
+def validate_json(json_data, path_to_file):
+
+    """
+        Compare a file with the schema and validate if the structure is correct
+    :param json_data: json to be validated
+    :param path_to_file: path to schema json file
+    :return: bool. False if the json is not valid according to the schema and True if it is
+    """
+
+    execute_api_schema = get_schema(path_to_file)
+
+    try:
+        validate(instance=json_data, schema=execute_api_schema)
+    except jsonschema.exceptions.ValidationError as err:
+        print(err)
+        return False, err
+
+    return True
