@@ -180,8 +180,10 @@ def check_logs_for_group(context, text_to_match, time_to_wait):
     groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups, context.agent)
     text_found, groups_to_which_subscribed = check_subscription(groups_matching, text_to_match, context.container_id,
                                                                 timeout=time_to_wait)
+    container_logs = get_orb_agent_logs(context.container_id)
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)"
-                                       f"{set(groups_matching).difference(groups_to_which_subscribed)}!")
+                                       f"{set(groups_matching).difference(groups_to_which_subscribed)}!."
+                                       f"Logs = {container_logs}")
 
 
 def create_agent_group(token, name, description, tags, expected_status_code=201):
