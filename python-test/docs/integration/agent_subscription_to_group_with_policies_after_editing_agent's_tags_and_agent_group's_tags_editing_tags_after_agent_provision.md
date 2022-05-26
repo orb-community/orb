@@ -1,4 +1,4 @@
-## Scenario: Agent subscription to group with policies after editing agent's tags and agent group's tags (editing tags after agent provision) 
+## Scenario: Agent subscription to group with policies after editing orb agent's tags and agent group's tags (editing tags after agent provision) 
 
 Steps:
 -  
@@ -15,4 +15,3 @@ Expected result:
 - Agent heartbeat must show just one group matching
 - Agent logs must show that agent is unsubscribed from the group
 - Agent logs must show that agent is resubscribed to the group
- 
