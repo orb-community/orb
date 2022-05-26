@@ -120,8 +120,8 @@ export class AgentsService {
   editAgent(agent: Agent): any {
     return this.http.put<Agent>(`${environment.agentsUrl}/${agent.id}`, agent)
       .map(
-        agent => {
-          return {...agent, combined_tags: { ...agent?.orb_tags, ...agent?.agent_tags }};
+        resp => {
+          return {...resp, combined_tags: { ...resp?.orb_tags, ...resp?.agent_tags }};
         },
       )
       .catch(
