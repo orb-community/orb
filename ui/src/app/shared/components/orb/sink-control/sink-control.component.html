@@ -1,6 +1,7 @@
 <nb-select
     #sinkSelLead
     [(selected)]="selectedSink"
+    [disabled]="!sinksList || sinksList.length === 0"
     appearance="filled"
     autofocus
     size="medium"
