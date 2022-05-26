@@ -105,13 +105,6 @@
   </nb-card-body>
   <nb-card-footer>
     <div class="d-flex justify-content-end">
-      <button (click)="onClose()"
-              data-orb-qa-id="back"
-              nbButton
-              shape="round"
-              status="primary">
-        Cancel
-      </button>
       <button (click)="onSaveHandler()"
               [disabled]="!checkValidName()"
               data-orb-qa-id="addHandler"
@@ -120,6 +113,13 @@
               shape="round"
               status="primary">
         Save
+      </button>
+      <button (click)="onClose()"
+              data-orb-qa-id="back"
+              nbButton
+              shape="round"
+              status="primary">
+        Cancel
       </button>
     </div>
   </nb-card-footer>
