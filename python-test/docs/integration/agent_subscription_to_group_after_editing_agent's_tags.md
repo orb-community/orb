@@ -1,4 +1,4 @@
-## Scenario: Agent subscription to group after editing agent's tags (agent provisioned before group)
+## Scenario: Agent subscription to group after editing orb agent's tags (agent provisioned before group)
 Steps:
 -  
 1. Provision an agent with tags
@@ -13,7 +13,7 @@ Expected result:
 - Agent logs must show that agent is subscribed to the second group
 
 
-## Scenario: Agent subscription to group after editing agent's tags (agent provisioned after group)
+## Scenario: Agent subscription to group after editing orb agent's tags (agent provisioned after group)
 Steps:
 -  
 1. Create a group with tags
@@ -28,7 +28,7 @@ Expected result:
 - Agent logs must show that agent is subscribed to the second group
 
 
-## Scenario: Agent subscription to group after editing agent's tags (agent provisioned after groups)
+## Scenario: Agent subscription to group after editing orb agent's tags (agent provisioned after groups)
 Steps:
 -  
 1. Create a group with tags

@@ -58,7 +58,7 @@ Scenario: Edit agent tag
         And the Orb user logs in
         And a new agent is created with 5 orb tag(s)
         And the agent container is started on an available port
-    When edit the agent tags and use 3 orb tag(s)
+    When edit the orb tags on agent and use 3 orb tag(s)
     Then the container logs should contain the message "sending capabilities" within 10 seconds
         And agent must have 3 tags
         And the agent status in Orb should be online
@@ -70,7 +70,7 @@ Scenario: Save agent without tag
         And the Orb user logs in
         And a new agent is created with 5 orb tag(s)
         And the agent container is started on an available port
-    When edit the agent tags and use 0 orb tag(s)
+    When edit the orb tags on agent and use 0 orb tag(s)
     Then the container logs should contain the message "sending capabilities" within 10 seconds
         And agent must have 0 tags
         And the agent status in Orb should be online
@@ -82,7 +82,7 @@ Scenario: Insert tags in agents created without tags
         And the Orb user logs in
         And a new agent is created with 0 orb tag(s)
         And the agent container is started on an available port
-    When edit the agent tags and use 2 orb tag(s)
+    When edit the orb tags on agent and use 2 orb tag(s)
     Then the container logs should contain the message "sending capabilities" within 10 seconds
         And agent must have 2 tags
         And the agent status in Orb should be online
@@ -106,7 +106,7 @@ Scenario: Edit agent name and tags
         And the Orb user logs in
         And a new agent is created with 1 orb tag(s)
         And the agent container is started on an available port
-    When edit the agent name and edit agent tags using 3 orb tag(s)
+    When edit the agent name and edit orb tags on agent using 3 orb tag(s)
     Then the container logs should contain the message "sending capabilities" within 10 seconds
         And agent must have 3 tags
         And the agent status in Orb should be online

@@ -42,7 +42,7 @@ def run_local_agent_container(context, status_port):
 @step('the container logs that were output after {condition} contain the message "{text_to_match}" within'
       '{time_to_wait} seconds')
 def check_agent_logs_considering_timestamp(context, condition, text_to_match, time_to_wait):
-    #todo improve the logic for timestamp
+    # todo improve the logic for timestamp
     if "reset" in condition:
         considered_timestamp = context.considered_timestamp_reset
     else:
@@ -224,7 +224,9 @@ def run_agent_config_file(orb_path, agent_name):
     """
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
     agent_image = f"{agent_docker_image}:{configs.get('agent_docker_tag', 'latest')}"
-    volume = f"{orb_path}:/usr/local/orb/"
+    local_orb_path = configs.get("orb_path", orb_path)  # orb_path is required if user will use docker to test,
+                                                        # otherwise the function will map the local path.
+    volume = f"{local_orb_path}:/usr/local/orb/"
     agent_command = f"/usr/local/orb/{agent_name}.yaml"
     command = f"docker run -d -v {volume} --net=host {agent_image} run -c {agent_command}"
     args = shlex.split(command)
