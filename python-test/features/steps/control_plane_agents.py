@@ -171,7 +171,8 @@ def check_agent_tags(context, amount_of_tags):
 
 @then("remove all the agents .yaml generated on test process")
 def remove_agent_config_files(context):
-    all_files_generated = find_files(agent_name_prefix, ".yaml", context.dir_path)
+    dir_path = configs.get("local_orb_path")
+    all_files_generated = find_files(agent_name_prefix, ".yaml", dir_path)
     if len(all_files_generated) > 0:
         for file in all_files_generated:
             os.remove(file)
@@ -179,8 +180,7 @@ def remove_agent_config_files(context):
 
 @then("remove the agent .yaml generated on each scenario")
 def remove_one_agent_config_files(context):
-    cwd = os.getcwd()
-    dir_path = os.path.dirname(cwd)
+    dir_path = configs.get("local_orb_path")
     all_files_generated = find_files(context.agent_file_name, ".yaml", dir_path)
     if len(all_files_generated) > 0:
         for file in all_files_generated:
@@ -445,8 +445,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     port = return_port_to_run_docker_container(context, availability[status_port])
     agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
     agent_config_file = yaml.dump(agent_config_file)
-    cwd = os.getcwd()
-    dir_path = os.path.dirname(cwd)
+    dir_path = configs.get("local_orb_path")
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file)
     return dir_path, agent_name
