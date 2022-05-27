@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "default": {},
+  "title": "Root Schema",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "state",
+    "backend",
+    "config",
+    "ts_created"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "default": "",
+      "title": "The id Schema",
+      "examples": [
+        "ef8b4710-734e-469f-b4ba-724f857499a9"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "default": "",
+      "title": "The name Schema",
+      "examples": [
+        "sink-schema"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "default": "",
+      "title": "The description Schema",
+      "examples": [
+        ""
+      ]
+    },
+    "state": {
+      "type": "string",
+      "default": "",
+      "title": "The state Schema",
+      "examples": [
+        "unknown"
+      ]
+    },
+    "backend": {
+      "type": "string",
+      "default": "",
+      "title": "The backend Schema",
+      "examples": [
+        "prometheus"
+      ]
+    },
+    "config": {
+      "type": "object",
+      "default": {},
+      "title": "The config Schema",
+      "required": [
+        "password",
+        "remote_host",
+        "username"
+      ],
+      "properties": {
+        "password": {
+          "type": "string",
+          "default": "",
+          "title": "The password Schema",
+          "examples": [
+            "pass"
+          ]
+        },
+        "remote_host": {
+          "type": "string",
+          "default": "",
+          "title": "The remote_host Schema",
+          "examples": [
+            "https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push"
+          ]
+        },
+        "username": {
+          "type": "string",
+          "default": "",
+          "title": "The username Schema",
+          "examples": [
+            "user"
+          ]
+        }
+      },
+      "examples": [{
+        "password": "pass",
+        "remote_host": "https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push",
+        "username": "user"
+      }]
+    },
+    "ts_created": {
+      "type": "string",
+      "default": "",
+      "title": "The ts_created Schema",
+      "examples": [
+        "2022-05-27T14:12:09.108703Z"
+      ]
+    }
+  },
+  "examples": [{
+    "id": "ef8b4710-734e-469f-b4ba-724f857499a9",
+    "name": "sink-schema",
+    "description": "",
+    "state": "unknown",
+    "backend": "prometheus",
+    "config": {
+      "password": "pass",
+      "remote_host": "https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push",
+      "username": "user"
+    },
+    "ts_created": "2022-05-27T14:12:09.108703Z"
+  }]
+}

@@ -224,8 +224,7 @@ def run_agent_config_file(orb_path, agent_name):
     """
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
     agent_image = f"{agent_docker_image}:{configs.get('agent_docker_tag', 'latest')}"
-    local_orb_path = configs.get("orb_path", orb_path)  # orb_path is required if user will use docker to test,
-                                                        # otherwise the function will map the local path.
+    local_orb_path = configs.get("orb_path")
     volume = f"{local_orb_path}:/usr/local/orb/"
     agent_command = f"/usr/local/orb/{agent_name}.yaml"
     command = f"docker run -d -v {volume} --net=host {agent_image} run -c {agent_command}"
