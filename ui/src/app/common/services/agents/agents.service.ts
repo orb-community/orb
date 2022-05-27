@@ -62,7 +62,7 @@ export class AgentsService {
         resp => {
           let { body: agent } = resp;
           agent = {...agent, combined_tags: { ...agent?.orb_tags, ...agent?.agent_tags }};
-          return resp;
+          return agent;
         },
       )
       .catch(
