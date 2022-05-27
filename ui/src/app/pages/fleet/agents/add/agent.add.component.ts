@@ -120,7 +120,7 @@ export class AgentAddComponent {
       });
     } else {
       this.agentsService.addAgent(payload).subscribe((resp) => {
-        this.openKeyModal(resp.body);
+        this.openKeyModal(resp);
       });
     }
   }
