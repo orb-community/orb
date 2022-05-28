@@ -961,7 +961,7 @@ func TestAgentRetrieveByID(t *testing.T) {
 	}
 }
 
-func TestRetrieveOwnerByChannelID(t *testing.T) {
+func TestRetrieveAgentInfoByChannelID(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
 	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
 
@@ -994,28 +994,32 @@ func TestRetrieveOwnerByChannelID(t *testing.T) {
 		channelID string
 		ownerID   string
 		name      string
+		agentTags types.Tags
 		err       error
 	}{
-		"retrieve existing owner by channelID": {
+		"retrieve existing agent info by channelID": {
 			channelID: chID.String(),
 			ownerID:   oID.String(),
 			name:      nameID.String(),
+			agentTags: agent.AgentTags,
 			err:       nil,
 		},
-		"retrieve existent owner by non-existent channelID": {
+		"retrieve existent agent info by non-existent channelID": {
 			channelID: thID.String(),
 			ownerID:   "",
 			name:      "",
+			agentTags: nil,
 			err:       nil,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			ag, err := agentRepo.RetrieveOwnerByChannelID(context.Background(), tc.channelID)
+			ag, err := agentRepo.RetrieveAgentInfoByChannelID(context.Background(), tc.channelID)
 			if err == nil {
 				assert.Equal(t, tc.name, ag.Name.String(), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.name, ag.Name.String()))
 				assert.Equal(t, tc.ownerID, ag.MFOwnerID, fmt.Sprintf("%s: expected %s got %s\n", desc, tc.ownerID, ag.MFOwnerID))
+				assert.Equal(t, tc.agentTags, ag.AgentTags, fmt.Sprintf("%s: expected %s got %s\n", desc, tc.agentTags, ag.AgentTags))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 		})
