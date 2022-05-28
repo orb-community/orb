@@ -19,7 +19,7 @@ func (a agentRepositoryMock) SetStaleStatus(_ context.Context, _ time.Duration) 
 	return 0, nil
 }
 
-func (a agentRepositoryMock) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {
+func (a agentRepositoryMock) RetrieveAgentInfoByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {
 	for _, ag := range a.agentsMock {
 		if ag.MFChannelID == channelID {
 			return ag, nil

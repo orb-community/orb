@@ -43,17 +43,18 @@ func retrieveAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 	}
 }
 
-func retrieveOwnerByChannelIDEndpoint(svc fleet.Service) endpoint.Endpoint {
+func retrieveAgentInfoByChannelIDEndpoint(svc fleet.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(accessOwnerByChannelIDReq)
+		req := request.(accessAgentInfoByChannelIDReq)
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
-		agent, err := svc.ViewOwnerByChannelIDInternal(ctx, req.ChannelID)
+		agent, err := svc.ViewAgentInfoByChannelIDInternal(ctx, req.ChannelID)
 		if err != nil {
 			return nil, err
 		}
-		res := ownerRes{ownerID: agent.MFOwnerID, agentName: agent.Name.String()}
+
+		res := agentInfoRes{ownerID: agent.MFOwnerID, agentName: agent.Name.String(), agentTags: agent.AgentTags}
 		return res, nil
 	}
 }

@@ -15,9 +15,9 @@ var _ pb.FleetServiceServer = (*grpcServer)(nil)
 
 type grpcServer struct {
 	pb.UnimplementedFleetServiceServer
-	retrieveAgent            kitgrpc.Handler
-	retrieveAgentGroup       kitgrpc.Handler
-	retrieveOwnerByChannelID kitgrpc.Handler
+	retrieveAgent                kitgrpc.Handler
+	retrieveAgentGroup           kitgrpc.Handler
+	retrieveAgentInfoByChannelID kitgrpc.Handler
 }
 
 func NewServer(tracer opentracing.Tracer, svc fleet.Service) pb.FleetServiceServer {
@@ -32,9 +32,9 @@ func NewServer(tracer opentracing.Tracer, svc fleet.Service) pb.FleetServiceServ
 			decodeRetrieveAgentGroupRequest,
 			encodeAgentGroupResponse,
 		),
-		retrieveOwnerByChannelID: kitgrpc.NewServer(
-			kitot.TraceServer(tracer, "retrieve_owner_by_channel_id")(retrieveOwnerByChannelIDEndpoint(svc)),
-			decodeRetrieveOwnerByChannelIDRequest,
+		retrieveAgentInfoByChannelID: kitgrpc.NewServer(
+			kitot.TraceServer(tracer, "retrieve_agent_info_by_channel_id")(retrieveAgentInfoByChannelIDEndpoint(svc)),
+			decodeRetrieveAgentInfoByChannelIDRequest,
 			encodeOwnerResponse,
 		),
 	}
@@ -58,12 +58,13 @@ func (gs *grpcServer) RetrieveAgentGroup(ctx context.Context, req *pb.AgentGroup
 	return res.(*pb.AgentGroupRes), nil
 }
 
-func (gs *grpcServer) RetrieveOwnerByChannelID(ctx context.Context, req *pb.OwnerByChannelIDReq) (*pb.OwnerRes, error) {
-	_, res, err := gs.retrieveOwnerByChannelID.ServeGRPC(ctx, req)
+func (gs *grpcServer) RetrieveAgentInfoByChannelID(ctx context.Context, req *pb.AgentInfoByChannelIDReq) (*pb.AgentInfoRes, error) {
+	_, res, err := gs.retrieveAgentInfoByChannelID.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, encodeError(err)
 	}
-	return res.(*pb.OwnerRes), nil
+
+	return res.(*pb.AgentInfoRes), nil
 }
 
 func decodeRetrieveAgentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -94,16 +95,17 @@ func encodeAgentGroupResponse(_ context.Context, grpcRes interface{}) (interface
 	}, nil
 }
 
-func decodeRetrieveOwnerByChannelIDRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*pb.OwnerByChannelIDReq)
-	return accessOwnerByChannelIDReq{ChannelID: req.Channel}, nil
+func decodeRetrieveAgentInfoByChannelIDRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.AgentInfoByChannelIDReq)
+	return accessAgentInfoByChannelIDReq{ChannelID: req.Channel}, nil
 }
 
 func encodeOwnerResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	res := grpcRes.(ownerRes)
-	return &pb.OwnerRes{
+	res := grpcRes.(agentInfoRes)
+	return &pb.AgentInfoRes{
 		OwnerID:   res.ownerID,
 		AgentName: res.agentName,
+		AgentTags: res.agentTags,
 	}, nil
 }
 

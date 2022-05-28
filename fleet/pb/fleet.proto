@@ -6,7 +6,7 @@ option go_package = "fleet/pb";
 service FleetService {
   rpc RetrieveAgent(AgentByIDReq) returns (AgentRes) {}
   rpc RetrieveAgentGroup(AgentGroupByIDReq) returns (AgentGroupRes) {}
-  rpc RetrieveOwnerByChannelID(OwnerByChannelIDReq) returns (OwnerRes) {}
+  rpc RetrieveAgentInfoByChannelID(AgentInfoByChannelIDReq) returns (AgentInfoRes) {}
 }
 
 message AgentByIDReq {
@@ -31,11 +31,18 @@ message AgentGroupRes {
   string channel = 3;
 }
 
-message OwnerByChannelIDReq {
+message AgentInfoByChannelIDReq {
   string channel = 1;
 }
 
-message OwnerRes {
+message AgentInfoRes {
   string ownerID = 1;
   string agentName = 2;
+  map<string, string> agentTags = 3;
+  //repeated MapFieldEntry map_field = 4;
 }
+
+//message MapFieldEntry {
+//  key_type key = 1;
+//  value_type value = 2;
+//}

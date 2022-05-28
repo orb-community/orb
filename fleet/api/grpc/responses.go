@@ -12,9 +12,10 @@ type agentGroupRes struct {
 	channel string
 }
 
-type ownerRes struct {
+type agentInfoRes struct {
 	ownerID   string
 	agentName string
+	agentTags map[string]string
 }
 
 type emptyRes struct {
