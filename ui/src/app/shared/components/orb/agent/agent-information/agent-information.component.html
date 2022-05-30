@@ -21,19 +21,7 @@
       <label>Channel ID</label>
       <span class="float-right">{{ agent?.channel_id }}</span>
     </p>
-    <div>
-      <label>Tags</label>
-      <div class="d-flex">
-        <mat-chip-list>
-          <mat-chip
-            *ngFor="let tag of agent?.combined_tags | keyvalue"
-            [style.background-color]="tag | tagcolor"
-            class="orb-tag-chip">
-            {{ tag | tagchip }}
-          </mat-chip>
-        </mat-chip-list>
-      </div>
-    </div>
+    <ngx-combined-tag [agent]="agent"></ngx-combined-tag>
     <div class="block">
       <button (click)="resetAgent()"
               [disabled]="isResetting"
