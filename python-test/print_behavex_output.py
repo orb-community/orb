@@ -9,7 +9,7 @@ configs = parser['test_config']
 
 local_orb_path = configs.get("orb_path", os.path.dirname(os.getcwd()))
 
-local_output_dir = local_orb_path + "/python-test/output_1/"
+local_output_dir = local_orb_path + "/python-test/output/"
 
 with open(local_output_dir + "overall_status.json") as f:
     print("-----------------------------------------------------------------------------------\n")
