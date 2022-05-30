@@ -436,6 +436,10 @@ kind: collection`;
     return Object.keys(this.modules).length > 0;
   }
 
+  goBack() {
+    this.router.navigateByUrl('/pages/datasets/policies');
+  }
+
   viewPolicy(id) {
     this.router.navigateByUrl(`/pages/datasets/policies/view/${id}`);
   }
