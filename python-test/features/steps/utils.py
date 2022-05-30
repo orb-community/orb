@@ -219,7 +219,7 @@ def find_files(prefix, suffix, path):
 
 def get_schema(path_to_file):
     """
-        Loads the given schema available
+    Loads the given schema available
 
     :param path_to_file: path to schema json file
     :return: schema json
@@ -232,7 +232,7 @@ def get_schema(path_to_file):
 def validate_json(json_data, path_to_file):
 
     """
-        Compare a file with the schema and validate if the structure is correct
+    Compare a file with the schema and validate if the structure is correct
     :param json_data: json to be validated
     :param path_to_file: path to schema json file
     :return: bool. False if the json is not valid according to the schema and True if it is
