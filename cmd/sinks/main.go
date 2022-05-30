@@ -159,8 +159,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, repoSink sinks.SinkRepository) sinks.SinkService {
 
 	config := mfsdk.Config{
-		BaseURL:      sdkCfg.BaseURL,
-		ThingsPrefix: sdkCfg.ThingsPrefix,
+		ThingsURL: fmt.Sprintf("%s%s", sdkCfg.BaseURL, sdkCfg.ThingsPrefix),
 	}
 
 	mfsdk := mfsdk.NewSDK(config)

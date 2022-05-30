@@ -215,8 +215,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, agentRepo fleet.AgentRepository, agentGroupRepo fleet.AgentGroupRepository, agentComms fleet.AgentCommsService, aDone chan bool) fleet.Service {
 
 	config := mfsdk.Config{
-		BaseURL:      sdkCfg.BaseURL,
-		ThingsPrefix: sdkCfg.ThingsPrefix,
+		ThingsURL: fmt.Sprintf("%s%s", sdkCfg.BaseURL, sdkCfg.ThingsPrefix),
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
