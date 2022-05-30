@@ -49,6 +49,7 @@ import { SinkDisplayComponent } from 'app/shared/components/orb/sink-display/sin
 import { SinkDisplayListComponent } from 'app/shared/components/orb/sink/sink-display/sink-display-list.component';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { CombinedTagComponent } from './components/orb/combined-tag/combined-tag.component';
 
 @NgModule({
   imports: [
@@ -102,6 +103,7 @@ import { MonacoEditorModule } from 'ngx-monaco-editor';
     SinkControlComponent,
     SinkDisplayComponent,
     SinkDisplayListComponent,
+    CombinedTagComponent,
   ],
   exports: [
     ThemeModule,
@@ -132,6 +134,7 @@ import { MonacoEditorModule } from 'ngx-monaco-editor';
     SinkControlComponent,
     SinkDisplayComponent,
     SinkDisplayListComponent,
+    CombinedTagComponent,
   ],
   providers: [
     MessageValuePipe,

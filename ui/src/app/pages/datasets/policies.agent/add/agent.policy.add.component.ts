@@ -436,8 +436,8 @@ kind: collection`;
     return Object.keys(this.modules).length > 0;
   }
 
-  goBack() {
-    this.router.navigateByUrl('/pages/datasets/policies');
+  viewPolicy(id) {
+    this.router.navigateByUrl(`/pages/datasets/policies/view/${id}`);
   }
 
   onYAMLSubmit() {
@@ -510,12 +510,12 @@ kind: collection`;
       // updating existing sink
       this.agentPoliciesService.editAgentPolicy({ ...payload, id: this.agentPolicyID }).subscribe(() => {
         this.notificationsService.success('Agent Policy successfully updated', '');
-        this.goBack();
+        this.viewPolicy(this.agentPolicyID);
       });
     } else {
-      this.agentPoliciesService.addAgentPolicy(payload).subscribe(() => {
+      this.agentPoliciesService.addAgentPolicy(payload).subscribe(next => {
         this.notificationsService.success('Agent Policy successfully created', '');
-        this.goBack();
+        this.viewPolicy(next.id);
       });
     }
   }
