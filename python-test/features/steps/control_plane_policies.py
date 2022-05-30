@@ -425,7 +425,8 @@ def get_policy(token, policy_id, expected_status_code=200):
                                        headers={'Authorization': token})
 
     assert_that(get_policy_response.status_code, equal_to(expected_status_code),
-                'Request to get policy id=' + policy_id + ' failed with status=' + str(get_policy_response.status_code))
+                'Request to get policy id=' + policy_id + ' failed with status=' + str(get_policy_response.status_code)
+                + "response= " + str(get_policy_response.json()))
 
     return get_policy_response.json()
 

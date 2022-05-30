@@ -1,6 +1,6 @@
 from behave import given, when, then, step
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until
+from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json
 from hamcrest import *
 import requests
 
@@ -34,6 +34,10 @@ def create_sink(context):
     username = context.prometheus_username
     password = context.prometheus_key
     context.sink = create_new_sink(token, sink_label_name, endpoint, username, password)
+    local_orb_path = configs.get("local_orb_path")
+    sink_schema_path = local_orb_path + "/python-test/features/steps/schemas/sink_schema.json"
+    is_schema_valid = validate_json(context.sink, sink_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid sink json. \n Sink = {context.sink}")
     context.existent_sinks_id.append(context.sink['id'])
 
 
@@ -77,6 +81,10 @@ def create_invalid_sink(context, credential):
     prometheus_credentials[credential] = prometheus_credentials[credential][:-2]
     context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
                                    prometheus_credentials['username'], prometheus_credentials['password'])
+    local_orb_path = configs.get("local_orb_path")
+    sink_schema_path = local_orb_path + "/python-test/features/steps/schemas/sink_schema.json"
+    is_schema_valid = validate_json(context.sink, sink_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid sink json. \n Sink = {context.sink}")
     context.existent_sinks_id.append(context.sink['id'])
 
 

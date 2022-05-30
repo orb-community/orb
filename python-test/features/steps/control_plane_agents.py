@@ -1,6 +1,6 @@
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix,\
-    create_tags_set, find_files, threading_wait_until, return_port_to_run_docker_container
+    create_tags_set, find_files, threading_wait_until, return_port_to_run_docker_container, validate_json
 from local_agent import run_local_agent_container, run_agent_config_file
 from control_plane_agent_groups import return_matching_groups, tags_to_match_k_groups
 from behave import given, then, step
@@ -33,6 +33,11 @@ def check_if_agents_exist(context, orb_tags, status):
     agent_status = expect_container_status(token, agent_id, status, timeout=timeout)
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
+    agent = get_agent(token, agent_id)
+    local_orb_path = configs.get("local_orb_path")
+    agent_schema_path = local_orb_path + "/python-test/features/steps/schemas/agent_schema.json"
+    is_schema_valid = validate_json(agent, agent_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid agent json. \n Agent = {agent}")
 
 
 @step('a new agent is created with {orb_tags} orb tag(s)')
@@ -54,6 +59,16 @@ def agent_is_created_matching_group(context, amount_of_group):
 
 @then('the agent status in Orb should be {status}')
 def check_agent_online(context, status):
+    timeout = 10
+    token = context.token
+    agent_id = context.agent['id']
+    agent_status = expect_container_status(token, agent_id, status, timeout=timeout)
+    assert_that(agent_status, is_(equal_to(status)),
+                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
+
+
+@step('the agent status is {status}')
+def check_agent_status(context, status):
     timeout = 10
     token = context.token
     agent_id = context.agent['id']
@@ -156,7 +171,8 @@ def check_agent_tags(context, amount_of_tags):
 
 @then("remove all the agents .yaml generated on test process")
 def remove_agent_config_files(context):
-    all_files_generated = find_files(agent_name_prefix, ".yaml", context.dir_path)
+    dir_path = configs.get("local_orb_path")
+    all_files_generated = find_files(agent_name_prefix, ".yaml", dir_path)
     if len(all_files_generated) > 0:
         for file in all_files_generated:
             os.remove(file)
@@ -164,8 +180,7 @@ def remove_agent_config_files(context):
 
 @then("remove the agent .yaml generated on each scenario")
 def remove_one_agent_config_files(context):
-    cwd = os.getcwd()
-    dir_path = os.path.dirname(cwd)
+    dir_path = configs.get("local_orb_path")
     all_files_generated = find_files(context.agent_file_name, ".yaml", dir_path)
     if len(all_files_generated) > 0:
         for file in all_files_generated:
@@ -430,8 +445,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     port = return_port_to_run_docker_container(context, availability[status_port])
     agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
     agent_config_file = yaml.dump(agent_config_file)
-    cwd = os.getcwd()
-    dir_path = os.path.dirname(cwd)
+    dir_path = configs.get("local_orb_path")
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file)
     return dir_path, agent_name

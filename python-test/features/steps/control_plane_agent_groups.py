@@ -3,7 +3,7 @@ from test_config import TestConfig
 from local_agent import get_orb_agent_logs
 from users import get_auth_token
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
-    create_tags_set, check_logs_contain_message_and_name, threading_wait_until
+    create_tags_set, check_logs_contain_message_and_name, threading_wait_until, validate_json
 from behave import given, then, step
 from hamcrest import *
 import requests
@@ -35,12 +35,10 @@ def create_agent_group_matching_agent(context, amount_of_tags, **kwargs):
     else:
         amount_of_tags = len(tags_keys)
     assert_that(tags_keys, has_length(greater_than_or_equal_to(amount_of_tags)), "Amount of tags greater than tags"
-                                                                                      "contained in agent")
+                                                                                 "contained in agent")
     tags_to_group = {key: tags_in_agent[key] for key in sample(tags_keys, amount_of_tags)}
-    context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
-                                                  tags_to_group)
-    group_id = context.agent_group_data['id']
-    context.agent_groups[group_id] = agent_group_name
+    context.agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, group_description,
+                                                              tags_to_group, context.agent_groups)
 
 
 @step("an Agent Group is created with {orb_tags} orb tag(s)")
@@ -55,8 +53,8 @@ def create_new_agent_group(context, orb_tags, **kwargs):
         context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
                                                       context.orb_tags, 400)
     else:
-        context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
-                                                      context.orb_tags)
+        context.agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, group_description,
+                                                                  context.orb_tags, context.agent_groups)
         group_id = context.agent_group_data['id']
         context.agent_groups[group_id] = agent_group_name
 
@@ -108,7 +106,7 @@ def edit_multiple_groups_parameters(context, edited_parameters, parameters_value
 
     if "tags" in editing_param_dict.keys() and editing_param_dict["tags"] is not None:
         if re.match(r"matching (\d+|all|the) agent*", editing_param_dict["tags"]):
-            #todo improve logic for multiple agents
+            # todo improve logic for multiple agents
             editing_param_dict["tags"] = context.agent["orb_tags"]
             if context.agent["agent_tags"] is not None:
                 editing_param_dict["tags"].update(context.agent["agent_tags"])
@@ -169,19 +167,22 @@ def subscribe_agent_to_a_group(context):
     agent = context.agent
     agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
     agent_tags = agent['orb_tags']
-    context.agent_group_data = create_agent_group(context.token, agent_group_name, agent_group_description, agent_tags)
-    group_id = context.agent_group_data['id']
-    context.agent_groups[group_id] = agent_group_name
+    context.agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, agent_group_description,
+                                                              agent_tags, context.agent_groups)
 
 
 @step('the container logs contain the message "{text_to_match}" referred to each matching group within'
       '{time_to_wait} seconds')
 def check_logs_for_group(context, text_to_match, time_to_wait):
-    groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups, context.agent)
+    groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups,
+                                                                         context.agent)
     text_found, groups_to_which_subscribed = check_subscription(groups_matching, text_to_match, context.container_id,
                                                                 timeout=time_to_wait)
+    container_logs = get_orb_agent_logs(context.container_id)
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)"
-                                       f"{set(groups_matching).difference(groups_to_which_subscribed)}!")
+                                       f"{set(groups_matching).difference(groups_to_which_subscribed)}!.\n\n"
+                                       f"Logs = {container_logs}. \n\n"
+                                       f"Agent = {context.agent}. \n\n")
 
 
 def create_agent_group(token, name, description, tags, expected_status_code=201):
@@ -189,7 +190,7 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
     Creates an agent group in Orb control plane
 
     :param (str) token: used for API authentication
-    :param (str) name: of the agent to be created
+    :param (str) name: of the agent group to be created
     :param (str) description: description of group
     :param (dict) tags: dict with all pairs key:value that will be used as tags
     :returns: (dict) a dictionary containing the created agent group data
@@ -201,7 +202,8 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
 
     response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to create agent group failed with status=' + str(response.status_code))
+                'Request to create agent group failed with status=' + str(response.status_code) +
+                "response=" + str(response.json()))
 
     return response.json()
 
@@ -340,7 +342,8 @@ def edit_agent_group(token, agent_group_id, name, description, tags, expected_st
     if name is None or tags is None:
         expected_status_code = 400
     assert_that(group_edited_response.status_code, equal_to(expected_status_code),
-                'Request to edit agent group failed with status=' + str(group_edited_response.status_code))
+                'Request to edit agent group failed with status=' + "status code =" +
+                str(group_edited_response.status_code) + "response =" + str(group_edited_response.json()))
 
     return group_edited_response.json()
 
@@ -390,3 +393,27 @@ def tags_to_match_k_groups(token, k, all_existing_groups):
         group_data = get_agent_group(token, agent_group_id)
         all_used_tags.update(group_data["tags"])
     return all_used_tags
+
+
+def generate_group_with_valid_json(token, agent_group_name, group_description, tags_to_group, agent_groups):
+    """
+    Create a group and validate the json schema
+
+    :param (str) token: used for API authentication
+    :param (str) agent_group_name: of the agent group to be created
+    :param (str) group_description: description of group
+    :param (dict) tags_to_group: dict with all pairs key:value that will be used as tags
+    :returns: (dict) a dictionary containing the created agent group data
+
+    :return: agent group data
+    """
+    agent_group_data = create_agent_group(token, agent_group_name, group_description,
+                                          tags_to_group)
+    group_id = agent_group_data['id']
+    agent_groups[group_id] = agent_group_name
+
+    local_orb_path = configs.get("local_orb_path")
+    agent_group_schema_path = local_orb_path + "/python-test/features/steps/schemas/groups_schema.json"
+    is_schema_valid = validate_json(agent_group_data, agent_group_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid group json. \n Group = {agent_group_data}")
+    return agent_group_data

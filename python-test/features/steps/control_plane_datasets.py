@@ -1,5 +1,5 @@
 from behave import given, then, step
-from utils import random_string, filter_list_by_parameter_start_with
+from utils import random_string, filter_list_by_parameter_start_with, validate_json
 from hamcrest import *
 import requests
 from test_config import TestConfig
@@ -9,6 +9,7 @@ from random import choice
 dataset_name_prefix = "test_dataset_name_"
 
 orb_url = TestConfig.configs().get('orb_url')
+configs = TestConfig.configs()
 
 
 @step("a new dataset is created using referred group, policy and {amount_of_sinks} {sink_number}")
@@ -25,6 +26,10 @@ def create_new_dataset(context, amount_of_sinks, sink_number):
     policy_id = context.policy['id']
     dataset_name = dataset_name_prefix + random_string(10)
     context.dataset = create_dataset(token, dataset_name, policy_id, agent_groups_id, context.used_sinks_id)
+    local_orb_path = configs.get("local_orb_path")
+    dataset_schema_path = local_orb_path + "/python-test/features/steps/schemas/dataset_schema.json"
+    is_schema_valid = validate_json(context.dataset, dataset_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid dataset json. \n Dataset = {context.dataset}")
     if 'datasets_created' in context:
         context.datasets_created[context.dataset['id']] = context.dataset['name']
     else:
@@ -240,6 +245,7 @@ def get_dataset(token, dataset_id, expected_status_code=200):
                                        headers={'Authorization': token})
 
     assert_that(get_dataset_response.status_code, equal_to(expected_status_code),
-                'Request to get policy id=' + dataset_id + ' failed with status=' + str(get_dataset_response.status_code))
+                'Request to get policy id=' + dataset_id + ' failed with status=' +
+                str(get_dataset_response.status_code) + "response=" + str(get_dataset_response.json()))
 
     return get_dataset_response.json()
