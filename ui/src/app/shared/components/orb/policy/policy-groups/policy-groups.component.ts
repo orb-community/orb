@@ -16,9 +16,6 @@ import {
 import {
   AgentMatchComponent,
 } from 'app/pages/fleet/agents/match/agent.match.component';
-import {
-  AgentGroupDetailsComponent,
-} from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { forkJoin, Subscription } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 
@@ -106,16 +103,6 @@ export class PolicyGroupsComponent implements OnInit, OnChanges, OnDestroy {
           .join(',\n');
         return groups;
       });
-  }
-
-  showAgentGroupDetail(agentGroup) {
-    this.dialogService.open(AgentGroupDetailsComponent, {
-      context: { agentGroup }, autoFocus: true, closeOnEsc: true,
-    }).onClose.subscribe((resp) => {
-      if (resp) {
-        this.onOpenEditAgentGroup(agentGroup);
-      }
-    });
   }
 
   showAgentGroupMatches(agentGroup) {

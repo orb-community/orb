@@ -3,6 +3,7 @@
   <nb-card-body>
     <div *ngIf="!isLoading">
       <button
+        matTooltip="{{group.matching_agents.online}} online out of {{group.matching_agents.total}} agent(s)"
         (click)="showAgentGroupMatches(group)"
         *ngFor="let group of groups; last as isLast"
         class="agent-group-button">
