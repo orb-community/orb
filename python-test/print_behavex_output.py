@@ -25,7 +25,6 @@ report = json.load(file)
 
 file.close()
 
-failed_scenarios = dict()
 
 for feature_index,  feature in enumerate(report['features']):
     if feature['status'] == "failed":
@@ -33,9 +32,4 @@ for feature_index,  feature in enumerate(report['features']):
             if scenario['status'] == "failed":
                 for key, value in list(scenario.items()):
                     print(f"{key.upper()}: {value}")
-                    failed_scenarios.update(report['features'][feature_index]['scenarios'][scenario_index])
                 print("-----------------------------------------------------------------------------------\n")
-with open(f"{local_output_dir}failed_scenarios.json", "w") as f:
-    json.dump(failed_scenarios, f)
-
-f.close()
