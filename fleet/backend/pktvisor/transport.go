@@ -8,6 +8,7 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/opentracing/opentracing-go"
 	"net/http"
+	"strings"
 )
 
 func MakePktvisorHandler(tracer opentracing.Tracer, pkt pktvisorBackend, opts []kithttp.ServerOption, r *bone.Mux) {
@@ -31,7 +32,14 @@ func MakePktvisorHandler(tracer opentracing.Tracer, pkt pktvisorBackend, opts []
 
 func decodeBackendView(_ context.Context, r *http.Request) (interface{}, error) {
 	req := viewResourceReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 	}
 	return req, nil
+}
+
+func parseJwt(r *http.Request) (token string) {
+	if strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
+		token = r.Header.Get("Authorization")[7:]
+	}
+	return
 }
