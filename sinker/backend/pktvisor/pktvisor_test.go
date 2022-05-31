@@ -2998,7 +2998,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "ip",
 						Value: "10.4.2.2",
 					},
 				},
@@ -3048,7 +3048,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "ip",
 						Value: "10.4.2.2",
 					},
 				},
@@ -3098,7 +3098,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "port",
 						Value: "10.4.2.2",
 					},
 				},
@@ -3148,7 +3148,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "port",
 						Value: "10.4.2.2",
 					},
 				},
@@ -3198,7 +3198,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "index",
 						Value: "10.4.2.2",
 					},
 				},
@@ -3248,7 +3248,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "index",
 						Value: "10.4.2.2",
 					},
 				},
@@ -3298,7 +3298,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "index",
 						Value: "10.4.2.2",
 					},
 				},
@@ -3348,7 +3348,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "index",
 						Value: "10.4.2.2",
 					},
 				},
@@ -3398,7 +3398,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "ip",
 						Value: "10.4.2.2",
 					},
 				},
@@ -3448,7 +3448,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "ip",
 						Value: "10.4.2.2",
 					},
 				},
@@ -3498,7 +3498,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "port",
 						Value: "10.4.2.2",
 					},
 				},
@@ -3548,7 +3548,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
-						Name:  "name",
+						Name:  "port",
 						Value: "10.4.2.2",
 					},
 				},
