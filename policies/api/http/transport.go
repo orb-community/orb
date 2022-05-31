@@ -122,7 +122,7 @@ func decodeAddPolicyRequest(_ context.Context, r *http.Request) (interface{}, er
 		return nil, errors.ErrUnsupportedContentType
 	}
 
-	req := addPolicyReq{token: r.Header.Get("Authorization")}
+	req := addPolicyReq{token: parseJwt(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
@@ -135,7 +135,7 @@ func decodeAddDatasetRequest(_ context.Context, r *http.Request) (interface{}, e
 		return nil, errors.ErrUnsupportedContentType
 	}
 
-	req := addDatasetReq{token: r.Header.Get("Authorization")}
+	req := addDatasetReq{token: parseJwt(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
@@ -145,7 +145,7 @@ func decodeAddDatasetRequest(_ context.Context, r *http.Request) (interface{}, e
 
 func decodeView(_ context.Context, r *http.Request) (interface{}, error) {
 	req := viewResourceReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		id:    bone.GetValue(r, "id"),
 	}
 	return req, nil
@@ -157,7 +157,7 @@ func decodePolicyUpdate(_ context.Context, r *http.Request) (interface{}, error)
 	}
 
 	req := updatePolicyReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		id:    bone.GetValue(r, "id"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -173,7 +173,7 @@ func decodeDatasetUpdate(_ context.Context, r *http.Request) (interface{}, error
 	}
 
 	req := updateDatasetReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		id:    bone.GetValue(r, "id"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -220,7 +220,7 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 	}
 
 	req := listResourcesReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		pageMetadata: policies.PageMetadata{
 			Offset:   o,
 			Limit:    l,
@@ -241,7 +241,7 @@ func decodePolicyDuplicate(_ context.Context, r *http.Request) (interface{}, err
 	}
 
 	req := duplicatePolicyReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		id:    bone.GetValue(r, "id"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -289,4 +289,11 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func parseJwt(r *http.Request) (token string) {
+	if strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
+		token = r.Header.Get("Authorization")[7:]
+	}
+	return
 }

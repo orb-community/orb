@@ -123,7 +123,7 @@ func newThingsService(auth mainflux.AuthServiceClient) things.Service {
 }
 
 func newThingsServer(svc things.Service) *httptest.Server {
-	mux := thingsapi.MakeHandler(mocktracer.New(), svc)
+	mux := thingsapi.MakeHandler(mocktracer.New(), svc, nil)
 	return httptest.NewServer(mux)
 }
 
@@ -133,7 +133,7 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	agentComms := flmocks.NewFleetCommService(agentRepo, agentGroupRepo)
 	logger, _ := zap.NewDevelopment()
 	config := mfsdk.Config{
-		BaseURL: url,
+		ThingsURL: url,
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
