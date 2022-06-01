@@ -7,6 +7,7 @@ import subprocess
 import shlex
 from retry import retry
 import threading
+import json
 
 configs = TestConfig.configs()
 ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
@@ -37,6 +38,7 @@ def run_local_agent_container(context, status_port):
     context.container_id = run_agent_container(agent_image, env_vars, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
+    threading.Event().wait(10)
 
 
 @step('the container logs that were output after {condition} contain the message "{text_to_match}" within'
@@ -49,15 +51,18 @@ def check_agent_logs_considering_timestamp(context, condition, text_to_match, ti
         considered_timestamp = context.considered_timestamp
     text_found = get_logs_and_check(context.container_id, text_to_match, considered_timestamp,
                                     timeout=time_to_wait)
-
-    assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+    logs = get_orb_agent_logs(context.container_id)
+    assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
+                                       f"Container logs: {json.dumps(logs, indent=4)}")
 
 
 @then('the container logs should contain the message "{text_to_match}" within {time_to_wait} seconds')
 def check_agent_log(context, text_to_match, time_to_wait):
     text_found = get_logs_and_check(context.container_id, text_to_match, timeout=time_to_wait)
+    logs = get_orb_agent_logs(context.container_id)
 
-    assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+    assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
+                                       f"Container logs: {json.dumps(logs, indent=4)}")
 
 
 @step("{order} container created is {status} after {seconds} seconds")
@@ -84,6 +89,7 @@ def run_container_using_ui_command(context, status_port):
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
+    threading.Event().wait(10)
 
 
 @step("remove the container")
@@ -233,6 +239,7 @@ def run_agent_config_file(orb_path, agent_name):
     subprocess_return = terminal_running.stdout.read().decode()
     container_id = subprocess_return.split()[0]
     rename_container(container_id, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
+    threading.Event().wait(10)
     return container_id
 
 

@@ -8,6 +8,7 @@ from behave import given, then, step
 from hamcrest import *
 import requests
 from random import sample
+import json
 
 configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
@@ -167,8 +168,12 @@ def subscribe_agent_to_a_group(context):
     agent = context.agent
     agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
     agent_tags = agent['orb_tags']
+    if agent["agent_tags"] is not None:
+        agent_tags.update(agent["agent_tags"])
     context.agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, agent_group_description,
                                                               agent_tags, context.agent_groups)
+    assert_that(context.agent_group_data['matching_agents']['online'], equal_to(1), f"No agent matching this group.\n\n"
+                                                                                    f"{context.agent_group_data}")
 
 
 @step('the container logs contain the message "{text_to_match}" referred to each matching group within'
@@ -182,7 +187,7 @@ def check_logs_for_group(context, text_to_match, time_to_wait):
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)"
                                        f"{set(groups_matching).difference(groups_to_which_subscribed)}!.\n\n"
                                        f"Logs = {container_logs}. \n\n"
-                                       f"Agent = {context.agent}. \n\n")
+                                       f"Agent: {json.dumps(context.agent, indent=4)} \n\n")
 
 
 def create_agent_group(token, name, description, tags, expected_status_code=201):

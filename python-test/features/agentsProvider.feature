@@ -7,6 +7,7 @@ Scenario: Provision agent
         And the Orb user logs in
     When a new agent is created with 1 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     Then the agent status in Orb should be online
         And the container logs should contain the message "sending capabilities" within 10 seconds
 
@@ -17,6 +18,7 @@ Scenario: Run two orb agents on the same port
         And that an agent with 1 orb tag(s) already exists and is online
     When a new agent is created with 1 orb tag(s)
         And the agent container is started on an unavailable port
+        And the agent status is new
     Then last container created is exited after 5 seconds
         And the container logs should contain the message "agent startup error" within 2 seconds
         And first container created is running after 5 seconds
@@ -28,6 +30,7 @@ Scenario: Run two orb agents on different ports
         And that an agent with 1 orb tag(s) already exists and is online
     When a new agent is created with 1 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     Then last container created is running after 2 seconds
         And first container created is running after 5 seconds
 
@@ -38,6 +41,7 @@ Scenario: Provision agent without tags
         And the Orb user logs in
     When a new agent is created with 0 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     Then the agent status in Orb should be online
         And the container logs should contain the message "sending capabilities" within 10 seconds
 
@@ -48,6 +52,7 @@ Scenario: Provision agent with multiple tags
         And the Orb user logs in
     When a new agent is created with 5 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     Then the agent status in Orb should be online
         And the container logs should contain the message "sending capabilities" within 10 seconds
 
@@ -58,6 +63,7 @@ Scenario: Edit agent tag
         And the Orb user logs in
         And a new agent is created with 5 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     When edit the orb tags on agent and use 3 orb tag(s)
     Then the container logs should contain the message "sending capabilities" within 10 seconds
         And agent must have 3 tags
@@ -70,6 +76,7 @@ Scenario: Save agent without tag
         And the Orb user logs in
         And a new agent is created with 5 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     When edit the orb tags on agent and use 0 orb tag(s)
     Then the container logs should contain the message "sending capabilities" within 10 seconds
         And agent must have 0 tags
@@ -82,6 +89,7 @@ Scenario: Insert tags in agents created without tags
         And the Orb user logs in
         And a new agent is created with 0 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     When edit the orb tags on agent and use 2 orb tag(s)
     Then the container logs should contain the message "sending capabilities" within 10 seconds
         And agent must have 2 tags
@@ -94,6 +102,7 @@ Scenario: Edit agent name
         And the Orb user logs in
         And a new agent is created with 1 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     When edit the agent name
     Then the container logs should contain the message "sending capabilities" within 10 seconds
         And agent must have 1 tags
@@ -106,6 +115,7 @@ Scenario: Edit agent name and tags
         And the Orb user logs in
         And a new agent is created with 1 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     When edit the agent name and edit orb tags on agent using 3 orb tag(s)
     Then the container logs should contain the message "sending capabilities" within 10 seconds
         And agent must have 3 tags

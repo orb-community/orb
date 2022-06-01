@@ -1,7 +1,7 @@
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix,\
     create_tags_set, find_files, threading_wait_until, return_port_to_run_docker_container, validate_json
-from local_agent import run_local_agent_container, run_agent_config_file
+from local_agent import run_local_agent_container, run_agent_config_file, get_orb_agent_logs
 from control_plane_agent_groups import return_matching_groups, tags_to_match_k_groups
 from behave import given, then, step
 from hamcrest import *
@@ -12,6 +12,7 @@ from agent_config_file import FleetAgent
 import yaml
 from yaml.loader import SafeLoader
 import re
+import json
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
@@ -30,14 +31,15 @@ def check_if_agents_exist(context, orb_tags, status):
     existing_agents = get_agent(token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
     timeout = 30
-    agent_status = expect_container_status(token, agent_id, status, timeout=timeout)
+    agent_status = expect_agent_status(token, agent_id, status, timeout=timeout)
+    context.agent = get_agent(token, agent_id)
     assert_that(agent_status, is_(equal_to(status)),
-                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
-    agent = get_agent(token, agent_id)
+                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'. \n"
+                f"Agent: {json.dumps(context.agent, indent=4)}")
     local_orb_path = configs.get("local_orb_path")
     agent_schema_path = local_orb_path + "/python-test/features/steps/schemas/agent_schema.json"
-    is_schema_valid = validate_json(agent, agent_schema_path)
-    assert_that(is_schema_valid, equal_to(True), f"Invalid agent json. \n Agent = {agent}")
+    is_schema_valid = validate_json(context.agent, agent_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid agent json. \n Agent = {context.agent}")
 
 
 @step('a new agent is created with {orb_tags} orb tag(s)')
@@ -62,7 +64,7 @@ def check_agent_online(context, status):
     timeout = 10
     token = context.token
     agent_id = context.agent['id']
-    agent_status = expect_container_status(token, agent_id, status, timeout=timeout)
+    agent_status = expect_agent_status(token, agent_id, status, timeout=timeout)
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
 
@@ -72,9 +74,11 @@ def check_agent_status(context, status):
     timeout = 10
     token = context.token
     agent_id = context.agent['id']
-    agent_status = expect_container_status(token, agent_id, status, timeout=timeout)
+    agent_status = expect_agent_status(token, agent_id, status, timeout=timeout)
+    context.agent = get_agent(context.token, context.agent['id'])
     assert_that(agent_status, is_(equal_to(status)),
-                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
+                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'."
+                f"Agent: {json.dumps(context.agent, indent=4)}")
 
 
 @then('cleanup agents')
@@ -112,9 +116,10 @@ def list_policies_applied_to_an_agent_and_referred_status(context, amount_of_pol
 def list_policies_applied_to_an_agent(context, amount_of_policies):
     context.agent, context.list_agent_policies_id = get_policies_applied_to_an_agent(context.token, context.agent['id'],
                                                                                      amount_of_policies, timeout=180)
-
+    context.agent = get_agent(context.token, context.agent['id'])
     assert_that(len(context.list_agent_policies_id), equal_to(int(amount_of_policies)),
-                f"Amount of policies applied to this agent failed with {len(context.list_agent_policies_id)} policies")
+                f"Amount of policies applied to this agent failed with {len(context.list_agent_policies_id)} policies."
+                f"\n Agent: {json.dumps(context.agent, indent=4)}")
 
 
 @step("this agent's heartbeat shows that {amount_of_groups} groups are matching the agent")
@@ -123,8 +128,11 @@ def list_groups_matching_an_agent(context, amount_of_groups):
                                                                          context.agent)
     context.list_groups_id = get_groups_to_which_agent_is_matching(context.token, context.agent['id'],
                                                                    context.groups_matching_id, timeout=180)
+    context.agent = get_agent(context.token, context.agent['id'])
     assert_that(len(context.list_groups_id), equal_to(int(amount_of_groups)),
-                f"Amount of groups matching the agent failed with {context.list_groups_id} groups")
+                f"Amount of groups matching the agent failed with {context.list_groups_id} groups. \n"
+                f"Agent: {json.dumps(context.agent, indent=4)} \n\n"
+                f"Agent Logs: {get_orb_agent_logs(context.container_id)}.")
     assert_that(sorted(context.list_groups_id), equal_to(sorted(context.groups_matching_id)),
                 "Groups matching the agent is not the same as the created by test process")
 
@@ -218,7 +226,7 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     agent_id = context.agent['id']
     existing_agents = get_agent(context.token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
-    expect_container_status(context.token, agent_id, status)
+    expect_agent_status(context.token, agent_id, status)
 
 
 @step("remotely restart the agent")
@@ -231,7 +239,7 @@ def reset_agent_remotely(context):
 
 
 @threading_wait_until
-def expect_container_status(token, agent_id, status, event=None):
+def expect_agent_status(token, agent_id, status, event=None):
     """
     Keeps fetching agent data from Orb control plane until it gets to
     the expected agent status or this operation times out
