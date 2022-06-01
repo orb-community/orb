@@ -995,6 +995,7 @@ func TestRetrieveAgentInfoByChannelID(t *testing.T) {
 		ownerID   string
 		name      string
 		agentTags types.Tags
+		orbTags   types.Tags
 		err       error
 	}{
 		"retrieve existing agent info by channelID": {
@@ -1002,6 +1003,7 @@ func TestRetrieveAgentInfoByChannelID(t *testing.T) {
 			ownerID:   oID.String(),
 			name:      nameID.String(),
 			agentTags: agent.AgentTags,
+			orbTags:   agent.OrbTags,
 			err:       nil,
 		},
 		"retrieve existent agent info by non-existent channelID": {
@@ -1009,6 +1011,7 @@ func TestRetrieveAgentInfoByChannelID(t *testing.T) {
 			ownerID:   "",
 			name:      "",
 			agentTags: nil,
+			orbTags:   nil,
 			err:       nil,
 		},
 	}
@@ -1020,6 +1023,7 @@ func TestRetrieveAgentInfoByChannelID(t *testing.T) {
 				assert.Equal(t, tc.name, ag.Name.String(), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.name, ag.Name.String()))
 				assert.Equal(t, tc.ownerID, ag.MFOwnerID, fmt.Sprintf("%s: expected %s got %s\n", desc, tc.ownerID, ag.MFOwnerID))
 				assert.Equal(t, tc.agentTags, ag.AgentTags, fmt.Sprintf("%s: expected %s got %s\n", desc, tc.agentTags, ag.AgentTags))
+				assert.Equal(t, tc.orbTags, ag.OrbTags, fmt.Sprintf("%s: expected %s got %s\n", desc, tc.orbTags, ag.OrbTags))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 		})
