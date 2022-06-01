@@ -54,7 +54,7 @@ func retrieveAgentInfoByChannelIDEndpoint(svc fleet.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		res := agentInfoRes{ownerID: agent.MFOwnerID, agentName: agent.Name.String(), agentTags: agent.AgentTags}
+		res := agentInfoRes{ownerID: agent.MFOwnerID, agentName: agent.Name.String(), agentTags: agent.AgentTags, orbTags: agent.OrbTags}
 		return res, nil
 	}
 }

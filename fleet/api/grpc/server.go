@@ -35,7 +35,7 @@ func NewServer(tracer opentracing.Tracer, svc fleet.Service) pb.FleetServiceServ
 		retrieveAgentInfoByChannelID: kitgrpc.NewServer(
 			kitot.TraceServer(tracer, "retrieve_agent_info_by_channel_id")(retrieveAgentInfoByChannelIDEndpoint(svc)),
 			decodeRetrieveAgentInfoByChannelIDRequest,
-			encodeOwnerResponse,
+			encodeAgentInfoResponse,
 		),
 	}
 }
@@ -100,12 +100,13 @@ func decodeRetrieveAgentInfoByChannelIDRequest(_ context.Context, grpcReq interf
 	return accessAgentInfoByChannelIDReq{ChannelID: req.Channel}, nil
 }
 
-func encodeOwnerResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+func encodeAgentInfoResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(agentInfoRes)
 	return &pb.AgentInfoRes{
 		OwnerID:   res.ownerID,
 		AgentName: res.agentName,
 		AgentTags: res.agentTags,
+		OrbTags:   res.orbTags,
 	}, nil
 }
 

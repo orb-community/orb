@@ -39,10 +39,6 @@ message AgentInfoRes {
   string ownerID = 1;
   string agentName = 2;
   map<string, string> agentTags = 3;
-  //repeated MapFieldEntry map_field = 4;
+  map<string, string> orbTags = 4;
 }
 
-//message MapFieldEntry {
-//  key_type key = 1;
-//  value_type value = 2;
-//}
