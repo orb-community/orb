@@ -62,6 +62,15 @@ func (g grpcClient) RetrieveAgentGroup(ctx context.Context, in *pb.AgentGroupByI
 	return &pb.AgentGroupRes{Id: ir.id, Name: ir.name, Channel: ir.channel}, nil
 }
 
+func (g grpcClient) RetrieveOwnerByChannelID(ctx context.Context, in *pb.OwnerByChannelIDReq, opts ...grpc.CallOption) (*pb.OwnerRes, error) {
+	res, err := g.RetrieveAgentInfoByChannelID(ctx, (*pb.AgentInfoByChannelIDReq)(in), opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.OwnerRes{OwnerID: res.OwnerID, AgentName: res.AgentName}, nil
+}
+
 func (g grpcClient) RetrieveAgentInfoByChannelID(ctx context.Context, in *pb.AgentInfoByChannelIDReq, opts ...grpc.CallOption) (*pb.AgentInfoRes, error) {
 	ctx, cancel := context.WithTimeout(ctx, g.timeout)
 	defer cancel()
