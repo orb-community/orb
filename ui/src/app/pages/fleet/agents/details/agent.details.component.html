@@ -1,11 +1,14 @@
-<nb-card size="large" class="nb-card-medium">
+<nb-card
+  class="nb-card-medium"
+  size="large">
   <nb-card-header>
     {{strings.details.header}}
-    <button nbButton
-            ghost="true"
-            size="small"
-            class="orb-close-dialog"
-            (click)="onClose()">
+    <button
+      (click)="onClose()"
+      class="orb-close-dialog"
+      ghost="true"
+      nbButton
+      size="small">
       <span class="nb-close"></span>
     </button>
   </nb-card-header>
@@ -30,28 +33,17 @@
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">Tags</p>
-        <div>
-          <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
-            <mat-chip
-                class="orb-tag-chip "
-                *ngFor="let tag of agent.agent_tags | keyvalue | tagchiplist"
-                [style.background-color]="tag | tagcolor">
-                {{tag}}
-            </mat-chip>
-            <mat-chip
-                class="orb-tag-chip "
-                *ngFor="let tag of agent.orb_tags | keyvalue | tagchiplist"
-                [style.background-color]="tag | tagcolor">
-                {{tag}}
-            </mat-chip>
-          </mat-chip-list>
-        </div>
+        <ngx-combined-tag [agent]="agent"></ngx-combined-tag>
       </div>
     </div>
   </nb-card-body>
 
   <nb-card-footer>
-    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(agent)">Edit</button>
+    <button
+      (click)="onOpenEdit(agent)"
+      class="sink-edit-button"
+      nbButton
+      status="primary">Edit
+    </button>
   </nb-card-footer>
 </nb-card>

@@ -1,0 +1,20 @@
+<div>
+  <br>
+  <button
+    (click)="splitView=!splitView"
+    class="card-ghost-button"
+    ghost="true"
+    nbButton
+    status="primary">{{ splitView ? 'Unify' : 'Split' }}</button>
+  <div [hidden]="splitView">
+    <p class="detail-title">Combined Tags</p>
+    <ngx-tag-display [tags]="agent.combined_tags"></ngx-tag-display>
+  </div>
+  <div [hidden]="!splitView">
+    <p class="detail-title">Agent Tags</p>
+    <ngx-tag-display [tags]="agent.agent_tags"></ngx-tag-display>
+    <br>
+    <p class="detail-title">Orb Tags</p>
+    <ngx-tag-display [tags]="agent.orb_tags"></ngx-tag-display>
+  </div>
+</div>

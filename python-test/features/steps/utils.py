@@ -7,6 +7,10 @@ from datetime import datetime
 import socket
 import os
 import re
+import multiprocessing
+import json
+import jsonschema
+from jsonschema import validate
 
 tag_prefix = "test_tag_"
 
@@ -84,7 +88,8 @@ def create_tags_set(orb_tags):
                                                                      f"If you want 1 randomized tag: 1 orb tag."
                                                                      f"If you want more than 1 randomized tags: 2 orb tags. Note that you can use any int. 2 its only an example."
                                                                      f"If you want specified tags: test_key:test_value, second_key:second_value.")
-        if re.match(r"^.+\:.+", orb_tags): # We expected key values separated by a colon ":" and multiple tags separated
+        if re.match(r"^.+\:.+",
+                    orb_tags):  # We expected key values separated by a colon ":" and multiple tags separated
             # by a comma ",". Example: test_key:test_value, my_orb_key:my_orb_value
             for tag in orb_tags.split(", "):
                 key, value = tag.split(":")
@@ -160,29 +165,38 @@ def threading_wait_until(func):
     return wait_event
 
 
-def check_port_is_available(availability=True):
+def return_port_to_run_docker_container(context, available=True):
     """
 
-    :param (str) availability: Status of the port on which agent must try to run. Default: available.
+    :param (bool) available: Status of the port on which agent must try to run. Default: available.
     :return: (int) port number
     """
-    assert_that(availability, any_of(equal_to(True), equal_to(False)), "Unexpected value for availability")
-    available_port = None
-    port_options = range(10853, 10900)
-    for port in port_options:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex(('127.0.0.1', port))
-        sock.close()
-        if result == 0:
-            available_port = port
-            if availability is True:
-                continue
-            else:
+
+    assert_that(available, any_of(equal_to(True), equal_to(False)), "Unexpected value for 'available' parameter")
+    if not available:
+        unavailable_port = list(context.containers_id.values())[-1]
+        return unavailable_port
+    else:
+        available_port = None
+        process_number = multiprocessing.current_process().name.split('-')[-1]
+        if process_number.isnumeric():  # if parallel process
+            lower_lim_port = 10800 + int(process_number) * 10
+            upper_lim_port = lower_lim_port + 10
+            port_options_for_process = range(lower_lim_port, upper_lim_port)
+        else:  # if sequential process
+            port_options_for_process = range(10800, 11000)
+
+        for port in port_options_for_process:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            res = sock.connect_ex(('localhost', port))
+            sock.close()
+            if res != 0:
+                available_port = port
                 return available_port
-        else:
-            available_port = port
-            break
-    assert_that(available_port, is_not(equal_to(None)), "No available ports to bind")
+            else:
+                # port not available
+                continue
+    assert_that(available_port, is_not(None), "Unable to find an available port to run orb agent")
     return available_port
 
 
@@ -202,3 +216,34 @@ def find_files(prefix, suffix, path):
                 result.append(os.path.join(root, name))
     return result
 
+
+def get_schema(path_to_file):
+    """
+    Loads the given schema available
+
+    :param path_to_file: path to schema json file
+    :return: schema json
+    """
+    with open(path_to_file, 'r') as file:
+        schema = json.load(file)
+    return schema
+
+
+def validate_json(json_data, path_to_file):
+
+    """
+    Compare a file with the schema and validate if the structure is correct
+    :param json_data: json to be validated
+    :param path_to_file: path to schema json file
+    :return: bool. False if the json is not valid according to the schema and True if it is
+    """
+
+    execute_api_schema = get_schema(path_to_file)
+
+    try:
+        validate(instance=json_data, schema=execute_api_schema)
+    except jsonschema.exceptions.ValidationError as err:
+        print(err)
+        return False, err
+
+    return True

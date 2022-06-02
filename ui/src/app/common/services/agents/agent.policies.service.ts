@@ -52,20 +52,37 @@ export class AgentPoliciesService {
     this.paginationCache = {};
   }
 
-  addAgentPolicy(agentPolicyItem: AgentPolicy) {
+  addAgentPolicy(agentPolicyItem: AgentPolicy): Observable<AgentPolicy> {
     return this.http.post(environment.agentPoliciesUrl,
         { ...agentPolicyItem },
         { observe: 'response' })
-      .map(
-        resp => {
-          return resp;
-        },
-      )
+      .map(resp => {
+        return resp.body as AgentPolicy;
+      })
       .catch(
         err => {
           this.notificationsService.error('Failed to create Agent Policy',
             `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
-          return Observable.throwError(err);
+          return of(err);
+        },
+      );
+  }
+
+  duplicateAgentPolicy(id: string): any {
+    return this.http.post(`${ environment.agentPoliciesUrl }/${ id }/duplicate`,
+      {},
+      { observe: 'response'})
+      .map(
+        resp => {
+          const { body } = resp;
+          return body;
+        },
+      )
+      .catch(
+        err => {
+          this.notificationsService.error('Failed to duplicate Agent Policy',
+            `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
+          return of(err);
         },
       );
   }
@@ -84,16 +101,11 @@ export class AgentPoliciesService {
 
   editAgentPolicy(agentPolicy: AgentPolicy): any {
     return this.http.put(`${ environment.agentPoliciesUrl }/${ agentPolicy.id }`, agentPolicy)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
       .catch(
         err => {
           this.notificationsService.error('Failed to edit Agent Policy',
             `Error: ${ err.status } - ${ err.statusText }`);
-          return Observable.throwError(err);
+          return of(err);
         },
       );
   }

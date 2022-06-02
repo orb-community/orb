@@ -1,5 +1,6 @@
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
+import { AuthGuard } from 'app/auth/auth-guard.service';
 
 // Mfx- Custom Logout and Register components that
 // replace NbLogoutComponent and NbRegisterComponent
@@ -10,6 +11,7 @@ export const routes: Routes = [
     loadChildren: () => import('./pages/pages.module')
       .then(m => m.PagesModule),
     data: {breadcrumb: {skip: true}},
+    canActivate: [AuthGuard],
   },
   {
     path: 'auth',

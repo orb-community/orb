@@ -1,5 +1,5 @@
 from behave import given, then, step
-from utils import random_string, filter_list_by_parameter_start_with
+from utils import random_string, filter_list_by_parameter_start_with, validate_json
 from hamcrest import *
 import requests
 from test_config import TestConfig
@@ -9,6 +9,7 @@ from random import choice
 dataset_name_prefix = "test_dataset_name_"
 
 orb_url = TestConfig.configs().get('orb_url')
+configs = TestConfig.configs()
 
 
 @step("a new dataset is created using referred group, policy and {amount_of_sinks} {sink_number}")
@@ -25,6 +26,10 @@ def create_new_dataset(context, amount_of_sinks, sink_number):
     policy_id = context.policy['id']
     dataset_name = dataset_name_prefix + random_string(10)
     context.dataset = create_dataset(token, dataset_name, policy_id, agent_groups_id, context.used_sinks_id)
+    local_orb_path = configs.get("local_orb_path")
+    dataset_schema_path = local_orb_path + "/python-test/features/steps/schemas/dataset_schema.json"
+    is_schema_valid = validate_json(context.dataset, dataset_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid dataset json. \n Dataset = {context.dataset}")
     if 'datasets_created' in context:
         context.datasets_created[context.dataset['id']] = context.dataset['name']
     else:
@@ -157,23 +162,46 @@ def new_dataset(context):
     create_new_dataset(context)
 
 
-def list_datasets(token, limit=100):
+def list_datasets(token, limit=100, offset=0):
+
+    """
+    Lists all datasets from Orb control plane that belong to this user
+
+    :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
+    :returns: (list) a list of datasets
+    """
+
+    all_datasets, total, offset = list_up_to_limit_datasets(token, limit, offset)
+
+    new_offset = limit + offset
+
+    while new_offset < total:
+        datasets_from_offset, total, offset = list_up_to_limit_datasets(token, limit, new_offset)
+        all_datasets = all_datasets + datasets_from_offset
+        new_offset = limit + offset
+
+    return all_datasets
+
+
+def list_up_to_limit_datasets(token, limit=100, offset=0):
     """
     Lists up to 100 datasets from Orb control plane that belong to this user
 
     :param (str) token: used for API authentication
     :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
-    :returns: (list) a list of datasets
+    :returns: (list) a list of datasets, (int) total datasets on orb, (int) offset
     """
 
     response = requests.get(orb_url + '/api/v1/policies/dataset', headers={'Authorization': token},
-                            params={"limit": limit})
+                            params={"limit": limit, "offset": offset})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list datasets failed with status=' + str(response.status_code))
 
     datasets_as_json = response.json()
-    return datasets_as_json['datasets']
+    return datasets_as_json['datasets'], datasets_as_json['total'], datasets_as_json['offset']
 
 
 def delete_datasets(token, list_of_datasets):
@@ -217,6 +245,7 @@ def get_dataset(token, dataset_id, expected_status_code=200):
                                        headers={'Authorization': token})
 
     assert_that(get_dataset_response.status_code, equal_to(expected_status_code),
-                'Request to get policy id=' + dataset_id + ' failed with status=' + str(get_dataset_response.status_code))
+                'Request to get policy id=' + dataset_id + ' failed with status=' +
+                str(get_dataset_response.status_code) + "response=" + str(get_dataset_response.json()))
 
     return get_dataset_response.json()

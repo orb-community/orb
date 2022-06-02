@@ -128,7 +128,6 @@ def policy_editing(context, kwargs):
                                    edited_attributes["bpf_filter_expression"], edited_attributes["pcap_source"],
                                    edited_attributes["only_qname_suffix"], edited_attributes["only_rcode"],
                                    edited_attributes["backend_type"])
-
     context.policy = edit_policy(context.token, context.policy['id'], policy_json)
 
     assert_that(context.policy['name'], equal_to(edited_attributes["name"]))
@@ -191,7 +190,6 @@ def check_test(context, time_to_wait):
     policy_removed = policy_stopped_and_removed(context.container_id, stop_log_info, remove_log_info,
                                                 context.considered_timestamp,  timeout=time_to_wait)
     assert_that(policy_removed, equal_to(True), f"Policy {context.policy['name']} failed to be unapplied")
-
 
 
 @then('cleanup policies')
@@ -342,7 +340,7 @@ def edit_policy(token, policy_id, json_request):
     response = requests.put(orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
                             headers=headers_request)
     assert_that(response.status_code, equal_to(200),
-                'Request to create policy failed with status=' + str(response.status_code))
+                'Request to editing policy failed with status=' + str(response.status_code))
 
     return response.json()
 
@@ -427,27 +425,52 @@ def get_policy(token, policy_id, expected_status_code=200):
                                        headers={'Authorization': token})
 
     assert_that(get_policy_response.status_code, equal_to(expected_status_code),
-                'Request to get policy id=' + policy_id + ' failed with status=' + str(get_policy_response.status_code))
+                'Request to get policy id=' + policy_id + ' failed with status=' + str(get_policy_response.status_code)
+                + "response= " + str(get_policy_response.json()))
 
     return get_policy_response.json()
 
 
-def list_policies(token, limit=100):
+def list_policies(token, limit=100, offset=0):
     """
     Lists all policies from Orb control plane that belong to this user
 
     :param (str) token: used for API authentication
     :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
     :returns: (list) a list of policies
     """
+
+    all_policies, total, offset = list_up_to_limit_policies(token, limit, offset)
+
+    new_offset = limit + offset
+
+    while new_offset < total:
+        policies_from_offset, total, offset = list_up_to_limit_policies(token, limit, new_offset)
+        all_policies = all_policies + policies_from_offset
+        new_offset = limit + offset
+
+    return all_policies
+
+
+def list_up_to_limit_policies(token, limit=100, offset=0):
+    """
+    Lists up to 100 policies from Orb control plane that belong to this user
+
+    :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
+    :returns: (list) a list of policies, (int) total policies on orb, (int) offset
+    """
+
     response = requests.get(orb_url + '/api/v1/policies/agent', headers={'Authorization': token},
-                            params={'limit': limit})
+                            params={'limit': limit, 'offset': offset})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list policies failed with status=' + str(response.status_code))
 
     policies_as_json = response.json()
-    return policies_as_json['data']
+    return policies_as_json['data'], policies_as_json['total'], policies_as_json['offset']
 
 
 def delete_policies(token, list_of_policies):

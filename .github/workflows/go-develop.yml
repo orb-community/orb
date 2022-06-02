@@ -10,7 +10,6 @@ on:
     branches: [ develop ]
   push:
     branches: [ develop ]
-
 jobs:
   prebuild:
     runs-on: ubuntu-latest
@@ -63,7 +62,20 @@ jobs:
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
-          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"  
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          
+  go-report:
+    needs: prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          name: workspace
+      - name: Run go report
+        uses: ./.github/actions/go-report
+        with:
+          go_report_threshold: 90.1 #grade A+
 
   test-agent:
     runs-on: ubuntu-latest
@@ -138,11 +150,10 @@ jobs:
         run: SERVICE=sinker make test_service
 
   package-agent:
-    needs: 
+    needs:
       - prebuild
       - test-agent
     runs-on: ubuntu-latest
-    if: ${{ needs.prebuild.outputs.agent == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Get short commit hash to a variable
@@ -176,9 +187,9 @@ jobs:
         run: docker push -a ns1labs/orb-agent
 
   package-fleet:
-    needs: 
-     - prebuild
-     - test-fleet
+    needs:
+      - prebuild
+      - test-fleet
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -203,9 +214,9 @@ jobs:
         run: docker push -a ns1labs/orb-fleet
 
   package-policies:
-    needs: 
-     - prebuild
-     - test-policies
+    needs:
+      - prebuild
+      - test-policies
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -230,9 +241,9 @@ jobs:
         run: docker push -a ns1labs/orb-policies
 
   package-sinker:
-    needs: 
-     - prebuild
-     - test-sinker
+    needs:
+      - prebuild
+      - test-sinker
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -257,9 +268,9 @@ jobs:
         run: docker push -a ns1labs/orb-sinker
 
   package-sinks:
-    needs: 
-     - prebuild
-     - test-sinks
+    needs:
+      - prebuild
+      - test-sinks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

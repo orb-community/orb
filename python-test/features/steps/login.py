@@ -1,4 +1,4 @@
-from behave import given, when, then, step
+from behave import given, when, then
 from test_config import TestConfig
 from hamcrest import *
 from users import authenticate, register_account

@@ -1,6 +1,6 @@
 from behave import given, when, then, step
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until
+from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json
 from hamcrest import *
 import requests
 
@@ -34,9 +34,11 @@ def create_sink(context):
     username = context.prometheus_username
     password = context.prometheus_key
     context.sink = create_new_sink(token, sink_label_name, endpoint, username, password)
-    context.existent_sinks_id = list()
-    for sink_json in list_sinks(token):
-        context.existent_sinks_id.append(sink_json['id'])
+    local_orb_path = configs.get("local_orb_path")
+    sink_schema_path = local_orb_path + "/python-test/features/steps/schemas/sink_schema.json"
+    is_schema_valid = validate_json(context.sink, sink_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid sink json. \n Sink = {context.sink}")
+    context.existent_sinks_id.append(context.sink['id'])
 
 
 @step("{amount_of_sinks} new sinks are created")
@@ -79,9 +81,11 @@ def create_invalid_sink(context, credential):
     prometheus_credentials[credential] = prometheus_credentials[credential][:-2]
     context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
                                    prometheus_credentials['username'], prometheus_credentials['password'])
-    context.existent_sinks_id = list()
-    for sink_json in list_sinks(token):
-        context.existent_sinks_id.append(sink_json['id'])
+    local_orb_path = configs.get("local_orb_path")
+    sink_schema_path = local_orb_path + "/python-test/features/steps/schemas/sink_schema.json"
+    is_schema_valid = validate_json(context.sink, sink_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid sink json. \n Sink = {context.sink}")
+    context.existent_sinks_id.append(context.sink['id'])
 
 
 @step("referred sink must have {status} state on response within {time_to_wait} seconds")
@@ -152,22 +156,45 @@ def get_sink(token, sink_id):
     return get_sink_response.json()
 
 
-def list_sinks(token, limit=100):
+def list_sinks(token, limit=100, offset=0):
     """
     Lists all sinks from Orb control plane that belong to this user
 
     :param (str) token: used for API authentication
     :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
     :returns: (list) a list of sinks
     """
+    all_sinks, total, offset = list_up_to_limit_sinks(token, limit, offset)
 
-    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': token}, params={'limit': limit})
+    new_offset = limit + offset
+
+    while new_offset < total:
+        sinks_from_offset, total, offset = list_up_to_limit_sinks(token, limit, new_offset)
+        all_sinks = all_sinks + sinks_from_offset
+        new_offset = limit + offset
+
+    return all_sinks
+
+
+def list_up_to_limit_sinks(token, limit=100, offset=0):
+    """
+    Lists up to 100 sinks from Orb control plane that belong to this user
+
+    :param (str) token: used for API authentication
+    :param (int) limit: Size of the subset to retrieve. (max 100). Default = 100
+    :param (int) offset: Number of items to skip during retrieval. Default = 0.
+    :returns: (list) a list of sinks, (int) total sinks on orb, (int) offset
+    """
+
+    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': token}, params={'limit': limit,
+                                                                                                 'offset': offset})
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list sinks failed with status=' + str(response.status_code))
 
     sinks_as_json = response.json()
-    return sinks_as_json['sinks']
+    return sinks_as_json['sinks'], sinks_as_json['total'], sinks_as_json['offset']
 
 
 def delete_sinks(token, list_of_sinks):
