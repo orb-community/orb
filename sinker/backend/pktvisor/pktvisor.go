@@ -79,6 +79,12 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data
 				p.logger.Error("error decoding dhcp handler", zap.Error(err))
 				continue
 			}
+		} else if data, ok := handlerData["flow"]; ok {
+			err := mapstructure.Decode(data, &stats.Flow)
+			if err != nil {
+				p.logger.Error("error decoding dhcp handler", zap.Error(err))
+				continue
+			}
 		}
 	}
 	return parseToProm(&context, stats), nil
@@ -249,6 +255,18 @@ func topNMetricsParser(label string) (string, error) {
 	mapNMetrics["TopSRVFAIL"] = "qname"
 	mapNMetrics["TopUDPPorts"] = "port"
 	mapNMetrics["TopSlow"] = "qname"
+	mapNMetrics["TopDstIpsBytes"] = "ip"
+	mapNMetrics["TopDstIpsPackets"] = "ip"
+	mapNMetrics["TopSrcIpsBytes"] = "ip"
+	mapNMetrics["TopSrcIpsPackets"] = "ip"
+	mapNMetrics["TopDstPortsBytes"] = "port"
+	mapNMetrics["TopDstPortsPackets"] = "port"
+	mapNMetrics["TopSrcPortsBytes"] = "port"
+	mapNMetrics["TopSrcPortsPackets"] = "port"
+	mapNMetrics["TopInIfIndexBytes"] = "index"
+	mapNMetrics["TopInIfIndexPackets"] = "index"
+	mapNMetrics["TopOutIfIndexBytes"] = "index"
+	mapNMetrics["TopOutIfIndexPackets"] = "index"
 	if value, ok := mapNMetrics[label]; ok {
 		return value, nil
 	} else {
