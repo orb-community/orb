@@ -42,7 +42,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
     {
       id: '1',
       label: 'Tags',
-      prop: 'orb_tags',
+      prop: 'combined_tags',
       selected: false,
     },
   ];
@@ -68,7 +68,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
         minWidth: 90,
       },
       {
-        prop: 'orb_tags',
+        prop: 'combined_tags',
         name: 'Tags',
         resizeable: false,
         minWidth: 100,
