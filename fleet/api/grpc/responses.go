@@ -12,6 +12,11 @@ type agentGroupRes struct {
 	channel string
 }
 
+type ownerRes struct {
+	ownerID   string
+	agentName string
+}
+
 type agentInfoRes struct {
 	ownerID   string
 	agentName string
