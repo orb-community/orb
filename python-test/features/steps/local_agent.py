@@ -38,7 +38,6 @@ def run_local_agent_container(context, status_port):
     context.container_id = run_agent_container(agent_image, env_vars, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
-    threading.Event().wait(10)
 
 
 @step('the container logs that were output after {condition} contain the message "{text_to_match}" within'
@@ -89,7 +88,6 @@ def run_container_using_ui_command(context, status_port):
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
-    threading.Event().wait(10)
 
 
 @step("remove the container")
@@ -98,19 +96,21 @@ def remove_container_on_end_of_scenario(context):
         remove_container(container_id)
 
 
-def run_agent_container(container_image, env_vars, container_name):
+def run_agent_container(container_image, env_vars, container_name, time_to_wait=10):
     """
     Gets a specific agent from Orb control plane
 
     :param (str) container_image: that will be used for running the container
     :param (dict) env_vars: that will be passed to the container context
     :param (str) container_name: base of container name
+    :param (int) time_to_wait: seconds that threading must wait after run the agent
     :returns: (str) the container ID
     """
     LOCAL_AGENT_CONTAINER_NAME = container_name + random_string(5)
     client = docker.from_env()
     container = client.containers.run(container_image, name=LOCAL_AGENT_CONTAINER_NAME, detach=True,
                                       network_mode='host', environment=env_vars)
+    threading.Event().wait(time_to_wait)
     return container.id
 
 
@@ -220,12 +220,13 @@ def get_logs_and_check(container_id, expected_message, start_time=0, event=None)
     return text_found
 
 
-def run_agent_config_file(orb_path, agent_name):
+def run_agent_config_file(agent_name, time_to_wait=10):
     """
     Run an agent container using an agent config file
 
     :param orb_path: path to orb directory
     :param agent_name: name of the orb agent
+    :param time_to_wait: seconds that threading must wait after run the agent
     :return: agent container id
     """
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
@@ -239,7 +240,7 @@ def run_agent_config_file(orb_path, agent_name):
     subprocess_return = terminal_running.stdout.read().decode()
     container_id = subprocess_return.split()[0]
     rename_container(container_id, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
-    threading.Event().wait(10)
+    threading.Event().wait(time_to_wait)
     return container_id
 
 

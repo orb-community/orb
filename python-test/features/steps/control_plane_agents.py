@@ -31,7 +31,7 @@ def check_if_agents_exist(context, orb_tags, status):
     existing_agents = get_agent(token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
     timeout = 30
-    agent_status = expect_agent_status(token, agent_id, status, timeout=timeout)
+    agent_status = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
     context.agent = get_agent(token, agent_id)
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'. \n"
@@ -64,7 +64,7 @@ def check_agent_online(context, status):
     timeout = 10
     token = context.token
     agent_id = context.agent['id']
-    agent_status = expect_agent_status(token, agent_id, status, timeout=timeout)
+    agent_status = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'")
 
@@ -74,7 +74,7 @@ def check_agent_status(context, status):
     timeout = 10
     token = context.token
     agent_id = context.agent['id']
-    agent_status = expect_agent_status(token, agent_id, status, timeout=timeout)
+    agent_status = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
     context.agent = get_agent(context.token, context.agent['id'])
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'."
@@ -213,11 +213,11 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     interface = configs.get('orb_agent_interface', 'mock')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
-    context.dir_path, context.agent_file_name = create_agent_config_file(context.token, agent_name, interface,
+    context.agent_file_name = create_agent_config_file(context.token, agent_name, interface,
                                                                          agent_tags, orb_url, base_orb_address, port,
                                                                          existing_agent_groups=context.agent_groups,
                                                                          context=context)
-    context.container_id = run_agent_config_file(context.dir_path, agent_name)
+    context.container_id = run_agent_config_file(agent_name)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(port)
     context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=10)
@@ -226,7 +226,7 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     agent_id = context.agent['id']
     existing_agents = get_agent(context.token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
-    expect_agent_status(context.token, agent_id, status)
+    wait_until_expected_agent_status(context.token, agent_id, status)
 
 
 @step("remotely restart the agent")
@@ -239,7 +239,7 @@ def reset_agent_remotely(context):
 
 
 @threading_wait_until
-def expect_agent_status(token, agent_id, status, event=None):
+def wait_until_expected_agent_status(token, agent_id, status, event=None):
     """
     Keeps fetching agent data from Orb control plane until it gets to
     the expected agent status or this operation times out
@@ -456,4 +456,4 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     dir_path = configs.get("local_orb_path")
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file)
-    return dir_path, agent_name
+    return agent_name
