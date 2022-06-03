@@ -29,7 +29,7 @@ func TestDHCPConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -246,7 +246,7 @@ func TestASNConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -350,7 +350,7 @@ func TestGeoLocConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -454,7 +454,7 @@ func TestPCAPConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -588,7 +588,7 @@ func TestDNSConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -774,7 +774,7 @@ func TestDNSRatesConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1126,7 +1126,7 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1430,7 +1430,7 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1738,7 +1738,7 @@ func TestDNSXactConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1968,7 +1968,7 @@ func TestPacketsConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -2311,7 +2311,7 @@ func TestPeriodConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -2520,7 +2520,7 @@ func TestFlowCardinalityConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -2691,7 +2691,7 @@ func TestFlowConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -2939,7 +2939,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
