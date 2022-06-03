@@ -5,6 +5,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/fleet/pb"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinker/backend"
 	"github.com/ns1labs/orb/sinker/backend/pktvisor"
 	"github.com/ns1labs/orb/sinker/prometheus"
@@ -28,7 +29,7 @@ func TestDHCPConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -245,7 +246,7 @@ func TestASNConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -349,7 +350,7 @@ func TestGeoLocConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -453,7 +454,7 @@ func TestPCAPConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -587,7 +588,7 @@ func TestDNSConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -773,7 +774,7 @@ func TestDNSRatesConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1125,7 +1126,7 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1429,7 +1430,7 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1737,7 +1738,7 @@ func TestDNSXactConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1967,7 +1968,7 @@ func TestPacketsConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -2310,7 +2311,7 @@ func TestPeriodConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -2519,7 +2520,7 @@ func TestFlowCardinalityConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -2690,7 +2691,7 @@ func TestFlowConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -2938,7 +2939,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.OwnerRes{
+	var agent = &pb.AgentInfoRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -3574,6 +3575,243 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 			}
 			assert.True(t, reflect.DeepEqual(c.expected.Labels, receivedLabel), fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, receivedLabel))
 			assert.Equal(t, c.expected.Datapoint.Value, receivedDatapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, receivedDatapoint.Value))
+		})
+	}
+
+}
+
+func TestAgentTagsConversion(t *testing.T) {
+	var logger *zap.Logger
+	pktvisor.Register(logger)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	var agent = &pb.AgentInfoRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+		AgentTags: types.Tags{"testkey": "testvalue", "testkey2": "testvalue2"},
+	}
+
+	data := fleet.AgentMetricsRPCPayload{
+		PolicyID:   policyID.String(),
+		PolicyName: "policy-test",
+		Datasets:   nil,
+		Format:     "json",
+		BEVersion:  "1.0",
+	}
+
+	be := backend.GetBackend("pktvisor")
+
+	cases := map[string]struct {
+		data     []byte
+		expected prometheus.TimeSeries
+	}{
+		"Example metrics": {
+			data: []byte(`
+				{
+					"policy_packets": {
+						"packets": {
+							"top_ASN": [
+								{
+									"estimate": 996,
+									"name": "36236/NETACTUATE"
+								}
+							]
+						}
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "packets_top_ASN",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "testkey",
+						Value: "testvalue",
+					},
+					{
+						Name:  "testkey2",
+						Value: "testvalue2",
+					},
+					{
+						Name:  "asn",
+						Value: "36236/NETACTUATE",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 996,
+				},
+			},
+		},
+	}
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			data.Data = c.data
+			res, err := be.ProcessMetrics(agent, agentID.String(), data)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var receivedLabel []prometheus.Label
+			var receivedDatapoint prometheus.Datapoint
+			for _, value := range res {
+				if c.expected.Labels[0] == value.Labels[0] {
+					receivedLabel = value.Labels
+					receivedDatapoint = value.Datapoint
+				}
+			}
+			assert.ElementsMatch(t, c.expected.Labels, receivedLabel, fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, receivedLabel))
+			assert.Equal(t, c.expected.Datapoint.Value, receivedDatapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, receivedDatapoint.Value))
+		})
+	}
+
+}
+
+func TestTagsConversion(t *testing.T) {
+	var logger *zap.Logger
+	pktvisor.Register(logger)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	var agent = &pb.AgentInfoRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+		AgentTags: types.Tags{"test": "true"},
+		OrbTags:   types.Tags{"test2": "true2"},
+	}
+
+	var sameTagKeyAgent = &pb.AgentInfoRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+		AgentTags: types.Tags{"test": "true"},
+		OrbTags:   types.Tags{"test": "true2"},
+	}
+
+	data := fleet.AgentMetricsRPCPayload{
+		PolicyID:   policyID.String(),
+		PolicyName: "policy-test",
+		Datasets:   nil,
+		Format:     "json",
+		BEVersion:  "1.0",
+		Data: []byte(`
+				{
+					"policy_packets": {
+						"packets": {
+							"top_ASN": [
+								{
+									"estimate": 996,
+									"name": "36236/NETACTUATE"
+								}
+							]
+						}
+					}
+				}`),
+	}
+
+	be := backend.GetBackend("pktvisor")
+
+	commonLabels := []prometheus.Label{
+		{
+			Name:  "__name__",
+			Value: "packets_top_ASN",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "asn",
+			Value: "36236/NETACTUATE",
+		},
+	}
+
+	cases := map[string]struct {
+		agent    *pb.AgentInfoRes
+		expected prometheus.TimeSeries
+	}{
+		"Different agent tags and orb tag": {
+			agent: agent,
+			expected: prometheus.TimeSeries{
+				Labels: append(commonLabels, prometheus.Label{
+					Name:  "test",
+					Value: "true",
+				}, prometheus.Label{
+					Name:  "test2",
+					Value: "true2",
+				}),
+			},
+		},
+		"Same key agent tags and orb tag": {
+			agent: sameTagKeyAgent,
+			expected: prometheus.TimeSeries{
+				Labels: append(commonLabels, prometheus.Label{
+					Name:  "test",
+					Value: "true2",
+				}),
+			},
+		},
+	}
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			res, err := be.ProcessMetrics(c.agent, agentID.String(), data)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var receivedLabel []prometheus.Label
+			for _, value := range res {
+				if commonLabels[0].Value == value.Labels[0].Value {
+					receivedLabel = value.Labels
+				}
+			}
+			assert.ElementsMatch(t, c.expected.Labels, receivedLabel, fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, receivedLabel))
 		})
 	}
 

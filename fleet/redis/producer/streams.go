@@ -32,8 +32,8 @@ func (es eventStore) ResetAgent(ct context.Context, token string, agentID string
 	return es.svc.ResetAgent(ct, token, agentID)
 }
 
-func (es eventStore) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (fleet.Agent, error) {
-	return es.svc.ViewOwnerByChannelIDInternal(ctx, channelID)
+func (es eventStore) ViewAgentInfoByChannelIDInternal(ctx context.Context, channelID string) (fleet.Agent, error) {
+	return es.svc.ViewAgentInfoByChannelIDInternal(ctx, channelID)
 }
 
 func (es eventStore) ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error) {

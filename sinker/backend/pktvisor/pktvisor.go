@@ -26,14 +26,15 @@ type pktvisorBackend struct {
 }
 
 type context struct {
-	agent      *pb.OwnerRes
+	agent      *pb.AgentInfoRes
 	agentID    string
 	policyID   string
 	policyName string
+	tags       map[string]string
 	logger     *zap.Logger
 }
 
-func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
+func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
 	// TODO check pktvisor version in data.BEVersion against PktvisorVersion
 	if data.Format != "json" {
 		p.logger.Warn("ignoring non-json pktvisor payload", zap.String("format", data.Format))
@@ -46,11 +47,21 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data
 		p.logger.Warn("unable to unmarshal pktvisor metric payload", zap.Any("payload", data.Data))
 		return nil, err
 	}
+
+	tags := make(map[string]string)
+	for k, v := range agent.AgentTags {
+		tags[k] = v
+	}
+	for k, v := range agent.OrbTags {
+		tags[k] = v
+	}
+
 	context := context{
 		agent:      agent,
 		agentID:    agentID,
 		policyID:   data.PolicyID,
 		policyName: data.PolicyName,
+		tags:       tags,
 		logger:     p.logger,
 	}
 	stats := StatSnapshot{}
@@ -180,6 +191,13 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 	if err := labelsListFlag.Set("policy;" + ctxt.policyName); err != nil {
 		handleParticleError(ctxt, err)
 		return tsList
+	}
+
+	for k, v := range ctxt.tags {
+		if err := labelsListFlag.Set(k + ";" + v); err != nil {
+			handleParticleError(ctxt, err)
+			return tsList
+		}
 	}
 
 	if k != "" {
