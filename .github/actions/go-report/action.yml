@@ -1,0 +1,12 @@
+name: 'go-report'
+author: 'Rogiel Silva<rssilvas@daitan.com>'
+description: 'Daitan Digital Solutions Docker Actions'
+
+inputs:
+  go_report_threshold:
+    description: " Threshold of failure"
+    required: true
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

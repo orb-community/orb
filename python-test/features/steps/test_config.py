@@ -1,5 +1,6 @@
 import configparser
 from hamcrest import *
+import os
 
 LOCAL_AGENT_CONTAINER_NAME = "orb-agent-int-test"
 
@@ -41,6 +42,11 @@ def _read_configs():
 
     assert_that(configs.get('remote_prometheus_endpoint'), not_none(), 'No Orb user password was provided!')
     assert_that(configs.get('remote_prometheus_endpoint'), not_(""), 'No Orb user password was provided!')
+
+    local_orb_path = configs.get("orb_path", os.path.dirname(os.getcwd())) # orb_path is required if user will use docker to test,
+                                                                           # otherwise the function will map the local path.
+    assert_that(os.path.exists(local_orb_path), equal_to(True), f"Invalid orb_path: {local_orb_path}.")
+    configs['local_orb_path'] = local_orb_path
 
     ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors', 'true').lower()
     assert_that(ignore_ssl_and_certificate_errors, any_of(equal_to('true'), equal_to('false')),

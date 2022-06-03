@@ -1,9 +1,11 @@
 <nb-select
     #sinkSelLead
     [(selected)]="selectedSink"
+    [disabled]="!sinksList || sinksList.length === 0"
     appearance="filled"
     autofocus
-    class="sink-dropdown-selector"
+    size="medium"
+    class="sink-selector"
     data-orb-qa-id="sink_selector"
     placeholder="Sink Name">
   <nb-option

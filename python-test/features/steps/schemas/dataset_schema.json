@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "default": {},
+  "title": "Root Schema",
+  "required": [
+    "id",
+    "name",
+    "valid",
+    "agent_group_id",
+    "agent_policy_id",
+    "sink_ids",
+    "metadata",
+    "ts_created",
+    "tags"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "default": "",
+      "title": "The id Schema",
+      "examples": [
+        "f027cb54-7023-8655-1094984970b8"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "default": "",
+      "title": "The name Schema",
+      "examples": [
+        "dataset-user"
+      ]
+    },
+    "valid": {
+      "type": "boolean",
+      "default": false,
+      "title": "The valid Schema",
+      "examples": [
+        true
+      ]
+    },
+    "agent_group_id": {
+      "type": "string",
+      "default": "",
+      "title": "The agent_group_id Schema",
+      "examples": [
+        "3783f43d-a960-8ef0-2e0df468a563"
+      ]
+    },
+    "agent_policy_id": {
+      "type": "string",
+      "default": "",
+      "title": "The agent_policy_id Schema",
+      "examples": [
+        "b34a91c5-aeb2-b050-a5b4566c3028"
+      ]
+    },
+    "sink_ids": {
+      "type": "array",
+      "default": [],
+      "title": "The sink_ids Schema",
+      "items": {
+        "type": "string",
+        "default": "",
+        "title": "A Schema",
+        "examples": [
+          "d5025ff1-0147-42f3-17474989811d"
+        ]
+      },
+      "examples": [
+        [
+          "d5025ff1-0147-42f3-17474989811d"]
+      ]
+    },
+    "metadata": {
+      "type": "null",
+      "default": null,
+      "title": "The metadata Schema",
+      "examples": [
+        null
+      ]
+    },
+    "ts_created": {
+      "type": "string",
+      "default": "",
+      "title": "The ts_created Schema",
+      "examples": [
+        "2022-05-26T11:34:13.578787Z"
+      ]
+    },
+    "tags": {
+      "type": "null",
+      "default": null,
+      "title": "The tags Schema",
+      "examples": [
+        null
+      ]
+    }
+  },
+  "examples": [{
+    "id": "f027cb54-7023-8655-1094984970b8",
+    "name": "dataset-user",
+    "valid": true,
+    "agent_group_id": "3783f43d-a960-8ef0-2e0df468a563",
+    "agent_policy_id": "b34a91c5-aeb2-b050-a5b4566c3028",
+    "sink_ids": [
+      "d5025ff1-0147-42f3-17474989811d"
+    ],
+    "metadata": null,
+    "ts_created": "2022-05-26T11:34:13.578787Z",
+    "tags": null
+  }]
+}

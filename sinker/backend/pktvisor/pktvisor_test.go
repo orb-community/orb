@@ -29,7 +29,7 @@ func TestDHCPConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.AgentInfoRes{
+	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -246,7 +246,7 @@ func TestASNConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.AgentInfoRes{
+	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -350,7 +350,7 @@ func TestGeoLocConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.AgentInfoRes{
+	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -454,7 +454,7 @@ func TestPCAPConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.AgentInfoRes{
+	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -588,7 +588,7 @@ func TestDNSConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.AgentInfoRes{
+	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -774,7 +774,7 @@ func TestDNSRatesConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.AgentInfoRes{
+	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1003,6 +1003,90 @@ func TestDNSRatesConversion(t *testing.T) {
 			}),
 			expectedDatapoints: []float64{0, 1, 2, 6},
 		},
+		"FlowPayloadRatesBPS": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"rates": {
+							  "bps": {
+								"p50": 2,
+								"p90": 3,
+								"p95": 76811346,
+								"p99": 76811347
+							  }
+							}
+						}
+					}
+				}`),
+			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
+				Name:  "__name__",
+				Value: "flow_rates_bps",
+			}),
+			expectedDatapoints: []float64{2, 3, 76811346, 76811347},
+		},
+		"FlowPayloadRatesPPS": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"rates": {
+							  "pps": {
+								"p50": 2,
+								"p90": 3,
+								"p95": 76811346,
+								"p99": 76811347
+							  }
+							}
+						}
+					}
+				}`),
+			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
+				Name:  "__name__",
+				Value: "flow_rates_pps",
+			}),
+			expectedDatapoints: []float64{2, 3, 76811346, 76811347},
+		},
+		"FlowPayloadSize": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"payload_size": {
+								"p50": 2,
+								"p90": 3,
+								"p95": 76811346,
+								"p99": 76811347
+							}
+						}
+					}
+				}`),
+			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
+				Name:  "__name__",
+				Value: "flow_payload_size",
+			}),
+			expectedDatapoints: []float64{2, 3, 76811346, 76811347},
+		},
+		"FlowEventRate": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"event_rate": {
+								"p50": 2,
+								"p90": 3,
+								"p95": 76811346,
+								"p99": 76811347
+							}
+						}
+					}
+				}`),
+			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
+				Name:  "__name__",
+				Value: "flow_event_rate",
+			}),
+			expectedDatapoints: []float64{2, 3, 76811346, 76811347},
+		},
 	}
 
 	for desc, c := range cases {
@@ -1042,7 +1126,7 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.AgentInfoRes{
+	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1346,7 +1430,7 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.AgentInfoRes{
+	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1654,7 +1738,7 @@ func TestDNSXactConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.AgentInfoRes{
+	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -1884,7 +1968,7 @@ func TestPacketsConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.AgentInfoRes{
+	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -2227,7 +2311,7 @@ func TestPeriodConversion(t *testing.T) {
 	agentID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var agent = &pb.AgentInfoRes{
+	var agent = &pb.OwnerRes{
 		OwnerID:   ownerID.String(),
 		AgentName: "agent-test",
 	}
@@ -2363,6 +2447,37 @@ func TestPeriodConversion(t *testing.T) {
 				},
 			},
 		},
+		"FlowPayloadPeriod": {
+			data: []byte(`
+{
+	"policy_flow": {
+        "flow": {
+			"period": {
+		        "length": 60,
+        		"start_ts": 1624888107
+        	}
+		}
+    }
+}`),
+			expectedLength: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_period_length",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 60,
+				},
+			},
+			expectedStartTs: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_period_start_ts",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 1624888107,
+				},
+			},
+		},
 	}
 
 	for desc, c := range cases {
@@ -2390,6 +2505,1079 @@ func TestPeriodConversion(t *testing.T) {
 
 		})
 	}
+}
+
+func TestFlowCardinalityConversion(t *testing.T) {
+	var logger *zap.Logger
+	pktvisor.Register(logger)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	var agent = &pb.OwnerRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+	}
+
+	data := fleet.AgentMetricsRPCPayload{
+		PolicyID:   policyID.String(),
+		PolicyName: "policy-test",
+		Datasets:   nil,
+		Format:     "json",
+		BEVersion:  "1.0",
+	}
+
+	be := backend.GetBackend("pktvisor")
+
+	commonLabels := []prometheus.Label{
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+	}
+
+	cases := map[string]struct {
+		data     []byte
+		expected prometheus.TimeSeries
+	}{
+		"FlowPayloadCardinalityDstIpsOut": {
+			data: []byte(`
+				{
+					"policy_flow": {
+					  "flow": {
+						"cardinality": {
+						  "dst_ips_out": 4
+						}
+					  }
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_cardinality_dst_ips_out",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 4,
+				},
+			},
+		},
+		"FlowPayloadCardinalityDstPortsOut": {
+			data: []byte(`
+				{
+					"policy_flow": {
+					  "flow": {
+						"cardinality": {
+						  "dst_ports_out": 31,
+						  "src_ips_in": 4,
+						  "src_ports_in": 31
+						}
+					  }
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_cardinality_dst_ports_out",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 31,
+				},
+			},
+		},
+		"FlowPayloadCardinalitySrcIpsIn": {
+			data: []byte(`
+				{
+					"policy_flow": {
+					  "flow": {
+						"cardinality": {
+						  "src_ips_in": 4,
+						  "src_ports_in": 31
+						}
+					  }
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_cardinality_src_ips_in",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 4,
+				},
+			},
+		},
+		"FlowPayloadCardinalitySrcPortsIn": {
+			data: []byte(`
+				{
+					"policy_flow": {
+					  "flow": {
+						"cardinality": {
+						  "src_ports_in": 31
+						}
+					  }
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_cardinality_src_ports_in",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 31,
+				},
+			},
+		},
+	}
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			data.Data = c.data
+			res, err := be.ProcessMetrics(agent, agentID.String(), data)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var receivedLabel []prometheus.Label
+			var receivedDatapoint prometheus.Datapoint
+			for _, value := range res {
+				if c.expected.Labels[0] == value.Labels[0] {
+					if len(c.expected.Labels) < 7 {
+						receivedLabel = value.Labels
+						receivedDatapoint = value.Datapoint
+					} else {
+						if c.expected.Labels[6].Value == value.Labels[6].Value {
+							receivedLabel = value.Labels
+							receivedDatapoint = value.Datapoint
+						}
+					}
+				}
+			}
+			assert.True(t, reflect.DeepEqual(c.expected.Labels, receivedLabel), fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, receivedLabel))
+			assert.Equal(t, c.expected.Datapoint.Value, receivedDatapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, receivedDatapoint.Value))
+		})
+	}
+
+}
+
+func TestFlowConversion(t *testing.T) {
+	var logger *zap.Logger
+	pktvisor.Register(logger)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	var agent = &pb.OwnerRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+	}
+
+	data := fleet.AgentMetricsRPCPayload{
+		PolicyID:   policyID.String(),
+		PolicyName: "policy-test",
+		Datasets:   nil,
+		Format:     "json",
+		BEVersion:  "1.0",
+	}
+
+	be := backend.GetBackend("pktvisor")
+
+	commonLabels := []prometheus.Label{
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+	}
+
+	cases := map[string]struct {
+		data     []byte
+		expected prometheus.TimeSeries
+	}{
+		"FlowPayloadDeepSamples": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"deep_samples": 9279
+						}
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_deep_samples",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 9279,
+				},
+			},
+		},
+		"FlowPayloadFiltered": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"filtered": 8
+						}
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_filtered",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowPayloadFlows": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"flows": 8
+						}
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_flows",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowPayloadIpv4": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"ipv4": 52785
+						}
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_ipv4",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 52785,
+				},
+			},
+		},
+		"FlowPayloadIpv6": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"ipv6": 52785
+						}
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_ipv6",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 52785,
+				},
+			},
+		},
+		"FlowPayloadOtherL4": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"other_l4": 52785
+						}
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_other_l4",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 52785,
+				},
+			},
+		},
+		"FlowPayloadTCP": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"tcp": 52785
+						}
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_tcp",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 52785,
+				},
+			},
+		},
+		"FlowPayloadTotal": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"total": 52785
+						}
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_total",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 52785,
+				},
+			},
+		},
+		"FlowPayloadUdp": {
+			data: []byte(`
+				{
+					"policy_flow": {
+						"flow": {
+							"udp": 52785
+						}
+					}
+				}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "flow_udp",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 52785,
+				},
+			},
+		},
+	}
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			data.Data = c.data
+			res, err := be.ProcessMetrics(agent, agentID.String(), data)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var receivedLabel []prometheus.Label
+			var receivedDatapoint prometheus.Datapoint
+			for _, value := range res {
+				if c.expected.Labels[0] == value.Labels[0] {
+					receivedLabel = value.Labels
+					receivedDatapoint = value.Datapoint
+				}
+			}
+			assert.True(t, reflect.DeepEqual(c.expected.Labels, receivedLabel), fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, receivedLabel))
+			assert.Equal(t, c.expected.Datapoint.Value, receivedDatapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, receivedDatapoint.Value))
+		})
+	}
+
+}
+
+func TestFlowTopKMetricsConversion(t *testing.T) {
+	var logger *zap.Logger
+	pktvisor.Register(logger)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	var agent = &pb.OwnerRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+	}
+
+	data := fleet.AgentMetricsRPCPayload{
+		PolicyID:   policyID.String(),
+		PolicyName: "policy-test",
+		Datasets:   nil,
+		Format:     "json",
+		BEVersion:  "1.0",
+	}
+
+	be := backend.GetBackend("pktvisor")
+
+	cases := map[string]struct {
+		data     []byte
+		expected prometheus.TimeSeries
+	}{
+		"FlowTopDstIpsBytes": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_dst_ips_bytes": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_dst_ips_bytes",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "ip",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopDstIpsPackets": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_dst_ips_bytes": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_dst_ips_bytes",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "ip",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopDstPortsBytes": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_dst_ports_bytes": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_dst_ports_bytes",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "port",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopDstPortsPackets": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_dst_ports_packets": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_dst_ports_packets",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "port",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopInIfIndexBytes": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_in_if_index_bytes": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_in_if_index_bytes",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "index",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopInIfIndexPackets": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_in_if_index_packets": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_in_if_index_packets",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "index",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopOutIfIndexBytes": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_out_if_index_bytes": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_out_if_index_bytes",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "index",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopOutIfIndexPackets": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_out_if_index_packets": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_out_if_index_packets",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "index",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopSrcIpsBytes": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_src_ips_bytes": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_src_ips_bytes",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "ip",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopSrcIpsPackets": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_src_ips_packets": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_src_ips_packets",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "ip",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopSrcPortsBytes": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_src_ports_bytes": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_src_ports_bytes",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "port",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopSrcPortsPackets": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_src_ports_packets": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_src_ports_packets",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "port",
+						Value: "10.4.2.2",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+	}
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			data.Data = c.data
+			res, err := be.ProcessMetrics(agent, agentID.String(), data)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var receivedLabel []prometheus.Label
+			var receivedDatapoint prometheus.Datapoint
+			for _, value := range res {
+				if c.expected.Labels[0] == value.Labels[0] {
+					receivedLabel = value.Labels
+					receivedDatapoint = value.Datapoint
+				}
+			}
+			assert.True(t, reflect.DeepEqual(c.expected.Labels, receivedLabel), fmt.Sprintf("%s: expected %v got %v", desc, c.expected.Labels, receivedLabel))
+			assert.Equal(t, c.expected.Datapoint.Value, receivedDatapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, receivedDatapoint.Value))
+		})
+	}
+
 }
 
 func TestAgentTagsConversion(t *testing.T) {

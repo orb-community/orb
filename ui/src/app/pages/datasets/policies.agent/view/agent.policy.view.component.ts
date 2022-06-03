@@ -134,12 +134,9 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   duplicatePolicy() {
     this.policiesService.duplicateAgentPolicy(this.policyId || this.policy.id)
       .subscribe(resp => {
-        if (resp?.name) {
+        if (resp?.id) {
           this.notifications.success('Agent Policy Duplicated',
             `New Agent Policy Name: ${resp?.name}`);
-        } else {
-          this.notifications.error('Cannot duplicate this policy', 'This'
-            + ' policy cannot be duplicated');
         }
       });
   }

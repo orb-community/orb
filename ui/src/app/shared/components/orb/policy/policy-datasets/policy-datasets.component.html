@@ -52,7 +52,7 @@
 </ng-template>
 
 <ng-template #sinksTemplateCell let-i="index" let-row="row" let-value="value">
-  <div nbTooltip="{{ value | json }}">
+  <div>
     <span *ngFor="let sink of value; last as isLast">{{ sink?.name }}{{ isLast ? '' : ', '}}</span>
   </div>
 </ng-template>

@@ -8,6 +8,9 @@ import socket
 import os
 import re
 import multiprocessing
+import json
+import jsonschema
+from jsonschema import validate
 
 tag_prefix = "test_tag_"
 
@@ -212,3 +215,35 @@ def find_files(prefix, suffix, path):
             if name.startswith(prefix) and name.endswith(suffix):
                 result.append(os.path.join(root, name))
     return result
+
+
+def get_schema(path_to_file):
+    """
+    Loads the given schema available
+
+    :param path_to_file: path to schema json file
+    :return: schema json
+    """
+    with open(path_to_file, 'r') as file:
+        schema = json.load(file)
+    return schema
+
+
+def validate_json(json_data, path_to_file):
+
+    """
+    Compare a file with the schema and validate if the structure is correct
+    :param json_data: json to be validated
+    :param path_to_file: path to schema json file
+    :return: bool. False if the json is not valid according to the schema and True if it is
+    """
+
+    execute_api_schema = get_schema(path_to_file)
+
+    try:
+        validate(instance=json_data, schema=execute_api_schema)
+    except jsonschema.exceptions.ValidationError as err:
+        print(err)
+        return False, err
+
+    return True
