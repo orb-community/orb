@@ -218,7 +218,6 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy,
         hasBackdrop: false,
       }).onClose.subscribe(resp => {
       if (resp === 'created') {
-        // this.retrieveInfo();
         this.refreshPolicy.emit('refresh-from-dataset');
       }
     });
@@ -236,7 +235,6 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy,
         hasBackdrop: false,
       }).onClose.subscribe(resp => {
       if (resp === 'changed' || 'deleted') {
-        // this.retrieveInfo();
         this.refreshPolicy.emit('refresh-from-dataset');
       }
     });
