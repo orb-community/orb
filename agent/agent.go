@@ -155,11 +155,6 @@ func (a *orbAgent) RestartBackend(name string, reason string) error {
 		return errors.New("specified backend does not exist: " + name)
 	}
 
-	err := a.restartComms()
-	if err != nil {
-		return err
-	}
-
 	be := a.backends[name]
 	a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
 	a.logger.Info("removing policies", zap.String("backend", name))
@@ -202,6 +197,7 @@ func (a *orbAgent) RestartAll(reason string) error {
 
 	a.logger.Info("restarting all backends", zap.String("reason", reason))
 	for name := range a.backends {
+		a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
 		err = a.RestartBackend(name, reason)
 		if err != nil {
 			a.logger.Error("failed to restart backend", zap.Error(err))
