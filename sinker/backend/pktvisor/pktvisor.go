@@ -26,14 +26,15 @@ type pktvisorBackend struct {
 }
 
 type context struct {
-	agent      *pb.OwnerRes
+	agent      *pb.AgentInfoRes
 	agentID    string
 	policyID   string
 	policyName string
+	tags       map[string]string
 	logger     *zap.Logger
 }
 
-func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
+func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
 	// TODO check pktvisor version in data.BEVersion against PktvisorVersion
 	if data.Format != "json" {
 		p.logger.Warn("ignoring non-json pktvisor payload", zap.String("format", data.Format))
@@ -46,11 +47,21 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data
 		p.logger.Warn("unable to unmarshal pktvisor metric payload", zap.Any("payload", data.Data))
 		return nil, err
 	}
+
+	tags := make(map[string]string)
+	for k, v := range agent.AgentTags {
+		tags[k] = v
+	}
+	for k, v := range agent.OrbTags {
+		tags[k] = v
+	}
+
 	context := context{
 		agent:      agent,
 		agentID:    agentID,
 		policyID:   data.PolicyID,
 		policyName: data.PolicyName,
+		tags:       tags,
 		logger:     p.logger,
 	}
 	stats := StatSnapshot{}
@@ -75,6 +86,12 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.OwnerRes, agentID string, data
 			}
 		} else if data, ok := handlerData["dhcp"]; ok {
 			err := mapstructure.Decode(data, &stats.DHCP)
+			if err != nil {
+				p.logger.Error("error decoding dhcp handler", zap.Error(err))
+				continue
+			}
+		} else if data, ok := handlerData["flow"]; ok {
+			err := mapstructure.Decode(data, &stats.Flow)
 			if err != nil {
 				p.logger.Error("error decoding dhcp handler", zap.Error(err))
 				continue
@@ -176,6 +193,13 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 		return tsList
 	}
 
+	for k, v := range ctxt.tags {
+		if err := labelsListFlag.Set(k + ";" + v); err != nil {
+			handleParticleError(ctxt, err)
+			return tsList
+		}
+	}
+
 	if k != "" {
 		if quantile {
 			if value, ok := mapQuantiles[k]; ok {
@@ -249,6 +273,18 @@ func topNMetricsParser(label string) (string, error) {
 	mapNMetrics["TopSRVFAIL"] = "qname"
 	mapNMetrics["TopUDPPorts"] = "port"
 	mapNMetrics["TopSlow"] = "qname"
+	mapNMetrics["TopDstIpsBytes"] = "ip"
+	mapNMetrics["TopDstIpsPackets"] = "ip"
+	mapNMetrics["TopSrcIpsBytes"] = "ip"
+	mapNMetrics["TopSrcIpsPackets"] = "ip"
+	mapNMetrics["TopDstPortsBytes"] = "port"
+	mapNMetrics["TopDstPortsPackets"] = "port"
+	mapNMetrics["TopSrcPortsBytes"] = "port"
+	mapNMetrics["TopSrcPortsPackets"] = "port"
+	mapNMetrics["TopInIfIndexBytes"] = "index"
+	mapNMetrics["TopInIfIndexPackets"] = "index"
+	mapNMetrics["TopOutIfIndexBytes"] = "index"
+	mapNMetrics["TopOutIfIndexPackets"] = "index"
 	if value, ok := mapNMetrics[label]; ok {
 		return value, nil
 	} else {

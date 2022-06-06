@@ -32,10 +32,10 @@ func (l loggingMiddleware) ResetAgent(ct context.Context, token string, agentID 
 	return l.svc.ResetAgent(ct, token, agentID)
 }
 
-func (l loggingMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (_ fleet.Agent, err error) {
+func (l loggingMiddleware) ViewAgentInfoByChannelIDInternal(ctx context.Context, channelID string) (_ fleet.Agent, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: view_owner_by_channel_id",
+			l.logger.Warn("method call: view_agent_info_by_channel_id",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
@@ -43,7 +43,7 @@ func (l loggingMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, cha
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.ViewOwnerByChannelIDInternal(ctx, channelID)
+	return l.svc.ViewAgentInfoByChannelIDInternal(ctx, channelID)
 }
 
 func (l loggingMiddleware) ViewAgentBackend(ctx context.Context, token string, name string) (_ interface{}, err error) {

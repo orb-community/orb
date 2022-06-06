@@ -17,6 +17,13 @@ type ownerRes struct {
 	agentName string
 }
 
+type agentInfoRes struct {
+	ownerID   string
+	agentName string
+	agentTags map[string]string
+	orbTags   map[string]string
+}
+
 type emptyRes struct {
 	err error
 }

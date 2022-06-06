@@ -5,7 +5,7 @@
     <span *ngIf="!agent?.agent_metadata?.backends"
           class="float-right summary-accent">
           <span *ngIf="agent?.state === agentStates.new">
-            Agent has not been provisioned.
+            Agent has been provisioned but never connected.
           </span>
         </span>
     <div *ngFor="let backend of agent?.agent_metadata?.backends | keyvalue">

@@ -31,7 +31,7 @@ var (
 		MFChannelID:   "",
 		Created:       time.Time{},
 		OrbTags:       nil,
-		AgentTags:     nil,
+		AgentTags:     types.Tags{"testkey": "testvalue"},
 		AgentMetadata: nil,
 		State:         0,
 		LastHBData:    nil,
@@ -487,7 +487,7 @@ func TestViewAgentBackend(t *testing.T) {
 	}
 }
 
-func TestViewOwnerInternal(t *testing.T) {
+func TestViewAgentInfoByChannelIDInternal(t *testing.T) {
 	users := flmocks.NewAuthService(map[string]string{token: email})
 
 	thingsServer := newThingsServer(newThingsService(users))
@@ -503,12 +503,12 @@ func TestViewOwnerInternal(t *testing.T) {
 		agent     fleet.Agent
 		err       error
 	}{
-		"view existent owner by channelID": {
+		"view agent info by existent channelID": {
 			channelID: ag.MFChannelID,
 			agent:     ag,
 			err:       nil,
 		},
-		"view existent owner by non-existent channelID": {
+		"view agent info by non-existent channelID": {
 			channelID: chID.String(),
 			agent:     fleet.Agent{},
 			err:       errors.ErrNotFound,
@@ -517,7 +517,7 @@ func TestViewOwnerInternal(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			agent, err := fleetService.ViewOwnerByChannelIDInternal(context.Background(), tc.channelID)
+			agent, err := fleetService.ViewAgentInfoByChannelIDInternal(context.Background(), tc.channelID)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 			assert.Equal(t, tc.agent, agent, fmt.Sprintf("%s: expected %s got %s", desc, tc.agent, agent))
 		})

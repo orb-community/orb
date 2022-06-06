@@ -10,8 +10,6 @@ export class CombinedTagComponent implements OnInit {
   @Input()
   agent: Agent;
 
-  splitView = false;
-
   constructor() { }
 
   ngOnInit(): void {

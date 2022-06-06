@@ -154,11 +154,54 @@ type PeriodPayload struct {
 	Length  int64 `mapstructure:"length"`
 }
 
+// FlowPayload contains the information specifically for the Flow protocol
+type FlowPayload struct {
+	Cardinality struct {
+		DstIpsOut   int64 `mapstructure:"dst_ips_out"`
+		DstPortsOut int64 `mapstructure:"dst_ports_out"`
+		SrcIpsIn    int64 `mapstructure:"src_ips_in"`
+		SrcPortsIn  int64 `mapstructure:"src_ports_in"`
+	} `mapstructure:"cardinality"`
+	DeepSamples int64 `mapstructure:"deep_samples"`
+	EventRate   Rates `mapstructure:"event_rate"`
+	Filtered    int64 `mapstructure:"filtered"`
+	Flows       int64 `mapstructure:"flows"`
+	Ipv4        int64 `jmapstructureson:"ipv4"`
+	Ipv6        int64 `mapstructure:"ipv6"`
+	OtherL4     int64 `mapstructure:"other_l4"`
+	PayloadSize struct {
+		P50 int64 `mapstructure:"p50"`
+		P90 int64 `mapstructure:"p90"`
+		P95 int64 `mapstructure:"p95"`
+		P99 int64 `mapstructure:"p99"`
+	} `mapstructure:"payload_size"`
+	Period PeriodPayload `mapstructure:"period"`
+	Rates  struct {
+		Bps Rates `mapstructure:"bps"`
+		Pps Rates `mapstructure:"pps"`
+	} `mapstructure:"rates"`
+	TCP                  int64       `mapstructure:"tcp"`
+	TopDstIpsBytes       []NameCount `mapstructure:"top_dst_ips_bytes"`
+	TopDstIpsPackets     []NameCount `mapstructure:"top_dst_ips_packets"`
+	TopDstPortsBytes     []NameCount `mapstructure:"top_dst_ports_bytes"`
+	TopDstPortsPackets   []NameCount `mapstructure:"top_dst_ports_packets"`
+	TopInIfIndexBytes    []NameCount `mapstructure:"top_in_if_index_bytes"`
+	TopInIfIndexPackets  []NameCount `mapstructure:"top_in_if_index_packets"`
+	TopOutIfIndexBytes   []NameCount `mapstructure:"top_out_if_index_bytes"`
+	TopOutIfIndexPackets []NameCount `mapstructure:"top_out_if_index_packets"`
+	TopSrcIpsBytes       []NameCount `mapstructure:"top_src_ips_bytes"`
+	TopSrcIpsPackets     []NameCount `mapstructure:"top_src_ips_packets"`
+	TopSrcPortsBytes     []NameCount `mapstructure:"top_src_ports_bytes"`
+	TopSrcPortsPackets   []NameCount `mapstructure:"top_src_ports_packets"`
+	Total                int64       `mapstructure:"total"`
+	Udp                  int64       `mapstructure:"udp"`
+}
+
 // StatSnapshot is a snapshot of a given period from pktvisord
 type StatSnapshot struct {
 	DNS     DNSPayload
 	DHCP    DHCPPayload
 	Packets PacketPayload
 	Pcap    PcapPayload
+	Flow    FlowPayload
 }
-

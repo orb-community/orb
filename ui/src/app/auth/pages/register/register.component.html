@@ -23,13 +23,6 @@
       >
         <h1 class="title" id="title">Create an account</h1>
 
-        <nb-alert *ngIf="showMessages.error && errors?.length && !submitted" outline="danger" role="alert">
-          <p class="alert-title"><b>Oh snap!</b></p>
-          <ul class="alert-message-list">
-            <li *ngFor="let error of errors" class="alert-message">{{ error }}</li>
-          </ul>
-        </nb-alert>
-
         <div class="form-control-group">
           <label class="label" for="input-name">Full name:</label>
           <input #fullName="ngModel"
@@ -45,7 +38,7 @@
                  id="input-name"
                  name="fullName"
                  nbInput
-                 pattern="^([a-zA-Z]+)\s([a-zA-Z ]+)$"
+                 pattern="^([a-zà-ÿA-Z']+)\s([a-zà-ÿA-Z '.]+)$"
                  placeholder="Full name">
           <ng-container *ngIf="fullName.invalid && fullName.touched">
             <p *ngIf="fullName.errors?.required" class="caption status-danger mb-1">
@@ -58,7 +51,7 @@
               characters
             </p>
             <p *ngIf="fullName.errors?.pattern" class="caption status-danger mb-1">
-              Full name should contain two space separated names
+              Full name should contain at least two space separated names containing the following characters: [a-zà-ÿA-Z '.]
             </p>
           </ng-container>
         </div>
@@ -112,6 +105,9 @@
             </p>
             <p *ngIf="email.errors?.pattern" class="caption status-danger mb-1">
               Email should be the real one!
+            </p>
+            <p *ngIf="orbErrors?.email" class="caption status-danger mb-1">
+              {{orbErrors.email}}
             </p>
           </ng-container>
         </div>
@@ -198,7 +194,7 @@
         </ps-click-wrap>
 
         <button [class.btn-pulse]="submitted"
-                [disabled]="submitted || !form.valid"
+                [disabled]="!form.valid"
                 class="mt-3"
                 fullWidth
                 nbButton
