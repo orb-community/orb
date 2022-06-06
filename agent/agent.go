@@ -109,16 +109,16 @@ func (a *orbAgent) Start() error {
 		mqtt.DEBUG = &agentLoggerDebug{a: a}
 	}
 
+	if err := a.startBackends(); err != nil {
+		return err
+	}
+
 	ccm, err := cloud_config.New(a.logger, a.config, a.db)
 	if err != nil {
 		return err
 	}
 	cloudConfig, err := ccm.GetCloudConfig()
 	if err != nil {
-		return err
-	}
-
-	if err := a.startBackends(); err != nil {
 		return err
 	}
 
@@ -150,6 +150,12 @@ func (a *orbAgent) RestartBackend(name string, reason string) error {
 	if !backend.HaveBackend(name) {
 		return errors.New("specified backend does not exist: " + name)
 	}
+
+	err := a.restartComms()
+	if err != nil {
+		return err
+	}
+
 	be := a.backends[name]
 	a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
 	a.logger.Info("removing policies", zap.String("backend", name))
@@ -167,7 +173,25 @@ func (a *orbAgent) RestartBackend(name string, reason string) error {
 	return nil
 }
 
+func (a *orbAgent) restartComms() error {
+	ccm, err := cloud_config.New(a.logger, a.config, a.db)
+	if err != nil {
+		return err
+	}
+	cloudConfig, err := ccm.GetCloudConfig()
+	if err != nil {
+		return err
+	}
+
+	if err := a.startComms(cloudConfig); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *orbAgent) RestartAll(reason string) error {
+	a.logger.Info("restarting comms")
+
 	a.logger.Info("restarting all backends", zap.String("reason", reason))
 	for name := range a.backends {
 		err := a.RestartBackend(name, reason)
@@ -176,5 +200,6 @@ func (a *orbAgent) RestartAll(reason string) error {
 		}
 	}
 	a.logger.Info("all backends were restarted")
+
 	return nil
 }

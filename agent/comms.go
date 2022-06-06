@@ -81,10 +81,12 @@ func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
 func (a *orbAgent) startComms(config config.MQTTConfig) error {
 
 	var err error
-	a.client, err = a.connect(config)
-	if err != nil {
-		a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
-		return ErrMqttConnection
+	if !a.client.IsConnected() {
+		a.client, err = a.connect(config)
+		if err != nil {
+			a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
+			return ErrMqttConnection
+		}
 	}
 
 	a.nameAgentRPCTopics(config.ChannelID)
