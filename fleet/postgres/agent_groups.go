@@ -401,6 +401,7 @@ func toAgentGroup(dba dbAgentGroup) (fleet.AgentGroup, error) {
 		Description:    dba.Description,
 		MFOwnerID:      dba.MFOwnerID,
 		MFChannelID:    dba.MFChannelID,
+		Created:        dba.Created,
 		Tags:           types.Tags(dba.Tags),
 		MatchingAgents: types.Metadata(dba.MatchingAgents),
 	}, nil
