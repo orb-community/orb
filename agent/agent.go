@@ -126,6 +126,10 @@ func (a *orbAgent) Start() error {
 		return err
 	}
 
+	a.hbTicker = time.NewTicker(HeartbeatFreq)
+	a.hbDone = make(chan bool)
+	go a.sendHeartbeats()
+
 	return nil
 }
 
@@ -191,15 +195,19 @@ func (a *orbAgent) restartComms() error {
 
 func (a *orbAgent) RestartAll(reason string) error {
 	a.logger.Info("restarting comms")
+	err := a.restartComms()
+	if err != nil {
+		a.logger.Error("failed to restart comms", zap.Error(err))
+	}
 
 	a.logger.Info("restarting all backends", zap.String("reason", reason))
 	for name := range a.backends {
-		err := a.RestartBackend(name, reason)
+		err = a.RestartBackend(name, reason)
 		if err != nil {
 			a.logger.Error("failed to restart backend", zap.Error(err))
 		}
 	}
-	a.logger.Info("all backends were restarted")
+	a.logger.Info("all backends and comms were restarted")
 
 	return nil
 }

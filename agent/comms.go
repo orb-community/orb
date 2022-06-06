@@ -81,7 +81,7 @@ func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
 func (a *orbAgent) startComms(config config.MQTTConfig) error {
 
 	var err error
-	if !a.client.IsConnected() {
+	if a.client == nil || !a.client.IsConnected() {
 		a.client, err = a.connect(config)
 		if err != nil {
 			a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
@@ -115,10 +115,6 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 	if err != nil {
 		a.logger.Error("failed to send agent policies request", zap.Error(err))
 	}
-
-	a.hbTicker = time.NewTicker(HeartbeatFreq)
-	a.hbDone = make(chan bool)
-	go a.sendHeartbeats()
 
 	return nil
 }
