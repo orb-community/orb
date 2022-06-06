@@ -12,6 +12,7 @@ import (
 type PolicyData struct {
 	ID         string
 	Datasets   map[string]bool
+	GroupIds   map[string]bool
 	Name       string
 	Backend    string
 	Version    int32

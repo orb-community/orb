@@ -81,14 +81,14 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 	}
 
 	payload := []AgentPolicyRPCPayload{{
-		Action:    "manage",
-		ID:        policyID,
-		Name:      p.Name,
-		Backend:   p.Backend,
-		Version:   p.Version,
-		Data:      pdata,
-		DatasetID: datasetID,
-		GroupID:   ag.ID,
+		Action:       "manage",
+		ID:           policyID,
+		Name:         p.Name,
+		Backend:      p.Backend,
+		Version:      p.Version,
+		Data:         pdata,
+		DatasetID:    datasetID,
+		AgentGroupID: []string{ag.ID},
 	}}
 
 	data := AgentPolicyRPC{

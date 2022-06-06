@@ -18,6 +18,7 @@ type PolicyRepo interface {
 	GetByName(policyName string) (PolicyData, error)
 	EnsureDataset(policyID string, datasetID string) error
 	RemoveDataset(policyID string, datasetID string) (bool, error)
+	EnsureGroupID(policyID string, agentGroupID string) error
 }
 
 type policyMemRepo struct {
@@ -115,6 +116,15 @@ func (p policyMemRepo) GetAll() (ret []PolicyData, err error) {
 	}
 	err = nil
 	return ret, err
+}
+
+func (p policyMemRepo) EnsureGroupID(policyID string, agentGroupID string) error {
+	policy, ok := p.db[policyID]
+	if !ok {
+		return errors.New("unknown policy ID")
+	}
+	policy.GroupIds[agentGroupID] = true
+	return nil
 }
 
 var _ PolicyRepo = (*policyMemRepo)(nil)
