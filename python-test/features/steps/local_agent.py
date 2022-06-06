@@ -7,6 +7,7 @@ import subprocess
 import shlex
 from retry import retry
 import threading
+import json
 
 configs = TestConfig.configs()
 ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
@@ -49,15 +50,18 @@ def check_agent_logs_considering_timestamp(context, condition, text_to_match, ti
         considered_timestamp = context.considered_timestamp
     text_found = get_logs_and_check(context.container_id, text_to_match, considered_timestamp,
                                     timeout=time_to_wait)
-
-    assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+    logs = get_orb_agent_logs(context.container_id)
+    assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
+                                       f"Container logs: {json.dumps(logs, indent=4)}")
 
 
 @then('the container logs should contain the message "{text_to_match}" within {time_to_wait} seconds')
 def check_agent_log(context, text_to_match, time_to_wait):
     text_found = get_logs_and_check(context.container_id, text_to_match, timeout=time_to_wait)
+    logs = get_orb_agent_logs(context.container_id)
 
-    assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+    assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
+                                       f"Container logs: {json.dumps(logs, indent=4)}")
 
 
 @step("{order} container created is {status} after {seconds} seconds")
@@ -92,19 +96,21 @@ def remove_container_on_end_of_scenario(context):
         remove_container(container_id)
 
 
-def run_agent_container(container_image, env_vars, container_name):
+def run_agent_container(container_image, env_vars, container_name, time_to_wait=10):
     """
     Gets a specific agent from Orb control plane
 
     :param (str) container_image: that will be used for running the container
     :param (dict) env_vars: that will be passed to the container context
     :param (str) container_name: base of container name
+    :param (int) time_to_wait: seconds that threading must wait after run the agent
     :returns: (str) the container ID
     """
     LOCAL_AGENT_CONTAINER_NAME = container_name + random_string(5)
     client = docker.from_env()
     container = client.containers.run(container_image, name=LOCAL_AGENT_CONTAINER_NAME, detach=True,
                                       network_mode='host', environment=env_vars)
+    threading.Event().wait(time_to_wait)
     return container.id
 
 
@@ -214,12 +220,13 @@ def get_logs_and_check(container_id, expected_message, start_time=0, event=None)
     return text_found
 
 
-def run_agent_config_file(orb_path, agent_name):
+def run_agent_config_file(agent_name, time_to_wait=10):
     """
     Run an agent container using an agent config file
 
     :param orb_path: path to orb directory
     :param agent_name: name of the orb agent
+    :param time_to_wait: seconds that threading must wait after run the agent
     :return: agent container id
     """
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
@@ -233,6 +240,7 @@ def run_agent_config_file(orb_path, agent_name):
     subprocess_return = terminal_running.stdout.read().decode()
     container_id = subprocess_return.split()[0]
     rename_container(container_id, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
+    threading.Event().wait(time_to_wait)
     return container_id
 
 

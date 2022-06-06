@@ -8,6 +8,7 @@ from datetime import datetime
 from control_plane_datasets import create_new_dataset, list_datasets
 from random import choice, choices, sample
 from deepdiff import DeepDiff
+import json
 
 policy_name_prefix = "test_policy_name_"
 orb_url = TestConfig.configs().get('orb_url')
@@ -220,7 +221,8 @@ def check_agent_logs_for_deleted_policies_considering_timestamp(context, conditi
     assert_that(len(policies_have_expected_message), equal_to(0),
                 f"Message '{text_to_match}' for policy "
                 f"'{context.policy['id']}: {context.policy['name']}'"
-                f" present on logs even after removing policy!")
+                f" present on logs even after removing policy! \n"
+                f"Agent: {json.dumps(context.agent, indent=4)}")
 
 
 @step('the container logs that were output after {condition} contain the message "{'
@@ -244,7 +246,8 @@ def check_agent_logs_for_policies_considering_timestamp(context, condition, text
     assert_that(policies_have_expected_message, equal_to(set(context.list_agent_policies_id)),
                 f"Message '{text_to_match}' for policy "
                 f"'{policies_data}'"
-                f" was not found in the agent logs!")
+                f" was not found in the agent logs!"
+                f"Agent: {json.dumps(context.agent, indent=4)}")
 
 
 @step('the container logs contain the message "{text_to_match}" referred to each policy within {'
@@ -256,7 +259,8 @@ def check_agent_logs_for_policies(context, text_to_match, time_to_wait):
     assert_that(policies_have_expected_message, equal_to(set(context.list_agent_policies_id)),
                 f"Message '{text_to_match}' for policy "
                 f"'{set(context.list_agent_policies_id).difference(policies_have_expected_message)}'"
-                f" was not found in the agent logs!")
+                f" was not found in the agent logs!. \n"
+                f"Agent: {json.dumps(context.agent, indent=4)}")
 
 
 @step('{amount_of_policies} {type_of_policies} policies are applied to the group')
