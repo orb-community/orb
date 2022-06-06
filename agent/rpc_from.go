@@ -141,12 +141,8 @@ func (a *orbAgent) handleAgentReset(payload fleet.AgentResetRPCPayload) {
 			a.logger.Error("RestartAll failure", zap.Error(err))
 		}
 	} else {
-		for name, _ := range a.backends {
-			err := a.RestartBackend(name, payload.Reason)
-			if err != nil {
-				a.logger.Error("RestartBackend failure", zap.Error(err))
-			}
-		}
+		// TODO backend specific restart
+		// a.RestartBackend()
 	}
 }
 
