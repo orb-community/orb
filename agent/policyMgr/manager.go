@@ -82,12 +82,10 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 				}
 			}
 
-			for _, groupID := range payload.AgentGroupID {
-				if groupID != "" {
-					err := a.repo.EnsureGroupID(payload.ID, groupID)
-					if err != nil {
-						a.logger.Warn("policy failed to ensure agent group id", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.String("agent_group_id", groupID), zap.Error(err))
-					}
+			if payload.AgentGroupID != "" {
+				err := a.repo.EnsureGroupID(payload.ID, payload.AgentGroupID)
+				if err != nil {
+					a.logger.Warn("policy failed to ensure agent group id", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.String("agent_group_id", payload.AgentGroupID), zap.Error(err))
 				}
 			}
 
@@ -114,10 +112,8 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			}
 			pd.Datasets = map[string]bool{payload.DatasetID: true}
 
-			for _, groupID := range payload.AgentGroupID {
-				if groupID != "" {
-					pd.GroupIds = map[string]bool{groupID: true}
-				}
+			if payload.AgentGroupID != "" {
+				pd.GroupIds = map[string]bool{payload.AgentGroupID: true}
 			}
 
 		}
