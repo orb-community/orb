@@ -185,6 +185,8 @@ func (a *orbAgent) restartComms() error {
 	if err := a.startComms(cloudConfig); err != nil {
 		return err
 	}
+
+	a.requestReconnection(a.client, cloudConfig)
 	return nil
 }
 
