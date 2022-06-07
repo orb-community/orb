@@ -88,7 +88,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 		Version:      p.Version,
 		Data:         pdata,
 		DatasetID:    datasetID,
-		AgentGroupID: []string{ag.ID},
+		AgentGroupID: ag.ID,
 	}}
 
 	data := AgentPolicyRPC{
@@ -185,13 +185,14 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 			}
 
 			payload[i] = AgentPolicyRPCPayload{
-				Action:    "manage",
-				ID:        policy.Id,
-				Name:      policy.Name,
-				Backend:   policy.Backend,
-				Version:   policy.Version,
-				Data:      pdata,
-				DatasetID: policy.DatasetId,
+				Action:       "manage",
+				ID:           policy.Id,
+				Name:         policy.Name,
+				Backend:      policy.Backend,
+				Version:      policy.Version,
+				Data:         pdata,
+				DatasetID:    policy.DatasetId,
+				AgentGroupID: policy.AgentGroupId,
 			}
 
 		}

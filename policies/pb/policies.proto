@@ -39,6 +39,7 @@ message PolicyInDSRes {
   int32 version = 4;
   bytes data = 5;
   string dataset_id = 6;
+  string agent_group_id = 7;
 }
 
 message PolicyInDSListRes {

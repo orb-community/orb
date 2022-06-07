@@ -46,7 +46,7 @@ type AgentPolicyRPCPayload struct {
 	Action       string      `json:"action"`
 	ID           string      `json:"id"`
 	DatasetID    string      `json:"dataset_id"`
-	AgentGroupID []string    `json:"agent_group_id"`
+	AgentGroupID string      `json:"agent_group_id"`
 	Name         string      `json:"name"`
 	Backend      string      `json:"backend"`
 	Version      int32       `json:"version"`

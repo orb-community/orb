@@ -59,12 +59,13 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 				return policyInDSListRes{}, err
 			}
 			policies[i] = policyInDSRes{
-				id:        policy.ID,
-				name:      policy.Name.String(),
-				backend:   policy.Backend,
-				version:   policy.Version,
-				data:      data,
-				datasetID: policy.DatasetID,
+				id:           policy.ID,
+				name:         policy.Name.String(),
+				backend:      policy.Backend,
+				version:      policy.Version,
+				data:         data,
+				datasetID:    policy.DatasetID,
+				agentGroupID: policy.AgentGroupID,
 			}
 		}
 
