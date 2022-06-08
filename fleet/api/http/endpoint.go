@@ -11,6 +11,7 @@ package http
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/mitchellh/mapstructure"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
@@ -215,16 +216,16 @@ func viewAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		res := agentRes{
-			ID:             ag.MFThingID,
-			Name:           ag.Name.String(),
-			ChannelID:      ag.MFChannelID,
-			AgentTags:      ag.AgentTags,
-			OrbTags:        ag.OrbTags,
-			TsCreated:      ag.Created,
-			AgentMetadata:  ag.AgentMetadata,
-			State:          ag.State.String(),
-			LastHBData:     ag.LastHBData,
-			TsLastHB:       ag.LastHB,
+			ID:            ag.MFThingID,
+			Name:          ag.Name.String(),
+			ChannelID:     ag.MFChannelID,
+			AgentTags:     ag.AgentTags,
+			OrbTags:       ag.OrbTags,
+			TsCreated:     ag.Created,
+			AgentMetadata: ag.AgentMetadata,
+			State:         ag.State.String(),
+			LastHBData:    ag.LastHBData,
+			TsLastHB:      ag.LastHB,
 		}
 		return res, nil
 	}
@@ -290,16 +291,33 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 			},
 			Agents: []agentRes{},
 		}
+
+		policyStatus := make(map[string]interface{})
 		for _, ag := range page.Agents {
+			var hb fleet.Heartbeat
+			err = mapstructure.Decode(ag.LastHBData, &hb)
+			if err != nil {
+				return nil, err
+			}
+
+			formattedPolicyInfo := fleet.PolicyStateInfo{}
+			for policyID, policyInfo := range hb.PolicyState {
+				formattedPolicyInfo = policyInfo
+				formattedPolicyInfo.Datasets = []string{}
+
+				policyStatus[policyID] = formattedPolicyInfo
+			}
+
 			view := agentRes{
-				ID:        ag.MFThingID,
-				Name:      ag.Name.String(),
-				ChannelID: ag.MFChannelID,
-				AgentTags: ag.AgentTags,
-				OrbTags:   ag.OrbTags,
-				TsCreated: ag.Created,
-				State:     ag.State.String(),
-				TsLastHB:  ag.LastHB,
+				ID:           ag.MFThingID,
+				Name:         ag.Name.String(),
+				ChannelID:    ag.MFChannelID,
+				AgentTags:    ag.AgentTags,
+				OrbTags:      ag.OrbTags,
+				TsCreated:    ag.Created,
+				State:        ag.State.String(),
+				TsLastHB:     ag.LastHB,
+				PolicyStatus: policyStatus,
 			}
 			res.Agents = append(res.Agents, view)
 		}
