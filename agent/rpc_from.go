@@ -138,7 +138,6 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 		delete(policy.GroupIds, rpc.AgentGroupID)
 
 		if len(policy.GroupIds) == 0 {
-
 			err = a.policyManager.RemovePolicy(policy.ID, policy.Name, policy.Backend)
 			if err != nil {
 				a.logger.Warn("failed to remove a policy, ignoring", zap.String("policy_id", policy.ID), zap.String("policy_name", policy.Name), zap.Error(err))
@@ -146,7 +145,6 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 			}
 		}
 	}
-
 	delete(a.groupsInfos, rpc.AgentGroupID)
 
 }
