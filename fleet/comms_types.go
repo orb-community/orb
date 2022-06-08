@@ -54,7 +54,7 @@ type BackendStateInfo struct {
 
 type PolicyStateInfo struct {
 	Name     string   `json:"name"`
-	Datasets []string `json:"datasets"`
+	Datasets []string `json:"datasets,omitempty"`
 	State    string   `json:"state"`
 	Error    string   `json:"error,omitempty"`
 }
