@@ -292,8 +292,8 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 			Agents: []agentRes{},
 		}
 
-		policyStatus := make(map[string]interface{})
 		for _, ag := range page.Agents {
+			policyStatus := make(map[string]interface{})
 			var hb fleet.Heartbeat
 			err = mapstructure.Decode(ag.LastHBData, &hb)
 			if err != nil {
