@@ -119,6 +119,11 @@ nav:
                  - Check if is possible cancel operations with no change: policies/check_if_is_possible_cancel_operations_with_no_change.md
                  - Remove policy using correct name: policies/remove_policy_using_correct_name.md
                  - Remove policy using incorrect name: policies/remove_policy_using_incorrect_name.md
+                 - Create duplicated net policy without insert new name: policies/create_duplicated_net_policy_without_insert_new_name.md
+                 - Create duplicated dhcp policy without insert new name: policies/create_duplicated_dhcp_policy_without_insert_new_name.md
+                 - Create duplicated dns policy without insert new name: policies/create_duplicated_dns_policy_without_insert_new_name.md
+                 - Create 4 duplicated policy with new name: policies/create_4_duplicated_policy_with_new_name.md
+                 - Create 3 duplicated dns policy without insert new name and 1 with new name: policies/create_3_duplicated_dns_policy_without_insert_new_name_and_1_with_new_name.md
           - Datasets Scenarios:
                  - Check if total datasets on datasets' page is correct: datasets/check_if_total_datasets_on_datasets'_page_is_correct.md
                  - Create dataset with invalid name (regex): datasets/create_dataset_with_invalid_name_(regex).md
@@ -167,7 +172,8 @@ nav:
                  - Agent subscription to group with policies after editing orb agent's tags and agent group's tags (editing tags after agent provision): integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_after_agent_provision.md
                  - Agent unsubscription to group with policies after editing orb agent's tags and agent group's tags (editing tags before agent provision): integration/agent_unsubscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_before_agent_provision.md
                  - Agent subscription to group with policies after editing orb agent's tags and agent group's tags (editing tags before agent provision): integration/agent_subscription_to_group_with_policies_after_editing_agent's_tags_and_agent_group's_tags_editing_tags_before_agent_provision.md
-
+                 - Remotely reset an agent with policies: integration/reset_agent_remotely.md
+                 - Remotely reset an agent without policies: integration/reset_agent_remotely.md
   - Suites:
           - Smoke:
                  - Smoke list: smoke.md
