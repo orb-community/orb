@@ -114,7 +114,7 @@ Feature: agent groups creation
         Then agent group editing must fail
             And this agent's heartbeat shows that 1 groups are matching the agent
             And 1 agent must be matching on response field matching_agents
-            And the agent status in Orb should be online
+            And the agent status in Orb should be online within 10 seconds
 
     @smoke
     Scenario: Edit Agent Group name, description and tags
@@ -127,4 +127,4 @@ Feature: agent groups creation
         Then the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
             And this agent's heartbeat shows that 0 groups are matching the agent
             And 0 agent must be matching on response field matching_agents
-            And the agent status in Orb should be online
+            And the agent status in Orb should be online within 10 seconds
