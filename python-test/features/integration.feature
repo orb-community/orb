@@ -2,6 +2,19 @@
 Feature: Integration tests
 
 
+@dev
+Scenario: Test agents backend routes
+    Given the Orb user has a registered account
+        And the Orb user logs in
+    When a new agent is created with 1 orb tag(s)
+        And the agent container is started on an available port
+    Then backends route must be enabled
+        And handlers route must be enabled
+        And taps route must be enabled
+        And inputs route must be enabled
+
+
+
 @smoke
 Scenario: Apply multiple advanced policies to an agent
     Given the Orb user has a registered account
