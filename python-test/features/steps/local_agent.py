@@ -96,7 +96,7 @@ def remove_container_on_end_of_scenario(context):
         remove_container(container_id)
 
 
-def run_agent_container(container_image, env_vars, container_name, time_to_wait=10):
+def run_agent_container(container_image, env_vars, container_name, time_to_wait=5):
     """
     Gets a specific agent from Orb control plane
 
@@ -220,7 +220,7 @@ def get_logs_and_check(container_id, expected_message, start_time=0, event=None)
     return text_found
 
 
-def run_agent_config_file(agent_name, time_to_wait=10):
+def run_agent_config_file(agent_name, time_to_wait=5):
     """
     Run an agent container using an agent config file
 
