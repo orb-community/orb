@@ -6,7 +6,8 @@
         <nb-accordion-item>
           <nb-accordion-item-header>
             <span class="summary-accent">Policy:&nbsp;</span>
-            {{ policy.name }}
+            <button class='agent-policy-button'
+                    (click)="onOpenViewPolicy(policy)">{{ policy.name }}</button>
             <span class="summary-accent">&nbsp;&nbsp;Status:&nbsp;</span>
             <span
               class="policy-{{ policy.state }}">{{
@@ -19,7 +20,9 @@
                 <span><span class="error-title">Error Details: </span>{{ policy?.error }}</span>
               </nb-list-item>
               <nb-list-item *ngFor="let id of policy.datasets">
-                <span>Dataset:&nbsp;&quot;{{ datasets[id].name }}&quot;</span>
+                <span>Dataset:&nbsp;</span>
+                <button class='agent-policy-button'
+                        (click)="onOpenViewDataset(datasets[id])">{{ datasets[id].name }}</button>
               </nb-list-item>
             </nb-list>
           </nb-accordion-item-body>

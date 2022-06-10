@@ -1,5 +1,5 @@
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix,\
+from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
     create_tags_set, find_files, threading_wait_until, return_port_to_run_docker_container, validate_json
 from local_agent import run_local_agent_container, run_agent_config_file, get_orb_agent_logs
 from control_plane_agent_groups import return_matching_groups, tags_to_match_k_groups
@@ -222,9 +222,9 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
     context.agent_file_name = create_agent_config_file(context.token, agent_name, interface,
-                                                                         agent_tags, orb_url, base_orb_address, port,
-                                                                         existing_agent_groups=context.agent_groups,
-                                                                         context=context)
+                                                       agent_tags, orb_url, base_orb_address, port,
+                                                       existing_agent_groups=context.agent_groups,
+                                                       context=context)
     context.container_id = run_agent_config_file(agent_name)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(port)
@@ -244,6 +244,25 @@ def reset_agent_remotely(context):
     response = requests.post(f"{orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request)
     assert_that(response.status_code, equal_to(200),
                 'Request to restart agent failed with status=' + str(response.status_code))
+
+
+@step("{route} route must be enabled")
+def check_agent_backend_pktvisor_routes(context, route):
+    assert_that(route, any_of(equal_to("taps"), equal_to("handlers"), equal_to("inputs"), equal_to("backends")),
+                "Invalid agent route")
+
+    agent_backend_routes = {"backends": "backends", "taps": "backends/pktvisor/taps",
+                            "inputs": "backends/pktvisor/inputs",
+                            "handlers": "backends/pktvisor/handlers"}
+
+    response = requests.get(orb_url + '/api/v1/agents/' + agent_backend_routes[route],
+                            headers={'Authorization': context.token})
+    assert_that(response.status_code, equal_to(200),
+                f"Request to get {route} route failed with status =" + str(response.status_code))
+    local_orb_path = configs.get("local_orb_path")
+    route_schema_path = local_orb_path + f"/python-test/features/steps/schemas/{route}_schema.json"
+    is_schema_valid = validate_json(response.json(), route_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid route json. \n Route = {route}")
 
 
 @threading_wait_until
@@ -285,7 +304,6 @@ def get_agent(token, agent_id, status_code=200):
 
 
 def list_agents(token, limit=100, offset=0):
-
     """
     Lists all agents from Orb control plane that belong to this user
 
