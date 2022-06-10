@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import {
   NbAccordionModule,
-  NbAlertModule,
+  NbAlertModule, NbAutocompleteModule,
   NbButtonModule,
   NbCardModule,
   NbCheckboxModule,
@@ -99,6 +99,7 @@ import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-fr
     MonacoEditorModule,
     NbToggleModule,
     A11yModule,
+    NbAutocompleteModule,
   ],
   exports: [
     SharedModule,
