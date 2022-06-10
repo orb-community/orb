@@ -225,7 +225,7 @@ export class DatasetFromComponent implements OnInit {
       this.loading[CONFIG.GROUPS] = true;
       this.agentGroupsService.getAllAgentGroups()
           .subscribe((resp: OrbPagination<AgentGroup>) => {
-            this.availableAgentGroups = resp.data;
+            this.availableAgentGroups = resp.data.sort((a, b) => a.name > b.name ? -1 : 1);
             this.filteredAgentGroups$ = of(this.availableAgentGroups);
             this.loading[CONFIG.GROUPS] = false;
 
@@ -273,6 +273,7 @@ export class DatasetFromComponent implements OnInit {
           });
     });
   }
+
 
   isLoading() {
     return Object.values<boolean>(this.loading)

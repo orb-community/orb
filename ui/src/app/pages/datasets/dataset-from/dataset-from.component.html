@@ -23,29 +23,29 @@
                     </div>
 
                     <input
-                            nbInput
-                            type="text"
-                            placeholder="Agent Group"
-                            formControlName="agent_group_name"
                             (input)="onChangeGroupName($event)"
                             [nbAutocomplete]="autoControl"
+                            formControlName="agent_group_name"
+                            nbInput
+                            placeholder="Agent Group"
+                            type="text"
                     />
 
                     <nb-autocomplete #autoControl
-                                     [activeFirst]="true" (selectedChange)="onSelectChangeGroupName($event)">
-                        <nb-option *ngFor="let option of filteredAgentGroups$ | async"
-                                   [value]="option.name"
+                                     (selectedChange)="onSelectChangeGroupName($event)" [activeFirst]="true">
+                        <nb-option (change)="onSelectChangeGroupName($event)"
                                    (input)="onSelectChangeGroupName($event)"
-                                   (change)="onSelectChangeGroupName($event)"
-                                   (selectionChange)="onSelectChangeGroupName($event)">
+
+                                   (selectionChange)="onSelectChangeGroupName($event)"
+                                   *ngFor="let option of filteredAgentGroups$ | async | sort: 'asc':'name'"
+                                   [value]="option.name">
                             {{option.name}}
                         </nb-option>
 
                     </nb-autocomplete>
-                    <div
-                            *ngIf="form.controls?.agent_group_id.invalid
+                    <div *ngIf="form.controls?.agent_group_id.invalid
           && (form.controls?.agent_group_name.dirty)"
-                            class="required">
+                         class="required">
                         <div *ngIf="form.controls?.agent_group_id.errors?.required">
                             You must select a valid Agent Group.
                         </div>
