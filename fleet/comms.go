@@ -91,6 +91,8 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 		AgentGroupID: ag.ID,
 	}}
 
+	svc.logger.Info(fmt.Sprintf("agentPolicyRPCPayload: %s", payload[0].AgentGroupID))
+
 	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
@@ -318,12 +320,13 @@ func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag Age
 	}
 
 	payload := []AgentPolicyRPCPayload{{
-		Action:  "manage",
-		ID:      policyID,
-		Name:    p.Name,
-		Backend: p.Backend,
-		Version: p.Version,
-		Data:    pdata,
+		Action:       "manage",
+		ID:           policyID,
+		Name:         p.Name,
+		AgentGroupID: ag.ID,
+		Backend:      p.Backend,
+		Version:      p.Version,
+		Data:         pdata,
 	}}
 
 	data := AgentPolicyRPC{
@@ -356,10 +359,11 @@ func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID st
 
 	var payloads []AgentPolicyRPCPayload
 	payload := AgentPolicyRPCPayload{
-		Action:  "remove",
-		ID:      policyID,
-		Name:    policyName,
-		Backend: backend,
+		Action:       "remove",
+		ID:           policyID,
+		Name:         policyName,
+		Backend:      backend,
+		AgentGroupID: ag.ID,
 	}
 
 	payloads = append(payloads, payload)
