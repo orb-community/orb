@@ -128,7 +128,7 @@ func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label
 					tsList = makePromParticle(ctxt, label+key, "", value, tsList, false, "")
 				}
 			}
-		// The StatSnapshot has two ways to record metrics (i.e. TopIpv4   []NameStringCount   `mapstructure:"top_ipv4"`)
+		// The StatSnapshot has two ways to record metrics (i.e. TopIpv4   []NameCount   `mapstructure:"top_ipv4"`)
 		// It's why we check if the type is []interface
 		// Here we extract the value for Name and Estimate
 		case []interface{}:
