@@ -3066,7 +3066,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_dst_ports_bytes": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": 5000
+          	  	  "name": "10.4.2.2"
         		}
 			]
 		}
@@ -3100,7 +3100,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "port",
-						Value: "5000",
+						Value: "10.4.2.2",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3116,7 +3116,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_dst_ports_packets": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": 6000
+          	  	  "name": "10.4.2.2"
         		}
 			]
 		}
@@ -3150,7 +3150,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "port",
-						Value: "6000",
+						Value: "10.4.2.2",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3166,7 +3166,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_in_if_index_bytes": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": 500
+          	  	  "name": "10.4.2.2"
         		}
 			]
 		}
@@ -3200,7 +3200,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "index",
-						Value: "500",
+						Value: "10.4.2.2",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3216,7 +3216,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_in_if_index_packets": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": 100
+          	  	  "name": "10.4.2.2"
         		}
 			]
 		}
@@ -3250,7 +3250,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "index",
-						Value: "100",
+						Value: "10.4.2.2",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3266,7 +3266,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_out_if_index_bytes": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": 200
+          	  	  "name": "10.4.2.2"
         		}
 			]
 		}
@@ -3300,7 +3300,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "index",
-						Value: "200",
+						Value: "10.4.2.2",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3316,7 +3316,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_out_if_index_packets": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": 300
+          	  	  "name": "10.4.2.2"
         		}
 			]
 		}
@@ -3350,7 +3350,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "index",
-						Value: "300",
+						Value: "10.4.2.2",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3466,7 +3466,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_src_ports_bytes": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": 8000
+          	  	  "name": "10.4.2.2"
         		}
 			]
 		}
@@ -3500,7 +3500,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "port",
-						Value: "8000",
+						Value: "10.4.2.2",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3516,7 +3516,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_src_ports_packets": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": 9000
+          	  	  "name": "10.4.2.2"
         		}
 			]
 		}
@@ -3550,7 +3550,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "port",
-						Value: "9000",
+						Value: "10.4.2.2",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
