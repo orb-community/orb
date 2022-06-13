@@ -143,7 +143,7 @@ Scenario: Provision agent with tags matching an existent group
     When a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
         And the agent status is online
-    Then the agent status in Orb should be online
+    Then the agent status in Orb should be online within 10 seconds
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
 
@@ -373,7 +373,7 @@ Scenario: Editing tags of an Agent Group with policies (unsubscription - provisi
     When the name, tags, description of Agent Group is edited using: name=new_name/ tags=2 orb tag(s)/ description=None
     Then 0 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
 
 
 @smoke
@@ -404,7 +404,7 @@ Scenario: Editing tags of an Agent Group with policies (provision agent after ed
         And the agent container is started on an available port
         And the agent status is online
     Then 0 agent must be matching on response field matching_agents
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
 
 
 @smoke
@@ -420,7 +420,7 @@ Scenario: Editing tags of an Agent Group with policies (subscription - provision
         And the agent status is online
     Then 1 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
 
@@ -439,7 +439,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (unsubscription
         And the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
         And this agent's heartbeat shows that 0 groups are matching the agent
         And this agent's heartbeat shows that 0 policies are successfully applied to the agent
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
 
 
 @smoke
@@ -454,7 +454,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
         And the name, tags, description of Agent Group is edited using: name=new_name/ tags=matching the agent/ description=None
     Then 1 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
 
@@ -472,7 +472,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (provision agen
         And the agent container is started on an available port
         And the agent status is online
     Then 0 agent must be matching on response field matching_agents
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
 
 
 @smoke
@@ -489,7 +489,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
         And the agent status is online
     Then 1 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
 
@@ -744,3 +744,20 @@ Scenario: Create duplicated policy
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 10 seconds
         And datasets related to all existing policies have validity valid
+
+
+@smoke
+Scenario: Remove agent
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And a new agent is created with 1 orb tag(s)
+        And the agent container is started on an available port
+        And the agent status is online
+        And referred agent is subscribed to a group
+        And that a sink already exists
+        And 2 simple policies are applied to the group
+    When this agent is removed
+    Then 0 agent must be matching on response field matching_agents
+        And the container logs should contain the message "ERROR mqtt log" within 120 seconds
+        And last container created is running after 120 seconds
+        And dataset related have validity valid

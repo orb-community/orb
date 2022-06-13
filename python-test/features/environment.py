@@ -6,5 +6,6 @@ def before_scenario(context, scenario):
 
 def after_scenario(context, feature):
     context.execute_steps('''
-    Then remove the container
+    Then stop the orb-agent container
+    Then remove the orb-agent container
     ''')
