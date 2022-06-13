@@ -557,7 +557,6 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 		agent.LastHBData["backend_state"] = hb.BackendState
 		agent.LastHBData["policy_state"] = hb.PolicyState
 		agent.LastHBData["group_state"] = hb.GroupState
-
 	}
 	err := svc.agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), agent)
 	if err != nil {
