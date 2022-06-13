@@ -915,18 +915,6 @@ func TestOmitPasswords(t *testing.T) {
 			inputMetadata:    types.Metadata{"user": 387157, "password": "s3cr3tp@ssw0rd", "url": "someUrl"},
 			expectedMetadata: types.Metadata{"user": 387157, "password": "", "url": "someUrl"},
 		},
-		"omit configuration with secret": {
-			inputMetadata:    types.Metadata{"user": 387157, "api_secret": "api_knows_this_secr3t", "url": "someUrl"},
-			expectedMetadata: types.Metadata{"user": 387157, "api_secret": "", "url": "someUrl"},
-		},
-		"omit configuration with key": {
-			inputMetadata:    types.Metadata{"user": 387157, "api_key": "alohomora", "url": "someUrl"},
-			expectedMetadata: types.Metadata{"user": 387157, "api_key": "", "url": "someUrl"},
-		},
-		"omit configuration with token": {
-			inputMetadata:    types.Metadata{"user": 387157, "secret_token": "very1.secret2.t0ken3", "url": "someUrl"},
-			expectedMetadata: types.Metadata{"user": 387157, "secret_token": "", "url": "someUrl"},
-		},
 	}
 
 	for desc, tc := range cases {

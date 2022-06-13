@@ -13,10 +13,11 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
+	"github.com/ns1labs/orb/sinks/backend"
 	"strings"
 )
 
-var restrictiveKeyPrefixes = []string{"secret", "key", "pass", "token"}
+var restrictiveKeyPrefixes = []string{backend.ConfigFeatureTypePassword}
 
 func omitSecretInformation(metadata types.Metadata) (restrictedMetadata types.Metadata) {
 	metadata.RestrictKeys(func(key string) bool {
