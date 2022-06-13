@@ -85,6 +85,7 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			LastModified:  policy.LastModified,
 			PolicyData:    policy.PolicyData,
 			Format:        policy.Format,
+			Created:       policy.Created,
 		}
 		return res, nil
 	}
@@ -121,6 +122,7 @@ func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
 				Backend:       ag.Backend,
 				SchemaVersion: ag.SchemaVersion,
 				LastModified:  ag.LastModified,
+				Created:       ag.Created,
 			}
 			res.Policies = append(res.Policies, view)
 		}
@@ -259,6 +261,7 @@ func editDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			PolicyID:     ds.PolicyID,
 			SinkIDs:      ds.SinkIDs,
 			Metadata:     ds.Metadata,
+			TsCreated:    ds.Created,
 			Tags:         ds.Tags,
 		}
 
@@ -412,6 +415,7 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 				PolicyID:     dataset.PolicyID,
 				SinkIDs:      dataset.SinkIDs,
 				AgentGroupID: dataset.AgentGroupID,
+				TsCreated:    dataset.Created,
 				Valid:        dataset.Valid,
 			}
 			res.Datasets = append(res.Datasets, view)

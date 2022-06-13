@@ -188,6 +188,11 @@
 |                         [Check if is possible cancel operations with no change](policies/check_if_is_possible_cancel_operations_with_no_change.md)                         |                   |                  |       |        |
 |                                              [Remove policy using correct name](policies/remove_policy_using_correct_name.md)                                              |         ✅         |                  |  👍   |   👍   |                                          
 |                                            [Remove policy using incorrect name](policies/remove_policy_using_incorrect_name.md)                                            |                   |                  |       |   👍   |
+|                          [Create duplicated net policy without insert new name](policies/create_duplicated_net_policy_without_insert_new_name.md)                          |         ✅         |                  |  👍   |   👍   |
+|                         [Create duplicated dhcp policy without insert new name](policies/create_duplicated_dhcp_policy_without_insert_new_name.md)                         |         ✅         |                  |  👍   |   👍   |
+|                          [Create duplicated dns policy without insert new name](policies/create_duplicated_dns_policy_without_insert_new_name.md)                          |         ✅         |                  |  👍   |   👍   |
+|                                      [Create 4 duplicated policy with new name](policies/create_4_duplicated_policy_with_new_name.md)                                      |         ✅         |                  |  👍   |   👍   |
+|    [Create 3 duplicated dns policy without insert new name and 1 with new name](policies/create_3_duplicated_dns_policy_without_insert_new_name_and_1_with_new_name.md)    |         ✅         |                  |  👍   |   👍   |
 
 
 ---------------------------------

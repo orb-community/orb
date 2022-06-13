@@ -2,12 +2,26 @@
 Feature: Integration tests
 
 
+@dev
+Scenario: Test agents backend routes
+    Given the Orb user has a registered account
+        And the Orb user logs in
+    When a new agent is created with 1 orb tag(s)
+        And the agent container is started on an available port
+    Then backends route must be enabled
+        And handlers route must be enabled
+        And taps route must be enabled
+        And inputs route must be enabled
+
+
+
 @smoke
 Scenario: Apply multiple advanced policies to an agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
     When 14 mixed policies are applied to the group
     Then this agent's heartbeat shows that 14 policies are successfully applied and has status running
@@ -21,6 +35,7 @@ Scenario: Apply two simple policies to an agent
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
     When 2 simple policies are applied to the group
     Then this agent's heartbeat shows that 2 policies are successfully applied and has status running
@@ -36,6 +51,7 @@ Scenario: apply one policy using multiple datasets to the same group
         And the Orb user logs in
         And that an agent with 2 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
     When 2 simple policies are applied to the group by 3 datasets each
     Then this agent's heartbeat shows that 2 policies are successfully applied and has status running
@@ -52,6 +68,7 @@ Scenario: Remove group to which agent is linked
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
         And 1 simple policies are applied to the group
         And this agent's heartbeat shows that 1 policies are successfully applied and has status running
@@ -68,6 +85,7 @@ Scenario: Remove policy from agent
         And the Orb user logs in
         And that an agent with 3 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
@@ -87,6 +105,7 @@ Scenario: Remove dataset from agent with just one dataset linked
         And the Orb user logs in
         And that an agent with 3 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
         And 1 simple policies are applied to the group
         And this agent's heartbeat shows that 1 policies are successfully applied and has status running
@@ -104,6 +123,7 @@ Scenario: Remove dataset from agent with more than one dataset linked
         And the Orb user logs in
         And that an agent with 4 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are successfully applied and has status running
@@ -122,6 +142,7 @@ Scenario: Provision agent with tags matching an existent group
         And an Agent Group is created with 2 orb tag(s)
     When a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
+        And the agent status is online
     Then the agent status in Orb should be online
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -136,6 +157,7 @@ Scenario: Provision agent with tag matching existing group linked to a valid dat
         And 2 simple policies are applied to the group
     When a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
+        And the agent status is online
     Then this agent's heartbeat shows that 2 policies are successfully applied and has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
@@ -149,6 +171,7 @@ Scenario: Sink with invalid endpoint
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink with invalid endpoint already exists
         And 3 simple policies are applied to the group
         And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=2 already exists
@@ -167,6 +190,7 @@ Scenario: Sink with invalid username
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink with invalid username already exists
         And 3 simple policies are applied to the group
         And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=3 already exists
@@ -185,6 +209,7 @@ Scenario: Sink with invalid password
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink with invalid password already exists
         And 3 simple policies are applied to the group
         And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=5 already exists
@@ -203,9 +228,10 @@ Scenario: Agent subscription to multiple groups created after provisioning agent
         And the Orb user logs in
         And a new agent is created with 3 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     When an Agent Group is created with 2 tags contained in the agent
         And an Agent Group is created with 1 tags contained in the agent
-    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 30 seconds
         And this agent's heartbeat shows that 2 groups are matching the agent
 
 
@@ -218,6 +244,7 @@ Scenario: Agent subscription to multiple groups created before provisioning agen
         And an Agent Group is created with 1 orb tag(s)
     When a new agent is created with orb tags matching all existing group
         And the agent container is started on an available port
+        And the agent status is online
     Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
         And this agent's heartbeat shows that 3 groups are matching the agent
 
@@ -243,6 +270,7 @@ Scenario: Agent subscription to group after editing orb agent's tags (editing ta
         And an Agent Group is created with 1 orb tag(s)
         And a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
+        And the agent status is online
     When edit the orb tags on agent and use orb tags matching 2 existing group
     Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 30 seconds
         And this agent's heartbeat shows that 2 groups are matching the agent
@@ -255,6 +283,7 @@ Scenario: Agent subscription to group after editing orb agent's tags (editing ta
         And a new agent is created with 2 orb tag(s)
         And edit the orb tags on agent and use 1 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     When an Agent Group is created with 1 tags contained in the agent
     Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -266,6 +295,7 @@ Scenario: Agent subscription to multiple group with policies after editing orb a
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
@@ -285,6 +315,7 @@ Scenario: Agent subscription to group with policies after editing orb agent's ta
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
@@ -304,6 +335,7 @@ Scenario: Insert tags in agents created without tags and apply policies to group
         And the Orb user logs in
         And a new agent is created with 0 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
         And that a sink already exists
     When edit the orb tags on agent and use 2 orb tag(s)
         And an Agent Group is created with same tag as the agent and without description
@@ -335,6 +367,7 @@ Scenario: Editing tags of an Agent Group with policies (unsubscription - provisi
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And an Agent Group is created with same tag as the agent and without description
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
         And 2 simple policies are applied to the group
     When the name, tags, description of Agent Group is edited using: name=new_name/ tags=2 orb tag(s)/ description=None
@@ -369,6 +402,7 @@ Scenario: Editing tags of an Agent Group with policies (provision agent after ed
         And 1 agent must be matching on response field matching_agents
     When the name, tags, description of Agent Group is edited using: name=new_name/ tags=2 orb tag/ description=None
         And the agent container is started on an available port
+        And the agent status is online
     Then 0 agent must be matching on response field matching_agents
         And the agent status in Orb should be online
 
@@ -383,6 +417,7 @@ Scenario: Editing tags of an Agent Group with policies (subscription - provision
     When the name, tags, description of Agent Group is edited using: name=new_name/ tags=2 orb tag(s)/ description=None
         And a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
+        And the agent status is online
     Then 1 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
         And the agent status in Orb should be online
@@ -435,6 +470,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (provision agen
         And a new agent is created with 1 orb tag(s)
         And edit the orb tags on agent and use 1 orb tag(s)
         And the agent container is started on an available port
+        And the agent status is online
     Then 0 agent must be matching on response field matching_agents
         And the agent status in Orb should be online
 
@@ -450,6 +486,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
         And a new agent is created with 2 orb tag(s)
         And edit the orb tags on agent and use orb tags matching 1 existing group
         And the agent container is started on an available port
+        And the agent status is online
     Then 1 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
         And the agent status in Orb should be online
@@ -484,6 +521,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to dhcp
         And that a sink already exists
         And that an agent with 1 orb tag(s) already exists and is online
         And an Agent Group is created with all tags contained in the agent
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And a new policy is created using: handler=dns, host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=2
         And a new dataset is created using referred group, policy and 1 sink
     When editing a policy using name=second_policy, handler=dhcp, only_qname_suffix=None, only_rcode=None
@@ -500,6 +538,7 @@ Scenario: Edit a simple policy with handler dhcp changing the handler to net
         And that a sink already exists
         And that an agent with 1 orb tag(s) already exists and is online
         And an Agent Group is created with all tags contained in the agent
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And a new policy is created using: handler=dhcp
         And a new dataset is created using referred group, policy and 1 sink
     When editing a policy using handler=net, description="policy_net"
@@ -534,6 +573,7 @@ Scenario: remove 1 sink from a dataset with 2 sinks
         And that 2 sinks already exists
         And that an agent with 1 orb tag(s) already exists and is online
         And an Agent Group is created with all tags contained in the agent
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And a new policy is created using: handler=dhcp
         And a new dataset is created using referred group, policy and 2 sinks
         And dataset related have validity valid
@@ -585,8 +625,8 @@ Scenario: agent with only agent tags subscription to a group with policies creat
         And an Agent Group is created with all tags contained in the agent
         And 3 simple policies are applied to the group
     Then dataset related have validity valid
-        And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are successfully applied and has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 10 seconds
@@ -656,6 +696,7 @@ Scenario: Remotely restart agents with policies applied
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
@@ -675,6 +716,7 @@ Scenario: Remotely restart agents without policies applied
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
         And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
     When remotely restart the agent
         And the container logs that were output after reset the agent contain the message "resetting backend" within 5 seconds
@@ -690,14 +732,15 @@ Scenario: Remotely restart agents without policies applied
 @smoke
 Scenario: Create duplicated policy
     Given the Orb user has a registered account
-    And the Orb user logs in
-    And that an agent with 1 orb tag(s) already exists and is online
-    And referred agent is subscribed to a group
-    And that a sink already exists
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And that a sink already exists
     When 1 simple policies are applied to the group
         And 1 duplicated policies is applied to the group
     Then this agent's heartbeat shows that 2 policies are successfully applied and has status running
-    And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
-    And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-    And referred sink must have active state on response within 10 seconds
-    And datasets related to all existing policies have validity valid
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 10 seconds
+        And datasets related to all existing policies have validity valid

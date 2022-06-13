@@ -1,13 +1,15 @@
 from hamcrest import *
 import requests
 from behave import given, then, step
-from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, threading_wait_until
+from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
+    threading_wait_until
 from local_agent import get_orb_agent_logs
 from test_config import TestConfig
 from datetime import datetime
 from control_plane_datasets import create_new_dataset, list_datasets
 from random import choice, choices, sample
 from deepdiff import DeepDiff
+import json
 
 policy_name_prefix = "test_policy_name_"
 orb_url = TestConfig.configs().get('orb_url')
@@ -92,10 +94,12 @@ def policy_editing(context, kwargs):
     if "description" in context.policy.keys():
         edited_attributes["description"] = context.policy['description']
     if "only_qname_suffix" in context.policy["policy"]["handlers"]["modules"][handler_label]['filter'].keys():
-        edited_attributes["only_qname_suffix"] = context.policy["policy"]["handlers"]["modules"][handler_label]["filter"][
-            "only_qname_suffix"]
+        edited_attributes["only_qname_suffix"] = \
+            context.policy["policy"]["handlers"]["modules"][handler_label]["filter"][
+                "only_qname_suffix"]
     if "only_rcode" in context.policy["policy"]["handlers"]["modules"][handler_label]['filter'].keys():
-        edited_attributes["only_rcode"] = context.policy["policy"]["handlers"]["modules"][handler_label]["filter"]["only_rcode"]
+        edited_attributes["only_rcode"] = context.policy["policy"]["handlers"]["modules"][handler_label]["filter"][
+            "only_rcode"]
 
     for i in kwargs.split(", "):
         assert_that(i, matches_regexp("^.+=.+$"), f"Unexpected format for param {i}")
@@ -188,7 +192,7 @@ def check_test(context, time_to_wait):
     stop_log_info = f"policy [{context.policy['name']}]: stopping"
     remove_log_info = f"DELETE /api/v1/policies/{context.policy['name']} 200"
     policy_removed = policy_stopped_and_removed(context.container_id, stop_log_info, remove_log_info,
-                                                context.considered_timestamp,  timeout=time_to_wait)
+                                                context.considered_timestamp, timeout=time_to_wait)
     assert_that(policy_removed, equal_to(True), f"Policy {context.policy['name']} failed to be unapplied")
 
 
@@ -220,14 +224,14 @@ def check_agent_logs_for_deleted_policies_considering_timestamp(context, conditi
     assert_that(len(policies_have_expected_message), equal_to(0),
                 f"Message '{text_to_match}' for policy "
                 f"'{context.policy['id']}: {context.policy['name']}'"
-                f" present on logs even after removing policy!")
+                f" present on logs even after removing policy! \n"
+                f"Agent: {json.dumps(context.agent, indent=4)}")
 
 
 @step('the container logs that were output after {condition} contain the message "{'
       'text_to_match}" referred to each applied policy within {time_to_wait} seconds')
 def check_agent_logs_for_policies_considering_timestamp(context, condition, text_to_match, time_to_wait):
-
-    #todo improve the logic for timestamp
+    # todo improve the logic for timestamp
     if "reset" in condition:
         considered_timestamp = context.considered_timestamp_reset
     else:
@@ -244,7 +248,8 @@ def check_agent_logs_for_policies_considering_timestamp(context, condition, text
     assert_that(policies_have_expected_message, equal_to(set(context.list_agent_policies_id)),
                 f"Message '{text_to_match}' for policy "
                 f"'{policies_data}'"
-                f" was not found in the agent logs!")
+                f" was not found in the agent logs!"
+                f"Agent: {json.dumps(context.agent, indent=4)}")
 
 
 @step('the container logs contain the message "{text_to_match}" referred to each policy within {'
@@ -256,7 +261,8 @@ def check_agent_logs_for_policies(context, text_to_match, time_to_wait):
     assert_that(policies_have_expected_message, equal_to(set(context.list_agent_policies_id)),
                 f"Message '{text_to_match}' for policy "
                 f"'{set(context.list_agent_policies_id).difference(policies_have_expected_message)}'"
-                f" was not found in the agent logs!")
+                f" was not found in the agent logs!. \n"
+                f"Agent: {json.dumps(context.agent, indent=4)}")
 
 
 @step('{amount_of_policies} {type_of_policies} policies are applied to the group')
@@ -279,30 +285,92 @@ def apply_n_policies_x_times(context, amount_of_policies, type_of_policies, amou
 
 
 @step("{amount_of_policies} duplicated policies is applied to the group")
-def duplicate_policy(context, amount_of_policies):
-
+def apply_duplicate_policy(context, amount_of_policies):
     for i in range(int(amount_of_policies)):
-        context.policy = create_duplicated_policy(context.token, context.policy["id"], policy_name_prefix+random_string(10))
+        context.policy = create_duplicated_policy(context.token, context.policy["id"],
+                                                  policy_name_prefix + random_string(10))
         check_policies(context)
         create_new_dataset(context, 1, 'sink')
 
 
-def create_duplicated_policy(token, policy_id, new_policy_name):
+@step("try to duplicate this policy {times} times without set new name")
+def duplicate_policy_with_same_name(context, times):
+    # note that the context.policy is NOT changed, because we need to duplicate always the same policy to make the test
+    # correctly
+    context.duplicate_policies = list()
+    for i in range(int(times)):
+        if i <= 2:
+            duplicated_policy = create_duplicated_policy(context.token, context.policy['id'])
+        else:
+            duplicated_policy = create_duplicated_policy(context.token, context.policy['id'], status_code=409)
+        context.duplicate_policies.append(duplicated_policy)
 
+
+@step("try to duplicate this policy {times} times with a random new name")
+def duplicate_policy_with_new_name(context, times):
+    # note that the context.policy is NOT changed, because we need to duplicate always the same policy to make the test
+    # correctly
+
+    context.duplicate_policies = list()
+    for i in range(int(times)):
+        policy_new_name = policy_name_prefix + random_string(10)
+        duplicated_policy = create_duplicated_policy(context.token, context.policy['id'],
+                                                     new_policy_name=policy_new_name)
+        context.duplicate_policies.append(duplicated_policy)
+
+
+@step("{amount_successfully_policies} policies must be successfully duplicated and {amount_error_policies}"
+      "must return an error")
+def check_duplicated_policies_status(context, amount_successfully_policies, amount_error_policies):
+    successfully_duplicated = list()
+    wrongly_duplicated = 0
+    for policy in context.duplicate_policies:
+        if "id" in policy.keys():
+            get_policy(context.token, policy['id'])
+            successfully_duplicated.append(policy['id'])
+        elif "error" in policy.keys():
+            wrongly_duplicated += 1
+    assert_that(len(successfully_duplicated), equal_to(int(amount_successfully_policies)), f"Amount of policies"
+                                                                                           f"successfully duplicated"
+                                                                                           f"fails. Policies duplicated:"
+                                                                                           f"{successfully_duplicated}")
+    assert_that(wrongly_duplicated, equal_to(int(amount_error_policies)), f"Amount of policies wrongly duplicated fails"
+                                                                          f".")
+
+
+def create_duplicated_policy(token, policy_id, new_policy_name=None, status_code=201):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) policy_id: id of policy that will be duplicated
+    :param (str) new_policy_name: name for the new policy created
+    :param (int) status_code: status code that must return on response
+    :return: (dict) new policy created
+    """
     json_request = {"name": new_policy_name}
+    json_request = remove_empty_from_json(json_request)
     headers_request = {'Content-type': 'application/json', 'Accept': 'application/json', 'Authorization': token}
     post_url = f"{orb_url}/api/v1/policies/agent/{policy_id}/duplicate"
     response = requests.post(post_url, json=json_request, headers=headers_request)
-    assert_that(response.status_code, equal_to(201),
+    assert_that(response.status_code, equal_to(status_code),
                 'Request to create duplicated policy failed with status=' + str(response.status_code))
-    compare_two_policies(token, policy_id, response.json()['id'])
+    if status_code == 201:
+        compare_two_policies(token, policy_id, response.json()['id'])
     return response.json()
 
 
 def compare_two_policies(token, id_policy_one, id_policy_two):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) id_policy_one: id of first policy
+    :param str() id_policy_two: id of second policy
+
+    """
     policy_one = get_policy(token, id_policy_one)
     policy_two = get_policy(token, id_policy_two)
-    diff = DeepDiff(policy_one, policy_two, exclude_paths={"root['name']", "root['id']", "root['ts_last_modified']"})
+    diff = DeepDiff(policy_one, policy_two, exclude_paths={"root['name']", "root['id']", "root['ts_last_modified']",
+                                                           "root['ts_created']"})
     assert_that(diff, equal_to({}), "Policy duplicated is not equal the one that generate it")
 
 
@@ -671,9 +739,11 @@ def return_policy_attribute(policy, attribute):
         return policy["policy"]["input"]["filter"]["bpf"]
     elif attribute == "pcap_source" and "pcap_source" in policy["policy"]["input"]["config"].keys():
         return policy["policy"]["input"]["config"]["pcap_source"]
-    elif attribute == "only_qname_suffix" and "only_qname_suffix" in policy["policy"]["handlers"]["modules"][handler_label]["filter"].keys():
+    elif attribute == "only_qname_suffix" and "only_qname_suffix" in \
+            policy["policy"]["handlers"]["modules"][handler_label]["filter"].keys():
         return policy["policy"]["handlers"]["modules"][handler_label]["filter"]["only_qname_suffix"]
-    elif attribute == "only_rcode" and "only_rcode" in policy["policy"]["handlers"]["modules"][handler_label]["filter"].keys():
+    elif attribute == "only_rcode" and "only_rcode" in policy["policy"]["handlers"]["modules"][handler_label][
+        "filter"].keys():
         return policy["policy"]["handlers"]["modules"][handler_label]["filter"]["only_rcode"]
     else:
         return None

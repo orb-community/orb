@@ -18,8 +18,8 @@
 - [Request password with registered email address](login/request_password_with_registered_email_address.md)
 - [Request password with unregistered email address](login/request_password_with_unregistered_email_address.md)
 
-## Agents Scenarios:
 
+## Agents Scenarios:
 - [Check if total agent on agents' page is correct](agents/check_if_total_agent_on_agents'_page_is_correct.md)
 - [Create agent without tags](agents/create_agent_without_tags.md)
 - [Create agent with one tag](agents/create_agent_with_one_tag.md)
@@ -66,6 +66,7 @@
 - [Edit Agent Group tags to unsubscribe agent](agent_groups/edit_agent_group_tags_to_unsubscribe_agent.md)
 - [Edit Agent Group removing tags](agent_groups/edit_agent_group_removing_tags.md)
 - [Edit Agent Group name, description and tags](agent_groups/edit_agent_group_name,_description_and_tags.md)
+
 
 ## Sink Scenarios:
 - [Check if total sinks on sinks' page is correct](sinks/check_if_total_sinks_on_sinks'_page_is_correct.md)
@@ -115,6 +116,12 @@
 - [Check if is possible cancel operations with no change](policies/check_if_is_possible_cancel_operations_with_no_change.md)
 - [Remove policy using correct name](policies/remove_policy_using_correct_name.md)
 - [Remove policy using incorrect name](policies/remove_policy_using_incorrect_name.md)
+- [Create duplicated net policy without insert new name](policies/create_duplicated_net_policy_without_insert_new_name.md)
+- [Create duplicated dhcp policy without insert new name](policies/create_duplicated_dhcp_policy_without_insert_new_name.md)
+- [Create duplicated dns policy without insert new name](policies/create_duplicated_dns_policy_without_insert_new_name.md)
+- [Create 4 duplicated policy with new name](policies/create_4_duplicated_policy_with_new_name.md)
+- [Create 3 duplicated dns policy without insert new name and 1 with new name](policies/create_3_duplicated_dns_policy_without_insert_new_name_and_1_with_new_name.md)
+
 
 ## Datasets Scenarios:
 - [Check if total datasets on datasets' page is correct](datasets/check_if_total_datasets_on_datasets'_page_is_correct.md)

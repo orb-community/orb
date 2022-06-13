@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "http://example.com/example.json",
+  "type": "array",
+  "default": [],
+  "title": "Root Schema",
+  "items": {
+    "type": "object",
+    "default": {},
+    "title": "A Schema",
+    "required": [
+      "name",
+      "input_type",
+      "config_predefined",
+      "agents"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "default": "",
+        "title": "The name Schema",
+        "examples": [
+          "default_pcap"
+        ]
+      },
+      "input_type": {
+        "type": "string",
+        "default": "",
+        "title": "The input_type Schema",
+        "examples": [
+          "pcap"
+        ]
+      },
+      "config_predefined": {
+        "type": "array",
+        "default": [],
+        "title": "The config_predefined Schema",
+        "items": {
+          "type": "string",
+          "title": "A Schema",
+          "examples": [
+            "iface",
+            "pcap_source"
+          ]
+        },
+        "examples": [
+          ["iface",
+            "pcap_source"
+          ]
+        ]
+      },
+      "agents": {
+        "type": "object",
+        "default": {},
+        "title": "The agents Schema",
+        "required": [
+          "total"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "default": 0,
+            "title": "The total Schema",
+            "examples": [
+              2
+            ]
+          }
+        },
+        "examples": [{
+          "total": 2
+        }]
+      }
+    },
+    "examples": [{
+      "name": "default_pcap",
+      "input_type": "pcap",
+      "config_predefined": [
+        "iface",
+        "pcap_source"
+      ],
+      "agents": {
+        "total": 2
+      }
+    }]
+  },
+  "examples": [
+    [{
+      "name": "default_pcap",
+      "input_type": "pcap",
+      "config_predefined": [
+        "iface",
+        "pcap_source"
+      ],
+      "agents": {
+        "total": 2
+      }
+    }]
+  ]
+}

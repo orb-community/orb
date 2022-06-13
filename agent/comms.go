@@ -25,6 +25,11 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	})
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(true)
+	opts.SetConnectRetry(true)
+	opts.SetConnectRetryInterval(5 * time.Second)
+	opts.SetOnConnectHandler(func(client mqtt.Client) {
+		a.requestReconnection(client, config)
+	})
 
 	if !a.config.OrbAgent.TLS.Verify {
 		opts.TLSConfig = &tls.Config{InsecureSkipVerify: true}
@@ -36,6 +41,27 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	}
 
 	return c, nil
+}
+
+func (a *orbAgent) requestReconnection(client mqtt.Client, config config.MQTTConfig) {
+	a.nameAgentRPCTopics(config.ChannelID)
+	for name, be := range a.backends {
+		be.SetCommsClient(config.Id, client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
+	}
+
+	if token := client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
+		a.logger.Error("failed to subscribe to RPC topic", zap.String("topic", a.rpcFromCoreTopic), zap.Error(token.Error()))
+	}
+
+	err := a.sendCapabilities()
+	if err != nil {
+		a.logger.Error("failed to send agent capabilities", zap.Error(err))
+	}
+
+	err = a.sendGroupMembershipReq()
+	if err != nil {
+		a.logger.Error("failed to send group membership request", zap.Error(err))
+	}
 }
 
 func (a *orbAgent) nameAgentRPCTopics(channelId string) {
@@ -81,42 +107,13 @@ func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
 func (a *orbAgent) startComms(config config.MQTTConfig) error {
 
 	var err error
-	a.client, err = a.connect(config)
-	if err != nil {
-		a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
-		return ErrMqttConnection
+	if a.client == nil || !a.client.IsConnected() {
+		a.client, err = a.connect(config)
+		if err != nil {
+			a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
+			return ErrMqttConnection
+		}
 	}
-
-	a.nameAgentRPCTopics(config.ChannelID)
-
-	for name, be := range a.backends {
-		be.SetCommsClient(config.Id, a.client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
-	}
-
-	if token := a.client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
-		a.logger.Error("failed to subscribe to RPC topic", zap.String("topic", a.rpcFromCoreTopic), zap.Error(token.Error()))
-		return token.Error()
-	}
-
-	err = a.sendCapabilities()
-	if err != nil {
-		a.logger.Error("failed to send agent capabilities", zap.Error(err))
-		return err
-	}
-
-	err = a.sendGroupMembershipReq()
-	if err != nil {
-		a.logger.Error("failed to send group membership request", zap.Error(err))
-	}
-
-	err = a.sendAgentPoliciesReq()
-	if err != nil {
-		a.logger.Error("failed to send agent policies request", zap.Error(err))
-	}
-
-	a.hbTicker = time.NewTicker(HeartbeatFreq)
-	a.hbDone = make(chan bool)
-	go a.sendHeartbeats()
 
 	return nil
 }

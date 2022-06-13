@@ -165,10 +165,11 @@ def threading_wait_until(func):
     return wait_event
 
 
-def return_port_to_run_docker_container(context, available=True):
+def return_port_to_run_docker_container(context, available=True, time_to_wait=5):
     """
 
     :param (bool) available: Status of the port on which agent must try to run. Default: available.
+    :param (int) time_to_wait: seconds that threading must wait after run the agent
     :return: (int) port number
     """
 
@@ -197,6 +198,7 @@ def return_port_to_run_docker_container(context, available=True):
                 # port not available
                 continue
     assert_that(available_port, is_not(None), "Unable to find an available port to run orb agent")
+    threading.Event().wait(time_to_wait)
     return available_port
 
 
