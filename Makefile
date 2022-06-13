@@ -40,7 +40,7 @@ define run_test
 endef
 
 define make_docker
-	$(shell [ -z "$(SERVICE)" ] && SERVICE=$(subst docker_,,$(1)))
+	$(eval SERVICE=$(shell [ -z "$(SERVICE)" ] && echo $(subst docker_,,$(1)) || echo $(SERVICE)))
 	docker build \
 		--no-cache \
 		--build-arg SVC=$(SERVICE) \
@@ -50,10 +50,11 @@ define make_docker
 		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION) \
 		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile .
+	$(eval SERVICE="")
 endef
 
 define make_docker_dev
-	$(eval svc=$(subst docker_dev_,,$(1)))
+	$(eval SERVICE=$(shell [ -z "$(SERVICE)" ] && echo $(subst docker_dev_,,$(1)) || echo $(SERVICE)))
 
 	docker build \
 		--no-cache \
@@ -165,4 +166,4 @@ ui:
 		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile .
 
-platform: dockers_dev docker_sinker agent ui
+platform: dockers_dev agent ui
