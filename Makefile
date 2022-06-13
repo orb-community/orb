@@ -54,7 +54,7 @@ define make_docker
 endef
 
 define make_docker_dev
-	$(eval SERVICE=$(shell [ -z "$(SERVICE)" ] && echo $(subst docker_dev_,,$(1)) || echo $(SERVICE)))
+	$(eval svc=$(shell [ -z "$(SERVICE)" ] && echo $(subst docker_dev_,,$(1)) || echo $(svc)))
 	docker build \
 		--no-cache \
 		--build-arg SVC=$(svc) \
@@ -62,7 +62,7 @@ define make_docker_dev
 		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION) \
 		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile.dev ./build
-	$(eval SERVICE="")
+	$(eval svc="")
 endef
 
 all: platform
