@@ -706,7 +706,7 @@ Scenario: Remotely restart agents with policies applied
         And the container logs that were output after reset the agent contain the message "removing policies" within 5 seconds
         And the container logs that were output after reset the agent contain the message "resetting backend" within 10 seconds
         And the container logs that were output after reset the agent contain the message "reapplying policies" within 5 seconds
-        And the container logs that were output after reset the agent contain the message "all backends were restarted" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 5 seconds
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 10 seconds
         And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
