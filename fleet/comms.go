@@ -90,9 +90,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 		DatasetID:    datasetID,
 		AgentGroupID: ag.ID,
 	}}
-
-	svc.logger.Info(fmt.Sprintf("agentPolicyRPCPayload: %s", payload[0].AgentGroupID))
-
+	
 	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,

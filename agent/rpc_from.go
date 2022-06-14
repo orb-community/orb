@@ -127,7 +127,7 @@ func (a *orbAgent) handleAgentStop(payload fleet.AgentStopRPCPayload) {
 }
 
 func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
-	a.unsubscribeGroupChannel(rpc.ChannelID)
+	a.unsubscribeGroupChannel(rpc.ChannelID, rpc.AgentGroupID)
 
 	policies, err := a.policyManager.GetRepo().GetAll()
 	if err != nil {
@@ -138,6 +138,8 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 		delete(policy.GroupIds, rpc.AgentGroupID)
 
 		if len(policy.GroupIds) == 0 {
+			a.logger.Info("policy no longer used by any group, removing", zap.String("policy_id", policy.ID), zap.String("policy_name", policy.Name))
+
 			err = a.policyManager.RemovePolicy(policy.ID, policy.Name, policy.Backend)
 			if err != nil {
 				a.logger.Warn("failed to remove a policy, ignoring", zap.String("policy_id", policy.ID), zap.String("policy_name", policy.Name), zap.Error(err))
@@ -145,8 +147,6 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 			}
 		}
 	}
-	delete(a.groupsInfos, rpc.AgentGroupID)
-
 }
 
 func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {

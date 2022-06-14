@@ -62,7 +62,7 @@ func (a *orbAgent) unsubscribeGroupChannels() {
 	a.groupsInfos = make(map[string]GroupInfo)
 }
 
-func (a *orbAgent) unsubscribeGroupChannel(channelID string) {
+func (a *orbAgent) unsubscribeGroupChannel(channelID string, agentGroupID string) {
 	base := fmt.Sprintf("channels/%s/messages", channelID)
 	rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
 	if token := a.client.Unsubscribe(channelID); token.Wait() && token.Error() != nil {
@@ -70,6 +70,7 @@ func (a *orbAgent) unsubscribeGroupChannel(channelID string) {
 		return
 	}
 	a.logger.Info("completed RPC unsubscription to group", zap.String("topic", rpcFromCoreTopic))
+	delete(a.groupsInfos, agentGroupID)
 }
 
 func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
