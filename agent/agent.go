@@ -106,6 +106,7 @@ func (a *orbAgent) Start() error {
 	mqtt.ERROR = &agentLoggerError{a: a}
 
 	if a.config.OrbAgent.Debug.Enable {
+		a.logger.Info("debug logging enabled")
 		mqtt.DEBUG = &agentLoggerDebug{a: a}
 	}
 
