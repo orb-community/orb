@@ -2,7 +2,7 @@
 Feature: Integration tests
 
 
-@dev
+@smoke
 Scenario: Test agents backend routes
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -355,8 +355,8 @@ Scenario: Edit agent name and apply policies to then
         And an Agent Group is created with all tags contained in the agent
         And 1 agent must be matching on response field matching_agents
         And that a sink already exists
+    When edit the agent name
         And 1 simple policies are applied to the group
-    When edit the agent name and edit orb tags on agent using 3 orb tag(s)
     Then this agent's heartbeat shows that 1 policies are successfully applied and has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
 
@@ -702,7 +702,7 @@ Scenario: Remotely restart agents with policies applied
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
     When remotely restart the agent
     Then the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 10 seconds
-        And the container logs should contain the message "restarting all backends" within 5 seconds
+        And the container logs should contain the message "all backends and comms were restarted" within 5 seconds
         And the container logs that were output after reset the agent contain the message "removing policies" within 5 seconds
         And the container logs that were output after reset the agent contain the message "resetting backend" within 10 seconds
         And the container logs that were output after reset the agent contain the message "reapplying policies" within 5 seconds
@@ -721,7 +721,7 @@ Scenario: Remotely restart agents without policies applied
     When remotely restart the agent
         And the container logs that were output after reset the agent contain the message "resetting backend" within 5 seconds
         And the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 5 seconds
-        And the container logs that were output after reset the agent contain the message "all backends were restarted" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 5 seconds
         And 2 simple policies are applied to the group
     Then the container logs should contain the message "restarting all backends" within 5 seconds
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
