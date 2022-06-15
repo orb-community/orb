@@ -10,8 +10,7 @@ import (
 )
 
 type MFSDKConfig struct {
-	BaseURL      string `mapstructure:"base_url"`
-	ThingsPrefix string `mapstructure:"things_prefix"`
+	ThingsURL string `mapstructure:"things_url"`
 }
 
 type GRPCConfig struct {
@@ -69,8 +68,7 @@ func LoadMFSDKConfig(prefix string) MFSDKConfig {
 	cfg := viper.New()
 	cfg.SetEnvPrefix(fmt.Sprintf("%s_sdk", prefix))
 
-	cfg.SetDefault("base_url", "http://localhost")
-	cfg.SetDefault("things_prefix", "")
+	cfg.SetDefault("things_url", "http://localhost")
 
 	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
