@@ -9,6 +9,7 @@ import (
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"time"
 )
 
 func (a *orbAgent) sendCapabilities() error {
@@ -54,7 +55,25 @@ func (a *orbAgent) sendCapabilities() error {
 }
 
 func (a *orbAgent) sendGroupMembershipReq() error {
+	err := a.sendGroupMembershipRequest(time.Now())
+	if err != nil {
+		return err
+	}
+	for {
+		calls := 0
+		select {
+		case <-a.groupRequestSucceeded:
+			return nil
+		case t := <-a.groupRequestTicker.C:
+			duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
+			a.groupRequestTicker = time.NewTicker(time.Duration(duration) * retryRequestDuration)
+			calls++
+			return a.sendGroupMembershipRequest(t)
+		}
+	}
+}
 
+func (a *orbAgent) sendGroupMembershipRequest(_ time.Time) error {
 	payload := fleet.GroupMembershipReqRPCPayload{}
 
 	data := fleet.RPC{
@@ -76,7 +95,25 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 }
 
 func (a *orbAgent) sendAgentPoliciesReq() error {
+	err := a.sendAgentPoliciesRequest(time.Now())
+	if err != nil {
+		return err
+	}
+	for {
+		calls := 0
+		select {
+		case <-a.policyRequestSucceeded:
+			return nil
+		case t := <-a.policyRequestTicker.C:
+			duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
+			a.policyRequestTicker = time.NewTicker(time.Duration(duration) * retryRequestDuration)
+			calls++
+			return a.sendAgentPoliciesRequest(t)
+		}
+	}
+}
 
+func (a *orbAgent) sendAgentPoliciesRequest(_ time.Time) error {
 	payload := fleet.AgentPoliciesReqRPCPayload{}
 
 	data := fleet.RPC{
