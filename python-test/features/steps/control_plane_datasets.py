@@ -112,7 +112,7 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
 
     json_request = {"name": name_label, "agent_group_id": agent_group_id, "agent_policy_id": policy_id,
                     "sink_ids": sink_id}
-    header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+    header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/policies/dataset', json=json_request, headers=header_request)
     assert_that(response.status_code, equal_to(201),
@@ -135,7 +135,7 @@ def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_
 
     json_request = {"name": name_label, "agent_group_id": agent_group_id, "agent_policy_id": policy_id,
                     "sink_ids": sink_id}
-    header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+    header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.put(f"{orb_url}/api/v1/policies/dataset/{dataset_id}", json=json_request, headers=header_request)
     assert_that(response.status_code, equal_to(200),
@@ -194,7 +194,7 @@ def list_up_to_limit_datasets(token, limit=100, offset=0):
     :returns: (list) a list of datasets, (int) total datasets on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/policies/dataset', headers={'Authorization': token},
+    response = requests.get(orb_url + '/api/v1/policies/dataset', headers={'Authorization': f'Bearer {token}'},
                             params={"limit": limit, "offset": offset})
 
     assert_that(response.status_code, equal_to(200),
@@ -225,7 +225,7 @@ def delete_dataset(token, dataset_id):
     """
 
     response = requests.delete(orb_url + '/api/v1/policies/dataset/' + dataset_id,
-                               headers={'Authorization': token})
+                               headers={'Authorization': f'Bearer {token}'})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete dataset id='
                 + dataset_id + ' failed with status=' + str(response.status_code))
@@ -242,7 +242,7 @@ def get_dataset(token, dataset_id, expected_status_code=200):
     """
 
     get_dataset_response = requests.get(orb_url + '/api/v1/policies/dataset/' + dataset_id,
-                                       headers={'Authorization': token})
+                                       headers={'Authorization': f'Bearer {token}'})
 
     assert_that(get_dataset_response.status_code, equal_to(expected_status_code),
                 'Request to get policy id=' + dataset_id + ' failed with status=' +
