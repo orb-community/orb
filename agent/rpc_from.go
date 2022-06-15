@@ -173,6 +173,7 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			return
 		}
 		a.handleGroupMembership(r.Payload)
+		a.groupRequestSucceeded <- true
 	case fleet.AgentPolicyRPCFunc:
 		var r fleet.AgentPolicyRPC
 		if err := json.Unmarshal(message.Payload(), &r); err != nil {
@@ -180,6 +181,7 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			return
 		}
 		a.handleAgentPolicies(r.Payload, r.FullList)
+		a.policyRequestSucceeded <- true
 	case fleet.AgentStopRPCFunc:
 		var r fleet.AgentStopRPC
 		if err := json.Unmarshal(message.Payload(), &r); err != nil {

@@ -48,11 +48,21 @@ type orbAgent struct {
 	heartbeatsTopic   string
 	logTopic          string
 
+	// Retry Mechanism to ensure the Request is received
+	groupRequestTicker     *time.Ticker
+	groupRequestSucceeded  chan bool
+	policyRequestTicker    *time.Ticker
+	policyRequestSucceeded chan bool
+
 	// AgentGroup channels sent from core
 	groupsInfos map[string]GroupInfo
 
 	policyManager manager.PolicyManager
 }
+
+const retryRequestDuration = time.Second
+const retryRequestFixedTime = 5
+const retryDurationIncrPerAttempts = 10
 
 type GroupInfo struct {
 	Name      string
@@ -129,6 +139,8 @@ func (a *orbAgent) Start() error {
 
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
 	a.hbDone = make(chan bool)
+	a.groupRequestSucceeded = make(chan bool)
+	a.policyRequestSucceeded = make(chan bool)
 	go a.sendHeartbeats()
 
 	return nil
