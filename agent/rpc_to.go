@@ -59,6 +59,9 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 	if err != nil {
 		return err
 	}
+	if a.groupRequestTicker == nil {
+		a.groupRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
+	}
 	for {
 		calls := 0
 		select {
@@ -98,6 +101,9 @@ func (a *orbAgent) sendAgentPoliciesReq() error {
 	err := a.sendAgentPoliciesRequest(time.Now())
 	if err != nil {
 		return err
+	}
+	if a.policyRequestTicker == nil {
+		a.policyRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
 	}
 	for {
 		calls := 0
