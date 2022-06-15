@@ -66,7 +66,7 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 			return nil
 		case t := <-a.groupRequestTicker.C:
 			duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
-			a.groupRequestTicker = time.NewTicker(time.Duration(duration) * retryRequestDuration)
+			a.groupRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
 			calls++
 			return a.sendGroupMembershipRequest(t)
 		}
@@ -106,7 +106,7 @@ func (a *orbAgent) sendAgentPoliciesReq() error {
 			return nil
 		case t := <-a.policyRequestTicker.C:
 			duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
-			a.policyRequestTicker = time.NewTicker(time.Duration(duration) * retryRequestDuration)
+			a.policyRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
 			calls++
 			return a.sendAgentPoliciesRequest(t)
 		}

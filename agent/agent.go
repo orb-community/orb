@@ -139,6 +139,8 @@ func (a *orbAgent) Start() error {
 
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
 	a.hbDone = make(chan bool)
+	a.groupRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
+	a.policyRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
 	a.groupRequestSucceeded = make(chan bool)
 	a.policyRequestSucceeded = make(chan bool)
 	go a.sendHeartbeats()
