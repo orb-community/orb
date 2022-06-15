@@ -130,7 +130,7 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
                     "backend": backend_type, "validate_only": False,
                     "config": {"remote_host": remote_host, "username": username, "password": password}}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
-                       'Authorization': token}
+                       'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
@@ -148,7 +148,7 @@ def get_sink(token, sink_id):
     :returns: (dict) the fetched sink
     """
 
-    get_sink_response = requests.get(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': token})
+    get_sink_response = requests.get(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': f'Bearer {token}'})
 
     assert_that(get_sink_response.status_code, equal_to(200),
                 'Request to get sink id=' + sink_id + ' failed with status=' + str(get_sink_response.status_code))
@@ -187,7 +187,7 @@ def list_up_to_limit_sinks(token, limit=100, offset=0):
     :returns: (list) a list of sinks, (int) total sinks on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': token}, params={'limit': limit,
+    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': f'Bearer {token}'}, params={'limit': limit,
                                                                                                  'offset': offset})
 
     assert_that(response.status_code, equal_to(200),
@@ -218,7 +218,7 @@ def delete_sink(token, sink_id):
     """
 
     response = requests.delete(orb_url + '/api/v1/sinks/' + sink_id,
-                               headers={'Authorization': token})
+                               headers={'Authorization': f'Bearer {token}'})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete sink id='
                 + sink_id + ' failed with status=' + str(response.status_code))
