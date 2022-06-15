@@ -32,9 +32,9 @@ type AgentCommsService interface {
 	// NotifyAgentNewGroupMembership RPC Core -> Agent: Notify a specific Agent of new AgentGroup membership it now belongs to
 	NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error
 	// NotifyAgentGroupMemberships RPC Core -> Agent: Notify a specific Agent of all AgentGroup memberships it belongs to
-	NotifyAgentGroupMemberships(a Agent) error
+	NotifyAgentGroupMemberships(a Agent, traceID string) error
 	// NotifyAgentAllDatasets RPC Core -> Agent: Notify Agent of all Policy it should currently run based on group membership and current Datasets
-	NotifyAgentAllDatasets(a Agent) error
+	NotifyAgentAllDatasets(a Agent, traceID string) error
 	// NotifyAgentStop RPC Core -> Agent: Notify Agent that it should Stop (Send the message to Agent Channel)
 	NotifyAgentStop(agent Agent, reason string) error
 	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
@@ -148,7 +148,7 @@ func (svc fleetCommsService) NotifyAgentNewGroupMembership(a Agent, ag AgentGrou
 
 }
 
-func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
+func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent, traceID string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
@@ -207,6 +207,7 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 		Func:          AgentPolicyRPCFunc,
 		Payload:       payload,
 		FullList:      true,
+		TraceID:       traceID,
 	}
 
 	body, err := json.Marshal(data)
@@ -228,7 +229,7 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 	return nil
 }
 
-func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
+func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent, traceID string) error {
 
 	list, err := svc.agentGroupRepo.RetrieveAllByAgent(context.Background(), a)
 	if err != nil {
@@ -251,6 +252,7 @@ func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          GroupMembershipRPCFunc,
 		Payload:       payload,
+		TraceID:       traceID,
 	}
 
 	body, err := json.Marshal(data)
@@ -585,12 +587,12 @@ func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, p
 	// dispatch
 	switch rpc.Func {
 	case GroupMembershipReqRPCFunc:
-		if err := svc.NotifyAgentGroupMemberships(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
+		if err := svc.NotifyAgentGroupMemberships(Agent{MFThingID: thingID, MFChannelID: channelID}, rpc.TraceID); err != nil {
 			svc.logger.Error("notify group membership failure", zap.Error(err))
 			return nil
 		}
 	case AgentPoliciesReqRPCFunc:
-		if err := svc.NotifyAgentAllDatasets(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
+		if err := svc.NotifyAgentAllDatasets(Agent{MFThingID: thingID, MFChannelID: channelID}, rpc.TraceID); err != nil {
 			svc.logger.Error("notify agent policies failure", zap.Error(err))
 			return nil
 		}

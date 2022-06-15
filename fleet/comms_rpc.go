@@ -10,6 +10,7 @@ type RPC struct {
 	SchemaVersion string      `json:"schema_version"`
 	Func          string      `json:"func"`
 	Payload       interface{} `json:"payload"`
+	TraceID       string      `json:"trace_id"`
 }
 
 // Core -> Edge
@@ -20,6 +21,7 @@ type GroupMembershipRPC struct {
 	SchemaVersion string                    `json:"schema_version"`
 	Func          string                    `json:"func"`
 	Payload       GroupMembershipRPCPayload `json:"payload"`
+	TraceID       string                    `json:"trace_id"`
 }
 
 type GroupMembershipData struct {
@@ -40,6 +42,7 @@ type AgentPolicyRPC struct {
 	Func          string                  `json:"func"`
 	Payload       []AgentPolicyRPCPayload `json:"payload"`
 	FullList      bool                    `json:"full_list"`
+	TraceID       string                  `json:"trace_id"`
 }
 
 type AgentPolicyRPCPayload struct {
@@ -108,13 +111,13 @@ type AgentResetRPC struct {
 const GroupMembershipReqRPCFunc = "group_membership_req"
 
 type GroupMembershipReqRPCPayload struct {
-	// empty
+	TraceID string `json:"trace_id"`
 }
 
 const AgentPoliciesReqRPCFunc = "agent_policies_req"
 
 type AgentPoliciesReqRPCPayload struct {
-	// empty
+	TraceID string `json:"trace_id"`
 }
 
 const AgentMetricsRPCFunc = "agent_metrics"

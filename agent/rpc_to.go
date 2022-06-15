@@ -6,6 +6,7 @@ package agent
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
@@ -55,7 +56,9 @@ func (a *orbAgent) sendCapabilities() error {
 
 func (a *orbAgent) sendGroupMembershipReq() error {
 
-	payload := fleet.GroupMembershipReqRPCPayload{}
+	payload := fleet.GroupMembershipReqRPCPayload{
+		uuid.New().String(), // need thinking on how we approach this, I was thinking in agentID:verb:counter
+	}
 
 	data := fleet.RPC{
 		SchemaVersion: fleet.CurrentRPCSchemaVersion,
