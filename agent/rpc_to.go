@@ -68,6 +68,7 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 		case <-a.groupRequestSucceeded:
 			return nil
 		case t := <-a.groupRequestTicker.C:
+			a.logger.Info("agent not received any group membership from fleet, re-requesting")
 			duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
 			a.groupRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
 			calls++
@@ -77,6 +78,7 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 }
 
 func (a *orbAgent) sendGroupMembershipRequest(_ time.Time) error {
+	a.logger.Debug("sending group membership request")
 	payload := fleet.GroupMembershipReqRPCPayload{}
 
 	data := fleet.RPC{
@@ -111,6 +113,7 @@ func (a *orbAgent) sendAgentPoliciesReq() error {
 		case <-a.policyRequestSucceeded:
 			return nil
 		case t := <-a.policyRequestTicker.C:
+			a.logger.Info("agent not received any policy from fleet, re-requesting")
 			duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
 			a.policyRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
 			calls++
@@ -120,6 +123,7 @@ func (a *orbAgent) sendAgentPoliciesReq() error {
 }
 
 func (a *orbAgent) sendAgentPoliciesRequest(_ time.Time) error {
+	a.logger.Debug("sending agent policies request")
 	payload := fleet.AgentPoliciesReqRPCPayload{}
 
 	data := fleet.RPC{
