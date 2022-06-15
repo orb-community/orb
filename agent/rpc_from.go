@@ -14,6 +14,7 @@ import (
 )
 
 func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
+	a.logger.Info("received group membership rpc call from fleet", zap.Int("amount of groups", len(rpc.Groups)))
 	// if this is the full list, reset all group subscriptions and subscribed to this list
 	if rpc.FullList {
 		a.unsubscribeGroupChannels()
@@ -29,6 +30,7 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 }
 
 func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullList bool) {
+	a.logger.Info("received agent policies rpc call from fleet", zap.Int("amount of policies", len(rpc)))
 	if fullList {
 		policies, err := a.policyManager.GetRepo().GetAll()
 		if err != nil {
@@ -127,10 +129,12 @@ func (a *orbAgent) handleAgentStop(payload fleet.AgentStopRPCPayload) {
 }
 
 func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
+	a.logger.Info("received group removal rpc call from fleet", zap.String("groupId", rpc.AgentGroupID))
 	a.unsubscribeGroupChannel(rpc.ChannelID)
 }
 
 func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {
+	a.logger.Info("received dataset removal rpc call from fleet", zap.String("datasetId", rpc.DatasetID), zap.String("policyId", rpc.PolicyID))
 	a.removeDatasetFromPolicy(rpc.DatasetID, rpc.PolicyID)
 }
 
