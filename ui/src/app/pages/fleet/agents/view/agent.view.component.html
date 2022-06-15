@@ -20,7 +20,7 @@
         </span>
       </span>
       <span *ngIf="agent?.state === agentStates.new">
-        This Agent has not been provisioned.
+        This Agent has been provisioned but never connected.
       </span>
     </span>
   </div>
@@ -35,7 +35,10 @@
   </div>
 
   <div class="card-col col-7">
-    <ngx-agent-policies-datasets [agent]="agent"></ngx-agent-policies-datasets>
+    <ngx-agent-policies-datasets
+            [agent]="agent"
+            (refreshAgent)="retrieveAgent()">
+    </ngx-agent-policies-datasets>
     <ngx-agent-groups [agent]="agent"></ngx-agent-groups>
   </div>
 </div>

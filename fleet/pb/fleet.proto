@@ -7,6 +7,7 @@ service FleetService {
   rpc RetrieveAgent(AgentByIDReq) returns (AgentRes) {}
   rpc RetrieveAgentGroup(AgentGroupByIDReq) returns (AgentGroupRes) {}
   rpc RetrieveOwnerByChannelID(OwnerByChannelIDReq) returns (OwnerRes) {}
+  rpc RetrieveAgentInfoByChannelID(AgentInfoByChannelIDReq) returns (AgentInfoRes) {}
 }
 
 message AgentByIDReq {
@@ -35,7 +36,19 @@ message OwnerByChannelIDReq {
   string channel = 1;
 }
 
+message AgentInfoByChannelIDReq {
+  string channel = 1;
+}
+
 message OwnerRes {
   string ownerID = 1;
   string agentName = 2;
 }
+
+message AgentInfoRes {
+  string ownerID = 1;
+  string agentName = 2;
+  map<string, string> agentTags = 3;
+  map<string, string> orbTags = 4;
+}
+

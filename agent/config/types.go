@@ -54,7 +54,6 @@ type OrbAgent struct {
 }
 
 type Config struct {
-	Debug    bool
 	Version  float64  `mapstructure:"version"`
 	OrbAgent OrbAgent `mapstructure:"orb"`
 }

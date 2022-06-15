@@ -36,11 +36,12 @@ def request_account_registration(context, company, fullname):
                                                                           context.company, context.full_name,
                                                                           status_code)
 
+
 @then("the status code must be {status_code}")
 def register_orb_account(context, status_code):
     status_code = int(status_code)
-    assert_that(context.status_code, equal_to(status_code), "Unexpected status code for account registration")
-
+    assert_that(context.status_code, equal_to(status_code), f"Unexpected status code for account registration."
+                                                            f"{str(status_code)}")
 
 
 @step("account is registered with email, with password, {company_status} company and {fullname_status} full name")
@@ -99,7 +100,7 @@ def authenticate(user_email, user_password, expected_status_code=201):
                              json=json_request,
                              headers=headers)
     assert_that(response.status_code, equal_to(expected_status_code),
-                'Authentication failed with status= ' + str(response.status_code))
+                'Authentication failed with status= ' + str(response.status_code) + str(response.json()))
 
     return response.json()
 
@@ -139,5 +140,7 @@ def get_account_information(token, expected_status_code=200):
     """
     response = requests.get(orb_url + '/api/v1/users/profile',
                             headers={'Authorization': token})
-    assert_that(response.status_code, equal_to(expected_status_code), "Unexpected status code for get account data")
+    assert_that(response.status_code, equal_to(expected_status_code), f"Unexpected status code for get account data."
+                                                                      f"Status Code = {response.status_code}."
+                                                                      f"Response = {str(response.json())}")
     return response.json()

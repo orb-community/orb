@@ -37,7 +37,8 @@ orb:
 #    verify: true
 #  db:
 #    file: "/usr/local/orb/orb-agent.db"
-#  backends:
-#    pktvisor:
-#      binary: "/usr/local/sbin/pktvisord"
-#      config_file: "/usr/local/orb/etc/orb-agent.yaml"
+  backends:
+    pktvisor:
+      binary: "/usr/local/sbin/pktvisord"
+      # this example assumes the file is saved as agent.yaml. If your file has another name, you must replace it with the proper name
+      config_file: "/usr/local/orb/etc/agent.yaml"

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "default": {},
+  "title": "Root Schema",
+  "required": [
+    "id",
+    "name",
+    "tags",
+    "ts_created",
+    "matching_agents"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "default": "",
+      "title": "The id Schema",
+      "examples": [
+        "613a201a-4116-49a3-b8c0-de8591d358df"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "default": "",
+      "title": "The name Schema",
+      "examples": [
+        "group"
+      ]
+    },
+    "tags": {
+      "type": "object",
+      "default": {},
+      "title": "The tags Schema",
+      "required": [],
+      "properties": {},
+      "examples": [{}]
+    },
+    "ts_created": {
+      "type": "string",
+      "default": "",
+      "title": "The ts_created Schema",
+      "examples": [
+        "0001-0-01T00:00:00Z"
+      ]
+    },
+    "matching_agents": {
+      "type": "object",
+      "default": {},
+      "title": "The matching_agents Schema",
+      "required": [
+        "online",
+        "total"
+      ],
+      "properties": {
+        "online": {
+          "type": "integer",
+          "default": 0,
+          "title": "The online Schema",
+          "examples": [
+            0
+          ]
+        },
+        "total": {
+          "type": "integer",
+          "default": 0,
+          "title": "The total Schema",
+          "examples": [
+            1
+          ]
+        }
+      },
+      "examples": [{
+        "online": 0,
+        "total": 1
+      }]
+    }
+  },
+  "examples": [{
+    "id": "613a201a-4116-49a3-b8c0-de8591d358df",
+    "name": "group",
+    "tags": {},
+    "ts_created": "0001-0-01T00:00:00Z",
+    "matching_agents": {
+      "online": 0,
+      "total": 1
+    }
+  }]
+}

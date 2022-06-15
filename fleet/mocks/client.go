@@ -22,6 +22,10 @@ func (g fleetGrpcClientMock) RetrieveOwnerByChannelID(ctx context.Context, in *p
 	return &pb.OwnerRes{}, nil
 }
 
+func (g fleetGrpcClientMock) RetrieveAgentInfoByChannelID(ctx context.Context, in *pb.AgentInfoByChannelIDReq, opts ...grpc.CallOption) (*pb.AgentInfoRes, error) {
+	return &pb.AgentInfoRes{}, nil
+}
+
 func (g fleetGrpcClientMock) RetrieveAgent(ctx context.Context, in *pb.AgentByIDReq, opts ...grpc.CallOption) (*pb.AgentRes, error) {
 	return &pb.AgentRes{}, nil
 }

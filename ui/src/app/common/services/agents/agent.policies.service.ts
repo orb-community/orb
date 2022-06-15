@@ -72,6 +72,12 @@ export class AgentPoliciesService {
     return this.http.post(`${ environment.agentPoliciesUrl }/${ id }/duplicate`,
       {},
       { observe: 'response'})
+      .map(
+        resp => {
+          const { body } = resp;
+          return body;
+        },
+      )
       .catch(
         err => {
           this.notificationsService.error('Failed to duplicate Agent Policy',
