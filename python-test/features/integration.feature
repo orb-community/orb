@@ -165,7 +165,63 @@ Scenario: Provision agent with tag matching existing group linked to a valid dat
         And datasets related to all existing policies have validity valid
 
 
-@smoke
+@dev
+Scenario: Provision agent with tag matching existing group with multiple policies linked to a valid dataset
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with 2 orb tag(s)
+        And that a sink already exists
+        And 14 mixed policies are applied to the group
+    When a new agent is created with orb tags matching 1 existing group
+        And the agent container is started on an available port
+        And the agent status is online
+    Then this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 14 policies are successfully applied and has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 10 seconds
+        And datasets related to all existing policies have validity valid
+
+
+@dev
+Scenario: Provision agent with tag matching existing edited group with multiple policies linked to a valid dataset
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with 3 orb tag(s)
+        And the name, tags, description of Agent Group is edited using: name=edited_before_policy/ tags=2 orb tag(s)/ description=edited
+        And that a sink already exists
+        And 14 mixed policies are applied to the group
+    When a new agent is created with orb tags matching 1 existing group
+        And the agent container is started on an available port
+        And the agent status is online
+    Then this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 14 policies are successfully applied and has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 10 seconds
+        And datasets related to all existing policies have validity valid
+
+
+@dev
+Scenario: Provision agent with tag matching existing group with multiple policies
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with 3 orb tag(s)
+        And that a sink already exists
+        And 20 mixed policies are applied to the group
+        And the name, tags, description of Agent Group is edited using: name=edited_after_policy/ tags=2 orb tag(s)/ description=edited
+    When a new agent is created with orb tags matching 1 existing group
+        And the agent container is started on an available port
+        And the agent status is online
+    Then this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 20 policies are successfully applied and has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 10 seconds
+        And datasets related to all existing policies have validity valid
+
+
+@dev
 Scenario: Sink with invalid endpoint
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -183,6 +239,83 @@ Scenario: Sink with invalid endpoint
         And referred sink must have error state on response within 10 seconds
         And dataset related have validity valid
 
+###apagar
+
+@dev
+Scenario: Provision agent with tag matching existing group with multiple policies linked to a valid dataset 2
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with 2 orb tag(s)
+        And that a sink already exists
+        And 14 mixed policies are applied to the group
+    When a new agent is created with orb tags matching 1 existing group
+        And the agent container is started on an available port
+        And the agent status is online
+    Then this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 14 policies are successfully applied and has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 10 seconds
+        And datasets related to all existing policies have validity valid
+
+
+@dev
+Scenario: Provision agent with tag matching existing edited group with multiple policies linked to a valid dataset 2
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with 3 orb tag(s)
+        And the name, tags, description of Agent Group is edited using: name=edited_before_policy/ tags=2 orb tag(s)/ description=edited
+        And that a sink already exists
+        And 14 mixed policies are applied to the group
+    When a new agent is created with orb tags matching 1 existing group
+        And the agent container is started on an available port
+        And the agent status is online
+    Then this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 14 policies are successfully applied and has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 10 seconds
+        And datasets related to all existing policies have validity valid
+
+
+@dev
+Scenario: Provision agent with tag matching existing group with multiple policies 2
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And an Agent Group is created with 3 orb tag(s)
+        And that a sink already exists
+        And 20 mixed policies are applied to the group
+        And the name, tags, description of Agent Group is edited using: name=edited_after_policy/ tags=2 orb tag(s)/ description=edited
+    When a new agent is created with orb tags matching 1 existing group
+        And the agent container is started on an available port
+        And the agent status is online
+    Then this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 20 policies are successfully applied and has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 10 seconds
+        And datasets related to all existing policies have validity valid
+
+
+@dev
+Scenario: Sink with invalid endpoint 2
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And referred agent is subscribed to a group
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And that a sink with invalid endpoint already exists
+        And 3 simple policies are applied to the group
+        And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=2 already exists
+    When a new dataset is created using referred group, policy and 1 sink
+    Then this agent's heartbeat shows that 4 policies are successfully applied and has status running
+        And the container logs should contain the message "managing agent policy from core" within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs should contain the message "scraped metrics for policy" within 180 seconds
+        And referred sink must have error state on response within 10 seconds
+        And dataset related have validity valid
+
+###apagar
 
 @smoke
 Scenario: Sink with invalid username

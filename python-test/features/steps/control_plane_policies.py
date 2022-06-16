@@ -633,7 +633,7 @@ def is_expected_msg_in_log_line(log_line, expected_message, list_agent_policies_
 
     """
     if log_line is not None:
-        if log_line['msg'] == expected_message and 'policy_id' in log_line.keys():
+        if expected_message in log_line['msg'] and 'policy_id' in log_line.keys():
             if log_line['policy_id'] in list_agent_policies_id:
                 if log_line['ts'] > considered_timestamp:
                     return True
