@@ -3014,7 +3014,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_dst_ips_bytes": [
+        	"top_dst_ips_and_port_packets": [
 				{
           	  	  "estimate": 8,
           	  	  "name": "10.4.2.2:5000"
@@ -3027,7 +3027,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_dst_ips_and_port_bytes",
+						Value: "flow_top_dst_ips_and_port_packets",
 					},
 					{
 						Name:  "instance",
@@ -3114,7 +3114,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_dst_ips_bytes": [
+        	"top_dst_ips_packets": [
 				{
           	  	  "estimate": 8,
           	  	  "name": "10.4.2.2"
@@ -3127,7 +3127,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_dst_ips_bytes",
+						Value: "flow_top_dst_ips_packets",
 					},
 					{
 						Name:  "instance",
@@ -3513,7 +3513,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_src_ips_packets": [
+        	"top_src_ips_and_port_packets": [
 				{
           	  	  "estimate": 8,
           	  	  "name": "10.4.2.2:5000"
