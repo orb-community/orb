@@ -84,8 +84,8 @@ func (a *orbAgent) retryGroupMembershipRequest() {
 		if a.groupRequestTicker == nil {
 			a.groupRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
 		}
+		calls := 0
 		for {
-			calls := 0
 			select {
 			case <-a.groupRequestSucceeded:
 				return
@@ -135,8 +135,8 @@ func (a orbAgent) retryAgentPolicyResponse() {
 		if a.policyRequestTicker == nil {
 			a.policyRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
 		}
+		calls := 0
 		for {
-			calls := 0
 			select {
 			case <-a.policyRequestSucceeded:
 				return
