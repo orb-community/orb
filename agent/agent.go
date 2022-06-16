@@ -61,8 +61,8 @@ type orbAgent struct {
 }
 
 const retryRequestDuration = time.Second
-const retryRequestFixedTime = 5
-const retryDurationIncrPerAttempts = 10
+const retryRequestFixedTime = 30
+const retryDurationIncrPerAttempts = 15
 
 type GroupInfo struct {
 	Name      string
@@ -142,8 +142,6 @@ func (a *orbAgent) Start() error {
 	a.groupRequestSucceeded = make(chan bool)
 	a.policyRequestSucceeded = make(chan bool)
 	go a.sendHeartbeats()
-	go a.checkGroupMembershipResponse()
-	go a.checkAgentPolicyResponse()
 
 	return nil
 }

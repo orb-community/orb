@@ -54,7 +54,7 @@ func (a *orbAgent) sendCapabilities() error {
 	return nil
 }
 
-func (a *orbAgent) sendGroupMembershipReq() error {
+func (a *orbAgent) sendGroupMembershipRequest() error {
 	a.logger.Debug("sending group membership request")
 	payload := fleet.GroupMembershipReqRPCPayload{}
 
@@ -63,7 +63,6 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 		Func:          fleet.GroupMembershipReqRPCFunc,
 		Payload:       payload,
 	}
-
 	body, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -72,34 +71,44 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 	if token := a.client.Publish(a.rpcToCoreTopic, 1, false, body); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
-
 	return nil
-
 }
 
-func (a *orbAgent) checkGroupMembershipResponse() error {
-	if a.groupRequestTicker == nil {
-		a.groupRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
-	}
-	for {
-		calls := 0
-		select {
-		case <-a.groupRequestSucceeded:
-			return nil
-		case _ = <-a.groupRequestTicker.C:
-			a.logger.Info("agent not received any group membership from fleet, re-requesting")
-			duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
-			a.groupRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
-			calls++
-			err := a.sendGroupMembershipReq()
-			if err != nil {
-				a.logger.Error("failed to send group membership request", zap.Error(err))
+func (a *orbAgent) sendGroupMembershipReq() error {
+	defer a.retryGroupMembershipRequest()
+	return a.sendGroupMembershipRequest()
+}
+
+func (a *orbAgent) retryGroupMembershipRequest() {
+	go func() {
+		if a.groupRequestTicker == nil {
+			a.groupRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
+		}
+		for {
+			calls := 0
+			select {
+			case <-a.groupRequestSucceeded:
+				return
+			case _ = <-a.groupRequestTicker.C:
+				a.logger.Info("agent not received any group membership from fleet, re-requesting")
+				duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
+				a.groupRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
+				calls++
+				err := a.sendGroupMembershipRequest()
+				if err != nil {
+					a.logger.Error("failed to send group membership request", zap.Error(err))
+				}
 			}
 		}
-	}
+	}()
 }
 
 func (a *orbAgent) sendAgentPoliciesReq() error {
+	defer a.retryAgentPolicyResponse()
+	return a.sendAgentPoliciesRequest()
+}
+
+func (a *orbAgent) sendAgentPoliciesRequest() error {
 	a.logger.Debug("sending agent policies request")
 	payload := fleet.AgentPoliciesReqRPCPayload{}
 
@@ -121,23 +130,27 @@ func (a *orbAgent) sendAgentPoliciesReq() error {
 	return nil
 }
 
-func (a orbAgent) checkAgentPolicyResponse() {
-	if a.policyRequestTicker == nil {
-		a.policyRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
-	}
-	for {
-		calls := 0
-		select {
-		case <-a.policyRequestSucceeded:
-		case _ = <-a.policyRequestTicker.C:
-			a.logger.Info("agent not received any policy from fleet, re-requesting")
-			duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
-			a.policyRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
-			calls++
-			err := a.sendAgentPoliciesReq()
-			if err != nil {
-
+func (a orbAgent) retryAgentPolicyResponse() {
+	go func() {
+		if a.policyRequestTicker == nil {
+			a.policyRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
+		}
+		for {
+			calls := 0
+			select {
+			case <-a.policyRequestSucceeded:
+				return
+			case _ = <-a.policyRequestTicker.C:
+				a.logger.Info("agent not received any policy from fleet, re-requesting")
+				duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
+				a.policyRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
+				calls++
+				err := a.sendAgentPoliciesRequest()
+				if err != nil {
+					a.logger.Error("failed to send agent policies request", zap.Error(err))
+					return
+				}
 			}
 		}
-	}
+	}()
 }
