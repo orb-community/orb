@@ -16,6 +16,7 @@ import (
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"runtime"
 	"time"
 )
 
@@ -134,6 +135,9 @@ func (a *orbAgent) Start() error {
 		return err
 	}
 
+	a.groupRequestSucceeded = make(chan bool, 1)
+	a.policyRequestSucceeded = make(chan bool, 1)
+
 	if err := a.startComms(cloudConfig); err != nil {
 		a.logger.Error("could not restart mqtt client")
 		return err
@@ -141,8 +145,6 @@ func (a *orbAgent) Start() error {
 
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
 	a.hbDone = make(chan bool)
-	a.groupRequestSucceeded = make(chan bool)
-	a.policyRequestSucceeded = make(chan bool)
 	go a.sendHeartbeats()
 
 	return nil
@@ -150,6 +152,7 @@ func (a *orbAgent) Start() error {
 
 func (a *orbAgent) Stop() {
 	a.logger.Info("stopping agent")
+	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
 	a.hbTicker.Stop()
 	a.hbDone <- true
 	a.closeRequestTickers()
@@ -164,13 +167,13 @@ func (a *orbAgent) Stop() {
 		}
 	}
 	a.client.Disconnect(250)
+	defer close(a.hbDone)
+	defer close(a.policyRequestSucceeded)
+	defer close(a.groupRequestSucceeded)
 }
 
 func (a *orbAgent) closeRequestTickers() {
-	a.groupRequestTicker.Stop()
-	a.groupRequestSucceeded <- true
-	a.policyRequestTicker.Stop()
-	a.policyRequestSucceeded <- true
+
 }
 
 func (a *orbAgent) RestartBackend(name string, reason string) error {
@@ -204,8 +207,8 @@ func (a *orbAgent) restartComms() error {
 	if err != nil {
 		return err
 	}
-	a.closeRequestTickers()
-	a.logger.Debug("restarting mqtt client")
+	a.groupRequestSucceeded <- true
+	a.policyRequestSucceeded <- true
 	if err := a.startComms(cloudConfig); err != nil {
 		a.logger.Error("could not restart mqtt client")
 		return err

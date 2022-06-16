@@ -81,14 +81,15 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 }
 
 func (a *orbAgent) retryGroupMembershipRequest() {
+	if a.groupRequestTicker == nil {
+		a.groupRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
+	}
 	go func() {
-		if a.groupRequestTicker == nil {
-			a.groupRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
-		}
 		defer a.groupRequestTicker.Stop()
 		for calls := 1; calls <= retryMaxAttempts; calls++ {
 			select {
 			case <-a.groupRequestSucceeded:
+				a.groupRequestTicker.Stop()
 				return
 			case _ = <-a.groupRequestTicker.C:
 				a.logger.Info("agent has not received any group membership from fleet, re-requesting")
@@ -134,14 +135,15 @@ func (a *orbAgent) sendAgentPoliciesRequest() error {
 }
 
 func (a orbAgent) retryAgentPolicyResponse() {
+	if a.policyRequestTicker == nil {
+		a.policyRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
+	}
 	go func() {
-		if a.policyRequestTicker == nil {
-			a.policyRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
-		}
 		defer a.policyRequestTicker.Stop()
 		for calls := 1; calls <= retryMaxAttempts; calls++ {
 			select {
 			case <-a.policyRequestSucceeded:
+				a.policyRequestTicker.Stop()
 				return
 			case _ = <-a.policyRequestTicker.C:
 				a.logger.Info("agent not received any policy from fleet, re-requesting")
