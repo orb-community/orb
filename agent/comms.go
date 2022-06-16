@@ -20,6 +20,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	opts.SetUsername(config.Id)
 	opts.SetPassword(config.Key)
 	opts.SetKeepAlive(10 * time.Second)
+	opts.SetOrderMatters(false)
 	opts.SetDefaultPublishHandler(func(client mqtt.Client, message mqtt.Message) {
 		a.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 	})
