@@ -56,7 +56,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
       label: 'Name',
       prop: 'name',
       selected: false,
-      filter: (agent, name) => agent?.name.includes(name),
+      filter: (agent, name) => agent?.name === name,
     },
     {
       id: '1',
