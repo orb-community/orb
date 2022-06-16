@@ -2,6 +2,9 @@ package pktvisor_test
 
 import (
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/fleet"
 	"github.com/ns1labs/orb/fleet/pb"
@@ -12,8 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"reflect"
-	"testing"
 )
 
 func TestDHCPConversion(t *testing.T) {
@@ -2958,6 +2959,106 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 		data     []byte
 		expected prometheus.TimeSeries
 	}{
+		"FlowTopDstIpsAndPortBytes": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_dst_ips_and_port_bytes": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2:5000"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_dst_ips_and_port_bytes",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "ip",
+						Value: "10.4.2.2:5000",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopDstIpsAndPortPackets": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_dst_ips_bytes": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2:5000"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_dst_ips_and_port_bytes",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "ip",
+						Value: "10.4.2.2:5000",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
 		"FlowTopDstIpsBytes": {
 			data: []byte(`
 {
@@ -3066,7 +3167,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_dst_ports_bytes": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
+          	  	  "name": "5000"
         		}
 			]
 		}
@@ -3100,7 +3201,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "port",
-						Value: "10.4.2.2",
+						Value: "5000",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3116,7 +3217,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_dst_ports_packets": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
+          	  	  "name": "5000"
         		}
 			]
 		}
@@ -3150,7 +3251,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "port",
-						Value: "10.4.2.2",
+						Value: "5000",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3166,7 +3267,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_in_if_index_bytes": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
+          	  	  "name": "300"
         		}
 			]
 		}
@@ -3200,7 +3301,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "index",
-						Value: "10.4.2.2",
+						Value: "300",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3216,7 +3317,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_in_if_index_packets": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
+          	  	  "name": "300"
         		}
 			]
 		}
@@ -3250,7 +3351,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "index",
-						Value: "10.4.2.2",
+						Value: "300",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3266,7 +3367,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_out_if_index_bytes": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
+          	  	  "name": "200"
         		}
 			]
 		}
@@ -3300,7 +3401,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "index",
-						Value: "10.4.2.2",
+						Value: "200",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3316,7 +3417,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_out_if_index_packets": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
+          	  	  "name": "200"
         		}
 			]
 		}
@@ -3350,7 +3451,106 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "index",
-						Value: "10.4.2.2",
+						Value: "200",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		}, "FlowTopSrcIpsAndPortBytes": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_src_ips_and_port_bytes": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2:5000"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_src_ips_and_port_bytes",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "ip",
+						Value: "10.4.2.2:5000",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"FlowTopSrcIpsAndPortPackets": {
+			data: []byte(`
+{
+    "policy_flow": {
+		"flow": {
+        	"top_src_ips_packets": [
+				{
+          	  	  "estimate": 8,
+          	  	  "name": "10.4.2.2:5000"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_top_src_ips_and_port_packets",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "ip",
+						Value: "10.4.2.2:5000",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3466,7 +3666,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_src_ports_bytes": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
+          	  	  "name": "4500"
         		}
 			]
 		}
@@ -3500,7 +3700,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "port",
-						Value: "10.4.2.2",
+						Value: "4500",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -3516,7 +3716,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
         	"top_src_ports_packets": [
 				{
           	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
+          	  	  "name": "4500"
         		}
 			]
 		}
@@ -3550,7 +3750,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					},
 					{
 						Name:  "port",
-						Value: "10.4.2.2",
+						Value: "4500",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
