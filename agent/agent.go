@@ -135,6 +135,7 @@ func (a *orbAgent) Start() error {
 	}
 
 	if err := a.startComms(cloudConfig); err != nil {
+		a.logger.Error("could not restart mqtt client")
 		return err
 	}
 
@@ -204,7 +205,9 @@ func (a *orbAgent) restartComms() error {
 		return err
 	}
 	a.closeRequestTickers()
+	a.logger.Debug("restarting mqtt client")
 	if err := a.startComms(cloudConfig); err != nil {
+		a.logger.Error("could not restart mqtt client")
 		return err
 	}
 	return nil
