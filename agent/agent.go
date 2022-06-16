@@ -61,8 +61,9 @@ type orbAgent struct {
 }
 
 const retryRequestDuration = time.Second
-const retryRequestFixedTime = 30
-const retryDurationIncrPerAttempts = 15
+const retryRequestFixedTime = 5
+const retryDurationIncrPerAttempts = 10
+const retryMaxAttempts = 5
 
 type GroupInfo struct {
 	Name      string
@@ -198,8 +199,6 @@ func (a *orbAgent) restartComms() error {
 	if err := a.startComms(cloudConfig); err != nil {
 		return err
 	}
-
-	a.requestReconnection(a.client, cloudConfig)
 	return nil
 }
 

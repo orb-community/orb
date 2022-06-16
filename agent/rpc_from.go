@@ -99,6 +99,8 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 			return
 		}
 		a.handleAgentPolicies(r.Payload, r.FullList)
+		a.logger.Debug("received agent policies, setting success in request")
+		a.policyRequestSucceeded <- true
 	case fleet.GroupRemovedRPCFunc:
 		var r fleet.GroupRemovedRPC
 		if err := json.Unmarshal(message.Payload(), &r); err != nil {

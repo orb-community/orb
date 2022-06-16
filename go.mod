@@ -170,6 +170,7 @@ require (
 
 //These libs are used to allow orb extend opentelemetry features
 require (
+	github.com/google/uuid v1.3.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.40.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.40.0
 	github.com/prometheus/common v0.32.1

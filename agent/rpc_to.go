@@ -6,6 +6,7 @@ package agent
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
@@ -84,8 +85,8 @@ func (a *orbAgent) retryGroupMembershipRequest() {
 		if a.groupRequestTicker == nil {
 			a.groupRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
 		}
-		calls := 0
-		for {
+		defer a.groupRequestTicker.Stop()
+		for calls := 1; calls <= retryMaxAttempts; calls++ {
 			select {
 			case <-a.groupRequestSucceeded:
 				return
@@ -93,13 +94,15 @@ func (a *orbAgent) retryGroupMembershipRequest() {
 				a.logger.Info("agent not received any group membership from fleet, re-requesting")
 				duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
 				a.groupRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
-				calls++
 				err := a.sendGroupMembershipRequest()
 				if err != nil {
 					a.logger.Error("failed to send group membership request", zap.Error(err))
+					return
 				}
 			}
 		}
+		a.logger.Warn(fmt.Sprintf("retried %d times and still got no response from fleet", retryMaxAttempts))
+		return
 	}()
 }
 
@@ -135,8 +138,8 @@ func (a orbAgent) retryAgentPolicyResponse() {
 		if a.policyRequestTicker == nil {
 			a.policyRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
 		}
-		calls := 0
-		for {
+		defer a.policyRequestTicker.Stop()
+		for calls := 1; calls <= retryMaxAttempts; calls++ {
 			select {
 			case <-a.policyRequestSucceeded:
 				return
@@ -144,7 +147,6 @@ func (a orbAgent) retryAgentPolicyResponse() {
 				a.logger.Info("agent not received any policy from fleet, re-requesting")
 				duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
 				a.policyRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
-				calls++
 				err := a.sendAgentPoliciesRequest()
 				if err != nil {
 					a.logger.Error("failed to send agent policies request", zap.Error(err))
@@ -152,5 +154,7 @@ func (a orbAgent) retryAgentPolicyResponse() {
 				}
 			}
 		}
+		a.logger.Warn(fmt.Sprintf("retried %d times and still got no response from fleet", retryMaxAttempts))
+		return
 	}()
 }
