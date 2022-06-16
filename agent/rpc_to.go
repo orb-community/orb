@@ -91,7 +91,7 @@ func (a *orbAgent) retryGroupMembershipRequest() {
 			case <-a.groupRequestSucceeded:
 				return
 			case _ = <-a.groupRequestTicker.C:
-				a.logger.Info("agent not received any group membership from fleet, re-requesting")
+				a.logger.Info("agent has not received any group membership from fleet, re-requesting")
 				duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
 				a.groupRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
 				err := a.sendGroupMembershipRequest()
