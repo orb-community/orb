@@ -151,6 +151,8 @@ func (a *orbAgent) Stop() {
 	a.logger.Info("stopping agent")
 	a.hbTicker.Stop()
 	a.hbDone <- true
+	a.groupRequestSucceeded <- true
+	a.policyRequestSucceeded <- true
 	a.sendSingleHeartbeat(time.Now(), fleet.Offline)
 	if token := a.client.Unsubscribe(a.rpcFromCoreTopic); token.Wait() && token.Error() != nil {
 		a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
