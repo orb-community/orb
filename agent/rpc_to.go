@@ -145,7 +145,7 @@ func (a orbAgent) retryAgentPolicyResponse() {
 	go func() {
 		defer a.policyRequestTicker.Stop()
 		defer func(t time.Time) {
-			a.logger.Info("execution period of the re-request of retryGroupMembership", zap.Duration("period", time.Now().Sub(t)))
+			a.logger.Info("execution period of the re-request of retryAgentPolicy", zap.Duration("period", time.Now().Sub(t)))
 		}(time.Now())
 		for calls := 1; calls <= retryMaxAttempts; calls++ {
 			select {
