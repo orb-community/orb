@@ -275,7 +275,7 @@ func (svc fleetService) ViewAgentInfoByChannelIDInternal(ctx context.Context, ch
 	return res, nil
 }
 
-func (svc fleetService) GetPoliciesState(agent Agent, ctx context.Context) (map[string]interface{}, error) {
+func (svc fleetService) GetPoliciesState(ctx context.Context, agent Agent) (map[string]interface{}, error) {
 
 	jsonHb, err := json.Marshal(agent.LastHBData)
 	if err != nil {

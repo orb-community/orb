@@ -293,7 +293,7 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		for _, ag := range page.Agents {
 
-			policyState, err := svc.GetPoliciesState(ag, nil)
+			policyState, err := svc.GetPoliciesState(ctx, ag)
 			if err != nil {
 				return nil, err
 			}

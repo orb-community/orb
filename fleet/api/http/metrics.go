@@ -380,7 +380,7 @@ func (m metricsMiddleware) RemoveAgent(ctx context.Context, token string, thingI
 	return m.svc.RemoveAgent(ctx, token, thingID)
 }
 
-func (m metricsMiddleware) GetPoliciesState(agent fleet.Agent, ctx context.Context) (map[string]interface{}, error) {
+func (m metricsMiddleware) GetPoliciesState(ctx context.Context, agent fleet.Agent) (map[string]interface{}, error) {
 
 	defer func(begin time.Time) {
 		labels := []string{
@@ -395,7 +395,7 @@ func (m metricsMiddleware) GetPoliciesState(agent fleet.Agent, ctx context.Conte
 
 	}(time.Now())
 
-	return m.svc.GetPoliciesState(agent, nil)
+	return m.svc.GetPoliciesState(nil, agent)
 }
 
 func (m metricsMiddleware) identify(token string) (string, error) {

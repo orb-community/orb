@@ -524,41 +524,6 @@ func TestViewAgentInfoByChannelIDInternal(t *testing.T) {
 	}
 }
 
-func TestGetPoliciesState(t *testing.T) {
-	users := flmocks.NewAuthService(map[string]string{token: email})
-
-	thingsServer := newThingsServer(newThingsService(users))
-	fleetService := newService(users, thingsServer.URL)
-
-	ag, err := createAgent(t, "my-agent", fleetService)
-	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-
-	cases := map[string]struct {
-		policiesState map[string]interface{}
-		agent         fleet.Agent
-		err           error
-	}{
-		"get policies state info by existent agent": {
-			policiesState: ag.MFChannelID,
-			agent:         ag,
-			err:           nil,
-		},
-		//"view agent info by non-existent channelID": {
-		//	channelID: chID.String(),
-		//	agent:     fleet.Agent{},
-		//	err:       errors.ErrNotFound,
-		//},
-	}
-
-	for desc, tc := range cases {
-		t.Run(desc, func(t *testing.T) {
-			agent, err := fleetService.GetPoliciesState(context.Background(), tc.agent)
-			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
-			assert.Equal(t, tc.agent, agent, fmt.Sprintf("%s: expected %s got %s", desc, tc.agent, agent))
-		})
-	}
-}
-
 func createAgent(t *testing.T, name string, svc fleet.Service) (fleet.Agent, error) {
 	t.Helper()
 	aCopy := agent
