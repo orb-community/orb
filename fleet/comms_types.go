@@ -65,10 +65,10 @@ type GroupStateInfo struct {
 }
 
 type Heartbeat struct {
-	SchemaVersion string                      `json:"schema_version" mapstructure:"schema_version"`
-	TimeStamp     time.Time                   `json:"ts" mapstructure:"ts"`
-	State         State                       `json:"state" mapstruct:"state"`
-	BackendState  map[string]BackendStateInfo `json:"backend_state" mapstructure:"backend_state"`
-	PolicyState   map[string]PolicyStateInfo  `json:"policy_state" mapstructure:"policy_state"`
-	GroupState    map[string]GroupStateInfo   `json:"group_state" mapstructure:"group_state"`
+	SchemaVersion string                      `json:"schema_version"`
+	TimeStamp     time.Time                   `json:"ts"`
+	State         State                       `json:"state"`
+	BackendState  map[string]BackendStateInfo `json:"backend_state"`
+	PolicyState   map[string]PolicyStateInfo  `json:"policy_state"`
+	GroupState    map[string]GroupStateInfo   `json:"group_state"`
 }
