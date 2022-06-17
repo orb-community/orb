@@ -163,7 +163,7 @@ func (a orbAgent) retryAgentPolicyResponse() {
 				}
 			}
 		}
-		a.logger.Warn(fmt.Sprintf("retryGroupMembership retried %d times and still got no response from fleet", retryMaxAttempts))
+		a.logger.Warn(fmt.Sprintf("retryAgentPolicy retried %d times and still got no response from fleet", retryMaxAttempts))
 		return
 	}()
 }
