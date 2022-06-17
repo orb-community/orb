@@ -175,7 +175,7 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 				return
 			}
 			a.handleGroupMembership(r.Payload)
-			a.logger.Debug("received group membership, setting success in request")
+			a.logger.Debug("received group membership, marking success")
 			a.groupRequestSucceeded <- true
 		case fleet.AgentPolicyRPCFunc:
 			var r fleet.AgentPolicyRPC
@@ -184,7 +184,7 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 				return
 			}
 			a.handleAgentPolicies(r.Payload, r.FullList)
-			a.logger.Debug("received agent policies, setting success in request")
+			a.logger.Debug("received agent policies, marking success")
 			a.policyRequestSucceeded <- true
 		case fleet.AgentStopRPCFunc:
 			var r fleet.AgentStopRPC

@@ -84,15 +84,19 @@ func (a *orbAgent) retryGroupMembershipRequest() {
 	if a.groupRequestTicker == nil {
 		a.groupRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
 	}
+
 	go func() {
 		defer a.groupRequestTicker.Stop()
+		defer func(t time.Time) {
+			a.logger.Info("execution period of the re-request of retryGroupMembership", zap.Duration("waiting period", time.Now().Sub(t)))
+		}(time.Now())
 		for calls := 1; calls <= retryMaxAttempts; calls++ {
 			select {
 			case <-a.groupRequestSucceeded:
 				a.groupRequestTicker.Stop()
 				return
-			case _ = <-a.groupRequestTicker.C:
-				a.logger.Info("agent has not received any group membership from fleet, re-requesting")
+			case t := <-a.groupRequestTicker.C:
+				a.logger.Info("agent did not received any group membership from fleet, re-requesting", zap.Duration("waiting period", time.Now().Sub(t)))
 				duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
 				a.groupRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
 				err := a.sendGroupMembershipRequest()
@@ -102,7 +106,7 @@ func (a *orbAgent) retryGroupMembershipRequest() {
 				}
 			}
 		}
-		a.logger.Warn(fmt.Sprintf("retried %d times and still got no response from fleet", retryMaxAttempts))
+		a.logger.Warn(fmt.Sprintf("retryGroupMembership retried %d times and still got no response from fleet", retryMaxAttempts))
 		return
 	}()
 }
@@ -140,13 +144,16 @@ func (a orbAgent) retryAgentPolicyResponse() {
 	}
 	go func() {
 		defer a.policyRequestTicker.Stop()
+		defer func(t time.Time) {
+			a.logger.Info("execution period of the re-request of retryGroupMembership", zap.Duration("period", time.Now().Sub(t)))
+		}(time.Now())
 		for calls := 1; calls <= retryMaxAttempts; calls++ {
 			select {
 			case <-a.policyRequestSucceeded:
 				a.policyRequestTicker.Stop()
 				return
-			case _ = <-a.policyRequestTicker.C:
-				a.logger.Info("agent not received any policy from fleet, re-requesting")
+			case t := <-a.policyRequestTicker.C:
+				a.logger.Info("agent not received any policy from fleet, re-requesting", zap.Duration("waiting period", time.Now().Sub(t)))
 				duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
 				a.policyRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
 				err := a.sendAgentPoliciesRequest()
@@ -156,7 +163,7 @@ func (a orbAgent) retryAgentPolicyResponse() {
 				}
 			}
 		}
-		a.logger.Warn(fmt.Sprintf("retried %d times and still got no response from fleet", retryMaxAttempts))
+		a.logger.Warn(fmt.Sprintf("retryGroupMembership retried %d times and still got no response from fleet", retryMaxAttempts))
 		return
 	}()
 }

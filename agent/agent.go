@@ -155,7 +155,6 @@ func (a *orbAgent) Stop() {
 	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
 	a.hbTicker.Stop()
 	a.hbDone <- true
-	a.closeRequestTickers()
 	a.sendSingleHeartbeat(time.Now(), fleet.Offline)
 	if token := a.client.Unsubscribe(a.rpcFromCoreTopic); token.Wait() && token.Error() != nil {
 		a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
@@ -170,10 +169,6 @@ func (a *orbAgent) Stop() {
 	defer close(a.hbDone)
 	defer close(a.policyRequestSucceeded)
 	defer close(a.groupRequestSucceeded)
-}
-
-func (a *orbAgent) closeRequestTickers() {
-
 }
 
 func (a *orbAgent) RestartBackend(name string, reason string) error {
