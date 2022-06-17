@@ -13,7 +13,7 @@ def check_non_registered_account(context, email, password):
     assert_that(email, any_of(equal_to("valid"), equal_to("invalid")), "Unexpected value for email")
     if email == "valid":
         context.email = [f"tester_{random_string(4)}@email.com", email]
-        status_code = 403
+        status_code = 401
     else:
         context.email = [f"tester.com", email]
         status_code = 400
