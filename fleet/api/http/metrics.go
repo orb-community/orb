@@ -384,7 +384,7 @@ func (m metricsMiddleware) GetPoliciesState(ctx context.Context, agent fleet.Age
 
 	defer func(begin time.Time) {
 		labels := []string{
-			"method", "getPolicyState",
+			"method", "getPoliciesState",
 			"owner_id", agent.MFOwnerID,
 			"agent_id", agent.MFThingID,
 			"group_id", "",
@@ -395,7 +395,7 @@ func (m metricsMiddleware) GetPoliciesState(ctx context.Context, agent fleet.Age
 
 	}(time.Now())
 
-	return m.svc.GetPoliciesState(nil, agent)
+	return m.svc.GetPoliciesState(ctx, agent)
 }
 
 func (m metricsMiddleware) identify(token string) (string, error) {

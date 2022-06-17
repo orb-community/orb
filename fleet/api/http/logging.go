@@ -296,11 +296,11 @@ func (l loggingMiddleware) RemoveAgent(ctx context.Context, token, thingID strin
 func (l loggingMiddleware) GetPoliciesState(ctx context.Context, agent fleet.Agent) (_ map[string]interface{}, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: get_policy_state",
+			l.logger.Warn("method call: get_policies_state",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: get_policy_state",
+			l.logger.Info("method call: get_policies_state",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())

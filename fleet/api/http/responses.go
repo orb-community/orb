@@ -70,7 +70,7 @@ type agentRes struct {
 	LastHBData    types.Metadata `json:"last_hb_data"`
 	TsCreated     time.Time      `json:"ts_created"`
 	TsLastHB      time.Time      `json:"ts_last_hb"`
-	PolicyState   types.Metadata `json:"policy_state,omitempty"`
+	PoliciesState types.Metadata `json:"policies_state,omitempty"`
 	created       bool
 }
 
