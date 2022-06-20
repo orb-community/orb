@@ -103,6 +103,8 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 }
 
 func (a *orbAgent) sendHeartbeats() {
+	a.logger.Debug("start heartbeats routine")
+	defer a.logger.Debug("stopping heartbeats routine")
 	a.sendSingleHeartbeat(time.Now(), fleet.Online)
 	for {
 		select {
