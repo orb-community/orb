@@ -14,7 +14,7 @@ type agentCommsServiceMock struct {
 	commsMock      map[string][]fleet.Agent
 }
 
-func (ac agentCommsServiceMock) NotifyGroupDatasetEdit(ctx context.Context, ag fleet.AgentGroup, datasetID string, policyID string, ownerID string) error {
+func (ac agentCommsServiceMock) NotifyGroupDatasetEdit(ctx context.Context, ag fleet.AgentGroup, datasetID, policyID, ownerID string, valid bool) error {
 	return nil
 }
 

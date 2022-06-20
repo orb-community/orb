@@ -542,6 +542,7 @@ func TestNotifyGroupDatasetEdit(t *testing.T) {
 		ownerID    string
 		datasetID  string
 		agentGroup fleet.AgentGroup
+		valid      bool
 		err        error
 	}{
 		"Notify a existent group that dataset went invalid": {
@@ -549,6 +550,7 @@ func TestNotifyGroupDatasetEdit(t *testing.T) {
 			policyID:   policy.ID,
 			datasetID:  invalidDataset.ID,
 			agentGroup: ag,
+			valid:      false,
 			err:        nil,
 		},
 		"Notify a existent group that dataset went valid": {
@@ -556,12 +558,13 @@ func TestNotifyGroupDatasetEdit(t *testing.T) {
 			policyID:   policy.ID,
 			datasetID:  dataset.ID,
 			agentGroup: ag,
+			valid:      true,
 			err:        nil,
 		},
 	}
 
 	for desc, tc := range cases {
-		err := commsSVC.NotifyGroupDatasetEdit(context.Background(), tc.agentGroup, tc.datasetID, tc.policyID, tc.ownerID)
+		err := commsSVC.NotifyGroupDatasetEdit(context.Background(), tc.agentGroup, tc.datasetID, tc.policyID, tc.ownerID, tc.valid)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }

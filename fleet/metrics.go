@@ -14,7 +14,7 @@ type commsMetricsMiddleware struct {
 	svc            AgentCommsService
 }
 
-func (c commsMetricsMiddleware) NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error {
+func (c commsMetricsMiddleware) NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID, policyID, ownerID string, valid bool) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyGroupDatasetEdit",
@@ -30,7 +30,7 @@ func (c commsMetricsMiddleware) NotifyGroupDatasetEdit(ctx context.Context, ag A
 
 	}(time.Now())
 
-	return c.svc.NotifyGroupDatasetEdit(ctx, ag, datasetID, policyID, ownerID)
+	return c.svc.NotifyGroupDatasetEdit(ctx, ag, datasetID, policyID, ownerID, valid)
 }
 
 func (c commsMetricsMiddleware) Start() error {

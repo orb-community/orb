@@ -55,12 +55,15 @@ type removeDatasetEvent struct {
 }
 
 type updateDatasetEvent struct {
-	id           string
-	ownerID      string
-	agentGroupID string
-	datasetID    string
-	policyID     string
-	timestamp    time.Time
+	id            string
+	ownerID       string
+	agentGroupID  string
+	datasetID     string
+	policyID      string
+	valid         bool
+	turnedValid   bool
+	turnedInvalid bool
+	timestamp     time.Time
 }
 
 type createPolicyEvent struct {
@@ -113,12 +116,15 @@ func (cce removeDatasetEvent) Encode() map[string]interface{} {
 
 func (cce updateDatasetEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
-		"id":        cce.id,
-		"owner_id":  cce.ownerID,
-		"group_id":  cce.agentGroupID,
-		"policy_id": cce.policyID,
-		"timestamp": cce.timestamp.Unix(),
-		"operation": DatasetUpdate,
+		"id":             cce.id,
+		"owner_id":       cce.ownerID,
+		"group_id":       cce.agentGroupID,
+		"policy_id":      cce.policyID,
+		"valid":          cce.valid,
+		"turned_valid":   cce.turnedValid,
+		"turned_invalid": cce.turnedInvalid,
+		"timestamp":      cce.timestamp.Unix(),
+		"operation":      DatasetUpdate,
 	}
 }
 

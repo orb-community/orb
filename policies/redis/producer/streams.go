@@ -83,26 +83,34 @@ func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.D
 		return policies.Dataset{}, err
 	}
 
-	e.logger.Info(fmt.Sprintf("previous: %t and actual: %t", previousDataset.Valid, editedDataset.Valid))
+	event := updateDatasetEvent{
+		id:           editedDataset.ID,
+		ownerID:      editedDataset.MFOwnerID,
+		agentGroupID: editedDataset.AgentGroupID,
+		policyID:     editedDataset.PolicyID,
+		valid:        editedDataset.Valid,
+	}
 
 	if previousDataset.Valid == false && editedDataset.Valid == true {
-		event := updateDatasetEvent{
-			id:           editedDataset.ID,
-			ownerID:      editedDataset.MFOwnerID,
-			agentGroupID: editedDataset.AgentGroupID,
-			policyID:     editedDataset.PolicyID,
-		}
-		record := &redis.XAddArgs{
-			Stream:       streamID,
-			MaxLenApprox: streamLen,
-			Values:       event.Encode(),
-		}
-		err = e.client.XAdd(ctx, record).Err()
-		if err != nil {
-			e.logger.Error("error sending event to event store", zap.Error(err))
-			return ds, err
-		}
-		e.logger.Info("RPC SENT")
+		event.turnedValid = true
+		event.turnedInvalid = false
+	} else if previousDataset.Valid == true && editedDataset.Valid == false {
+		event.turnedValid = false
+		event.turnedInvalid = true
+	} else {
+		event.turnedValid = false
+		event.turnedInvalid = false
+	}
+
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+	err = e.client.XAdd(ctx, record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+		return ds, err
 	}
 
 	return editedDataset, nil
@@ -276,11 +284,14 @@ func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID s
 	}
 
 	event := updateDatasetEvent{
-		id:           datasetID,
-		ownerID:      ds.MFOwnerID,
-		agentGroupID: ds.AgentGroupID,
-		policyID:     ds.PolicyID,
-		datasetID:    ds.ID,
+		id:            datasetID,
+		ownerID:       ds.MFOwnerID,
+		agentGroupID:  ds.AgentGroupID,
+		policyID:      ds.PolicyID,
+		datasetID:     ds.ID,
+		valid:         false,
+		turnedValid:   false,
+		turnedInvalid: true,
 	}
 	record := &redis.XAddArgs{
 		Stream:       streamID,

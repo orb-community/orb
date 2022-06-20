@@ -49,8 +49,8 @@ type AgentCommsService interface {
 	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 	//NotifyAgentReset RPC core -> Agent: Notify Agent to reset the backend
 	NotifyAgentReset(agent Agent, fullReset bool, reason string) error
-	// NotifyGroupDatasetEdit RPC core -> Agent: Notify Agent an already created Dataset goes active after a while as invalid
-	NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
+	// NotifyGroupDatasetEdit RPC core -> Agent: Notify Agent an already created Dataset goes invalid or valid
+	NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID, policyID, ownerID string, valid bool) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -71,7 +71,7 @@ type fleetCommsService struct {
 	agentPubSub mfnats.PubSub
 }
 
-func (svc fleetCommsService) NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error {
+func (svc fleetCommsService) NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID, policyID, ownerID string, valid bool) error {
 	p, err := svc.policyClient.RetrievePolicy(ctx, &pb.PolicyByIDReq{PolicyID: policyID, OwnerID: ownerID})
 	if err != nil {
 		return err
@@ -82,16 +82,8 @@ func (svc fleetCommsService) NotifyGroupDatasetEdit(ctx context.Context, ag Agen
 		return err
 	}
 
-	dataset, err := svc.policyClient.RetrieveDataset(ctx, &pb.DatasetByIDReq{
-		DatasetID: datasetID,
-		OwnerID:   ag.MFOwnerID,
-	})
-	if err != nil {
-		return err
-	}
-
 	var action string
-	if dataset.Valid {
+	if valid {
 		action = "manage"
 	} else {
 		action = "remove"
@@ -130,6 +122,8 @@ func (svc fleetCommsService) NotifyGroupDatasetEdit(ctx context.Context, ag Agen
 		return err
 	}
 
+	//DELETE
+	svc.logger.Info("NOTIFY GROUP DATASET RPC")
 	return nil
 }
 
