@@ -86,7 +86,6 @@ func (client grpcClient) RetrieveDataset(ctx context.Context, in *pb.DatasetByID
 		AgentGroupId: ir.agentGroupID,
 		PolicyId:     ir.policyID,
 		SinkIds:      ir.sinkIDs,
-		Valid:        ir.valid,
 	}, nil
 }
 
