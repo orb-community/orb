@@ -14,7 +14,6 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/backend"
-	"strings"
 )
 
 var restrictiveKeyPrefixes = []string{backend.ConfigFeatureTypePassword}
@@ -23,10 +22,9 @@ func omitSecretInformation(metadata types.Metadata) (restrictedMetadata types.Me
 	metadata.RestrictKeys(func(key string) bool {
 		match := false
 		for _, restrictiveKey := range restrictiveKeyPrefixes {
-			if match {
+			if key == restrictiveKey {
+				match = true
 				return match
-			} else {
-				match = strings.Contains(strings.ToLower(key), restrictiveKey)
 			}
 		}
 		return match
