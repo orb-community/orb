@@ -1,58 +1,60 @@
 <nb-card *ngIf="!isLoading">
-  <nb-card-header class="summary-accent">Active Datasets ({{ this.datasets.length }})
-    <button (click)="onCreateDataset()"
-            ghost="true"
-            class="card-ghost-button"
-            nbButton
-            status="primary">
-      <i class="fa fa-plus">&nbsp;</i>New Dataset
-    </button>
-  </nb-card-header>
-  <nb-card-body>
-    <div class="col-12">
-      <div #tableWrapper class="d-flex flex-column mt-4">
-        <ngx-datatable
-          #table
-          [columnMode]="columnMode.flex"
-          [columns]="columns"
-          [footerHeight]="0"
-          [headerHeight]="50"
-          [loadingIndicator]="isLoading"
-          [rowHeight]="50"
-          [rows]="datasets"
-          [scrollbarV]="true"
-          [sorts]="tableSorts"
-          class="orb"
-          style="height: calc(49vh)">
-        </ngx-datatable>
-      </div>
+    <nb-card-header class="summary-accent">Active Datasets ({{ this.datasets.length }})
+        <button (click)="onCreateDataset()"
+                class="card-ghost-button"
+                ghost="true"
+                nbButton
+                status="primary">
+            <i class="fa fa-plus">&nbsp;</i>New Dataset
+        </button>
+    </nb-card-header>
+    <nb-card-body>
+        <div class="col-12">
+            <div #tableWrapper class="d-flex flex-column mt-4">
+                <ngx-datatable
+                    #table
+                    [columnMode]="columnMode.flex"
+                    [columns]="columns"
+                    [footerHeight]="0"
+                    [headerHeight]="50"
+                    [loadingIndicator]="isLoading"
+                    [rowHeight]="50"
+                    [rows]="datasets"
+                    [scrollbarV]="true"
+                    [sorts]="tableSorts"
+                    class="orb"
+                    style="height: calc(49vh)">
+                </ngx-datatable>
+            </div>
 
-    </div>
-  </nb-card-body>
+        </div>
+    </nb-card-body>
 </nb-card>
 
 <ng-template #nameTemplateCell let-i="index" let-row="row" let-value="value">
-  <button (click)="onOpenEdit(row)"
-          class="edit-dataset-button"
-       nbTooltip="{{ row.id }}">
-    {{ row.name }}
-  </button>
+    <button (click)="onOpenEdit(row)"
+            class="edit-dataset-button"
+            nbTooltip="{{ row.id }}">
+        {{ row.name }}
+    </button>
 </ng-template>
 
 <ng-template #groupTemplateCell let-i="index" let-row="row" let-value="value">
-  <div nbTooltip="{{ row?.agent_group?.id }}">
-    {{ row?.agent_group?.name }}
-  </div>
+    <button (click)="onOpenGroupDetails(row?.agent_group)"
+            class="edit-dataset-button" nbTooltip="{{ row?.agent_group?.id }}">
+        {{ row?.agent_group?.name }}
+    </button>
 </ng-template>
 
 <ng-template #validTemplateCell let-i="index" let-row="row" let-value="value">
-  <div>
-    <i aria-hidden="true" class="fa fa-circle orb-service-{{ row.valid }}"></i>
-  </div>
+    <div>
+        <i aria-hidden="true" class="fa fa-circle orb-service-{{ row.valid }}"></i>
+    </div>
 </ng-template>
 
 <ng-template #sinksTemplateCell let-i="index" let-row="row" let-value="value">
-  <div>
-    <span *ngFor="let sink of value; last as isLast">{{ sink?.name }}{{ isLast ? '' : ', '}}</span>
-  </div>
+    <div *ngFor="let sink of value; last as isLast">
+        <button (click)="onOpenSinkDetails(sink)"
+                class="edit-dataset-button">{{ sink?.name }}{{ isLast ? '' : ', '}}</button>
+    </div>
 </ng-template>

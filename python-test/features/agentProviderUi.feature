@@ -17,7 +17,7 @@ Feature: Create agents using orb ui
         When a new agent is created through the UI with 2 orb tag(s)
             And the agent container is started using the command provided by the UI on an available port
         Then the agents list and the agents view should display agent's status as Online within 10 seconds
-            And the agent status in Orb should be online
+            And the agent status in Orb should be online within 10 seconds
             And the container logs should contain the message "sending capabilities" within 10 seconds
 
     @smoke_ui

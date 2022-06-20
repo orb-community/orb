@@ -495,13 +495,17 @@ func (svc fleetCommsService) handleCapabilities(thingID string, channelID string
 	if err := json.Unmarshal(payload, &capabilities); err != nil {
 		return ErrSchemaMalformed
 	}
-	agent := Agent{MFThingID: thingID, MFChannelID: channelID}
+
+	agent, err := svc.agentRepo.RetrieveByIDWithChannel(context.Background(), thingID, channelID)
+	if err != nil {
+		agent = Agent{MFThingID: thingID, MFChannelID: channelID}
+	}
 	agent.AgentMetadata = make(map[string]interface{})
 	agent.AgentMetadata["backends"] = capabilities.Backends
 	agent.AgentMetadata["orb_agent"] = capabilities.OrbAgent
 	agent.AgentTags = capabilities.AgentTags
 
-	err := svc.checkVersion(buildinfo.GetMinAgentVersion(), capabilities.OrbAgent.Version, &agent)
+	err = svc.checkVersion(buildinfo.GetMinAgentVersion(), capabilities.OrbAgent.Version, &agent)
 	if err != nil {
 		return err
 	}
@@ -557,7 +561,6 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 		agent.LastHBData["backend_state"] = hb.BackendState
 		agent.LastHBData["policy_state"] = hb.PolicyState
 		agent.LastHBData["group_state"] = hb.GroupState
-
 	}
 	err := svc.agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), agent)
 	if err != nil {

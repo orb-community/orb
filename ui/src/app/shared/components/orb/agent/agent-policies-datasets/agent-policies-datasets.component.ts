@@ -1,8 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { Agent, AgentPolicyState, AgentPolicyStates } from 'app/common/interfaces/orb/agent.interface';
 import { forkJoin } from 'rxjs';
 import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import { ActivatedRoute, Router } from '@angular/router';
+import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
+import { NbDialogService } from '@nebular/theme';
 
 @Component({
   selector: 'ngx-agent-policies-datasets',
@@ -11,6 +14,9 @@ import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 })
 export class AgentPoliciesDatasetsComponent implements OnInit {
   @Input() agent: Agent;
+
+  @Output()
+  refreshAgent: EventEmitter<string>;
 
   policyStates = AgentPolicyStates;
 
@@ -22,7 +28,13 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
 
   errors;
 
-  constructor(protected datasetService: DatasetPoliciesService) {
+  constructor(
+      private datasetService: DatasetPoliciesService,
+      private router: Router,
+      private route: ActivatedRoute,
+      private dialogService: NbDialogService,
+    ) {
+    this.refreshAgent = new EventEmitter<string>();
     this.datasets = {};
     this.errors = {};
   }
@@ -73,4 +85,27 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
       });
   }
 
+  onOpenViewPolicy(policy: any) {
+    this.router.navigate([`/pages/datasets/policies/view/${ policy.id }`], {
+      state: { policy: policy },
+      relativeTo: this.route,
+    });
+  }
+
+  onOpenViewDataset(dataset: any) {
+    this.dialogService.open(DatasetFromComponent,
+        {
+          autoFocus: true,
+          closeOnEsc: true,
+          context: {
+            dataset,
+          },
+          hasScroll: false,
+          hasBackdrop: false,
+        }).onClose.subscribe(resp => {
+      if (resp === 'changed' || 'deleted') {
+        this.refreshAgent.emit('refresh-from-dataset');
+      }
+    });
+  }
 }

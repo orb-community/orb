@@ -1,5 +1,5 @@
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix,\
+from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
     create_tags_set, find_files, threading_wait_until, return_port_to_run_docker_container, validate_json
 from local_agent import run_local_agent_container, run_agent_config_file, get_orb_agent_logs
 from control_plane_agent_groups import return_matching_groups, tags_to_match_k_groups
@@ -39,7 +39,8 @@ def check_if_agents_exist(context, orb_tags, status):
     local_orb_path = configs.get("local_orb_path")
     agent_schema_path = local_orb_path + "/python-test/features/steps/schemas/agent_schema.json"
     is_schema_valid = validate_json(context.agent, agent_schema_path)
-    assert_that(is_schema_valid, equal_to(True), f"Invalid agent json. \n Agent = {context.agent}")
+    assert_that(is_schema_valid, equal_to(True), f"Invalid agent json. \n Agent = {context.agent}."
+                                                 f"Agent logs: {get_orb_agent_logs(context.container_id)}.")
 
 
 @step('a new agent is created with {orb_tags} orb tag(s)')
@@ -59,9 +60,9 @@ def agent_is_created_matching_group(context, amount_of_group):
     context.agent_key = context.agent["key"]
 
 
-@then('the agent status in Orb should be {status}')
-def check_agent_online(context, status):
-    timeout = 10
+@then('the agent status in Orb should be {status} within {seconds} seconds')
+def check_agent_online(context, status, seconds):
+    timeout = int(seconds)
     token = context.token
     agent_id = context.agent['id']
     agent_status = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
@@ -78,7 +79,8 @@ def check_agent_status(context, status):
     context.agent = get_agent(context.token, context.agent['id'])
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'."
-                f"Agent: {json.dumps(context.agent, indent=4)}")
+                f"Agent: {json.dumps(context.agent, indent=4)}."
+                f"Agent logs: {get_orb_agent_logs(context.container_id)}.")
 
 
 @then('cleanup agents')
@@ -195,6 +197,12 @@ def remove_one_agent_config_files(context):
             os.remove(file)
 
 
+@step("this agent is removed")
+def remove_orb_agent(context):
+    delete_agent(context.token, context.agent['id'])
+    get_agent(context.token, context.agent['id'], 404)
+
+
 @threading_wait_until
 def check_agent_exists_on_backend(token, agent_name, event=None):
     agent = None
@@ -214,9 +222,9 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
     context.agent_file_name = create_agent_config_file(context.token, agent_name, interface,
-                                                                         agent_tags, orb_url, base_orb_address, port,
-                                                                         existing_agent_groups=context.agent_groups,
-                                                                         context=context)
+                                                       agent_tags, orb_url, base_orb_address, port,
+                                                       existing_agent_groups=context.agent_groups,
+                                                       context=context)
     context.container_id = run_agent_config_file(agent_name)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(port)
@@ -236,6 +244,25 @@ def reset_agent_remotely(context):
     response = requests.post(f"{orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request)
     assert_that(response.status_code, equal_to(200),
                 'Request to restart agent failed with status=' + str(response.status_code))
+
+
+@step("{route} route must be enabled")
+def check_agent_backend_pktvisor_routes(context, route):
+    assert_that(route, any_of(equal_to("taps"), equal_to("handlers"), equal_to("inputs"), equal_to("backends")),
+                "Invalid agent route")
+
+    agent_backend_routes = {"backends": "backends", "taps": "backends/pktvisor/taps",
+                            "inputs": "backends/pktvisor/inputs",
+                            "handlers": "backends/pktvisor/handlers"}
+
+    response = requests.get(orb_url + '/api/v1/agents/' + agent_backend_routes[route],
+                            headers={'Authorization': context.token})
+    assert_that(response.status_code, equal_to(200),
+                f"Request to get {route} route failed with status =" + str(response.status_code))
+    local_orb_path = configs.get("local_orb_path")
+    route_schema_path = local_orb_path + f"/python-test/features/steps/schemas/{route}_schema.json"
+    is_schema_valid = validate_json(response.json(), route_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid route json. \n Route = {route}")
 
 
 @threading_wait_until
@@ -258,25 +285,25 @@ def wait_until_expected_agent_status(token, agent_id, status, event=None):
     return agent_status
 
 
-def get_agent(token, agent_id):
+def get_agent(token, agent_id, status_code=200):
     """
     Gets an agent from Orb control plane
 
     :param (str) token: used for API authentication
     :param (str) agent_id: that identifies agent to be fetched
+    :param (int) status_code: status code that must be returned on response
     :returns: (dict) the fetched agent
     """
 
     get_agents_response = requests.get(orb_url + '/api/v1/agents/' + agent_id, headers={'Authorization': token})
 
-    assert_that(get_agents_response.status_code, equal_to(200),
+    assert_that(get_agents_response.status_code, equal_to(status_code),
                 'Request to get agent id=' + agent_id + ' failed with status=' + str(get_agents_response.status_code))
 
     return get_agents_response.json()
 
 
 def list_agents(token, limit=100, offset=0):
-
     """
     Lists all agents from Orb control plane that belong to this user
 
