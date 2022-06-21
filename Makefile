@@ -23,7 +23,7 @@ CGO_ENABLED ?= 0
 GOARCH ?= $(shell dpkg-architecture -q DEB_BUILD_ARCH)
 ORB_VERSION = $(shell cat VERSION)
 COMMIT_HASH = $(shell git rev-parse --short HEAD)
-AGENT_VERSION = ${ORB_VERSION}-${COMMIT_HASH}
+AGENT_VERSION = ${ORB_VERSION}-$(COMMIT_HASH)
 
 define compile_service
     echo "ORB_VERSION: $(ORB_VERSION)"
@@ -82,6 +82,9 @@ ifdef pv
 	# Remove unused volumes
 	docker volume ls -f name=$(DOCKER_IMAGE_NAME_PREFIX) -f dangling=true -q | xargs -r docker volume rm
 endif
+
+test2:
+	echo ${AGENT_VERSION}
 
 test:
 	go test -mod=mod -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd')
