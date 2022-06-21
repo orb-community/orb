@@ -19,7 +19,7 @@ func New(logger *zap.Logger, dbs map[string]postgres.Database) Service {
 		logger: logger,
 		dbs:    dbs,
 		migrations: []migration.Plan{
-			migration.NewM0KetoPolicies(logger, dbs),
+			migration.NewM1KetoPolicies(logger, dbs),
 		},
 	}
 }

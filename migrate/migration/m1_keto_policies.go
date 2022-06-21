@@ -10,7 +10,7 @@ type M1KetoPolicies struct {
 	dbs map[string]postgres.Database
 }
 
-func NewM0KetoPolicies(log *zap.Logger, dbs map[string]postgres.Database) Plan {
+func NewM1KetoPolicies(log *zap.Logger, dbs map[string]postgres.Database) Plan {
 	return &M1KetoPolicies{log, dbs}
 }
 
