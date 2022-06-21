@@ -27,7 +27,7 @@ export class AgentProvisioningComponent implements OnInit {
   constructor() {
     this.command2copy = '';
     this.command2show = '';
-    this.copyCommandIcon = 'clipboard-outline';
+    this.copyCommandIcon = 'copy-outline';
   }
 
   ngOnInit(): void {
