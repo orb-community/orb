@@ -14,7 +14,7 @@ import (
 )
 
 // HeartbeatFreq how often to heartbeat
-const HeartbeatFreq = 60 * time.Second
+const HeartbeatFreq = 30 * time.Second
 
 // RestartTimeMin minimum time to wait between restarts
 const RestartTimeMin = 5 * time.Minute
