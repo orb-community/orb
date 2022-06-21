@@ -27,3 +27,4 @@ ui/.env
 ui/src/environments/environment.env.ts
 
 python-test/behave_orb
+test_agent_name*

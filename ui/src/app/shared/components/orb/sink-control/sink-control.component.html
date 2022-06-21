@@ -12,18 +12,6 @@
     *ngFor="let sink of sinksList"
     [attr.data-orb-qa-id]="'available_sink: '+sink.id"
     [id]="sink.id"
+    (click)="onAddSink(sink)"
     [value]="sink">{{ sink.name }}</nb-option>
 </nb-select>
-<button
-  (click)="onAddSink(selectedSink)"
-  [disabled]="!selectedSink"
-  data-orb-qa-id="addSink"
-  ghost
-  nbButton>
-  <nb-icon
-    icon="plus-outline"
-    size="14"
-    status="primary"
-    style="color: #df316f;">
-  </nb-icon>
-</button>
