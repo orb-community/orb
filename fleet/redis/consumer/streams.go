@@ -13,6 +13,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"strconv"
 	"strings"
 )
 
@@ -153,11 +154,14 @@ func (es eventStore) handleDatasetRemove(ctx context.Context, e removeDatasetEve
 
 func decodeDatasetUpdate(event map[string]interface{}) updateDatasetEvent {
 	return updateDatasetEvent{
-		id:           read(event, "id", ""),
-		ownerID:      read(event, "owner_id", ""),
-		agentGroupID: read(event, "group_id", ""),
-		datasetID:    read(event, "dataset_id", ""),
-		policyID:     read(event, "policy_id", ""),
+		id:            read(event, "id", ""),
+		ownerID:       read(event, "owner_id", ""),
+		agentGroupID:  read(event, "group_id", ""),
+		datasetID:     read(event, "dataset_id", ""),
+		policyID:      read(event, "policy_id", ""),
+		valid:         readBool(event, "valid", false),
+		turnedValid:   readBool(event, "turned_valid", false),
+		turnedInvalid: readBool(event, "turned_invalid", false),
 	}
 }
 
@@ -167,7 +171,11 @@ func (es eventStore) handleDatasetUpdate(ctx context.Context, e updateDatasetEve
 		return err
 	}
 
-	return es.commsService.NotifyGroupDatasetEdit(ctx, ag, e.id, e.policyID, e.ownerID)
+	if e.turnedValid || e.turnedInvalid {
+		return es.commsService.NotifyGroupDatasetEdit(ctx, ag, e.id, e.policyID, e.ownerID, e.valid)
+	}
+
+	return nil
 }
 
 func decodePolicyUpdate(event map[string]interface{}) (updatePolicyEvent, error) {
@@ -234,4 +242,18 @@ func read(event map[string]interface{}, key, def string) string {
 	}
 
 	return val
+}
+
+func readBool(event map[string]interface{}, key string, def bool) bool {
+	val, ok := event[key].(string)
+	if !ok {
+		return def
+	}
+
+	boolVal, err := strconv.ParseBool(val)
+	if err != nil {
+		return def
+	}
+
+	return boolVal
 }
