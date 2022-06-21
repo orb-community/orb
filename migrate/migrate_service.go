@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/ns1labs/orb/migrate/postgres"
 	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -94,7 +95,7 @@ func (s *serviceMigrate) LatestSchemaVersion() int64 {
 }
 
 func (s *serviceMigrate) doOnTx(f func(tx *sqlx.Tx) error) error {
-	tx, err := s.dbs["keto"].BeginTxx(context.Background(), nil)
+	tx, err := s.dbs[postgres.DbKeto].BeginTxx(context.Background(), nil)
 	if err != nil {
 		return err
 	}
