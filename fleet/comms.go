@@ -122,8 +122,6 @@ func (svc fleetCommsService) NotifyGroupDatasetEdit(ctx context.Context, ag Agen
 		return err
 	}
 
-	//DELETE
-	svc.logger.Info("NOTIFY GROUP DATASET RPC")
 	return nil
 }
 
