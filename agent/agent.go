@@ -202,8 +202,6 @@ func (a *orbAgent) restartComms() error {
 	if err != nil {
 		return err
 	}
-	a.groupRequestSucceeded <- true
-	a.policyRequestSucceeded <- true
 	if err := a.startComms(cloudConfig); err != nil {
 		a.logger.Error("could not restart mqtt client")
 		return err
@@ -217,7 +215,6 @@ func (a *orbAgent) RestartAll(reason string) error {
 	if err != nil {
 		a.logger.Error("failed to restart comms", zap.Error(err))
 	}
-
 	a.logger.Info("restarting all backends", zap.String("reason", reason))
 	for name := range a.backends {
 		a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
