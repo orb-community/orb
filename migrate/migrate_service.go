@@ -45,15 +45,17 @@ func (s *serviceMigrate) Up() (err error) {
 
 	for errorIndex > current {
 		s.logger.Info(fmt.Sprintf("rolling back migration %d of %d", errorIndex+1, latest))
-		err = s.migrations[errorIndex].Down()
-		if err != nil {
-			s.logger.Error(fmt.Sprintf("error on migration down %d of %d", errorIndex+1, latest), zap.Error(err))
+		errMigration := s.migrations[errorIndex].Down()
+		if errMigration != nil {
+			s.logger.Error(fmt.Sprintf("error on migration down %d of %d", errorIndex+1, latest), zap.Error(errMigration))
 			break
 		}
 		errorIndex--
 	}
 
-	err = s.SetSchemaVersion(index)
+	if errSchema = s.SetSchemaVersion(index); errSchema != nil {
+		return errSchema
+	}
 	return
 }
 
