@@ -275,15 +275,17 @@ func (svc fleetService) ViewAgentInfoByChannelIDInternal(ctx context.Context, ch
 	return res, nil
 }
 
-func (svc fleetService) GetPoliciesState(ctx context.Context, agent Agent) (map[string]interface{}, error) {
+func (svc fleetService) GetPolicyState(ctx context.Context, agent Agent) (map[string]interface{}, error) {
 
 	jsonHb, err := json.Marshal(agent.LastHBData)
 	if err != nil {
 		svc.logger.Error("failed to marshal heartbeat data", zap.Error(err))
+		return nil, err
 	}
 	var hb Heartbeat
 	if err = json.Unmarshal(jsonHb, &hb); err != nil {
 		svc.logger.Error("failed to unmarshal heartbeat data", zap.Error(err))
+		return nil, err
 	}
 
 	policyState := make(map[string]interface{})

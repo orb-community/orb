@@ -125,8 +125,8 @@ func (es eventStore) RemoveAgent(ctx context.Context, token, thingID string) (er
 	return es.svc.RemoveAgent(ctx, token, thingID)
 }
 
-func (es eventStore) GetPoliciesState(ctx context.Context, agent fleet.Agent) (map[string]interface{}, error) {
-	return es.svc.GetPoliciesState(ctx, agent)
+func (es eventStore) GetPolicyState(ctx context.Context, agent fleet.Agent) (map[string]interface{}, error) {
+	return es.svc.GetPolicyState(ctx, agent)
 }
 
 // NewEventStoreMiddleware returns wrapper around fleet service that sends

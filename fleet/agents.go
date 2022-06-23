@@ -107,8 +107,8 @@ type AgentService interface {
 	ViewAgentInfoByChannelIDInternal(ctx context.Context, channelID string) (Agent, error)
 	// ResetAgent reset a agent on edge by a provided agent
 	ResetAgent(ct context.Context, token string, agentID string) error
-	// GetPoliciesState get all policies state per agent in a formatted way
-	GetPoliciesState(ctx context.Context, agent Agent) (map[string]interface{}, error)
+	// GetPolicyState get all policies state per agent in a formatted way from a given existent agent
+	GetPolicyState(ctx context.Context, agent Agent) (map[string]interface{}, error)
 }
 
 type AgentRepository interface {

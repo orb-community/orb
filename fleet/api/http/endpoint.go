@@ -293,21 +293,18 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		for _, ag := range page.Agents {
 
-			policiesState, err := svc.GetPoliciesState(ctx, ag)
-			if err != nil {
-				return nil, err
-			}
+			policyState, _ := svc.GetPolicyState(ctx, ag)
 
 			view := agentRes{
-				ID:            ag.MFThingID,
-				Name:          ag.Name.String(),
-				ChannelID:     ag.MFChannelID,
-				AgentTags:     ag.AgentTags,
-				OrbTags:       ag.OrbTags,
-				TsCreated:     ag.Created,
-				State:         ag.State.String(),
-				TsLastHB:      ag.LastHB,
-				PoliciesState: policiesState,
+				ID:          ag.MFThingID,
+				Name:        ag.Name.String(),
+				ChannelID:   ag.MFChannelID,
+				AgentTags:   ag.AgentTags,
+				OrbTags:     ag.OrbTags,
+				TsCreated:   ag.Created,
+				State:       ag.State.String(),
+				TsLastHB:    ag.LastHB,
+				PolicyState: policyState,
 			}
 			res.Agents = append(res.Agents, view)
 		}

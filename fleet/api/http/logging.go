@@ -293,19 +293,19 @@ func (l loggingMiddleware) RemoveAgent(ctx context.Context, token, thingID strin
 	return l.svc.RemoveAgent(ctx, token, thingID)
 }
 
-func (l loggingMiddleware) GetPoliciesState(ctx context.Context, agent fleet.Agent) (_ map[string]interface{}, err error) {
+func (l loggingMiddleware) GetPolicyState(ctx context.Context, agent fleet.Agent) (_ map[string]interface{}, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: get_policies_state",
+			l.logger.Warn("method call: get_policy_state",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: get_policies_state",
+			l.logger.Info("method call: get_policy_state",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
 
-	return l.svc.GetPoliciesState(ctx, agent)
+	return l.svc.GetPolicyState(ctx, agent)
 }
 
 func NewLoggingMiddleware(svc fleet.Service, logger *zap.Logger) fleet.Service {
