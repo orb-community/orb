@@ -5,8 +5,8 @@
 package types
 
 import (
-    "encoding/json"
-    "github.com/ns1labs/orb/pkg/errors"
+	"encoding/json"
+	"github.com/ns1labs/orb/pkg/errors"
 )
 
 // Tags A flat kv pair object
@@ -16,11 +16,19 @@ type Tags map[string]string
 type Metadata map[string]interface{}
 
 func (s *Metadata) Scan(src interface{}) error {
-   switch v := src.(type) {
-   case []byte:
-       return json.Unmarshal(v, s)
-   case string:
-       return json.Unmarshal([]byte(v), s)
-   }
-   return errors.New("type assertion failed")
+	switch v := src.(type) {
+	case []byte:
+		return json.Unmarshal(v, s)
+	case string:
+		return json.Unmarshal([]byte(v), s)
+	}
+	return errors.New("type assertion failed")
+}
+
+func (s *Metadata) RestrictKeys(predicate func(string) bool) {
+	for key, _ := range *s {
+		if predicate(key) {
+			(*s)[key] = ""
+		}
+	}
 }

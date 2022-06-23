@@ -17,12 +17,13 @@ type policyRes struct {
 }
 
 type policyInDSRes struct {
-	id        string
-	name      string
-	backend   string
-	version   int32
-	data      []byte
-	datasetID string
+	id           string
+	name         string
+	backend      string
+	version      int32
+	data         []byte
+	datasetID    string
+	agentGroupID string
 }
 
 type policyInDSListRes struct {

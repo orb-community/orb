@@ -9,6 +9,9 @@ type Backend interface {
 	CreateFeatureConfig() []ConfigFeature
 }
 
+const ConfigFeatureTypePassword = "password"
+const ConfigFeatureTypeText = "text"
+
 type ConfigFeature struct {
 	Type     string `json:"type"`
 	Input    string `json:"input"`

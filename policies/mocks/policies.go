@@ -22,9 +22,9 @@ type mockPoliciesRepository struct {
 }
 
 func (m *mockPoliciesRepository) ActivateDatasetByID(ctx context.Context, datasetID string, ownerID string) error {
-	for _, ds := range m.ddb{
-		if ds.MFOwnerID == ownerID{
-			if ds.ID == datasetID{
+	for _, ds := range m.ddb {
+		if ds.MFOwnerID == ownerID {
+			if ds.ID == datasetID {
 				ds.Valid = true
 			}
 		}
@@ -57,10 +57,10 @@ func (m *mockPoliciesRepository) RetrieveAllDatasetsInternal(ctx context.Context
 }
 
 func (m *mockPoliciesRepository) InactivateDatasetByID(ctx context.Context, sinkID string, ownerID string) error {
-	for _, ds := range m.ddb{
-		if ds.MFOwnerID == ownerID{
+	for _, ds := range m.ddb {
+		if ds.MFOwnerID == ownerID {
 			for _, sID := range ds.SinkIDs {
-				if sID == sinkID{
+				if sID == sinkID {
 					ds.Valid = false
 				}
 			}
@@ -72,10 +72,10 @@ func (m *mockPoliciesRepository) InactivateDatasetByID(ctx context.Context, sink
 func (m *mockPoliciesRepository) DeleteSinkFromAllDatasets(ctx context.Context, sinkID string, ownerID string) ([]policies.Dataset, error) {
 	var datasets []policies.Dataset
 
-	for _, ds := range m.ddb{
-		if ds.MFOwnerID == ownerID{
+	for _, ds := range m.ddb {
+		if ds.MFOwnerID == ownerID {
 			for i, sID := range ds.SinkIDs {
-				if sID == sinkID{
+				if sID == sinkID {
 					ds.SinkIDs[i] = ds.SinkIDs[len(ds.SinkIDs)-1]
 					ds.SinkIDs[len(ds.SinkIDs)-1] = ""
 					ds.SinkIDs = ds.SinkIDs[:len(ds.SinkIDs)-1]
@@ -239,9 +239,9 @@ func (m *mockPoliciesRepository) SaveDataset(ctx context.Context, dataset polici
 
 	if _, ok := m.gdb[dataset.AgentGroupID]; !ok {
 		m.gdb[dataset.AgentGroupID] = make([]policies.PolicyInDataset, 1)
-		m.gdb[dataset.AgentGroupID][0] = policies.PolicyInDataset{Policy: m.pdb[dataset.PolicyID], DatasetID: dataset.ID}
+		m.gdb[dataset.AgentGroupID][0] = policies.PolicyInDataset{Policy: m.pdb[dataset.PolicyID], DatasetID: dataset.ID, AgentGroupID: dataset.AgentGroupID}
 	} else {
-		m.gdb[dataset.AgentGroupID] = append(m.gdb[dataset.AgentGroupID], policies.PolicyInDataset{Policy: m.pdb[dataset.PolicyID], DatasetID: dataset.ID})
+		m.gdb[dataset.AgentGroupID] = append(m.gdb[dataset.AgentGroupID], policies.PolicyInDataset{Policy: m.pdb[dataset.PolicyID], DatasetID: dataset.ID, AgentGroupID: dataset.AgentGroupID})
 	}
 	m.dataSetCounter++
 	return ID.String(), nil
@@ -258,8 +258,8 @@ func (m *mockPoliciesRepository) RetrieveDatasetByID(ctx context.Context, datase
 }
 
 func (m *mockPoliciesRepository) InactivateDatasetByGroupID(ctx context.Context, groupID string, ownerID string) error {
-	for _, ds := range m.ddb{
-		if ds.AgentGroupID == groupID && ds.MFOwnerID == ownerID{
+	for _, ds := range m.ddb {
+		if ds.AgentGroupID == groupID && ds.MFOwnerID == ownerID {
 			ds.Valid = false
 			return nil
 		}
@@ -296,9 +296,9 @@ func (m *mockPoliciesRepository) RetrieveAllDatasetsByOwner(ctx context.Context,
 }
 
 func (m *mockPoliciesRepository) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID string, ownerID string) error {
-	for _, ds := range m.ddb{
-		if ds.MFOwnerID == ownerID{
-			if ds.AgentGroupID == groupID{
+	for _, ds := range m.ddb {
+		if ds.MFOwnerID == ownerID {
+			if ds.AgentGroupID == groupID {
 				ds.AgentGroupID = ""
 			}
 		}

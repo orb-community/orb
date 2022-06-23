@@ -31,8 +31,8 @@ endef
 
 define compile_service_linux
 	$(eval svc=$(subst docker_dev_,,$(1)))
-    echo "ORB_VERSION: $(ORB_VERSION)"
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=linux GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-extldflags "-static" -X 'github.com/ns1labs/orb/buildinfo.version=$(ORB_VERSION)'" -o ${BUILD_DIR}/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc) cmd/$(svc)/main.go
+    echo "ORB_VERSION: $(ORB_VERSION)-$(COMMIT_HASH)"
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=linux GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-extldflags "-static" -X 'github.com/ns1labs/orb/buildinfo.version=$(ORB_VERSION)-$(COMMIT_HASH)'" -o ${BUILD_DIR}/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc) cmd/$(svc)/main.go
 endef
 
 define run_test
@@ -54,7 +54,7 @@ define make_docker
 endef
 
 define make_docker_dev
-	$(eval svc=$(shell [ -z "$(svc)" ] && echo $(subst docker_,,$(1)) || echo $(svc)))
+	$(eval svc=$(shell [ -z "$(SERVICE)" ] && echo $(subst docker_dev_,,$(1)) || echo $(svc)))
 	docker build \
 		--no-cache \
 		--build-arg SVC=$(svc) \
@@ -166,4 +166,4 @@ ui:
 		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile .
 
-platform: dockers_dev docker_sinker agent ui
+platform: dockers_dev agent ui

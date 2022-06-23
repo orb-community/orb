@@ -23,6 +23,13 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	opts.SetDefaultPublishHandler(func(client mqtt.Client, message mqtt.Message) {
 		a.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 	})
+	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
+		a.logger.Error("error on connection lost, retrying to reconnect", zap.Error(err))
+		if err = a.restartComms(); err != nil {
+			a.logger.Error("got error trying to reconnect, stopping agent", zap.Error(err))
+			a.Stop()
+		}
+	})
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(true)
 
@@ -83,7 +90,7 @@ func (a *orbAgent) unsubscribeGroupChannels() {
 	a.groupsInfos = make(map[string]GroupInfo)
 }
 
-func (a *orbAgent) unsubscribeGroupChannel(channelID string) {
+func (a *orbAgent) unsubscribeGroupChannel(channelID string, agentGroupID string) {
 	base := fmt.Sprintf("channels/%s/messages", channelID)
 	rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
 	if token := a.client.Unsubscribe(channelID); token.Wait() && token.Error() != nil {
@@ -91,6 +98,7 @@ func (a *orbAgent) unsubscribeGroupChannel(channelID string) {
 		return
 	}
 	a.logger.Info("completed RPC unsubscription to group", zap.String("topic", rpcFromCoreTopic))
+	delete(a.groupsInfos, agentGroupID)
 }
 
 func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
