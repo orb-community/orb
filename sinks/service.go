@@ -40,6 +40,8 @@ type sinkService struct {
 	mfsdk mfsdk.SDK
 	// Sinks
 	sinkRepo SinkRepository
+	// passwordService
+	passwordService PasswordService
 }
 
 func (s sinkService) identify(token string) (string, error) {

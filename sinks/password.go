@@ -11,16 +11,20 @@ import (
 type PasswordService interface {
 	EncodePassword(plainText string) (string, error)
 	SetKey(newKey []byte)
-	GetPassword() string
+	GetPassword(cipheredText string) string
 }
 
-func newInstance(logger zap.Logger) *passwordServices {
+func NewInstance(logger zap.Logger) *passwordServices {
 	keyString := os.Getenv("ORB_SINK_SECRET_KEY")
-	if ("")
-	return &passwordServices{
-		key:    loadedKey,
+	if keyString != "" {
+		logger.Error("not found the ORB SINK SECRET")
+		return nil
+	}
+	ps := &passwordServices{
 		logger: logger,
 	}
+	ps.SetKey([]byte(keyString))
+	return ps
 }
 
 type passwordServices struct {
@@ -41,18 +45,15 @@ func (ps *passwordServices) SetKey(newKey []byte) {
 	if err != nil {
 		return
 	}
-
 	_, err = cipher.NewGCM(blockCipher)
 	if err != nil {
 		return
 	}
-
 	ps.key = newKey
 }
 
-func (ps *passwordServices) GetPassword() string {
-	//TODO implement me
-	panic("implement me")
+func (ps *passwordServices) GetPassword(cipheredText string) string {
+
 }
 
 func encrypt(key, data []byte) (cipherText []byte, err error) {
