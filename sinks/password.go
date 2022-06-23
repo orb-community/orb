@@ -4,9 +4,58 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"go.uber.org/zap"
+	"os"
 )
 
-func Encrypt(key, data []byte) (cipherText []byte, err error) {
+type PasswordService interface {
+	EncodePassword(plainText string) (string, error)
+	SetKey(newKey []byte)
+	GetPassword() string
+}
+
+func newInstance(logger zap.Logger) *passwordServices {
+	keyString := os.Getenv("ORB_SINK_SECRET_KEY")
+	if ("")
+	return &passwordServices{
+		key:    loadedKey,
+		logger: logger,
+	}
+}
+
+type passwordServices struct {
+	key    []byte
+	logger zap.Logger
+}
+
+func (ps *passwordServices) EncodePassword(plainText string) (string, error) {
+	cipherText, err := encrypt(ps.key, []byte(plainText))
+	if err != nil {
+		return "", err
+	}
+	return string(cipherText), nil
+}
+
+func (ps *passwordServices) SetKey(newKey []byte) {
+	blockCipher, err := aes.NewCipher(newKey)
+	if err != nil {
+		return
+	}
+
+	_, err = cipher.NewGCM(blockCipher)
+	if err != nil {
+		return
+	}
+
+	ps.key = newKey
+}
+
+func (ps *passwordServices) GetPassword() string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func encrypt(key, data []byte) (cipherText []byte, err error) {
 	blockCipher, err := aes.NewCipher(key)
 	if err != nil {
 		return
@@ -25,7 +74,7 @@ func Encrypt(key, data []byte) (cipherText []byte, err error) {
 	return
 }
 
-func Decrypt(key, data []byte) (plaintext []byte, err error) {
+func decrypt(key, data []byte) (plaintext []byte, err error) {
 	blockCipher, err := aes.NewCipher(key)
 	if err != nil {
 		return

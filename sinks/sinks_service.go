@@ -34,7 +34,7 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	if err != nil {
 		return Sink{}, err
 	}
-
+	password := 
 	id, err := svc.sinkRepo.Save(ctx, sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
