@@ -68,7 +68,7 @@ func (m *M1KetoPolicies) createUserRelations(ctx context.Context, currentTime ti
 		}
 
 		// create entry putting user as member
-		q = `INSERT INTO keto_0000000000_relation_tuples (shard_id, object, relation, subject, commit_time)
+		q = `INSERT INTO keto_relation_tuples (shard_id, object, relation, subject, commit_time)
 			  VALUES (:shard_id, :object, :relation, :subject, :commit_time);`
 		params := map[string]interface{}{
 			"shard_id":    "default",
@@ -102,7 +102,7 @@ func (m *M1KetoPolicies) createChannelsOrThingsRelations(ctx context.Context, cu
 
 		// create read, write and create entries for authorities
 		for _, relation := range []string{0: "read", 1: "write", 2: "creation"} {
-			q = `INSERT INTO keto_0000000000_relation_tuples (shard_id, object, relation, subject, commit_time)
+			q = `INSERT INTO keto_relation_tuples (shard_id, object, relation, subject, commit_time)
 				VALUES (:shard_id, :object, :relation, :subject, :commit_time);`
 			params := map[string]interface{}{
 				"shard_id":    "default",
@@ -127,7 +127,7 @@ func (m *M1KetoPolicies) createChannelsOrThingsRelations(ctx context.Context, cu
 
 		// create read, write and create entries for owner
 		for _, relation := range []string{0: "read", 1: "write", 2: "creation"} {
-			q = `INSERT INTO keto_0000000000_relation_tuples (shard_id, object, relation, subject, commit_time)
+			q = `INSERT INTO keto_relation_tuples (shard_id, object, relation, subject, commit_time)
 				VALUES (:shard_id, :object, :relation, :subject, :commit_time);`
 			params := map[string]interface{}{
 				"shard_id":    "default",
