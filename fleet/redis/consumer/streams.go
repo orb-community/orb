@@ -166,12 +166,12 @@ func decodeDatasetUpdate(event map[string]interface{}) updateDatasetEvent {
 }
 
 func (es eventStore) handleDatasetUpdate(ctx context.Context, e updateDatasetEvent) error {
-	ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, e.agentGroupID, e.ownerID)
-	if err != nil {
-		return err
-	}
-
 	if e.turnedValid || e.turnedInvalid {
+		ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, e.agentGroupID, e.ownerID)
+		if err != nil {
+			return err
+		}
+		
 		return es.commsService.NotifyGroupDatasetEdit(ctx, ag, e.id, e.policyID, e.ownerID, e.valid)
 	}
 
