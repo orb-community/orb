@@ -14,7 +14,7 @@ import (
 )
 
 // HeartbeatFreq how often to heartbeat
-const HeartbeatFreq = 60 * time.Second
+const HeartbeatFreq = 50 * time.Second
 
 // RestartTimeMin minimum time to wait between restarts
 const RestartTimeMin = 5 * time.Minute
@@ -94,11 +94,21 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
 	if token := a.client.Publish(a.heartbeatsTopic, 1, false, body); token.Wait() && token.Error() != nil {
 		a.logger.Error("error sending heartbeat", zap.Error(token.Error()))
+		err = a.restartComms()
+		if err != nil {
+			a.logger.Error("error reconnecting with MQTT, stopping agent")
+			a.Stop()
+		}
 	}
 }
 
 func (a *orbAgent) sendHeartbeats() {
+	a.logger.Debug("start heartbeats routine")
 	a.sendSingleHeartbeat(time.Now(), fleet.Online)
+	defer func() {
+		a.logger.Debug("stopping heartbeats routine")
+		a.sendSingleHeartbeat(time.Now(), fleet.Offline)
+	}()
 	for {
 		select {
 		case <-a.hbDone:
