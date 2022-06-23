@@ -77,6 +77,7 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := svc.Up(); err != nil {
 				log.Error("error executing migration up", zap.Error(err))
+				os.Exit(1)
 			}
 		},
 	}
@@ -88,6 +89,7 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := svc.Down(); err != nil {
 				log.Error("error executing migration down", zap.Error(err))
+				os.Exit(1)
 			}
 		},
 	}
@@ -99,6 +101,7 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := svc.Drop(); err != nil {
 				log.Error("error executing migration drop", zap.Error(err))
+				os.Exit(1)
 			}
 		},
 	}
@@ -111,6 +114,7 @@ func main() {
 	if err := rootCmd.Execute(); err != nil {
 		log.Error("error on command exit", zap.Error(err))
 		fmt.Printf("error on command exit: %s\n", err.Error())
+		os.Exit(1)
 	}
 }
 
