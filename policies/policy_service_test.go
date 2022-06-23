@@ -810,8 +810,9 @@ func TestListPoliciesByGroupIDInternal(t *testing.T) {
 	listPlTest := make([]policies.PolicyInDataset, total)
 	for i := 0; i < total; i++ {
 		listPlTest[i] = policies.PolicyInDataset{
-			Policy:    policy,
-			DatasetID: datasetsID[i],
+			Policy:       policy,
+			DatasetID:    datasetsID[i],
+			AgentGroupID: agentGroupID.String(),
 		}
 	}
 
