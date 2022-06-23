@@ -393,7 +393,7 @@ func TestRemoveAgentGroup(t *testing.T) {
 		"remove non-existing thing": {
 			id:    wrongID,
 			token: token,
-			err:   nil,
+			err:   things.ErrNotFound,
 		},
 	}
 

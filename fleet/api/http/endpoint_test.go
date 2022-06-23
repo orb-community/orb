@@ -622,7 +622,7 @@ func TestDeleteAgentGroup(t *testing.T) {
 		"delete non-existent agent group": {
 			id:     wrongID,
 			auth:   token,
-			status: http.StatusNoContent,
+			status: http.StatusNotFound,
 		},
 		"delete agent group with invalid token": {
 			id:     ag.ID,
