@@ -2,7 +2,7 @@
 Feature: Integration tests
 
 
-@dev
+@smoke
 Scenario: Test agents backend routes
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -143,7 +143,7 @@ Scenario: Provision agent with tags matching an existent group
     When a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
         And the agent status is online
-    Then the agent status in Orb should be online
+    Then the agent status in Orb should be online within 10 seconds
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
 
@@ -355,8 +355,8 @@ Scenario: Edit agent name and apply policies to then
         And an Agent Group is created with all tags contained in the agent
         And 1 agent must be matching on response field matching_agents
         And that a sink already exists
+    When edit the agent name
         And 1 simple policies are applied to the group
-    When edit the agent name and edit orb tags on agent using 3 orb tag(s)
     Then this agent's heartbeat shows that 1 policies are successfully applied and has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
 
@@ -373,7 +373,7 @@ Scenario: Editing tags of an Agent Group with policies (unsubscription - provisi
     When the name, tags, description of Agent Group is edited using: name=new_name/ tags=2 orb tag(s)/ description=None
     Then 0 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
 
 
 @smoke
@@ -404,7 +404,7 @@ Scenario: Editing tags of an Agent Group with policies (provision agent after ed
         And the agent container is started on an available port
         And the agent status is online
     Then 0 agent must be matching on response field matching_agents
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
 
 
 @smoke
@@ -420,7 +420,7 @@ Scenario: Editing tags of an Agent Group with policies (subscription - provision
         And the agent status is online
     Then 1 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
 
@@ -439,7 +439,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (unsubscription
         And the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
         And this agent's heartbeat shows that 0 groups are matching the agent
         And this agent's heartbeat shows that 0 policies are successfully applied to the agent
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
 
 
 @smoke
@@ -454,7 +454,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
         And the name, tags, description of Agent Group is edited using: name=new_name/ tags=matching the agent/ description=None
     Then 1 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
 
@@ -472,7 +472,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (provision agen
         And the agent container is started on an available port
         And the agent status is online
     Then 0 agent must be matching on response field matching_agents
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
 
 
 @smoke
@@ -489,7 +489,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
         And the agent status is online
     Then 1 agent must be matching on response field matching_agents
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
-        And the agent status in Orb should be online
+        And the agent status in Orb should be online within 10 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
 
@@ -702,11 +702,11 @@ Scenario: Remotely restart agents with policies applied
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
     When remotely restart the agent
     Then the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 10 seconds
-        And the container logs should contain the message "restarting all backends" within 5 seconds
+        And the container logs should contain the message "all backends and comms were restarted" within 5 seconds
         And the container logs that were output after reset the agent contain the message "removing policies" within 5 seconds
         And the container logs that were output after reset the agent contain the message "resetting backend" within 10 seconds
         And the container logs that were output after reset the agent contain the message "reapplying policies" within 5 seconds
-        And the container logs that were output after reset the agent contain the message "all backends were restarted" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 5 seconds
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 10 seconds
         And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
@@ -721,7 +721,7 @@ Scenario: Remotely restart agents without policies applied
     When remotely restart the agent
         And the container logs that were output after reset the agent contain the message "resetting backend" within 5 seconds
         And the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 5 seconds
-        And the container logs that were output after reset the agent contain the message "all backends were restarted" within 5 seconds
+        And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 5 seconds
         And 2 simple policies are applied to the group
     Then the container logs should contain the message "restarting all backends" within 5 seconds
         And this agent's heartbeat shows that 2 policies are successfully applied and has status running
@@ -744,3 +744,20 @@ Scenario: Create duplicated policy
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 10 seconds
         And datasets related to all existing policies have validity valid
+
+
+@smoke
+Scenario: Remove agent
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And a new agent is created with 1 orb tag(s)
+        And the agent container is started on an available port
+        And the agent status is online
+        And referred agent is subscribed to a group
+        And that a sink already exists
+        And 2 simple policies are applied to the group
+    When this agent is removed
+    Then 0 agent must be matching on response field matching_agents
+        And the container logs should contain the message "ERROR mqtt log" within 120 seconds
+        And last container created is running after 120 seconds
+        And dataset related have validity valid

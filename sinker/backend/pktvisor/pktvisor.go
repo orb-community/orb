@@ -7,6 +7,9 @@ package pktvisor
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
 	"github.com/ns1labs/orb/fleet"
@@ -15,8 +18,6 @@ import (
 	"github.com/ns1labs/orb/sinker/backend"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	"go.uber.org/zap"
-	"regexp"
-	"strings"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
@@ -281,6 +282,10 @@ func topNMetricsParser(label string) (string, error) {
 	mapNMetrics["TopDstPortsPackets"] = "port"
 	mapNMetrics["TopSrcPortsBytes"] = "port"
 	mapNMetrics["TopSrcPortsPackets"] = "port"
+	mapNMetrics["TopDstIpsAndPortBytes"] = "ip_port"
+	mapNMetrics["TopDstIpsAndPortPackets"] = "ip_port"
+	mapNMetrics["TopSrcIpsAndPortBytes"] = "ip_port"
+	mapNMetrics["TopSrcIpsAndPortPackets"] = "ip_port"
 	mapNMetrics["TopInIfIndexBytes"] = "index"
 	mapNMetrics["TopInIfIndexPackets"] = "index"
 	mapNMetrics["TopOutIfIndexBytes"] = "index"

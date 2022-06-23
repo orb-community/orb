@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import {
   NbAccordionModule,
-  NbAlertModule,
+  NbAlertModule, NbAutocompleteModule,
   NbButtonModule,
   NbCardModule,
   NbCheckboxModule,
@@ -66,6 +66,7 @@ import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { A11yModule } from '@angular/cdk/a11y';
 import { AgentPolicyViewComponent } from 'app/pages/datasets/policies.agent/view/agent.policy.view.component';
 import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
+import {SortPipe} from 'app/shared/pipes/sort.pipe';
 
 @NgModule({
   imports: [
@@ -99,6 +100,7 @@ import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-fr
     MonacoEditorModule,
     NbToggleModule,
     A11yModule,
+    NbAutocompleteModule,
   ],
   exports: [
     SharedModule,
@@ -152,6 +154,7 @@ import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-fr
   providers: [
     NbDialogService,
     NbWindowService,
+      SortPipe,
   ],
   entryComponents: [
     ConfirmationComponent,

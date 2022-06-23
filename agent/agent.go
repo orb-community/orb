@@ -16,6 +16,7 @@ import (
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"runtime"
 	"time"
 )
 
@@ -48,11 +49,22 @@ type orbAgent struct {
 	heartbeatsTopic   string
 	logTopic          string
 
+	// Retry Mechanism to ensure the Request is received
+	groupRequestTicker     *time.Ticker
+	groupRequestSucceeded  chan bool
+	policyRequestTicker    *time.Ticker
+	policyRequestSucceeded chan bool
+
 	// AgentGroup channels sent from core
 	groupsInfos map[string]GroupInfo
 
 	policyManager manager.PolicyManager
 }
+
+const retryRequestDuration = time.Second
+const retryRequestFixedTime = 5
+const retryDurationIncrPerAttempts = 10
+const retryMaxAttempts = 5
 
 type GroupInfo struct {
 	Name      string
@@ -106,6 +118,7 @@ func (a *orbAgent) Start() error {
 	mqtt.ERROR = &agentLoggerError{a: a}
 
 	if a.config.OrbAgent.Debug.Enable {
+		a.logger.Info("debug logging enabled")
 		mqtt.DEBUG = &agentLoggerDebug{a: a}
 	}
 
@@ -122,7 +135,11 @@ func (a *orbAgent) Start() error {
 		return err
 	}
 
+	a.groupRequestSucceeded = make(chan bool, 1)
+	a.policyRequestSucceeded = make(chan bool, 1)
+
 	if err := a.startComms(cloudConfig); err != nil {
+		a.logger.Error("could not restart mqtt client")
 		return err
 	}
 
@@ -135,6 +152,7 @@ func (a *orbAgent) Start() error {
 
 func (a *orbAgent) Stop() {
 	a.logger.Info("stopping agent")
+	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
 	a.hbTicker.Stop()
 	a.hbDone <- true
 	a.sendSingleHeartbeat(time.Now(), fleet.Offline)
@@ -148,6 +166,9 @@ func (a *orbAgent) Stop() {
 		}
 	}
 	a.client.Disconnect(250)
+	defer close(a.hbDone)
+	defer close(a.policyRequestSucceeded)
+	defer close(a.groupRequestSucceeded)
 }
 
 func (a *orbAgent) RestartBackend(name string, reason string) error {
@@ -181,12 +202,10 @@ func (a *orbAgent) restartComms() error {
 	if err != nil {
 		return err
 	}
-
 	if err := a.startComms(cloudConfig); err != nil {
+		a.logger.Error("could not restart mqtt client")
 		return err
 	}
-
-	a.requestReconnection(a.client, cloudConfig)
 	return nil
 }
 
@@ -196,7 +215,6 @@ func (a *orbAgent) RestartAll(reason string) error {
 	if err != nil {
 		a.logger.Error("failed to restart comms", zap.Error(err))
 	}
-
 	a.logger.Info("restarting all backends", zap.String("reason", reason))
 	for name := range a.backends {
 		a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))

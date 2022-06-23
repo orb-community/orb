@@ -61,7 +61,8 @@ func Run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	config.Debug = Debug
+	config.OrbAgent.Debug.Enable = Debug
+
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
 	if err == nil && config.OrbAgent.Backends == nil {

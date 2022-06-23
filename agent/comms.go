@@ -23,13 +23,15 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	opts.SetDefaultPublishHandler(func(client mqtt.Client, message mqtt.Message) {
 		a.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 	})
+	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
+		a.logger.Error("error on connection lost, retrying to reconnect", zap.Error(err))
+		if err = a.restartComms(); err != nil {
+			a.logger.Error("got error trying to reconnect, stopping agent", zap.Error(err))
+			a.Stop()
+		}
+	})
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(true)
-	opts.SetConnectRetry(true)
-	opts.SetConnectRetryInterval(5 * time.Second)
-	opts.SetOnConnectHandler(func(client mqtt.Client) {
-		a.requestReconnection(client, config)
-	})
 
 	if !a.config.OrbAgent.TLS.Verify {
 		opts.TLSConfig = &tls.Config{InsecureSkipVerify: true}
@@ -114,6 +116,7 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 			return ErrMqttConnection
 		}
 	}
+	a.requestReconnection(a.client, config)
 
 	return nil
 }
