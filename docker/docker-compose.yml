@@ -32,7 +32,7 @@ services:
 ## keto ##
 
   keto:
-    image: oryd/keto:v0.6.0-alpha.3
+    image: oryd/keto:v0.8.0-alpha.2
     container_name: mainflux-keto
     ports:
       - ${MF_KETO_READ_REMOTE_PORT}:${MF_KETO_READ_REMOTE_PORT}
@@ -51,7 +51,7 @@ services:
       - keto-db
 
   keto-migrate:
-    image: oryd/keto:v0.6.0-alpha.3
+    image: oryd/keto:v0.8.0-alpha.2
     container_name: mainflux-keto-migrate
     environment:
       - KETO_WRITE_REMOTE=keto:${MF_KETO_WRITE_REMOTE_PORT}
@@ -61,7 +61,7 @@ services:
       - type: bind
         source: ./keto
         target: /home/ory
-    command: migrate up --all-namespaces -c /home/ory/keto.yml --yes
+    command: migrate up -c /home/ory/keto.yml --yes
     restart: on-failure
     networks:
       - orb-base-net
