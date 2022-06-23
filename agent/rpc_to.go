@@ -6,9 +6,11 @@ package agent
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"time"
 )
 
 func (a *orbAgent) sendCapabilities() error {
@@ -53,8 +55,8 @@ func (a *orbAgent) sendCapabilities() error {
 	return nil
 }
 
-func (a *orbAgent) sendGroupMembershipReq() error {
-
+func (a *orbAgent) sendGroupMembershipRequest() error {
+	a.logger.Debug("sending group membership request")
 	payload := fleet.GroupMembershipReqRPCPayload{}
 
 	data := fleet.RPC{
@@ -62,7 +64,6 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 		Func:          fleet.GroupMembershipReqRPCFunc,
 		Payload:       payload,
 	}
-
 	body, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -71,12 +72,54 @@ func (a *orbAgent) sendGroupMembershipReq() error {
 	if token := a.client.Publish(a.rpcToCoreTopic, 1, false, body); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
-
 	return nil
 }
 
-func (a *orbAgent) sendAgentPoliciesReq() error {
+func (a *orbAgent) sendGroupMembershipReq() error {
+	defer a.retryGroupMembershipRequest()
+	return a.sendGroupMembershipRequest()
+}
 
+func (a *orbAgent) retryGroupMembershipRequest() {
+	if a.groupRequestTicker == nil {
+		a.groupRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
+	}
+
+	go func() {
+		defer a.groupRequestTicker.Stop()
+		defer func(t time.Time) {
+			a.logger.Info("execution period of the re-request of retryGroupMembership", zap.Duration("waiting period", time.Now().Sub(t)))
+		}(time.Now())
+		lastT := time.Now()
+		for calls := 1; calls <= retryMaxAttempts; calls++ {
+			select {
+			case <-a.groupRequestSucceeded:
+				a.groupRequestTicker.Stop()
+				return
+			case t := <-a.groupRequestTicker.C:
+				a.logger.Info("agent did not receive any group membership from fleet, re-requesting", zap.Duration("waiting period", lastT.Sub(t)))
+				duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
+				a.groupRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
+				err := a.sendGroupMembershipRequest()
+				if err != nil {
+					a.logger.Error("failed to send group membership request", zap.Error(err))
+					return
+				}
+				lastT = t
+			}
+		}
+		a.logger.Warn(fmt.Sprintf("retryGroupMembership retried %d times and still got no response from fleet", retryMaxAttempts))
+		return
+	}()
+}
+
+func (a *orbAgent) sendAgentPoliciesReq() error {
+	defer a.retryAgentPolicyResponse()
+	return a.sendAgentPoliciesRequest()
+}
+
+func (a *orbAgent) sendAgentPoliciesRequest() error {
+	a.logger.Debug("sending agent policies request")
 	payload := fleet.AgentPoliciesReqRPCPayload{}
 
 	data := fleet.RPC{
@@ -95,4 +138,36 @@ func (a *orbAgent) sendAgentPoliciesReq() error {
 	}
 
 	return nil
+}
+
+func (a orbAgent) retryAgentPolicyResponse() {
+	if a.policyRequestTicker == nil {
+		a.policyRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
+	}
+	go func() {
+		defer a.policyRequestTicker.Stop()
+		defer func(t time.Time) {
+			a.logger.Info("execution period of the re-request of retryAgentPolicy", zap.Duration("period", time.Now().Sub(t)))
+		}(time.Now())
+		lastT := time.Now()
+		for calls := 1; calls <= retryMaxAttempts; calls++ {
+			select {
+			case <-a.policyRequestSucceeded:
+				a.policyRequestTicker.Stop()
+				return
+			case t := <-a.policyRequestTicker.C:
+				a.logger.Info("agent did not receive any policy from fleet, re-requesting", zap.Duration("waiting period", lastT.Sub(t)))
+				duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
+				a.policyRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
+				err := a.sendAgentPoliciesRequest()
+				if err != nil {
+					a.logger.Error("failed to send agent policies request", zap.Error(err))
+					return
+				}
+				lastT = t
+			}
+		}
+		a.logger.Warn(fmt.Sprintf("retryAgentPolicy retried %d times and still got no response from fleet", retryMaxAttempts))
+		return
+	}()
 }

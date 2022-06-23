@@ -14,7 +14,7 @@
       ghost="true"
       nbButton
       (click)="toggleProvisioningCommand()">
-      <nb-icon icon="plus-outline"
+      <nb-icon [icon]="hideCommand ? 'plus-outline': 'minus-outline'"
                pack="eva">
       </nb-icon>
     </button>

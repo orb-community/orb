@@ -439,6 +439,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Removing suffix from VERSION
+        run: |
+          sed -i -e "s/-production//g" VERSION
+
       - name: Build + push - agent (multi-arch)
         env:
           IMAGE_NAME: ns1labs/orb-agent:latest

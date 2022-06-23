@@ -12,15 +12,15 @@
           <p>{{ agent?.agent_metadata?.orb_agent?.version }}</p>
         </div>
       </div>
+      <div class="col-12">
+        <label>Agent ID</label>
+        <p>{{ agent?.id }}</p>
+      </div>
+      <div class="col-12">
+        <label>Channel ID</label>
+        <p>{{ agent?.channel_id }}</p>
+      </div>
     </div>
-    <p>
-      <label>Agent ID</label>
-      <span class="float-right">{{ agent?.id }}</span>
-    </p>
-    <p>
-      <label>Channel ID</label>
-      <span class="float-right">{{ agent?.channel_id }}</span>
-    </p>
     <ngx-combined-tag [agent]="agent"></ngx-combined-tag>
     <div class="block">
       <button (click)="resetAgent()"
