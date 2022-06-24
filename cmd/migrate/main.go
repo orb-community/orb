@@ -50,13 +50,16 @@ func main() {
 	ketoDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DbKeto), postgres.DbKeto)
 	usersDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DbUsers), postgres.DbUsers)
 	thingsDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DbThings), postgres.DbThings)
+	sinksDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DBSinks), postgres.DBSinks)
+	sinksEncryptionKey := config.LoadEncryptionKey(fmt.Sprintf("%s_%s", envPrefix, postgres.DBSinks))
 
 	dbs := make(map[string]postgres.Database)
 
 	dbs[postgres.DbKeto] = connectToDB(ketoDbCfg, true, log)
 	dbs[postgres.DbUsers] = connectToDB(usersDbCfg, false, log)
 	dbs[postgres.DbThings] = connectToDB(thingsDbCfg, false, log)
-	svc := migrate.New(log, dbs)
+	dbs[postgres.DBSinks] = connectToDB(sinksDbCfg, true, log)
+	svc := migrate.New(log, dbs, sinksEncryptionKey)
 
 	rootCmd := &cobra.Command{
 		Use: "orb-migrate",
