@@ -203,7 +203,7 @@ jobs:
         run: SERVICE=fleet make build_docker
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -230,7 +230,7 @@ jobs:
         run: SERVICE=policies make build_docker
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -257,7 +257,7 @@ jobs:
         run: SERVICE=sinker make build_docker
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -284,7 +284,7 @@ jobs:
         run: SERVICE=sinks make build_docker
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -309,7 +309,7 @@ jobs:
 
       - name: Login to Docker Hub
         if: ${{ steps.filter.outputs.yarn == 'true' }}
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -323,6 +323,7 @@ jobs:
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         run: |
           docker push -a ns1labs/orb-ui-modules
+
   package-ui:
     needs:
       - prebuild
@@ -372,6 +373,30 @@ jobs:
         run: |
           docker push -a ns1labs/orb-ui
 
+  package-migrate:
+    needs:
+      - prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build orb yarn image
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        env:
+          IMAGE_NAME: ns1labs/orb-migrate
+        run: |
+          SERVICE=migrate make build_docker
+      - name: Push ui image
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        run: |
+          docker push -a ns1labs/orb-migrate
+
   publish-orb-live-stg:
     needs:
       - prebuild
@@ -394,7 +419,7 @@ jobs:
           VERSION: ${{ needs.prebuild.env.VERSION }}
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
