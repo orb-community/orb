@@ -61,8 +61,7 @@ Scenario: apply one policy using multiple datasets to the same group
         And datasets related to all existing policies have validity valid
 
 
-#@smoke
-@MUTE
+@smoke
 Scenario: Remove group to which agent is linked
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -70,10 +69,11 @@ Scenario: Remove group to which agent is linked
         And referred agent is subscribed to a group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
-        And 1 simple policies are applied to the group
-        And this agent's heartbeat shows that 1 policies are successfully applied and has status running
+        And 2 simple policies are applied to the group
+        And this agent's heartbeat shows that 2 policies are successfully applied and has status running
     When the group to which the agent is linked is removed
     Then the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
+        And the container logs contain the message "policy no longer used by any group, removing" referred to each policy within 10 seconds
         And this agent's heartbeat shows that 0 policies are successfully applied to the agent
         And this agent's heartbeat shows that 0 groups are matching the agent
         And dataset related have validity invalid
