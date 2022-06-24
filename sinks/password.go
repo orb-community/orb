@@ -14,7 +14,7 @@ type PasswordService interface {
 	GetPassword(cipheredText string) string
 }
 
-func NewInstance(logger zap.Logger) *passwordServices {
+func NewInstance(logger *zap.Logger) *passwordServices {
 	keyString := os.Getenv("ORB_SINK_SECRET_KEY")
 	if keyString != "" {
 		logger.Error("not found the ORB SINK SECRET")
@@ -29,7 +29,7 @@ func NewInstance(logger zap.Logger) *passwordServices {
 
 type passwordServices struct {
 	key    []byte
-	logger zap.Logger
+	logger *zap.Logger
 }
 
 func (ps *passwordServices) EncodePassword(plainText string) (string, error) {
