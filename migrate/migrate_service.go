@@ -70,7 +70,7 @@ func (s *serviceMigrate) Drop() error {
 func (s *serviceMigrate) SetSchemaVersion(version int64) error {
 	return s.doOnTx(func(tx *sqlx.Tx) error {
 		_, err := tx.Exec("UPDATE schema_version SET version = $1", version)
-		s.logger.Info(fmt.Sprintf("updated schema_version to %d", version))
+		s.logger.Info(fmt.Sprintf("updated schema version to %d", version))
 		return err
 	})
 }
@@ -85,7 +85,7 @@ func (s *serviceMigrate) CurrentSchemaVersion() (int64, error) {
 			return
 		}
 		schemaVersion = m[0].Version
-		s.logger.Info(fmt.Sprintf("current schema_version %d", schemaVersion))
+		s.logger.Info(fmt.Sprintf("current schema version %d", schemaVersion))
 		return
 	})
 
