@@ -35,6 +35,7 @@ type passwordServices struct {
 func (ps *passwordServices) EncodePassword(plainText string) (string, error) {
 	cipherText, err := encrypt(ps.key, []byte(plainText))
 	if err != nil {
+		ps.logger.Error("invalid encryption", zap.Error(err))
 		return "", err
 	}
 	return string(cipherText), nil
@@ -43,6 +44,7 @@ func (ps *passwordServices) EncodePassword(plainText string) (string, error) {
 func (ps *passwordServices) SetKey(newKey []byte) {
 	blockCipher, err := aes.NewCipher(newKey)
 	if err != nil {
+		ps.logger.Error("invalid key", zap.Error(err))
 		return
 	}
 	_, err = cipher.NewGCM(blockCipher)
@@ -53,7 +55,11 @@ func (ps *passwordServices) SetKey(newKey []byte) {
 }
 
 func (ps *passwordServices) GetPassword(cipheredText string) string {
-
+	plainByte, err := decrypt(ps.key, []byte(cipheredText))
+	if err != nil {
+		ps.logger.Error("invalid decryption", zap.Error(err))
+	}
+	return string(plainByte)
 }
 
 func encrypt(key, data []byte) (cipherText []byte, err error) {
