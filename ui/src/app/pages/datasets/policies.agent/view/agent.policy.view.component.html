@@ -1,14 +1,14 @@
 <header
   class="row"
   data-orb-qa-id="agent#view">
-  <div class="col-10">
+  <div class="col-7">
     <xng-breadcrumb
       class="orb-breadcrumb"
       data-orb-qa-id="breadcrumb"></xng-breadcrumb>
 
       <h4>Policy View</h4>
   </div>
-    <div class="col-2">
+    <div class="col-5">
       <button (click)="duplicatePolicy()"
               class="policy-duplicate"
               data-orb-qa-id="button#reset"
@@ -16,31 +16,30 @@
               shape="round">
         Duplicate Policy
       </button>
+      <button
+              (click)="save()"
+              [disabled]="!canSave()"
+              class="policy-save"
+              nbButton
+              *ngIf="isEditMode()"
+              shape="round">
+        Save
+      </button>
+      <button
+              (click)="discard()"
+              class="policy-discard"
+              nbButton
+              shape="round"
+              *ngIf="isEditMode()">
+        Discard
+      </button>
     </div>
-
-  <div *ngIf="isEditMode()">
-    <button
-      (click)="save()"
-      [disabled]="!canSave()"
-      class="card-ghost-button"
-      nbButton
-      status="primary">
-      Save
-    </button>
-    <button
-      (click)="discard()"
-      class="card-ghost-button"
-      ghost="true"
-      nbButton
-      status="danger">
-      Discard
-    </button>
-  </div>
 </header>
 
 <div
   *ngIf="!isLoading"
-  class="row">
+  class="row"
+  #content>
   <div class="card-col col-4">
     <ngx-policy-details
       [(editMode)]="editMode.details"

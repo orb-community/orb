@@ -47,7 +47,7 @@ func newFleetService(auth mainflux.AuthServiceClient, url string, agentGroupRepo
 		log.Fatalf("%v", err)
 	}
 	config := mfsdk.Config{
-		BaseURL: url,
+		ThingsURL: url,
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
