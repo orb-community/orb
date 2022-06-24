@@ -11,7 +11,7 @@
       <env name="ORB_FLEET_GRPC_URL" value="fleet:8283" />
       <env name="ORB_FLEET_GRPC_TIMEOUT" value="1s" />
       <env name="ORB_FLEET_GRPC_PORT" value="8283" />
-      <env name="MF_SDK_BASE_URL" value="http://localhost:8182" />
+      <env name="MF_SDK_THINGS_URL" value="http://localhost:8182" />
     </envs>
     <kind value="FILE" />
     <package value="github.com/ns1labs/orb" />

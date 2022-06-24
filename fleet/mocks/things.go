@@ -10,6 +10,7 @@ package mocks
 
 import (
 	"context"
+	"github.com/ns1labs/orb/fleet"
 	"strconv"
 	"sync"
 
@@ -45,7 +46,7 @@ func (svc *mainfluxThings) CreateThings(_ context.Context, owner string, ths ...
 
 	userID, err := svc.auth.Identify(context.Background(), &mainflux.Token{Value: owner})
 	if err != nil {
-		return []things.Thing{}, things.ErrUnauthorizedAccess
+		return []things.Thing{}, fleet.ErrUnauthorizedAccess
 	}
 	for i := range ths {
 		svc.counter++
@@ -64,7 +65,7 @@ func (svc *mainfluxThings) ViewThing(_ context.Context, owner, id string) (thing
 
 	userID, err := svc.auth.Identify(context.Background(), &mainflux.Token{Value: owner})
 	if err != nil {
-		return things.Thing{}, things.ErrUnauthorizedAccess
+		return things.Thing{}, fleet.ErrUnauthorizedAccess
 	}
 
 	if t, ok := svc.things[id]; ok && t.Owner == userID.Email {
@@ -72,7 +73,7 @@ func (svc *mainfluxThings) ViewThing(_ context.Context, owner, id string) (thing
 
 	}
 
-	return things.Thing{}, things.ErrNotFound
+	return things.Thing{}, fleet.ErrNotFound
 }
 
 func (svc *mainfluxThings) Connect(_ context.Context, owner string, chIDs, thIDs []string) error {
@@ -81,11 +82,11 @@ func (svc *mainfluxThings) Connect(_ context.Context, owner string, chIDs, thIDs
 
 	userID, err := svc.auth.Identify(context.Background(), &mainflux.Token{Value: owner})
 	if err != nil {
-		return things.ErrUnauthorizedAccess
+		return fleet.ErrUnauthorizedAccess
 	}
 	for _, chID := range chIDs {
 		if svc.channels[chID].Owner != userID.Email {
-			return things.ErrUnauthorizedAccess
+			return fleet.ErrUnauthorizedAccess
 		}
 		for _, thID := range thIDs {
 			svc.connections[chID] = append(svc.connections[chID], thID)
@@ -95,7 +96,7 @@ func (svc *mainfluxThings) Connect(_ context.Context, owner string, chIDs, thIDs
 	return nil
 }
 
-func (svc *mainfluxThings) Disconnect(_ context.Context, token, chanID, thingID string) error {
+func (svc *mainfluxThings) Disconnect(ctx context.Context, token string, chIDs, thIDs []string) error {
 	return nil
 }
 
@@ -105,11 +106,11 @@ func (svc *mainfluxThings) RemoveThing(_ context.Context, owner, id string) erro
 
 	userID, err := svc.auth.Identify(context.Background(), &mainflux.Token{Value: owner})
 	if err != nil {
-		return things.ErrUnauthorizedAccess
+		return fleet.ErrUnauthorizedAccess
 	}
 
 	if t, ok := svc.things[id]; !ok || t.Owner != userID.Email {
-		return things.ErrNotFound
+		return fleet.ErrNotFound
 	}
 
 	delete(svc.things, id)
@@ -133,7 +134,7 @@ func (svc *mainfluxThings) ViewChannel(_ context.Context, owner, id string) (thi
 	if c, ok := svc.channels[id]; ok {
 		return c, nil
 	}
-	return things.Channel{}, things.ErrNotFound
+	return things.Channel{}, fleet.ErrNotFound
 }
 
 func (svc *mainfluxThings) UpdateThing(context.Context, string, things.Thing) error {
@@ -162,7 +163,7 @@ func (svc *mainfluxThings) CreateChannels(_ context.Context, owner string, chs .
 
 	userID, err := svc.auth.Identify(context.Background(), &mainflux.Token{Value: owner})
 	if err != nil {
-		return []things.Channel{}, things.ErrUnauthorizedAccess
+		return []things.Channel{}, fleet.ErrUnauthorizedAccess
 	}
 	for i := range chs {
 		svc.counter++
@@ -217,5 +218,9 @@ func findIndex(list []string, val string) int {
 }
 
 func (svc *mainfluxThings) ListMembers(ctx context.Context, token, groupID string, pm things.PageMetadata) (things.Page, error) {
+	panic("not implemented")
+}
+
+func (svc *mainfluxThings) ShareThing(ctx context.Context, token, thingID string, actions, userIDs []string) error {
 	panic("not implemented")
 }

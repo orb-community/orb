@@ -139,7 +139,7 @@ func decodeAddAgentGroup(_ context.Context, r *http.Request) (interface{}, error
 		return nil, errors.ErrUnsupportedContentType
 	}
 
-	req := addAgentGroupReq{token: r.Header.Get("Authorization")}
+	req := addAgentGroupReq{token: parseJwt(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
@@ -149,7 +149,7 @@ func decodeAddAgentGroup(_ context.Context, r *http.Request) (interface{}, error
 
 func decodeView(_ context.Context, r *http.Request) (interface{}, error) {
 	req := viewResourceReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		id:    bone.GetValue(r, "id"),
 	}
 	return req, nil
@@ -161,7 +161,7 @@ func decodeAgentGroupUpdate(_ context.Context, r *http.Request) (interface{}, er
 	}
 
 	req := updateAgentGroupReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		id:    bone.GetValue(r, "id"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -176,7 +176,7 @@ func decodeAddAgent(_ context.Context, r *http.Request) (interface{}, error) {
 		return nil, errors.ErrUnsupportedContentType
 	}
 
-	req := addAgentReq{token: r.Header.Get("Authorization")}
+	req := addAgentReq{token: parseJwt(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
@@ -189,7 +189,7 @@ func decodeAgentUpdate(_ context.Context, r *http.Request) (interface{}, error) 
 		return nil, errors.ErrUnsupportedContentType
 	}
 	req := updateAgentReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		id:    bone.GetValue(r, "id"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -200,7 +200,7 @@ func decodeAgentUpdate(_ context.Context, r *http.Request) (interface{}, error) 
 }
 
 func decodeListBackends(_ context.Context, r *http.Request) (interface{}, error) {
-	req := listAgentBackendsReq{token: r.Header.Get("Authorization")}
+	req := listAgentBackendsReq{token: parseJwt(r)}
 	return req, nil
 }
 
@@ -241,7 +241,7 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 	}
 
 	req := listResourcesReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		pageMetadata: fleet.PageMetadata{
 			Offset:   o,
 			Limit:    l,
@@ -261,7 +261,7 @@ func decodeValidateAgentGroup(_ context.Context, r *http.Request) (interface{}, 
 		return nil, errors.ErrUnsupportedContentType
 	}
 
-	req := addAgentGroupReq{token: r.Header.Get("Authorization")}
+	req := addAgentGroupReq{token: parseJwt(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
@@ -310,4 +310,11 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func parseJwt(r *http.Request) (token string) {
+	if strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
+		token = r.Header.Get("Authorization")[7:]
+	}
+	return
 }
