@@ -386,13 +386,13 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build orb yarn image
+      - name: Build orb migrate service image
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         env:
           IMAGE_NAME: ns1labs/orb-migrate
         run: |
           SERVICE=migrate make build_docker
-      - name: Push ui image
+      - name: Push orb migrate service image
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         run: |
           docker push -a ns1labs/orb-migrate
