@@ -12,7 +12,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/gofrs/uuid"
-	"github.com/mainflux/mainflux/things"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/sinks"
 	"strings"
@@ -123,7 +122,7 @@ func (s *sinkRepositoryMock) RetrieveById(ctx context.Context, key string) (sink
 		return c, nil
 	}
 
-	return sinks.Sink{}, things.ErrNotFound
+	return sinks.Sink{}, sinks.ErrNotFound
 }
 
 func (s *sinkRepositoryMock) Remove(ctx context.Context, owner string, key string) error {

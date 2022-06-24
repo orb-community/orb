@@ -13,7 +13,7 @@ def check_non_registered_account(context, email, password):
     assert_that(email, any_of(equal_to("valid"), equal_to("invalid")), "Unexpected value for email")
     if email == "valid":
         context.email = [f"tester_{random_string(4)}@email.com", email]
-        status_code = 403
+        status_code = 401
     else:
         context.email = [f"tester.com", email]
         status_code = 400
@@ -139,7 +139,7 @@ def get_account_information(token, expected_status_code=200):
     :return: (dict) account_response
     """
     response = requests.get(orb_url + '/api/v1/users/profile',
-                            headers={'Authorization': token})
+                            headers={'Authorization': f'Bearer {token}'})
     assert_that(response.status_code, equal_to(expected_status_code), f"Unexpected status code for get account data."
                                                                       f"Status Code = {response.status_code}."
                                                                       f"Response = {str(response.json())}")
