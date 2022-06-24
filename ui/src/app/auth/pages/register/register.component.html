@@ -18,7 +18,7 @@
       <nb-alert *ngIf="showMessages.error && errors?.length && !submitted" outline="danger" role="alert">
         <p class="alert-title"><b>Error!</b></p>
         <ul class="alert-message-list">
-          <li *ngFor="let error of errors" class="alert-message">{{ error }}</li>
+          <li *ngFor="let error of errors" class="alert-message">{{ error | titlecase }}</li>
         </ul>
       </nb-alert>
 
