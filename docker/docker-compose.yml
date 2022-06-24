@@ -394,6 +394,7 @@ services:
       ORB_SINKS_GRPC_PORT: ${ORB_SINKS_GRPC_PORT}
       MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
       MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
+      ORB_SINKS_SECRET_KEY: "SECRETSECRECY"
     #      ORB_SINKS_LOG_LEVEL: debug
     networks:
       - orb-base-net
