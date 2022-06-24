@@ -2,6 +2,7 @@ package migration
 
 import (
 	"context"
+	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/migrate/postgres"
 	"go.uber.org/zap"
 	"time"
@@ -10,6 +11,10 @@ import (
 type M1KetoPolicies struct {
 	log *zap.Logger
 	dbs map[string]postgres.Database
+}
+
+type dbNetwork struct {
+	ID string `db:"id"`
 }
 
 type dbUser struct {
@@ -30,17 +35,24 @@ func (m *M1KetoPolicies) Up() error {
 	ctx := context.Background()
 	currentTime := time.Now()
 
-	err := m.createUserRelations(ctx, currentTime)
+	q := `SELECT id FROM networks;`
+
+	dbn := dbNetwork{}
+	if err := m.dbs[postgres.DbKeto].QueryRowxContext(ctx, q).StructScan(&dbn); err != nil {
+		return err
+	}
+
+	err := m.createUserRelations(ctx, currentTime, dbn.ID)
 	if err != nil {
 		return err
 	}
 
-	err = m.createChannelsOrThingsRelations(ctx, currentTime, "things")
+	err = m.createChannelsOrThingsRelations(ctx, currentTime, dbn.ID, "things")
 	if err != nil {
 		return err
 	}
 
-	err = m.createChannelsOrThingsRelations(ctx, currentTime, "channels")
+	err = m.createChannelsOrThingsRelations(ctx, currentTime, dbn.ID, "channels")
 	if err != nil {
 		return err
 	}
@@ -53,7 +65,7 @@ func (m *M1KetoPolicies) Down() error {
 	return nil
 }
 
-func (m *M1KetoPolicies) createUserRelations(ctx context.Context, currentTime time.Time) error {
+func (m *M1KetoPolicies) createUserRelations(ctx context.Context, currentTime time.Time, nid string) error {
 	dbu := dbUser{}
 	q := "SELECT id FROM users;"
 	rows, err := m.dbs[postgres.DbUsers].NamedQueryContext(ctx, q, map[string]interface{}{})
@@ -68,14 +80,17 @@ func (m *M1KetoPolicies) createUserRelations(ctx context.Context, currentTime ti
 		}
 
 		// create entry putting user as member
-		q = `INSERT INTO keto_relation_tuples (shard_id, object, relation, subject, commit_time)
-			  VALUES (:shard_id, :object, :relation, :subject, :commit_time);`
+		ID, _ := uuid.NewV4()
+		q = `INSERT INTO keto_relation_tuples (shard_id, nid, namespace_id, object, relation, subject_id, commit_time)
+			  VALUES (:shard_id, :nid, :namespace_id, :object, :relation, :subject_id, :commit_time);`
 		params := map[string]interface{}{
-			"shard_id":    "default",
-			"object":      "users",
-			"relation":    "member",
-			"subject":     dbu.ID,
-			"commit_time": currentTime,
+			"shard_id":     ID,
+			"nid":          nid,
+			"namespace_id": 0,
+			"object":       "users",
+			"relation":     "member",
+			"subject_id":   dbu.ID,
+			"commit_time":  currentTime,
 		}
 
 		_, err = m.dbs[postgres.DbKeto].NamedExecContext(ctx, q, params)
@@ -86,7 +101,7 @@ func (m *M1KetoPolicies) createUserRelations(ctx context.Context, currentTime ti
 	return nil
 }
 
-func (m *M1KetoPolicies) createChannelsOrThingsRelations(ctx context.Context, currentTime time.Time, table string) error {
+func (m *M1KetoPolicies) createChannelsOrThingsRelations(ctx context.Context, currentTime time.Time, nid string, table string) error {
 	dbt := dbThingOrChannel{}
 	q := "SELECT id, owner FROM " + table + ";"
 	rows, err := m.dbs[postgres.DbThings].NamedQueryContext(ctx, q, map[string]interface{}{})
@@ -102,14 +117,21 @@ func (m *M1KetoPolicies) createChannelsOrThingsRelations(ctx context.Context, cu
 
 		// create read, write and create entries for authorities
 		for _, relation := range []string{0: "read", 1: "write", 2: "creation"} {
-			q = `INSERT INTO keto_relation_tuples (shard_id, object, relation, subject, commit_time)
-				VALUES (:shard_id, :object, :relation, :subject, :commit_time);`
+			ID, _ := uuid.NewV4()
+			q = `INSERT INTO keto_relation_tuples (shard_id, nid, namespace_id, object, relation,
+				subject_set_namespace_id, subject_set_object, subject_set_relation, commit_time)
+				VALUES (:shard_id, :nid, :namespace_id, :object, :relation,
+				:subject_set_namespace_id, :subject_set_object, :subject_set_relation, :commit_time);`
 			params := map[string]interface{}{
-				"shard_id":    "default",
-				"object":      dbt.ID,
-				"relation":    relation,
-				"subject":     "members:authorities#member",
-				"commit_time": currentTime,
+				"shard_id":                 ID,
+				"nid":                      nid,
+				"namespace_id":             0,
+				"object":                   dbt.ID,
+				"relation":                 relation,
+				"subject_set_namespace_id": 0,
+				"subject_set_object":       "authorities",
+				"subject_set_relation":     "member",
+				"commit_time":              currentTime,
 			}
 
 			_, err = m.dbs[postgres.DbKeto].NamedExecContext(ctx, q, params)
@@ -127,14 +149,17 @@ func (m *M1KetoPolicies) createChannelsOrThingsRelations(ctx context.Context, cu
 
 		// create read, write and create entries for owner
 		for _, relation := range []string{0: "read", 1: "write", 2: "creation"} {
-			q = `INSERT INTO keto_relation_tuples (shard_id, object, relation, subject, commit_time)
-				VALUES (:shard_id, :object, :relation, :subject, :commit_time);`
+			ID, _ := uuid.NewV4()
+			q = `INSERT INTO keto_relation_tuples (shard_id, nid, namespace_id, object, relation, subject_id, commit_time)
+				VALUES (:shard_id, :nid, :namespace_id, :object, :relation, :subject_id, :commit_time);`
 			params := map[string]interface{}{
-				"shard_id":    "default",
-				"object":      dbt.ID,
-				"relation":    relation,
-				"subject":     dbu.ID,
-				"commit_time": currentTime,
+				"shard_id":     ID,
+				"nid":          nid,
+				"namespace_id": 0,
+				"object":       dbt.ID,
+				"relation":     relation,
+				"subject_id":   dbu.ID,
+				"commit_time":  currentTime,
 			}
 
 			_, err = m.dbs[postgres.DbKeto].NamedExecContext(ctx, q, params)
