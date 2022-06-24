@@ -1,22 +1,20 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="recreate ui" type="docker-deploy" factoryName="docker-compose.yml" server-name="Docker">
+  <configuration default="false" name="docker.sinks: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" server-name="Docker">
     <deployment type="docker-compose.yml">
       <settings>
         <option name="envFilePath" value="" />
         <option name="services">
           <list>
-            <option value="ui" />
+            <option value="sinks" />
           </list>
         </option>
         <option name="sourceFilePath" value="docker/docker-compose.yml" />
-        <option name="upExitCodeFromService" value="" />
         <option name="upForceRecreate" value="true" />
         <option name="upNoDeps" value="true" />
-        <option name="upTimeout" value="" />
       </settings>
     </deployment>
     <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="make ui" run_configuration_type="MAKEFILE_TARGET_RUN_CONFIGURATION" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="make sinks" run_configuration_type="MAKEFILE_TARGET_RUN_CONFIGURATION" />
     </method>
   </configuration>
 </component>
