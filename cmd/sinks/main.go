@@ -61,6 +61,7 @@ func main() {
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
+	encryptionKey := config.LoadEncryptionKey(envPrefix)
 	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 
 	// main logger
@@ -92,7 +93,7 @@ func main() {
 
 	sinkRepo := postgres.NewSinksRepository(db, logger)
 
-	svc := newSinkService(auth, logger, esClient, sdkCfg, sinkRepo)
+	svc := newSinkService(auth, logger, esClient, sdkCfg, sinkRepo, encryptionKey)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
@@ -156,7 +157,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, repoSink sinks.SinkRepository) sinks.SinkService {
+func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, repoSink sinks.SinkRepository, encriptionKey config.EncryptionKey) sinks.SinkService {
 
 	config := mfsdk.Config{
 		BaseURL:      sdkCfg.BaseURL,
@@ -164,8 +165,8 @@ func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClien
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-
-	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk)
+	pwdSvc := sinks.NewPasswordService(logger, encriptionKey.Key)
+	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk, pwdSvc)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = sinkshttp.NewLoggingMiddleware(svc, logger)
 	svc = sinkshttp.MetricsMiddleware(

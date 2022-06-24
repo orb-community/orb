@@ -5,7 +5,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"go.uber.org/zap"
-	"os"
 )
 
 type PasswordService interface {
@@ -14,25 +13,20 @@ type PasswordService interface {
 	GetPassword(cipheredText string) string
 }
 
-func NewInstance(logger *zap.Logger) *passwordServices {
-	keyString := os.Getenv("ORB_SINK_SECRET_KEY")
-	if keyString != "" {
-		logger.Error("not found the ORB SINK SECRET")
-		return nil
-	}
-	ps := &passwordServices{
+func NewPasswordService(logger *zap.Logger, key string) *passwordService {
+	ps := &passwordService{
 		logger: logger,
 	}
-	ps.SetKey([]byte(keyString))
+	ps.SetKey([]byte(key))
 	return ps
 }
 
-type passwordServices struct {
+type passwordService struct {
 	key    []byte
 	logger *zap.Logger
 }
 
-func (ps *passwordServices) EncodePassword(plainText string) (string, error) {
+func (ps *passwordService) EncodePassword(plainText string) (string, error) {
 	cipherText, err := encrypt(ps.key, []byte(plainText))
 	if err != nil {
 		ps.logger.Error("invalid encryption", zap.Error(err))
@@ -41,7 +35,7 @@ func (ps *passwordServices) EncodePassword(plainText string) (string, error) {
 	return string(cipherText), nil
 }
 
-func (ps *passwordServices) SetKey(newKey []byte) {
+func (ps *passwordService) SetKey(newKey []byte) {
 	blockCipher, err := aes.NewCipher(newKey)
 	if err != nil {
 		ps.logger.Error("invalid key", zap.Error(err))
@@ -54,7 +48,7 @@ func (ps *passwordServices) SetKey(newKey []byte) {
 	ps.key = newKey
 }
 
-func (ps *passwordServices) GetPassword(cipheredText string) string {
+func (ps *passwordService) GetPassword(cipheredText string) string {
 	plainByte, err := decrypt(ps.key, []byte(cipheredText))
 	if err != nil {
 		ps.logger.Error("invalid decryption", zap.Error(err))

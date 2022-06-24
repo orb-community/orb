@@ -56,16 +56,15 @@ func (s sinkService) identify(token string) (string, error) {
 	return res.GetId(), nil
 }
 
-func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK) SinkService {
+func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK, services PasswordService) SinkService {
 
 	prometheus.Register()
-	passwordService := NewInstance(logger)
 
 	return &sinkService{
 		logger:          logger,
 		auth:            auth,
 		sinkRepo:        sinkRepo,
 		mfsdk:           mfsdk,
-		passwordService: passwordService,
+		passwordService: services,
 	}
 }
