@@ -101,7 +101,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
           this.authenticateAndRedirect(email, password);
         } else {
           if (respReg.getResponse().status === 409) {
-            this.orbErrors['email'] = 'Email already taken.';
+            this.errors = [respReg.getResponse().error.error]
           }
         }
 

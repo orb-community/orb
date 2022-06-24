@@ -15,6 +15,12 @@
   <div class="form-pane">
     <div class="bg"></div>
     <div class="pane d-flex flex-column justify-content-center">
+      <nb-alert *ngIf="showMessages.error && errors?.length && !submitted" outline="danger" role="alert">
+        <p class="alert-title"><b>Error!</b></p>
+        <ul class="alert-message-list">
+          <li *ngFor="let error of errors" class="alert-message">{{ error }}</li>
+        </ul>
+      </nb-alert>
 
       <form #form="ngForm"
             (ngSubmit)="register()"
@@ -105,9 +111,6 @@
             </p>
             <p *ngIf="email.errors?.pattern" class="caption status-danger mb-1">
               Email should be the real one!
-            </p>
-            <p *ngIf="orbErrors?.email" class="caption status-danger mb-1">
-              {{orbErrors.email}}
             </p>
           </ng-container>
         </div>
@@ -203,30 +206,6 @@
           Register
         </button>
       </form>
-
-      <section *ngIf="socialLinks && socialLinks.length > 0" aria-label="Social sign in" class="links">
-        or enter with:
-        <div class="socials">
-          <ng-container *ngFor="let socialLink of socialLinks">
-            <a *ngIf="socialLink.link"
-               [attr.class]="socialLink.icon"
-               [attr.target]="socialLink.target"
-               [class.with-icon]="socialLink.icon"
-               [routerLink]="socialLink.link">
-              <nb-icon *ngIf="socialLink.icon; else title" [icon]="socialLink.icon"></nb-icon>
-              <ng-template #title>{{ socialLink.title }}</ng-template>
-            </a>
-            <a *ngIf="socialLink.url"
-               [attr.class]="socialLink.icon"
-               [attr.href]="socialLink.url"
-               [attr.target]="socialLink.target"
-               [class.with-icon]="socialLink.icon">
-              <nb-icon *ngIf="socialLink.icon; else title" [icon]="socialLink.icon"></nb-icon>
-              <ng-template #title>{{ socialLink.title }}</ng-template>
-            </a>
-          </ng-container>
-        </div>
-      </section>
 
       <span aria-label="Sign in" class="another-action label pt-1">
       Already have an account? <a class="text-link" routerLink="../login">Log in</a>
