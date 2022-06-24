@@ -125,7 +125,7 @@ func LoadPostgresConfig(prefix string, db string) PostgresConfig {
 
 func LoadEncryptionKey(prefix string) EncryptionKey {
 	cfg := viper.New()
-	cfg.SetEnvPrefix(prefix)
+	cfg.SetEnvPrefix(fmt.Sprintf("%s_secret", prefix))
 	cfg.SetDefault("key", "orb")
 	cfg.AutomaticEnv()
 	var eK EncryptionKey
