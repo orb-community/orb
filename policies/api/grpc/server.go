@@ -111,7 +111,7 @@ func encodePolicyInDSListResponse(_ context.Context, grpcRes interface{}) (inter
 
 	plist := make([]*pb.PolicyInDSRes, len(res.policies))
 	for i, p := range res.policies {
-		plist[i] = &pb.PolicyInDSRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version, DatasetId: p.datasetID}
+		plist[i] = &pb.PolicyInDSRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version, DatasetId: p.datasetID, AgentGroupId: p.agentGroupID}
 	}
 	return &pb.PolicyInDSListRes{Policies: plist}, nil
 }

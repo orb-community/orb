@@ -905,3 +905,22 @@ func TestValidateSink(t *testing.T) {
 		})
 	}
 }
+
+func TestOmitPasswords(t *testing.T) {
+	cases := map[string]struct {
+		inputMetadata    types.Metadata
+		expectedMetadata types.Metadata
+	}{
+		"omit configuration with password": {
+			inputMetadata:    types.Metadata{"user": 387157, "password": "s3cr3tp@ssw0rd", "url": "someUrl"},
+			expectedMetadata: types.Metadata{"user": 387157, "password": "", "url": "someUrl"},
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			metadata := omitSecretInformation(tc.inputMetadata)
+			assert.Equal(t, tc.expectedMetadata, metadata)
+		})
+	}
+}

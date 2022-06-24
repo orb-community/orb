@@ -81,6 +81,14 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 					a.logger.Warn("policy failed to ensure dataset id", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.String("dataset_id", payload.DatasetID), zap.Error(err))
 				}
 			}
+
+			if payload.AgentGroupID != "" {
+				err := a.repo.EnsureGroupID(payload.ID, payload.AgentGroupID)
+				if err != nil {
+					a.logger.Warn("policy failed to ensure agent group id", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.String("agent_group_id", payload.AgentGroupID), zap.Error(err))
+				}
+			}
+
 			// if policy already exist and has no version upgrade, has no need to apply it again
 			currentPolicy, err := a.repo.Get(payload.ID)
 			if err != nil {
@@ -94,6 +102,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 				updatePolicy = true
 			}
 			pd.Datasets = currentPolicy.Datasets
+			pd.GroupIds = currentPolicy.GroupIds
 		} else {
 			// new policy we have not seen before, associate with this dataset
 			// on first time we see policy, we *require* dataset
@@ -102,6 +111,11 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 				return
 			}
 			pd.Datasets = map[string]bool{payload.DatasetID: true}
+
+			if payload.AgentGroupID != "" {
+				pd.GroupIds = map[string]bool{payload.AgentGroupID: true}
+			}
+
 		}
 		if !backend.HaveBackend(payload.Backend) {
 			a.logger.Warn("policy failed to apply because backend is not available", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name))

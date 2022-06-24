@@ -63,7 +63,7 @@ func (client grpcClient) RetrievePoliciesByGroups(ctx context.Context, in *pb.Po
 
 	plist := make([]*pb.PolicyInDSRes, len(ir.policies))
 	for i, p := range ir.policies {
-		plist[i] = &pb.PolicyInDSRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version, DatasetId: p.datasetID}
+		plist[i] = &pb.PolicyInDSRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version, DatasetId: p.datasetID, AgentGroupId: p.agentGroupID}
 	}
 	return &pb.PolicyInDSListRes{Policies: plist}, nil
 }
@@ -158,7 +158,7 @@ func decodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface
 	res := grpcRes.(*pb.PolicyInDSListRes)
 	policies := make([]policyInDSRes, len(res.Policies))
 	for i, p := range res.Policies {
-		policies[i] = policyInDSRes{id: p.GetId(), name: p.GetName(), data: p.GetData(), version: p.GetVersion(), backend: p.GetBackend(), datasetID: p.GetDatasetId()}
+		policies[i] = policyInDSRes{id: p.GetId(), name: p.GetName(), data: p.GetData(), version: p.GetVersion(), backend: p.GetBackend(), datasetID: p.GetDatasetId(), agentGroupID: p.GetAgentGroupId()}
 	}
 	return policyInDSListRes{policies: policies}, nil
 }

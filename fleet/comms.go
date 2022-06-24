@@ -81,15 +81,16 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 	}
 
 	payload := []AgentPolicyRPCPayload{{
-		Action:    "manage",
-		ID:        policyID,
-		Name:      p.Name,
-		Backend:   p.Backend,
-		Version:   p.Version,
-		Data:      pdata,
-		DatasetID: datasetID,
+		Action:       "manage",
+		ID:           policyID,
+		Name:         p.Name,
+		Backend:      p.Backend,
+		Version:      p.Version,
+		Data:         pdata,
+		DatasetID:    datasetID,
+		AgentGroupID: ag.ID,
 	}}
-
+	
 	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
@@ -184,13 +185,14 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 			}
 
 			payload[i] = AgentPolicyRPCPayload{
-				Action:    "manage",
-				ID:        policy.Id,
-				Name:      policy.Name,
-				Backend:   policy.Backend,
-				Version:   policy.Version,
-				Data:      pdata,
-				DatasetID: policy.DatasetId,
+				Action:       "manage",
+				ID:           policy.Id,
+				Name:         policy.Name,
+				Backend:      policy.Backend,
+				Version:      policy.Version,
+				Data:         pdata,
+				DatasetID:    policy.DatasetId,
+				AgentGroupID: policy.AgentGroupId,
 			}
 
 		}
@@ -316,12 +318,13 @@ func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag Age
 	}
 
 	payload := []AgentPolicyRPCPayload{{
-		Action:  "manage",
-		ID:      policyID,
-		Name:    p.Name,
-		Backend: p.Backend,
-		Version: p.Version,
-		Data:    pdata,
+		Action:       "manage",
+		ID:           policyID,
+		Name:         p.Name,
+		AgentGroupID: ag.ID,
+		Backend:      p.Backend,
+		Version:      p.Version,
+		Data:         pdata,
 	}}
 
 	data := AgentPolicyRPC{
@@ -354,10 +357,11 @@ func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID st
 
 	var payloads []AgentPolicyRPCPayload
 	payload := AgentPolicyRPCPayload{
-		Action:  "remove",
-		ID:      policyID,
-		Name:    policyName,
-		Backend: backend,
+		Action:       "remove",
+		ID:           policyID,
+		Name:         policyName,
+		Backend:      backend,
+		AgentGroupID: ag.ID,
 	}
 
 	payloads = append(payloads, payload)
