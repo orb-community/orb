@@ -122,23 +122,25 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
         prop: 'name',
         name: 'Name',
         resizeable: false,
-        flexGrow: 2,
         minWidth: 90,
+        width: 120,
+        maxWidth: 150,
         cellTemplate: this.agentNameTemplateCell,
       },
       {
         prop: 'state',
         name: 'Status',
         resizeable: false,
-        minWidth: 100,
-        flexGrow: 1,
+        minWidth: 50,
+        maxWidth: 100,
         cellTemplate: this.agentStateTemplateRef,
       },
       {
         prop: 'combined_tags',
         name: 'Tags',
-        minWidth: 150,
-        flexGrow: 4,
+        minWidth: 300,
+        width: 500,
+        maxWidth: 600,
         cellTemplate: this.agentTagsTemplateCell,
         comparator: (a, b) => Object.entries(a)
           .map(([key, value]) => `${key}:${value}`)
@@ -150,8 +152,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
       {
         prop: 'ts_last_hb',
         name: 'Last Activity',
-        minWidth: 90,
-        flexGrow: 2,
+        minWidth: 180,
         resizeable: false,
         sortable: false,
         cellTemplate: this.agentLastActivityTemplateCell,
@@ -159,10 +160,9 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
       {
         name: '',
         prop: 'actions',
-        minWidth: 130,
+        width: 130,
         resizeable: false,
         sortable: false,
-        flexGrow: 2,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
