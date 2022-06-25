@@ -42,6 +42,48 @@ END
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
 
+#NetFlow
+if [ "${PKTVISOR_NETFLOW_BIND_ADDRESS}" = '' ]; then
+  PKTVISOR_NETFLOW_BIND_ADDRESS='0.0.0.0'
+fi
+if [[ -n "${PKTVISOR_NETFLOW_PORT_DEFAULT}" ]]; then
+(
+cat <<END
+version: "1.0"
+
+visor:
+  taps:
+    default_pcap:
+      input_type: pcap
+      config:
+        iface: "$PKTVISOR_PCAP_IFACE_DEFAULT"
+
+END
+) >"$tmpfile"
+
+  export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
+fi
+
+#SFlow
+if [ "${PKTVISOR_SFLOW_BIND_ADDRESS}" = '' ]; then
+  PKTVISOR_SFLOW_BIND_ADDRESS='0.0.0.0'
+fi
+if [[ -n "${PKTVISOR_SFLOW_PORT_DEFAULT}" ]]; then
+(
+cat <<END
+version: "1.0"
+
+visor:
+  taps:
+    default_pcap:
+      input_type: pcap
+      config:
+        iface: "$PKTVISOR_PCAP_IFACE_DEFAULT"
+END
+) >"$tmpfile"
+
+  export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
+fi
 # or specify pair of TAPNAME:IFACE
 # TODO allow multiple, split on comma
 # PKTVISOR_PCAP_IFACE_TAPS=default_pcap:en0
