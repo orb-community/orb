@@ -63,6 +63,8 @@ func main() {
 	sinksDB := connectToDB(sinksDbCfg, true, log)
 
 	svc := migrate.New(
+		log,
+		dbs,
 		migration.NewM1KetoPolicies(log, dbs),
 		migration.NewM2SinksCredentials(log, sinksDB, sinksEncryptionKey),
 	)
