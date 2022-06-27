@@ -21,9 +21,11 @@ trap 'rm -f "$tmpfile"' EXIT
 # NetFlow
 if [ "${PKTVISOR_NETFLOW_BIND_ADDRESS}" = '' ]; then
   PKTVISOR_NETFLOW_BIND_ADDRESS='0.0.0.0'
+fi
+if [ "${PKTVISOR_NETFLOW_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_NETFLOW_PORT_DEFAULT='2055'
 fi
-if [[ -n "${PKTVISOR_NETFLOW_PORT_DEFAULT}" ]]; then
+if [ "${PKTVISOR_FLOW_TYPE}" = 'netflow' ]; then
 (
 cat <<END
 version: "1.0"
@@ -36,7 +38,6 @@ visor:
         flow_type: netflow
         port: "$PKTVISOR_NETFLOW_PORT_DEFAULT"
         bind: "$PKTVISOR_NETFLOW_BIND_ADDRESS"
-
 END
 ) >"$tmpfile"
 
@@ -46,9 +47,11 @@ fi
 # SFlow
 if [ "${PKTVISOR_SFLOW_BIND_ADDRESS}" = '' ]; then
   PKTVISOR_SFLOW_BIND_ADDRESS='0.0.0.0'
+fi
+if [ "${PKTVISOR_SFLOW_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_SFLOW_PORT_DEFAULT='6343'
 fi
-if [[ -n "${PKTVISOR_SFLOW_PORT_DEFAULT}" ]]; then
+if [ "${PKTVISOR_FLOW_TYPE}" = 'sflow' ]; then
 (
 cat <<END
 version: "1.0"
@@ -61,7 +64,6 @@ visor:
         flow_type: sflow
         port: "$PKTVISOR_SFLOW_PORT_DEFAULT"
         bind: "$PKTVISOR_SFLOW_BIND_ADDRESS"
-
 END
 ) >"$tmpfile"
 
@@ -95,7 +97,6 @@ fi
 # or specify pair of TAPNAME:IFACE
 # TODO allow multiple, split on comma
 # PKTVISOR_PCAP_IFACE_TAPS=default_pcap:en0
-
 if [ $# -eq 0 ]; then
   exec "$orb_agent_bin" run
 else
