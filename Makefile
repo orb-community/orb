@@ -119,7 +119,7 @@ agent_bin:
 	$(call compile_service_linux,agent)
 
 agent:
-	docker build \
+	docker build --no-cache \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(REF_TAG) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \

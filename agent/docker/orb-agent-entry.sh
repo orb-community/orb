@@ -19,6 +19,7 @@ tmpfile=$(mktemp /tmp/orb-agent-pktvisor-conf.XXXXXX)
 trap 'rm -f "$tmpfile"' EXIT
 
 #Add defaults
+(
 cat <<END
 version: "1.0"
 
@@ -34,7 +35,7 @@ fi
 if [ "${PKTVISOR_NETFLOW_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_NETFLOW_PORT_DEFAULT='2055'
 fi
-if [ "${PKTVISOR_FLOW_TYPE}" = 'netflow' ]; then
+if [ "${PKTVISOR_NETFLOW}" = 'true' ]; then
 (
 cat <<END
     default_netflow:
@@ -56,7 +57,7 @@ fi
 if [ "${PKTVISOR_SFLOW_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_SFLOW_PORT_DEFAULT='6343'
 fi
-if [ "${PKTVISOR_FLOW_TYPE}" = 'sflow' ]; then
+if [ "${PKTVISOR_SFLOW}" = 'true' ]; then
 (
 cat <<END
     default_sflow:
@@ -71,6 +72,28 @@ END
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
 
+# DNS TAP
+if [ "${PKTVISOR_DNSTAP_BIND_ADDRESS}" = '' ]; then
+  PKTVISOR_DNSTAP_BIND_ADDRESS='0.0.0.0'
+fi
+if [ "${PKTVISOR_DNSTAP_PORT_DEFAULT}" = '' ]; then
+  PKTVISOR_DNSTAP_PORT_DEFAULT='6000'
+fi
+
+if [ "${PKTVISOR_DNSTAP}" = 'true' ]; then
+(
+cat <<END
+    default_dnstap:
+      input_type: dnstap
+      config:
+        tcp: "${PKTVISOR_DNSTAP_BIND_ADDRESS}:${PKTVISOR_DNSTAP_PORT_DEFAULT}"
+
+END
+) >> "$tmpfile"
+
+  export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
+fi
+
 # simplest: specify just interface, creates tap named "default_pcap"
 # PKTVISOR_PCAP_IFACE_DEFAULT=en0
 # special case: if the iface is "mock", then use "mock" pcap source
@@ -79,13 +102,14 @@ if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = 'mock' ]; then
 fi
 if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" ]]; then
 (
+cat <<END
     default_pcap:
       input_type: pcap
       config:
         iface: "$PKTVISOR_PCAP_IFACE_DEFAULT"
         $MAYBE_MOCK
 END
-) >> "$tmpfile"
+) >>"$tmpfile"
 
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
