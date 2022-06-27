@@ -47,7 +47,7 @@ func (m M2SinksCredentials) Up() (err error) {
 		_, err := m.dbSinks.NamedQueryContext(ctx, updateQuery, params)
 		if err != nil {
 			m.logger.Error("failed to update data for id", zap.String("id", qSink.id), zap.Error(err))
-			return
+			return err
 		}
 	}
 
@@ -76,7 +76,7 @@ func (m M2SinksCredentials) Down() (err error) {
 		_, err := m.dbSinks.NamedQueryContext(ctx, updateQuery, params)
 		if err != nil {
 			m.logger.Error("failed to update data for id", zap.String("id", qSink.id), zap.Error(err))
-			return
+			return err
 		}
 	}
 
@@ -93,11 +93,7 @@ func (m M2SinksCredentials) encryptMetadata(sink sinks.Sink) (sinks.Sink, error)
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		newValue, err2 := m.pwdSvc.EncodePassword(value.(string))
-		if err2 != nil {
-			err = err2
-			return key, value
-		}
+		newValue := m.pwdSvc.EncodePassword(value.(string))
 		return key, newValue
 	})
 	return sink, err
