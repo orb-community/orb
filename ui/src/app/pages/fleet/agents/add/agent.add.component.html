@@ -68,11 +68,13 @@
               <p>{{strings.add.step.desc2}}</p>
             </div>
           </ng-template>
+          <div class="d-flex col-8">
           <p *ngIf="(selectedTags | json) === '{}'">Agent tags are optional and may be set here or when you are
             provisioning an Agent.<br> The lack of tags will block an Agent to be matched during the Agent Group
             creation.</p>
           <ngx-tag-control [(tags)]="selectedTags" autofocus></ngx-tag-control>
-          <div class="d-flex justify-content-end">
+          </div>
+          <div class="d-flex justify-content-end col-8">
             <button class="next-button"
                     data-orb-qa-id="button#next"
                     nbButton
