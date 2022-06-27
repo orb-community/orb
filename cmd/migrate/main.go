@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/migrate"
+	"github.com/ns1labs/orb/migrate/migration"
 	"github.com/ns1labs/orb/migrate/postgres"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/spf13/cobra"
@@ -58,8 +59,13 @@ func main() {
 	dbs[postgres.DbKeto] = connectToDB(ketoDbCfg, true, log)
 	dbs[postgres.DbUsers] = connectToDB(usersDbCfg, false, log)
 	dbs[postgres.DbThings] = connectToDB(thingsDbCfg, false, log)
-	dbs[postgres.DBSinks] = connectToDB(sinksDbCfg, true, log)
-	svc := migrate.New(log, dbs, sinksEncryptionKey)
+
+	sinksDB := connectToDB(sinksDbCfg, true, log)
+
+	svc := migrate.New(
+		migration.NewM1KetoPolicies(log, dbs),
+		migration.NewM2SinksCredentials(log, sinksDB, sinksEncryptionKey),
+	)
 
 	rootCmd := &cobra.Command{
 		Use: "orb-migrate",
