@@ -3,13 +3,17 @@
     *ngFor="let tag of tags | keyvalue; index as i;"
     [attr.data-orb-qa-id]="'orb_tag_' + i"
     [style.background-color]="tag | tagcolor"
-    class="orb-tag-chip ">
+    class="orb-tag-chip "
+    matTooltipPosition="above"
+    [matTooltip]="tooltip">
     {{tag | tagchip}}
   </mat-chip>
   <mat-chip
     *ngIf="(tags | json) === '{}'"
     [style.background-color]="'notag' | tagcolor"
-    class="orb-tag-chip ">
+    class="orb-tag-chip "
+    matTooltipPosition="above"
+    [matTooltip]="tooltip">
     No tag added
   </mat-chip>
 </mat-chip-list>
