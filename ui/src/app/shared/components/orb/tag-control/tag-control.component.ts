@@ -24,10 +24,14 @@ export class TagControlComponent implements AfterViewInit {
   @Input()
   tags: Tags;
 
+  @Input()
+  required: boolean;
+
   @Output()
   tagsChange: EventEmitter<Tags>;
 
   constructor() {
+    this.required = true;
     this.tags = {};
     this.tagsChange = new EventEmitter<Tags>();
     this.key = '';
