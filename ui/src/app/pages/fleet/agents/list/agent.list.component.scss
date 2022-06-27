@@ -24,9 +24,9 @@ mat-chip-list {
   }
 
   &:hover {
-    animation-duration: 4s;
+    animation-duration: 6s;
     animation-name: slidetween;
-    animation-timing-function: ease-in-out;
+    animation-timing-function: linear;
     animation-iteration-count: infinite;
     animation-direction: alternate;
   }
@@ -42,7 +42,7 @@ mat-chip-list {
   }
 
   to {
-    transform: translateX(-100%);
+    transform: translateX(-70%);
   }
 
 }
