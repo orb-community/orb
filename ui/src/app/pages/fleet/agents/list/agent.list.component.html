@@ -87,22 +87,20 @@
 </ng-template>
 
 <ng-template #agentTagsTemplateCell let-i="index" let-row="row" let-value="value">
-  <div class="d-block">
-    <mat-chip-list nbTooltip="{{ row.combined_tags | json }}">
-      <mat-chip
-        *ngFor="let tag of value | keyvalue | slice:0:3"
-        [style.background-color]="tag | tagcolor"
-        class="orb-tag-chip ">
-        {{tag | tagchip}}
-      </mat-chip>
-      <mat-chip
-        *ngIf="(row?.orb_tags | json) === '{}' && (row?.agent_tags | json) === '{}'"
-        [style.background-color]="'notag' | tagcolor"
-        class="orb-tag-chip ">
-        No tags were created
-      </mat-chip>
-    </mat-chip-list>
-  </div>
+  <mat-chip-list nbTooltip="{{ row.combined_tags | json }}" #tablechiplist>
+    <mat-chip
+      *ngFor="let tag of value | keyvalue"
+      [style.background-color]="tag | tagcolor"
+      class="orb-tag-chip ">
+      {{tag | tagchip}}
+    </mat-chip>
+    <mat-chip
+      *ngIf="(row?.orb_tags | json) === '{}' && (row?.agent_tags | json) === '{}'"
+      [style.background-color]="'notag' | tagcolor"
+      class="orb-tag-chip ">
+      No tags were created
+    </mat-chip>
+  </mat-chip-list>
 </ng-template>
 
 <ng-template #agentLastActivityTemplateCell let-i="index" let-row="row" let-value="value">

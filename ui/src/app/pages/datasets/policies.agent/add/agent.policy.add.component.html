@@ -13,9 +13,9 @@
   <div
     *ngIf="!isLoading['backend'] && !isLoading['taps'] && !isLoading['inputs'] && !isLoading['handlers']"
     class="d-flex row">
-    <div class="d-flex col-12 mt-2">
+    <div class="d-flex col-12 mt-5">
       <nb-stepper
-        class="stepper w-100 ml-1"
+        class="stepper w-100 ml-2"
         disableStepNavigation
         orientation="vertical">
         <nb-step
@@ -38,7 +38,6 @@
               </div>
               <input
                 autofocus
-                class="w-50"
                 data-orb-qa-id="name"
                 fieldSize="medium"
                 formControlName="name"
@@ -53,7 +52,6 @@
                 for="description">Policy Description</label>
             </div>
             <input
-              class="w-50"
               data-orb-qa-id="description"
               fieldSize="medium"
               formControlName="description"
@@ -61,30 +59,30 @@
               id="description"
               nbInput/>
             <hr/>
+            <div class="d-flex justify-content-end">
+              <button
+                      (click)="resizeComponents()"
+                      [disabled]="!detailsFG?.valid"
+                      class="next-button"
+                      data-orb-qa-id="button#next"
+                      nbButton
+                      nbStepperNext
+                      shape="round"
+                      status="primary">
+                {{ strings.stepper.next }}
+              </button>
+              <button
+                      (click)="goBack()"
+                      data-orb-qa-id="button#cancel"
+                      ghost
+                      nbButton
+                      shape="round"
+                      status="primary"
+                      type="button">
+                {{ strings.stepper.cancel }}
+              </button>
+            </div>
           </form>
-          <div class="d-flex justify-content-end">
-            <button
-              (click)="goBack()"
-              data-orb-qa-id="button#cancel"
-              ghost
-              nbButton
-              shape="round"
-              status="primary"
-              type="button">
-              {{ strings.stepper.cancel }}
-            </button>
-            <button
-              (click)="resizeComponents()"
-              [disabled]="!detailsFG?.valid"
-              class="next-button"
-              data-orb-qa-id="button#next"
-              nbButton
-              nbStepperNext
-              shape="round"
-              status="primary">
-              {{ strings.stepper.next }}
-            </button>
-          </div>
         </nb-step>
         <nb-step
           [label]="wizardStepTemplate"
@@ -123,7 +121,6 @@
                 <nb-select
                   (selectedChange)="onTapSelected($event)"
                   appearance="filled"
-                  class="w-50"
                   data-orb-qa-id="taps"
                   formControlName="selected_tap"
                   fullWidth="true"
@@ -164,7 +161,6 @@
                         [formControlName]="control.key"
                         [placeholder]="'e.g.: '.concat(control.value?.props?.example)"
                         [type]="control.value.type"
-                        class="w-50"
                         fieldSize="medium"
                         fullWidth="true"
                         nbInput
@@ -179,7 +175,6 @@
                         [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                         [step]="control.value.props.step"
                         [type]="control.value.type"
-                        class="w-50"
                         nbTooltip="{{ control.value.description }}">
                       <nb-select
                         *ngSwitchCase="'select'"
@@ -189,7 +184,6 @@
                         [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                         [selected]="agentPolicy?.policy?.input?.tap"
                         appearance="filled"
-                        class="w-50"
                         fullWidth="true"
                         nbTooltip="{{ control.value.description }}"
                         size="medium"
@@ -221,7 +215,6 @@
                               [formControlName]="control.key"
                               [placeholder]="'e.g.: '.concat(control.value?.props?.example)"
                               [type]="control.value.type"
-                              class="w-50"
                               fieldSize="medium"
                               fullWidth="true"
                               nbInput
@@ -236,7 +229,6 @@
                               [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                               [step]="control.value.props.step"
                               [type]="control.value.type"
-                              class="w-50"
                               nbTooltip="{{ control.value.description }}">
                             <nb-select
                               *ngSwitchCase="'select'"
@@ -245,7 +237,6 @@
                               [id]="control.value.name"
                               [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                               appearance="filled"
-                              class="w-50"
                               fullWidth="true"
                               nbTooltip="{{ control.value.description }}"
                               size="medium"
@@ -283,7 +274,6 @@
                         [formControlName]="control.key"
                         [placeholder]="'e.g.: '.concat(control.value?.props?.example)"
                         [type]="control.value.type"
-                        class="w-50"
                         fieldSize="medium"
                         fullWidth="true"
                         nbInput
@@ -298,7 +288,6 @@
                         [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                         [step]="control.value.props.step"
                         [type]="control.value.type"
-                        class="w-50"
                         nbTooltip="{{ control.value.description }}">
                       <nb-select
                         *ngSwitchCase="'select'"
@@ -307,7 +296,6 @@
                         [id]="control.value.name"
                         [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                         appearance="filled"
-                        class="w-50"
                         fullWidth="true"
                         nbTooltip="{{ control.value.description }}"
                         size="medium"
@@ -392,7 +380,7 @@
             </div>
           </ng-template>
           <!-- Added Handlers List -->
-          <div class="d-flex m-2">
+          <div class="d-flex m-3" class="handlers-list">
             <mat-chip-list data-orb-qa-id="handlers-list">
               <mat-chip
                 *ngFor="let handler of modules | keyvalue; index as i"
@@ -407,24 +395,28 @@
                   icon="close-outline"
                   size="12"></nb-icon>
               </mat-chip>
+              <mat-chip *ngIf="!hasModules()"
+                      class="orb-selected-handler ">
+                No Handler Added.
+              </mat-chip>
             </mat-chip-list>
+            <button
+                    (click)="addHandler()"
+                    class="add-handler-button next-button"
+                    data-orb-qa-id="addHandler"
+                    nbButton
+                    nbTooltip="Click to Add Handler"
+                    shape="round"
+                    status="primary">
+              <nb-icon
+                      icon="plus-outline"
+                      size="14"
+                      status="primary"
+                      style="color: #df316f;">
+              </nb-icon>
+              Add Handler
+            </button>
           </div>
-          <button
-            (click)="addHandler()"
-            class="next-button"
-            data-orb-qa-id="addHandler"
-            nbButton
-            nbTooltip="Click to Add Handler"
-            shape="round"
-            status="primary">
-            <nb-icon
-              icon="plus-outline"
-              size="14"
-              status="primary"
-              style="color: #df316f;">
-            </nb-icon>
-            Add Handler
-          </button>
           <div
             class="d-flex justify-content-start"
             style="padding-left: 35%; margin-top: 3vh;">

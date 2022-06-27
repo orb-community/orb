@@ -9,48 +9,40 @@
       <span class="nb-close"></span>
     </button>
   </nb-card-header>
-  <nb-card-body *ngIf="!isLoading">
-    <form [formGroup]="handlerSelectorFG">
-      <label class="font-weight-bold" for="selected_handler">Handler</label>
-      <span class="required">*</span>
+  <nb-card-body *ngIf="!isLoading" class="d-flex">
+    <form [formGroup]="handlerSelectorFG" class="handler-form">
+      <label class="font-weight-bold" for="selected_handler">Handler<span class="required">*</span></label>
+
       <!-- Select a Handler -->
       <nb-select (selectedChange)="onHandlerSelected($event)"
                  appearance="filled"
                  data-orb-qa-id="backend_selector"
                  formControlName="selected_handler"
-                 fullWidth="true"
                  id="selected_handler"
+                 size="medium"
                  nbTooltip="Select and configure individual policies from a list of available handlers."
-                 placeholder="Select Handler"
-                 size="medium">
+                 placeholder="Select Handler">
         <nb-option *ngFor="let handler of availableHandlers | keyvalue; index as i;"
                    [attr.data-orb-qa-id]="'available_handler: '+handler.key" [id]="handler.key"
                    [value]="handler.key">{{ handler.key }}
           <span class="faded-input-text">{{ ' | ' + handler.value.version }}</span></nb-option>
       </nb-select>
       <hr/>
-      <div *ngIf="!!selectedHandler">
-        <div>
-          <label class="font-weight-bold" for="name">Handler Label</label>
-          <span class="required">*</span>
-        </div>
-        <input class="col-10"
-               data-orb-qa-id="handler-label"
+      <div *ngIf="!!selectedHandler" class="handler-form">
+        <label class="font-weight-bold" for="name">Handler Label<span class="required">*</span></label>
+        <input data-orb-qa-id="handler-label"
                fieldSize="medium"
                formControlName="name"
-               fullWidth="true"
                id="name"
                nbInput
                nbTooltip="Provide a label for your handler configuration"
                placeholder="Handler Name"/>
         <hr/>
-        <div *ngFor="let group of dynConfigList;">
+        <div *ngFor="let group of dynConfigList;" >
           <div *ngFor="let control of handlerProps[group] | keyvalue"
                [formGroupName]="group">
-            <div>
+            <div [ngSwitch]="control.value.input" class="d-block">
               <label [for]="control.key" class="font-weight-bold">{{control.value.label}}</label>
-            </div>
-            <div [ngSwitch]="control.value.input">
               <input *ngSwitchCase="'text'"
                      [attr.data-orb-qa-id]="control.value.name"
                      [autofocus]="true"
@@ -58,8 +50,6 @@
                      [id]="control.key"
                      [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                      [type]="control.value.type"
-                     fieldSize="medium"
-                     fullWidth="true"
                      nbInput
                      nbTooltip="{{ control.value.description }}">
               <input *ngSwitchCase="'number'"
@@ -80,13 +70,11 @@
                          [id]="control.value.name"
                          [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
                          appearance="filled"
-                         fullWidth="true"
-                         nbTooltip="{{ control.value.description }}"
-                         size="medium">
+                         nbTooltip="{{ control.value.description }}">
                 {{ control.value.name + "-" + control.value.props.options }}
                 <nb-option *ngFor="let option of control.value.props.options | keyvalue"
                            [attr.data-orb-qa-id]="option.key"
-                           [value]="option.value">{{ option.value }}</nb-option>
+                           [value]="option.value">{{ option.key }} | {{ option.value }}</nb-option>
               </nb-select>
               <nb-checkbox *ngSwitchCase="'checkbox'"
                            [attr.data-orb-qa-id]="control.value.name"

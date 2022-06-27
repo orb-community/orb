@@ -106,7 +106,7 @@
   <div class="d-block">
     <mat-chip-list nbTooltip="{{ value | json }}">
       <mat-chip
-        *ngFor="let tag of value | keyvalue | slice:0:3"
+        *ngFor="let tag of value | keyvalue"
         [style.background-color]="tag | tagcolor"
         class="orb-tag-chip ">
         {{tag | tagchip}}

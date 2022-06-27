@@ -2,6 +2,16 @@ mat-chip nb-icon {
   font-size: 1rem;
 }
 
+::ng-deep mat-chip-list {
+  display: flex !important;
+  flex-wrap: wrap !important;
+}
+
+::ng-deep .mat-chip-list-wrapper {
+  display: flex !important;
+  flex-wrap: wrap !important;
+}
+
 .ns1red {
   color: #df316f;
 }

@@ -1,5 +1,6 @@
 .nb-card-large {
-  width: 800px;
+  width: 35rem;
+  border-radius: 15px;
 }
 
 .nb-card-medium {
@@ -27,8 +28,9 @@ nb-icon {
   color: #df316f;
 }
 
-nb-select {
-  width: 100%;
+nb-select, input {
+  width: 30rem !important;
+  max-width: 30rem !important;
 }
 
 button {
@@ -84,28 +86,6 @@ nb-tabset {
   color: #969fb9;
 }
 
-nb-accordion {
-  padding: 0;
-  text-subtitle-line-height: 1rem;
-  display: grid;
-
-  nb-accordion-item {
-    padding: 0;
-    //background: rgb(23, 28, 48);
-
-    nb-accordion-item-header {
-      padding: 10px 0;
-      //background: rgb(23, 28, 48);
-    }
-
-    nb-accordion-item-body {
-      padding: 0;
-      //background: rgb(23, 28, 48);
-      display: grid;
-    }
-  }
-}
-
 .faded-input-text {
   color: #969fb9;
   font-family: 'Montserrat', sans-serif;
@@ -116,4 +96,18 @@ nb-accordion {
 .required {
   color: #df316f;
   padding-left: 2px;
+}
+
+.handler-form {
+  width: 30rem !important;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+}
+
+nb-checkbox {
+  float: left;
 }
