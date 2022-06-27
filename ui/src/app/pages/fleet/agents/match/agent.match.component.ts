@@ -64,15 +64,21 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
         prop: 'name',
         name: 'Agent Name',
         resizeable: false,
-        flexGrow: 1,
+        canAutoResize: true,
+        flexGrow: 2,
         minWidth: 90,
+        width: 120,
+        maxWidth: 200,
       },
       {
         prop: 'combined_tags',
         name: 'Tags',
         resizeable: false,
-        minWidth: 100,
-        flexGrow: 2,
+        canAutoResize: true,
+        flexGrow: 6,
+        minWidth: 300,
+        width: 450,
+        maxWidth: 1000,
         cellTemplate: this.agentTagsTemplateCell,
         comparator: (a, b) => Object.entries(a)
           .map(([key, value]) => `${key}:${value}`)
@@ -84,8 +90,12 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
       {
         prop: 'state',
         name: 'Status',
+        resizeable: false,
+        canAutoResize: true,
+        flexGrow: 2,
         minWidth: 90,
-        flexGrow: 1,
+        width: 90,
+        maxWidth: 90,
         cellTemplate: this.agentStateTemplateRef,
       },
     ];

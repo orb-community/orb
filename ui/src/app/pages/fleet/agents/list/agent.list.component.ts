@@ -120,7 +120,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     this.columns = [
       {
         prop: 'name',
-        flexGrow: 2,
+        flexGrow: 3,
         canAutoResize: true,
         name: 'Name',
         resizeable: false,
@@ -141,7 +141,7 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
       },
       {
         prop: 'combined_tags',
-        flexGrow: 7,
+        flexGrow: 6,
         canAutoResize: true,
         name: 'Tags',
         minWidth: 300,

@@ -46,7 +46,7 @@
     <mat-chip-list>
       <mat-chip
           class="orb-tag-chip "
-          *ngFor="let tag of value | keyvalue | slice:0:3"
+          *ngFor="let tag of value | keyvalue"
           [style.background-color]="tag | tagcolor">
           {{tag | tagchip}}
       </mat-chip>
