@@ -108,7 +108,7 @@
     Never
   </div>
   <div *ngIf="row.state !== 'new'" class="d-flex">
-    {{ value | date:'M/d/yy, HH:mm z' }}
+    {{ value | date:'full' }}
   </div>
 </ng-template>
 
