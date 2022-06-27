@@ -87,6 +87,10 @@
     }
   }
 
+  nb-card {
+    border: none;
+  }
+
   nb-card nb-list {
     @include nb-scrollbars(
         nb-theme(card-scrollbar-color),
