@@ -1,7 +1,6 @@
 package sinks
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"testing"
@@ -9,133 +8,42 @@ import (
 
 func Test_passwordService_EncodePassword(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
-	type fields struct {
-		key string
-	}
-	type args struct {
-		plainText string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    string
-		wantErr assert.ErrorAssertionFunc
-	}{
-		{
-			name: "encoding with 16 char key",
-			fields: fields{
-				key: "aaaaaaaaaaaaaaaa",
-			},
-			args: args{
-				"test",
-			},
-			want: "aVz6gbJ6NhKhzfQ96YW54ys9LEe/ZqDDtAe9Kua8ixU=",
-			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				return true
-			},
-		},
-		{
-			name: "encoding with 24 char key",
-			fields: fields{
-				key: "aaaaaaaaaaaaaaaaaaaaaaaa",
-			},
-			args: args{
-				"test",
-			},
-			want: "ghX4QeVtlLmUD99ZlFKX3nQEpEv/NygQPNpo9eEQeZk=",
-			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				return true
-			},
-		},
-		{
-			name: "encoding with 32 char key",
-			fields: fields{
-				key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-			},
-			args: args{
-				"test",
-			},
-			want: "Ze8ovcvKNoT/K+YfXInHQdw9WiZ/NMvBGQnSb1mczAk=",
-			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				return true
-			},
-		},
-		{
-			name: "encoding with invalid key",
-			fields: fields{
-				key: "aaa",
-			},
-			args: args{
-				"test",
-			},
-			want: "",
-			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				return assert.Error(t, err, "invalid key size")
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ps := NewPasswordService(logger, tt.fields.key)
-			got, err := ps.EncodePassword(tt.args.plainText)
-			if !tt.wantErr(t, err, fmt.Sprintf("EncodePassword(%v)", tt.args.plainText)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "EncodePassword(%v)", tt.args.plainText)
-		})
-	}
-}
 
-func Test_passwordService_GetPassword(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
-	type fields struct {
-		key string
-	}
-	type args struct {
-		cipheredText string
-	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   string
+		name          string
+		key           string
+		plainText     string
+		encodedString string
 	}{
 		{
-			name: "encoding with 16 char key",
-			fields: fields{
-				key: "aaaaaaaaaaaaaaaa",
-			},
-			args: args{
-				"aVz6gbJ6NhKhzfQ96YW54ys9LEe/ZqDDtAe9Kua8ixU=",
-			},
-			want: "test",
+			name:          "with 32 char key",
+			key:           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			plainText:     "test",
+			encodedString: "589e5c8bc26165a515697ec4231ddcb2bb93162e5ab3eac6e60685914b03a26b",
 		},
 		{
-			name: "encoding with 24 char key",
-			fields: fields{
-				key: "aaaaaaaaaaaaaaaaaaaaaaaa",
-			},
-			args: args{
-				"ghX4QeVtlLmUD99ZlFKX3nQEpEv/NygQPNpo9eEQeZk=",
-			},
-			want: "test",
+			name:          "with smaller key",
+			key:           "testing",
+			plainText:     "test",
+			encodedString: "daa753d663f98ab0825ad0a3fd61c8956a05bbb573e7e7e46091bd043c4161e8",
 		},
 		{
-			name: "encoding with 32 char key",
-			fields: fields{
-				key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-			},
-			args: args{
-				"Ze8ovcvKNoT/K+YfXInHQdw9WiZ/NMvBGQnSb1mczAk=",
-			},
-			want: "test",
+			name:          "with uuid-key",
+			key:           "eb1bc7f4-2031-41c4-85fa-2ddce3abfc3b",
+			plainText:     "test",
+			encodedString: "8c6ac82169d7228c9880f7276a9b06a2bfa0288a8586ad47c2807896c8e63d42",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ps := NewPasswordService(logger, tt.fields.key)
-			assert.Equalf(t, tt.want, ps.GetPassword(tt.args.cipheredText), "GetPassword(%v)", tt.args.cipheredText)
+			ps := NewPasswordService(logger, tt.key)
+			got := ps.EncodePassword(tt.plainText)
+			t.Logf("storing %s", got)
+			password := ps.GetPassword(got)
+			t.Logf("retrieving %s", password)
+			assert.Equalf(t, tt.plainText, password, "Got Decoded Password %s", password)
+			getPassword := ps.GetPassword(tt.encodedString)
+			assert.Equalf(t, getPassword, password, "Stored coded password is %s", getPassword)
 		})
 	}
 }
