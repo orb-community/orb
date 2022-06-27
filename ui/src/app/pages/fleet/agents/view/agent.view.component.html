@@ -26,12 +26,10 @@
   </div>
 </header>
 
-<div *ngIf="!isLoading" class="row">
+<div *ngIf="!isLoading" class="agent-view-content">
   <div class="card-col col-5">
     <ngx-agent-information [agent]="agent"></ngx-agent-information>
 
-    <ngx-agent-capabilities [agent]="agent"></ngx-agent-capabilities>
-    <ngx-agent-provisioning [agent]="agent"></ngx-agent-provisioning>
   </div>
 
   <div class="card-col col-7">
@@ -40,5 +38,7 @@
             (refreshAgent)="retrieveAgent()">
     </ngx-agent-policies-datasets>
     <ngx-agent-groups [agent]="agent"></ngx-agent-groups>
+    <ngx-agent-provisioning [agent]="agent"></ngx-agent-provisioning>
+    <ngx-agent-capabilities [agent]="agent"></ngx-agent-capabilities>
   </div>
 </div>
