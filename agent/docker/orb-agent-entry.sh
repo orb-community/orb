@@ -18,7 +18,16 @@ fi
 tmpfile=$(mktemp /tmp/orb-agent-pktvisor-conf.XXXXXX)
 trap 'rm -f "$tmpfile"' EXIT
 
-# NetFlow
+#Add defaults
+cat <<END
+version: "1.0"
+
+visor:
+  taps:
+END
+) > "$tmpfile"
+
+# NetFlow tap
 if [ "${PKTVISOR_NETFLOW_BIND_ADDRESS}" = '' ]; then
   PKTVISOR_NETFLOW_BIND_ADDRESS='0.0.0.0'
 fi
@@ -28,10 +37,6 @@ fi
 if [ "${PKTVISOR_FLOW_TYPE}" = 'netflow' ]; then
 (
 cat <<END
-version: "1.0"
-
-visor:
-  taps:
     default_netflow:
       input_type: flow
       config:
@@ -39,12 +44,12 @@ visor:
         port: "$PKTVISOR_NETFLOW_PORT_DEFAULT"
         bind: "$PKTVISOR_NETFLOW_BIND_ADDRESS"
 END
-) >"$tmpfile"
+) >> "$tmpfile"
 
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
 
-# SFlow
+# SFlow tap
 if [ "${PKTVISOR_SFLOW_BIND_ADDRESS}" = '' ]; then
   PKTVISOR_SFLOW_BIND_ADDRESS='0.0.0.0'
 fi
@@ -54,10 +59,6 @@ fi
 if [ "${PKTVISOR_FLOW_TYPE}" = 'sflow' ]; then
 (
 cat <<END
-version: "1.0"
-
-visor:
-  taps:
     default_sflow:
       input_type: flow
       config:
@@ -65,7 +66,7 @@ visor:
         port: "$PKTVISOR_SFLOW_PORT_DEFAULT"
         bind: "$PKTVISOR_SFLOW_BIND_ADDRESS"
 END
-) >"$tmpfile"
+) >> "$tmpfile"
 
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
@@ -78,18 +79,13 @@ if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = 'mock' ]; then
 fi
 if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" ]]; then
 (
-cat <<END
-version: "1.0"
-
-visor:
-  taps:
     default_pcap:
       input_type: pcap
       config:
         iface: "$PKTVISOR_PCAP_IFACE_DEFAULT"
         $MAYBE_MOCK
 END
-) >"$tmpfile"
+) >> "$tmpfile"
 
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
