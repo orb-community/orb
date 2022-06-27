@@ -18,6 +18,56 @@ fi
 tmpfile=$(mktemp /tmp/orb-agent-pktvisor-conf.XXXXXX)
 trap 'rm -f "$tmpfile"' EXIT
 
+# NetFlow
+if [ "${PKTVISOR_NETFLOW_BIND_ADDRESS}" = '' ]; then
+  PKTVISOR_NETFLOW_BIND_ADDRESS='0.0.0.0'
+  PKTVISOR_NETFLOW_PORT_DEFAULT='2055'
+fi
+if [[ -n "${PKTVISOR_NETFLOW_PORT_DEFAULT}" ]]; then
+(
+cat <<END
+version: "1.0"
+
+visor:
+  taps:
+    default_netflow:
+      input_type: flow
+      config:
+        flow_type: netflow
+        port: "$PKTVISOR_NETFLOW_PORT_DEFAULT"
+        bind: "$PKTVISOR_NETFLOW_BIND_ADDRESS"
+
+END
+) >"$tmpfile"
+
+  export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
+fi
+
+# SFlow
+if [ "${PKTVISOR_SFLOW_BIND_ADDRESS}" = '' ]; then
+  PKTVISOR_SFLOW_BIND_ADDRESS='0.0.0.0'
+  PKTVISOR_SFLOW_PORT_DEFAULT='6343'
+fi
+if [[ -n "${PKTVISOR_SFLOW_PORT_DEFAULT}" ]]; then
+(
+cat <<END
+version: "1.0"
+
+visor:
+  taps:
+    default_sflow:
+      input_type: flow
+      config:
+        flow_type: sflow
+        port: "$PKTVISOR_SFLOW_PORT_DEFAULT"
+        bind: "$PKTVISOR_SFLOW_BIND_ADDRESS"
+
+END
+) >"$tmpfile"
+
+  export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
+fi
+
 # simplest: specify just interface, creates tap named "default_pcap"
 # PKTVISOR_PCAP_IFACE_DEFAULT=en0
 # special case: if the iface is "mock", then use "mock" pcap source
@@ -42,48 +92,6 @@ END
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
 
-#NetFlow
-if [ "${PKTVISOR_NETFLOW_BIND_ADDRESS}" = '' ]; then
-  PKTVISOR_NETFLOW_BIND_ADDRESS='0.0.0.0'
-fi
-if [[ -n "${PKTVISOR_NETFLOW_PORT_DEFAULT}" ]]; then
-(
-cat <<END
-version: "1.0"
-
-visor:
-  taps:
-    default_pcap:
-      input_type: pcap
-      config:
-        iface: "$PKTVISOR_PCAP_IFACE_DEFAULT"
-
-END
-) >"$tmpfile"
-
-  export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
-fi
-
-#SFlow
-if [ "${PKTVISOR_SFLOW_BIND_ADDRESS}" = '' ]; then
-  PKTVISOR_SFLOW_BIND_ADDRESS='0.0.0.0'
-fi
-if [[ -n "${PKTVISOR_SFLOW_PORT_DEFAULT}" ]]; then
-(
-cat <<END
-version: "1.0"
-
-visor:
-  taps:
-    default_pcap:
-      input_type: pcap
-      config:
-        iface: "$PKTVISOR_PCAP_IFACE_DEFAULT"
-END
-) >"$tmpfile"
-
-  export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
-fi
 # or specify pair of TAPNAME:IFACE
 # TODO allow multiple, split on comma
 # PKTVISOR_PCAP_IFACE_TAPS=default_pcap:en0
