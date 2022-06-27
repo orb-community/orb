@@ -20,7 +20,7 @@
         <p>{{ agent?.channel_id }}</p>
 
         <label>Created on</label>
-        <p *ngIf="agent.state !== 'new'">{{ agent?.ts_created | date:'M/d/yy, HH:mm z'}}</p>
+        <p *ngIf="agent.state !== 'new'">{{ agent?.ts_created | date:'full'}}</p>
       </div>
     </div>
     <ngx-combined-tag [agent]="agent"></ngx-combined-tag>
