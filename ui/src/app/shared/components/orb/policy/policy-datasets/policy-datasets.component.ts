@@ -238,7 +238,8 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy,
                     policy: this.policy,
                 },
                 hasScroll: false,
-                hasBackdrop: false,
+                hasBackdrop: true,
+                closeOnBackdropClick: true,
             }).onClose.subscribe(resp => {
             if (resp === 'created') {
                 this.refreshPolicy.emit('refresh-from-dataset');
