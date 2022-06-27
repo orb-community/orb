@@ -32,8 +32,8 @@ export class AgentKeyComponent implements OnInit {
   ngOnInit(): void {
     this.makeCommand2Copy();
     this.key2copy = this.agent.key;
-    this.copyCommandIcon = 'clipboard-outline';
-    this.copyKeyIcon = 'clipboard-outline';
+    this.copyCommandIcon = 'copy-outline';
+    this.copyKeyIcon = 'copy-outline';
   }
 
   makeCommand2Copy() {
