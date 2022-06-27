@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base64"
 	"go.uber.org/zap"
 )
 
@@ -26,13 +27,14 @@ type passwordService struct {
 	logger *zap.Logger
 }
 
+// Gets the Password encrypted and in Base64 string for storing
 func (ps *passwordService) EncodePassword(plainText string) (string, error) {
 	cipherText, err := encrypt(ps.key, []byte(plainText))
 	if err != nil {
 		ps.logger.Error("invalid encryption", zap.Error(err))
 		return "", err
 	}
-	return string(cipherText), nil
+	return base64.StdEncoding.EncodeToString(cipherText), nil
 }
 
 func (ps *passwordService) SetKey(newKey []byte) {
@@ -48,8 +50,14 @@ func (ps *passwordService) SetKey(newKey []byte) {
 	ps.key = newKey
 }
 
+// Gets the Password from the Base64 string we store
 func (ps *passwordService) GetPassword(cipheredText string) string {
-	plainByte, err := decrypt(ps.key, []byte(cipheredText))
+	var cipheredByte []byte
+	_, err := base64.StdEncoding.Decode(cipheredByte, []byte(cipheredText))
+	if err != nil {
+		ps.logger.Error("invalid decoding", zap.Error(err))
+	}
+	plainByte, err := decrypt(ps.key, cipheredByte)
 	if err != nil {
 		ps.logger.Error("invalid decryption", zap.Error(err))
 	}

@@ -39,8 +39,16 @@ func (m M2SinksCredentials) Up() (err error) {
 			m.logger.Error("failed to encrypt data for id", zap.String("id", qSink.id), zap.Error(err))
 			return
 		}
-		updateQuery := "UPDATE sinks SET metadata VALUES(:metadata)"
-		m.dbSinks.NamedQueryContext(ctx, updateQuery, sink.Config)
+		params := map[string]interface{}{
+			"id":       sink.ID,
+			"metadata": sink.Config,
+		}
+		updateQuery := "UPDATE sinks SET metadata VALUES(:metadata) WHERE id = :id"
+		_, err := m.dbSinks.NamedQueryContext(ctx, updateQuery, params)
+		if err != nil {
+			m.logger.Error("failed to update data for id", zap.String("id", qSink.id), zap.Error(err))
+			return
+		}
 	}
 
 	return
@@ -65,7 +73,11 @@ func (m M2SinksCredentials) Down() (err error) {
 			"metadata": sink.Config,
 		}
 		updateQuery := "UPDATE sinks SET metadata VALUES(:metadata) WHERE id = :id"
-		m.dbSinks.NamedExecContext(ctx, updateQuery, params)
+		_, err := m.dbSinks.NamedQueryContext(ctx, updateQuery, params)
+		if err != nil {
+			m.logger.Error("failed to update data for id", zap.String("id", qSink.id), zap.Error(err))
+			return
+		}
 	}
 
 	return
@@ -76,12 +88,12 @@ func NewM2SinksCredentials(log *zap.Logger, dbSinks postgres.Database, config co
 	return &M2SinksCredentials{log, dbSinks, pwdSvc}
 }
 
-func (svc M2SinksCredentials) encryptMetadata(sink sinks.Sink) (sinks.Sink, error) {
+func (m M2SinksCredentials) encryptMetadata(sink sinks.Sink) (sinks.Sink, error) {
 	var err error
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		newValue, err2 := svc.pwdSvc.EncodePassword(value.(string))
+		newValue, err2 := m.pwdSvc.EncodePassword(value.(string))
 		if err2 != nil {
 			err = err2
 			return key, value
@@ -91,11 +103,11 @@ func (svc M2SinksCredentials) encryptMetadata(sink sinks.Sink) (sinks.Sink, erro
 	return sink, err
 }
 
-func (svc M2SinksCredentials) decryptMetadata(sink sinks.Sink) sinks.Sink {
+func (m M2SinksCredentials) decryptMetadata(sink sinks.Sink) sinks.Sink {
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		newValue := svc.pwdSvc.GetPassword(value.(string))
+		newValue := m.pwdSvc.GetPassword(value.(string))
 		return key, newValue
 	})
 	return sink
