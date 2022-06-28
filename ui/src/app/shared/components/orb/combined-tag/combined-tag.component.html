@@ -1,12 +1,13 @@
 <div>
   <br>
-  <div matTooltip="These tags were configured in the agent and were inherited into Orb">
     <p class="detail-title">Agent Tags</p>
-    <ngx-tag-display [tags]="agent.agent_tags"></ngx-tag-display>
-  </div>
-  <div matTooltip="These tags were configured in Orb and propagated to the agent">
+    <ngx-tag-display [tags]="agent.agent_tags"
+                     tooltip="These tags were configured in the agent and were inherited into Orb">
+    </ngx-tag-display>
+
     <br>
     <p class="detail-title">Orb Tags</p>
-    <ngx-tag-display [tags]="agent.orb_tags"></ngx-tag-display>
-  </div>
+    <ngx-tag-display [tags]="agent.orb_tags"
+                     tooltip="These tags were configured in Orb and propagated to the agent">
+    </ngx-tag-display>
 </div>

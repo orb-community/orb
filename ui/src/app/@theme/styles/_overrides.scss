@@ -102,3 +102,16 @@
     color: nb-theme(text-basic-color) !important;
   }
 }
+
+.card-button {
+  border-radius: 15px !important;
+  float: right !important;
+  color: #fff !important;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  text-transform: none !important;
+
+  &.btn-disabled {
+    background: #2b3148;
+  }
+}
