@@ -67,7 +67,10 @@ func (m M2SinksCredentials) Down() (err error) {
 			ID:     qSink.id,
 			Config: qSink.config,
 		}
-		sink = m.decryptMetadata(sink)
+		sink, err = m.decryptMetadata(sink)
+		if err != nil {
+			return
+		}
 		params := map[string]interface{}{
 			"id":       sink.ID,
 			"metadata": sink.Config,
@@ -93,18 +96,27 @@ func (m M2SinksCredentials) encryptMetadata(sink sinks.Sink) (sinks.Sink, error)
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		newValue := m.pwdSvc.EncodePassword(value.(string))
+		newValue, err2 := m.pwdSvc.EncodePassword(value.(string))
+		if err2 != nil {
+			err = err2
+			return key, value
+		}
 		return key, newValue
 	})
 	return sink, err
 }
 
-func (m M2SinksCredentials) decryptMetadata(sink sinks.Sink) sinks.Sink {
+func (m M2SinksCredentials) decryptMetadata(sink sinks.Sink) (sinks.Sink, error) {
+	var err error
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		newValue := m.pwdSvc.GetPassword(value.(string))
+		newValue, err2 := m.pwdSvc.GetPassword(value.(string))
+		if err2 != nil {
+			err = err2
+			return key, value
+		}
 		return key, newValue
 	})
-	return sink
+	return sink, err
 }
