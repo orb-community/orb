@@ -3,6 +3,7 @@ package migration
 import (
 	"context"
 	"github.com/ns1labs/orb/pkg/config"
+	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/backend"
@@ -24,14 +25,15 @@ type querySink struct {
 func (m M2SinksCredentials) Up() (err error) {
 	ctx := context.Background()
 	q := "SELECT Id, Metadata FROM sinks"
-	rows, err := m.dbSinks.NamedQueryContext(ctx, q, nil)
+	params := map[string]interface{}{}
+	rows, err := m.dbSinks.NamedQueryContext(ctx, q, params)
 	if err != nil {
 		return
 	}
 	for rows.Next() {
 		qSink := querySink{}
-		if err := rows.StructScan(&qSink); err != nil {
-			return
+		if err2 := rows.StructScan(&qSink); err2 != nil {
+			return err2
 		}
 		sink := sinks.Sink{
 			ID:     qSink.Id,
@@ -40,13 +42,13 @@ func (m M2SinksCredentials) Up() (err error) {
 		sink, err = m.encryptMetadata(sink)
 		if err != nil {
 			m.logger.Error("failed to encrypt data for id", zap.String("id", qSink.Id), zap.Error(err))
-			return
+			return err
 		}
 		params := map[string]interface{}{
 			"id":       sink.ID,
-			"metadata": sink.Config,
+			"metadata": db.Metadata(sink.Config),
 		}
-		updateQuery := "UPDATE sinks SET metadata VALUES(:metadata) WHERE id = :id"
+		updateQuery := "UPDATE sinks SET metadata = :metadata WHERE id = :id"
 		_, err := m.dbSinks.NamedQueryContext(ctx, updateQuery, params)
 		if err != nil {
 			m.logger.Error("failed to update data for id", zap.String("id", qSink.Id), zap.Error(err))
@@ -61,7 +63,8 @@ func (m M2SinksCredentials) Down() (err error) {
 	ctx := context.Background()
 	q := "SELECT id, metadata FROM sinks"
 	var querySinks []querySink
-	rows, err := m.dbSinks.NamedQueryContext(ctx, q, nil)
+	params := map[string]interface{}{}
+	rows, err := m.dbSinks.NamedQueryContext(ctx, q, params)
 	if err != nil {
 		return
 	}
@@ -71,8 +74,8 @@ func (m M2SinksCredentials) Down() (err error) {
 	}
 	for rows.Next() {
 		qSink := querySink{}
-		if err := rows.StructScan(&qSink); err != nil {
-			return
+		if err2 := rows.StructScan(&qSink); err2 != nil {
+			return err2
 		}
 		sink := sinks.Sink{
 			ID:     qSink.Id,
@@ -84,9 +87,9 @@ func (m M2SinksCredentials) Down() (err error) {
 		}
 		params := map[string]interface{}{
 			"id":       sink.ID,
-			"metadata": sink.Config,
+			"metadata": db.Metadata(sink.Config),
 		}
-		updateQuery := "UPDATE sinks SET metadata VALUES(:metadata) WHERE id = :id"
+		updateQuery := "UPDATE sinks SET metadata = :metadata WHERE id = :id"
 		_, err := m.dbSinks.NamedQueryContext(ctx, updateQuery, params)
 		if err != nil {
 			m.logger.Error("failed to update data for id", zap.String("id", qSink.Id), zap.Error(err))
