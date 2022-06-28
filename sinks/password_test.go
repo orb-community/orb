@@ -43,6 +43,7 @@ func Test_passwordService_EncodePassword(t *testing.T) {
 			t.Logf("retrieving %s", password)
 			assert.Equalf(t, tt.plainText, password, "Got Decoded Password %s", password)
 			getPassword := ps.GetPassword(tt.encodedString)
+			t.Logf("retrieving %s", getPassword)
 			assert.Equalf(t, getPassword, password, "Stored coded password is %s", getPassword)
 		})
 	}

@@ -54,20 +54,29 @@ func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		newValue := svc.passwordService.EncodePassword(value.(string))
+		newValue, err2 := svc.passwordService.EncodePassword(value.(string))
+		if err2 != nil {
+			err = err2
+			return key, value
+		}
 		return key, newValue
 	})
 	return sink, err
 }
 
-func (svc sinkService) decryptMetadata(sink Sink) Sink {
+func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
+	var err error
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		newValue := svc.passwordService.GetPassword(value.(string))
+		newValue, err2 := svc.passwordService.GetPassword(value.(string))
+		if err2 != nil {
+			err = err2
+			return key, value
+		}
 		return key, newValue
 	})
-	return sink
+	return sink, err
 }
 
 func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) (Sink, error) {
@@ -135,7 +144,10 @@ func (svc sinkService) ViewSinkInternal(ctx context.Context, ownerID string, key
 	if err != nil {
 		return Sink{}, errors.Wrap(errors.ErrNotFound, err)
 	}
-	res = svc.decryptMetadata(res)
+	res, err = svc.decryptMetadata(res)
+	if err != nil {
+		return Sink{}, errors.Wrap(errors.ErrViewEntity, err)
+	}
 	return res, nil
 }
 

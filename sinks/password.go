@@ -11,9 +11,9 @@ import (
 )
 
 type PasswordService interface {
-	EncodePassword(plainText string) string
+	EncodePassword(plainText string) (string, error)
 	SetKey(newKey string)
-	GetPassword(cipheredText string) string
+	GetPassword(cipheredText string) (string, error)
 }
 
 func NewPasswordService(logger *zap.Logger, key string) *passwordService {
@@ -29,56 +29,65 @@ type passwordService struct {
 	logger *zap.Logger
 }
 
-func (ps *passwordService) EncodePassword(plainText string) string {
-	cipherText := encrypt([]byte(plainText), ps.key)
-	return cipherText
+func (ps *passwordService) EncodePassword(plainText string) (string, error) {
+	cipherText, err := encrypt([]byte(plainText), ps.key)
+	if err != nil {
+		ps.logger.Error("failed to encrypt password", zap.Error(err))
+		return "", err
+	}
+	return cipherText, nil
 }
 
 func (ps *passwordService) SetKey(newKey string) {
 	ps.key = newKey
 }
 
-func (ps *passwordService) GetPassword(cipheredText string) string {
+func (ps *passwordService) GetPassword(cipheredText string) (string, error) {
 	hexedByte, err := hex.DecodeString(cipheredText)
 	if err != nil {
-		ps.logger.Error("invalid decryption", zap.Error(err))
+		ps.logger.Error("failed to decode password", zap.Error(err))
+		return "", err
 	}
-	plainByte := decrypt(hexedByte, ps.key)
+	plainByte, err := decrypt(hexedByte, ps.key)
+	if err != nil {
+		ps.logger.Error("failed to decrypt password", zap.Error(err))
+		return "", err
+	}
 
-	return string(plainByte)
+	return string(plainByte), nil
 }
 
-func encrypt(data []byte, passphrase string) string {
+func encrypt(data []byte, passphrase string) (string, error) {
 	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		return "", err
 	}
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		panic(err.Error())
+		return "", err
 	}
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)
-	return hex.EncodeToString(ciphertext)
+	return hex.EncodeToString(ciphertext), nil
 }
 
-func decrypt(data []byte, passphrase string) []byte {
+func decrypt(data []byte, passphrase string) ([]byte, error) {
 	key := []byte(createHash(passphrase))
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	nonceSize := gcm.NonceSize()
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
-	return plaintext
+	return plaintext, nil
 }
 
 func createHash(key string) string {
