@@ -105,16 +105,22 @@ def multiple_dataset_for_policy(context, amount_of_datasets):
                     f"Amount of datasets linked with policy {policy_id} failed")
 
 
-@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied and has status {"
-      "policies_status}")
-def list_policies_applied_to_an_agent_and_referred_status(context, amount_of_policies, policies_status):
+@step("this agent's heartbeat shows that {amount_of_policies} policies are applied and {amount_of_policies_with_status}"
+      " has status {policies_status}")
+def list_policies_applied_to_an_agent_and_referred_status(context, amount_of_policies, amount_of_policies_with_status,
+                                                          policies_status):
     list_policies_applied_to_an_agent(context, amount_of_policies)
+    list_of_policies_status = list()
     for policy_id in context.list_agent_policies_id:
-        assert_that(context.agent['last_hb_data']['policy_state'][policy_id]["state"], equal_to(policies_status),
-                    f"policy {policy_id} is not {policies_status}")
+        list_of_policies_status.append(context.agent['last_hb_data']['policy_state'][policy_id]["state"])
+    if amount_of_policies_with_status == "all":
+        amount_of_policies_with_status = int(amount_of_policies)
+    amount_of_policies_applied_with_status = list_of_policies_status.count(policies_status)
+    assert_that(amount_of_policies_applied_with_status, equal_to(int(amount_of_policies_with_status)),
+                f"{amount_of_policies_with_status} policies was supposed to have status {policies_status}")
 
 
-@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied to the agent")
+@step("this agent's heartbeat shows that {amount_of_policies} policies are applied to the agent")
 def list_policies_applied_to_an_agent(context, amount_of_policies):
     context.agent, context.list_agent_policies_id = get_policies_applied_to_an_agent(context.token, context.agent['id'],
                                                                                      amount_of_policies, timeout=180)
