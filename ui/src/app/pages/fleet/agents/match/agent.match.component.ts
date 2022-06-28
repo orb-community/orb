@@ -6,6 +6,7 @@ import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'ngx-agent-match-component',
@@ -28,6 +29,8 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
   columns: TableColumn[];
 
   // templates
+  @ViewChild('agentNameTemplateCell') agentNameTemplateCell: TemplateRef<any>;
+
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
 
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
@@ -50,6 +53,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
   constructor(
     protected dialogRef: NbDialogRef<AgentMatchComponent>,
     protected agentsService: AgentsService,
+    protected router: Router,
   ) {
   }
 
@@ -69,6 +73,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
         minWidth: 90,
         width: 120,
         maxWidth: 200,
+        cellTemplate: this.agentNameTemplateCell,
       },
       {
         prop: 'combined_tags',
@@ -99,6 +104,11 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
         cellTemplate: this.agentStateTemplateRef,
       },
     ];
+  }
+
+  onOpenView(agent: any) {
+    this.router.navigateByUrl(`pages/fleet/agents/view/${ agent.id }`);
+    this.dialogRef.close();
   }
 
   updateMatchingAgents() {
