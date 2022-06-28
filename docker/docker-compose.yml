@@ -450,7 +450,7 @@ services:
       ORB_SINKS_GRPC_PORT: ${ORB_SINKS_GRPC_PORT}
       MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
       MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
-      ORB_SINKS_SECRET_KEY: "_SECRET_SECRECY_" # must be 16/32/64 size
+      ORB_SINKS_SECRET_KEY: "orb-secret"
     #      ORB_SINKS_LOG_LEVEL: debug
     networks:
       - orb-base-net
@@ -547,6 +547,12 @@ services:
       ORB_MIGRATE_USERS_DB_PORT: ${MF_USERS_DB_PORT}
       ORB_MIGRATE_USERS_DB: ${MF_USERS_DB}
       ORB_MIGRATE_USERS_DB_SSL_MODE: disable
+      ORB_MIGRATE_SECRET_KEY: "orb-secret"
+      ORB_MIGRATE_SINKS_DB_HOST: sinks-db
+      ORB_MIGRATE_SINKS_DB_USER: ${ORB_SINKS_DB_USER}
+      ORB_MIGRATE_SINKS_DB_PASS: ${ORB_SINKS_DB_PASS}
+      ORB_MIGRATE_SINKS_DB_SSL_MODE: disable
+
     networks:
       - orb-base-net
     command: ["up"]

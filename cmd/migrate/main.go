@@ -60,7 +60,7 @@ func main() {
 	dbs[postgres.DbUsers] = connectToDB(usersDbCfg, false, log)
 	dbs[postgres.DbThings] = connectToDB(thingsDbCfg, false, log)
 
-	sinksDB := connectToDB(sinksDbCfg, true, log)
+	sinksDB := connectToDB(sinksDbCfg, false, log)
 
 	svc := migrate.New(
 		log,
