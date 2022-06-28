@@ -23,6 +23,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	opts.SetDefaultPublishHandler(func(client mqtt.Client, message mqtt.Message) {
 		a.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 	})
+	opts.SetResumeSubs(true)
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
 		a.logger.Error("error on connection lost, retrying to reconnect", zap.Error(err))
 		if err = a.restartComms(); err != nil {
