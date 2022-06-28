@@ -59,8 +59,28 @@ func (s *serviceMigrate) Up() (err error) {
 	return
 }
 
-func (s *serviceMigrate) Down() error {
-	return errors.New("not implemented")
+func (s *serviceMigrate) Down() (err error) {
+	current, errSchema := s.CurrentSchemaVersion()
+	latest := s.LatestSchemaVersion()
+	if errSchema != nil {
+		return errSchema
+	}
+
+	index := current
+	for index >= 0 {
+		s.logger.Info(fmt.Sprintf("applying migration %d of %d", index, latest))
+		err = s.migrations[index-1].Down()
+		if err != nil {
+			s.logger.Error(fmt.Sprintf("error on migration down %d of %d", index, latest), zap.Error(err))
+			break
+		}
+		index--
+	}
+
+	if errSchema = s.SetSchemaVersion(index); errSchema != nil {
+		return errSchema
+	}
+	return
 }
 
 func (s *serviceMigrate) Drop() error {

@@ -526,6 +526,7 @@ services:
       - keto-db
       - things-db
       - users-db
+      - sinks-db
     restart: on-failure
     environment:
       ORB_MIGRATE_LOG_LEVEL: debug

@@ -61,14 +61,9 @@ func (m M2SinksCredentials) Up() (err error) {
 
 func (m M2SinksCredentials) Down() (err error) {
 	ctx := context.Background()
-	q := "SELECT id, metadata FROM sinks"
-	var querySinks []querySink
+	q := "SELECT Id, Metadata FROM sinks"
 	params := map[string]interface{}{}
 	rows, err := m.dbSinks.NamedQueryContext(ctx, q, params)
-	if err != nil {
-		return
-	}
-	err = rows.StructScan(querySinks)
 	if err != nil {
 		return
 	}
