@@ -37,12 +37,21 @@ func Test_passwordService_EncodePassword(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ps := NewPasswordService(logger, tt.key)
-			got := ps.EncodePassword(tt.plainText)
+			got, err := ps.EncodePassword(tt.plainText)
+			if err != nil {
+				t.Fatalf("received error on encoding password: %e", err)
+			}
 			t.Logf("storing %s", got)
-			password := ps.GetPassword(got)
+			password, err := ps.GetPassword(got)
+			if err != nil {
+				t.Fatalf("received error on encoding password: %e", err)
+			}
 			t.Logf("retrieving %s", password)
 			assert.Equalf(t, tt.plainText, password, "Got Decoded Password %s", password)
-			getPassword := ps.GetPassword(tt.encodedString)
+			getPassword, err := ps.GetPassword(tt.encodedString)
+			if err != nil {
+				t.Fatalf("received error on encoding password: %e", err)
+			}
 			t.Logf("retrieving %s", getPassword)
 			assert.Equalf(t, getPassword, password, "Stored coded password is %s", getPassword)
 		})
