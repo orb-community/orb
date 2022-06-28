@@ -81,20 +81,19 @@
               <p>{{strings.add.step.desc2}}</p>
             </div>
           </ng-template>
-          <ngx-tag-control
-            (tagsChange)="updateMatches()"
-            [(tags)]="selectedTags"></ngx-tag-control>
-          <hr/>
+          <div class="d-flex row flex-column col-8">
+            <ngx-tag-control
+              (tagsChange)="updateMatches()"
+              [(tags)]="selectedTags"></ngx-tag-control>
+          </div>
           <div class="d-flex row">
             <div class="col-12">
-              <div>
-                <p *ngIf="tagMatch?.total && tagMatch.total > 0">
-                  {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}.
-                </p>
-                <p *ngIf="!tagMatch.total || tagMatch.total === 0">
-                  {{strings.match.matchNone}}
-                </p>
-              </div>
+              <p *ngIf="tagMatch?.total && tagMatch.total > 0">
+                {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}.
+              </p>
+              <p *ngIf="!tagMatch.total || tagMatch.total === 0">
+                {{strings.match.matchNone}}
+              </p>
             </div>
           </div>
           <hr/>
@@ -154,7 +153,7 @@
             <hr/>
           </div>
           <div class="d-flex row">
-            <div class="col-12">
+            <div class="col-8">
               <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
             </div>
           </div>
@@ -184,7 +183,7 @@
               <ngx-datatable
                   #table
                   *ngIf="columns"
-                  [columnMode]="columnMode.standard"
+                  [columnMode]="columnMode.flex"
                   [columns]="columns"
                   [footerHeight]="50"
                   [headerHeight]="50"
@@ -253,16 +252,14 @@
     let-i="index"
     let-row="row"
     let-value="value">
-  <div class="d-block">
-    <mat-chip-list>
-      <mat-chip
-        *ngFor="let tag of value | keyvalue"
-        [style.background-color]="tag | tagcolor"
-        class="orb-tag-chip ">
-        {{tag | tagchip}}
-      </mat-chip>
-    </mat-chip-list>
-  </div>
+  <mat-chip-list>
+    <mat-chip
+      *ngFor="let tag of value | keyvalue"
+      [style.background-color]="tag | tagcolor"
+      class="orb-tag-chip ">
+      {{tag | tagchip}}
+    </mat-chip>
+  </mat-chip-list>
 </ng-template>
 
 <ng-template
