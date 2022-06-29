@@ -138,8 +138,8 @@ func (a *orbAgent) Start() error {
 
 	a.groupRequestSucceeded = make(chan bool, 1)
 	a.policyRequestSucceeded = make(chan bool, 1)
-
-	if err := a.startComms(cloudConfig); err != nil {
+	var m *sync.Mutex
+	if err := a.startComms(cloudConfig, m); err != nil {
 		a.logger.Error("could not restart mqtt client")
 		return err
 	}
@@ -203,7 +203,8 @@ func (a *orbAgent) restartComms() error {
 	if err != nil {
 		return err
 	}
-	if err := a.startComms(cloudConfig); err != nil {
+	var m *sync.Mutex
+	if err := a.startComms(cloudConfig, m); err != nil {
 		a.logger.Error("could not restart mqtt client")
 		return err
 	}

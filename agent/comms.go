@@ -117,8 +117,7 @@ func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
 	}
 }
 
-func (a *orbAgent) startComms(config config.MQTTConfig) error {
-	m := sync.Mutex{}
+func (a *orbAgent) startComms(config config.MQTTConfig, m *sync.Mutex) error {
 	m.Lock()
 	defer m.Unlock()
 	var err error
