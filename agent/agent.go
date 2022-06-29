@@ -17,6 +17,7 @@ import (
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"runtime"
+	"sync"
 	"time"
 )
 
@@ -210,6 +211,9 @@ func (a *orbAgent) restartComms() error {
 }
 
 func (a *orbAgent) RestartAll(reason string) error {
+	var restartAll sync.Mutex
+	restartAll.Lock()
+	defer restartAll.Unlock()
 	a.logger.Info("restarting comms")
 	err := a.restartComms()
 	if err != nil {

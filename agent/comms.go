@@ -11,6 +11,7 @@ import (
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"sync"
 	"time"
 )
 
@@ -25,11 +26,15 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	})
 	opts.SetResumeSubs(true)
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
-		a.logger.Error("error on connection lost, retrying to reconnect", zap.Error(err))
+		client.Disconnect(250)
+		a.logger.Error("connection lost, retrying to reconnect", zap.Error(err))
 		if err = a.restartComms(); err != nil {
 			a.logger.Error("got error trying to reconnect, stopping agent", zap.Error(err))
 			a.Stop()
 		}
+	})
+	opts.SetOnConnectHandler(func(client mqtt.Client) {
+
 	})
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(true)
@@ -46,7 +51,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	return c, nil
 }
 
-func (a *orbAgent) requestReconnection(client mqtt.Client, config config.MQTTConfig) {
+func (a *orbAgent) requestReconnection(client mqtt.Client, config config.MQTTConfig) error {
 	a.nameAgentRPCTopics(config.ChannelID)
 	for name, be := range a.backends {
 		be.SetCommsClient(config.Id, client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
@@ -54,17 +59,21 @@ func (a *orbAgent) requestReconnection(client mqtt.Client, config config.MQTTCon
 
 	if token := client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
 		a.logger.Error("failed to subscribe to RPC topic", zap.String("topic", a.rpcFromCoreTopic), zap.Error(token.Error()))
+		return token.Error()
 	}
 
 	err := a.sendCapabilities()
 	if err != nil {
 		a.logger.Error("failed to send agent capabilities", zap.Error(err))
+		return err
 	}
 
 	err = a.sendGroupMembershipReq()
 	if err != nil {
 		a.logger.Error("failed to send group membership request", zap.Error(err))
+		return err
 	}
+	return nil
 }
 
 func (a *orbAgent) nameAgentRPCTopics(channelId string) {
@@ -109,16 +118,28 @@ func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
 }
 
 func (a *orbAgent) startComms(config config.MQTTConfig) error {
-
+	m := sync.Mutex{}
+	m.Lock()
+	defer m.Unlock()
 	var err error
-	if a.client == nil || !a.client.IsConnected() {
+	for i := 0; i < 3; i++ {
 		a.client, err = a.connect(config)
 		if err != nil {
 			a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
-			return ErrMqttConnection
+			time.Sleep(10 * time.Second)
+			continue
+		}
+		err = a.requestReconnection(a.client, config)
+		if err != nil {
+			a.logger.Error("failed to request reconnection with orb, retrying in 5 seconds")
+			time.Sleep(10 * time.Second)
+			continue
 		}
 	}
-	a.requestReconnection(a.client, config)
+	if err != nil {
+		a.logger.Error("could not connect to mqtt", zap.Error(err))
+		return ErrMqttConnection
+	}
 
 	return nil
 }
