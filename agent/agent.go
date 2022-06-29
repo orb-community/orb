@@ -28,7 +28,7 @@ var (
 type Agent interface {
 	Start() error
 	Stop()
-	RestartAll(reason string) error
+	RestartAll(reason string, mutex *sync.Mutex) error
 	RestartBackend(backend string, reason string) error
 }
 
@@ -138,8 +138,8 @@ func (a *orbAgent) Start() error {
 
 	a.groupRequestSucceeded = make(chan bool, 1)
 	a.policyRequestSucceeded = make(chan bool, 1)
-	var m *sync.Mutex
-	if err := a.startComms(cloudConfig, m); err != nil {
+	startMutex := sync.Mutex{}
+	if err := a.startComms(cloudConfig, &startMutex); err != nil {
 		a.logger.Error("could not restart mqtt client")
 		return err
 	}
@@ -194,7 +194,7 @@ func (a *orbAgent) RestartBackend(name string, reason string) error {
 	return nil
 }
 
-func (a *orbAgent) restartComms() error {
+func (a *orbAgent) restartComms(restartAll *sync.Mutex) error {
 	ccm, err := cloud_config.New(a.logger, a.config, a.db)
 	if err != nil {
 		return err
@@ -203,20 +203,16 @@ func (a *orbAgent) restartComms() error {
 	if err != nil {
 		return err
 	}
-	var m *sync.Mutex
-	if err := a.startComms(cloudConfig, m); err != nil {
+	if err := a.startComms(cloudConfig, restartAll); err != nil {
 		a.logger.Error("could not restart mqtt client")
 		return err
 	}
 	return nil
 }
 
-func (a *orbAgent) RestartAll(reason string) error {
-	var restartAll sync.Mutex
-	restartAll.Lock()
-	defer restartAll.Unlock()
+func (a *orbAgent) RestartAll(reason string, restartAll *sync.Mutex) error {
 	a.logger.Info("restarting comms")
-	err := a.restartComms()
+	err := a.restartComms(restartAll)
 	if err != nil {
 		a.logger.Error("failed to restart comms", zap.Error(err))
 	}

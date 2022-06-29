@@ -10,6 +10,7 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"sync"
 	"time"
 )
 
@@ -156,8 +157,9 @@ func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {
 }
 
 func (a *orbAgent) handleAgentReset(payload fleet.AgentResetRPCPayload) {
+	restartAll := sync.Mutex{}
 	if payload.FullReset {
-		err := a.RestartAll(payload.Reason)
+		err := a.RestartAll(payload.Reason, &restartAll)
 		if err != nil {
 			a.logger.Error("RestartAll failure", zap.Error(err))
 		}
