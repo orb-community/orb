@@ -11,8 +11,12 @@ export class TagDisplayComponent {
   @Input()
   tags: Tags;
 
+  @Input()
+  tooltip: string;
+
   constructor() {
     this.tags = {};
+    this.tooltip = '';
   }
 
 }

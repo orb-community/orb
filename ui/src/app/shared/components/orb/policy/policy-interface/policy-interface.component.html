@@ -3,8 +3,7 @@
     <button
       (click)="toggleEdit(true)"
       *ngIf="!editMode"
-      class="card-ghost-button"
-      ghost="true"
+      class="card-button"
       nbButton
       status="primary">
       Edit
@@ -12,8 +11,7 @@
     <button
       (click)="toggleEdit(false)"
       *ngIf="editMode"
-      class="card-ghost-button"
-      ghost="true"
+      class="card-button"
       nbButton
       status="danger">
       Discard

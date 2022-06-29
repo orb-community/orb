@@ -16,6 +16,7 @@ volumes:
   mainflux-auth-db-volume:
   mainflux-users-db-volume:
   mainflux-things-db-volume:
+  mainflux-keto-db-volume:
   mainflux-auth-redis-volume:
   mainflux-es-redis-volume:
   mainflux-mqtt-broker-volume:
@@ -27,6 +28,60 @@ volumes:
   orb-sinker-redis-volume:
 
 services:
+
+## keto ##
+
+  keto:
+    image: oryd/keto:v0.8.0-alpha.2
+    container_name: mainflux-keto
+    ports:
+      - ${MF_KETO_READ_REMOTE_PORT}:${MF_KETO_READ_REMOTE_PORT}
+      - ${MF_KETO_WRITE_REMOTE_PORT}:${MF_KETO_WRITE_REMOTE_PORT}
+    environment:
+      - DSN=postgresql://${MF_KETO_DB_USER}:${MF_KETO_DB_PASS}@keto-db:${MF_KETO_DB_PORT}/${MF_KETO_DB}?sslmode=disable
+    command: serve -c /home/ory/keto.yml
+    restart: on-failure
+    volumes:
+      - type: bind
+        source: ./keto
+        target: /home/ory
+    networks:
+      - orb-base-net
+    depends_on:
+      - keto-db
+
+  keto-migrate:
+    image: oryd/keto:v0.8.0-alpha.2
+    container_name: mainflux-keto-migrate
+    environment:
+      - KETO_WRITE_REMOTE=keto:${MF_KETO_WRITE_REMOTE_PORT}
+      - KETO_READ_REMOTE=keto:${MF_KETO_READ_REMOTE_PORT}
+      - DSN=postgresql://${MF_KETO_DB_USER}:${MF_KETO_DB_PASS}@keto-db:${MF_KETO_DB_PORT}/${MF_KETO_DB}?sslmode=disable
+    volumes:
+      - type: bind
+        source: ./keto
+        target: /home/ory
+    command: migrate up -c /home/ory/keto.yml --yes
+    restart: on-failure
+    networks:
+      - orb-base-net
+    depends_on:
+      - keto-db
+
+  keto-db:
+    image: postgres:13.3-alpine
+    container_name: mainflux-keto-db
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${MF_KETO_DB_USER}
+      POSTGRES_PASSWORD: ${MF_KETO_DB_PASS}
+      POSTGRES_DB: ${MF_KETO_DB}
+    ports:
+      - 15007:5432
+    networks:
+      - orb-base-net
+    volumes:
+      - mainflux-keto-db-volume:/var/lib/postgresql/data
 
 ## mainflux core messaging ##
 
@@ -161,6 +216,7 @@ services:
       MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
       MF_USERS_ADMIN_EMAIL: ${MF_USERS_ADMIN_EMAIL}
       MF_USERS_ADMIN_PASSWORD: ${MF_USERS_ADMIN_PASSWORD}
+      MF_USERS_ALLOW_SELF_REGISTER: ${MF_USERS_ALLOW_SELF_REGISTER}
     ports:
       - ${MF_USERS_HTTP_PORT}:${MF_USERS_HTTP_PORT}
     networks:
@@ -422,7 +478,7 @@ services:
       ORB_FLEET_DB: ${ORB_FLEET_DB_DB}
       ORB_FLEET_DB_SSL_MODE: disable
       ORB_FLEET_GRPC_PORT: ${ORB_FLEET_GRPC_PORT}
-      MF_SDK_BASE_URL: http://things:${MF_THINGS_HTTP_PORT}
+      MF_SDK_THINGS_URL: http://things:${MF_THINGS_HTTP_PORT}
       MF_AUTH_GRPC_URL: ${MF_AUTH_GRPC_URL}
       MF_AUTH_GRPC_TIMEOUT: ${MF_AUTH_GRPC_TIMEOUT}
       ORB_POLICIES_GRPC_URL: ${ORB_POLICIES_GRPC_URL}
@@ -460,6 +516,39 @@ services:
       ORB_SINKS_GRPC_TIMEOUT: ${ORB_SINKS_GRPC_TIMEOUT}
     networks:
       - orb-base-net
+
+  migrate:
+    image: "ns1labs/orb-migrate:${ORB_RELEASE_TAG}"
+    container_name: orb-migrate
+    depends_on:
+      - keto
+      - keto-db
+      - things-db
+      - users-db
+    restart: on-failure
+    environment:
+      ORB_MIGRATE_LOG_LEVEL: debug
+      ORB_MIGRATE_KETO_DB_HOST: keto-db
+      ORB_MIGRATE_KETO_DB_USER: ${MF_KETO_DB_USER}
+      ORB_MIGRATE_KETO_DB_PASS: ${MF_KETO_DB_PASS}
+      ORB_MIGRATE_KETO_DB_PORT: ${MF_KETO_DB_PORT}
+      ORB_MIGRATE_KETO_DB: ${MF_KETO_DB}
+      ORB_MIGRATE_KETO_DB_SSL_MODE: disable
+      ORB_MIGRATE_THINGS_DB_HOST: things-db
+      ORB_MIGRATE_THINGS_DB_USER: ${MF_THINGS_DB_USER}
+      ORB_MIGRATE_THINGS_DB_PASS: ${MF_THINGS_DB_PASS}
+      ORB_MIGRATE_THINGS_DB_PORT: ${MF_THINGS_DB_PORT}
+      ORB_MIGRATE_THINGS_DB: ${MF_THINGS_DB}
+      ORB_MIGRATE_THINGS_DB_SSL_MODE: disable
+      ORB_MIGRATE_USERS_DB_HOST: users-db
+      ORB_MIGRATE_USERS_DB_USER: ${MF_USERS_DB_USER}
+      ORB_MIGRATE_USERS_DB_PASS: ${MF_USERS_DB_PASS}
+      ORB_MIGRATE_USERS_DB_PORT: ${MF_USERS_DB_PORT}
+      ORB_MIGRATE_USERS_DB: ${MF_USERS_DB}
+      ORB_MIGRATE_USERS_DB_SSL_MODE: disable
+    networks:
+      - orb-base-net
+    command: ["up"]
 
   ui:
     image: "ns1labs/orb-ui:${ORB_RELEASE_TAG}"

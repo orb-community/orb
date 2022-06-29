@@ -380,6 +380,24 @@ func (m metricsMiddleware) RemoveAgent(ctx context.Context, token string, thingI
 	return m.svc.RemoveAgent(ctx, token, thingID)
 }
 
+func (m metricsMiddleware) GetPolicyState(ctx context.Context, agent fleet.Agent) (map[string]interface{}, error) {
+
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "getPolicyState",
+			"owner_id", agent.MFOwnerID,
+			"agent_id", agent.MFThingID,
+			"group_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.GetPolicyState(ctx, agent)
+}
+
 func (m metricsMiddleware) identify(token string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

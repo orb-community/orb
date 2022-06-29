@@ -121,7 +121,9 @@ nb-card {
 ::ng-deep .agent-group-button {
   background-color: transparent !important;
   background-repeat: no-repeat !important;
-  border: none !important;
+  border: solid #ffffff !important;
+  border-radius: 15px !important;
+  border-width: thin !important;
   cursor: pointer !important;
   outline: none !important;
   overflow: hidden !important;
@@ -129,7 +131,6 @@ nb-card {
 
 .agent-group-accent {
   color: #ffffff !important;
-  text-decoration: underline !important;
   font-weight: 600;
 }
 

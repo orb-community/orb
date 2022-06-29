@@ -144,19 +144,54 @@ nb-card {
   }
 }
 
+button {
+  margin: 0 3px;
 
-.policy-duplicate {
-  float: right;
-  color: #fff !important;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 500;
-  text-transform: none !important;
+  &.policy-duplicate {
+    float: right;
+    color: #fff !important;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    text-transform: none !important;
 
-  &.btn-disabled {
-    background: #2b3148;
+    &.btn-disabled {
+      background: #2b3148;
+    }
+
+    &:not(.btn-disabled) {
+      background-color: #3089fc !important;
+    }
   }
 
-  &:not(.btn-disabled) {
-    background-color: #3089fc !important;
+  &.policy-save {
+    float: right;
+    color: #fff !important;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    text-transform: none !important;
+
+    &.btn-disabled {
+      background: #2b3148;
+    }
+
+    &:not(.btn-disabled) {
+      background-color: #3089fc !important;
+    }
+  }
+
+  &.policy-discard {
+    float: right;
+    color: #fff !important;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    text-transform: none !important;
+
+    &.btn-disabled {
+      background: #2b3148;
+    }
+
+    &:not(.btn-disabled) {
+      background-color: #df316f !important;
+    }
   }
 }

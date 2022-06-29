@@ -16,7 +16,7 @@ PKTVISOR_DEBUG_TAG ?= latest-develop-debug
 DOCKER_IMAGE_NAME_PREFIX ?= orb
 DOCKERHUB_REPO = ns1labs
 BUILD_DIR = build
-SERVICES = fleet policies sinks sinker
+SERVICES = fleet policies sinks sinker migrate
 DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
 CGO_ENABLED ?= 0
@@ -54,7 +54,7 @@ define make_docker
 endef
 
 define make_docker_dev
-	$(eval svc=$(shell [ -z "$(svc)" ] && echo $(subst docker_,,$(1)) || echo $(svc)))
+	$(eval svc=$(shell [ -z "$(SERVICE)" ] && echo $(subst docker_dev_,,$(1)) || echo $(svc)))
 	docker build \
 		--no-cache \
 		--build-arg SVC=$(svc) \
@@ -166,4 +166,4 @@ ui:
 		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile .
 
-platform: dockers_dev docker_sinker agent ui
+platform: dockers_dev agent ui

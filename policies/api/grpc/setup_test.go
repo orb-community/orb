@@ -58,7 +58,7 @@ func startServer() {
 }
 
 func newService(tokens map[string]string) policies.Service {
-	auth := thmocks.NewAuthService(tokens)
+	auth := thmocks.NewAuthService(tokens, make(map[string][]thmocks.MockSubjectSet))
 	repo := mocks.NewPoliciesRepository()
 
 	oID, _ := uuid.NewV4()
