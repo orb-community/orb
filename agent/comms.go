@@ -122,9 +122,9 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 	m.Lock()
 	defer m.Unlock()
 	var err error
-	for i := 1; i <= 3; i++ {
+	duration := time.Duration(15)
+	for {
 		a.client, err = a.connect(config)
-		duration := time.Duration(5 + 15*i)
 		if err != nil {
 			a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
 			time.Sleep(duration * time.Second)
@@ -136,6 +136,7 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 			time.Sleep(duration * time.Second)
 			continue
 		}
+		break
 	}
 	if err != nil {
 		a.logger.Error("could not connect to mqtt", zap.Error(err))
