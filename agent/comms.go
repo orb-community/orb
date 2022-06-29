@@ -122,18 +122,18 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 	m.Lock()
 	defer m.Unlock()
 	var err error
-	duration := time.Duration(15)
+	duration := 15 * time.Second
 	for {
 		a.client, err = a.connect(config)
 		if err != nil {
 			a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
-			time.Sleep(duration * time.Second)
+			time.Sleep(duration)
 			continue
 		}
 		err = a.requestReconnection(a.client, config)
 		if err != nil {
 			a.logger.Error("failed to request reconnection with orb, retrying in 5 seconds")
-			time.Sleep(duration * time.Second)
+			time.Sleep(duration)
 			continue
 		}
 		break
