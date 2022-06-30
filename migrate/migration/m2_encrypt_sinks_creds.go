@@ -32,8 +32,8 @@ func (m M2SinksCredentials) Up() (err error) {
 	}
 	for rows.Next() {
 		qSink := querySink{}
-		if err2 := rows.StructScan(&qSink); err2 != nil {
-			return err2
+		if err = rows.StructScan(&qSink); err != nil {
+			return err
 		}
 		sink := sinks.Sink{
 			ID:     qSink.Id,
@@ -69,8 +69,8 @@ func (m M2SinksCredentials) Down() (err error) {
 	}
 	for rows.Next() {
 		qSink := querySink{}
-		if err2 := rows.StructScan(&qSink); err2 != nil {
-			return err2
+		if err := rows.StructScan(&qSink); err != nil {
+			return err
 		}
 		sink := sinks.Sink{
 			ID:     qSink.Id,
