@@ -518,46 +518,6 @@ services:
     networks:
       - orb-base-net
 
-  migrate:
-    image: "ns1labs/orb-migrate:${ORB_RELEASE_TAG}"
-    container_name: orb-migrate
-    depends_on:
-      - keto
-      - keto-db
-      - things-db
-      - users-db
-      - sinks-db
-    restart: on-failure
-    environment:
-      ORB_MIGRATE_LOG_LEVEL: debug
-      ORB_MIGRATE_KETO_DB_HOST: keto-db
-      ORB_MIGRATE_KETO_DB_USER: ${MF_KETO_DB_USER}
-      ORB_MIGRATE_KETO_DB_PASS: ${MF_KETO_DB_PASS}
-      ORB_MIGRATE_KETO_DB_PORT: ${MF_KETO_DB_PORT}
-      ORB_MIGRATE_KETO_DB: ${MF_KETO_DB}
-      ORB_MIGRATE_KETO_DB_SSL_MODE: disable
-      ORB_MIGRATE_THINGS_DB_HOST: things-db
-      ORB_MIGRATE_THINGS_DB_USER: ${MF_THINGS_DB_USER}
-      ORB_MIGRATE_THINGS_DB_PASS: ${MF_THINGS_DB_PASS}
-      ORB_MIGRATE_THINGS_DB_PORT: ${MF_THINGS_DB_PORT}
-      ORB_MIGRATE_THINGS_DB: ${MF_THINGS_DB}
-      ORB_MIGRATE_THINGS_DB_SSL_MODE: disable
-      ORB_MIGRATE_USERS_DB_HOST: users-db
-      ORB_MIGRATE_USERS_DB_USER: ${MF_USERS_DB_USER}
-      ORB_MIGRATE_USERS_DB_PASS: ${MF_USERS_DB_PASS}
-      ORB_MIGRATE_USERS_DB_PORT: ${MF_USERS_DB_PORT}
-      ORB_MIGRATE_USERS_DB: ${MF_USERS_DB}
-      ORB_MIGRATE_USERS_DB_SSL_MODE: disable
-      ORB_MIGRATE_SECRET_KEY: "orb-secret"
-      ORB_MIGRATE_SINKS_DB_HOST: sinks-db
-      ORB_MIGRATE_SINKS_DB_USER: ${ORB_SINKS_DB_USER}
-      ORB_MIGRATE_SINKS_DB_PASS: ${ORB_SINKS_DB_PASS}
-      ORB_MIGRATE_SINKS_DB_SSL_MODE: disable
-
-    networks:
-      - orb-base-net
-    command: ["up"]
-
   ui:
     image: "ns1labs/orb-ui:${ORB_RELEASE_TAG}"
     container_name: orb-ui
