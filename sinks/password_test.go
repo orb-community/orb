@@ -42,15 +42,15 @@ func Test_passwordService_EncodePassword(t *testing.T) {
 				t.Fatalf("received error on encoding password: %e", err)
 			}
 			t.Logf("storing %s", got)
-			password, err := ps.GetPassword(got)
+			password, err := ps.DecodePassword(got)
 			if err != nil {
-				t.Fatalf("received error on encoding password: %e", err)
+				t.Fatalf("received error on decoding password: %e", err)
 			}
 			t.Logf("retrieving %s", password)
 			assert.Equalf(t, tt.plainText, password, "Got Decoded Password %s", password)
-			getPassword, err := ps.GetPassword(tt.encodedString)
+			getPassword, err := ps.DecodePassword(tt.encodedString)
 			if err != nil {
-				t.Fatalf("received error on encoding password: %e", err)
+				t.Fatalf("received error on decoding stored password: %e", err)
 			}
 			t.Logf("retrieving %s", getPassword)
 			assert.Equalf(t, getPassword, password, "Stored coded password is %s", getPassword)

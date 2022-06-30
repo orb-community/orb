@@ -69,7 +69,7 @@ func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		newValue, err2 := svc.passwordService.GetPassword(value.(string))
+		newValue, err2 := svc.passwordService.DecodePassword(value.(string))
 		if err2 != nil {
 			err = err2
 			return key, value

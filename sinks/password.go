@@ -13,7 +13,7 @@ import (
 type PasswordService interface {
 	EncodePassword(plainText string) (string, error)
 	SetKey(newKey string)
-	GetPassword(cipheredText string) (string, error)
+	DecodePassword(cipheredText string) (string, error)
 }
 
 func NewPasswordService(logger *zap.Logger, key string) *passwordService {
@@ -42,7 +42,7 @@ func (ps *passwordService) SetKey(newKey string) {
 	ps.key = newKey
 }
 
-func (ps *passwordService) GetPassword(cipheredText string) (string, error) {
+func (ps *passwordService) DecodePassword(cipheredText string) (string, error) {
 	hexedByte, err := hex.DecodeString(cipheredText)
 	if err != nil {
 		ps.logger.Error("failed to decode password", zap.Error(err))

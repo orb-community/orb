@@ -105,9 +105,8 @@ func (m M2SinksCredentials) encryptMetadata(sink sinks.Sink) (sinks.Sink, error)
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		newValue, err2 := m.pwdSvc.EncodePassword(value.(string))
-		if err2 != nil {
-			err = err2
+		newValue, err := m.pwdSvc.EncodePassword(value.(string))
+		if err != nil {
 			return key, value
 		}
 		return key, newValue
@@ -120,9 +119,8 @@ func (m M2SinksCredentials) decryptMetadata(sink sinks.Sink) (sinks.Sink, error)
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		newValue, err2 := m.pwdSvc.GetPassword(value.(string))
-		if err2 != nil {
-			err = err2
+		newValue, err := m.pwdSvc.DecodePassword(value.(string))
+		if err != nil {
 			return key, value
 		}
 		return key, newValue
