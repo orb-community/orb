@@ -3,8 +3,8 @@ package sinks
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"go.uber.org/zap"
 	"io"
@@ -58,7 +58,7 @@ func (ps *passwordService) GetPassword(cipheredText string) (string, error) {
 }
 
 func encrypt(data []byte, passphrase string) (string, error) {
-	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
+	block, _ := aes.NewCipher(createHash(passphrase))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		return "", err
@@ -72,7 +72,7 @@ func encrypt(data []byte, passphrase string) (string, error) {
 }
 
 func decrypt(data []byte, passphrase string) ([]byte, error) {
-	key := []byte(createHash(passphrase))
+	key := createHash(passphrase)
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -90,8 +90,7 @@ func decrypt(data []byte, passphrase string) ([]byte, error) {
 	return plaintext, nil
 }
 
-func createHash(key string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(key))
-	return hex.EncodeToString(hasher.Sum(nil))
+func createHash(key string) []byte {
+	hasher := sha256.Sum256([]byte(key))
+	return hasher[:]
 }

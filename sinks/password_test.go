@@ -19,19 +19,19 @@ func Test_passwordService_EncodePassword(t *testing.T) {
 			name:          "with 32 char key",
 			key:           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 			plainText:     "test",
-			encodedString: "589e5c8bc26165a515697ec4231ddcb2bb93162e5ab3eac6e60685914b03a26b",
+			encodedString: "bbf4b204e5daea6e7cb4cb8dec2011c91de502db08c1fc37f4e1ba8b8da60cf0",
 		},
 		{
 			name:          "with smaller key",
 			key:           "testing",
 			plainText:     "test",
-			encodedString: "daa753d663f98ab0825ad0a3fd61c8956a05bbb573e7e7e46091bd043c4161e8",
+			encodedString: "c8dd6f7f76d1b988574559959c68615ae72487b13bef2f7c4afbce204cc11864",
 		},
 		{
 			name:          "with uuid-key",
 			key:           "eb1bc7f4-2031-41c4-85fa-2ddce3abfc3b",
 			plainText:     "test",
-			encodedString: "8c6ac82169d7228c9880f7276a9b06a2bfa0288a8586ad47c2807896c8e63d42",
+			encodedString: "1f1114dd9e7953585a768d280a3d0f8592647e0761d085bfa83b9b57c2110a5c",
 		},
 	}
 	for _, tt := range tests {
