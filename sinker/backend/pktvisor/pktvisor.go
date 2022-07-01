@@ -67,7 +67,6 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 	}
 	stats := StatSnapshot{}
 	for _, handlerData := range metrics {
-		p.logger.Debug("debugging handlerData", zap.Reflect("handlerData", handlerData))
 		if data, ok := handlerData["pcap"]; ok {
 			err := mapstructure.Decode(data, &stats.Pcap)
 			if err != nil {
