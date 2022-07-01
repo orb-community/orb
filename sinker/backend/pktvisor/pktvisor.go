@@ -67,6 +67,7 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 	}
 	stats := StatSnapshot{}
 	for _, handlerData := range metrics {
+		p.logger.Debug("debugging handlerData", zap.Reflect("handlerData", handlerData))
 		if data, ok := handlerData["pcap"]; ok {
 			err := mapstructure.Decode(data, &stats.Pcap)
 			if err != nil {
@@ -105,7 +106,9 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
+	ctxt.logger.Debug("debugging stats map", zap.Reflect("statsMap", statsMap))
 	convertToPromParticle(ctxt, statsMap, "", &tsList)
+	ctxt.logger.Debug("debugging tsList map", zap.Reflect("statsMap", statsMap))
 	return tsList
 }
 
