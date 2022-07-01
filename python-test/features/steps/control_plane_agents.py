@@ -96,13 +96,14 @@ def clean_agents(context):
     delete_agents(token, agents_filtered_list)
 
 
-@step("{amount_of_datasets} datasets are linked with each policy on agent's heartbeat")
-def multiple_dataset_for_policy(context, amount_of_datasets):
-    agent = get_agent(context.token, context.agent['id'])
-    for policy_id in context.list_agent_policies_id:
-        assert_that(len(agent['last_hb_data']['policy_state'][policy_id]['datasets']),
-                    equal_to(int(amount_of_datasets)),
-                    f"Amount of datasets linked with policy {policy_id} failed")
+@step("{amount_of_datasets} datasets are linked with each policy on agent's heartbeat within {time_to_wait} seconds")
+def multiple_dataset_for_policy(context, amount_of_datasets, time_to_wait):
+    datasets_ok, context.agent = check_datasets_for_policy(context.token, context.agent['id'],
+                                                           context.list_agent_policies_id,
+                                                           amount_of_datasets, timeout=time_to_wait)
+    diff = datasets_ok ^ set(context.list_agent_policies_id)
+    assert_that(datasets_ok, equal_to(set(context.list_agent_policies_id)),
+                f"Amount of datasets linked with policy {diff} failed. Agent: {context.agent}")
 
 
 @step("this agent's heartbeat shows that {amount_of_policies} policies are applied and {amount_of_policies_with_status}"
@@ -490,3 +491,26 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file)
     return agent_name
+
+
+@threading_wait_until
+def check_datasets_for_policy(token, agent_id, list_agent_policies_id, amount_of_datasets, event=None):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: that identifies the agent to be checked
+    :param (list) list_agent_policies_id: list containing all policy ids created by the scenario
+    :param (str) amount_of_datasets: amount of dataset that is expected to be applied to each policy
+    :param (obj) event: threading.event
+    :return: (dict) the set of policies with correct amounts of datasets, (dict) agent data
+
+    """
+    dataset_ok = set()
+    agent = get_agent(token, agent_id)
+    for policy_id in list_agent_policies_id:
+        if len(agent['last_hb_data']['policy_state'][policy_id]['datasets']) == int(amount_of_datasets):
+            dataset_ok.add(policy_id)
+    if len(dataset_ok) == len(list_agent_policies_id):
+        event.set()
+        return dataset_ok, agent
+    return dataset_ok, agent
