@@ -106,9 +106,8 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
-	ctxt.logger.Debug("debugging stats map", zap.Reflect("statsMap", statsMap))
 	convertToPromParticle(ctxt, statsMap, "", &tsList)
-	ctxt.logger.Debug("debugging tsList map", zap.Reflect("statsMap", statsMap))
+	ctxt.logger.Debug("debugging converted statsMap", zap.Reflect("statsMap", statsMap))
 	return tsList
 }
 
