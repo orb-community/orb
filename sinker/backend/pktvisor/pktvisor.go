@@ -226,10 +226,12 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 		handleParticleError(ctxt, err)
 		return tsList
 	}
-	*tsList = append(*tsList, prometheus.TimeSeries{
+	timeSeries := prometheus.TimeSeries{
 		Labels:    labelsListFlag,
 		Datapoint: prometheus.Datapoint(dpFlag),
-	})
+	}
+	ctxt.logger.Debug("debugging timeSeries built", zap.Any("timeSeries", timeSeries))
+	*tsList = append(*tsList, timeSeries)
 	return tsList
 }
 
