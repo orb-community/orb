@@ -6,7 +6,6 @@ package agent
 
 import (
 	"errors"
-	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/fatih/structs"
 	"github.com/jmoiron/sqlx"
@@ -95,12 +94,12 @@ func (a *orbAgent) startBackends() error {
 		return errors.New("no backends specified")
 	}
 	a.backends = make(map[string]backend.Backend, len(a.config.OrbAgent.Backends))
-	for name, config := range a.config.OrbAgent.Backends {
+	for name, configurationEntry := range a.config.OrbAgent.Backends {
 		if !backend.HaveBackend(name) {
 			return errors.New("specified backend does not exist: " + name)
 		}
 		be := backend.GetBackend(name)
-		if err := be.Configure(a.logger, a.policyManager.GetRepo(), config, structs.Map(a.config.OrbAgent.Otel)); err != nil {
+		if err := be.Configure(a.logger, a.policyManager.GetRepo(), configurationEntry, structs.Map(a.config.OrbAgent.Otel)); err != nil {
 			return err
 		}
 		if err := be.Start(); err != nil {
@@ -144,7 +143,7 @@ func (a *orbAgent) Start() error {
 		return err
 	}
 
-	if err := a.startBackends(cloudConfig); err != nil {
+	if err := a.startBackends(); err != nil {
 		return err
 	}
 
