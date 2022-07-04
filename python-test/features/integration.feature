@@ -70,11 +70,11 @@ Scenario: Remove group to which agent is linked
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
         And 2 simple policies are applied to the group
-        And this agent's heartbeat shows that 2 policies are successfully applied and has status running
+        And this agent's heartbeat shows that 2 policies are applied and all has status running
     When the group to which the agent is linked is removed
     Then the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
         And the container logs contain the message "policy no longer used by any group, removing" referred to each policy within 10 seconds
-        And this agent's heartbeat shows that 0 policies are successfully applied to the agent
+        And this agent's heartbeat shows that 0 policies are applied to the agent
         And this agent's heartbeat shows that 0 groups are matching the agent
         And dataset related have validity invalid
 
