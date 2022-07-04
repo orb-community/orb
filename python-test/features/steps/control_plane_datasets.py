@@ -1,4 +1,6 @@
-from behave import given, then, step
+import random
+
+from behave import then, step
 from utils import random_string, filter_list_by_parameter_start_with, validate_json
 from hamcrest import *
 import requests
@@ -12,29 +14,41 @@ orb_url = TestConfig.configs().get('orb_url')
 configs = TestConfig.configs()
 
 
-@step("a new dataset is created using referred group, policy and {amount_of_sinks} {sink_number}")
-def create_new_dataset(context, amount_of_sinks, sink_number):
+@step("{amount_of_datasets} new dataset is created using the policy, {group_order} group and {amount_of_sinks}"
+      " {sink_number}")
+def create_new_dataset(context, amount_of_datasets, group_order, amount_of_sinks, sink_number):
     assert_that(sink_number, any_of(equal_to("sink"), equal_to("sinks")), "Unexpected value for sink")
-    context.considered_timestamp = datetime.now().timestamp()
-    token = context.token
-    agent_groups_id = context.agent_group_data['id']
-    if amount_of_sinks == 1:
-        context.used_sinks_id = [context.sink['id']]
+    assert_that(group_order, any_of(equal_to("first"), equal_to("second"), equal_to("last"), equal_to("an existing")),
+                "Unexpected value for group.")
+
+    if group_order == "an existing":
+        groups_to_be_used = random.sample(list(context.agent_groups.keys()), int(amount_of_datasets))
     else:
-        # todo create scenario with multiple sinks
-        context.used_sinks_id = context.existent_sinks_id[:int(amount_of_sinks)]
-    policy_id = context.policy['id']
-    dataset_name = dataset_name_prefix + random_string(10)
-    context.dataset = create_dataset(token, dataset_name, policy_id, agent_groups_id, context.used_sinks_id)
-    local_orb_path = configs.get("local_orb_path")
-    dataset_schema_path = local_orb_path + "/python-test/features/steps/schemas/dataset_schema.json"
-    is_schema_valid = validate_json(context.dataset, dataset_schema_path)
-    assert_that(is_schema_valid, equal_to(True), f"Invalid dataset json. \n Dataset = {context.dataset}")
-    if 'datasets_created' in context:
-        context.datasets_created[context.dataset['id']] = context.dataset['name']
-    else:
-        context.datasets_created = dict()
-        context.datasets_created[context.dataset['id']] = context.dataset['name']
+        assert_that(str(amount_of_datasets), equal_to(str(1)), "For more than one dataset, pass 'an existing' as group"
+                                                          " parameter")
+        order_convert = {"first": 0, "last": -1, "second": 1}
+        groups_to_be_used = [list(context.agent_groups.keys())[order_convert[group_order]]]
+
+    for i in range(int(amount_of_datasets)):
+        context.considered_timestamp = datetime.now().timestamp()
+        token = context.token
+        if amount_of_sinks == 1:
+            context.used_sinks_id = [context.sink['id']]
+        else:
+            # todo create scenario with multiple sinks
+            context.used_sinks_id = context.existent_sinks_id[:int(amount_of_sinks)]
+        policy_id = context.policy['id']
+        dataset_name = dataset_name_prefix + random_string(10)
+        context.dataset = create_dataset(token, dataset_name, policy_id, groups_to_be_used[i], context.used_sinks_id)
+        local_orb_path = configs.get("local_orb_path")
+        dataset_schema_path = local_orb_path + "/python-test/features/steps/schemas/dataset_schema.json"
+        is_schema_valid = validate_json(context.dataset, dataset_schema_path)
+        assert_that(is_schema_valid, equal_to(True), f"Invalid dataset json. \n Dataset = {context.dataset}")
+        if 'datasets_created' in context:
+            context.datasets_created[context.dataset['id']] = context.dataset['name']
+        else:
+            context.datasets_created = dict()
+            context.datasets_created[context.dataset['id']] = context.dataset['name']
 
 
 @step("the dataset is edited and {amount_of_sinks} sinks are linked")
@@ -155,11 +169,6 @@ def clean_datasets(context):
     datasets_list = list_datasets(token)
     datasets_filtered_list = filter_list_by_parameter_start_with(datasets_list, 'name', dataset_name_prefix)
     delete_datasets(token, datasets_filtered_list)
-
-
-@given('that a dataset using referred group, sink and policy ID already exists')
-def new_dataset(context):
-    create_new_dataset(context)
 
 
 def list_datasets(token, limit=100, offset=0):

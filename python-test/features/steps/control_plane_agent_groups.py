@@ -16,11 +16,11 @@ agent_group_description = "This is an agent group"
 orb_url = configs.get('orb_url')
 
 
-@step("an Agent Group is created with {amount_of_tags} tags contained in the agent")
-def create_agent_group_matching_agent(context, amount_of_tags, **kwargs):
+@step("{amount_of_agent_groups} Agent Group(s) is created with {amount_of_tags} tags contained in the agent")
+def create_agent_group_matching_agent(context, amount_of_agent_groups, amount_of_tags, **kwargs):
     if amount_of_tags.isdigit() is False:
         assert_that(amount_of_tags, equal_to("all"), 'Unexpected value for amount of tags')
-    agent_group_name = agent_group_name_prefix + random_string()
+
     if "group_description" in kwargs.keys():
         group_description = kwargs["group_description"]
     else:
@@ -38,57 +38,66 @@ def create_agent_group_matching_agent(context, amount_of_tags, **kwargs):
     assert_that(tags_keys, has_length(greater_than_or_equal_to(amount_of_tags)), "Amount of tags greater than tags"
                                                                                  "contained in agent")
     tags_to_group = {key: tags_in_agent[key] for key in sample(tags_keys, amount_of_tags)}
-    context.agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, group_description,
-                                                              tags_to_group, context.agent_groups)
+
+    for group in range(int(amount_of_agent_groups)):
+        agent_group_name = agent_group_name_prefix + random_string()
+        agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, group_description,
+                                                          tags_to_group, context.agent_groups)
 
 
-@step("an Agent Group is created with {orb_tags} orb tag(s)")
-def create_new_agent_group(context, orb_tags, **kwargs):
-    agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
+@step("{amount_of_agent_groups} Agent Group(s) is created with {orb_tags} orb tag(s)")
+def create_new_agent_group(context, amount_of_agent_groups, orb_tags, **kwargs):
     if "group_description" in kwargs.keys():
         group_description = kwargs["group_description"]
     else:
         group_description = agent_group_description
     context.orb_tags = create_tags_set(orb_tags)
-    if len(context.orb_tags) == 0:
-        context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
-                                                      context.orb_tags, 400)
-    else:
-        context.agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, group_description,
-                                                                  context.orb_tags, context.agent_groups)
-        group_id = context.agent_group_data['id']
-        context.agent_groups[group_id] = agent_group_name
+
+    for group in range(int(amount_of_agent_groups)):
+        agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
+        if len(context.orb_tags) == 0:
+            create_agent_group(context.token, agent_group_name, group_description, context.orb_tags, 400)
+        else:
+            agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, group_description,
+                                                              context.orb_tags, context.agent_groups)
+            group_id = agent_group_data['id']
+            context.agent_groups[group_id] = agent_group_name
 
 
-@step("an Agent Group is created with {orb_tags} orb tag(s) and {description} description")
-def create_new_agent_group_with_defined_description(context, orb_tags, description):
+@step("{amount_of_agent_groups} Agent Group(s) is created with {orb_tags} orb tag(s) and {description} description")
+def create_new_agent_group_with_defined_description(context, amount_of_agent_groups, orb_tags, description):
+    for group in range(int(amount_of_agent_groups)):
+        if description == "without":
+            create_new_agent_group(context, amount_of_agent_groups, orb_tags, group_description=None)
+        else:
+            description = description.replace('"', '')
+            description = description.replace(' as', '')
+            create_new_agent_group(context, amount_of_agent_groups, orb_tags, group_description=description)
+
+
+@step("{amount_of_agent_groups} Agent Group(s) is created with same tag as the agent and {description} description")
+def create_agent_group_with_defined_description_and_matching_agent(context, amount_of_agent_groups, description):
     if description == "without":
-        create_new_agent_group(context, orb_tags, group_description=None)
+        create_agent_group_matching_agent(context, amount_of_agent_groups, "all", group_description=None)
     else:
         description = description.replace('"', '')
         description = description.replace(' as', '')
-        create_new_agent_group(context, orb_tags, group_description=description)
+        create_agent_group_matching_agent(context, amount_of_agent_groups, "all", group_description=description)
 
 
-@step("an Agent Group is created with same tag as the agent and {description} description")
-def create_agent_group_with_defined_description_and_matching_agent(context, description):
-    if description == "without":
-        create_agent_group_matching_agent(context, "all", group_description=None)
-    else:
-        description = description.replace('"', '')
-        description = description.replace(' as', '')
-        create_agent_group_matching_agent(context, "all", group_description=description)
-
-
-@step("the {edited_parameters} of Agent Group is edited using: {parameters_values}")
-def edit_multiple_groups_parameters(context, edited_parameters, parameters_values):
+@step("the {edited_parameters} of {group_order} Agent Group is edited using: {parameters_values}")
+def edit_multiple_groups_parameters(context, edited_parameters, group_order, parameters_values):
     edited_parameters = edited_parameters.split(", ")
+    assert_that(group_order, any_of(equal_to("first"), equal_to("second"), equal_to("last")),
+                "Unexpected value for group.")
+    order_convert = {"first": 0, "last": -1, "second": 1}
+    agent_groups_id = list(context.agent_groups.keys())[order_convert[group_order]]
     for param in edited_parameters:
         assert_that(param, any_of(equal_to('name'), equal_to('description'), equal_to('tags')),
                     'Unexpected parameter to edit')
     parameters_values = parameters_values.split("/ ")
 
-    group_editing = get_agent_group(context.token, context.agent_group_data["id"])
+    group_editing = get_agent_group(context.token, agent_groups_id)
     group_data = {"name": group_editing["name"], "tags": group_editing["tags"]}
     if "description" in group_editing.keys():
         group_data["description"] = group_editing["description"]
@@ -119,7 +128,7 @@ def edit_multiple_groups_parameters(context, edited_parameters, parameters_value
     for parameter, value in editing_param_dict.items():
         group_data[parameter] = value
 
-    context.editing_response = edit_agent_group(context.token, context.agent_group_data["id"], group_data["name"],
+    context.editing_response = edit_agent_group(context.token, agent_groups_id, group_data["name"],
                                                 group_data["description"], group_data["tags"])
 
 
@@ -137,17 +146,23 @@ def error_response_message(context, message):
     assert_that(response_value, equal_to(message), "Unexpected message for error")
 
 
-@step("{amount_agent_matching} agent must be matching on response field matching_agents")
-def matching_agent(context, amount_agent_matching):
-    context.agent_group_data = get_agent_group(context.token, context.agent_group_data["id"])
-    matching_total_agents = context.agent_group_data['matching_agents']['total']
+@step("{amount_agent_matching} agent must be matching on response field matching_agents of the {group_order} group"
+      " created")
+def matching_agent(context, amount_agent_matching, group_order):
+    assert_that(group_order, any_of(equal_to("first"), equal_to("second"), equal_to("last")),
+                "Unexpected value for group.")
+    order_convert = {"first": 0, "last": -1, "second": 1}
+    agent_groups_id = list(context.agent_groups.keys())[order_convert[group_order]]
+    agent_group_data = get_agent_group(context.token, agent_groups_id)
+    matching_total_agents = agent_group_data['matching_agents']['total']
     assert_that(matching_total_agents, equal_to(int(amount_agent_matching)))
 
 
 @step("the group to which the agent is linked is removed")
 def remove_group(context):
-    delete_agent_group(context.token, context.agent_group_data['id'])
-    context.agent_groups.pop(context.agent_group_data['id'])
+    group_linked_id = list(context.agent['last_hb_data']['group_state'].keys())[0]
+    delete_agent_group(context.token, group_linked_id)
+    context.agent_groups.pop(group_linked_id)
 
 
 @then('cleanup agent group')
@@ -163,17 +178,20 @@ def clean_agent_groups(context):
     delete_agent_groups(token, agent_groups_filtered_list)
 
 
-@given("referred agent is subscribed to a group")
-def subscribe_agent_to_a_group(context):
+@given("referred agent is subscribed to {amount_of_groups} {group}")
+def subscribe_agent_to_a_group(context, amount_of_groups, group):
+    assert_that(group, any_of(equal_to("group"), equal_to("groups")), "Unexpected word on step description")
     agent = context.agent
-    agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
     agent_tags = agent['orb_tags']
     if agent["agent_tags"] is not None:
         agent_tags.update(agent["agent_tags"])
-    context.agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, agent_group_description,
-                                                              agent_tags, context.agent_groups)
-    assert_that(context.agent_group_data['matching_agents']['online'], equal_to(1), f"No agent matching this group.\n\n"
-                                                                                    f"{context.agent_group_data}")
+    for group in range(int(amount_of_groups)):
+        agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
+        agent_group_data = generate_group_with_valid_json(context.token, agent_group_name,
+                                                          agent_group_description, agent_tags,
+                                                          context.agent_groups)
+        assert_that(agent_group_data['matching_agents']['online'], equal_to(1),
+                    f"No agent matching this group.\n\n {agent_group_data}")
 
 
 @step('the container logs contain the message "{text_to_match}" referred to each matching group within'

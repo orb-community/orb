@@ -272,7 +272,7 @@ def apply_n_policies(context, amount_of_policies, type_of_policies):
     for i in range(int(amount_of_policies)):
         create_new_policy(context, args_for_policies[i][1])
         check_policies(context)
-        create_new_dataset(context, 1, 'sink')
+        create_new_dataset(context, 1, 'last', 1, 'sink')
 
 
 @step('{amount_of_policies} {type_of_policies} policies are applied to the group by {amount_of_datasets} datasets each')
@@ -282,7 +282,7 @@ def apply_n_policies_x_times(context, amount_of_policies, type_of_policies, amou
         create_new_policy(context, args_for_policies[n][1])
         check_policies(context)
         for x in range(int(amount_of_datasets)):
-            create_new_dataset(context, 1, 'sink')
+            create_new_dataset(context, 1, 'last', 1, 'sink')
 
 
 @step("{amount_of_policies} duplicated policies is applied to the group")
@@ -291,7 +291,7 @@ def apply_duplicate_policy(context, amount_of_policies):
         context.policy = create_duplicated_policy(context.token, context.policy["id"],
                                                   policy_name_prefix + random_string(10))
         check_policies(context)
-        create_new_dataset(context, 1, 'sink')
+        create_new_dataset(context, 1, 'last', 1, 'sink')
 
 
 @step("try to duplicate this policy {times} times without set new name")
