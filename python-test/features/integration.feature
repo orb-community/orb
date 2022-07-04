@@ -745,8 +745,7 @@ Scenario: remove 1 sink from a dataset with 1 sinks
         And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
 
 
-#@smoke
-@MUTE
+@smoke
 Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and insert another sink
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -755,7 +754,9 @@ Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and inse
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a new policy is created using: handler=dns
         And 1 new dataset is created using the policy, last group and 1 sinks
+        And this agent's heartbeat shows that 1 policies are applied and all has status running
         And remove 1 of the linked sinks from orb
+        And this agent's heartbeat shows that 1 groups are matching the agent
         And dataset related have validity invalid
         And this agent's heartbeat shows that 0 policies are applied to the agent
     When the dataset is edited and 1 sinks are linked

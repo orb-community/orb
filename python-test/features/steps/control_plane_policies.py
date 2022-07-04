@@ -123,7 +123,8 @@ def policy_editing(context, kwargs):
         edited_attributes["only_qname_suffix"] = edited_attributes["only_qname_suffix"].split("/ ")
 
     if policy_name_prefix not in edited_attributes["name"]:
-        edited_attributes["name"] = policy_name_prefix + edited_attributes["name"]
+        context.random_part_policy_name = f"_{random_string(10)}"
+        edited_attributes["name"] = policy_name_prefix + edited_attributes["name"] + context.random_part_policy_name
 
     policy_json = make_policy_json(edited_attributes["name"], edited_attributes["handler_label"],
                                    edited_attributes["handler"], edited_attributes["description"],
@@ -144,7 +145,7 @@ def check_policy_attribute(context, attribute, value):
                              'only_rcode', 'backend_type', 'version']
     if attribute in acceptable_attributes:
         if attribute == "name":
-            value = policy_name_prefix + value
+            value = policy_name_prefix + value + context.random_part_policy_name
         policy_value = return_policy_attribute(context.policy, attribute)
         assert_that(str(policy_value), equal_to(value), f"Unexpected value for policy {attribute}")
     else:
