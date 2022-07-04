@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mainflux/mainflux"
+	"github.com/mainflux/mainflux/logger"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/mainflux/mainflux/things"
 	thingsapi "github.com/mainflux/mainflux/things/api/things/http"
@@ -123,7 +124,8 @@ func newThingsService(auth mainflux.AuthServiceClient) things.Service {
 }
 
 func newThingsServer(svc things.Service) *httptest.Server {
-	mux := thingsapi.MakeHandler(mocktracer.New(), svc)
+	log := logger.NewMock()
+	mux := thingsapi.MakeHandler(mocktracer.New(), svc, log)
 	return httptest.NewServer(mux)
 }
 
@@ -133,7 +135,7 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	agentComms := flmocks.NewFleetCommService(agentRepo, agentGroupRepo)
 	logger, _ := zap.NewDevelopment()
 	config := mfsdk.Config{
-		BaseURL: url,
+		ThingsURL: url,
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
@@ -227,7 +229,7 @@ func TestCreateAgentGroup(t *testing.T) {
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/agent_groups", cli.server.URL),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -278,7 +280,7 @@ func TestViewAgentGroup(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
@@ -447,7 +449,7 @@ func TestListAgentGroup(t *testing.T) {
 				method:      http.MethodGet,
 				url:         fmt.Sprintf(fmt.Sprintf("%s/agent_groups%s", cli.server.URL, tc.url)),
 				contentType: contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
@@ -592,7 +594,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 				method:      http.MethodPut,
 				url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -642,7 +644,7 @@ func TestDeleteAgentGroup(t *testing.T) {
 				method:      http.MethodDelete,
 				contentType: contentType,
 				url:         fmt.Sprintf("%s/agent_groups/%s", cli.server.URL, tc.id),
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
@@ -742,7 +744,7 @@ func TestValidateAgentGroup(t *testing.T) {
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/agent_groups/validate", cli.server.URL),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -797,7 +799,7 @@ func TestViewAgent(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
@@ -845,7 +847,7 @@ func TestViewAgentMatchingGroups(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/agents/%s/matching_groups", cli.server.URL, tc.id),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("%s: unexpected erro %s", desc, err))
@@ -1017,7 +1019,7 @@ func TestListAgent(t *testing.T) {
 				method:      http.MethodGet,
 				url:         fmt.Sprintf(fmt.Sprintf("%s/agents%s", cli.server.URL, tc.url)),
 				contentType: contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
@@ -1147,7 +1149,7 @@ func TestUpdateAgent(t *testing.T) {
 				method:      http.MethodPut,
 				url:         fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -1248,7 +1250,7 @@ func TestValidateAgent(t *testing.T) {
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/agents/validate", cli.server.URL),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -1342,7 +1344,7 @@ func TestCreateAgent(t *testing.T) {
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/agents", cli.server.URL),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -1393,7 +1395,7 @@ func TestDeleteAgent(t *testing.T) {
 				method:      http.MethodDelete,
 				contentType: contentType,
 				url:         fmt.Sprintf("%s/agents/%s", cli.server.URL, tc.id),
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
@@ -1429,7 +1431,7 @@ func TestAgentBackends(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/agents/backends", cli.server.URL),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
@@ -1470,7 +1472,7 @@ func TestAgentBackendHandler(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/agents/backends/%s/handlers", cli.server.URL, tc.backend),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
@@ -1511,7 +1513,7 @@ func TestAgentBackendInput(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/agents/backends/%s/inputs", cli.server.URL, tc.backend),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
@@ -1552,7 +1554,7 @@ func TestAgentBackendTaps(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/agents/backends/%s/taps", cli.server.URL, tc.backend),
-				token:  tc.token,
+				token:  fmt.Sprintf("Bearer %s", tc.token),
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))

@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/mainflux/mainflux"
+	"github.com/mainflux/mainflux/logger"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/mainflux/mainflux/things"
 	thingsapi "github.com/mainflux/mainflux/things/api/things/http"
@@ -74,7 +75,8 @@ func newThingsService(auth mainflux.AuthServiceClient) things.Service {
 }
 
 func newThingsServer(svc things.Service) *httptest.Server {
-	mux := thingsapi.MakeHandler(mocktracer.New(), svc)
+	log := logger.NewMock()
+	mux := thingsapi.MakeHandler(mocktracer.New(), svc, log)
 	return httptest.NewServer(mux)
 }
 
@@ -84,7 +86,7 @@ func newService(auth mainflux.AuthServiceClient, url string) fleet.Service {
 	agentComms := flmocks.NewFleetCommService(agentRepo, agentGroupRepo)
 	logger, _ := zap.NewDevelopment()
 	config := mfsdk.Config{
-		BaseURL: url,
+		ThingsURL: url,
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
@@ -179,12 +181,12 @@ func TestViewAgentGroup(t *testing.T) {
 		"view agent group with wrong credentials": {
 			id:    ag.ID,
 			token: "wrong",
-			err:   things.ErrUnauthorizedAccess,
+			err:   fleet.ErrUnauthorizedAccess,
 		},
 		"view non-existing agent group": {
 			id:    "9bb1b244-a199-93c2-aa03-28067b431e2c",
 			token: token,
-			err:   things.ErrNotFound,
+			err:   fleet.ErrNotFound,
 		},
 	}
 
@@ -383,7 +385,7 @@ func TestRemoveAgentGroup(t *testing.T) {
 		"remove agent group with wrong credentials": {
 			id:    ag.ID,
 			token: "wrong",
-			err:   things.ErrUnauthorizedAccess,
+			err:   fleet.ErrUnauthorizedAccess,
 		},
 		"remove removed agent group": {
 			id:    ag.ID,

@@ -46,21 +46,21 @@ func (p *prometheusBackend) CreateFeatureConfig() []backend.ConfigFeature {
 	var configs []backend.ConfigFeature
 
 	remoteHost := backend.ConfigFeature{
-		Type:     "text",
+		Type:     backend.ConfigFeatureTypeText,
 		Input:    "text",
 		Title:    "Remote Write URL",
 		Name:     "remote_host",
 		Required: true,
 	}
 	userName := backend.ConfigFeature{
-		Type:     "text",
+		Type:     backend.ConfigFeatureTypeText,
 		Input:    "text",
 		Title:    "Username",
 		Name:     "username",
 		Required: true,
 	}
 	password := backend.ConfigFeature{
-		Type:     "password",
+		Type:     backend.ConfigFeatureTypePassword,
 		Input:    "text",
 		Title:    "Password",
 		Name:     "password",

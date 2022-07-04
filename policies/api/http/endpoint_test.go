@@ -167,7 +167,7 @@ func TestViewPolicy(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/policies/agent/%s", cli.server.URL, tc.ID),
-				token:  tc.token,
+				token:  fmt.Sprintf("Bearer %s", tc.token),
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
@@ -332,7 +332,7 @@ func TestListPolicies(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf(fmt.Sprintf("%s/policies/agent%s", cli.server.URL, tc.url)),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
@@ -444,7 +444,7 @@ func TestPolicyEdition(t *testing.T) {
 				method:      http.MethodPut,
 				url:         fmt.Sprintf("%s/policies/agent/%s", cli.server.URL, tc.id),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.data),
 			}
 			res, err := req.make()
@@ -492,7 +492,7 @@ func TestPolicyRemoval(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodDelete,
 				url:    fmt.Sprintf("%s/policies/agent/%s", cli.server.URL, tc.id),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 
 			res, err := req.make()
@@ -594,7 +594,7 @@ func TestValidatePolicy(t *testing.T) {
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/policies/agent/validate", cli.server.URL),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -691,7 +691,7 @@ func TestCreatePolicy(t *testing.T) {
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/policies/agent", cli.server.URL),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -774,7 +774,7 @@ func TestCreateDataset(t *testing.T) {
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/policies/dataset", cli.server.URL),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -887,7 +887,7 @@ func TestDatasetEdition(t *testing.T) {
 				method:      http.MethodPut,
 				url:         fmt.Sprintf("%s/policies/dataset/%s", cli.server.URL, tc.id),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.data),
 			}
 			res, err := req.make()
@@ -935,7 +935,7 @@ func TestDatasetRemoval(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodDelete,
 				url:    fmt.Sprintf("%s/policies/dataset/%s", cli.server.URL, tc.id),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 
 			res, err := req.make()
@@ -1046,7 +1046,7 @@ func TestDatasetValidation(t *testing.T) {
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/policies/dataset/validate", cli.server.URL),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -1100,7 +1100,7 @@ func TestViewDataset(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/policies/dataset/%s", cli.server.URL, tc.ID),
-				token:  tc.token,
+				token:  fmt.Sprintf("Bearer %s", tc.token),
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: Unexpected error: %s", desc, err))
@@ -1267,7 +1267,7 @@ func TestListDataset(t *testing.T) {
 				client: cli.server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf(fmt.Sprintf("%s/policies/dataset%s", cli.server.URL, tc.url)),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
@@ -1353,7 +1353,7 @@ func TestDuplicatePolicy(t *testing.T) {
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/policies/agent/%s/duplicate", cli.server.URL, tc.id),
 				contentType: contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()

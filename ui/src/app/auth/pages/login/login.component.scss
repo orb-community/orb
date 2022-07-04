@@ -1,6 +1,7 @@
 @import '../../../@theme/styles/themes';
 
 .login-layout {
+  overflow: hidden;
   background: url('../../../../assets/images/login-background.png');
   transform: translateY(-2px);
 

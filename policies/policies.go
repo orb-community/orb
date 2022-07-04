@@ -42,7 +42,8 @@ type Dataset struct {
 
 type PolicyInDataset struct {
 	Policy
-	DatasetID string
+	DatasetID    string
+	AgentGroupID string
 }
 
 type Page struct {

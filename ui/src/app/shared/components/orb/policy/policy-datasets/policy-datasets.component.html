@@ -1,9 +1,9 @@
 <nb-card *ngIf="!isLoading">
     <nb-card-header class="summary-accent">Active Datasets ({{ this.datasets.length }})
         <button (click)="onCreateDataset()"
-                class="card-ghost-button"
-                ghost="true"
+                class="card-button"
                 nbButton
+                shape="round"
                 status="primary">
             <i class="fa fa-plus">&nbsp;</i>New Dataset
         </button>
@@ -23,7 +23,7 @@
                     [scrollbarV]="true"
                     [sorts]="tableSorts"
                     class="orb"
-                    style="height: calc(49vh)">
+                    style="height: 100%">
                 </ngx-datatable>
             </div>
 
@@ -53,7 +53,7 @@
 </ng-template>
 
 <ng-template #sinksTemplateCell let-i="index" let-row="row" let-value="value">
-    <div *ngFor="let sink of value; last as isLast">
+    <div *ngFor="let sink of value; last as isLast" class="d-inline-flex">
         <button (click)="onOpenSinkDetails(sink)"
                 class="edit-dataset-button">{{ sink?.name }}{{ isLast ? '' : ', '}}</button>
     </div>

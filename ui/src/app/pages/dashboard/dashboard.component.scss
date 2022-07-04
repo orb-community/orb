@@ -15,12 +15,13 @@ nb-card {
   }
 }
 
-h4 {
+h6 {
   font-family: 'Montserrat', sans-serif;
   font-style: normal;
   font-weight: normal;
   font-size: 24px;
   line-height: 32px;
+  color: #969fb9 !important;
 }
 
 ::ng-deep {
@@ -44,7 +45,7 @@ h4 {
     display: flex;
     font-family: 'Montserrat', sans-serif;
     font-style: normal;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 12px;
     line-height: 12px;
 
@@ -65,4 +66,47 @@ h4 {
   }
 }
 
+.dashboard-container {
+  display: flex !important;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-content: flex-start;
+  justify-content: flex-start;
+  align-items: stretch;
+  margin: 0 2rem 0 0 !important;
+}
+
+::ng-deep nb-card {
+  border-radius: 15px !important;
+  padding: 0.5rem !important;
+  margin: 1rem !important;
+
+  & > nb-card-body {
+    margin: 0.5rem !important;
+
+    & > p {
+      margin-bottom: 0 !important;
+      color: #ffffff !important;
+
+      font-family: 'Montserrat', sans-serif !important;
+      font-style: normal;
+      font-weight: 500 !important;
+      font-size: 14px !important;
+      line-height: 24px !important;
+
+      & > a {
+        white-space: nowrap;
+        padding: 0 0.3rem;
+        background-color: #3089fc;
+        font-weight: 700 !important;
+        text-decoration: none !important;
+        text-underline: none;
+        color: #ffffff !important;
+        border-radius: 10px;
+        link: #ffffff;
+        fill: #3089fc;
+      }
+    }
+  }
+}
 

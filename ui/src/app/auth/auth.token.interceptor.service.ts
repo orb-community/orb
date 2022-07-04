@@ -38,7 +38,7 @@ export class TokenInterceptor implements HttpInterceptor {
         ) {
           request = request.clone({
             setHeaders: {
-              'Authorization': token.getValue(),
+              'Authorization': `Bearer ${token.getValue()}`,
             },
           });
         }
@@ -46,8 +46,8 @@ export class TokenInterceptor implements HttpInterceptor {
           resp => {
           },
           err => {
-            // Status 403 - Forbiden
-            if (err instanceof HttpErrorResponse && err.status === 403 &&
+            // Status 401 - Unauthorized
+            if (err instanceof HttpErrorResponse && err.status === 401 &&
               !request.url.startsWith(environment.httpAdapterUrl) &&
               !request.url.startsWith(environment.readerUrl)) {
               localStorage.removeItem('auth_app_token');

@@ -215,16 +215,16 @@ func viewAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		res := agentRes{
-			ID:             ag.MFThingID,
-			Name:           ag.Name.String(),
-			ChannelID:      ag.MFChannelID,
-			AgentTags:      ag.AgentTags,
-			OrbTags:        ag.OrbTags,
-			TsCreated:      ag.Created,
-			AgentMetadata:  ag.AgentMetadata,
-			State:          ag.State.String(),
-			LastHBData:     ag.LastHBData,
-			TsLastHB:       ag.LastHB,
+			ID:            ag.MFThingID,
+			Name:          ag.Name.String(),
+			ChannelID:     ag.MFChannelID,
+			AgentTags:     ag.AgentTags,
+			OrbTags:       ag.OrbTags,
+			TsCreated:     ag.Created,
+			AgentMetadata: ag.AgentMetadata,
+			State:         ag.State.String(),
+			LastHBData:    ag.LastHBData,
+			TsLastHB:      ag.LastHB,
 		}
 		return res, nil
 	}
@@ -290,16 +290,21 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 			},
 			Agents: []agentRes{},
 		}
+
 		for _, ag := range page.Agents {
+
+			policyState, _ := svc.GetPolicyState(ctx, ag)
+
 			view := agentRes{
-				ID:        ag.MFThingID,
-				Name:      ag.Name.String(),
-				ChannelID: ag.MFChannelID,
-				AgentTags: ag.AgentTags,
-				OrbTags:   ag.OrbTags,
-				TsCreated: ag.Created,
-				State:     ag.State.String(),
-				TsLastHB:  ag.LastHB,
+				ID:          ag.MFThingID,
+				Name:        ag.Name.String(),
+				ChannelID:   ag.MFChannelID,
+				AgentTags:   ag.AgentTags,
+				OrbTags:     ag.OrbTags,
+				TsCreated:   ag.Created,
+				State:       ag.State.String(),
+				TsLastHB:    ag.LastHB,
+				PolicyState: policyState,
 			}
 			res.Agents = append(res.Agents, view)
 		}
