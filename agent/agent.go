@@ -143,10 +143,6 @@ func (a *orbAgent) Start() error {
 		return err
 	}
 
-	if err := a.startBackends(); err != nil {
-		return err
-	}
-
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
 	a.hbDone = make(chan bool)
 	go a.sendHeartbeats()
