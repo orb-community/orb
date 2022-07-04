@@ -719,7 +719,6 @@ Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and inse
         And an Agent Group is created with all tags contained in the agent
         And a new policy is created using: handler=dns
         And a new dataset is created using referred group, policy and 1 sinks
-        And the container logs contain the message "policy applied successfully" referred to each policy within 180 seconds
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And remove 1 of the linked sinks from orb
         And this agent's heartbeat shows that 1 groups are matching the agent
