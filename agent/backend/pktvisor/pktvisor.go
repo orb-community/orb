@@ -296,7 +296,7 @@ func (p *pktvisorBackend) Start() error {
 			p.logger.Info(fmt.Sprintf("pktvisor readiness ok, got version %s", appMetrics.App.Version))
 			break
 		}
-		p.logger.Info(fmt.Sprintf("pktvisor is not ready, trying again in %d seconds", ReadinessTimeout))
+		p.logger.Info("pktvisor is not ready, trying again")
 	}
 
 	if readinessError != nil {
