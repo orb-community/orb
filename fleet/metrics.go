@@ -11,7 +11,26 @@ var _ AgentCommsService = (*commsMetricsMiddleware)(nil)
 type commsMetricsMiddleware struct {
 	requestCounter metrics.Counter
 	requestLatency metrics.Histogram
-	svc     AgentCommsService
+	svc            AgentCommsService
+}
+
+func (c commsMetricsMiddleware) NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID, policyID, ownerID string, valid bool) error {
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "NotifyGroupDatasetEdit",
+			"agent_id", "",
+			"agent_name", "",
+			"group_id", ag.ID,
+			"group_name", ag.Name.String(),
+			"owner_id", ag.MFOwnerID,
+		}
+
+		c.requestCounter.With(labels...).Add(1)
+		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return c.svc.NotifyGroupDatasetEdit(ctx, ag, datasetID, policyID, ownerID, valid)
 }
 
 func (c commsMetricsMiddleware) Start() error {
@@ -207,6 +226,6 @@ func CommsMetricsMiddleware(svc AgentCommsService, counter metrics.Counter, late
 	return &commsMetricsMiddleware{
 		requestCounter: counter,
 		requestLatency: latency,
-		svc:     svc,
+		svc:            svc,
 	}
 }
