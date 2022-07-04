@@ -3,7 +3,7 @@ class FleetAgent:
         pass
 
     @classmethod
-    def config_file_of_agent_tap_pcap(cls, name, token, iface, orb_url, base_orb_url, tls_verify="true"):
+    def config_file_of_agent_tap_pcap(cls, name, token, iface, orb_url, base_orb_mqtt, tls_verify="true"):
         agent_tap_pcap = f"""
 version: "1.0"
 
@@ -30,7 +30,7 @@ orb:
       address: {orb_url}
       token: {token}
     mqtt:
-      address: tls://{base_orb_url}:8883
+      address: {base_orb_mqtt}
 
             """
         return agent_tap_pcap
