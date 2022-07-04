@@ -32,8 +32,8 @@ func (es eventStore) ResetAgent(ct context.Context, token string, agentID string
 	return es.svc.ResetAgent(ct, token, agentID)
 }
 
-func (es eventStore) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (fleet.Agent, error) {
-	return es.svc.ViewOwnerByChannelIDInternal(ctx, channelID)
+func (es eventStore) ViewAgentInfoByChannelIDInternal(ctx context.Context, channelID string) (fleet.Agent, error) {
+	return es.svc.ViewAgentInfoByChannelIDInternal(ctx, channelID)
 }
 
 func (es eventStore) ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error) {
@@ -123,6 +123,10 @@ func (es eventStore) ValidateAgent(ctx context.Context, token string, a fleet.Ag
 
 func (es eventStore) RemoveAgent(ctx context.Context, token, thingID string) (err error) {
 	return es.svc.RemoveAgent(ctx, token, thingID)
+}
+
+func (es eventStore) GetPolicyState(ctx context.Context, agent fleet.Agent) (map[string]interface{}, error) {
+	return es.svc.GetPolicyState(ctx, agent)
 }
 
 // NewEventStoreMiddleware returns wrapper around fleet service that sends

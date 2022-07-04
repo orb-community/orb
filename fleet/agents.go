@@ -71,13 +71,13 @@ type Page struct {
 }
 
 type Group struct {
-	GroupID string
+	GroupID   string
 	GroupName types.Identifier
 }
 
 type MatchingGroups struct {
 	OwnerID string
-	Groups []Group
+	Groups  []Group
 }
 
 // AgentService Agent CRUD interface
@@ -103,10 +103,12 @@ type AgentService interface {
 	ListAgentBackends(ctx context.Context, token string) ([]string, error)
 	// ViewAgentBackend retrieves a Backend by provided backend name
 	ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error)
-	//ViewOwnerByChannelIDInternal return a correspondent ownerID by a provided channel id
-	ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (Agent, error)
+	//ViewAgentInfoByChannelIDInternal return a correspondent ownerID, name and agent tags by a provided channel id
+	ViewAgentInfoByChannelIDInternal(ctx context.Context, channelID string) (Agent, error)
 	// ResetAgent reset a agent on edge by a provided agent
 	ResetAgent(ct context.Context, token string, agentID string) error
+	// GetPolicyState get all policies state per agent in a formatted way from a given existent agent
+	GetPolicyState(ctx context.Context, agent Agent) (map[string]interface{}, error)
 }
 
 type AgentRepository interface {
@@ -133,10 +135,10 @@ type AgentRepository interface {
 	Delete(ctx context.Context, ownerID string, thingID string) error
 	// RetrieveAgentMetadataByOwner retrieves the Metadata having the OwnerID
 	RetrieveAgentMetadataByOwner(ctx context.Context, ownerID string) ([]types.Metadata, error)
-	// RetrieveOwnerByChannelID retrieves a ownerID by a provided channelID
-	RetrieveOwnerByChannelID(ctx context.Context, channelID string) (Agent, error)
 	// SetStaleStatus change status to stale according provided duration without heartbeats
 	SetStaleStatus(ctx context.Context, minutes time.Duration) (int64, error)
+	// RetrieveAgentInfoByChannelID gRPC version to retrieve ownerID, name and agent tags by a provided channelID
+	RetrieveAgentInfoByChannelID(ctx context.Context, channelID string) (Agent, error)
 }
 
 type AgentHeartbeatRepository interface {

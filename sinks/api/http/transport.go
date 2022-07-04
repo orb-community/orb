@@ -100,7 +100,7 @@ func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 		return nil, errors.ErrUnsupportedContentType
 	}
 
-	req := addReq{token: r.Header.Get("Authorization")}
+	req := addReq{token: parseJwt(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
@@ -113,7 +113,7 @@ func decodeEditRequest(_ context.Context, r *http.Request) (interface{}, error) 
 		return nil, errors.ErrUnsupportedContentType
 	}
 	req := updateSinkReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		id:    bone.GetValue(r, "id"),
 	}
 
@@ -126,14 +126,14 @@ func decodeEditRequest(_ context.Context, r *http.Request) (interface{}, error) 
 
 func decodeView(_ context.Context, r *http.Request) (interface{}, error) {
 	req := viewResourceReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		id:    bone.GetValue(r, "id"),
 	}
 	return req, nil
 }
 
 func decodeListBackends(_ context.Context, r *http.Request) (interface{}, error) {
-	req := listBackendsReq{token: r.Header.Get("Authorization")}
+	req := listBackendsReq{token: parseJwt(r)}
 	return req, nil
 }
 
@@ -169,7 +169,7 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 	}
 
 	req := listResourcesReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		pageMetadata: sinks.PageMetadata{
 			Offset:   o,
 			Limit:    l,
@@ -185,7 +185,7 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 
 func decodeDeleteRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	req := deleteSinkReq{
-		token: r.Header.Get("Authorization"),
+		token: parseJwt(r),
 		id:    bone.GetValue(r, "id"),
 	}
 
@@ -197,7 +197,7 @@ func decodeValidateRequest(_ context.Context, r *http.Request) (interface{}, err
 		return nil, errors.ErrUnsupportedContentType
 	}
 
-	req := validateReq{token: r.Header.Get("Authorization")}
+	req := validateReq{token: parseJwt(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
@@ -245,4 +245,11 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func parseJwt(r *http.Request) (token string) {
+	if strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
+		token = r.Header.Get("Authorization")[7:]
+	}
+	return
 }

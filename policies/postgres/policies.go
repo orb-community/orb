@@ -146,7 +146,7 @@ func (r policiesRepository) RetrieveAll(ctx context.Context, owner string, pm po
 
 func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]policies.PolicyInDataset, error) {
 
-	q := `SELECT agent_policies.id AS id, datasets.id AS dataset_id, agent_policies.name AS name, agent_policies.mf_owner_id, orb_tags, backend, version, policy, agent_policies.ts_created 
+	q := `SELECT agent_policies.id AS id, datasets.id AS dataset_id, agent_policies.name AS name, agent_group_id, agent_policies.mf_owner_id, orb_tags, backend, version, policy, agent_policies.ts_created
 			FROM agent_policies, datasets
 			WHERE agent_policies.id = datasets.agent_policy_id AND agent_policies.mf_owner_id = datasets.mf_owner_id AND valid = TRUE AND
 				agent_group_id IN (?) AND agent_policies.mf_owner_id = ?`
@@ -176,7 +176,7 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 		}
 
 		th := toPolicy(dbth)
-		items = append(items, policies.PolicyInDataset{Policy: th, DatasetID: dbth.DataSetID})
+		items = append(items, policies.PolicyInDataset{Policy: th, DatasetID: dbth.DataSetID, AgentGroupID: dbth.AgentGroupID})
 	}
 
 	return items, nil
@@ -638,6 +638,7 @@ type dbPolicy struct {
 	Version       int32            `db:"version"`
 	Created       time.Time        `db:"ts_created"`
 	DataSetID     string           `db:"dataset_id"`
+	AgentGroupID  string           `db:"agent_group_id"`
 	LastModified  time.Time        `db:"ts_last_modified"`
 }
 

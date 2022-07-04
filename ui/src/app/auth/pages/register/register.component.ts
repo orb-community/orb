@@ -13,6 +13,9 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
 
   _isProduction = environment.production;
 
+  // TODO
+  orbErrors = {};
+
   /**
    * Pactsafe
    */
@@ -68,6 +71,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   }
 
   register(event?: any) {
+    this.orbErrors = {};
     // Prevent the form from automatically submitting without
     // checking PactSafe acceptance first.
     this.errors = this.messages = [];
@@ -93,18 +97,13 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
 
         if (respReg.isSuccess()) {
           this.messages = respReg.getMessages();
+
+          this.authenticateAndRedirect(email, password);
         } else {
-          this.errors = respReg.getErrors();
+          if (respReg.getResponse().status === 409) {
+            this.errors = [respReg.getResponse().error.error];
+          }
         }
-
-        this.cd.detectChanges();
-
-        this.authService.authenticate(this.strategy, {
-          email, password,
-        }).subscribe(respAuth => {
-          this.router.navigateByUrl('/pages/dashboard');
-        });
-
 
       });
     } else {
@@ -120,5 +119,13 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
         alert(acceptanceAlertLanguage);
       }
     }
+  }
+
+  authenticateAndRedirect(email, password) {
+    this.authService.authenticate(this.strategy, {
+      email, password,
+    }).subscribe(respAuth => {
+        this.router.navigateByUrl('/pages/dashboard');
+    });
   }
 }

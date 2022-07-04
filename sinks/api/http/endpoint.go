@@ -13,7 +13,24 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
+	"github.com/ns1labs/orb/sinks/backend"
 )
+
+var restrictiveKeyPrefixes = []string{backend.ConfigFeatureTypePassword}
+
+func omitSecretInformation(metadata types.Metadata) (restrictedMetadata types.Metadata) {
+	metadata.RestrictKeys(func(key string) bool {
+		match := false
+		for _, restrictiveKey := range restrictiveKeyPrefixes {
+			if key == restrictiveKey {
+				match = true
+				return match
+			}
+		}
+		return match
+	})
+	return metadata
+}
 
 func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
@@ -47,7 +64,7 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			State:       saved.State.String(),
 			Error:       saved.Error,
 			Backend:     saved.Backend,
-			Config:      saved.Config,
+			Config:      omitSecretInformation(saved.Config),
 			TsCreated:   saved.Created,
 			created:     true,
 		}
@@ -83,7 +100,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			State:       sinkEdited.State.String(),
 			Error:       sinkEdited.Error,
 			Backend:     sinkEdited.Backend,
-			Config:      sinkEdited.Config,
+			Config:      omitSecretInformation(sinkEdited.Config),
 			created:     false,
 		}
 		return res, nil
@@ -123,7 +140,7 @@ func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 				State:       sink.State.String(),
 				Error:       sink.Error,
 				Backend:     sink.Backend,
-				Config:      sink.Config,
+				Config:      omitSecretInformation(sink.Config),
 				TsCreated:   sink.Created,
 			}
 			res.Sinks = append(res.Sinks, view)
@@ -199,7 +216,7 @@ func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			State:       sink.State.String(),
 			Error:       sink.Error,
 			Backend:     sink.Backend,
-			Config:      sink.Config,
+			Config:      omitSecretInformation(sink.Config),
 			TsCreated:   sink.Created,
 		}
 		return res, err

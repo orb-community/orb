@@ -165,10 +165,11 @@ def threading_wait_until(func):
     return wait_event
 
 
-def return_port_to_run_docker_container(context, available=True):
+def return_port_to_run_docker_container(context, available=True, time_to_wait=5):
     """
 
     :param (bool) available: Status of the port on which agent must try to run. Default: available.
+    :param (int) time_to_wait: seconds that threading must wait after run the agent
     :return: (int) port number
     """
 
@@ -178,25 +179,18 @@ def return_port_to_run_docker_container(context, available=True):
         return unavailable_port
     else:
         available_port = None
-        process_number = multiprocessing.current_process().name.split('-')[-1]
-        if process_number.isnumeric():  # if parallel process
-            lower_lim_port = 10800 + int(process_number) * 10
-            upper_lim_port = lower_lim_port + 10
-            port_options_for_process = range(lower_lim_port, upper_lim_port)
-        else:  # if sequential process
-            port_options_for_process = range(10800, 11000)
-
-        for port in port_options_for_process:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            res = sock.connect_ex(('localhost', port))
-            sock.close()
-            if res != 0:
-                available_port = port
+        retries = 0
+        while available_port is None and retries < 10:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind(('', 0))
+            addr = s.getsockname()
+            s.close()
+            retries += 1
+            if addr[1] not in list(context.containers_id.values()):
+                available_port = addr[1]
                 return available_port
-            else:
-                # port not available
-                continue
     assert_that(available_port, is_not(None), "Unable to find an available port to run orb agent")
+    threading.Event().wait(time_to_wait)
     return available_port
 
 

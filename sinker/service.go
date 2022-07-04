@@ -146,7 +146,7 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 		return fleet.ErrSchemaMalformed
 	}
 
-	agent, err := svc.fleetClient.RetrieveOwnerByChannelID(context.Background(), &fleetpb.OwnerByChannelIDReq{Channel: channelID})
+	agent, err := svc.fleetClient.RetrieveAgentInfoByChannelID(context.Background(), &fleetpb.AgentInfoByChannelIDReq{Channel: channelID})
 	if err != nil {
 		return err
 	}

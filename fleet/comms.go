@@ -81,15 +81,16 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 	}
 
 	payload := []AgentPolicyRPCPayload{{
-		Action:    "manage",
-		ID:        policyID,
-		Name:      p.Name,
-		Backend:   p.Backend,
-		Version:   p.Version,
-		Data:      pdata,
-		DatasetID: datasetID,
+		Action:       "manage",
+		ID:           policyID,
+		Name:         p.Name,
+		Backend:      p.Backend,
+		Version:      p.Version,
+		Data:         pdata,
+		DatasetID:    datasetID,
+		AgentGroupID: ag.ID,
 	}}
-
+	
 	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
@@ -184,13 +185,14 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 			}
 
 			payload[i] = AgentPolicyRPCPayload{
-				Action:    "manage",
-				ID:        policy.Id,
-				Name:      policy.Name,
-				Backend:   policy.Backend,
-				Version:   policy.Version,
-				Data:      pdata,
-				DatasetID: policy.DatasetId,
+				Action:       "manage",
+				ID:           policy.Id,
+				Name:         policy.Name,
+				Backend:      policy.Backend,
+				Version:      policy.Version,
+				Data:         pdata,
+				DatasetID:    policy.DatasetId,
+				AgentGroupID: policy.AgentGroupId,
 			}
 
 		}
@@ -316,12 +318,13 @@ func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag Age
 	}
 
 	payload := []AgentPolicyRPCPayload{{
-		Action:  "manage",
-		ID:      policyID,
-		Name:    p.Name,
-		Backend: p.Backend,
-		Version: p.Version,
-		Data:    pdata,
+		Action:       "manage",
+		ID:           policyID,
+		Name:         p.Name,
+		AgentGroupID: ag.ID,
+		Backend:      p.Backend,
+		Version:      p.Version,
+		Data:         pdata,
 	}}
 
 	data := AgentPolicyRPC{
@@ -354,10 +357,11 @@ func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID st
 
 	var payloads []AgentPolicyRPCPayload
 	payload := AgentPolicyRPCPayload{
-		Action:  "remove",
-		ID:      policyID,
-		Name:    policyName,
-		Backend: backend,
+		Action:       "remove",
+		ID:           policyID,
+		Name:         policyName,
+		Backend:      backend,
+		AgentGroupID: ag.ID,
 	}
 
 	payloads = append(payloads, payload)
@@ -495,13 +499,17 @@ func (svc fleetCommsService) handleCapabilities(thingID string, channelID string
 	if err := json.Unmarshal(payload, &capabilities); err != nil {
 		return ErrSchemaMalformed
 	}
-	agent := Agent{MFThingID: thingID, MFChannelID: channelID}
+
+	agent, err := svc.agentRepo.RetrieveByIDWithChannel(context.Background(), thingID, channelID)
+	if err != nil {
+		agent = Agent{MFThingID: thingID, MFChannelID: channelID}
+	}
 	agent.AgentMetadata = make(map[string]interface{})
 	agent.AgentMetadata["backends"] = capabilities.Backends
 	agent.AgentMetadata["orb_agent"] = capabilities.OrbAgent
 	agent.AgentTags = capabilities.AgentTags
 
-	err := svc.checkVersion(buildinfo.GetMinAgentVersion(), capabilities.OrbAgent.Version, &agent)
+	err = svc.checkVersion(buildinfo.GetMinAgentVersion(), capabilities.OrbAgent.Version, &agent)
 	if err != nil {
 		return err
 	}
@@ -557,7 +565,6 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 		agent.LastHBData["backend_state"] = hb.BackendState
 		agent.LastHBData["policy_state"] = hb.PolicyState
 		agent.LastHBData["group_state"] = hb.GroupState
-
 	}
 	err := svc.agentRepo.UpdateHeartbeatByIDWithChannel(context.Background(), agent)
 	if err != nil {

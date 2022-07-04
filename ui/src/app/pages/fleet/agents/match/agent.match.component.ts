@@ -6,6 +6,7 @@ import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'ngx-agent-match-component',
@@ -28,6 +29,8 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
   columns: TableColumn[];
 
   // templates
+  @ViewChild('agentNameTemplateCell') agentNameTemplateCell: TemplateRef<any>;
+
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
 
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
@@ -42,7 +45,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
     {
       id: '1',
       label: 'Tags',
-      prop: 'orb_tags',
+      prop: 'combined_tags',
       selected: false,
     },
   ];
@@ -50,6 +53,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
   constructor(
     protected dialogRef: NbDialogRef<AgentMatchComponent>,
     protected agentsService: AgentsService,
+    protected router: Router,
   ) {
   }
 
@@ -64,15 +68,22 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
         prop: 'name',
         name: 'Agent Name',
         resizeable: false,
-        flexGrow: 1,
+        canAutoResize: true,
+        flexGrow: 2,
         minWidth: 90,
+        width: 120,
+        maxWidth: 200,
+        cellTemplate: this.agentNameTemplateCell,
       },
       {
-        prop: 'orb_tags',
+        prop: 'combined_tags',
         name: 'Tags',
         resizeable: false,
-        minWidth: 100,
-        flexGrow: 2,
+        canAutoResize: true,
+        flexGrow: 6,
+        minWidth: 300,
+        width: 450,
+        maxWidth: 1000,
         cellTemplate: this.agentTagsTemplateCell,
         comparator: (a, b) => Object.entries(a)
           .map(([key, value]) => `${key}:${value}`)
@@ -84,11 +95,20 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
       {
         prop: 'state',
         name: 'Status',
+        resizeable: false,
+        canAutoResize: true,
+        flexGrow: 2,
         minWidth: 90,
-        flexGrow: 1,
+        width: 90,
+        maxWidth: 90,
         cellTemplate: this.agentStateTemplateRef,
       },
     ];
+  }
+
+  onOpenView(agent: any) {
+    this.router.navigateByUrl(`pages/fleet/agents/view/${ agent.id }`);
+    this.dialogRef.close();
   }
 
   updateMatchingAgents() {

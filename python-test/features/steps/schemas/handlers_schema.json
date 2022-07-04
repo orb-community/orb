@@ -1,0 +1,1159 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "default": {},
+  "title": "Root Schema",
+  "required": [
+    "dhcp",
+    "dns",
+    "net"
+  ],
+  "properties": {
+    "dhcp": {
+      "type": "object",
+      "default": {},
+      "title": "The dhcp Schema",
+      "required": [
+        "1.0"
+      ],
+      "properties": {
+        "1.0": {
+          "type": "object",
+          "default": {},
+          "title": "The 1.0 Schema",
+          "required": [
+            "config",
+            "filter",
+            "metric_groups",
+            "metrics"
+          ],
+          "properties": {
+            "config": {
+              "type": "object",
+              "default": {},
+              "title": "The config Schema",
+              "required": [],
+              "properties": {},
+              "examples": [{}]
+            },
+            "filter": {
+              "type": "object",
+              "default": {},
+              "title": "The filter Schema",
+              "required": [],
+              "properties": {},
+              "examples": [{}]
+            },
+            "metric_groups": {
+              "type": "object",
+              "default": {},
+              "title": "The metric_groups Schema",
+              "required": [],
+              "properties": {},
+              "examples": [{}]
+            },
+            "metrics": {
+              "type": "object",
+              "default": {},
+              "title": "The metrics Schema",
+              "required": [],
+              "properties": {},
+              "examples": [{}]
+            }
+          },
+          "examples": [{
+            "config": {},
+            "filter": {},
+            "metric_groups": {},
+            "metrics": {}
+          }]
+        }
+      },
+      "examples": [{
+        "1.0": {
+          "config": {},
+          "filter": {},
+          "metric_groups": {},
+          "metrics": {}
+        }
+      }]
+    },
+    "dns": {
+      "type": "object",
+      "default": {},
+      "title": "The dns Schema",
+      "required": [
+        "1.0"
+      ],
+      "properties": {
+        "1.0": {
+          "type": "object",
+          "default": {},
+          "title": "The 1.0 Schema",
+          "required": [
+            "config",
+            "filter",
+            "metric_groups",
+            "metrics"
+          ],
+          "properties": {
+            "config": {
+              "type": "object",
+              "default": {},
+              "title": "The config Schema",
+              "required": [],
+              "properties": {},
+              "examples": [{}]
+            },
+            "filter": {
+              "type": "object",
+              "default": {},
+              "title": "The filter Schema",
+              "required": [
+                "exclude_noerror",
+                "only_qname_suffix",
+                "only_rcode"
+              ],
+              "properties": {
+                "exclude_noerror": {
+                  "type": "object",
+                  "default": {},
+                  "title": "The exclude_noerror Schema",
+                  "required": [
+                    "description",
+                    "input",
+                    "label",
+                    "type"
+                  ],
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The description Schema",
+                      "examples": [
+                        "Filter out all NOERROR responses"
+                      ]
+                    },
+                    "input": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The input Schema",
+                      "examples": [
+                        "checkbox"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The label Schema",
+                      "examples": [
+                        "Exclude NOERROR"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The type Schema",
+                      "examples": [
+                        "bool"
+                      ]
+                    }
+                  },
+                  "examples": [{
+                    "description": "Filter out all NOERROR responses",
+                    "input": "checkbox",
+                    "label": "Exclude NOERROR",
+                    "type": "bool"
+                  }]
+                },
+                "only_qname_suffix": {
+                  "type": "object",
+                  "default": {},
+                  "title": "The only_qname_suffix Schema",
+                  "required": [
+                    "description",
+                    "input",
+                    "label",
+                    "props",
+                    "type"
+                  ],
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The description Schema",
+                      "examples": [
+                        "Filter out any queries whose QName does not end in a suffix on the list"
+                      ]
+                    },
+                    "input": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The input Schema",
+                      "examples": [
+                        "text"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The label Schema",
+                      "examples": [
+                        "Include Only QName With Suffix"
+                      ]
+                    },
+                    "props": {
+                      "type": "object",
+                      "default": {},
+                      "title": "The props Schema",
+                      "required": [
+                        "example"
+                      ],
+                      "properties": {
+                        "example": {
+                          "type": "string",
+                          "default": "",
+                          "title": "The example Schema",
+                          "examples": [
+                            ".foo.com,.example.com"
+                          ]
+                        }
+                      },
+                      "examples": [{
+                        "example": ".foo.com,.example.com"
+                      }]
+                    },
+                    "type": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The type Schema",
+                      "examples": [
+                        "string[]"
+                      ]
+                    }
+                  },
+                  "examples": [{
+                    "description": "Filter out any queries whose QName does not end in a suffix on the list",
+                    "input": "text",
+                    "label": "Include Only QName With Suffix",
+                    "props": {
+                      "example": ".foo.com,.example.com"
+                    },
+                    "type": "string[]"
+                  }]
+                },
+                "only_rcode": {
+                  "type": "object",
+                  "default": {},
+                  "title": "The only_rcode Schema",
+                  "required": [
+                    "description",
+                    "input",
+                    "label",
+                    "props",
+                    "type"
+                  ],
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The description Schema",
+                      "examples": [
+                        "Filter out any queries which are not the given RCODE"
+                      ]
+                    },
+                    "input": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The input Schema",
+                      "examples": [
+                        "select"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The label Schema",
+                      "examples": [
+                        "Include Only RCODE"
+                      ]
+                    },
+                    "props": {
+                      "type": "object",
+                      "default": {},
+                      "title": "The props Schema",
+                      "required": [
+                        "allow_custom_options",
+                        "options"
+                      ],
+                      "properties": {
+                        "allow_custom_options": {
+                          "type": "boolean",
+                          "default": false,
+                          "title": "The allow_custom_options Schema",
+                          "examples": [
+                            true
+                          ]
+                        },
+                        "options": {
+                          "type": "object",
+                          "default": {},
+                          "title": "The options Schema",
+                          "required": [
+                            "NOERROR",
+                            "NXDOMAIN",
+                            "REFUSED",
+                            "SERVFAIL"
+                          ],
+                          "properties": {
+                            "NOERROR": {
+                              "type": "integer",
+                              "default": 0,
+                              "title": "The NOERROR Schema",
+                              "examples": [
+                                0
+                              ]
+                            },
+                            "NXDOMAIN": {
+                              "type": "integer",
+                              "default": 0,
+                              "title": "The NXDOMAIN Schema",
+                              "examples": [
+                                3
+                              ]
+                            },
+                            "REFUSED": {
+                              "type": "integer",
+                              "default": 0,
+                              "title": "The REFUSED Schema",
+                              "examples": [
+                                5
+                              ]
+                            },
+                            "SERVFAIL": {
+                              "type": "integer",
+                              "default": 0,
+                              "title": "The SERVFAIL Schema",
+                              "examples": [
+                                2
+                              ]
+                            }
+                          },
+                          "examples": [{
+                            "NOERROR": 0,
+                            "NXDOMAIN": 3,
+                            "REFUSED": 5,
+                            "SERVFAIL": 2
+                          }]
+                        }
+                      },
+                      "examples": [{
+                        "allow_custom_options": true,
+                        "options": {
+                          "NOERROR": 0,
+                          "NXDOMAIN": 3,
+                          "REFUSED": 5,
+                          "SERVFAIL": 2
+                        }
+                      }]
+                    },
+                    "type": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The type Schema",
+                      "examples": [
+                        "number"
+                      ]
+                    }
+                  },
+                  "examples": [{
+                    "description": "Filter out any queries which are not the given RCODE",
+                    "input": "select",
+                    "label": "Include Only RCODE",
+                    "props": {
+                      "allow_custom_options": true,
+                      "options": {
+                        "NOERROR": 0,
+                        "NXDOMAIN": 3,
+                        "REFUSED": 5,
+                        "SERVFAIL": 2
+                      }
+                    },
+                    "type": "number"
+                  }]
+                }
+              },
+              "examples": [{
+                "exclude_noerror": {
+                  "description": "Filter out all NOERROR responses",
+                  "input": "checkbox",
+                  "label": "Exclude NOERROR",
+                  "type": "bool"
+                },
+                "only_qname_suffix": {
+                  "description": "Filter out any queries whose QName does not end in a suffix on the list",
+                  "input": "text",
+                  "label": "Include Only QName With Suffix",
+                  "props": {
+                    "example": ".foo.com,.example.com"
+                  },
+                  "type": "string[]"
+                },
+                "only_rcode": {
+                  "description": "Filter out any queries which are not the given RCODE",
+                  "input": "select",
+                  "label": "Include Only RCODE",
+                  "props": {
+                    "allow_custom_options": true,
+                    "options": {
+                      "NOERROR": 0,
+                      "NXDOMAIN": 3,
+                      "REFUSED": 5,
+                      "SERVFAIL": 2
+                    }
+                  },
+                  "type": "number"
+                }
+              }]
+            },
+            "metric_groups": {
+              "type": "object",
+              "default": {},
+              "title": "The metric_groups Schema",
+              "required": [
+                "cardinality",
+                "dns_transactions",
+                "top_dns_wire",
+                "top_qnames",
+                "top_qnames_by_rcode"
+              ],
+              "properties": {
+                "cardinality": {
+                  "type": "object",
+                  "default": {},
+                  "title": "The cardinality Schema",
+                  "required": [
+                    "description",
+                    "label",
+                    "metrics"
+                  ],
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The description Schema",
+                      "examples": [
+                        "Metrics counting the unique number of items in the stream"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The label Schema",
+                      "examples": [
+                        "Cardinality"
+                      ]
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "default": [],
+                      "title": "The metrics Schema",
+                      "items": {},
+                      "examples": [
+                        []
+                      ]
+                    }
+                  },
+                  "examples": [{
+                    "description": "Metrics counting the unique number of items in the stream",
+                    "label": "Cardinality",
+                    "metrics": []
+                  }]
+                },
+                "dns_transactions": {
+                  "type": "object",
+                  "default": {},
+                  "title": "The dns_transactions Schema",
+                  "required": [
+                    "description",
+                    "label",
+                    "metrics"
+                  ],
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The description Schema",
+                      "examples": [
+                        "Metrics based on tracking queries and their associated replies"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The label Schema",
+                      "examples": [
+                        "DNS Transactions (Query/Reply pairs)"
+                      ]
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "default": [],
+                      "title": "The metrics Schema",
+                      "items": {},
+                      "examples": [
+                        []
+                      ]
+                    }
+                  },
+                  "examples": [{
+                    "description": "Metrics based on tracking queries and their associated replies",
+                    "label": "DNS Transactions (Query/Reply pairs)",
+                    "metrics": []
+                  }]
+                },
+                "top_dns_wire": {
+                  "type": "object",
+                  "default": {},
+                  "title": "The top_dns_wire Schema",
+                  "required": [
+                    "description",
+                    "label",
+                    "metrics"
+                  ],
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The description Schema",
+                      "examples": [
+                        "Top N metrics across various details from the DNS wire packets"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The label Schema",
+                      "examples": [
+                        "Top N Metrics (Various)"
+                      ]
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "default": [],
+                      "title": "The metrics Schema",
+                      "items": {},
+                      "examples": [
+                        []
+                      ]
+                    }
+                  },
+                  "examples": [{
+                    "description": "Top N metrics across various details from the DNS wire packets",
+                    "label": "Top N Metrics (Various)",
+                    "metrics": []
+                  }]
+                },
+                "top_qnames": {
+                  "type": "object",
+                  "default": {},
+                  "title": "The top_qnames Schema",
+                  "required": [
+                    "description",
+                    "label",
+                    "metrics"
+                  ],
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The description Schema",
+                      "examples": [
+                        "Top QNames across all DNS queries in stream"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The label Schema",
+                      "examples": [
+                        "Top N QNames (All)"
+                      ]
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "default": [],
+                      "title": "The metrics Schema",
+                      "items": {},
+                      "examples": [
+                        []
+                      ]
+                    }
+                  },
+                  "examples": [{
+                    "description": "Top QNames across all DNS queries in stream",
+                    "label": "Top N QNames (All)",
+                    "metrics": []
+                  }]
+                },
+                "top_qnames_by_rcode": {
+                  "type": "object",
+                  "default": {},
+                  "title": "The top_qnames_by_rcode Schema",
+                  "required": [
+                    "description",
+                    "label",
+                    "metrics"
+                  ],
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The description Schema",
+                      "examples": [
+                        "Top QNames across failing result codes"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The label Schema",
+                      "examples": [
+                        "Top N QNames (Failing RCodes) "
+                      ]
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "default": [],
+                      "title": "The metrics Schema",
+                      "items": {},
+                      "examples": [
+                        []
+                      ]
+                    }
+                  },
+                  "examples": [{
+                    "description": "Top QNames across failing result codes",
+                    "label": "Top N QNames (Failing RCodes) ",
+                    "metrics": []
+                  }]
+                }
+              },
+              "examples": [{
+                "cardinality": {
+                  "description": "Metrics counting the unique number of items in the stream",
+                  "label": "Cardinality",
+                  "metrics": []
+                },
+                "dns_transactions": {
+                  "description": "Metrics based on tracking queries and their associated replies",
+                  "label": "DNS Transactions (Query/Reply pairs)",
+                  "metrics": []
+                },
+                "top_dns_wire": {
+                  "description": "Top N metrics across various details from the DNS wire packets",
+                  "label": "Top N Metrics (Various)",
+                  "metrics": []
+                },
+                "top_qnames": {
+                  "description": "Top QNames across all DNS queries in stream",
+                  "label": "Top N QNames (All)",
+                  "metrics": []
+                },
+                "top_qnames_by_rcode": {
+                  "description": "Top QNames across failing result codes",
+                  "label": "Top N QNames (Failing RCodes) ",
+                  "metrics": []
+                }
+              }]
+            },
+            "metrics": {
+              "type": "object",
+              "default": {},
+              "title": "The metrics Schema",
+              "required": [],
+              "properties": {},
+              "examples": [{}]
+            }
+          },
+          "examples": [{
+            "config": {},
+            "filter": {
+              "exclude_noerror": {
+                "description": "Filter out all NOERROR responses",
+                "input": "checkbox",
+                "label": "Exclude NOERROR",
+                "type": "bool"
+              },
+              "only_qname_suffix": {
+                "description": "Filter out any queries whose QName does not end in a suffix on the list",
+                "input": "text",
+                "label": "Include Only QName With Suffix",
+                "props": {
+                  "example": ".foo.com,.example.com"
+                },
+                "type": "string[]"
+              },
+              "only_rcode": {
+                "description": "Filter out any queries which are not the given RCODE",
+                "input": "select",
+                "label": "Include Only RCODE",
+                "props": {
+                  "allow_custom_options": true,
+                  "options": {
+                    "NOERROR": 0,
+                    "NXDOMAIN": 3,
+                    "REFUSED": 5,
+                    "SERVFAIL": 2
+                  }
+                },
+                "type": "number"
+              }
+            },
+            "metric_groups": {
+              "cardinality": {
+                "description": "Metrics counting the unique number of items in the stream",
+                "label": "Cardinality",
+                "metrics": []
+              },
+              "dns_transactions": {
+                "description": "Metrics based on tracking queries and their associated replies",
+                "label": "DNS Transactions (Query/Reply pairs)",
+                "metrics": []
+              },
+              "top_dns_wire": {
+                "description": "Top N metrics across various details from the DNS wire packets",
+                "label": "Top N Metrics (Various)",
+                "metrics": []
+              },
+              "top_qnames": {
+                "description": "Top QNames across all DNS queries in stream",
+                "label": "Top N QNames (All)",
+                "metrics": []
+              },
+              "top_qnames_by_rcode": {
+                "description": "Top QNames across failing result codes",
+                "label": "Top N QNames (Failing RCodes) ",
+                "metrics": []
+              }
+            },
+            "metrics": {}
+          }]
+        }
+      },
+      "examples": [{
+        "1.0": {
+          "config": {},
+          "filter": {
+            "exclude_noerror": {
+              "description": "Filter out all NOERROR responses",
+              "input": "checkbox",
+              "label": "Exclude NOERROR",
+              "type": "bool"
+            },
+            "only_qname_suffix": {
+              "description": "Filter out any queries whose QName does not end in a suffix on the list",
+              "input": "text",
+              "label": "Include Only QName With Suffix",
+              "props": {
+                "example": ".foo.com,.example.com"
+              },
+              "type": "string[]"
+            },
+            "only_rcode": {
+              "description": "Filter out any queries which are not the given RCODE",
+              "input": "select",
+              "label": "Include Only RCODE",
+              "props": {
+                "allow_custom_options": true,
+                "options": {
+                  "NOERROR": 0,
+                  "NXDOMAIN": 3,
+                  "REFUSED": 5,
+                  "SERVFAIL": 2
+                }
+              },
+              "type": "number"
+            }
+          },
+          "metric_groups": {
+            "cardinality": {
+              "description": "Metrics counting the unique number of items in the stream",
+              "label": "Cardinality",
+              "metrics": []
+            },
+            "dns_transactions": {
+              "description": "Metrics based on tracking queries and their associated replies",
+              "label": "DNS Transactions (Query/Reply pairs)",
+              "metrics": []
+            },
+            "top_dns_wire": {
+              "description": "Top N metrics across various details from the DNS wire packets",
+              "label": "Top N Metrics (Various)",
+              "metrics": []
+            },
+            "top_qnames": {
+              "description": "Top QNames across all DNS queries in stream",
+              "label": "Top N QNames (All)",
+              "metrics": []
+            },
+            "top_qnames_by_rcode": {
+              "description": "Top QNames across failing result codes",
+              "label": "Top N QNames (Failing RCodes) ",
+              "metrics": []
+            }
+          },
+          "metrics": {}
+        }
+      }]
+    },
+    "net": {
+      "type": "object",
+      "default": {},
+      "title": "The net Schema",
+      "required": [
+        "1.0"
+      ],
+      "properties": {
+        "1.0": {
+          "type": "object",
+          "default": {},
+          "title": "The 1.0 Schema",
+          "required": [
+            "config",
+            "filter",
+            "metric_groups",
+            "metrics"
+          ],
+          "properties": {
+            "config": {
+              "type": "object",
+              "default": {},
+              "title": "The config Schema",
+              "required": [],
+              "properties": {},
+              "examples": [{}]
+            },
+            "filter": {
+              "type": "object",
+              "default": {},
+              "title": "The filter Schema",
+              "required": [],
+              "properties": {},
+              "examples": [{}]
+            },
+            "metric_groups": {
+              "type": "object",
+              "default": {},
+              "title": "The metric_groups Schema",
+              "required": [
+                "ip_cardinality",
+                "top_geo",
+                "top_ips"
+              ],
+              "properties": {
+                "ip_cardinality": {
+                  "type": "object",
+                  "default": {},
+                  "title": "The ip_cardinality Schema",
+                  "required": [
+                    "description",
+                    "label",
+                    "metrics"
+                  ],
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The description Schema",
+                      "examples": [
+                        "Unique IP addresses seen in the stream"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The label Schema",
+                      "examples": [
+                        "IP Address Cardinality"
+                      ]
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "default": [],
+                      "title": "The metrics Schema",
+                      "items": {},
+                      "examples": [
+                        []
+                      ]
+                    }
+                  },
+                  "examples": [{
+                    "description": "Unique IP addresses seen in the stream",
+                    "label": "IP Address Cardinality",
+                    "metrics": []
+                  }]
+                },
+                "top_geo": {
+                  "type": "object",
+                  "default": {},
+                  "title": "The top_geo Schema",
+                  "required": [
+                    "description",
+                    "label",
+                    "metrics"
+                  ],
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The description Schema",
+                      "examples": [
+                        "Top Geo IP and ASN in the stream"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The label Schema",
+                      "examples": [
+                        "Top Geo"
+                      ]
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "default": [],
+                      "title": "The metrics Schema",
+                      "items": {},
+                      "examples": [
+                        []
+                      ]
+                    }
+                  },
+                  "examples": [{
+                    "description": "Top Geo IP and ASN in the stream",
+                    "label": "Top Geo",
+                    "metrics": []
+                  }]
+                },
+                "top_ips": {
+                  "type": "object",
+                  "default": {},
+                  "title": "The top_ips Schema",
+                  "required": [
+                    "description",
+                    "label",
+                    "metrics"
+                  ],
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The description Schema",
+                      "examples": [
+                        "Top IP addresses in the stream"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "default": "",
+                      "title": "The label Schema",
+                      "examples": [
+                        "Top IPs"
+                      ]
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "default": [],
+                      "title": "The metrics Schema",
+                      "items": {},
+                      "examples": [
+                        []
+                      ]
+                    }
+                  },
+                  "examples": [{
+                    "description": "Top IP addresses in the stream",
+                    "label": "Top IPs",
+                    "metrics": []
+                  }]
+                }
+              },
+              "examples": [{
+                "ip_cardinality": {
+                  "description": "Unique IP addresses seen in the stream",
+                  "label": "IP Address Cardinality",
+                  "metrics": []
+                },
+                "top_geo": {
+                  "description": "Top Geo IP and ASN in the stream",
+                  "label": "Top Geo",
+                  "metrics": []
+                },
+                "top_ips": {
+                  "description": "Top IP addresses in the stream",
+                  "label": "Top IPs",
+                  "metrics": []
+                }
+              }]
+            },
+            "metrics": {
+              "type": "object",
+              "default": {},
+              "title": "The metrics Schema",
+              "required": [],
+              "properties": {},
+              "examples": [{}]
+            }
+          },
+          "examples": [{
+            "config": {},
+            "filter": {},
+            "metric_groups": {
+              "ip_cardinality": {
+                "description": "Unique IP addresses seen in the stream",
+                "label": "IP Address Cardinality",
+                "metrics": []
+              },
+              "top_geo": {
+                "description": "Top Geo IP and ASN in the stream",
+                "label": "Top Geo",
+                "metrics": []
+              },
+              "top_ips": {
+                "description": "Top IP addresses in the stream",
+                "label": "Top IPs",
+                "metrics": []
+              }
+            },
+            "metrics": {}
+          }]
+        }
+      },
+      "examples": [{
+        "1.0": {
+          "config": {},
+          "filter": {},
+          "metric_groups": {
+            "ip_cardinality": {
+              "description": "Unique IP addresses seen in the stream",
+              "label": "IP Address Cardinality",
+              "metrics": []
+            },
+            "top_geo": {
+              "description": "Top Geo IP and ASN in the stream",
+              "label": "Top Geo",
+              "metrics": []
+            },
+            "top_ips": {
+              "description": "Top IP addresses in the stream",
+              "label": "Top IPs",
+              "metrics": []
+            }
+          },
+          "metrics": {}
+        }
+      }]
+    }
+  },
+  "examples": [{
+    "dhcp": {
+      "1.0": {
+        "config": {},
+        "filter": {},
+        "metric_groups": {},
+        "metrics": {}
+      }
+    },
+    "dns": {
+      "1.0": {
+        "config": {},
+        "filter": {
+          "exclude_noerror": {
+            "description": "Filter out all NOERROR responses",
+            "input": "checkbox",
+            "label": "Exclude NOERROR",
+            "type": "bool"
+          },
+          "only_qname_suffix": {
+            "description": "Filter out any queries whose QName does not end in a suffix on the list",
+            "input": "text",
+            "label": "Include Only QName With Suffix",
+            "props": {
+              "example": ".foo.com,.example.com"
+            },
+            "type": "string[]"
+          },
+          "only_rcode": {
+            "description": "Filter out any queries which are not the given RCODE",
+            "input": "select",
+            "label": "Include Only RCODE",
+            "props": {
+              "allow_custom_options": true,
+              "options": {
+                "NOERROR": 0,
+                "NXDOMAIN": 3,
+                "REFUSED": 5,
+                "SERVFAIL": 2
+              }
+            },
+            "type": "number"
+          }
+        },
+        "metric_groups": {
+          "cardinality": {
+            "description": "Metrics counting the unique number of items in the stream",
+            "label": "Cardinality",
+            "metrics": []
+          },
+          "dns_transactions": {
+            "description": "Metrics based on tracking queries and their associated replies",
+            "label": "DNS Transactions (Query/Reply pairs)",
+            "metrics": []
+          },
+          "top_dns_wire": {
+            "description": "Top N metrics across various details from the DNS wire packets",
+            "label": "Top N Metrics (Various)",
+            "metrics": []
+          },
+          "top_qnames": {
+            "description": "Top QNames across all DNS queries in stream",
+            "label": "Top N QNames (All)",
+            "metrics": []
+          },
+          "top_qnames_by_rcode": {
+            "description": "Top QNames across failing result codes",
+            "label": "Top N QNames (Failing RCodes) ",
+            "metrics": []
+          }
+        },
+        "metrics": {}
+      }
+    },
+    "net": {
+      "1.0": {
+        "config": {},
+        "filter": {},
+        "metric_groups": {
+          "ip_cardinality": {
+            "description": "Unique IP addresses seen in the stream",
+            "label": "IP Address Cardinality",
+            "metrics": []
+          },
+          "top_geo": {
+            "description": "Top Geo IP and ASN in the stream",
+            "label": "Top Geo",
+            "metrics": []
+          },
+          "top_ips": {
+            "description": "Top IP addresses in the stream",
+            "label": "Top IPs",
+            "metrics": []
+          }
+        },
+        "metrics": {}
+      }
+    }
+  }]
+}

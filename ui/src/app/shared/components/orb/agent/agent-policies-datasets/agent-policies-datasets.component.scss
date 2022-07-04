@@ -136,25 +136,30 @@ nb-card {
   padding: -0.1rem !important;
   margin: -0.1rem !important;
   text-subtitle-line-height: 1rem;
+  box-shadow: none !important;
 
-  nb-accordion-item {
+  > nb-accordion-item {
     border: none !important;
     border-radius: 8px !important;
     padding: -0.1rem !important;
     margin: -0.1rem !important;
 
-    nb-accordion-item-header {
+    > nb-accordion-item-header {
       border: none !important;
       border-radius: 8px !important;
-      padding: 0.1rem 0;
+      padding: 0.1rem 0 !important;
     }
 
-    nb-accordion-item-body {
+    > nb-accordion-item-body {
       border: none !important;
       border-radius: 8px !important;
       display: grid;
       padding: -0.1rem !important;
       margin: -0.1rem !important;
+
+      .item-body {
+        padding: 0.1em !important;
+      }
     }
   }
 }
@@ -163,9 +168,20 @@ nb-list-item {
   background: #171c30;
   border: none;
   border-radius: 8px;
+  padding: 0.5em !important;
 }
 
 .error-accent {
   color: #df316f !important;
   font-weight: 600;
+}
+
+.agent-policy-button {
+  color: #ffffff;
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  border: none !important;
+  cursor: pointer !important;
+  outline: none !important;
+  overflow: hidden !important;
 }

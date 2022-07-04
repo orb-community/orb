@@ -459,8 +459,8 @@ func (r agentRepository) RetrieveAgentMetadataByOwner(ctx context.Context, owner
 	return items, nil
 }
 
-func (r agentRepository) RetrieveOwnerByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {
-	q := `select mf_owner_id, name from agents where mf_channel_id = :mf_channel_id limit 1`
+func (r agentRepository) RetrieveAgentInfoByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {
+	q := `select mf_owner_id, name, agent_tags, orb_tags from agents where mf_channel_id = :mf_channel_id limit 1`
 
 	params := map[string]interface{}{
 		"mf_channel_id": channelID,
@@ -512,17 +512,17 @@ func (r agentRepository) SetStaleStatus(ctx context.Context, duration time.Durat
 }
 
 type dbAgent struct {
-	Name           types.Identifier `db:"name"`
-	MFOwnerID      string           `db:"mf_owner_id"`
-	MFThingID      string           `db:"mf_thing_id"`
-	MFChannelID    string           `db:"mf_channel_id"`
-	OrbTags        db.Tags          `db:"orb_tags"`
-	AgentTags      db.Tags          `db:"agent_tags"`
-	AgentMetadata  db.Metadata      `db:"agent_metadata"`
-	State          fleet.State      `db:"state"`
-	Created        time.Time        `db:"ts_created"`
-	LastHBData     db.Metadata      `db:"last_hb_data"`
-	LastHB         sql.NullTime     `db:"ts_last_hb"`
+	Name          types.Identifier `db:"name"`
+	MFOwnerID     string           `db:"mf_owner_id"`
+	MFThingID     string           `db:"mf_thing_id"`
+	MFChannelID   string           `db:"mf_channel_id"`
+	OrbTags       db.Tags          `db:"orb_tags"`
+	AgentTags     db.Tags          `db:"agent_tags"`
+	AgentMetadata db.Metadata      `db:"agent_metadata"`
+	State         fleet.State      `db:"state"`
+	Created       time.Time        `db:"ts_created"`
+	LastHBData    db.Metadata      `db:"last_hb_data"`
+	LastHB        sql.NullTime     `db:"ts_last_hb"`
 }
 
 type dbMatchingAgent struct {
@@ -556,17 +556,17 @@ func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 func toAgent(dba dbAgent) (fleet.Agent, error) {
 
 	agent := fleet.Agent{
-		Name:           dba.Name,
-		MFOwnerID:      dba.MFOwnerID,
-		MFThingID:      dba.MFThingID,
-		MFChannelID:    dba.MFChannelID,
-		Created:        dba.Created,
-		OrbTags:        types.Tags(dba.OrbTags),
-		AgentTags:      types.Tags(dba.AgentTags),
-		AgentMetadata:  types.Metadata(dba.AgentMetadata),
-		State:          dba.State,
-		LastHBData:     types.Metadata(dba.LastHBData),
-		LastHB:         dba.LastHB.Time,
+		Name:          dba.Name,
+		MFOwnerID:     dba.MFOwnerID,
+		MFThingID:     dba.MFThingID,
+		MFChannelID:   dba.MFChannelID,
+		Created:       dba.Created,
+		OrbTags:       types.Tags(dba.OrbTags),
+		AgentTags:     types.Tags(dba.AgentTags),
+		AgentMetadata: types.Metadata(dba.AgentMetadata),
+		State:         dba.State,
+		LastHBData:    types.Metadata(dba.LastHBData),
+		LastHB:        dba.LastHB.Time,
 	}
 
 	return agent, nil

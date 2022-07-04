@@ -34,12 +34,12 @@ func init() {
 
 }
 
-func Version(_ *cobra.Command, _ []string) {
+func Version(cmd *cobra.Command, args []string) {
 	fmt.Printf("orb-agent %s\n", buildinfo.GetVersion())
 	os.Exit(0)
 }
 
-func Run(_ *cobra.Command, _ []string) {
+func Run(cmd *cobra.Command, args []string) {
 
 	// logger
 	var logger *zap.Logger
@@ -61,7 +61,8 @@ func Run(_ *cobra.Command, _ []string) {
 		os.Exit(1)
 	}
 
-	configData.Debug = Debug
+	configData.OrbAgent.Debug.Enable = Debug
+
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
 	if err == nil && configData.OrbAgent.Backends == nil {
@@ -192,5 +193,5 @@ func main() {
 
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(versionCmd)
-	_ = rootCmd.Execute()
+	rootCmd.Execute()
 }

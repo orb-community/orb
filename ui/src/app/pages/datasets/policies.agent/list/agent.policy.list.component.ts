@@ -17,7 +17,6 @@ import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
-import { AgentPolicyDetailsComponent } from 'app/pages/datasets/policies.agent/details/agent.policy.details.component';
 import { DatePipe } from '@angular/common';
 
 @Component({
@@ -240,19 +239,5 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
         }
       },
     );
-  }
-
-  openDetailsModal(agentPolicy: any) {
-    this.dialogService.open(AgentPolicyDetailsComponent, {
-      context: { agentPolicy: agentPolicy },
-      autoFocus: true,
-      closeOnEsc: true,
-    }).onClose.subscribe((resp) => {
-      if (resp) {
-        this.onOpenEdit(agentPolicy);
-      } else {
-        this.getAllPolicies();
-      }
-    });
   }
 }

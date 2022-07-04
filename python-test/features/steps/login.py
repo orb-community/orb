@@ -62,10 +62,10 @@ def request_account_registration(context, password_status, username, company):
         if len(password) > 8: passwords_to_test.append(password[:-1])
         for current_password in passwords_to_test:
             response, status_code = register_account(email, current_password, company, username, 409)
-            assert_that(response.json()['error'], equal_to('email already taken'), 'Wrong message on API response')
+            assert_that(response.json()['error'], equal_to('entity already exists'), 'Wrong message on API response')
     else:
         response, status_code = register_account(email, password, company, username, 409)
-        assert_that(response.json()['error'], equal_to('email already taken'), 'Wrong message on API response')
+        assert_that(response.json()['error'], equal_to('entity already exists'), 'Wrong message on API response')
 
 
 @then('account register should not be changed')
@@ -87,8 +87,8 @@ def request_orb_authentication(context, email_status, password_status):
     if password_status == 'incorrect':
         password = insert_str(password, random_string(1), randint(0, len(password)))
 
-    context.auth_response = authenticate(email, password, 403)
-    assert_that(context.auth_response['error'], equal_to("missing or invalid credentials provided"))
+    context.auth_response = authenticate(email, password, 401)
+    assert_that(context.auth_response['error'], equal_to("failed to perform authentication over the entity"))
 
 
 @then('user should not be able to authenticate')

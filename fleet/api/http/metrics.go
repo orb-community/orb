@@ -24,7 +24,7 @@ type metricsMiddleware struct {
 
 func (m metricsMiddleware) ResetAgent(ct context.Context, token string, agentID string) error {
 	ownerID, err := m.identify(token)
-	if err!= nil {
+	if err != nil {
 		return err
 	}
 
@@ -44,10 +44,10 @@ func (m metricsMiddleware) ResetAgent(ct context.Context, token string, agentID 
 	return m.svc.ResetAgent(ct, token, agentID)
 }
 
-func (m metricsMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, channelID string) (agent fleet.Agent, _ error) {
+func (m metricsMiddleware) ViewAgentInfoByChannelIDInternal(ctx context.Context, channelID string) (agent fleet.Agent, _ error) {
 	defer func(begin time.Time) {
 		labels := []string{
-			"method", "viewOwnerByChannelIDInternal",
+			"method", "viewAgentInfoByChannelIDInternal",
 			"owner_id", agent.MFOwnerID,
 			"agent_id", agent.MFThingID,
 			"group_id", "",
@@ -58,7 +58,7 @@ func (m metricsMiddleware) ViewOwnerByChannelIDInternal(ctx context.Context, cha
 
 	}(time.Now())
 
-	return m.svc.ViewOwnerByChannelIDInternal(ctx, channelID)
+	return m.svc.ViewAgentInfoByChannelIDInternal(ctx, channelID)
 }
 
 func (m metricsMiddleware) ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error) {
@@ -378,6 +378,24 @@ func (m metricsMiddleware) RemoveAgent(ctx context.Context, token string, thingI
 	}(time.Now())
 
 	return m.svc.RemoveAgent(ctx, token, thingID)
+}
+
+func (m metricsMiddleware) GetPolicyState(ctx context.Context, agent fleet.Agent) (map[string]interface{}, error) {
+
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "getPolicyState",
+			"owner_id", agent.MFOwnerID,
+			"agent_id", agent.MFThingID,
+			"group_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.GetPolicyState(ctx, agent)
 }
 
 func (m metricsMiddleware) identify(token string) (string, error) {

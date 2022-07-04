@@ -62,7 +62,7 @@ mat-chip nb-icon {
   }
 
   .step-content {
-    width: 55vw !important;
+    width: 500px !important;
   }
 
   .connector {
@@ -127,26 +127,30 @@ mat-chip nb-icon {
   font-weight: 300;
 }
 
-nb-accordion {
-  padding: 0;
+::ng-deep nb-accordion {
+  padding: 0 !important;
   text-subtitle-line-height: 1rem;
   display: grid;
 
   nb-accordion-item {
-    padding: 0;
+    padding: 0 !important;
     background: rgb(23, 28, 48);
 
     nb-accordion-item-header {
-      padding: 10px 0;
+      padding: 0 !important;
       background: rgb(23, 28, 48);
     }
 
     nb-accordion-item-body {
-      padding: 0;
+      padding: 0 !important;
       background: rgb(23, 28, 48);
       display: grid;
     }
   }
+}
+
+::ng-deep .item-body {
+  padding: 0 !important;
 }
 
 .code-editor {
@@ -161,4 +165,18 @@ nb-accordion {
   height: calc(58vh);
   width: calc(100%);
   display: block;
+}
+
+.handlers-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  align-content: flex-start;
+  flex-wrap: nowrap;
+}
+
+.add-handler-button {
+  align-self: center;
+  margin-top: 1rem;
 }

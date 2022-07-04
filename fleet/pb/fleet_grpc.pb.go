@@ -21,6 +21,7 @@ type FleetServiceClient interface {
 	RetrieveAgent(ctx context.Context, in *AgentByIDReq, opts ...grpc.CallOption) (*AgentRes, error)
 	RetrieveAgentGroup(ctx context.Context, in *AgentGroupByIDReq, opts ...grpc.CallOption) (*AgentGroupRes, error)
 	RetrieveOwnerByChannelID(ctx context.Context, in *OwnerByChannelIDReq, opts ...grpc.CallOption) (*OwnerRes, error)
+	RetrieveAgentInfoByChannelID(ctx context.Context, in *AgentInfoByChannelIDReq, opts ...grpc.CallOption) (*AgentInfoRes, error)
 }
 
 type fleetServiceClient struct {
@@ -58,6 +59,15 @@ func (c *fleetServiceClient) RetrieveOwnerByChannelID(ctx context.Context, in *O
 	return out, nil
 }
 
+func (c *fleetServiceClient) RetrieveAgentInfoByChannelID(ctx context.Context, in *AgentInfoByChannelIDReq, opts ...grpc.CallOption) (*AgentInfoRes, error) {
+	out := new(AgentInfoRes)
+	err := c.cc.Invoke(ctx, "/fleet.FleetService/RetrieveAgentInfoByChannelID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FleetServiceServer is the server API for FleetService service.
 // All implementations must embed UnimplementedFleetServiceServer
 // for forward compatibility
@@ -65,6 +75,7 @@ type FleetServiceServer interface {
 	RetrieveAgent(context.Context, *AgentByIDReq) (*AgentRes, error)
 	RetrieveAgentGroup(context.Context, *AgentGroupByIDReq) (*AgentGroupRes, error)
 	RetrieveOwnerByChannelID(context.Context, *OwnerByChannelIDReq) (*OwnerRes, error)
+	RetrieveAgentInfoByChannelID(context.Context, *AgentInfoByChannelIDReq) (*AgentInfoRes, error)
 	mustEmbedUnimplementedFleetServiceServer()
 }
 
@@ -80,6 +91,9 @@ func (UnimplementedFleetServiceServer) RetrieveAgentGroup(context.Context, *Agen
 }
 func (UnimplementedFleetServiceServer) RetrieveOwnerByChannelID(context.Context, *OwnerByChannelIDReq) (*OwnerRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrieveOwnerByChannelID not implemented")
+}
+func (UnimplementedFleetServiceServer) RetrieveAgentInfoByChannelID(context.Context, *AgentInfoByChannelIDReq) (*AgentInfoRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RetrieveAgentInfoByChannelID not implemented")
 }
 func (UnimplementedFleetServiceServer) mustEmbedUnimplementedFleetServiceServer() {}
 
@@ -148,6 +162,24 @@ func _FleetService_RetrieveOwnerByChannelID_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FleetService_RetrieveAgentInfoByChannelID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AgentInfoByChannelIDReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FleetServiceServer).RetrieveAgentInfoByChannelID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fleet.FleetService/RetrieveAgentInfoByChannelID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FleetServiceServer).RetrieveAgentInfoByChannelID(ctx, req.(*AgentInfoByChannelIDReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FleetService_ServiceDesc is the grpc.ServiceDesc for FleetService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -166,6 +198,10 @@ var FleetService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RetrieveOwnerByChannelID",
 			Handler:    _FleetService_RetrieveOwnerByChannelID_Handler,
+		},
+		{
+			MethodName: "RetrieveAgentInfoByChannelID",
+			Handler:    _FleetService_RetrieveAgentInfoByChannelID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -7,6 +7,7 @@ import subprocess
 import shlex
 from retry import retry
 import threading
+import json
 
 configs = TestConfig.configs()
 ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
@@ -34,7 +35,8 @@ def run_local_agent_container(context, status_port):
     if context.port != 10583:
         env_vars["ORB_BACKENDS_PKTVISOR_API_PORT"] = str(context.port)
 
-    context.container_id = run_agent_container(agent_image, env_vars, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
+    context.container_id = run_agent_container(agent_image, env_vars, LOCAL_AGENT_CONTAINER_NAME +
+                                               context.agent['name'][-5:])
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
 
@@ -49,15 +51,25 @@ def check_agent_logs_considering_timestamp(context, condition, text_to_match, ti
         considered_timestamp = context.considered_timestamp
     text_found = get_logs_and_check(context.container_id, text_to_match, considered_timestamp,
                                     timeout=time_to_wait)
+    logs = get_orb_agent_logs(context.container_id)
+    assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
+                                       f"Container logs: {json.dumps(logs, indent=4)}")
 
-    assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+
+@step("the container logs should not contain any error message")
+def check_errors_on_agent_logs(context):
+    logs = get_orb_agent_logs(context.container_id)
+    logs_with_error = [log for log in logs if '"level":"error"' in log]
+    assert_that(len(logs_with_error), equal_to(0), f"agents logs contain the following errors: {logs_with_error}")
 
 
 @then('the container logs should contain the message "{text_to_match}" within {time_to_wait} seconds')
 def check_agent_log(context, text_to_match, time_to_wait):
     text_found = get_logs_and_check(context.container_id, text_to_match, timeout=time_to_wait)
+    logs = get_orb_agent_logs(context.container_id)
 
-    assert_that(text_found, is_(True), 'Message "' + text_to_match + '" was not found in the agent logs!')
+    assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
+                                       f"Container logs: {json.dumps(logs, indent=4)}")
 
 
 @step("{order} container created is {status} after {seconds} seconds")
@@ -81,30 +93,45 @@ def run_container_using_ui_command(context, status_port):
     context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
                                                          ignore_ssl_and_certificate_errors, str(context.port))
     assert_that(context.container_id, is_not((none())))
-    rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
+    rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + context.agent['name'][-5:])
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
 
 
-@step("remove the container")
-def remove_container_on_end_of_scenario(context):
+@step("stop the orb-agent container")
+def stop_orb_agent_container(context):
+    for container_id in context.containers_id.keys():
+        stop_container(container_id)
+
+
+@step("remove the orb-agent container")
+def remove_orb_agent_container(context):
     for container_id in context.containers_id.keys():
         remove_container(container_id)
+    context.containers_id = {}
 
 
-def run_agent_container(container_image, env_vars, container_name):
+@step("forced remove the orb-agent container")
+def remove_orb_agent_container(context):
+    for container_id in context.containers_id.keys():
+        remove_container(container_id, force_remove=True)
+    context.containers_id = {}
+
+
+def run_agent_container(container_image, env_vars, container_name, time_to_wait=5):
     """
     Gets a specific agent from Orb control plane
 
     :param (str) container_image: that will be used for running the container
     :param (dict) env_vars: that will be passed to the container context
     :param (str) container_name: base of container name
+    :param (int) time_to_wait: seconds that threading must wait after run the agent
     :returns: (str) the container ID
     """
-    LOCAL_AGENT_CONTAINER_NAME = container_name + random_string(5)
     client = docker.from_env()
-    container = client.containers.run(container_image, name=LOCAL_AGENT_CONTAINER_NAME, detach=True,
+    container = client.containers.run(container_image, name=container_name, detach=True,
                                       network_mode='host', environment=env_vars)
+    threading.Event().wait(time_to_wait)
     return container.id
 
 
@@ -214,12 +241,13 @@ def get_logs_and_check(container_id, expected_message, start_time=0, event=None)
     return text_found
 
 
-def run_agent_config_file(orb_path, agent_name):
+def run_agent_config_file(agent_name, time_to_wait=5):
     """
     Run an agent container using an agent config file
 
     :param orb_path: path to orb directory
     :param agent_name: name of the orb agent
+    :param time_to_wait: seconds that threading must wait after run the agent
     :return: agent container id
     """
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
@@ -232,11 +260,12 @@ def run_agent_config_file(orb_path, agent_name):
     terminal_running = subprocess.Popen(args, stdout=subprocess.PIPE)
     subprocess_return = terminal_running.stdout.read().decode()
     container_id = subprocess_return.split()[0]
-    rename_container(container_id, LOCAL_AGENT_CONTAINER_NAME + random_string(5))
+    rename_container(container_id, LOCAL_AGENT_CONTAINER_NAME + agent_name[-5:])
+    threading.Event().wait(time_to_wait)
     return container_id
 
 
-def remove_container(container_id):
+def stop_container(container_id):
     """
 
     :param container_id: agent container ID
@@ -244,4 +273,14 @@ def remove_container(container_id):
     docker_client = docker.from_env()
     container = docker_client.containers.get(container_id)
     container.stop()
-    container.remove(force=True)
+
+
+def remove_container(container_id, force_remove=False):
+    """
+
+    :param container_id: agent container ID
+    :param force_remove: if True, similar to docker rm -f. Default: False
+    """
+    docker_client = docker.from_env()
+    container = docker_client.containers.get(container_id)
+    container.remove(force=force_remove)

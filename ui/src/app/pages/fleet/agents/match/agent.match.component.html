@@ -26,6 +26,14 @@
   </nb-card-body>
 </nb-card>
 
+<ng-template #agentNameTemplateCell let-i="index" let-row="row" let-value="value">
+  <div (click)="onOpenView(row)"
+       nbTooltip="View Details for {{ row.id }}"
+       class="agent-name">
+    {{ value }}
+  </div>
+</ng-template>
+
 <ng-template #agentStateTemplateCell let-row="row" let-value="value" let-i="index">
   <div>
     <div *ngIf="row.state === 'active'">
@@ -46,7 +54,7 @@
     <mat-chip-list>
       <mat-chip
           class="orb-tag-chip "
-          *ngFor="let tag of value | keyvalue | slice:0:3"
+          *ngFor="let tag of value | keyvalue"
           [style.background-color]="tag | tagcolor">
           {{tag | tagchip}}
       </mat-chip>

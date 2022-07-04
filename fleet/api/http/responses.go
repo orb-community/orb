@@ -59,18 +59,19 @@ func (res agentGroupsPageRes) Empty() bool {
 }
 
 type agentRes struct {
-	ID             string         `json:"id"`
-	Name           string         `json:"name"`
-	State          string         `json:"state"`
-	Key            string         `json:"key,omitempty"`
-	ChannelID      string         `json:"channel_id,omitempty"`
-	AgentTags      types.Tags     `json:"agent_tags"`
-	OrbTags        types.Tags     `json:"orb_tags"`
-	AgentMetadata  types.Metadata `json:"agent_metadata"`
-	LastHBData     types.Metadata `json:"last_hb_data"`
-	TsCreated      time.Time      `json:"ts_created"`
-	TsLastHB       time.Time      `json:"ts_last_hb"`
-	created        bool
+	ID            string         `json:"id"`
+	Name          string         `json:"name"`
+	State         string         `json:"state"`
+	Key           string         `json:"key,omitempty"`
+	ChannelID     string         `json:"channel_id,omitempty"`
+	AgentTags     types.Tags     `json:"agent_tags"`
+	OrbTags       types.Tags     `json:"orb_tags"`
+	AgentMetadata types.Metadata `json:"agent_metadata"`
+	LastHBData    types.Metadata `json:"last_hb_data"`
+	TsCreated     time.Time      `json:"ts_created"`
+	TsLastHB      time.Time      `json:"ts_last_hb"`
+	PolicyState   types.Metadata `json:"policy_state,omitempty"`
+	created       bool
 }
 
 func (s agentRes) Code() int {

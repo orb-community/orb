@@ -40,3 +40,14 @@ func (req accessOwnerByChannelIDReq) validate() error {
 	}
 	return nil
 }
+
+type accessAgentInfoByChannelIDReq struct {
+	ChannelID string
+}
+
+func (req accessAgentInfoByChannelIDReq) validate() error {
+	if req.ChannelID == "" {
+		return fleet.ErrMalformedEntity
+	}
+	return nil
+}

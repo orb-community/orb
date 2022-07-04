@@ -17,6 +17,7 @@ import (
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
+	"runtime"
 	"time"
 )
 
@@ -49,11 +50,22 @@ type orbAgent struct {
 	heartbeatsTopic   string
 	logTopic          string
 
+	// Retry Mechanism to ensure the Request is received
+	groupRequestTicker     *time.Ticker
+	groupRequestSucceeded  chan bool
+	policyRequestTicker    *time.Ticker
+	policyRequestSucceeded chan bool
+
 	// AgentGroup channels sent from core
 	groupsInfos map[string]GroupInfo
 
 	policyManager manager.PolicyManager
 }
+
+const retryRequestDuration = time.Second
+const retryRequestFixedTime = 5
+const retryDurationIncrPerAttempts = 10
+const retryMaxAttempts = 5
 
 type GroupInfo struct {
 	Name      string
@@ -76,7 +88,7 @@ func New(logger *zap.Logger, c config.Config) (Agent, error) {
 	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db, groupsInfos: make(map[string]GroupInfo)}, nil
 }
 
-func (a *orbAgent) startBackends(cloudConfig config.MQTTConfig) error {
+func (a *orbAgent) startBackends() error {
 	a.logger.Info("registered backends", zap.Strings("values", backend.GetList()))
 	a.logger.Info("requested backends", zap.Any("values", a.config.OrbAgent.Backends))
 	if len(a.config.OrbAgent.Backends) == 0 {
@@ -91,8 +103,6 @@ func (a *orbAgent) startBackends(cloudConfig config.MQTTConfig) error {
 		if err := be.Configure(a.logger, a.policyManager.GetRepo(), config, structs.Map(a.config.OrbAgent.Otel)); err != nil {
 			return err
 		}
-		be.SetCommsClient(cloudConfig.Id, a.client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
-
 		if err := be.Start(); err != nil {
 			return err
 		}
@@ -109,7 +119,12 @@ func (a *orbAgent) Start() error {
 	mqtt.ERROR = &agentLoggerError{a: a}
 
 	if a.config.OrbAgent.Debug.Enable {
+		a.logger.Info("debug logging enabled")
 		mqtt.DEBUG = &agentLoggerDebug{a: a}
+	}
+
+	if err := a.startBackends(); err != nil {
+		return err
 	}
 
 	ccm, err := cloud_config.New(a.logger, a.config, a.db)
@@ -121,7 +136,11 @@ func (a *orbAgent) Start() error {
 		return err
 	}
 
+	a.groupRequestSucceeded = make(chan bool, 1)
+	a.policyRequestSucceeded = make(chan bool, 1)
+
 	if err := a.startComms(cloudConfig); err != nil {
+		a.logger.Error("could not restart mqtt client")
 		return err
 	}
 
@@ -129,11 +148,16 @@ func (a *orbAgent) Start() error {
 		return err
 	}
 
+	a.hbTicker = time.NewTicker(HeartbeatFreq)
+	a.hbDone = make(chan bool)
+	go a.sendHeartbeats()
+
 	return nil
 }
 
 func (a *orbAgent) Stop() {
 	a.logger.Info("stopping agent")
+	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
 	a.hbTicker.Stop()
 	a.hbDone <- true
 	a.sendSingleHeartbeat(time.Now(), fleet.Offline)
@@ -147,12 +171,16 @@ func (a *orbAgent) Stop() {
 		}
 	}
 	a.client.Disconnect(250)
+	defer close(a.hbDone)
+	defer close(a.policyRequestSucceeded)
+	defer close(a.groupRequestSucceeded)
 }
 
 func (a *orbAgent) RestartBackend(name string, reason string) error {
 	if !backend.HaveBackend(name) {
 		return errors.New("specified backend does not exist: " + name)
 	}
+
 	be := a.backends[name]
 	a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
 	a.logger.Info("removing policies", zap.String("backend", name))
@@ -170,14 +198,37 @@ func (a *orbAgent) RestartBackend(name string, reason string) error {
 	return nil
 }
 
+func (a *orbAgent) restartComms() error {
+	ccm, err := cloud_config.New(a.logger, a.config, a.db)
+	if err != nil {
+		return err
+	}
+	cloudConfig, err := ccm.GetCloudConfig()
+	if err != nil {
+		return err
+	}
+	if err := a.startComms(cloudConfig); err != nil {
+		a.logger.Error("could not restart mqtt client")
+		return err
+	}
+	return nil
+}
+
 func (a *orbAgent) RestartAll(reason string) error {
+	a.logger.Info("restarting comms")
+	err := a.restartComms()
+	if err != nil {
+		a.logger.Error("failed to restart comms", zap.Error(err))
+	}
 	a.logger.Info("restarting all backends", zap.String("reason", reason))
 	for name := range a.backends {
-		err := a.RestartBackend(name, reason)
+		a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
+		err = a.RestartBackend(name, reason)
 		if err != nil {
 			a.logger.Error("failed to restart backend", zap.Error(err))
 		}
 	}
-	a.logger.Info("all backends were restarted")
+	a.logger.Info("all backends and comms were restarted")
+
 	return nil
 }

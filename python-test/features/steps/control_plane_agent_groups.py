@@ -8,6 +8,7 @@ from behave import given, then, step
 from hamcrest import *
 import requests
 from random import sample
+import json
 
 configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
@@ -167,8 +168,12 @@ def subscribe_agent_to_a_group(context):
     agent = context.agent
     agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
     agent_tags = agent['orb_tags']
+    if agent["agent_tags"] is not None:
+        agent_tags.update(agent["agent_tags"])
     context.agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, agent_group_description,
                                                               agent_tags, context.agent_groups)
+    assert_that(context.agent_group_data['matching_agents']['online'], equal_to(1), f"No agent matching this group.\n\n"
+                                                                                    f"{context.agent_group_data}")
 
 
 @step('the container logs contain the message "{text_to_match}" referred to each matching group within'
@@ -182,7 +187,7 @@ def check_logs_for_group(context, text_to_match, time_to_wait):
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs for group(s)"
                                        f"{set(groups_matching).difference(groups_to_which_subscribed)}!.\n\n"
                                        f"Logs = {container_logs}. \n\n"
-                                       f"Agent = {context.agent}. \n\n")
+                                       f"Agent: {json.dumps(context.agent, indent=4)} \n\n")
 
 
 def create_agent_group(token, name, description, tags, expected_status_code=201):
@@ -198,7 +203,7 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
     """
 
     json_request = {"name": name, "description": description, "tags": tags}
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(expected_status_code),
@@ -218,7 +223,7 @@ def get_agent_group(token, agent_group_id):
     """
 
     get_groups_response = requests.get(orb_url + '/api/v1/agent_groups/' + agent_group_id,
-                                       headers={'Authorization': token})
+                                       headers={'Authorization': f'Bearer {token}'})
 
     assert_that(get_groups_response.status_code, equal_to(200),
                 'Request to get agent group id=' + agent_group_id + ' failed with status=' + str(
@@ -258,7 +263,7 @@ def list_up_to_limit_agent_groups(token, limit=100, offset=0):
     :returns: (list) a list of agent groups, (int) total groups on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/agent_groups', headers={'Authorization': token},
+    response = requests.get(orb_url + '/api/v1/agent_groups', headers={'Authorization': f'Bearer {token}'},
                             params={"limit": limit, "offset": offset})
 
     assert_that(response.status_code, equal_to(200),
@@ -289,7 +294,7 @@ def delete_agent_group(token, agent_group_id):
     """
 
     response = requests.delete(orb_url + '/api/v1/agent_groups/' + agent_group_id,
-                               headers={'Authorization': token})
+                               headers={'Authorization': f'Bearer {token}'})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete agent group id='
                 + agent_group_id + ' failed with status=' + str(response.status_code))
@@ -334,7 +339,7 @@ def edit_agent_group(token, agent_group_id, name, description, tags, expected_st
                     "validate_only": False}
     json_request = {parameter: value for parameter, value in json_request.items() if value}
 
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     group_edited_response = requests.put(orb_url + '/api/v1/agent_groups/' + agent_group_id, json=json_request,
                                          headers=headers_request)

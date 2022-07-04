@@ -85,8 +85,7 @@ func newService(tokens map[string]string) sinks.SinkService {
 	var logger *zap.Logger
 
 	config := mfsdk.Config{
-		BaseURL:      "localhost",
-		ThingsPrefix: "",
+		ThingsURL: "localhost",
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
@@ -185,7 +184,7 @@ func TestCreateSinks(t *testing.T) {
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/sinks", server.URL),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -332,7 +331,7 @@ func TestUpdateSink(t *testing.T) {
 				method:      http.MethodPut,
 				url:         fmt.Sprintf("%s/sinks/%s", server.URL, tc.id),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
@@ -518,7 +517,7 @@ func TestListSinks(t *testing.T) {
 				client: server.Client(),
 				method: http.MethodGet,
 				url:    tc.url,
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 
 			res, err := req.make()
@@ -593,7 +592,7 @@ func TestViewBackend(t *testing.T) {
 				client: server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/features/sinks/%s", server.URL, tc.id),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
@@ -656,7 +655,7 @@ func TestViewBackends(t *testing.T) {
 				client: server.Client(),
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/features/sinks", server.URL),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
@@ -741,7 +740,7 @@ func TestViewSink(t *testing.T) {
 				method:      http.MethodGet,
 				contentType: tc.contentType,
 				url:         fmt.Sprintf("%s/sinks/%s", server.URL, tc.id),
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
@@ -798,7 +797,7 @@ func TestDeleteSink(t *testing.T) {
 				client: server.Client(),
 				method: http.MethodDelete,
 				url:    fmt.Sprintf("%s/sinks/%s", server.URL, tc.id),
-				token:  tc.auth,
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
 			}
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", desc, err))
@@ -896,12 +895,31 @@ func TestValidateSink(t *testing.T) {
 				method:      http.MethodPost,
 				url:         fmt.Sprintf("%s/sinks/validate", server.URL),
 				contentType: tc.contentType,
-				token:       tc.auth,
+				token:       fmt.Sprintf("Bearer %s", tc.auth),
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
+func TestOmitPasswords(t *testing.T) {
+	cases := map[string]struct {
+		inputMetadata    types.Metadata
+		expectedMetadata types.Metadata
+	}{
+		"omit configuration with password": {
+			inputMetadata:    types.Metadata{"user": 387157, "password": "s3cr3tp@ssw0rd", "url": "someUrl"},
+			expectedMetadata: types.Metadata{"user": 387157, "password": "", "url": "someUrl"},
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			metadata := omitSecretInformation(tc.inputMetadata)
+			assert.Equal(t, tc.expectedMetadata, metadata)
 		})
 	}
 }

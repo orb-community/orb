@@ -5,7 +5,7 @@ WORKDIR /go/src/github.com/ns1labs/orb
 COPY go.mod .
 RUN go mod tidy
 COPY . .
-RUN apk update && apk add make build-base
+RUN apk update && apk add make build-base git
 RUN mkdir /tmp/build && CGO_ENABLED=1 make agent_bin && mv build/orb-agent /tmp/build/orb-agent
 
 FROM ns1labs/pktvisor:${PKTVISOR_TAG}
