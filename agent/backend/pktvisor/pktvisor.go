@@ -31,6 +31,8 @@ import (
 var _ backend.Backend = (*pktvisorBackend)(nil)
 
 const DefaultBinary = "/usr/local/sbin/pktvisord"
+const ReadinessBackoff = 10
+const ReadinessTimeout = 10
 
 type pktvisorBackend struct {
 	logger          *zap.Logger
@@ -285,6 +287,22 @@ func (p *pktvisorBackend) Start() error {
 	}
 
 	p.logger.Info("pktvisor process started", zap.Int("pid", status.PID))
+
+	var readinessError error
+	for backoff := 0; backoff < ReadinessBackoff; backoff++ {
+		var appMetrics AppMetrics
+		readinessError = p.request("metrics/app", &appMetrics, http.MethodGet, nil, "", ReadinessTimeout)
+		if readinessError == nil {
+			p.logger.Info(fmt.Sprintf("pktvisor readiness ok, got version %s", appMetrics.App.Version))
+			break
+		}
+		p.logger.Info(fmt.Sprintf("pktvisor is not ready, trying again in %d seconds", ReadinessTimeout))
+	}
+
+	if readinessError != nil {
+		p.logger.Error("pktvisor error on readiness", zap.Error(err))
+		return readinessError
+	}
 
 	p.scraper = gocron.NewScheduler(time.UTC)
 	p.scraper.StartAsync()
