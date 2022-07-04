@@ -32,6 +32,18 @@ type removeDatasetEvent struct {
 	timestamp    time.Time
 }
 
+type updateDatasetEvent struct {
+	id            string
+	ownerID       string
+	agentGroupID  string
+	policyID      string
+	datasetID     string
+	valid         bool
+	turnedValid   bool
+	turnedInvalid bool
+	timestamp     time.Time
+}
+
 type updatePolicyEvent struct {
 	id        string
 	ownerID   string

@@ -33,8 +33,8 @@
                 <input autofocus
                        data-orb-qa-id="name"
                        fieldSize="medium"
-                       formControlName="name"
                        fullWidth="true"
+                       formControlName="name"
                        nbInput/>
               </div>
             </nb-form-field>
@@ -182,7 +182,7 @@
           </ng-template>
           <div>
             <label class="font-weight-bold">Selected Sink Tags</label>
-            <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
+            <ngx-tag-control [required]="false" [(tags)]="selectedTags"></ngx-tag-control>
             <hr/>
 
             <div class="d-flex justify-content-start"

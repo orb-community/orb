@@ -10,6 +10,7 @@ package fleet
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/fleet/backend"
@@ -272,4 +273,28 @@ func (svc fleetService) ViewAgentInfoByChannelIDInternal(ctx context.Context, ch
 		return Agent{}, err
 	}
 	return res, nil
+}
+
+func (svc fleetService) GetPolicyState(ctx context.Context, agent Agent) (map[string]interface{}, error) {
+
+	jsonHb, err := json.Marshal(agent.LastHBData)
+	if err != nil {
+		svc.logger.Error("failed to marshal heartbeat data", zap.Error(err))
+		return nil, err
+	}
+	var hb Heartbeat
+	if err = json.Unmarshal(jsonHb, &hb); err != nil {
+		svc.logger.Error("failed to unmarshal heartbeat data", zap.Error(err))
+		return nil, err
+	}
+
+	policyState := make(map[string]interface{})
+	for policyID, policyInfo := range hb.PolicyState {
+		formattedPolicyInfo := policyInfo
+		formattedPolicyInfo.Datasets = []string{}
+
+		policyState[policyID] = formattedPolicyInfo
+	}
+
+	return policyState, nil
 }

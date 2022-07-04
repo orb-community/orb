@@ -123,7 +123,8 @@ def policy_editing(context, kwargs):
         edited_attributes["only_qname_suffix"] = edited_attributes["only_qname_suffix"].split("/ ")
 
     if policy_name_prefix not in edited_attributes["name"]:
-        edited_attributes["name"] = policy_name_prefix + edited_attributes["name"]
+        context.random_part_policy_name = f"_{random_string(10)}"
+        edited_attributes["name"] = policy_name_prefix + edited_attributes["name"] + context.random_part_policy_name
 
     policy_json = make_policy_json(edited_attributes["name"], edited_attributes["handler_label"],
                                    edited_attributes["handler"], edited_attributes["description"],
@@ -144,7 +145,7 @@ def check_policy_attribute(context, attribute, value):
                              'only_rcode', 'backend_type', 'version']
     if attribute in acceptable_attributes:
         if attribute == "name":
-            value = policy_name_prefix + value
+            value = policy_name_prefix + value + context.random_part_policy_name
         policy_value = return_policy_attribute(context.policy, attribute)
         assert_that(str(policy_value), equal_to(value), f"Unexpected value for policy {attribute}")
     else:
@@ -349,7 +350,7 @@ def create_duplicated_policy(token, policy_id, new_policy_name=None, status_code
     """
     json_request = {"name": new_policy_name}
     json_request = remove_empty_from_json(json_request)
-    headers_request = {'Content-type': 'application/json', 'Accept': 'application/json', 'Authorization': token}
+    headers_request = {'Content-type': 'application/json', 'Accept': 'application/json', 'Authorization': f'Bearer {token}'}
     post_url = f"{orb_url}/api/v1/policies/agent/{policy_id}/duplicate"
     response = requests.post(post_url, json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(status_code),
@@ -385,7 +386,7 @@ def create_policy(token, json_request):
 
     """
 
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
@@ -403,7 +404,7 @@ def edit_policy(token, policy_id, json_request):
     :param (dict) json_request: policy json
     :return: response of policy editing
     """
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': token}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.put(orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
                             headers=headers_request)
@@ -490,7 +491,7 @@ def get_policy(token, policy_id, expected_status_code=200):
     """
 
     get_policy_response = requests.get(orb_url + '/api/v1/policies/agent/' + policy_id,
-                                       headers={'Authorization': token})
+                                       headers={'Authorization': f'Bearer {token}'})
 
     assert_that(get_policy_response.status_code, equal_to(expected_status_code),
                 'Request to get policy id=' + policy_id + ' failed with status=' + str(get_policy_response.status_code)
@@ -531,7 +532,7 @@ def list_up_to_limit_policies(token, limit=100, offset=0):
     :returns: (list) a list of policies, (int) total policies on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/policies/agent', headers={'Authorization': token},
+    response = requests.get(orb_url + '/api/v1/policies/agent', headers={'Authorization': f'Bearer {token}'},
                             params={'limit': limit, 'offset': offset})
 
     assert_that(response.status_code, equal_to(200),
@@ -562,7 +563,7 @@ def delete_policy(token, policy_id):
     """
 
     response = requests.delete(orb_url + '/api/v1/policies/agent/' + policy_id,
-                               headers={'Authorization': token})
+                               headers={'Authorization': f'Bearer {token}'})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete policy id='
                 + policy_id + ' failed with status=' + str(response.status_code))
@@ -633,7 +634,7 @@ def is_expected_msg_in_log_line(log_line, expected_message, list_agent_policies_
 
     """
     if log_line is not None:
-        if log_line['msg'] == expected_message and 'policy_id' in log_line.keys():
+        if expected_message in log_line['msg'] and 'policy_id' in log_line.keys():
             if log_line['policy_id'] in list_agent_policies_id:
                 if log_line['ts'] > considered_timestamp:
                     return True

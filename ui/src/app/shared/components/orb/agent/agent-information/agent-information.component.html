@@ -15,13 +15,16 @@
       <div class="col-12">
         <label>Agent ID</label>
         <p>{{ agent?.id }}</p>
-      </div>
-      <div class="col-12">
+
         <label>Channel ID</label>
         <p>{{ agent?.channel_id }}</p>
+
+        <label>Created on</label>
+        <p *ngIf="agent.state !== 'new'">{{ agent?.ts_created | date:'full'}}</p>
       </div>
     </div>
     <ngx-combined-tag [agent]="agent"></ngx-combined-tag>
+    <hr>
     <div class="block">
       <button (click)="resetAgent()"
               [disabled]="isResetting"

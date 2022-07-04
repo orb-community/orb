@@ -105,16 +105,22 @@ def multiple_dataset_for_policy(context, amount_of_datasets):
                     f"Amount of datasets linked with policy {policy_id} failed")
 
 
-@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied and has status {"
-      "policies_status}")
-def list_policies_applied_to_an_agent_and_referred_status(context, amount_of_policies, policies_status):
+@step("this agent's heartbeat shows that {amount_of_policies} policies are applied and {amount_of_policies_with_status}"
+      " has status {policies_status}")
+def list_policies_applied_to_an_agent_and_referred_status(context, amount_of_policies, amount_of_policies_with_status,
+                                                          policies_status):
     list_policies_applied_to_an_agent(context, amount_of_policies)
+    list_of_policies_status = list()
     for policy_id in context.list_agent_policies_id:
-        assert_that(context.agent['last_hb_data']['policy_state'][policy_id]["state"], equal_to(policies_status),
-                    f"policy {policy_id} is not {policies_status}")
+        list_of_policies_status.append(context.agent['last_hb_data']['policy_state'][policy_id]["state"])
+    if amount_of_policies_with_status == "all":
+        amount_of_policies_with_status = int(amount_of_policies)
+    amount_of_policies_applied_with_status = list_of_policies_status.count(policies_status)
+    assert_that(amount_of_policies_applied_with_status, equal_to(int(amount_of_policies_with_status)),
+                f"{amount_of_policies_with_status} policies was supposed to have status {policies_status}")
 
 
-@step("this agent's heartbeat shows that {amount_of_policies} policies are successfully applied to the agent")
+@step("this agent's heartbeat shows that {amount_of_policies} policies are applied to the agent")
 def list_policies_applied_to_an_agent(context, amount_of_policies):
     context.agent, context.list_agent_policies_id = get_policies_applied_to_an_agent(context.token, context.agent['id'],
                                                                                      amount_of_policies, timeout=180)
@@ -240,7 +246,7 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
 @step("remotely restart the agent")
 def reset_agent_remotely(context):
     context.considered_timestamp_reset = datetime.now().timestamp()
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': context.token}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {context.token}'}
     response = requests.post(f"{orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request)
     assert_that(response.status_code, equal_to(200),
                 'Request to restart agent failed with status=' + str(response.status_code))
@@ -256,7 +262,7 @@ def check_agent_backend_pktvisor_routes(context, route):
                             "handlers": "backends/pktvisor/handlers"}
 
     response = requests.get(orb_url + '/api/v1/agents/' + agent_backend_routes[route],
-                            headers={'Authorization': context.token})
+                            headers={'Authorization': f'Bearer {context.token}'})
     assert_that(response.status_code, equal_to(200),
                 f"Request to get {route} route failed with status =" + str(response.status_code))
     local_orb_path = configs.get("local_orb_path")
@@ -295,7 +301,7 @@ def get_agent(token, agent_id, status_code=200):
     :returns: (dict) the fetched agent
     """
 
-    get_agents_response = requests.get(orb_url + '/api/v1/agents/' + agent_id, headers={'Authorization': token})
+    get_agents_response = requests.get(orb_url + '/api/v1/agents/' + agent_id, headers={'Authorization': f'Bearer {token}'})
 
     assert_that(get_agents_response.status_code, equal_to(status_code),
                 'Request to get agent id=' + agent_id + ' failed with status=' + str(get_agents_response.status_code))
@@ -335,7 +341,7 @@ def list_up_to_limit_agents(token, limit=100, offset=0):
     :returns: (list) a list of agents, (int) total agents on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/agents', headers={'Authorization': token}, params={"limit": limit,
+    response = requests.get(orb_url + '/api/v1/agents', headers={'Authorization': f'Bearer {token}'}, params={"limit": limit,
                                                                                                   "offset": offset})
     assert_that(response.status_code, equal_to(200),
                 'Request to list agents failed with status=' + str(response.status_code))
@@ -364,7 +370,7 @@ def delete_agent(token, agent_id):
     """
 
     response = requests.delete(orb_url + '/api/v1/agents/' + agent_id,
-                               headers={'Authorization': token})
+                               headers={'Authorization': f'Bearer {token}'})
 
     assert_that(response.status_code, equal_to(204), 'Request to delete agent id='
                 + agent_id + ' failed with status=' + str(response.status_code))
@@ -382,7 +388,7 @@ def create_agent(token, name, tags):
 
     json_request = {"name": name, "orb_tags": tags, "validate_only": False}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
-                       'Authorization': token}
+                       'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
@@ -403,7 +409,7 @@ def edit_agent(token, agent_id, name, tags, expected_status_code=200):
 
     json_request = {"name": name, "orb_tags": tags, "validate_only": False}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
-                       'Authorization': token}
+                       'Authorization': f'Bearer {token}'}
     response = requests.put(orb_url + '/api/v1/agents/' + agent_id, json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to edit agent failed with status=' + str(response.status_code))

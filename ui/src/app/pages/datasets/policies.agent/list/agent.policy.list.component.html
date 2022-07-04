@@ -47,7 +47,8 @@
     </div>
     <div class="add-agent-policy-container">
       <button (click)="onOpenAdd()"
-              ghost="true"
+              class="card-button"
+              shape="round"
               nbButton
               status="primary">
         <i class="fa fa-plus">&nbsp;</i>New Policy
@@ -87,7 +88,7 @@
 
 <ng-template #actionsTemplateCell let-i="index" let-row="row" let-value="value">
   <div class="d-flex flex-row">
-    <button (click)="openDetailsModal(row)"
+    <button (click)="onOpenView(row)"
             class="orb-action-hover detail-button"
             ghost
             nbButton>
