@@ -511,6 +511,44 @@ func (r agentRepository) SetStaleStatus(ctx context.Context, duration time.Durat
 	return cnt, nil
 }
 
+func (r agentRepository) RetrieveCountGroupAgents(ctx context.Context, ownerID string, tags types.Tags) (int, error) {
+	t, tmq, err := getTagsQuery(tags)
+	if err != nil {
+		return 0, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	q := fmt.Sprintf(
+		`select total AS total_matching_agents
+		from
+			(select
+				mf_owner_id,
+				coalesce(agent_tags || orb_tags, agent_tags, orb_tags) as tags,
+				sum(case when mf_thing_id is not null then 1 else 0 end) as total
+			from agents where mf_owner_id = :mf_owner_id
+			group by mf_owner_id, coalesce(agent_tags || orb_tags, agent_tags, orb_tags)) agent_groups
+		WHERE 1=1 %s`, tmq)
+
+	params := map[string]interface{}{
+		"tags":        t,
+		"mf_owner_id": ownerID,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return 0, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	dbma := dbCountMatchingAgent{}
+	if rows.Next() {
+		if err := rows.StructScan(&dbma); err != nil {
+			return 0, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+	}
+
+	return dbma.TotalMatchingAgents, nil
+}
+
 type dbAgent struct {
 	Name          types.Identifier `db:"name"`
 	MFOwnerID     string           `db:"mf_owner_id"`
@@ -527,6 +565,10 @@ type dbAgent struct {
 
 type dbMatchingAgent struct {
 	MatchingAgents db.Metadata `db:"matching_agents"`
+}
+
+type dbCountMatchingAgent struct {
+	TotalMatchingAgents int `db:"total_matching_agents"`
 }
 
 func toDBAgent(agent fleet.Agent) (dbAgent, error) {

@@ -1221,3 +1221,93 @@ func TestSetAgentStale(t *testing.T) {
 	}
 
 }
+
+func TestCountGroupAgentRetrieval(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	agentRepo := postgres.NewAgentRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	name := "agent_name"
+	orbTagsStr := `{"node_type": "dns"}`
+	agentTagsStr := `{"region": "EU"}`
+	mixTagsStr := `{"node_type": "dns", "region": "EU"}`
+
+	orbTags := types.Tags{}
+	json.Unmarshal([]byte(orbTagsStr), &orbTags)
+
+	agentTags := types.Tags{}
+	json.Unmarshal([]byte(agentTagsStr), &agentTags)
+
+	mixTags := types.Tags{}
+	json.Unmarshal([]byte(mixTagsStr), &mixTags)
+
+	n := 3
+	for i := 0; i < n; i++ {
+		thID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		chID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th := fleet.Agent{
+			MFOwnerID:   oID.String(),
+			MFThingID:   thID.String(),
+			MFChannelID: chID.String(),
+		}
+
+		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, i))
+		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th.AgentTags = agentTags
+		th.OrbTags = orbTags
+
+		err = agentRepo.Save(context.Background(), th)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner string
+		tag   types.Tags
+		count int
+	}{
+		"retrieve matching agents with mix tags": {
+			owner: oID.String(),
+			tag:   mixTags,
+			count: n,
+		},
+		"retrieve matching agents with orb tags": {
+			owner: oID.String(),
+			tag:   orbTags,
+			count: n,
+		},
+		"retrieve matching agents with agent tags": {
+			owner: oID.String(),
+			tag:   agentTags,
+			count: n,
+		},
+		"retrieve unmatched agents with mix tags": {
+			owner: oID.String(),
+			tag: types.Tags{
+				"wrong": "tag",
+			},
+			count: 0,
+		},
+		"retrieve agents with mix tags": {
+			owner: oID.String(),
+			tag: types.Tags{
+				"node_type": "dns",
+				"region":    "EU",
+				"wrong":     "tag",
+			},
+			count: 0,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			count, err := agentRepo.RetrieveCountGroupAgents(context.Background(), tc.owner, tc.tag)
+			assert.True(t, reflect.DeepEqual(tc.count, count), fmt.Sprintf("%s: expected %v got %v\n", desc, tc.count, count))
+			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
+		})
+	}
+}
