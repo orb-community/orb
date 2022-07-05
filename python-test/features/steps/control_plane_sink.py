@@ -93,7 +93,7 @@ def check_sink_status(context, status, time_to_wait):
     sink_id = context.sink["id"]
     get_sink_response = get_sink_status_and_check(context.token, sink_id, status, timeout=time_to_wait)
 
-    assert_that(get_sink_response['state'], equal_to(status), f"Sink {sink_id} state failed")
+    assert_that(get_sink_response['state'], equal_to(status), f"Sink {context.sink} state failed")
 
 
 @then('cleanup sinks')
@@ -134,7 +134,7 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
 
     response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
-                'Request to create sink failed with status=' + str(response.status_code))
+                'Request to create sink failed with status=' + str(response.status_code) + ': ' + str(response.json()))
 
     return response.json()
 
@@ -151,7 +151,8 @@ def get_sink(token, sink_id):
     get_sink_response = requests.get(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': f'Bearer {token}'})
 
     assert_that(get_sink_response.status_code, equal_to(200),
-                'Request to get sink id=' + sink_id + ' failed with status=' + str(get_sink_response.status_code))
+                'Request to get sink id=' + sink_id + ' failed with status=' + str(get_sink_response.status_code) + ': '
+                + str(get_sink_response.json()))
 
     return get_sink_response.json()
 
@@ -187,11 +188,12 @@ def list_up_to_limit_sinks(token, limit=100, offset=0):
     :returns: (list) a list of sinks, (int) total sinks on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': f'Bearer {token}'}, params={'limit': limit,
-                                                                                                 'offset': offset})
+    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': f'Bearer {token}'},
+                            params={'limit': limit, 'offset': offset})
 
     assert_that(response.status_code, equal_to(200),
-                'Request to list sinks failed with status=' + str(response.status_code))
+                'Request to list sinks failed with status=' + str(response.status_code) + ': '
+                + str(response.json()))
 
     sinks_as_json = response.json()
     return sinks_as_json['sinks'], sinks_as_json['total'], sinks_as_json['offset']

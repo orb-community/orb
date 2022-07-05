@@ -4,7 +4,7 @@ def before_scenario(context, scenario):
     context.existent_sinks_id = list()
 
 
-def after_scenario(context, feature):
+def after_scenario(context, scenario):
     context.execute_steps('''
     Then stop the orb-agent container
     Then remove the orb-agent container
