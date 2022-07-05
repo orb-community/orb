@@ -608,6 +608,9 @@ func TestDeleteAgentGroup(t *testing.T) {
 
 	cli := newClientServer(t)
 
+	_, err := createAgent(t, "agent", &cli)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
 	ag, err := createAgentGroup(t, "ue-agent-group", &cli)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 

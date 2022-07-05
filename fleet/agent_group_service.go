@@ -240,6 +240,23 @@ func (svc fleetService) RemoveAgentGroup(ctx context.Context, token, groupId str
 		return err
 	}
 
+	limit, err := svc.agentRepo.RetrieveAllByAgentGroupID(ctx, ownerID, groupId, false)
+	if err != nil {
+		return err
+	}
+
+	connectedAgents, err := svc.mfsdk.ThingsByChannel(token, group.MFChannelID, 0, uint64(len(limit)), false)
+	if err != nil {
+		return errors.Wrap(errors.New("error retrieving connected agents from specified channel"), err)
+	}
+
+	for _, agent := range connectedAgents.Things {
+		err := svc.mfsdk.DisconnectThing(agent.ID, group.MFChannelID, token)
+		if err != nil {
+			return errors.Wrap(errors.New("error while disconnecting agents"), err)
+		}
+	}
+
 	err = svc.mfsdk.DeleteChannel(group.MFChannelID, token)
 	if err != nil {
 		return errors.Wrap(errors.New("error while deleting channel"), err)
