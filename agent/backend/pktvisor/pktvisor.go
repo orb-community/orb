@@ -301,7 +301,7 @@ func (p *pktvisorBackend) Start() error {
 	}
 
 	if readinessError != nil {
-		p.logger.Error("pktvisor error on readiness", zap.Error(err))
+		p.logger.Error("pktvisor error on readiness", zap.Error(readinessError))
 		err = p.proc.Stop()
 		if err != nil {
 			p.logger.Error("proc.Stop error", zap.Error(err))
