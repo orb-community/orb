@@ -10,7 +10,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/eclipse/paho.mqtt.golang"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os/exec"
+	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-cmd/cmd"
 	"github.com/go-co-op/gocron"
 	"github.com/ns1labs/orb/agent/backend"
@@ -21,11 +27,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"os/exec"
-	"time"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
@@ -301,6 +302,10 @@ func (p *pktvisorBackend) Start() error {
 
 	if readinessError != nil {
 		p.logger.Error("pktvisor error on readiness", zap.Error(err))
+		err = p.proc.Stop()
+		if err != nil {
+			p.logger.Error("proc.Stop error", zap.Error(err))
+		}
 		return readinessError
 	}
 
