@@ -139,7 +139,7 @@ type AgentRepository interface {
 	SetStaleStatus(ctx context.Context, minutes time.Duration) (int64, error)
 	// RetrieveAgentInfoByChannelID gRPC version to retrieve ownerID, name and agent tags by a provided channelID
 	RetrieveAgentInfoByChannelID(ctx context.Context, channelID string) (Agent, error)
-	// RetrieveCountGroupAgents retrieve the total matching agents by tags
+	// RetrieveCountGroupAgents retrieve the total agents of an agent group
 	RetrieveCountGroupAgents(ctx context.Context, owner string, tags types.Tags) (int, error)
 }
 
