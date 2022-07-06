@@ -35,12 +35,48 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
+	// encrypt data for the password
+	sink, err = svc.encryptMetadata(sink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrCreateSink, err)
+	}
+
 	id, err := svc.sinkRepo.Save(ctx, sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
 	sink.ID = id
 	return sink, nil
+}
+
+func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
+	var err error
+	sink.Config.FilterMap(func(key string) bool {
+		return key == backend.ConfigFeatureTypePassword
+	}, func(key string, value interface{}) (string, interface{}) {
+		newValue, err2 := svc.passwordService.EncodePassword(value.(string))
+		if err2 != nil {
+			err = err2
+			return key, value
+		}
+		return key, newValue
+	})
+	return sink, err
+}
+
+func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
+	var err error
+	sink.Config.FilterMap(func(key string) bool {
+		return key == backend.ConfigFeatureTypePassword
+	}, func(key string, value interface{}) (string, interface{}) {
+		newValue, err2 := svc.passwordService.DecodePassword(value.(string))
+		if err2 != nil {
+			err = err2
+			return key, value
+		}
+		return key, newValue
+	})
+	return sink, err
 }
 
 func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) (Sink, error) {
@@ -54,6 +90,10 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	}
 
 	sink.MFOwnerID = skOwnerID
+	sink, err = svc.encryptMetadata(sink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
 	err = svc.sinkRepo.Update(ctx, sink)
 	if err != nil {
 		return Sink{}, err
@@ -103,6 +143,10 @@ func (svc sinkService) ViewSinkInternal(ctx context.Context, ownerID string, key
 	res, err := svc.sinkRepo.RetrieveByOwnerAndId(ctx, ownerID, key)
 	if err != nil {
 		return Sink{}, errors.Wrap(errors.ErrNotFound, err)
+	}
+	res, err = svc.decryptMetadata(res)
+	if err != nil {
+		return Sink{}, errors.Wrap(errors.ErrViewEntity, err)
 	}
 	return res, nil
 }

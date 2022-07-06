@@ -14,12 +14,14 @@ type serviceMigrate struct {
 	migrations []migration.Plan
 }
 
-func New(logger *zap.Logger, dbs map[string]postgres.Database) Service {
+func (sm *serviceMigrate) AddMigration(plan migration.Plan) {
+	sm.migrations = append(sm.migrations, plan)
+}
+
+func New(logger *zap.Logger, dbs map[string]postgres.Database, plans ...migration.Plan) Service {
 	return &serviceMigrate{
-		logger: logger,
-		dbs:    dbs,
-		migrations: []migration.Plan{
-			migration.NewM1KetoPolicies(logger, dbs),
-		},
+		logger:     logger,
+		dbs:        dbs,
+		migrations: plans,
 	}
 }

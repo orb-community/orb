@@ -32,3 +32,13 @@ func (s *Metadata) RestrictKeys(predicate func(string) bool) {
 		}
 	}
 }
+
+func (s *Metadata) FilterMap(predicateFunc func(string) bool, mapFunc func(string, interface{}) (string, interface{})) {
+	for key, value := range *s {
+		if predicateFunc(key) {
+			newKey, newValue := mapFunc(key, value)
+			delete(*s, key)
+			(*s)[newKey] = newValue
+		}
+	}
+}

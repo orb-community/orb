@@ -23,7 +23,8 @@ var _ pb.SinkServiceServer = (*grpcServer)(nil)
 
 type grpcServer struct {
 	pb.UnimplementedSinkServiceServer
-	retrieveSink kitgrpc.Handler
+	retrieveSink    kitgrpc.Handler
+	passwordService sinks.PasswordService
 }
 
 func NewServer(tracer opentracing.Tracer, svc sinks.SinkService) pb.SinkServiceServer {
