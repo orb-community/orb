@@ -27,6 +27,8 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
 
   showPassword = false;
 
+  repeatedEmail = null;
+
   constructor(
     @Inject(NB_AUTH_OPTIONS) protected options: {},
     protected authService: NbAuthService,
@@ -76,6 +78,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     // checking PactSafe acceptance first.
     this.errors = this.messages = [];
     this.submitted = true;
+    this.repeatedEmail = null
 
     const _ps = !!window['_ps'] && window['_ps'];
 
@@ -101,6 +104,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
           this.authenticateAndRedirect(email, password);
         } else {
           if (respReg.getResponse().status === 409) {
+            this.repeatedEmail = email
             this.errors = [respReg.getResponse().error.error];
           }
         }
