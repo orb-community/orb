@@ -10,6 +10,7 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
@@ -41,6 +42,9 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 
 		saved, err := svc.AddPolicy(ctx, req.token, policy)
 		if err != nil {
+			if e, ok := err.(errors.Error); ok && errors.Contains(err, policies.ErrValidatePolicy) {
+				err = errors.New(fmt.Sprintf("%s : %s", e.Msg(), e.Err()))
+			}
 			return nil, err
 		}
 
