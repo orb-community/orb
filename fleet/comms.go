@@ -146,7 +146,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 		DatasetID:    datasetID,
 		AgentGroupID: ag.ID,
 	}}
-	
+
 	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
@@ -332,10 +332,24 @@ func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 }
 
 func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+
+	groupID := []string{ag.ID}
+	defer cancel()
+	policies, err := svc.policyClient.RetrievePoliciesByGroups(ctx, &pb.PoliciesByGroupsReq{GroupIDs: groupID, OwnerID: ag.MFOwnerID})
+	if err != nil {
+		return err
+	}
+
+	datasetIDs := make([]string, 0)
+	for _, policy := range policies.Policies {
+		datasetIDs = append(datasetIDs, policy.DatasetId)
+	}
 
 	payload := GroupRemovedRPCPayload{
 		AgentGroupID: ag.ID,
 		ChannelID:    ag.MFChannelID,
+		DatasetsID:   datasetIDs,
 	}
 
 	data := RPC{
