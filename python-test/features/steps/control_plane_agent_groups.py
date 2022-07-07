@@ -191,7 +191,8 @@ def subscribe_agent_to_a_group(context, amount_of_groups, group):
                                                           agent_group_description, agent_tags,
                                                           context.agent_groups)
         assert_that(agent_group_data['matching_agents']['online'], equal_to(1),
-                    f"No agent matching this group.\n\n {agent_group_data}")
+                    f"No agent matching this group.\n\n {agent_group_data}. \n"
+                    f"Agent: {agent}")
 
 
 @step('the container logs contain the message "{text_to_match}" referred to each matching group within'
@@ -225,8 +226,8 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
 
     response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to create agent group failed with status=' + str(response.status_code) +
-                "response=" + str(response.json()))
+                f"Request to create agent group failed with status= {str(response.status_code)}. Response="
+                f" {str(response.json())}. Json used: {json_request}")
 
     return response.json()
 
@@ -366,7 +367,8 @@ def edit_agent_group(token, agent_group_id, name, description, tags, expected_st
         expected_status_code = 400
     assert_that(group_edited_response.status_code, equal_to(expected_status_code),
                 'Request to edit agent group failed with status=' + "status code =" +
-                str(group_edited_response.status_code) + "response =" + str(group_edited_response.json()))
+                str(group_edited_response.status_code) + "response =" + str(group_edited_response.json()) +
+                " json used: " + str(json_request))
 
     return group_edited_response.json()
 
