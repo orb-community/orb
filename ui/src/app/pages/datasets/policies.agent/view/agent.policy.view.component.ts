@@ -100,9 +100,14 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
         policy_data: policyInterface,
       };
     } else {
-      interfacePartial = {
-        policy: JSON.parse(policyInterface) as PolicyConfig,
-      };
+      try {
+        interfacePartial = {
+          policy: JSON.parse(policyInterface) as PolicyConfig,
+        };
+      } catch (err) {
+        this.notifications.error('Failed to edit Agent Policy', `Error: Invalid JSON`);
+        return
+      }
     }
 
     const payload = {
