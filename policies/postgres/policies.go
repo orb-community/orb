@@ -645,7 +645,7 @@ func (r policiesRepository) DeleteAllDatasetsPolicy(ctx context.Context, policyI
 				return errors.Wrap(policies.ErrMalformedEntity, err)
 			}
 		}
-		return errors.Wrap(fleet.ErrUpdateEntity, err)
+		return errors.Wrap(fleet.ErrRemoveEntity, err)
 	}
 
 	_, err = res.RowsAffected()
