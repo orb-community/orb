@@ -121,7 +121,6 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 			return ErrMqttConnection
 		}
 	}
-	a.requestReconnection(a.client, config)
 
 	return nil
 }
