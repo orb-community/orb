@@ -261,16 +261,21 @@ func camelToSnake(s string) string {
 
 func topNMetricsParser(label string) (string, error) {
 	mapNMetrics := make(map[string]string)
+	mapNMetrics["TopGeoLocECS"] = "geo_loc"
 	mapNMetrics["TopGeoLoc"] = "geo_loc"
+	mapNMetrics["TopASNECS"] = "asn"
 	mapNMetrics["TopASN"] = "asn"
+	mapNMetrics["TopQueryECS"] = "ecs"
 	mapNMetrics["TopIpv6"] = "ipv6"
 	mapNMetrics["TopIpv4"] = "ipv4"
 	mapNMetrics["TopQname2"] = "qname"
 	mapNMetrics["TopQname3"] = "qname"
+	mapNMetrics["TopSizedQnameResp"] = "qname"
 	mapNMetrics["TopNxdomain"] = "qname"
 	mapNMetrics["TopQtype"] = "qtype"
 	mapNMetrics["TopRcode"] = "rcode"
 	mapNMetrics["TopREFUSED"] = "qname"
+	mapNMetrics["TopNODATA"] = "qname"
 	mapNMetrics["TopSRVFAIL"] = "qname"
 	mapNMetrics["TopUDPPorts"] = "port"
 	mapNMetrics["TopSlow"] = "qname"

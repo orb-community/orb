@@ -733,6 +733,33 @@ func TestDNSConversion(t *testing.T) {
 				},
 			},
 		},
+		"DNSPayloadTopNodata": {
+			data: []byte(`
+{
+	"policy_dns": {
+		"dns": {
+        	"top_nodata": [
+				{
+	          		"estimate": 186,
+         			"name": "89.187.189.231"				
+        		}
+			]
+    	}
+	}
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dns_top_nodata",
+				}), prometheus.Label{
+					Name:  "qname",
+					Value: "89.187.189.231",
+				}),
+				Datapoint: prometheus.Datapoint{
+					Value: 186,
+				},
+			},
+		},
 	}
 
 	for desc, c := range cases {
@@ -1246,6 +1273,56 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 				},
 			},
 		},
+		"PacketPayloadTopQueryECS": {
+			data: []byte(`
+{
+    "policy_dns": {
+		"dns": {
+        	"top_query_ecs": [
+				{
+          	  	  "estimate": 6,
+          	  	  "name": "2001:470:1f0b:1600::"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "dns_top_query_ecs",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "ecs",
+						Value: "2001:470:1f0b:1600::",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 6,
+				},
+			},
+		},
 		"PacketPayloadToqQType": {
 			data: []byte(`
 {
@@ -1515,6 +1592,27 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 				},
 			},
 		},
+		"DNSPayloadWirePacketsNodata": {
+			data: []byte(`
+{
+	"policy_dns": {
+        "dns": {
+            "wire_packets": {
+				"nodata": 8
+			}
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dns_wire_packets_nodata",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
 		"DNSPayloadWirePacketsNoerror": {
 			data: []byte(`
 {
@@ -1593,6 +1691,27 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 				Labels: append(prependLabel(commonLabels, prometheus.Label{
 					Name:  "__name__",
 					Value: "dns_wire_packets_refused",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"DNSPayloadWirePacketsFiltered": {
+			data: []byte(`
+{
+	"policy_dns": {
+        "dns": {
+            "wire_packets": {
+				"filtered": 8
+			}
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dns_wire_packets_filtered",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 8,
@@ -2142,6 +2261,25 @@ func TestPacketsConversion(t *testing.T) {
 				Labels: append(prependLabel(commonLabels, prometheus.Label{
 					Name:  "__name__",
 					Value: "packets_other_l4",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 637,
+				},
+			},
+		},
+		"DNSPayloadPacketsFiltered": {
+			data: []byte(`
+{
+	"policy_dns": {
+        "packets": {
+			"filtered": 637
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "packets_filtered",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 637,
