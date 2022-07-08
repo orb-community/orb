@@ -251,12 +251,13 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy,
         this.dialogService.open(DatasetFromComponent,
             {
                 autoFocus: true,
-                closeOnEsc: true,
+                closeOnEsc: false,
                 context: {
                     dataset,
                 },
                 hasScroll: false,
-                hasBackdrop: false,
+                closeOnBackdropClick: true,
+                hasBackdrop: true,
             }).onClose.subscribe(resp => {
             if (resp === 'changed' || 'deleted') {
                 this.refreshPolicy.emit('refresh-from-dataset');
