@@ -49,38 +49,38 @@ export class AgentPolicyAddComponent {
 
   // selected input object
   input: {
-    version?: string;
-    config?: DynamicFormConfig;
-    filter?: DynamicFormConfig;
+    version?: string,
+    config?: DynamicFormConfig,
+    filter?: DynamicFormConfig,
   };
 
   // holds all handlers added by user
   modules: {
     [propName: string]: {
-      name?: string;
-      type?: string;
-      config?: { [propName: string]: {} | any };
-      filter?: { [propName: string]: {} | any };
-    };
+      name?: string,
+      type?: string,
+      config?: { [propName: string]: {} | any },
+      filter?: { [propName: string]: {} | any },
+    },
   } = {};
 
   // #services responses
   // hold info retrieved
   availableBackends: {
     [propName: string]: {
-      backend: string;
-      description: string;
-    };
+      backend: string,
+      description: string,
+    },
   };
 
   availableTaps: { [propName: string]: PolicyTap };
 
   availableInputs: {
     [propName: string]: {
-      version?: string;
-      config?: DynamicFormConfig;
-      filter?: DynamicFormConfig;
-    };
+      version?: string,
+      config?: DynamicFormConfig,
+      filter?: DynamicFormConfig,
+    },
   };
 
   agentPolicy: AgentPolicy;
@@ -121,10 +121,11 @@ kind: collection`;
   format = 'yaml';
 
   // #load controls
-  isLoading = Object.entries(CONFIG).reduce((acc, [value]) => {
-    acc[value] = false;
-    return acc;
-  }, {}) as { [propName: string]: boolean };
+  isLoading = Object.entries(CONFIG)
+    .reduce((acc, [value]) => {
+      acc[value] = false;
+      return acc;
+    }, {}) as { [propName: string]: boolean };
 
   constructor(
     private agentPoliciesService: AgentPoliciesService,
@@ -140,17 +141,13 @@ kind: collection`;
 
     this.readyForms();
 
+
     Promise.all([
       this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(),
       this.getBackendsList(),
-    ])
-      .catch((reason) => console.warn(`Couldn't fetch data. Reason: ${reason}`))
+    ]).catch(reason => console.warn(`Couldn't fetch data. Reason: ${reason}`))
       .then(() => this.updateForms())
-      .catch((reason) =>
-        console.warn(
-          `Couldn't fetch ${this.agentPolicy?.backend} data. Reason: ${reason}`,
-        ),
-      );
+      .catch((reason) => console.warn(`Couldn't fetch ${this.agentPolicy?.backend} data. Reason: ${reason}`));
   }
 
   resizeComponents() {
@@ -183,33 +180,33 @@ kind: collection`;
   }
 
   retrieveAgentPolicy() {
-    return new Promise((resolve) => {
-      this.agentPoliciesService
-        .getAgentPolicyById(this.agentPolicyID)
-        .subscribe((policy) => {
-          this.agentPolicy = policy;
-          this.isLoading[CONFIG.AGENT_POLICY] = false;
-          resolve(policy);
-        });
+    return new Promise(resolve => {
+      this.agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(policy => {
+        this.agentPolicy = policy;
+        this.isLoading[CONFIG.AGENT_POLICY] = false;
+        resolve(policy);
+      });
     });
   }
 
   isLoadComplete() {
-    return !Object.values(this.isLoading).reduce(
-      (prev, curr) => prev || curr,
-      false,
-    );
+    return !Object.values(this.isLoading).reduce((prev, curr) => prev || curr, false);
   }
 
   readyForms() {
     const {
-      name: name,
+      name,
       description,
       backend,
       policy_data,
       policy: {
-        input: { tap, input_type },
-        handlers: { modules },
+        input: {
+          tap,
+          input_type,
+        },
+        handlers: {
+          modules,
+        },
       },
     } = this.agentPolicy;
 
@@ -220,15 +217,9 @@ kind: collection`;
     this.modules = modules;
 
     this.detailsFG = this._formBuilder.group({
-      name: [
-        name,
-        [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')],
-      ],
+      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
       description: [description],
-      backend: [
-        { value: backend, disabled: backend !== '' },
-        [Validators.required],
-      ],
+      backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFG = this._formBuilder.group({
       selected_tap: [tap, Validators.required],
@@ -238,12 +229,14 @@ kind: collection`;
 
   updateForms() {
     const {
-      name: name,
+      name,
       description,
       backend,
       format,
       policy_data,
-      policy: { handlers },
+      policy: {
+        handlers,
+      },
     } = this.agentPolicy;
 
     const wizard = format !== this.format;
@@ -258,22 +251,18 @@ kind: collection`;
     this.modules = handlers?.modules || {};
 
     if (wizard) {
-      this.onBackendSelected(backend).catch((reason) =>
-        console.warn(`${reason}`),
-      );
+      this.onBackendSelected(backend).catch(reason => console.warn(`${reason}`));
     }
   }
 
   getBackendsList() {
     return new Promise((resolve) => {
       this.isLoading[CONFIG.BACKEND] = true;
-      this.agentPoliciesService.getAvailableBackends().subscribe((backends) => {
-        this.availableBackends =
-          !!backends &&
-          backends.reduce((acc, curr) => {
-            acc[curr.backend] = curr;
-            return acc;
-          }, {});
+      this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
+        this.availableBackends = !!backends && backends.reduce((acc, curr) => {
+          acc[curr.backend] = curr;
+          return acc;
+        }, {});
 
         this.isLoading[CONFIG.BACKEND] = false;
 
@@ -296,33 +285,25 @@ kind: collection`;
 
   getBackendData() {
     return Promise.all([this.getTaps(), this.getInputs()])
-      .then(
-        (value) => {
-          if (this.isEdit && this.agentPolicy && this.isWizard) {
-            const selected_tap = this.agentPolicy.policy.input.tap;
-            this.tapFG.patchValue({ selected_tap }, { emitEvent: true });
-            this.onTapSelected(selected_tap);
-            this.tapFG.controls.selected_tap.disable();
-          }
-        },
-        (reason) =>
-          console.warn(
-            `Cannot retrieve backend data - reason: ${JSON.parse(reason)}`,
-          ),
-      )
-      .catch((reason) => {
-        console.warn(
-          `Cannot retrieve backend data - reason: ${JSON.parse(reason)}`,
-        );
+      .then(value => {
+        if (this.isEdit && this.agentPolicy && this.isWizard) {
+          const selected_tap = this.agentPolicy.policy.input.tap;
+          this.tapFG.patchValue({ selected_tap }, { emitEvent: true });
+          this.onTapSelected(selected_tap);
+          this.tapFG.controls.selected_tap.disable();
+        }
+
+      }, reason => console.warn(`Cannot retrieve backend data - reason: ${JSON.parse(reason)}`))
+      .catch(reason => {
+        console.warn(`Cannot retrieve backend data - reason: ${JSON.parse(reason)}`);
       });
   }
 
   getTaps() {
     return new Promise((resolve) => {
       this.isLoading[CONFIG.TAPS] = true;
-      this.agentPoliciesService
-        .getBackendConfig([this.backend.backend, 'taps'])
-        .subscribe((taps) => {
+      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
+        .subscribe(taps => {
           this.availableTaps = taps.reduce((acc, curr) => {
             acc[curr.name] = curr;
             return acc;
@@ -363,9 +344,8 @@ kind: collection`;
   getInputs() {
     return new Promise((resolve) => {
       this.isLoading[CONFIG.INPUTS] = true;
-      this.agentPoliciesService
-        .getBackendConfig([this.backend.backend, 'inputs'])
-        .subscribe((inputs) => {
+      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
+        .subscribe(inputs => {
           this.availableInputs = !!inputs && inputs;
 
           this.isLoading[CONFIG.INPUTS] = false;
@@ -373,6 +353,7 @@ kind: collection`;
           resolve(inputs);
         });
     });
+
   }
 
   onInputSelected(input_type) {
@@ -384,91 +365,67 @@ kind: collection`;
     // input type config model
     const { config: inputConfig, filter: filterConfig } = this.input;
     // if editing, some values might not be overrideable any longer, all should be prefilled in form
-    const {
-      config: agentConfig,
-      filter: agentFilter,
-    } = this.agentPolicy.policy.input;
+    const { config: agentConfig, filter: agentFilter } = this.agentPolicy.policy.input;
     // tap config values, cannot be overridden if set
-    const {
-      config_predefined: preConfig,
-      filter_predefined: preFilter,
-    } = this.tap;
+    const { config_predefined: preConfig, filter_predefined: preFilter } = this.tap;
 
     // populate form controls for config
-    const inputConfDynamicCtrl = Object.entries(inputConfig).reduce(
-      (acc, [key, input]) => {
+    const inputConfDynamicCtrl = Object.entries(inputConfig)
+      .reduce((acc, [key, input]) => {
         const value = agentConfig?.[key] || '';
         if (!preConfig?.includes(key)) {
           acc[key] = [
             value,
-            [
-              !!input?.props?.required && input.props.required === true
-                ? Validators.required
-                : Validators.nullValidator,
-            ],
+            [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
           ];
         }
         return acc;
-      },
-      {},
-    );
+      }, {});
 
-    this.inputConfigFG =
-      Object.keys(inputConfDynamicCtrl).length > 0
-        ? this._formBuilder.group(inputConfDynamicCtrl)
-        : null;
+    this.inputConfigFG = Object.keys(inputConfDynamicCtrl).length > 0 ? this._formBuilder.group(inputConfDynamicCtrl) : null;
 
-    const inputFilterDynamicCtrl = Object.entries(filterConfig).reduce(
-      (acc, [key, input]) => {
+    const inputFilterDynamicCtrl = Object.entries(filterConfig)
+      .reduce((acc, [key, input]) => {
         const value = !!agentFilter?.[key] ? agentFilter[key] : '';
         // const disabled = !!preConfig?.[key];
         if (!preFilter?.includes(key)) {
           acc[key] = [
             value,
-            [
-              !!input?.props?.required && input.props.required === true
-                ? Validators.required
-                : Validators.nullValidator,
-            ],
+            [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
           ];
         }
         return acc;
-      },
-      {},
-    );
+      }, {});
 
-    this.inputFilterFG =
-      Object.keys(inputFilterDynamicCtrl).length > 0
-        ? this._formBuilder.group(inputFilterDynamicCtrl)
-        : null;
+    this.inputFilterFG = Object.keys(inputFilterDynamicCtrl).length > 0 ? this._formBuilder.group(inputFilterDynamicCtrl) : null;
+
   }
 
   addHandler() {
-    this.dialogService
-      .open(HandlerPolicyAddComponent, {
-        context: {
-          backend: this.backend,
-          modules: this.modules,
-        },
-        autoFocus: true,
-        closeOnEsc: true,
-      })
-      .onClose.subscribe((handler) => {
-        // save handler to the policy being created/edited
-        if (handler) {
-          this.onHandlerAdded(handler);
-        }
-      });
+    this.dialogService.open(HandlerPolicyAddComponent, {
+      context: {
+        backend: this.backend,
+        modules: this.modules,
+      },
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe((handler) => {
+      // save handler to the policy being created/edited
+      if (handler) {
+        this.onHandlerAdded(handler);
+      }
+    });
   }
 
   onHandlerAdded(handler) {
     const { config, filter, type, name } = handler;
 
-    this.modules[name] = {
+    this.modules[name] = ({
       type,
       config,
       filter,
-    };
+    });
+
   }
 
   onHandlerRemoved(name) {
@@ -494,11 +451,7 @@ kind: collection`;
       backend: this.detailsFG.controls.backend.value,
       format: this.format,
       policy_data: this.code,
-      version:
-        (!!this.isEdit &&
-          !!this.agentPolicy.version &&
-          this.agentPolicy.version) ||
-        1,
+      version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
     };
 
     this.submit(payload);
@@ -510,11 +463,7 @@ kind: collection`;
       description: this.detailsFG.controls.description.value,
       backend: this.detailsFG.controls.backend.value,
       tags: {},
-      version:
-        (!!this.isEdit &&
-          !!this.agentPolicy.version &&
-          this.agentPolicy.version) ||
-        1,
+      version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
       policy: {
         kind: 'collection',
         input: {
@@ -522,26 +471,20 @@ kind: collection`;
           input_type: this.tapFG.controls.input_type.value,
           ...Object.entries(this.inputConfigFG.controls)
             .map(([key, control]) => ({ [key]: control.value }))
-            .reduce(
-              (acc, curr) => {
-                for (const [key, value] of Object.entries(curr)) {
-                  if (!!value && value !== '') acc.config[key] = value;
-                }
-                return acc;
-              },
-              { config: {} },
-            ),
+            .reduce((acc, curr) => {
+              for (const [key, value] of Object.entries(curr)) {
+                if (!!value && value !== '') acc.config[key] = value;
+              }
+              return acc;
+            }, { config: {} }),
           ...Object.entries(this.inputFilterFG.controls)
             .map(([key, control]) => ({ [key]: control.value }))
-            .reduce(
-              (acc, curr) => {
-                for (const [key, value] of Object.entries(curr)) {
-                  if (!!value && value !== '') acc.filter[key] = value;
-                }
-                return acc;
-              },
-              { filter: {} },
-            ),
+            .reduce((acc, curr) => {
+              for (const [key, value] of Object.entries(curr)) {
+                if (!!value && value !== '') acc.filter[key] = value;
+              }
+              return acc;
+            }, { filter: {} }),
         },
         handlers: {
           modules: Object.entries(this.modules).reduce((acc, [key, value]) => {
@@ -569,21 +512,13 @@ kind: collection`;
   submit(payload) {
     if (this.isEdit) {
       // updating existing sink
-      this.agentPoliciesService
-        .editAgentPolicy({ ...payload, id: this.agentPolicyID })
-        .subscribe(() => {
-          this.notificationsService.success(
-            'Agent Policy successfully updated',
-            '',
-          );
-          this.viewPolicy(this.agentPolicyID);
-        });
+      this.agentPoliciesService.editAgentPolicy({ ...payload, id: this.agentPolicyID }).subscribe(() => {
+        this.notificationsService.success('Agent Policy successfully updated', '');
+        this.viewPolicy(this.agentPolicyID);
+      });
     } else {
-      this.agentPoliciesService.addAgentPolicy(payload).subscribe((next) => {
-        this.notificationsService.success(
-          'Agent Policy successfully created',
-          '',
-        );
+      this.agentPoliciesService.addAgentPolicy(payload).subscribe(next => {
+        this.notificationsService.success('Agent Policy successfully created', '');
         this.viewPolicy(next.id);
       });
     }

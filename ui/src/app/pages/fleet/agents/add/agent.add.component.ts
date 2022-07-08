@@ -45,18 +45,15 @@ export class AgentAddComponent {
   ) {
     this.isLoading = true;
 
+    this.agentsService.clean();
     this.agentID = this.route.snapshot.paramMap.get('id');
     this.isEdit = !!this.agentID;
 
-    this.getAgent()
-      .then((agent) => {
-        this.agent = agent;
-        this.initializeForms();
-        this.isLoading = false;
-      })
-      .catch((reason) =>
-        console.warn(`Couldn't fetch data. Reason: ${reason}`),
-      );
+    this.getAgent().then((agent) => {
+      this.agent = agent;
+      this.initializeForms();
+      this.isLoading = false;
+    }).catch(reason => console.warn(`Couldn't fetch data. Reason: ${ reason }`));
   }
 
   newAgent() {
@@ -67,12 +64,11 @@ export class AgentAddComponent {
   }
 
   getAgent() {
-    return new Promise<Agent>((resolve) => {
+    return new Promise<Agent>(resolve => {
       if (this.agentID) {
-        !!this.agentID &&
-          this.agentsService.getAgentById(this.agentID).subscribe((resp) => {
-            resolve(resp);
-          });
+        !!this.agentID && this.agentsService.getAgentById(this.agentID).subscribe(resp => {
+          resolve(resp);
+        });
       } else {
         resolve(this.newAgent());
       }
@@ -80,15 +76,12 @@ export class AgentAddComponent {
   }
 
   initializeForms() {
-    const { name: name, orb_tags } = this.agent;
+    const { name, orb_tags } = this.agent;
 
     this.selectedTags = { ...orb_tags };
 
     this.firstFormGroup = this._formBuilder.group({
-      name: [
-        name,
-        [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')],
-      ],
+      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
     });
   }
 
@@ -106,15 +99,13 @@ export class AgentAddComponent {
   }
 
   openKeyModal(row: any) {
-    this.dialogService
-      .open(AgentKeyComponent, {
-        context: { agent: row },
-        autoFocus: true,
-        closeOnEsc: true,
-      })
-      .onClose.subscribe((resp) => {
-        this.goBack();
-      });
+    this.dialogService.open(AgentKeyComponent, {
+      context: { agent: row },
+      autoFocus: true,
+      closeOnEsc: true,
+    }).onClose.subscribe((resp) => {
+      this.goBack();
+    });
     this.notificationsService.success('Agent successfully created', '');
   }
 
@@ -123,12 +114,10 @@ export class AgentAddComponent {
     const payload = this.wrapPayload(false);
 
     if (this.isEdit) {
-      this.agentsService
-        .editAgent({ ...payload, id: this.agentID })
-        .subscribe(() => {
-          this.notificationsService.success('Agent successfully updated', '');
-          this.goBack();
-        });
+      this.agentsService.editAgent({ ...payload, id: this.agentID }).subscribe(() => {
+        this.notificationsService.success('Agent successfully updated', '');
+        this.goBack();
+      });
     } else {
       this.agentsService.addAgent(payload).subscribe((resp) => {
         this.openKeyModal(resp);
