@@ -33,6 +33,15 @@ export class AgentInformationComponent implements OnInit {
     }
   }
 
+  getAgentBackend() {
+    return Object.keys(this.agent.agent_metadata.backends)[0] || '-'
+  }
+
+  getAgentBackendVersion() {
+    const backend = Object.keys(this.agent.agent_metadata.backends)[0]
+    return backend ? this.agent.agent_metadata.backends[backend].version : '-'
+  }
+
   notifyResetSuccess() {
     this.notificationService.success('Agent Reset Requested', '');
   }
