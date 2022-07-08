@@ -1017,9 +1017,6 @@ func TestDeleteAllDatasetsPolicy(t *testing.T) {
 	oID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
-	//oID2, err := uuid.NewV4()
-	//require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-
 	policyWithNoDataset, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
@@ -1039,9 +1036,6 @@ func TestDeleteAllDatasetsPolicy(t *testing.T) {
 	nameID, err := types.NewIdentifier("mydataset")
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 
-	//nameID2, err := types.NewIdentifier("mydataset2")
-	//require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-
 	dataset := policies.Dataset{
 		Name:         nameID,
 		MFOwnerID:    oID.String(),
@@ -1053,19 +1047,10 @@ func TestDeleteAllDatasetsPolicy(t *testing.T) {
 		Created:      time.Time{},
 	}
 
-	//dataset2 := dataset
-	//dataset2.Name = nameID2
-	//dataset2.MFOwnerID = oID2.String()
-
 	dsID, err := repo.SaveDataset(context.Background(), dataset)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
 	dataset.ID = dsID
-
-	//dsID2, err := repo.SaveDataset(context.Background(), dataset2)
-	//require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
-
-	//dataset2.ID = dsID2
 
 	cases := map[string]struct {
 		policyID       string
