@@ -158,6 +158,16 @@ func (m *mockPoliciesRepository) UpdatePolicy(ctx context.Context, owner string,
 	return policies.ErrNotFound
 }
 
+func (m *mockPoliciesRepository) DeleteAllDatasetsPolicy(ctx context.Context, policyID string, ownerID string) error {
+	for _, dataset := range m.ddb {
+		if dataset.PolicyID == policyID && dataset.MFOwnerID == ownerID {
+			delete(m.ddb, dataset.ID)
+		}
+	}
+
+	return nil
+}
+
 func NewPoliciesRepository() policies.Repository {
 	return &mockPoliciesRepository{
 		pdb: make(map[string]policies.Policy),

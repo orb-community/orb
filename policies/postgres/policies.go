@@ -624,6 +624,38 @@ func (r policiesRepository) DeleteAgentGroupFromAllDatasets(ctx context.Context,
 	return nil
 }
 
+func (r policiesRepository) DeleteAllDatasetsPolicy(ctx context.Context, policyID string, ownerID string) error {
+	q := `DELETE FROM datasets WHERE mf_owner_id = :mf_owner_id AND agent_policy_id = :agent_policy_id`
+
+	if ownerID == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	params := map[string]interface{}{
+		"mf_owner_id":     ownerID,
+		"agent_policy_id": policyID,
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(fleet.ErrUpdateEntity, err)
+	}
+
+	_, err = res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(fleet.ErrRemoveEntity, err)
+	}
+
+	return nil
+}
+
 type dbPolicy struct {
 	ID            string           `db:"id"`
 	Name          types.Identifier `db:"name"`
