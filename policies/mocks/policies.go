@@ -90,7 +90,7 @@ func (m *mockPoliciesRepository) DeleteSinkFromAllDatasets(ctx context.Context, 
 
 func (m *mockPoliciesRepository) DeleteDataset(ctx context.Context, ownerID string, dsID string) error {
 	if _, ok := m.ddb[dsID]; ok {
-		if m.ddb[dsID].MFOwnerID != ownerID {
+		if m.ddb[dsID].MFOwnerID == ownerID {
 			delete(m.ddb, dsID)
 		}
 	}

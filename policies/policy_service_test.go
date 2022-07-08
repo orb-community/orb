@@ -278,25 +278,31 @@ func TestRemovePolicy(t *testing.T) {
 
 	plcy := createPolicy(t, svc, "policy")
 
+	dataset := createDataset(t, svc, "dataset")
+
 	cases := map[string]struct {
-		id    string
-		token string
-		err   error
+		id        string
+		token     string
+		datasetID string
+		err       error
 	}{
 		"Remove a existing policy": {
-			id:    plcy.ID,
-			token: token,
-			err:   nil,
+			id:        dataset.PolicyID,
+			token:     token,
+			datasetID: dataset.ID,
+			err:       nil,
 		},
 		"delete non-existent policy": {
-			id:    wrongID,
-			token: token,
-			err:   nil,
+			id:        wrongID,
+			token:     token,
+			datasetID: wrongID,
+			err:       nil,
 		},
 		"delete policy with wrong credentials": {
-			id:    plcy.ID,
-			token: invalidToken,
-			err:   policies.ErrUnauthorizedAccess,
+			id:        plcy.ID,
+			token:     invalidToken,
+			datasetID: wrongID,
+			err:       policies.ErrUnauthorizedAccess,
 		},
 	}
 
@@ -304,6 +310,9 @@ func TestRemovePolicy(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			err := svc.RemovePolicy(context.Background(), tc.token, tc.id)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+
+			_, err = svc.ViewDatasetByID(context.Background(), token, tc.datasetID)
+			assert.True(t, errors.Contains(policies.ErrNotFound, err), fmt.Sprintf("%s: expected %s got %s", desc, policies.ErrNotFound, err))
 		})
 	}
 }
