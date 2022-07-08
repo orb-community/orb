@@ -47,30 +47,39 @@ export class SinkAddComponent {
   ) {
     this.isLoading = true;
     this.sinkID = this.route.snapshot.paramMap.get('id');
-    this.isEdit = this.router.getCurrentNavigation().extras.state?.edit as boolean || !!this.sinkID;
+    this.isEdit =
+      (this.router.getCurrentNavigation().extras.state?.edit as boolean) ||
+      !!this.sinkID;
 
-    Promise.all([this.getSink(), this.getSinkBackends()]).then((responses) => {
-      const { backend } = this.sink = responses[0];
-      const backends = responses[1];
+    Promise.all([this.getSink(), this.getSinkBackends()])
+      .then((responses) => {
+        const { backend } = (this.sink = responses[0]);
+        const backends = responses[1];
 
-      this.sinkTypesList = backends.map(entry => entry.backend);
-      this.customSinkSettings = this.sinkTypesList.reduce((accumulator, curr) => {
-        const index = backends.findIndex(entry => entry.backend === curr);
-        accumulator[curr] = backends[index].config.map(entry => ({
-          type: entry.type,
-          label: entry.title,
-          prop: entry.name,
-          input: entry.input,
-          required: entry.required,
-        }));
-        return accumulator;
-      }, {});
+        this.sinkTypesList = backends.map((entry) => entry.backend);
+        this.customSinkSettings = this.sinkTypesList.reduce(
+          (accumulator, curr) => {
+            const index = backends.findIndex((entry) => entry.backend === curr);
+            accumulator[curr] = backends[index].config.map((entry) => ({
+              type: entry.type,
+              label: entry.title,
+              prop: entry.name,
+              input: entry.input,
+              required: entry.required,
+            }));
+            return accumulator;
+          },
+          {},
+        );
 
-      this.initializeForms();
+        this.initializeForms();
 
-      this.isLoading = false;
-      if (backend !== '') this.onSinkTypeSelected(backend);
-    }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
+        this.isLoading = false;
+        if (backend !== '') this.onSinkTypeSelected(backend);
+      })
+      .catch((reason) =>
+        console.warn(`Couldn't retrieve data. Reason: ${reason}`),
+      );
   }
 
   newSink() {
@@ -83,10 +92,13 @@ export class SinkAddComponent {
   }
 
   initializeForms() {
-    const { name, description, backend, tags } = this.sink;
+    const { name: name, description, backend, tags } = this.sink;
 
     this.firstFormGroup = this._formBuilder.group({
-      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
+      name: [
+        name,
+        [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')],
+      ],
       description: [description],
       backend: [backend, Validators.required],
     });
@@ -95,9 +107,9 @@ export class SinkAddComponent {
   }
 
   getSink() {
-    return new Promise<Sink>(resolve => {
+    return new Promise<Sink>((resolve) => {
       if (this.sinkID) {
-        this.sinksService.getSinkById(this.sinkID).subscribe(resp => {
+        this.sinksService.getSinkById(this.sinkID).subscribe((resp) => {
           resolve(resp);
         });
       } else {
@@ -107,8 +119,8 @@ export class SinkAddComponent {
   }
 
   getSinkBackends() {
-    return new Promise<SinkFeature[]>(resolve => {
-      this.sinksService.getSinkBackends().subscribe(backends => {
+    return new Promise<SinkFeature[]>((resolve) => {
+      this.sinksService.getSinkBackends().subscribe((backends) => {
         resolve(backends);
       });
     });
@@ -124,7 +136,9 @@ export class SinkAddComponent {
       backend: this.firstFormGroup.controls.backend.value,
       description: this.firstFormGroup.controls.description.value,
       config: this.selectedSinkSetting.reduce((accumulator, current) => {
-        accumulator[current.prop] = this.secondFormGroup.controls[current.prop].value;
+        accumulator[current.prop] = this.secondFormGroup.controls[
+          current.prop
+        ].value;
         return accumulator;
       }, {}),
       tags: { ...this.selectedTags },
@@ -132,37 +146,42 @@ export class SinkAddComponent {
 
     if (this.isEdit) {
       // updating existing sink
-      this.sinksService.editSink({ ...payload, id: this.sinkID }).subscribe(() => {
-        this.notificationsService.success('Sink successfully updated', '');
-        this.goBack();
-      });
+      this.sinksService
+        .editSink({ ...payload, id: this.sinkID })
+        .subscribe(() => {
+          this.notificationsService.success('Sink successfully updated', '');
+          this.goBack();
+        });
     } else {
       this.sinksService.addSink(payload).subscribe(() => {
         this.notificationsService.success('Sink successfully created', '');
         this.goBack();
       });
     }
-
   }
 
   onSinkTypeSelected(selectedValue) {
     // SinkConfig<string> being the generic of all other `sinkTypes`.
-    const conf = !!this.sink &&
-      this.isEdit &&
-      (selectedValue === this.sink.backend) &&
-      this.sink?.config &&
-      this.sink.config as SinkConfig<string> || null;
+    const conf =
+      (!!this.sink &&
+        this.isEdit &&
+        selectedValue === this.sink.backend &&
+        this.sink?.config &&
+        (this.sink.config as SinkConfig<string>)) ||
+      null;
 
     this.selectedSinkSetting = this.customSinkSettings[selectedValue];
 
-    const dynamicFormControls = this.selectedSinkSetting.reduce((accumulator, curr) => {
-      accumulator[curr.prop] = [
-        !!conf && (curr.prop in conf) && conf[curr.prop] ||
-        '',
-        curr.required ? Validators.required : null,
-      ];
-      return accumulator;
-    }, {});
+    const dynamicFormControls = this.selectedSinkSetting.reduce(
+      (accumulator, curr) => {
+        accumulator[curr.prop] = [
+          (!!conf && curr.prop in conf && conf[curr.prop]) || '',
+          curr.required ? Validators.required : null,
+        ];
+        return accumulator;
+      },
+      {},
+    );
 
     this.secondFormGroup = this._formBuilder.group(dynamicFormControls);
   }
