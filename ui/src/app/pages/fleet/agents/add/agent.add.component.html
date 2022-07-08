@@ -40,7 +40,7 @@
                     Agent name is required!
                   </p>
                   <p *ngIf="!!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
-                    Agent name must start with a letter and contain only letters and numbers
+                    Agent name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
                   </p>
                 </ng-container>
               </div>
