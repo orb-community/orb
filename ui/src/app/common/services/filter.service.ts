@@ -1,8 +1,13 @@
 import { Injectable } from '@angular/core';
+<<<<<<< HEAD
 import { NavigationEnd, Router } from '@angular/router';
 import { FilterOption } from 'app/common/interfaces/orb/filter-option';
 import { combineLatest, Observable, ReplaySubject } from 'rxjs';
 import { filter, map, shareReplay, tap } from 'rxjs/operators';
+=======
+import { FilterOption } from 'app/common/interfaces/orb/filter-option';
+import { Observable, Subject } from 'rxjs';
+>>>>>>> added filters to all list pages
 
 @Injectable({
   providedIn: 'root',
@@ -10,6 +15,7 @@ import { filter, map, shareReplay, tap } from 'rxjs/operators';
 export class FilterService {
   private _filters: FilterOption[];
 
+<<<<<<< HEAD
   private filters: ReplaySubject<FilterOption[]>;
 
   private activeRoute$: Observable<string>;
@@ -44,6 +50,21 @@ export class FilterService {
 
   getFilters() {
     return this.filters;
+=======
+  private filters: Subject<FilterOption[]>;
+
+  private filters$: Observable<FilterOption[]>;
+
+  constructor() {
+    this.filters = new Subject();
+    this.filters$ = this.filters.asObservable();
+    this._filters = [];
+    this.cleanFilters();
+  }
+
+  getFilters() {
+    return this.filters$;
+>>>>>>> added filters to all list pages
   }
 
   resetFilters(filters: FilterOption[]) {
@@ -52,6 +73,7 @@ export class FilterService {
   }
 
   cleanFilters() {
+<<<<<<< HEAD
     this.commitFilter([]);
   }
 
@@ -63,10 +85,20 @@ export class FilterService {
 
   addFilter(filterToAdd: FilterOption) {
     this.commitFilter([...this._filters, filterToAdd]);
+=======
+    this._filters = [];
+    this.filters.next([]);
+  }
+
+  addFilter(filter: FilterOption) {
+    this._filters.push(filter);
+    this.filters.next(this._filters);
+>>>>>>> added filters to all list pages
   }
 
   removeFilter(index: number) {
     if (index >= 0 && index < this._filters.length) {
+<<<<<<< HEAD
       const copy = [...this._filters];
       copy.splice(index, 1);
       this.commitFilter(copy);
@@ -102,4 +134,10 @@ export class FilterService {
       );
     };
   }
+=======
+      this._filters.splice(index, 1);
+      this.filters.next(this._filters);
+    }
+  }
+>>>>>>> added filters to all list pages
 }
