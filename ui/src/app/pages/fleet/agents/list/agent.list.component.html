@@ -1,136 +1,135 @@
-<div>
-  <header>
-    <xng-breadcrumb class="orb-breadcrumb">
-    </xng-breadcrumb>
+<header>
+  <xng-breadcrumb class="orb-breadcrumb"> </xng-breadcrumb>
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-content: center;
+      justify-content: space-between;
+      align-items: baseline;
+    "
+  >
     <h4>All Agents</h4>
-  </header>
-  <div #tableWrapper class="d-flex flex-column mt-4">
-    <div class="d-flex justify-content-between align-items-end mb-2">
-      <div class="d-flex">
-        <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
-           class="sink-info-regular mb-0">
-          You have <a><strong>{{paginationControls.total}}</strong> agents</a> deployed.
-        </p>
-        <p *ngIf=" paginationControls.data && paginationControls.data.filter(filterByError).length > 0 "
-           class="ns1red">
-          &nbsp;<a><strong> {{paginationControls.data.filter(filterByError).length}}</strong> of them have errors</a>.
-        </p>
-        <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
-           class="sink-info-accent mb-0">
-          There are no Agents yet.
-        </p>
-      </div>
-      <div class="d-flex">
-        <div class="mr-3">
-          <nb-select
-            (selectedChange)="onFilterSelected($event)"
-            *ngIf="tableFilters && tableFilters.length"
-            [(selected)]="selectedFilter"
-            appearance="filled"
-            class="d-flex justify-content-end"
-            placeholder="Filter by"
-            size="medium"
-            style="width: 160px; height: 100%">
-            <nb-option *ngFor="let conf of tableFilters" [value]="conf">{{ conf.label }}</nb-option>
-          </nb-select>
-        </div>
-        <nb-form-field *ngIf="selectedFilter">
-          <nb-icon icon="search-outline" nbPrefix pack="eva"></nb-icon>
-          <input (keyup)="applyFilter()"
-                 [(ngModel)]="filterValue"
-                 [placeholder]="searchPlaceholder"
-                 fieldSize="medium"
-                 nbInput
-                 type="text"/>
-        </nb-form-field>
-      </div>
-    </div>
-    <div class="add-agent-container">
-      <button (click)="onOpenAdd()"
-              class="card-button"
-              shape="round"
-              nbButton
-              status="primary">
-        <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
-    </div>
-    <ngx-datatable
-      #table
-      [columnMode]="columnMode.flex"
-      [columns]="columns"
-      [footerHeight]="50"
-      [headerHeight]="50"
-      [limit]="paginationControls.limit"
-      [loadingIndicator]="loading"
-      [rowHeight]="50"
-      [rows]="paginationControls.data"
-      [scrollbarV]="true"
-      [sorts]="tableSorts"
-      class="orb"
-      style="height: calc(62vh)">
-    </ngx-datatable>
+    <ngx-poll-control></ngx-poll-control>
   </div>
+</header>
+<div #tableWrapper class="tableWrapper">
+  <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
+  <div class="add-agent-container">
+    <button
+      (click)="onOpenAdd()"
+      class="card-button"
+      nbButton
+      shape="round"
+      status="primary"
+    >
+      <i class="fa fa-plus">&nbsp;</i>{{ strings.list.create }}
+    </button>
+  </div>
+  <ngx-datatable
+    #table
+    [columnMode]="columnMode.flex"
+    [columns]="columns"
+    [footerHeight]="50"
+    [headerHeight]="50"
+    [loadingIndicator]="loading"
+    [rowHeight]="50"
+    [rows]="filteredAgents$ | async"
+    [scrollbarH]="true"
+    [scrollbarV]="true"
+    [sorts]="tableSorts"
+    class="orb orb-table"
+  >
+  </ngx-datatable>
 </div>
 
-<ng-template #agentNameTemplateCell let-i="index" let-row="row" let-value="value">
-  <div (click)="onOpenView(row)"
-       nbTooltip="View Details for {{ row.id }}"
-       class="agent-name">
-    {{ value }}
-  </div>
+<ng-template
+  #agentNameTemplateCell
+  let-i="index"
+  let-row="row"
+  let-value="value"
+>
+  <span (click)="onOpenView(row)" class="agent-name" nbTooltip="{{ value }}">{{
+    value
+  }}</span>
 </ng-template>
 
-<ng-template #agentStateTemplateCell let-i="index" let-row="row" let-value="value">
-  <div>
-    <i aria-hidden="true"
-       class="fa fa-circle orb-service-{{row.state}}"></i>
-    {{ row.state | titlecase }}
-  </div>
+<ng-template
+  #agentStateTemplateCell
+  let-i="index"
+  let-row="row"
+  let-value="value"
+>
+  <span [nbTooltip]="row.state"
+    ><i aria-hidden="true" class="fa fa-circle orb-service-{{ row.state }}"></i>
+    {{ row.state | titlecase }}</span
+  >
 </ng-template>
 
-<ng-template #agentTagsTemplateCell let-i="index" let-row="row" let-value="value">
-  <mat-chip-list nbTooltip="{{ row.combined_tags | json }}" #tablechiplist>
+<ng-template
+  #agentTagsTemplateCell
+  let-i="index"
+  let-row="row"
+  let-value="value"
+>
+  <mat-chip-list #tablechiplist nbTooltip="{{ row.combined_tags | json }}">
     <mat-chip
       *ngFor="let tag of value | keyvalue"
       [style.background-color]="tag | tagcolor"
-      class="orb-tag-chip ">
-      {{tag | tagchip}}
+      class="orb-tag-chip"
+    >
+      {{ tag | tagchip }}
     </mat-chip>
     <mat-chip
-      *ngIf="(row?.orb_tags | json) === '{}' && (row?.agent_tags | json) === '{}'"
+      *ngIf="
+        (row?.orb_tags | json) === '{}' && (row?.agent_tags | json) === '{}'
+      "
       [style.background-color]="'notag' | tagcolor"
-      class="orb-tag-chip ">
+      class="orb-tag-chip"
+    >
       No tags were created
     </mat-chip>
   </mat-chip-list>
 </ng-template>
 
-<ng-template #agentLastActivityTemplateCell let-i="index" let-row="row" let-value="value">
-  <div *ngIf="row.state === 'new'" class="d-flex">
-    Never
-  </div>
-  <div *ngIf="row.state !== 'new'" class="d-flex">
-    {{ value | date:'M/d/yy, HH:mm z' }}
-  </div>
+<ng-template
+  #agentLastActivityTemplateCell
+  let-i="index"
+  let-row="row"
+  let-value="value"
+>
+  <span *ngIf="row.state === 'new'">Never</span>
+  <span *ngIf="row.state !== 'new'">{{ value | date: 'M/d/yy, HH:mm z' }}</span>
 </ng-template>
 
 <ng-template #actionsTemplateCell let-i="index" let-row="row" let-value="value">
-  <div class="d-flex flex-row">
-    <button (click)="onOpenView(row)"
-            class="orb-action-hover detail-button"
-            ghost
-            nbButton>
+  <div class="block">
+    <button
+      (click)="onOpenView(row)"
+      class="orb-action-hover detail-button"
+      ghost
+      nbButton
+      nbTooltip="View Details"
+    >
       <nb-icon icon="search-outline"></nb-icon>
     </button>
-    <button (click)="onOpenEdit(row)"
-            class="orb-action-hover edit-button"
-            ghost
-            nbButton>
+    <button
+      (click)="onOpenEdit(row)"
+      class="orb-action-hover edit-button"
+      ghost
+      nbButton
+      nbTooltip="Edit"
+    >
       <nb-icon icon="edit-outline"></nb-icon>
     </button>
-    <button (click)="openDeleteModal(row)"
-            class="orb-action-hover del-button"
-            ghost
-            nbButton>
+    <button
+      (click)="openDeleteModal(row)"
+      class="orb-action-hover del-button"
+      ghost
+      nbButton
+      nbTooltip="Delete"
+    >
       <nb-icon icon="trash-2-outline"></nb-icon>
     </button>
   </div>

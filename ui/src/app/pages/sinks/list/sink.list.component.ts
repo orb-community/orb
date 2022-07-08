@@ -3,29 +3,42 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  OnInit,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 
-import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { STRINGS } from 'assets/text/strings';
-import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import {
+  ColumnMode,
+  DatatableComponent,
+  TableColumn,
+} from '@swimlane/ngx-datatable';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import {
+  Sink,
+  SinkBackends,
+  SinkStates,
+} from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { combineLatest, Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
+import { OrbService } from 'app/common/services/orb.service';
+import {
+  FilterOption,
+  FilterTypes,
+} from 'app/common/interfaces/orb/filter-option';
+import { FilterService } from 'app/common/services/filter.service';
 
 @Component({
   selector: 'ngx-sink-list-component',
   templateUrl: './sink.list.component.html',
   styleUrls: ['./sink.list.component.scss'],
 })
-export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecked {
+export class SinkListComponent implements AfterViewInit, AfterViewChecked {
   strings = STRINGS.sink;
 
   columnMode = ColumnMode;
@@ -33,10 +46,6 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   columns: TableColumn[];
 
   loading = false;
-
-  paginationControls: OrbPagination<Sink>;
-
-  searchPlaceholder = 'Search by name';
 
   // templates
   @ViewChild('sinkNameTemplateCell') sinkNameTemplateCell: TemplateRef<any>;
@@ -46,47 +55,6 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
   @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
 
   @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
-
-  tableFilters: DropdownFilterItem[] = [
-    {
-      id: '0',
-      label: 'Name',
-      prop: 'name',
-      selected: false,
-      filter: (sink, name) => sink?.name.includes(name),
-    },
-    {
-      id: '1',
-      label: 'Tags',
-      prop: 'tags',
-      selected: false,
-      filter: (sink, tag) => Object.entries(sink?.tags)
-        .filter(([key, value]) => `${key}:${value}`.includes(tag.replace(' ', ''))).length > 0,
-    },
-    {
-      id: '2',
-      label: 'Description',
-      prop: 'description',
-      selected: false,
-      filter: (sink, description) => sink?.description.includes(description),
-    },
-    {
-      id: '3',
-      label: 'Type',
-      prop: 'backend',
-      selected: false,
-      filter: (sink, backend) => sink?.backend.includes(backend),
-    },
-    {
-      id: '4',
-      label: 'Status',
-      prop: 'state',
-      selected: false,
-      filter: (sink, state) => sink?.state.includes(state),
-    },
-  ];
-
-  selectedFilter = this.tableFilters[0];
 
   filterValue = null;
 
@@ -103,6 +71,11 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
 
   private currentComponentWidth;
 
+  sinks$: Observable<Sink[]>;
+  filterOptions: FilterOption[];
+  filters$!: Observable<FilterOption[]>;
+  filteredSinks$: Observable<Sink[]>;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -110,12 +83,82 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     private sinkService: SinksService,
     private route: ActivatedRoute,
     private router: Router,
+    private orb: OrbService,
+    private filters: FilterService,
   ) {
-    this.paginationControls = SinksService.getDefaultPagination();
+    this.sinks$ = this.orb.getSinkListView();
+    this.filters$ = this.filters.getFilters().pipe(startWith([]));
+
+    this.filteredSinks$ = combineLatest([this.sinks$, this.filters$]).pipe(
+      map(([agents, _filters]) => {
+        let filtered = agents;
+        _filters.forEach((_filter) => {
+          filtered = filtered.filter((value) => {
+            const paramValue = _filter.param;
+            const result = _filter.filter(value, paramValue);
+            return result;
+          });
+        });
+
+        return filtered;
+      }),
+    );
+
+    this.filterOptions = [
+      {
+        name: 'Name',
+        prop: 'name',
+        filter: (sink: Sink, name: string) => {
+          return sink.name?.includes(name);
+        },
+        type: FilterTypes.Input,
+      },
+      {
+        name: 'Tags',
+        prop: 'tags',
+        filter: (sink: Sink, tag: string) => {
+          const values = Object.entries(sink.tags)
+            .map((entry) => `${entry[0]}: ${entry[1]}`)
+            .reduce((acc, val) => acc.concat(val), []);
+          return values.reduce((acc, val) => {
+            acc |= val.includes(tag.trim());
+            return acc;
+          }, false);
+        },
+        autoSuggestion: orb.getSinksTags(),
+        type: FilterTypes.AutoComplete,
+      },
+      {
+        name: 'Status',
+        prop: 'state',
+        filter: (sink: Sink, states: string[]) => {
+          return states.reduce((prev, cur) => {
+            return sink.state === cur || prev;
+          }, false);
+        },
+        type: FilterTypes.MultiSelect,
+        options: Object.values(SinkStates).map((value) => value as string),
+      },
+      {
+        name: 'Backend',
+        prop: 'backend',
+        filter: (sink: Sink, backends: string[]) => {
+          return backends.reduce((prev, cur) => {
+            return sink.backend === cur || prev;
+          }, false);
+        },
+        type: FilterTypes.MultiSelect,
+        options: Object.values(SinkBackends).map((value) => value as string),
+      },
+    ];
   }
 
   ngAfterViewChecked() {
-    if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
+    if (
+      this.table &&
+      this.table.recalculate &&
+      this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth
+    ) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
       this.table.recalculate();
       this.cdr.detectChanges();
@@ -123,11 +166,8 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
     }
   }
 
-  ngOnInit() {
-    this.getAllSinks();
-  }
-
   ngAfterViewInit() {
+    this.orb.refreshNow();
     this.columns = [
       {
         prop: 'name',
@@ -135,44 +175,47 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
         canAutoResize: true,
         resizeable: false,
         flexGrow: 2,
-        minWidth: 90,
+        minWidth: 150,
         cellTemplate: this.sinkNameTemplateCell,
       },
       {
         prop: 'description',
         name: 'Description',
         resizeable: false,
-        minWidth: 100,
+        minWidth: 150,
         flexGrow: 2,
+        cellTemplate: this.sinkNameTemplateCell,
       },
       {
         prop: 'backend',
         name: 'Type',
         resizeable: false,
-        minWidth: 100,
+        minWidth: 120,
         flexGrow: 1,
+        cellTemplate: this.sinkNameTemplateCell,
       },
       {
         prop: 'state',
         name: 'Status',
         resizeable: false,
-        minWidth: 100,
         flexGrow: 1,
         cellTemplate: this.sinkStateTemplateCell,
       },
       {
         prop: 'tags',
         name: 'Tags',
-        minWidth: 300,
-        flexGrow: 3,
+        flexGrow: 2,
         resizeable: false,
         cellTemplate: this.sinkTagsTemplateCell,
-        comparator: (a, b) => Object.entries(a)
-          .map(([key, value]) => `${key}:${value}`)
-          .join(',')
-          .localeCompare(Object.entries(b)
+        comparator: (a, b) =>
+          Object.entries(a)
             .map(([key, value]) => `${key}:${value}`)
-            .join(',')),
+            .join(',')
+            .localeCompare(
+              Object.entries(b)
+                .map(([key, value]) => `${key}:${value}`)
+                .join(','),
+            ),
       },
       {
         name: '',
@@ -180,109 +223,53 @@ export class SinkListComponent implements OnInit, AfterViewInit, AfterViewChecke
         minWidth: 150,
         resizeable: false,
         sortable: false,
-        flexGrow: 1,
+        flexGrow: 2,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
-
-    this.cdr.detectChanges();
-  }
-
-  getAllSinks(): void {
-    this.sinkService.clean();
-    this.sinkService.getAllSinks().subscribe(resp => {
-      this.paginationControls.data = resp.data;
-      this.paginationControls.total = resp.data.length;
-      this.paginationControls.offset = resp.offset / resp.limit;
-      this.loading = false;
-      this.cdr.markForCheck();
-    });
-  }
-
-  getSinks(pageInfo: NgxDatabalePageInfo = null): void {
-    const finalPageInfo = { ...pageInfo };
-    finalPageInfo.dir = 'desc';
-    finalPageInfo.order = 'name';
-    finalPageInfo.limit = this.paginationControls.limit;
-    finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
-
-    this.loading = true;
-    this.sinkService.getSinks(finalPageInfo).subscribe(
-      (resp: OrbPagination<Sink>) => {
-        this.paginationControls.data = resp.data.slice(resp.offset, resp.offset + resp.limit);
-        this.paginationControls.total = resp.total;
-        this.paginationControls.offset = resp.offset / resp.limit;
-        this.loading = false;
-      },
-    );
   }
 
   onOpenAdd() {
-    this.router.navigate(
-      ['add'],
-      { relativeTo: this.route },
-    );
+    this.router.navigate(['add'], { relativeTo: this.route });
   }
 
   onOpenEdit(sink: any) {
-    this.router.navigate(
-      [`edit/${ sink.id }`],
-      {
-        relativeTo: this.route,
-        state: { sink: sink, edit: true },
-      },
-    );
-  }
-
-  onFilterSelected(filter) {
-    this.searchPlaceholder = `Search by ${ filter.label }`;
-    this.filterValue = null;
-  }
-
-  applyFilter() {
-    if (!this.paginationControls || !this.paginationControls?.data) return;
-
-    if (!this.filterValue || this.filterValue === '') {
-      this.table.rows = this.paginationControls.data;
-    } else {
-      this.table.rows = this.paginationControls.data.
-      filter(sink => this.filterValue.split(/[,;]+/gm).reduce((prev, curr) => {
-        return this.selectedFilter.filter(sink, curr) && prev;
-      }, true));
-    }
-    this.paginationControls.offset = 0;
+    this.router.navigate([`edit/${sink.id}`], {
+      relativeTo: this.route,
+      state: { sink: sink, edit: true },
+    });
   }
 
   openDeleteModal(row: any) {
     const { id } = row;
-    this.dialogService.open(SinkDeleteComponent, {
-      context: { sink: row },
-      autoFocus: true,
-      closeOnEsc: true,
-    }).onClose.subscribe(
-      confirm => {
+    this.dialogService
+      .open(SinkDeleteComponent, {
+        context: { sink: row },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
         if (confirm) {
           this.sinkService.deleteSink(id).subscribe(() => {
             this.notificationsService.success('Sink successfully deleted', '');
-            this.getAllSinks();
+            this.orb.refreshNow();
           });
         }
-      },
-    );
+      });
   }
 
   openDetailsModal(row: any) {
-    this.dialogService.open(SinkDetailsComponent, {
-      context: { sink: row },
-      autoFocus: true,
-      closeOnEsc: true,
-    }).onClose.subscribe((resp) => {
-      if (resp) {
-        this.onOpenEdit(row);
-      } else {
-        this.getAllSinks();
-      }
-    });
+    this.dialogService
+      .open(SinkDetailsComponent, {
+        context: { sink: row },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((resp) => {
+        if (resp) {
+          this.onOpenEdit(row);
+        }
+      });
   }
 
   filterByInactive = (sink) => sink.state === 'inactive';

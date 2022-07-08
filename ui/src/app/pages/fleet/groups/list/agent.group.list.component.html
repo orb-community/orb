@@ -1,152 +1,122 @@
 <div>
   <header>
-    <xng-breadcrumb class="orb-breadcrumb">
-    </xng-breadcrumb>
-    <h4>{{strings.list.header}}</h4>
-  </header>
-  <div
-      #tableWrapper
-      class="d-flex flex-column mt-4">
-    <div class="d-flex justify-content-between align-items-end mb-2">
-      <div class="d-flex">
-        <p
-          *ngIf="paginationControls.data && paginationControls.data.length> 0"
-          class="sink-info-regular mb-0">
-          You have <strong>{{paginationControls.total}} Agent Groups</strong>.
-        </p>
-        <p
-          *ngIf="paginationControls.data && paginationControls.data.length === 0"
-          class="sink-info-accent mb-0">
-          There are no Agent Groups yet.
-        </p>
-      </div>
-      <div class="d-flex">
-        <div class="mr-3">
-          <nb-select
-            (selectedChange)="onFilterSelected($event)"
-            *ngIf="tableFilters && tableFilters.length"
-            [(selected)]="selectedFilter"
-            appearance="filled"
-            class="d-flex justify-content-end"
-            placeholder="Filter by"
-            size="medium"
-            style="width: 160px; height: 100%">
-            <nb-option
-              *ngFor="let conf of tableFilters"
-              [value]="conf">{{ conf.label }}</nb-option>
-          </nb-select>
-        </div>
-        <nb-form-field *ngIf="selectedFilter">
-          <nb-icon
-            icon="search-outline"
-            nbPrefix
-            pack="eva"></nb-icon>
-          <input
-            (input)="applyFilter()"
-            [(ngModel)]="filterValue"
-            [placeholder]="searchPlaceholder"
-            fieldSize="medium"
-            nbInput
-            type="text"/>
-        </nb-form-field>
-      </div>
+    <xng-breadcrumb class="orb-breadcrumb"> </xng-breadcrumb>
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-content: center;
+        justify-content: space-between;
+        align-items: baseline;
+      "
+    >
+      <h4>{{ strings.list.header }}</h4>
+      <ngx-poll-control></ngx-poll-control>
     </div>
+  </header>
+  <div #tableWrapper class="tableWrapper">
+    <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
     <div class="add-agent-container">
       <button
         (click)="onOpenAdd()"
         class="card-button"
         shape="round"
         nbButton
-        status="primary">
-        <i class="fa fa-plus">&nbsp;</i>{{strings.list.create}}</button>
+        status="primary"
+      >
+        <i class="fa fa-plus">&nbsp;</i>{{ strings.list.create }}
+      </button>
     </div>
     <ngx-datatable
-        #table
-        [columnMode]="columnMode.flex"
-        [columns]="columns"
-        [footerHeight]="50"
-        [headerHeight]="50"
-        [limit]="paginationControls.limit"
-        [loadingIndicator]="loading"
-        [rowHeight]="50"
-        [rows]="paginationControls.data"
-        [scrollbarV]="true"
-        [sorts]="tableSorts"
-        class="orb"
-        style="height: calc(62vh)">
+      #table
+      [columnMode]="columnMode.flex"
+      [columns]="columns"
+      [footerHeight]="50"
+      [headerHeight]="50"
+      [loadingIndicator]="loading"
+      [rowHeight]="50"
+      [rows]="filteredGroups$ | async"
+      [scrollbarV]="true"
+      [sorts]="tableSorts"
+      class="orb orb-table"
+    >
     </ngx-datatable>
   </div>
 </div>
 
 <ng-template
-    #agentGroupNameTemplateCell
-    let-i="index"
-    let-row="row"
-    let-value="value">
-  <div nbTooltip="{{ row.id }}">
-    {{ row.name }}
-  </div>
+  #agentGroupNameTemplateCell
+  let-i="index"
+  let-row="row"
+  let-value="value"
+>
+  <span nbTooltip="{{ value }}">
+    {{ value }}
+  </span>
 </ng-template>
 
-<ng-template
-    #agentGroupTemplateCell
-    let-row="row">
+<ng-template #agentGroupTemplateCell let-row="row">
   <span
     (click)="onMatchingAgentsModal(row)"
     class="matching-agents"
-    nbTooltip="{{ row.matching_agents | json }}">
+    nbTooltip="{{ row.matching_agents | json }}"
+  >
     {{ row.matching_agents.total }}
   </span>
 </ng-template>
 
 <ng-template
-    #agentGroupTagsTemplateCell
-    let-i="index"
-    let-row="row"
-    let-value="value">
-  <div class="d-block">
-    <mat-chip-list nbTooltip="{{ value | json }}">
-      <mat-chip
-        *ngFor="let tag of value | keyvalue"
-        [style.background-color]="tag | tagcolor"
-        class="orb-tag-chip ">
-        {{tag | tagchip}}
-      </mat-chip>
-      <mat-chip
-        *ngIf="(row?.tags | json) === '{}'"
-        [style.background-color]="'notag' | tagcolor"
-        class="orb-tag-chip ">
-        No tags were created
-      </mat-chip>
-    </mat-chip-list>
-  </div>
+  #agentGroupTagsTemplateCell
+  let-i="index"
+  let-row="row"
+  let-value="value"
+>
+  <mat-chip-list nbTooltip="{{ value | json }}">
+    <mat-chip
+      *ngFor="let tag of value | keyvalue"
+      [style.background-color]="tag | tagcolor"
+      class="orb-tag-chip"
+    >
+      {{ tag | tagchip }}
+    </mat-chip>
+    <mat-chip
+      *ngIf="(row?.tags | json) === '{}'"
+      [style.background-color]="'notag' | tagcolor"
+      class="orb-tag-chip"
+    >
+      No tags were created
+    </mat-chip>
+  </mat-chip-list>
 </ng-template>
 
-<ng-template
-    #actionsTemplateCell
-    let-i="index"
-    let-row="row"
-    let-value="value">
-  <div class="d-flex flex-row">
+<ng-template #actionsTemplateCell let-i="index" let-row="row" let-value="value">
+  <div class="block">
     <button
       (click)="openDetailsModal(row)"
       class="orb-action-hover detail-button"
       ghost
-      nbButton>
+      nbTooltip="View Details"
+      nbButton
+    >
       <nb-icon icon="search-outline"></nb-icon>
     </button>
     <button
       (click)="onOpenEdit(row)"
       class="orb-action-hover edit-button"
       ghost
-      nbButton>
+      nbTooltip="Edit"
+      nbButton
+    >
       <nb-icon icon="edit-outline"></nb-icon>
     </button>
     <button
       (click)="openDeleteModal(row)"
       class="orb-action-hover del-button"
       ghost
-      nbButton>
+      nbTooltip="Delete"
+      nbButton
+    >
       <nb-icon icon="trash-2-outline"></nb-icon>
     </button>
   </div>

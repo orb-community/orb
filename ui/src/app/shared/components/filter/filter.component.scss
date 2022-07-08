@@ -1,0 +1,83 @@
+:host {
+  display: flex !important;
+  width: 100% !important;
+  min-height: 32px !important;
+  max-height: 100% !important;
+  gap: 5px !important;
+  margin-bottom: 8px !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-content: flex-start !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+}
+
+nb-select,
+nb-select.select-button,
+.select-button {
+  min-width: 150px !important;
+  max-width: 100% !important;
+}
+
+.section-controls {
+  //display: contents;
+
+  //  display: inline-block;
+  //  display: flex;
+  //  flex-direction: row;
+  //  flex-wrap: nowrap;
+  //  align-content: stretch;
+  //  align-items: center;,
+  //  justify-content: flex-start;
+  //  width: 100%;
+}
+//
+.section-display {
+  //display: contents;
+  //display: flex;
+  //  display: inline-flex;
+  //  flex-direction: row;
+  //  align-content: center;
+  //  align-items: center;
+  //  justify-content: flex-end;
+  //  flex-wrap: wrap;
+  //  width: 100%;
+}
+
+.small-button {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.applied-label {
+  padding-right: 4px;
+  color: #8f9bb3;
+}
+
+mat-chip-list {
+  width: 100%;
+  align-self: center;
+}
+
+.filter-chip {
+  color: #3089fc;
+  border: solid;
+  border-width: 1px;
+  background-color: transparent;
+  //padding-left: 2px;
+}
+.not-applied {
+  color: #8f9bb3 !important;
+}
+
+mat-chip-list {
+  padding-left: 6px !important;
+}
+
+.remove-tag-button {
+  background: none !important;
+  margin: 0 0 0 10px !important;
+  padding: 0 6px 0 10px !important;
+  align-self: end;
+  width: 0;
+}

@@ -3,30 +3,38 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  OnInit,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { NbDialogService } from '@nebular/theme';
-
-import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { ActivatedRoute, Router } from '@angular/router';
-import { STRINGS } from 'assets/text/strings';
-import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { NbDialogService } from '@nebular/theme';
+import {
+  ColumnMode,
+  DatatableComponent,
+  TableColumn,
+} from '@swimlane/ngx-datatable';
+
+import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
+import {
+  FilterOption,
+  FilterTypes,
+} from 'app/common/interfaces/orb/filter-option';
 import { AgentsService } from 'app/common/services/agents/agents.service';
+import { FilterService } from 'app/common/services/filter.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { OrbService } from 'app/common/services/orb.service';
 import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete.component';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-
+import { STRINGS } from 'assets/text/strings';
+import { combineLatest, Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'ngx-agent-list-component',
   templateUrl: './agent.list.component.html',
   styleUrls: ['./agent.list.component.scss'],
 })
-export class AgentListComponent implements OnInit, AfterViewInit, AfterViewChecked {
+export class AgentListComponent implements AfterViewInit, AfterViewChecked {
   strings = STRINGS.agents;
 
   columnMode = ColumnMode;
@@ -34,10 +42,6 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
   columns: TableColumn[];
 
   loading = false;
-
-  paginationControls: OrbPagination<Agent>;
-
-  searchPlaceholder = 'Search by name';
 
   // templates
   @ViewChild('agentNameTemplateCell') agentNameTemplateCell: TemplateRef<any>;
@@ -48,36 +52,8 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
 
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
-  @ViewChild('agentLastActivityTemplateCell') agentLastActivityTemplateCell: TemplateRef<any>;
-
-  tableFilters: DropdownFilterItem[] = [
-    {
-      id: '0',
-      label: 'Name',
-      prop: 'name',
-      selected: false,
-      filter: (agent, name) => agent?.name.includes(name),
-    },
-    {
-      id: '1',
-      label: 'Tags',
-      prop: 'tags',
-      selected: false,
-      filter: (agent, tag) => Object.entries(agent?.combined_tags)
-        .filter(([key, value]) => `${key}:${value}`.includes(tag.replace(' ', ''))).length > 0,
-    },
-    {
-      id: '2',
-      label: 'Status',
-      prop: 'state',
-      selected: false,
-      filter: (agent, state) => agent?.state.includes(state),
-    },
-  ];
-
-  selectedFilter = this.tableFilters[0];
-
-  filterValue = null;
+  @ViewChild('agentLastActivityTemplateCell')
+  agentLastActivityTemplateCell: TemplateRef<any>;
 
   tableSorts = [
     {
@@ -89,7 +65,10 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
   @ViewChild('tableWrapper') tableWrapper;
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
-
+  agents$: Observable<Agent[]>;
+  filterOptions: FilterOption[];
+  filters$!: Observable<FilterOption[]>;
+  filteredAgents$: Observable<Agent[]>;
   private currentComponentWidth;
 
   constructor(
@@ -99,12 +78,88 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
+    private orb: OrbService,
+    private filters: FilterService,
   ) {
-    this.paginationControls = AgentsService.getDefaultPagination();
+    this.agents$ = this.orb.getAgentListView();
+    this.columns = [];
+
+    this.filters$ = this.filters.getFilters().pipe(startWith([]));
+
+    this.filteredAgents$ = combineLatest([this.agents$, this.filters$]).pipe(
+      map(([agents, _filters]) => {
+        let filtered = agents;
+        _filters.forEach((_filter) => {
+          filtered = filtered.filter((value) => {
+            const paramValue = _filter.param;
+            const result = _filter.filter(value, paramValue);
+            return result;
+          });
+        });
+
+        return filtered;
+      }),
+    );
+
+    this.filterOptions = [
+      {
+        name: 'Name',
+        prop: 'name',
+        filter: (agent: Agent, name: string) => {
+          return agent.name?.includes(name);
+        },
+        type: FilterTypes.Input,
+      },
+      {
+        name: 'Agent Tags',
+        prop: 'agent_tags',
+        filter: (agent: Agent, tag: string) => {
+          const values = Object.entries(agent.agent_tags)
+            .map((entry) => `${entry[0]}: ${entry[1]}`)
+            .reduce((acc, val) => acc.concat(val), []);
+          return values.reduce((acc, val) => {
+            acc |= val.includes(tag.trim());
+            return acc;
+          }, false);
+        },
+        autoSuggestion: orb.getAgentsTags(),
+        type: FilterTypes.AutoComplete,
+      },
+      {
+        name: 'Orb Tags',
+        prop: 'orb_tags',
+        filter: (agent: Agent, tag: string) => {
+          const values = Object.entries(agent.orb_tags)
+            .map((entry) => `${entry[0]}: ${entry[1]}`)
+            .reduce((acc, val) => acc.concat(val), []);
+          return values.reduce((acc, val) => {
+            acc |= val.includes(tag.trim());
+            return acc;
+          }, false);
+        },
+        autoSuggestion: orb.getAgentsTags(),
+        type: FilterTypes.AutoComplete,
+      },
+      {
+        name: 'Status',
+        prop: 'state',
+        filter: (agent: Agent, states: string[]) => {
+          return states.reduce((prev, cur) => {
+            return agent.state === cur || prev;
+          }, false);
+        },
+        type: FilterTypes.MultiSelect,
+        options: Object.values(AgentStates).map((value) => value as string),
+      },
+    ];
   }
 
   ngAfterViewChecked() {
-    if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
+    if (
+      this.table &&
+      this.table.recalculate &&
+      this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth
+    ) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
       this.table.recalculate();
       this.cdr.detectChanges();
@@ -112,109 +167,62 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
     }
   }
 
-  ngOnInit() {
-    this.getAllAgents();
-  }
-
   ngAfterViewInit() {
+    this.orb.refreshNow();
     this.columns = [
       {
         prop: 'name',
-        flexGrow: 3,
+        flexGrow: 4,
         canAutoResize: true,
+        minWidth: 150,
         name: 'Name',
-        resizeable: false,
-        minWidth: 90,
-        width: 120,
-        maxWidth: 200,
         cellTemplate: this.agentNameTemplateCell,
       },
       {
         prop: 'state',
-        flexGrow: 1,
+        flexGrow: 2,
         canAutoResize: true,
         name: 'Status',
-        resizeable: false,
-        minWidth: 90,
-        maxWidth: 150,
         cellTemplate: this.agentStateTemplateRef,
       },
       {
         prop: 'combined_tags',
-        flexGrow: 6,
+        flexGrow: 10,
         canAutoResize: true,
         name: 'Tags',
-        minWidth: 300,
-        width: 450,
-        maxWidth: 1450,
         cellTemplate: this.agentTagsTemplateCell,
-        comparator: (a, b) => Object.entries(a)
-          .map(([key, value]) => `${key}:${value}`)
-          .join(',')
-          .localeCompare(Object.entries(b)
+        comparator: (a, b) =>
+          Object.entries(a)
             .map(([key, value]) => `${key}:${value}`)
-            .join(',')),
+            .join(',')
+            .localeCompare(
+              Object.entries(b)
+                .map(([key, value]) => `${key}:${value}`)
+                .join(','),
+            ),
       },
       {
         prop: 'ts_last_hb',
-        flexGrow: 2,
+        flexGrow: 4,
         canAutoResize: true,
         name: 'Last Activity',
-        minWidth: 180,
-        width: 250,
-        maxWidth: 400,
-        resizeable: false,
         sortable: false,
         cellTemplate: this.agentLastActivityTemplateCell,
       },
       {
         name: '',
         prop: 'actions',
-        flexGrow: 2,
+        flexGrow: 3,
+        minWidth: 150,
         canAutoResize: true,
-        minWidth: 130,
-        width: 130,
-        maxWidth: 260,
-        resizeable: false,
         sortable: false,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
-
-    this.cdr.detectChanges();
-  }
-
-  getAllAgents(): void {
-    this.agentService.clean();
-    this.agentService.getAllAgents().subscribe(resp => {
-      this.paginationControls.data = resp.data;
-      this.paginationControls.total = resp.data.length;
-      this.paginationControls.offset = resp.offset / resp.limit;
-      this.loading = false;
-      this.cdr.markForCheck();
-    });
-  }
-
-  getAgents(pageInfo: NgxDatabalePageInfo = null): void {
-    const finalPageInfo = { ...pageInfo };
-    finalPageInfo.dir = 'desc';
-    finalPageInfo.order = 'name';
-    finalPageInfo.limit = this.paginationControls.limit;
-    finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
-
-    this.loading = true;
-    this.agentService.getAgents(finalPageInfo).subscribe(
-      (resp: OrbPagination<Agent>) => {
-        this.paginationControls = resp;
-        this.paginationControls.offset = pageInfo?.offset || 0;
-        this.paginationControls.total = resp.total;
-        this.loading = false;
-      },
-    );
   }
 
   onOpenView(agent: any) {
-    this.router.navigate([`view/${ agent.id }`], {
+    this.router.navigate([`view/${agent.id}`], {
       relativeTo: this.route,
     });
   }
@@ -226,70 +234,53 @@ export class AgentListComponent implements OnInit, AfterViewInit, AfterViewCheck
   }
 
   onOpenEdit(agent: any) {
-    this.router.navigate([`edit/${ agent.id }`], {
+    this.router.navigate([`edit/${agent.id}`], {
       state: { agent: agent, edit: true },
       relativeTo: this.route,
     });
   }
 
-  onFilterSelected(filter) {
-    this.searchPlaceholder = `Search by ${ filter.label }`;
-    this.filterValue = null;
-  }
-
-  applyFilter() {
-    if (!this.paginationControls || !this.paginationControls?.data) return;
-
-    if (!this.filterValue || this.filterValue === '') {
-      this.table.rows = this.paginationControls.data;
-    } else {
-      this.table.rows = this.paginationControls.data
-        .filter(agent => this.filterValue.split(/[,;]+/gm).reduce((prev, curr) => {
-        return this.selectedFilter.filter(agent, curr) && prev;
-      }, true));
-    }
-    this.paginationControls.offset = 0;
-  }
-
   openDeleteModal(row: any) {
     const { name, id } = row;
-    this.dialogService.open(AgentDeleteComponent, {
-      context: { name },
-      autoFocus: true,
-      closeOnEsc: true,
-    }).onClose.subscribe(
-      confirm => {
+    this.dialogService
+      .open(AgentDeleteComponent, {
+        context: { name },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
         if (confirm) {
           this.agentService.deleteAgent(id).subscribe(() => {
             this.notificationsService.success('Agent successfully deleted', '');
-            this.getAllAgents();
+            this.orb.refreshNow();
           });
         }
-      },
-    );
+      });
   }
 
   openDetailsModal(row: any) {
-    this.dialogService.open(AgentDetailsComponent, {
-      context: { agent: row },
-      autoFocus: true,
-      closeOnEsc: true,
-    }).onClose.subscribe((resp) => {
-      if (resp) {
-        this.onOpenEdit(row);
-      } else {
-        this.getAllAgents();
-      }
-    });
+    this.dialogService
+      .open(AgentDetailsComponent, {
+        context: { agent: row },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((resp) => {
+        if (resp) {
+          this.onOpenEdit(row);
+        }
+      });
   }
 
   filterByError = (agent) => !!agent && agent?.error_state && agent.error_state;
 
-  mapRegion = (agent) => !!agent && agent?.orb_tags && !!agent.orb_tags['region'] && agent.orb_tags['region'];
+  mapRegion = (agent) =>
+    !!agent &&
+    agent?.orb_tags &&
+    !!agent.orb_tags['region'] &&
+    agent.orb_tags['region']
 
   filterValid = (value) => !!value && typeof value === 'string';
 
-  countUnique = (value, index, self) => {
-    return self.indexOf(value) === index;
-  }
+  countUnique = (value, index, self) => self.indexOf(value) === index;
 }

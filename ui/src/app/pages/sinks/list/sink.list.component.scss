@@ -108,7 +108,7 @@ tr div p {
         text-decoration: none !important;
         color: #969fb9 !important;
       }
-     .xng-breadcrumb-separator {
+      .xng-breadcrumb-separator {
         text-decoration: none !important;
         color: #969fb9 !important;
       }
@@ -138,5 +138,71 @@ tr div p {
   }
   &error {
     color: #df316f;
+  }
+}
+
+span {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.datatable-body-cell-label {
+  box-sizing: content-box;
+}
+.tableWrapper {
+  display: flex;
+  margin-top: 1em;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-content: flex-start;
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow-x: auto;
+  min-width: 800px;
+}
+
+.orb-table {
+  min-height: calc(61vh);
+  min-width: 800px;
+}
+
+mat-chip-list {
+  display: flex !important;
+  flex-direction: row;
+  flex-wrap: nowrap !important;
+  align-items: flex-start;
+  align-content: flex-start;
+  justify-content: flex-start;
+
+  ::ng-deep > .mat-chip-list-wrapper {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: nowrap !important;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: flex-start;
+  }
+
+  &:hover {
+    animation-duration: 6s;
+    animation-name: slidetween;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
+}
+
+::ng-deep .mat-chip-list {
+  display: block;
+}
+
+@keyframes slidetween {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-70%);
   }
 }

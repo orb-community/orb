@@ -25,6 +25,32 @@ h4 {
   color: #969fb9;
 }
 
+span {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.datatable-body-cell-label {
+  box-sizing: content-box;
+}
+.tableWrapper {
+  display: flex;
+  margin-top: 1em;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-content: flex-start;
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow-x: auto;
+  min-width: 800px;
+}
+
+.orb-table {
+  min-height: calc(61vh);
+  min-width: 800px;
+}
+
 .filter-dropdown {
   display: flex;
   position: absolute;
@@ -108,7 +134,7 @@ tr div p {
         text-decoration: none !important;
         color: #969fb9 !important;
       }
-     .xng-breadcrumb-separator {
+      .xng-breadcrumb-separator {
         text-decoration: none !important;
         color: #969fb9 !important;
       }

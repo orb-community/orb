@@ -1,0 +1,6 @@
+<span *ngIf="lastUpdate$ | async">
+  <!-- <button nbButton ghost shape="round" (click)="forceRefresh()">
+    <i class="fa fa-redo" style="color: #3089fc;">&nbsp;</i></button
+  > -->
+  Last Update: {{ lastUpdate$ | async | date: 'mediumTime' }}
+</span>
