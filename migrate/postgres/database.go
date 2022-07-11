@@ -17,6 +17,7 @@ const (
 	DbKeto   = "keto"
 	DbUsers  = "users"
 	DbThings = "things"
+	DBSinks  = "sinks"
 )
 
 var _ Database = (*database)(nil)

@@ -97,7 +97,7 @@
                  [(ngModel)]="user.email"
                  [attr.aria-invalid]="email.invalid && email.touched ? true : null"
                  [required]="getConfigValue('forms.validation.email.required')"
-                 [status]="email.dirty ? (email.invalid  ? 'danger' : 'success') : 'basic'"
+                 [status]="email.dirty ? (email.invalid || user.email === repeatedEmail ? 'danger' : 'success') : 'basic'"
                  fieldSize="large"
                  fullWidth
                  id="input-email"
@@ -105,12 +105,15 @@
                  nbInput
                  pattern=".+@.+..+"
                  placeholder="Email address">
-          <ng-container *ngIf="email.invalid && email.touched">
+          <ng-container *ngIf="(email.invalid || user.email === repeatedEmail)  && email.touched">
             <p *ngIf="email.errors?.required" class="caption status-danger mb-1">
               Email is required!
             </p>
             <p *ngIf="email.errors?.pattern" class="caption status-danger mb-1">
               Email should be the real one!
+            </p>
+            <p *ngIf="user.email === repeatedEmail" class="caption status-danger mb-1">
+              This email is already being used!
             </p>
           </ng-container>
         </div>
@@ -197,7 +200,7 @@
         </ps-click-wrap>
 
         <button [class.btn-pulse]="submitted"
-                [disabled]="!form.valid"
+                [disabled]="!form.valid || user.email === repeatedEmail"
                 class="mt-3"
                 fullWidth
                 nbButton

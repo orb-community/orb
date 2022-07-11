@@ -33,7 +33,16 @@
                        fieldSize="medium"
                        formControlName="name"
                        fullWidth="true"
+                       [status]="firstFormGroup?.controls.name.touched ? (!firstFormGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                        nbInput/>
+                <ng-container *ngIf="firstFormGroup?.controls.name.touched && !firstFormGroup.controls.name.valid">
+                  <p *ngIf="!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
+                    Agent name is required!
+                  </p>
+                  <p *ngIf="!!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
+                    Agent name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
+                  </p>
+                </ng-container>
               </div>
             </nb-form-field>
             <hr/>
@@ -68,14 +77,14 @@
               <p>{{strings.add.step.desc2}}</p>
             </div>
           </ng-template>
-          <div class="d-flex flex-wrap col-8">
+          <div class="d-flex flex-wrap">
             <p *ngIf="(selectedTags | json) === '{}'">Agent tags are optional and may be set here or when you are
               provisioning an Agent.<br> The lack of tags will block an Agent to be matched during the Agent Group
               creation.</p>
             <ngx-tag-control [(tags)]="selectedTags" autofocus></ngx-tag-control>
             <hr>
           </div>
-          <div class="d-flex justify-content-end col-8">
+          <div class="d-flex justify-content-end">
             <button class="next-button"
                     data-orb-qa-id="button#next"
                     nbButton

@@ -44,6 +44,10 @@ type JaegerConfig struct {
 	URL string `mapstructure:"url"`
 }
 
+type EncryptionKey struct {
+	Key string `mapstructure:"key"`
+}
+
 type BaseSvcConfig struct {
 	LogLevel       string `mapstructure:"log_level"`
 	HttpPort       string `mapstructure:"http_port"`
@@ -115,6 +119,16 @@ func LoadPostgresConfig(prefix string, db string) PostgresConfig {
 	cfg.Unmarshal(&jC)
 
 	return jC
+}
+
+func LoadEncryptionKey(prefix string) EncryptionKey {
+	cfg := viper.New()
+	cfg.SetEnvPrefix(fmt.Sprintf("%s_secret", prefix))
+	cfg.SetDefault("key", "orb")
+	cfg.AutomaticEnv()
+	var eK EncryptionKey
+	cfg.Unmarshal(&eK)
+	return eK
 }
 
 func LoadJaegerConfig(prefix string) JaegerConfig {

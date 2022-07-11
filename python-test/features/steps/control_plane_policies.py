@@ -55,7 +55,7 @@ def create_new_policy(context, kwargs):
 
     context.policy = create_policy(context.token, policy_json)
 
-    assert_that(context.policy['name'], equal_to(name))
+    assert_that(context.policy['name'], equal_to(name), f"Policy name failed: {context.policy}")
     if 'policies_created' in context:
         context.policies_created[context.policy['id']] = context.policy['name']
     else:
@@ -135,7 +135,7 @@ def policy_editing(context, kwargs):
                                    edited_attributes["backend_type"])
     context.policy = edit_policy(context.token, context.policy['id'], policy_json)
 
-    assert_that(context.policy['name'], equal_to(edited_attributes["name"]))
+    assert_that(context.policy['name'], equal_to(edited_attributes["name"]), f"Policy name failed: {context.policy}")
 
 
 @step("policy {attribute} must be {value}")
@@ -194,7 +194,8 @@ def check_test(context, time_to_wait):
     remove_log_info = f"DELETE /api/v1/policies/{context.policy['name']} 200"
     policy_removed = policy_stopped_and_removed(context.container_id, stop_log_info, remove_log_info,
                                                 context.considered_timestamp, timeout=time_to_wait)
-    assert_that(policy_removed, equal_to(True), f"Policy {context.policy['name']} failed to be unapplied")
+    assert_that(policy_removed, equal_to(True), f"Policy {context.policy} failed to be unapplied. \n"
+                                                f"Agent: {json.dumps(context.agent, indent=4)}")
 
 
 @then('cleanup policies')
@@ -272,7 +273,7 @@ def apply_n_policies(context, amount_of_policies, type_of_policies):
     for i in range(int(amount_of_policies)):
         create_new_policy(context, args_for_policies[i][1])
         check_policies(context)
-        create_new_dataset(context, 1, 'sink')
+        create_new_dataset(context, 1, 'last', 1, 'sink')
 
 
 @step('{amount_of_policies} {type_of_policies} policies are applied to the group by {amount_of_datasets} datasets each')
@@ -282,7 +283,7 @@ def apply_n_policies_x_times(context, amount_of_policies, type_of_policies, amou
         create_new_policy(context, args_for_policies[n][1])
         check_policies(context)
         for x in range(int(amount_of_datasets)):
-            create_new_dataset(context, 1, 'sink')
+            create_new_dataset(context, 1, 'last', 1, 'sink')
 
 
 @step("{amount_of_policies} duplicated policies is applied to the group")
@@ -291,7 +292,7 @@ def apply_duplicate_policy(context, amount_of_policies):
         context.policy = create_duplicated_policy(context.token, context.policy["id"],
                                                   policy_name_prefix + random_string(10))
         check_policies(context)
-        create_new_dataset(context, 1, 'sink')
+        create_new_dataset(context, 1, 'last', 1, 'sink')
 
 
 @step("try to duplicate this policy {times} times without set new name")
@@ -331,10 +332,10 @@ def check_duplicated_policies_status(context, amount_successfully_policies, amou
             successfully_duplicated.append(policy['id'])
         elif "error" in policy.keys():
             wrongly_duplicated += 1
-    assert_that(len(successfully_duplicated), equal_to(int(amount_successfully_policies)), f"Amount of policies"
-                                                                                           f"successfully duplicated"
-                                                                                           f"fails. Policies duplicated:"
-                                                                                           f"{successfully_duplicated}")
+    assert_that(len(successfully_duplicated),
+                equal_to(int(amount_successfully_policies)), f"Amount of policies successfully duplicated fails."
+                                                             f"Policies duplicated: {successfully_duplicated}"
+                                                             f"\n Agent: {json.dumps(context.agent, indent=4)}")
     assert_that(wrongly_duplicated, equal_to(int(amount_error_policies)), f"Amount of policies wrongly duplicated fails"
                                                                           f".")
 
@@ -350,11 +351,13 @@ def create_duplicated_policy(token, policy_id, new_policy_name=None, status_code
     """
     json_request = {"name": new_policy_name}
     json_request = remove_empty_from_json(json_request)
-    headers_request = {'Content-type': 'application/json', 'Accept': 'application/json', 'Authorization': f'Bearer {token}'}
+    headers_request = {'Content-type': 'application/json', 'Accept': 'application/json',
+                       'Authorization': f'Bearer {token}'}
     post_url = f"{orb_url}/api/v1/policies/agent/{policy_id}/duplicate"
     response = requests.post(post_url, json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(status_code),
-                'Request to create duplicated policy failed with status=' + str(response.status_code))
+                'Request to create duplicated policy failed with status=' + str(response.status_code) + ': '
+                + str(response.json()))
     if status_code == 201:
         compare_two_policies(token, policy_id, response.json()['id'])
     return response.json()
@@ -372,7 +375,8 @@ def compare_two_policies(token, id_policy_one, id_policy_two):
     policy_two = get_policy(token, id_policy_two)
     diff = DeepDiff(policy_one, policy_two, exclude_paths={"root['name']", "root['id']", "root['ts_last_modified']",
                                                            "root['ts_created']"})
-    assert_that(diff, equal_to({}), "Policy duplicated is not equal the one that generate it")
+    assert_that(diff, equal_to({}), f"Policy duplicated is not equal the one that generate it. Policy 1: {policy_one}\n"
+                                    f"Policy 2: {policy_two}")
 
 
 def create_policy(token, json_request):
@@ -390,7 +394,8 @@ def create_policy(token, json_request):
 
     response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(201),
-                'Request to create policy failed with status=' + str(response.status_code))
+                'Request to create policy failed with status=' + str(response.status_code) + ': '
+                + str(response.json()))
 
     return response.json()
 
@@ -409,7 +414,8 @@ def edit_policy(token, policy_id, json_request):
     response = requests.put(orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
                             headers=headers_request)
     assert_that(response.status_code, equal_to(200),
-                'Request to editing policy failed with status=' + str(response.status_code))
+                'Request to editing policy failed with status=' + str(response.status_code) + ': '
+                + str(response.json()))
 
     return response.json()
 
@@ -536,7 +542,8 @@ def list_up_to_limit_policies(token, limit=100, offset=0):
                             params={'limit': limit, 'offset': offset})
 
     assert_that(response.status_code, equal_to(200),
-                'Request to list policies failed with status=' + str(response.status_code))
+                'Request to list policies failed with status=' + str(response.status_code) + ': '
+                + str(response.json()))
 
     policies_as_json = response.json()
     return policies_as_json['data'], policies_as_json['total'], policies_as_json['offset']
