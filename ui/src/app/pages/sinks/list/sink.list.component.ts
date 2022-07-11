@@ -118,10 +118,9 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked {
         prop: 'tags',
         filter: (sink: Sink, tag: string) => {
           const values = Object.entries(sink.tags)
-            .map((entry) => `${entry[0]}: ${entry[1]}`)
-            .reduce((acc, val) => acc.concat(val), []);
+            .map((entry) => `${entry[0]}: ${entry[1]}`);
           return values.reduce((acc, val) => {
-            acc |= val.includes(tag.trim());
+            acc = acc || val.includes(tag.trim());
             return acc;
           }, false);
         },

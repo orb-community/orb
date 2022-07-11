@@ -153,10 +153,9 @@ export class AgentGroupListComponent
         prop: 'tags',
         filter: (group: AgentGroup, tag: string) => {
           const values = Object.entries(group.tags)
-            .map((entry) => `${entry[0]}: ${entry[1]}`)
-            .reduce((acc, val) => acc.concat(val), []);
+            .map((entry) => `${entry[0]}: ${entry[1]}`);
           return values.reduce((acc, val) => {
-            acc |= val.includes(tag.trim());
+            acc = acc || val.includes(tag.trim());
             return acc;
           }, false);
         },

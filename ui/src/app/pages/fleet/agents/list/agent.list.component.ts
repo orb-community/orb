@@ -115,10 +115,9 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked {
         prop: 'agent_tags',
         filter: (agent: Agent, tag: string) => {
           const values = Object.entries(agent.agent_tags)
-            .map((entry) => `${entry[0]}: ${entry[1]}`)
-            .reduce((acc, val) => acc.concat(val), []);
+            .map((entry) => `${entry[0]}: ${entry[1]}`);
           return values.reduce((acc, val) => {
-            acc |= val.includes(tag.trim());
+            acc = acc || val.includes(tag.trim());
             return acc;
           }, false);
         },
@@ -130,10 +129,9 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked {
         prop: 'orb_tags',
         filter: (agent: Agent, tag: string) => {
           const values = Object.entries(agent.orb_tags)
-            .map((entry) => `${entry[0]}: ${entry[1]}`)
-            .reduce((acc, val) => acc.concat(val), []);
+            .map((entry) => `${entry[0]}: ${entry[1]}`);
           return values.reduce((acc, val) => {
-            acc |= val.includes(tag.trim());
+            acc = acc || val.includes(tag.trim());
             return acc;
           }, false);
         },
