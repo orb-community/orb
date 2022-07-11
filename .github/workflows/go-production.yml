@@ -152,8 +152,10 @@ jobs:
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
             make agent_production
+            make agent_debug
           else
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_production
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
       - name: Login to Docker Hub
         if: github.event_name != 'pull_request'
