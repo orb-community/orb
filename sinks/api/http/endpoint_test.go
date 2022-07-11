@@ -89,7 +89,8 @@ func newService(tokens map[string]string) sinks.SinkService {
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-	return sinks.NewSinkService(logger, auth, sinkRepo, mfsdk)
+	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
+	return sinks.NewSinkService(logger, auth, sinkRepo, mfsdk, pwdSvc)
 }
 
 func newServer(svc sinks.SinkService) *httptest.Server {

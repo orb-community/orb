@@ -5,11 +5,15 @@
       <div class="col-6">
         <label>Agent Name</label>
         <p>{{ agent?.name }}</p>
+        <label>Backend</label>
+        <p>{{ getAgentBackend() }}</p>
       </div>
       <div class="col-6">
         <div class="float-right">
           <label>Version</label>
           <p>{{ agent?.agent_metadata?.orb_agent?.version }}</p>
+          <label>Version</label>
+          <p>{{ getAgentBackendVersion() }}</p>
         </div>
       </div>
       <div class="col-12">

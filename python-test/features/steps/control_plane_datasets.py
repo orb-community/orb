@@ -1,4 +1,6 @@
-from behave import given, then, step
+import random
+
+from behave import then, step
 from utils import random_string, filter_list_by_parameter_start_with, validate_json
 from hamcrest import *
 import requests
@@ -12,29 +14,43 @@ orb_url = TestConfig.configs().get('orb_url')
 configs = TestConfig.configs()
 
 
-@step("a new dataset is created using referred group, policy and {amount_of_sinks} {sink_number}")
-def create_new_dataset(context, amount_of_sinks, sink_number):
+@step("{amount_of_datasets} new dataset is created using the policy, {group_order} group and {amount_of_sinks}"
+      " {sink_number}")
+def create_new_dataset(context, amount_of_datasets, group_order, amount_of_sinks, sink_number):
     assert_that(sink_number, any_of(equal_to("sink"), equal_to("sinks")), "Unexpected value for sink")
-    context.considered_timestamp = datetime.now().timestamp()
-    token = context.token
-    agent_groups_id = context.agent_group_data['id']
-    if amount_of_sinks == 1:
-        context.used_sinks_id = [context.sink['id']]
+    assert_that(group_order, any_of(equal_to("first"), equal_to("second"), equal_to("last"), equal_to("an existing")),
+                "Unexpected value for group.")
+
+    if group_order == "an existing":
+        groups_to_be_used = random.sample(list(context.agent_groups.keys()), int(amount_of_datasets))
     else:
-        # todo create scenario with multiple sinks
-        context.used_sinks_id = context.existent_sinks_id[:int(amount_of_sinks)]
-    policy_id = context.policy['id']
-    dataset_name = dataset_name_prefix + random_string(10)
-    context.dataset = create_dataset(token, dataset_name, policy_id, agent_groups_id, context.used_sinks_id)
-    local_orb_path = configs.get("local_orb_path")
-    dataset_schema_path = local_orb_path + "/python-test/features/steps/schemas/dataset_schema.json"
-    is_schema_valid = validate_json(context.dataset, dataset_schema_path)
-    assert_that(is_schema_valid, equal_to(True), f"Invalid dataset json. \n Dataset = {context.dataset}")
-    if 'datasets_created' in context:
-        context.datasets_created[context.dataset['id']] = context.dataset['name']
-    else:
-        context.datasets_created = dict()
-        context.datasets_created[context.dataset['id']] = context.dataset['name']
+        assert_that(str(amount_of_datasets), equal_to(str(1)), "For more than one dataset, pass 'an existing' as group"
+                                                          " parameter")
+        order_convert = {"first": 0, "last": -1, "second": 1}
+        groups_to_be_used = [list(context.agent_groups.keys())[order_convert[group_order]]]
+
+    for i in range(int(amount_of_datasets)):
+        context.considered_timestamp = datetime.now().timestamp()
+        token = context.token
+        if amount_of_sinks == 1:
+            context.used_sinks_id = [context.sink['id']]
+        else:
+            # todo create scenario with multiple sinks
+            context.used_sinks_id = context.existent_sinks_id[:int(amount_of_sinks)]
+        policy_id = context.policy['id']
+        dataset_name = dataset_name_prefix + random_string(10)
+        context.dataset = create_dataset(token, dataset_name, policy_id, groups_to_be_used[i], context.used_sinks_id)
+        local_orb_path = configs.get("local_orb_path")
+        dataset_schema_path = local_orb_path + "/python-test/features/steps/schemas/dataset_schema.json"
+        is_schema_valid = validate_json(context.dataset, dataset_schema_path)
+        assert_that(is_schema_valid, equal_to(True), f"Invalid dataset json. \n Dataset = {context.dataset}. \n"
+                                                     f"Policy: {context.policy}. \n Group: {groups_to_be_used[i]}. \n"
+                                                     f"Sink(s): {context.used_sinks_id}")
+        if 'datasets_created' in context:
+            context.datasets_created[context.dataset['id']] = context.dataset['name']
+        else:
+            context.datasets_created = dict()
+            context.datasets_created[context.dataset['id']] = context.dataset['name']
 
 
 @step("the dataset is edited and {amount_of_sinks} sinks are linked")
@@ -49,7 +65,7 @@ def edit_sinks_on_dataset(context, amount_of_sinks):
 def check_dataset_status_invalid(context):
     for dataset_id in context.id_of_datasets_related_to_removed_policy:
         dataset = get_dataset(context.token, dataset_id)
-        assert_that(dataset['valid'], equal_to(False), f"dataset {dataset_id} status failed with valid"
+        assert_that(dataset['valid'], equal_to(False), f"dataset {dataset} status failed with valid"
                                                        f"equals {dataset['valid']}")
 
 
@@ -72,13 +88,15 @@ def check_orb_datasets_list(context, condition='must'):
     all_existing_datasets = list_datasets(context.token)
     is_dataset_listed = any(dataset_id in dataset.values() for dataset in all_existing_datasets)
     if condition == 'must':
-        assert_that(is_dataset_listed, equal_to(True), f"Dataset {dataset_id} not listed on orb datasets list")
+        assert_that(is_dataset_listed, equal_to(True), f"Dataset {dataset_id} not listed on orb datasets list."
+                                                       f" {context.dataset}")
         get_dataset(context.token, dataset_id)
     elif condition == 'must not':
-        assert_that(is_dataset_listed, equal_to(False), f"Dataset {dataset_id} exists in the orb datasets list")
+        assert_that(is_dataset_listed, equal_to(False), f"Dataset {dataset_id} exists in the orb datasets list. "
+                                                        f"{context.dataset}")
         policy = get_dataset(context.token, dataset_id, 404)
         assert_that(policy['error'], equal_to('non-existent entity'),
-                    "Unexpected response for get dataset request")
+                    f"Unexpected response for get dataset request. {policy}")
 
 
 @step('datasets related to all existing policies have validity valid')
@@ -86,7 +104,7 @@ def check_dataset_status_valid(context):
     all_datasets = list_datasets(context.token)
     for dataset in all_datasets:
         if dataset["agent_policy_id"] in context.policies_created.keys():
-            assert_that(dataset['valid'], equal_to(True), f"dataset {dataset['id']} status failed with valid "
+            assert_that(dataset['valid'], equal_to(True), f"dataset {dataset} status failed with valid "
                                                           f"equals {dataset['valid']}")
 
 
@@ -95,7 +113,7 @@ def check_dataset_status_valid(context, validity):
     assert_that(validity, any_of(equal_to('invalid'), equal_to('valid')))
     validity_bool = {"invalid": False, "valid": True}
     dataset = get_dataset(context.token, context.dataset['id'])
-    assert_that(dataset['valid'], equal_to(validity_bool[validity]), f"dataset {dataset['id']} status failed with "
+    assert_that(dataset['valid'], equal_to(validity_bool[validity]), f"dataset {dataset} status failed with "
                                                                      f"valid equals {dataset['valid']}")
 
 
@@ -116,7 +134,8 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
 
     response = requests.post(orb_url + '/api/v1/policies/dataset', json=json_request, headers=header_request)
     assert_that(response.status_code, equal_to(201),
-                'Request to create dataset failed with status=' + str(response.status_code))
+                'Request to create dataset failed with status=' + str(response.status_code) + ': ' +
+                str(response.json()))
 
     return response.json()
 
@@ -139,7 +158,7 @@ def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_
 
     response = requests.put(f"{orb_url}/api/v1/policies/dataset/{dataset_id}", json=json_request, headers=header_request)
     assert_that(response.status_code, equal_to(200),
-                'Request to edit dataset failed with status=' + str(response.status_code))
+                'Request to edit dataset failed with status=' + str(response.status_code) + ': ' + str(response.json()))
 
     return response.json()
 
@@ -155,11 +174,6 @@ def clean_datasets(context):
     datasets_list = list_datasets(token)
     datasets_filtered_list = filter_list_by_parameter_start_with(datasets_list, 'name', dataset_name_prefix)
     delete_datasets(token, datasets_filtered_list)
-
-
-@given('that a dataset using referred group, sink and policy ID already exists')
-def new_dataset(context):
-    create_new_dataset(context)
 
 
 def list_datasets(token, limit=100, offset=0):
@@ -198,7 +212,7 @@ def list_up_to_limit_datasets(token, limit=100, offset=0):
                             params={"limit": limit, "offset": offset})
 
     assert_that(response.status_code, equal_to(200),
-                'Request to list datasets failed with status=' + str(response.status_code))
+                'Request to list datasets failed with status=' + str(response.status_code) + ':' + str(response.json()))
 
     datasets_as_json = response.json()
     return datasets_as_json['datasets'], datasets_as_json['total'], datasets_as_json['offset']

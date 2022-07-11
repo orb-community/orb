@@ -63,7 +63,7 @@ export class AgentPoliciesService {
         err => {
           this.notificationsService.error('Failed to create Agent Policy',
             `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
-          return of(err);
+          return Observable.throwError(err);
         },
       );
   }
@@ -104,8 +104,8 @@ export class AgentPoliciesService {
       .catch(
         err => {
           this.notificationsService.error('Failed to edit Agent Policy',
-            `Error: ${ err.status } - ${ err.statusText }`);
-          return of(err);
+            `Error: ${ err.status } - ${ err.statusText } - ${ err.error.error }`);
+          return Observable.throwError(err);
         },
       );
   }
