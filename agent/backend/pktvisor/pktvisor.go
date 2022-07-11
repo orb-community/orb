@@ -344,7 +344,7 @@ func (p *pktvisorBackend) scrapeDefault() error {
 		for pName, pMetrics := range metrics {
 			data, err := p.policyRepo.GetByName(pName)
 			if err != nil {
-				p.logger.Warn("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.Error(err))
+				p.logger.Warn("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.String("error message", err.Error()))
 				continue
 			}
 			payloadData, err := json.Marshal(pMetrics)

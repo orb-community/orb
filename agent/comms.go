@@ -30,6 +30,10 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 			a.Stop()
 		}
 	})
+	opts.SetResumeSubs(true)
+	opts.SetOnConnectHandler(func(client mqtt.Client) {
+		a.requestReconnection(client, config)
+	})
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(true)
 
@@ -117,7 +121,6 @@ func (a *orbAgent) startComms(config config.MQTTConfig) error {
 			return ErrMqttConnection
 		}
 	}
-	a.requestReconnection(a.client, config)
 
 	return nil
 }
