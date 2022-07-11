@@ -291,7 +291,7 @@ func TestNotifyGroupRemoval(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := commsSVC.NotifyGroupRemoval(tc.agentGroup)
+		err := commsSVC.NotifyGroupRemoval(context.Background(), tc.agentGroup)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }

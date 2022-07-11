@@ -64,7 +64,7 @@ type GroupRemovedRPC struct {
 type GroupRemovedRPCPayload struct {
 	AgentGroupID string   `json:"agent_group_id"`
 	ChannelID    string   `json:"channel_id"`
-	DatasetsID   []string `json:"datasets_id"`
+	Datasets     []string `json:"datasets"`
 }
 
 const DatasetRemovedRPCFunc = "dataset_removed"

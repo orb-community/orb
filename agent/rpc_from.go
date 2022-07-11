@@ -148,7 +148,7 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 				continue
 			}
 		} else {
-			for _, datasetID := range rpc.DatasetsID {
+			for _, datasetID := range rpc.Datasets {
 				a.removeDatasetFromPolicy(datasetID, policy.ID)
 			}
 		}
