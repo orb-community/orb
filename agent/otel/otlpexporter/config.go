@@ -12,8 +12,7 @@ type Config struct {
 	exporterhelper.TimeoutSettings `mapstructure:",squash"`
 	exporterhelper.QueueSettings   `mapstructure:"sending_queue"`
 	exporterhelper.RetrySettings   `mapstructure:"retry_on_failure"`
-
-	configgrpc.GRPCClientSettings `mapstructure:",squash"`
+	configgrpc.GRPCClientSettings  `mapstructure:",squash"`
 }
 
 var _ config.Exporter = (*Config)(nil)
@@ -24,4 +23,15 @@ func (cfg *Config) Validate() error {
 		return fmt.Errorf("at least one endpoint must be specified")
 	}
 	return nil
+}
+
+
+// ID gets the receiver name.
+func (cfg *Config) ID() config.ComponentID {
+	return cfg.ExporterSettings.ID()
+}
+
+// SetIDName sets the receiver name.
+func (cfg *Config) SetIDName(idName string) {
+	cfg.ExporterSettings.SetIDName(idName)
 }

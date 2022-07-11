@@ -1,5 +1,10 @@
 extensions:
   nop:
+  oauth2client:
+    client_id: agent
+    client_secret: Dl76n1p8P2SEdqhcyfcqtmNJi8Kf5LG3
+    token_url: http://localhost:8080/auth/realms/opentelemetry/protocol/openid-connect/token
+
 
 receivers:
   nop:
@@ -17,9 +22,9 @@ exporters:
     metricsTopic: "channels/9610b0a4-b05f-46e5-a32d-000d8a2ec1fd/messages/be/pktvisor"
 
 service:
-  extensions: [ nop ]
+  extensions:
   pipelines:
-    traces:
-      receivers: [ nop ]
+    metrics:
+      receivers: [ otlp, otlp/withauth ]
       processors: [ nop ]
       exporters: [ otlpmqtt ]

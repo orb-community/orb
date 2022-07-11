@@ -22,9 +22,16 @@ import (
 	"github.com/ns1labs/orb/sinker/config"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
+	promexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
+	"go.opentelemetry.io/collector/component"
+	otelconfig "go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"strings"
 	"time"
+
+	otlpreceiver "github.com/ns1labs/orb/sinker/otel/otlpreceiver"
 )
 
 const (
@@ -285,6 +292,31 @@ func (svc sinkerService) Start() error {
 	svc.hbDone = make(chan bool)
 	go svc.checkSinker()
 
+	ctx := context.Background()
+	exporter, err := createExporter(ctx, svc.logger)
+	if err != nil {
+		return err
+	}
+
+	set := otlpreceiver.CreateDefaultCreateSetting(svc.logger)
+	cfg := otlpreceiver.CreateDefaultConfig()
+	receiver, err := otlpreceiver.CreateMetricsReceiver(ctx, set, cfg, exporter)
+	if err != nil {
+		return err
+	}
+
+	err = exporter.Start(ctx, nil)
+	if err != nil {
+		svc.logger.Error("otel exporter startup error", zap.Error(err))
+		return err
+	}
+
+	err = receiver.Start(ctx, nil)
+	if err != nil {
+		svc.logger.Error("otel receiver startup error", zap.Error(err))
+		return err
+	}
+
 	return nil
 }
 
@@ -325,4 +357,29 @@ func New(logger *zap.Logger,
 		requestGauge:   requestGauge,
 		requestCounter: requestCounter,
 	}
+}
+
+func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
+	// 2. Create the Prometheus metrics exporter that'll receive and verify the metrics produced.
+	exporterCfg := &promexporter.Config{
+		ExporterSettings: otelconfig.NewExporterSettings(otelconfig.NewComponentID("pktvisor_prometheus_exporter")),
+		Namespace:        "test",
+		Endpoint:         ":8787",
+		SendTimestamps:   true,
+		MetricExpiration: 2 * time.Hour,
+	}
+	exporterFactory := promexporter.NewFactory()
+	set := component.ExporterCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.GetMeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+	exporter, err := exporterFactory.CreateMetricsExporter(ctx, set, exporterCfg)
+	if err != nil {
+		return nil, err
+	}
+	return exporter, nil
 }

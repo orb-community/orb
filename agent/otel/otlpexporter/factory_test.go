@@ -35,3 +35,13 @@ func TestCreateMetricsExporter(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, oexp)
 }
+
+func TestCreatePrometheusAuthExporter(t *testing.T) {
+	factory := otlpexporter.NewFactory()
+	cfg := factory.CreateDefaultConfig().(*otlpexporter.Config)
+	// Endpoint to fetch the data from agent
+	cfg.GRPCClientSettings.Endpoint = "localhost:1234"
+
+	// Validate Auth
+
+}
