@@ -138,10 +138,6 @@ func (a agentRepositoryMock) Delete(ctx context.Context, ownerID, thingID string
 	return nil
 }
 
-func (a agentRepositoryMock) RetrieveCountGroupAgents(ctx context.Context, owner string, tags types.Tags) (int, error) {
-	return 0, nil
-}
-
 func NewAgentRepositoryMock() fleet.AgentRepository {
 	return &agentRepositoryMock{
 		agentsMock: make(map[string]fleet.Agent),

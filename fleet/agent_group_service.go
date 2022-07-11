@@ -17,6 +17,8 @@ import (
 	"strings"
 )
 
+const limitThingsByChannel uint64 = 100
+
 var (
 	ErrCreateAgentGroup = errors.New("failed to create agent group")
 
@@ -240,21 +242,25 @@ func (svc fleetService) RemoveAgentGroup(ctx context.Context, token, groupId str
 		return err
 	}
 
-	totalGroupAgents, err := svc.agentRepo.RetrieveCountGroupAgents(ctx, ownerID, group.Tags)
-	if err != nil {
-		svc.logger.Error("error retrieving total group agents", zap.Error(err))
-	}
-
-	connectedAgents, err := svc.mfsdk.ThingsByChannel(token, group.MFChannelID, 0, uint64(totalGroupAgents+1), false)
-	if err != nil {
-		svc.logger.Error("error retrieving connected agents from specified channel", zap.Error(err))
-	}
-
-	for _, agent := range connectedAgents.Things {
-		err := svc.mfsdk.DisconnectThing(agent.ID, group.MFChannelID, token)
+	var lastRead uint64 = 1
+	for {
+		connectedAgents, err := svc.mfsdk.ThingsByChannel(token, group.MFChannelID, lastRead, limitThingsByChannel, false)
 		if err != nil {
-			return errors.Wrap(errors.New("error while disconnecting agents"), err)
+			return err
 		}
+
+		for _, agent := range connectedAgents.Things {
+			err := svc.mfsdk.DisconnectThing(agent.ID, group.MFChannelID, token)
+			if err != nil {
+				return errors.Wrap(errors.New("error while disconnecting agents"), err)
+			}
+		}
+
+		if connectedAgents.Total < limitThingsByChannel {
+			break
+		}
+
+		lastRead += limitThingsByChannel
 	}
 
 	err = svc.mfsdk.DeleteChannel(group.MFChannelID, token)
