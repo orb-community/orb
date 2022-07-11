@@ -55,7 +55,7 @@ export class GroupedAgentsComponent implements OnInit, OnChanges {
       this.isLoading = true;
       this.subscription?.unsubscribe();
 
-      this.agentsService.getMatchingAgents(tags)
+      this.agentsService.getAllAgents(tags)
         .subscribe(agents => {
           this.agents = agents;
           this.isLoading = false;

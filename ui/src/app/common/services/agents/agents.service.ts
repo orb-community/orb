@@ -127,55 +127,14 @@ export class AgentsService {
       });
   }
 
-  getMatchingAgents(tagsInfo: any): Observable<Agent[]> {
-    const pageInfo: OrbPagination<Agent> = {
-      order: 'name',
-      dir: 'asc',
-      limit: 100,
-      offset: 0,
-      data: [],
-    };
-    const { order, dir, offset, limit } = pageInfo;
-
-    const params = new HttpParams()
-      .set('order', order)
-      .set('dir', dir)
-      .set('offset', offset.toString())
-      .set('limit', limit.toString())
-      .set('tags', JSON.stringify(tagsInfo).replace('[', '').replace(']', ''));
-
-    return this.http
-      .get<OrbPagination<Agent[]>>(environment.agentsUrl, { params })
-      .pipe(
-        expand((data) => {
-          return data.next ? this.getAgents(data.next) : EMPTY;
-        }),
-        reduce<OrbPagination<Agent>>((acc, value) => {
-          acc.data = value.data;
-          acc.offset = 0;
-          acc.total = acc.data.length;
-          return acc;
-        }, pageInfo),
-        map((resp: any) => {
-          return this.mapCombinedTags(resp.agents);
-        }),
-      )
-      .catch((err) => {
-        this.notificationsService.error(
-          'Failed to get Matching Agents',
-          `Error: ${err.status} - ${err.statusText}`,
-        );
-        return Observable.throwError(err);
-      });
-  }
-
-  getAllAgents() {
+  getAllAgents(tags?: any) {
     const pageInfo = {
       order: 'name',
       dir: 'asc',
       limit: 100,
       data: [],
       offset: 0,
+      tags,
     } as OrbPagination<Agent>;
     return this.getAgents(pageInfo).pipe(
       expand((data) => {
@@ -192,21 +151,26 @@ export class AgentsService {
   }
 
   getAgents(page: OrbPagination<Agent>) {
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('order', page.order)
       .set('dir', page.dir)
       .set('offset', page.offset.toString())
       .set('limit', page.limit.toString());
 
+    if (page.tags) {
+      params = params.set('tags', JSON.stringify(page.tags).replace('[', '').replace(']', ''));
+    }
+
     return this.http
       .get(`${environment.agentsUrl}`, { params })
       .pipe(
         map((resp: any) => {
-          const { order, dir, offset, limit, total, agents } = resp;
+          const { order, dir, offset, limit, total, agents, tags } = resp;
           const next = offset + limit < total && {
             limit,
             order,
             dir,
+            tags,
             offset: (parseInt(offset, 10) + parseInt(limit, 10)).toString(),
           };
           return {
