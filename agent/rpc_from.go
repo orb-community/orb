@@ -147,6 +147,10 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 				a.logger.Warn("failed to remove a policy, ignoring", zap.String("policy_id", policy.ID), zap.String("policy_name", policy.Name), zap.Error(err))
 				continue
 			}
+		} else {
+			for _, datasetID := range rpc.Datasets {
+				a.removeDatasetFromPolicy(datasetID, policy.ID)
+			}
 		}
 	}
 }
