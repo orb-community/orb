@@ -252,7 +252,7 @@ func (svc fleetService) RemoveAgentGroup(ctx context.Context, token, groupId str
 		for _, agent := range connectedAgents.Things {
 			err := svc.mfsdk.DisconnectThing(agent.ID, group.MFChannelID, token)
 			if err != nil {
-				return errors.Wrap(errors.New("error while disconnecting agents"), err)
+				svc.logger.Error("error while disconnecting agent", zap.String("agent_name", agent.Name), zap.String("agent_id", agent.ID), zap.Error(err))
 			}
 		}
 
