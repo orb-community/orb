@@ -129,6 +129,19 @@ func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label
 					tsList = makePromParticle(ctxt, label+key, "", value, tsList, false, "")
 				}
 			}
+		// The StatSnapshot has two ways to record metrics (i.e. P50 float64 `mapstructure:"p50"`)
+		// It's why we check if the type is float64
+		case float64:
+			{
+				// Use this regex to identify if the value it's a quantile
+				var matchFirstQuantile = regexp.MustCompile("^([P-p])+[0-9]")
+				if ok := matchFirstQuantile.MatchString(key); ok {
+					// If it's quantile, needs to be parsed to prom quantile format
+					tsList = makePromParticle(ctxt, label, key, value, tsList, ok, "")
+				} else {
+					tsList = makePromParticle(ctxt, label+key, "", value, tsList, false, "")
+				}
+			}
 		// The StatSnapshot has two ways to record metrics (i.e. TopIpv4   []NameCount   `mapstructure:"top_ipv4"`)
 		// It's why we check if the type is []interface
 		// Here we extract the value for Name and Estimate
@@ -263,14 +276,14 @@ func topNMetricsParser(label string) (string, error) {
 	mapNMetrics := make(map[string]string)
 	mapNMetrics["TopGeoLocECS"] = "geo_loc"
 	mapNMetrics["TopGeoLoc"] = "geo_loc"
-	mapNMetrics["TopASNECS"] = "asn"
+	mapNMetrics["TopAsnECS"] = "asn"
 	mapNMetrics["TopASN"] = "asn"
 	mapNMetrics["TopQueryECS"] = "ecs"
 	mapNMetrics["TopIpv6"] = "ipv6"
 	mapNMetrics["TopIpv4"] = "ipv4"
 	mapNMetrics["TopQname2"] = "qname"
 	mapNMetrics["TopQname3"] = "qname"
-	mapNMetrics["TopSizedQnameResp"] = "qname"
+	mapNMetrics["TopQnameByRespSize"] = "qname"
 	mapNMetrics["TopNxdomain"] = "qname"
 	mapNMetrics["TopQtype"] = "qtype"
 	mapNMetrics["TopRcode"] = "rcode"
