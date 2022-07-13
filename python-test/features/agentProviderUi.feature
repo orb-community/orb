@@ -7,7 +7,7 @@ Feature: Create agents using orb ui
             And that fleet Management is clickable on ORB Menu
             And that Agents is clickable on ORB Menu
         When a new agent is created through the UI with 3 orb tag(s)
-        Then the agents list and the agents view should display agent's status as New within 10 seconds
+        Then the agents list and the agents view should display agent's status as New within 30 seconds
 
     @smoke_ui
     Scenario: Provision agent
@@ -16,9 +16,9 @@ Feature: Create agents using orb ui
             And that Agents is clickable on ORB Menu
         When a new agent is created through the UI with 2 orb tag(s)
             And the agent container is started using the command provided by the UI on an available port
-        Then the agents list and the agents view should display agent's status as Online within 10 seconds
-            And the agent status in Orb should be online within 10 seconds
-            And the container logs should contain the message "sending capabilities" within 10 seconds
+        Then the agents list and the agents view should display agent's status as Online within 30 seconds
+            And the agent status in Orb should be online within 30 seconds
+            And the container logs should contain the message "sending capabilities" within 30 seconds
 
     @smoke_ui
     Scenario: Run two orb agents on the same port
@@ -30,7 +30,7 @@ Feature: Create agents using orb ui
         When a new agent is created through the UI with 1 orb tag(s)
             And the agent container is started using the command provided by the UI on an unavailable port
         Then last container created is exited after 5 seconds
-            And the container logs should contain the message "agent startup error" within 2 seconds
+            And the container logs should contain the message "agent startup error" within 5 seconds
             And first container created is running after 5 seconds
 
     @smoke_ui
