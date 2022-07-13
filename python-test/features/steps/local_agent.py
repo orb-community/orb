@@ -244,7 +244,6 @@ def run_agent_config_file(agent_name, time_to_wait=5):
     """
     Run an agent container using an agent config file
 
-    :param orb_path: path to orb directory
     :param agent_name: name of the orb agent
     :param time_to_wait: seconds that threading must wait after run the agent
     :return: agent container id
