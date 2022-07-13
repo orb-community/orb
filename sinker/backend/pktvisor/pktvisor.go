@@ -134,7 +134,7 @@ func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label
 		case float64:
 			{
 				// Use this regex to identify if the value it's a quantile
-				var matchFirstQuantile = regexp.MustCompile("^([P-p])+[0-9]")
+				var matchFirstQuantile = regexp.MustCompile("^[Pp]+[5-9][0-9]")
 				if ok := matchFirstQuantile.MatchString(key); ok {
 					// If it's quantile, needs to be parsed to prom quantile format
 					tsList = makePromParticle(ctxt, label, key, value, tsList, ok, "")
@@ -235,8 +235,10 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 		}
 	}
 	if err := dpFlag.Set(fmt.Sprintf("now,%d", v)); err != nil {
-		handleParticleError(ctxt, err)
-		return tsList
+		if err := dpFlag.Set(fmt.Sprintf("now,%v", v)); err != nil {
+			handleParticleError(ctxt, err)
+			return tsList
+		}
 	}
 	*tsList = append(*tsList, prometheus.TimeSeries{
 		Labels:    labelsListFlag,

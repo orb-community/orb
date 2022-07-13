@@ -48,19 +48,20 @@ type DHCPPayload struct {
 // DNSPayload contains the information specifically for the DNS protocol
 type DNSPayload struct {
 	WirePackets struct {
-		Ipv4     int64 `mapstructure:"ipv4"`
-		Ipv6     int64 `mapstructure:"ipv6"`
-		Queries  int64 `mapstructure:"queries"`
-		Replies  int64 `mapstructure:"replies"`
-		TCP      int64 `mapstructure:"tcp"`
-		Total    int64 `mapstructure:"total"`
-		UDP      int64 `mapstructure:"udp"`
-		Nodata   int64 `mapstructure:"nodata"`
-		Noerror  int64 `mapstructure:"noerror"`
-		Nxdomain int64 `mapstructure:"nxdomain"`
-		Srvfail  int64 `mapstructure:"srvfail"`
-		Refused  int64 `mapstructure:"refused"`
-		Filtered int64 `mapstructure:"filtered"`
+		Ipv4        int64 `mapstructure:"ipv4"`
+		Ipv6        int64 `mapstructure:"ipv6"`
+		Queries     int64 `mapstructure:"queries"`
+		Replies     int64 `mapstructure:"replies"`
+		TCP         int64 `mapstructure:"tcp"`
+		Total       int64 `mapstructure:"total"`
+		UDP         int64 `mapstructure:"udp"`
+		Nodata      int64 `mapstructure:"nodata"`
+		Noerror     int64 `mapstructure:"noerror"`
+		Nxdomain    int64 `mapstructure:"nxdomain"`
+		Srvfail     int64 `mapstructure:"srvfail"`
+		Refused     int64 `mapstructure:"refused"`
+		Filtered    int64 `mapstructure:"filtered"`
+		DeepSamples int64 `mapstructure:"deep_samples"`
 	} `mapstructure:"wire_packets"`
 	Rates struct {
 		Total Rates `mapstructure:"total"`
@@ -92,20 +93,20 @@ type DNSPayload struct {
 			} `mapstructure:"quantiles"`
 		} `mapstructure:"ratio"`
 	} `mapstructure:"xact"`
-	TopGeoLocECS       []NameCount   `mapstructure:"top_geoLoc_ecs"`
-	TopAsnECS          []NameCount   `mapstructure:"top_asn_ecs"`
-	TopQueryECS        []NameCount   `mapstructure:"top_query_ecs"`
-	TopQname2          []NameCount   `mapstructure:"top_qname2"`
-	TopQname3          []NameCount   `mapstructure:"top_qname3"`
-	TopNxdomain        []NameCount   `mapstructure:"top_nxdomain"`
-	TopQtype           []NameCount   `mapstructure:"top_qtype"`
-	TopRcode           []NameCount   `mapstructure:"top_rcode"`
-	TopREFUSED         []NameCount   `mapstructure:"top_refused"`
-	TopQnameByRespSize []NameCount   `mapstructure:"top_qname_by_resp_size"`
-	TopSRVFAIL         []NameCount   `mapstructure:"top_srvfail"`
-	TopNODATA          []NameCount   `mapstructure:"top_nodata"`
-	TopUDPPorts        []NameCount   `mapstructure:"top_udp_ports"`
-	Period             PeriodPayload `mapstructure:"period"`
+	TopGeoLocECS        []NameCount   `mapstructure:"top_geoLoc_ecs"`
+	TopAsnECS           []NameCount   `mapstructure:"top_asn_ecs"`
+	TopQueryECS         []NameCount   `mapstructure:"top_query_ecs"`
+	TopQname2           []NameCount   `mapstructure:"top_qname2"`
+	TopQname3           []NameCount   `mapstructure:"top_qname3"`
+	TopNxdomain         []NameCount   `mapstructure:"top_nxdomain"`
+	TopQtype            []NameCount   `mapstructure:"top_qtype"`
+	TopRcode            []NameCount   `mapstructure:"top_rcode"`
+	TopREFUSED          []NameCount   `mapstructure:"top_refused"`
+	TopQnameByRespBytes []NameCount   `mapstructure:"top_qname_by_resp_bytes"`
+	TopSRVFAIL          []NameCount   `mapstructure:"top_srvfail"`
+	TopNODATA           []NameCount   `mapstructure:"top_nodata"`
+	TopUDPPorts         []NameCount   `mapstructure:"top_udp_ports"`
+	Period              PeriodPayload `mapstructure:"period"`
 }
 
 // PacketPayload contains information about raw packets regardless of protocol
@@ -131,8 +132,8 @@ type PacketPayload struct {
 	} `mapstructure:"protocol"`
 	PayloadSize Quantiles `mapstructure:"payload_size"`
 	Rates       struct {
-		BpsIn    Rates `mapstructure:"bps_in"`
-		BpsOut   Rates `mapstructure:"bps_out"`
+		BytesIn  Rates `mapstructure:"bytes_in"`
+		BytesOut Rates `mapstructure:"bytes_out"`
 		PpsIn    Rates `mapstructure:"pps_in"`
 		PpsOut   Rates `mapstructure:"pps_out"`
 		PpsTotal Rates `mapstructure:"pps_total"`
@@ -175,8 +176,8 @@ type FlowPayload struct {
 	PayloadSize Quantiles     `mapstructure:"payload_size"`
 	Period      PeriodPayload `mapstructure:"period"`
 	Rates       struct {
-		Bps Rates `mapstructure:"bps"`
-		Pps Rates `mapstructure:"pps"`
+		Bytes   Rates `mapstructure:"bytes"`
+		Packets Rates `mapstructure:"packets"`
 	} `mapstructure:"rates"`
 	TCP                     int64       `mapstructure:"tcp"`
 	TopDstIpsAndPortBytes   []NameCount `mapstructure:"top_dst_ips_and_port_bytes"`
