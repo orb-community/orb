@@ -8,25 +8,12 @@ import {
 } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 
-import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { STRINGS } from 'assets/text/strings';
 import {
   ColumnMode,
   DatatableComponent,
   TableColumn,
 } from '@swimlane/ngx-datatable';
-import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
-import {
-  Sink,
-  SinkBackends,
-  SinkStates,
-} from 'app/common/interfaces/orb/sink.interface';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { combineLatest, Observable } from 'rxjs';
-import { filter, map, startWith } from 'rxjs/operators';
-import { OrbService } from 'app/common/services/orb.service';
 import {
   filterMultiSelect,
   FilterOption,
@@ -34,7 +21,19 @@ import {
   filterTags,
   FilterTypes,
 } from 'app/common/interfaces/orb/filter-option';
+import {
+  Sink,
+  SinkBackends,
+  SinkStates,
+} from 'app/common/interfaces/orb/sink.interface';
 import { FilterService } from 'app/common/services/filter.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { OrbService } from 'app/common/services/orb.service';
+import { SinksService } from 'app/common/services/sinks/sinks.service';
+import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
+import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
+import { STRINGS } from 'assets/text/strings';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'ngx-sink-list-component',
@@ -120,7 +119,11 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked {
       },
     ];
 
-    this.filteredSinks$ = this.filters.createFilteredList()(this.sinks$, this.filters$, this.filterOptions);
+    this.filteredSinks$ = this.filters.createFilteredList()(
+      this.sinks$,
+      this.filters$,
+      this.filterOptions,
+    );
   }
 
   ngAfterViewChecked() {

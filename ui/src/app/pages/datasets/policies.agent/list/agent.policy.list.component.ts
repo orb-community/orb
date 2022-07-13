@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import {
   AfterViewChecked,
   AfterViewInit,
@@ -6,29 +7,27 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { NbDialogService } from '@nebular/theme';
 import {
   ColumnMode,
   DatatableComponent,
   TableColumn,
 } from '@swimlane/ngx-datatable';
-import { STRINGS } from '../../../../../assets/text/strings';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { NbDialogService } from '@nebular/theme';
-import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
-import { DatePipe } from '@angular/common';
-import { combineLatest, Observable } from 'rxjs';
-import { OrbService } from 'app/common/services/orb.service';
-import { map, startWith } from 'rxjs/operators';
 import {
   filterExact,
   FilterOption,
   filterSubstr,
   FilterTypes,
 } from 'app/common/interfaces/orb/filter-option';
+import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { FilterService } from 'app/common/services/filter.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { OrbService } from 'app/common/services/orb.service';
+import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
+import { Observable } from 'rxjs';
+import { STRINGS } from '../../../../../assets/text/strings';
 
 @Component({
   selector: 'ngx-agent-policy-list-component',
@@ -104,7 +103,11 @@ export class AgentPolicyListComponent
       },
     ];
 
-    this.filteredPolicies$ = this.filters.createFilteredList()(this.policies$, this.filters$, this.filterOptions);
+    this.filteredPolicies$ = this.filters.createFilteredList()(
+      this.policies$,
+      this.filters$,
+      this.filterOptions,
+    );
   }
 
   ngAfterViewChecked() {

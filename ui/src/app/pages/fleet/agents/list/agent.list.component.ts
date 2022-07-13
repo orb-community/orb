@@ -29,8 +29,7 @@ import { OrbService } from 'app/common/services/orb.service';
 import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete.component';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
 import { STRINGS } from 'assets/text/strings';
-import { combineLatest, Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'ngx-agent-list-component',
@@ -112,9 +111,11 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked {
       },
     ];
 
-    this.filteredAgents$ = this.filters.createFilteredList()(this.agents$, this.filters$, this.filterOptions);
-
-    
+    this.filteredAgents$ = this.filters.createFilteredList()(
+      this.agents$,
+      this.filters$,
+      this.filterOptions,
+    );
   }
 
   ngAfterViewChecked() {

@@ -14,9 +14,7 @@ import {
   TableColumn,
 } from '@swimlane/ngx-datatable';
 
-import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import {
   FilterOption,
   filterSubstr,
@@ -27,13 +25,12 @@ import {
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 import { FilterService } from 'app/common/services/filter.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { OrbService } from 'app/common/services/orb.service';
 import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { STRINGS } from 'assets/text/strings';
-import { OrbService } from 'app/common/services/orb.service';
-import { combineLatest, Observable } from 'rxjs';
-import { filter, map, startWith } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'ngx-agent-group-list-component',
@@ -121,8 +118,11 @@ export class AgentGroupListComponent
       // },
     ];
 
-    this.filteredGroups$ = this.filters.createFilteredList()(this.groups$, this.filters$, this.filterOptions);
-    
+    this.filteredGroups$ = this.filters.createFilteredList()(
+      this.groups$,
+      this.filters$,
+      this.filterOptions,
+    );
   }
 
   ngAfterViewChecked() {

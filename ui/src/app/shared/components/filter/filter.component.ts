@@ -6,7 +6,7 @@ import {
 } from 'app/common/interfaces/orb/filter-option';
 import { FilterService } from 'app/common/services/filter.service';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators'
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'ngx-filter',
