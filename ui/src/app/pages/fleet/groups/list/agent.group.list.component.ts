@@ -15,7 +15,6 @@ import {
 } from '@swimlane/ngx-datatable';
 
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import {
   FilterOption,
   filterSubstr,
