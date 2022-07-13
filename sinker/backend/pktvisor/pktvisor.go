@@ -106,7 +106,6 @@ func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
 	statsMap := structs.Map(stats)
 	convertToPromParticle(ctxt, statsMap, "", &tsList)
-	ctxt.logger.Debug("debugging converted statsMap", zap.Reflect("statsMap", statsMap))
 	return tsList
 }
 
@@ -230,7 +229,6 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 		Labels:    labelsListFlag,
 		Datapoint: prometheus.Datapoint(dpFlag),
 	}
-	ctxt.logger.Debug("debugging timeSeries built", zap.Any("timeSeries", timeSeries))
 	*tsList = append(*tsList, timeSeries)
 	return tsList
 }
