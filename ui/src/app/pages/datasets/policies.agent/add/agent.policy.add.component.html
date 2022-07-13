@@ -68,6 +68,7 @@
                       nbButton
                       nbStepperNext
                       shape="round"
+                      type="button"
                       status="primary">
                 {{ strings.stepper.next }}
               </button>
@@ -146,7 +147,6 @@
             <div *ngIf="!!inputConfigFG">
               <!-- Dynamic Input Config Form -->
               <form
-                (ngSubmit)="onFormSubmit()"
                 [formGroup]="inputConfigFG">
                 <div *ngFor="let control of input.config | keyvalue | advancedoptions:false ; index as i;">
                   <div *ngIf="inputConfigFG.controls.hasOwnProperty(control.key)">
@@ -259,7 +259,6 @@
             <div *ngIf="!!inputFilterFG">
               <!-- Dynamic Input Config Form -->
               <form
-                (ngSubmit)="onFormSubmit()"
                 [formGroup]="inputFilterFG">
                 <div *ngFor="let control of input.filter | keyvalue; index as i;">
                   <div *ngIf="inputFilterFG.controls.hasOwnProperty(control.key)">
@@ -335,7 +334,7 @@
               nbTooltip="Paste your YAML configuration in the code editor above"
               shape="round"
               status="primary"
-              type="submit">
+              type="button">
               {{ strings.stepper.save }}
             </button>
             <button
@@ -430,7 +429,7 @@
               nbTooltip="At least one handler must be configure and added to the policies."
               shape="round"
               status="primary"
-              type="submit">
+              type="button">
               {{ strings.stepper.save }}
             </button>
             <button
