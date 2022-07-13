@@ -121,7 +121,7 @@ func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label
 		case int64:
 			{
 				// Use this regex to identify if the value it's a quantile
-				var matchFirstQuantile = regexp.MustCompile("^([P-p])+[0-9]")
+				var matchFirstQuantile = regexp.MustCompile("^([Pp])+[0-9]")
 				if ok := matchFirstQuantile.MatchString(key); ok {
 					// If it's quantile, needs to be parsed to prom quantile format
 					tsList = makePromParticle(ctxt, label, key, value, tsList, ok, "")
@@ -134,7 +134,7 @@ func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label
 		case float64:
 			{
 				// Use this regex to identify if the value it's a quantile
-				var matchFirstQuantile = regexp.MustCompile("^[Pp]+[5-9][0-9]")
+				var matchFirstQuantile = regexp.MustCompile("^[Pp]+[0-9]")
 				if ok := matchFirstQuantile.MatchString(key); ok {
 					// If it's quantile, needs to be parsed to prom quantile format
 					tsList = makePromParticle(ctxt, label, key, value, tsList, ok, "")
