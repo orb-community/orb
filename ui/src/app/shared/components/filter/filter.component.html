@@ -1,4 +1,3 @@
-<!--<ng-container class="section-controls">-->
 <nb-select #master [(ngModel)]="selectedFilter" placeholder="Filter by">
   <nb-option *ngFor="let option of availableFilters" [value]="option">
     {{ option.name }}
