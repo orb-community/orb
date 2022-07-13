@@ -38,12 +38,10 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { ProfileComponent } from 'app/pages/profile/profile.component';
 import { GoogleAnalyticsService } from './common/services/analytics/google-service-analytics.service';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { OrbService } from './common/services/orb.service';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    ProfileComponent,
-  ],
+  declarations: [AppComponent, ProfileComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -81,10 +79,6 @@ import { MonacoEditorModule } from 'ngx-monaco-editor';
   ],
   bootstrap: [AppComponent],
   // Mfx dependencies
-  providers: [
-    GoogleAnalyticsService,
-    AuthGuard,
-  ],
+  providers: [GoogleAnalyticsService, AuthGuard, OrbService],
 })
-export class AppModule {
-}
+export class AppModule {}

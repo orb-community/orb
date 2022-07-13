@@ -1,0 +1,116 @@
+<!--<ng-container class="section-controls">-->
+<nb-select #master [(ngModel)]="selectedFilter" placeholder="Filter by">
+  <nb-option *ngFor="let option of availableFilters" [value]="option">
+    {{ option.name }}
+  </nb-option>
+</nb-select>
+
+<ng-container *ngIf="selectedFilter">
+  <ng-container [ngSwitch]="selectedFilter?.type">
+    <ng-container *ngSwitchCase="type.Input">
+      <ng-container [ngTemplateOutlet]="input"></ng-container>
+    </ng-container>
+    <ng-container *ngSwitchCase="type.AutoComplete">
+      <ng-container [ngTemplateOutlet]="auto"></ng-container>
+    </ng-container>
+    <ng-container *ngSwitchCase="type.Select">
+      <ng-container [ngTemplateOutlet]="select"></ng-container>
+    </ng-container>
+    <ng-container *ngSwitchCase="type.MultiSelect">
+      <ng-container [ngTemplateOutlet]="multi"></ng-container>
+    </ng-container>
+    <ng-container *ngSwitchCase="type.Checkbox">
+      <ng-container [ngTemplateOutlet]="checkbox"></ng-container>
+    </ng-container>
+    <button
+      (click)="addFilter()"
+      [disabled]="!filterParam || filterParam === ''"
+      ghost
+      status="primary"
+      nbButton
+    >
+      <i class="fa fa-plus">&nbsp;</i>
+    </button>
+  </ng-container>
+</ng-container>
+<!--  </ng-container>-->
+<!--<ng-container class="section-display" *ngIf="(activeFilters$ | async)?.length > 0">-->
+<!--  <span class="applied-label" >Applied Filters</span>-->
+<mat-chip-list>
+  <mat-chip
+    *ngFor="let filter of activeFilters$ | async; let index = index"
+    class="filter-chip"
+  >
+    {{ filter.name + ': ' + filter?.param }}
+    <button
+      class="remove-tag-button"
+      (click)="removeFilter(index)"
+      nbButton
+      shape="round"
+    >
+      <i class="fa fa-window-close" style="color: #3089fc;">&nbsp;</i>
+    </button>
+  </mat-chip>
+</mat-chip-list>
+<!--</ng-container>-->
+
+<ng-template #input>
+  <input
+    [(ngModel)]="filterParam"
+    nbInput
+    required
+    type="text"
+    placeholder="{{ selectedFilter?.name }}"
+  />
+</ng-template>
+<ng-template #select>
+  <nb-select [(selected)]="filterParam" placeholder="--select--" required>
+    <nb-option *ngFor="let option of selectedFilter?.options" [value]="option">
+      {{ option }}
+    </nb-option>
+  </nb-select>
+</ng-template>
+
+<ng-template #auto>
+  <nb-autocomplete #auto>
+    <nb-option
+      *ngFor="let option of selectedFilter?.autoSuggestion | async"
+      [value]="option"
+    >
+      {{ option }}
+    </nb-option>
+  </nb-autocomplete>
+  <input
+    #autoInput
+    [(ngModel)]="filterParam"
+    [nbAutocomplete]="auto"
+    nbInput
+    required
+    type="text"
+  />
+</ng-template>
+<ng-template #select>
+  <nb-select [(selected)]="filterParam" placeholder="--select--" required>
+    <nb-option *ngFor="let option of selectedFilter?.options" [value]="option">
+      {{ option }}
+    </nb-option>
+  </nb-select>
+</ng-template>
+
+<ng-template #multi>
+  <nb-select [(selected)]="filterParam" multiple required>
+    <nb-option
+      *ngFor="let option of selectedFilter?.options"
+      [ngClass]="option"
+      [value]="option"
+    >
+      {{ option }}
+    </nb-option>
+  </nb-select>
+</ng-template>
+
+<ng-template #checkbox>
+  <mat-checkbox [(ngModel)]="filterParam">{{
+    selectedFilter?.name
+  }}</mat-checkbox>
+</ng-template>

@@ -3,28 +3,38 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  OnInit,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
+import {
+  ColumnMode,
+  DatatableComponent,
+  TableColumn,
+} from '@swimlane/ngx-datatable';
 import { STRINGS } from '../../../../../assets/text/strings';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { NbDialogService } from '@nebular/theme';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
 import { DatePipe } from '@angular/common';
+import { combineLatest, Observable } from 'rxjs';
+import { OrbService } from 'app/common/services/orb.service';
+import { map, startWith } from 'rxjs/operators';
+import {
+  FilterOption,
+  FilterTypes,
+} from 'app/common/interfaces/orb/filter-option';
+import { FilterService } from 'app/common/services/filter.service';
 
 @Component({
   selector: 'ngx-agent-policy-list-component',
   templateUrl: './agent.policy.list.component.html',
   styleUrls: ['./agent.policy.list.component.scss'],
 })
-export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterViewChecked {
+export class AgentPolicyListComponent
+  implements AfterViewInit, AfterViewChecked {
   strings = STRINGS.agents;
 
   columnMode = ColumnMode;
@@ -33,43 +43,11 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
 
   loading = false;
 
-  paginationControls: OrbPagination<AgentPolicy>;
-
-  searchPlaceholder = 'Search by name';
-
   @ViewChild('nameTemplateCell') nameTemplateCell: TemplateRef<any>;
 
   @ViewChild('versionTemplateCell') versionTemplateCell: TemplateRef<any>;
 
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
-
-  tableFilters: DropdownFilterItem[] = [
-    {
-      id: '0',
-      label: 'Name',
-      prop: 'name',
-      selected: false,
-      filter: (policy, name) => policy?.name.includes(name),
-    },
-    {
-      id: '1',
-      label: 'Description',
-      prop: 'description',
-      selected: false,
-      filter: (policy, description) => policy?.description.includes(description),
-    },
-    {
-      id: '2',
-      label: 'Version',
-      prop: 'version',
-      selected: false,
-      filter: (policy, version) => policy?.version.includes(version),
-    },
-  ];
-
-  selectedFilter = this.tableFilters[0];
-
-  filterValue = null;
 
   tableSorts = [
     {
@@ -84,6 +62,11 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
 
   private currentComponentWidth;
 
+  policies$: Observable<AgentPolicy[]>;
+  filterOptions: FilterOption[];
+  filters$!: Observable<FilterOption[]>;
+  filteredPolicies$: Observable<AgentPolicy[]>;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -92,12 +75,64 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
     private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
+    private orb: OrbService,
+    private filters: FilterService,
   ) {
-    this.paginationControls = AgentPoliciesService.getDefaultPagination();
+    this.policies$ = this.orb.getPolicyListView();
+    this.filters$ = this.filters.getFilters().pipe(startWith([]));
+
+    this.filteredPolicies$ = combineLatest([
+      this.policies$,
+      this.filters$,
+    ]).pipe(
+      map(([policies, _filters]) => {
+        let filtered = policies;
+        _filters.forEach((_filter) => {
+          filtered = filtered.filter((value) => {
+            const paramValue = _filter.param;
+            const result = _filter.filter(value, paramValue);
+            return result;
+          });
+        });
+
+        return filtered;
+      }),
+    );
+
+    this.filterOptions = [
+      {
+        name: 'Name',
+        prop: 'name',
+        filter: (policy: AgentPolicy, name: string) => {
+          return policy.name?.includes(name);
+        },
+        type: FilterTypes.Input,
+      },
+      {
+        name: 'Description',
+        prop: 'description',
+        filter: (policy: AgentPolicy, description: string) => {
+          return policy.description?.includes(description);
+        },
+        type: FilterTypes.Input,
+      },
+      {
+        name: 'Version',
+        prop: 'version',
+        filter: (policy: AgentPolicy, version: number) => {
+          return policy.version === version;
+        },
+        type: FilterTypes.Input,
+      },
+    ];
   }
 
   ngAfterViewChecked() {
-    if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
+    if (
+      this.table &&
+      this.table.recalculate &&
+      this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth
+    ) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
       this.table.recalculate();
       this.cdr.detectChanges();
@@ -105,11 +140,8 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
     }
   }
 
-  ngOnInit() {
-    this.getAllPolicies();
-  }
-
   ngAfterViewInit() {
+    this.orb.refreshNow();
     this.columns = [
       {
         prop: 'name',
@@ -117,7 +149,7 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
         resizeable: false,
         canAutoResize: true,
         flexGrow: 2,
-        minWidth: 120,
+        minWidth: 150,
         cellTemplate: this.nameTemplateCell,
       },
       {
@@ -125,7 +157,8 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
         name: 'Description',
         resizeable: false,
         flexGrow: 4,
-        minWidth: 120,
+        minWidth: 150,
+        cellTemplate: this.nameTemplateCell,
       },
       {
         prop: 'version',
@@ -137,16 +170,19 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
       },
       {
         prop: 'ts_last_modified',
-        pipe: { transform: (value) => this.datePipe.transform(value, 'M/d/yy, HH:mm z') },
+        pipe: {
+          transform: (value) =>
+            this.datePipe.transform(value, 'M/d/yy, HH:mm z'),
+        },
         name: 'Last Modified',
-        minWidth: 140,
-        flexGrow: 2,
+        minWidth: 180,
+        flexGrow: 3,
         resizeable: false,
       },
       {
         name: '',
         prop: 'actions',
-        minWidth: 100,
+        minWidth: 150,
         resizeable: false,
         sortable: false,
         flexGrow: 2,
@@ -157,35 +193,6 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
     this.cdr.detectChanges();
   }
 
-  getAllPolicies(): void {
-    this.agentPoliciesService.clean();
-    this.agentPoliciesService.getAllAgentPolicies().subscribe(resp => {
-      this.paginationControls.data = resp.data;
-      this.paginationControls.total = resp.data.length;
-      this.paginationControls.offset = resp.offset / resp.limit;
-      this.loading = false;
-      this.cdr.markForCheck();
-    });
-  }
-
-  getAgentsPolicies(pageInfo: NgxDatabalePageInfo = null): void {
-    const finalPageInfo = { ...pageInfo };
-    finalPageInfo.dir = 'desc';
-    finalPageInfo.order = 'name';
-    finalPageInfo.limit = this.paginationControls.limit;
-    finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
-
-    this.loading = true;
-    this.agentPoliciesService.getAgentsPolicies(finalPageInfo).subscribe(
-      (resp: OrbPagination<AgentPolicy>) => {
-        this.paginationControls = resp;
-        this.paginationControls.offset = pageInfo?.offset || 0;
-        this.paginationControls.total = resp.total;
-        this.loading = false;
-      },
-    );
-  }
-
   onOpenAdd() {
     this.router.navigate(['add'], {
       relativeTo: this.route,
@@ -193,51 +200,36 @@ export class AgentPolicyListComponent implements OnInit, AfterViewInit, AfterVie
   }
 
   onOpenEdit(agentPolicy: any) {
-    this.router.navigate([`edit/${ agentPolicy.id }`], {
+    this.router.navigate([`edit/${agentPolicy.id}`], {
       state: { agentPolicy: agentPolicy, edit: true },
       relativeTo: this.route,
     });
   }
 
   onOpenView(agentPolicy: any) {
-    this.router.navigate([`view/${ agentPolicy.id }`], {
+    this.router.navigate([`view/${agentPolicy.id}`], {
       relativeTo: this.route,
     });
   }
 
-  onFilterSelected(filter) {
-    this.searchPlaceholder = `Search by ${ filter.label }`;
-    this.filterValue = null;
-  }
-
-  applyFilter() {
-    if (!this.paginationControls || !this.paginationControls?.data) return;
-
-    if (!this.filterValue || this.filterValue === '') {
-      this.table.rows = this.paginationControls.data;
-    } else {
-      this.table.rows = this.paginationControls.data.filter(sink => this.filterValue.split(/[,;]+/gm).reduce((prev, curr) => {
-        return this.selectedFilter.filter(sink, curr) && prev;
-      }, true));
-    }
-    this.paginationControls.offset = 0;
-  }
-
   openDeleteModal(row: any) {
-    const { name, id } = row as AgentPolicy;
-    this.dialogService.open(AgentPolicyDeleteComponent, {
-      context: { name },
-      autoFocus: true,
-      closeOnEsc: true,
-    }).onClose.subscribe(
-      confirm => {
+    const { name: name, id } = row as AgentPolicy;
+    this.dialogService
+      .open(AgentPolicyDeleteComponent, {
+        context: { name },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
         if (confirm) {
           this.agentPoliciesService.deleteAgentPolicy(id).subscribe(() => {
-            this.notificationsService.success('Agent Policy successfully deleted', '');
-            this.getAllPolicies();
+            this.notificationsService.success(
+              'Agent Policy successfully deleted',
+              '',
+            );
+            this.orb.refreshNow();
           });
         }
-      },
-    );
+      });
   }
 }

@@ -38,6 +38,31 @@ tr div p {
     color: #2a64f6;
   }
 }
+span {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+.datatable-body-cell-label {
+  box-sizing: content-box;
+}
+
+.tableWrapper {
+  display: flex;
+  margin-top: 1em;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-content: flex-start;
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow-x: auto;
+  min-width: 800px;
+}
+
+.orb-table {
+  min-height: calc(61vh);
+  min-width: 800px;
+}
 
 ::ng-deep {
   header p {
