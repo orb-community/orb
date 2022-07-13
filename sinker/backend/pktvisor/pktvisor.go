@@ -285,7 +285,7 @@ func topNMetricsParser(label string) (string, error) {
 	mapNMetrics["TopIpv4"] = "ipv4"
 	mapNMetrics["TopQname2"] = "qname"
 	mapNMetrics["TopQname3"] = "qname"
-	mapNMetrics["TopQnameByRespSize"] = "qname"
+	mapNMetrics["TopQnameByRespBytes"] = "qname"
 	mapNMetrics["TopNxdomain"] = "qname"
 	mapNMetrics["TopQtype"] = "qtype"
 	mapNMetrics["TopRcode"] = "rcode"
