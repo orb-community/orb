@@ -54,7 +54,7 @@ func (a *orbAgent) requestReconnection(client mqtt.Client, config config.MQTTCon
 	for name, be := range a.backends {
 		be.SetCommsClient(config.Id, client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
 	}
-	a.logger.Debug("subscribing to topic", zap.String("topic", a.rpcFromCoreTopic))
+
 	if token := client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
 		a.logger.Error("failed to subscribe to RPC topic", zap.String("topic", a.rpcFromCoreTopic), zap.Error(token.Error()))
 	}
@@ -131,7 +131,6 @@ func (a *orbAgent) subscribeGroupChannels(groups []fleet.GroupMembershipData) {
 		base := fmt.Sprintf("channels/%s/messages", groupData.ChannelID)
 		rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)
 
-		a.logger.Debug("subscribing to topic", zap.String("topic", rpcFromCoreTopic))
 		token := a.client.Subscribe(rpcFromCoreTopic, 1, a.handleGroupRPCFromCore)
 		if token.Error() != nil {
 			a.logger.Error("failed to subscribe to group channel/topic", zap.String("group_id", groupData.GroupID), zap.String("group_name", groupData.Name), zap.String("topic", rpcFromCoreTopic), zap.Error(token.Error()))
