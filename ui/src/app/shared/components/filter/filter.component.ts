@@ -46,4 +46,8 @@ export class FilterComponent {
   filterChanged(event: MatSelectChange) {
     this.selectedFilter = { ...event.source.value };
   }
+
+  clearAllFilters() {
+    this.filter.cleanFilters();
+  }
 }

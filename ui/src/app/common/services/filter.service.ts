@@ -12,8 +12,6 @@ export class FilterService {
 
   private filters: ReplaySubject<FilterOption[]>;
 
-  private filters$: Observable<FilterOption[]>;
-
   private activeRoute$: Observable<string>;
 
   constructor(
@@ -27,8 +25,7 @@ export class FilterService {
       );
     this.filters = new ReplaySubject();
     this._filters = [];
-    this.cleanFilters();
-
+    
     this.activeRoute$.subscribe();
   }
 
@@ -59,8 +56,7 @@ export class FilterService {
   }
 
   cleanFilters() {
-    this._filters = [];
-    this.filters.next([]);
+    this.commitFilter([]);
   }
 
   private commitFilter(filters: FilterOption[]) {
