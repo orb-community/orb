@@ -160,6 +160,10 @@ def matching_agent(context, amount_agent_matching, group_order):
 
 @step("the group to which the agent is linked is removed")
 def remove_group(context):
+    container_logs = get_orb_agent_logs(context.container_id)
+    assert_that(len(list(context.agent['last_hb_data']['group_state'].keys())), equal_to(1),
+                f"Unexpected amount of groups linked to the agent. \nAgent: {context.agent}."
+                f"\nAgent logs:{container_logs}")
     group_linked_id = list(context.agent['last_hb_data']['group_state'].keys())[0]
     delete_agent_group(context.token, group_linked_id)
     context.agent_groups.pop(group_linked_id)

@@ -29,3 +29,7 @@ Scenario: cleanup datasets
 Scenario: cleanup yaml file
   Given the Orb user logs in
   Then remove all the agents .yaml generated on test process
+
+@cleanup
+Scenario: cleanup test containers
+  Then force remove of all agent containers whose names start with the test prefix

@@ -31,8 +31,7 @@ def check_if_agents_exist(context, orb_tags, status):
     existing_agents = get_agent(token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
     timeout = 30
-    agent_status = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
-    context.agent = get_agent(token, agent_id)
+    agent_status, context.agent = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
     logs = get_orb_agent_logs(context.container_id)
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'. \n"
@@ -66,11 +65,11 @@ def agent_is_created_matching_group(context, amount_of_group):
 def check_agent_online(context, status, seconds):
     timeout = int(seconds)
     token = context.token
-    agent_id = context.agent['id']
-    agent_status = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
+    agent_status, context.agent = wait_until_expected_agent_status(token, context.agent['id'], status, timeout=timeout)
+    logs = get_orb_agent_logs(context.container_id)
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'."
-                f"\n Agent: {context.agent}")
+                f"\n Agent: {context.agent}. \nAgent logs: {logs}")
 
 
 @step('the agent status is {status}')
@@ -143,9 +142,9 @@ def list_policies_applied_to_an_agent(context, amount_of_policies):
 def list_groups_matching_an_agent(context, amount_of_groups):
     groups_matching, context.groups_matching_id = return_matching_groups(context.token, context.agent_groups,
                                                                          context.agent)
-    context.list_groups_id = get_groups_to_which_agent_is_matching(context.token, context.agent['id'],
-                                                                   context.groups_matching_id, timeout=180)
-    context.agent = get_agent(context.token, context.agent['id'])
+    context.list_groups_id, context.agent = get_groups_to_which_agent_is_matching(context.token, context.agent['id'],
+                                                                                  context.groups_matching_id,
+                                                                                  timeout=180)
     logs = get_orb_agent_logs(context.container_id)
     assert_that(len(context.list_groups_id), equal_to(int(amount_of_groups)),
                 f"Amount of groups matching the agent failed with {context.list_groups_id} groups. \n"
@@ -240,10 +239,10 @@ def provision_agent_using_config_file(context, port, agent_tags, status):
     interface = configs.get('orb_agent_interface', 'mock')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
+    port = return_port_to_run_docker_container(context, True)
     context.agent_file_name = create_agent_config_file(context.token, agent_name, interface,
                                                        agent_tags, orb_url, base_orb_address, port,
-                                                       existing_agent_groups=context.agent_groups,
-                                                       context=context)
+                                                       context.agent_groups)
     context.container_id = run_agent_config_file(agent_name)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(port)
@@ -303,8 +302,8 @@ def wait_until_expected_agent_status(token, agent_id, status, event=None):
     agent_status = agent['state']
     if agent_status == status:
         event.set()
-        return agent_status
-    return agent_status
+        return agent_status, agent
+    return agent_status, agent
 
 
 def get_agent(token, agent_id, status_code=200):
@@ -317,7 +316,8 @@ def get_agent(token, agent_id, status_code=200):
     :returns: (dict) the fetched agent
     """
 
-    get_agents_response = requests.get(orb_url + '/api/v1/agents/' + agent_id, headers={'Authorization': f'Bearer {token}'})
+    get_agents_response = requests.get(orb_url + '/api/v1/agents/' + agent_id,
+                                       headers={'Authorization': f'Bearer {token}'})
 
     assert_that(get_agents_response.status_code, equal_to(status_code),
                 f"Request to get agent id= {agent_id} failed with status= {str(get_agents_response.status_code)}:"
@@ -471,26 +471,25 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
         list_groups_id = list(agent['last_hb_data']['group_state'].keys())
         if sorted(list_groups_id) == sorted(groups_matching_ids):
             event.set()
-            return list_groups_id
-    return list_groups_id
+            return list_groups_id, agent
+    return list_groups_id, agent
 
 
-def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, status_port='available',
-                             existing_agent_groups=None, context=None):
+def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, port,
+                             existing_agent_groups):
     """
     Create a file .yaml with configs of the agent that will be provisioned
 
     :param (str) token: used for API authentication
-    :param agent_name: name of the agent that will be created
+    :param (str) agent_name: name of the agent that will be created
     :param (str) iface: network interface
     :param (str) agent_tags: agent tags
     :param (str) orb_url: entire orb url
     :param (str) base_orb_address: base orb url address
-    :param (str) status_port: status of the port on which agent must try to run. Default: available
+    :param (str) port: port on which agent must run.
+    :param (dict) existing_agent_groups: all agent groups available
     :return: path to the directory where the agent config file was created
     """
-    assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
-    availability = {"available": True, "unavailable": False}
     if re.match(r"matching (\d+|all|the) group*", agent_tags):
         amount_of_group = re.search(r"(\d+|all|the)", agent_tags).groups()[0]
         all_used_tags = tags_to_match_k_groups(token, amount_of_group, existing_agent_groups)
@@ -500,7 +499,6 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, base_orb_address)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)
-    port = return_port_to_run_docker_container(context, availability[status_port])
     agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
     agent_config_file = yaml.dump(agent_config_file)
     dir_path = configs.get("local_orb_path")

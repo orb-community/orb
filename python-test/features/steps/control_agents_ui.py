@@ -73,11 +73,15 @@ def create_agent_through_the_agents_page(context, orb_tags):
     WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located((By.XPATH, UtilButton.close_button())))[0].click()
     WebDriverWait(context.driver, 3).until(
-        EC.presence_of_all_elements_located((By.XPATH, f"//div[contains(@class, 'agent-name') and contains(text(),"
+        EC.presence_of_all_elements_located((By.XPATH, f"//span[contains(@class, 'agent-name') and contains(text(),"
                                                        f"'{context.agent_name}')]")))[0].click()
     context.agent = dict()
     context.agent['id'] = WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located((By.XPATH, AgentsPage.agent_view_id())))[0].text
+    # assert_that(context.agent['id'],
+    #             matches_regexp(r'[a-zA-Z0-9]{8}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{12}'),
+    #             f"Failed to get agent id {context.agent['id']}")
+    context.agent['name'] = context.agent_name
 
 
 @threading_wait_until
@@ -94,16 +98,15 @@ def check_agent_status_on_orb_ui(driver, agent_xpath, status, event=None):
 @then("the agents list and the agents view should display agent's status as {status} within {time_to_wait} seconds")
 def check_status_on_orb_ui(context, status, time_to_wait):
     context.driver.get(f"{orb_url}/pages/fleet/agents")
-    agent_xpath = f"//div[contains(text(), '{context.agent_name}')]/ancestor::datatable-body-row/descendant::" \
+    agent_xpath = f"//span[contains(text(), '{context.agent_name}')]/ancestor::datatable-body-row/descendant::" \
                   f"i[contains(@class, 'fa fa-circle')]/ancestor::div[contains(@class, 'ng-star-inserted')]"
     list_of_datatable_body_cell = check_agent_status_on_orb_ui(context.driver, agent_xpath, status,
                                                                timeout=time_to_wait)
 
     assert_that(list_of_datatable_body_cell[0].text.splitlines()[1], equal_to(status),
                 f"Agent {context.agent['id']} status failed")
-    assert_that(list_of_datatable_body_cell[1].text, equal_to(status))
     WebDriverWait(context.driver, 3).until(
-        EC.presence_of_all_elements_located((By.XPATH, f"//div[contains(@class, 'agent-name') and contains(text(),"
+        EC.presence_of_all_elements_located((By.XPATH, f"//span[contains(@class, 'agent-name') and contains(text(),"
                                                        f"'{context.agent_name}')]")))[0].click()
     agent_view_status = WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located(

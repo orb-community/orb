@@ -47,7 +47,7 @@ class AgentsPage:
 
     @classmethod
     def agent_view_id(cls):
-        return "//label[contains(text(), 'Agent ID')]/following::span"
+        return "//label[contains(text(), 'Agent ID')]/following::p"
 
     @classmethod
     def agent_status(cls):
