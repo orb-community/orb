@@ -16,7 +16,10 @@ import {
 
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import {
+  filterMultiSelect,
   FilterOption,
+  filterSubstr,
+  filterTags,
   FilterTypes,
 } from 'app/common/interfaces/orb/filter-option';
 import { AgentsService } from 'app/common/services/agents/agents.service';
@@ -26,8 +29,7 @@ import { OrbService } from 'app/common/services/orb.service';
 import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete.component';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
 import { STRINGS } from 'assets/text/strings';
-import { combineLatest, Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'ngx-agent-list-component',
@@ -84,72 +86,36 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked {
     this.agents$ = this.orb.getAgentListView();
     this.columns = [];
 
-    this.filters$ = this.filters.getFilters().pipe(startWith([]));
-
-    this.filteredAgents$ = combineLatest([this.agents$, this.filters$]).pipe(
-      map(([agents, _filters]) => {
-        let filtered = agents;
-        _filters.forEach((_filter) => {
-          filtered = filtered.filter((value) => {
-            const paramValue = _filter.param;
-            const result = _filter.filter(value, paramValue);
-            return result;
-          });
-        });
-
-        return filtered;
-      }),
-    );
+    this.filters$ = this.filters.getFilters();
 
     this.filterOptions = [
       {
         name: 'Name',
         prop: 'name',
-        filter: (agent: Agent, name: string) => {
-          return agent.name?.includes(name);
-        },
+        filter: filterSubstr,
         type: FilterTypes.Input,
       },
       {
-        name: 'Agent Tags',
-        prop: 'agent_tags',
-        filter: (agent: Agent, tag: string) => {
-          const values = Object.entries(agent.agent_tags)
-            .map((entry) => `${entry[0]}: ${entry[1]}`);
-          return values.reduce((acc, val) => {
-            acc = acc || val.includes(tag.trim());
-            return acc;
-          }, false);
-        },
-        autoSuggestion: orb.getAgentsTags(),
-        type: FilterTypes.AutoComplete,
-      },
-      {
-        name: 'Orb Tags',
-        prop: 'orb_tags',
-        filter: (agent: Agent, tag: string) => {
-          const values = Object.entries(agent.orb_tags)
-            .map((entry) => `${entry[0]}: ${entry[1]}`);
-          return values.reduce((acc, val) => {
-            acc = acc || val.includes(tag.trim());
-            return acc;
-          }, false);
-        },
+        name: 'Tags',
+        prop: 'combined_tags',
+        filter: filterTags,
         autoSuggestion: orb.getAgentsTags(),
         type: FilterTypes.AutoComplete,
       },
       {
         name: 'Status',
         prop: 'state',
-        filter: (agent: Agent, states: string[]) => {
-          return states.reduce((prev, cur) => {
-            return agent.state === cur || prev;
-          }, false);
-        },
+        filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentStates).map((value) => value as string),
       },
     ];
+
+    this.filteredAgents$ = this.filters.createFilteredList()(
+      this.agents$,
+      this.filters$,
+      this.filterOptions,
+    );
   }
 
   ngAfterViewChecked() {

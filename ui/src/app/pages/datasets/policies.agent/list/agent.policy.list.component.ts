@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import {
   AfterViewChecked,
   AfterViewInit,
@@ -6,27 +7,27 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { NbDialogService } from '@nebular/theme';
 import {
   ColumnMode,
   DatatableComponent,
   TableColumn,
 } from '@swimlane/ngx-datatable';
-import { STRINGS } from '../../../../../assets/text/strings';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { NbDialogService } from '@nebular/theme';
-import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
-import { DatePipe } from '@angular/common';
-import { combineLatest, Observable } from 'rxjs';
-import { OrbService } from 'app/common/services/orb.service';
-import { map, startWith } from 'rxjs/operators';
 import {
+  filterExact,
   FilterOption,
+  filterSubstr,
   FilterTypes,
 } from 'app/common/interfaces/orb/filter-option';
+import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { FilterService } from 'app/common/services/filter.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { OrbService } from 'app/common/services/orb.service';
+import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
+import { Observable } from 'rxjs';
+import { STRINGS } from '../../../../../assets/text/strings';
 
 @Component({
   selector: 'ngx-agent-policy-list-component',
@@ -79,52 +80,34 @@ export class AgentPolicyListComponent
     private filters: FilterService,
   ) {
     this.policies$ = this.orb.getPolicyListView();
-    this.filters$ = this.filters.getFilters().pipe(startWith([]));
-
-    this.filteredPolicies$ = combineLatest([
-      this.policies$,
-      this.filters$,
-    ]).pipe(
-      map(([policies, _filters]) => {
-        let filtered = policies;
-        _filters.forEach((_filter) => {
-          filtered = filtered.filter((value) => {
-            const paramValue = _filter.param;
-            const result = _filter.filter(value, paramValue);
-            return result;
-          });
-        });
-
-        return filtered;
-      }),
-    );
+    this.filters$ = this.filters.getFilters();
 
     this.filterOptions = [
       {
         name: 'Name',
         prop: 'name',
-        filter: (policy: AgentPolicy, name: string) => {
-          return policy.name?.includes(name);
-        },
+        filter: filterSubstr,
         type: FilterTypes.Input,
       },
       {
         name: 'Description',
         prop: 'description',
-        filter: (policy: AgentPolicy, description: string) => {
-          return policy.description?.includes(description);
-        },
+        filter: filterSubstr,
         type: FilterTypes.Input,
       },
       {
         name: 'Version',
         prop: 'version',
-        filter: (policy: AgentPolicy, version: number) => {
-          return policy.version === version;
-        },
+        filter: filterExact,
         type: FilterTypes.Input,
       },
     ];
+
+    this.filteredPolicies$ = this.filters.createFilteredList()(
+      this.policies$,
+      this.filters$,
+      this.filterOptions,
+    );
   }
 
   ngAfterViewChecked() {

@@ -6,6 +6,7 @@ import {
 } from 'app/common/interfaces/orb/filter-option';
 import { FilterService } from 'app/common/services/filter.service';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'ngx-filter',
@@ -26,7 +27,7 @@ export class FilterComponent {
 
   constructor(private filter: FilterService) {
     this.availableFilters = [];
-    this.activeFilters$ = filter.getFilters();
+    this.activeFilters$ = filter.getFilters().pipe(map((filters) => filters));
   }
 
   addFilter(): void {
@@ -44,5 +45,9 @@ export class FilterComponent {
 
   filterChanged(event: MatSelectChange) {
     this.selectedFilter = { ...event.source.value };
+  }
+
+  clearAllFilters() {
+    this.filter.cleanFilters();
   }
 }
