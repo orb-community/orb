@@ -68,6 +68,8 @@ func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, plcy
 			switch pqErr.Code.Name() {
 			case db.ErrInvalid, db.ErrTruncation:
 				return errors.Wrap(policies.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return errors.Wrap(errors.ErrConflict, err)
 			}
 		}
 		return errors.Wrap(fleet.ErrUpdateEntity, err)
