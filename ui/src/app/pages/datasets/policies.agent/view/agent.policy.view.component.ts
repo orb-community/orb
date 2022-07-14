@@ -1,17 +1,23 @@
 import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  ViewChild,
+  ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.config.interface';
-import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { PolicyDetailsComponent } from 'app/shared/components/orb/policy/policy-details/policy-details.component';
-import { PolicyInterfaceComponent } from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
+import {
+  PolicyConfig,
+} from 'app/common/interfaces/orb/policy/config/policy.config.interface';
+import {
+  AgentPoliciesService,
+} from 'app/common/services/agents/agent.policies.service';
+import {
+  NotificationsService,
+} from 'app/common/services/notifications/notifications.service';
+import {
+  PolicyDetailsComponent,
+} from 'app/shared/components/orb/policy/policy-details/policy-details.component';
+import {
+  PolicyInterfaceComponent,
+} from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
 import { STRINGS } from 'assets/text/strings';
 import { Subscription } from 'rxjs';
 
@@ -32,14 +38,13 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   policySubscription: Subscription;
 
   editMode = {
-    details: false,
-    interface: false,
+    details: false, interface: false,
   };
 
   @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
 
-  @ViewChild(PolicyInterfaceComponent)
-  interfaceComponent: PolicyInterfaceComponent;
+  @ViewChild(
+    PolicyInterfaceComponent) interfaceComponent: PolicyInterfaceComponent;
 
   constructor(
     private route: ActivatedRoute,
@@ -54,20 +59,16 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   isEditMode() {
-    return Object.values(this.editMode).reduce(
-      (prev, cur) => prev || cur,
-      false,
-    );
+    return Object.values(this.editMode)
+      .reduce((prev, cur) => prev || cur, false);
   }
 
   canSave() {
     const detailsValid = this.editMode.details
-      ? this.detailsComponent?.formGroup?.status === 'VALID'
-      : true;
+      ? this.detailsComponent?.formGroup?.status === 'VALID' : true;
 
     const interfaceValid = this.editMode.interface
-      ? this.interfaceComponent?.formControl?.status === 'VALID'
-      : true;
+      ? this.interfaceComponent?.formControl?.status === 'VALID' : true;
 
     return detailsValid && interfaceValid;
   }
@@ -93,9 +94,9 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     const policyInterface = this.interfaceComponent.code;
 
     // trying to work around rest api
-    const detailsPartial = (!!this.editMode.details && {
+    const detailsPartial = !!this.editMode.details && {
       ...policyDetails,
-    }) || { name, description };
+    } || { name, description };
 
     let interfacePartial = {};
 
@@ -121,17 +122,15 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     const payload = {
       ...detailsPartial,
       ...interfacePartial,
-      version,
-      id,
-      tags,
-      backend,
+      version, id, tags, backend,
     } as AgentPolicy;
 
-    this.policiesService.editAgentPolicy(payload).subscribe((resp) => {
-      this.discard();
-      this.retrievePolicy();
-      this.cdr.markForCheck();
-    });
+    this.policiesService.editAgentPolicy(payload)
+      .subscribe(resp => {
+        this.discard();
+        this.retrievePolicy();
+        this.cdr.markForCheck();
+      });
   }
 
   retrievePolicy() {
@@ -139,7 +138,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
     this.policySubscription = this.policiesService
       .getAgentPolicyById(this.policyId)
-      .subscribe((policy) => {
+      .subscribe(policy => {
         this.policy = policy;
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -147,14 +146,11 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   duplicatePolicy() {
-    this.policiesService
-      .duplicateAgentPolicy(this.policyId || this.policy.id)
-      .subscribe((resp) => {
+    this.policiesService.duplicateAgentPolicy(this.policyId || this.policy.id)
+      .subscribe(resp => {
         if (resp?.id) {
-          this.notifications.success(
-            'Agent Policy Duplicated',
-            `New Agent Policy Name: ${resp?.name}`,
-          );
+          this.notifications.success('Agent Policy Duplicated',
+            `New Agent Policy Name: ${resp?.name}`);
         }
       });
   }

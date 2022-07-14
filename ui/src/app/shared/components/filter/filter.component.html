@@ -1,4 +1,3 @@
-<!--<ng-container class="section-controls">-->
 <nb-select #master [(ngModel)]="selectedFilter" placeholder="Filter by">
   <nb-option *ngFor="let option of availableFilters" [value]="option">
     {{ option.name }}
@@ -32,10 +31,7 @@
       <i class="fa fa-plus">&nbsp;</i>
     </button>
   </ng-container>
-</ng-container>
-<!--  </ng-container>-->
-<!--<ng-container class="section-display" *ngIf="(activeFilters$ | async)?.length > 0">-->
-<!--  <span class="applied-label" >Applied Filters</span>-->
+</ng-container><button *ngIf="(activeFilters$|async).length > 0" nbButton ghost class="card-button clear-all" (click)="clearAllFilters()">Clear all filters</button>
 <mat-chip-list>
   <mat-chip
     *ngFor="let filter of activeFilters$ | async; let index = index"
@@ -52,8 +48,6 @@
     </button>
   </mat-chip>
 </mat-chip-list>
-<!--</ng-container>-->
-
 <ng-template #input>
   <input
     [(ngModel)]="filterParam"

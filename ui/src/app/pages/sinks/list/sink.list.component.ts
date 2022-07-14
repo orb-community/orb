@@ -8,30 +8,32 @@ import {
 } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 
-import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { STRINGS } from 'assets/text/strings';
 import {
   ColumnMode,
   DatatableComponent,
   TableColumn,
 } from '@swimlane/ngx-datatable';
-import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
+import {
+  filterMultiSelect,
+  FilterOption,
+  filterSubstr,
+  filterTags,
+  FilterTypes,
+} from 'app/common/interfaces/orb/filter-option';
 import {
   Sink,
   SinkBackends,
   SinkStates,
 } from 'app/common/interfaces/orb/sink.interface';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { combineLatest, Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
-import { OrbService } from 'app/common/services/orb.service';
-import {
-  FilterOption,
-  FilterTypes,
-} from 'app/common/interfaces/orb/filter-option';
 import { FilterService } from 'app/common/services/filter.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { OrbService } from 'app/common/services/orb.service';
+import { SinksService } from 'app/common/services/sinks/sinks.service';
+import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
+import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
+import { STRINGS } from 'assets/text/strings';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'ngx-sink-list-component',
@@ -55,8 +57,6 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked {
   @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
 
   @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
-
-  filterValue = null;
 
   tableSorts = [
     {
@@ -87,69 +87,43 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked {
     private filters: FilterService,
   ) {
     this.sinks$ = this.orb.getSinkListView();
-    this.filters$ = this.filters.getFilters().pipe(startWith([]));
-
-    this.filteredSinks$ = combineLatest([this.sinks$, this.filters$]).pipe(
-      map(([agents, _filters]) => {
-        let filtered = agents;
-        _filters.forEach((_filter) => {
-          filtered = filtered.filter((value) => {
-            const paramValue = _filter.param;
-            const result = _filter.filter(value, paramValue);
-            return result;
-          });
-        });
-
-        return filtered;
-      }),
-    );
+    this.filters$ = this.filters.getFilters();
 
     this.filterOptions = [
       {
         name: 'Name',
         prop: 'name',
-        filter: (sink: Sink, name: string) => {
-          return sink.name?.includes(name);
-        },
+        filter: filterSubstr,
         type: FilterTypes.Input,
       },
       {
         name: 'Tags',
         prop: 'tags',
-        filter: (sink: Sink, tag: string) => {
-          const values = Object.entries(sink.tags)
-            .map((entry) => `${entry[0]}: ${entry[1]}`);
-          return values.reduce((acc, val) => {
-            acc = acc || val.includes(tag.trim());
-            return acc;
-          }, false);
-        },
+        filter: filterTags,
         autoSuggestion: orb.getSinksTags(),
         type: FilterTypes.AutoComplete,
       },
       {
         name: 'Status',
         prop: 'state',
-        filter: (sink: Sink, states: string[]) => {
-          return states.reduce((prev, cur) => {
-            return sink.state === cur || prev;
-          }, false);
-        },
+        filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(SinkStates).map((value) => value as string),
       },
       {
         name: 'Backend',
         prop: 'backend',
-        filter: (sink: Sink, backends: string[]) => {
-          return backends.reduce((prev, cur) => {
-            return sink.backend === cur || prev;
-          }, false);
-        },
+        filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(SinkBackends).map((value) => value as string),
       },
     ];
+
+    this.filteredSinks$ = this.filters.createFilteredList()(
+      this.sinks$,
+      this.filters$,
+      this.filterOptions,
+    );
   }
 
   ngAfterViewChecked() {
