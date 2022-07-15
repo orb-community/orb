@@ -11,6 +11,10 @@ inputs:
     description: " repostiory directory"
     required: true
 
+  repo:
+    description: " owner/repostiory"
+    required: true
+
   slack_channel:
     description: " slack channel to post message"
     required: true
