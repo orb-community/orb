@@ -11,7 +11,6 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/receiver/receiverhelper"
 )
 
 // This file implements factory for prometheus_simple receiver
@@ -27,10 +26,11 @@ var defaultCollectionInterval = 60 * time.Second
 
 // NewFactory creates a factory for "Simple" Prometheus receiver.
 func NewFactory() component.ReceiverFactory {
-	return receiverhelper.NewFactory(
+	return component.NewReceiverFactory(
 		typeStr,
 		CreateDefaultConfig,
-		receiverhelper.WithMetrics(CreateMetricsReceiver))
+		component.WithMetricsReceiverAndStabilityLevel(CreateMetricsReceiver, component.StabilityLevelStable),
+	)
 }
 
 func CreateDefaultSettings(logger *zap.Logger) component.ReceiverCreateSettings {
@@ -38,7 +38,7 @@ func CreateDefaultSettings(logger *zap.Logger) component.ReceiverCreateSettings 
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.GetMeterProvider(),
+			MeterProvider:  global.MeterProvider(),
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
@@ -55,12 +55,7 @@ func CreateDefaultConfig() config.Receiver {
 	}
 }
 
-func CreateMetricsReceiver(
-	_ context.Context,
-	params component.ReceiverCreateSettings,
-	cfg config.Receiver,
-	nextConsumer consumer.Metrics,
-) (component.MetricsReceiver, error) {
+func CreateMetricsReceiver(_ context.Context, params component.ReceiverCreateSettings, cfg config.Receiver, nextConsumer consumer.Metrics) (component.MetricsReceiver, error) {
 	rCfg := cfg.(*Config)
 	return New(params, rCfg, nextConsumer), nil
 }
