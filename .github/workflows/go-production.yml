@@ -410,10 +410,6 @@ jobs:
         run: |
           echo "REF_TAG=production" >> $GITHUB_ENV
 
-      - name: Append suffix on VERSION file for production build
-        run: |
-          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
-
       - name: Get VERSION
         run: |
           echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
@@ -425,6 +421,12 @@ jobs:
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Post changelog on slack channel
+        run: |
+          CHANGELOG=":first_place_medal: :orb: *Deployed new features in orb.live* :orb: :rocket: :tada:
+          $(git log --pretty=format:"$ad• %s [%an]" --since=7.days)"
+          curl -d "text=${CHANGELOG}" -d "channel=C02SEF78ZPT" -H "Authorization: Bearer ${{secrets.SLACK_APP_TOKEN}}" -X POST https://slack.com/api/chat.postMessage
 
   buildx:
     needs: publish-orb-live-prd
