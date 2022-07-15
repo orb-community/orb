@@ -182,6 +182,11 @@ def remove_policy_applied(context):
     policy_removed = choice(context.list_agent_policies_id)
     context.policy = get_policy(context.token, policy_removed)
     delete_policy(context.token, context.policy["id"])
+    if context.removed_policies_ids:
+        context.removed_policies_ids.append(context.policy["id"])
+    else:
+        context.removed_policies_ids = list()
+        context.removed_policies_ids.append(context.policy["id"])
     context.list_agent_policies_id.remove(context.policy["id"])
     context.policies_created.pop(context.policy["id"])
     existing_datasets = list_datasets(context.token)

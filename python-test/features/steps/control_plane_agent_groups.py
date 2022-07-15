@@ -9,6 +9,7 @@ from hamcrest import *
 import requests
 from random import sample
 import json
+import random
 
 configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
@@ -158,15 +159,21 @@ def matching_agent(context, amount_agent_matching, group_order):
     assert_that(matching_total_agents, equal_to(int(amount_agent_matching)))
 
 
-@step("the group to which the agent is linked is removed")
-def remove_group(context):
+@step("{amount_of_groups_to_remove} group(s) to which the agent is linked is removed")
+def remove_group(context, amount_of_groups_to_remove):
     container_logs = get_orb_agent_logs(context.container_id)
-    assert_that(len(list(context.agent['last_hb_data']['group_state'].keys())), equal_to(1),
-                f"Unexpected amount of groups linked to the agent. \nAgent: {context.agent}."
+    amount_of_groups_to_remove = int(amount_of_groups_to_remove)
+    assert_that(len(list(context.agent['last_hb_data']['group_state'].keys())),
+                greater_than_or_equal_to(amount_of_groups_to_remove),
+                f"The number of groups to be removed cannot be greater than the number to which the agent is subscribed"
+                f"\nAgent: {context.agent}."
                 f"\nAgent logs:{container_logs}")
-    group_linked_id = list(context.agent['last_hb_data']['group_state'].keys())[0]
-    delete_agent_group(context.token, group_linked_id)
-    context.agent_groups.pop(group_linked_id)
+    group_linked_to_remove_id = random.sample(list(context.agent['last_hb_data']['group_state'].keys()),
+                                              amount_of_groups_to_remove)
+    for group in group_linked_to_remove_id:
+        delete_agent_group(context.token, group)
+        context.agent_groups.pop(group)
+    context.removed_groups_ids = group_linked_to_remove_id
 
 
 @then('cleanup agent group')
