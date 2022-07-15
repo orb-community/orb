@@ -11,6 +11,10 @@ inputs:
     description: " repostiory directory"
     required: true
 
+  header:
+    description: " changelog header"
+    required: false
+
   github_repo:
     description: " owner/repostiory"
     required: true
