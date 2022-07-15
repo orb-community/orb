@@ -37,5 +37,5 @@ jobs:
       - name: Post changelog on slack channel
         run: |
           CHANGELOG=":first_place_medal: :orb: *Deployed new features in orb.live* :orb: :rocket: :tada:
-          $(git log --pretty=format:"$ad• %s [%an]" --since=7.days)"
+          `git log --pretty=format:"$ad• %s [%an]" --since=7.days`"
           curl -d "text=${CHANGELOG}" -d "channel=C02SEF78ZPT" -H "Authorization: Bearer ${{secrets.SLACK_APP_TOKEN}}" -X POST https://slack.com/api/chat.postMessage
