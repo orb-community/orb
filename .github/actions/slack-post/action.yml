@@ -1,0 +1,24 @@
+name: 'slack-post'
+author: 'Everton Taques<everton.taques@encora.com>'
+description: 'ns1labs'
+
+inputs:
+  branch:
+    description: " branch to get changelog"
+    required: true
+
+  dir:
+    description: " repostiory directory"
+    required: true
+
+  slack_channel:
+    description: " slack channel to post message"
+    required: true
+    
+  slack_token:
+    description: " token for slack api"
+    required: true
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

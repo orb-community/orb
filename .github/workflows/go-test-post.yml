@@ -2,9 +2,9 @@ name: test-slack-post
 
 on:
   pull_request:
-    branches: [ slack-post ]
+    branches: [ develop ]
   push:
-    branches: [ slack-post ]
+    branches: [ develop ]
 
 jobs:
   post-slack-channel:
@@ -34,10 +34,10 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
-      - name: Post changelog on slack channel
-        run: |
-          echo ":first_place_medal: :orb: *Deployed new features in orb.live* :orb: :rocket: :tada:" > CHANGELOG
-          echo "`git log --pretty=format:"$ad• %s [%an]" --since=7.days`" >> CHANGELOG
-          cat CHANGELOG
-          git log --pretty=format:"$ad• %s [%an]" --since=7.days
-          curl -d "text=`cat CHANGELOG`" -d "channel=C02SEF78ZPT" -H "Authorization: Bearer ${{secrets.SLACK_APP_TOKEN}}" -X POST https://slack.com/api/chat.postMessage
+      - name: Post on slack
+        uses: ./.github/actions/slack-post
+        with:
+          branch: develop
+          dir: orb
+          slack_channel: C02SEF78ZPT
+          slack_token: ${{secrets.SLACK_APP_TOKEN}}
