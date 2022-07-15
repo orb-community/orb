@@ -401,7 +401,7 @@ jobs:
       - name: Post message in slack channel
         uses: ./.github/actions/slack-post
         with:
-          branch: ${{env.BRANCH_NAME}}
+          branch: production
           header: ":first_place_medal: :orb: *Deployed new features in orb.live* :orb: :rocket: :tada:"
           github_repo: ns1labs/orb
           slack_channel: C02SEF78ZPT #slack channel ID
