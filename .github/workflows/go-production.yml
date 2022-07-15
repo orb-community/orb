@@ -144,7 +144,7 @@ jobs:
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
       - name: Build orb-agent
         shell: bash
         env:
@@ -411,7 +411,6 @@ jobs:
     needs: publish-orb-live-prd
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
-
     steps:
       - uses: actions/checkout@v2
 
@@ -423,10 +422,6 @@ jobs:
       - name: Generate ref tag (production)
         run: |
           echo "REF_TAG=production" >> $GITHUB_ENV
-
-      - name: Append suffix on VERSION file for production build
-        run: |
-          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
       - name: Get VERSION
         run: |
@@ -454,10 +449,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Removing suffix from VERSION
-        run: |
-          sed -i -e "s/-production//g" VERSION
 
       - name: Build + push - agent (multi-arch)
         env:
