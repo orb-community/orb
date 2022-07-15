@@ -1,0 +1,41 @@
+name: Build and Deploy to Production
+
+on:
+  pull_request:
+    branches: [ add-slack-channel ]
+  push:
+    branches: [ add-slack-channel ]
+
+jobs:
+  post-slack-channel:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=production" >> $GITHUB_ENV
+
+      - name: Generate ref tag (production)
+        run: |
+          echo "REF_TAG=production" >> $GITHUB_ENV
+
+      - name: Get VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
+
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Post changelog on slack channel
+        run: |
+          CHANGELOG=":first_place_medal: :orb: *Deployed new features in orb.live* :orb: :rocket: :tada:
+          $(git log --pretty=format:"$ad• %s [%an]" --since=7.days)"
+          curl -d "text=${CHANGELOG}" -d "channel=C02SEF78ZPT" -H "Authorization: Bearer ${{secrets.SLACK_APP_TOKEN}}" -X POST https://slack.com/api/chat.postMessage
