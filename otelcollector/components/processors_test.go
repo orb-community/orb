@@ -31,11 +31,6 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/attraction"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 )
 
 func TestDefaultProcessors(t *testing.T) {
@@ -50,16 +45,6 @@ func TestDefaultProcessors(t *testing.T) {
 		skipLifecycle bool
 	}{
 		{
-			processor: "attributes",
-			getConfigFn: func() config.Processor {
-				cfg := procFactories["attributes"].CreateDefaultConfig().(*attributesprocessor.Config)
-				cfg.Actions = []attraction.ActionKeyValue{
-					{Key: "attribute1", Action: attraction.INSERT, Value: 123},
-				}
-				return cfg
-			},
-		},
-		{
 			processor: "batch",
 		},
 		{
@@ -73,10 +58,6 @@ func TestDefaultProcessors(t *testing.T) {
 		},
 		{
 			processor: "groupbytrace",
-		},
-		{
-			processor:     "k8sattributes",
-			skipLifecycle: true, // Requires a k8s API to communicate with
 		},
 		{
 			processor: "memory_limiter",
@@ -98,32 +79,6 @@ func TestDefaultProcessors(t *testing.T) {
 		},
 		{
 			processor: "resourcedetection",
-		},
-		{
-			processor: "resource",
-			getConfigFn: func() config.Processor {
-				cfg := procFactories["resource"].CreateDefaultConfig().(*resourceprocessor.Config)
-				cfg.AttributesActions = []attraction.ActionKeyValue{
-					{Key: "attribute1", Action: attraction.INSERT, Value: 123},
-				}
-				return cfg
-			},
-		},
-		{
-			processor:     "routing",
-			skipLifecycle: true, // Requires external exporters to be configured to route data
-		},
-		{
-			processor: "span",
-			getConfigFn: func() config.Processor {
-				cfg := procFactories["span"].CreateDefaultConfig().(*spanprocessor.Config)
-				cfg.Rename.FromAttributes = []string{"test-key"}
-				return cfg
-			},
-		},
-		{
-			processor:     "spanmetrics",
-			skipLifecycle: true, // Requires a running exporter to convert data to/from
 		},
 		{
 			processor: "cumulativetodelta",
