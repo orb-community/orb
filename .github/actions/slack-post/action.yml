@@ -11,7 +11,7 @@ inputs:
     description: " repostiory directory"
     required: true
 
-  repo:
+  github_repo:
     description: " owner/repostiory"
     required: true
 

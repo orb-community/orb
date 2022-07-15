@@ -3,7 +3,7 @@
 function run() {
   echo "========================= generating changelog ========================="
   cd /github/workspace
-  git clone -b ${INPUT_BRANCH} https://github.com/${INPUT_REPO}
+  git clone -b ${INPUT_BRANCH} https://github.com/${INPUT_GITHUB_REPO}
   cd /github/workspace/${INPUT_DIR}/
   result=$(git log --pretty=format:"$ad• %s [%an]" --since=7.days)
   export CHANGELOG_RESULT=$result
