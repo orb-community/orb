@@ -132,7 +132,7 @@ func (c commsMetricsMiddleware) NotifyGroupNewDataset(ctx context.Context, ag Ag
 	return c.svc.NotifyGroupNewDataset(ctx, ag, datasetID, policyID, ownerID)
 }
 
-func (c commsMetricsMiddleware) NotifyGroupRemoval(ag AgentGroup) error {
+func (c commsMetricsMiddleware) NotifyGroupRemoval(ctx context.Context, ag AgentGroup) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyGroupRemoval",
@@ -147,7 +147,7 @@ func (c commsMetricsMiddleware) NotifyGroupRemoval(ag AgentGroup) error {
 		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
-	return c.svc.NotifyGroupRemoval(ag)
+	return c.svc.NotifyGroupRemoval(ctx, ag)
 }
 
 func (c commsMetricsMiddleware) NotifyGroupPolicyRemoval(ag AgentGroup, policyID string, policyName string, backend string) error {

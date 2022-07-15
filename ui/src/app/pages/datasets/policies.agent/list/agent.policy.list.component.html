@@ -1,56 +1,30 @@
 <div>
   <header>
-    <xng-breadcrumb class="orb-breadcrumb">
-    </xng-breadcrumb>
-    <h4>All Policies</h4>
-  </header>
-  <div #tableWrapper class="d-flex flex-column mt-4">
-    <div class="d-flex justify-content-between align-items-end mb-2">
-      <div class="d-flex">
-        <p *ngIf=" paginationControls.data && paginationControls.data.length === 1"
-           class="sink-info-regular mb-0">
-          You have <a><strong>{{paginationControls.total}}</strong> policy</a>.
-        </p>
-        <p *ngIf=" paginationControls.data && paginationControls.data.length > 1"
-           class="sink-info-regular mb-0">
-          You have <a><strong>{{paginationControls.total}}</strong> policies</a>.
-        </p>
-        <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
-           class="sink-info-accent mb-0">
-          There are no policies yet.
-        </p>
-      </div>
-      <div class="d-flex">
-        <div class="mr-3">
-          <nb-select
-            (selectedChange)="onFilterSelected($event)"
-            *ngIf="tableFilters && tableFilters.length"
-            [(selected)]="selectedFilter"
-            appearance="filled"
-            class="d-flex justify-content-end"
-            placeholder="Filter by"
-            size="medium"
-            style="width: 160px; height: 100%">
-            <nb-option *ngFor="let conf of tableFilters" [value]="conf">{{ conf.label }}</nb-option>
-          </nb-select>
-        </div>
-        <nb-form-field *ngIf="selectedFilter">
-          <nb-icon icon="search-outline" nbPrefix pack="eva"></nb-icon>
-          <input (input)="applyFilter()"
-                 [(ngModel)]="filterValue"
-                 [placeholder]="searchPlaceholder"
-                 fieldSize="medium"
-                 nbInput
-                 type="text"/>
-        </nb-form-field>
-      </div>
+    <xng-breadcrumb class="orb-breadcrumb"> </xng-breadcrumb>
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-content: center;
+        justify-content: space-between;
+        align-items: baseline;
+      "
+    >
+      <h4>All Policies</h4>
+      <ngx-poll-control></ngx-poll-control>
     </div>
+  </header>
+  <div #tableWrapper class="tableWrapper">
+    <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
     <div class="add-agent-policy-container">
-      <button (click)="onOpenAdd()"
-              class="card-button"
-              shape="round"
-              nbButton
-              status="primary">
+      <button
+        (click)="onOpenAdd()"
+        class="card-button"
+        shape="round"
+        nbButton
+        status="primary"
+      >
         <i class="fa fa-plus">&nbsp;</i>New Policy
       </button>
     </div>
@@ -60,50 +34,60 @@
       [columns]="columns"
       [footerHeight]="50"
       [headerHeight]="50"
-      [limit]="paginationControls.limit"
       [loadingIndicator]="loading"
       [rowHeight]="50"
-      [rows]="paginationControls.data"
+      [rows]="filteredPolicies$ | async"
       [scrollbarV]="true"
       [sorts]="tableSorts"
-      class="orb"
-      style="height: calc(62vh)">
+      class="orb orb-table"
+    >
     </ngx-datatable>
   </div>
 </div>
 
 <ng-template #nameTemplateCell let-i="index" let-row="row" let-value="value">
-  <button (click)="onOpenView(row)"
-          class="view-policy-button"
-          nbTooltip="View Details for {{ row.id }}">
-    {{ row.name }}
+  <button
+    (click)="onOpenView(row)"
+    class="view-policy-button"
+    nbTooltip="{{ value }}"
+  >
+    {{ value }}
   </button>
 </ng-template>
 
 <ng-template #versionTemplateCell let-i="index" let-row="row" let-value="value">
-  <div *ngIf="row?.version >= 0" nbTooltip="{{ 'Policy Version: ' + row.version }}">
-    {{ row.version }}
-  </div>
+  <span *ngIf="row?.version >= 0" nbTooltip="{{ 'Policy Version: ' + value }}">
+    {{ value }}
+  </span>
 </ng-template>
 
 <ng-template #actionsTemplateCell let-i="index" let-row="row" let-value="value">
-  <div class="d-flex flex-row">
-    <button (click)="onOpenView(row)"
-            class="orb-action-hover detail-button"
-            ghost
-            nbButton>
+  <div class="block">
+    <button
+      (click)="onOpenView(row)"
+      class="orb-action-hover detail-button"
+      ghost
+      nbTooltip="View Details"
+      nbButton
+    >
       <nb-icon icon="search-outline"></nb-icon>
     </button>
-    <button (click)="onOpenEdit(row)"
-            class="orb-action-hover edit-button"
-            ghost
-            nbButton>
+    <button
+      (click)="onOpenEdit(row)"
+      class="orb-action-hover edit-button"
+      ghost
+      nbTooltip="Edit"
+      nbButton
+    >
       <nb-icon icon="edit-outline"></nb-icon>
     </button>
-    <button (click)="openDeleteModal(row)"
-            class="orb-action-hover del-button"
-            ghost
-            nbButton>
+    <button
+      (click)="openDeleteModal(row)"
+      class="orb-action-hover del-button"
+      ghost
+      nbTooltip="Delete"
+      nbButton
+    >
       <nb-icon icon="trash-2-outline"></nb-icon>
     </button>
   </div>

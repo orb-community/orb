@@ -114,7 +114,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
   updateMatchingAgents() {
     const { tags } = this.agentGroup;
     const tagsList = Object.keys(tags).map(key => ({ [key]: tags[key] }));
-    this.agentsService.getMatchingAgents(tagsList).subscribe(
+    this.agentsService.getAllAgents(tagsList).subscribe(
       resp => {
         this.agents = resp;
       },

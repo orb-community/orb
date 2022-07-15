@@ -8,6 +8,11 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { TagMatch } from 'app/common/interfaces/orb/tag.match.interface';
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
 
+export interface AgentGroupState {
+  name?: string;
+  channel?: string;
+}
+
 /**
  * @interface AgentGroup
  */
@@ -45,5 +50,4 @@ export interface AgentGroup extends OrbEntity {
    * @ignore
    */
   agents?: Agent[];
-
 }

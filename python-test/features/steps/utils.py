@@ -151,7 +151,7 @@ def remove_key_from_json(json_file, key_to_be_removed):
 
 
 def threading_wait_until(func):
-    def wait_event(*args, wait_time=0.5, timeout=10, start_func_value=False, **kwargs):
+    def wait_event(*args, wait_time=0.5, timeout=30, start_func_value=False, **kwargs):
         event = threading.Event()
         func_value = start_func_value
         start = datetime.now().timestamp()

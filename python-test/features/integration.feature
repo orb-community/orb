@@ -25,7 +25,7 @@ Scenario: Apply multiple advanced policies to an agent
         And that a sink already exists
     When 14 mixed policies are applied to the group
     Then this agent's heartbeat shows that 14 policies are applied and all has status running
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And datasets related to all existing policies have validity valid
 
 
@@ -39,9 +39,9 @@ Scenario: Apply two simple policies to an agent
         And that a sink already exists
     When 2 simple policies are applied to the group
     Then this agent's heartbeat shows that 2 policies are applied and all has status running
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
+        And referred sink must have active state on response within 30 seconds
         And datasets related to all existing policies have validity valid
 
 
@@ -55,7 +55,7 @@ Scenario: apply one policy using multiple datasets to the same group
         And that a sink already exists
     When 2 simple policies are applied to the group by 3 datasets each
     Then this agent's heartbeat shows that 2 policies are applied and all has status running
-        And 3 datasets are linked with each policy on agent's heartbeat within 10 seconds
+        And 3 datasets are linked with each policy on agent's heartbeat within 30 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 180 seconds
         And referred sink must have active state on response within 180 seconds
         And datasets related to all existing policies have validity valid
@@ -72,8 +72,8 @@ Scenario: Remove group to which agent is linked
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
     When the group to which the agent is linked is removed
-    Then the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
-        And the container logs contain the message "policy no longer used by any group, removing" referred to each policy within 10 seconds
+    Then the container logs should contain the message "completed RPC unsubscription to group" within 30 seconds
+        And the container logs contain the message "policy no longer used by any group, removing" referred to each policy within 30 seconds
         And this agent's heartbeat shows that 0 policies are applied to the agent
         And this agent's heartbeat shows that 0 groups are matching the agent
         And dataset related have validity invalid
@@ -94,7 +94,7 @@ Scenario: Remove policy from agent
         And datasets related to removed policy has validity invalid
         And datasets related to all existing policies have validity valid
         And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And container logs should inform that removed policy was stopped and removed within 10 seconds
+        And container logs should inform that removed policy was stopped and removed within 30 seconds
         And the container logs that were output after the policy have been removed contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And the container logs that were output after the policy have been removed does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
@@ -112,7 +112,7 @@ Scenario: Remove dataset from agent with just one dataset linked
     When a dataset linked to this agent is removed
     Then referred dataset must not be listed on the orb datasets list
         And this agent's heartbeat shows that 0 policies are applied and all has status running
-        And container logs should inform that removed policy was stopped and removed within 10 seconds
+        And container logs should inform that removed policy was stopped and removed within 30 seconds
         And the container logs that were output after removing dataset contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And the container logs that were output after removing dataset does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
@@ -130,7 +130,7 @@ Scenario: Remove dataset from agent with more than one dataset linked
     When a dataset linked to this agent is removed
     Then referred dataset must not be listed on the orb datasets list
         And this agent's heartbeat shows that 2 policies are applied and all has status running
-        And container logs should inform that removed policy was stopped and removed within 10 seconds
+        And container logs should inform that removed policy was stopped and removed within 30 seconds
         And the container logs that were output after removing dataset contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And the container logs that were output after removing dataset does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
@@ -143,8 +143,8 @@ Scenario: Provision agent with tags matching an existent group
     When a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
         And the agent status is online
-    Then the agent status in Orb should be online within 10 seconds
-        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+    Then the agent status in Orb should be online within 30 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
 
 
@@ -159,9 +159,9 @@ Scenario: Provision agent with tag matching existing group linked to a valid dat
         And the agent container is started on an available port
         And the agent status is online
     Then this agent's heartbeat shows that 2 policies are applied and all has status running
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
+        And referred sink must have active state on response within 30 seconds
         And datasets related to all existing policies have validity valid
 
 
@@ -177,9 +177,9 @@ Scenario: Provision agent with tag matching existing group with multiple policie
         And the agent status is online
     Then this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 14 policies are applied and all has status running
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
+        And referred sink must have active state on response within 30 seconds
         And datasets related to all existing policies have validity valid
 
 
@@ -196,9 +196,9 @@ Scenario: Provision agent with tag matching existing edited group with multiple 
         And the agent status is online
     Then this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 14 policies are applied and all has status running
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
+        And referred sink must have active state on response within 30 seconds
         And datasets related to all existing policies have validity valid
 
 
@@ -215,9 +215,9 @@ Scenario: Provision agent with tag matching existing group with multiple policie
         And the agent status is online
     Then this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 20 policies are applied and all has status running
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
+        And referred sink must have active state on response within 30 seconds
         And datasets related to all existing policies have validity valid
 
 
@@ -233,10 +233,10 @@ Scenario: Sink with invalid endpoint
         And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=2 already exists
     When 1 new dataset is created using the policy, last group and 1 sink
     Then this agent's heartbeat shows that 4 policies are applied and all has status running
-        And the container logs should contain the message "managing agent policy from core" within 10 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs should contain the message "managing agent policy from core" within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
-        And referred sink must have error state on response within 10 seconds
+        And referred sink must have error state on response within 30 seconds
         And dataset related have validity valid
 
 @MUTE
@@ -254,7 +254,7 @@ Scenario: Unapplying policies that failed by editing agent orb tags to unsubscri
         And this agent's heartbeat shows that 4 policies are applied and 3 has status running
         And this agent's heartbeat shows that 4 policies are applied and 1 has status failed_to_apply
     When edit the orb tags on agent and use 2 orb tag(s)
-    Then the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
+    Then the container logs should contain the message "completed RPC unsubscription to group" within 30 seconds
         And this agent's heartbeat shows that 0 policies are applied to the agent
 
 
@@ -273,7 +273,7 @@ Scenario: Unapplying policies that failed by editing group tags to unsubscribe a
         And this agent's heartbeat shows that 4 policies are applied and 3 has status running
         And this agent's heartbeat shows that 4 policies are applied and 1 has status failed_to_apply
     When the tags of last Agent Group is edited using: tags=2 orb tag(s)
-    Then the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
+    Then the container logs should contain the message "completed RPC unsubscription to group" within 30 seconds
         And this agent's heartbeat shows that 0 policies are applied to the agent
 
 
@@ -292,7 +292,7 @@ Scenario: Unapplying policies that failed by removing group
         And this agent's heartbeat shows that 4 policies are applied and 3 has status running
         And this agent's heartbeat shows that 4 policies are applied and 1 has status failed_to_apply
     When the group to which the agent is linked is removed
-    Then the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
+    Then the container logs should contain the message "completed RPC unsubscription to group" within 30 seconds
         And this agent's heartbeat shows that 0 policies are applied to the agent
 
 
@@ -307,11 +307,11 @@ Scenario: Sink with invalid username
         And 3 simple policies are applied to the group
         And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=3 already exists
     When 1 new dataset is created using the policy, last group and 1 sink
-    Then the container logs should contain the message "managing agent policy from core" within 10 seconds
+    Then the container logs should contain the message "managing agent policy from core" within 30 seconds
         And this agent's heartbeat shows that 4 policies are applied and all has status running
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
-        And referred sink must have error state on response within 10 seconds
+        And referred sink must have error state on response within 30 seconds
         And dataset related have validity valid
 
 
@@ -327,10 +327,10 @@ Scenario: Sink with invalid password
         And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=5 already exists
     When 1 new dataset is created using the policy, last group and 1 sink
     Then this agent's heartbeat shows that 4 policies are applied and all has status running
-        And the container logs should contain the message "managing agent policy from core" within 10 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs should contain the message "managing agent policy from core" within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
-        And referred sink must have error state on response within 10 seconds
+        And referred sink must have error state on response within 30 seconds
         And dataset related have validity valid
 
 
@@ -357,7 +357,7 @@ Scenario: Agent subscription to multiple groups created before provisioning agen
     When a new agent is created with orb tags matching all existing group
         And the agent container is started on an available port
         And the agent status is online
-    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 30 seconds
         And this agent's heartbeat shows that 3 groups are matching the agent
 
 
@@ -397,7 +397,7 @@ Scenario: Agent subscription to group after editing orb agent's tags (editing ta
         And the agent container is started on an available port
         And the agent status is online
     When 1 Agent Group(s) is created with 1 tags contained in the agent
-    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
 
 
@@ -414,10 +414,10 @@ Scenario: Agent subscription to multiple group with policies after editing orb a
         And 1 Agent Group(s) is created with 1 orb tag(s)
         And 1 simple policies are applied to the group
     When edit the orb tags on agent and use orb tags matching all existing group
-    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And this agent's heartbeat shows that 2 groups are matching the agent
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
@@ -434,10 +434,10 @@ Scenario: Agent subscription to group with policies after editing orb agent's ta
         And 1 Agent Group(s) is created with 1 orb tag(s)
         And 1 simple policies are applied to the group
     When edit the orb tags on agent and use orb tags matching last existing group
-    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
@@ -453,7 +453,7 @@ Scenario: Remove one of the groups that applies the same policy on the agent
         And a new policy is created using: handler=dns, description='policy_dns_2_groups'
         And 2 new dataset is created using the policy, an existing group and 1 sink
         And this agent's heartbeat shows that 1 policies are applied and 1 has status running
-        And 2 datasets are linked with each policy on agent's heartbeat within 10 seconds
+        And 2 datasets are linked with each policy on agent's heartbeat within 30 seconds
     When the group to which the agent is linked is removed
     Then this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and 1 has status running
@@ -488,10 +488,10 @@ Scenario: Insert tags in agents created without tags and apply policies to group
     When edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with same tag as the agent and without description
         And 1 simple policies are applied to the group
-    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 10 seconds
+    Then the container logs contain the message "completed RPC subscription to group" referred to each matching group within 30 seconds
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
@@ -506,7 +506,7 @@ Scenario: Edit agent name and apply policies to then
     When edit the agent name
         And 1 simple policies are applied to the group
     Then this agent's heartbeat shows that 1 policies are applied and all has status running
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
 
 
 @smoke
@@ -520,8 +520,8 @@ Scenario: Editing tags of an Agent Group with policies (unsubscription - provisi
         And 2 simple policies are applied to the group
     When the name, tags, description of last Agent Group is edited using: name=new_name/ tags=2 orb tag(s)/ description=None
     Then 0 agent must be matching on response field matching_agents of the last group created
-        And the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
-        And the agent status in Orb should be online within 10 seconds
+        And the container logs should contain the message "completed RPC unsubscription to group" within 30 seconds
+        And the agent status in Orb should be online within 30 seconds
 
 
 @smoke
@@ -534,7 +534,7 @@ Scenario: Editing tags of an Agent Group with policies (subscription - provision
         And 2 simple policies are applied to the group
     When the name, tags, description of last Agent Group is edited using: name=new_name/ tags=matching the agent/ description=None
     Then 1 agent must be matching on response field matching_agents of the last group created
-        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are applied and all has status running
 
@@ -552,7 +552,7 @@ Scenario: Editing tags of an Agent Group with policies (provision agent after ed
         And the agent container is started on an available port
         And the agent status is online
     Then 0 agent must be matching on response field matching_agents of the last group created
-        And the agent status in Orb should be online within 10 seconds
+        And the agent status in Orb should be online within 30 seconds
 
 
 @smoke
@@ -567,8 +567,8 @@ Scenario: Editing tags of an Agent Group with policies (subscription - provision
         And the agent container is started on an available port
         And the agent status is online
     Then 1 agent must be matching on response field matching_agents of the last group created
-        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
-        And the agent status in Orb should be online within 10 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And the agent status in Orb should be online within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are applied and all has status running
 
@@ -584,10 +584,10 @@ Scenario: Editing tags of an Agent and Agent Group with policies (unsubscription
     When the name, tags, description of last Agent Group is edited using: name=new_name/ tags=2 orb tag(s)/ description=None
         And edit the orb tags on agent and use 1 orb tag(s)
     Then 0 agent must be matching on response field matching_agents of the last group created
-        And the container logs should contain the message "completed RPC unsubscription to group" within 10 seconds
+        And the container logs should contain the message "completed RPC unsubscription to group" within 30 seconds
         And this agent's heartbeat shows that 0 groups are matching the agent
         And this agent's heartbeat shows that 0 policies are applied to the agent
-        And the agent status in Orb should be online within 10 seconds
+        And the agent status in Orb should be online within 30 seconds
 
 
 @smoke
@@ -601,8 +601,8 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
     When edit the orb tags on agent and use 2 orb tag(s)
         And the name, tags, description of last Agent Group is edited using: name=new_name/ tags=matching the agent/ description=None
     Then 1 agent must be matching on response field matching_agents of the last group created
-        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
-        And the agent status in Orb should be online within 10 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And the agent status in Orb should be online within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are applied and all has status running
 
@@ -620,7 +620,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (provision agen
         And the agent container is started on an available port
         And the agent status is online
     Then 0 agent must be matching on response field matching_agents of the last group created
-        And the agent status in Orb should be online within 10 seconds
+        And the agent status in Orb should be online within 30 seconds
 
 
 @smoke
@@ -636,8 +636,8 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
         And the agent container is started on an available port
         And the agent status is online
     Then 1 agent must be matching on response field matching_agents of the last group created
-        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
-        And the agent status in Orb should be online within 10 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And the agent status in Orb should be online within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are applied and all has status running
 
@@ -743,7 +743,7 @@ Scenario: remove 1 sink from a dataset with 1 sinks
     When remove 1 of the linked sinks from orb
     Then dataset related have validity invalid
         And this agent's heartbeat shows that 0 policies are applied to the agent
-        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
 
 
 @smoke
@@ -774,12 +774,12 @@ Scenario: agent with only agent tags subscription to a group with policies creat
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies are applied to the group
     Then dataset related have validity valid
-        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
 
@@ -794,11 +794,11 @@ Scenario: agent with only agent tags subscription to a group with policies creat
     When an agent is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
     Then dataset related have validity valid
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
 
@@ -813,11 +813,11 @@ Scenario: agent with mixed tags subscription to a group with policies created af
         And 3 simple policies are applied to the group
     Then dataset related have validity valid
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
 
@@ -832,11 +832,11 @@ Scenario: agent with mixed tags subscription to a group with policies created be
         And edit the orb tags on agent and use orb tags matching 1 existing group
     Then dataset related have validity valid
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And the container logs should contain the message "completed RPC subscription to group" within 10 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
 @smoke
@@ -850,13 +850,13 @@ Scenario: Remotely restart agents with policies applied
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
     When remotely restart the agent
-    Then the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 10 seconds
-        And the container logs should contain the message "all backends and comms were restarted" within 10 seconds
-        And the container logs that were output after reset the agent contain the message "removing policies" within 10 seconds
-        And the container logs that were output after reset the agent contain the message "resetting backend" within 10 seconds
-        And the container logs that were output after reset the agent contain the message "reapplying policies" within 10 seconds
-        And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 10 seconds
-        And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 10 seconds
+    Then the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 30 seconds
+        And the container logs should contain the message "all backends and comms were restarted" within 30 seconds
+        And the container logs that were output after reset the agent contain the message "removing policies" within 30 seconds
+        And the container logs that were output after reset the agent contain the message "resetting backend" within 30 seconds
+        And the container logs that were output after reset the agent contain the message "reapplying policies" within 30 seconds
+        And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 30 seconds
+        And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 30 seconds
         And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 @smoke
@@ -868,11 +868,11 @@ Scenario: Remotely restart agents without policies applied
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
     When remotely restart the agent
-        And the container logs that were output after reset the agent contain the message "resetting backend" within 10 seconds
-        And the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 10 seconds
-        And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 10 seconds
+        And the container logs that were output after reset the agent contain the message "resetting backend" within 30 seconds
+        And the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 30 seconds
+        And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 30 seconds
         And 2 simple policies are applied to the group
-    Then the container logs should contain the message "restarting all backends" within 10 seconds
+    Then the container logs should contain the message "restarting all backends" within 30 seconds
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 20 seconds
         And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
@@ -889,9 +889,9 @@ Scenario: Create duplicated policy
     When 1 simple policies are applied to the group
         And 1 duplicated policies is applied to the group
     Then this agent's heartbeat shows that 2 policies are applied and all has status running
-        And the container logs contain the message "policy applied successfully" referred to each policy within 10 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 10 seconds
+        And referred sink must have active state on response within 30 seconds
         And datasets related to all existing policies have validity valid
 
 
