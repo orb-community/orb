@@ -12,7 +12,7 @@ function run() {
 
 function comment() {
   echo "========================= Posting on slack ========================="
-  curl -d "text=${CHANGELOG_RESULT}" -d "channel=${INPUT_SLACK_CHANNEL}" -H "Authorization: Bearer ${INPUT_SLACK_APP_TOKEN}" -X POST https://slack.com/api/chat.postMessage
+  curl -d "text=${CHANGELOG_RESULT}" -d "channel=${INPUT_SLACK_CHANNEL}" -H "Authorization: Bearer ${INPUT_SLACK_API_TOKEN}" -X POST https://slack.com/api/chat.postMessage
 }
 
 run

@@ -19,7 +19,7 @@ inputs:
     description: " slack channel to post message"
     required: true
     
-  slack_token:
+  slack_api_token:
     description: " token for slack api"
     required: true
 

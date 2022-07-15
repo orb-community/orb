@@ -41,4 +41,4 @@ jobs:
           dir: orb
           github_repo: ns1labs/orb
           slack_channel: C02SEF78ZPT
-          slack_token: ${{ secrets.SLACK_APP_TOKEN }}
+          slack_api_token: ${{ secrets.SLACK_APP_TOKEN }}
