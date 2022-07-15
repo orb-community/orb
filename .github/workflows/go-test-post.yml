@@ -2,9 +2,9 @@ name: test-slack-post
 
 on:
   pull_request:
-    branches: [ add-slack-comment ]
+    branches: [ slack-post ]
   push:
-    branches: [ add-slack-comment ]
+    branches: [ slack-post ]
 
 jobs:
   post-slack-channel:
