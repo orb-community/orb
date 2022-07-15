@@ -24,8 +24,42 @@ package main
 import (
 	"github.com/ns1labs/orb/otelcollector"
 	"github.com/ns1labs/orb/otelcollector/components"
+	"github.com/ns1labs/orb/pkg/config"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"os"
+	"strings"
 )
 
+const (
+	svcName   = "otelcollector"
+	envPrefix = "orb_otelcollector"
+)
+
+var log *zap.Logger
+
 func main() {
+	atomicLevel := zap.NewAtomicLevel()
+	svcCfg := config.LoadBaseServiceConfig(envPrefix, "")
+
+	switch strings.ToLower(svcCfg.LogLevel) {
+	case "debug":
+		atomicLevel.SetLevel(zap.DebugLevel)
+	case "warn":
+		atomicLevel.SetLevel(zap.WarnLevel)
+	case "info":
+		atomicLevel.SetLevel(zap.InfoLevel)
+	default:
+		atomicLevel.SetLevel(zap.InfoLevel)
+	}
+
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		os.Stdout,
+		atomicLevel,
+	)
+
+	log = zap.New(core, zap.AddCaller())
+	log.Info("initialising logger")
 	otelcollector.RunWithComponents(components.Components)
 }
