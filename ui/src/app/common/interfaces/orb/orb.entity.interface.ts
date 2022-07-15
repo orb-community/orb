@@ -42,5 +42,4 @@ export interface OrbEntity {
    * Error Status Message
    */
   statusText?: string;
-
 }

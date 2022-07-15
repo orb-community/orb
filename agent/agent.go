@@ -62,9 +62,9 @@ type orbAgent struct {
 }
 
 const retryRequestDuration = time.Second
-const retryRequestFixedTime = 5
+const retryRequestFixedTime = 15
 const retryDurationIncrPerAttempts = 10
-const retryMaxAttempts = 5
+const retryMaxAttempts = 4
 
 type GroupInfo struct {
 	Name      string

@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"log"
+	"go.uber.org/zap/zapcore"
 	"os"
 	"os/signal"
 	"strings"
@@ -42,41 +43,46 @@ func Version(cmd *cobra.Command, args []string) {
 
 func Run(cmd *cobra.Command, args []string) {
 
-	// logger
-	var logger *zap.Logger
-	var err error
-	if Debug {
-		logger, err = zap.NewDevelopment()
-	} else {
-		logger, err = zap.NewProduction()
-	}
-	cobra.CheckErr(err)
-
 	initConfig()
 
 	// configuration
-	var configData config.Config
-	err = viper.Unmarshal(&configData)
+	var config config.Config
+	err := viper.Unmarshal(&config)
 	if err != nil {
-		logger.Error("agent start up error (config)", zap.Error(err))
+		cobra.CheckErr(fmt.Errorf("agent start up error (config): %w", err))
 		os.Exit(1)
 	}
 
-	configData.OrbAgent.Debug.Enable = Debug
+	config.OrbAgent.Debug.Enable = Debug
 
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
-	if err == nil && configData.OrbAgent.Backends == nil {
-		configData.OrbAgent.Backends = make(map[string]map[string]string)
-		configData.OrbAgent.Backends["pktvisor"] = make(map[string]string)
-		configData.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
+	if err == nil && config.OrbAgent.Backends == nil {
+		config.OrbAgent.Backends = make(map[string]map[string]string)
+		config.OrbAgent.Backends["pktvisor"] = make(map[string]string)
+		config.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
 		if len(cfgFiles) > 0 {
-			configData.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
+			config.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
 		}
 	}
 
+	// logger
+	var logger *zap.Logger
+	atomicLevel := zap.NewAtomicLevel()
+	if Debug {
+		atomicLevel.SetLevel(zap.DebugLevel)
+	} else {
+		atomicLevel.SetLevel(zap.InfoLevel)
+	}
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		os.Stdout,
+		atomicLevel,
+	)
+	logger = zap.New(core, zap.AddCaller())
+
 	// new agent
-	a, err := agent.New(logger, configData)
+	a, err := agent.New(logger, config)
 	if err != nil {
 		logger.Error("agent start up error", zap.Error(err))
 		os.Exit(1)
@@ -194,9 +200,5 @@ func main() {
 
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(versionCmd)
-	err := rootCmd.Execute()
-	if err != nil {
-		log.Fatal("failed rootCmd with error", err)
-		return
-	}
+	rootCmd.Execute()
 }

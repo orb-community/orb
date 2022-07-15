@@ -40,7 +40,7 @@ type AgentCommsService interface {
 	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
 	NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 	// NotifyGroupRemoval RPC core -> Agent: Notify AgentGroup that the group has been removed
-	NotifyGroupRemoval(ag AgentGroup) error
+	NotifyGroupRemoval(ctx context.Context, ag AgentGroup) error
 	// NotifyGroupPolicyRemoval RPC core -> Agent: Notify AgentGroup that a Policy has been removed
 	NotifyGroupPolicyRemoval(ag AgentGroup, policyID string, policyName string, backend string) error
 	// NotifyGroupDatasetRemoval RPC core -> Agent: Notify AgentGroup that a Dataset has been removed
@@ -146,7 +146,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 		DatasetID:    datasetID,
 		AgentGroupID: ag.ID,
 	}}
-	
+
 	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
@@ -331,11 +331,22 @@ func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 
 }
 
-func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
+func (svc fleetCommsService) NotifyGroupRemoval(ctx context.Context, ag AgentGroup) error {
+	groupID := []string{ag.ID}
+	policies, err := svc.policyClient.RetrievePoliciesByGroups(ctx, &pb.PoliciesByGroupsReq{GroupIDs: groupID, OwnerID: ag.MFOwnerID})
+	if err != nil {
+		return err
+	}
+
+	datasetIDs := make([]string, 0)
+	for _, policy := range policies.Policies {
+		datasetIDs = append(datasetIDs, policy.DatasetId)
+	}
 
 	payload := GroupRemovedRPCPayload{
 		AgentGroupID: ag.ID,
 		ChannelID:    ag.MFChannelID,
+		Datasets:     datasetIDs,
 	}
 
 	data := RPC{

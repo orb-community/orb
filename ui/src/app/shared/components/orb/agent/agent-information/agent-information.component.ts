@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { AgentsService } from 'app/common/services/agents/agents.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
   selector: 'ngx-agent-information',
@@ -16,12 +16,11 @@ export class AgentInformationComponent implements OnInit {
   constructor(
     protected agentsService: AgentsService,
     protected notificationService: NotificationsService,
-    ) {
+  ) {
     this.isResetting = false;
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   resetAgent() {
     if (!this.isResetting) {
@@ -34,12 +33,15 @@ export class AgentInformationComponent implements OnInit {
   }
 
   getAgentBackend() {
-    return Object.keys(this.agent.agent_metadata.backends)[0] || '-'
+    const {backends} = this.agent.agent_metadata;
+    const backend = !!backends && Object.keys(backends).length > 0 ? Object.keys(backends)[0] : '-';
+    return backend;
   }
 
   getAgentBackendVersion() {
-    const backend = Object.keys(this.agent.agent_metadata.backends)[0]
-    return backend ? this.agent.agent_metadata.backends[backend].version : '-'
+    const {backends} = this.agent.agent_metadata;
+    const version = !!backends && Object.keys(backends).length > 0 ? Object.values(backends)[0]['version'] : '-';
+    return version;
   }
 
   notifyResetSuccess() {

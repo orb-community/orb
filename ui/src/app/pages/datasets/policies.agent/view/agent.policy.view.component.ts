@@ -80,7 +80,13 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   save() {
     const {
-      format, version, name, description, id, tags, backend,
+      format,
+      version,
+      name,
+      description,
+      id,
+      tags,
+      backend,
     } = this.policy;
 
     // get values from all modified sections' forms and submit through service.
@@ -105,8 +111,11 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
           policy: JSON.parse(policyInterface) as PolicyConfig,
         };
       } catch (err) {
-        this.notifications.error('Failed to edit Agent Policy', `Error: Invalid JSON`);
-        return
+        this.notifications.error(
+          'Failed to edit Agent Policy',
+          `Error: Invalid JSON`,
+        );
+        return;
       }
     }
 

@@ -5,14 +5,17 @@ import 'rxjs/add/observable/empty';
 
 import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { NgxDatabalePageInfo, OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import {
+  NgxDatabalePageInfo,
+  OrbPagination,
+} from 'app/common/interfaces/orb/pagination.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
-import { delay, expand, reduce } from 'rxjs/operators';
+import { expand, reduce } from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 100;
 const defOrder: string = 'name';
-const defDir = 'desc';
+const defDir = 'asc';
 
 @Injectable()
 export class DatasetPoliciesService {
@@ -51,88 +54,85 @@ export class DatasetPoliciesService {
   }
 
   addDataset(datasetItem: Dataset) {
-    return this.http.post(environment.datasetPoliciesUrl,
-                          { ...datasetItem },
-                          { observe: 'response' })
-      .map(
-        resp => {
-          return resp;
-        },
+    return this.http
+      .post(
+        environment.datasetPoliciesUrl,
+        { ...datasetItem },
+        { observe: 'response' },
       )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to create Dataset for this Policy',
-                                          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`);
-          return Observable.throwError(err);
-        },
-      );
+      .map((resp) => {
+        return resp;
+      })
+      .catch((err) => {
+        this.notificationsService.error(
+          'Failed to create Dataset for this Policy',
+          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`,
+        );
+        return Observable.throwError(err);
+      });
   }
 
   getDatasetById(id: string): Observable<Dataset> {
-    return this.http.get<Dataset>(`${environment.datasetPoliciesUrl}/${id}`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to fetch Dataset of this Policy',
-                                          `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throwError(err);
-        },
-      );
+    return this.http
+      .get<Dataset>(`${environment.datasetPoliciesUrl}/${id}`)
+      .map((resp) => {
+        return resp;
+      })
+      .catch((err) => {
+        this.notificationsService.error(
+          'Failed to fetch Dataset of this Policy',
+          `Error: ${err.status} - ${err.statusText}`,
+        );
+        return Observable.throwError(err);
+      });
   }
 
   editDataset(datasetItem: Dataset): any {
-    return this.http.put(`${environment.datasetPoliciesUrl}/${datasetItem.id}`, datasetItem)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to edit Dataset',
-                                          `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throwError(err);
-        },
-      );
+    return this.http
+      .put(`${environment.datasetPoliciesUrl}/${datasetItem.id}`, datasetItem)
+      .map((resp) => {
+        return resp;
+      })
+      .catch((err) => {
+        this.notificationsService.error(
+          'Failed to edit Dataset',
+          `Error: ${err.status} - ${err.statusText}`,
+        );
+        return Observable.throwError(err);
+      });
   }
 
   deleteDataset(id: string) {
-    return this.http.delete(`${environment.datasetPoliciesUrl}/${id}`)
-      .map(
-        resp => {
-          return resp;
-        },
-      )
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to Delete Dataset Policies',
-                                          `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throwError(err);
-        },
-      );
+    return this.http
+      .delete(`${environment.datasetPoliciesUrl}/${id}`)
+      .map((resp) => {
+        return resp;
+      })
+      .catch((err) => {
+        this.notificationsService.error(
+          'Failed to Delete Dataset Policies',
+          `Error: ${err.status} - ${err.statusText}`,
+        );
+        return Observable.throwError(err);
+      });
   }
 
   getAllDatasets() {
     this.clean();
     const pageInfo = DatasetPoliciesService.getDefaultPagination();
 
-
-    return this.getDatasetPolicies(pageInfo)
-      .pipe(
-        expand(data => {
-          return data.next ? this.getDatasetPolicies(data.next) : Observable.empty();
-        }),
-        delay(250),
-        reduce<OrbPagination<Dataset>>((acc, value) => {
-          acc.data = value.data;
-          acc.offset = 0;
-          return acc;
-        }, this.cache),
-      );
+    return this.getDatasetPolicies(pageInfo).pipe(
+      expand((data) => {
+        return data.next
+          ? this.getDatasetPolicies(data.next)
+          : Observable.empty();
+      }),
+      reduce<OrbPagination<Dataset>>((acc, value) => {
+        acc.data = value.data;
+        acc.offset = 0;
+        return acc;
+      }, this.cache),
+    );
   }
 
   getDatasetPolicies(pageInfo: NgxDatabalePageInfo, isFilter = false) {
@@ -147,14 +147,19 @@ export class DatasetPoliciesService {
       if (pageInfo?.name) {
         params = params.set('name', pageInfo.name);
         // is filter different than last filter?
-        doClean = !this.paginationCache?.name || this.paginationCache?.name !== pageInfo.name;
+        doClean =
+          !this.paginationCache?.name ||
+          this.paginationCache?.name !== pageInfo.name;
       }
       // was filtered, no longer
     } else if (this.paginationCache?.isFilter === true) {
       doClean = true;
     }
 
-    if (pageInfo.order !== this.cache.order || pageInfo.dir !== this.cache.dir) {
+    if (
+      pageInfo.order !== this.cache.order ||
+      pageInfo.dir !== this.cache.dir
+    ) {
       doClean = true;
     }
 
@@ -170,12 +175,13 @@ export class DatasetPoliciesService {
       return of(this.cache);
     }
     params = params
-      .set('offset', (offset).toString())
+      .set('offset', offset.toString())
       .set('limit', limit.toString())
       .set('order', order)
       .set('dir', dir);
 
-    return this.http.get(environment.datasetPoliciesUrl, { params })
+    return this.http
+      .get(environment.datasetPoliciesUrl, { params })
       .map((resp: any) => {
         this.paginationCache[pageInfo?.offset / pageInfo?.limit || 0] = true;
 
@@ -190,7 +196,9 @@ export class DatasetPoliciesService {
           ...this.cache,
           next: resp.offset + resp.limit < resp.total && {
             limit: resp.limit,
-            offset: (parseInt(resp.offset, 10) + parseInt(resp.limit, 10)).toString(),
+            offset: (
+              parseInt(resp.offset, 10) + parseInt(resp.limit, 10)
+            ).toString(),
             order: 'name',
             dir: 'desc',
           },
@@ -205,12 +213,12 @@ export class DatasetPoliciesService {
 
         return this.cache;
       })
-      .catch(
-        err => {
-          this.notificationsService.error('Failed to get Datasets of Policy',
-                                          `Error: ${err.status} - ${err.statusText}`);
-          return Observable.throwError(err);
-        },
-      );
+      .catch((err) => {
+        this.notificationsService.error(
+          'Failed to get Datasets of Policy',
+          `Error: ${err.status} - ${err.statusText}`,
+        );
+        return Observable.throwError(err);
+      });
   }
 }

@@ -1031,13 +1031,13 @@ func TestDNSRatesConversion(t *testing.T) {
 			}),
 			expectedDatapoints: []float64{0, 1, 2, 6},
 		},
-		"FlowPayloadRatesBPS": {
+		"FlowPayloadRatesBytes": {
 			data: []byte(`
 				{
 					"policy_flow": {
 						"flow": {
 							"rates": {
-							  "bps": {
+							  "bytes": {
 								"p50": 2,
 								"p90": 3,
 								"p95": 76811346,
@@ -1049,17 +1049,17 @@ func TestDNSRatesConversion(t *testing.T) {
 				}`),
 			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
 				Name:  "__name__",
-				Value: "flow_rates_bps",
+				Value: "flow_rates_bytes",
 			}),
 			expectedDatapoints: []float64{2, 3, 76811346, 76811347},
 		},
-		"FlowPayloadRatesPPS": {
+		"FlowPayloadRatesPackets": {
 			data: []byte(`
 				{
 					"policy_flow": {
 						"flow": {
 							"rates": {
-							  "pps": {
+							  "packets": {
 								"p50": 2,
 								"p90": 3,
 								"p95": 76811346,
@@ -1071,7 +1071,7 @@ func TestDNSRatesConversion(t *testing.T) {
 				}`),
 			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
 				Name:  "__name__",
-				Value: "flow_rates_pps",
+				Value: "flow_rates_packets",
 			}),
 			expectedDatapoints: []float64{2, 3, 76811346, 76811347},
 		},

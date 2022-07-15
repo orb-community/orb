@@ -153,8 +153,20 @@ func (svc *mainfluxThings) ListChannelsByThing(context.Context, string, string, 
 	panic("not implemented")
 }
 
-func (svc *mainfluxThings) ListThingsByChannel(context.Context, string, string, things.PageMetadata) (things.Page, error) {
-	panic("not implemented")
+func (svc *mainfluxThings) ListThingsByChannel(_ context.Context, token string, chID string, _ things.PageMetadata) (things.Page, error) {
+	thIDs := svc.connections[chID]
+
+	ths := make([]things.Thing, 0)
+	for _, thID := range thIDs {
+		ths = append(ths, things.Thing{
+			ID: thID,
+		})
+	}
+	thingList := things.Page{
+		Things: ths,
+	}
+
+	return thingList, nil
 }
 
 func (svc *mainfluxThings) CreateChannels(_ context.Context, owner string, chs ...things.Channel) ([]things.Channel, error) {
