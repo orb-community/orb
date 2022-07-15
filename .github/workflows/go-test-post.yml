@@ -1,10 +1,10 @@
-name: Build and Deploy to Production
+name: test-slack-post
 
 on:
   pull_request:
-    branches: [ add-slack-channel ]
+    branches: [ add-slack-comment ]
   push:
-    branches: [ add-slack-channel ]
+    branches: [ add-slack-comment ]
 
 jobs:
   post-slack-channel:
