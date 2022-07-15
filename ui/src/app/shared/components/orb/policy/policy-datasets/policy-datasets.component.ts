@@ -97,6 +97,7 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy,
     }
 
     ngOnInit(): void {
+        this.isLoading = true;
     }
 
     ngOnChanges(changes: SimpleChanges) {
@@ -109,7 +110,6 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy,
         if (this.isLoading) {
             return;
         }
-        this.isLoading = true;
         this.subscription = this.retrievePolicyDatasets()
             .pipe(
                 concatMap(datasets => this.retrieveAgentGroups()),
