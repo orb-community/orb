@@ -39,6 +39,6 @@ jobs:
         with:
           branch: develop
           dir: orb
-          github_repo: ${{GITHUB_REPOSITORY}}
+          github_repo: ${{ env.GITHUB_REPOSITORY }}
           slack_channel: C02SEF78ZPT
-          slack_token: ${{secrets.SLACK_APP_TOKEN}}
+          slack_token: ${{ secrets.SLACK_APP_TOKEN }}
