@@ -393,6 +393,20 @@ jobs:
           git commit -m "[NS1 Orb Bot] Update image tag on prod environment"
           git push origin main
 
+  post-slack-message:
+    needs: publish-orb-live-prd
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Post message in slack channel
+        uses: ./.github/actions/slack-post
+        with:
+          branch: ${{env.BRANCH_NAME}}
+          header: ":first_place_medal: :orb: *Deployed new features in orb.live* :orb: :rocket: :tada:"
+          github_repo: ns1labs/orb
+          slack_channel: C02SEF78ZPT #slack channel ID
+          slack_api_token: ${{ secrets.SLACK_APP_TOKEN }}
+
   buildx:
     needs: publish-orb-live-prd
     runs-on: ubuntu-latest

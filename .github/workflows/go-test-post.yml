@@ -37,8 +37,7 @@ jobs:
       - name: Post on slack
         uses: ./.github/actions/slack-post
         with:
-          branch: develop
-          dir: orb
+          branch: ${{env.BRANCH_NAME}}
           header: ":first_place_medal: :orb: *Deployed new features in orb.live* :orb: :rocket: :tada:"
           github_repo: ns1labs/orb
           slack_channel: C02SEF78ZPT

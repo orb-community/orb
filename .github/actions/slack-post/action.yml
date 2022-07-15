@@ -7,10 +7,6 @@ inputs:
     description: " branch to get changelog"
     required: true
 
-  dir:
-    description: " repostiory directory"
-    required: true
-
   header:
     description: " changelog header"
     required: false
