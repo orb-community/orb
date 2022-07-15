@@ -3,8 +3,8 @@
 function run() {
   echo "========================= generating changelog ========================="
   cd /tmp/
-  git clone -b ${INPUT_BRANCH} https://github.com/${INPUT_GITHUB_REPO}
-  cd ${INPUT_DIR}
+  git clone -b $INPUT_BRANCH "https://github.com/${INPUT_GITHUB_REPO}"
+  cd $INPUT_DIR
   result=$(git log --pretty=format:"$ad• %s [%an]" --since=7.days)
   echo $result
   export CHANGELOG_RESULT=$result
@@ -12,7 +12,7 @@ function run() {
 
 function comment() {
   echo "========================= Posting on slack ========================="
-  curl -d "text=$CHANGELOG_RESULT" -d "channel=${INPUT_SLACK_CHANNEL}" -H "Authorization: Bearer ${INPUT_SLACK_APP_TOKEN}" -X POST https://slack.com/api/chat.postMessage
+  curl -d "text=${CHANGELOG_RESULT}" -d "channel=${INPUT_SLACK_CHANNEL}" -H "Authorization: Bearer ${INPUT_SLACK_APP_TOKEN}" -X POST https://slack.com/api/chat.postMessage
 }
 
 run
