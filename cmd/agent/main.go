@@ -13,7 +13,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"log"
 	"go.uber.org/zap/zapcore"
 	"os"
 	"os/signal"
