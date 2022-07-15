@@ -2,8 +2,9 @@
 
 function run() {
   echo "========================= generating changelog ========================="
-  cd /github/workspace
-  git config --global --add safe.directory /github/workspace
+  cd /tmp/
+  git clone -b ${{ INPUT_BRANCH }} https://github.com/${{ INPUT_GITHUB_REPO }}
+  cd ${{ INPUT_DIR }}
   result=$(git log --pretty=format:"$ad• %s [%an]" --since=7.days)
   echo $result
   export CHANGELOG_RESULT=$result
