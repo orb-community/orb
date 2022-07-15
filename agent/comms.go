@@ -33,7 +33,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	})
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(true)
-	opts.SetResumeSubs(false)
+	opts.SetResumeSubs(true)
 	opts.SetReconnectingHandler(func(client mqtt.Client, options *mqtt.ClientOptions) {
 		a.logger.Debug("logging all topics", zap.String("rpcToCoreTopic", a.rpcToCoreTopic),
 			zap.String("rpcFromCoreTopic", a.rpcFromCoreTopic),
