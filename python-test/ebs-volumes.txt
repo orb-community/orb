@@ -1,0 +1,234 @@
+[
+    {
+        "Environment": "observability", 
+        "State": "attached"
+    }, 
+    {
+        "Environment": "orb-live", 
+        "State": "attached"
+    }, 
+    {
+        "Environment": "redis-data-orb-live-stg-redis-streams-replicas-0", 
+        "State": null
+    }, 
+    {
+        "Environment": "data-orb-live-stg-postgresql-policies-0", 
+        "State": null
+    }, 
+    {
+        "Environment": "owned", 
+        "State": null
+    }, 
+    {
+        "Environment": "data-orb-live-stg-postgresql-users-0", 
+        "State": null
+    }, 
+    {
+        "Environment": "owned", 
+        "State": null
+    }, 
+    {
+        "Environment": "kubernetes-dynamic-pvc-4c42a2bd-48cc-49da-a58b-1cf170d35416", 
+        "State": null
+    }, 
+    {
+        "Environment": "observability", 
+        "State": "attached"
+    }, 
+    {
+        "Environment": "kubernetes-dynamic-pvc-2ffa837c-c657-4ece-b807-95e3740bb976", 
+        "State": null
+    }, 
+    {
+        "Environment": "orb-live", 
+        "State": null
+    }, 
+    {
+        "Environment": "data-orb-live-dev-postgresql-auth-0", 
+        "State": null
+    }, 
+    {
+        "Environment": "pvc-d70fa892-e89b-42f8-bd71-07b2b0caa7b9", 
+        "State": null
+    }, 
+    {
+        "Environment": "orb-live", 
+        "State": null
+    }, 
+    {
+        "Environment": "orb-live", 
+        "State": null
+    }, 
+    {
+        "Environment": "orb-live", 
+        "State": null
+    }, 
+    {
+        "Environment": "orb-live", 
+        "State": null
+    }, 
+    {
+        "Environment": "observability", 
+        "State": null
+    }, 
+    {
+        "Environment": "orb-live-dev-nginx-internal-crl-volume", 
+        "State": null
+    }, 
+    {
+        "Environment": "kubernetes-dynamic-pvc-7b197394-c8e9-4e08-852c-9d561bba8e59", 
+        "State": null
+    }, 
+    {
+        "Environment": "owned", 
+        "State": null
+    }, 
+    {
+        "Environment": null, 
+        "State": "attached"
+    }, 
+    {
+        "Environment": null, 
+        "State": "attached"
+    }, 
+    {
+        "Environment": null, 
+        "State": "attached"
+    }, 
+    {
+        "Environment": "owned", 
+        "State": "attached"
+    }, 
+    {
+        "Environment": "kubernetes-dynamic-pvc-a3ad31bb-ab6b-482b-8401-610604f20ee7", 
+        "State": "attached"
+    }, 
+    {
+        "Environment": "orb-live", 
+        "State": null
+    }, 
+    {
+        "Environment": "owned", 
+        "State": null
+    }, 
+    {
+        "Environment": "data-orb-live-stg-postgresql-sinks-0", 
+        "State": null
+    }, 
+    {
+        "Environment": "redis-data-orb-live-stg-redis-auth-replicas-1", 
+        "State": null
+    }, 
+    {
+        "Environment": "orb-live", 
+        "State": null
+    }, 
+    {
+        "Environment": "redis-data-orb-live-stg-redis-sinker-replicas-2", 
+        "State": null
+    }, 
+    {
+        "Environment": "kubernetes-dynamic-pvc-9caea39f-5363-45e8-a6cb-05bd035fd1d2", 
+        "State": "attached"
+    }, 
+    {
+        "Environment": "kubernetes-dynamic-pvc-00871c3f-1762-428d-ac58-aa1684b4eb8f", 
+        "State": null
+    }, 
+    {
+        "Environment": "pvc-4653d87f-2785-41d4-b58c-aec188116062", 
+        "State": null
+    }, 
+    {
+        "Environment": "data-orb-live-dev-postgresql-users-0", 
+        "State": null
+    }, 
+    {
+        "Environment": "data-orb-live-dev-postgresql-policies-0", 
+        "State": null
+    }, 
+    {
+        "Environment": "data-orb-live-dev-postgresql-things-0", 
+        "State": null
+    }, 
+    {
+        "Environment": "redis-data-orb-live-dev-redis-auth-replicas-1", 
+        "State": null
+    }, 
+    {
+        "Environment": "owned", 
+        "State": null
+    }, 
+    {
+        "Environment": "observability", 
+        "State": null
+    }, 
+    {
+        "Environment": "owned", 
+        "State": null
+    }, 
+    {
+        "Environment": null, 
+        "State": "attached"
+    }, 
+    {
+        "Environment": "pvc-53bc8a3f-ccaf-4396-bf8e-abd27fb39d61", 
+        "State": "attached"
+    }, 
+    {
+        "Environment": "prometheus-server", 
+        "State": "attached"
+    }, 
+    {
+        "Environment": "kubernetes-dynamic-pvc-ac2dbb7e-db6e-41a3-8507-f2fc8421b719", 
+        "State": null
+    }, 
+    {
+        "Environment": "orb-live", 
+        "State": null
+    }, 
+    {
+        "Environment": "pvc-dbfe5139-526c-4e23-b027-5d675c0d2419", 
+        "State": null
+    }, 
+    {
+        "Environment": "orb-live", 
+        "State": null
+    }, 
+    {
+        "Environment": "pvc-e94d2f12-bf01-4979-b413-6dbb4576118f", 
+        "State": null
+    }, 
+    {
+        "Environment": "redis-data-orb-live-dev-redis-streams-replicas-0", 
+        "State": null
+    }, 
+    {
+        "Environment": "owned", 
+        "State": null
+    }, 
+    {
+        "Environment": "pvc-e0191ea1-816c-48d1-ae16-d3518d56dec4", 
+        "State": null
+    }, 
+    {
+        "Environment": "pvc-34c52ece-11b6-4fd2-97b3-1c4d4bc38dc0", 
+        "State": null
+    }, 
+    {
+        "Environment": "owned", 
+        "State": null
+    }, 
+    {
+        "Environment": "pvc-e2cfd147-32cb-4143-bd32-31abdbca506d", 
+        "State": "attached"
+    }, 
+    {
+        "Environment": null, 
+        "State": "attached"
+    }, 
+    {
+        "Environment": null, 
+        "State": "attached"
+    }
+]

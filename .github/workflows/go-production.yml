@@ -144,7 +144,7 @@ jobs:
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
       - name: Build orb-agent
         shell: bash
         env:
@@ -301,6 +301,7 @@ jobs:
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         run: |
           docker push -a ns1labs/orb-ui-modules
+
   package-ui:
     needs:
       - prebuild
@@ -393,11 +394,10 @@ jobs:
           git commit -m "[NS1 Orb Bot] Update image tag on prod environment"
           git push origin main
 
-  buildx:
+  post-slack-channel:
     needs: publish-orb-live-prd
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
-
     steps:
       - uses: actions/checkout@v2
 
@@ -426,6 +426,35 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
+  buildx:
+    needs: publish-orb-live-prd
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set branch name
+        shell: bash
+        run: |
+          echo "BRANCH_NAME=production" >> $GITHUB_ENV
+
+      - name: Generate ref tag (production)
+        run: |
+          echo "REF_TAG=production" >> $GITHUB_ENV
+
+      - name: Get VERSION
+        run: |
+          echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
+
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
+
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
@@ -440,10 +469,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Removing suffix from VERSION
-        run: |
-          sed -i -e "s/-production//g" VERSION
 
       - name: Build + push - agent (multi-arch)
         env:
