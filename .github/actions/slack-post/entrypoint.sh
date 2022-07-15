@@ -2,7 +2,7 @@
 
 function run() {
   echo "========================= generating changelog ========================="
-  AUX="${INPUT_GITHUB_REPO}"
+  AUX="/${INPUT_GITHUB_REPO}"
   DIR=$(echo "${AUX##/*/}")
   cd /tmp/
   git clone -b $INPUT_BRANCH "https://github.com/${INPUT_GITHUB_REPO}"
