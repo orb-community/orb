@@ -10,6 +10,8 @@ WORKDIR /workspace
 
 COPY ./entrypoint.sh /entrypoint.sh
 
+RUN chmod a+x /entrypoint.sh
+
 RUN apt-get update \
     && apt-get install jq git curl -y
 
