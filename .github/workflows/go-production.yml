@@ -398,7 +398,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
-      - name: Post message in slack channel
+      - name: Generating changelog and post it in slack channel
         uses: ./.github/actions/slack-post
         with:
           branch: production
