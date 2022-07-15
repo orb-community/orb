@@ -5,8 +5,10 @@ function run() {
   cd /tmp/
   git clone -b $INPUT_BRANCH "https://github.com/${INPUT_GITHUB_REPO}"
   cd $INPUT_DIR
-  result=$(git log --pretty=format:"$ad• %s [%an]" --since=7.days)
-  echo $result
+  echo "${INPUT_HEADER}" > CHANGELOG
+  echo "`git log --pretty=format:"$ad• %s [%an]" --since=7.days`" >> CHANGELOG
+  cat CHANGELOG
+  result=$(cat CHANGELOG)
   export CHANGELOG_RESULT=$result
 }
 
