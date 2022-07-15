@@ -25,7 +25,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	})
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
 		a.logger.Error("connection to mqtt lost", zap.Error(err))
-		a.logger.Debug("logging all topics", zap.String("rpcToCoreTopic", a.rpcToCoreTopic),
+		a.logger.Info("logging all topics", zap.String("rpcToCoreTopic", a.rpcToCoreTopic),
 			zap.String("rpcFromCoreTopic", a.rpcFromCoreTopic),
 			zap.String("capabilitiesTopic", a.capabilitiesTopic),
 			zap.String("heartbeatsTopic", a.heartbeatsTopic),
@@ -33,10 +33,21 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	})
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(true)
-	opts.SetResumeSubs(true)
+	opts.SetResumeSubs(false)
+	opts.SetReconnectingHandler(func(client mqtt.Client, options *mqtt.ClientOptions) {
+		a.logger.Info("logging all topics", zap.String("rpcToCoreTopic", a.rpcToCoreTopic),
+			zap.String("rpcFromCoreTopic", a.rpcFromCoreTopic),
+			zap.String("capabilitiesTopic", a.capabilitiesTopic),
+			zap.String("heartbeatsTopic", a.heartbeatsTopic),
+			zap.String("logTopic", a.logTopic))
+	})
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
 		a.requestReconnection(client, config)
-
+		a.logger.Debug("logging all topics", zap.String("rpcToCoreTopic", a.rpcToCoreTopic),
+			zap.String("rpcFromCoreTopic", a.rpcFromCoreTopic),
+			zap.String("capabilitiesTopic", a.capabilitiesTopic),
+			zap.String("heartbeatsTopic", a.heartbeatsTopic),
+			zap.String("logTopic", a.logTopic))
 	})
 
 	if !a.config.OrbAgent.TLS.Verify {
