@@ -3,8 +3,8 @@
 function run() {
   echo "========================= generating changelog ========================="
   cd /github/workspace
-  ls -lha
   result=$(git log --pretty=format:"$ad• %s [%an]" --since=7.days)
+  echo $result
   export CHANGELOG_RESULT=$result
 }
 
