@@ -40,6 +40,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(false)
 	opts.SetCleanSession(true)
+	opts.SetConnectTimeout(5 * time.Minute)
 	opts.SetResumeSubs(true)
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
 		if client.IsConnected() {
