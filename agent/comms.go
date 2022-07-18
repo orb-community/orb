@@ -14,7 +14,6 @@ import (
 	"time"
 )
 
-var disconnectBackOffTime = 4 * time.Second
 var disconnectAttempts = 0
 
 func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
@@ -27,15 +26,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 		a.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 	})
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
-		disconnectAttempts++
 		a.logger.Error("connection to mqtt lost", zap.Int("#attempt", disconnectAttempts), zap.Error(err))
-		time.Sleep(time.Duration(disconnectAttempts) * disconnectBackOffTime)
-		if disconnectAttempts > 13 { // TBD how many attempts
-			if err = a.RestartAll("disconnection"); err != nil {
-				a.logger.Error("stopping agent due to error in restart")
-				a.Stop()
-			}
-		}
 	})
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(false)
