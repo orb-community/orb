@@ -34,7 +34,7 @@ export class AgentGroupsService {
     return {
       limit: defLimit,
       order: defOrder,
-      dir: defDir,
+      dir: 'asc',
       offset: 0,
       total: 0,
       data: null,
@@ -119,7 +119,7 @@ export class AgentGroupsService {
         return data.next ? this.getAgentGroups(data.next) : Observable.empty();
       }),
       reduce<OrbPagination<AgentGroup>>((acc, value) => {
-        acc.data = value.data;
+        acc.data = [...acc.data, ...value.data];
         acc.offset = 0;
         acc.total = acc.data.length;
         return acc;
@@ -130,7 +130,7 @@ export class AgentGroupsService {
   getAgentGroups(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     let limit = pageInfo?.limit || this.cache.limit;
     let order = pageInfo?.order || this.cache.order;
-    let dir = pageInfo?.dir || this.cache.dir;
+    let dir = pageInfo?.dir || 'asc';
     let offset = pageInfo?.offset || 0;
     let doClean = false;
     let params = new HttpParams();
@@ -192,7 +192,7 @@ export class AgentGroupsService {
               parseInt(resp.offset, 10) + parseInt(resp.limit, 10)
             ).toString(),
             order: 'name',
-            dir: 'desc',
+            dir: 'asc',
           },
           limit: resp.limit,
           offset: resp.offset,
