@@ -3,14 +3,19 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from 'environments/environment';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import {
   NgxDatabalePageInfo,
   OrbPagination,
 } from 'app/common/interfaces/orb/pagination.interface';
-import { catchError, expand, map, reduce, scan, takeWhile } from 'rxjs/operators';
+import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { environment } from 'environments/environment';
+import {
+  catchError,
+  expand,
+  map, scan,
+  takeWhile,
+} from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 100;
@@ -106,7 +111,7 @@ export class SinksService {
       }),
       takeWhile((data) => data.next !== undefined),
       map((page) => page.data),
-      scan((acc, v) => [...acc, ...v])
+      scan((acc, v) => [...acc, ...v]),
     );
   }
 

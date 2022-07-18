@@ -3,11 +3,14 @@ import { Injectable } from '@angular/core';
 import { EMPTY, Observable } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from 'environments/environment';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { expand, map, reduce, scan, takeUntil, takeWhile } from 'rxjs/operators';
+import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { environment } from 'environments/environment';
+import {
+  expand,
+  map, scan, takeWhile,
+} from 'rxjs/operators';
 
 export enum AvailableOS {
   DOCKER = 'docker',
@@ -142,7 +145,7 @@ export class AgentsService {
       }),
       takeWhile((data) => data.next !== undefined),
       map((page) => page.data),
-      scan((acc, v) => [...acc, ...v])
+      scan((acc, v) => [...acc, ...v]),
     );
   }
 
@@ -154,7 +157,10 @@ export class AgentsService {
       .set('limit', page.limit.toString());
 
     if (page.tags) {
-      params = params.set('tags', JSON.stringify(page.tags).replace('[', '').replace(']', ''));
+      params = params.set(
+        'tags',
+        JSON.stringify(page.tags).replace('[', '').replace(']', ''),
+      );
     }
 
     return this.http

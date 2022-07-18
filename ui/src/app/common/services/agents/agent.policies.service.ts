@@ -3,14 +3,19 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from 'environments/environment';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import {
   NgxDatabalePageInfo,
   OrbPagination,
 } from 'app/common/interfaces/orb/pagination.interface';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { catchError, expand, map, reduce, scan, takeWhile } from 'rxjs/operators';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { environment } from 'environments/environment';
+import {
+  catchError,
+  expand,
+  map, scan,
+  takeWhile,
+} from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 100;
@@ -28,9 +33,7 @@ export class AgentPoliciesService {
   constructor(
     private http: HttpClient,
     private notificationsService: NotificationsService,
-  ) {
-    
-  }
+  ) {}
 
   public static getDefaultPagination(): OrbPagination<AgentPolicy> {
     return {
@@ -127,7 +130,6 @@ export class AgentPoliciesService {
   }
 
   getAllAgentPolicies() {
-    
     const pageInfo = AgentPoliciesService.getDefaultPagination();
 
     return this.getAgentsPolicies(pageInfo).pipe(
@@ -138,7 +140,7 @@ export class AgentPoliciesService {
       }),
       takeWhile((data) => data.next !== undefined),
       map((page) => page.data),
-      scan((acc, v) => [...acc, ...v])
+      scan((acc, v) => [...acc, ...v]),
     );
   }
 
