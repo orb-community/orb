@@ -48,6 +48,7 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
       this?.agent?.last_hb_data?.policy_state,
     );
     const datasetIds = this.getDatasetIds(this.policies);
+    this.isLoading = true;
     this.retrieveDatasets(datasetIds);
   }
 
@@ -79,7 +80,7 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
     if (!datasetIds) {
       return;
     }
-    this.isLoading = true;
+    
     forkJoin(
       datasetIds.map((id) => this.datasetService.getDatasetById(id)),
     ).subscribe((resp) => {
