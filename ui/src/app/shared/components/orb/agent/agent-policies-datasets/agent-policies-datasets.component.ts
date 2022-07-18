@@ -80,7 +80,7 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
     if (!datasetIds) {
       return;
     }
-    
+
     forkJoin(
       datasetIds.map((id) => this.datasetService.getDatasetById(id)),
     ).subscribe((resp) => {

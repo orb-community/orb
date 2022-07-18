@@ -75,6 +75,12 @@
           color: #fff !important;
         }
 
+        &:hover {
+          .menu-title {
+            color: #598bff;
+          }
+        }
+
         .menu-title {
           padding-left: 17px;
         }
