@@ -33,32 +33,20 @@ import (
 func Components() (component.Factories, error) {
 	var err error
 	factories := component.Factories{}
-	extensions := []component.ExtensionFactory{
-		ballastextension.NewFactory(),
-		zpagesextension.NewFactory(),
-	}
+	extensions := getExtensions()
 	factories.Extensions, err = component.MakeExtensionFactoryMap(extensions...)
 	if err != nil {
 		return component.Factories{}, err
 	}
 
-	receivers := []component.ReceiverFactory{
-		otlpreceiver.NewFactory(),
-		prometheusreceiver.NewFactory(),
-	}
+	receivers := getReceivers()
 	receivers = append(receivers, extraReceivers()...)
 	factories.Receivers, err = component.MakeReceiverFactoryMap(receivers...)
 	if err != nil {
 		return component.Factories{}, err
 	}
 
-	exporters := []component.ExporterFactory{
-		loggingexporter.NewFactory(),
-		otlpexporter.NewFactory(),
-		otlphttpexporter.NewFactory(),
-		prometheusexporter.NewFactory(),
-		prometheusremotewriteexporter.NewFactory(),
-	}
+	exporters := getExporters()
 	factories.Exporters, err = component.MakeExporterFactoryMap(exporters...)
 	if err != nil {
 		return component.Factories{}, err
@@ -74,4 +62,28 @@ func Components() (component.Factories, error) {
 	}
 
 	return factories, nil
+}
+
+func getExporters() []component.ExporterFactory {
+	return []component.ExporterFactory{
+		loggingexporter.NewFactory(),
+		otlpexporter.NewFactory(),
+		otlphttpexporter.NewFactory(),
+		prometheusexporter.NewFactory(),
+		prometheusremotewriteexporter.NewFactory(),
+	}
+}
+
+func getReceivers() []component.ReceiverFactory {
+	return []component.ReceiverFactory{
+		otlpreceiver.NewFactory(),
+		prometheusreceiver.NewFactory(),
+	}
+}
+
+func getExtensions() []component.ExtensionFactory {
+	return []component.ExtensionFactory{
+		ballastextension.NewFactory(),
+		zpagesextension.NewFactory(),
+	}
 }

@@ -35,8 +35,8 @@ func RunWithComponents(componentsFunc ComponentsFunc) {
 	}
 
 	info := component.BuildInfo{
-		Command:     "otelcontribcol",
-		Description: "OpenTelemetry Collector Contrib",
+		Command:     "otelcollector",
+		Description: "Otel Collector and Sinker",
 		Version:     "latest",
 	}
 
