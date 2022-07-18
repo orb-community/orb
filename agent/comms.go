@@ -35,8 +35,11 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 			zap.String("heartbeatsTopic", a.heartbeatsTopic),
 			zap.String("logTopic", a.logTopic))
 		time.Sleep(time.Duration(disconnectAttempts) * disconnectBackOffTime)
-		if disconnectAttempts > 13 {
-			_ = a.RestartAll("disconnection")
+		if disconnectAttempts > 13 { // TDB how many attempts
+			if err = a.RestartAll("disconnection"); err != nil {
+				a.logger.Error("stopping agent due to error in restart")
+				a.Stop()
+			}
 		}
 	})
 	opts.SetPingTimeout(5 * time.Second)
