@@ -126,19 +126,19 @@ export class OrbService implements OnDestroy {
     this.agents$ = this.observe(this.agent.getAllAgents());
 
     this.groups$ = this.observe(
-      this.group.getAllAgentGroups().pipe(map((page) => page.data)),
+      this.group.getAllAgentGroups(),
     );
 
     this.policies$ = this.observe(
-      this.policy.getAllAgentPolicies().pipe(map((page) => page.data)),
+      this.policy.getAllAgentPolicies(),
     );
 
     this.datasets$ = this.observe(
-      this.dataset.getAllDatasets().pipe(map((page) => page.data)),
+      this.dataset.getAllDatasets(),
     );
 
     this.sinks$ = this.observe(
-      this.sink.getAllSinks().pipe(map((page) => page.data)),
+      this.sink.getAllSinks(),
     );
 
     this.agentsTags$ = this.agents$.pipe(

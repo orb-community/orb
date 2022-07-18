@@ -3,14 +3,19 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from 'environments/environment';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import {
   NgxDatabalePageInfo,
   OrbPagination,
 } from 'app/common/interfaces/orb/pagination.interface';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { catchError, expand, reduce } from 'rxjs/operators';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { environment } from 'environments/environment';
+import {
+  catchError,
+  expand,
+  map, scan,
+  takeWhile,
+} from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 100;
@@ -118,12 +123,9 @@ export class AgentGroupsService {
       expand((data) => {
         return data.next ? this.getAgentGroups(data.next) : Observable.empty();
       }),
-      reduce<OrbPagination<AgentGroup>>((acc, value) => {
-        acc.data = [...acc.data, ...value.data];
-        acc.offset = 0;
-        acc.total = acc.data.length;
-        return acc;
-      }, this.cache),
+      takeWhile((data) => data.next !== undefined),
+      map((page) => page.data),
+      scan((acc, v) => [...acc, ...v]),
     );
   }
 

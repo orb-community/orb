@@ -3,14 +3,14 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from 'environments/environment';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import {
   NgxDatabalePageInfo,
   OrbPagination,
 } from 'app/common/interfaces/orb/pagination.interface';
-import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
-import { expand, reduce } from 'rxjs/operators';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { environment } from 'environments/environment';
+import { expand, map, scan, takeWhile } from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 100;
@@ -127,11 +127,9 @@ export class DatasetPoliciesService {
           ? this.getDatasetPolicies(data.next)
           : Observable.empty();
       }),
-      reduce<OrbPagination<Dataset>>((acc, value) => {
-        acc.data = value.data;
-        acc.offset = 0;
-        return acc;
-      }, this.cache),
+      takeWhile((data) => data.next !== undefined),
+      map((page) => page.data),
+      scan((acc, v) => [...acc, ...v]),
     );
   }
 
