@@ -10,7 +10,7 @@ import {
   OrbPagination,
 } from 'app/common/interfaces/orb/pagination.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
-import { expand, reduce } from 'rxjs/operators';
+import { expand, map, reduce, scan, takeWhile } from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 100;
@@ -127,11 +127,9 @@ export class DatasetPoliciesService {
           ? this.getDatasetPolicies(data.next)
           : Observable.empty();
       }),
-      reduce<OrbPagination<Dataset>>((acc, value) => {
-        acc.data = value.data;
-        acc.offset = 0;
-        return acc;
-      }, this.cache),
+      takeWhile((data) => data.next !== undefined),
+      map((page) => page.data),
+      scan((acc, v) => [...acc, ...v])
     );
   }
 

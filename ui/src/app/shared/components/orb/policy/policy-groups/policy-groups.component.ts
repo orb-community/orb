@@ -80,7 +80,7 @@ export class PolicyGroupsComponent implements OnInit, OnChanges, OnDestroy {
   retrievePolicyDatasets() {
     return this.datasetService.getAllDatasets()
       .map(resp => {
-        return resp.data.filter(
+        return resp.filter(
           dataset => dataset.agent_policy_id === this.policy.id);
       });
   }

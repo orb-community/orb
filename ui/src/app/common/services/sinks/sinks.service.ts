@@ -10,7 +10,7 @@ import {
   NgxDatabalePageInfo,
   OrbPagination,
 } from 'app/common/interfaces/orb/pagination.interface';
-import { catchError, expand, reduce } from 'rxjs/operators';
+import { catchError, expand, map, reduce, scan, takeWhile } from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 100;
@@ -104,12 +104,9 @@ export class SinksService {
       expand((data) => {
         return data.next ? this.getSinks(data.next) : Observable.empty();
       }),
-      reduce<OrbPagination<Sink>>((acc, value) => {
-        acc.data = value.data;
-        acc.offset = 0;
-        acc.total = acc.data.length;
-        return acc;
-      }, this.cache),
+      takeWhile((data) => data.next !== undefined),
+      map((page) => page.data),
+      scan((acc, v) => [...acc, ...v])
     );
   }
 

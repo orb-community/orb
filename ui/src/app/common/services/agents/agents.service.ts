@@ -7,7 +7,7 @@ import { environment } from 'environments/environment';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { expand, map, reduce } from 'rxjs/operators';
+import { expand, map, reduce, scan, takeUntil, takeWhile } from 'rxjs/operators';
 
 export enum AvailableOS {
   DOCKER = 'docker',
@@ -140,14 +140,9 @@ export class AgentsService {
       expand((data) => {
         return data.next ? this.getAgents(data.next) : EMPTY;
       }),
-      reduce<OrbPagination<Agent>>((acc, value) => {
-        acc.data = [...acc.data, ...value.data];
-        acc.offset = 0;
-        acc.dir = 'asc',
-        acc.total = acc.data.length;
-        return acc;
-      }, pageInfo),
+      takeWhile((data) => data.next !== undefined),
       map((page) => page.data),
+      scan((acc, v) => [...acc, ...v])
     );
   }
 
