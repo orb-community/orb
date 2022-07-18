@@ -141,8 +141,9 @@ export class AgentsService {
         return data.next ? this.getAgents(data.next) : EMPTY;
       }),
       reduce<OrbPagination<Agent>>((acc, value) => {
-        acc.data = value.data;
+        acc.data = [...acc.data, ...value.data];
         acc.offset = 0;
+        acc.dir = 'asc',
         acc.total = acc.data.length;
         return acc;
       }, pageInfo),
@@ -165,17 +166,17 @@ export class AgentsService {
       .get(`${environment.agentsUrl}`, { params })
       .pipe(
         map((resp: any) => {
-          const { order, dir, offset, limit, total, agents, tags } = resp;
+          const { order, direction, offset, limit, total, agents, tags } = resp;
           const next = offset + limit < total && {
             limit,
             order,
-            dir,
+            dir: direction,
             tags,
             offset: (parseInt(offset, 10) + parseInt(limit, 10)).toString(),
           };
           return {
             order,
-            dir,
+            dir: direction,
             offset,
             limit,
             total,
