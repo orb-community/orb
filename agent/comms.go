@@ -24,7 +24,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 		a.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 	})
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
-		a.logger.Error("error on connection lost, auto reconnect is enabled", zap.Error(err))
+		a.logger.Error("error on connection lost, retrying to reconnect", zap.Error(err))
 		if err = a.restartComms(); err != nil {
 			a.logger.Error("got error trying to reconnect, stopping agent", zap.Error(err))
 			a.Stop()
@@ -33,9 +33,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(false)
 	opts.SetResumeSubs(true)
-	//opts.SetConnectRetry(true)
 	opts.SetConnectTimeout(0)
-	//opts.SetConnectRetryInterval(5 * time.Second)
 	opts.SetCleanSession(true)
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
 		a.requestReconnection(client, config)
