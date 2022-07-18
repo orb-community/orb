@@ -110,7 +110,8 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
           dataset,
         },
         hasScroll: false,
-        hasBackdrop: false,
+        hasBackdrop: true,
+        closeOnBackdropClick: true,
       })
       .onClose.subscribe((resp) => {
         if (resp === 'changed' || 'deleted') {
