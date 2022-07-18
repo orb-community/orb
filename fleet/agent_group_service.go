@@ -17,18 +17,20 @@ import (
 	"strings"
 )
 
+const limitThingsByChannel uint64 = 100
+
 var (
 	ErrCreateAgentGroup = errors.New("failed to create agent group")
 
 	ErrMaintainAgentGroupChannels = errors.New("failed to maintain agent group channels")
 )
 
-func (svc fleetService) removeAgentGroupSubscriptions(groupID string, ownerID string) error {
+func (svc fleetService) removeAgentGroupSubscriptions(ctx context.Context, groupID string, ownerID string) error {
 	ag, err := svc.agentGroupRepository.RetrieveByID(context.Background(), groupID, ownerID)
 	if err != nil {
 		return err
 	}
-	err = svc.agentComms.NotifyGroupRemoval(ag)
+	err = svc.agentComms.NotifyGroupRemoval(ctx, ag)
 	if err != nil {
 		svc.logger.Error("failure during agent group membership comms", zap.Error(err))
 	}
@@ -230,9 +232,40 @@ func (svc fleetService) RemoveAgentGroup(ctx context.Context, token, groupId str
 		return err
 	}
 
-	err = svc.removeAgentGroupSubscriptions(groupId, ownerID)
+	err = svc.removeAgentGroupSubscriptions(ctx, groupId, ownerID)
 	if err != nil {
 		svc.logger.Error("removing agents from group channel", zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
+	}
+
+	group, err := svc.agentGroupRepository.RetrieveByID(ctx, groupId, ownerID)
+	if err != nil {
+		return err
+	}
+
+	var lastRead uint64 = 1
+	for {
+		connectedAgents, err := svc.mfsdk.ThingsByChannel(token, group.MFChannelID, lastRead, limitThingsByChannel, false)
+		if err != nil {
+			return err
+		}
+
+		for _, agent := range connectedAgents.Things {
+			err := svc.mfsdk.DisconnectThing(agent.ID, group.MFChannelID, token)
+			if err != nil {
+				svc.logger.Error("error while disconnecting agent from channel", zap.String("agent_name", agent.Name), zap.String("agent_id", agent.ID), zap.String("channel_id", group.MFChannelID), zap.Error(err))
+			}
+		}
+
+		if connectedAgents.Total < limitThingsByChannel {
+			break
+		}
+
+		lastRead += limitThingsByChannel
+	}
+
+	err = svc.mfsdk.DeleteChannel(group.MFChannelID, token)
+	if err != nil {
+		return errors.Wrap(errors.New("error while deleting channel"), err)
 	}
 
 	err = svc.agentGroupRepository.Delete(ctx, groupId, ownerID)

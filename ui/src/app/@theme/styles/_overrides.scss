@@ -75,6 +75,12 @@
           color: #fff !important;
         }
 
+        &:hover {
+          .menu-title {
+            color: #598bff;
+          }
+        }
+
         .menu-title {
           padding-left: 17px;
         }
@@ -114,4 +120,22 @@
   &.btn-disabled {
     background: #2b3148;
   }
+}
+
+.tableWrapper {
+  display: flex;
+  margin-top: 2em;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-content: flex-start;
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow-x: auto;
+  min-width: 800px;
+}
+
+.orb-table {
+  min-height: calc(100vh - 300px);
+  min-width: 800px;
+  max-height: calc(100vh - 300px);
 }

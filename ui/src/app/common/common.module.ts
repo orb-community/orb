@@ -22,6 +22,7 @@ import { TokenInterceptor } from 'app/auth/auth.token.interceptor.service';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { OrbService } from 'app/common/services/orb.service';
 
 // Orb mock
 
@@ -41,6 +42,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
     DatasetPoliciesService,
     FleetsService,
     SinksService,
+    OrbService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: TokenInterceptor,
@@ -48,5 +50,4 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
     },
   ],
 })
-export class CommonModule {
-}
+export class CommonModule {}

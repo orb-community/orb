@@ -1,12 +1,18 @@
 import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 
-import { NB_AUTH_OPTIONS, NbAuthService, NbRegisterComponent } from '@nebular/auth';
 import { Router } from '@angular/router';
+import {
+  NbAuthService,
+  NbRegisterComponent,
+  NB_AUTH_OPTIONS,
+} from '@nebular/auth';
 import { STRINGS } from 'assets/text/strings';
 import { environment } from '../../../../environments/environment';
 
 @Component({
-  selector: 'ngx-register-component', templateUrl: 'register.component.html', styleUrls: ['register.component.scss'],
+  selector: 'ngx-register-component',
+  templateUrl: 'register.component.html',
+  styleUrls: ['register.component.scss'],
 })
 export class RegisterComponent extends NbRegisterComponent implements OnInit {
   strings = STRINGS.login;
@@ -33,11 +39,13 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     @Inject(NB_AUTH_OPTIONS) protected options: {},
     protected authService: NbAuthService,
     protected cd: ChangeDetectorRef,
-    protected router: Router) {
+    protected router: Router,
+  ) {
     super(authService, options, cd, router);
   }
 
-  ngOnInit() { // In the ngOnInit() or in the constructor
+  ngOnInit() {
+    // In the ngOnInit() or in the constructor
     const el = document.getElementById('nb-global-spinner');
     if (el) {
       el.style['display'] = 'none';
@@ -61,7 +69,6 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     if (!this._psEnabled) return false;
     // Check to ensure we're able to get the Group successfully.
     if (_ps.getByKey(this._groupKey)) {
-
       // Return if we should block the submission using the .block() method
       // provided by the Group object.
       return _ps.getByKey(this._groupKey).block();
@@ -78,7 +85,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     // checking PactSafe acceptance first.
     this.errors = this.messages = [];
     this.submitted = true;
-    this.repeatedEmail = null
+    this.repeatedEmail = null;
 
     const _ps = !!window['_ps'] && window['_ps'];
 
@@ -87,37 +94,45 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
       // We don't need to block the form submission,
       // so submit the form.
       const { email, password, company } = this.user;
-      this.authService.register(this.strategy, {
-        email, password, metadata: {
-          company: company, fullName: this.user.fullName,
-        },
-      }).subscribe(respReg => {
-        const first_name = this.user.fullName.split(' ')[0];
-        const last_name = this.user.fullName.replace(`${ first_name } `, '');
-        !!_ps && _ps.getByKey(this._groupKey).send('updated', { custom_data: { first_name, last_name } });
+      this.authService
+        .register(this.strategy, {
+          email,
+          password,
+          metadata: {
+            company: company,
+            fullName: this.user.fullName,
+          },
+        })
+        .subscribe((respReg) => {
+          const first_name = this.user.fullName.split(' ')[0];
+          const last_name = this.user.fullName.replace(`${first_name} `, '');
+          !!_ps &&
+            _ps
+              .getByKey(this._groupKey)
+              .send('updated', { custom_data: { first_name, last_name } });
 
-        this.submitted = false;
+          this.submitted = false;
 
-        if (respReg.isSuccess()) {
-          this.messages = respReg.getMessages();
+          if (respReg.isSuccess()) {
+            this.messages = respReg.getMessages();
 
-          this.authenticateAndRedirect(email, password);
-        } else {
-          if (respReg.getResponse().status === 409) {
-            this.repeatedEmail = email
-            this.errors = [respReg.getResponse().error.error];
+            this.authenticateAndRedirect(email, password);
+          } else {
+            if (respReg.getResponse().status === 409) {
+              this.repeatedEmail = email;
+              this.errors = [respReg.getResponse().error.error];
+            }
           }
-        }
-
-      });
+        });
     } else {
       // We can get the alert message if set on the group
       // or define our own if it's not.
       if (_ps) {
-        const acceptanceAlertLanguage = (_ps.getByKey(this._groupKey)
-          && _ps.getByKey(this._groupKey).get('alert_message'))
-          ? _ps.getByKey(this._groupKey).get('alert_message')
-          : 'Please accept our Terms and Conditions.';
+        const acceptanceAlertLanguage =
+          _ps.getByKey(this._groupKey) &&
+          _ps.getByKey(this._groupKey).get('alert_message')
+            ? _ps.getByKey(this._groupKey).get('alert_message')
+            : 'Please accept our Terms and Conditions.';
 
         // Alert the user that the Terms need to be accepted before continuing.
         alert(acceptanceAlertLanguage);
@@ -126,10 +141,13 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   }
 
   authenticateAndRedirect(email, password) {
-    this.authService.authenticate(this.strategy, {
-      email, password,
-    }).subscribe(respAuth => {
+    this.authService
+      .authenticate(this.strategy, {
+        email,
+        password,
+      })
+      .subscribe((respAuth) => {
         this.router.navigateByUrl('/pages/dashboard');
-    });
+      });
   }
 }

@@ -45,7 +45,6 @@ export class AgentAddComponent {
   ) {
     this.isLoading = true;
 
-    this.agentsService.clean();
     this.agentID = this.route.snapshot.paramMap.get('id');
     this.isEdit = !!this.agentID;
 

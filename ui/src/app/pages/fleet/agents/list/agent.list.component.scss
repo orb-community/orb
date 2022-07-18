@@ -46,7 +46,6 @@ mat-chip-list {
   }
 }
 
-
 .sink-summary {
   .sink-info-regular {
     color: #ffffff;
@@ -64,6 +63,16 @@ mat-chip-list {
 
 .summary-accent {
   color: #969fb9 !important;
+}
+
+.datatable-body-cell-label {
+  box-sizing: content-box;
+}
+
+span {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
 }
 
 .filter-dropdown {
@@ -114,10 +123,19 @@ tr div p {
         text-decoration: none !important;
         color: #969fb9 !important;
       }
-     .xng-breadcrumb-separator {
+      .xng-breadcrumb-separator {
         text-decoration: none !important;
         color: #969fb9 !important;
       }
+    }
+  }
+
+  .datatable-row-center .datatable-body-cell:first-child {
+    .datatable-body-cell-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
     }
   }
 }

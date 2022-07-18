@@ -5,6 +5,8 @@
  */
 
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
+import { AgentGroupState } from './agent.group.interface';
+import { AgentPolicyState } from './agent.policy.interface';
 
 /**
  * @enum AgentStates
@@ -15,24 +17,6 @@ export enum AgentStates {
   offline = 'offline',
   stale = 'stale',
   removed = 'removed',
-}
-
-export interface AgentGroupState {
-  name?: string;
-  channel?: string;
-}
-
-export enum AgentPolicyStates {
-  running = 'running',
-  failedToApply = 'failed_to_apply',
-}
-
-export interface AgentPolicyState {
-  id?: string;
-  name?: string;
-  state?: AgentPolicyStates;
-  error?: string;
-  datasets?: string[];
 }
 
 /**
@@ -67,7 +51,7 @@ export interface Agent extends OrbEntity {
    * Agent Metadata {{[propName: string]: string}}
    * Sent in by agent, defining its capabilities.
    */
-  agent_metadata?: {[propname: string]: any};
+  agent_metadata?: { [propname: string]: any };
 
   /**
    * State {string} = 'new'|'online'|'offline'|'stale'|'removed'
@@ -78,11 +62,13 @@ export interface Agent extends OrbEntity {
   /**
    * Last Heartbeat Data {{[propName: string]: string}}
    */
-  last_hb_data?: any | {
-    backend_state?: any;
-    group_state?: {[id: string]: AgentGroupState};
-    policy_state?: {[id: string]: AgentPolicyState};
-  };
+  last_hb_data?:
+    | any
+    | {
+        backend_state?: any;
+        group_state?: { [id: string]: AgentGroupState };
+        policy_state?: { [id: string]: AgentPolicyState };
+      };
 
   /**
    * Last Heartbeat timestamp {string}
@@ -106,5 +92,4 @@ export interface Agent extends OrbEntity {
    * See
    */
   combined_tags?: any;
-
 }

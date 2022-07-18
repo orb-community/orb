@@ -75,7 +75,7 @@ def check_agent_online(context, status, seconds):
 
 @step('the agent status is {status}')
 def check_agent_status(context, status):
-    timeout = 10
+    timeout = 30
     token = context.token
     agent_id = context.agent['id']
     agent_status = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
@@ -236,7 +236,7 @@ def check_agent_exists_on_backend(token, agent_name, event=None):
 @step("an agent is self-provisioned via a configuration file on port {port} with {agent_tags} agent tags and has "
       "status {status}")
 def provision_agent_using_config_file(context, port, agent_tags, status):
-    agent_name = f"{agent_name_prefix}{random_string(3)}"
+    agent_name = f"{agent_name_prefix}{random_string(10)}"
     interface = configs.get('orb_agent_interface', 'mock')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')

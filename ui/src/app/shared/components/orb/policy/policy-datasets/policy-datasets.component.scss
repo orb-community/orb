@@ -37,11 +37,25 @@ nb-card {
   padding-left: 2px;
 }
 
-::ng-deep button.card-ghost-button {
-  display: flex !important;
-  float: right !important;
-  padding: 0.2rem 1.125rem !important;
-  z-index: 2;
+::ng-deep {
+  button.card-ghost-button {
+    display: flex !important;
+    float: right !important;
+    padding: 0.2rem 1.125rem !important;
+    z-index: 2;
+  }
+
+  .datatable-row-group .datatable-body-cell:first-child {
+    .datatable-body-cell-label {
+      overflow: hidden;
+
+      button {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        width: 100%;
+      }
+    }
+  }
 }
 
 .edit-dataset-button {

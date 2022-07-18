@@ -7,6 +7,18 @@
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
 import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.config.interface';
 
+export enum AgentPolicyStates {
+  running = 'running',
+  failedToApply = 'failed_to_apply',
+}
+
+export interface AgentPolicyState {
+  id?: string;
+  name?: string;
+  state?: AgentPolicyStates;
+  error?: string;
+  datasets?: string[];
+}
 
 /**
  * @interface AgentPolicy
@@ -55,7 +67,7 @@ export interface AgentPolicy extends OrbEntity {
    * Format {string}
    * When specified, determines language of
    * policy_data content
-  */
+   */
   format?: string;
 
   /**

@@ -5,14 +5,29 @@
  */
 
 import { PrometheusConfig } from 'app/common/interfaces/orb/sink/config/prometheus.config.interface';
-import { AWSConfig } from 'app/common/interfaces/orb/sink/config/aws.config.interface';
+
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
+
+/**
+ * @enum SinkStates
+ */
+export enum SinkStates {
+  active = 'active',
+  error = 'error',
+}
+
+/**
+ * @enum SinkBackends
+ */
+export enum SinkBackends {
+  prometheus = 'prometheus',
+}
 
 /**
  * @interface Sink
  */
 export interface Sink extends OrbEntity {
-    /**
+  /**
    * Description {string}
    */
   description?: string;
@@ -52,15 +67,17 @@ export interface Sink extends OrbEntity {
   config?: SinkTypes;
 }
 
-export type SinkTypes = PrometheusConfig|AWSConfig;
+export type SinkTypes = PrometheusConfig;
 
 /**
  * Prometheus Sink Type
  * @type PromSink
  */
-export type PromSink = Sink|{
-  config?: PrometheusConfig;
-};
+export type PromSink =
+  | Sink
+  | {
+      config?: PrometheusConfig;
+    };
 
 /**
  * for future
