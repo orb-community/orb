@@ -15,7 +15,6 @@ import (
 )
 
 var disconnectBackOffTime = 4 * time.Second
-var disconnectBackOffTimer *time.Timer
 var disconnectAttempts = 0
 
 func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
@@ -35,11 +34,9 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 			zap.String("capabilitiesTopic", a.capabilitiesTopic),
 			zap.String("heartbeatsTopic", a.heartbeatsTopic),
 			zap.String("logTopic", a.logTopic))
-		disconnectBackOffTimer = time.NewTimer(time.Duration(disconnectAttempts) * disconnectBackOffTime)
-		select {
-		case _ = <-disconnectBackOffTimer.C:
-			a.logger.Info("stopped waiting")
-			return
+		time.Sleep(time.Duration(disconnectAttempts) * disconnectBackOffTime)
+		if disconnectAttempts > 13 {
+			_ = a.RestartAll("disconnection")
 		}
 	})
 	opts.SetPingTimeout(5 * time.Second)
@@ -53,6 +50,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 			zap.String("logTopic", a.logTopic))
 	})
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
+		disconnectAttempts = 0
 		a.requestReconnection(client, config)
 		a.logger.Debug("logging all topics", zap.String("rpcToCoreTopic", a.rpcToCoreTopic),
 			zap.String("rpcFromCoreTopic", a.rpcFromCoreTopic),
