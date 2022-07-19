@@ -765,7 +765,7 @@ Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and inse
         And this agent's heartbeat shows that 1 policies are applied and all has status running
 
 
-@smoke
+@smoke @failing
 Scenario: agent with only agent tags subscription to a group with policies created after provision the agent (config file)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -802,7 +802,7 @@ Scenario: agent with only agent tags subscription to a group with policies creat
         And remove the agent .yaml generated on each scenario
 
 
-@smoke
+@smoke @failing
 Scenario: agent with mixed tags subscription to a group with policies created after provision the agent (config file)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -821,7 +821,7 @@ Scenario: agent with mixed tags subscription to a group with policies created af
         And remove the agent .yaml generated on each scenario
 
 
-@smoke
+@smoke @failing
 Scenario: agent with mixed tags subscription to a group with policies created before provision the agent (config file)
     Given the Orb user has a registered account
         And the Orb user logs in

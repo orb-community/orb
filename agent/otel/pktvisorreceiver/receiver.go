@@ -30,7 +30,7 @@ func New(params component.ReceiverCreateSettings, cfg *Config, consumer consumer
 	var err error
 	logger, err = zap.NewProduction()
 	if err != nil {
-		fmt.Errorf("failed to create logger: %v", err)
+		logger.Error("failed to create logger", zap.Error(err))
 	}
 	return &prometheusReceiverWrapper{params: params, config: cfg, consumer: consumer, logger: logger}
 }

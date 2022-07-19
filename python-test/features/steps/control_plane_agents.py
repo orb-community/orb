@@ -497,7 +497,11 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         tags = {"tags": all_used_tags}
     else:
         tags = {"tags": create_tags_set(agent_tags)}
-    agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, base_orb_address)
+    if base_orb_address == "localhost":
+        mqtt_url = "localhost:1883"
+    else:
+        mqtt_url = "tls://" + orb_url + ":8883"
+    agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, mqtt_url)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)
     port = return_port_to_run_docker_container(context, availability[status_port])

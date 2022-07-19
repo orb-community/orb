@@ -52,7 +52,6 @@ define make_docker
 		-f docker/Dockerfile .
 	$(eval SERVICE="")
 endef
-
 define make_docker_dev
 	$(eval svc=$(shell [ -z "$(SERVICE)" ] && echo $(subst docker_dev_,,$(1)) || echo $(svc)))
 	docker build \
