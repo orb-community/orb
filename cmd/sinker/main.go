@@ -29,6 +29,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	jconfig "github.com/uber/jaeger-client-go/config"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"io"
@@ -38,6 +39,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -64,11 +66,23 @@ func main() {
 
 	// main logger
 	var logger *zap.Logger
-	if svcCfg.LogLevel == "debug" {
-		logger, _ = zap.NewDevelopment()
-	} else {
-		logger, _ = zap.NewProduction()
+	atomicLevel := zap.NewAtomicLevel()
+	switch strings.ToLower(svcCfg.LogLevel) {
+	case "debug":
+		atomicLevel.SetLevel(zap.DebugLevel)
+	case "warn":
+		atomicLevel.SetLevel(zap.WarnLevel)
+	case "info":
+		atomicLevel.SetLevel(zap.InfoLevel)
+	default:
+		atomicLevel.SetLevel(zap.InfoLevel)
 	}
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		os.Stdout,
+		atomicLevel,
+	)
+	logger = zap.New(core, zap.AddCaller())
 	defer logger.Sync() // flushes buffer, if any
 
 	// only needed for mainflux interfaces
