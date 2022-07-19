@@ -69,3 +69,28 @@ class UtilButton:
     @classmethod
     def close_button(cls):
         return "//span[contains(@class, 'nb-close')]"
+
+
+class DataTable:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def body(cls):
+        return "//div[contains(@class, 'datatable-body')]"
+
+    @classmethod
+    def page_count(cls):
+        return "//div[contains(@class, 'page-count')]"
+
+    @classmethod
+    def sub_pages(cls):
+        return "//ul[@class='pager']/child::li[contains(@class, 'pages')]"
+
+    @classmethod
+    def agent(cls, name):
+        return f"//div[contains(@class, 'agent-name') and contains(text(), '{name}')]"
+
+    @classmethod
+    def next_page(cls):
+        return "//a[@aria-label='go to next page']"

@@ -76,9 +76,7 @@ def check_agent_online(context, status, seconds):
 def check_agent_status(context, status):
     timeout = 30
     token = context.token
-    agent_id = context.agent['id']
-    agent_status = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
-    context.agent = get_agent(context.token, context.agent['id'])
+    agent_status, context.agent = wait_until_expected_agent_status(token, context.agent['id'], status, timeout=timeout)
     logs = get_orb_agent_logs(context.container_id)
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'."

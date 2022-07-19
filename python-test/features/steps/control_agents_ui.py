@@ -5,6 +5,7 @@ from control_plane_agents import agent_name_prefix
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from utils import random_string, create_tags_set
 from test_config import TestConfig
 from hamcrest import *
@@ -25,8 +26,8 @@ def agent_page(context):
         EC.element_to_be_clickable((By.XPATH, LeftMenu.agents())))
     context.driver.find_element_by_xpath(LeftMenu.agents()).click()
     WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{orb_url}/pages/fleet/agents"), message="Orb agents "
-                                                                                                       "page not "
-                                                                                                       "available")
+                                                                                                  "page not "
+                                                                                                  "available")
 
 
 @step("that the user is on the orb Agent page")
@@ -44,9 +45,9 @@ def create_agent_through_the_agents_page(context, orb_tags):
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, AgentsPage.new_agent_button()))).click()
     WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{orb_url}/pages/fleet/agents/add"), message="Orb add"
-                                                                                                           "agents "
-                                                                                                           "page not "
-                                                                                                           "available")
+                                                                                                      "agents "
+                                                                                                      "page not "
+                                                                                                      "available")
     context.agent_name = agent_name_prefix + random_string(10)
     input_text_by_xpath(AgentsPage.agent_name(), context.agent_name, context)
     WebDriverWait(context.driver, 3).until(
@@ -73,14 +74,30 @@ def create_agent_through_the_agents_page(context, orb_tags):
     WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located((By.XPATH, UtilButton.close_button())))[0].click()
     WebDriverWait(context.driver, 3).until(
-        EC.presence_of_all_elements_located((By.XPATH, f"//span[contains(@class, 'agent-name') and contains(text(),"
-                                                       f"'{context.agent_name}')]")))[0].click()
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.page_count())))
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.body())))
+    pages = WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.sub_pages())))
+    if len(pages) > 1:
+        for page in range(len(pages)):
+            try:
+                WebDriverWait(context.driver, 3).until(
+                    EC.presence_of_all_elements_located((By.XPATH, DataTable.agent(context.agent_name))))[0].click()
+            except TimeoutException:
+                WebDriverWait(context.driver, 3).until(
+                    EC.presence_of_all_elements_located((By.XPATH, DataTable.next_page())))[0].click()
+            except OSError as err:
+                print(err)
+    else:
+        WebDriverWait(context.driver, 3).until(
+            EC.presence_of_all_elements_located((By.XPATH, DataTable.agent(context.agent_name))))[0].click()
     context.agent = dict()
     context.agent['id'] = WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located((By.XPATH, AgentsPage.agent_view_id())))[0].text
-    # assert_that(context.agent['id'],
-    #             matches_regexp(r'[a-zA-Z0-9]{8}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{12}'),
-    #             f"Failed to get agent id {context.agent['id']}")
+    assert_that(context.agent['id'],
+                matches_regexp(r'[a-zA-Z0-9]{8}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{12}'),
+                f"Failed to get agent id {context.agent['id']}")
     context.agent['name'] = context.agent_name
 
 

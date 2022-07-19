@@ -182,7 +182,7 @@ def remove_policy_applied(context):
     policy_removed = choice(context.list_agent_policies_id)
     context.policy = get_policy(context.token, policy_removed)
     delete_policy(context.token, context.policy["id"])
-    if context.removed_policies_ids:
+    if 'removed_policies_ids' in context:
         context.removed_policies_ids.append(context.policy["id"])
     else:
         context.removed_policies_ids = list()

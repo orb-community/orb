@@ -21,11 +21,6 @@ Scenario: cleanup policies
   Then cleanup policies
 
 @cleanup
-Scenario: cleanup datasets
-  Given the Orb user logs in
-  Then cleanup datasets
-
-@cleanup
 Scenario: cleanup yaml file
   Given the Orb user logs in
   Then remove all the agents .yaml generated on test process

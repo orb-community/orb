@@ -61,14 +61,6 @@ def edit_sinks_on_dataset(context, amount_of_sinks):
                  sinks)
 
 
-# @step('datasets related to removed policy has validity invalid')
-# def check_dataset_status_invalid(context):
-#     for dataset_id in context.id_of_datasets_related_to_removed_policy:
-#         dataset = get_dataset(context.token, dataset_id)
-#         assert_that(dataset['valid'], equal_to(False), f"dataset {dataset} status failed with valid"
-#                                                        f"equals {dataset['valid']}")
-
-
 @step('a dataset linked to this agent is removed')
 def remove_dataset_from_agent(context):
     dataset_remove = choice(list(context.datasets_created.keys()))
@@ -99,15 +91,6 @@ def check_orb_datasets_list(context, condition='must'):
                     f"Unexpected response for get dataset request. {policy}")
 
 
-# @step('datasets related to all existing policies have validity valid')
-# def check_dataset_status_valid(context):
-#     all_datasets = list_datasets(context.token)
-#     for dataset in all_datasets:
-#         if dataset["agent_policy_id"] in context.policies_created.keys():
-#             assert_that(dataset['valid'], equal_to(True), f"dataset {dataset} status failed with valid "
-#                                                           f"equals {dataset['valid']}")
-
-
 @step('no dataset should be linked to the removed {element_removed} anymore')
 def check_dataset_status_valid(context, element_removed):
     assert_that(element_removed, any_of(equal_to('group'), equal_to('groups'), equal_to("sink"), equal_to("sinks"),
@@ -122,7 +105,7 @@ def check_dataset_status_valid(context, element_removed):
                             dataset['agent_policy_id'] in context.removed_policies_ids]
     else:
         related_datasets = [dataset for dataset in datasets_test_list if
-                            any(sink in dataset['sink_ids'] for sink in context.removed_policies_ids)]
+                            any(sink in dataset['sink_ids'] for sink in context.removed_sinks_ids)]
     assert_that(len(related_datasets), equal_to(0), f"The following datasets are still linked to removed"
                                                     f" {element_removed}: {related_datasets}")
 

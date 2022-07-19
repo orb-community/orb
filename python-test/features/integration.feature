@@ -58,7 +58,7 @@ Scenario: apply one policy using multiple datasets to the same group
         And 3 datasets are linked with each policy on agent's heartbeat within 30 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 180 seconds
         And referred sink must have active state on response within 180 seconds
-        And 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And 6 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
 @smoke
@@ -93,7 +93,7 @@ Scenario: Remove policy from agent
     When one of applied policies is removed
     Then referred policy must not be listed on the orb policies list
         And no dataset should be linked to the removed policy anymore
-        And 1 dataset(s) have validity valid and 2 have validity invalid in 30 seconds
+        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And container logs should inform that removed policy was stopped and removed within 30 seconds
         And the container logs that were output after the policy have been removed contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
