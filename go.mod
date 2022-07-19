@@ -37,6 +37,8 @@ require (
 
 //These libs are used to allow orb extend opentelemetry features
 require (
+	github.com/gogo/protobuf v1.3.2
+	github.com/gorilla/mux v1.8.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.49.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.49.0
 	github.com/prometheus/common v0.33.0
@@ -92,7 +94,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-resty/resty/v2 v2.1.1-0.20191201195748-d7b97669fe48 // indirect
 	github.com/go-zookeeper/zk v1.0.2 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.3.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/go-cmp v0.5.7 // indirect
@@ -197,6 +198,9 @@ require (
 //These libs are used to allow orb extend opentelemetry features
 require (
 	cloud.google.com/go/compute v1.5.0 // indirect
+	github.com/felixge/httpsnoop v1.0.2 // indirect
+	github.com/rs/cors v1.8.2 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.31.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
 )

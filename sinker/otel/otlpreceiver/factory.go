@@ -27,7 +27,6 @@ import (
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/receiver/receiverhelper"
 )
 
 const (
@@ -40,11 +39,10 @@ const (
 
 // NewFactory creates a new OTLP receiver factory.
 func NewFactory() component.ReceiverFactory {
-	receiver := receiverhelper.WithMetrics(CreateMetricsReceiver)
-	return receiverhelper.NewFactory(
+	return component.NewReceiverFactory(
 		typeStr,
 		CreateDefaultConfig,
-		receiver)
+		component.WithMetricsReceiver(CreateMetricsReceiver))
 }
 
 // CreateDefaultCreateSetting creates the default setting for receiver.
@@ -53,7 +51,7 @@ func CreateDefaultCreateSetting(logger *zap.Logger) component.ReceiverCreateSett
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.GetMeterProvider(),
+			MeterProvider:  global.MeterProvider(),
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
