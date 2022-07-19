@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
 import { environment } from 'environments/environment';
@@ -66,11 +66,7 @@ export class AgentPoliciesService {
         return resp.body as AgentPolicy;
       })
       .catch((err) => {
-        this.notificationsService.error(
-          'Failed to create Agent Policy',
-          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`,
-        );
-        return of(err);
+        return throwError(err);
       });
   }
 
@@ -111,11 +107,7 @@ export class AgentPoliciesService {
     return this.http
       .put(`${environment.agentPoliciesUrl}/${agentPolicy.id}`, agentPolicy)
       .catch((err) => {
-        this.notificationsService.error(
-          'Failed to edit Agent Policy',
-          `Error: ${err.status} - ${err.statusText}`,
-        );
-        return of(err);
+        return throwError(err);
       });
   }
 

@@ -512,15 +512,31 @@ kind: collection`;
   submit(payload) {
     if (this.isEdit) {
       // updating existing sink
-      this.agentPoliciesService.editAgentPolicy({ ...payload, id: this.agentPolicyID }).subscribe(() => {
-        this.notificationsService.success('Agent Policy successfully updated', '');
-        this.viewPolicy(this.agentPolicyID);
-      });
+      this.agentPoliciesService.editAgentPolicy({ ...payload, id: this.agentPolicyID }).subscribe(
+        (next) => {
+          this.notificationsService.success('Agent Policy successfully updated', '');
+          this.viewPolicy(this.agentPolicyID);
+        },
+        (error) => {
+          this.notificationsService.error(
+            'Failed to edit Agent Policy',
+            `Error: ${error.status} - ${error.statusText}`,
+          );
+        },
+      );
     } else {
-      this.agentPoliciesService.addAgentPolicy(payload).subscribe(next => {
-        this.notificationsService.success('Agent Policy successfully created', '');
-        this.viewPolicy(next.id);
-      });
+      this.agentPoliciesService.addAgentPolicy(payload).subscribe(
+        (next) => {
+          this.notificationsService.success('Agent Policy successfully created', '');
+          this.viewPolicy(next.id);
+        },
+        (error) => {
+          this.notificationsService.error(
+            'Failed to create Agent Policy',
+            `Error: ${error.status} - ${error.statusText} - ${error.error.error}`,
+          );
+        },
+      );
     }
   }
 }
