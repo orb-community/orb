@@ -10,16 +10,24 @@ import { shareReplay } from 'rxjs/operators';
 })
 export class PollControlComponent implements OnInit {
   lastUpdate$: Observable<number>;
+  loading: boolean;
 
   constructor(private orb: OrbService) {
     this.lastUpdate$ = this.orb.lastPollUpdate$
       .asObservable()
       .pipe(shareReplay());
+    this.loading = false;
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.lastUpdate$.subscribe(() => {
+      this.loading = false;
+    });
+  }
 
   forceRefresh() {
+    this.loading = true;
+
     this.orb.refreshNow();
   }
 }

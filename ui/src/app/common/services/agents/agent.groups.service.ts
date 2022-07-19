@@ -3,14 +3,19 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from 'environments/environment';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import {
   NgxDatabalePageInfo,
   OrbPagination,
 } from 'app/common/interfaces/orb/pagination.interface';
-import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { catchError, expand, reduce } from 'rxjs/operators';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { environment } from 'environments/environment';
+import {
+  catchError,
+  expand,
+  map, scan,
+  takeWhile,
+} from 'rxjs/operators';
 
 // default filters
 const defLimit: number = 100;
@@ -34,7 +39,7 @@ export class AgentGroupsService {
     return {
       limit: defLimit,
       order: defOrder,
-      dir: defDir,
+      dir: 'asc',
       offset: 0,
       total: 0,
       data: null,
@@ -118,19 +123,16 @@ export class AgentGroupsService {
       expand((data) => {
         return data.next ? this.getAgentGroups(data.next) : Observable.empty();
       }),
-      reduce<OrbPagination<AgentGroup>>((acc, value) => {
-        acc.data = value.data;
-        acc.offset = 0;
-        acc.total = acc.data.length;
-        return acc;
-      }, this.cache),
+      takeWhile((data) => data.next !== undefined),
+      map((page) => page.data),
+      scan((acc, v) => [...acc, ...v]),
     );
   }
 
   getAgentGroups(pageInfo: NgxDatabalePageInfo, isFilter = false) {
     let limit = pageInfo?.limit || this.cache.limit;
     let order = pageInfo?.order || this.cache.order;
-    let dir = pageInfo?.dir || this.cache.dir;
+    let dir = pageInfo?.dir || 'asc';
     let offset = pageInfo?.offset || 0;
     let doClean = false;
     let params = new HttpParams();
@@ -192,7 +194,7 @@ export class AgentGroupsService {
               parseInt(resp.offset, 10) + parseInt(resp.limit, 10)
             ).toString(),
             order: 'name',
-            dir: 'desc',
+            dir: 'asc',
           },
           limit: resp.limit,
           offset: resp.offset,

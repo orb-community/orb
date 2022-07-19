@@ -3,11 +3,14 @@ import { Injectable } from '@angular/core';
 import { EMPTY, Observable } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { environment } from 'environments/environment';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { expand, map, reduce } from 'rxjs/operators';
+import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { environment } from 'environments/environment';
+import {
+  expand,
+  map, scan, takeWhile,
+} from 'rxjs/operators';
 
 export enum AvailableOS {
   DOCKER = 'docker',
@@ -140,13 +143,9 @@ export class AgentsService {
       expand((data) => {
         return data.next ? this.getAgents(data.next) : EMPTY;
       }),
-      reduce<OrbPagination<Agent>>((acc, value) => {
-        acc.data = value.data;
-        acc.offset = 0;
-        acc.total = acc.data.length;
-        return acc;
-      }, pageInfo),
+      takeWhile((data) => data.next !== undefined),
       map((page) => page.data),
+      scan((acc, v) => [...acc, ...v]),
     );
   }
 
@@ -158,24 +157,27 @@ export class AgentsService {
       .set('limit', page.limit.toString());
 
     if (page.tags) {
-      params = params.set('tags', JSON.stringify(page.tags).replace('[', '').replace(']', ''));
+      params = params.set(
+        'tags',
+        JSON.stringify(page.tags).replace('[', '').replace(']', ''),
+      );
     }
 
     return this.http
       .get(`${environment.agentsUrl}`, { params })
       .pipe(
         map((resp: any) => {
-          const { order, dir, offset, limit, total, agents, tags } = resp;
+          const { order, direction, offset, limit, total, agents, tags } = resp;
           const next = offset + limit < total && {
             limit,
             order,
-            dir,
+            dir: direction,
             tags,
             offset: (parseInt(offset, 10) + parseInt(limit, 10)).toString(),
           };
           return {
             order,
-            dir,
+            dir: direction,
             offset,
             limit,
             total,

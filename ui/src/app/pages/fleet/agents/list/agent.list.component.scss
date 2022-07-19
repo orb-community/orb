@@ -129,6 +129,15 @@ tr div p {
       }
     }
   }
+
+  .datatable-row-center .datatable-body-cell:first-child {
+    .datatable-body-cell-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+  }
 }
 
 .add-agent-container {

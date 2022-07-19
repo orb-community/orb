@@ -124,6 +124,18 @@ tr div p {
       }
     }
   }
+
+  .datatable-row-group .datatable-body-cell:first-child {
+    .datatable-body-cell-label {
+      overflow: hidden;
+
+      button {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        width: 100%;
+      }
+    }
+  }
 }
 
 .view-policy-button {
@@ -134,6 +146,7 @@ tr div p {
   outline: none !important;
   overflow: hidden !important;
   color: #ffffff;
+  text-align: left;
 }
 
 .add-agent-policy-container {

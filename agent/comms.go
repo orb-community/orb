@@ -24,17 +24,17 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 		a.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 	})
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
-		a.logger.Error("error on connection lost, retrying to reconnect", zap.Error(err))
-		if err = a.restartComms(); err != nil {
-			a.logger.Error("got error trying to reconnect, stopping agent", zap.Error(err))
-			a.Stop()
-		}
+		a.logger.Error("connection to mqtt lost", zap.Error(err))
 	})
 	opts.SetPingTimeout(5 * time.Second)
-	opts.SetAutoReconnect(true)
+	opts.SetAutoReconnect(false)
+	opts.SetCleanSession(true)
+	opts.SetConnectTimeout(5 * time.Minute)
 	opts.SetResumeSubs(true)
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
-		a.requestReconnection(client, config)
+		if client.IsConnected() {
+			a.requestReconnection(client, config)
+		}
 	})
 
 	if !a.config.OrbAgent.TLS.Verify {
@@ -56,7 +56,9 @@ func (a *orbAgent) requestReconnection(client mqtt.Client, config config.MQTTCon
 	}
 
 	if token := client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
-		a.logger.Error("failed to subscribe to RPC topic", zap.String("topic", a.rpcFromCoreTopic), zap.Error(token.Error()))
+		a.logger.Error("failed to subscribe to agent control plane RPC topic", zap.String("topic", a.rpcFromCoreTopic), zap.Error(token.Error()))
+		a.Stop()
+		a.logger.Fatal("critical failure: unable to subscribe to control plane")
 	}
 
 	err := a.sendCapabilities()

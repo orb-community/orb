@@ -38,11 +38,13 @@ tr div p {
     color: #2a64f6;
   }
 }
+
 span {
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
 }
+
 .datatable-body-cell-label {
   box-sizing: content-box;
 }
@@ -104,6 +106,15 @@ span {
         text-decoration: none !important;
         color: #969fb9 !important;
       }
+    }
+  }
+
+  .datatable-row-center .datatable-body-cell:first-child {
+    .datatable-body-cell-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
     }
   }
 }
