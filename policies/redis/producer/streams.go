@@ -132,7 +132,7 @@ func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID str
 
 	err = e.svc.RemoveAllDatasetsByPolicyIDInternal(ctx, token, policyID)
 	if err != nil {
-		return err
+		e.logger.Error("error while removing datasets", zap.Error(err))
 	}
 
 	if len(datasets) == 0 {
