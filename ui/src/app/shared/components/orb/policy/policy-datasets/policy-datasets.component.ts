@@ -97,6 +97,7 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy,
     }
 
     ngOnInit(): void {
+        this.isLoading = true;
     }
 
     ngOnChanges(changes: SimpleChanges) {
@@ -109,7 +110,6 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy,
         if (this.isLoading) {
             return;
         }
-        this.isLoading = true;
         this.subscription = this.retrievePolicyDatasets()
             .pipe(
                 concatMap(datasets => this.retrieveAgentGroups()),
@@ -188,7 +188,7 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy,
     retrievePolicyDatasets() {
         return this.datasetService.getAllDatasets()
             .map(resp => {
-                this.datasets = resp.data.filter(
+                this.datasets = resp.filter(
                     dataset => dataset.agent_policy_id === this.policy.id);
                 if (this.table) {
                     this.table.rows = this.datasets;
@@ -201,7 +201,7 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy,
     retrieveAgentGroups() {
         return this.groupsService.getAllAgentGroups()
             .map(resp => {
-                const groups = resp.data;
+                const groups = resp;
                 this.datasets = this.datasets.map(dataset => {
                     dataset.agent_group = groups.find(
                         group => group.id === dataset.agent_group_id);
@@ -217,7 +217,7 @@ export class PolicyDatasetsComponent implements OnInit, OnDestroy,
     retrieveSinks() {
         return this.sinksService.getAllSinks()
             .map(resp => {
-                const sinks = resp.data;
+                const sinks = resp;
                 this.datasets = this.datasets.map(dataset => {
                     dataset.sinks = dataset.sink_ids.map(
                         id => sinks.find(sink => sink.id === id));

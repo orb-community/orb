@@ -144,7 +144,7 @@ jobs:
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
       - name: Build orb-agent
         shell: bash
         env:
@@ -393,11 +393,25 @@ jobs:
           git commit -m "[NS1 Orb Bot] Update image tag on prod environment"
           git push origin main
 
+  post-slack-message:
+    needs: publish-orb-live-prd
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Generating changelog and post it in slack channel
+        uses: ./.github/actions/slack-post
+        with:
+          branch: production
+          header: ":first_place_medal: :orb: *Deployed new features in orb.live* :orb: :rocket: :tada:"
+          github_repo: ns1labs/orb
+          slack_channel: C02SEF78ZPT #slack channel ID
+          slack_api_token: ${{ secrets.SLACK_APP_TOKEN }}
+
   buildx:
     needs: publish-orb-live-prd
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
-
     steps:
       - uses: actions/checkout@v2
 
@@ -409,10 +423,6 @@ jobs:
       - name: Generate ref tag (production)
         run: |
           echo "REF_TAG=production" >> $GITHUB_ENV
-
-      - name: Append suffix on VERSION file for production build
-        run: |
-          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
       - name: Get VERSION
         run: |
@@ -440,10 +450,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Removing suffix from VERSION
-        run: |
-          sed -i -e "s/-production//g" VERSION
 
       - name: Build + push - agent (multi-arch)
         env:

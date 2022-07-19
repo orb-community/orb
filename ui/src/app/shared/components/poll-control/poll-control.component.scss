@@ -2,3 +2,41 @@
   color: #969fb9;
   font-size: 12px;
 }
+
+.refresh-button {
+  border: none !important;
+  box-sizing: border-box;
+  box-shadow: none !important;
+  margin-right: 0.3rem;
+
+  &:active, &:focus {
+    background-color: unset !important;
+  }
+
+  &:hover {
+    background-color: rgba(143, 155, 179, 0.16);
+  }
+}
+
+.paused {
+  animation: rotation 750ms linear infinite;
+  animation-play-state: paused;
+}
+
+.rotate {
+  animation: rotation 750ms linear infinite;
+  animation-play-state: running;
+
+  &:hover {
+    background: unset !important;
+  }
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
