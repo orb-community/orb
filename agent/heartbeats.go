@@ -21,6 +21,11 @@ const RestartTimeMin = 5 * time.Minute
 
 func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
+	if a.heartbeatsTopic == "" {
+		a.logger.Debug("heartbeat topic not yet set, skipping")
+		return
+	}
+
 	a.logger.Debug("heartbeat")
 
 	bes := make(map[string]fleet.BackendStateInfo)
