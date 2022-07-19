@@ -310,9 +310,6 @@ func TestRemovePolicy(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			err := svc.RemovePolicy(context.Background(), tc.token, tc.id)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
-
-			_, err = svc.ViewDatasetByID(context.Background(), token, tc.datasetID)
-			assert.True(t, errors.Contains(policies.ErrNotFound, err), fmt.Sprintf("%s: expected %s got %s", desc, policies.ErrNotFound, err))
 		})
 	}
 }
