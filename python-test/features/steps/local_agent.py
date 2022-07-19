@@ -128,8 +128,10 @@ def run_agent_container(container_image, env_vars, container_name, time_to_wait=
     :returns: (str) the container ID
     """
     client = docker.from_env()
+    restart_policy = {"Name": "on-failure", "MaximumRetryCount": 2}
     container = client.containers.run(container_image, name=container_name, detach=True,
-                                      network_mode='host', environment=env_vars)
+                                      network_mode='host', environment=env_vars,
+                                      restart_policy=restart_policy)
     threading.Event().wait(time_to_wait)
     return container.id
 

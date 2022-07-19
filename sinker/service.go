@@ -25,13 +25,14 @@ import (
 	promexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configtelemetry"
+	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"strings"
 	"time"
-
-	otlpreceiver "github.com/ns1labs/orb/sinker/otel/otlpreceiver"
 )
 
 const (
@@ -298,9 +299,7 @@ func (svc sinkerService) Start() error {
 		return err
 	}
 
-	set := otlpreceiver.CreateDefaultCreateSetting(svc.logger)
-	cfg := otlpreceiver.CreateDefaultConfig()
-	receiver, err := otlpreceiver.CreateMetricsReceiver(ctx, set, cfg, exporter)
+	metricsReceiver, err := createReceiver(ctx, svc.logger)
 	if err != nil {
 		return err
 	}
@@ -311,7 +310,7 @@ func (svc sinkerService) Start() error {
 		return err
 	}
 
-	err = receiver.Start(ctx, nil)
+	err = metricsReceiver.Start(ctx, nil)
 	if err != nil {
 		svc.logger.Error("otel receiver startup error", zap.Error(err))
 		return err
@@ -359,6 +358,23 @@ func New(logger *zap.Logger,
 	}
 }
 
+func createReceiver(ctx context.Context, logger *zap.Logger) (component.MetricsReceiver, error) {
+	receiverFactory := otlpreceiver.NewFactory()
+
+	set := component.ReceiverCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         nil,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.MeterProvider(),
+			MetricsLevel:   configtelemetry.LevelDetailed,
+		},
+		BuildInfo: component.BuildInfo{},
+	}
+	metricsReceiver, err := receiverFactory.CreateMetricsReceiver(ctx, set,
+		receiverFactory.CreateDefaultConfig(), consumertest.NewNop())
+	return metricsReceiver, err
+}
+
 func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
 	// 2. Create the Prometheus metrics exporter that'll receive and verify the metrics produced.
 	exporterCfg := &promexporter.Config{
@@ -373,7 +389,7 @@ func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsE
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.GetMeterProvider(),
+			MeterProvider:  global.MeterProvider(),
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
