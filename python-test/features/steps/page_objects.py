@@ -89,8 +89,30 @@ class DataTable:
 
     @classmethod
     def agent(cls, name):
-        return f"//div[contains(@class, 'agent-name') and contains(text(), '{name}')]"
+        return f"//span[contains(@class, 'agent-name') and contains(text(), '{name}')]"
+
+    @classmethod
+    def agent_status(cls, name):
+        return f"//span[contains(text(), '{name}')]/ancestor::div[contains(@class, " \
+               f"'datatable-row-center')]/descendant::i[contains(@class, " \
+               f"'fa fa-circle')]/ancestor::span[contains(@class, 'ng-star-inserted')]"
 
     @classmethod
     def next_page(cls):
         return "//a[@aria-label='go to next page']"
+
+    @classmethod
+    def previous_page(cls):
+        return "//a[@aria-label='go to previous page']"
+
+    @classmethod
+    def last_page(cls):
+        return "//a[@aria-label='go to last page']"
+
+    @classmethod
+    def first_page(cls):
+        return "//a[@aria-label='go to first page']"
+
+    @classmethod
+    def destroyed_on_click_button(cls):
+        return "//nb-toast[contains(@class, 'destroy-by-click has-icon custom-icon')]"
