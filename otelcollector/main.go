@@ -19,6 +19,7 @@
 package otelcollector
 
 import (
+	"context"
 	"github.com/ns1labs/orb/pkg/config"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/service"
@@ -40,7 +41,12 @@ func RunWithComponents(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs 
 	}
 
 	cmd := service.NewCommand(service.CollectorSettings{BuildInfo: info, Factories: factories})
-	if err := cmd.Execute(); err != nil {
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
+	if err != nil {
+		logger.Fatal("failed to set context", zap.Error(err))
+	}
+	if err := cmd.ExecuteContext(ctx); err != nil {
 		logger.Fatal("failed to run command", zap.Error(err))
 	}
 }
