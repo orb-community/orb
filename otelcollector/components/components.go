@@ -15,9 +15,9 @@
 package components
 
 import (
-	"github.com/ns1labs/orb/pkg/config"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
@@ -31,12 +31,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func Components(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig) (component.Factories, error) {
+func Components(logger zap.Logger) (component.Factories, error) {
 	var err error
 	factories := component.Factories{}
 	extensions := getExtensions()
 	factories.Extensions, err = component.MakeExtensionFactoryMap(extensions...)
 	if err != nil {
+		logger.Error("extension factories failure to load", zap.Error(err))
 		return component.Factories{}, err
 	}
 
@@ -44,21 +45,25 @@ func Components(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []confi
 	receivers = append(receivers, extraReceivers()...)
 	factories.Receivers, err = component.MakeReceiverFactoryMap(receivers...)
 	if err != nil {
+		logger.Error("receivers factories failure to load", zap.Error(err))
 		return component.Factories{}, err
 	}
 
 	exporters := getExporters()
 	factories.Exporters, err = component.MakeExporterFactoryMap(exporters...)
 	if err != nil {
+		logger.Error("exporters factories failure to load", zap.Error(err))
 		return component.Factories{}, err
 	}
 
 	processors := []component.ProcessorFactory{
 		batchprocessor.NewFactory(),
 		memorylimiterprocessor.NewFactory(),
+		groupbyattrsprocessor.NewFactory(),
 	}
 	factories.Processors, err = component.MakeProcessorFactoryMap(processors...)
 	if err != nil {
+		logger.Error("processors factories failure to load", zap.Error(err))
 		return component.Factories{}, err
 	}
 

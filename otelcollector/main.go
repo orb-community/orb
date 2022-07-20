@@ -26,10 +26,10 @@ import (
 	"go.uber.org/zap"
 )
 
-type ComponentsFunc func(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig) (component.Factories, error)
+type ComponentsFunc func(logger zap.Logger) (component.Factories, error)
 
 func RunWithComponents(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig, componentsFunc ComponentsFunc) {
-	factories, err := componentsFunc(logger, svcCfg, grpcCfgs)
+	factories, err := componentsFunc(logger)
 	if err != nil {
 		logger.Fatal("failed to build components", zap.Error(err))
 	}
@@ -40,7 +40,15 @@ func RunWithComponents(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs 
 		Version:     "latest",
 	}
 
-	cmd := service.NewCommand(service.CollectorSettings{BuildInfo: info, Factories: factories})
+	cmd := service.NewCommand(service.CollectorSettings{
+		Factories:               factories,
+		BuildInfo:               info,
+		DisableGracefulShutdown: false,
+		ConfigProvider:          nil,
+		LoggingOptions:          nil,
+		SkipSettingGRPCLogger:   false,
+	})
+
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 	if err != nil {

@@ -39,6 +39,7 @@ require (
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.55.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.55.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor v0.55.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.55.0
 	github.com/prometheus/common v0.37.0
 	go.opentelemetry.io/collector v0.55.0

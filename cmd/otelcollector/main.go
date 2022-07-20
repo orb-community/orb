@@ -67,6 +67,9 @@ func main() {
 
 	logger = zap.New(core, zap.AddCaller())
 	logger.Info("initializing logger")
+	defer func(logger *zap.Logger) {
+		_ = logger.Sync()
+	}(logger)
 
 	otelcollector.RunWithComponents(*logger, svcCfg, grpcCfgs, components.Components)
 }

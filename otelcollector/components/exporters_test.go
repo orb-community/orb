@@ -22,6 +22,7 @@ import (
 	"context"
 	"errors"
 	testutil "github.com/ns1labs/orb/otelcollector/testutil"
+	"go.uber.org/zap"
 	"runtime"
 	"testing"
 
@@ -38,7 +39,8 @@ import (
 )
 
 func TestDefaultExporters(t *testing.T) {
-	factories, err := Components()
+	logger := zap.NewNop()
+	factories, err := Components(*logger)
 	assert.NoError(t, err)
 
 	expFactories := factories.Exporters

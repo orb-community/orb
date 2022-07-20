@@ -749,12 +749,16 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusrem
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.55.0/go.mod h1:fAruF2824yDHnnShjJ3NvbD7GhiedfnQgvtzVdmm6ZM=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.55.0 h1:dSW6zl3hBPDnjNigYS/1Yl90VKN2Jok8Fbscy95BJko=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.55.0 h1:ruS+QeZ33UjAs7yeRTzliTb12gHsHdL4Dd8X8PCRWes=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.55.0 h1:i7n7ht2Kc7d+vnhLSTniXVbPNHG6d4zwXEi0CkzuuFQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.55.0 h1:zJENK+vJKhejVNjuHL1PZ5QeXyKBeBYwpnyu1tXdgR4=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.55.0/go.mod h1:whUQGb+3LfGXwIese0u8lZCNspAnaW2lZ/1jyADrvZA=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.55.0 h1:02zOJD3CTRMtrr30SfZEFhJVcm7ilutO4SDmpj1hIiY=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.55.0/go.mod h1:n/T+7utYTYh2WLVYFrZ9mLjsXr+nA0PNPpimKhtbusA=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.55.0 h1:Uvw7rN9lg0hD8vXkubjyW6/90DNYObvLPLN2ZQ1Yv8Q=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.55.0/go.mod h1:+aYLBndMXgb2MVG+fDcguXoLL6fw7s/tAIuIbWJKsb8=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor v0.55.0 h1:6cIvPRzrwo2L+KsS8GAoZhPFduD5cj9KbmKXxCQR5J4=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor v0.55.0/go.mod h1:I+ZrxElW3eX67taxJ7dcjHgNxX7vQe8tDH5xR7OSohQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbytraceprocessor v0.55.0 h1:at5TB9iogOUYTm6Iz9v4Y3sl+6v1HEjDFTXQqfXBhlY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.55.0 h1:D4bxR5aIV9tJxwNpsIwxYX5UY2kh4Nl2cwNmHKTOxFw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.55.0/go.mod h1:9dg7BelClKG0iNSuGOlM8sItV5B1zTSRUnDGFK8Zc3A=
 github.com/opencontainers/go-digest v1.0.0-rc1/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
