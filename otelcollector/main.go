@@ -19,13 +19,10 @@
 package otelcollector
 
 import (
-	"fmt"
 	"github.com/ns1labs/orb/pkg/config"
-	"go.uber.org/zap"
-	"log"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/service"
+	"go.uber.org/zap"
 )
 
 type ComponentsFunc func(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig) (component.Factories, error)
@@ -33,7 +30,7 @@ type ComponentsFunc func(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfg
 func RunWithComponents(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig, componentsFunc ComponentsFunc) {
 	factories, err := componentsFunc(logger, svcCfg, grpcCfgs)
 	if err != nil {
-		log.Fatalf("failed to build components: %v", err)
+		logger.Fatal("failed to build components", zap.Error(err))
 	}
 
 	info := component.BuildInfo{
@@ -42,16 +39,8 @@ func RunWithComponents(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs 
 		Version:     "latest",
 	}
 
-	if err = runInteractive(service.CollectorSettings{BuildInfo: info, Factories: factories}); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func runInteractive(params service.CollectorSettings) error {
-	cmd := service.NewCommand(params)
+	cmd := service.NewCommand(service.CollectorSettings{BuildInfo: info, Factories: factories})
 	if err := cmd.Execute(); err != nil {
-		return fmt.Errorf("collector server run finished with error: %w", err)
+		logger.Fatal("failed to run command", zap.Error(err))
 	}
-
-	return nil
 }
