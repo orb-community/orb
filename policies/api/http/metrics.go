@@ -22,6 +22,28 @@ type metricsMiddleware struct {
 	svc     policies.Service
 }
 
+func (m metricsMiddleware) RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) error {
+	ownerID, err := m.identify(token)
+	if err != nil {
+		return err
+	}
+
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "removeAllDatasetsByPolicyIDInternal",
+			"owner_id", ownerID,
+			"policy_id", policyID,
+			"dataset_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.RemoveAllDatasetsByPolicyIDInternal(ctx, token, policyID)
+}
+
 func (m metricsMiddleware) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) error {
 	defer func(begin time.Time) {
 		labels := []string{

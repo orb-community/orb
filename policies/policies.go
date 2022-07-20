@@ -118,6 +118,9 @@ type Service interface {
 
 	// DuplicatePolicy duplicates existing agent Policy
 	DuplicatePolicy(ctx context.Context, token string, policyID string, name string) (Policy, error)
+
+	// RemoveAllDatasetsByPolicyIDInternal removes all datasets by policyID owned by the specified user
+	RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) error
 }
 
 type Repository interface {
