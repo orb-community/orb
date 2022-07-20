@@ -18,7 +18,7 @@ import (
 )
 
 func TestDHCPConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -235,7 +235,7 @@ func TestDHCPConversion(t *testing.T) {
 }
 
 func TestASNConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -339,7 +339,7 @@ func TestASNConversion(t *testing.T) {
 }
 
 func TestGeoLocConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -443,7 +443,7 @@ func TestGeoLocConversion(t *testing.T) {
 }
 
 func TestPCAPConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -577,7 +577,7 @@ func TestPCAPConversion(t *testing.T) {
 }
 
 func TestDNSConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -790,7 +790,7 @@ func TestDNSConversion(t *testing.T) {
 }
 
 func TestDNSRatesConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -1142,7 +1142,7 @@ func TestDNSRatesConversion(t *testing.T) {
 }
 
 func TestDNSTopKMetricsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -1496,7 +1496,7 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 }
 
 func TestDNSWirePacketsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -1846,7 +1846,7 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 }
 
 func TestDNSXactConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -2076,7 +2076,7 @@ func TestDNSXactConversion(t *testing.T) {
 }
 
 func TestPacketsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -2438,7 +2438,7 @@ func TestPacketsConversion(t *testing.T) {
 }
 
 func TestPeriodConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -2647,7 +2647,7 @@ func TestPeriodConversion(t *testing.T) {
 }
 
 func TestFlowCardinalityConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -2818,7 +2818,7 @@ func TestFlowCardinalityConversion(t *testing.T) {
 }
 
 func TestFlowConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -3066,7 +3066,7 @@ func TestFlowConversion(t *testing.T) {
 }
 
 func TestFlowTopKMetricsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -3919,7 +3919,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 }
 
 func TestAgentTagsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -4028,11 +4028,10 @@ func TestAgentTagsConversion(t *testing.T) {
 			assert.Equal(t, c.expected.Datapoint.Value, receivedDatapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, receivedDatapoint.Value))
 		})
 	}
-
 }
 
 func TestTagsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()

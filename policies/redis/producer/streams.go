@@ -188,8 +188,8 @@ func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.P
 	}
 
 	event := updatePolicyEvent{
-		id:       pol.ID,
-		ownerID:  pol.MFOwnerID,
+		id:       editedPol.ID,
+		ownerID:  editedPol.MFOwnerID,
 		groupIDs: strings.Join(groupsIDs, ","),
 	}
 	record := &redis.XAddArgs{

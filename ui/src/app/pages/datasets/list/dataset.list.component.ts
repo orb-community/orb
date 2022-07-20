@@ -145,9 +145,9 @@ export class DatasetListComponent implements OnInit, AfterViewInit, AfterViewChe
   getAllDatasets(): void {
     this.datasetPoliciesService.clean();
     this.datasetPoliciesService.getAllDatasets().subscribe(resp => {
-      this.paginationControls.data = resp.data;
-      this.paginationControls.total = resp.data.length;
-      this.paginationControls.offset = resp.offset / resp.limit;
+      this.paginationControls.data = resp;
+      this.paginationControls.total = resp.length;
+      this.paginationControls.offset = 0;
       this.loading = false;
       this.cdr.markForCheck();
     });

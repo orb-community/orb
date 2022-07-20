@@ -240,10 +240,11 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 			return tsList
 		}
 	}
-	*tsList = append(*tsList, prometheus.TimeSeries{
+	timeSeries := prometheus.TimeSeries{
 		Labels:    labelsListFlag,
 		Datapoint: prometheus.Datapoint(dpFlag),
-	})
+	}
+	*tsList = append(*tsList, timeSeries)
 	return tsList
 }
 
