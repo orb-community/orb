@@ -82,6 +82,14 @@
       <nb-icon icon="edit-outline"></nb-icon>
     </button>
     <button
+      (click)="duplicatePolicy(row)"
+      ghost
+      nbTooltip="Duplicate"
+      nbButton
+    >
+      <nb-icon icon="copy-outline"></nb-icon>
+    </button>
+    <button
       (click)="openDeleteModal(row)"
       class="orb-action-hover del-button"
       ghost
