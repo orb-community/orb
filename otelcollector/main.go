@@ -20,16 +20,18 @@ package otelcollector
 
 import (
 	"fmt"
+	"github.com/ns1labs/orb/pkg/config"
+	"go.uber.org/zap"
 	"log"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/service"
 )
 
-type ComponentsFunc func() (component.Factories, error)
+type ComponentsFunc func(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig) (component.Factories, error)
 
-func RunWithComponents(componentsFunc ComponentsFunc) {
-	factories, err := componentsFunc()
+func RunWithComponents(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig, componentsFunc ComponentsFunc) {
+	factories, err := componentsFunc(logger, svcCfg, grpcCfgs)
 	if err != nil {
 		log.Fatalf("failed to build components: %v", err)
 	}

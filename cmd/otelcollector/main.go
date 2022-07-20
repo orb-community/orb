@@ -36,11 +36,17 @@ const (
 	envPrefix = "orb_otelcollector"
 )
 
-var log *zap.Logger
+var logger *zap.Logger
 
 func main() {
 	atomicLevel := zap.NewAtomicLevel()
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, "")
+	sinkerGrpcCfg := config.LoadGRPCConfig(envPrefix, "sinker")
+	policiesGrpcCfg := config.LoadGRPCConfig(envPrefix, "policies")
+	sinksGrpcCfg := config.LoadGRPCConfig(envPrefix, "sinks")
+	grpcCfgs := []config.GRPCConfig{
+		policiesGrpcCfg, sinksGrpcCfg, sinkerGrpcCfg,
+	}
 
 	switch strings.ToLower(svcCfg.LogLevel) {
 	case "debug":
@@ -59,7 +65,8 @@ func main() {
 		atomicLevel,
 	)
 
-	log = zap.New(core, zap.AddCaller())
-	log.Info("initialising logger")
-	otelcollector.RunWithComponents(components.Components)
+	logger = zap.New(core, zap.AddCaller())
+	logger.Info("initializing logger")
+
+	otelcollector.RunWithComponents(*logger, svcCfg, grpcCfgs, components.Components)
 }

@@ -15,6 +15,10 @@
 package components
 
 import (
+	"github.com/ns1labs/orb/pkg/config"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -24,13 +28,10 @@ import (
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
+	"go.uber.org/zap"
 )
 
-func Components() (component.Factories, error) {
+func Components(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig) (component.Factories, error) {
 	var err error
 	factories := component.Factories{}
 	extensions := getExtensions()
