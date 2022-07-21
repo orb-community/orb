@@ -73,13 +73,21 @@
       <nb-icon icon="search-outline"></nb-icon>
     </button>
     <button
-      (click)="onOpenEdit(row)"
+      (click)="onOpenView(row)"
       class="orb-action-hover edit-button"
       ghost
       nbTooltip="Edit"
       nbButton
     >
       <nb-icon icon="edit-outline"></nb-icon>
+    </button>
+    <button
+      (click)="duplicatePolicy(row)"
+      ghost
+      nbTooltip="Duplicate"
+      nbButton
+    >
+      <nb-icon icon="copy-outline"></nb-icon>
     </button>
     <button
       (click)="openDeleteModal(row)"

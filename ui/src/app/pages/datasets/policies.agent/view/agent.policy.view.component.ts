@@ -20,6 +20,7 @@ import {
 } from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
 import { STRINGS } from 'assets/text/strings';
 import { Subscription } from 'rxjs';
+import yaml from 'js-yaml';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -101,37 +102,42 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
     let interfacePartial = {};
 
-    if (format === 'yaml') {
-      interfacePartial = {
-        format,
-        policy_data: policyInterface,
-      };
-    } else {
-      try {
+    try {
+      if (format === 'yaml') {
+        yaml.load(policyInterface);
+
+        interfacePartial = {
+          format,
+          policy_data: policyInterface,
+        };
+      } else {
         interfacePartial = {
           policy: JSON.parse(policyInterface) as PolicyConfig,
         };
-      } catch (err) {
-        this.notifications.error(
-          'Failed to edit Agent Policy',
-          `Error: Invalid JSON`,
-        );
-        return;
       }
+
+      const payload = {
+        ...detailsPartial,
+        ...interfacePartial,
+        version, id, tags, backend,
+      } as AgentPolicy;
+
+      this.policiesService.editAgentPolicy(payload)
+        .subscribe(resp => {
+          this.discard();
+          this.policy = resp;
+          this.cdr.markForCheck();
+        });
+
+      this.notifications.success(
+        'Agent Policy updated successfully', '',
+      );
+    } catch (err) {
+      this.notifications.error(
+        'Failed to edit Agent Policy',
+        `Error: Invalid ${format.toUpperCase()}`,
+      );
     }
-
-    const payload = {
-      ...detailsPartial,
-      ...interfacePartial,
-      version, id, tags, backend,
-    } as AgentPolicy;
-
-    this.policiesService.editAgentPolicy(payload)
-      .subscribe(resp => {
-        this.discard();
-        this.retrievePolicy();
-        this.cdr.markForCheck();
-      });
   }
 
   retrievePolicy() {

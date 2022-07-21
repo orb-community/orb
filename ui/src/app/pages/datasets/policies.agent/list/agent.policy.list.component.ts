@@ -110,6 +110,23 @@ export class AgentPolicyListComponent
     );
   }
 
+  duplicatePolicy(agentPolicy: any) {
+    this.agentPoliciesService
+      .duplicateAgentPolicy(agentPolicy.id)
+      .subscribe((newAgentPolicy) => {
+        if (newAgentPolicy?.id) {
+          this.notificationsService.success(
+            'Agent Policy Duplicated',
+            `New Agent Policy Name: ${newAgentPolicy?.name}`,
+          );
+
+          this.router.navigate([`view/${newAgentPolicy.id}`], {
+            relativeTo: this.route,
+          });
+        }
+      });
+  }
+
   ngAfterViewChecked() {
     if (
       this.table &&
