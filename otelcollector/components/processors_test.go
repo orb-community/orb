@@ -21,6 +21,7 @@ package components
 import (
 	"context"
 	"errors"
+	"go.uber.org/zap"
 	"testing"
 	"time"
 
@@ -34,7 +35,8 @@ import (
 )
 
 func TestDefaultProcessors(t *testing.T) {
-	allFactories, err := Components()
+	lognop := zap.NewNop()
+	allFactories, err := Components(*lognop)
 	require.NoError(t, err)
 
 	procFactories := allFactories.Processors

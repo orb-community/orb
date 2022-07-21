@@ -21,6 +21,7 @@ package components
 import (
 	"context"
 	"errors"
+	"go.uber.org/zap"
 	"testing"
 
 	promconfig "github.com/prometheus/prometheus/config"
@@ -35,7 +36,8 @@ import (
 )
 
 func TestDefaultReceivers(t *testing.T) {
-	allFactories, err := Components()
+	lognop := zap.NewNop()
+	allFactories, err := Components(*lognop)
 	assert.NoError(t, err)
 
 	rcvrFactories := allFactories.Receivers

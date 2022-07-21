@@ -19,6 +19,7 @@
 package components
 
 import (
+	"go.uber.org/zap"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,7 +27,8 @@ import (
 )
 
 func TestDefaultComponents(t *testing.T) {
-	factories, err := Components()
+	lognop := zap.NewNop()
+	factories, err := Components(*lognop)
 	assert.NoError(t, err)
 
 	exts := factories.Extensions

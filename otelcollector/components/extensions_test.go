@@ -22,6 +22,7 @@ package components
 import (
 	"context"
 	"github.com/ns1labs/orb/otelcollector/testutil"
+	"go.uber.org/zap"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,7 +35,8 @@ import (
 )
 
 func TestDefaultExtensions(t *testing.T) {
-	allFactories, err := Components()
+	lognop := zap.NewNop()
+	allFactories, err := Components(*lognop)
 	require.NoError(t, err)
 
 	extFactories := allFactories.Extensions
