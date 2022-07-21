@@ -112,7 +112,7 @@ func (svc fleetService) ListAgents(ctx context.Context, token string, pm PageMet
 func (svc fleetService) CreateAgent(ctx context.Context, token string, a Agent) (Agent, error) {
 	mfOwnerID, err := svc.identify(token)
 	if err != nil {
-		return Agent{}, err
+		return Agent{}, errors.Wrap(ErrUnauthorizedAccess, err)
 	}
 
 	a.MFOwnerID = mfOwnerID

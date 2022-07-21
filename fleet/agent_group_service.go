@@ -202,7 +202,7 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 		Metadata: md,
 	}, token)
 	if err != nil {
-		return AgentGroup{}, errors.Wrap(ErrCreateAgent, err)
+		return AgentGroup{}, errors.Wrap(ErrCreateAgentGroup, err)
 	}
 
 	s.MFChannelID = mfChannelID
