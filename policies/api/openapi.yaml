@@ -138,6 +138,7 @@ paths:
       tags:
         - dataset
       parameters:
+        - $ref: "#/components/parameters/Filters"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Offset"
         - $ref: "#/components/parameters/Name"
@@ -344,6 +345,14 @@ components:
         enum:
           - asc
           - desc
+      required: false
+    Filters:
+      name: filters
+      description: Filter object to reduce the amount of information retrieved
+      in: query
+      schema:
+        type: string
+        default: "{\"key\":\"value\"}"
       required: false
     Limit:
       name: limit
