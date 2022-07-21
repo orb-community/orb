@@ -17,6 +17,7 @@ import { PolicyInterfaceComponent } from 'app/shared/components/orb/policy/polic
 import { STRINGS } from 'assets/text/strings';
 import { Subscription } from 'rxjs';
 import yaml from 'js-yaml';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -33,6 +34,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   policy: AgentPolicy;
 
   datasets: Dataset[];
+  groups: AgentGroup[];
 
   policySubscription: Subscription;
 
@@ -147,9 +149,10 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   retrievePolicy() {
     this.policySubscription = this.orb
       .getPolicyFullView(this.policyId)
-      .subscribe(({ policy, datasets }) => {
+      .subscribe(({ policy, datasets, groups }) => {
         this.policy = policy;
         this.datasets = datasets;
+        this.groups = groups;
         this.isLoading = false;
         this.cdr.markForCheck();
       });
