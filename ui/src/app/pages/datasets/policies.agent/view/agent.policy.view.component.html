@@ -51,6 +51,7 @@
   <div class="card-col col-8">
     <ngx-policy-datasets
       (refreshPolicy)="retrievePolicy()"
+      [datasets]="datasets"
       [policy]="policy"></ngx-policy-datasets>
     <ngx-policy-interface
       [(editMode)]="editMode.interface"

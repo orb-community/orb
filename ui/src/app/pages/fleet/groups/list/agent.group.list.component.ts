@@ -3,6 +3,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
+  OnDestroy,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
@@ -38,7 +39,7 @@ import { Observable } from 'rxjs';
   styleUrls: ['./agent.group.list.component.scss'],
 })
 export class AgentGroupListComponent
-  implements AfterViewInit, AfterViewChecked {
+  implements AfterViewInit, AfterViewChecked, OnDestroy {
   strings = STRINGS.agentGroups;
 
   columnMode = ColumnMode;
@@ -123,6 +124,10 @@ export class AgentGroupListComponent
       this.filters$,
       this.filterOptions,
     );
+  }
+
+  ngOnDestroy(): void {
+    this.orb.killPolling.next();
   }
 
   ngAfterViewChecked() {

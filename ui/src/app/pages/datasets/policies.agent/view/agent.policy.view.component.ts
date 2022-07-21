@@ -1,23 +1,19 @@
 import {
-  ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  ViewChild,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import {
-  PolicyConfig,
-} from 'app/common/interfaces/orb/policy/config/policy.config.interface';
-import {
-  AgentPoliciesService,
-} from 'app/common/services/agents/agent.policies.service';
-import {
-  NotificationsService,
-} from 'app/common/services/notifications/notifications.service';
-import {
-  PolicyDetailsComponent,
-} from 'app/shared/components/orb/policy/policy-details/policy-details.component';
-import {
-  PolicyInterfaceComponent,
-} from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
+import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.config.interface';
+import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { OrbService } from 'app/common/services/orb.service';
+import { PolicyDetailsComponent } from 'app/shared/components/orb/policy/policy-details/policy-details.component';
+import { PolicyInterfaceComponent } from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
 import { STRINGS } from 'assets/text/strings';
 import { Subscription } from 'rxjs';
 import yaml from 'js-yaml';
@@ -36,20 +32,24 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   policy: AgentPolicy;
 
+  datasets: Dataset[];
+
   policySubscription: Subscription;
 
   editMode = {
-    details: false, interface: false,
+    details: false,
+    interface: false,
   };
 
   @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
 
-  @ViewChild(
-    PolicyInterfaceComponent) interfaceComponent: PolicyInterfaceComponent;
+  @ViewChild(PolicyInterfaceComponent)
+  interfaceComponent: PolicyInterfaceComponent;
 
   constructor(
     private route: ActivatedRoute,
     private policiesService: AgentPoliciesService,
+    private orb: OrbService,
     private cdr: ChangeDetectorRef,
     private notifications: NotificationsService,
   ) {}
@@ -61,16 +61,20 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   isEditMode() {
-    return Object.values(this.editMode)
-      .reduce((prev, cur) => prev || cur, false);
+    return Object.values(this.editMode).reduce(
+      (prev, cur) => prev || cur,
+      false,
+    );
   }
 
   canSave() {
     const detailsValid = this.editMode.details
-      ? this.detailsComponent?.formGroup?.status === 'VALID' : true;
+      ? this.detailsComponent?.formGroup?.status === 'VALID'
+      : true;
 
     const interfaceValid = this.editMode.interface
-      ? this.interfaceComponent?.formControl?.status === 'VALID' : true;
+      ? this.interfaceComponent?.formControl?.status === 'VALID'
+      : true;
 
     return detailsValid && interfaceValid;
   }
@@ -96,9 +100,9 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     const policyInterface = this.interfaceComponent.code;
 
     // trying to work around rest api
-    const detailsPartial = !!this.editMode.details && {
+    const detailsPartial = (!!this.editMode.details && {
       ...policyDetails,
-    } || { name, description };
+    }) || { name, description };
 
     let interfacePartial = {};
 
@@ -141,21 +145,25 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   retrievePolicy() {
-    this.policySubscription = this.policiesService
-      .getAgentPolicyById(this.policyId)
-      .subscribe(policy => {
+    this.policySubscription = this.orb
+      .getPolicyFullView(this.policyId)
+      .subscribe(({ policy, datasets }) => {
         this.policy = policy;
+        this.datasets = datasets;
         this.isLoading = false;
         this.cdr.markForCheck();
       });
   }
 
   duplicatePolicy() {
-    this.policiesService.duplicateAgentPolicy(this.policyId || this.policy.id)
-      .subscribe(resp => {
+    this.policiesService
+      .duplicateAgentPolicy(this.policyId || this.policy.id)
+      .subscribe((resp) => {
         if (resp?.id) {
-          this.notifications.success('Agent Policy Duplicated',
-            `New Agent Policy Name: ${resp?.name}`);
+          this.notifications.success(
+            'Agent Policy Duplicated',
+            `New Agent Policy Name: ${resp?.name}`,
+          );
         }
       });
   }

@@ -1,7 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
@@ -13,6 +11,7 @@ import {
   BehaviorSubject,
   defer,
   EMPTY,
+  forkJoin,
   merge,
   Observable,
   Subject,
@@ -21,6 +20,7 @@ import {
 import {
   debounceTime,
   map,
+  mergeMap,
   retry,
   shareReplay,
   switchMap,
@@ -40,30 +40,15 @@ export class OrbService implements OnDestroy {
   // interval for timer
   pollInterval = 1000;
 
-  // race timer && forceRefresh until stopPolling
-  private poller$: Observable<number>;
-
   pollController$: BehaviorSubject<boolean>;
 
   lastPollUpdate$: Subject<number>;
 
   // next to stop polling
-  private killPolling: Subject<void>;
+  killPolling: Subject<void>;
 
   // next to force refresh
   private forceRefresh: Subject<number>;
-
-  // convenience polled observables
-  // watch all pages available on agents
-  private agents$: Observable<Agent[]>;
-  private groups$: Observable<AgentGroup[]>;
-  private datasets$: Observable<Dataset[]>;
-  private policies$: Observable<AgentPolicy[]>;
-  private sinks$: Observable<Sink[]>;
-
-  private agentsTags$: Observable<string[]>;
-  private groupsTags$: Observable<string[]>;
-  private sinksTags$: Observable<string[]>;
 
   pausePolling() {
     this.pollController$.next(PollControls.PAUSE);
@@ -78,7 +63,20 @@ export class OrbService implements OnDestroy {
   }
 
   observe<T>(observable: Observable<T>) {
-    return this.poller$.pipe(
+    const controller = merge(
+      this.pollController$.pipe(
+        switchMap((control) => {
+          if (control === PollControls.RESUME)
+            return defer(() => timer(1, this.pollInterval));
+          return EMPTY;
+        }),
+      ),
+      this.forceRefresh.pipe(debounceTime(1000)),
+    );
+
+    const poller$ = controller.pipe(takeUntil(this.killPolling));
+
+    return poller$.pipe(
       switchMap(() =>
         observable.pipe(
           tap((_) => {
@@ -103,45 +101,27 @@ export class OrbService implements OnDestroy {
     this.killPolling = new Subject<void>();
 
     this.pollController$ = new BehaviorSubject<boolean>(PollControls.PAUSE);
+  }
 
-    const controller = merge(
-      this.pollController$.pipe(
-        switchMap((control) => {
-          if (control === PollControls.RESUME)
-            return defer(() => timer(1, this.pollInterval));
-          return EMPTY;
-        }),
-      ),
-      this.forceRefresh.pipe(debounceTime(1000)),
-    );
+  private mapTags = (list: AgentGroup[] & Sink[]) => {
+    return list
+      .map((item) =>
+        Object.entries(item.tags).map((entry) => `${entry[0]}: ${entry[1]}`),
+      )
+      .reduce((acc, val) => acc.concat(val), [])
+      .filter(this.onlyUnique);
+  }
 
-    this.poller$ = controller.pipe(takeUntil(this.killPolling));
+  ngOnDestroy() {
+    this.killPolling.next();
+  }
 
-    /**
-     * TODO turn orb service into a poller service
-     * available in root, inject it into a @Observe decorator
-     * instead and wrap desired observables in it
-     */
+  getAgentListView() {
+    return this.observe(this.agent.getAllAgents());
+  }
 
-    this.agents$ = this.observe(this.agent.getAllAgents());
-
-    this.groups$ = this.observe(
-      this.group.getAllAgentGroups(),
-    );
-
-    this.policies$ = this.observe(
-      this.policy.getAllAgentPolicies(),
-    );
-
-    this.datasets$ = this.observe(
-      this.dataset.getAllDatasets(),
-    );
-
-    this.sinks$ = this.observe(
-      this.sink.getAllSinks(),
-    );
-
-    this.agentsTags$ = this.agents$.pipe(
+  getAgentsTags() {
+    return this.observe(this.agent.getAllAgents()).pipe(
       map((agents) =>
         agents
           .map((_agent) =>
@@ -157,55 +137,80 @@ export class OrbService implements OnDestroy {
           .filter(this.onlyUnique),
       ),
     );
-
-    const mapTags = (list: AgentGroup[] & Sink[]) => {
-      return list
-        .map((item) =>
-          Object.entries(item.tags).map((entry) => `${entry[0]}: ${entry[1]}`),
-        )
-        .reduce((acc, val) => acc.concat(val), [])
-        .filter(this.onlyUnique);
-    };
-
-    this.groupsTags$ = this.groups$.pipe(map((groups) => mapTags(groups)));
-
-    this.sinksTags$ = this.sinks$.pipe(map((sinks) => mapTags(sinks)));
-  }
-
-  ngOnDestroy() {
-    this.killPolling.next();
-  }
-
-  getAgentListView() {
-    return this.agents$;
-  }
-
-  getAgentsTags() {
-    return this.agentsTags$;
   }
 
   getGroupsTags() {
-    return this.groupsTags$;
+    return this.observe(this.group.getAllAgentGroups()).pipe(
+      map((groups) => this.mapTags(groups)),
+    );
   }
 
   getGroupListView() {
-    return this.groups$;
+    return this.observe(this.group.getAllAgentGroups());
   }
 
   getPolicyListView() {
-    return this.policies$;
+    return this.observe(this.policy.getAllAgentPolicies());
+  }
+
+  getPolicyFullView(id: string) {
+    // retrieve policy
+    return this.policy.getAgentPolicyById(id).pipe(
+      mergeMap((policy) =>
+        // need a way to get a dataset linked to a policy without having to filter it out
+        this.dataset.getAllDatasets().pipe(
+          map((_dataset) =>
+            _dataset.filter((dataset) => policy.id === dataset.agent_policy_id),
+          ),
+          // from the filtered dataset list, query all agent groups associated with the list
+          mergeMap((datasets: Dataset[]) =>
+            forkJoin(
+              datasets
+                .map((dataset) => dataset?.agent_group_id)
+                .map((groupId) => this.group.getAgentGroupById(groupId)),
+            ).pipe(map((groups) => ({ datasets, groups, policy }))),
+          ),
+          // same for sinks
+          mergeMap(({ datasets, groups }) =>
+            forkJoin(
+              datasets
+                .map((dataset) => dataset?.sink_ids)
+                .reduce((acc, val) => acc.concat(val), [])
+                .map((sinkId) => this.sink.getSinkById(sinkId)),
+            ).pipe(map((sinks) => ({ datasets, sinks, policy, groups }))),
+          ),
+        ),
+      ),
+      // from here on I can map to any shape I like
+      // dataset list uses the info below
+      map(({ datasets, sinks, policy, groups }) => ({
+        datasets: datasets.map((dataset) => ({
+          ...dataset,
+          agent_group: groups.find(
+            (group) => group.id === dataset.agent_group_id,
+          ),
+          agent_policy: policy,
+          sinks: sinks.filter((sink) => dataset.sink_ids.includes(sink.id)),
+        })),
+        sinks,
+        policy: { ...policy, groups, datasets },
+        groups,
+      })),
+    );
   }
 
   getDatasetListView() {
-    return this.datasets$;
+    return this.observe(this.dataset.getAllDatasets());
   }
 
   getSinkListView() {
-    return this.sinks$;
+    return this.observe(this.sink.getAllSinks());
   }
 
   getSinksTags() {
-    return this.sinksTags$;
+    return this.observe(this.sink.getAllSinks()).pipe(
+      map((sinks) => this.mapTags(sinks)),
+    );
   }
 
   onlyUnique = (value, index, self) => self.indexOf(value) === index;
