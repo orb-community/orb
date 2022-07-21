@@ -236,11 +236,15 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = ValueError
     assert_that(response.status_code, equal_to(expected_status_code),
                 f"Request to create agent group failed with status= {str(response.status_code)}. Response="
-                f" {str(response.json())}. Json used: {json_request}")
+                f" {str(response_json)}. Json used: {json_request}")
 
-    return response.json()
+    return response_json
 
 
 def get_agent_group(token, agent_group_id):

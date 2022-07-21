@@ -26,6 +26,7 @@ import (
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	opentracing "github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/reflection"
 	"io"
 	"io/ioutil"
@@ -35,6 +36,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -67,14 +69,30 @@ func main() {
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
 	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 
-	// main logger
+	// logger
 	var logger *zap.Logger
-	if svcCfg.LogLevel == "debug" {
-		logger, _ = zap.NewDevelopment()
-	} else {
-		logger, _ = zap.NewProduction()
+	atomicLevel := zap.NewAtomicLevel()
+	switch strings.ToLower(svcCfg.LogLevel) {
+	case "debug":
+		atomicLevel.SetLevel(zap.DebugLevel)
+	case "warn":
+		atomicLevel.SetLevel(zap.WarnLevel)
+	case "info":
+		atomicLevel.SetLevel(zap.InfoLevel)
+	default:
+		atomicLevel.SetLevel(zap.InfoLevel)
 	}
-	defer logger.Sync() // flushes buffer, if any
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderCfg),
+		os.Stdout,
+		atomicLevel,
+	)
+	logger = zap.New(core, zap.AddCaller())
+	defer func(logger *zap.Logger) {
+		_ = logger.Sync()
+	}(logger)
 
 	db := connectToDB(dbCfg, logger)
 	defer db.Close()

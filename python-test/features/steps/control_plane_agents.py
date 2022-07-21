@@ -314,14 +314,19 @@ def get_agent(token, agent_id, status_code=200):
     :returns: (dict) the fetched agent
     """
 
+
     get_agents_response = requests.get(orb_url + '/api/v1/agents/' + agent_id,
                                        headers={'Authorization': f'Bearer {token}'})
+    try:
+        response_json = get_agents_response.json()
+    except ValueError:
+        response_json = ValueError
 
     assert_that(get_agents_response.status_code, equal_to(status_code),
                 f"Request to get agent id= {agent_id} failed with status= {str(get_agents_response.status_code)}:"
-                f"{str(get_agents_response.json())}")
+                f"{str(response_json)}")
 
-    return get_agents_response.json()
+    return response_json
 
 
 def list_agents(token, limit=100, offset=0):
@@ -406,10 +411,14 @@ def create_agent(token, name, tags):
                        'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = ValueError
     assert_that(response.status_code, equal_to(201),
-                'Request to create agent failed with status=' + str(response.status_code) + ":" + str(response.json()))
+                'Request to create agent failed with status=' + str(response.status_code) + ":" + str(response_json))
 
-    return response.json()
+    return response_json
 
 
 def edit_agent(token, agent_id, name, tags, expected_status_code=200):

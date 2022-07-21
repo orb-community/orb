@@ -904,7 +904,7 @@ Scenario: Create duplicated policy
 
 
 @smoke
-Scenario: Remove agent
+Scenario: Remove agent (check dataset)
     Given the Orb user has a registered account
         And the Orb user logs in
         And a new agent is created with 1 orb tag(s)

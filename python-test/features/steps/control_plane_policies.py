@@ -10,6 +10,7 @@ from control_plane_datasets import create_new_dataset, list_datasets
 from random import choice, choices, sample
 from deepdiff import DeepDiff
 import json
+import ciso8601
 
 policy_name_prefix = "test_policy_name_"
 orb_url = TestConfig.configs().get('orb_url')
@@ -398,11 +399,15 @@ def create_policy(token, json_request):
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = ValueError
     assert_that(response.status_code, equal_to(201),
                 'Request to create policy failed with status=' + str(response.status_code) + ': '
-                + str(response.json()))
+                + str(response_json))
 
-    return response.json()
+    return response_json
 
 
 def edit_policy(token, policy_id, json_request):
@@ -418,11 +423,15 @@ def edit_policy(token, policy_id, json_request):
 
     response = requests.put(orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
                             headers=headers_request)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = ValueError
     assert_that(response.status_code, equal_to(200),
                 'Request to editing policy failed with status=' + str(response.status_code) + ': '
-                + str(response.json()))
+                + str(response_json))
 
-    return response.json()
+    return response_json
 
 
 def make_policy_json(name, handler_label, handler, description=None, tap="default_pcap",
@@ -503,12 +512,15 @@ def get_policy(token, policy_id, expected_status_code=200):
 
     get_policy_response = requests.get(orb_url + '/api/v1/policies/agent/' + policy_id,
                                        headers={'Authorization': f'Bearer {token}'})
-
+    try:
+        response_json = get_policy_response.json()
+    except ValueError:
+        response_json = ValueError
     assert_that(get_policy_response.status_code, equal_to(expected_status_code),
-                'Request to get policy id=' + policy_id + ' failed with status=' + str(get_policy_response.status_code)
-                + "response= " + str(get_policy_response.json()))
+                'Request to get policy id=' + policy_id + ' failed with status= ' + str(get_policy_response.status_code)
+                + " response= " + str(response_json))
 
-    return get_policy_response.json()
+    return response_json
 
 
 def list_policies(token, limit=100, offset=0):
@@ -648,7 +660,10 @@ def is_expected_msg_in_log_line(log_line, expected_message, list_agent_policies_
     if log_line is not None:
         if expected_message in log_line['msg'] and 'policy_id' in log_line.keys():
             if log_line['policy_id'] in list_agent_policies_id:
-                if log_line['ts'] > considered_timestamp:
+                if isinstance(log_line['ts'], int) and log_line['ts'] > considered_timestamp:
+                    return True
+                elif isinstance(log_line['ts'], str) and datetime.timestamp(ciso8601.parse_datetime(log_line['ts'])) > \
+                        considered_timestamp:
                     return True
     return False
 
@@ -666,7 +681,12 @@ def is_expected_log_info_in_log_line(log_line, expected_log_info, considered_tim
     :return: (bool) whether expected log info was found in the logs
 
     """
-    if log_line is not None and 'log' in log_line.keys() and log_line['ts'] > considered_timestamp:
+    if log_line is not None and 'log' in log_line.keys() and isinstance(log_line['ts'], int) and log_line['ts'] > \
+            considered_timestamp:
+        if expected_log_info in log_line['log']:
+            return True
+    elif log_line is not None and 'log' in log_line.keys() and isinstance(log_line['ts'], str) and \
+            datetime.timestamp(ciso8601.parse_datetime(log_line['ts'])) > considered_timestamp:
         if expected_log_info in log_line['log']:
             return True
     return False

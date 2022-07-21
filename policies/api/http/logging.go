@@ -18,6 +18,20 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
+func (l loggingMiddleware) RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: remove_all_datasets_by_policy_id_internal",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: remove_all_datasets_by_policy_id_internal",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.RemoveAllDatasetsByPolicyIDInternal(ctx, token, policyID)
+}
+
 func (l loggingMiddleware) InactivateDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {
