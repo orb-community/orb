@@ -133,11 +133,15 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
     header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/policies/dataset', json=json_request, headers=header_request)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = ValueError
     assert_that(response.status_code, equal_to(201),
                 'Request to create dataset failed with status=' + str(response.status_code) + ': ' +
-                str(response.json()))
+                str(response_json))
 
-    return response.json()
+    return response_json
 
 
 def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_id):
@@ -258,8 +262,13 @@ def get_dataset(token, dataset_id, expected_status_code=200):
     get_dataset_response = requests.get(orb_url + '/api/v1/policies/dataset/' + dataset_id,
                                        headers={'Authorization': f'Bearer {token}'})
 
+    try:
+        response_json = get_dataset_response.json()
+    except ValueError:
+        response_json = ValueError
+
     assert_that(get_dataset_response.status_code, equal_to(expected_status_code),
                 'Request to get policy id=' + dataset_id + ' failed with status=' +
-                str(get_dataset_response.status_code) + "response=" + str(get_dataset_response.json()))
+                str(get_dataset_response.status_code) + "response=" + str(response_json))
 
-    return get_dataset_response.json()
+    return response_json
