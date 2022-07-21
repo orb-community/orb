@@ -10,6 +10,7 @@ from control_plane_datasets import create_new_dataset, list_datasets
 from random import choice, choices, sample
 from deepdiff import DeepDiff
 import json
+import ciso8601
 
 policy_name_prefix = "test_policy_name_"
 orb_url = TestConfig.configs().get('orb_url')
@@ -654,7 +655,10 @@ def is_expected_msg_in_log_line(log_line, expected_message, list_agent_policies_
     if log_line is not None:
         if expected_message in log_line['msg'] and 'policy_id' in log_line.keys():
             if log_line['policy_id'] in list_agent_policies_id:
-                if log_line['ts'] > considered_timestamp:
+                if isinstance(log_line['ts'], int) and log_line['ts'] > considered_timestamp:
+                    return True
+                elif isinstance(log_line['ts'], str) and datetime.timestamp(ciso8601.parse_datetime(log_line['ts'])) > \
+                        considered_timestamp:
                     return True
     return False
 
@@ -672,7 +676,12 @@ def is_expected_log_info_in_log_line(log_line, expected_log_info, considered_tim
     :return: (bool) whether expected log info was found in the logs
 
     """
-    if log_line is not None and 'log' in log_line.keys() and log_line['ts'] > considered_timestamp:
+    if log_line is not None and 'log' in log_line.keys() and isinstance(log_line['ts'], int) and log_line['ts'] > \
+            considered_timestamp:
+        if expected_log_info in log_line['log']:
+            return True
+    elif log_line is not None and 'log' in log_line.keys() and isinstance(log_line['ts'], str) and \
+            datetime.timestamp(ciso8601.parse_datetime(log_line['ts'])) > considered_timestamp:
         if expected_log_info in log_line['log']:
             return True
     return False
