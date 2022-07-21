@@ -168,6 +168,9 @@ type Repository interface {
 	// RetrieveAllDatasetsByOwner retrieves the subset of Datasets owned by the specified user
 	RetrieveAllDatasetsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageDataset, error)
 
+	// RetrieveDatasetsByOwnerAndByFilters searches datasets from the specified user using the filters within PageMetadata
+	RetrieveDatasetsByOwnerAndByFilters(ctx context.Context, ownerID string, pm PageMetadata) (PageDataset, error)
+
 	// InactivateDatasetByID inactivate a dataset
 	InactivateDatasetByID(ctx context.Context, sinkID string, ownerID string) error
 

@@ -33,6 +33,7 @@ const (
 	dirKey      = "dir"
 	metadataKey = "metadata"
 	tagsKey     = "tags"
+	filtersKey  = "filters"
 	defOffset   = 0
 	defLimit    = 10
 )
@@ -219,6 +220,11 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	f, err := httputil.ReadMetadataQuery(r, filtersKey, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	req := listResourcesReq{
 		token: parseJwt(r),
 		pageMetadata: policies.PageMetadata{
@@ -229,6 +235,7 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 			Dir:      d,
 			Metadata: m,
 			Tags:     t,
+			Filters:  f,
 		},
 	}
 

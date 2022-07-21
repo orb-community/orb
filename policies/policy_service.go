@@ -351,6 +351,9 @@ func (s policiesService) ListDatasets(ctx context.Context, token string, pm Page
 	if err != nil {
 		return PageDataset{}, err
 	}
+	if pm.Filters != nil {
+		return s.repo.RetrieveDatasetsByOwnerAndByFilters(ctx, ownerID, pm)
+	}
 	return s.repo.RetrieveAllDatasetsByOwner(ctx, ownerID, pm)
 }
 

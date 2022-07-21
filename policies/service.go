@@ -22,6 +22,7 @@ type PageMetadata struct {
 	Dir      string         `json:"dir,omitempty"`
 	Metadata types.Metadata `json:"metadata,omitempty"`
 	Tags     types.Tags     `json:"tags,omitempty"`
+	Filters  types.Metadata `json:"filters,omitempty"`
 }
 
 var _ Service = (*policiesService)(nil)

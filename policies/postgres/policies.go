@@ -508,6 +508,67 @@ func (r policiesRepository) RetrieveAllDatasetsByOwner(ctx context.Context, owne
 	return pageDataset, nil
 }
 
+func (r policiesRepository) RetrieveDatasetsByOwnerAndByFilters(ctx context.Context, owner string, pm policies.PageMetadata) (policies.PageDataset, error) {
+	nameQuery, name := getNameQuery(pm.Name)
+	orderStatement := getOrderQuery(pm.Order)
+	dirStatement := getDirQuery(pm.Dir)
+
+	filterQuery, err := getFiltersQuery(pm.Filters)
+	if err != nil {
+		r.logger.Error("error on filters query building", zap.Any("filters", pm.Filters), zap.Error(err))
+		return policies.PageDataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_ids, metadata, ts_created 
+			FROM datasets
+			WHERE mf_owner_id = :mf_owner_id %s %s ORDER BY %s %s LIMIT :limit OFFSET :offset;`,
+		filterQuery, nameQuery, orderStatement, dirStatement)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+		"limit":       pm.Limit,
+		"offset":      pm.Offset,
+		"name":        name,
+	}
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return policies.PageDataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var items []policies.Dataset
+	for rows.Next() {
+		dbDataset := dbDataset{MFOwnerID: owner}
+		if err := rows.StructScan(&dbDataset); err != nil {
+			return policies.PageDataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		dataset := toDataset(dbDataset)
+		items = append(items, dataset)
+	}
+
+	count := fmt.Sprintf(`SELECT count(*)
+			FROM datasets
+			WHERE mf_owner_id = :mf_owner_id %s;`, nameQuery)
+
+	total, err := total(ctx, r.db, count, params)
+	if err != nil {
+		return policies.PageDataset{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+
+	pageDataset := policies.PageDataset{
+		Datasets: items,
+		PageMetadata: policies.PageMetadata{
+			Total:  total,
+			Offset: pm.Offset,
+			Limit:  pm.Limit,
+			Order:  pm.Order,
+			Dir:    pm.Dir,
+		},
+	}
+
+	return pageDataset, nil
+}
+
 func (r policiesRepository) InactivateDatasetByID(ctx context.Context, id string, ownerID string) error {
 	q := `UPDATE datasets SET valid = false WHERE mf_owner_id = :mf_owner_id AND :id = id`
 
@@ -832,6 +893,28 @@ func getTagsQuery(m types.Tags) ([]byte, string, error) {
 		mb = b
 	}
 	return mb, mq, nil
+}
+
+func getFiltersQuery(m types.Metadata) (string, error) {
+	queries := make([]string, len(m))
+	for key, value := range m {
+		// value can be single string or multiple strings
+		switch value.(type) {
+		case []string:
+			// do query with IN
+			valueSl := value.([]string)
+			queries = append(queries, key+"IN ("+strings.Join(valueSl, ",")+")")
+		case string:
+			// do query with ==
+			valueSl := value.([]string)
+			queries = append(queries, key+"IN ("+strings.Join(valueSl, ",")+")")
+		case nil:
+			return "", errors.New("could not resolve query value nil")
+		}
+	}
+
+	mq := strings.Join(queries, " AND ")
+	return mq, nil
 }
 
 func total(ctx context.Context, db Database, query string, params interface{}) (uint64, error) {

@@ -352,7 +352,7 @@ components:
       in: query
       schema:
         type: string
-        default: "{\"key\":\"value\"}"
+        example: "{\"key\":\"value\"} or {\"key\":[\"value1\",\"value2\",...]"
       required: false
     Limit:
       name: limit
