@@ -1,136 +1,111 @@
 {
   "/password/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/users": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/members/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/groups/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/version": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/things/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/connect": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/channels/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/http/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false,
     "pathRewrite": {
       "^/http": ""
     }
   },
   "/reader/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false,
     "pathRewrite": {
       "^/reader": ""
     }
   },
   "/bootstrap/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false,
     "pathRewrite": {
       "^/bootstrap": ""
     }
   },
   "/browse": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/twins/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/states/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/tokens/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/features/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/sinks/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/agents/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/agent_groups/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/policies/agent/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/policies/dataset/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/agents/backends/*": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/agents/backends/taps": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/agents/backends/handlers": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   },
   "/agents/backends/inputs": {
-    "target": "https://stg.orb.live/api/v1",
-    "changeOrigin": true,
+    "target": "http://localhost:80/api/v1",
     "secure": false
   }
 }
