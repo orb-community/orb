@@ -423,7 +423,7 @@ kind: collection`;
     this.modules[name] = ({
       type,
       config,
-      filter,
+      ...(filter.length > 0) && filter,
     });
 
   }
