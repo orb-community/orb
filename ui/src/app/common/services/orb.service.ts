@@ -14,6 +14,7 @@ import {
   forkJoin,
   merge,
   Observable,
+  of,
   Subject,
   timer,
 } from 'rxjs';
@@ -164,20 +165,28 @@ export class OrbService implements OnDestroy {
           ),
           // from the filtered dataset list, query all agent groups associated with the list
           mergeMap((datasets: Dataset[]) =>
-            forkJoin(
-              datasets
-                .map((dataset) => dataset?.agent_group_id)
-                .map((groupId) => this.group.getAgentGroupById(groupId)),
-            ).pipe(map((groups) => ({ datasets, groups, policy }))),
+            datasets.length > 0
+              ? forkJoin(
+                  datasets
+                    .map((dataset) => dataset?.agent_group_id)
+                    .map((groupId) =>
+                      !!groupId && groupId !== ''
+                        ? this.group.getAgentGroupById(groupId)
+                        : EMPTY,
+                    ),
+                ).pipe(map((groups) => ({ datasets, groups, policy })))
+              : of({ datasets, groups: [], policy }),
           ),
           // same for sinks
           mergeMap(({ datasets, groups }) =>
-            forkJoin(
-              datasets
-                .map((dataset) => dataset?.sink_ids)
-                .reduce((acc, val) => acc.concat(val), [])
-                .map((sinkId) => this.sink.getSinkById(sinkId)),
-            ).pipe(map((sinks) => ({ datasets, sinks, policy, groups }))),
+            datasets.length > 0
+              ? forkJoin(
+                  datasets
+                    .map((dataset) => dataset?.sink_ids)
+                    .reduce((acc, val) => acc.concat(val), [])
+                    .map((sinkId) => this.sink.getSinkById(sinkId)),
+                ).pipe(map((sinks) => ({ datasets, sinks, policy, groups })))
+              : of({ datasets, sinks: [], policy, groups }),
           ),
         ),
       ),
