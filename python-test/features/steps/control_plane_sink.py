@@ -65,6 +65,11 @@ def new_multiple_sinks(context, amount_of_sinks):
 def remove_sink_from_orb(context, amount_of_sinks):
     for i in range(int(amount_of_sinks)):
         delete_sink(context.token, context.used_sinks_id[i])
+        if 'removed_sinks_ids' in context:
+            context.removed_sinks_ids.append(context.used_sinks_id[i])
+        else:
+            context.removed_sinks_ids = list()
+            context.removed_sinks_ids.append(context.used_sinks_id[i])
         context.existent_sinks_id.remove(context.used_sinks_id[i])
         context.used_sinks_id.remove(context.used_sinks_id[i])
 

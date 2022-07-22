@@ -47,7 +47,7 @@ class AgentsPage:
 
     @classmethod
     def agent_view_id(cls):
-        return "//label[contains(text(), 'Agent ID')]/following::span"
+        return "//label[contains(text(), 'Agent ID')]/following::p"
 
     @classmethod
     def agent_status(cls):
@@ -69,3 +69,50 @@ class UtilButton:
     @classmethod
     def close_button(cls):
         return "//span[contains(@class, 'nb-close')]"
+
+
+class DataTable:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def body(cls):
+        return "//div[contains(@class, 'datatable-body')]"
+
+    @classmethod
+    def page_count(cls):
+        return "//div[contains(@class, 'page-count')]"
+
+    @classmethod
+    def sub_pages(cls):
+        return "//ul[@class='pager']/child::li[contains(@class, 'pages')]"
+
+    @classmethod
+    def agent(cls, name):
+        return f"//span[contains(@class, 'agent-name') and contains(text(), '{name}')]"
+
+    @classmethod
+    def agent_status(cls, name):
+        return f"//span[contains(text(), '{name}')]/ancestor::div[contains(@class, " \
+               f"'datatable-row-center')]/descendant::i[contains(@class, " \
+               f"'fa fa-circle')]/ancestor::span[contains(@class, 'ng-star-inserted')]"
+
+    @classmethod
+    def next_page(cls):
+        return "//a[@aria-label='go to next page']"
+
+    @classmethod
+    def previous_page(cls):
+        return "//a[@aria-label='go to previous page']"
+
+    @classmethod
+    def last_page(cls):
+        return "//a[@aria-label='go to last page']"
+
+    @classmethod
+    def first_page(cls):
+        return "//a[@aria-label='go to first page']"
+
+    @classmethod
+    def destroyed_on_click_button(cls):
+        return "//nb-toast[contains(@class, 'destroy-by-click has-icon custom-icon')]"

@@ -119,6 +119,16 @@ def remove_orb_agent_container(context):
     context.containers_id = {}
 
 
+@step("force remove of all agent containers whose names start with the test prefix")
+def remove_all_orb_agent_test_containers(context):
+    docker_client = docker.from_env()
+    containers = docker_client.containers.list(all=True)
+    for container in containers:
+        test_container = container.name.startswith(LOCAL_AGENT_CONTAINER_NAME)
+        if test_container is True:
+            container.remove(force=True)
+
+
 def run_agent_container(container_image, env_vars, container_name, time_to_wait=5):
     """
     Gets a specific agent from Orb control plane

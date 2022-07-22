@@ -1,7 +1,7 @@
 import random
 
 from behave import then, step
-from utils import random_string, filter_list_by_parameter_start_with, validate_json
+from utils import random_string, filter_list_by_parameter_start_with, validate_json, threading_wait_until
 from hamcrest import *
 import requests
 from test_config import TestConfig
@@ -25,7 +25,7 @@ def create_new_dataset(context, amount_of_datasets, group_order, amount_of_sinks
         groups_to_be_used = random.sample(list(context.agent_groups.keys()), int(amount_of_datasets))
     else:
         assert_that(str(amount_of_datasets), equal_to(str(1)), "For more than one dataset, pass 'an existing' as group"
-                                                          " parameter")
+                                                               " parameter")
         order_convert = {"first": 0, "last": -1, "second": 1}
         groups_to_be_used = [list(context.agent_groups.keys())[order_convert[group_order]]]
 
@@ -61,14 +61,6 @@ def edit_sinks_on_dataset(context, amount_of_sinks):
                  sinks)
 
 
-@step('datasets related to removed policy has validity invalid')
-def check_dataset_status_invalid(context):
-    for dataset_id in context.id_of_datasets_related_to_removed_policy:
-        dataset = get_dataset(context.token, dataset_id)
-        assert_that(dataset['valid'], equal_to(False), f"dataset {dataset} status failed with valid"
-                                                       f"equals {dataset['valid']}")
-
-
 @step('a dataset linked to this agent is removed')
 def remove_dataset_from_agent(context):
     dataset_remove = choice(list(context.datasets_created.keys()))
@@ -76,7 +68,7 @@ def remove_dataset_from_agent(context):
     delete_dataset(context.token, dataset_remove)
     context.datasets_created.pop(dataset_remove)
     context.policy.clear()
-    context.policy =\
+    context.policy = \
         {'id': context.dataset["agent_policy_id"], 'name': context.policies_created[context.dataset["agent_policy_id"]]}
     context.list_agent_policies_id.remove(context.policy["id"])
     context.policies_created.pop(context.policy["id"])
@@ -99,22 +91,50 @@ def check_orb_datasets_list(context, condition='must'):
                     f"Unexpected response for get dataset request. {policy}")
 
 
-@step('datasets related to all existing policies have validity valid')
-def check_dataset_status_valid(context):
-    all_datasets = list_datasets(context.token)
-    for dataset in all_datasets:
-        if dataset["agent_policy_id"] in context.policies_created.keys():
-            assert_that(dataset['valid'], equal_to(True), f"dataset {dataset} status failed with valid "
-                                                          f"equals {dataset['valid']}")
+@step('no dataset should be linked to the removed {element_removed} anymore')
+def check_dataset_status_valid(context, element_removed):
+    assert_that(element_removed, any_of(equal_to('group'), equal_to('groups'), equal_to("sink"), equal_to("sinks"),
+                                        equal_to("policy"), equal_to("policies")), "Unexpected removed element.")
+    datasets_list = list_datasets(context.token)
+    datasets_test_list = [dataset for dataset in datasets_list if dataset['id'] in context.datasets_created]
+    if element_removed == "group" or element_removed == "groups":
+        related_datasets = [dataset for dataset in datasets_test_list if
+                            dataset['agent_group_id'] in context.removed_groups_ids]
+    elif element_removed == "policy" or element_removed == "policies":
+        related_datasets = [dataset for dataset in datasets_test_list if
+                            dataset['agent_policy_id'] in context.removed_policies_ids]
+    else:
+        related_datasets = [dataset for dataset in datasets_test_list if
+                            any(sink in dataset['sink_ids'] for sink in context.removed_sinks_ids)]
+    assert_that(len(related_datasets), equal_to(0), f"The following datasets are still linked to removed"
+                                                    f" {element_removed}: {related_datasets}")
 
 
-@step('dataset related have validity {validity}')
-def check_dataset_status_valid(context, validity):
-    assert_that(validity, any_of(equal_to('invalid'), equal_to('valid')))
-    validity_bool = {"invalid": False, "valid": True}
-    dataset = get_dataset(context.token, context.dataset['id'])
-    assert_that(dataset['valid'], equal_to(validity_bool[validity]), f"dataset {dataset} status failed with "
-                                                                     f"valid equals {dataset['valid']}")
+@step("{amount_of_datasets_valid} dataset(s) have validity valid and {amount_of_datasets_invalid} have validity "
+      "invalid in {time_to_wait} seconds")
+def check_amount_datasets_per_status(context, amount_of_datasets_valid, amount_of_datasets_invalid, time_to_wait):
+    amount_of_datasets_valid = int(amount_of_datasets_valid)
+    amount_of_datasets_invalid = int(amount_of_datasets_invalid)
+    valid_datasets, invalid_datasets = check_all_test_dataset_per_status(context.token, context.datasets_created,
+                                                                         amount_of_datasets_valid,
+                                                                         amount_of_datasets_invalid,
+                                                                         timeout=int(time_to_wait))
+
+    assert_that(len(valid_datasets), equal_to(amount_of_datasets_valid),
+                f"Unexpected amount of datasets valid.\nValid: {valid_datasets}. \nInvalid: {invalid_datasets}")
+    assert_that(len(invalid_datasets), equal_to(amount_of_datasets_invalid),
+                f"Unexpected amount of datasets invalid.\nValid: {valid_datasets}. \nInvalid: {invalid_datasets}")
+
+
+@threading_wait_until
+def check_all_test_dataset_per_status(token, existing_datasets_ids_list, amount_of_datasets_valid, amount_of_datasets_invalid, event=None):
+    datasets_list = list_datasets(token)
+    datasets_test_list = [dataset for dataset in datasets_list if dataset['id'] in existing_datasets_ids_list]
+    valid_datasets = [dataset for dataset in datasets_test_list if dataset['valid'] is True]
+    invalid_datasets = [dataset for dataset in datasets_test_list if dataset['valid'] is False]
+    if len(valid_datasets) == amount_of_datasets_valid and len(invalid_datasets) == amount_of_datasets_invalid:
+        event.set()
+    return valid_datasets, invalid_datasets
 
 
 def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
@@ -160,7 +180,8 @@ def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_
                     "sink_ids": sink_id}
     header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
-    response = requests.put(f"{orb_url}/api/v1/policies/dataset/{dataset_id}", json=json_request, headers=header_request)
+    response = requests.put(f"{orb_url}/api/v1/policies/dataset/{dataset_id}", json=json_request,
+                            headers=header_request)
     assert_that(response.status_code, equal_to(200),
                 'Request to edit dataset failed with status=' + str(response.status_code) + ': ' + str(response.json()))
 
@@ -181,7 +202,6 @@ def clean_datasets(context):
 
 
 def list_datasets(token, limit=100, offset=0):
-
     """
     Lists all datasets from Orb control plane that belong to this user
 
@@ -260,7 +280,7 @@ def get_dataset(token, dataset_id, expected_status_code=200):
     """
 
     get_dataset_response = requests.get(orb_url + '/api/v1/policies/dataset/' + dataset_id,
-                                       headers={'Authorization': f'Bearer {token}'})
+                                        headers={'Authorization': f'Bearer {token}'})
 
     try:
         response_json = get_dataset_response.json()
