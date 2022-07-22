@@ -22,6 +22,7 @@
 package main
 
 import (
+	"context"
 	"github.com/ns1labs/orb/otelcollector"
 	"github.com/ns1labs/orb/otelcollector/components"
 	"github.com/ns1labs/orb/pkg/config"
@@ -34,13 +35,16 @@ import (
 const (
 	svcName   = "otelcollector"
 	envPrefix = "orb_otelcollector"
+	httpPort  = "8204"
 )
 
 var logger *zap.Logger
 
 func main() {
+	mainCtx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
 	atomicLevel := zap.NewAtomicLevel()
-	svcCfg := config.LoadBaseServiceConfig(envPrefix, "")
+	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	sinkerGrpcCfg := config.LoadGRPCConfig(envPrefix, "sinker")
 	policiesGrpcCfg := config.LoadGRPCConfig(envPrefix, "policies")
 	sinksGrpcCfg := config.LoadGRPCConfig(envPrefix, "sinks")
@@ -73,5 +77,5 @@ func main() {
 		_ = logger.Sync()
 	}(logger)
 
-	otelcollector.RunWithComponents(*logger, svcCfg, grpcCfgs, components.Components)
+	otelcollector.RunWithComponents(mainCtx, *logger, svcCfg, grpcCfgs, components.Components)
 }

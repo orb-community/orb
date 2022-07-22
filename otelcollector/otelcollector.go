@@ -28,33 +28,46 @@ import (
 
 type ComponentsFunc func(logger zap.Logger) (component.Factories, error)
 
-func RunWithComponents(logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig, componentsFunc ComponentsFunc) {
+func RunWithComponents(ctx context.Context, logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig, componentsFunc ComponentsFunc) {
+	// define factories
 	factories, err := componentsFunc(logger)
 	if err != nil {
+		ctx.Done()
 		logger.Fatal("failed to build components", zap.Error(err))
 	}
 
-	info := component.BuildInfo{
-		Command:     "otelcollector",
-		Description: "Otel Collector and Sinker",
-		Version:     "latest",
+	orbConfigProvider, err := getConfigProvider(svcCfg, grpcCfgs)
+	if err != nil {
+		ctx.Done()
+		logger.Fatal("failed during build of config provider", zap.Error(err))
 	}
+	logger.Info("config provider load successfully")
 
-	cmd := service.NewCommand(service.CollectorSettings{
-		Factories:               factories,
-		BuildInfo:               info,
+	// dataEntryCollector firstly starting the collector which will receive the data from sinker
+	dataEntryCollector, err := service.New(service.CollectorSettings{
+		Factories: factories,
+		BuildInfo: component.BuildInfo{
+			Description: "DataEntry",
+			Version:     "alpha",
+		},
 		DisableGracefulShutdown: false,
-		ConfigProvider:          nil,
+		ConfigProvider:          orbConfigProvider,
 		LoggingOptions:          nil,
 		SkipSettingGRPCLogger:   false,
 	})
-
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	defer cancelFunc()
 	if err != nil {
-		logger.Fatal("failed to set context", zap.Error(err))
+		ctx.Done()
+		logger.Fatal("fatal error during data entry collector initialization", zap.Error(err))
 	}
-	if err := cmd.ExecuteContext(ctx); err != nil {
-		logger.Fatal("failed to run command", zap.Error(err))
-	}
+	logger.Info("started dataEntryCollector successfully", zap.String("state", dataEntryCollector.GetState().String()))
+
+}
+
+func getConfigProvider(svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig) (service.ConfigProvider, error) {
+
+	return service.NewConfigProvider(service.ConfigProviderSettings{
+		Locations:     nil,
+		MapProviders:  nil,
+		MapConverters: nil,
+	})
 }
