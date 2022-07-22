@@ -20,31 +20,32 @@ package otelcollector
 
 import (
 	"context"
+	"github.com/ns1labs/orb/otelcollector/components"
 	"github.com/ns1labs/orb/pkg/config"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/service"
 	"go.uber.org/zap"
 )
 
-type ComponentsFunc func(logger zap.Logger) (component.Factories, error)
-
-func RunWithComponents(ctx context.Context, logger zap.Logger, svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig, componentsFunc ComponentsFunc) {
+func StartCollector(ctx context.Context, logger zap.Logger, svcCfg config.BaseSvcConfig, sinkerGrpcCfg,
+	policiesGrpcCfg, sinksGrpcCfg config.GRPCConfig) {
 	// define factories
-	factories, err := componentsFunc(logger)
+	factories, err := components.Components(logger)
 	if err != nil {
 		ctx.Done()
 		logger.Fatal("failed to build components", zap.Error(err))
 	}
 
-	orbConfigProvider, err := getConfigProvider(svcCfg, grpcCfgs)
+	orbConfigProvider, err := getConfigProvider(svcCfg, sinkerGrpcCfg)
 	if err != nil {
 		ctx.Done()
 		logger.Fatal("failed during build of config provider", zap.Error(err))
 	}
 	logger.Info("config provider load successfully")
 
-	// dataEntryCollector firstly starting the collector which will receive the data from sinker
-	dataEntryCollector, err := service.New(service.CollectorSettings{
+	// dataCollector firstly starting the collector which will receive the data from sinker
+	dataCollector, err := service.New(service.CollectorSettings{
 		Factories: factories,
 		BuildInfo: component.BuildInfo{
 			Description: "DataEntry",
@@ -57,17 +58,23 @@ func RunWithComponents(ctx context.Context, logger zap.Logger, svcCfg config.Bas
 	})
 	if err != nil {
 		ctx.Done()
-		logger.Fatal("fatal error during data entry collector initialization", zap.Error(err))
+		logger.Fatal("fatal error during data collector initialization", zap.Error(err))
 	}
-	logger.Info("started dataEntryCollector successfully", zap.String("state", dataEntryCollector.GetState().String()))
-
+	logger.Info("started dataCollector successfully", zap.String("state", dataCollector.GetState().String()))
+	dataColCtx := context.WithValue(ctx, "collector", "main")
+	err = dataCollector.Run(dataColCtx)
+	if err != nil {
+		ctx.Done()
+		dataColCtx.Done()
+		logger.Fatal("fatal error during data collector execution", zap.Error(err))
+	}
 }
 
-func getConfigProvider(svcCfg config.BaseSvcConfig, grpcCfgs []config.GRPCConfig) (service.ConfigProvider, error) {
+func getConfigProvider(svcCfg config.BaseSvcConfig, sinkerGrpcCfg config.GRPCConfig) (service.ConfigProvider, error) {
 
 	return service.NewConfigProvider(service.ConfigProviderSettings{
-		Locations:     nil,
-		MapProviders:  nil,
+		Locations:     []string{""},
+		MapProviders:  map[string]confmap.Provider{},
 		MapConverters: nil,
 	})
 }

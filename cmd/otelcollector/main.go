@@ -24,11 +24,12 @@ package main
 import (
 	"context"
 	"github.com/ns1labs/orb/otelcollector"
-	"github.com/ns1labs/orb/otelcollector/components"
 	"github.com/ns1labs/orb/pkg/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
+	"os/signal"
+	"runtime"
 	"strings"
 )
 
@@ -41,16 +42,12 @@ const (
 var logger *zap.Logger
 
 func main() {
-	mainCtx, cancelFunc := context.WithCancel(context.Background())
-	defer cancelFunc()
+
 	atomicLevel := zap.NewAtomicLevel()
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	sinkerGrpcCfg := config.LoadGRPCConfig(envPrefix, "sinker")
 	policiesGrpcCfg := config.LoadGRPCConfig(envPrefix, "policies")
 	sinksGrpcCfg := config.LoadGRPCConfig(envPrefix, "sinks")
-	grpcCfgs := []config.GRPCConfig{
-		policiesGrpcCfg, sinksGrpcCfg, sinkerGrpcCfg,
-	}
 
 	switch strings.ToLower(svcCfg.LogLevel) {
 	case "debug":
@@ -76,6 +73,28 @@ func main() {
 	defer func(logger *zap.Logger) {
 		_ = logger.Sync()
 	}(logger)
+	mainCtx, cancel := controlContext(logger)
+	defer cancel()
+	otelcollector.StartCollector(mainCtx, *logger, svcCfg, sinkerGrpcCfg, policiesGrpcCfg, sinksGrpcCfg)
+}
 
-	otelcollector.RunWithComponents(mainCtx, *logger, svcCfg, grpcCfgs, components.Components)
+func controlContext(logger *zap.Logger) (context.Context, func()) {
+	// For testing only, will be removed for prod
+	// trap Ctrl+C and call cancel on the context
+	ctx, cancel := context.WithCancel(context.Background())
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		select {
+		case <-c:
+			cancel()
+		case <-ctx.Done():
+		}
+		logger.Debug("exiting with goroutines and gocalls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
+	}()
+
+	return ctx, func() {
+		signal.Stop(c)
+		cancel()
+	}
 }

@@ -1,0 +1,37 @@
+receivers:
+  otlp:
+    protocols:
+      grpc: orb-sinker
+
+processors:
+  routing:
+    from_attribute: agent-id
+    default_exporters:
+      - prometheus
+
+  batch:
+
+exporters:
+
+
+extensions:
+  orb-
+  health_check:
+  pprof:
+  zpages:
+
+service:
+  extensions: [health_check,pprof,zpages]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]

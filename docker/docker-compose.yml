@@ -527,6 +527,8 @@ services:
     restart: no
     environment:
       ORB_OTELCOLLECTOR_LOG_LEVEL: debug
+      ORB_OTELCOLLECTOR_SINKS_GRPC_URL: ${ORB_SINKS_GRPC_URL}
+
     networks:
       - orb-base-net
 
