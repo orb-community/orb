@@ -4,47 +4,19 @@ import { Observable, of, throwError } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import {
-  NgxDatabalePageInfo,
-  OrbPagination,
-} from 'app/common/interfaces/orb/pagination.interface';
+import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { environment } from 'environments/environment';
-import {
-  catchError,
-  expand,
-  map, scan,
-  takeWhile,
-} from 'rxjs/operators';
-
-// default filters
-const defLimit: number = 100;
-const defOrder: string = 'name';
-const defDir = 'asc';
+import { catchError, expand, map, scan, takeWhile } from 'rxjs/operators';
 
 @Injectable()
 export class AgentPoliciesService {
-  paginationCache: any = {};
-
-  cache: OrbPagination<AgentPolicy>;
-
   backendsCache: OrbPagination<{ [propName: string]: any }>;
 
   constructor(
     private http: HttpClient,
     private notificationsService: NotificationsService,
   ) {}
-
-  public static getDefaultPagination(): OrbPagination<AgentPolicy> {
-    return {
-      limit: defLimit,
-      order: defOrder,
-      dir: defDir,
-      offset: 0,
-      total: 0,
-      data: null,
-    };
-  }
 
   addAgentPolicy(agentPolicyItem: AgentPolicy): Observable<AgentPolicy> {
     return this.http
@@ -105,13 +77,6 @@ export class AgentPoliciesService {
   deleteAgentPolicy(agentPoliciesId: string) {
     return this.http
       .delete(`${environment.agentPoliciesUrl}/${agentPoliciesId}`)
-      .map((resp) => {
-        this.cache.data.splice(
-          this.cache.data.map((ap) => ap.id).indexOf(agentPoliciesId),
-          1,
-        );
-        return resp;
-      })
       .catch((err) => {
         this.notificationsService.error(
           'Failed to Delete Agent Policies',
@@ -122,27 +87,32 @@ export class AgentPoliciesService {
   }
 
   getAllAgentPolicies() {
-    const pageInfo = AgentPoliciesService.getDefaultPagination();
+    const page = {
+      order: 'name',
+      dir: 'asc',
+      limit: 100,
+      data: [],
+      offset: 0,
+    } as OrbPagination<AgentPolicy>;
 
-    return this.getAgentsPolicies(pageInfo).pipe(
+    return this.getAgentsPolicies(page).pipe(
       expand((data) => {
         return data.next
           ? this.getAgentsPolicies(data.next)
           : Observable.empty();
       }),
       takeWhile((data) => data.next !== undefined),
-      map((page) => page.data),
+      map((_page) => _page.data),
       scan((acc, v) => [...acc, ...v]),
     );
   }
 
-  getAgentsPolicies(page: NgxDatabalePageInfo, isFilter = false) {
-    let params = new HttpParams();
-    params = params
-      .set('offset', page.offset.toString())
-      .set('limit', page.limit.toString())
+  getAgentsPolicies(page: OrbPagination<AgentPolicy>) {
+    const params = new HttpParams()
       .set('order', page.order)
-      .set('dir', page.dir);
+      .set('dir', page.dir)
+      .set('offset', page.offset.toString())
+      .set('limit', page.limit.toString());
 
     return this.http
       .get(environment.agentPoliciesUrl, { params })

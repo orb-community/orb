@@ -75,4 +75,8 @@ export interface AgentPolicy extends OrbEntity {
    * Either JSON or YAML compatible string;
    */
   policy_data?: string;
+
+  /** HELPERS */
+  datasets?: any[];
+  groups?: any[];
 }

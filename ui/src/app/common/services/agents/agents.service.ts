@@ -7,10 +7,7 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { environment } from 'environments/environment';
-import {
-  expand,
-  map, scan, takeWhile,
-} from 'rxjs/operators';
+import { expand, map, scan, takeWhile } from 'rxjs/operators';
 
 export enum AvailableOS {
   DOCKER = 'docker',
@@ -131,7 +128,7 @@ export class AgentsService {
   }
 
   getAllAgents(tags?: any) {
-    const pageInfo = {
+    const page = {
       order: 'name',
       dir: 'asc',
       limit: 100,
@@ -139,12 +136,12 @@ export class AgentsService {
       offset: 0,
       tags,
     } as OrbPagination<Agent>;
-    return this.getAgents(pageInfo).pipe(
+    return this.getAgents(page).pipe(
       expand((data) => {
         return data.next ? this.getAgents(data.next) : EMPTY;
       }),
       takeWhile((data) => data.next !== undefined),
-      map((page) => page.data),
+      map((_page) => _page.data),
       scan((acc, v) => [...acc, ...v]),
     );
   }
@@ -167,17 +164,25 @@ export class AgentsService {
       .get(`${environment.agentsUrl}`, { params })
       .pipe(
         map((resp: any) => {
-          const { order, direction, offset, limit, total, agents, tags } = resp;
+          const {
+            order,
+            direction: dir,
+            offset,
+            limit,
+            total,
+            agents,
+            tags,
+          } = resp;
           const next = offset + limit < total && {
             limit,
             order,
-            dir: direction,
+            dir,
             tags,
             offset: (parseInt(offset, 10) + parseInt(limit, 10)).toString(),
           };
           return {
             order,
-            dir: direction,
+            dir,
             offset,
             limit,
             total,
