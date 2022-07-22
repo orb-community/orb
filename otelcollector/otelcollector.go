@@ -71,7 +71,8 @@ func StartCollector(ctx context.Context, logger zap.Logger, svcCfg config.BaseSv
 }
 
 func getConfigProvider(svcCfg config.BaseSvcConfig, sinkerGrpcCfg config.GRPCConfig) (service.ConfigProvider, error) {
-
+	// Figure out to create a provider that fetches information from a Database/Cache
+	// Make it watch changes based on the GRPC call to change from Datasets
 	return service.NewConfigProvider(service.ConfigProviderSettings{
 		Locations:     []string{""},
 		MapProviders:  map[string]confmap.Provider{},
