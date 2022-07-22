@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Program otelcontribcol is an extension to the OpenTelemetry Collector
+// Program otelcollector is an extension to the OpenTelemetry Collector
 // that includes additional components, some vendor-specific, contributed
 // from the wider community.
 
