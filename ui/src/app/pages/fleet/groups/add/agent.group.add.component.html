@@ -136,16 +136,16 @@
           </ng-template>
           <div
             *ngIf="!expanded"
-            class="d-flex row">
+            class="d-flex row column-direction">
             <div class="col-md-12 col-xl-6">
-              <div>
+              <div class="max-width-vw">
                 <label class="font-weight-bold">{{strings.propNames.name}}</label>
                 <p>{{firstFormGroup.controls.name.value}}</p>
               </div>
             </div>
             <hr/>
             <div class="col-md-12 col-xl-6">
-              <div>
+              <div class="max-width-vw">
                 <label class="font-weight-bold">{{strings.propNames.description}}</label>
                 <p>{{firstFormGroup.controls.description.value}}</p>
               </div>
