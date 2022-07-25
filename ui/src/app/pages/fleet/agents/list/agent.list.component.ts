@@ -15,7 +15,7 @@ import {
   TableColumn,
 } from '@swimlane/ngx-datatable';
 
-import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
+import {Agent, AgentPolicyAggStates, AgentStates} from 'app/common/interfaces/orb/agent.interface';
 import {
   filterMultiSelect,
   FilterOption,
@@ -111,6 +111,13 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentStates).map((value) => value as string),
+      },
+      {
+        name: 'Policies',
+        prop: 'policy_agg_state',
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
+        options: Object.values(AgentPolicyAggStates).map((value) => value as string),
       },
     ];
 
