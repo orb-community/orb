@@ -25,6 +25,16 @@ h4 {
   color: #969fb9;
 }
 
+span {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.datatable-body-cell-label {
+  box-sizing: content-box;
+}
+
 .filter-dropdown {
   display: flex;
   position: absolute;
@@ -108,9 +118,21 @@ tr div p {
         text-decoration: none !important;
         color: #969fb9 !important;
       }
-     .xng-breadcrumb-separator {
+      .xng-breadcrumb-separator {
         text-decoration: none !important;
         color: #969fb9 !important;
+      }
+    }
+  }
+
+  .datatable-row-group .datatable-body-cell:first-child {
+    .datatable-body-cell-label {
+      overflow: hidden;
+
+      button {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        width: 100%;
       }
     }
   }
@@ -124,6 +146,7 @@ tr div p {
   outline: none !important;
   overflow: hidden !important;
   color: #ffffff;
+  text-align: left;
 }
 
 .add-agent-policy-container {

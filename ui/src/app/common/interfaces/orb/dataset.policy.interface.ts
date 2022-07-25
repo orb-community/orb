@@ -46,4 +46,10 @@ export interface Dataset extends OrbEntity {
    */
   dataset_metadata?: any;
 
+  /**
+   * Helper section with aggregate information about dataset
+   */
+  agent_policy?: any;
+  agent_group?: any;
+  sinks?: any[];
 }

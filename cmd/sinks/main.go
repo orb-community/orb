@@ -23,6 +23,7 @@ import (
 	redisprod "github.com/ns1labs/orb/sinks/redis/producer"
 	opentracing "github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/reflection"
 	"io"
 	"io/ioutil"
@@ -32,6 +33,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -61,16 +63,33 @@ func main() {
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 	jCfg := config.LoadJaegerConfig(envPrefix)
+	encryptionKey := config.LoadEncryptionKey(envPrefix)
 	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 
-	// main logger
+	// logger
 	var logger *zap.Logger
-	if svcCfg.LogLevel == "debug" {
-		logger, _ = zap.NewDevelopment()
-	} else {
-		logger, _ = zap.NewProduction()
+	atomicLevel := zap.NewAtomicLevel()
+	switch strings.ToLower(svcCfg.LogLevel) {
+	case "debug":
+		atomicLevel.SetLevel(zap.DebugLevel)
+	case "warn":
+		atomicLevel.SetLevel(zap.WarnLevel)
+	case "info":
+		atomicLevel.SetLevel(zap.InfoLevel)
+	default:
+		atomicLevel.SetLevel(zap.InfoLevel)
 	}
-	defer logger.Sync() // flushes buffer, if any
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderCfg),
+		os.Stdout,
+		atomicLevel,
+	)
+	logger = zap.New(core, zap.AddCaller())
+	defer func(logger *zap.Logger) {
+		_ = logger.Sync()
+	}(logger)
 
 	db := connectToDB(dbCfg, logger)
 	defer db.Close()
@@ -92,7 +111,7 @@ func main() {
 
 	sinkRepo := postgres.NewSinksRepository(db, logger)
 
-	svc := newSinkService(auth, logger, esClient, sdkCfg, sinkRepo)
+	svc := newSinkService(auth, logger, esClient, sdkCfg, sinkRepo, encryptionKey)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
@@ -156,15 +175,15 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, repoSink sinks.SinkRepository) sinks.SinkService {
+func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, repoSink sinks.SinkRepository, encriptionKey config.EncryptionKey) sinks.SinkService {
 
 	config := mfsdk.Config{
 		ThingsURL: sdkCfg.ThingsURL,
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-
-	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk)
+	pwdSvc := sinks.NewPasswordService(logger, encriptionKey.Key)
+	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk, pwdSvc)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = sinkshttp.NewLoggingMiddleware(svc, logger)
 	svc = sinkshttp.MetricsMiddleware(

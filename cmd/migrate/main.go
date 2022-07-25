@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/migrate"
+	"github.com/ns1labs/orb/migrate/migration"
 	"github.com/ns1labs/orb/migrate/postgres"
 	"github.com/ns1labs/orb/pkg/config"
 	"github.com/spf13/cobra"
@@ -36,8 +37,10 @@ func init() {
 		atomicLevel.SetLevel(zap.InfoLevel)
 	}
 
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		zapcore.NewJSONEncoder(encoderCfg),
 		os.Stdout,
 		atomicLevel,
 	)
@@ -50,13 +53,23 @@ func main() {
 	ketoDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DbKeto), postgres.DbKeto)
 	usersDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DbUsers), postgres.DbUsers)
 	thingsDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DbThings), postgres.DbThings)
+	sinksDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DBSinks), postgres.DBSinks)
+	sinksEncryptionKey := config.LoadEncryptionKey(fmt.Sprintf("%s_%s", envPrefix, postgres.DBSinks))
 
 	dbs := make(map[string]postgres.Database)
 
 	dbs[postgres.DbKeto] = connectToDB(ketoDbCfg, true, log)
 	dbs[postgres.DbUsers] = connectToDB(usersDbCfg, false, log)
 	dbs[postgres.DbThings] = connectToDB(thingsDbCfg, false, log)
-	svc := migrate.New(log, dbs)
+
+	sinksDB := connectToDB(sinksDbCfg, false, log)
+
+	svc := migrate.New(
+		log,
+		dbs,
+		migration.NewM1KetoPolicies(log, dbs),
+		migration.NewM2SinksCredentials(log, sinksDB, sinksEncryptionKey),
+	)
 
 	rootCmd := &cobra.Command{
 		Use: "orb-migrate",

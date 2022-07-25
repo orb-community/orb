@@ -5,11 +5,15 @@
       <div class="col-6">
         <label>Agent Name</label>
         <p>{{ agent?.name }}</p>
+        <label>Backend</label>
+        <p>{{ getAgentBackend() }}</p>
       </div>
       <div class="col-6">
         <div class="float-right">
-          <label>Version</label>
-          <p>{{ agent?.agent_metadata?.orb_agent?.version }}</p>
+          <label>Agent Version</label>
+          <p>{{ getAgentVersion() }}</p>
+          <label>Backend Version</label>
+          <p>{{ getAgentBackendVersion() }}</p>
         </div>
       </div>
       <div class="col-12">
@@ -27,7 +31,7 @@
     <hr>
     <div class="block">
       <button (click)="resetAgent()"
-              [disabled]="isResetting"
+              [disabled]="isResetting || agent?.state === 'new' || agent?.state === 'offline'"
               class="agent-reset"
               data-orb-qa-id="button#reset"
               nbButton

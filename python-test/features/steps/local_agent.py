@@ -8,6 +8,8 @@ import shlex
 from retry import retry
 import threading
 import json
+from datetime import datetime
+import ciso8601
 
 configs = TestConfig.configs()
 ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
@@ -49,9 +51,8 @@ def check_agent_logs_considering_timestamp(context, condition, text_to_match, ti
         considered_timestamp = context.considered_timestamp_reset
     else:
         considered_timestamp = context.considered_timestamp
-    text_found = get_logs_and_check(context.container_id, text_to_match, considered_timestamp,
+    text_found, logs = get_logs_and_check(context.container_id, text_to_match, considered_timestamp,
                                     timeout=time_to_wait)
-    logs = get_orb_agent_logs(context.container_id)
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
                                        f"Container logs: {json.dumps(logs, indent=4)}")
 
@@ -60,13 +61,13 @@ def check_agent_logs_considering_timestamp(context, condition, text_to_match, ti
 def check_errors_on_agent_logs(context):
     logs = get_orb_agent_logs(context.container_id)
     logs_with_error = [log for log in logs if '"level":"error"' in log]
-    assert_that(len(logs_with_error), equal_to(0), f"agents logs contain the following errors: {logs_with_error}")
+    assert_that(len(logs_with_error), equal_to(0), f"agents logs contain the following errors: {logs_with_error}."
+                                                   f"\n All logs: {logs}.")
 
 
 @then('the container logs should contain the message "{text_to_match}" within {time_to_wait} seconds')
 def check_agent_log(context, text_to_match, time_to_wait):
-    text_found = get_logs_and_check(context.container_id, text_to_match, timeout=time_to_wait)
-    logs = get_orb_agent_logs(context.container_id)
+    text_found, logs = get_logs_and_check(context.container_id, text_to_match, timeout=time_to_wait)
 
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
                                        f"Container logs: {json.dumps(logs, indent=4)}")
@@ -92,7 +93,7 @@ def run_container_using_ui_command(context, status_port):
     context.port = return_port_to_run_docker_container(context, availability[status_port])
     context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
                                                          ignore_ssl_and_certificate_errors, str(context.port))
-    assert_that(context.container_id, is_not((none())))
+    assert_that(context.container_id, is_not((none())), f"Agent container was not run")
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + context.agent['name'][-5:])
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
@@ -116,6 +117,16 @@ def remove_orb_agent_container(context):
     for container_id in context.containers_id.keys():
         remove_container(container_id, force_remove=True)
     context.containers_id = {}
+
+
+@step("force remove of all agent containers whose names start with the test prefix")
+def remove_all_orb_agent_test_containers(context):
+    docker_client = docker.from_env()
+    containers = docker_client.containers.list(all=True)
+    for container in containers:
+        test_container = container.name.startswith(LOCAL_AGENT_CONTAINER_NAME)
+        if test_container is True:
+            container.remove(force=True)
 
 
 def run_agent_container(container_image, env_vars, container_name, time_to_wait=5):
@@ -161,7 +172,12 @@ def check_logs_contain_message(logs, expected_message, event, start_time=0):
     for log_line in logs:
         log_line = safe_load_json(log_line)
 
-        if log_line is not None and log_line['msg'] == expected_message and log_line['ts'] > start_time:
+        if log_line is not None and log_line['msg'] == expected_message and isinstance(log_line['ts'], int) and \
+                log_line['ts'] > start_time:
+            event.set()
+            return event.is_set()
+        elif log_line is not None and log_line['msg'] == expected_message and isinstance(log_line['ts'], str) and \
+                datetime.timestamp(ciso8601.parse_datetime(log_line['ts'])) > start_time:
             event.set()
             return event.is_set()
 
@@ -187,7 +203,7 @@ def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pk
         args, stdout=subprocess.PIPE)
     subprocess_return = terminal_running.stdout.read().decode()
     container_id = subprocess_return.split()
-    assert_that(container_id[0], is_not((none())))
+    assert_that(container_id[0], is_not((none())), f"Failed to run the agent. Command used: {args}.")
     return container_id[0]
 
 
@@ -219,7 +235,7 @@ def check_container_status(container_id, status, event=None):
     """
     docker_client = docker.from_env()
     container = docker_client.containers.list(all=True, filters={'id': container_id})
-    assert_that(container, has_length(1))
+    assert_that(container, has_length(1), f"unable to find container {container_id}.")
     container = container[0]
     if container.status == status:
         event.set()
@@ -238,14 +254,13 @@ def get_logs_and_check(container_id, expected_message, start_time=0, event=None)
     """
     logs = get_orb_agent_logs(container_id)
     text_found = check_logs_contain_message(logs, expected_message, event, start_time)
-    return text_found
+    return text_found, logs
 
 
 def run_agent_config_file(agent_name, time_to_wait=5):
     """
     Run an agent container using an agent config file
 
-    :param orb_path: path to orb directory
     :param agent_name: name of the orb agent
     :param time_to_wait: seconds that threading must wait after run the agent
     :return: agent container id

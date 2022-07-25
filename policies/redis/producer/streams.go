@@ -73,7 +73,47 @@ func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string
 }
 
 func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.Dataset) (policies.Dataset, error) {
-	return e.svc.EditDataset(ctx, token, ds)
+	previousDataset, err := e.svc.ViewDatasetByID(ctx, token, ds.ID)
+	if err != nil {
+		return policies.Dataset{}, err
+	}
+
+	editedDataset, err := e.svc.EditDataset(ctx, token, ds)
+	if err != nil {
+		return policies.Dataset{}, err
+	}
+
+	event := updateDatasetEvent{
+		id:           editedDataset.ID,
+		ownerID:      editedDataset.MFOwnerID,
+		agentGroupID: editedDataset.AgentGroupID,
+		policyID:     editedDataset.PolicyID,
+		valid:        editedDataset.Valid,
+	}
+
+	if previousDataset.Valid == false && editedDataset.Valid == true {
+		event.turnedValid = true
+		event.turnedInvalid = false
+	} else if previousDataset.Valid == true && editedDataset.Valid == false {
+		event.turnedValid = false
+		event.turnedInvalid = true
+	} else {
+		event.turnedValid = false
+		event.turnedInvalid = false
+	}
+
+	record := &redis.XAddArgs{
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       event.Encode(),
+	}
+	err = e.client.XAdd(ctx, record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+		return ds, err
+	}
+
+	return editedDataset, nil
 }
 
 func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID string) error {
@@ -88,6 +128,11 @@ func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID str
 	datasets, err := e.svc.ListDatasetsByPolicyIDInternal(ctx, policyID, token)
 	if err != nil {
 		return err
+	}
+
+	err = e.svc.RemoveAllDatasetsByPolicyIDInternal(ctx, token, policyID)
+	if err != nil {
+		e.logger.Error("error while removing datasets", zap.Error(err))
 	}
 
 	if len(datasets) == 0 {
@@ -148,8 +193,8 @@ func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.P
 	}
 
 	event := updatePolicyEvent{
-		id:       pol.ID,
-		ownerID:  pol.MFOwnerID,
+		id:       editedPol.ID,
+		ownerID:  editedPol.MFOwnerID,
 		groupIDs: strings.Join(groupsIDs, ","),
 	}
 	record := &redis.XAddArgs{
@@ -236,12 +281,15 @@ func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID s
 		return err
 	}
 
-	event := removeDatasetEvent{
-		id:           datasetID,
-		ownerID:      ds.MFOwnerID,
-		agentGroupID: ds.AgentGroupID,
-		policyID:     ds.PolicyID,
-		datasetID:    ds.ID,
+	event := updateDatasetEvent{
+		id:            datasetID,
+		ownerID:       ds.MFOwnerID,
+		agentGroupID:  ds.AgentGroupID,
+		policyID:      ds.PolicyID,
+		datasetID:     ds.ID,
+		valid:         false,
+		turnedValid:   false,
+		turnedInvalid: true,
 	}
 	record := &redis.XAddArgs{
 		Stream:       streamID,
@@ -264,6 +312,10 @@ func (e eventStore) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID
 
 func (e eventStore) DuplicatePolicy(ctx context.Context, token string, policyID string, name string) (policies.Policy, error) {
 	return e.svc.DuplicatePolicy(ctx, token, policyID, name)
+}
+
+func (e eventStore) RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) error {
+	return e.svc.RemoveAllDatasetsByPolicyIDInternal(ctx, token, policyID)
 }
 
 // NewEventStoreMiddleware returns wrapper around policies service that sends

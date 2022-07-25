@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"os"
 	"os/signal"
 	"strings"
@@ -41,23 +42,13 @@ func Version(cmd *cobra.Command, args []string) {
 
 func Run(cmd *cobra.Command, args []string) {
 
-	// logger
-	var logger *zap.Logger
-	var err error
-	if Debug {
-		logger, err = zap.NewDevelopment()
-	} else {
-		logger, err = zap.NewProduction()
-	}
-	cobra.CheckErr(err)
-
 	initConfig()
 
 	// configuration
 	var config config.Config
-	err = viper.Unmarshal(&config)
+	err := viper.Unmarshal(&config)
 	if err != nil {
-		logger.Error("agent start up error (config)", zap.Error(err))
+		cobra.CheckErr(fmt.Errorf("agent start up error (config): %w", err))
 		os.Exit(1)
 	}
 
@@ -73,6 +64,26 @@ func Run(cmd *cobra.Command, args []string) {
 			config.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
 		}
 	}
+
+	// logger
+	var logger *zap.Logger
+	atomicLevel := zap.NewAtomicLevel()
+	if Debug {
+		atomicLevel.SetLevel(zap.DebugLevel)
+	} else {
+		atomicLevel.SetLevel(zap.InfoLevel)
+	}
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderCfg),
+		os.Stdout,
+		atomicLevel,
+	)
+	logger = zap.New(core, zap.AddCaller())
+	defer func(logger *zap.Logger) {
+		_ = logger.Sync()
+	}(logger)
 
 	// new agent
 	a, err := agent.New(logger, config)

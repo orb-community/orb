@@ -40,7 +40,7 @@ type AgentCommsService interface {
 	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
 	NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 	// NotifyGroupRemoval RPC core -> Agent: Notify AgentGroup that the group has been removed
-	NotifyGroupRemoval(ag AgentGroup) error
+	NotifyGroupRemoval(ctx context.Context, ag AgentGroup) error
 	// NotifyGroupPolicyRemoval RPC core -> Agent: Notify AgentGroup that a Policy has been removed
 	NotifyGroupPolicyRemoval(ag AgentGroup, policyID string, policyName string, backend string) error
 	// NotifyGroupDatasetRemoval RPC core -> Agent: Notify AgentGroup that a Dataset has been removed
@@ -49,6 +49,8 @@ type AgentCommsService interface {
 	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 	//NotifyAgentReset RPC core -> Agent: Notify Agent to reset the backend
 	NotifyAgentReset(agent Agent, fullReset bool, reason string) error
+	// NotifyGroupDatasetEdit RPC core -> Agent: Notify Agent an already created Dataset goes invalid or valid
+	NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID, policyID, ownerID string, valid bool) error
 }
 
 var _ AgentCommsService = (*fleetCommsService)(nil)
@@ -67,6 +69,60 @@ type fleetCommsService struct {
 
 	// agent comms
 	agentPubSub mfnats.PubSub
+}
+
+func (svc fleetCommsService) NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID, policyID, ownerID string, valid bool) error {
+	p, err := svc.policyClient.RetrievePolicy(ctx, &pb.PolicyByIDReq{PolicyID: policyID, OwnerID: ownerID})
+	if err != nil {
+		return err
+	}
+
+	var pdata interface{}
+	if err := json.Unmarshal(p.Data, &pdata); err != nil {
+		return err
+	}
+
+	var action string
+	if valid {
+		action = "manage"
+	} else {
+		action = "remove"
+	}
+
+	payload := []AgentPolicyRPCPayload{{
+		Action:    action,
+		ID:        policyID,
+		Name:      p.Name,
+		Backend:   p.Backend,
+		Version:   p.Version,
+		Data:      pdata,
+		DatasetID: datasetID,
+	}}
+
+	data := AgentPolicyRPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentPolicyRPCFunc,
+		Payload:       payload,
+		FullList:      false,
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   ag.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error {
@@ -90,7 +146,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 		DatasetID:    datasetID,
 		AgentGroupID: ag.ID,
 	}}
-	
+
 	data := AgentPolicyRPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
 		Func:          AgentPolicyRPCFunc,
@@ -275,11 +331,22 @@ func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
 
 }
 
-func (svc fleetCommsService) NotifyGroupRemoval(ag AgentGroup) error {
+func (svc fleetCommsService) NotifyGroupRemoval(ctx context.Context, ag AgentGroup) error {
+	groupID := []string{ag.ID}
+	policies, err := svc.policyClient.RetrievePoliciesByGroups(ctx, &pb.PoliciesByGroupsReq{GroupIDs: groupID, OwnerID: ag.MFOwnerID})
+	if err != nil {
+		return err
+	}
+
+	datasetIDs := make([]string, 0)
+	for _, policy := range policies.Policies {
+		datasetIDs = append(datasetIDs, policy.DatasetId)
+	}
 
 	payload := GroupRemovedRPCPayload{
 		AgentGroupID: ag.ID,
 		ChannelID:    ag.MFChannelID,
+		Datasets:     datasetIDs,
 	}
 
 	data := RPC{

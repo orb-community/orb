@@ -291,7 +291,7 @@ func TestNotifyGroupRemoval(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := commsSVC.NotifyGroupRemoval(tc.agentGroup)
+		err := commsSVC.NotifyGroupRemoval(context.Background(), tc.agentGroup)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }
@@ -515,6 +515,56 @@ func TestNotifyAgentNewGroupMembership(t *testing.T) {
 
 	for desc, tc := range cases {
 		err := commsSVC.NotifyAgentNewGroupMembership(tc.agent, tc.agentGroup)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+	}
+}
+
+func TestNotifyGroupDatasetEdit(t *testing.T) {
+	agentGroupRepo := flmocks.NewAgentGroupRepository()
+	agentRepo := flmocks.NewAgentRepositoryMock()
+
+	commsSVC := newCommsService(agentGroupRepo, agentRepo)
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetSVC := newFleetService(users, thingsServer.URL, agentGroupRepo, agentRepo)
+
+	ag, err := createAgentGroup(t, "group", fleetSVC)
+	assert.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policy := createPolicy(t, policiesSVC, "policy4")
+	dataset := createDataset(t, policiesSVC, "dataset3", ag.ID)
+
+	invalidDataset := dataset
+	invalidDataset.Valid = false
+
+	cases := map[string]struct {
+		policyID   string
+		ownerID    string
+		datasetID  string
+		agentGroup fleet.AgentGroup
+		valid      bool
+		err        error
+	}{
+		"Notify a existent group that dataset went invalid": {
+			ownerID:    ag.MFOwnerID,
+			policyID:   policy.ID,
+			datasetID:  invalidDataset.ID,
+			agentGroup: ag,
+			valid:      false,
+			err:        nil,
+		},
+		"Notify a existent group that dataset went valid": {
+			ownerID:    ag.MFOwnerID,
+			policyID:   policy.ID,
+			datasetID:  dataset.ID,
+			agentGroup: ag,
+			valid:      true,
+			err:        nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		err := commsSVC.NotifyGroupDatasetEdit(context.Background(), tc.agentGroup, tc.datasetID, tc.policyID, tc.ownerID, tc.valid)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }

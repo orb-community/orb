@@ -75,6 +75,12 @@
           color: #fff !important;
         }
 
+        &:hover {
+          .menu-title {
+            color: #598bff;
+          }
+        }
+
         .menu-title {
           padding-left: 17px;
         }
@@ -93,9 +99,10 @@
 
   nb-card nb-list {
     @include nb-scrollbars(
-        nb-theme(card-scrollbar-color),
-        nb-theme(card-scrollbar-background-color),
-        nb-theme(card-scrollbar-width));
+      nb-theme(card-scrollbar-color),
+      nb-theme(card-scrollbar-background-color),
+      nb-theme(card-scrollbar-width)
+    );
   }
 
   .table {
@@ -114,4 +121,28 @@
   &.btn-disabled {
     background: #2b3148;
   }
+}
+
+.tableWrapper {
+  display: flex;
+  margin-top: 2em;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-content: flex-start;
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow-x: auto;
+  min-width: 800px;
+}
+
+.orb-table {
+  min-height: calc(100vh - 300px);
+  min-width: 800px;
+  max-height: calc(100vh - 300px);
+}
+
+.orb-table-small {
+  min-height: calc(25vh);
+  min-width: 600px;
+  max-height: calc(25vh);
 }

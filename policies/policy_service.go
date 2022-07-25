@@ -184,12 +184,22 @@ func (s policiesService) RemovePolicy(ctx context.Context, token string, policyI
 	if err != nil {
 		return err
 	}
+
 	err = s.repo.DeletePolicy(ctx, ownerID, policyID)
 	if err != nil {
 		return err
 	}
 
-	err = s.repo.InactivateDatasetByPolicyID(ctx, policyID, ownerID)
+	return nil
+}
+
+func (s policiesService) RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) error {
+	ownerID, err := s.identify(token)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.DeleteAllDatasetsPolicy(ctx, policyID, ownerID)
 	if err != nil {
 		return err
 	}
@@ -292,6 +302,7 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 		if err != nil {
 			return Dataset{}, err
 		}
+		datasetEdited.Valid = true
 	}
 
 	return datasetEdited, nil

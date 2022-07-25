@@ -18,7 +18,7 @@ import (
 )
 
 func TestDHCPConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -235,7 +235,7 @@ func TestDHCPConversion(t *testing.T) {
 }
 
 func TestASNConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -339,7 +339,7 @@ func TestASNConversion(t *testing.T) {
 }
 
 func TestGeoLocConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -443,7 +443,7 @@ func TestGeoLocConversion(t *testing.T) {
 }
 
 func TestPCAPConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -577,7 +577,7 @@ func TestPCAPConversion(t *testing.T) {
 }
 
 func TestDNSConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -733,6 +733,33 @@ func TestDNSConversion(t *testing.T) {
 				},
 			},
 		},
+		"DNSPayloadTopNodata": {
+			data: []byte(`
+{
+	"policy_dns": {
+		"dns": {
+        	"top_nodata": [
+				{
+	          		"estimate": 186,
+         			"name": "89.187.189.231"				
+        		}
+			]
+    	}
+	}
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dns_top_nodata",
+				}), prometheus.Label{
+					Name:  "qname",
+					Value: "89.187.189.231",
+				}),
+				Datapoint: prometheus.Datapoint{
+					Value: 186,
+				},
+			},
+		},
 	}
 
 	for desc, c := range cases {
@@ -763,7 +790,7 @@ func TestDNSConversion(t *testing.T) {
 }
 
 func TestDNSRatesConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -1004,13 +1031,13 @@ func TestDNSRatesConversion(t *testing.T) {
 			}),
 			expectedDatapoints: []float64{0, 1, 2, 6},
 		},
-		"FlowPayloadRatesBPS": {
+		"FlowPayloadRatesBytes": {
 			data: []byte(`
 				{
 					"policy_flow": {
 						"flow": {
 							"rates": {
-							  "bps": {
+							  "bytes": {
 								"p50": 2,
 								"p90": 3,
 								"p95": 76811346,
@@ -1022,17 +1049,17 @@ func TestDNSRatesConversion(t *testing.T) {
 				}`),
 			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
 				Name:  "__name__",
-				Value: "flow_rates_bps",
+				Value: "flow_rates_bytes",
 			}),
 			expectedDatapoints: []float64{2, 3, 76811346, 76811347},
 		},
-		"FlowPayloadRatesPPS": {
+		"FlowPayloadRatesPackets": {
 			data: []byte(`
 				{
 					"policy_flow": {
 						"flow": {
 							"rates": {
-							  "pps": {
+							  "packets": {
 								"p50": 2,
 								"p90": 3,
 								"p95": 76811346,
@@ -1044,7 +1071,7 @@ func TestDNSRatesConversion(t *testing.T) {
 				}`),
 			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
 				Name:  "__name__",
-				Value: "flow_rates_pps",
+				Value: "flow_rates_packets",
 			}),
 			expectedDatapoints: []float64{2, 3, 76811346, 76811347},
 		},
@@ -1115,7 +1142,7 @@ func TestDNSRatesConversion(t *testing.T) {
 }
 
 func TestDNSTopKMetricsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -1239,6 +1266,56 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "qname",
 						Value: ".l.google.com",
+					},
+				},
+				Datapoint: prometheus.Datapoint{
+					Value: 6,
+				},
+			},
+		},
+		"PacketPayloadTopQueryECS": {
+			data: []byte(`
+{
+    "policy_dns": {
+		"dns": {
+        	"top_query_ecs": [
+				{
+          	  	  "estimate": 6,
+          	  	  "name": "2001:470:1f0b:1600::"
+        		}
+			]
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "dns_top_query_ecs",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "ecs",
+						Value: "2001:470:1f0b:1600::",
 					},
 				},
 				Datapoint: prometheus.Datapoint{
@@ -1419,7 +1496,7 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 }
 
 func TestDNSWirePacketsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -1515,6 +1592,27 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 				},
 			},
 		},
+		"DNSPayloadWirePacketsNodata": {
+			data: []byte(`
+{
+	"policy_dns": {
+        "dns": {
+            "wire_packets": {
+				"nodata": 8
+			}
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dns_wire_packets_nodata",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
 		"DNSPayloadWirePacketsNoerror": {
 			data: []byte(`
 {
@@ -1593,6 +1691,27 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 				Labels: append(prependLabel(commonLabels, prometheus.Label{
 					Name:  "__name__",
 					Value: "dns_wire_packets_refused",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 8,
+				},
+			},
+		},
+		"DNSPayloadWirePacketsFiltered": {
+			data: []byte(`
+{
+	"policy_dns": {
+        "dns": {
+            "wire_packets": {
+				"filtered": 8
+			}
+        }
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "dns_wire_packets_filtered",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 8,
@@ -1727,7 +1846,7 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 }
 
 func TestDNSXactConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -1957,7 +2076,7 @@ func TestDNSXactConversion(t *testing.T) {
 }
 
 func TestPacketsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -2148,6 +2267,25 @@ func TestPacketsConversion(t *testing.T) {
 				},
 			},
 		},
+		"DNSPayloadPacketsFiltered": {
+			data: []byte(`
+{
+	"policy_dns": {
+        "packets": {
+			"filtered": 637
+		}
+    }
+}`),
+			expected: prometheus.TimeSeries{
+				Labels: append(prependLabel(commonLabels, prometheus.Label{
+					Name:  "__name__",
+					Value: "packets_filtered",
+				})),
+				Datapoint: prometheus.Datapoint{
+					Value: 637,
+				},
+			},
+		},
 		"DNSPayloadPacketsOut": {
 			data: []byte(`
 {
@@ -2300,7 +2438,7 @@ func TestPacketsConversion(t *testing.T) {
 }
 
 func TestPeriodConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -2509,7 +2647,7 @@ func TestPeriodConversion(t *testing.T) {
 }
 
 func TestFlowCardinalityConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -2680,7 +2818,7 @@ func TestFlowCardinalityConversion(t *testing.T) {
 }
 
 func TestFlowConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -2928,7 +3066,7 @@ func TestFlowConversion(t *testing.T) {
 }
 
 func TestFlowTopKMetricsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -3781,7 +3919,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 }
 
 func TestAgentTagsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()
@@ -3890,11 +4028,10 @@ func TestAgentTagsConversion(t *testing.T) {
 			assert.Equal(t, c.expected.Datapoint.Value, receivedDatapoint.Value, fmt.Sprintf("%s: expected value %f got %f", desc, c.expected.Datapoint.Value, receivedDatapoint.Value))
 		})
 	}
-
 }
 
 func TestTagsConversion(t *testing.T) {
-	var logger *zap.Logger
+	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
 	ownerID, err := uuid.NewV4()

@@ -1,43 +1,45 @@
 import {
-  AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, OnInit,
-  TemplateRef, ViewChild,
+  AfterViewChecked,
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  TemplateRef,
+  ViewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NbDialogService } from '@nebular/theme';
 import {
-  ColumnMode, DatatableComponent, TableColumn,
+  ColumnMode,
+  DatatableComponent,
+  TableColumn,
 } from '@swimlane/ngx-datatable';
 
-import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import {
-  NgxDatabalePageInfo, OrbPagination,
-} from 'app/common/interfaces/orb/pagination.interface';
-import {
-  AgentGroupsService,
-} from 'app/common/services/agents/agent.groups.service';
-import {
-  NotificationsService,
-} from 'app/common/services/notifications/notifications.service';
-import {
-  AgentMatchComponent,
-} from 'app/pages/fleet/agents/match/agent.match.component';
-import {
-  AgentGroupDeleteComponent,
-} from 'app/pages/fleet/groups/delete/agent.group.delete.component';
-import {
-  AgentGroupDetailsComponent,
-} from 'app/pages/fleet/groups/details/agent.group.details.component';
-import { STRINGS } from 'assets/text/strings';
+  FilterOption,
+  filterSubstr,
+  filterTags,
+  FilterTypes,
+} from 'app/common/interfaces/orb/filter-option';
 
+import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
+import { FilterService } from 'app/common/services/filter.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { OrbService } from 'app/common/services/orb.service';
+import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
+import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
+import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
+import { STRINGS } from 'assets/text/strings';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'ngx-agent-group-list-component',
   templateUrl: './agent.group.list.component.html',
   styleUrls: ['./agent.group.list.component.scss'],
 })
-export class AgentGroupListComponent implements OnInit, AfterViewInit,
-  AfterViewChecked {
+export class AgentGroupListComponent
+  implements AfterViewInit, AfterViewChecked, OnDestroy {
   strings = STRINGS.agentGroups;
 
   columnMode = ColumnMode;
@@ -46,49 +48,19 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit,
 
   loading = false;
 
-  paginationControls: OrbPagination<AgentGroup>;
-
   searchPlaceholder = 'Search by name';
 
   // templates
-  @ViewChild(
-    'agentGroupNameTemplateCell') agentGroupNameTemplateCell: TemplateRef<any>;
+  @ViewChild('agentGroupNameTemplateCell')
+  agentGroupNameTemplateCell: TemplateRef<any>;
 
-  @ViewChild(
-    'agentGroupTemplateCell') agentGroupsTemplateCell: TemplateRef<any>;
+  @ViewChild('agentGroupTemplateCell')
+  agentGroupsTemplateCell: TemplateRef<any>;
 
-  @ViewChild(
-    'agentGroupTagsTemplateCell') agentGroupTagsTemplateCell: TemplateRef<any>;
+  @ViewChild('agentGroupTagsTemplateCell')
+  agentGroupTagsTemplateCell: TemplateRef<any>;
 
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
-
-  tableFilters: DropdownFilterItem[] = [
-    {
-      id: '0',
-      label: 'Name',
-      prop: 'name',
-      selected: false,
-      filter: (agent, name) => agent?.name.includes(name),
-    },
-    {
-      id: '1',
-      label: 'Tags',
-      prop: 'tags',
-      selected: false,
-      filter: (agent, tag) => Object.entries(agent?.tags)
-        .filter(([key, value]) => `${key}:${value}`.includes(
-          tag.replace(' ', ''))).length > 0,
-    },
-    {
-      id: '2',
-      label: 'Description',
-      prop: 'description',
-      selected: false,
-      filter: (agent, description) => agent?.description.includes(description),
-    },
-  ];
-
-  selectedFilter = this.tableFilters[0];
 
   filterValue = null;
 
@@ -105,6 +77,11 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit,
 
   private currentComponentWidth;
 
+  groups$: Observable<AgentGroup[]>;
+  filterOptions: FilterOption[];
+  filters$!: Observable<FilterOption[]>;
+  filteredGroups$: Observable<AgentGroup[]>;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -112,14 +89,53 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit,
     private notificationsService: NotificationsService,
     private route: ActivatedRoute,
     private router: Router,
+    private orb: OrbService,
+    private filters: FilterService,
   ) {
-    this.paginationControls = AgentGroupsService.getDefaultPagination();
+    this.groups$ = this.orb.getGroupListView();
+
+    this.filters$ = this.filters.getFilters();
+
+    this.filterOptions = [
+      {
+        name: 'Name',
+        prop: 'name',
+        filter: filterSubstr,
+        type: FilterTypes.Input,
+      },
+      {
+        name: 'Tags',
+        prop: 'tags',
+        filter: filterTags,
+        autoSuggestion: orb.getGroupsTags(),
+        type: FilterTypes.AutoComplete,
+      },
+      // {
+      //   name: 'Status',
+      //   prop: 'state',
+      //   filter: filterMultiSelect,
+      //   type: FilterTypes.MultiSelect,
+      //   options: Object.values(AgentStates).map((value) => value as string),
+      // },
+    ];
+
+    this.filteredGroups$ = this.filters.createFilteredList()(
+      this.groups$,
+      this.filters$,
+      this.filterOptions,
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.orb.killPolling.next();
   }
 
   ngAfterViewChecked() {
-    if (this.table && this.table.recalculate && (
+    if (
+      this.table &&
+      this.table.recalculate &&
       this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth
-    )) {
+    ) {
       this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
       this.table.recalculate();
       this.cdr.detectChanges();
@@ -127,32 +143,26 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit,
     }
   }
 
-  ngOnInit() {
-    this.getAllAgentGroups();
-  }
-
   ngAfterViewInit() {
+    this.orb.refreshNow();
     this.columns = [
       {
         prop: 'name',
         name: 'Name',
-        flexGrow: 3,
+        flexGrow: 1,
         canAutoResize: true,
         resizeable: false,
-        minWidth: 90,
-        width: 120,
-        maxWidth: 200,
+        minWidth: 150,
         cellTemplate: this.agentGroupNameTemplateCell,
       },
       {
         prop: 'description',
         name: 'Description',
-        flexGrow: 4,
+        flexGrow: 2,
         canAutoResize: true,
         resizeable: false,
         minWidth: 180,
-        width: 225,
-        maxWidth: 300,
+        cellTemplate: this.agentGroupNameTemplateCell,
       },
       {
         prop: 'matching_agents',
@@ -161,71 +171,36 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit,
         canAutoResize: true,
         resizeable: false,
         minWidth: 80,
-        width: 80,
-        maxWidth: 100,
         comparator: (a, b) => a.total - b.total,
         cellTemplate: this.agentGroupsTemplateCell,
       },
       {
         prop: 'tags',
         name: 'Tags',
-        flexGrow: 5,
+        flexGrow: 3,
         canAutoResize: true,
         resizeable: false,
-        minWidth: 300,
-        width: 450,
-        maxWidth: 1450,
         cellTemplate: this.agentGroupTagsTemplateCell,
-        comparator: (a, b) => Object.entries(a)
-          .map(([key, value]) => `${key}:${value}`)
-          .join(',')
-          .localeCompare(Object.entries(b)
+        comparator: (a, b) =>
+          Object.entries(a)
             .map(([key, value]) => `${key}:${value}`)
-            .join(',')),
+            .join(',')
+            .localeCompare(
+              Object.entries(b)
+                .map(([key, value]) => `${key}:${value}`)
+                .join(','),
+            ),
       },
       {
         name: '',
         prop: 'actions',
         flexGrow: 2,
         canAutoResize: true,
-        resizeable: false,
-        minWidth: 130,
-        width: 130,
-        maxWidth: 260,
+        minWidth: 150,
         sortable: false,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
-
-    this.cdr.detectChanges();
-  }
-
-  getAllAgentGroups(): void {
-    this.loading = true;
-    this.agentGroupsService.clean();
-    this.agentGroupsService.getAllAgentGroups().subscribe(resp => {
-      this.paginationControls.data = resp.data;
-      this.paginationControls.total = resp.data.length;
-      this.paginationControls.offset = resp.offset / resp.limit;
-      this.loading = false;
-      this.cdr.markForCheck();
-    });
-  }
-
-  getAgentGroups(pageInfo: NgxDatabalePageInfo = null): void {
-    const finalPageInfo = { ...pageInfo };
-    finalPageInfo.dir = 'desc';
-    finalPageInfo.order = 'name';
-    finalPageInfo.limit = this.paginationControls.limit;
-    finalPageInfo.offset = pageInfo?.offset * pageInfo?.limit || 0;
-
-    this.agentGroupsService.getAgentGroups(pageInfo).subscribe(
-      (resp: OrbPagination<AgentGroup>) => {
-        this.paginationControls = resp;
-        this.paginationControls.offset = pageInfo?.offset || 0;
-        this.paginationControls.total = resp.total;
-      },
-    );
   }
 
   onOpenAdd() {
@@ -241,56 +216,39 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit,
     });
   }
 
-  onFilterSelected(filter) {
-    this.searchPlaceholder = `Search by ${filter.label}`;
-    this.filterValue = null;
-  }
-
-  applyFilter() {
-    if (!this.paginationControls || !this.paginationControls?.data) return;
-
-    if (!this.filterValue || this.filterValue === '') {
-      this.table.rows = this.paginationControls.data;
-    } else {
-      this.table.rows = this.paginationControls.data.filter(
-        sink => this.filterValue.split(/[,;]+/gm).reduce((prev, curr) => {
-          return this.selectedFilter.filter(sink, curr) && prev;
-        }, true));
-    }
-    this.paginationControls.offset = 0;
-  }
-
   openDeleteModal(row: any) {
     const { name, id } = row;
-    this.dialogService.open(AgentGroupDeleteComponent, {
-      context: { name },
-      autoFocus: true,
-      closeOnEsc: true,
-    }).onClose.subscribe(
-      confirm => {
+    this.dialogService
+      .open(AgentGroupDeleteComponent, {
+        context: { name },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
         if (confirm) {
           this.agentGroupsService.deleteAgentGroup(id).subscribe(() => {
             this.notificationsService.success(
-              'Agent Group successfully deleted', '');
-            this.getAllAgentGroups();
+              'Agent Group successfully deleted',
+              '',
+            );
           });
+          this.orb.refreshNow();
         }
-      },
-    );
+      });
   }
 
   openDetailsModal(row: any) {
-    this.dialogService.open(AgentGroupDetailsComponent, {
-      context: { agentGroup: row },
-      autoFocus: true,
-      closeOnEsc: true,
-    }).onClose.subscribe((resp) => {
-      if (resp) {
-        this.onOpenEdit(row);
-      } else {
-        this.getAllAgentGroups();
-      }
-    });
+    this.dialogService
+      .open(AgentGroupDetailsComponent, {
+        context: { agentGroup: row },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((resp) => {
+        if (resp) {
+          this.onOpenEdit(row);
+        }
+      });
   }
 
   onMatchingAgentsModal(row: any) {
@@ -298,8 +256,6 @@ export class AgentGroupListComponent implements OnInit, AfterViewInit,
       context: { agentGroup: row },
       autoFocus: true,
       closeOnEsc: true,
-    }).onClose.subscribe(_ => {
-      this.getAgentGroups();
     });
   }
 }

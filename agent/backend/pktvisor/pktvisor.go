@@ -10,7 +10,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/eclipse/paho.mqtt.golang"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os/exec"
+	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-cmd/cmd"
 	"github.com/go-co-op/gocron"
 	"github.com/ns1labs/orb/agent/backend"
@@ -21,16 +27,13 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"os/exec"
-	"time"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
 
 const DefaultBinary = "/usr/local/sbin/pktvisord"
+const ReadinessBackoff = 10
+const ReadinessTimeout = 10
 
 type pktvisorBackend struct {
 	logger          *zap.Logger
@@ -286,6 +289,26 @@ func (p *pktvisorBackend) Start() error {
 
 	p.logger.Info("pktvisor process started", zap.Int("pid", status.PID))
 
+	var readinessError error
+	for backoff := 0; backoff < ReadinessBackoff; backoff++ {
+		var appMetrics AppMetrics
+		readinessError = p.request("metrics/app", &appMetrics, http.MethodGet, nil, "", ReadinessTimeout)
+		if readinessError == nil {
+			p.logger.Info(fmt.Sprintf("pktvisor readiness ok, got version %s", appMetrics.App.Version))
+			break
+		}
+		p.logger.Info("pktvisor is not ready, trying again")
+	}
+
+	if readinessError != nil {
+		p.logger.Error("pktvisor error on readiness", zap.Error(readinessError))
+		err = p.proc.Stop()
+		if err != nil {
+			p.logger.Error("proc.Stop error", zap.Error(err))
+		}
+		return readinessError
+	}
+
 	p.scraper = gocron.NewScheduler(time.UTC)
 	p.scraper.StartAsync()
 
@@ -321,7 +344,7 @@ func (p *pktvisorBackend) scrapeDefault() error {
 		for pName, pMetrics := range metrics {
 			data, err := p.policyRepo.GetByName(pName)
 			if err != nil {
-				p.logger.Warn("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.Error(err))
+				p.logger.Warn("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.String("error_message", err.Error()))
 				continue
 			}
 			payloadData, err := json.Marshal(pMetrics)

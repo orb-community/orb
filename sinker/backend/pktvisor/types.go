@@ -4,7 +4,7 @@
 
 package pktvisor
 
-const PktvisorVersion = "3.3.0"
+const PktvisorVersion = "4.2.0"
 
 // NameCount represents the count of a unique domain name
 type NameCount struct {
@@ -14,11 +14,18 @@ type NameCount struct {
 
 // Rates represents a histogram of rates at various percentiles
 type Rates struct {
-	Live int64 `mapstructure:"live"`
-	P50  int64 `mapstructure:"p50"`
-	P90  int64 `mapstructure:"p90"`
-	P95  int64 `mapstructure:"p95"`
-	P99  int64 `mapstructure:"p99"`
+	P50 int64 `mapstructure:"p50"`
+	P90 int64 `mapstructure:"p90"`
+	P95 int64 `mapstructure:"p95"`
+	P99 int64 `mapstructure:"p99"`
+}
+
+// Quantiles represents a histogram of various percentiles
+type Quantiles struct {
+	P50 int64 `mapstructure:"p50"`
+	P90 int64 `mapstructure:"p90"`
+	P95 int64 `mapstructure:"p95"`
+	P99 int64 `mapstructure:"p99"`
 }
 
 // DHCPPayload contains the information specifically for the DNS protocol
@@ -41,17 +48,20 @@ type DHCPPayload struct {
 // DNSPayload contains the information specifically for the DNS protocol
 type DNSPayload struct {
 	WirePackets struct {
-		Ipv4     int64 `mapstructure:"ipv4"`
-		Ipv6     int64 `mapstructure:"ipv6"`
-		Queries  int64 `mapstructure:"queries"`
-		Replies  int64 `mapstructure:"replies"`
-		TCP      int64 `mapstructure:"tcp"`
-		Total    int64 `mapstructure:"total"`
-		UDP      int64 `mapstructure:"udp"`
-		Noerror  int64 `mapstructure:"noerror"`
-		Nxdomain int64 `mapstructure:"nxdomain"`
-		Srvfail  int64 `mapstructure:"srvfail"`
-		Refused  int64 `mapstructure:"refused"`
+		Ipv4        int64 `mapstructure:"ipv4"`
+		Ipv6        int64 `mapstructure:"ipv6"`
+		Queries     int64 `mapstructure:"queries"`
+		Replies     int64 `mapstructure:"replies"`
+		TCP         int64 `mapstructure:"tcp"`
+		Total       int64 `mapstructure:"total"`
+		UDP         int64 `mapstructure:"udp"`
+		Nodata      int64 `mapstructure:"nodata"`
+		Noerror     int64 `mapstructure:"noerror"`
+		Nxdomain    int64 `mapstructure:"nxdomain"`
+		Srvfail     int64 `mapstructure:"srvfail"`
+		Refused     int64 `mapstructure:"refused"`
+		Filtered    int64 `mapstructure:"filtered"`
+		DeepSamples int64 `mapstructure:"deep_samples"`
 	} `mapstructure:"wire_packets"`
 	Rates struct {
 		Total Rates `mapstructure:"total"`
@@ -65,35 +75,38 @@ type DNSPayload struct {
 			TimedOut int64 `mapstructure:"timed_out"`
 		} `mapstructure:"counts"`
 		In struct {
-			QuantilesUS struct {
-				P50 int64 `mapstructure:"p50"`
-				P90 int64 `mapstructure:"p90"`
-				P95 int64 `mapstructure:"p95"`
-				P99 int64 `mapstructure:"p99"`
-			} `mapstructure:"quantiles_us"`
-			TopSlow []NameCount `mapstructure:"top_slow"`
-			Total   int64       `mapstructure:"total"`
+			QuantilesUS Quantiles   `mapstructure:"quantiles_us"`
+			TopSlow     []NameCount `mapstructure:"top_slow"`
+			Total       int64       `mapstructure:"total"`
 		} `mapstructure:"in"`
 		Out struct {
-			QuantilesUS struct {
-				P50 int64 `mapstructure:"p50"`
-				P90 int64 `mapstructure:"p90"`
-				P95 int64 `mapstructure:"p95"`
-				P99 int64 `mapstructure:"p99"`
-			} `mapstructure:"quantiles_us"`
-			TopSlow []NameCount `mapstructure:"top_slow"`
-			Total   int64       `mapstructure:"total"`
+			QuantilesUS Quantiles   `mapstructure:"quantiles_us"`
+			TopSlow     []NameCount `mapstructure:"top_slow"`
+			Total       int64       `mapstructure:"total"`
 		} `mapstructure:"out"`
+		Ratio struct {
+			Quantiles struct {
+				P50 float64 `mapstructure:"p50"`
+				P90 float64 `mapstructure:"p90"`
+				P95 float64 `mapstructure:"p95"`
+				P99 float64 `mapstructure:"p99"`
+			} `mapstructure:"quantiles"`
+		} `mapstructure:"ratio"`
 	} `mapstructure:"xact"`
-	TopQname2   []NameCount   `mapstructure:"top_qname2"`
-	TopQname3   []NameCount   `mapstructure:"top_qname3"`
-	TopNxdomain []NameCount   `mapstructure:"top_nxdomain"`
-	TopQtype    []NameCount   `mapstructure:"top_qtype"`
-	TopRcode    []NameCount   `mapstructure:"top_rcode"`
-	TopREFUSED  []NameCount   `mapstructure:"top_refused"`
-	TopSRVFAIL  []NameCount   `mapstructure:"top_srvfail"`
-	TopUDPPorts []NameCount   `mapstructure:"top_udp_ports"`
-	Period      PeriodPayload `mapstructure:"period"`
+	TopGeoLocECS        []NameCount   `mapstructure:"top_geoLoc_ecs"`
+	TopAsnECS           []NameCount   `mapstructure:"top_asn_ecs"`
+	TopQueryECS         []NameCount   `mapstructure:"top_query_ecs"`
+	TopQname2           []NameCount   `mapstructure:"top_qname2"`
+	TopQname3           []NameCount   `mapstructure:"top_qname3"`
+	TopNxdomain         []NameCount   `mapstructure:"top_nxdomain"`
+	TopQtype            []NameCount   `mapstructure:"top_qtype"`
+	TopRcode            []NameCount   `mapstructure:"top_rcode"`
+	TopREFUSED          []NameCount   `mapstructure:"top_refused"`
+	TopQnameByRespBytes []NameCount   `mapstructure:"top_qname_by_resp_bytes"`
+	TopSRVFAIL          []NameCount   `mapstructure:"top_srvfail"`
+	TopNODATA           []NameCount   `mapstructure:"top_nodata"`
+	TopUDPPorts         []NameCount   `mapstructure:"top_udp_ports"`
+	Period              PeriodPayload `mapstructure:"period"`
 }
 
 // PacketPayload contains information about raw packets regardless of protocol
@@ -111,28 +124,19 @@ type PacketPayload struct {
 	Out         int64 `mapstructure:"out"`
 	OtherL4     int64 `mapstructure:"other_l4"`
 	DeepSamples int64 `mapstructure:"deep_samples"`
+	Filtered    int64 `mapstructure:"filtered"`
+	Protocol    struct {
+		Tcp struct {
+			SYN int64 `mapstructure:"syn"`
+		} `mapstructure:"tcp"`
+	} `mapstructure:"protocol"`
+	PayloadSize Quantiles `mapstructure:"payload_size"`
 	Rates       struct {
-		Pps_in struct {
-			Live int64 `mapstructure:"live"`
-			P50  int64 `mapstructure:"p50"`
-			P90  int64 `mapstructure:"p90"`
-			P95  int64 `mapstructure:"p95"`
-			P99  int64 `mapstructure:"p99"`
-		} `mapstructure:"pps_in"`
-		Pps_out struct {
-			Live int64 `mapstructure:"live"`
-			P50  int64 `mapstructure:"p50"`
-			P90  int64 `mapstructure:"p90"`
-			P95  int64 `mapstructure:"p95"`
-			P99  int64 `mapstructure:"p99"`
-		} `mapstructure:"pps_out"`
-		Pps_total struct {
-			Live int64 `mapstructure:"live"`
-			P50  int64 `mapstructure:"p50"`
-			P90  int64 `mapstructure:"p90"`
-			P95  int64 `mapstructure:"p95"`
-			P99  int64 `mapstructure:"p99"`
-		} `mapstructure:"pps_total"`
+		BytesIn  Rates `mapstructure:"bytes_in"`
+		BytesOut Rates `mapstructure:"bytes_out"`
+		PpsIn    Rates `mapstructure:"pps_in"`
+		PpsOut   Rates `mapstructure:"pps_out"`
+		PpsTotal Rates `mapstructure:"pps_total"`
 	} `mapstructure:"rates"`
 	TopIpv4   []NameCount   `mapstructure:"top_ipv4"`
 	TopIpv6   []NameCount   `mapstructure:"top_ipv6"`
@@ -162,23 +166,18 @@ type FlowPayload struct {
 		SrcIpsIn    int64 `mapstructure:"src_ips_in"`
 		SrcPortsIn  int64 `mapstructure:"src_ports_in"`
 	} `mapstructure:"cardinality"`
-	DeepSamples int64 `mapstructure:"deep_samples"`
-	EventRate   Rates `mapstructure:"event_rate"`
-	Filtered    int64 `mapstructure:"filtered"`
-	Flows       int64 `mapstructure:"flows"`
-	Ipv4        int64 `jmapstructureson:"ipv4"`
-	Ipv6        int64 `mapstructure:"ipv6"`
-	OtherL4     int64 `mapstructure:"other_l4"`
-	PayloadSize struct {
-		P50 int64 `mapstructure:"p50"`
-		P90 int64 `mapstructure:"p90"`
-		P95 int64 `mapstructure:"p95"`
-		P99 int64 `mapstructure:"p99"`
-	} `mapstructure:"payload_size"`
-	Period PeriodPayload `mapstructure:"period"`
-	Rates  struct {
-		Bps Rates `mapstructure:"bps"`
-		Pps Rates `mapstructure:"pps"`
+	DeepSamples int64         `mapstructure:"deep_samples"`
+	EventRate   Rates         `mapstructure:"event_rate"`
+	Filtered    int64         `mapstructure:"filtered"`
+	Flows       int64         `mapstructure:"flows"`
+	Ipv4        int64         `jmapstructureson:"ipv4"`
+	Ipv6        int64         `mapstructure:"ipv6"`
+	OtherL4     int64         `mapstructure:"other_l4"`
+	PayloadSize Quantiles     `mapstructure:"payload_size"`
+	Period      PeriodPayload `mapstructure:"period"`
+	Rates       struct {
+		Bytes   Rates `mapstructure:"bytes"`
+		Packets Rates `mapstructure:"packets"`
 	} `mapstructure:"rates"`
 	TCP                     int64       `mapstructure:"tcp"`
 	TopDstIpsAndPortBytes   []NameCount `mapstructure:"top_dst_ips_and_port_bytes"`
@@ -203,9 +202,9 @@ type FlowPayload struct {
 
 // StatSnapshot is a snapshot of a given period from pktvisord
 type StatSnapshot struct {
-	DNS     DNSPayload
-	DHCP    DHCPPayload
-	Packets PacketPayload
-	Pcap    PcapPayload
-	Flow    FlowPayload
+	DNS     *DNSPayload    `mapstructure:"DNS,omitempty"`
+	DHCP    *DHCPPayload   `mapstructure:"DHCP,omitempty"`
+	Packets *PacketPayload `mapstructure:"Packets,omitempty"`
+	Pcap    *PcapPayload   `mapstructure:"Pcap,omitempty"`
+	Flow    *FlowPayload   `mapstructure:"Flow,omitempty"`
 }

@@ -68,6 +68,8 @@ func (r policiesRepository) UpdatePolicy(ctx context.Context, owner string, plcy
 			switch pqErr.Code.Name() {
 			case db.ErrInvalid, db.ErrTruncation:
 				return errors.Wrap(policies.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return errors.Wrap(errors.ErrConflict, err)
 			}
 		}
 		return errors.Wrap(fleet.ErrUpdateEntity, err)
@@ -620,6 +622,38 @@ func (r policiesRepository) DeleteAgentGroupFromAllDatasets(ctx context.Context,
 	}
 
 	defer res.Close()
+
+	return nil
+}
+
+func (r policiesRepository) DeleteAllDatasetsPolicy(ctx context.Context, policyID string, ownerID string) error {
+	q := `DELETE FROM datasets WHERE mf_owner_id = :mf_owner_id AND agent_policy_id = :agent_policy_id`
+
+	if ownerID == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	params := map[string]interface{}{
+		"mf_owner_id":     ownerID,
+		"agent_policy_id": policyID,
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(policies.ErrMalformedEntity, err)
+			}
+		}
+		return errors.Wrap(fleet.ErrRemoveEntity, err)
+	}
+
+	_, err = res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(fleet.ErrRemoveEntity, err)
+	}
 
 	return nil
 }

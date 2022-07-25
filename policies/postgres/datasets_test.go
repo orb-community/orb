@@ -1010,6 +1010,84 @@ func TestDeleteAgentGroupFromDataset(t *testing.T) {
 	}
 }
 
+func TestDeleteAllDatasetsPolicy(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	policyWithNoDataset, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	groupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sinkIDs := make([]string, 2)
+	for i := 0; i < 2; i++ {
+		sinkID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		sinkIDs[i] = sinkID.String()
+	}
+
+	nameID, err := types.NewIdentifier("mydataset")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		Name:         nameID,
+		MFOwnerID:    oID.String(),
+		Valid:        true,
+		AgentGroupID: groupID.String(),
+		PolicyID:     policyID.String(),
+		SinkIDs:      sinkIDs,
+		Metadata:     types.Metadata{"testkey": "testvalue"},
+		Created:      time.Time{},
+	}
+
+	dsID, err := repo.SaveDataset(context.Background(), dataset)
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	dataset.ID = dsID
+
+	cases := map[string]struct {
+		policyID       string
+		datasetID      string
+		owner          string
+		deleteDatasets bool
+		err            error
+	}{
+		"delete existing policy with existing datasets": {
+			policyID:       policyID.String(),
+			datasetID:      dataset.ID,
+			owner:          oID.String(),
+			deleteDatasets: true,
+			err:            nil,
+		},
+		"delete existing policy with no existing datasets": {
+			policyID:       policyWithNoDataset.String(),
+			datasetID:      dataset.ID,
+			owner:          oID.String(),
+			deleteDatasets: false,
+			err:            nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := repo.DeleteAllDatasetsPolicy(context.Background(), tc.policyID, tc.owner)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected '%s' got '%s'", desc, tc.err, err))
+
+			if tc.deleteDatasets {
+				_, err = repo.RetrieveDatasetByID(context.Background(), tc.datasetID, tc.owner)
+				assert.True(t, errors.Contains(err, errors.ErrNotFound), fmt.Sprintf("%s: expected '%s' got '%s'", desc, errors.ErrNotFound, err))
+			}
+		})
+	}
+}
+
 func testSortDataset(t *testing.T, pm policies.PageMetadata, ags []policies.Dataset) {
 	t.Helper()
 	switch pm.Order {

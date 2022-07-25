@@ -10,6 +10,7 @@ from control_plane_datasets import create_new_dataset, list_datasets
 from random import choice, choices, sample
 from deepdiff import DeepDiff
 import json
+import ciso8601
 
 policy_name_prefix = "test_policy_name_"
 orb_url = TestConfig.configs().get('orb_url')
@@ -55,7 +56,7 @@ def create_new_policy(context, kwargs):
 
     context.policy = create_policy(context.token, policy_json)
 
-    assert_that(context.policy['name'], equal_to(name))
+    assert_that(context.policy['name'], equal_to(name), f"Policy name failed: {context.policy}")
     if 'policies_created' in context:
         context.policies_created[context.policy['id']] = context.policy['name']
     else:
@@ -123,7 +124,8 @@ def policy_editing(context, kwargs):
         edited_attributes["only_qname_suffix"] = edited_attributes["only_qname_suffix"].split("/ ")
 
     if policy_name_prefix not in edited_attributes["name"]:
-        edited_attributes["name"] = policy_name_prefix + edited_attributes["name"]
+        context.random_part_policy_name = f"_{random_string(10)}"
+        edited_attributes["name"] = policy_name_prefix + edited_attributes["name"] + context.random_part_policy_name
 
     policy_json = make_policy_json(edited_attributes["name"], edited_attributes["handler_label"],
                                    edited_attributes["handler"], edited_attributes["description"],
@@ -134,7 +136,7 @@ def policy_editing(context, kwargs):
                                    edited_attributes["backend_type"])
     context.policy = edit_policy(context.token, context.policy['id'], policy_json)
 
-    assert_that(context.policy['name'], equal_to(edited_attributes["name"]))
+    assert_that(context.policy['name'], equal_to(edited_attributes["name"]), f"Policy name failed: {context.policy}")
 
 
 @step("policy {attribute} must be {value}")
@@ -144,7 +146,7 @@ def check_policy_attribute(context, attribute, value):
                              'only_rcode', 'backend_type', 'version']
     if attribute in acceptable_attributes:
         if attribute == "name":
-            value = policy_name_prefix + value
+            value = policy_name_prefix + value + context.random_part_policy_name
         policy_value = return_policy_attribute(context.policy, attribute)
         assert_that(str(policy_value), equal_to(value), f"Unexpected value for policy {attribute}")
     else:
@@ -181,6 +183,11 @@ def remove_policy_applied(context):
     policy_removed = choice(context.list_agent_policies_id)
     context.policy = get_policy(context.token, policy_removed)
     delete_policy(context.token, context.policy["id"])
+    if 'removed_policies_ids' in context:
+        context.removed_policies_ids.append(context.policy["id"])
+    else:
+        context.removed_policies_ids = list()
+        context.removed_policies_ids.append(context.policy["id"])
     context.list_agent_policies_id.remove(context.policy["id"])
     context.policies_created.pop(context.policy["id"])
     existing_datasets = list_datasets(context.token)
@@ -193,7 +200,8 @@ def check_test(context, time_to_wait):
     remove_log_info = f"DELETE /api/v1/policies/{context.policy['name']} 200"
     policy_removed = policy_stopped_and_removed(context.container_id, stop_log_info, remove_log_info,
                                                 context.considered_timestamp, timeout=time_to_wait)
-    assert_that(policy_removed, equal_to(True), f"Policy {context.policy['name']} failed to be unapplied")
+    assert_that(policy_removed, equal_to(True), f"Policy {context.policy} failed to be unapplied. \n"
+                                                f"Agent: {json.dumps(context.agent, indent=4)}")
 
 
 @then('cleanup policies')
@@ -271,7 +279,7 @@ def apply_n_policies(context, amount_of_policies, type_of_policies):
     for i in range(int(amount_of_policies)):
         create_new_policy(context, args_for_policies[i][1])
         check_policies(context)
-        create_new_dataset(context, 1, 'sink')
+        create_new_dataset(context, 1, 'last', 1, 'sink')
 
 
 @step('{amount_of_policies} {type_of_policies} policies are applied to the group by {amount_of_datasets} datasets each')
@@ -281,7 +289,7 @@ def apply_n_policies_x_times(context, amount_of_policies, type_of_policies, amou
         create_new_policy(context, args_for_policies[n][1])
         check_policies(context)
         for x in range(int(amount_of_datasets)):
-            create_new_dataset(context, 1, 'sink')
+            create_new_dataset(context, 1, 'last', 1, 'sink')
 
 
 @step("{amount_of_policies} duplicated policies is applied to the group")
@@ -290,7 +298,7 @@ def apply_duplicate_policy(context, amount_of_policies):
         context.policy = create_duplicated_policy(context.token, context.policy["id"],
                                                   policy_name_prefix + random_string(10))
         check_policies(context)
-        create_new_dataset(context, 1, 'sink')
+        create_new_dataset(context, 1, 'last', 1, 'sink')
 
 
 @step("try to duplicate this policy {times} times without set new name")
@@ -330,10 +338,10 @@ def check_duplicated_policies_status(context, amount_successfully_policies, amou
             successfully_duplicated.append(policy['id'])
         elif "error" in policy.keys():
             wrongly_duplicated += 1
-    assert_that(len(successfully_duplicated), equal_to(int(amount_successfully_policies)), f"Amount of policies"
-                                                                                           f"successfully duplicated"
-                                                                                           f"fails. Policies duplicated:"
-                                                                                           f"{successfully_duplicated}")
+    assert_that(len(successfully_duplicated),
+                equal_to(int(amount_successfully_policies)), f"Amount of policies successfully duplicated fails."
+                                                             f"Policies duplicated: {successfully_duplicated}"
+                                                             f"\n Agent: {json.dumps(context.agent, indent=4)}")
     assert_that(wrongly_duplicated, equal_to(int(amount_error_policies)), f"Amount of policies wrongly duplicated fails"
                                                                           f".")
 
@@ -349,11 +357,13 @@ def create_duplicated_policy(token, policy_id, new_policy_name=None, status_code
     """
     json_request = {"name": new_policy_name}
     json_request = remove_empty_from_json(json_request)
-    headers_request = {'Content-type': 'application/json', 'Accept': 'application/json', 'Authorization': f'Bearer {token}'}
+    headers_request = {'Content-type': 'application/json', 'Accept': 'application/json',
+                       'Authorization': f'Bearer {token}'}
     post_url = f"{orb_url}/api/v1/policies/agent/{policy_id}/duplicate"
     response = requests.post(post_url, json=json_request, headers=headers_request)
     assert_that(response.status_code, equal_to(status_code),
-                'Request to create duplicated policy failed with status=' + str(response.status_code))
+                'Request to create duplicated policy failed with status=' + str(response.status_code) + ': '
+                + str(response.json()))
     if status_code == 201:
         compare_two_policies(token, policy_id, response.json()['id'])
     return response.json()
@@ -371,7 +381,8 @@ def compare_two_policies(token, id_policy_one, id_policy_two):
     policy_two = get_policy(token, id_policy_two)
     diff = DeepDiff(policy_one, policy_two, exclude_paths={"root['name']", "root['id']", "root['ts_last_modified']",
                                                            "root['ts_created']"})
-    assert_that(diff, equal_to({}), "Policy duplicated is not equal the one that generate it")
+    assert_that(diff, equal_to({}), f"Policy duplicated is not equal the one that generate it. Policy 1: {policy_one}\n"
+                                    f"Policy 2: {policy_two}")
 
 
 def create_policy(token, json_request):
@@ -388,10 +399,15 @@ def create_policy(token, json_request):
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = ValueError
     assert_that(response.status_code, equal_to(201),
-                'Request to create policy failed with status=' + str(response.status_code))
+                'Request to create policy failed with status=' + str(response.status_code) + ': '
+                + str(response_json))
 
-    return response.json()
+    return response_json
 
 
 def edit_policy(token, policy_id, json_request):
@@ -407,10 +423,15 @@ def edit_policy(token, policy_id, json_request):
 
     response = requests.put(orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
                             headers=headers_request)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = ValueError
     assert_that(response.status_code, equal_to(200),
-                'Request to editing policy failed with status=' + str(response.status_code))
+                'Request to editing policy failed with status=' + str(response.status_code) + ': '
+                + str(response_json))
 
-    return response.json()
+    return response_json
 
 
 def make_policy_json(name, handler_label, handler, description=None, tap="default_pcap",
@@ -491,12 +512,15 @@ def get_policy(token, policy_id, expected_status_code=200):
 
     get_policy_response = requests.get(orb_url + '/api/v1/policies/agent/' + policy_id,
                                        headers={'Authorization': f'Bearer {token}'})
-
+    try:
+        response_json = get_policy_response.json()
+    except ValueError:
+        response_json = ValueError
     assert_that(get_policy_response.status_code, equal_to(expected_status_code),
-                'Request to get policy id=' + policy_id + ' failed with status=' + str(get_policy_response.status_code)
-                + "response= " + str(get_policy_response.json()))
+                'Request to get policy id=' + policy_id + ' failed with status= ' + str(get_policy_response.status_code)
+                + " response= " + str(response_json))
 
-    return get_policy_response.json()
+    return response_json
 
 
 def list_policies(token, limit=100, offset=0):
@@ -535,7 +559,8 @@ def list_up_to_limit_policies(token, limit=100, offset=0):
                             params={'limit': limit, 'offset': offset})
 
     assert_that(response.status_code, equal_to(200),
-                'Request to list policies failed with status=' + str(response.status_code))
+                'Request to list policies failed with status=' + str(response.status_code) + ': '
+                + str(response.json()))
 
     policies_as_json = response.json()
     return policies_as_json['data'], policies_as_json['total'], policies_as_json['offset']
@@ -635,7 +660,10 @@ def is_expected_msg_in_log_line(log_line, expected_message, list_agent_policies_
     if log_line is not None:
         if expected_message in log_line['msg'] and 'policy_id' in log_line.keys():
             if log_line['policy_id'] in list_agent_policies_id:
-                if log_line['ts'] > considered_timestamp:
+                if isinstance(log_line['ts'], int) and log_line['ts'] > considered_timestamp:
+                    return True
+                elif isinstance(log_line['ts'], str) and datetime.timestamp(ciso8601.parse_datetime(log_line['ts'])) > \
+                        considered_timestamp:
                     return True
     return False
 
@@ -653,7 +681,12 @@ def is_expected_log_info_in_log_line(log_line, expected_log_info, considered_tim
     :return: (bool) whether expected log info was found in the logs
 
     """
-    if log_line is not None and 'log' in log_line.keys() and log_line['ts'] > considered_timestamp:
+    if log_line is not None and 'log' in log_line.keys() and isinstance(log_line['ts'], int) and log_line['ts'] > \
+            considered_timestamp:
+        if expected_log_info in log_line['log']:
+            return True
+    elif log_line is not None and 'log' in log_line.keys() and isinstance(log_line['ts'], str) and \
+            datetime.timestamp(ciso8601.parse_datetime(log_line['ts'])) > considered_timestamp:
         if expected_log_info in log_line['log']:
             return True
     return False

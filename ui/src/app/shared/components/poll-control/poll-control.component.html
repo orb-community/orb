@@ -1,0 +1,7 @@
+<span *ngIf="lastUpdate$ | async">
+  <button nbButton ghost  [className]="'refresh-button'" shape="round" (click)="forceRefresh()">
+    <i class="fa fa-redo" [ngClass]="loading == true ? 'rotate' : 'paused'" style="color: #3089fc;">&nbsp;</i>
+  </button
+>
+  Last Update: {{ lastUpdate$ | async | date: 'mediumTime' }}
+</span>

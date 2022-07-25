@@ -75,7 +75,6 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullLi
 func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Message) {
 	go func() {
 		a.logger.Debug("Group RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
-
 		var rpc fleet.RPC
 		if err := json.Unmarshal(message.Payload(), &rpc); err != nil {
 			a.logger.Error("error decoding RPC message from core", zap.Error(fleet.ErrSchemaMalformed))
@@ -146,6 +145,10 @@ func (a *orbAgent) handleAgentGroupRemoval(rpc fleet.GroupRemovedRPCPayload) {
 			if err != nil {
 				a.logger.Warn("failed to remove a policy, ignoring", zap.String("policy_id", policy.ID), zap.String("policy_name", policy.Name), zap.Error(err))
 				continue
+			}
+		} else {
+			for _, datasetID := range rpc.Datasets {
+				a.removeDatasetFromPolicy(datasetID, policy.ID)
 			}
 		}
 	}

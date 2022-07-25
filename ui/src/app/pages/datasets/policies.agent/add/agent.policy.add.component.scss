@@ -129,20 +129,26 @@ mat-chip nb-icon {
 
 ::ng-deep nb-accordion {
   padding: 0 !important;
-  text-subtitle-line-height: 1rem;
   display: grid;
 
   nb-accordion-item {
     padding: 0 !important;
-    background: rgb(23, 28, 48);
+    background: rgb(23, 28, 48) !important;
 
-    nb-accordion-item-header {
-      padding: 0 !important;
+    .policy-advanced-options {
       background: rgb(23, 28, 48);
+      border-bottom: 1px solid rgba(150, 159, 185, 0.5) !important;
+      border-radius: 0 0 4px;
+      margin: 1rem 0;
+      padding: 0.4375rem  0 !important;
+
+      label {
+        cursor: pointer;
+        margin-bottom: 0 !important;
+      }
     }
 
     nb-accordion-item-body {
-      padding: 0 !important;
       background: rgb(23, 28, 48);
       display: grid;
     }
@@ -177,6 +183,6 @@ mat-chip nb-icon {
 }
 
 .add-handler-button {
-  align-self: center;
   margin-top: 1rem;
+  margin: 10px 0;
 }

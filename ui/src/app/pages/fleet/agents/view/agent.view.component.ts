@@ -34,11 +34,11 @@ export class AgentViewComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.agentID = this.route.snapshot.paramMap.get('id');
+    this.isLoading = true;
     this.retrieveAgent();
   }
 
   retrieveAgent() {
-    this.isLoading = true;
     return this.agentsService
       .getAgentById(this.agentID)
       .subscribe((agent) => {

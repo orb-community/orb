@@ -65,6 +65,11 @@ def new_multiple_sinks(context, amount_of_sinks):
 def remove_sink_from_orb(context, amount_of_sinks):
     for i in range(int(amount_of_sinks)):
         delete_sink(context.token, context.used_sinks_id[i])
+        if 'removed_sinks_ids' in context:
+            context.removed_sinks_ids.append(context.used_sinks_id[i])
+        else:
+            context.removed_sinks_ids = list()
+            context.removed_sinks_ids.append(context.used_sinks_id[i])
         context.existent_sinks_id.remove(context.used_sinks_id[i])
         context.used_sinks_id.remove(context.used_sinks_id[i])
 
@@ -93,7 +98,7 @@ def check_sink_status(context, status, time_to_wait):
     sink_id = context.sink["id"]
     get_sink_response = get_sink_status_and_check(context.token, sink_id, status, timeout=time_to_wait)
 
-    assert_that(get_sink_response['state'], equal_to(status), f"Sink {sink_id} state failed")
+    assert_that(get_sink_response['state'], equal_to(status), f"Sink {context.sink} state failed")
 
 
 @then('cleanup sinks')
@@ -133,10 +138,14 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
                        'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = ValueError
     assert_that(response.status_code, equal_to(201),
-                'Request to create sink failed with status=' + str(response.status_code))
+                'Request to create sink failed with status=' + str(response.status_code) + ': ' + str(response_json))
 
-    return response.json()
+    return response_json
 
 
 def get_sink(token, sink_id):
@@ -150,10 +159,16 @@ def get_sink(token, sink_id):
 
     get_sink_response = requests.get(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': f'Bearer {token}'})
 
-    assert_that(get_sink_response.status_code, equal_to(200),
-                'Request to get sink id=' + sink_id + ' failed with status=' + str(get_sink_response.status_code))
+    try:
+        response_json = get_sink_response.json()
+    except ValueError:
+        response_json = ValueError
 
-    return get_sink_response.json()
+    assert_that(get_sink_response.status_code, equal_to(200),
+                'Request to get sink id=' + sink_id + ' failed with status=' + str(get_sink_response.status_code) + ': '
+                + str(response_json))
+
+    return response_json
 
 
 def list_sinks(token, limit=100, offset=0):
@@ -187,11 +202,12 @@ def list_up_to_limit_sinks(token, limit=100, offset=0):
     :returns: (list) a list of sinks, (int) total sinks on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': f'Bearer {token}'}, params={'limit': limit,
-                                                                                                 'offset': offset})
+    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': f'Bearer {token}'},
+                            params={'limit': limit, 'offset': offset})
 
     assert_that(response.status_code, equal_to(200),
-                'Request to list sinks failed with status=' + str(response.status_code))
+                'Request to list sinks failed with status=' + str(response.status_code) + ': '
+                + str(response.json()))
 
     sinks_as_json = response.json()
     return sinks_as_json['sinks'], sinks_as_json['total'], sinks_as_json['offset']

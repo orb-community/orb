@@ -144,15 +144,17 @@ jobs:
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
       - name: Build orb-agent
         shell: bash
         env:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
+            make agent_production
             make agent_debug
           else
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_production
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
       - name: Login to Docker Hub
@@ -391,11 +393,25 @@ jobs:
           git commit -m "[NS1 Orb Bot] Update image tag on prod environment"
           git push origin main
 
+  post-slack-message:
+    needs: publish-orb-live-prd
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Generating changelog and post it in slack channel
+        uses: ./.github/actions/slack-post
+        with:
+          branch: production
+          header: ":first_place_medal: :orb: *Deployed new features in orb.live* :orb: :rocket: :tada:"
+          github_repo: ns1labs/orb
+          slack_channel: C02SEF78ZPT #slack channel ID
+          slack_api_token: ${{ secrets.SLACK_APP_TOKEN }}
+
   buildx:
     needs: publish-orb-live-prd
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
-
     steps:
       - uses: actions/checkout@v2
 
@@ -407,10 +423,6 @@ jobs:
       - name: Generate ref tag (production)
         run: |
           echo "REF_TAG=production" >> $GITHUB_ENV
-
-      - name: Append suffix on VERSION file for production build
-        run: |
-          echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
       - name: Get VERSION
         run: |
@@ -439,13 +451,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Removing suffix from VERSION
-        run: |
-          sed -i -e "s/-production//g" VERSION
-
       - name: Build + push - agent (multi-arch)
         env:
           IMAGE_NAME: ns1labs/orb-agent:latest
+          IMAGE_NAME_2: ns1labs/orb-agent:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
         uses: docker/build-push-action@v3
         with:
           builder: ${{ steps.buildx.outputs.name }}
@@ -453,6 +462,6 @@ jobs:
           file: ./agent/docker/Dockerfile
           platforms: linux/amd64, linux/arm64, linux/arm/v7
           push: true
-          tags: ${{ env.IMAGE_NAME }}
+          tags: ${{ env.IMAGE_NAME }} , ${{ env.IMAGE_NAME_2 }}
           build-args: |
             PKTVISOR_TAG=latest
