@@ -53,6 +53,8 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
 
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
 
+  @ViewChild('agentPolicyStateTemplateCell') agentPolicyStateTemplateRef: TemplateRef<any>;
+
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   @ViewChild('agentLastActivityTemplateCell')
@@ -155,8 +157,16 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         cellTemplate: this.agentStateTemplateRef,
       },
       {
+        prop: 'policy_agg_info',
+        flexGrow: 4,
+        canAutoResize: true,
+        minWidth: 150,
+        name: 'Policies',
+        cellTemplate: this.agentPolicyStateTemplateRef,
+      },
+      {
         prop: 'combined_tags',
-        flexGrow: 10,
+        flexGrow: 9,
         canAutoResize: true,
         name: 'Tags',
         cellTemplate: this.agentTagsTemplateCell,
@@ -172,7 +182,8 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'ts_last_hb',
-        flexGrow: 4,
+        flexGrow: 2,
+        minWidth: 150,
         canAutoResize: true,
         name: 'Last Activity',
         sortable: false,

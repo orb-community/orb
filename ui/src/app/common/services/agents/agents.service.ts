@@ -1,13 +1,14 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { EMPTY, Observable } from 'rxjs';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {EMPTY, Observable} from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { environment } from 'environments/environment';
-import { expand, map, scan, takeWhile } from 'rxjs/operators';
+import {Agent, AgentPolicyAggStates} from 'app/common/interfaces/orb/agent.interface';
+import {OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
+import {NotificationsService} from 'app/common/services/notifications/notifications.service';
+import {environment} from 'environments/environment';
+import {expand, map, scan, takeWhile} from 'rxjs/operators';
+import {AgentPolicyState, AgentPolicyStates} from 'app/common/interfaces/orb/agent.policy.interface';
 
 export enum AvailableOS {
   DOCKER = 'docker',
@@ -180,13 +181,14 @@ export class AgentsService {
             tags,
             offset: (parseInt(offset, 10) + parseInt(limit, 10)).toString(),
           };
+          const data = this.mapUIAggregates(agents);
           return {
             order,
             dir,
             offset,
             limit,
             total,
-            data: this.mapCombinedTags(agents),
+            data,
             next,
           } as OrbPagination<Agent>;
         }),
@@ -200,10 +202,41 @@ export class AgentsService {
       });
   }
 
-  mapCombinedTags(agents) {
+  mapUIAggregates(agents) {
     return agents.map((agent) => {
+      // combined tags helper
       agent.combined_tags = { ...agent?.orb_tags, ...agent?.agent_tags };
+      // map agg policy state
+      const {agg_info, agg_state} = this.policyAggState(agent);
+      agent.policy_agg_info = agg_info;
+      agent.policy_agg_state = agg_state;
       return agent;
     });
+  }
+
+  policyAggState(agent) {
+    const { policy_state } = agent;
+    let agg_info = 'No Policies Applied';
+    let agg_state = AgentPolicyAggStates.none;
+
+    const policies = !!policy_state && Object.values(policy_state) as AgentPolicyState[] || [];
+    if (policies.length > 0) {
+      let err = 0;
+      policies.reduce((prev, curr) => {
+        if (curr.state !== AgentPolicyStates.running) {
+          err++;
+        }
+        return curr;
+      });
+      if (err > 0) {
+        agg_info = `${err} out of ${policies.length} policies are not running`;
+        agg_state = AgentPolicyAggStates.failure;
+      } else {
+        agg_info = `All policies are running`;
+        agg_state = AgentPolicyAggStates.healthy;
+      }
+    }
+
+    return { agg_info, agg_state};
   }
 }
