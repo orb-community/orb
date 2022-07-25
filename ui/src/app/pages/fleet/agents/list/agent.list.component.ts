@@ -15,7 +15,7 @@ import {
   TableColumn,
 } from '@swimlane/ngx-datatable';
 
-import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
+import {Agent, AgentPolicyAggStates, AgentStates} from 'app/common/interfaces/orb/agent.interface';
 import {
   filterMultiSelect,
   FilterOption,
@@ -52,6 +52,8 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
 
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
+
+  @ViewChild('agentPolicyStateTemplateCell') agentPolicyStateTemplateRef: TemplateRef<any>;
 
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
@@ -110,6 +112,13 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentStates).map((value) => value as string),
       },
+      {
+        name: 'Policies',
+        prop: 'policy_agg_state',
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
+        options: Object.values(AgentPolicyAggStates).map((value) => value as string),
+      },
     ];
 
     this.filteredAgents$ = this.filters.createFilteredList()(
@@ -155,8 +164,16 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         cellTemplate: this.agentStateTemplateRef,
       },
       {
+        prop: 'policy_agg_info',
+        flexGrow: 4,
+        canAutoResize: true,
+        minWidth: 150,
+        name: 'Policies',
+        cellTemplate: this.agentPolicyStateTemplateRef,
+      },
+      {
         prop: 'combined_tags',
-        flexGrow: 10,
+        flexGrow: 9,
         canAutoResize: true,
         name: 'Tags',
         cellTemplate: this.agentTagsTemplateCell,
@@ -172,7 +189,8 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'ts_last_hb',
-        flexGrow: 4,
+        flexGrow: 2,
+        minWidth: 150,
         canAutoResize: true,
         name: 'Last Activity',
         sortable: false,
