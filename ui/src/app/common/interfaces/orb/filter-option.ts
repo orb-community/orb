@@ -28,10 +28,10 @@ export function filterSubstr(item: any, prop: any, value: any) {
 
 export function filterTags(item: any, prop: any, value: any) {
   const values = Object.entries(item[prop]).map(
-    (entry) => `${entry[0]}: ${entry[1]}`,
+    (entry) => `${entry[0]}:${entry[1]}`,
   );
   return values.reduce((acc, val) => {
-    acc = acc || val.includes(value.trim());
+    acc = acc || val.includes(value.replace(' ', ''));
     return acc;
   }, false);
 }
