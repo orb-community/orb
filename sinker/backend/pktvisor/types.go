@@ -202,9 +202,9 @@ type FlowPayload struct {
 
 // StatSnapshot is a snapshot of a given period from pktvisord
 type StatSnapshot struct {
-	DNS     DNSPayload
-	DHCP    DHCPPayload
-	Packets PacketPayload
-	Pcap    PcapPayload
-	Flow    FlowPayload
+	DNS     *DNSPayload    `mapstructure:"DNS,omitempty"`
+	DHCP    *DHCPPayload   `mapstructure:"DHCP,omitempty"`
+	Packets *PacketPayload `mapstructure:"Packets,omitempty"`
+	Pcap    *PcapPayload   `mapstructure:"Pcap,omitempty"`
+	Flow    *FlowPayload   `mapstructure:"Flow,omitempty"`
 }

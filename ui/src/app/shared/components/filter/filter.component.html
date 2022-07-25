@@ -31,7 +31,7 @@
       <i class="fa fa-plus">&nbsp;</i>
     </button>
   </ng-container>
-</ng-container><button *ngIf="(activeFilters$|async).length > 0" nbButton ghost class="card-button clear-all" (click)="clearAllFilters()">Clear all filters</button>
+</ng-container><button *ngIf="(activeFilters$|async).length > 0" nbButton ghost class="card-button clear-filter clear-all" (click)="clearAllFilters()">Clear all filters</button>
 <mat-chip-list>
   <mat-chip
     *ngFor="let filter of activeFilters$ | async; let index = index"

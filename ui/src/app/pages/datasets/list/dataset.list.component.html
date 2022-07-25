@@ -7,16 +7,6 @@
   <div #tableWrapper class="d-flex flex-column mt-4">
     <div class="d-flex justify-content-between align-items-end mb-2">
       <div class="d-flex">
-        <p *ngIf=" paginationControls.data && paginationControls.data.length> 0"
-           class="dataset-info-regular mb-0">
-          You have {{paginationControls.total}} datasets initialized.
-        </p>
-        <p *ngIf="paginationControls.data && paginationControls.data.length === 0"
-           class="dataset-info-accent mb-0">
-          You have no datasets.
-        </p>
-      </div>
-      <div class="d-flex">
         <div class="mr-3">
           <nb-select
             (selectedChange)="onFilterSelected($event)"
@@ -55,10 +45,9 @@
       [columns]="columns"
       [footerHeight]="50"
       [headerHeight]="50"
-      [limit]="paginationControls.limit"
       [loadingIndicator]="loading"
       [rowHeight]="50"
-      [rows]="paginationControls.data"
+      
       [scrollbarV]="true"
       [sorts]="tableSorts"
       class="orb"

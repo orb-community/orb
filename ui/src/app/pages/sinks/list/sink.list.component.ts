@@ -3,6 +3,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
+  OnDestroy,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
@@ -40,7 +41,7 @@ import { Observable } from 'rxjs';
   templateUrl: './sink.list.component.html',
   styleUrls: ['./sink.list.component.scss'],
 })
-export class SinkListComponent implements AfterViewInit, AfterViewChecked {
+export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
   strings = STRINGS.sink;
 
   columnMode = ColumnMode;
@@ -124,6 +125,10 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked {
       this.filters$,
       this.filterOptions,
     );
+  }
+
+  ngOnDestroy(): void {
+    this.orb.killPolling.next();
   }
 
   ngAfterViewChecked() {

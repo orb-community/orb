@@ -26,7 +26,7 @@ Scenario: Apply multiple advanced policies to an agent
     When 14 mixed policies are applied to the group
     Then this agent's heartbeat shows that 14 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And datasets related to all existing policies have validity valid
+        And 14 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
 @smoke
@@ -42,7 +42,7 @@ Scenario: Apply two simple policies to an agent
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 30 seconds
-        And datasets related to all existing policies have validity valid
+        And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
 @smoke
@@ -58,7 +58,7 @@ Scenario: apply one policy using multiple datasets to the same group
         And 3 datasets are linked with each policy on agent's heartbeat within 30 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 180 seconds
         And referred sink must have active state on response within 180 seconds
-        And datasets related to all existing policies have validity valid
+        And 6 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
 @smoke
@@ -71,12 +71,13 @@ Scenario: Remove group to which agent is linked
         And that a sink already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
-    When the group to which the agent is linked is removed
+    When 1 group(s) to which the agent is linked is removed
     Then the container logs should contain the message "completed RPC unsubscription to group" within 30 seconds
         And the container logs contain the message "policy no longer used by any group, removing" referred to each policy within 30 seconds
         And this agent's heartbeat shows that 0 policies are applied to the agent
         And this agent's heartbeat shows that 0 groups are matching the agent
-        And dataset related have validity invalid
+        And no dataset should be linked to the removed group anymore
+        And 0 dataset(s) have validity valid and 2 have validity invalid in 30 seconds
 
 
 @smoke
@@ -91,8 +92,8 @@ Scenario: Remove policy from agent
         And this agent's heartbeat shows that 2 policies are applied and all has status running
     When one of applied policies is removed
     Then referred policy must not be listed on the orb policies list
-        And datasets related to removed policy has validity invalid
-        And datasets related to all existing policies have validity valid
+        And no dataset should be linked to the removed policy anymore
+        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And container logs should inform that removed policy was stopped and removed within 30 seconds
         And the container logs that were output after the policy have been removed contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
@@ -162,7 +163,7 @@ Scenario: Provision agent with tag matching existing group linked to a valid dat
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 30 seconds
-        And datasets related to all existing policies have validity valid
+        And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
 @smoke
@@ -180,7 +181,7 @@ Scenario: Provision agent with tag matching existing group with multiple policie
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 30 seconds
-        And datasets related to all existing policies have validity valid
+        And 14 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
 @smoke
@@ -199,7 +200,7 @@ Scenario: Provision agent with tag matching existing edited group with multiple 
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 30 seconds
-        And datasets related to all existing policies have validity valid
+        And 14 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
 @smoke
@@ -218,7 +219,7 @@ Scenario: Provision agent with tag matching existing group with multiple policie
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 30 seconds
-        And datasets related to all existing policies have validity valid
+        And 20 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
 @smoke
@@ -237,7 +238,7 @@ Scenario: Sink with invalid endpoint
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 30 seconds
-        And dataset related have validity valid
+        And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 @MUTE
 #@smoke
@@ -291,9 +292,11 @@ Scenario: Unapplying policies that failed by removing group
         And 1 new dataset is created using the policy, last group and 1 sink
         And this agent's heartbeat shows that 4 policies are applied and 3 has status running
         And this agent's heartbeat shows that 4 policies are applied and 1 has status failed_to_apply
-    When the group to which the agent is linked is removed
+    When 1 group(s) to which the agent is linked is removed
     Then the container logs should contain the message "completed RPC unsubscription to group" within 30 seconds
         And this agent's heartbeat shows that 0 policies are applied to the agent
+        And no dataset should be linked to the removed group anymore
+        And 0 dataset(s) have validity valid and 4 have validity invalid in 30 seconds
 
 
 @smoke
@@ -312,7 +315,7 @@ Scenario: Sink with invalid username
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 30 seconds
-        And dataset related have validity valid
+        And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
 @smoke
@@ -331,7 +334,7 @@ Scenario: Sink with invalid password
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs should contain the message "scraped metrics for policy" within 180 seconds
         And referred sink must have error state on response within 30 seconds
-        And dataset related have validity valid
+        And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
 @smoke
@@ -454,10 +457,12 @@ Scenario: Remove one of the groups that applies the same policy on the agent
         And 2 new dataset is created using the policy, an existing group and 1 sink
         And this agent's heartbeat shows that 1 policies are applied and 1 has status running
         And 2 datasets are linked with each policy on agent's heartbeat within 30 seconds
-    When the group to which the agent is linked is removed
+    When 1 group(s) to which the agent is linked is removed
     Then this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and 1 has status running
         And 1 datasets are linked with each policy on agent's heartbeat within 60 seconds
+        And no dataset should be linked to the removed group anymore
+        And 1 dataset(s) have validity valid and 1 have validity invalid in 30 seconds
 
 
 @smoke
@@ -724,10 +729,11 @@ Scenario: remove 1 sink from a dataset with 2 sinks
         And this agent's heartbeat shows that 1 groups are matching the agent
         And a new policy is created using: handler=dhcp
         And 1 new dataset is created using the policy, last group and 2 sinks
-        And dataset related have validity valid
+        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
     When remove 1 of the linked sinks from orb
-    Then dataset related have validity valid
+    Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 policies are applied and all has status running
+        And no dataset should be linked to the removed sink anymore
 
 
 @smoke
@@ -739,9 +745,10 @@ Scenario: remove 1 sink from a dataset with 1 sinks
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a new policy is created using: handler=dhcp
         And 1 new dataset is created using the policy, last group and 1 sinks
-        And dataset related have validity valid
+        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
     When remove 1 of the linked sinks from orb
-    Then dataset related have validity invalid
+    Then 0 dataset(s) have validity valid and 1 have validity invalid in 30 seconds
+        And no dataset should be linked to the removed sink anymore
         And this agent's heartbeat shows that 0 policies are applied to the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
 
@@ -758,10 +765,11 @@ Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and inse
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And remove 1 of the linked sinks from orb
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And dataset related have validity invalid
+        And 0 dataset(s) have validity valid and 1 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 0 policies are applied to the agent
     When the dataset is edited and 1 sinks are linked
-    Then dataset related have validity valid
+    Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And no dataset should be linked to the removed sink anymore
         And this agent's heartbeat shows that 1 policies are applied and all has status running
 
 
@@ -773,7 +781,7 @@ Scenario: agent with only agent tags subscription to a group with policies creat
     When an agent is self-provisioned via a configuration file on port available with 3 agent tags and has status online
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies are applied to the group
-    Then dataset related have validity valid
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are applied and all has status running
@@ -792,7 +800,7 @@ Scenario: agent with only agent tags subscription to a group with policies creat
         And 1 Agent Group(s) is created with 1 orb tag(s)
         And 3 simple policies are applied to the group
     When an agent is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
-    Then dataset related have validity valid
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
@@ -811,7 +819,7 @@ Scenario: agent with mixed tags subscription to a group with policies created af
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies are applied to the group
-    Then dataset related have validity valid
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
@@ -830,7 +838,7 @@ Scenario: agent with mixed tags subscription to a group with policies created be
         And 3 simple policies are applied to the group
     When an agent is self-provisioned via a configuration file on port available with 1 agent tags and has status online
         And edit the orb tags on agent and use orb tags matching 1 existing group
-    Then dataset related have validity valid
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
@@ -892,11 +900,11 @@ Scenario: Create duplicated policy
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 30 seconds
-        And datasets related to all existing policies have validity valid
+        And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
 @smoke
-Scenario: Remove agent
+Scenario: Remove agent (check dataset)
     Given the Orb user has a registered account
         And the Orb user logs in
         And a new agent is created with 1 orb tag(s)
@@ -909,4 +917,4 @@ Scenario: Remove agent
     Then 0 agent must be matching on response field matching_agents of the last group created
         And the container logs should contain the message "ERROR mqtt log" within 120 seconds
         And last container created is running after 120 seconds
-        And dataset related have validity valid
+        And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds

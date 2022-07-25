@@ -218,8 +218,11 @@ def get_schema(path_to_file):
     :param path_to_file: path to schema json file
     :return: schema json
     """
-    with open(path_to_file, 'r') as file:
-        schema = json.load(file)
+    try:
+        with open(path_to_file, 'r') as file:
+            schema = json.load(file)
+    except ValueError:
+        raise ValueError
     return schema
 
 

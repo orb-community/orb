@@ -4,6 +4,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
+  OnDestroy,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
@@ -35,7 +36,7 @@ import { STRINGS } from '../../../../../assets/text/strings';
   styleUrls: ['./agent.policy.list.component.scss'],
 })
 export class AgentPolicyListComponent
-  implements AfterViewInit, AfterViewChecked {
+  implements AfterViewInit, AfterViewChecked, OnDestroy {
   strings = STRINGS.agents;
 
   columnMode = ColumnMode;
@@ -108,6 +109,27 @@ export class AgentPolicyListComponent
       this.filters$,
       this.filterOptions,
     );
+  }
+
+  duplicatePolicy(agentPolicy: any) {
+    this.agentPoliciesService
+      .duplicateAgentPolicy(agentPolicy.id)
+      .subscribe((newAgentPolicy) => {
+        if (newAgentPolicy?.id) {
+          this.notificationsService.success(
+            'Agent Policy Duplicated',
+            `New Agent Policy Name: ${newAgentPolicy?.name}`,
+          );
+
+          this.router.navigate([`view/${newAgentPolicy.id}`], {
+            relativeTo: this.route,
+          });
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.orb.killPolling.next();
   }
 
   ngAfterViewChecked() {

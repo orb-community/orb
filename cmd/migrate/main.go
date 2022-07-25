@@ -37,8 +37,10 @@ func init() {
 		atomicLevel.SetLevel(zap.InfoLevel)
 	}
 
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		zapcore.NewJSONEncoder(encoderCfg),
 		os.Stdout,
 		atomicLevel,
 	)

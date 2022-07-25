@@ -13,3 +13,5 @@ def after_scenario(context, scenario):
         Then stop the orb-agent container
         Then remove the orb-agent container
         ''')
+    if "driver" in context:
+        context.driver.close()

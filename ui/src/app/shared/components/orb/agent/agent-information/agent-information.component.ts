@@ -32,6 +32,12 @@ export class AgentInformationComponent implements OnInit {
     }
   }
 
+  getAgentVersion() {
+    const agentVersion = this.agent?.agent_metadata?.orb_agent?.version;
+
+    return agentVersion ? agentVersion : '-';
+  }
+
   getAgentBackend() {
     const {backends} = this.agent.agent_metadata;
     const backend = !!backends && Object.keys(backends).length > 0 ? Object.keys(backends)[0] : '-';
