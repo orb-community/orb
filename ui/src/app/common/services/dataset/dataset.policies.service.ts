@@ -80,7 +80,7 @@ export class DatasetPoliciesService {
       });
   }
 
-  getAllDatasets() {
+  getAllDatasets(filter?: any) {
     const page = {
       order: 'name',
       dir: 'asc',

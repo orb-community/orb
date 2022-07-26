@@ -164,20 +164,20 @@ export class OrbService implements OnDestroy {
             _dataset.filter((dataset) => policy.id === dataset.agent_policy_id),
           ),
           // from the filtered dataset list, query all agent groups associated with the list
-          mergeMap((datasets: Dataset[]) =>
-            datasets.length > 0
+          mergeMap((datasets: Dataset[]) => {
+              const combinedDatasets = datasets
+                      .map((dataset) => dataset.agent_group_id)
+                      .filter(this.onlyUnique)
+                      .filter((val) => !!val && val !== '')
+                      .map((groupId) =>
+                          this.group.getAgentGroupById(groupId),
+                      );
+            return combinedDatasets.length > 0
               ? forkJoin(
-                  datasets
-                    .map((dataset) => dataset?.agent_group_id)
-                    .filter(this.onlyUnique)
-                    .map((groupId) =>
-                      !!groupId && groupId !== ''
-                        ? this.group.getAgentGroupById(groupId)
-                        : EMPTY,
-                    ),
+                  combinedDatasets,
                 ).pipe(map((groups) => ({ datasets, groups, policy })))
-              : of({ datasets, groups: [], policy }),
-          ),
+              : of({ datasets, groups: [], policy });
+          }),
           // same for sinks
           mergeMap(({ datasets, groups }) =>
             datasets.length > 0
