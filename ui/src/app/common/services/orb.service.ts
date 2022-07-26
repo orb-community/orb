@@ -169,6 +169,7 @@ export class OrbService implements OnDestroy {
               ? forkJoin(
                   datasets
                     .map((dataset) => dataset?.agent_group_id)
+                    .filter(this.onlyUnique)
                     .map((groupId) =>
                       !!groupId && groupId !== ''
                         ? this.group.getAgentGroupById(groupId)
@@ -184,6 +185,7 @@ export class OrbService implements OnDestroy {
                   datasets
                     .map((dataset) => dataset?.sink_ids)
                     .reduce((acc, val) => acc.concat(val), [])
+                    .filter(this.onlyUnique)
                     .map((sinkId) => this.sink.getSinkById(sinkId)),
                 ).pipe(map((sinks) => ({ datasets, sinks, policy, groups })))
               : of({ datasets, sinks: [], policy, groups }),
