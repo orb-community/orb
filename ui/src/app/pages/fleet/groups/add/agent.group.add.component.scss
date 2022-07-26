@@ -253,6 +253,14 @@ mat-chip-list {
   display: block;
 }
 
+.column-direction {
+  flex-direction: column;
+}
+
+.max-width-vw {
+  width: 50vw;
+}
+
 @keyframes slidetween {
   from {
     transform: translateX(0);

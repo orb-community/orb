@@ -20,6 +20,15 @@ export enum AgentStates {
 }
 
 /**
+ * @enum AgentPolicyAggStates
+ */
+export enum AgentPolicyAggStates {
+  healthy = 'healthy',
+  failure = 'failure',
+  none = 'none',
+}
+
+/**
  * @interface Agent
  */
 export interface Agent extends OrbEntity {
@@ -82,6 +91,12 @@ export interface Agent extends OrbEntity {
   error_state?: boolean;
 
   /**
+   * Policy State
+   * dict of policies and their state
+   */
+  policy_state?: {[propName: string]: any }| any;
+
+  /**
    * MQTT KEY
    */
   key?: string;
@@ -92,4 +107,14 @@ export interface Agent extends OrbEntity {
    * See
    */
   combined_tags?: any;
+
+  policy_agg_state?: AgentPolicyAggStates;
+
+  /**
+   * Policy agg state combines all policies into
+   * simple observation
+   */
+  policy_agg_info?: string;
+
+
 }

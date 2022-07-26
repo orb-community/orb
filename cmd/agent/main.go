@@ -73,12 +73,17 @@ func Run(cmd *cobra.Command, args []string) {
 	} else {
 		atomicLevel.SetLevel(zap.InfoLevel)
 	}
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		zapcore.NewJSONEncoder(encoderCfg),
 		os.Stdout,
 		atomicLevel,
 	)
 	logger = zap.New(core, zap.AddCaller())
+	defer func(logger *zap.Logger) {
+		_ = logger.Sync()
+	}(logger)
 
 	// new agent
 	a, err := agent.New(logger, config)

@@ -9,13 +9,14 @@ import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.con
 
 export enum AgentPolicyStates {
   running = 'running',
+  offline = 'offline',
   failedToApply = 'failed_to_apply',
 }
 
 export interface AgentPolicyState {
   id?: string;
   name?: string;
-  state?: AgentPolicyStates;
+  state?: AgentPolicyStates | string;
   error?: string;
   datasets?: string[];
 }
@@ -75,4 +76,9 @@ export interface AgentPolicy extends OrbEntity {
    * Either JSON or YAML compatible string;
    */
   policy_data?: string;
+
+  /** HELPERS */
+  datasets?: any[];
+  groups?: any[];
+
 }

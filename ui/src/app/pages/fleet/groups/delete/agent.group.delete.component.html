@@ -12,7 +12,10 @@
   <nb-card-body>
     <p>{{strings.delete.body}}<span class="ns1-red">*</span></p>
     <p class="ns1-red">{{strings.delete.warning}}</p>
-    <input type="text" nbInput fullWidth placeholder="{{name}}" [(ngModel)]="validationInput">
+    <input type="text" #autoInput [nbAutocomplete]="auto" nbInput fullWidth placeholder="{{name}}" [(ngModel)]="validationInput">
+    <nb-autocomplete #auto >
+      <nb-option [value]="name"> {{name}}</nb-option>
+    </nb-autocomplete>
   </nb-card-body>
   <nb-card-footer>
     <button nbButton
