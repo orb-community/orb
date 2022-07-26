@@ -15,7 +15,6 @@ exporters:
 
 
 extensions:
-  orb-
   health_check:
   pprof:
   zpages:
