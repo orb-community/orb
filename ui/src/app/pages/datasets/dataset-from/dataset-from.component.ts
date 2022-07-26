@@ -46,6 +46,7 @@ export class DatasetFromComponent implements OnInit {
   selectedGroup: string;
 
   selectedPolicy: string;
+  fetchedData: boolean;
   sinkIDs: string[];
   availableAgentGroups: AgentGroup[];
   filteredAgentGroups$: Observable<AgentGroup[]>;
@@ -71,6 +72,7 @@ export class DatasetFromComponent implements OnInit {
   ) {
     this.isEdit = false;
     this.availableAgentGroups = [];
+    this.fetchedData = false;
     this.filteredAgentGroups$ = of(this.availableAgentGroups);
     this.availableAgentPolicies = [];
     this.availableSinks = [];
@@ -220,7 +222,7 @@ export class DatasetFromComponent implements OnInit {
     ])
       .then(
         (value) => {
-          // console.log('warning');
+          this.fetchedData = true;
         },
         (reason) =>
           console.warn(
