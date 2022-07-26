@@ -172,9 +172,21 @@ export class OrbService implements OnDestroy {
                     .map((groupId) =>
                       !!groupId && groupId !== ''
                         ? this.group.getAgentGroupById(groupId)
-                        : EMPTY,
+                        : of({}),
                     ),
-                ).pipe(map((groups) => ({ datasets, groups, policy })))
+                ).pipe(
+                  map((groups) => {
+                    const filteredGroups = groups.filter(group => {
+                      if (Object.keys(group).length !== 0) {
+                        return true;
+                      }
+
+                      return false;
+                    });
+
+                    return ({ datasets, groups: filteredGroups, policy });
+                  }),
+              )
               : of({ datasets, groups: [], policy }),
           ),
           // same for sinks
