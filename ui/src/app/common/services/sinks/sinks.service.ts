@@ -148,10 +148,6 @@ export class SinksService {
     return this.http
       .delete(`${environment.sinksUrl}/${sinkId}`)
       .map((resp) => {
-        this.cache.data.splice(
-          this.cache.data.map((s) => s.id).indexOf(sinkId),
-          1,
-        );
         return resp;
       })
       .catch((err) => {
