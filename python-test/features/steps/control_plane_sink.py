@@ -65,6 +65,11 @@ def new_multiple_sinks(context, amount_of_sinks):
 def remove_sink_from_orb(context, amount_of_sinks):
     for i in range(int(amount_of_sinks)):
         delete_sink(context.token, context.used_sinks_id[i])
+        if 'removed_sinks_ids' in context:
+            context.removed_sinks_ids.append(context.used_sinks_id[i])
+        else:
+            context.removed_sinks_ids = list()
+            context.removed_sinks_ids.append(context.used_sinks_id[i])
         context.existent_sinks_id.remove(context.used_sinks_id[i])
         context.used_sinks_id.remove(context.used_sinks_id[i])
 
@@ -133,10 +138,14 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
                        'Authorization': f'Bearer {token}'}
 
     response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = ValueError
     assert_that(response.status_code, equal_to(201),
-                'Request to create sink failed with status=' + str(response.status_code) + ': ' + str(response.json()))
+                'Request to create sink failed with status=' + str(response.status_code) + ': ' + str(response_json))
 
-    return response.json()
+    return response_json
 
 
 def get_sink(token, sink_id):
@@ -150,11 +159,16 @@ def get_sink(token, sink_id):
 
     get_sink_response = requests.get(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': f'Bearer {token}'})
 
+    try:
+        response_json = get_sink_response.json()
+    except ValueError:
+        response_json = ValueError
+
     assert_that(get_sink_response.status_code, equal_to(200),
                 'Request to get sink id=' + sink_id + ' failed with status=' + str(get_sink_response.status_code) + ': '
-                + str(get_sink_response.json()))
+                + str(response_json))
 
-    return get_sink_response.json()
+    return response_json
 
 
 def list_sinks(token, limit=100, offset=0):

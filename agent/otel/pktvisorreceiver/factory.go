@@ -55,7 +55,12 @@ func CreateDefaultConfig() config.Receiver {
 	}
 }
 
-func CreateMetricsReceiver(_ context.Context, params component.ReceiverCreateSettings, cfg config.Receiver, nextConsumer consumer.Metrics) (component.MetricsReceiver, error) {
+func CreateMetricsReceiver(
+	_ context.Context,
+	params component.ReceiverCreateSettings,
+	cfg config.Receiver,
+	nextConsumer consumer.Metrics,
+) (component.MetricsReceiver, error) {
 	rCfg := cfg.(*Config)
 	return New(params, rCfg, nextConsumer), nil
 }

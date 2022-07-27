@@ -73,6 +73,8 @@ func (svc fleetService) thing(token, id string, name string, md map[string]inter
 	if id == "" {
 		thingID, err = svc.mfsdk.CreateThing(mfsdk.Thing{Name: name, Metadata: md}, token)
 		if err != nil {
+			svc.logger.Error("error during create thing", zap.String("name", name),
+				zap.Any("metadata", md))
 			return mfsdk.Thing{}, errors.Wrap(errCreateThing, err)
 		}
 	}
@@ -109,7 +111,7 @@ func NewFleetService(logger *zap.Logger, auth mainflux.AuthServiceClient, agentR
 		aTicker:              aTicker,
 		aDone:                aDone,
 	}
-	
+
 	go service.checkAgents()
 	return service
 }

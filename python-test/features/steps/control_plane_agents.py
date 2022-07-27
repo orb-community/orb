@@ -31,8 +31,7 @@ def check_if_agents_exist(context, orb_tags, status):
     existing_agents = get_agent(token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
     timeout = 30
-    agent_status = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
-    context.agent = get_agent(token, agent_id)
+    agent_status, context.agent = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
     logs = get_orb_agent_logs(context.container_id)
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'. \n"
@@ -497,11 +496,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         tags = {"tags": all_used_tags}
     else:
         tags = {"tags": create_tags_set(agent_tags)}
-    if base_orb_address == "localhost":
-        mqtt_url = "localhost:1883"
-    else:
-        mqtt_url = "tls://" + orb_url + ":8883"
-    agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, mqtt_url)
+    agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, base_orb_address)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)
     port = return_port_to_run_docker_container(context, availability[status_port])

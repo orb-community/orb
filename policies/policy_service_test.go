@@ -310,9 +310,6 @@ func TestRemovePolicy(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			err := svc.RemovePolicy(context.Background(), tc.token, tc.id)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
-
-			_, err = svc.ViewDatasetByID(context.Background(), token, tc.datasetID)
-			assert.True(t, errors.Contains(policies.ErrNotFound, err), fmt.Sprintf("%s: expected %s got %s", desc, policies.ErrNotFound, err))
 		})
 	}
 }
@@ -1373,6 +1370,66 @@ func TestDeleteAGroupFromDataset(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			err := svc.DeleteAgentGroupFromAllDatasets(context.Background(), tc.aGroup, tc.token)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+	}
+}
+
+func TestRemoveAllDatasetsByPolicyIDInternal(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	policy := createPolicy(t, svc, "policy")
+	ds := createDataset(t, svc, "dataset")
+
+	for i := 0; i < limit; i++ {
+		nameID, err := types.NewIdentifier(fmt.Sprintf("new-dataset-%d", i))
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		svc.AddDataset(context.Background(), token, policies.Dataset{
+			Name:         nameID,
+			MFOwnerID:    ds.MFOwnerID,
+			AgentGroupID: ds.AgentGroupID,
+			PolicyID:     policy.ID,
+			SinkIDs:      ds.SinkIDs,
+		})
+	}
+
+	cases := map[string]struct {
+		policyID string
+		token    string
+		remove   bool
+		err      error
+	}{
+		"delete existing dataset with existing policyID": {
+			policyID: policy.ID,
+			token:    token,
+			remove:   true,
+			err:      nil,
+		},
+		"delete datasets with no existing policyID": {
+			policyID: wrongID,
+			token:    token,
+			remove:   false,
+			err:      nil,
+		},
+		"delete dataset with wrong credentials": {
+			policyID: policy.ID,
+			token:    invalidToken,
+			remove:   false,
+			err:      policies.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			err := svc.RemoveAllDatasetsByPolicyIDInternal(context.Background(), tc.token, tc.policyID)
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+
+			if tc.remove {
+				ds, err := svc.ListDatasetsByPolicyIDInternal(context.Background(), tc.policyID, tc.token)
+				require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+				assert.True(t, assert.Equal(t, len(ds), 0), fmt.Sprintf("%s: expected %d got %d", desc, 0, len(ds)))
+			}
 		})
 	}
 }

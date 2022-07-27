@@ -130,6 +130,11 @@ func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID str
 		return err
 	}
 
+	err = e.svc.RemoveAllDatasetsByPolicyIDInternal(ctx, token, policyID)
+	if err != nil {
+		e.logger.Error("error while removing datasets", zap.Error(err))
+	}
+
 	if len(datasets) == 0 {
 		return nil
 	}
@@ -307,6 +312,10 @@ func (e eventStore) DeleteAgentGroupFromAllDatasets(ctx context.Context, groupID
 
 func (e eventStore) DuplicatePolicy(ctx context.Context, token string, policyID string, name string) (policies.Policy, error) {
 	return e.svc.DuplicatePolicy(ctx, token, policyID, name)
+}
+
+func (e eventStore) RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) error {
+	return e.svc.RemoveAllDatasetsByPolicyIDInternal(ctx, token, policyID)
 }
 
 // NewEventStoreMiddleware returns wrapper around policies service that sends

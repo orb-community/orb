@@ -24,6 +24,8 @@
 
                     <input
                             (input)="onChangeGroupName($event)"
+                            class="dataset-agent-group-input"
+                            [readonly]="fetchedData && !(availableAgentGroups.length > 0)"
                             [nbAutocomplete]="autoControl"
                             formControlName="agent_group_name"
                             nbInput
@@ -50,6 +52,9 @@
                         <div *ngIf="form.controls?.agent_group_id.errors?.required">
                             You must select a valid Agent Group.
                         </div>
+                    </div>
+                    <div class="required" *ngIf="fetchedData && !(availableAgentGroups.length > 0)"> 
+                        There are no agent groups available
                     </div>
                 </nb-form-field>
                 <br>
@@ -97,13 +102,20 @@
             <div>
                 <ngx-sink-display [(selectedSinks)]="selectedSinks"></ngx-sink-display>
                 <ngx-sink-control
-                        [(selectedSinks)]="selectedSinks"
-                        [sinksList]="unselectedSinks"></ngx-sink-control>
+                  [(selectedSinks)]="selectedSinks"
+                  [sinksList]="unselectedSinks"
+                ></ngx-sink-control>
                 <div
-                        *ngIf="sinkIDs.length === 0
-          && (form.controls?.sink_ids.dirty)"
-                        class="required">
-                    At least one Sink is required.
+                  *ngIf="sinkIDs.length === 0 && form.controls?.sink_ids.dirty"
+                  class="required"
+                >
+                  At least one Sink is required.
+                </div>
+                <div
+                  *ngIf="fetchedData && !(availableSinks.length > 0)"
+                  class="required"
+                >
+                  There are no sinks available
                 </div>
             </div>
             <!--      NAME-->
