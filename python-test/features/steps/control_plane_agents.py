@@ -503,7 +503,13 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         tags = {"tags": all_used_tags}
     else:
         tags = {"tags": create_tags_set(agent_tags)}
-    agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, base_orb_address)
+    if configs.get('ignore_ssl_and_certificate_errors', 'true').lower() == 'true':
+        mqtt_url = f"{base_orb_address}:1883"
+        agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, mqtt_url,
+                                                                     tls_verify="false")
+    else:
+        mqtt_url = "tls://" + base_orb_address + ":8883"
+        agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, mqtt_url)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)
     agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})

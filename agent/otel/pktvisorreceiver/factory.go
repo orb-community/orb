@@ -11,7 +11,6 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/receiver/receiverhelper"
 )
 
 // This file implements factory for prometheus_simple receiver
@@ -27,10 +26,10 @@ var defaultCollectionInterval = 60 * time.Second
 
 // NewFactory creates a factory for "Simple" Prometheus receiver.
 func NewFactory() component.ReceiverFactory {
-	return receiverhelper.NewFactory(
+	return component.NewReceiverFactory(
 		typeStr,
 		CreateDefaultConfig,
-		receiverhelper.WithMetrics(CreateMetricsReceiver))
+		component.WithMetricsReceiver(CreateMetricsReceiver))
 }
 
 func CreateDefaultSettings(logger *zap.Logger) component.ReceiverCreateSettings {
@@ -38,7 +37,7 @@ func CreateDefaultSettings(logger *zap.Logger) component.ReceiverCreateSettings 
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.GetMeterProvider(),
+			MeterProvider:  global.MeterProvider(),
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
