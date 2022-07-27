@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, HostListener, Input } from '@angular/core';
 import { MatSelectChange } from '@angular/material/select';
 import {
   FilterOption,
@@ -37,6 +37,13 @@ export class FilterComponent {
 
     this.selectedFilter = null;
     this.filterParam = null;
+  }
+
+  @HostListener('window:keydown.enter', ['$event'])
+  handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && this.filterParam) {
+      this.addFilter();
+    }
   }
 
   removeFilter(index: number) {
