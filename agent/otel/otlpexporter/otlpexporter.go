@@ -9,7 +9,12 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/collector/model/otlpgrpc"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -64,9 +69,9 @@ func (e *exporter) start(_ context.Context, host component.Host) (err error) {
 		return err
 	}
 
-	e.traceExporter = otlpgrpc.NewTracesClient(e.clientConn)
-	e.metricExporter = otlpgrpc.NewMetricsClient(e.clientConn)
-	e.logExporter = otlpgrpc.NewLogsClient(e.clientConn)
+	e.traceExporter = ptraceotlp.NewClient(e.clientConn)
+	e.metricExporter = pmetricotlp.NewClient(e.clientConn)
+	e.logExporter = plogotlp.NewClient(e.clientConn)
 	e.metadata = metadata.New(e.config.GRPCClientSettings.Headers)
 	e.callOptions = []grpc.CallOption{
 		grpc.WaitForReady(e.config.GRPCClientSettings.WaitForReady),
@@ -79,23 +84,20 @@ func (e *exporter) shutdown(context.Context) error {
 	return e.clientConn.Close()
 }
 
-func (e *exporter) pushTraces(ctx context.Context, td pdata.Traces) error {
-	req := otlpgrpc.NewTracesRequest()
-	req.SetTraces(td)
+func (e *exporter) pushTraces(ctx context.Context, td ptrace.Traces) error {
+	req := ptraceotlp.NewRequestFromTraces(td)
 	_, err := e.traceExporter.Export(e.enhanceContext(ctx), req, e.callOptions...)
 	return processError(err)
 }
 
-func (e *exporter) pushMetrics(ctx context.Context, md pdata.Metrics) error {
-	req := otlpgrpc.NewMetricsRequest()
-	req.SetMetrics(md)
+func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
+	req := pmetricotlp.NewRequestFromMetrics(md)
 	_, err := e.metricExporter.Export(e.enhanceContext(ctx), req, e.callOptions...)
 	return processError(err)
 }
 
-func (e *exporter) pushLogs(ctx context.Context, ld pdata.Logs) error {
-	req := otlpgrpc.NewLogsRequest()
-	req.SetLogs(ld)
+func (e *exporter) pushLogs(ctx context.Context, ld plog.Logs) error {
+	req := plogotlp.NewRequestFromLogs(ld)
 	_, err := e.logExporter.Export(e.enhanceContext(ctx), req, e.callOptions...)
 	return processError(err)
 }

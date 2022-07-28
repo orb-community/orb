@@ -30,7 +30,8 @@ func NewFactory() component.ExporterFactory {
 	return component.NewExporterFactory(
 		typeStr,
 		CreateDefaultConfig,
-		component.WithMetricsExporter(CreateMetricsExporter))
+		// Changed from 55 to have stability level
+		component.WithMetricsExporterAndStabilityLevel(CreateMetricsExporter, component.StabilityLevelBeta))
 }
 
 func CreateConfig(addr, id, key, channel, pktvisor string) config.Exporter {
