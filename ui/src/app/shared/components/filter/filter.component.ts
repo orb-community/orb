@@ -25,7 +25,10 @@ export class FilterComponent {
 
   filterParam: any;
 
+  exact: boolean;
+
   constructor(private filter: FilterService) {
+    this.exact = false;
     this.availableFilters = [];
     this.activeFilters$ = filter.getFilters().pipe(map((filters) => filters));
   }
@@ -56,5 +59,9 @@ export class FilterComponent {
 
   clearAllFilters() {
     this.filter.cleanFilters();
+  }
+
+  toggleExactMatch() {
+    this.selectedFilter.exact = !this.selectedFilter.exact;
   }
 }

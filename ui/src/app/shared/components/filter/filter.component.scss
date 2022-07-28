@@ -19,6 +19,20 @@ nb-select.select-button,
   max-width: 100% !important;
 }
 
+.exact-match-button {
+  box-shadow: none !important;
+  box-sizing: border-box;
+  border: none !important;
+
+  &:active, &:focus {
+    background-color: unset !important;
+  }
+
+  > nb-icon {
+    color: #0c5dc5;
+  }
+}
+
 .section-controls {
   //display: contents;
 
