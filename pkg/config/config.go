@@ -23,6 +23,11 @@ type GRPCConfig struct {
 	ServerCert string `mapstructure:"server_cert"`
 	ServerKey  string `mapstructure:"server_key"`
 }
+
+func (gc *GRPCConfig) GetEndpoint() string {
+	return gc.URL + ":" + gc.Port
+}
+
 type NatsConfig struct {
 	URL             string `mapstructure:"url"`
 	ConsumerCfgPath string `mapstructure:"config_path"`
