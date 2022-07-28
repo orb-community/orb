@@ -25,7 +25,7 @@ def expand_fleet_management(context):
 def agent_page(context):
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, LeftMenu.agents())), message="Unable to find agent icon on left menu")
-    context.driver.find_element_by_xpath(LeftMenu.agents()).click()
+    context.driver.find_element(By.XPATH, (LeftMenu.agents())).click()
     WebDriverWait(context.driver, 5).until(EC.url_to_be(AGENTS_URL), message="Orb agents page not available")
 
 

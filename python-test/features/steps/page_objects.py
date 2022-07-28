@@ -11,6 +11,10 @@ class LeftMenu:
     @classmethod
     def agents(cls):
         return "//a[contains(@title, 'Agents')]"
+    
+    @classmethod
+    def agent_group_menu(cls):
+        return "//a[contains(@title, 'Agent Groups')]"
 
 
 class AgentsPage:
@@ -116,3 +120,37 @@ class DataTable:
     @classmethod
     def destroyed_on_click_button(cls):
         return "//nb-toast[contains(@class, 'destroy-by-click has-icon custom-icon')]"
+    
+    @classmethod
+    def agent_group(cls, name):
+        return f"//span[@class='ng-star-inserted' and contains(text(), '{name}')]"
+
+    
+    
+class AgentGroupPage:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def new_agent_group_button(cls):
+        return "//button[contains(text( ), 'New Agent Group')]"
+  
+    @classmethod
+    def agent_group_name(cls):
+        return "//input[contains(@formcontrolname, 'name')]"
+    
+    @classmethod
+    def agent_group_description(cls):
+        return "//input[contains(@formcontrolname, 'description')]"
+    
+    @classmethod
+    def agent_group_tag_key(cls):
+        return "//input[contains(@data-orb-qa-id, 'input#orb_tag_key')]"
+
+    @classmethod
+    def agent_group_tag_value(cls):
+        return "//input[contains(@data-orb-qa-id, 'input#orb_tag_value')]"
+
+    @classmethod
+    def agent_group_add_tag_button(cls):
+        return "//button[contains(@data-orb-qa-id, 'button#addTag')]"
