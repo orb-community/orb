@@ -27,12 +27,14 @@ nb-select.select-button,
   &:active, &:focus {
     background-color: unset !important;
   }
-
-  > nb-icon {
-    color: #0c5dc5;
-  }
 }
 
+.exact-match {
+  color: #df316f !important;
+}
+.partial-match {
+  color: #0c5dc5 !important;
+}
 .section-controls {
   //display: contents;
 
@@ -45,6 +47,7 @@ nb-select.select-button,
   //  justify-content: flex-start;
   //  width: 100%;
 }
+
 //
 .section-display {
   //display: contents;
@@ -80,6 +83,7 @@ mat-chip-list {
   background-color: transparent;
   //padding-left: 2px;
 }
+
 .not-applied {
   color: #8f9bb3 !important;
 }

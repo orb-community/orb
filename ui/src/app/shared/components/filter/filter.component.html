@@ -37,7 +37,7 @@
     *ngFor="let filter of activeFilters$ | async; let index = index"
     class="filter-chip"
   >
-    {{ filter.name + ': ' + filter?.param }}
+    {{ filter.name + ': ' + filter?.param }}{{!filter?.exact && '*'}}
     <button
       class="remove-tag-button"
       (click)="removeFilter(index)"
@@ -57,10 +57,13 @@
     type="text"
     placeholder="{{ selectedFilter?.name }}"
   />
-  <button nbSuffix nbButton ghost class="exact-match-button" (click)="toggleExactMatch()">
+  <button nbSuffix nbButton ghost class="exact-match-button"
+          [class]="selectedFilter.exact ? 'exact-match' : 'partial-match'"
+          (click)="toggleExactMatch()">
     <nb-icon [icon]="selectedFilter?.exact ? 'lock-outline' : 'unlock-outline'"
+             [nbTooltip]="selectedFilter.exact ? 'Toggle Partial Match' : 'Toggle Exact Match'"
              pack="eva"
-             [attr.aria-label]="exact ? 'Toggle Partial Match' : 'Toggle Exact Match'">
+             [attr.aria-label]="selectedFilter.exact ? 'Toggle Partial Match' : 'Toggle Exact Match'">
     </nb-icon>
   </button>
   </nb-form-field>
@@ -92,7 +95,9 @@
     required
     type="text"
   />
-  <button nbSuffix nbButton ghost class="exact-match-button" (click)="toggleExactMatch()">
+  <button nbSuffix nbButton ghost class="exact-match-button"
+          [class]="selectedFilter.exact ? 'exact-match' : 'partial-match'"
+          (click)="toggleExactMatch()">
     <nb-icon [icon]="selectedFilter?.exact ? 'lock-outline' : 'unlock-outline'"
              pack="eva"
              [attr.aria-label]="exact ? 'Toggle Partial Match' : 'Toggle Exact Match'">
