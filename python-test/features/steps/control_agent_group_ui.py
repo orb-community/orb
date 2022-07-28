@@ -26,7 +26,7 @@ def agent_page(context):
                                                                                                        "available")
 
 
-@when('a new agent group is created with {orb_tags} orb tag')
+@when('a new agent group is created through the UI with {orb_tags} orb tag')
 def create_agent_through_the_agent_group_page(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
     WebDriverWait(context.driver, 5).until(
