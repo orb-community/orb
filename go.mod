@@ -39,6 +39,7 @@ require (
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.56.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.56.0
@@ -199,6 +200,7 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
+	github.com/antonmedv/expr v1.9.0 // indirect
 	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
@@ -219,6 +221,7 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.56.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.56.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.56.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect

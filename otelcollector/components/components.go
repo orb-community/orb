@@ -17,9 +17,9 @@ package components
 import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -32,6 +32,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Components returns of all imports and registering the `opentelemetry-collector-contrib` elements
 func Components(logger zap.Logger) (component.Factories, error) {
 	var err error
 	factories := component.Factories{}
@@ -57,12 +58,7 @@ func Components(logger zap.Logger) (component.Factories, error) {
 		return component.Factories{}, err
 	}
 
-	processors := []component.ProcessorFactory{
-		routingprocessor.NewFactory(),
-		batchprocessor.NewFactory(),
-		memorylimiterprocessor.NewFactory(),
-		groupbyattrsprocessor.NewFactory(),
-	}
+	processors := getProcessors()
 	factories.Processors, err = component.MakeProcessorFactoryMap(processors...)
 	if err != nil {
 		logger.Error("processors factories failure to load", zap.Error(err))
@@ -72,26 +68,66 @@ func Components(logger zap.Logger) (component.Factories, error) {
 	return factories, nil
 }
 
+// getProcessors return processors factory, check version before adding and updatingg
+func getProcessors() []component.ProcessorFactory {
+	return []component.ProcessorFactory{
+		// Inserts Tenant and Sinks data in otlp package
+		// current version and stability for metrics [ 0.56.0 , alpha ]
+		attributesprocessor.NewFactory(),
+
+		// Routes the otlp package to it's correct sink
+		// current version and stability for metrics [ 0.56.0 , beta ]
+		routingprocessor.NewFactory(),
+
+		// still testing, want to track how many pipelines are running in parallel
+		// current version and stability for metrics [ 0.56.0 , beta ]
+		batchprocessor.NewFactory(),
+
+		// maybe use this for performance, keeping for safety
+		// current version and stability for metrics [ 0.56.0 , beta ]
+		memorylimiterprocessor.NewFactory(),
+
+		// maybe use this for logging the metric being published to exporter
+		// current version and stability for metrics [ 0.56.0 , beta ]
+		groupbyattrsprocessor.NewFactory(),
+	}
+}
+
 func getExporters() []component.ExporterFactory {
 	return []component.ExporterFactory{
+		// export log
+		// current version and stability for metrics [ 0.56.0 , stable ]
 		loggingexporter.NewFactory(),
+		// current version and stability for metrics [ 0.56.0 , stable ]
 		otlpexporter.NewFactory(),
+		// current version and stability for metrics [ 0.56.0 , stable , reason: "testing" ]
 		otlphttpexporter.NewFactory(),
+		// current version and stability for metrics [ 0.56.0 , beta ]
 		prometheusexporter.NewFactory(),
+		// current version and stability for metrics [ 0.56.0 , beta ]
 		prometheusremotewriteexporter.NewFactory(),
 	}
 }
 
 func getReceivers() []component.ReceiverFactory {
 	return []component.ReceiverFactory{
+		// current version and stability for metrics [ 0.56.0 , stable ]
 		otlpreceiver.NewFactory(),
-		prometheusreceiver.NewFactory(),
 	}
 }
 
 func getExtensions() []component.ExtensionFactory {
 	return []component.ExtensionFactory{
+		// not sure if we need that yet, this creates a ballast of memory
+		// the ballast increases the base size of the heap so that our GC triggers are delayed and the number of GC
+		//cycles over time is reduced
+		// current version and stability [ 0.56.0 , beta ]
 		ballastextension.NewFactory(),
+
+		// Enables an extension that serves zPages, an HTTP endpoint that provides live data for debugging different
+		// components that were properly instrumented for such.
+		// All core exporters and receivers provide some zPage instrumentation.
+		// current version and stability [ 0.56.0 , beta, reason: "testing"  ]
 		zpagesextension.NewFactory(),
 	}
 }
