@@ -75,13 +75,13 @@ func main() {
 	}(logger)
 	mainCtx, cancel := controlContext(logger)
 	defer cancel()
+
 	otelcollector.StartCollector(mainCtx, *logger, svcCfg, sinkerGrpcCfg, policiesGrpcCfg, sinksGrpcCfg)
 }
 
+// Controls context cancellation
 func controlContext(logger *zap.Logger) (context.Context, func()) {
-	// For testing only, will be removed for prod
-	// trap Ctrl+C and call cancel on the context
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(config.ContextWithLogger(context.Background(), logger))
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
@@ -89,6 +89,7 @@ func controlContext(logger *zap.Logger) (context.Context, func()) {
 		case <-c:
 			cancel()
 		case <-ctx.Done():
+			return
 		}
 		logger.Debug("exiting with goroutines and gocalls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
 	}()
