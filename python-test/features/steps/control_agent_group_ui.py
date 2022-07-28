@@ -53,44 +53,6 @@ def create_agent_through_the_agent_group_page(context, orb_tags):
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully created'))
 
 
-#@then("the agent group list and the agents view should display agent's status as {status} within {time_to_wait} seconds")
-#def check_status_on_orb_ui(context, status, time_to_wait):
-#    context.driver.get(f"{orb_url}/pages/fleet/agents")
-    # agent_xpath = f"//span[contains(text(), '{context.agent_name}')]/ancestor::div[contains(@class, " \
-    #               f"'datatable-row-center')]/descendant::i[contains(@class, " \
-    #               f"'fa fa-circle')]/ancestor::span[contains(@class, 'ng-star-inserted')]"
-#    agent_group_status_datatable = check_agent_group_status_on_orb_ui(context.driver, DataTable.agent_group_status(context.agent_group_name),
-#                                                          status, timeout=time_to_wait)
-#    assert_that(agent_group_status_datatable, is_not(None), f"Unable to find status of the agent group: {context.agent_group_name}"
-#                                                      f" on datatable")
-#    assert_that(agent_group_status_datatable, equal_to(status), f"Agent {context.agent['id']} status failed on Agents list")
-#    WebDriverWait(context.driver, 3).until(
-#        EC.element_to_be_clickable((By.XPATH, DataTable.agent(context.agent_group_name))),
-#        message="Unable to click on agent name").click()
-#   agent_view_status = WebDriverWait(context.driver, 3).until(
-#        EC.presence_of_element_located(
-#           (By.XPATH, AgentsPage.agent_group_status())), message="Unable to find agent status on agent view page").text
-#    #agent_view_status = agent_view_status.replace(".", "")
-#    #assert_that(agent_view_status, equal_to(status), f"Agent {context.agent['id']} status failed")
-
-#@threading_wait_until
-#def check_agent_group_status_on_orb_ui(driver, agent_xpath, status, event=None):
-    """
-
-    :param driver: webdriver running
-    :param (str) agent_xpath: xpath of the agent whose status need to be checked
-    :param (str) status: agent expected status
-    :param event: threading.event
-    :return: web element refereed to the agent
-    """
-#    agent_group_status_datatable = find_element_on_agent_group_datatable(driver, agent_xpath)
-#    if agent_group_status_datatable is not None and agent_group_status_datatable.text == status:
-#        event.set()
-#        return agent_group_status_datatable.text
-#    driver.refresh()
-#    return agent_group_status_datatable
-
-
 @then("the new agent group is shown on the datatable")
 def check_status_on_orb_ui(context):
     context.driver.get(f"{orb_url}/pages/fleet/groups")
