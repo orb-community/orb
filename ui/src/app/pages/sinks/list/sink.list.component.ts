@@ -17,8 +17,7 @@ import {
 } from '@swimlane/ngx-datatable';
 import {
   filterMultiSelect,
-  FilterOption,
-  filterSubstr,
+  FilterOption, filterString,
   filterTags,
   FilterTypes,
 } from 'app/common/interfaces/orb/filter-option';
@@ -94,7 +93,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       {
         name: 'Name',
         prop: 'name',
-        filter: filterSubstr,
+        filter: filterString,
         type: FilterTypes.Input,
       },
       {

@@ -18,8 +18,7 @@ import {
 import {Agent, AgentPolicyAggStates, AgentStates} from 'app/common/interfaces/orb/agent.interface';
 import {
   filterMultiSelect,
-  FilterOption,
-  filterSubstr,
+  FilterOption, filterString,
   filterTags,
   FilterTypes,
 } from 'app/common/interfaces/orb/filter-option';
@@ -95,7 +94,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       {
         name: 'Name',
         prop: 'name',
-        filter: filterSubstr,
+        filter: filterString,
         type: FilterTypes.Input,
       },
       {
