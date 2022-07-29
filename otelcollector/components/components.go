@@ -68,7 +68,7 @@ func Components(logger zap.Logger) (component.Factories, error) {
 	return factories, nil
 }
 
-// getProcessors return processors factory, check version before adding and updatingg
+// getProcessors return processors factory, check version before adding and updating
 func getProcessors() []component.ProcessorFactory {
 	return []component.ProcessorFactory{
 		// Inserts Tenant and Sinks data in otlp package
@@ -100,7 +100,7 @@ func getExporters() []component.ExporterFactory {
 		loggingexporter.NewFactory(),
 		// current version and stability for metrics [ 0.56.0 , stable ]
 		otlpexporter.NewFactory(),
-		// current version and stability for metrics [ 0.56.0 , stable , reason: "testing" ]
+		// current version and stability for metrics [ 0.56.0 , stable ]
 		otlphttpexporter.NewFactory(),
 		// current version and stability for metrics [ 0.56.0 , beta ]
 		prometheusexporter.NewFactory(),
@@ -127,7 +127,7 @@ func getExtensions() []component.ExtensionFactory {
 		// Enables an extension that serves zPages, an HTTP endpoint that provides live data for debugging different
 		// components that were properly instrumented for such.
 		// All core exporters and receivers provide some zPage instrumentation.
-		// current version and stability [ 0.56.0 , beta, reason: "testing"  ]
+		// current version and stability [ 0.56.0 , beta  ]
 		zpagesextension.NewFactory(),
 	}
 }
