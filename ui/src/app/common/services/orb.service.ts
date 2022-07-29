@@ -165,13 +165,13 @@ export class OrbService implements OnDestroy {
           ),
           // from the filtered dataset list, query all agent groups associated with the list
           mergeMap((datasets: Dataset[]) => {
-              const combinedDatasets = datasets
-                      .map((dataset) => dataset.agent_group_id)
-                      .filter(this.onlyUnique)
-                      .filter((val) => !!val && val !== '')
-                      .map((groupId) =>
-                          this.group.getAgentGroupById(groupId),
-                      );
+            const combinedDatasets = datasets
+                    .map((dataset) => dataset.agent_group_id)
+                    .filter(this.onlyUnique)
+                    .filter((val) => !!val && val !== '')
+                    .map((groupId) =>
+                        this.group.getAgentGroupById(groupId),
+                    );
             return combinedDatasets.length > 0
               ? forkJoin(
                   combinedDatasets,
@@ -179,17 +179,19 @@ export class OrbService implements OnDestroy {
               : of({ datasets, groups: [], policy });
           }),
           // same for sinks
-          mergeMap(({ datasets, groups }) =>
-            datasets.length > 0
-              ? forkJoin(
-                  datasets
+          mergeMap(({ datasets, groups }) => {
+            const combinedSinks = datasets
                     .map((dataset) => dataset?.sink_ids)
                     .reduce((acc, val) => acc.concat(val), [])
                     .filter(this.onlyUnique)
-                    .map((sinkId) => this.sink.getSinkById(sinkId)),
+                    .filter((val) => !!val && val !== '')
+                    .map((sinkId) => this.sink.getSinkById(sinkId));
+            return combinedSinks.length > 0
+              ? forkJoin(
+                  combinedSinks,
                 ).pipe(map((sinks) => ({ datasets, sinks, policy, groups })))
-              : of({ datasets, sinks: [], policy, groups }),
-          ),
+              : of({ datasets, sinks: [], policy, groups });
+          }),
         ),
       ),
       // from here on I can map to any shape I like
