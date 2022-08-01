@@ -6,6 +6,7 @@ export enum FilterTypes {
   Select, // allows select one option
   MultiSelect, // allows select multi options
   Checkbox, // on|off option
+  Number, // number input
 }
 
 export interface FilterOption {
@@ -34,6 +35,11 @@ export function filterString(item: any, prop: any, value: any, exact?: any) {
   } else {
     return filterSubstr(itemValue, value);
   }
+}
+
+export function filterNumber(item: any, prop: any, value: any) {
+  const itemValue = !!item[prop] && item[prop] || 0;
+  return itemValue.toString() === value;
 }
 
 export function filterTags(item: any, prop: any, value: any, exact?: any) {
