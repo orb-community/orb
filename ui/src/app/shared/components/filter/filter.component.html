@@ -37,7 +37,7 @@
     *ngFor="let filter of activeFilters$ | async; let index = index"
     class="filter-chip"
   >
-    {{ filter?.exact ?  "'" + filter.name + ': ' + filter?.param + "'" : filter.name + ': ' +filter?.param}}
+    {{ filter?.exact ?  filter.name + ": '" + filter?.param + "'" : filter.name + ': ' +filter?.param}}
     <button
       class="remove-tag-button"
       (click)="removeFilter(index)"
