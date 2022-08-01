@@ -20,9 +20,9 @@ func TestCreateDefaultConfig(t *testing.T) {
 
 	ocfg, ok := factory.CreateDefaultConfig().(*otlpexporter.Config)
 	assert.True(t, ok)
-	assert.Equal(t, ocfg.RetrySettings, exporterhelper.DefaultRetrySettings())
-	assert.Equal(t, ocfg.QueueSettings, exporterhelper.DefaultQueueSettings())
-	assert.Equal(t, ocfg.TimeoutSettings, exporterhelper.DefaultTimeoutSettings())
+	assert.Equal(t, ocfg.RetrySettings, exporterhelper.NewDefaultRetrySettings())
+	assert.Equal(t, ocfg.QueueSettings, exporterhelper.NewDefaultQueueSettings())
+	assert.Equal(t, ocfg.TimeoutSettings, exporterhelper.NewDefaultTimeoutSettings())
 }
 
 func TestCreateMetricsExporter(t *testing.T) {
@@ -34,4 +34,14 @@ func TestCreateMetricsExporter(t *testing.T) {
 	oexp, err := factory.CreateMetricsExporter(context.Background(), set, cfg)
 	require.Nil(t, err)
 	require.NotNil(t, oexp)
+}
+
+func TestCreatePrometheusAuthExporter(t *testing.T) {
+	factory := otlpexporter.NewFactory()
+	cfg := factory.CreateDefaultConfig().(*otlpexporter.Config)
+	// Endpoint to fetch the data from agent
+	cfg.GRPCClientSettings.Endpoint = "localhost:1234"
+
+	// Validate Auth
+
 }

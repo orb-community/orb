@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, HostListener, Input } from '@angular/core';
 import { MatSelectChange } from '@angular/material/select';
 import {
   FilterOption,
@@ -25,7 +25,10 @@ export class FilterComponent {
 
   filterParam: any;
 
+  exact: boolean;
+
   constructor(private filter: FilterService) {
+    this.exact = false;
     this.availableFilters = [];
     this.activeFilters$ = filter.getFilters().pipe(map((filters) => filters));
   }
@@ -39,6 +42,13 @@ export class FilterComponent {
     this.filterParam = null;
   }
 
+  @HostListener('window:keydown.enter', ['$event'])
+  handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && this.filterParam) {
+      this.addFilter();
+    }
+  }
+
   removeFilter(index: number) {
     this.filter.removeFilter(index);
   }
@@ -49,5 +59,9 @@ export class FilterComponent {
 
   clearAllFilters() {
     this.filter.cleanFilters();
+  }
+
+  toggleExactMatch() {
+    this.selectedFilter.exact = !this.selectedFilter.exact;
   }
 }

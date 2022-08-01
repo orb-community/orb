@@ -16,10 +16,15 @@
     <p><span class="ns1-red">Warning: </span>All Datasets related to this policy will be deleted<span class="ns1-red">*</span></p>
     <p class="ns1-red">*To confirm, type your Policy name exactly as it appears: {{name}}</p>
     <input type="text"
+           #autoInput
+           [nbAutocomplete]="auto"
            nbInput
            fullWidth
            placeholder="{{name}}" [(ngModel)]="validationInput"
            data-orb-qa-id="input#name">
+    <nb-autocomplete #auto >
+      <nb-option [value]="name"> {{name}}</nb-option>
+    </nb-autocomplete>
   </nb-card-body>
   <nb-card-footer>
     <button nbButton

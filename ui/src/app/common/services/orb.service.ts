@@ -164,30 +164,34 @@ export class OrbService implements OnDestroy {
             _dataset.filter((dataset) => policy.id === dataset.agent_policy_id),
           ),
           // from the filtered dataset list, query all agent groups associated with the list
-          mergeMap((datasets: Dataset[]) =>
-            datasets.length > 0
-              ? forkJoin(
-                  datasets
-                    .map((dataset) => dataset?.agent_group_id)
+          mergeMap((datasets: Dataset[]) => {
+            const combinedDatasets = datasets
+                    .map((dataset) => dataset.agent_group_id)
+                    .filter(this.onlyUnique)
+                    .filter((val) => !!val && val !== '')
                     .map((groupId) =>
-                      !!groupId && groupId !== ''
-                        ? this.group.getAgentGroupById(groupId)
-                        : EMPTY,
-                    ),
-                ).pipe(map((groups) => ({ datasets, groups, policy })))
-              : of({ datasets, groups: [], policy }),
-          ),
-          // same for sinks
-          mergeMap(({ datasets, groups }) =>
-            datasets.length > 0
+                        this.group.getAgentGroupById(groupId),
+                    );
+            return combinedDatasets.length > 0
               ? forkJoin(
-                  datasets
+                  combinedDatasets,
+                ).pipe(map((groups) => ({ datasets, groups, policy })))
+              : of({ datasets, groups: [], policy });
+          }),
+          // same for sinks
+          mergeMap(({ datasets, groups }) => {
+            const combinedSinks = datasets
                     .map((dataset) => dataset?.sink_ids)
                     .reduce((acc, val) => acc.concat(val), [])
-                    .map((sinkId) => this.sink.getSinkById(sinkId)),
+                    .filter(this.onlyUnique)
+                    .filter((val) => !!val && val !== '')
+                    .map((sinkId) => this.sink.getSinkById(sinkId));
+            return combinedSinks.length > 0
+              ? forkJoin(
+                  combinedSinks,
                 ).pipe(map((sinks) => ({ datasets, sinks, policy, groups })))
-              : of({ datasets, sinks: [], policy, groups }),
-          ),
+              : of({ datasets, sinks: [], policy, groups });
+          }),
         ),
       ),
       // from here on I can map to any shape I like

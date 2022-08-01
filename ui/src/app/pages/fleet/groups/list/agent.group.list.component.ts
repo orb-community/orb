@@ -17,8 +17,7 @@ import {
 
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import {
-  FilterOption,
-  filterSubstr,
+  FilterOption, filterString,
   filterTags,
   FilterTypes,
 } from 'app/common/interfaces/orb/filter-option';
@@ -100,7 +99,7 @@ export class AgentGroupListComponent
       {
         name: 'Name',
         prop: 'name',
-        filter: filterSubstr,
+        filter: filterString,
         type: FilterTypes.Input,
       },
       {

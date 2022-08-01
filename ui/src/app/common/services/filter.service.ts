@@ -38,6 +38,7 @@ export class FilterService {
       name: _filter.name,
       prop: _filter.prop,
       param: _filter.param,
+      extra: _filter?.exact,
     }));
     window.sessionStorage.setItem(route, JSON.stringify(filtersToStore));
   }
@@ -89,10 +90,9 @@ export class FilterService {
               const filterDef = filterOptions.find(
                 (_item) => _item.name === _filter.name,
               );
-              const filterFn = filterDef.filter;
-              const propName = filterDef.prop;
+              const {filter: filterFn, prop, exact} = filterDef;
               const result =
-                !!filterFn && filterFn(value, propName, paramValue);
+                !!filterFn && filterFn(value, prop, paramValue, exact);
               return result;
             });
           });

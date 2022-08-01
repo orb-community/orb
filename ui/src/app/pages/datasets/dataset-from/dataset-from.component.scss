@@ -220,3 +220,11 @@ nb-accordion {
   position: static !important;
   overflow-y: inherit !important;
 }
+
+.dataset-agent-group-input {
+  &:read-only {
+    background-color: #232940 !important;
+    cursor: default;
+    opacity: 0.5;
+  }
+}
