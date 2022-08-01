@@ -14,15 +14,16 @@ import (
 )
 
 const (
-	typeStr        = "otlp"
-	defaultEnpoint = "localhost:1234"
+	typeStr            = "otlp"
+	defaultEnpoint     = "localhost:4317"
+	defaultBearerToken = "somerandomtoken"
 )
 
 func NewFactory() component.ExporterFactory {
-	return exporterhelper.NewFactory(
+	return component.NewExporterFactory(
 		typeStr,
 		CreateDefaultConfig,
-		exporterhelper.WithMetrics(CreateMetricsExporter))
+		component.WithMetricsExporter(CreateMetricsExporter))
 }
 
 func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings {
@@ -30,7 +31,7 @@ func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings 
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.GetMeterProvider(),
+			MeterProvider:  global.MeterProvider(),
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
@@ -39,16 +40,21 @@ func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings 
 func CreateDefaultConfig() config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
-		TimeoutSettings:  exporterhelper.DefaultTimeoutSettings(),
-		QueueSettings:    exporterhelper.DefaultQueueSettings(),
-		RetrySettings:    exporterhelper.DefaultRetrySettings(),
+		TimeoutSettings:  exporterhelper.NewDefaultTimeoutSettings(),
+		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
+		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
-			Endpoint:        defaultEnpoint,
-			Headers:         map[string]string{},
-			WriteBufferSize: 512 * 1024,
+			Endpoint:    defaultEnpoint,
+			Compression: "",
 			TLSSetting: configtls.TLSClientSetting{
 				Insecure: true,
 			},
+			Keepalive:       nil,
+			ReadBufferSize:  0,
+			WriteBufferSize: 512 * 1024,
+			WaitForReady:    false,
+			Headers:         map[string]string{},
+			BalancerName:    "",
 		},
 	}
 }
