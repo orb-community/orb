@@ -28,7 +28,7 @@ export function filterSubstr(item: string, value: string) {
 }
 
 export function filterString(item: any, prop: any, value: any, exact?: any) {
-  const itemValue = item[prop];
+  const itemValue = !!item[prop] && item[prop] || '';
   if (exact) {
     return filterExact(itemValue, value);
   } else {
