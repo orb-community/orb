@@ -98,7 +98,6 @@ export class DatasetFromComponent implements OnInit {
     this.sinkIDs = sinks.map((sink) => sink.id);
     this.form.controls.sink_ids.patchValue(this.sinkIDs);
     this.form.controls.sink_ids.markAsDirty();
-    this.cdr.markForCheck();
     this.updateUnselectedSinks();
   }
 
@@ -277,14 +276,10 @@ export class DatasetFromComponent implements OnInit {
     return new Promise((resolve) => {
       this.loading[CONFIG.SINKS] = true;
       this.sinksService.getAllSinks().subscribe((resp: Sink[]) => {
-        this._selectedSinks.forEach((sink) => {
-          sink.name = resp.find(
-            (anotherSink) => anotherSink.id === sink.id,
-          ).name;
+        this.selectedSinks = this.dataset.sink_ids.map((sink) => {
+          return resp.find((anotherSink) => anotherSink.id === sink);
         });
-
         this.availableSinks = resp;
-        this.updateUnselectedSinks();
 
         this.loading[CONFIG.SINKS] = false;
 
