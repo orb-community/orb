@@ -21,6 +21,9 @@
     <ng-container *ngSwitchCase="type.Checkbox">
       <ng-container [ngTemplateOutlet]="checkbox"></ng-container>
     </ng-container>
+    <ng-container *ngSwitchCase="type.Number">
+      <ng-container [ngTemplateOutlet]="number"></ng-container>
+    </ng-container>
     <button
       (click)="addFilter()"
       [disabled]="!filterParam || filterParam === ''"
@@ -74,6 +77,17 @@
       {{ option }}
     </nb-option>
   </nb-select>
+</ng-template>
+
+<ng-template #number>
+  <nb-form-field>
+    <input
+      [(ngModel)]="filterParam"
+      nbInput
+      required
+      placeholder="{{ selectedFilter?.name }}"
+    />
+  </nb-form-field>
 </ng-template>
 
 <ng-template #auto>
