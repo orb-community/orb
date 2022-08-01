@@ -2,8 +2,8 @@ package otel
 
 import (
 	"github.com/ns1labs/orb/pkg/types"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/exporter/otlpexporter"
 )
 
 type OrbProcessorService interface {
