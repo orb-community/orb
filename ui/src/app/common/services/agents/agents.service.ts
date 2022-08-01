@@ -1,14 +1,20 @@
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {EMPTY, Observable} from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { EMPTY, Observable } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import {Agent, AgentPolicyAggStates} from 'app/common/interfaces/orb/agent.interface';
-import {OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
-import {NotificationsService} from 'app/common/services/notifications/notifications.service';
-import {environment} from 'environments/environment';
-import {expand, map, scan, takeWhile} from 'rxjs/operators';
-import {AgentPolicyState, AgentPolicyStates} from 'app/common/interfaces/orb/agent.policy.interface';
+import {
+  Agent,
+  AgentPolicyAggStates,
+} from 'app/common/interfaces/orb/agent.interface';
+import {
+  AgentPolicyState,
+  AgentPolicyStates,
+} from 'app/common/interfaces/orb/agent.policy.interface';
+import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { environment } from 'environments/environment';
+import { expand, map, scan, takeWhile } from 'rxjs/operators';
 
 export enum AvailableOS {
   DOCKER = 'docker',
@@ -207,7 +213,7 @@ export class AgentsService {
       // combined tags helper
       agent.combined_tags = { ...agent?.orb_tags, ...agent?.agent_tags };
       // map agg policy state
-      const {agg_info, agg_state} = this.policyAggState(agent);
+      const { agg_info, agg_state } = this.policyAggState(agent);
       agent.policy_agg_info = agg_info;
       agent.policy_agg_state = agg_state;
       return agent;
@@ -219,17 +225,22 @@ export class AgentsService {
     let agg_info = 'No Policies Applied';
     let agg_state = AgentPolicyAggStates.none;
 
-    const policies = !!policy_state && Object.values(policy_state) as AgentPolicyState[] || [];
+    const policies =
+      (!!policy_state && (Object.values(policy_state) as AgentPolicyState[])) ||
+      [];
     if (policies.length > 0) {
       let err = 0;
-      policies.reduce((prev, curr) => {
-        if (curr.state !== AgentPolicyStates.running) {
-          err++;
+      policies.forEach((policy) => {
+        if (policy.state !== AgentPolicyStates.running) {
+          err = err + 1;
         }
-        return curr;
       });
       if (err > 0) {
-        agg_info = `${err} out of ${policies.length} policies are not running`;
+        if (err === policies.length) {
+          agg_info = 'All Policies not running';
+        } else {
+          agg_info = `${err} out of ${policies.length} policies are not running`;
+        }
         agg_state = AgentPolicyAggStates.failure;
       } else {
         agg_info = `All policies are running`;
@@ -237,6 +248,6 @@ export class AgentsService {
       }
     }
 
-    return { agg_info, agg_state};
+    return { agg_info, agg_state };
   }
 }
