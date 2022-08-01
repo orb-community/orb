@@ -134,6 +134,7 @@ def policy_editing(context, kwargs):
                                    edited_attributes["bpf_filter_expression"], edited_attributes["pcap_source"],
                                    edited_attributes["only_qname_suffix"], edited_attributes["only_rcode"],
                                    edited_attributes["backend_type"])
+    context.considered_timestamp = datetime.now().timestamp()
     context.policy = edit_policy(context.token, context.policy['id'], policy_json)
 
     assert_that(context.policy['name'], equal_to(edited_attributes["name"]), f"Policy name failed: {context.policy}")

@@ -18,7 +18,7 @@ AGENTS_URL = f"{orb_url}/pages/fleet/agents"
 
 @given("that fleet Management is clickable on ORB Menu")
 def expand_fleet_management(context):
-    context.driver.find_elements_by_xpath(LeftMenu.agents())[0].click()
+    context.driver.find_element(By.XPATH, (LeftMenu.agents())).click()
 
 
 @given('that Agents is clickable on ORB Menu')
