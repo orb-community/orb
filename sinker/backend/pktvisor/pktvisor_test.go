@@ -1080,38 +1080,25 @@ func TestDNSRatesConversion(t *testing.T) {
 				{
 					"policy_flow": {
 						"flow": {
-							"payload_size": {
-								"p50": 2,
-								"p90": 3,
-								"p95": 76811346,
-								"p99": 76811347
+							"devices": {
+								"192.168.0.1": {
+									"payload_size": {
+										"p50": 2,
+										"p90": 3,
+										"p95": 76811346,
+										"p99": 76811347
+									}
+								}
 							}
 						}
 					}
 				}`),
-			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
+			expectedLabels: labelQuantiles(labelQuantiles(commonLabels, prometheus.Label{
+				Name:  "device",
+				Value: "192.168.0.1",
+			}), prometheus.Label{
 				Name:  "__name__",
-				Value: "flow_payload_size",
-			}),
-			expectedDatapoints: []float64{2, 3, 76811346, 76811347},
-		},
-		"FlowEventRate": {
-			data: []byte(`
-				{
-					"policy_flow": {
-						"flow": {
-							"event_rate": {
-								"p50": 2,
-								"p90": 3,
-								"p95": 76811346,
-								"p99": 76811347
-							}
-						}
-					}
-				}`),
-			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
-				Name:  "__name__",
-				Value: "flow_event_rate",
+				Value: "flow_devices_payload_size",
 			}),
 			expectedDatapoints: []float64{2, 3, 76811346, 76811347},
 		},
@@ -2706,16 +2693,23 @@ func TestFlowCardinalityConversion(t *testing.T) {
 				{
 					"policy_flow": {
 					  "flow": {
-						"cardinality": {
-						  "dst_ips_out": 4
+						"devices":{
+							"192.168.4.7": {
+								"cardinality": {
+						  		"dst_ips_out": 4
+								}
+							}
 						}
 					  }
 					}
 				}`),
 			expected: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
+				Labels: append(prependLabel(append(commonLabels, prometheus.Label{
+					Name:  "device",
+					Value: "192.168.4.7",
+				}), prometheus.Label{
 					Name:  "__name__",
-					Value: "flow_cardinality_dst_ips_out",
+					Value: "flow_devices_cardinality_dst_ips_out",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 4,
@@ -2727,18 +2721,25 @@ func TestFlowCardinalityConversion(t *testing.T) {
 				{
 					"policy_flow": {
 					  "flow": {
-						"cardinality": {
-						  "dst_ports_out": 31,
-						  "src_ips_in": 4,
-						  "src_ports_in": 31
+						"devices":{
+							"192.168.4.7": {
+								"cardinality": {
+						  			"dst_ports_out": 31,
+						  			"src_ips_in": 4,
+						  			"src_ports_in": 31
+								}
+							}
 						}
 					  }
 					}
 				}`),
 			expected: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
+				Labels: append(prependLabel(append(commonLabels, prometheus.Label{
+					Name:  "device",
+					Value: "192.168.4.7",
+				}), prometheus.Label{
 					Name:  "__name__",
-					Value: "flow_cardinality_dst_ports_out",
+					Value: "flow_devices_cardinality_dst_ports_out",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 31,
@@ -2750,17 +2751,24 @@ func TestFlowCardinalityConversion(t *testing.T) {
 				{
 					"policy_flow": {
 					  "flow": {
-						"cardinality": {
-						  "src_ips_in": 4,
-						  "src_ports_in": 31
+						"devices":{
+							"192.168.4.7": {
+								"cardinality": {
+						  			"src_ips_in": 4,
+						  			"src_ports_in": 31
+								}
+							}
 						}
 					  }
 					}
 				}`),
 			expected: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
+				Labels: append(prependLabel(append(commonLabels, prometheus.Label{
+					Name:  "device",
+					Value: "192.168.4.7",
+				}), prometheus.Label{
 					Name:  "__name__",
-					Value: "flow_cardinality_src_ips_in",
+					Value: "flow_devices_cardinality_src_ips_in",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 4,
@@ -2772,16 +2780,23 @@ func TestFlowCardinalityConversion(t *testing.T) {
 				{
 					"policy_flow": {
 					  "flow": {
-						"cardinality": {
-						  "src_ports_in": 31
+						"devices":{
+							"192.168.4.7": {
+								"cardinality": {
+						  			"src_ports_in": 31
+								}
+							}	
 						}
 					  }
 					}
 				}`),
 			expected: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
+				Labels: append(prependLabel(append(commonLabels, prometheus.Label{
+					Name:  "device",
+					Value: "192.168.4.7",
+				}), prometheus.Label{
 					Name:  "__name__",
-					Value: "flow_cardinality_src_ports_in",
+					Value: "flow_devices_cardinality_src_ports_in",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 31,
@@ -2872,25 +2887,6 @@ func TestFlowConversion(t *testing.T) {
 		data     []byte
 		expected prometheus.TimeSeries
 	}{
-		"FlowPayloadDeepSamples": {
-			data: []byte(`
-				{
-					"policy_flow": {
-						"flow": {
-							"deep_samples": 9279
-						}
-					}
-				}`),
-			expected: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
-					Name:  "__name__",
-					Value: "flow_deep_samples",
-				})),
-				Datapoint: prometheus.Datapoint{
-					Value: 9279,
-				},
-			},
-		},
 		"FlowPayloadFiltered": {
 			data: []byte(`
 				{
@@ -2934,14 +2930,21 @@ func TestFlowConversion(t *testing.T) {
 				{
 					"policy_flow": {
 						"flow": {
-							"ipv4": 52785
+							"devices":{
+								"192.168.4.7": {
+									"ipv4": 52785
+								}
+							}
 						}
 					}
 				}`),
 			expected: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
+				Labels: append(prependLabel(append(commonLabels, prometheus.Label{
+					Name:  "device",
+					Value: "192.168.4.7",
+				}), prometheus.Label{
 					Name:  "__name__",
-					Value: "flow_ipv4",
+					Value: "flow_devices_ipv4",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 52785,
@@ -2953,14 +2956,21 @@ func TestFlowConversion(t *testing.T) {
 				{
 					"policy_flow": {
 						"flow": {
-							"ipv6": 52785
+							"devices":{
+								"192.168.4.7": {
+									"ipv6": 52785
+								}
+							}
 						}
 					}
 				}`),
 			expected: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
+				Labels: append(prependLabel(append(commonLabels, prometheus.Label{
+					Name:  "device",
+					Value: "192.168.4.7",
+				}), prometheus.Label{
 					Name:  "__name__",
-					Value: "flow_ipv6",
+					Value: "flow_devices_ipv6",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 52785,
@@ -2972,14 +2982,21 @@ func TestFlowConversion(t *testing.T) {
 				{
 					"policy_flow": {
 						"flow": {
-							"other_l4": 52785
+							"devices":{
+								"192.168.4.7": {
+									"other_l4": 52785
+								}
+							}
 						}
 					}
 				}`),
 			expected: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
+				Labels: append(prependLabel(append(commonLabels, prometheus.Label{
+					Name:  "device",
+					Value: "192.168.4.7",
+				}), prometheus.Label{
 					Name:  "__name__",
-					Value: "flow_other_l4",
+					Value: "flow_devices_other_l4",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 52785,
@@ -2991,33 +3008,21 @@ func TestFlowConversion(t *testing.T) {
 				{
 					"policy_flow": {
 						"flow": {
-							"tcp": 52785
+							"devices":{
+								"192.168.4.7": {
+									"tcp": 52785
+								}
+							}
 						}
 					}
 				}`),
 			expected: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
+				Labels: append(prependLabel(append(commonLabels, prometheus.Label{
+					Name:  "device",
+					Value: "192.168.4.7",
+				}), prometheus.Label{
 					Name:  "__name__",
-					Value: "flow_tcp",
-				})),
-				Datapoint: prometheus.Datapoint{
-					Value: 52785,
-				},
-			},
-		},
-		"FlowPayloadTotal": {
-			data: []byte(`
-				{
-					"policy_flow": {
-						"flow": {
-							"total": 52785
-						}
-					}
-				}`),
-			expected: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
-					Name:  "__name__",
-					Value: "flow_total",
+					Value: "flow_devices_tcp",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 52785,
@@ -3029,14 +3034,21 @@ func TestFlowConversion(t *testing.T) {
 				{
 					"policy_flow": {
 						"flow": {
-							"udp": 52785
+							"devices":{
+								"192.168.4.7": {
+									"udp": 52785
+								}
+							}
 						}
 					}
 				}`),
 			expected: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
+				Labels: append(prependLabel(append(commonLabels, prometheus.Label{
+					Name:  "device",
+					Value: "192.168.4.7",
+				}), prometheus.Label{
 					Name:  "__name__",
-					Value: "flow_udp",
+					Value: "flow_devices_udp",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 52785,
@@ -3102,12 +3114,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_dst_ips_and_port_bytes": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2:5000"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_dst_ips_and_port_bytes": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "10.4.2.2:5000"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3115,7 +3131,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_dst_ips_and_port_bytes",
+						Value: "flow_devices_top_dst_ips_and_port_bytes",
 					},
 					{
 						Name:  "instance",
@@ -3136,6 +3152,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "ip_port",
@@ -3152,12 +3172,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_dst_ips_and_port_packets": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2:5000"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_dst_ips_and_port_packets": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "10.4.2.2:5000"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3165,7 +3189,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_dst_ips_and_port_packets",
+						Value: "flow_devices_top_dst_ips_and_port_packets",
 					},
 					{
 						Name:  "instance",
@@ -3186,6 +3210,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "ip_port",
@@ -3202,12 +3230,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_dst_ips_bytes": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_dst_ips_bytes": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "10.4.2.2"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3215,7 +3247,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_dst_ips_bytes",
+						Value: "flow_devices_top_dst_ips_bytes",
 					},
 					{
 						Name:  "instance",
@@ -3236,6 +3268,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "ip",
@@ -3252,12 +3288,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_dst_ips_packets": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_dst_ips_packets": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "10.4.2.2"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3265,7 +3305,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_dst_ips_packets",
+						Value: "flow_devices_top_dst_ips_packets",
 					},
 					{
 						Name:  "instance",
@@ -3286,6 +3326,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "ip",
@@ -3302,12 +3346,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_dst_ports_bytes": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "5000"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_dst_ports_bytes": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "5000"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3315,7 +3363,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_dst_ports_bytes",
+						Value: "flow_devices_top_dst_ports_bytes",
 					},
 					{
 						Name:  "instance",
@@ -3336,6 +3384,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "port",
@@ -3352,12 +3404,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_dst_ports_packets": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "5000"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_dst_ports_packets": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "5000"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3365,7 +3421,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_dst_ports_packets",
+						Value: "flow_devices_top_dst_ports_packets",
 					},
 					{
 						Name:  "instance",
@@ -3386,6 +3442,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "port",
@@ -3402,12 +3462,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_in_if_index_bytes": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "300"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_in_if_index_bytes": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "300"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3415,7 +3479,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_in_if_index_bytes",
+						Value: "flow_devices_top_in_if_index_bytes",
 					},
 					{
 						Name:  "instance",
@@ -3436,6 +3500,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "index",
@@ -3452,12 +3520,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_in_if_index_packets": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "300"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_in_if_index_packets": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "300"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3465,7 +3537,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_in_if_index_packets",
+						Value: "flow_devices_top_in_if_index_packets",
 					},
 					{
 						Name:  "instance",
@@ -3486,6 +3558,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "index",
@@ -3502,12 +3578,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_out_if_index_bytes": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "200"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_out_if_index_bytes": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "200"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3515,7 +3595,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_out_if_index_bytes",
+						Value: "flow_devices_top_out_if_index_bytes",
 					},
 					{
 						Name:  "instance",
@@ -3536,6 +3616,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "index",
@@ -3552,12 +3636,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_out_if_index_packets": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "200"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_out_if_index_packets": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "200"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3565,7 +3653,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_out_if_index_packets",
+						Value: "flow_devices_top_out_if_index_packets",
 					},
 					{
 						Name:  "instance",
@@ -3586,6 +3674,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "index",
@@ -3601,12 +3693,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_src_ips_and_port_bytes": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2:5000"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_src_ips_and_port_bytes": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "10.4.2.2:5000"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3614,7 +3710,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_src_ips_and_port_bytes",
+						Value: "flow_devices_top_src_ips_and_port_bytes",
 					},
 					{
 						Name:  "instance",
@@ -3635,6 +3731,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "ip_port",
@@ -3651,12 +3751,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_src_ips_and_port_packets": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2:5000"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_src_ips_and_port_packets": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "10.4.2.2:5000"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3664,7 +3768,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_src_ips_and_port_packets",
+						Value: "flow_devices_top_src_ips_and_port_packets",
 					},
 					{
 						Name:  "instance",
@@ -3685,6 +3789,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "ip_port",
@@ -3701,12 +3809,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_src_ips_bytes": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_src_ips_bytes": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "10.4.2.2"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3714,7 +3826,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_src_ips_bytes",
+						Value: "flow_devices_top_src_ips_bytes",
 					},
 					{
 						Name:  "instance",
@@ -3735,6 +3847,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "ip",
@@ -3751,12 +3867,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_src_ips_packets": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "10.4.2.2"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_src_ips_packets": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "10.4.2.2"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3764,7 +3884,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_src_ips_packets",
+						Value: "flow_devices_top_src_ips_packets",
 					},
 					{
 						Name:  "instance",
@@ -3785,6 +3905,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "ip",
@@ -3801,12 +3925,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_src_ports_bytes": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "4500"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_src_ports_bytes": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "4500"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3814,7 +3942,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_src_ports_bytes",
+						Value: "flow_devices_top_src_ports_bytes",
 					},
 					{
 						Name:  "instance",
@@ -3835,6 +3963,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "port",
@@ -3851,12 +3983,16 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 {
     "policy_flow": {
 		"flow": {
-        	"top_src_ports_packets": [
-				{
-          	  	  "estimate": 8,
-          	  	  "name": "4500"
-        		}
-			]
+			"devices":{
+				"192.168.4.7": {
+        			"top_src_ports_packets": [
+						{
+          	  	  			"estimate": 8,
+          	  	  			"name": "4500"
+        				}
+					]
+				}
+			}
 		}
     }
 }`),
@@ -3864,7 +4000,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_src_ports_packets",
+						Value: "flow_devices_top_src_ports_packets",
 					},
 					{
 						Name:  "instance",
@@ -3885,6 +4021,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "device",
+						Value: "192.168.4.7",
 					},
 					{
 						Name:  "port",
