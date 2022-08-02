@@ -5,6 +5,7 @@
 package agent
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
@@ -14,7 +15,7 @@ import (
 	"time"
 )
 
-func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
+func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.Client, error) {
 
 	opts := mqtt.NewClientOptions().AddBroker(config.Address).SetClientID(config.Id)
 	opts.SetUsername(config.Id)
@@ -33,7 +34,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	opts.SetResumeSubs(true)
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
 		if client.IsConnected() {
-			a.requestReconnection(client, config)
+			a.requestReconnection(ctx, client, config)
 		}
 	})
 
@@ -49,7 +50,7 @@ func (a *orbAgent) connect(config config.MQTTConfig) (mqtt.Client, error) {
 	return c, nil
 }
 
-func (a *orbAgent) requestReconnection(client mqtt.Client, config config.MQTTConfig) {
+func (a *orbAgent) requestReconnection(ctx context.Context, client mqtt.Client, config config.MQTTConfig) {
 	a.nameAgentRPCTopics(config.ChannelID)
 	for name, be := range a.backends {
 		be.SetCommsClient(config.Id, client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
@@ -57,7 +58,7 @@ func (a *orbAgent) requestReconnection(client mqtt.Client, config config.MQTTCon
 
 	if token := client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
 		a.logger.Error("failed to subscribe to agent control plane RPC topic", zap.String("topic", a.rpcFromCoreTopic), zap.Error(token.Error()))
-		a.Stop()
+		a.Stop(ctx)
 		a.logger.Fatal("critical failure: unable to subscribe to control plane")
 	}
 
@@ -113,11 +114,11 @@ func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
 	}
 }
 
-func (a *orbAgent) startComms(config config.MQTTConfig) error {
+func (a *orbAgent) startComms(ctx context.Context, config config.MQTTConfig) error {
 
 	var err error
 	if a.client == nil || !a.client.IsConnected() {
-		a.client, err = a.connect(config)
+		a.client, err = a.connect(ctx, config)
 		if err != nil {
 			a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
 			return ErrMqttConnection
