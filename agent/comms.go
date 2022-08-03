@@ -58,8 +58,9 @@ func (a *orbAgent) requestReconnection(ctx context.Context, client mqtt.Client, 
 
 	if token := client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
 		a.logger.Error("failed to subscribe to agent control plane RPC topic", zap.String("topic", a.rpcFromCoreTopic), zap.Error(token.Error()))
+		a.logger.Error("critical failure: unable to subscribe to control plane")
 		a.Stop(ctx)
-		a.logger.Fatal("critical failure: unable to subscribe to control plane")
+		return
 	}
 
 	err := a.sendCapabilities()
