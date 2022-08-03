@@ -22,9 +22,9 @@ func GetAttributeProcessorWithOwnerAndSinkData(ctx context.Context, factories co
 	cfg := factory.CreateDefaultConfig().(*attributesprocessor.Config)
 
 	cfg.Actions = []attraction.ActionKeyValue{
-		{Key: "ownerID", Value: "???", FromAttribute: "???", Action: "insert"}, // Mainflux Owner ID
-		{Key: "agentID", Value: "???", FromAttribute: "???", Action: "insert"}, // Agent ID
-		{Key: "sinks", Value: "???", FromAttribute: "???", Action: "insert"},   // Sink slice with id and config metadata
+		{Key: "ownerID", Value: ctx.Value("ownerID"), Action: "insert"}, // Mainflux Owner ID
+		{Key: "agentID", Value: ctx.Value("agentID"), Action: "insert"}, // Agent ID
+		{Key: "sinks", Value: ctx.Value("sinks"), Action: "insert"},     // Sink slice with id and config metadata
 	}
 	set := component.ProcessorCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
