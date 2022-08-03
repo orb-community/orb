@@ -15,7 +15,6 @@ import (
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/agent/policyMgr"
 	"github.com/ns1labs/orb/buildinfo"
-	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"runtime"
 	"time"
@@ -165,7 +164,6 @@ func (a *orbAgent) Stop(ctx context.Context) {
 	}
 	a.hbTicker.Stop()
 	if a.client != nil && a.client.IsConnected() {
-		a.sendSingleHeartbeat(ctx, time.Now(), fleet.Offline) // maybe remove since we have in defer of the heartbeat routine
 		if token := a.client.Unsubscribe(a.rpcFromCoreTopic); token.Wait() && token.Error() != nil {
 			a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
 		}
