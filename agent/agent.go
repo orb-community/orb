@@ -157,6 +157,12 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 func (a *orbAgent) Stop(ctx context.Context) {
 	a.logger.Info("routine call for stop agent", zap.Any("routine", ctx.Value("routine")))
 	defer a.cancelFunction()
+	for name, b := range a.backends {
+		a.logger.Debug("stopping backend", zap.String("backend", name))
+		if err := b.Stop(ctx); err != nil {
+			a.logger.Error("error while stopping the backend", zap.String("backend", name))
+		}
+	}
 	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
 	a.hbTicker.Stop()
 	a.hbDone <- true
