@@ -86,6 +86,7 @@ func (a *orbAgent) nameAgentRPCTopics(channelId string) {
 }
 
 func (a *orbAgent) unsubscribeGroupChannels() {
+	a.logger.Debug("calling to unsub group channels")
 	for id, groupInfo := range a.groupsInfos {
 		base := fmt.Sprintf("channels/%s/messages", groupInfo.ChannelID)
 		rpcFromCoreTopic := fmt.Sprintf("%s/%s", base, fleet.RPCFromCoreTopic)

@@ -163,20 +163,16 @@ func (a *orbAgent) Stop(ctx context.Context) {
 			a.logger.Error("error while stopping the backend", zap.String("backend", name))
 		}
 	}
-	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
 	a.hbTicker.Stop()
-	a.hbDone <- true
-	a.sendSingleHeartbeat(ctx, time.Now(), fleet.Offline) // maybe remove since we have in defer of the heartbeat routine
-	if token := a.client.Unsubscribe(a.rpcFromCoreTopic); token.Wait() && token.Error() != nil {
-		a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
-	}
-	a.unsubscribeGroupChannels()
-	for _, be := range a.backends {
-		if err := be.Stop(ctx); err != nil {
-			a.logger.Error("backend error while stopping", zap.Error(err))
+	if a.client != nil && a.client.IsConnected() {
+		a.sendSingleHeartbeat(ctx, time.Now(), fleet.Offline) // maybe remove since we have in defer of the heartbeat routine
+		if token := a.client.Unsubscribe(a.rpcFromCoreTopic); token.Wait() && token.Error() != nil {
+			a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
 		}
+		a.unsubscribeGroupChannels()
+		a.client.Disconnect(250)
 	}
-	a.client.Disconnect(250)
+	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
 	defer close(a.hbDone)
 	defer close(a.policyRequestSucceeded)
 	defer close(a.groupRequestSucceeded)
