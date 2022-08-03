@@ -102,10 +102,13 @@ func Run(cmd *cobra.Command, args []string) {
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 		select {
 		case <-sigs:
+			logger.Warn("stop signal received stopping agent")
+			a.Stop(rootCtx)
 			cancelFunc()
 		case <-rootCtx.Done():
-			a.Stop(rootCtx)
+			logger.Warn("mainRoutine context cancelled")
 			done <- true
+			return
 		}
 	}()
 
