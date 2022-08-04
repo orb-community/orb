@@ -24,7 +24,12 @@ def logs_in_orb_ui(context):
 
 @given("that the user is on the orb page")
 def orb_page(context):
-    current_url = go_to_page(orb_url, context)
+    headless = configs.get('headless', 'true')
+    if headless.lower() == "true":
+        headless = True
+    else:
+        headless = False
+    current_url = go_to_page(orb_url, context, headless)
     assert_that(current_url, equal_to(f"{orb_url}/auth/login"), "user not enabled to access orb login page")
 
 
@@ -39,5 +44,3 @@ def use_credentials(context):
 def check_home_page(context):
     WebDriverWait(context.driver, 10).until(EC.url_to_be(f"{orb_url}/pages/home"), message="user not enabled to "
                                                                                                 "access orb home page")
-
-

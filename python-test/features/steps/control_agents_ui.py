@@ -92,9 +92,6 @@ def create_agent_through_the_agents_page(context, orb_tags):
 @then("the agents list and the agents view should display agent's status as {status} within {time_to_wait} seconds")
 def check_status_on_orb_ui(context, status, time_to_wait):
     context.driver.get(f"{orb_url}/pages/fleet/agents")
-    # agent_xpath = f"//span[contains(text(), '{context.agent_name}')]/ancestor::div[contains(@class, " \
-    #               f"'datatable-row-center')]/descendant::i[contains(@class, " \
-    #               f"'fa fa-circle')]/ancestor::span[contains(@class, 'ng-star-inserted')]"
     agent_status_datatable = check_agent_status_on_orb_ui(context.driver, DataTable.agent_status(context.agent_name),
                                                           status, timeout=time_to_wait)
     assert_that(agent_status_datatable, is_not(None), f"Unable to find status of the agent: {context.agent_name}"
