@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,6 +10,8 @@ import {
   AgentPolicyState,
   AgentPolicyStates,
 } from 'app/common/interfaces/orb/agent.policy.interface';
+import { OrbService } from 'app/common/services/orb.service';
+import { Sink } from 'app/common/interfaces/orb/sink.interface';
 
 @Component({
   selector: 'ngx-agent-policies-datasets',
@@ -32,8 +34,11 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
 
   errors;
 
+  agentSubscription: Subscription
+
   constructor(
     private datasetService: DatasetPoliciesService,
+    private orb: OrbService,
     private router: Router,
     private route: ActivatedRoute,
     private dialogService: NbDialogService,
@@ -44,6 +49,11 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.agentSubscription = this.orb.getAgentFullView(this?.agent?.id).subscribe((resp) => {
+      const { agent, datasets } = resp;
+
+      
+    });
     this.policies = this.getPoliciesStates(
       this?.agent?.last_hb_data?.policy_state,
     );

@@ -154,6 +154,17 @@ export class OrbService implements OnDestroy {
     return this.observe(this.policy.getAllAgentPolicies());
   }
 
+  getAgentFullView(id: string) {
+    return this.agent.getAgentById(id).pipe(
+      mergeMap((agent) => {
+        const datasetIds = agent?.last_hb_data?.policy_state?.map((state)=> state?.datasets)
+        .flat().filter(this.onlyUnique).map((id) => this.dataset.getDatasetById(id));
+        return datasetIds.length > 0 ? 
+        forkJoin(datasetIds).pipe(map((datasets) => ({agent, datasets}))) : of({agent, datasets: []});
+      }),
+    );
+  }
+
   getPolicyFullView(id: string) {
     // retrieve policy
     return this.policy.getAgentPolicyById(id).pipe(

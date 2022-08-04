@@ -46,6 +46,7 @@ export class DatasetPoliciesService {
           'Failed to fetch Dataset of this Policy',
           `Error: ${err.status} - ${err.statusText}`,
         );
+        err['id'] = id;
         return Observable.throwError(err);
       });
   }
