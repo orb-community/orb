@@ -1,12 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
-import {
-  AgentGroup,
-  AgentGroupState,
-} from 'app/common/interfaces/orb/agent.group.interface';
-import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
-import { NbDialogService } from '@nebular/theme';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NbDialogService } from '@nebular/theme';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 
 @Component({
   selector: 'ngx-agent-groups',

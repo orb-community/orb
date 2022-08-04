@@ -1,17 +1,13 @@
-import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { forkJoin, Subscription } from 'rxjs';
-import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
-import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
 import { NbDialogService } from '@nebular/theme';
+import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import {
   AgentPolicyState,
   AgentPolicyStates,
 } from 'app/common/interfaces/orb/agent.policy.interface';
-import { OrbService } from 'app/common/services/orb.service';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
 
 @Component({
   selector: 'ngx-agent-policies-datasets',
@@ -21,9 +17,9 @@ import { Sink } from 'app/common/interfaces/orb/sink.interface';
 export class AgentPoliciesDatasetsComponent implements OnInit {
   @Input() agent: Agent;
 
-  @Input()  
+  @Input()
   datasets: { [id: string]: Dataset };
-  
+
   @Output()
   refreshAgent: EventEmitter<string>;
 
@@ -63,7 +59,6 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
       return policy;
     });
   }
-
 
   onOpenViewPolicy(policy: any) {
     this.router.navigate([`/pages/datasets/policies/view/${policy.id}`], {
