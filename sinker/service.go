@@ -254,24 +254,29 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 				zap.Strings("sinks", sinkIDList))
 
 			for _, id := range sinkIDList {
-				err = svc.remoteWriteToPrometheus(tsList, agent.OwnerID, id)
-				if err != nil {
-					svc.logger.Warn(fmt.Sprintf("unable to remote write to sinkID: %s", id), zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
-				}
+				if otel {
+					// store in redis
 
-				// send operational metrics
-				labels := []string{
-					"method", "sinker_payload_size",
-					"format", "prometheus",
-					"agent_id", agentID,
-					"agent", agent.AgentName,
-					"policy_id", m.PolicyID,
-					"policy", m.PolicyName,
-					"sink_id", id,
-					"owner_id", agent.OwnerID,
+				} else {
+					err = svc.remoteWriteToPrometheus(tsList, agent.OwnerID, id)
+					if err != nil {
+						svc.logger.Warn(fmt.Sprintf("unable to remote write to sinkID: %s", id), zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
+					}
+
+					// send operational metrics
+					labels := []string{
+						"method", "sinker_payload_size",
+						"format", "prometheus",
+						"agent_id", agentID,
+						"agent", agent.AgentName,
+						"policy_id", m.PolicyID,
+						"policy", m.PolicyName,
+						"sink_id", id,
+						"owner_id", agent.OwnerID,
+					}
+					svc.requestCounter.With(labels...).Add(1)
+					svc.requestGauge.With(labels...).Add(float64(len(m.Data)))
 				}
-				svc.requestCounter.With(labels...).Add(1)
-				svc.requestGauge.With(labels...).Add(float64(len(m.Data)))
 			}
 		}
 	}
