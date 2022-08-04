@@ -5,6 +5,7 @@
 package agent
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/policies"
@@ -19,7 +20,7 @@ const HeartbeatFreq = 50 * time.Second
 // RestartTimeMin minimum time to wait between restarts
 const RestartTimeMin = 5 * time.Minute
 
-func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
+func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, state fleet.State) {
 
 	if a.heartbeatsTopic == "" {
 		a.logger.Debug("heartbeat topic not yet set, skipping")
@@ -39,7 +40,7 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 				bes[name] = fleet.BackendStateInfo{State: backend.AgentError.String(), Error: err.Error()}
 				if time.Now().Sub(be.GetStartTime()) >= RestartTimeMin {
 					a.logger.Info("attempting backend restart due to failed status during heartbeat")
-					err := a.RestartBackend(name, "failed during heartbeat")
+					err := a.RestartBackend(ctx, name, "failed during heartbeat")
 					if err != nil {
 						a.logger.Error("failed to restart backend", zap.Error(err), zap.String("backend", name))
 					}
@@ -99,27 +100,29 @@ func (a *orbAgent) sendSingleHeartbeat(t time.Time, state fleet.State) {
 
 	if token := a.client.Publish(a.heartbeatsTopic, 1, false, body); token.Wait() && token.Error() != nil {
 		a.logger.Error("error sending heartbeat", zap.Error(token.Error()))
-		err = a.restartComms()
+		err = a.restartComms(ctx)
 		if err != nil {
 			a.logger.Error("error reconnecting with MQTT, stopping agent")
-			a.Stop()
+			a.Stop(ctx)
 		}
 	}
 }
 
-func (a *orbAgent) sendHeartbeats() {
-	a.logger.Debug("start heartbeats routine")
-	a.sendSingleHeartbeat(time.Now(), fleet.Online)
+func (a *orbAgent) sendHeartbeats(ctx context.Context) {
+	a.logger.Debug("start heartbeats routine", zap.Any("routine", ctx.Value("#routine")))
+	a.sendSingleHeartbeat(ctx, time.Now(), fleet.Online)
 	defer func() {
 		a.logger.Debug("stopping heartbeats routine")
-		a.sendSingleHeartbeat(time.Now(), fleet.Offline)
+		a.sendSingleHeartbeat(ctx, time.Now(), fleet.Offline)
+		a.Stop(ctx) // maybe remove
 	}()
 	for {
 		select {
 		case <-a.hbDone:
+			ctx.Done()
 			return
 		case t := <-a.hbTicker.C:
-			a.sendSingleHeartbeat(t, fleet.Online)
+			a.sendSingleHeartbeat(ctx, t, fleet.Online)
 		}
 	}
 }

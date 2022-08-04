@@ -44,6 +44,7 @@ type pktvisorBackend struct {
 	proc            *cmd.Cmd
 	statusChan      <-chan cmd.Status
 	startTime       time.Time
+	cancelFunc      context.CancelFunc
 
 	// MQTT Config for OTEL MQTT
 	mqttConfig config.MQTTConfig
@@ -222,11 +223,12 @@ func (p *pktvisorBackend) Write(payload []byte) (n int, err error) {
 	return len(payload), nil
 }
 
-func (p *pktvisorBackend) Start() error {
+func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
 
 	// this should record the start time whether it's successful or not
 	// because it is used by the automatic restart system for last attempt
 	p.startTime = time.Now()
+	p.cancelFunc = cancelFunc
 
 	_, err := exec.LookPath(p.binary)
 	if err != nil {
@@ -422,8 +424,9 @@ func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 	return nil
 }
 
-func (p *pktvisorBackend) Stop() error {
-	p.logger.Info("pktvisor stopping")
+func (p *pktvisorBackend) Stop(ctx context.Context) error {
+	p.logger.Info("routine call to stop pktvisor", zap.Any("routine", ctx.Value("routine")))
+	defer p.cancelFunc()
 	err := p.proc.Stop()
 	finalStatus := <-p.statusChan
 	if err != nil {
@@ -530,16 +533,17 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 	return receiver, nil
 }
 
-func (p *pktvisorBackend) FullReset() error {
+func (p *pktvisorBackend) FullReset(ctx context.Context) error {
 
 	// force a stop, which stops scrape as well. if proc is dead, it no ops.
-	if err := p.Stop(); err != nil {
+	if err := p.Stop(ctx); err != nil {
 		p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
 		return err
 	}
 
+	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "pktvisor"))
 	// start it
-	if err := p.Start(); err != nil {
+	if err := p.Start(backendCtx, cancelFunc); err != nil {
 		p.logger.Error("failed to start backend on restart procedure", zap.Error(err))
 		return err
 	}
