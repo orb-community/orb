@@ -111,7 +111,7 @@ export class OrbService implements OnDestroy {
       )
       .reduce((acc, val) => acc.concat(val), [])
       .filter(this.onlyUnique);
-  };
+  }
 
   ngOnDestroy() {
     this.killPolling.next();
@@ -163,7 +163,7 @@ export class OrbService implements OnDestroy {
             Object.values(policy_state)
               .map((state) => state['datasets'])
               .filter(this.onlyUnique)
-              .map((id) => this.dataset.getDatasetById(id))) ||
+              .map((_id) => this.dataset.getDatasetById(_id))) ||
           [];
         return datasetIds.length > 0
           ? forkJoin(datasetIds).pipe(
@@ -182,7 +182,7 @@ export class OrbService implements OnDestroy {
         const groupIds = !!agent_state && Object.keys(agent_state);
         const groups$ =
           groupIds.length > 0
-            ? forkJoin(groupIds.map((id) => this.group.getAgentGroupById(id)))
+            ? forkJoin(groupIds.map((_id) => this.group.getAgentGroupById(_id)))
             : of([]);
         return groups$.pipe(map((groups) => ({ agent, groups, datasets })));
       }),

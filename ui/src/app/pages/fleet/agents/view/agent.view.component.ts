@@ -43,7 +43,6 @@ export class AgentViewComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.agentID = this.route.snapshot.paramMap.get('id');
-    console.log(this.agentID);
     this.agentSubscription = this.orb.getAgentFullView(this.agentID).subscribe({
       next: ({ agent, datasets, groups }) => {
         this.agent = agent;
