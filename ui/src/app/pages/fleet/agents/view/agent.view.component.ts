@@ -4,6 +4,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { Subscription } from 'rxjs';
+import { OrbService } from 'app/common/services/orb.service';
+import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -19,6 +22,10 @@ export class AgentViewComponent implements OnInit, OnDestroy {
 
   agent: Agent;
 
+  datasets: { [id: string]: Dataset };
+
+  groups: AgentGroup[];
+
   agentID;
 
   agentSubscription: Subscription;
@@ -27,13 +34,29 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     protected agentsService: AgentsService,
     protected route: ActivatedRoute,
     protected router: Router,
+    protected orb: OrbService,
   ) {
     this.agent = {};
-    this.isLoading = false;
+    this.datasets = {};
+    this.isLoading = true;
   }
 
   ngOnInit() {
     this.agentID = this.route.snapshot.paramMap.get('id');
+    console.log(this.agentID);
+    this.agentSubscription = this.orb.getAgentFullView(this.agentID).subscribe({
+      next: ({agent, datasets, groups}) => {
+        this.agent = agent;
+        this.datasets = datasets;
+        this.groups = groups;
+        console.table(this.agent);
+        console.table(this.datasets);
+        console.table(this.groups);
+        this.isLoading = false;
+      }, error: (err) => {
+        this.isLoading = false;
+      }
+    })
     this.isLoading = true;
     this.retrieveAgent();
   }

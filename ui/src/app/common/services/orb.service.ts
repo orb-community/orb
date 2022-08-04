@@ -157,11 +157,20 @@ export class OrbService implements OnDestroy {
   getAgentFullView(id: string) {
     return this.agent.getAgentById(id).pipe(
       mergeMap((agent) => {
-        const datasetIds = agent?.last_hb_data?.policy_state?.map((state)=> state?.datasets)
-        .flat().filter(this.onlyUnique).map((id) => this.dataset.getDatasetById(id));
+        const policy_state = agent?.last_hb_data?.policy_state;
+        const datasetIds = !!policy_state && Object.values(policy_state).map((state)=> state['datasets'])
+        .filter(this.onlyUnique).map((id) => this.dataset.getDatasetById(id)) || [];
         return datasetIds.length > 0 ? 
-        forkJoin(datasetIds).pipe(map((datasets) => ({agent, datasets}))) : of({agent, datasets: []});
+        forkJoin(datasetIds).pipe(
+          map((datasets) => datasets.reduce((acc, val) => {acc[val.id] = val; return acc;}, {})),
+          map((datasets) => ({agent, datasets}))) : of({agent, datasets: {}});
       }),
+      mergeMap(({agent, datasets}) => {
+        const agent_state = agent?.last_hb_data?.agent_state;
+        const groupIds = !!agent_state && Object.keys(agent_state);
+        const groups$ = groupIds.length > 0 ? forkJoin(groupIds.map((id) => this.group.getAgentGroupById(id))) : of([]);
+        return groups$.pipe(map((groups) => ({agent, groups, datasets})));
+      })
     );
   }
 

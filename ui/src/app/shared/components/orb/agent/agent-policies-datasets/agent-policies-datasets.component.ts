@@ -21,45 +21,36 @@ import { Sink } from 'app/common/interfaces/orb/sink.interface';
 export class AgentPoliciesDatasetsComponent implements OnInit {
   @Input() agent: Agent;
 
+  @Input()  
+  datasets: { [id: string]: Dataset };
+  
   @Output()
   refreshAgent: EventEmitter<string>;
 
   policyStates = AgentPolicyStates;
 
-  datasets: { [id: string]: Dataset };
-
   policies: AgentPolicyState[];
-
-  isLoading: boolean;
 
   errors;
 
-  agentSubscription: Subscription
-
   constructor(
-    private datasetService: DatasetPoliciesService,
-    private orb: OrbService,
     private router: Router,
     private route: ActivatedRoute,
     private dialogService: NbDialogService,
   ) {
     this.refreshAgent = new EventEmitter<string>();
     this.datasets = {};
+    this.policies = [];
     this.errors = {};
   }
 
   ngOnInit(): void {
-    this.agentSubscription = this.orb.getAgentFullView(this?.agent?.id).subscribe((resp) => {
-      const { agent, datasets } = resp;
-
-      
-    });
-    this.policies = this.getPoliciesStates(
-      this?.agent?.last_hb_data?.policy_state,
-    );
-    const datasetIds = this.getDatasetIds(this.policies);
-    this.isLoading = true;
-    this.retrieveDatasets(datasetIds);
+    const policiesStates = this.agent?.last_hb_data?.policy_state;
+    if (!policiesStates || policiesStates === []) {
+      this.errors['nodatasets'] = 'Agent has no defined datasets.';
+    } else {
+      this.policies = this.getPoliciesStates(policiesStates);
+    }
   }
 
   getPoliciesStates(policyStates: { [id: string]: AgentPolicyState }) {
@@ -73,37 +64,6 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
     });
   }
 
-  getDatasetIds(policiesStates: AgentPolicyState[]) {
-    if (!policiesStates || policiesStates === []) {
-      this.errors['nodatasets'] = 'Agent has no defined datasets.';
-      return [];
-    }
-
-    const datasetIds = policiesStates
-      .map((state) => state?.datasets)
-      .reduce((acc, curr) => curr.concat(acc), []);
-
-    return datasetIds;
-  }
-
-  retrieveDatasets(datasetIds: string[]) {
-    if (!datasetIds) {
-      return;
-    }
-
-    forkJoin(
-      datasetIds.map((id) => this.datasetService.getDatasetById(id)),
-    ).subscribe((resp) => {
-      this.datasets = resp.reduce(
-        (acc: { [id: string]: Dataset }, curr: Dataset) => {
-          acc[curr.id] = curr;
-          return acc;
-        },
-        {},
-      );
-      this.isLoading = false;
-    });
-  }
 
   onOpenViewPolicy(policy: any) {
     this.router.navigate([`/pages/datasets/policies/view/${policy.id}`], {
