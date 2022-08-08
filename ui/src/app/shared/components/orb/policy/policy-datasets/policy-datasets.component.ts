@@ -22,7 +22,7 @@ import {
 } from '@swimlane/ngx-datatable';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
-import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
+import { DatasetFromComponent, DATASET_RESPONSE } from 'app/pages/datasets/dataset-from/dataset-from.component';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { Subscription } from 'rxjs';
@@ -167,7 +167,7 @@ export class PolicyDatasetsComponent
         closeOnBackdropClick: true,
       })
       .onClose.subscribe((resp) => {
-        if (resp === 'created') {
+        if (resp === DATASET_RESPONSE.CREATED) {
           this.refreshPolicy.emit('refresh-from-dataset');
         }
       });
@@ -186,7 +186,7 @@ export class PolicyDatasetsComponent
         hasBackdrop: true,
       })
       .onClose.subscribe((resp) => {
-        if (resp === 'changed' || resp === 'deleted') {
+        if (resp !== DATASET_RESPONSE.CANCELED) {
           this.refreshPolicy.emit('refresh-from-dataset');
         }
       });
