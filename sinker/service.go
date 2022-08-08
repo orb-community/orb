@@ -54,6 +54,7 @@ type Service interface {
 
 type sinkerService struct {
 	pubSub mfnats.PubSub
+	otel   bool
 
 	sinkerCache config.ConfigRepo
 	esclient    *redis.Client
@@ -293,29 +294,41 @@ func (svc sinkerService) Start() error {
 	svc.hbDone = make(chan bool)
 	go svc.checkSinker()
 
+	err := svc.startOtel()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (svc sinkerService) startOtel() error {
 	ctx := context.Background()
-	exporter, err := createExporter(ctx, svc.logger)
-	if err != nil {
-		return err
-	}
+	if svc.otel {
+		exporter, err := createExporter(ctx, svc.logger)
+		if err != nil {
+			svc.logger.Error("error during create exporter", zap.Error(err))
+			return err
+		}
 
-	metricsReceiver, err := createReceiver(ctx, svc.logger)
-	if err != nil {
-		return err
-	}
+		metricsReceiver, err := createReceiver(ctx, svc.logger)
+		if err != nil {
+			svc.logger.Error("error during create receiver", zap.Error(err))
+			return err
+		}
 
-	err = exporter.Start(ctx, nil)
-	if err != nil {
-		svc.logger.Error("otel exporter startup error", zap.Error(err))
-		return err
-	}
+		err = exporter.Start(ctx, nil)
+		if err != nil {
+			svc.logger.Error("otel exporter startup error", zap.Error(err))
+			return err
+		}
 
-	err = metricsReceiver.Start(ctx, nil)
-	if err != nil {
-		svc.logger.Error("otel receiver startup error", zap.Error(err))
-		return err
+		err = metricsReceiver.Start(ctx, nil)
+		if err != nil {
+			svc.logger.Error("otel receiver startup error", zap.Error(err))
+			return err
+		}
 	}
-
 	return nil
 }
 
@@ -355,6 +368,7 @@ func New(logger *zap.Logger,
 		sinksClient:    sinksClient,
 		requestGauge:   requestGauge,
 		requestCounter: requestCounter,
+		otel:           false,
 	}
 }
 
@@ -363,7 +377,7 @@ func createReceiver(ctx context.Context, logger *zap.Logger) (component.MetricsR
 
 	set := component.ReceiverCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:         nil,
+			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
 			MeterProvider:  global.MeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
