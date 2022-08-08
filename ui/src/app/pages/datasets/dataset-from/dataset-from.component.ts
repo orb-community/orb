@@ -276,7 +276,8 @@ export class DatasetFromComponent implements OnInit {
     return new Promise((resolve) => {
       this.loading[CONFIG.SINKS] = true;
       this.sinksService.getAllSinks().subscribe((resp: Sink[]) => {
-        this.selectedSinks = this.dataset.sink_ids.map((sink) => {
+        const selectedSinkIds = this.dataset?.sink_ids || [];
+        this.selectedSinks = selectedSinkIds.map((sink) => {
           return resp.find((anotherSink) => anotherSink.id === sink);
         });
         this.availableSinks = resp;
