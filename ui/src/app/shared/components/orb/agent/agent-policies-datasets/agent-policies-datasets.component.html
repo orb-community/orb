@@ -28,8 +28,8 @@
       </nb-accordion-item>
     </nb-accordion>
 
-    <p *ngIf="errors?.nodatasets">
-      <span class="error-accent">{{ errors.nodatasets }}</span>
-    </p>
+    
+    <span *ngIf="errors?.nodatasets" class="error-accent">{{ errors.nodatasets }}</span>
+    
   </nb-card-body>
 </nb-card>

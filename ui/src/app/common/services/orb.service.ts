@@ -163,8 +163,10 @@ export class OrbService implements OnDestroy {
             Object.values(policy_state)
               .map((state) => state['datasets'])
               .filter(this.onlyUnique)
-              .map((datasets)=> datasets.map((_id) => this.dataset.getDatasetById(_id)))) ||
-          [] as Observable<Dataset>[];
+              .map((datasets) =>
+                datasets.map((_id) => this.dataset.getDatasetById(_id)),
+              )) ||
+          ([] as Observable<Dataset>[]);
         return datasetIds.length > 0
           ? forkJoin(datasetIds).pipe(
               map((datasets) =>

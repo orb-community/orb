@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
@@ -35,34 +35,33 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     protected route: ActivatedRoute,
     protected router: Router,
     protected orb: OrbService,
+    protected cdr: ChangeDetectorRef,
   ) {
     this.agent = {};
     this.datasets = {};
+    this.groups = [];
     this.isLoading = true;
   }
 
   ngOnInit() {
     this.agentID = this.route.snapshot.paramMap.get('id');
+    this.retrieveAgent();
+  }
+
+  retrieveAgent() {
     this.agentSubscription = this.orb.getAgentFullView(this.agentID).subscribe({
       next: ({ agent, datasets, groups }) => {
         this.agent = agent;
         this.datasets = datasets as {[id: string]: Dataset};
         this.groups = groups;
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.isLoading = false;
       },
     });
     this.isLoading = true;
-    this.retrieveAgent();
-  }
-
-  retrieveAgent() {
-    return this.agentsService.getAgentById(this.agentID).subscribe((agent) => {
-      this.agent = agent;
-      this.isLoading = false;
-    });
   }
 
   isToday() {

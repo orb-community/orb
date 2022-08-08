@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NbDialogService } from '@nebular/theme';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
@@ -14,7 +22,7 @@ import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-fr
   templateUrl: './agent-policies-datasets.component.html',
   styleUrls: ['./agent-policies-datasets.component.scss'],
 })
-export class AgentPoliciesDatasetsComponent implements OnInit {
+export class AgentPoliciesDatasetsComponent implements OnInit, OnChanges {
   @Input() agent: Agent;
 
   @Input()
@@ -40,17 +48,29 @@ export class AgentPoliciesDatasetsComponent implements OnInit {
     this.errors = {};
   }
 
-  ngOnInit(): void {
-    const policiesStates = this.agent?.last_hb_data?.policy_state;
-    if (!policiesStates || policiesStates === []) {
+  ngOnInit(): void {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.agent) {
+      const policiesStates = this.agent?.last_hb_data?.policy_state;
+      if (!policiesStates || policiesStates.length === 0) {
+        this.errors['nodatasets'] = 'Agent has no defined datasets.';
+      } else {
+        this.policies = this.getPoliciesStates(policiesStates);
+      }
+    }
+    if (changes.datasets) {
+      this.datasets = changes.datasets.currentValue;
+    }
+    if (!this.datasets || Object.keys(this.datasets).length === 0) {
       this.errors['nodatasets'] = 'Agent has no defined datasets.';
     } else {
-      this.policies = this.getPoliciesStates(policiesStates);
+      delete this.errors['nodatasets'];
     }
   }
 
   getPoliciesStates(policyStates: { [id: string]: AgentPolicyState }) {
-    if (!policyStates || policyStates === {}) {
+    if (!policyStates || Object.keys(policyStates).length === 0) {
       this.errors['nodatasets'] = 'Agent has no defined policies.';
       return [];
     }
