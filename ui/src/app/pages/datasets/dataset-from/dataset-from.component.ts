@@ -19,6 +19,13 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
 import { Observable, of } from 'rxjs';
 
+export const DATASET_RESPONSE = {
+  EDITED: 'edited',
+  CANCELED: 'canceled',
+  DELETED: 'deleted',
+  CREATED: 'created',
+};
+
 const CONFIG = {
   SINKS: 'SINKS',
   GROUPS: 'GROUPS',
@@ -308,12 +315,12 @@ export class DatasetFromComponent implements OnInit {
         .editDataset({ ...payload, id: this.dataset.id })
         .subscribe(() => {
           this.notificationsService.success('Dataset successfully updated', '');
-          this.dialogRef.close('edited');
+          this.dialogRef.close(DATASET_RESPONSE.EDITED);
         });
     } else {
       this.datasetService.addDataset(payload).subscribe(() => {
         this.notificationsService.success('Dataset successfully created', '');
-        this.dialogRef.close('created');
+        this.dialogRef.close(DATASET_RESPONSE.CREATED);
       });
     }
   }
@@ -332,14 +339,14 @@ export class DatasetFromComponent implements OnInit {
               'Dataset successfully deleted',
               '',
             );
-            this.dialogRef.close('deleted');
+            this.dialogRef.close(DATASET_RESPONSE.DELETED);
           });
         }
       });
   }
 
   onClose() {
-    this.dialogRef.close('canceled');
+    this.dialogRef.close(DATASET_RESPONSE.CANCELED);
   }
 
   private filter(value: string): AgentGroup[] {
