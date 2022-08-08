@@ -46,7 +46,7 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     this.agentSubscription = this.orb.getAgentFullView(this.agentID).subscribe({
       next: ({ agent, datasets, groups }) => {
         this.agent = agent;
-        this.datasets = datasets;
+        this.datasets = datasets as {[id: string]: Dataset};
         this.groups = groups;
         this.isLoading = false;
       },

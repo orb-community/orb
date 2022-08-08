@@ -163,12 +163,12 @@ export class OrbService implements OnDestroy {
             Object.values(policy_state)
               .map((state) => state['datasets'])
               .filter(this.onlyUnique)
-              .map((_id) => this.dataset.getDatasetById(_id))) ||
-          [];
+              .map((datasets)=> datasets.map((_id) => this.dataset.getDatasetById(_id)))) ||
+          [] as Observable<Dataset>[];
         return datasetIds.length > 0
           ? forkJoin(datasetIds).pipe(
               map((datasets) =>
-                datasets.reduce((acc, val) => {
+                datasets.reduce((acc, val: Dataset) => {
                   acc[val.id] = val;
                   return acc;
                 }, {}),
@@ -178,8 +178,8 @@ export class OrbService implements OnDestroy {
           : of({ agent, datasets: {} });
       }),
       mergeMap(({ agent, datasets }) => {
-        const agent_state = agent?.last_hb_data?.agent_state;
-        const groupIds = !!agent_state && Object.keys(agent_state);
+        const group_state = agent?.last_hb_data?.group_state;
+        const groupIds = !!group_state && Object.keys(group_state);
         const groups$ =
           groupIds.length > 0
             ? forkJoin(groupIds.map((_id) => this.group.getAgentGroupById(_id)))
