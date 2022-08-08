@@ -192,9 +192,9 @@ export class DatasetFromComponent implements OnInit {
     if (!!this.dataset) {
       const { name, agent_group_id, agent_policy_id, sink_ids } = this.dataset;
       this.selectedGroup = agent_group_id;
-      this.selectedSinks = this.availableSinks.filter((sink) =>
+      this.selectedSinks = !!sink_ids && this.availableSinks.filter((sink) =>
         sink_ids.includes(sink.id),
-      );
+      ) || [];
       this.selectedPolicy = agent_policy_id;
       this.form.patchValue({ name, agent_group_id, agent_policy_id, sink_ids });
       this.isEdit = true;
