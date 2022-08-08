@@ -85,7 +85,12 @@ func main() {
 		atomicLevel,
 	)
 	logger = zap.New(core, zap.AddCaller())
-	defer logger.Sync() // flushes buffer, if any
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(logger) // flushes buffer, if any
 
 	// only needed for mainflux interfaces
 	mflogger, err := mflog.New(os.Stdout, svcCfg.LogLevel)
@@ -96,10 +101,20 @@ func main() {
 	cacheClient := connectToRedis(cacheCfg.URL, cacheCfg.Pass, cacheCfg.DB, logger)
 
 	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
-	defer esClient.Close()
+	defer func(esClient *redis.Client) {
+		err := esClient.Close()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(esClient)
 
 	tracer, tracerCloser := initJaeger(svcName, jCfg.URL, logger)
-	defer tracerCloser.Close()
+	defer func(tracerCloser io.Closer) {
+		err := tracerCloser.Close()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(tracerCloser)
 
 	pubSub, err := mfnats.NewPubSub(natsCfg.URL, svcName, mflogger)
 	if err != nil {
@@ -109,7 +124,12 @@ func main() {
 	defer pubSub.Close()
 
 	policiesGRPCConn := connectToGRPC(policiesGRPCCfg, logger)
-	defer policiesGRPCConn.Close()
+	defer func(policiesGRPCConn *grpc.ClientConn) {
+		err := policiesGRPCConn.Close()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(policiesGRPCConn)
 
 	policiesGRPCTimeout, err := time.ParseDuration(policiesGRPCCfg.Timeout)
 	if err != nil {
@@ -118,7 +138,12 @@ func main() {
 	policiesGRPCClient := policiesgrpc.NewClient(tracer, policiesGRPCConn, policiesGRPCTimeout)
 
 	fleetGRPCConn := connectToGRPC(fleetGRPCCfg, logger)
-	defer fleetGRPCConn.Close()
+	defer func(fleetGRPCConn *grpc.ClientConn) {
+		err := fleetGRPCConn.Close()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(fleetGRPCConn)
 
 	fleetGRPCTimeout, err := time.ParseDuration(fleetGRPCCfg.Timeout)
 	if err != nil {
@@ -127,7 +152,12 @@ func main() {
 	fleetGRPCClient := fleetgrpc.NewClient(tracer, fleetGRPCConn, fleetGRPCTimeout)
 
 	sinksGRPCConn := connectToGRPC(sinksGRPCCfg, logger)
-	defer sinksGRPCConn.Close()
+	defer func(sinksGRPCConn *grpc.ClientConn) {
+		err := sinksGRPCConn.Close()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(sinksGRPCConn)
 
 	sinksGRPCTimeout, err := time.ParseDuration(sinksGRPCCfg.Timeout)
 	if err != nil {
