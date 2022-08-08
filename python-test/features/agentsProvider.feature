@@ -130,9 +130,11 @@ Scenario: Stop agent container
         And the agent container is started on an available port
         And the agent status is online
     When stop the orb-agent container
-    Then the container logs should contain the message "pktvisor stopping" within 30 seconds
+    Then the container logs should contain the message "stop signal received stopping agent" within 30 seconds
+        And the container logs should contain the message "pktvisor process stopped" within 30 seconds
         And the agent status in Orb should be offline within 30 seconds
         And the container logs should not contain any error message
+        And the container logs should not contain any panic message
 
 
 @sanity
@@ -155,4 +157,7 @@ Scenario: Remove agent
         And the agent status is online
     When this agent is removed
     Then the container logs should contain the message "ERROR mqtt log" within 120 seconds
-        And last container created is running after 120 seconds
+        And the container logs should contain the message "error reconnecting with MQTT, stopping agent" within 120 seconds
+        And last container created is exited within 70 seconds
+        And the container logs should not contain any panic message
+        And last container created is exited after 120 seconds
