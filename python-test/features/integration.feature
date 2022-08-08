@@ -920,5 +920,8 @@ Scenario: Remove agent (check dataset)
     When this agent is removed
     Then 0 agent must be matching on response field matching_agents of the last group created
         And the container logs should contain the message "ERROR mqtt log" within 120 seconds
-        And last container created is running after 120 seconds
+        And the container logs should contain the message "error reconnecting with MQTT, stopping agent" within 120 seconds
+        And last container created is exited within 70 seconds
+        And the container logs should not contain any panic message
+        And last container created is exited after 120 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds

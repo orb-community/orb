@@ -57,12 +57,13 @@ def check_agent_logs_considering_timestamp(context, condition, text_to_match, ti
                                        f"Container logs: {json.dumps(logs, indent=4)}")
 
 
-@step("the container logs should not contain any error message")
-def check_errors_on_agent_logs(context):
+@step("the container logs should not contain any {type_of_message} message")
+def check_errors_on_agent_logs(context, type_of_message):
+    type_dict = {"error": '"level":"error"', "panic": 'panic:'}
     logs = get_orb_agent_logs(context.container_id)
-    logs_with_error = [log for log in logs if '"level":"error"' in log]
-    assert_that(len(logs_with_error), equal_to(0), f"agents logs contain the following errors: {logs_with_error}."
-                                                   f"\n All logs: {logs}.")
+    non_expected_logs = [log for log in logs if type_dict[type_of_message] in log]
+    assert_that(len(non_expected_logs), equal_to(0), f"agents logs contain the following {type_of_message}: "
+                                                     f"{non_expected_logs}. \n All logs: {logs}.")
 
 
 @then('the container logs should contain the message "{text_to_match}" within {time_to_wait} seconds')
@@ -71,6 +72,15 @@ def check_agent_log(context, text_to_match, time_to_wait):
 
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
                                        f"Container logs: {json.dumps(logs, indent=4)}")
+
+
+@step("{order} container created is {status} within {seconds} seconds")
+def check_last_container_status(context, order, status, seconds):
+    order_convert = {"first": 0, "last": -1, "second": 1}
+    container = list(context.containers_id.keys())[order_convert[order]]
+    container_status = check_container_status(container, status, timeout=seconds)
+    assert_that(container_status, equal_to(status), f"Container {context.container_id} failed with status "
+                                                    f"{container_status}")
 
 
 @step("{order} container created is {status} after {seconds} seconds")
