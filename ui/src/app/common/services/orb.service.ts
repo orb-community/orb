@@ -159,16 +159,15 @@ export class OrbService implements OnDestroy {
       mergeMap((agent) => {
         const policy_state = agent?.last_hb_data?.policy_state;
         const datasetIds =
-          (!!policy_state &&
-            Object.values(policy_state)
-              .map((state) => state['datasets'])
-              .filter(this.onlyUnique)
-              .map((datasets) =>
-                datasets.map((_id) => this.dataset.getDatasetById(_id)),
-              )) ||
-          ([] as Observable<Dataset>[]);
+          !!policy_state &&
+          Object.values(policy_state)
+            .map((state) => state['datasets'])
+            .reduce((acc, val) => acc.concat(val), [])
+            .filter(this.onlyUnique);
         return datasetIds.length > 0
-          ? forkJoin(datasetIds).pipe(
+          ? forkJoin(
+              datasetIds.map((_id) => this.dataset.getDatasetById(_id)),
+            ).pipe(
               map((datasets) =>
                 datasets.reduce((acc, val: Dataset) => {
                   acc[val.id] = val;
