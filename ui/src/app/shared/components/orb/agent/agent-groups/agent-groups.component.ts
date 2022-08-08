@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NbDialogService } from '@nebular/theme';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
@@ -10,7 +10,7 @@ import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent
   templateUrl: './agent-groups.component.html',
   styleUrls: ['./agent-groups.component.scss'],
 })
-export class AgentGroupsComponent implements OnInit {
+export class AgentGroupsComponent implements OnInit, OnChanges {
   @Input() agent: Agent;
 
   @Input()
@@ -27,10 +27,16 @@ export class AgentGroupsComponent implements OnInit {
     this.errors = {};
   }
 
-  ngOnInit(): void {
+  ngOnInit(): void {}
+
+  ngOnChanges(changes) {
+    if (changes.groups) {
+      this.groups = changes.groups.currentValue;
+    }
     if (!this.groups || this.groups.length === 0) {
       this.errors['nogroup'] = 'This agent does not belong to any group.';
-      return;
+    } else {
+      delete this.errors['nogroup'];
     }
   }
 

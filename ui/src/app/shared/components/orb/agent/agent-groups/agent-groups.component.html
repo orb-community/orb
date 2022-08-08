@@ -3,23 +3,14 @@
   <nb-card-body>
     <span class="error-accent" *ngIf="errors?.nogroup">{{ errors.nogroup }}</span>
 
-    <ng-container *ngFor="let group of groups; last as isLast"
-    
-    [value]="group">
-    >
+    <ng-container *ngFor="let group of groups; last as isLast" >
+      <button class='agent-group-button'
+      *ngIf="!group.statusText"
+      (click)="showAgentGroupDetail(group)">
+        <span class="agent-group-accent">{{ group?.name }}</span>
+        <span *ngIf="!isLast">,</span>
+      </button>
+      <span *ngIf="group.statusText" class="error-accent">{{ group.id + ': ' + group.status + ' ' + group.statusText }}</span>
     </ng-container>
   </nb-card-body>
 </nb-card>
-
-<ng-template #groupitem>
-  <button class='agent-group-button'
-          (click)="showAgentGroupDetail(group)"
-          *ngFor="let group of groups; last as isLast">
-    <span class="agent-group-accent">{{ group.name }}</span>
-    <span *ngIf="!isLast">,</span>
-  </button>
-</ng-template>
-
-<ng-template #erroritem>
-  <span class="agent-group-error">{{ group.id + ': ' + group.status + ' ' + group.statusText }}</span>
-</ng-template>
