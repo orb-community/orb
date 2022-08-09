@@ -5,31 +5,46 @@
       <nb-accordion-item>
         <nb-accordion-item-header>
           <span class="summary-accent">Policy:&nbsp;</span>
-          <button class='agent-policy-button'
-                  (click)="onOpenViewPolicy(policy)">{{ policy?.name }}</button>
+          <button
+            class="agent-policy-button"
+            (click)="onOpenViewPolicy(policy)"
+          >
+            {{ policy?.name }}
+          </button>
           <span class="summary-accent">&nbsp;&nbsp;Status:&nbsp;</span>
-          <span
-            class="policy-{{ policy?.state }}">{{
-            policy?.state }}</span>
+          <span class="policy-{{ policy?.state }}">{{ policy?.state }}</span>
         </nb-accordion-item-header>
         <nb-accordion-item-body>
           <nb-list>
-            <nb-list-item *ngIf="policy.state === policyStates.failedToApply"
-                          class="error-item">
-              <span><span class="error-title">Error Details: </span>{{ policy?.error }}</span>
+            <nb-list-item
+              *ngIf="policy.state === policyStates.failedToApply"
+              class="error-item"
+            >
+              <span
+                ><span class="error-title">Error Details: </span
+                >{{ policy?.error }}</span
+              >
             </nb-list-item>
             <nb-list-item *ngFor="let id of policy.datasets">
               <span>Dataset:&nbsp;</span>
-              <button class='agent-policy-button'
-                      (click)="onOpenViewDataset(datasets[id])">{{ datasets[id]?.name }}</button>
+              <button
+                class="agent-policy-button"
+                *ngIf="!datasets[id].statusText"
+                (click)="onOpenViewDataset(datasets[id])"
+              >
+                {{ datasets[id].name }}
+              </button>
+              <span class="error-accent" *ngIf="datasets[id].statusText">{{
+                id + ': ' + datasets[id].statusText
+              }}</span>
             </nb-list-item>
           </nb-list>
         </nb-accordion-item-body>
       </nb-accordion-item>
     </nb-accordion>
 
-    
-    <span *ngIf="errors?.nodatasets" class="error-accent">{{ errors.nodatasets }}</span>
-    
+    <span *ngIf="errors?.nodatasets" class="error-accent">{{
+      errors.nodatasets
+    }}</span>
   </nb-card-body>
 </nb-card>
