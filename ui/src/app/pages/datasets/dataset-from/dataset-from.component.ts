@@ -199,9 +199,10 @@ export class DatasetFromComponent implements OnInit {
     if (!!this.dataset) {
       const { name, agent_group_id, agent_policy_id, sink_ids } = this.dataset;
       this.selectedGroup = agent_group_id;
-      this.selectedSinks = !!sink_ids && this.availableSinks.filter((sink) =>
-        sink_ids.includes(sink.id),
-      ) || [];
+      this.selectedSinks =
+        (!!sink_ids &&
+          this.availableSinks.filter((sink) => sink_ids.includes(sink.id))) ||
+        [];
       this.selectedPolicy = agent_policy_id;
       this.form.patchValue({ name, agent_group_id, agent_policy_id, sink_ids });
       this.isEdit = true;
@@ -283,11 +284,11 @@ export class DatasetFromComponent implements OnInit {
     return new Promise((resolve) => {
       this.loading[CONFIG.SINKS] = true;
       this.sinksService.getAllSinks().subscribe((resp: Sink[]) => {
+        this.availableSinks = resp;
         const selectedSinkIds = this.dataset?.sink_ids || [];
         this.selectedSinks = selectedSinkIds.map((sink) => {
           return resp.find((anotherSink) => anotherSink.id === sink);
         });
-        this.availableSinks = resp;
 
         this.loading[CONFIG.SINKS] = false;
 
