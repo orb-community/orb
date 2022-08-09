@@ -122,10 +122,6 @@ func (a *orbAgent) Start() error {
 		mqtt.DEBUG = &agentLoggerDebug{a: a}
 	}
 
-	if err := a.startBackends(); err != nil {
-		return err
-	}
-
 	ccm, err := cloud_config.New(a.logger, a.config, a.db)
 	if err != nil {
 		return err
@@ -140,6 +136,10 @@ func (a *orbAgent) Start() error {
 
 	if err := a.startComms(cloudConfig); err != nil {
 		a.logger.Error("could not restart mqtt client")
+		return err
+	}
+
+	if err := a.startBackends(); err != nil {
 		return err
 	}
 
