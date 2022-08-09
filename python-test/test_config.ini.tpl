@@ -16,3 +16,4 @@ This field is required if use docker approach to run the tests
 # orb_agent_interface=mock
 # ignore_ssl_and_certificate_errors=True
 # is_credentials_registered=False
+# headless=True

@@ -76,6 +76,10 @@ Then fill in the correct values:
 - **orb_agent_interface**:
   - Network interface that will be used by pktvisor when running the Orb agent.
   - Default value: `mock`
+- **headless**:
+  - Bool
+  - Referred to UI tests. If True, run chromedriver in headless mode
+  - Default value: `true`
 
 ## Run behave
 Simply run `behave`, optionally passing the feature file as follows:

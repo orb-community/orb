@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
@@ -94,17 +95,25 @@ func Run(cmd *cobra.Command, args []string) {
 
 	// handle signals
 	done := make(chan bool, 1)
+	rootCtx, cancelFunc := context.WithCancel(context.WithValue(context.Background(), "routine", "mainRoutine"))
 
 	go func() {
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
-		<-sigs
-		a.Stop()
-		done <- true
+		select {
+		case <-sigs:
+			logger.Warn("stop signal received stopping agent")
+			a.Stop(rootCtx)
+			cancelFunc()
+		case <-rootCtx.Done():
+			logger.Warn("mainRoutine context cancelled")
+			done <- true
+			return
+		}
 	}()
 
 	// start agent
-	err = a.Start()
+	err = a.Start(rootCtx, cancelFunc)
 	if err != nil {
 		logger.Error("agent startup error", zap.Error(err))
 		os.Exit(1)

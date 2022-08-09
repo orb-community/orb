@@ -170,7 +170,7 @@ type FlowPayload struct {
 		} `mapstructure:"cardinality"`
 		Filtered                int64       `mapstructure:"filtered"`
 		Flows                   int64       `mapstructure:"flows"`
-		Ipv4                    int64       `jmapstructureson:"ipv4"`
+		Ipv4                    int64       `mapstructure:"ipv4"`
 		Ipv6                    int64       `mapstructure:"ipv6"`
 		OtherL4                 int64       `mapstructure:"other_l4"`
 		PayloadSize             Quantiles   `mapstructure:"payload_size"`
