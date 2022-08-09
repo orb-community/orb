@@ -1,15 +1,14 @@
-<header class="row"
-        data-orb-qa-id="agent#view">
+<header class="row" data-orb-qa-id="agent#view">
   <div class="col-5">
-    <xng-breadcrumb class="orb-breadcrumb"
-                    data-orb-qa-id="breadcrumb">
+    <xng-breadcrumb class="orb-breadcrumb" data-orb-qa-id="breadcrumb">
     </xng-breadcrumb>
     <div><h4>Agent View</h4></div>
   </div>
-  <div *ngIf="!isLoading"
-       class="col-7">
+  <div *ngIf="!isLoading" class="col-7">
     <span class="float-right">
-      <span class="agent-{{ agent?.state }}">{{ agent?.state | ngxCapitalize }}.</span>
+      <span class="agent-{{ agent?.state }}"
+        >{{ agent?.state | ngxCapitalize }}.</span
+      >
       <span *ngIf="agent?.state !== agentStates.new">
         Last activity
         <span *ngIf="isToday()">
@@ -29,14 +28,14 @@
 <div *ngIf="!isLoading" class="row">
   <div class="card-col col-5">
     <ngx-agent-information [agent]="agent"></ngx-agent-information>
-
   </div>
 
   <div class="card-col col-7">
     <ngx-agent-policies-datasets
-            [agent]="agent"
-            [datasets]="datasets"
-            (refreshAgent)="retrieveAgent()">
+      [agent]="agent"
+      [datasets]="datasets"
+      (refreshAgent)="retrieveAgent()"
+    >
     </ngx-agent-policies-datasets>
     <ngx-agent-groups [agent]="agent" [groups]="groups"></ngx-agent-groups>
     <ngx-agent-provisioning [agent]="agent"></ngx-agent-provisioning>
