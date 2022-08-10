@@ -4,14 +4,17 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 
 
-def go_to_page(page, context):
+def go_to_page(page, context, headless=True):
     """Open the page in Chrome browser
     Args:
         :param (str) page: site's URL
         :param (behave.runner.Context) context: object that hold contextual information during the running of tests
+        :param (bool) headless: run webdriver in headless mode
     """
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
+    if headless:
+        options.add_argument('headless')
     context.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     context.driver.get(str(page))
     return str(context.driver.current_url)

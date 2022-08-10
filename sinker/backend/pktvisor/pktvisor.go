@@ -31,6 +31,7 @@ type context struct {
 	agentID    string
 	policyID   string
 	policyName string
+	deviceID   string
 	tags       map[string]string
 	logger     *zap.Logger
 }
@@ -62,6 +63,7 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 		agentID:    agentID,
 		policyID:   data.PolicyID,
 		policyName: data.PolicyName,
+		deviceID:   "",
 		tags:       tags,
 		logger:     p.logger,
 	}
@@ -104,7 +106,12 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 
 func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
 	var tsList = prometheus.TSList{}
+
 	statsMap := structs.Map(stats)
+	if stats.Flow != nil {
+		convertFlowToPromParticle(ctxt, statsMap, "", &tsList)
+		return tsList
+	}
 	convertToPromParticle(ctxt, statsMap, "", &tsList)
 	return tsList
 }
@@ -135,6 +142,66 @@ func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label
 			{
 				// Use this regex to identify if the value it's a quantile
 				var matchFirstQuantile = regexp.MustCompile("^[Pp]+[0-9]")
+				if ok := matchFirstQuantile.MatchString(key); ok {
+					// If it's quantile, needs to be parsed to prom quantile format
+					tsList = makePromParticle(ctxt, label, key, value, tsList, ok, "")
+				} else {
+					tsList = makePromParticle(ctxt, label+key, "", value, tsList, false, "")
+				}
+			}
+		// The StatSnapshot has two ways to record metrics (i.e. TopIpv4   []NameCount   `mapstructure:"top_ipv4"`)
+		// It's why we check if the type is []interface
+		// Here we extract the value for Name and Estimate
+		case []interface{}:
+			{
+				for _, value := range statistic {
+					m, ok := value.(map[string]interface{})
+					if !ok {
+						return
+					}
+					var promLabel string
+					var promDataPoint interface{}
+					for k, v := range m {
+						switch k {
+						case "Name":
+							{
+								promLabel = fmt.Sprintf("%v", v)
+							}
+						case "Estimate":
+							{
+								promDataPoint = v
+							}
+						}
+					}
+					tsList = makePromParticle(ctxt, label+key, promLabel, promDataPoint, tsList, false, key)
+				}
+			}
+		}
+	}
+}
+
+func convertFlowToPromParticle(ctxt *context, statsMap map[string]interface{}, label string, tsList *prometheus.TSList) {
+	for key, value := range statsMap {
+		switch statistic := value.(type) {
+		case map[string]interface{}:
+			// Call convertToPromParticle recursively until the last interface of the StatSnapshot struct
+			// The prom particle label it's been formed during the recursive call (concatenation)
+			ipv6_regex := `^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$`
+			ipv4_regex := `^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4})`
+
+			if ok, _ := regexp.MatchString(ipv4_regex+`|`+ipv6_regex, key); ok {
+				ctxt.deviceID = key
+				convertFlowToPromParticle(ctxt, statistic, label, tsList)
+			} else {
+				convertFlowToPromParticle(ctxt, statistic, label+key, tsList)
+			}
+
+		// The StatSnapshot has two ways to record metrics (i.e. Live int64 `mapstructure:"live"`)
+		// It's why we check if the type is int64
+		case int64:
+			{
+				// Use this regex to identify if the value it's a quantile
+				var matchFirstQuantile = regexp.MustCompile("^([Pp])+[0-9]")
 				if ok := matchFirstQuantile.MatchString(key); ok {
 					// If it's quantile, needs to be parsed to prom quantile format
 					tsList = makePromParticle(ctxt, label, key, value, tsList, ok, "")
@@ -205,6 +272,12 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 	if err := labelsListFlag.Set("policy;" + ctxt.policyName); err != nil {
 		handleParticleError(ctxt, err)
 		return tsList
+	}
+	if ctxt.deviceID != "" {
+		if err := labelsListFlag.Set("device;" + ctxt.deviceID); err != nil {
+			handleParticleError(ctxt, err)
+			return tsList
+		}
 	}
 
 	for k, v := range ctxt.tags {
@@ -307,6 +380,8 @@ func topNMetricsParser(label string) (string, error) {
 	mapNMetrics["TopDstIpsAndPortPackets"] = "ip_port"
 	mapNMetrics["TopSrcIpsAndPortBytes"] = "ip_port"
 	mapNMetrics["TopSrcIpsAndPortPackets"] = "ip_port"
+	mapNMetrics["TopConversationsBytes"] = "conversations"
+	mapNMetrics["TopConversationsPackets"] = "conversations"
 	mapNMetrics["TopInIfIndexBytes"] = "index"
 	mapNMetrics["TopInIfIndexPackets"] = "index"
 	mapNMetrics["TopOutIfIndexBytes"] = "index"

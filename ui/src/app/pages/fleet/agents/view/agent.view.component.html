@@ -35,9 +35,10 @@
   <div class="card-col col-7">
     <ngx-agent-policies-datasets
             [agent]="agent"
+            [datasets]="datasets"
             (refreshAgent)="retrieveAgent()">
     </ngx-agent-policies-datasets>
-    <ngx-agent-groups [agent]="agent"></ngx-agent-groups>
+    <ngx-agent-groups [agent]="agent" [groups]="groups"></ngx-agent-groups>
     <ngx-agent-provisioning [agent]="agent"></ngx-agent-provisioning>
     <ngx-agent-capabilities [agent]="agent"></ngx-agent-capabilities>
   </div>

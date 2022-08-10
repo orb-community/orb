@@ -1,13 +1,13 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import 'rxjs/add/observable/empty';
 
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { environment } from 'environments/environment';
-import { expand, map, scan, takeWhile } from 'rxjs/operators';
+import { catchError, expand, map, scan, takeWhile } from 'rxjs/operators';
 
 @Injectable()
 export class DatasetPoliciesService {
@@ -38,16 +38,16 @@ export class DatasetPoliciesService {
   getDatasetById(id: string): Observable<Dataset> {
     return this.http
       .get<Dataset>(`${environment.datasetPoliciesUrl}/${id}`)
-      .map((resp) => {
-        return resp;
-      })
-      .catch((err) => {
-        this.notificationsService.error(
-          'Failed to fetch Dataset of this Policy',
-          `Error: ${err.status} - ${err.statusText}`,
-        );
-        return Observable.throwError(err);
-      });
+      .pipe(
+        catchError((err) => {
+          this.notificationsService.error(
+            'Failed to fetch Dataset of this Policy',
+            `Error: ${err.status} - ${err.statusText}`,
+          );
+          err['id'] = id;
+          return of(err);
+        }),
+      );
   }
 
   editDataset(datasetItem: Dataset): any {
