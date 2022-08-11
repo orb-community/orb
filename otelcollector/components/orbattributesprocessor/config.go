@@ -17,8 +17,8 @@ package orbattributesprocessor
 import (
 	"go.opentelemetry.io/collector/config"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/attraction"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterconfig"
+	"github.com/ns1labs/orb/otelcollector/components/internal/attraction"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterconfig"
 )
 
 // Config specifies the set of attributes to be inserted, updated, upserted and
@@ -46,6 +46,16 @@ func (cfg *Config) Validate() error {
 	return nil
 }
 
-func (cfg *Config) AppendAttribute(name string, value interface{}) (ok bool) {
-	cfg.Settings
+func (cfg *Config) AddAttribute(name string, value interface{}) (ok bool) {
+	for _, action := range cfg.Settings.Actions {
+		if action.Key == name {
+			return false
+		}
+	}
+	cfg.Settings.Actions = append(cfg.Settings.Actions, attraction.ActionKeyValue{
+		Key:    name,
+		Value:  value,
+		Action: "insert",
+	})
+	return ok
 }
