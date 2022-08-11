@@ -17,16 +17,6 @@ agent_group_name_prefix = "test_agent_group_name_"
 agent_group_description_prefix = "test_agent_group_description_"
 
 
-@given('the user clicks on new agent group on left menu')
-def agent_page(context):
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, LeftMenu.agent_group_menu())))
-    context.driver.find_element(By.XPATH, (LeftMenu.agent_group_menu())).click()
-    WebDriverWait(context.driver, 10).until(EC.url_to_be(f"{orb_url}/pages/fleet/groups"), message="Orb agent group "
-                                                                                                       "page not "
-                                                                                                       "available")
-
-
 @when('a new agent group is created through the UI with {orb_tags} orb tag')
 def create_agent_through_the_agent_group_page(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
@@ -38,12 +28,12 @@ def create_agent_through_the_agent_group_page(context, orb_tags):
                                                                                                            "page not "
                                                                                                            "available")
     context.agent_group_name = agent_group_name_prefix + random_string(10)
-    input_text_by_xpath(AgentGroupPage.agent_group_name(), context.agent_group_name, context)
+    input_text_by_xpath(AgentGroupPage.agent_group_name(), context.agent_group_name, context.driver)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
     for tag_key, tag_value in context.orb_tags.items():
-        input_text_by_xpath(AgentGroupPage.agent_group_tag_key(), tag_key, context)
-        input_text_by_xpath(AgentGroupPage.agent_group_tag_value(), tag_value, context)
+        input_text_by_xpath(AgentGroupPage.agent_group_tag_key(), tag_key, context.driver)
+        input_text_by_xpath(AgentGroupPage.agent_group_tag_value(), tag_value, context.driver)
         WebDriverWait(context.driver, 3).until(
             EC.element_to_be_clickable((By.XPATH, AgentGroupPage.agent_group_add_tag_button()))).click()
     WebDriverWait(context.driver, 3).until(
@@ -121,14 +111,14 @@ def create_agent_through_the_agent_group_page(context, orb_tags):
                                                                                                            "page not "
                                                                                                            "available")
     context.agent_group_name = agent_group_name_prefix + random_string(10)
-    input_text_by_xpath(AgentGroupPage.agent_group_name(), context.agent_group_name, context)
+    input_text_by_xpath(AgentGroupPage.agent_group_name(), context.agent_group_name, context.driver)
     context.agent_group_description = agent_group_description_prefix + random_string(10)
-    input_text_by_xpath(AgentGroupPage.agent_group_description(), context.agent_group_description, context)
+    input_text_by_xpath(AgentGroupPage.agent_group_description(), context.agent_group_description, context.driver)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
     for tag_key, tag_value in context.orb_tags.items():
-        input_text_by_xpath(AgentGroupPage.agent_group_tag_key(), tag_key, context)
-        input_text_by_xpath(AgentGroupPage.agent_group_tag_value(), tag_value, context)
+        input_text_by_xpath(AgentGroupPage.agent_group_tag_key(), tag_key, context.driver)
+        input_text_by_xpath(AgentGroupPage.agent_group_tag_value(), tag_value, context.driver)
         WebDriverWait(context.driver, 3).until(
             EC.element_to_be_clickable((By.XPATH, AgentGroupPage.agent_group_add_tag_button()))).click()
     WebDriverWait(context.driver, 3).until(

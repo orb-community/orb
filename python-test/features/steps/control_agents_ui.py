@@ -13,28 +13,29 @@ from page_objects import *
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
-AGENTS_URL = f"{orb_url}/pages/fleet/agents"
 
 
-@given("that fleet Management is clickable on ORB Menu")
-def expand_fleet_management(context):
-    context.driver.find_element(By.XPATH, (LeftMenu.agents())).click()
-
-
-@given('that Agents is clickable on ORB Menu')
-def agent_page(context):
+@given("the user clicks on {element} on left menu")
+def click_element_left_menu(context, element):
+    dict_elements = {"Agents": LeftMenu.agents(), "Agent Groups": LeftMenu.agent_group(),
+                     "Policy Management": LeftMenu.policies(), "Sink Management": LeftMenu.sinks()}
     WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, LeftMenu.agents())), message="Unable to find agent icon on left menu")
-    context.driver.find_element(By.XPATH, (LeftMenu.agents())).click()
-    WebDriverWait(context.driver, 5).until(EC.url_to_be(AGENTS_URL), message="Orb agents page not available")
+        EC.element_to_be_clickable((By.XPATH, dict_elements[element])), message=f"Unable to find {element} "
+                                                                                f"icon on left menu")
+    context.driver.find_element(By.XPATH, dict_elements[element]).click()
 
 
-@step("that the user is on the orb Agent page")
-def orb_page(context):
-    expand_fleet_management(context)
-    agent_page(context)
+@step("that the user is on the orb {element} page")
+def check_which_orb_page(context, element):
+    dict_pages = {"Agents": OrbPagesUrl.Agents(orb_url), "Agent Groups": OrbPagesUrl.AgentGroups(orb_url),
+                  "Policies": OrbPagesUrl.Policies(orb_url), "Sinks": OrbPagesUrl.Sinks(orb_url)}
+    dict_elements = {"Agents": LeftMenu.agents(), "Agent Groups": LeftMenu.agent_group(),
+                     "Policy Management": LeftMenu.policies(), "Sink Management": LeftMenu.sinks()}
+    click_element_left_menu(context, dict_elements[element])
+    WebDriverWait(context.driver, 5).until(EC.url_to_be(dict_pages[element]),
+                                           message=f"Orb {element} page not available")
     current_url = context.driver.current_url
-    assert_that(current_url, equal_to(AGENTS_URL), "user not enabled to access orb login page")
+    assert_that(current_url, equal_to(dict_pages[element]), f"user not enabled to access orb {element} page")
 
 
 @step("a new agent is created through the UI with {orb_tags} orb tag(s)")
@@ -43,16 +44,17 @@ def create_agent_through_the_agents_page(context, orb_tags):
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, AgentsPage.new_agent_button())), message="Unable to click on new agent"
                                                                                        " button").click()
-    WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{AGENTS_URL}/add"), message="Orb add agents page not "
-                                                                                      "available")
+    WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{OrbPagesUrl.Agents(orb_url)}/add"),
+                                           message="Orb add agents page not "
+                                                   "available")
     context.agent_name = agent_name_prefix + random_string(10)
-    input_text_by_xpath(AgentsPage.agent_name(), context.agent_name, context)
+    input_text_by_xpath(AgentsPage.agent_name(), context.agent_name, context.driver)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, UtilButton.next_button())), message="Unable to click on next "
                                                                                   "button (page 1)").click()
     for tag_key, tag_value in context.orb_tags.items():
-        input_text_by_xpath(AgentsPage.agent_tag_key(), tag_key, context)
-        input_text_by_xpath(AgentsPage.agent_tag_value(), tag_value, context)
+        input_text_by_xpath(AgentsPage.agent_tag_key(), tag_key, context.driver)
+        input_text_by_xpath(AgentsPage.agent_tag_value(), tag_value, context.driver)
         WebDriverWait(context.driver, 3).until(
             EC.element_to_be_clickable((By.XPATH, AgentsPage.agent_add_tag_button())), message="Unable to click on add"
                                                                                                " tag button").click()
