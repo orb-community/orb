@@ -91,6 +91,10 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 			return
 		}
 
+		if <-a.stopRpcFrom {
+			handleMsgCtxCancelFunc()
+		}
+
 		// dispatch
 		switch rpc.Func {
 		case fleet.AgentPolicyRPCFunc:
