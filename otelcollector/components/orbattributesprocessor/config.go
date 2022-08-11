@@ -59,3 +59,21 @@ func (cfg *Config) AddAttribute(name string, value interface{}) (ok bool) {
 	})
 	return ok
 }
+
+func (cfg *Config) GetAttribute(name string) (value interface{}, ok bool) {
+	for _, action := range cfg.Settings.Actions {
+		if action.Key == name {
+			return action.Value, true
+		}
+	}
+	return nil, false
+}
+
+func (cfg *Config) RemoveAttribute(name string) (value interface{}, ok bool) {
+	for _, action := range cfg.Settings.Actions {
+		if action.Key == name {
+			return action.Value, true
+		}
+	}
+	return nil, false
+}
