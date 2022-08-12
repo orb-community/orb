@@ -292,7 +292,16 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
 
-		go svc.messageInputCounter.With(msg.Subtopic, msg.Channel, msg.Protocol, strconv.FormatInt(msg.Created, 10), msg.Publisher, ctx.Value("trace-id").(string)).Add(1)
+		labels := []string{
+			"method", "handleMsgFromAgent",
+			"agent_id", msg.Publisher,
+			"subtopic", msg.Subtopic,
+			"channel", msg.Channel,
+			"protocol", msg.Protocol,
+			"created", strconv.FormatInt(msg.Created, 10),
+			"trace_id", ctx.Value("trace-id").(string),
+		}
+		svc.messageInputCounter.With(labels...).Add(1)
 
 		if len(msg.Payload) > MaxMsgPayloadSize {
 			svc.logger.Error("metrics processing failure", zap.Any("trace-id", ctx.Value("trace-id")), zap.Error(ErrPayloadTooBig))
