@@ -72,6 +72,9 @@ type sinkerService struct {
 
 	requestGauge   metrics.Gauge
 	requestCounter metrics.Counter
+
+	messageInputGauge   metrics.Gauge
+	messageInputCounter metrics.Counter
 }
 
 func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, ownerID string, sinkID string) error {
@@ -274,6 +277,8 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	go func(ctx context.Context) {
 		defer func(t time.Time) {
 			svc.logger.Info("message consumption time", zap.Duration("execution", time.Since(t)))
+			svc.messageInputGauge.Add(1)
+			svc.messageInputCounter.Add(1)
 		}(time.Now())
 		// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
 		var payload map[string]interface{}
