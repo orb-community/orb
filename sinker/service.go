@@ -277,7 +277,6 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	go func(ctx context.Context) {
 		defer func(t time.Time) {
 			svc.logger.Info("message consumption time", zap.Duration("execution", time.Since(t)))
-
 		}(time.Now())
 		// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
 		var payload map[string]interface{}
