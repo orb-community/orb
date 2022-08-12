@@ -73,7 +73,6 @@ type sinkerService struct {
 	requestGauge   metrics.Gauge
 	requestCounter metrics.Counter
 
-	messageInputGauge   metrics.Gauge
 	messageInputCounter metrics.Counter
 }
 
@@ -277,7 +276,6 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	go func(ctx context.Context) {
 		defer func(t time.Time) {
 			svc.logger.Info("message consumption time", zap.Duration("execution", time.Since(t)))
-			svc.messageInputGauge.Add(1)
 			svc.messageInputCounter.Add(1)
 		}(time.Now())
 		// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
@@ -381,20 +379,22 @@ func New(logger *zap.Logger,
 	sinksClient sinkspb.SinkServiceClient,
 	requestGauge metrics.Gauge,
 	requestCounter metrics.Counter,
+	inputCounter metrics.Counter,
 ) Service {
 
 	pktvisor.Register(logger)
 	return &sinkerService{
-		logger:         logger,
-		pubSub:         pubSub,
-		esclient:       esclient,
-		sinkerCache:    configRepo,
-		policiesClient: policiesClient,
-		fleetClient:    fleetClient,
-		sinksClient:    sinksClient,
-		requestGauge:   requestGauge,
-		requestCounter: requestCounter,
-		otel:           false,
+		logger:              logger,
+		pubSub:              pubSub,
+		esclient:            esclient,
+		sinkerCache:         configRepo,
+		policiesClient:      policiesClient,
+		fleetClient:         fleetClient,
+		sinksClient:         sinksClient,
+		requestGauge:        requestGauge,
+		requestCounter:      requestCounter,
+		messageInputCounter: inputCounter,
+		otel:                false,
 	}
 }
 
