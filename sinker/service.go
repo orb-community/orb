@@ -134,7 +134,6 @@ func (svc sinkerService) encodeBase64(user string, password string) string {
 		svc.logger.Debug("encodeBase64 took", zap.Duration("execution", time.Since(t)))
 	}(time.Now())
 	sEnc := b64.URLEncoding.EncodeToString([]byte(user + ":" + password))
-	svc.logger.Error(" ")
 	return fmt.Sprintf("Basic %s", sEnc)
 }
 
