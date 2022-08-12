@@ -131,10 +131,9 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 
 func (svc sinkerService) encodeBase64(user string, password string) string {
 	defer func(t time.Time) {
-		svc.logger.Debug("encodeBase64 took", zap.Duration("execution", time.Since(t)))
+		svc.logger.Debug("encodeBase64 took", zap.String("execution", time.Since(t).String()))
 	}(time.Now())
 	sEnc := b64.URLEncoding.EncodeToString([]byte(user + ":" + password))
-	svc.logger.Error(" ")
 	return fmt.Sprintf("Basic %s", sEnc)
 }
 
@@ -276,7 +275,7 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	inputContext := context.WithValue(context.Background(), "trace-id", uuid.NewString())
 	go func(ctx context.Context) {
 		defer func(t time.Time) {
-			svc.logger.Info("message consumption time", zap.Duration("execution", time.Since(t)))
+			svc.logger.Info("message consumption time", zap.String("execution", time.Since(t).String()))
 		}(time.Now())
 		// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
 		var payload map[string]interface{}
@@ -292,7 +291,16 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
 
-		go svc.messageInputCounter.With(msg.Subtopic, msg.Channel, msg.Protocol, strconv.FormatInt(msg.Created, 10), msg.Publisher, ctx.Value("trace-id").(string)).Add(1)
+		labels := []string{
+			"method", "handleMsgFromAgent",
+			"agent_id", msg.Publisher,
+			"subtopic", msg.Subtopic,
+			"channel", msg.Channel,
+			"protocol", msg.Protocol,
+			"created", strconv.FormatInt(msg.Created, 10),
+			"trace_id", ctx.Value("trace-id").(string),
+		}
+		svc.messageInputCounter.With(labels...).Add(1)
 
 		if len(msg.Payload) > MaxMsgPayloadSize {
 			svc.logger.Error("metrics processing failure", zap.Any("trace-id", ctx.Value("trace-id")), zap.Error(ErrPayloadTooBig))
