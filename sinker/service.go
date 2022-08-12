@@ -131,7 +131,7 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 
 func (svc sinkerService) encodeBase64(user string, password string) string {
 	defer func(t time.Time) {
-		svc.logger.Debug("encodeBase64 took", zap.Duration("execution", time.Since(t)))
+		svc.logger.Debug("encodeBase64 took", zap.String("execution", time.Since(t).String()))
 	}(time.Now())
 	sEnc := b64.URLEncoding.EncodeToString([]byte(user + ":" + password))
 	return fmt.Sprintf("Basic %s", sEnc)
