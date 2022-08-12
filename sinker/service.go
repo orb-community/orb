@@ -32,6 +32,7 @@ import (
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -276,7 +277,7 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	go func(ctx context.Context) {
 		defer func(t time.Time) {
 			svc.logger.Info("message consumption time", zap.Duration("execution", time.Since(t)))
-			svc.messageInputCounter.Add(1)
+
 		}(time.Now())
 		// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
 		var payload map[string]interface{}
@@ -291,6 +292,8 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 			zap.String("protocol", msg.Protocol),
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
+
+		go svc.messageInputCounter.With(msg.Subtopic, msg.Channel, msg.Protocol, strconv.FormatInt(msg.Created, 10), msg.Publisher, ctx.Value("trace-id").(string)).Add(1)
 
 		if len(msg.Payload) > MaxMsgPayloadSize {
 			svc.logger.Error("metrics processing failure", zap.Any("trace-id", ctx.Value("trace-id")), zap.Error(ErrPayloadTooBig))
