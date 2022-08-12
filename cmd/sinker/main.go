@@ -172,22 +172,16 @@ func main() {
 		Namespace: "sinker",
 		Subsystem: "sink",
 		Name:      "payload_size",
-		Help:      "Total size of outbound payloads",
+		Help:      "Total size of payloads",
 	}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
 	counter := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "sinker",
 		Subsystem: "sink",
 		Name:      "payload_count",
-		Help:      "Number of payloads wrote",
+		Help:      "Number of payloads received",
 	}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
-	inputCounter := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-		Namespace: "sinker",
-		Subsystem: "sink",
-		Name:      "message_inbound",
-		Help:      "Number of messages received",
-	}, []string{"subtopic", "channel", "protocol", "created", "publisher", "trace-id"})
 
-	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, gauge, counter, inputCounter)
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, gauge, counter)
 	defer func(svc sinker.Service) {
 		err := svc.Stop()
 		if err != nil {
