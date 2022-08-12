@@ -32,6 +32,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"io/ioutil"
 	"log"
