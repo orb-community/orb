@@ -19,6 +19,13 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
 import { Observable, of } from 'rxjs';
 
+export const DATASET_RESPONSE = {
+  EDITED: 'edited',
+  CANCELED: 'canceled',
+  DELETED: 'deleted',
+  CREATED: 'created',
+};
+
 const CONFIG = {
   SINKS: 'SINKS',
   GROUPS: 'GROUPS',
@@ -46,6 +53,7 @@ export class DatasetFromComponent implements OnInit {
   selectedGroup: string;
 
   selectedPolicy: string;
+  fetchedData: boolean;
   sinkIDs: string[];
   availableAgentGroups: AgentGroup[];
   filteredAgentGroups$: Observable<AgentGroup[]>;
@@ -71,6 +79,7 @@ export class DatasetFromComponent implements OnInit {
   ) {
     this.isEdit = false;
     this.availableAgentGroups = [];
+    this.fetchedData = false;
     this.filteredAgentGroups$ = of(this.availableAgentGroups);
     this.availableAgentPolicies = [];
     this.availableSinks = [];
@@ -96,7 +105,6 @@ export class DatasetFromComponent implements OnInit {
     this.sinkIDs = sinks.map((sink) => sink.id);
     this.form.controls.sink_ids.patchValue(this.sinkIDs);
     this.form.controls.sink_ids.markAsDirty();
-    this.cdr.markForCheck();
     this.updateUnselectedSinks();
   }
 
@@ -191,9 +199,10 @@ export class DatasetFromComponent implements OnInit {
     if (!!this.dataset) {
       const { name, agent_group_id, agent_policy_id, sink_ids } = this.dataset;
       this.selectedGroup = agent_group_id;
-      this.selectedSinks = this.availableSinks.filter((sink) =>
-        sink_ids.includes(sink.id),
-      );
+      this.selectedSinks =
+        (!!sink_ids &&
+          this.availableSinks.filter((sink) => sink_ids.includes(sink.id))) ||
+        [];
       this.selectedPolicy = agent_policy_id;
       this.form.patchValue({ name, agent_group_id, agent_policy_id, sink_ids });
       this.isEdit = true;
@@ -220,7 +229,7 @@ export class DatasetFromComponent implements OnInit {
     ])
       .then(
         (value) => {
-          // console.log('warning');
+          this.fetchedData = true;
         },
         (reason) =>
           console.warn(
@@ -275,14 +284,11 @@ export class DatasetFromComponent implements OnInit {
     return new Promise((resolve) => {
       this.loading[CONFIG.SINKS] = true;
       this.sinksService.getAllSinks().subscribe((resp: Sink[]) => {
-        this._selectedSinks.forEach((sink) => {
-          sink.name = resp.find(
-            (anotherSink) => anotherSink.id === sink.id,
-          ).name;
-        });
-
         this.availableSinks = resp;
-        this.updateUnselectedSinks();
+        const selectedSinkIds = this.dataset?.sink_ids || [];
+        this.selectedSinks = selectedSinkIds.map((sink) => {
+          return resp.find((anotherSink) => anotherSink.id === sink);
+        });
 
         this.loading[CONFIG.SINKS] = false;
 
@@ -310,12 +316,12 @@ export class DatasetFromComponent implements OnInit {
         .editDataset({ ...payload, id: this.dataset.id })
         .subscribe(() => {
           this.notificationsService.success('Dataset successfully updated', '');
-          this.dialogRef.close('edited');
+          this.dialogRef.close(DATASET_RESPONSE.EDITED);
         });
     } else {
       this.datasetService.addDataset(payload).subscribe(() => {
         this.notificationsService.success('Dataset successfully created', '');
-        this.dialogRef.close('created');
+        this.dialogRef.close(DATASET_RESPONSE.CREATED);
       });
     }
   }
@@ -334,14 +340,14 @@ export class DatasetFromComponent implements OnInit {
               'Dataset successfully deleted',
               '',
             );
-            this.dialogRef.close('deleted');
+            this.dialogRef.close(DATASET_RESPONSE.DELETED);
           });
         }
       });
   }
 
   onClose() {
-    this.dialogRef.close('canceled');
+    this.dialogRef.close(DATASET_RESPONSE.CANCELED);
   }
 
   private filter(value: string): AgentGroup[] {

@@ -165,13 +165,13 @@ tr div p {
   &new {
     color: #9b51e0;
   }
-  &online {
+  &online, &healthy {
     color: #6fcf97;
   }
-  &stale {
+  &stale, &none {
     color: #f2994a;
   }
-  &error {
+  &error, &failure {
     color: #df316f;
   }
   &offline {

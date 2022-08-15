@@ -1,19 +1,18 @@
 <nb-card>
   <nb-card-header>Active Groups</nb-card-header>
   <nb-card-body>
-    <div *ngIf="!isLoading">
-            <button class='agent-group-button'
-                    (click)="showAgentGroupDetail(group)"
-                    *ngFor="let group of groups; last as isLast">
-              <span class="agent-group-accent">{{ group.name }}</span>
-              <span *ngIf="!isLast">,</span>
-            </button>
-    </div>
-    <p *ngIf="errors?.nogroup">
-      <span class="error-accent">{{ errors.nogroup }}</span>
-    </p>
-    <p *ngIf="errors?.notfound">
-      <span class="error-accent">{{ errors.notfound }}</span>
-    </p>
+    <span class="error-accent" *ngIf="errors?.nogroup">{{ errors.nogroup }}</span>
+
+    <ng-container *ngFor="let group of groups; last as isLast" >
+      <button class='agent-group-button'
+      *ngIf="!group.statusText"
+      (click)="showAgentGroupDetail(group)">
+        <span matTooltip="{{group?.matching_agents?.online}} online out of {{group?.matching_agents?.total}} agent(s)"
+        class="agent-group-accent">{{ group?.name }} ( {{ group?.matching_agents?.online}}
+                                                    / {{ group?.matching_agents?.total }} )</span>
+        <span *ngIf="!isLast">,</span>
+      </button>
+      <span *ngIf="group.statusText" class="error-accent">{{ group.id + ': ' + group.status + ' ' + group.statusText }}</span>
+    </ng-container>
   </nb-card-body>
 </nb-card>

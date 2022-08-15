@@ -108,7 +108,9 @@
               [disabled]="isEdit"
               data-orb-qa-id="wizard-selector"
               id="wizard"
-              labelPosition="end">Create Policy through wizard
+              labelPosition="end"
+            >
+            Create Policy through {{isWizard ? "wizard editor" : "manual editor"}}
             </nb-toggle>
           </div>
           <div *ngIf="isWizard">

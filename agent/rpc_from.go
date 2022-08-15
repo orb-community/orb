@@ -5,6 +5,7 @@
 package agent
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
@@ -28,7 +29,7 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 	}
 }
 
-func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullList bool) {
+func (a *orbAgent) handleAgentPolicies(ctx context.Context, rpc []fleet.AgentPolicyRPCPayload, fullList bool) {
 	if fullList {
 		policies, err := a.policyManager.GetRepo().GetAll()
 		if err != nil {
@@ -69,11 +70,12 @@ func (a *orbAgent) handleAgentPolicies(rpc []fleet.AgentPolicyRPCPayload, fullLi
 	}
 
 	// heart beat with new policy status after application
-	a.sendSingleHeartbeat(time.Now(), fleet.Online)
+	a.sendSingleHeartbeat(ctx, time.Now(), fleet.Online)
 }
 
 func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Message) {
-	go func() {
+	handleMsgCtx, handleMsgCtxCancelFunc := context.WithCancel(context.WithValue(context.Background(), "routine", "group_fromCore_rpc_handler"))
+	go func(ctx context.Context, cancelFunc context.CancelFunc) {
 		a.logger.Debug("Group RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 		var rpc fleet.RPC
 		if err := json.Unmarshal(message.Payload(), &rpc); err != nil {
@@ -97,7 +99,7 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 				a.logger.Error("error decoding agent policy message from core", zap.Error(fleet.ErrSchemaMalformed))
 				return
 			}
-			a.handleAgentPolicies(r.Payload, r.FullList)
+			a.handleAgentPolicies(ctx, r.Payload, r.FullList)
 			a.logger.Debug("received agent policies, marking success")
 			a.policyRequestSucceeded <- true
 		case fleet.GroupRemovedRPCFunc:
@@ -119,7 +121,7 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 				zap.String("func", rpc.Func),
 				zap.Any("payload", rpc.Payload))
 		}
-	}()
+	}(handleMsgCtx, handleMsgCtxCancelFunc)
 }
 
 func (a *orbAgent) handleAgentStop(payload fleet.AgentStopRPCPayload) {
@@ -158,9 +160,9 @@ func (a *orbAgent) handleDatasetRemoval(rpc fleet.DatasetRemovedRPCPayload) {
 	a.removeDatasetFromPolicy(rpc.DatasetID, rpc.PolicyID)
 }
 
-func (a *orbAgent) handleAgentReset(payload fleet.AgentResetRPCPayload) {
+func (a *orbAgent) handleAgentReset(ctx context.Context, payload fleet.AgentResetRPCPayload) {
 	if payload.FullReset {
-		err := a.RestartAll(payload.Reason)
+		err := a.RestartAll(ctx, payload.Reason)
 		if err != nil {
 			a.logger.Error("RestartAll failure", zap.Error(err))
 		}
@@ -171,7 +173,8 @@ func (a *orbAgent) handleAgentReset(payload fleet.AgentResetRPCPayload) {
 }
 
 func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
-	go func() {
+	handleMsgCtx, handleMsgCtxCancelFunc := context.WithCancel(context.WithValue(context.Background(), "routine", "fromCore_rpc_handler"))
+	go func(ctx context.Context, cancelFunc context.CancelFunc) {
 		a.logger.Debug("RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 
 		var rpc fleet.RPC
@@ -205,7 +208,7 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 				a.logger.Error("error decoding agent policy message from core", zap.Error(fleet.ErrSchemaMalformed))
 				return
 			}
-			a.handleAgentPolicies(r.Payload, r.FullList)
+			a.handleAgentPolicies(ctx, r.Payload, r.FullList)
 			a.logger.Debug("received agent policies, marking success")
 			a.policyRequestSucceeded <- true
 		case fleet.AgentStopRPCFunc:
@@ -221,11 +224,11 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 				a.logger.Error("error decoding agent reset message from core", zap.Error(fleet.ErrSchemaMalformed))
 				return
 			}
-			a.handleAgentReset(r.Payload)
+			a.handleAgentReset(ctx, r.Payload)
 		default:
 			a.logger.Warn("unsupported/unhandled core RPC, ignoring",
 				zap.String("func", rpc.Func),
 				zap.Any("payload", rpc.Payload))
 		}
-	}()
+	}(handleMsgCtx, handleMsgCtxCancelFunc)
 }

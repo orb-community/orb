@@ -20,7 +20,8 @@ import (
 	"github.com/go-cmd/cmd"
 	"github.com/go-co-op/gocron"
 	"github.com/ns1labs/orb/agent/backend"
-	"github.com/ns1labs/orb/agent/otel/otlpexporter"
+	"github.com/ns1labs/orb/agent/config"
+	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
 	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
@@ -43,6 +44,10 @@ type pktvisorBackend struct {
 	proc            *cmd.Cmd
 	statusChan      <-chan cmd.Status
 	startTime       time.Time
+	cancelFunc      context.CancelFunc
+
+	// MQTT Config for OTEL MQTT
+	mqttConfig config.MQTTConfig
 
 	mqttClient   mqtt.Client
 	metricsTopic string
@@ -84,7 +89,7 @@ type AppMetrics struct {
 	} `json:"app"`
 }
 
-// note this needs to be stateless because it is calledfor multiple go routines
+// note this needs to be stateless because it is called for multiple go routines
 func (p *pktvisorBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string, timeout int32) error {
 	client := http.Client{
 		Timeout: time.Second * time.Duration(timeout),
@@ -177,16 +182,16 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 		},
 	}
 
-	pyaml, err := yaml.Marshal(fullPolicy)
+	policyYaml, err := yaml.Marshal(fullPolicy)
 	if err != nil {
 		p.logger.Warn("yaml policy marshal failure", zap.String("policy_id", data.ID), zap.Any("policy", fullPolicy))
 		return err
 	}
 
 	var resp map[string]interface{}
-	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(pyaml), "application/x-yaml", 5)
+	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(policyYaml), "application/x-yaml", 5)
 	if err != nil {
-		p.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", pyaml))
+		p.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", policyYaml))
 		return err
 	}
 
@@ -218,11 +223,12 @@ func (p *pktvisorBackend) Write(payload []byte) (n int, err error) {
 	return len(payload), nil
 }
 
-func (p *pktvisorBackend) Start() error {
+func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
 
 	// this should record the start time whether it's successful or not
 	// because it is used by the automatic restart system for last attempt
 	p.startTime = time.Now()
+	p.cancelFunc = cancelFunc
 
 	_, err := exec.LookPath(p.binary)
 	if err != nil {
@@ -313,7 +319,7 @@ func (p *pktvisorBackend) Start() error {
 	p.scraper.StartAsync()
 
 	if p.scrapeOtel {
-		if err := p.scrapeOpentelemetry(); err != nil {
+		if err := p.scrapeOpenTelemetry(); err != nil {
 			return err
 		}
 	} else {
@@ -393,9 +399,9 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
-func (p *pktvisorBackend) scrapeOpentelemetry() (err error) {
+func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 	ctx := context.Background()
-	p.exporter, err = createOtlpExporter(ctx, p.logger)
+	p.exporter, err = p.createOtlpMqttExporter(ctx)
 	if err != nil {
 		p.logger.Error("failed to create a exporter", zap.Error(err))
 	}
@@ -406,7 +412,7 @@ func (p *pktvisorBackend) scrapeOpentelemetry() (err error) {
 
 	err = p.exporter.Start(ctx, nil)
 	if err != nil {
-		p.logger.Error("otel exporter startup error", zap.Error(err))
+		p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
 		return err
 	}
 
@@ -418,8 +424,9 @@ func (p *pktvisorBackend) scrapeOpentelemetry() (err error) {
 	return nil
 }
 
-func (p *pktvisorBackend) Stop() error {
-	p.logger.Info("pktvisor stopping")
+func (p *pktvisorBackend) Stop(ctx context.Context) error {
+	p.logger.Info("routine call to stop pktvisor", zap.Any("routine", ctx.Value("routine")))
+	defer p.cancelFunc()
 	err := p.proc.Stop()
 	finalStatus := <-p.statusChan
 	if err != nil {
@@ -428,8 +435,8 @@ func (p *pktvisorBackend) Stop() error {
 	p.scraper.Stop()
 
 	if p.scrapeOtel {
-		p.exporter.Shutdown(context.Background())
-		p.receiver.Shutdown(context.Background())
+		_ = p.exporter.Shutdown(context.Background())
+		_ = p.receiver.Shutdown(context.Background())
 	}
 
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
@@ -491,21 +498,34 @@ func Register() bool {
 	return true
 }
 
-func createOtlpExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
-	cfg := otlpexporter.CreateDefaultConfig()
-	set := otlpexporter.CreateDefaultSettings(logger)
-	// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
-	exporter, err := otlpexporter.CreateMetricsExporter(ctx, set, cfg)
-	if err != nil {
-		return nil, err
+func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component.MetricsExporter, error) {
+
+	if p.mqttClient != nil {
+		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.metricsTopic, p.pktvisorVersion)
+		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
+		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return exporter, nil
+	} else {
+		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key, p.mqttConfig.ChannelID, p.pktvisorVersion)
+		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
+		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return exporter, nil
 	}
-	return exporter, nil
+
 }
 
 func createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
 	set := pktvisorreceiver.CreateDefaultSettings(logger)
 	cfg := pktvisorreceiver.CreateDefaultConfig()
-	// Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
+	// Create the Prometheus receiver and pass in the previously created Prometheus exporter.
 	receiver, err := pktvisorreceiver.CreateMetricsReceiver(ctx, set, cfg, exporter)
 	if err != nil {
 		return nil, err
@@ -513,16 +533,17 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 	return receiver, nil
 }
 
-func (p *pktvisorBackend) FullReset() error {
+func (p *pktvisorBackend) FullReset(ctx context.Context) error {
 
 	// force a stop, which stops scrape as well. if proc is dead, it no ops.
-	if err := p.Stop(); err != nil {
+	if err := p.Stop(ctx); err != nil {
 		p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
 		return err
 	}
 
+	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "pktvisor"))
 	// start it
-	if err := p.Start(); err != nil {
+	if err := p.Start(backendCtx, cancelFunc); err != nil {
 		p.logger.Error("failed to start backend on restart procedure", zap.Error(err))
 		return err
 	}

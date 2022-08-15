@@ -664,6 +664,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to net
         And policy only_qname_suffix must be None
         And policy only_rcode must be None
         And this agent's heartbeat shows that 1 policies are applied and all has status running
+        And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
 
 
@@ -682,6 +683,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to dhcp
         And policy name must be second_policy
         And policy handler must be dhcp
         And this agent's heartbeat shows that 1 policies are applied and all has status running
+        And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
 
 @smoke
@@ -698,6 +700,7 @@ Scenario: Edit a simple policy with handler dhcp changing the handler to net
     Then policy version must be 1
         And policy handler must be net
         And this agent's heartbeat shows that 1 policies are applied and all has status running
+        And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
 
 @smoke
@@ -717,6 +720,7 @@ Scenario: Edit a simple policy with handler net changing the handler to dns and 
         And policy only_qname_suffix must be ['.foo.com', '.example.com']
         And policy only_rcode must be 2
         And this agent's heartbeat shows that 1 policies are applied and all has status running
+        And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
 
 @smoke
@@ -916,5 +920,8 @@ Scenario: Remove agent (check dataset)
     When this agent is removed
     Then 0 agent must be matching on response field matching_agents of the last group created
         And the container logs should contain the message "ERROR mqtt log" within 120 seconds
-        And last container created is running after 120 seconds
+        And the container logs should contain the message "error reconnecting with MQTT, stopping agent" within 120 seconds
+        And last container created is exited within 70 seconds
+        And the container logs should not contain any panic message
+        And last container created is exited after 120 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
