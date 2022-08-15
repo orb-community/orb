@@ -33,12 +33,13 @@ type Agent interface {
 }
 
 type orbAgent struct {
-	logger         *zap.Logger
-	config         config.Config
-	client         mqtt.Client
-	db             *sqlx.DB
-	backends       map[string]backend.Backend
-	cancelFunction context.CancelFunc
+	logger            *zap.Logger
+	config            config.Config
+	client            mqtt.Client
+	db                *sqlx.DB
+	backends          map[string]backend.Backend
+	cancelFunction    context.CancelFunc
+	rpcFromCancelFunc context.CancelFunc
 
 	hbTicker *time.Ticker
 	hbDone   chan bool
@@ -61,8 +62,6 @@ type orbAgent struct {
 	groupsInfos map[string]GroupInfo
 
 	policyManager manager.PolicyManager
-
-	stopRpcFrom chan bool
 }
 
 const retryRequestDuration = time.Second
@@ -127,6 +126,10 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 		mqtt.DEBUG = &agentLoggerDebug{a: a}
 	}
 
+	if err := a.startBackends(ctx); err != nil {
+		return err
+	}
+
 	ccm, err := cloud_config.New(a.logger, a.config, a.db)
 	if err != nil {
 		return err
@@ -138,14 +141,9 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 
 	a.groupRequestSucceeded = make(chan bool, 1)
 	a.policyRequestSucceeded = make(chan bool, 1)
-	a.stopRpcFrom = make(chan bool, 1)
 	commsCtx := context.WithValue(agentCtx, "routine", "comms")
 	if err := a.startComms(commsCtx, cloudConfig); err != nil {
 		a.logger.Error("could not restart mqtt client")
-		return err
-	}
-
-	if err := a.startBackends(ctx); err != nil {
 		return err
 	}
 
@@ -160,6 +158,7 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 func (a *orbAgent) Stop(ctx context.Context) {
 	a.logger.Info("routine call for stop agent", zap.Any("routine", ctx.Value("routine")))
 	defer a.cancelFunction()
+	a.rpcFromCancelFunc()
 	for name, b := range a.backends {
 		a.logger.Debug("stopping backend", zap.String("backend", name))
 		if err := b.Stop(ctx); err != nil {
@@ -175,13 +174,11 @@ func (a *orbAgent) Stop(ctx context.Context) {
 		a.unsubscribeGroupChannels()
 		a.client.Disconnect(250)
 	}
-	a.stopRpcFrom <- true
 
 	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
 	defer close(a.hbDone)
 	defer close(a.policyRequestSucceeded)
 	defer close(a.groupRequestSucceeded)
-	defer close(a.stopRpcFrom)
 }
 
 func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason string) error {
