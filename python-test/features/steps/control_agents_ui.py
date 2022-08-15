@@ -1,11 +1,10 @@
 from behave import given, then, step
-from ui_utils import input_text_by_xpath
+from ui_utils import input_text_by_xpath, find_element_on_agent_datatable
 from utils import threading_wait_until
 from control_plane_agents import agent_name_prefix
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
 from utils import random_string, create_tags_set
 from test_config import TestConfig
 from hamcrest import *
@@ -125,52 +124,3 @@ def check_agent_status_on_orb_ui(driver, agent_xpath, status, event=None):
         return agent_status_datatable.text
     driver.refresh()
     return agent_status_datatable
-
-
-def find_element_on_agent_datatable(driver, xpath):
-    """
-    Find element present on agent datatable
-
-    :param driver: webdriver running
-    :param (str) xpath: xpath of the element to be found
-    :return: web element, if found. None if not found.
-    """
-    WebDriverWait(driver, 3).until(
-        EC.presence_of_all_elements_located((By.XPATH, DataTable.page_count())), message="Unable to find page count")
-    WebDriverWait(driver, 3).until(
-        EC.presence_of_all_elements_located((By.XPATH, DataTable.body())), message="Unable to find agent list body")
-    pages = WebDriverWait(driver, 3).until(EC.presence_of_all_elements_located((By.XPATH, DataTable.sub_pages())),
-                                           message="Unable to find subpages")
-    if len(pages) > 1:
-        WebDriverWait(driver, 3).until(
-            EC.presence_of_element_located((By.XPATH, DataTable.last_page())), message="Unable to find 'go to last "
-                                                                                       "page' button")
-        try:  # avoid failure because of ghost button
-            WebDriverWait(driver, 3).until(
-                EC.element_to_be_clickable((By.XPATH, DataTable.destroyed_on_click_button())),
-                message="ghost button").click()
-        except TimeoutException:
-            pass
-        WebDriverWait(driver, 3).until(
-            EC.element_to_be_clickable((By.XPATH, DataTable.last_page())), message="Unable to click on 'go to the last "
-                                                                                   "page' button").click()
-        last_pages = WebDriverWait(driver, 3).until(EC.presence_of_all_elements_located((By.XPATH,
-                                                                                         DataTable.sub_pages())),
-                                                    message="Unable to find subpages")
-        last_page = int(last_pages[-1].text)
-        for page in range(last_page):
-            try:
-                element = WebDriverWait(driver, 2).until(
-                    EC.presence_of_element_located((By.XPATH, xpath)))
-                return element
-            except TimeoutException:
-                WebDriverWait(driver, 2).until(
-                    EC.element_to_be_clickable((By.XPATH, DataTable.previous_page())),
-                    message="Unable to click on 'go to the previous page' button").click()
-            except OSError as err:
-                print(err)
-        return None
-    else:
-        element = WebDriverWait(driver, 2).until(
-            EC.presence_of_element_located((By.XPATH, xpath)))
-    return element

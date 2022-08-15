@@ -206,11 +206,11 @@ class PolicyPage:
 
     @classmethod
     def policy_name(cls):
-        return "//input[@data-orb-qa-id='name']"
+        return "//input[@id='name']"
 
     @classmethod
     def policy_description(cls):
-        return "//input[@data-orb-qa-id='description']"
+        return "//input[@id='description']"
 
     @classmethod
     def tap_selector_button(cls):
@@ -249,9 +249,29 @@ class PolicyPage:
         return "//button[contains(@class, 'add-handler-button')]"
 
     @classmethod
+    def handler_name(cls):
+        return "//input[@data-orb-qa-id='handler-label']"
+
+    @classmethod
     def exclude_noerror_checkbox(cls):
         return "//span[@class='custom-checkbox']"
 
     @classmethod
     def policy_configurations(cls):
         return "//div[contains(@class, 'monaco-scrollable-element editor-scrollable')]"
+
+    @classmethod
+    def policy_configurations_lines(cls):
+        return "//div[@class='view-line']"
+
+    @classmethod
+    def policy_view_header(cls):
+        return "//h4[text()='Policy View']"
+
+    @classmethod
+    def policy_view_name(cls):
+        return "//label[@class='summary-accent' and text()='Policy Name']//following-sibling::p"
+
+    @classmethod
+    def policy(cls, policy_name):
+        return f"//button[contains(@class, 'view-policy-button') and contains(text(),'{policy_name}')]"

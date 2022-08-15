@@ -128,7 +128,7 @@ def remove_empty_from_json(json_file):
 
     """
     for key, value in list(json_file.items()):
-        if value is None:
+        if value is None or value == {}:
             del json_file[key]
         elif isinstance(value, dict):
             remove_empty_from_json(value)
