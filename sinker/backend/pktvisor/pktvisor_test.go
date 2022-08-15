@@ -2906,19 +2906,19 @@ func TestFlowConversion(t *testing.T) {
 				},
 			},
 		},
-		"FlowPayloadFlows": {
+		"FlowPayloadTotal": {
 			data: []byte(`
 				{
 					"policy_flow": {
 						"flow": {
-							"flows": 8
+							"total": 8
 						}
 					}
 				}`),
 			expected: prometheus.TimeSeries{
 				Labels: append(prependLabel(commonLabels, prometheus.Label{
 					Name:  "__name__",
-					Value: "flow_flows",
+					Value: "flow_total",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 8,

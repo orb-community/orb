@@ -62,6 +62,7 @@ type DNSPayload struct {
 		Refused     int64 `mapstructure:"refused"`
 		Filtered    int64 `mapstructure:"filtered"`
 		DeepSamples int64 `mapstructure:"deep_samples"`
+		QueryECS    int64 `mapstructure:"query_ecs"`
 	} `mapstructure:"wire_packets"`
 	Rates struct {
 		Total Rates `mapstructure:"total"`
@@ -197,14 +198,19 @@ type FlowPayload struct {
 		Total                   int64       `mapstructure:"total"`
 		Udp                     int64       `mapstructure:"udp"`
 	} `mapstructure:"devices"`
-	VolumeBytes int64         `mapstructure:"valume_bytes"`
+	DeepSamples int64         `mapstructure:"deep_samples"`
+	Events      int64         `mapstructure:"events"`
 	Filtered    int64         `mapstructure:"filtered"`
-	Flows       int64         `mapstructure:"flows"`
+	Total       int64         `mapstructure:"total"`
 	Period      PeriodPayload `mapstructure:"period"`
 	Rates       struct {
-		Bytes   Rates `mapstructure:"bytes"`
-		Packets Rates `mapstructure:"packets"`
+		Bytes     Rates `mapstructure:"bytes"`
+		Packets   Rates `mapstructure:"packets"`
+		PpsEvents Rates `mapstructure:"pps_events"`
 	} `mapstructure:"rates"`
+	Volume struct {
+		Bytes Quantiles `mapstructure:"bytes"`
+	} `mapstructure:"volume"`
 }
 
 // StatSnapshot is a snapshot of a given period from pktvisord
