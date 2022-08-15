@@ -44,6 +44,7 @@
     "@angular/platform-browser": "^9.0.4",
     "@angular/platform-browser-dynamic": "^9.0.4",
     "@angular/router": "^9.0.4",
+    "@auth0/angular-jwt": "^5.0.2",
     "@nebular/auth": "5.0.0",
     "@nebular/eva-icons": "5.0.0",
     "@nebular/security": "5.0.0",
