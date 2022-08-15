@@ -1,5 +1,5 @@
 from behave import given, then, step
-from ui_utils import input_text_by_xpath, find_element_on_agent_datatable
+from ui_utils import input_text_by_xpath, find_element_on_datatable
 from utils import threading_wait_until
 from control_plane_agents import agent_name_prefix
 from selenium.webdriver.support.ui import WebDriverWait
@@ -78,7 +78,7 @@ def create_agent_through_the_agents_page(context, orb_tags):
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, UtilButton.close_button())), message="Unable to click on close "
                                                                                    "button").click()
-    agent = find_element_on_agent_datatable(context.driver, DataTable.agent(context.agent_name))
+    agent = find_element_on_datatable(context.driver, DataTable.agent(context.agent_name))
     assert_that(agent, is_not(None), f"Unable to find the agent: {context.agent_name}")
     agent.click()
     context.agent = dict()
@@ -118,7 +118,7 @@ def check_agent_status_on_orb_ui(driver, agent_xpath, status, event=None):
     :param event: threading.event
     :return: web element refereed to the agent
     """
-    agent_status_datatable = find_element_on_agent_datatable(driver, agent_xpath)
+    agent_status_datatable = find_element_on_datatable(driver, agent_xpath)
     if agent_status_datatable is not None and agent_status_datatable.text == status:
         event.set()
         return agent_status_datatable.text

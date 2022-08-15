@@ -30,3 +30,14 @@ Feature: Create policies using orb ui
     Then user must be directed to the policy view page
       And created policy must have the chosen parameters
       And created policy must be displayed on policy pages
+
+  @smoke_ui
+  Scenario: Remove policy from Orb UI
+    Given that the Orb user logs in Orb UI
+      And that an agent with 1 orb tag(s) already exists and is online
+      And the user clicks on Policy Management on left menu
+      And a new policy is created through the UI with: handler=dhcp, description=policy_dhcp
+      And user must be directed to the policy view page
+      And the user clicks on Policy Management on left menu
+    When remove policy from Orb UI
+    Then created policy must not be displayed on policy pages

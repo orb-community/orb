@@ -54,7 +54,8 @@ def create_new_policy_through_UI(context, kwargs):
     chosen_handler = [val for key, val in handlers_options.items() if params["handler"] in key]
     if len(chosen_handler) == 1:
         chosen_handler[0].click()
-        params["handle_label"] = WebDriverWait(context.driver, 3).until(EC.presence_of_element_located((By.XPATH, PolicyPage.handler_name()))).get_attribute('value')
+        params["handle_label"] = WebDriverWait(context.driver, 3).until(
+            EC.presence_of_element_located((By.XPATH, PolicyPage.handler_name()))).get_attribute('value')
     else:  # todo improve logic for more than one
         raise "Invalid option for handlers. More than one options was detected."
     if params["exclude_noerror"] is not None and params["exclude_noerror"].lower() == "true":
@@ -96,13 +97,13 @@ def check_policy_view_page(context):
         WebDriverWait(context.driver, 3).until(
             EC.presence_of_element_located((By.XPATH, PolicyPage.policy_view_name()))).text
     assert_that(policy_name, equal_to(context.policy_name), "Policy name is not correct in policy view page")
+    current_url = str(context.driver.current_url)
+    context.policy_id = current_url.split("/")[-1]
 
 
 @step('created policy must have the chosen parameters')
 def check_json_policies_ui(context):
-    current_url = str(context.driver.current_url)
-    policy_id = current_url.split("/")[-1]
-    policy_back = get_policy(context.token, policy_id)
+    policy_back = get_policy(context.token, context.policy_id)
     policy_back = remove_empty_from_json(policy_back)
     policy_ui = remove_empty_from_json(context.policy_json)
     ddiff = DeepDiff(policy_back, policy_ui, view='tree', exclude_paths=["root['ts_created']", "root['id']",
@@ -111,16 +112,46 @@ def check_json_policies_ui(context):
                                                                          "root['ts_last_modified']",
                                                                          "root['version']"])
     assert_that(ddiff, equal_to({}), f"{ddiff}")
-    #todo validate editor text
+    # todo validate editor text
 
 
-@step('created policy must be displayed on policy pages')
-def find_policy_in_policies_list(context):
+@step('created policy must {condition} displayed on policy pages')
+def find_policy_in_policies_list(context, condition):
+    policy_on_datatable = find_policy_on_policies_datatable(context.policy_name, condition, context.driver)
+    if condition == "be":
+        policy_on_datatable.click()
+        check_policy_view_page(context)
+    else:
+        get_policy(context.token, context.policy_id, 404)
+        assert_that(policy_on_datatable, equal_to(None))
 
+
+@step('remove policy from Orb UI')
+def remove_policy_from_orb_ui(context):
+    remove_policy_button = \
+        find_element_on_datatable(context.driver, PolicyPage.remove_policy_button(context.policy_name))
+    remove_policy_button.click()
+    input_text_by_xpath(PolicyPage.remove_policy_confirmation_name(), context.policy_name, context.driver)
+    policy_removal_confirmation = WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, PolicyPage.remove_policy_confirmation_button())))
     WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, "//html"))).click()  # blank space
+    policy_removal_confirmation.click()
+    WebDriverWait(context.driver, 3).until(
+        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Policy successfully deleted'),
+        message="Confirmation span of policy removal is not correctly displayed")
+
+
+@threading_wait_until
+def find_policy_on_policies_datatable(policy_name, condition, driver, event=None):
+    assert_that(condition, any_of(equal_to("be"), equal_to("not be")), "Unexpected value for policy list condition")
+    WebDriverWait(driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, LeftMenu.policies())), message=f"Unable to find policies icon on left "
                                                                              f"menu")
-    context.driver.find_element(By.XPATH, LeftMenu.policies()).click()
-    policy_on_datatable = find_element_on_agent_datatable(context.driver, PolicyPage.policy(context.policy_name))
-    policy_on_datatable.click()
-    check_policy_view_page(context)
+    driver.find_element(By.XPATH, LeftMenu.policies()).click()
+    policy_on_datatable = find_element_on_datatable(driver, PolicyPage.policy(policy_name))
+    if condition == "be" and policy_on_datatable is not None:
+        event.set()
+    elif condition == "not be" and policy_on_datatable is None:
+        event.set()
+    return policy_on_datatable

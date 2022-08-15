@@ -75,7 +75,7 @@ def get_selector_options(driver, selector_options_xpath=UtilButton.selector_opti
     return dict_options
 
 
-def find_element_on_agent_datatable(driver, xpath):
+def find_element_on_datatable(driver, xpath):
     """
     Find element present on agent datatable
 
@@ -119,6 +119,11 @@ def find_element_on_agent_datatable(driver, xpath):
                 print(err)
         return None
     else:
-        element = WebDriverWait(driver, 2).until(
-            EC.presence_of_element_located((By.XPATH, xpath)))
-    return element
+        try:
+            element = WebDriverWait(driver, 2).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+            return element
+        except TimeoutException:
+            return None
+        except OSError as err:
+            return err

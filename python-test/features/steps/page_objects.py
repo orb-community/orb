@@ -275,3 +275,16 @@ class PolicyPage:
     @classmethod
     def policy(cls, policy_name):
         return f"//button[contains(@class, 'view-policy-button') and contains(text(),'{policy_name}')]"
+
+    @classmethod
+    def remove_policy_button(cls, policy_name):
+        return f"//button[contains(@class, 'view-policy-button') and contains(text(),'{policy_name}')]/ancestor" \
+               f"::datatable-body-row//child::button[contains(@class, 'orb-action-hover del-button')] "
+
+    @classmethod
+    def remove_policy_confirmation_name(cls):
+        return "//input[@data-orb-qa-id='input#name']"
+
+    @classmethod
+    def remove_policy_confirmation_button(cls):
+        return "//button[@data-orb-qa-id='button#delete']"
