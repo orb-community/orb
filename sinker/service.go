@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"github.com/go-kit/kit/metrics"
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"github.com/ns1labs/orb/fleet"
@@ -31,6 +32,7 @@ import (
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -71,6 +73,8 @@ type sinkerService struct {
 
 	requestGauge   metrics.Gauge
 	requestCounter metrics.Counter
+
+	messageInputCounter metrics.Counter
 }
 
 func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, ownerID string, sinkID string) error {
@@ -91,7 +95,7 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 	}
 
 	var headers = make(map[string]string)
-	headers["Authorization"] = encodeBase64(cfgRepo.User, cfgRepo.Password)
+	headers["Authorization"] = svc.encodeBase64(cfgRepo.User, cfgRepo.Password)
 	result, writeErr := promClient.WriteTimeSeries(context.Background(), tsList,
 		prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
@@ -99,7 +103,11 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 			cfgRepo.State = config.Error
 			cfgRepo.Msg = fmt.Sprint(err)
 			cfgRepo.LastRemoteWrite = time.Now()
-			svc.sinkerCache.Edit(cfgRepo)
+			err := svc.sinkerCache.Edit(cfgRepo)
+			if err != nil {
+				svc.logger.Error("error during update sink cache", zap.Error(err))
+				return err
+			}
 		}
 
 		svc.logger.Error("remote write error", zap.String("sink_id", sinkID), zap.Error(err))
@@ -112,13 +120,19 @@ func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		cfgRepo.State = config.Active
 		cfgRepo.Msg = ""
 		cfgRepo.LastRemoteWrite = time.Now()
-		svc.sinkerCache.Edit(cfgRepo)
+		err := svc.sinkerCache.Edit(cfgRepo)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func encodeBase64(user string, password string) string {
+func (svc sinkerService) encodeBase64(user string, password string) string {
+	defer func(t time.Time) {
+		svc.logger.Debug("encodeBase64 took", zap.String("execution", time.Since(t).String()))
+	}(time.Now())
 	sEnc := b64.URLEncoding.EncodeToString([]byte(user + ":" + password))
 	return fmt.Sprintf("Basic %s", sEnc)
 }
@@ -197,7 +211,10 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 
 					data.SinkID = sid
 					data.OwnerID = agent.OwnerID
-					svc.sinkerCache.Add(data)
+					err = svc.sinkerCache.Add(data)
+					if err != nil {
+						return err
+					}
 				}
 				datasetSinkIDs[sid] = true
 			}
@@ -255,29 +272,46 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 }
 
 func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
+	inputContext := context.WithValue(context.Background(), "trace-id", uuid.NewString())
+	go func(ctx context.Context) {
+		defer func(t time.Time) {
+			svc.logger.Info("message consumption time", zap.String("execution", time.Since(t).String()))
+		}(time.Now())
+		// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
+		var payload map[string]interface{}
+		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
+			svc.logger.Error("metrics processing failure", zap.Any("trace-id", ctx.Value("trace-id")), zap.Error(err))
+			return
+		}
 
-	// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
+		svc.logger.Debug("received agent message",
+			zap.String("subtopic", msg.Subtopic),
+			zap.String("channel", msg.Channel),
+			zap.String("protocol", msg.Protocol),
+			zap.Int64("created", msg.Created),
+			zap.String("publisher", msg.Publisher))
 
-	var payload map[string]interface{}
-	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
-		return err
-	}
+		labels := []string{
+			"method", "handleMsgFromAgent",
+			"agent_id", msg.Publisher,
+			"subtopic", msg.Subtopic,
+			"channel", msg.Channel,
+			"protocol", msg.Protocol,
+			"created", strconv.FormatInt(msg.Created, 10),
+			"trace_id", ctx.Value("trace-id").(string),
+		}
+		svc.messageInputCounter.With(labels...).Add(1)
 
-	svc.logger.Debug("received agent message",
-		zap.String("subtopic", msg.Subtopic),
-		zap.String("channel", msg.Channel),
-		zap.String("protocol", msg.Protocol),
-		zap.Int64("created", msg.Created),
-		zap.String("publisher", msg.Publisher))
+		if len(msg.Payload) > MaxMsgPayloadSize {
+			svc.logger.Error("metrics processing failure", zap.Any("trace-id", ctx.Value("trace-id")), zap.Error(ErrPayloadTooBig))
+			return
+		}
 
-	if len(msg.Payload) > MaxMsgPayloadSize {
-		return ErrPayloadTooBig
-	}
-
-	if err := svc.handleMetrics(msg.Publisher, msg.Channel, msg.Subtopic, msg.Payload); err != nil {
-		svc.logger.Error("metrics processing failure", zap.Error(err))
-		return err
-	}
+		if err := svc.handleMetrics(msg.Publisher, msg.Channel, msg.Subtopic, msg.Payload); err != nil {
+			svc.logger.Error("metrics processing failure", zap.Any("trace-id", ctx.Value("trace-id")), zap.Error(err))
+			return
+		}
+	}(inputContext)
 
 	return nil
 }
@@ -355,20 +389,22 @@ func New(logger *zap.Logger,
 	sinksClient sinkspb.SinkServiceClient,
 	requestGauge metrics.Gauge,
 	requestCounter metrics.Counter,
+	inputCounter metrics.Counter,
 ) Service {
 
 	pktvisor.Register(logger)
 	return &sinkerService{
-		logger:         logger,
-		pubSub:         pubSub,
-		esclient:       esclient,
-		sinkerCache:    configRepo,
-		policiesClient: policiesClient,
-		fleetClient:    fleetClient,
-		sinksClient:    sinksClient,
-		requestGauge:   requestGauge,
-		requestCounter: requestCounter,
-		otel:           false,
+		logger:              logger,
+		pubSub:              pubSub,
+		esclient:            esclient,
+		sinkerCache:         configRepo,
+		policiesClient:      policiesClient,
+		fleetClient:         fleetClient,
+		sinksClient:         sinksClient,
+		requestGauge:        requestGauge,
+		requestCounter:      requestCounter,
+		messageInputCounter: inputCounter,
+		otel:                false,
 	}
 }
 

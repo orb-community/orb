@@ -32,6 +32,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"io/ioutil"
 	"log"
@@ -171,17 +172,28 @@ func main() {
 		Namespace: "sinker",
 		Subsystem: "sink",
 		Name:      "payload_size",
-		Help:      "Total size of payloads",
+		Help:      "Total size of outbound payloads",
 	}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
 	counter := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "sinker",
 		Subsystem: "sink",
 		Name:      "payload_count",
-		Help:      "Number of payloads received",
+		Help:      "Number of payloads wrote",
 	}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
+	inputCounter := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "sinker",
+		Subsystem: "sink",
+		Name:      "message_inbound",
+		Help:      "Number of messages received",
+	}, []string{"method", "agent_id", "subtopic", "channel", "protocol", "created", "trace_id"})
 
-	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, gauge, counter)
-	defer svc.Stop()
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, gauge, counter, inputCounter)
+	defer func(svc sinker.Service) {
+		err := svc.Stop()
+		if err != nil {
+			log.Fatalf("fatal error in stop the service: %e", err)
+		}
+	}(svc)
 
 	errs := make(chan error, 2)
 
@@ -253,7 +265,7 @@ func connectToGRPC(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
 			opts = append(opts, grpc.WithTransportCredentials(tpc))
 		}
 	} else {
-		opts = append(opts, grpc.WithInsecure())
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
 	conn, err := grpc.Dial(cfg.URL, opts...)
