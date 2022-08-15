@@ -68,6 +68,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { AgentViewComponent } from './fleet/agents/view/agent.view.component';
 import { PagesRoutingModule } from './pages-routing.module';
 import { PagesComponent } from './pages.component';
+import { MetricsComponent } from './fleet/agents/metrics/metrics.component';
 
 @NgModule({
   imports: [
@@ -152,6 +153,7 @@ import { PagesComponent } from './pages.component';
     SinkDeleteComponent,
     // DEV SHOWCASE
     ShowcaseComponent,
+    MetricsComponent,
   ],
   providers: [NbDialogService, NbWindowService, SortPipe],
   entryComponents: [ConfirmationComponent],
