@@ -108,10 +108,11 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, state f
 	}
 }
 
-func (a *orbAgent) sendHeartbeats(ctx context.Context) {
+func (a *orbAgent) sendHeartbeats(ctx context.Context, cancelFunc context.CancelFunc) {
 	a.logger.Debug("start heartbeats routine", zap.Any("routine", ctx.Value("#routine")))
 	a.sendSingleHeartbeat(ctx, time.Now(), fleet.Online)
 	defer func() {
+		cancelFunc()
 		a.logger.Debug("stopping heartbeats routine")
 	}()
 	for {

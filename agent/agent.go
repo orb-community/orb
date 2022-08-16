@@ -155,8 +155,8 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
 	a.hbDone = make(chan bool)
-	heartbeatCtx := context.WithValue(agentCtx, "routine", "heartbeat")
-	go a.sendHeartbeats(heartbeatCtx)
+	heartbeatCtx, hbcancelFunc := a.extendContext("heartbeat")
+	go a.sendHeartbeats(heartbeatCtx, hbcancelFunc)
 
 	return nil
 }
