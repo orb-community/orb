@@ -300,10 +300,12 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		var appMetrics AppMetrics
 		readinessError = p.request("metrics/app", &appMetrics, http.MethodGet, nil, "", ReadinessTimeout)
 		if readinessError == nil {
-			p.logger.Info(fmt.Sprintf("pktvisor readiness ok, got version %s", appMetrics.App.Version))
+			p.logger.Info("pktvisor readiness ok, got version ", zap.String("pktvisor_version", appMetrics.App.Version))
 			break
 		}
-		p.logger.Info("pktvisor is not ready, trying again")
+		backoffDuration := time.Duration(backoff) * time.Second
+		p.logger.Info("pktvisor is not ready, trying again with backoff", zap.String("backoff backoffDuration", backoffDuration.String()))
+		time.Sleep(backoffDuration)
 	}
 
 	if readinessError != nil {
