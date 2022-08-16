@@ -1,11 +1,10 @@
 from behave import given, then, step
-from ui_utils import input_text_by_xpath, find_element_on_datatable
-from utils import threading_wait_until
+from ui_utils import *
 from control_plane_agents import agent_name_prefix
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from utils import random_string, create_tags_set
+from utils import random_string, create_tags_set, threading_wait_until
 from test_config import TestConfig
 from hamcrest import *
 from page_objects import *
@@ -28,9 +27,7 @@ def click_element_left_menu(context, element):
 def check_which_orb_page(context, element):
     dict_pages = {"Agents": OrbPagesUrl.Agents(orb_url), "Agent Groups": OrbPagesUrl.AgentGroups(orb_url),
                   "Policies": OrbPagesUrl.Policies(orb_url), "Sinks": OrbPagesUrl.Sinks(orb_url)}
-    dict_elements = {"Agents": LeftMenu.agents(), "Agent Groups": LeftMenu.agent_group(),
-                     "Policy Management": LeftMenu.policies(), "Sink Management": LeftMenu.sinks()}
-    click_element_left_menu(context, dict_elements[element])
+    click_element_left_menu(context, element)
     WebDriverWait(context.driver, 5).until(EC.url_to_be(dict_pages[element]),
                                            message=f"Orb {element} page not available")
     current_url = context.driver.current_url
@@ -78,7 +75,8 @@ def create_agent_through_the_agents_page(context, orb_tags):
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, UtilButton.close_button())), message="Unable to click on close "
                                                                                    "button").click()
-    agent = find_element_on_datatable(context.driver, DataTable.agent(context.agent_name))
+    agent = find_element_on_datatable_by_condition(context.driver, DataTable.agent(context.agent_name),
+                                                   LeftMenu.agents())
     assert_that(agent, is_not(None), f"Unable to find the agent: {context.agent_name}")
     agent.click()
     context.agent = dict()
@@ -118,7 +116,7 @@ def check_agent_status_on_orb_ui(driver, agent_xpath, status, event=None):
     :param event: threading.event
     :return: web element refereed to the agent
     """
-    agent_status_datatable = find_element_on_datatable(driver, agent_xpath)
+    agent_status_datatable = find_element_on_datatable_by_condition(driver, agent_xpath, LeftMenu.agents())
     if agent_status_datatable is not None and agent_status_datatable.text == status:
         event.set()
         return agent_status_datatable.text

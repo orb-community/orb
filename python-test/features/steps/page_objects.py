@@ -111,6 +111,10 @@ class UtilButton:
     def selector_options(cls):
         return "//ul[@class='option-list']//nb-option"
 
+    @classmethod
+    def clear_all_filters(cls):
+        return "//button[contains(@class, 'clear-filter clear-all')]"
+
 
 class DataTable:
     def __init__(self):
@@ -118,7 +122,7 @@ class DataTable:
 
     @classmethod
     def body(cls):
-        return "//div[contains(@class, 'datatable-body')]"
+        return "//*[contains(@class, 'datatable-body')]"
 
     @classmethod
     def page_count(cls):
@@ -162,6 +166,30 @@ class DataTable:
     def agent_group(cls, name):
         return f"//span[@class='ng-star-inserted' and contains(text(), '{name}')]"
 
+    @classmethod
+    def trash_icon(cls):
+        return "//*[@data-name='trash-2']"
+
+    @classmethod
+    def filter_by(cls):
+        return "//nb-select[@placeholder='Filter by']"
+
+    @classmethod
+    def option_list(cls):
+        return "//ul[@class='option-list']"
+
+    @classmethod
+    def all_filter_options(cls):
+        return "//nb-option[@class='nb-transition ng-star-inserted']"
+
+    @classmethod
+    def filter_by_name_field(cls):
+        return "//input[@placeholder='Name']"
+
+    @classmethod
+    def plus_button(cls):
+        return "//button[contains(@class, 'appearance-ghost size-medium status-primary')]"
+
 
 class AgentGroupPage:
     def __init__(self):
@@ -190,6 +218,18 @@ class AgentGroupPage:
     @classmethod
     def agent_group_add_tag_button(cls):
         return "//button[contains(@data-orb-qa-id, 'button#addTag')]"
+
+    @classmethod
+    def delete_agent_group_confirmation_button(cls):
+        return "//button[contains(text(), 'I Understand, Delete This Agent Group')]"
+
+    @classmethod
+    def delete_agent_group_confirmation_title(cls):
+        return "//nb-card-header[contains(text(), 'Delete Agent Group Confirmation')]"
+
+    @classmethod
+    def delete_agent_group_confirmation_field(cls):
+        return "//input[contains(@class, 'input-full-width')]"
 
 
 class PolicyPage:
@@ -278,8 +318,7 @@ class PolicyPage:
 
     @classmethod
     def remove_policy_button(cls, policy_name):
-        return f"//button[contains(@class, 'view-policy-button') and contains(text(),'{policy_name}')]/ancestor" \
-               f"::datatable-body-row//child::button[contains(@class, 'orb-action-hover del-button')] "
+        return f"//button[contains(@class, 'view-policy-button') and contains(text(), '{policy_name}')]/ancestor::datatable-body-row//child::button[contains(@class, 'orb-action-hover del-button')]"
 
     @classmethod
     def remove_policy_confirmation_name(cls):

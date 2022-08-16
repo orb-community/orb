@@ -1,3 +1,5 @@
+import threading
+from hamcrest import *
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
@@ -6,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from page_objects import *
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 from utils import threading_wait_until
 
 
@@ -77,16 +79,16 @@ def get_selector_options(driver, selector_options_xpath=UtilButton.selector_opti
 
 def find_element_on_datatable(driver, xpath):
     """
-    Find element present on agent datatable
+    Find element present on agent datatable.
 
-    :param driver: webdriver running
+    :param (selenium obj) driver: webdriver running
     :param (str) xpath: xpath of the element to be found
     :return: web element, if found. None if not found.
     """
     WebDriverWait(driver, 3).until(
         EC.presence_of_all_elements_located((By.XPATH, DataTable.page_count())), message="Unable to find page count")
     WebDriverWait(driver, 3).until(
-        EC.presence_of_all_elements_located((By.XPATH, DataTable.body())), message="Unable to find agent list body")
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.body())), message="Unable to find list body")
     pages = WebDriverWait(driver, 3).until(EC.presence_of_all_elements_located((By.XPATH, DataTable.sub_pages())),
                                            message="Unable to find subpages")
     if len(pages) > 1:
@@ -115,6 +117,9 @@ def find_element_on_datatable(driver, xpath):
                 WebDriverWait(driver, 2).until(
                     EC.element_to_be_clickable((By.XPATH, DataTable.previous_page())),
                     message="Unable to click on 'go to the previous page' button").click()
+            except StaleElementReferenceException:
+                driver.refresh()
+                threading.Event().wait(1)
             except OSError as err:
                 print(err)
         return None
@@ -125,5 +130,34 @@ def find_element_on_datatable(driver, xpath):
             return element
         except TimeoutException:
             return None
+        except StaleElementReferenceException:
+            driver.refresh()
+            threading.Event().wait(1)
+            return StaleElementReferenceException
         except OSError as err:
             return err
+
+
+@threading_wait_until
+def find_element_on_datatable_by_condition(driver, element_xpath, xpath_referring_page, condition="is", event=None):
+    try:
+        assert_that(condition, any_of(equal_to("is"), equal_to("is not")), "Unexpected value for list condition")
+        WebDriverWait(driver, 3).until(
+            EC.element_to_be_clickable((By.XPATH, xpath_referring_page)),
+            message=f"Unable to find {xpath_referring_page} icon on left menu")
+        driver.find_element(By.XPATH, xpath_referring_page).click()
+        element_on_datatable = find_element_on_datatable(driver, element_xpath)
+        if condition == "is" and element_on_datatable is not None:
+            event.set()
+        elif condition == "is not" and element_on_datatable is None:
+            event.set()
+        return element_on_datatable
+    except TimeoutException:
+        print(TimeoutException)
+        raise TimeoutException
+    except StaleElementReferenceException:
+        driver.refresh()
+        event.wait(1)
+        print(StaleElementReferenceException)
+    except OSError as err:
+        raise err

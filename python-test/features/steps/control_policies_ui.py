@@ -1,4 +1,3 @@
-import threading
 from behave import step
 from control_plane_policies import parse_policy_params, get_policy, make_policy_json
 from test_config import TestConfig
@@ -117,8 +116,11 @@ def check_json_policies_ui(context):
 
 @step('created policy must {condition} displayed on policy pages')
 def find_policy_in_policies_list(context, condition):
-    policy_on_datatable = find_policy_on_policies_datatable(context.policy_name, condition, context.driver)
-    if condition == "be":
+    policy_to_be_sought = PolicyPage.policy(context.policy_name)
+    policy_on_datatable = find_element_on_datatable_by_condition(context.driver, policy_to_be_sought,
+                                                                 LeftMenu.policies(), condition)
+    if condition == "is":
+        assert_that(policy_on_datatable, is_not(None), "Unable to find policy in policy datatable")
         policy_on_datatable.click()
         check_policy_view_page(context)
     else:
@@ -128,30 +130,41 @@ def find_policy_in_policies_list(context, condition):
 
 @step('remove policy from Orb UI')
 def remove_policy_from_orb_ui(context):
-    remove_policy_button = \
-        find_element_on_datatable(context.driver, PolicyPage.remove_policy_button(context.policy_name))
-    remove_policy_button.click()
+    policy_removal_icon = PolicyPage.remove_policy_button(context.policy_name)
+    removal_policy_button = \
+        find_element_on_datatable_by_condition(context.driver, policy_removal_icon, LeftMenu.policies())
+    removal_policy_button.click()
     input_text_by_xpath(PolicyPage.remove_policy_confirmation_name(), context.policy_name, context.driver)
-    policy_removal_confirmation = WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, PolicyPage.remove_policy_confirmation_button())))
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, "//html"))).click()  # blank space
+    policy_removal_confirmation = WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, PolicyPage.remove_policy_confirmation_button())))
     policy_removal_confirmation.click()
     WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Policy successfully deleted'),
         message="Confirmation span of policy removal is not correctly displayed")
 
 
-@threading_wait_until
-def find_policy_on_policies_datatable(policy_name, condition, driver, event=None):
-    assert_that(condition, any_of(equal_to("be"), equal_to("not be")), "Unexpected value for policy list condition")
-    WebDriverWait(driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, LeftMenu.policies())), message=f"Unable to find policies icon on left "
-                                                                             f"menu")
-    driver.find_element(By.XPATH, LeftMenu.policies()).click()
-    policy_on_datatable = find_element_on_datatable(driver, PolicyPage.policy(policy_name))
-    if condition == "be" and policy_on_datatable is not None:
-        event.set()
-    elif condition == "not be" and policy_on_datatable is None:
-        event.set()
-    return policy_on_datatable
+# @threading_wait_until
+# def find_policy_on_policies_datatable(driver, element_xpath, condition="is", event=None):
+#     try:
+#         assert_that(condition, any_of(equal_to("is"), equal_to("is not")), "Unexpected value for policy list condition")
+#         WebDriverWait(driver, 3).until(
+#             EC.element_to_be_clickable((By.XPATH, LeftMenu.policies())), message=f"Unable to find policies icon on left "
+#                                                                                  f"menu")
+#         driver.find_element(By.XPATH, LeftMenu.policies()).click()
+#         policy_on_datatable = find_element_on_datatable(driver, element_xpath)
+#         if condition == "is" and policy_on_datatable is not None:
+#             event.set()
+#         elif condition == "is not" and policy_on_datatable is None:
+#             event.set()
+#         return policy_on_datatable
+#     except TimeoutException:
+#         print(TimeoutException)
+#         raise TimeoutException
+#     except StaleElementReferenceException:
+#         driver.refresh()
+#         event.wait(1)
+#         print(StaleElementReferenceException)
+#     except OSError as err:
+#         raise err
