@@ -9,12 +9,14 @@ import (
 	"errors"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/fatih/structs"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/cloud_config"
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/agent/policyMgr"
 	"github.com/ns1labs/orb/buildinfo"
+	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
 	"runtime"
 	"time"
@@ -32,12 +34,15 @@ type Agent interface {
 }
 
 type orbAgent struct {
-	logger         *zap.Logger
-	config         config.Config
-	client         mqtt.Client
-	db             *sqlx.DB
-	backends       map[string]backend.Backend
-	cancelFunction context.CancelFunc
+	logger            *zap.Logger
+	config            config.Config
+	client            mqtt.Client
+	db                *sqlx.DB
+	backends          map[string]backend.Backend
+	cancelFunction    context.CancelFunc
+	rpcFromCancelFunc context.CancelFunc
+	// TODO: look for a better way to do this, context should'nt be inside structs
+	asyncContext context.Context
 
 	hbTicker *time.Ticker
 	hbDone   chan bool
@@ -114,8 +119,11 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 
 func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
 	agentCtx := context.WithValue(ctx, "routine", "agentRoutine")
-	a.logger.Info("agent started", zap.String("version", buildinfo.GetVersion()), zap.Any("routine", agentCtx.Value("routine")))
+	asyncCtx, cancelAllAsync := context.WithCancel(context.WithValue(ctx, "routine", "asyncParent"))
+	a.asyncContext = asyncCtx
+	a.rpcFromCancelFunc = cancelAllAsync
 	a.cancelFunction = cancelFunc
+	a.logger.Info("agent started", zap.String("version", buildinfo.GetVersion()), zap.Any("routine", agentCtx.Value("routine")))
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
 
@@ -147,8 +155,8 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
 	a.hbDone = make(chan bool)
-	heartbeatCtx := context.WithValue(agentCtx, "routine", "heartbeat")
-	go a.sendHeartbeats(heartbeatCtx)
+	heartbeatCtx, hbcancelFunc := a.extendContext("heartbeat")
+	go a.sendHeartbeats(heartbeatCtx, hbcancelFunc)
 
 	return nil
 }
@@ -156,6 +164,9 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 func (a *orbAgent) Stop(ctx context.Context) {
 	a.logger.Info("routine call for stop agent", zap.Any("routine", ctx.Value("routine")))
 	defer a.cancelFunction()
+	if a.rpcFromCancelFunc != nil {
+		a.rpcFromCancelFunc()
+	}
 	for name, b := range a.backends {
 		a.logger.Debug("stopping backend", zap.String("backend", name))
 		if err := b.Stop(ctx); err != nil {
@@ -164,12 +175,14 @@ func (a *orbAgent) Stop(ctx context.Context) {
 	}
 	a.hbTicker.Stop()
 	if a.client != nil && a.client.IsConnected() {
+		a.sendSingleHeartbeat(ctx, time.Now(), fleet.Offline)
 		if token := a.client.Unsubscribe(a.rpcFromCoreTopic); token.Wait() && token.Error() != nil {
 			a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
 		}
 		a.unsubscribeGroupChannels()
 		a.client.Disconnect(250)
 	}
+
 	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
 	defer close(a.hbDone)
 	defer close(a.policyRequestSucceeded)
@@ -234,4 +247,10 @@ func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
 	a.logger.Info("all backends and comms were restarted")
 
 	return nil
+}
+
+func (a *orbAgent) extendContext(routine string) (context.Context, context.CancelFunc) {
+	uuidTraceId := uuid.NewString()
+	a.logger.Debug("creating context for receiving message", zap.String("routine", routine), zap.String("trace-id", uuidTraceId))
+	return context.WithCancel(context.WithValue(context.WithValue(a.asyncContext, "routine", routine), "trace-id", uuidTraceId))
 }
