@@ -143,28 +143,3 @@ def remove_policy_from_orb_ui(context):
     WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Policy successfully deleted'),
         message="Confirmation span of policy removal is not correctly displayed")
-
-
-# @threading_wait_until
-# def find_policy_on_policies_datatable(driver, element_xpath, condition="is", event=None):
-#     try:
-#         assert_that(condition, any_of(equal_to("is"), equal_to("is not")), "Unexpected value for policy list condition")
-#         WebDriverWait(driver, 3).until(
-#             EC.element_to_be_clickable((By.XPATH, LeftMenu.policies())), message=f"Unable to find policies icon on left "
-#                                                                                  f"menu")
-#         driver.find_element(By.XPATH, LeftMenu.policies()).click()
-#         policy_on_datatable = find_element_on_datatable(driver, element_xpath)
-#         if condition == "is" and policy_on_datatable is not None:
-#             event.set()
-#         elif condition == "is not" and policy_on_datatable is None:
-#             event.set()
-#         return policy_on_datatable
-#     except TimeoutException:
-#         print(TimeoutException)
-#         raise TimeoutException
-#     except StaleElementReferenceException:
-#         driver.refresh()
-#         event.wait(1)
-#         print(StaleElementReferenceException)
-#     except OSError as err:
-#         raise err

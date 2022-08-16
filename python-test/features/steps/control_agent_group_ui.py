@@ -124,28 +124,3 @@ def check_total_counter(driver):
     WebDriverWait(driver, 3).until(
         EC.presence_of_element_located((By.XPATH, DataTable.page_count())))
     return int(driver.find_element(By.XPATH, DataTable.page_count()).text.split()[0])
-
-
-# @threading_wait_until
-# def find_group_on_group_datatable(driver, element_xpath, condition="is", event=None):
-#     try:
-#         assert_that(condition, any_of(equal_to("is"), equal_to("is not")), "Unexpected value for group list condition")
-#         WebDriverWait(driver, 3).until(
-#             EC.element_to_be_clickable((By.XPATH, LeftMenu.agent_group())), message=f"Unable to find group icon on left "
-#                                                                                     f"menu")
-#         driver.find_element(By.XPATH, LeftMenu.agent_group()).click()
-#         group_on_datatable = find_element_on_datatable(driver, element_xpath)
-#         if condition == "is" and group_on_datatable is not None:
-#             event.set()
-#         elif condition == "is not" and group_on_datatable is None:
-#             event.set()
-#         return group_on_datatable
-#     except TimeoutException:
-#         print(TimeoutException)
-#         raise TimeoutException
-#     except StaleElementReferenceException:
-#         driver.refresh()
-#         event.wait(1)
-#         print(StaleElementReferenceException)
-#     except OSError as err:
-#         raise err
