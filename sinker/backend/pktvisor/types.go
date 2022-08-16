@@ -204,9 +204,9 @@ type FlowPayload struct {
 	Total       int64         `mapstructure:"total"`
 	Period      PeriodPayload `mapstructure:"period"`
 	Rates       struct {
-		Bytes     Rates `mapstructure:"bytes"`
-		Packets   Rates `mapstructure:"packets"`
-		PpsEvents Rates `mapstructure:"pps_events"`
+		Bytes   Rates `mapstructure:"bytes"`
+		Packets Rates `mapstructure:"packets"`
+		Events  Rates `mapstructure:"events"`
 	} `mapstructure:"rates"`
 	Volume struct {
 		Bytes Quantiles `mapstructure:"bytes"`
