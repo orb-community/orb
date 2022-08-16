@@ -9,6 +9,7 @@ import (
 	"errors"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/fatih/structs"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/cloud_config"
@@ -40,6 +41,8 @@ type orbAgent struct {
 	backends          map[string]backend.Backend
 	cancelFunction    context.CancelFunc
 	rpcFromCancelFunc context.CancelFunc
+	// TODO: look for a better way to do this, context should'nt be inside structs
+	asyncContext context.Context
 
 	hbTicker *time.Ticker
 	hbDone   chan bool
@@ -116,8 +119,11 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 
 func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
 	agentCtx := context.WithValue(ctx, "routine", "agentRoutine")
-	a.logger.Info("agent started", zap.String("version", buildinfo.GetVersion()), zap.Any("routine", agentCtx.Value("routine")))
+	asyncCtx, cancelAllAsync := context.WithCancel(context.WithValue(ctx, "routine", "asyncParent"))
+	a.asyncContext = asyncCtx
+	a.rpcFromCancelFunc = cancelAllAsync
 	a.cancelFunction = cancelFunc
+	a.logger.Info("agent started", zap.String("version", buildinfo.GetVersion()), zap.Any("routine", agentCtx.Value("routine")))
 	mqtt.CRITICAL = &agentLoggerCritical{a: a}
 	mqtt.ERROR = &agentLoggerError{a: a}
 
@@ -158,7 +164,9 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 func (a *orbAgent) Stop(ctx context.Context) {
 	a.logger.Info("routine call for stop agent", zap.Any("routine", ctx.Value("routine")))
 	defer a.cancelFunction()
-	a.rpcFromCancelFunc()
+	if a.rpcFromCancelFunc != nil {
+		a.rpcFromCancelFunc()
+	}
 	for name, b := range a.backends {
 		a.logger.Debug("stopping backend", zap.String("backend", name))
 		if err := b.Stop(ctx); err != nil {
@@ -236,4 +244,10 @@ func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
 	a.logger.Info("all backends and comms were restarted")
 
 	return nil
+}
+
+func (a *orbAgent) extendContext(routine string) (context.Context, context.CancelFunc) {
+	uuidTraceId := uuid.NewString()
+	a.logger.Debug("creating context for receiving message", zap.String("routine", routine), zap.String("trace-id", uuidTraceId))
+	return context.WithCancel(context.WithValue(context.WithValue(a.asyncContext, "routine", routine), "trace-id", uuidTraceId))
 }
