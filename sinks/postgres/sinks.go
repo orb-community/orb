@@ -75,6 +75,8 @@ func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
 	if err != nil {
 		return errors.Wrap(sinks.ErrUpdateEntity, err)
 	}
+	s.logger.Debug("sink_config before conversion", zap.Any("sink_config", sink.Config))
+	s.logger.Debug("sink_config after conversion", zap.Any("sinkdb_config", sinkDB.Metadata))
 
 	res, err := s.db.NamedExecContext(ctx, q, sinkDB)
 	if err != nil {

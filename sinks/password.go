@@ -30,6 +30,7 @@ type passwordService struct {
 }
 
 func (ps *passwordService) EncodePassword(plainText string) (string, error) {
+	ps.logger.Debug("SENSIBLE INFO TESTING ONLY -> encoding pwd:", zap.String("password", plainText))
 	cipherText, err := encrypt([]byte(plainText), ps.key)
 	if err != nil {
 		ps.logger.Error("failed to encrypt password", zap.Error(err))
