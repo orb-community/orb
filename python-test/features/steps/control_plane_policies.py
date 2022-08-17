@@ -40,7 +40,7 @@ def create_new_policy(context, kwargs):
 def policy_editing(context, kwargs):
     acceptable_keys = ['name', 'handler_label', 'handler', 'description', 'tap', 'input_type',
                        'host_specification', 'bpf_filter_expression', 'pcap_source', 'only_qname_suffix',
-                       'only_rcode', 'backend_type']
+                       'only_rcode', 'exclude_noerror', 'backend_type']
 
     handler_label = list(context.policy["policy"]["handlers"]["modules"].keys())[0]
 
