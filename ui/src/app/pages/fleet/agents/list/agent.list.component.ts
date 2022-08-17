@@ -164,15 +164,15 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'policy_agg_info',
-        flexGrow: 4,
+        flexGrow: 2,
         canAutoResize: true,
-        minWidth: 150,
+        minWidth: 100,
         name: 'Policies',
         cellTemplate: this.agentPolicyStateTemplateRef,
       },
       {
         prop: 'combined_tags',
-        flexGrow: 9,
+        flexGrow: 7,
         canAutoResize: true,
         name: 'Tags',
         cellTemplate: this.agentTagsTemplateCell,
@@ -198,13 +198,19 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       {
         name: '',
         prop: 'actions',
-        flexGrow: 3,
-        minWidth: 150,
+        flexGrow: 4,
+        minWidth: 200,
         canAutoResize: true,
         sortable: false,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
+  }
+
+  onOpenMetrics(agent: any) {
+    this.router.navigate([`metrics/${agent.id}`], {
+      relativeTo: this.route,
+    });
   }
 
   onOpenView(agent: any) {

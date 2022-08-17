@@ -3,8 +3,8 @@ import {Injectable} from '@angular/core';
 import {EMPTY, Observable, of} from 'rxjs';
 import 'rxjs/add/observable/empty';
 
-import {Agent, AgentPolicyAggStates,} from 'app/common/interfaces/orb/agent.interface';
-import {AgentPolicyState, AgentPolicyStates,} from 'app/common/interfaces/orb/agent.policy.interface';
+import {Agent, AgentPolicyAggStates} from 'app/common/interfaces/orb/agent.interface';
+import {AgentPolicyState, AgentPolicyStates} from 'app/common/interfaces/orb/agent.policy.interface';
 import {OrbPagination} from 'app/common/interfaces/orb/pagination.interface';
 import {NotificationsService} from 'app/common/services/notifications/notifications.service';
 import {environment} from 'environments/environment';
@@ -29,7 +29,7 @@ export class AgentsService {
           'dhcp': {
             'period': {
               'length': 296,
-              'start_ts': 1660152794
+              'start_ts': 1660152794,
             },
             'rates': {
               'total': {
@@ -37,8 +37,8 @@ export class AgentsService {
                 'p50': 0,
                 'p90': 0,
                 'p95': 0,
-                'p99': 0
-              }
+                'p99': 0,
+              },
             },
             'wire_packets': {
               'ack': 0,
@@ -47,18 +47,18 @@ export class AgentsService {
               'filtered': 0,
               'offer': 0,
               'request': 0,
-              'total': 0
-            }
-          }
+              'total': 0,
+            },
+          },
         },
         'default-default-dns': {
           'dns': {
             'cardinality': {
-              'qname': 1
+              'qname': 1,
             },
             'period': {
               'length': 296,
-              'start_ts': 1660152794
+              'start_ts': 1660152794,
             },
             'rates': {
               'total': {
@@ -66,57 +66,57 @@ export class AgentsService {
                 'p50': 0,
                 'p90': 0,
                 'p95': 0,
-                'p99': 1
-              }
+                'p99': 1,
+              },
             },
             'top_nodata': [
               {
                 'estimate': 1,
-                'name': 'connectivity-check.ubuntu.com'
-              }
+                'name': 'connectivity-check.ubuntu.com',
+              },
             ],
             'top_nxdomain': [],
             'top_qname2': [
               {
                 'estimate': 2,
-                'name': '.ubuntu.com'
-              }
+                'name': '.ubuntu.com',
+              },
             ],
             'top_qname3': [
               {
                 'estimate': 2,
-                'name': 'connectivity-check.ubuntu.com'
-              }
+                'name': 'connectivity-check.ubuntu.com',
+              },
             ],
             'top_qname_by_resp_bytes': [
               {
                 'estimate': 58,
-                'name': 'connectivity-check.ubuntu.com'
-              }
+                'name': 'connectivity-check.ubuntu.com',
+              },
             ],
             'top_qtype': [
               {
                 'estimate': 2,
-                'name': 'AAAA'
-              }
+                'name': 'AAAA',
+              },
             ],
             'top_rcode': [
               {
                 'estimate': 11,
-                'name': 'NOERROR'
-              }
+                'name': 'NOERROR',
+              },
             ],
             'top_refused': [],
             'top_srvfail': [],
             'top_udp_ports': [
               {
                 'estimate': 10,
-                'name': '5353'
+                'name': '5353',
               },
               {
                 'estimate': 2,
-                'name': '55622'
-              }
+                'name': '55622',
+              },
             ],
             'wire_packets': {
               'deep_samples': 12,
@@ -132,43 +132,43 @@ export class AgentsService {
               'srvfail': 0,
               'tcp': 0,
               'total': 12,
-              'udp': 12
+              'udp': 12,
             },
             'xact': {
               'counts': {
                 'timed_out': 0,
-                'total': 1
+                'total': 1,
               },
               'in': {
                 'top_slow': [],
-                'total': 0
+                'total': 0,
               },
               'out': {
                 'quantiles_us': {
                   'p50': 1954,
                   'p90': 1954,
                   'p95': 1954,
-                  'p99': 1954
+                  'p99': 1954,
                 },
                 'top_slow': [],
-                'total': 1
+                'total': 1,
               },
               'ratio': {
                 'quantiles': {
                   'p50': 1.0,
                   'p90': 1.0,
                   'p95': 1.0,
-                  'p99': 1.0
-                }
-              }
-            }
-          }
+                  'p99': 1.0,
+                },
+              },
+            },
+          },
         },
         'default-default-net': {
           'packets': {
             'cardinality': {
               'dst_ips_out': 45,
-              'src_ips_in': 36
+              'src_ips_in': 36,
             },
             'deep_samples': 140237,
             'filtered': 0,
@@ -181,16 +181,16 @@ export class AgentsService {
               'p50': 952,
               'p90': 1000,
               'p95': 1000,
-              'p99': 1000
+              'p99': 1000,
             },
             'period': {
               'length': 276,
-              'start_ts': 1660152814
+              'start_ts': 1660152814,
             },
             'protocol': {
               'tcp': {
-                'syn': 22
-              }
+                'syn': 22,
+              },
             },
             'rates': {
               'bytes_in': {
@@ -198,36 +198,36 @@ export class AgentsService {
                 'p50': 196752,
                 'p90': 208529,
                 'p95': 211604,
-                'p99': 247499
+                'p99': 247499,
               },
               'bytes_out': {
                 'live': 123204,
                 'p50': 122321,
                 'p90': 141873,
                 'p95': 144025,
-                'p99': 153737
+                'p99': 153737,
               },
               'pps_in': {
                 'live': 277,
                 'p50': 285,
                 'p90': 302,
                 'p95': 310,
-                'p99': 353
+                'p99': 353,
               },
               'pps_out': {
                 'live': 198,
                 'p50': 207,
                 'p90': 276,
                 'p95': 281,
-                'p99': 298
+                'p99': 298,
               },
               'pps_total': {
                 'live': 475,
                 'p50': 497,
                 'p90': 565,
                 'p95': 575,
-                'p99': 601
-              }
+                'p99': 601,
+              },
             },
             'tcp': 4625,
             'top_ASN': [],
@@ -235,90 +235,90 @@ export class AgentsService {
             'top_ipv4': [
               {
                 'estimate': 116940,
-                'name': '206.247.14.178'
+                'name': '206.247.14.178',
               },
               {
                 'estimate': 19623,
-                'name': '35.215.237.233'
+                'name': '35.215.237.233',
               },
               {
                 'estimate': 620,
-                'name': '66.22.202.35'
+                'name': '66.22.202.35',
               },
               {
                 'estimate': 292,
-                'name': '162.159.128.235'
+                'name': '162.159.128.235',
               },
               {
                 'estimate': 125,
-                'name': '164.163.6.3'
+                'name': '164.163.6.3',
               },
               {
                 'estimate': 104,
-                'name': '239.255.255.250'
+                'name': '239.255.255.250',
               },
               {
                 'estimate': 96,
-                'name': '54.232.34.114'
+                'name': '54.232.34.114',
               },
               {
                 'estimate': 76,
-                'name': '187.16.226.151'
+                'name': '187.16.226.151',
               },
               {
                 'estimate': 64,
-                'name': '162.159.136.234'
+                'name': '162.159.136.234',
               },
               {
                 'estimate': 48,
-                'name': '52.109.108.52'
-              }
+                'name': '52.109.108.52',
+              },
             ],
             'top_ipv6': [
               {
                 'estimate': 749,
-                'name': '2620:1ec:a92::171'
+                'name': '2620:1ec:a92::171',
               },
               {
                 'estimate': 394,
-                'name': '2603:1056:c03:2424::2'
+                'name': '2603:1056:c03:2424::2',
               },
               {
                 'estimate': 357,
-                'name': '2600:1419:1e00:593::4b36'
+                'name': '2600:1419:1e00:593::4b36',
               },
               {
                 'estimate': 216,
-                'name': '2602:fd3f:3:ff02::2d'
+                'name': '2602:fd3f:3:ff02::2d',
               },
               {
                 'estimate': 48,
-                'name': '2603:1056:c03:2401::2'
+                'name': '2603:1056:c03:2401::2',
               },
               {
                 'estimate': 39,
-                'name': '2603:1030:b00::4ee'
+                'name': '2603:1030:b00::4ee',
               },
               {
                 'estimate': 24,
-                'name': '2603:1056:1400:1::'
+                'name': '2603:1056:1400:1::',
               },
               {
                 'estimate': 21,
-                'name': '2a01:111:f100:3001::8987:1046'
+                'name': '2a01:111:f100:3001::8987:1046',
               },
               {
                 'estimate': 20,
-                'name': '2800:3f0:4001:82e::2004'
+                'name': '2800:3f0:4001:82e::2004',
               },
               {
                 'estimate': 20,
-                'name': 'fe80::dac6:78ff:fe39:e360'
-              }
+                'name': 'fe80::dac6:78ff:fe39:e360',
+              },
             ],
             'total': 140237,
-            'udp': 135522
-          }
+            'udp': 135522,
+          },
         },
         'default-default-pcap_stats': {
           'pcap': {
@@ -326,11 +326,11 @@ export class AgentsService {
             'os_drops': 0,
             'period': {
               'length': 276,
-              'start_ts': 1660152814
+              'start_ts': 1660152814,
             },
-            'tcp_reassembly_errors': 0
-          }
-        }
+            'tcp_reassembly_errors': 0,
+          },
+        },
       },
       'default-6410a3cbc0d30617-resources': {
         'default-6410a3cbc0d30617-resources': {
@@ -339,7 +339,7 @@ export class AgentsService {
               'p50': 2.0491803278688523,
               'p90': 2.658486707566462,
               'p95': 2.8112449799196786,
-              'p99': 3.006012024048096
+              'p99': 3.006012024048096,
             },
             'deep_samples': 61,
             'event_rate': {
@@ -347,27 +347,36 @@ export class AgentsService {
               'p50': 0,
               'p90': 1,
               'p95': 1,
-              'p99': 2
+              'p99': 2,
             },
             'handler_count': 5,
             'memory_bytes': {
               'p50': 22462464,
               'p90': 22462464,
               'p95': 22462464,
-              'p99': 22462464
+              'p99': 22462464,
             },
             'period': {
               'length': 276,
-              'start_ts': 1660152814
+              'start_ts': 1660152814,
             },
             'policy_count': 2,
-            'total': 61
-          }
-        }
-      }
+            'total': 61,
+          },
+        },
+      },
     };
 
-    return of(metrics);
+    return of(metrics).pipe(
+        map(_metrics => {
+          const view = {}
+          const entries = Object.entries(_metrics);
+          // tops
+          // rates
+          // counts
+          return metrics;
+        }),
+    );
   }
 
   addAgent(agentItem: Agent) {

@@ -116,6 +116,15 @@
 <ng-template #actionsTemplateCell let-i="index" let-row="row" let-value="value">
   <div class="block">
     <button
+            (click)="onOpenMetrics(row)"
+            class="orb-action-hover detail-button"
+            ghost
+            nbButton
+            nbTooltip="View Metrics"
+    >
+      <nb-icon icon="activity-outline"></nb-icon>
+    </button>
+    <button
       (click)="onOpenView(row)"
       class="orb-action-hover detail-button"
       ghost

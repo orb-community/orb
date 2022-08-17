@@ -1,1 +1,18 @@
-<p>metrics works!</p>
+<header>
+    <xng-breadcrumb class="orb-breadcrumb"> </xng-breadcrumb>
+    <div
+            style="
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-content: center;
+      justify-content: space-between;
+      align-items: baseline;
+    "
+    >
+        <ngx-poll-control></ngx-poll-control>
+    </div>
+</header>
+
+<span>{{metrics | json}}</span>
+

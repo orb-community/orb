@@ -1,0 +1,145 @@
+h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.5rem;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+nb-card {
+  border: transparent;
+  border-radius: 0.5rem;
+
+  nb-card-header {
+    background-color: #232940;
+    border-bottom: transparent;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    color: #969fb9;
+    padding: 0.5rem 1rem;
+  }
+
+  nb-card-body {
+    label {
+      color: #969fb9;
+    }
+
+    span {
+      text-align: end;
+    }
+
+    .active-dataset {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    pre {
+      background: #1c2339;
+      border-radius: 0.5rem;
+      color: #fff;
+      font-weight: 400;
+      padding: 0.75rem;
+
+      white-space: pre-line;
+
+      button {
+        background: transparent;
+        border: 0 transparent;
+        color: #969fb9;
+        float: right;
+        position: relative;
+        right: -0.5rem;
+        top: -0.25rem;
+      }
+
+      code {
+        color: #fff;
+        line-height: 2.5 !important;
+      }
+    }
+  }
+}
+
+::ng-deep {
+
+  .agent-group-link {
+    color: #0c5dc5;
+    text-decoration: underline;
+    text-decoration-color: #0c5dc5;
+  }
+
+  .agent-new {
+    color: #9b51e0 !important;
+  }
+
+  .agent-online, .dataset-valid, .policy-running {
+    color: #6fcf97 !important;
+  }
+
+  .agent-offline, .dataset-invalid, .policy-error {
+    color: #df316f !important;
+  }
+
+  .agent-stale {
+    color: #f2994a !important;
+  }
+
+  .agent-removed {
+    color: #62d9ff !important;
+  }
+
+  .summary-accent {
+    color: #969fb9 !important;
+  }
+
+  header p {
+    align-items: center;
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px !important;
+    font-style: normal;
+
+    font-weight: normal;
+    height: 20px;
+    line-height: 20px;
+    margin-left: 16px;
+
+    margin-top: 24px;
+    width: 250px;
+  }
+
+  .orb-breadcrumb {
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 12px;
+
+    ::ng-deep {
+      .xng-breadcrumb-trail {
+        color: #fff;
+        margin-bottom: 0;
+      }
+
+      .xng-breadcrumb-link {
+        color: #969fb9 !important;
+        text-decoration: none !important;
+      }
+
+      .xng-breadcrumb-separator {
+        color: #969fb9 !important;
+        text-decoration: none !important;
+      }
+    }
+  }
+}
+
+::ng-deep {
+  mark {
+    background: #1c2339 !important;
+    color: #df316f !important;
+  }
+}
