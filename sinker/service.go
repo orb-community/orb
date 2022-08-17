@@ -275,6 +275,16 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	inputContext := context.WithValue(context.Background(), "trace-id", uuid.NewString())
 	go func(ctx context.Context) {
 		defer func(t time.Time) {
+			labels := []string{
+				"method", "handleMsgFromAgent",
+				"agent_id", msg.Publisher,
+				"subtopic", msg.Subtopic,
+				"channel", msg.Channel,
+				"protocol", msg.Protocol,
+				"created", strconv.FormatInt(msg.Created, 10),
+				"trace_id", ctx.Value("trace-id").(string),
+			}
+			svc.messageInputCounter.With(labels...).Add(1)
 			svc.logger.Info("message consumption time", zap.String("execution", time.Since(t).String()))
 		}(time.Now())
 		// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
@@ -290,17 +300,6 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 			zap.String("protocol", msg.Protocol),
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
-
-		labels := []string{
-			"method", "handleMsgFromAgent",
-			"agent_id", msg.Publisher,
-			"subtopic", msg.Subtopic,
-			"channel", msg.Channel,
-			"protocol", msg.Protocol,
-			"created", strconv.FormatInt(msg.Created, 10),
-			"trace_id", ctx.Value("trace-id").(string),
-		}
-		svc.messageInputCounter.With(labels...).Add(1)
 
 		if len(msg.Payload) > MaxMsgPayloadSize {
 			svc.logger.Error("metrics processing failure", zap.Any("trace-id", ctx.Value("trace-id")), zap.Error(ErrPayloadTooBig))
