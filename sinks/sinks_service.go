@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/sinks/backend"
+	"go.uber.org/zap"
 )
 
 var (
@@ -88,7 +89,11 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if sink.Backend != "" || sink.Error != "" {
 		return Sink{}, errors.ErrUpdateEntity
 	}
-
+	previousSink, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	if err != nil {
+		return Sink{}, err
+	}
+	svc.logger.Info("debugging previousSink before update", zap.Any("sink", previousSink))
 	sink.MFOwnerID = skOwnerID
 	sink, err = svc.encryptMetadata(sink)
 	if err != nil {
@@ -98,11 +103,11 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if err != nil {
 		return Sink{}, err
 	}
-
 	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
 	if err != nil {
 		return Sink{}, err
 	}
+	svc.logger.Info("debugging previousSink after update", zap.Any("sink", sinkEdited))
 
 	return sinkEdited, nil
 }
