@@ -32,7 +32,6 @@ import (
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -280,8 +279,6 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 				"subtopic", msg.Subtopic,
 				"channel", msg.Channel,
 				"protocol", msg.Protocol,
-				"created", strconv.FormatInt(msg.Created, 10),
-				"trace_id", ctx.Value("trace-id").(string),
 			}
 			svc.messageInputCounter.With(labels...).Add(1)
 			svc.logger.Info("message consumption time", zap.String("execution", time.Since(t).String()))
