@@ -185,7 +185,7 @@ func main() {
 		Subsystem: "sink",
 		Name:      "message_inbound",
 		Help:      "Number of messages received",
-	}, []string{"method", "agent_id", "subtopic", "channel", "protocol", "created", "trace_id"})
+	}, []string{"method", "agent_id", "subtopic", "channel", "protocol"})
 
 	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, gauge, counter, inputCounter)
 	defer func(svc sinker.Service) {
