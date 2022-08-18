@@ -75,6 +75,8 @@ type sinkerService struct {
 	requestCounter metrics.Counter
 
 	messageInputCounter metrics.Counter
+	cancelAsyncContext  context.CancelFunc
+	asyncContext        context.Context
 }
 
 func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, ownerID string, sinkID string) error {
@@ -272,8 +274,8 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 }
 
 func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
-	inputContext := context.WithValue(context.Background(), "trace-id", uuid.NewString())
-	go func(ctx context.Context) {
+	inputContext, cancelFunc := context.WithCancel(context.WithValue(context.Background(), "trace-id", uuid.NewString()))
+	go func(ctx context.Context, cancelFunc context.CancelFunc) {
 		defer func(t time.Time) {
 			labels := []string{
 				"method", "handleMsgFromAgent",
@@ -286,6 +288,7 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 			}
 			svc.messageInputCounter.With(labels...).Add(1)
 			svc.logger.Info("message consumption time", zap.String("execution", time.Since(t).String()))
+			cancelFunc()
 		}(time.Now())
 		// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
 		var payload map[string]interface{}
@@ -310,13 +313,13 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 			svc.logger.Error("metrics processing failure", zap.Any("trace-id", ctx.Value("trace-id")), zap.Error(err))
 			return
 		}
-	}(inputContext)
+	}(inputContext, cancelFunc)
 
 	return nil
 }
 
 func (svc sinkerService) Start() error {
-
+	svc.asyncContext, svc.cancelAsyncContext = context.WithCancel(context.Background())
 	topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
 	if err := svc.pubSub.Subscribe(topic, svc.handleMsgFromAgent); err != nil {
 		return err
@@ -374,6 +377,7 @@ func (svc sinkerService) Stop() error {
 
 	svc.hbTicker.Stop()
 	svc.hbDone <- true
+	svc.cancelAsyncContext()
 
 	return nil
 }
