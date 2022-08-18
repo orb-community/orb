@@ -18,45 +18,17 @@ orb_url = TestConfig.configs().get('orb_url')
 
 @step("a new policy is created using: {kwargs}")
 def create_new_policy(context, kwargs):
-    acceptable_keys = ['name', 'handler_label', 'handler', 'description', 'tap', 'input_type',
-                       'host_specification', 'bpf_filter_expression', 'pcap_source', 'only_qname_suffix',
-                       'only_rcode', 'backend_type']
-    name = policy_name_prefix + random_string(10)
-
-    kwargs_dict = {'name': name, 'handler': None, 'description': None, 'tap': "default_pcap",
-                   'input_type': "pcap", 'host_specification': None, 'bpf_filter_expression': None,
-                   'pcap_source': None, 'only_qname_suffix': None, 'only_rcode': None, 'backend_type': "pktvisor"}
-
-    for i in kwargs.split(", "):
-        assert_that(i, matches_regexp("^.+=.+$"), f"Unexpected format for param {i}")
-        item = i.split("=")
-        kwargs_dict[item[0]] = item[1]
-
-    assert_that(all(key in acceptable_keys for key, value in kwargs_dict.items()), equal_to(True),
-                f"Unexpected parameters for policy. Options are {acceptable_keys}")
-
-    if kwargs_dict["only_qname_suffix"] is not None:
-        kwargs_dict["only_qname_suffix"] = kwargs_dict["only_qname_suffix"].replace("[", "")
-        kwargs_dict["only_qname_suffix"] = kwargs_dict["only_qname_suffix"].replace("]", "")
-        kwargs_dict["only_qname_suffix"] = kwargs_dict["only_qname_suffix"].split("/ ")
-
-    if policy_name_prefix not in kwargs_dict["name"]:
-        kwargs_dict["name"] + policy_name_prefix + kwargs_dict["name"]
-
-    assert_that(kwargs_dict["handler"], any_of(equal_to("dns"), equal_to("dhcp"), equal_to("net")),
-                "Unexpected handler for policy")
-    handle_label = f"default_{kwargs_dict['handler']}_{random_string(3)}"
-
-    policy_json = make_policy_json(kwargs_dict["name"], handle_label,
+    kwargs_dict = parse_policy_params(kwargs)
+    policy_json = make_policy_json(kwargs_dict["name"], kwargs_dict['handle_label'],
                                    kwargs_dict["handler"], kwargs_dict["description"], kwargs_dict["tap"],
                                    kwargs_dict["input_type"], kwargs_dict["host_specification"],
                                    kwargs_dict["bpf_filter_expression"], kwargs_dict["pcap_source"],
                                    kwargs_dict["only_qname_suffix"], kwargs_dict["only_rcode"],
-                                   kwargs_dict["backend_type"])
+                                   kwargs_dict["exclude_noerror"], kwargs_dict["backend_type"])
 
     context.policy = create_policy(context.token, policy_json)
 
-    assert_that(context.policy['name'], equal_to(name), f"Policy name failed: {context.policy}")
+    assert_that(context.policy['name'], equal_to(kwargs_dict["name"]), f"Policy name failed: {context.policy}")
     if 'policies_created' in context:
         context.policies_created[context.policy['id']] = context.policy['name']
     else:
@@ -68,7 +40,7 @@ def create_new_policy(context, kwargs):
 def policy_editing(context, kwargs):
     acceptable_keys = ['name', 'handler_label', 'handler', 'description', 'tap', 'input_type',
                        'host_specification', 'bpf_filter_expression', 'pcap_source', 'only_qname_suffix',
-                       'only_rcode', 'backend_type']
+                       'only_rcode', 'exclude_noerror', 'backend_type']
 
     handler_label = list(context.policy["policy"]["handlers"]["modules"].keys())[0]
 
@@ -84,7 +56,8 @@ def policy_editing(context, kwargs):
         "backend_type": return_policy_attribute(context.policy, 'backend'),
         "tap": return_policy_attribute(context.policy, 'tap'),
         "input_type": return_policy_attribute(context.policy, 'input_type'),
-        "handler_label": return_policy_attribute(context.policy, 'handler_label')}
+        "handler_label": return_policy_attribute(context.policy, 'handler_label'),
+        "exclude_noerror": return_policy_attribute(context.policy, "exclude_noerror")}
 
     if "host_spec" in context.policy["policy"]["input"]["config"].keys():
         edited_attributes["host_specification"] = context.policy["policy"]["input"]["config"]["host_spec"]
@@ -101,6 +74,9 @@ def policy_editing(context, kwargs):
     if "only_rcode" in context.policy["policy"]["handlers"]["modules"][handler_label]['filter'].keys():
         edited_attributes["only_rcode"] = context.policy["policy"]["handlers"]["modules"][handler_label]["filter"][
             "only_rcode"]
+    if "exclude_noerror" in context.policy["policy"]["handlers"]["modules"][handler_label]['filter'].keys():
+        edited_attributes["exclude_noerror"] = context.policy["policy"]["handlers"]["modules"][handler_label]["filter"][
+            "exclude_noerror"]
 
     for i in kwargs.split(", "):
         assert_that(i, matches_regexp("^.+=.+$"), f"Unexpected format for param {i}")
@@ -133,7 +109,7 @@ def policy_editing(context, kwargs):
                                    edited_attributes["input_type"], edited_attributes["host_specification"],
                                    edited_attributes["bpf_filter_expression"], edited_attributes["pcap_source"],
                                    edited_attributes["only_qname_suffix"], edited_attributes["only_rcode"],
-                                   edited_attributes["backend_type"])
+                                   edited_attributes["exclude_noerror"], edited_attributes["backend_type"])
     context.considered_timestamp = datetime.now().timestamp()
     context.policy = edit_policy(context.token, context.policy['id'], policy_json)
 
@@ -144,7 +120,7 @@ def policy_editing(context, kwargs):
 def check_policy_attribute(context, attribute, value):
     acceptable_attributes = ['name', 'handler_label', 'handler', 'description', 'tap', 'input_type',
                              'host_specification', 'bpf_filter_expression', 'pcap_source', 'only_qname_suffix',
-                             'only_rcode', 'backend_type', 'version']
+                             'only_rcode', 'backend_type', 'version', 'exclude_noerror']
     if attribute in acceptable_attributes:
         if attribute == "name":
             value = policy_name_prefix + value + context.random_part_policy_name
@@ -437,7 +413,7 @@ def edit_policy(token, policy_id, json_request):
 
 def make_policy_json(name, handler_label, handler, description=None, tap="default_pcap",
                      input_type="pcap", host_specification=None, bpf_filter_expression=None, pcap_source=None,
-                     only_qname_suffix=None, only_rcode=None, backend_type="pktvisor"):
+                     only_qname_suffix=None, only_rcode=None, exclude_noerror=None, backend_type="pktvisor"):
     """
 
     Generate a policy json
@@ -461,6 +437,7 @@ def make_policy_json(name, handler_label, handler, description=None, tap="defaul
                                                                                     "NXDOMAIN": 3,
                                                                                     "REFUSED": 5,
                                                                                     "SERVFAIL": 2
+    :param exclude_noerror: Filter out any queries which are not error response
     :param backend_type: Agent backend this policy is for. Cannot change once created. Default: pktvisor
     :return: (dict) a dictionary containing the created policy data
     """
@@ -469,6 +446,9 @@ def make_policy_json(name, handler_label, handler, description=None, tap="defaul
                 "Unexpected type of pcap_source")
     assert_that(only_rcode, any_of(equal_to(None), equal_to(0), equal_to(2), equal_to(3), equal_to(5)),
                 "Unexpected type of only_rcode")
+    if exclude_noerror is not None:
+        assert_that(exclude_noerror.lower(), any_of(equal_to("false"), equal_to("true")),
+                    "Unexpected value for exclude no error filter")
     assert_that(handler, any_of(equal_to("dns"), equal_to("dhcp"), equal_to("net")), "Unexpected handler for policy")
     assert_that(name, not_none(), "Unable to create policy without name")
 
@@ -490,7 +470,8 @@ def make_policy_json(name, handler_label, handler, description=None, tap="defaul
                                     "type": handler,
                                     "filter": {
                                         "only_qname_suffix": only_qname_suffix,
-                                        "only_rcode": only_rcode
+                                        "only_rcode": only_rcode,
+                                        "exclude_noerror": exclude_noerror
                                     }
                                 }
                             }
@@ -776,6 +757,9 @@ def return_policy_attribute(policy, attribute):
     elif attribute == "only_qname_suffix" and "only_qname_suffix" in \
             policy["policy"]["handlers"]["modules"][handler_label]["filter"].keys():
         return policy["policy"]["handlers"]["modules"][handler_label]["filter"]["only_qname_suffix"]
+    elif attribute == "exclude_noerror" and "exclude_noerror" in \
+            policy["policy"]["handlers"]["modules"][handler_label]["filter"].keys():
+        return policy["policy"]["handlers"]["modules"][handler_label]["filter"]["exclude_noerror"]
     elif attribute == "only_rcode" and "only_rcode" in policy["policy"]["handlers"]["modules"][handler_label][
         "filter"].keys():
         return policy["policy"]["handlers"]["modules"][handler_label]["filter"]["only_rcode"]
@@ -808,3 +792,38 @@ def policy_stopped_and_removed(container_id, stop_policy_info, remove_policy_inf
             event.set()
             return event.is_set()
     return event.is_set()
+
+
+def parse_policy_params(kwargs):
+    acceptable_keys = ['name', 'handler_label', 'handler', 'description', 'tap', 'input_type',
+                       'host_specification', 'bpf_filter_expression', 'pcap_source', 'only_qname_suffix',
+                       'only_rcode', 'exclude_noerror', 'backend_type']
+
+    name = policy_name_prefix + random_string(10)
+
+    kwargs_dict = {'name': name, 'handler': None, 'description': None, 'tap': "default_pcap",
+                   'input_type': "pcap", 'host_specification': None, 'bpf_filter_expression': None,
+                   'pcap_source': None, 'only_qname_suffix': None, 'only_rcode': None, 'exclude_noerror': None,
+                   'backend_type': "pktvisor"}
+
+    for i in kwargs.split(", "):
+        assert_that(i, matches_regexp("^.+=.+$"), f"Unexpected format for param {i}")
+        item = i.split("=")
+        kwargs_dict[item[0]] = item[1]
+
+    assert_that(all(key in acceptable_keys for key, value in kwargs_dict.items()), equal_to(True),
+                f"Unexpected parameters for policy. Options are {acceptable_keys}")
+
+    if kwargs_dict["only_qname_suffix"] is not None:
+        kwargs_dict["only_qname_suffix"] = kwargs_dict["only_qname_suffix"].replace("[", "")
+        kwargs_dict["only_qname_suffix"] = kwargs_dict["only_qname_suffix"].replace("]", "")
+        kwargs_dict["only_qname_suffix"] = kwargs_dict["only_qname_suffix"].split("/ ")
+
+    if policy_name_prefix not in kwargs_dict["name"]:
+        kwargs_dict["name"] + policy_name_prefix + kwargs_dict["name"]
+
+    assert_that(kwargs_dict["handler"], any_of(equal_to("dns"), equal_to("dhcp"), equal_to("net")),
+                "Unexpected handler for policy")
+    kwargs_dict['handle_label'] = f"default_{kwargs_dict['handler']}_{random_string(3)}"
+
+    return kwargs_dict

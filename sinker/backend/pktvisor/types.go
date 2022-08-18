@@ -38,9 +38,11 @@ type DHCPPayload struct {
 		Offer       int64 `mapstructure:"offer"`
 		Request     int64 `mapstructure:"request"`
 		Ack         int64 `mapstructure:"ack"`
+		Events      int64 `mapstructure:"events"`
 	} `mapstructure:"wire_packets"`
 	Rates struct {
-		Total Rates `mapstructure:"total"`
+		Total  Rates `mapstructure:"total"`
+		Events Rates `mapstructure:"events"`
 	} `mapstructure:"rates"`
 	Period PeriodPayload `mapstructure:"period"`
 }
@@ -62,9 +64,12 @@ type DNSPayload struct {
 		Refused     int64 `mapstructure:"refused"`
 		Filtered    int64 `mapstructure:"filtered"`
 		DeepSamples int64 `mapstructure:"deep_samples"`
+		QueryECS    int64 `mapstructure:"query_ecs"`
+		Events      int64 `mapstructure:"events"`
 	} `mapstructure:"wire_packets"`
 	Rates struct {
-		Total Rates `mapstructure:"total"`
+		Total  Rates `mapstructure:"total"`
+		Events Rates `mapstructure:"events"`
 	} `mapstructure:"rates"`
 	Cardinality struct {
 		Qname int64 `mapstructure:"qname"`
@@ -122,9 +127,11 @@ type PacketPayload struct {
 	UDP         int64 `mapstructure:"udp"`
 	In          int64 `mapstructure:"in"`
 	Out         int64 `mapstructure:"out"`
+	UnknownDir  int64 `mapstructure:"unknown_dir"`
 	OtherL4     int64 `mapstructure:"other_l4"`
 	DeepSamples int64 `mapstructure:"deep_samples"`
 	Filtered    int64 `mapstructure:"filtered"`
+	Events      int64 `mapstructure:"events"`
 	Protocol    struct {
 		Tcp struct {
 			SYN int64 `mapstructure:"syn"`
@@ -132,11 +139,13 @@ type PacketPayload struct {
 	} `mapstructure:"protocol"`
 	PayloadSize Quantiles `mapstructure:"payload_size"`
 	Rates       struct {
-		BytesIn  Rates `mapstructure:"bytes_in"`
-		BytesOut Rates `mapstructure:"bytes_out"`
-		PpsIn    Rates `mapstructure:"pps_in"`
-		PpsOut   Rates `mapstructure:"pps_out"`
-		PpsTotal Rates `mapstructure:"pps_total"`
+		BytesIn    Rates `mapstructure:"bytes_in"`
+		BytesOut   Rates `mapstructure:"bytes_out"`
+		BytesTotal Rates `mapstructure:"bytes_total"`
+		PpsIn      Rates `mapstructure:"pps_in"`
+		PpsOut     Rates `mapstructure:"pps_out"`
+		PpsTotal   Rates `mapstructure:"pps_total"`
+		PpsEvents  Rates `mapstructure:"pps_events"`
 	} `mapstructure:"rates"`
 	TopIpv4   []NameCount   `mapstructure:"top_ipv4"`
 	TopIpv6   []NameCount   `mapstructure:"top_ipv6"`
@@ -197,14 +206,19 @@ type FlowPayload struct {
 		Total                   int64       `mapstructure:"total"`
 		Udp                     int64       `mapstructure:"udp"`
 	} `mapstructure:"devices"`
-	VolumeBytes int64         `mapstructure:"valume_bytes"`
+	DeepSamples int64         `mapstructure:"deep_samples"`
+	Events      int64         `mapstructure:"events"`
 	Filtered    int64         `mapstructure:"filtered"`
-	Flows       int64         `mapstructure:"flows"`
+	Total       int64         `mapstructure:"total"`
 	Period      PeriodPayload `mapstructure:"period"`
 	Rates       struct {
 		Bytes   Rates `mapstructure:"bytes"`
 		Packets Rates `mapstructure:"packets"`
+		Events  Rates `mapstructure:"events"`
 	} `mapstructure:"rates"`
+	Volume struct {
+		Bytes Quantiles `mapstructure:"bytes"`
+	} `mapstructure:"volume"`
 }
 
 // StatSnapshot is a snapshot of a given period from pktvisord

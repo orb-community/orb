@@ -117,6 +117,8 @@ func (a *orbAgent) sendHeartbeats(ctx context.Context, cancelFunc context.Cancel
 	}()
 	for {
 		select {
+		case <-ctx.Done():
+			return
 		case <-a.hbDone:
 			ctx.Done()
 			return
