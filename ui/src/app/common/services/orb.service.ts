@@ -155,7 +155,7 @@ export class OrbService implements OnDestroy {
   }
 
   getAgentMetricsView(id: string) {
-    return this.agent.getPktVisorMetrics(id);
+    return this.observe(this.agent.getPktVisorMetrics(id));
   }
 
   getAgentFullView(id: string) {

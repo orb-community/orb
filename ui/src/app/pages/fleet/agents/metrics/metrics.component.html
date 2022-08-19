@@ -1,18 +1,106 @@
 <header>
-    <xng-breadcrumb class="orb-breadcrumb"> </xng-breadcrumb>
-    <div
-            style="
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      align-content: center;
-      justify-content: space-between;
-      align-items: baseline;
-    "
-    >
-        <ngx-poll-control></ngx-poll-control>
-    </div>
+    <xng-breadcrumb class="orb-breadcrumb"></xng-breadcrumb>
+    <ngx-poll-control></ngx-poll-control>
+    <h4>Live Stream</h4>
 </header>
 
-<span>{{metrics | json}}</span>
+<!--resources-->
+<div class="handler-view">
+    <div class="resources-panel">
+        <div class="resources-header">
+            <span class="panel-title">Resources</span>
+            <span><span
+                    class="top-key">Period:</span> {{resources['period']['start_ts'] * 1000 | date:'M/d/yy, h:mm:ss a'}}
+                to
+                {{(resources['period']['start_ts'] + resources['period']['length']) * 1000 | date:'M/d/yy, h:mm:ss a'}}</span>
+        </div>
 
+        <div class="resources-body">
+            <ol class="top-title">CPU Usage
+                <li *ngFor="let cpu of resources['cpu_usage'] | keyvalue"><span
+                        class="top-key">{{cpu.key}}</span> {{cpu.value}}</li>
+            </ol>
+            <ol class="top-title">Event Rate
+                <li *ngFor="let cpu of resources['event_rate'] | keyvalue"><span
+                        class="top-key">{{cpu.key}}</span> {{cpu.value}}</li>
+            </ol>
+            <ol class="top-title">Memory Bytes
+                <li *ngFor="let cpu of resources['cpu_usage'] | keyvalue"><span
+                        class="top-key">{{cpu.key}}</span> {{cpu.value}}</li>
+            </ol>
+            <ol class="top-title">Counters
+                <li><span><span class="top-key">Deep Samples:</span> {{resources['deep_samples']}}</span></li>
+                <li><span><span class="top-key">Total:</span> {{resources['total']}}</span></li>
+                <li><span><span class="top-key">Handler Count:</span> {{resources['handler_count']}}</span></li>
+                <li><span><span class="top-key">Policy Count:</span> {{resources['policy_count']}}</span></li>
+            </ol>
+        </div>
+    </div>
+    <p>handler types: {{availableTypes | json}}</p>
+    <p>handler names: {{handlersNames | json}}</p>
+    <div>
+        <ng-container *ngFor="let handler of handlers | keyvalue">
+            <div class="resources-panel">
+                <div class="resources-header">
+                    <span class="panel-title">{{handler.value.type | uppercase}}</span>
+                    <span><span
+                            class="top-key">Period:</span> {{handler.value['period']['start_ts'] * 1000 | date:'M/d/yy, h:mm:ss a'}}
+                        to
+                        {{(handler.value['period']['start_ts'] + handler.value['period']['length']) * 1000 | date:'M/d/yy, h:mm:ss a'}}</span>
+                </div>
+                <div class="resources-body">
+                    <ng-container *ngFor="let metric of handler.value | keyvalue">
+                        <ng-container *ngIf="metric.key.includes('wire_packets')">
+                            <ol class="top-title">
+                            {{metric.key}}
+                                <li *ngFor="let content of metric.value | keyvalue">
+                                <span>
+                                    <span class="top-key">{{content.key}}</span>
+                                    {{content.value}}
+                                </span>
+                                </li>
+                            </ol>
+                        </ng-container>
+                        <ng-container *ngIf="metric.key.includes('rates')">
+                            <ol class="top-title">
+                                {{metric.key}}
+                                <li *ngFor="let content of metric.value['total'] | keyvalue">
+                                <span>
+                                    <span class="top-key">{{content.key}}</span>
+                                    {{content.value}}
+                                </span>
+                                </li>
+                            </ol>
+                        </ng-container>
+                        <ng-container *ngIf="metric.key.includes('top')">
+                            <ol class="top-title">
+                                {{metric.key}}
+                                <li *ngFor="let content of metric.value">
+                                <span>
+                                    <span class="top-key">{{content.name}}</span>
+                                    {{content.estimate}}
+                                </span>
+                                </li>
+                            </ol>
+                        </ng-container>
+                        <ng-container *ngIf="metric.key.includes('xact')">
+
+                        </ng-container>
+                        <ng-container *ngIf="metric.key.includes('protocol')">
+                            <ol class="top-title">
+                                {{metric.key}}
+                                <li *ngFor="let content of metric.value | keyvalue">
+                                <ol>{{content.key}}
+                                    <li *ngFor="let protocol of content.value | keyvalue">
+                                        <span class="top-key">{{protocol.key}}</span>
+                                    {{protocol.value}}</li>
+                                </ol>
+                                </li>
+                            </ol>
+                        </ng-container>
+                    </ng-container>
+                </div>
+            </div>
+        </ng-container>
+    </div>
+</div>

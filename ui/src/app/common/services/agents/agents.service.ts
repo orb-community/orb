@@ -369,12 +369,22 @@ export class AgentsService {
 
     return of(metrics).pipe(
         map(_metrics => {
-          const view = {}
-          const entries = Object.entries(_metrics);
-          // tops
-          // rates
-          // counts
-          return metrics;
+          const handlers = Object.entries(_metrics['default']).map(([key, value]) => {
+            const type = Object.keys(value)[0];
+            const content = {...Object.values(value)[0], type, key};
+            return content;
+          }).reduce((acc, currentValue) => {
+            acc[currentValue['key']] = currentValue;
+            return acc;
+          }, {});
+          // is this `default-${id}-resources` ?
+          const resources = _metrics['default-6410a3cbc0d30617-resources']
+              ['default-6410a3cbc0d30617-resources']
+              ['input_resources'];
+          const handler_names = Object.values(handlers).map(val => val['key']);
+          const types = Object.values(handlers).map(val => val['type']);
+
+          return {resources, handlers, types, handler_names};
         }),
     );
   }
