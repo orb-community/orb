@@ -116,22 +116,44 @@
                             </ol>
                         </ng-container>
                         <ng-container *ngIf="metric.key.includes('xact')">
+                            <ol class="top-title">
+                                {{metric.key}}
+                                <li class="top-key">
+                                    <ol class="top-title">
+                                        counts
+                                        <li *ngFor="let count of metric.value['counts'] | keyvalue">
+                                            <span class="top-key">{{count.key}}</span><span> {{count.value}}</span>
+                                        </li>
+                                    </ol>
+                                </li>
+                                <li class="top-key">
+                                    <ol class="top-title">
+                                        in
+                                        <li *ngFor="let count of metric.value['in'] | keyvalue">
+                                            <ol *ngIf="!isCardinal(count.value)" class="top-title">
+                                                {{count.key}}
+                                                <li *ngFor="let top of count.value | keyvalue">
+                                                    <span><span class="top-key">{{top.key}}</span> {{top.value}}</span>
+                                                </li></ol>
+                                            <span *ngIf="isCardinal(count.value)"><span class="top-key">{{count.key}}</span> {{count.value}}</span>
+                                        </li>
+                                    </ol>
+                                </li>
+                                <li class="top-key">
+                                    <ol class="top-title">
+                                        out
+                                        <li *ngFor="let count of metric.value['out'] | keyvalue">
+                                            <ol *ngIf="!isCardinal(count.value)" class="top-title">
+                                                {{count.key}}
+                                                <li *ngFor="let top of count.value | keyvalue">
+                                                <span><span class="top-key">{{top.key}}</span> {{top.value}}</span>
+                                            </li></ol>
+                                            <span *ngIf="isCardinal(count.value)"><span class="top-key">{{count.key}}</span> {{count.value}}</span>
+                                        </li>
+                                    </ol>
+                                </li>
+                            </ol>
                         </ng-container>
-<!--                        <ng-container *ngIf="isCardinal(metric.value)">-->
-<!--                            <span><span class="top-key">{{metric.key}}</span> {{metric.value}}</span>-->
-<!--                        </ng-container>-->
-<!--                        <ng-container *ngIf="metric.key.includes('protocol')">-->
-<!--                            <ol class="top-title">-->
-<!--                                {{metric.key}}-->
-<!--                                <li *ngFor="let content of metric.value | keyvalue">-->
-<!--                                <ol>{{content.key}}-->
-<!--                                    <li *ngFor="let protocol of content.value | keyvalue">-->
-<!--                                        <span class="top-key">{{protocol.key}}</span>-->
-<!--                                    {{protocol.value}}</li>-->
-<!--                                </ol>-->
-<!--                                </li>-->
-<!--                            </ol>-->
-<!--                        </ng-container>-->
                     </ng-container>
                 </div>
             </div>

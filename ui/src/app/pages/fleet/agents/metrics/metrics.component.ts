@@ -48,6 +48,10 @@ export class MetricsComponent implements OnInit, OnDestroy {
     this.orb.refreshNow();
   }
 
+  isCardinal(value) {
+    return typeof value === 'number';
+  }
+
   ngOnDestroy(): void {
     this.metricsSub?.unsubscribe();
   }
