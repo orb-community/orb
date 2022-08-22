@@ -49,8 +49,33 @@
                         {{(handler.value['period']['start_ts'] + handler.value['period']['length']) * 1000 | date:'M/d/yy, h:mm:ss a'}}</span>
                 </div>
                 <div class="resources-body">
+                    <ng-container [ngSwitch]="handler.value.type">
+                        <ng-container *ngSwitchCase="'packets'">
+                            <ol class="top-title">
+                                <li><span><span class="top-key">deep_samples</span> {{handler.value['deep_samples']}}</span></li>
+                                <li><span><span class="top-key">filtered</span> {{handler.value['filtered']}}</span></li>
+                                <li><span><span class="top-key">in</span> {{handler.value['in']}}</span></li>
+                                <li><span><span class="top-key">ipv4</span> {{handler.value['ipv4']}}</span></li>
+                                <li><span><span class="top-key">ipv6</span> {{handler.value['ipv6']}}</span></li>
+                                <li><span><span class="top-key">other_l4</span> {{handler.value['other_l4']}}</span></li>
+                                <li><span><span class="top-key">out</span> {{handler.value['out']}}</span></li>
+                                <li><span><span class="top-key">tcp</span> {{handler.value['tcp']}}</span></li>
+                                <li><span><span class="top-key">total</span> {{handler.value['total']}}</span></li>
+                                <li><span><span class="top-key">udp</span> {{handler.value['udp']}}</span></li>
+                            </ol>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'pcap'">
+                            <ol class="top-title">
+                                <li><span><span class="top-key">if_drops</span> {{handler.value['if_drops']}}</span></li>
+                                <li><span><span class="top-key">os_drops</span> {{handler.value['os_drops']}}</span></li>
+                                <li><span><span class="top-key">tcp_reassembly_errors</span> {{handler.value['tcp_reassembly_errors']}}</span></li>
+                            </ol>
+                        </ng-container>
+                    </ng-container>
                     <ng-container *ngFor="let metric of handler.value | keyvalue">
-                        <ng-container *ngIf="metric.key.includes('wire_packets')">
+                        <ng-container *ngIf="metric.key.includes('wire_packets')
+                            || metric.key.includes('cardinality')
+                            || metric.key.includes('payload_size')">
                             <ol class="top-title">
                             {{metric.key}}
                                 <li *ngFor="let content of metric.value | keyvalue">
@@ -61,15 +86,22 @@
                                 </li>
                             </ol>
                         </ng-container>
-                        <ng-container *ngIf="metric.key.includes('rates')">
+                        <ng-container *ngIf="metric.key.includes('rates')
+                        || metric.key.includes('protocol')">
                             <ol class="top-title">
                                 {{metric.key}}
-                                <li *ngFor="let content of metric.value['total'] | keyvalue">
-                                <span>
-                                    <span class="top-key">{{content.key}}</span>
-                                    {{content.value}}
-                                </span>
+                                <li *ngFor="let rate of metric.value | keyvalue">
+                                    <ol class="top-title">
+                                        {{rate.key}}
+                                        <li *ngFor="let content of rate.value | keyvalue">
+                                            <span>
+                                                <span class="top-key">{{content.key}}</span>
+                                                {{content.value}}
+                                            </span>
+                                        </li>
+                                    </ol>
                                 </li>
+
                             </ol>
                         </ng-container>
                         <ng-container *ngIf="metric.key.includes('top')">
@@ -84,20 +116,22 @@
                             </ol>
                         </ng-container>
                         <ng-container *ngIf="metric.key.includes('xact')">
-
                         </ng-container>
-                        <ng-container *ngIf="metric.key.includes('protocol')">
-                            <ol class="top-title">
-                                {{metric.key}}
-                                <li *ngFor="let content of metric.value | keyvalue">
-                                <ol>{{content.key}}
-                                    <li *ngFor="let protocol of content.value | keyvalue">
-                                        <span class="top-key">{{protocol.key}}</span>
-                                    {{protocol.value}}</li>
-                                </ol>
-                                </li>
-                            </ol>
-                        </ng-container>
+<!--                        <ng-container *ngIf="isCardinal(metric.value)">-->
+<!--                            <span><span class="top-key">{{metric.key}}</span> {{metric.value}}</span>-->
+<!--                        </ng-container>-->
+<!--                        <ng-container *ngIf="metric.key.includes('protocol')">-->
+<!--                            <ol class="top-title">-->
+<!--                                {{metric.key}}-->
+<!--                                <li *ngFor="let content of metric.value | keyvalue">-->
+<!--                                <ol>{{content.key}}-->
+<!--                                    <li *ngFor="let protocol of content.value | keyvalue">-->
+<!--                                        <span class="top-key">{{protocol.key}}</span>-->
+<!--                                    {{protocol.value}}</li>-->
+<!--                                </ol>-->
+<!--                                </li>-->
+<!--                            </ol>-->
+<!--                        </ng-container>-->
                     </ng-container>
                 </div>
             </div>
