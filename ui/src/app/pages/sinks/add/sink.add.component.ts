@@ -86,8 +86,8 @@ export class SinkAddComponent {
     const { name, description, backend, tags } = this.sink;
 
     this.firstFormGroup = this._formBuilder.group({
-      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
-      description: [description],
+      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'), Validators.maxLength(64)]],
+      description: [description, [Validators.maxLength(64)]],
       backend: [backend, Validators.required],
     });
 
@@ -160,6 +160,7 @@ export class SinkAddComponent {
         !!conf && (curr.prop in conf) && conf[curr.prop] ||
         '',
         curr.required ? Validators.required : null,
+          Validators.maxLength(64),
       ];
       return accumulator;
     }, {});

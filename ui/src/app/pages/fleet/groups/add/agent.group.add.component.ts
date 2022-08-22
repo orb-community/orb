@@ -127,10 +127,15 @@ export class AgentGroupAddComponent
 
     this.firstFormGroup = this._formBuilder.group({
       name: [
-        name,
-        [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')],
+        name, [
+            Validators.required,
+            Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'),
+            Validators.maxLength(64),
+        ],
       ],
-      description: [description],
+      description: [description, [
+          Validators.maxLength(64),
+      ]],
     });
   }
 
