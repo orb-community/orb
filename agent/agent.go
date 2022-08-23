@@ -230,6 +230,8 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 func (a *orbAgent) restartComms(ctx context.Context) error {
 	if a.client != nil && a.client.IsConnected() {
 		a.unsubscribeGroupChannels()
+		a.client.Disconnect(250)
+		a.client = nil
 	}
 	ccm, err := cloud_config.New(a.logger, a.config, a.db)
 	if err != nil {
