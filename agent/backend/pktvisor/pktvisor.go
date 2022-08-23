@@ -412,11 +412,37 @@ func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 		p.logger.Error("failed to create a receiver", zap.Error(err))
 	}
 
-	err = p.exporter.Start(ctx, nil)
-	if err != nil {
-		p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
-		return err
-	}
+	var errStartExp error
+	go func() {
+		startExpCtx := context.WithValue(ctx, "routine", "startExposrter")
+		var ok bool
+		for i := 1; i < 10; i++ {
+			select {
+			case <-startExpCtx.Done():
+				return
+			default:
+				if p.mqttClient != nil {
+					errStartExp = p.exporter.Start(ctx, nil)
+					if errStartExp != nil {
+						p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
+						return
+					}
+					ok = true
+					return
+				} else {
+					p.logger.Info("waiting until mqtt client is connected", zap.String("wait time", (time.Duration(i)*time.Second).String()))
+					time.Sleep(time.Duration(i) * time.Second)
+					continue
+				}
+			}
+		}
+		if !ok {
+			p.logger.Error("mqtt did not established a connection, stopping agent")
+			p.Stop(startExpCtx)
+			startExpCtx.Done()
+		}
+		return
+	}()
 
 	err = p.receiver.Start(ctx, nil)
 	if err != nil {
