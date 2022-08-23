@@ -198,8 +198,12 @@ func (a *orbAgent) Stop(ctx context.Context) {
 		a.client.Disconnect(250)
 	}
 	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
-	a.policyRequestSucceeded()
-	a.groupRequestSucceeded()
+	if a.policyRequestSucceeded != nil {
+		a.policyRequestSucceeded()
+	}
+	if a.groupRequestSucceeded != nil {
+		a.groupRequestSucceeded()
+	}
 	defer a.cancelFunction()
 }
 
