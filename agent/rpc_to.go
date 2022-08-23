@@ -5,6 +5,7 @@
 package agent
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ns1labs/orb/buildinfo"
@@ -84,8 +85,9 @@ func (a *orbAgent) retryGroupMembershipRequest() {
 	if a.groupRequestTicker == nil {
 		a.groupRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
 	}
-
-	go func() {
+	var ctx context.Context
+	ctx, a.groupRequestSucceeded = a.extendContext("retryGroupMembershipRequest")
+	go func(ctx context.Context) {
 		defer a.groupRequestTicker.Stop()
 		defer func(t time.Time) {
 			a.logger.Info("execution period of the re-request of retryGroupMembership", zap.Duration("waiting period", time.Now().Sub(t)))
@@ -93,8 +95,7 @@ func (a *orbAgent) retryGroupMembershipRequest() {
 		lastT := time.Now()
 		for calls := 1; calls <= retryMaxAttempts; calls++ {
 			select {
-			case <-a.groupRequestSucceeded:
-				a.groupRequestTicker.Stop()
+			case <-ctx.Done():
 				return
 			case t := <-a.groupRequestTicker.C:
 				a.logger.Info("agent did not receive any group membership from fleet, re-requesting", zap.Duration("waiting period", lastT.Sub(t)))
@@ -110,7 +111,7 @@ func (a *orbAgent) retryGroupMembershipRequest() {
 		}
 		a.logger.Warn(fmt.Sprintf("retryGroupMembership retried %d times and still got no response from fleet", retryMaxAttempts))
 		return
-	}()
+	}(ctx)
 }
 
 func (a *orbAgent) sendAgentPoliciesReq() error {
@@ -144,7 +145,9 @@ func (a orbAgent) retryAgentPolicyResponse() {
 	if a.policyRequestTicker == nil {
 		a.policyRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
 	}
-	go func() {
+	var ctx context.Context
+	ctx, a.policyRequestSucceeded = a.extendContext("retryAgentPolicyResponse")
+	go func(ctx context.Context) {
 		defer a.policyRequestTicker.Stop()
 		defer func(t time.Time) {
 			a.logger.Info("execution period of the re-request of retryAgentPolicy", zap.Duration("period", time.Now().Sub(t)))
@@ -152,7 +155,7 @@ func (a orbAgent) retryAgentPolicyResponse() {
 		lastT := time.Now()
 		for calls := 1; calls <= retryMaxAttempts; calls++ {
 			select {
-			case <-a.policyRequestSucceeded:
+			case <-ctx.Done():
 				a.policyRequestTicker.Stop()
 				return
 			case t := <-a.policyRequestTicker.C:
@@ -169,5 +172,5 @@ func (a orbAgent) retryAgentPolicyResponse() {
 		}
 		a.logger.Warn(fmt.Sprintf("retryAgentPolicy retried %d times and still got no response from fleet", retryMaxAttempts))
 		return
-	}()
+	}(ctx)
 }

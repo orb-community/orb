@@ -57,9 +57,9 @@ type orbAgent struct {
 
 	// Retry Mechanism to ensure the Request is received
 	groupRequestTicker     *time.Ticker
-	groupRequestSucceeded  chan bool
+	groupRequestSucceeded  context.CancelFunc
 	policyRequestTicker    *time.Ticker
-	policyRequestSucceeded chan bool
+	policyRequestSucceeded context.CancelFunc
 
 	// AgentGroup channels sent from core
 	groupsInfos map[string]GroupInfo
@@ -149,8 +149,6 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 		return err
 	}
 
-	a.groupRequestSucceeded = make(chan bool, 1)
-	a.policyRequestSucceeded = make(chan bool, 1)
 	commsCtx := context.WithValue(agentCtx, "routine", "comms")
 	if err := a.startComms(commsCtx, cloudConfig); err != nil {
 		a.logger.Error("could not start mqtt client")
@@ -186,7 +184,6 @@ func (a *orbAgent) stopHeartbeat(ctx context.Context) {
 }
 func (a *orbAgent) Stop(ctx context.Context) {
 	a.logger.Info("routine call for stop agent", zap.Any("routine", ctx.Value("routine")))
-	defer a.cancelFunction()
 	if a.rpcFromCancelFunc != nil {
 		a.rpcFromCancelFunc()
 	}
@@ -201,8 +198,9 @@ func (a *orbAgent) Stop(ctx context.Context) {
 		a.client.Disconnect(250)
 	}
 	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
-	defer close(a.policyRequestSucceeded)
-	defer close(a.groupRequestSucceeded)
+	a.policyRequestSucceeded()
+	a.groupRequestSucceeded()
+	defer a.cancelFunction()
 }
 
 func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason string) error {
