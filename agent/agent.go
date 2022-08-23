@@ -118,6 +118,10 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 }
 
 func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
+	startTime := time.Now()
+	defer func(t time.Time) {
+		a.logger.Debug("Startup of agent execution duration", zap.String("Start() execution duration", time.Since(t).String()))
+	}(startTime)
 	agentCtx := context.WithValue(ctx, "routine", "agentRoutine")
 	asyncCtx, cancelAllAsync := context.WithCancel(context.WithValue(ctx, "routine", "asyncParent"))
 	a.asyncContext = asyncCtx
@@ -149,7 +153,7 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 	a.policyRequestSucceeded = make(chan bool, 1)
 	commsCtx := context.WithValue(agentCtx, "routine", "comms")
 	if err := a.startComms(commsCtx, cloudConfig); err != nil {
-		a.logger.Error("could not restart mqtt client")
+		a.logger.Error("could not start mqtt client")
 		return err
 	}
 
