@@ -211,9 +211,7 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			}
 			a.handleAgentPolicies(ctx, r.Payload, r.FullList)
 			a.logger.Debug("received agent policies, marking success")
-
 			a.policyRequestSucceeded()
-
 		case fleet.AgentStopRPCFunc:
 			var r fleet.AgentStopRPC
 			if err := json.Unmarshal(message.Payload(), &r); err != nil {
