@@ -2,6 +2,7 @@ package components
 
 import (
 	"context"
+	"errors"
 	"github.com/ns1labs/orb/pkg/config"
 
 	"github.com/ns1labs/orb/otelcollector/components/orbattributesprocessor"
@@ -12,7 +13,14 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func GetAttributeProcessorWithOwnerAndSinkData(ctx context.Context, factories component.Factories, nextConsumer consumer.Metrics) error {
+func GetAttributeProcessorWithOwnerAndSinkData(ctx context.Context, factories component.Factories, nextConsumer consumer.Metrics) (component.MetricsProcessor, error) {
+	// ensure owner and Sink attribute to be in context
+	if ctx.Value("sinkData") == nil {
+		return nil, errors.New("data must contain sinkData")
+	}
+	if ctx.Value("ownerID") == nil {
+		return nil, errors.New("data must contain ownerID")
+	}
 	logger := config.LoggerFromContext(ctx)
 	slog := logger.Sugar()
 	name := "attributesprocessor"
@@ -20,7 +28,8 @@ func GetAttributeProcessorWithOwnerAndSinkData(ctx context.Context, factories co
 	slog.Debug("create processor:", name)
 	factory := factories.Processors[otelconfig.Type(name)]
 	cfg := factory.CreateDefaultConfig().(*orbattributesprocessor.Config)
-
+	cfg.AddUpsertActionFromContext("orb.sinkData", "sinkData")
+	cfg.AddUpsertActionFromContext("orb.ownerID", "ownerId")
 	set := component.ProcessorCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
@@ -29,7 +38,6 @@ func GetAttributeProcessorWithOwnerAndSinkData(ctx context.Context, factories co
 		},
 		BuildInfo: component.BuildInfo{},
 	}
-	factory.CreateMetricsProcessor(subCtx, set, cfg, nextConsumer)
+	return factory.CreateMetricsProcessor(subCtx, set, cfg, nextConsumer)
 
-	return nil
 }

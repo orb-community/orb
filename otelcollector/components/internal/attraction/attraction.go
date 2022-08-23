@@ -17,14 +17,13 @@ package attraction
 import (
 	"context"
 	"fmt"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterhelper"
 	"regexp"
 	"strings"
 
 	"go.opentelemetry.io/collector/client"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.uber.org/zap"
-
-	"internal/filterhelper"
 )
 
 // Settings specifies the processor settings.

@@ -15,6 +15,9 @@
 package orbattributesprocessor
 
 import (
+	"github.com/ns1labs/orb/otelcollector/components/internal/attraction"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterconfig"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterset"
 	"path/filepath"
 	"testing"
 
@@ -23,10 +26,6 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service/servicetest"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/attraction"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterconfig"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterset"
 )
 
 func TestLoadingConfig(t *testing.T) {
@@ -207,6 +206,41 @@ func TestLoadingConfig(t *testing.T) {
 		Settings: attraction.Settings{
 			Actions: []attraction.ActionKeyValue{
 				{Key: "http.status_code", Action: attraction.CONVERT, ConvertedType: "int"},
+			},
+		},
+	})
+
+}
+
+func TestConfigActionBuilders(t *testing.T) {
+	baseCfg := &Config{}
+	baseCfg.AddInsertActionKeyValue("attribute1", 123)
+	baseCfg.AddInsertActionFromContext("attribute2", "sinkId")
+	baseCfg.AddInsertActionFromAttribute("attribute3", "attribute2")
+	baseCfg.AddConvertAction("attribute4", "string")
+	baseCfg.AddHashAction("attribute5")
+	baseCfg.AddUpdateActionKeyValue("attribute6", "789")
+	baseCfg.AddUpdateActionFromContext("attribute7", "sinkId")
+	baseCfg.AddUpdateActionFromAttribute("attribute8", "attribute2")
+	baseCfg.AddDeleteActionKey("attribute9")
+	baseCfg.AddUpsertActionKeyValue("attribute10", 123)
+	baseCfg.AddUpsertActionFromContext("attribute11", "sinkId")
+	baseCfg.AddUpsertActionFromAttribute("attribute12", "attribute2")
+	assert.Equal(t, baseCfg, &Config{
+		Settings: attraction.Settings{
+			Actions: []attraction.ActionKeyValue{
+				{Key: "attribute1", Value: 123, Action: attraction.INSERT},
+				{Key: "attribute2", FromContext: "sinkId", Action: attraction.INSERT},
+				{Key: "attribute3", FromAttribute: "attribute2", Action: attraction.INSERT},
+				{Key: "attribute4", ConvertedType: "string", Action: attraction.CONVERT},
+				{Key: "attribute5", Action: attraction.HASH},
+				{Key: "attribute6", Value: "789", Action: attraction.UPDATE},
+				{Key: "attribute7", FromContext: "sinkId", Action: attraction.UPDATE},
+				{Key: "attribute8", FromAttribute: "attribute2", Action: attraction.UPDATE},
+				{Key: "attribute9", Action: attraction.DELETE},
+				{Key: "attribute10", Value: 123, Action: attraction.UPSERT},
+				{Key: "attribute11", FromContext: "sinkId", Action: attraction.UPSERT},
+				{Key: "attribute12", FromAttribute: "attribute2", Action: attraction.UPSERT},
 			},
 		},
 	})

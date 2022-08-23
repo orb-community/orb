@@ -16,12 +16,11 @@ package orbattributesprocessor // import "github.com/open-telemetry/opentelemetr
 
 import (
 	"context"
+	"github.com/ns1labs/orb/otelcollector/components/internal/attraction"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterspan"
 
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.uber.org/zap"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/attraction"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterspan"
 )
 
 type spanAttributesProcessor struct {

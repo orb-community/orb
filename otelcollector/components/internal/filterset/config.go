@@ -16,9 +16,8 @@ package filterset // import "github.com/open-telemetry/opentelemetry-collector-c
 
 import (
 	"fmt"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterset/regexp"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterset/strict"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterset/regexp"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterset/strict"
 )
 
 // MatchType describes the type of pattern matching a FilterSet uses to filter strings.

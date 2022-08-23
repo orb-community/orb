@@ -16,6 +16,10 @@ package orbattributesprocessor
 
 import (
 	"context"
+	"github.com/ns1labs/orb/otelcollector/components/internal/attraction"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterconfig"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterset"
+	"github.com/ns1labs/orb/otelcollector/components/internal/testdata"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,11 +30,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	conventions "go.opentelemetry.io/collector/semconv/v1.6.1"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/attraction"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterconfig"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterset"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/testdata"
 )
 
 // Common structure for all the Tests

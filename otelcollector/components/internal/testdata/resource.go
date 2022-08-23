@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package filtermetric
+package testdata
 
-import "github.com/ns1labs/orb/otelcollector/components/internal/filterset"
+import "go.opentelemetry.io/collector/pdata/pcommon"
 
-func createConfig(filters []string, matchType filterset.MatchType) *MatchProperties {
-	return &MatchProperties{
-		MatchType:   MatchType(matchType),
-		MetricNames: filters,
-	}
+func initResource1(r pcommon.Resource) {
+	initResourceAttributes1(r.Attributes())
+}
+
+func initResource2(r pcommon.Resource) {
+	initResourceAttributes2(r.Attributes())
 }

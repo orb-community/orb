@@ -16,13 +16,12 @@ package orbattributesprocessor // import "github.com/open-telemetry/opentelemetr
 
 import (
 	"context"
+	"github.com/ns1labs/orb/otelcollector/components/internal/attraction"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterlog"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/attraction"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterlog"
 )
 
 type logAttributesProcessor struct {

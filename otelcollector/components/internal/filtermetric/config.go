@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package filtermetric // import "github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filtermetric"
+package filtermetric
 
 import (
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterconfig"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterset"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterset/regexp"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterconfig"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterset"
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterset/regexp"
 )
 
 // MatchType specifies the strategy for matching against `pmetric.Metric`s. This

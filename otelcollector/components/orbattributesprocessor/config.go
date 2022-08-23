@@ -46,34 +46,104 @@ func (cfg *Config) Validate() error {
 	return nil
 }
 
-func (cfg *Config) AddAttribute(name string, value interface{}) (ok bool) {
-	for _, action := range cfg.Settings.Actions {
-		if action.Key == name {
-			return false
-		}
+func (cfg *Config) appendAction(newAction attraction.ActionKeyValue) []attraction.ActionKeyValue {
+	if cfg.Actions == nil {
+		cfg.Actions = []attraction.ActionKeyValue{}
 	}
-	cfg.Settings.Actions = append(cfg.Settings.Actions, attraction.ActionKeyValue{
-		Key:    name,
+	return append(cfg.Actions, newAction)
+}
+
+func (cfg *Config) keyValueEntry(key string, value interface{}, action attraction.Action) bool {
+	newAction := attraction.ActionKeyValue{
+		Key:    key,
 		Value:  value,
-		Action: "insert",
-	})
-	return ok
+		Action: action,
+	}
+	cfg.Actions = cfg.appendAction(newAction)
+	return true
 }
 
-func (cfg *Config) GetAttribute(name string) (value interface{}, ok bool) {
-	for _, action := range cfg.Settings.Actions {
-		if action.Key == name {
-			return action.Value, true
-		}
+func (cfg *Config) keyFromContextEntry(key string, fromContext string, action attraction.Action) bool {
+	newAction := attraction.ActionKeyValue{
+		Key:         key,
+		FromContext: fromContext,
+		Action:      action,
 	}
-	return nil, false
+	cfg.Actions = cfg.appendAction(newAction)
+	return true
 }
 
-func (cfg *Config) RemoveAttribute(name string) (value interface{}, ok bool) {
-	for _, action := range cfg.Settings.Actions {
-		if action.Key == name {
-			return action.Value, true
-		}
+func (cfg *Config) keyFromAttributeEntry(key string, fromAttribute string, action attraction.Action) bool {
+	newAction := attraction.ActionKeyValue{
+		Key:           key,
+		FromAttribute: fromAttribute,
+		Action:        action,
 	}
-	return nil, false
+	cfg.Actions = cfg.appendAction(newAction)
+	return true
+}
+
+func (cfg *Config) AddInsertActionKeyValue(key string, value interface{}) (ok bool) {
+	return cfg.keyValueEntry(key, value, attraction.INSERT)
+}
+
+func (cfg *Config) AddInsertActionFromContext(key, fromContext string) (ok bool) {
+	return cfg.keyFromContextEntry(key, fromContext, attraction.INSERT)
+}
+
+func (cfg *Config) AddInsertActionFromAttribute(key, fromAttribute string) (ok bool) {
+	return cfg.keyFromAttributeEntry(key, fromAttribute, attraction.INSERT)
+}
+
+func (cfg *Config) AddUpsertActionKeyValue(key string, value interface{}) (ok bool) {
+	return cfg.keyValueEntry(key, value, attraction.UPSERT)
+}
+
+func (cfg *Config) AddUpsertActionFromAttribute(key, fromAttribute string) (ok bool) {
+	return cfg.keyFromAttributeEntry(key, fromAttribute, attraction.UPSERT)
+}
+
+func (cfg *Config) AddUpsertActionFromContext(key, fromContext string) (ok bool) {
+	return cfg.keyFromContextEntry(key, fromContext, attraction.UPSERT)
+}
+
+func (cfg *Config) AddUpdateActionKeyValue(key string, value interface{}) (ok bool) {
+	return cfg.keyValueEntry(key, value, attraction.UPDATE)
+}
+
+func (cfg *Config) AddUpdateActionFromAttribute(key, fromAttribute string) (ok bool) {
+	return cfg.keyFromAttributeEntry(key, fromAttribute, attraction.UPDATE)
+}
+
+func (cfg *Config) AddUpdateActionFromContext(key, fromContext string) (ok bool) {
+	return cfg.keyFromContextEntry(key, fromContext, attraction.UPDATE)
+}
+
+func (cfg *Config) AddDeleteActionKey(key string) (ok bool) {
+	newAction := attraction.ActionKeyValue{
+		Key:    key,
+		Action: attraction.DELETE,
+	}
+	cfg.Actions = cfg.appendAction(newAction)
+
+	return true
+}
+
+func (cfg *Config) AddConvertAction(key, convertedType string) (ok bool) {
+	newAction := attraction.ActionKeyValue{
+		Key:           key,
+		ConvertedType: convertedType,
+		Action:        attraction.CONVERT,
+	}
+	cfg.Actions = cfg.appendAction(newAction)
+	return true
+}
+
+func (cfg *Config) AddHashAction(key string) (ok bool) {
+	newAction := attraction.ActionKeyValue{
+		Key:    key,
+		Action: attraction.HASH,
+	}
+	cfg.Actions = cfg.appendAction(newAction)
+	return true
 }

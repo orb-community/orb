@@ -15,12 +15,11 @@
 package filtermetric
 
 import (
+	"github.com/ns1labs/orb/otelcollector/components/internal/filterset"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/processor/filterset"
 )
 
 var (
