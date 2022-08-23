@@ -3,7 +3,6 @@ package components
 import (
 	"context"
 	"github.com/ns1labs/orb/pkg/config"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/attraction"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
@@ -21,11 +20,6 @@ func GetAttributeProcessorWithOwnerAndSinkData(ctx context.Context, factories co
 	factory := factories.Processors[otelconfig.Type(name)]
 	cfg := factory.CreateDefaultConfig().(*attributesprocessor.Config)
 
-	cfg.Actions = []attraction.ActionKeyValue{
-		{Key: "orb_private.ownerID", FromContext: "ownerID", Action: "insert"}, // Mainflux Owner ID
-		{Key: "orb_private.agentID", FromContext: "agentID", Action: "insert"}, // Agent ID
-		{Key: "orb_private.sinks", FromContext: "sinks", Action: "insert"},     // Sink slice with id and config metadata
-	}
 	set := component.ProcessorCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
