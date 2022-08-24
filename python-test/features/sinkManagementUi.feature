@@ -6,5 +6,5 @@ Scenario: Create a new Sink Management
         And the user clicks on Sink Management on left menu
     When a sink is created through the UI with 1 orb tag
     Then the new sink is shown on the datatable
-      #  And total number was increased in one unit
+        And total number was increased in one unit
  

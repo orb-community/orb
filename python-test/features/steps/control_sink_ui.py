@@ -18,6 +18,7 @@ sink_password = "12345678"
 @when('a sink is created through the UI with {orb_tags} orb tag')
 def create_sink(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
+    context.initial_counter_datatable = check_total_counter(context.driver)
     WebDriverWait(context.driver, 5).until(
         EC.element_to_be_clickable((By.XPATH, SinkPage.new_sink_button())),
         message="Unable to click on new sink"
@@ -49,7 +50,7 @@ def create_sink(context, orb_tags):
         EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
     WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Sink successfully created'))
-    context.initial_counter_datatable = check_total_counter(context.driver)
+    
     
 @then("the new sink {condition} shown on the datatable")
 def check_presence_of_group_on_orb_ui(context, condition):
@@ -63,7 +64,7 @@ def check_presence_of_group_on_orb_ui(context, condition):
 @then("total number was increased in one unit")
 def check_total_counter_final(context):
     final_counter_datatable = check_total_counter(context.driver)
-    assert_that(final_counter_datatable, equal_to(context.initial_counter_group + 1),
+    assert_that(final_counter_datatable, equal_to(context.initial_counter_datatable + 1),
                 'The counter was increase with successfully')
 
 
