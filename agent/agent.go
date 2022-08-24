@@ -188,9 +188,11 @@ func (a *orbAgent) Stop(ctx context.Context) {
 		a.rpcFromCancelFunc()
 	}
 	for name, b := range a.backends {
-		a.logger.Debug("stopping backend", zap.String("backend", name))
-		if err := b.Stop(ctx); err != nil {
-			a.logger.Error("error while stopping the backend", zap.String("backend", name))
+		if state, _, _ := b.GetState(); state == backend.Running {
+			a.logger.Debug("stopping backend", zap.String("backend", name))
+			if err := b.Stop(ctx); err != nil {
+				a.logger.Error("error while stopping the backend", zap.String("backend", name))
+			}
 		}
 	}
 	a.stopHeartbeat(ctx)

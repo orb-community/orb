@@ -419,7 +419,7 @@ func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 
 	var errStartExp error
 	go func() {
-		startExpCtx, cancelFunc := context.WithCancel(ctx)
+		startExpCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "startExporter"))
 		var ok bool
 		for i := 1; i < 10; i++ {
 			select {
@@ -569,9 +569,11 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 func (p *pktvisorBackend) FullReset(ctx context.Context) error {
 
 	// force a stop, which stops scrape as well. if proc is dead, it no ops.
-	if err := p.Stop(ctx); err != nil {
-		p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
-		return err
+	if state, _, _ := p.GetState(); state == backend.Running {
+		if err := p.Stop(ctx); err != nil {
+			p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
+			return err
+		}
 	}
 
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "pktvisor"))
