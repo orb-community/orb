@@ -207,6 +207,31 @@ func (a *orbAgent) Stop(ctx context.Context) {
 	defer a.cancelFunction()
 }
 
+func (a *orbAgent) sanityCheck(ctx context.Context) error {
+	for name, b := range a.backends {
+		iState, state, err := b.GetState()
+		if err != nil {
+			a.logger.Error("error in backend", zap.String("backend", name), zap.String("state", state))
+			err2 := a.RestartBackend(ctx, name, "backend with error")
+			if err2 != nil {
+				a.logger.Error("error restarting backend", zap.String("backend", name), zap.String("state", state))
+				a.Stop(ctx)
+				return errors.New("error restarting backend: " + err2.Error())
+			}
+		}
+		if iState != backend.Running {
+			a.logger.Error("backend not running", zap.String("backend", name), zap.String("state", state))
+			err2 := a.RestartBackend(ctx, name, "backend with error")
+			if err2 != nil {
+				a.logger.Error("error restarting backend", zap.String("backend", name), zap.String("state", state))
+				a.Stop(ctx)
+				return errors.New("error restarting backend: " + err2.Error())
+			}
+		}
+	}
+	return nil
+}
+
 func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason string) error {
 	if !backend.HaveBackend(name) {
 		return errors.New("specified backend does not exist: " + name)
