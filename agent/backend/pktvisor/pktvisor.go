@@ -158,6 +158,11 @@ func (p *pktvisorBackend) checkAlive() (bool, error) {
 		return false, errors.New("pktvisor process ended")
 	}
 
+	if status.StopTs > 0 {
+		p.logger.Info("pktvisor process stopped")
+		return false, errors.New("pktvisor process ended")
+	}
+
 	return true, nil
 }
 
@@ -414,7 +419,7 @@ func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 
 	var errStartExp error
 	go func() {
-		startExpCtx := context.WithValue(ctx, "routine", "startExposrter")
+		startExpCtx, cancelFunc := context.WithCancel(ctx)
 		var ok bool
 		for i := 1; i < 10; i++ {
 			select {
@@ -439,7 +444,7 @@ func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 		if !ok {
 			p.logger.Error("mqtt did not established a connection, stopping agent")
 			p.Stop(startExpCtx)
-			startExpCtx.Done()
+			defer cancelFunc()
 		}
 		return
 	}()
