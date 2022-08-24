@@ -59,7 +59,7 @@ def check_presence_of_group_on_orb_ui(context, condition):
     if condition == "is":
         assert_that(sink, is_not(None), "Unable to sink name on the datatable")
     else:
-        assert_that(sink, is_(None), f"{context.agent_group_name} found on group datable")    
+        assert_that(sink, is_(None), f"{context.name_label} found on group datable")    
         
 @then("total number was increased in one unit")
 def check_total_counter_final(context):
