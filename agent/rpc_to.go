@@ -141,7 +141,7 @@ func (a *orbAgent) sendAgentPoliciesRequest() error {
 	return nil
 }
 
-func (a orbAgent) retryAgentPolicyResponse() {
+func (a *orbAgent) retryAgentPolicyResponse() {
 	if a.policyRequestTicker == nil {
 		a.policyRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
 	}
