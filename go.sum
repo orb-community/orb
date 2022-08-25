@@ -1234,6 +1234,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusrec
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.57.2/go.mod h1:8y6vJtDwkxrA2I0IpzuoA7DK63RmLb140ixGsEF6NNw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.57.2 h1:RlWEsg2TLwDQNuHCCT5MC0Rv6euMUhYdiDetZ0tDwJg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.57.2/go.mod h1:doIu2OFEsp6Juq14hvOe+n46xPBhqO9N+ByupSue8CM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.58.0 h1:qc2or/ZKofBHQGB0oPhEmfOwWMp29xZnUgVXrk1K3zY=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.58.0/go.mod h1:o/Rj1kEM8AuuOOJqh7/AP9fAja/GW0OZIxFfpWecekI=
 github.com/opencontainers/go-digest v0.0.0-20170106003457-a6d0ee40d420/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
 github.com/opencontainers/go-digest v0.0.0-20180430190053-c9281466c8b2/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
 github.com/opencontainers/go-digest v1.0.0-rc1/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
