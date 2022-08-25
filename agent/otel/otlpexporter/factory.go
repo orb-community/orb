@@ -23,7 +23,7 @@ func NewFactory() component.ExporterFactory {
 	return component.NewExporterFactory(
 		typeStr,
 		CreateDefaultConfig,
-		component.WithMetricsExporter(CreateMetricsExporter))
+		component.WithMetricsExporter(CreateMetricsExporter, component.StabilityLevelBeta))
 }
 
 func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings {
