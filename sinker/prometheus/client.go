@@ -35,7 +35,7 @@ import (
 )
 
 const (
-	defaulHTTPClientTimeout = 30 * time.Second
+	defaulHTTPClientTimeout = 10 * time.Second
 	defaultUserAgent        = "orb-promremote-go/1.0.0"
 )
 
