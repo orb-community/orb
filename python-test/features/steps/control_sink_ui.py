@@ -11,8 +11,8 @@ orb_url = configs.get('orb_url')
 sink_name_prefix = "sink_name_"
 sink_description_prefix = "sink_description_"
 sink_remote_url = "www.remoteurl.com"
-sink_username = "paula.brasileiro@encora.com"
-sink_password = "12345678"
+username = configs.get('email')
+password = configs.get('password')
 
     
 @when('a sink is created through the UI with {orb_tags} orb tag')
@@ -33,9 +33,9 @@ def create_sink(context, orb_tags):
         EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
     context.remote_url = sink_remote_url
     input_text_by_xpath(SinkPage.remote_url(), context.remote_url, context.driver)
-    context.sink_username = sink_username 
+    context.sink_username = username 
     input_text_by_xpath(SinkPage.sink_username(), context.sink_username, context.driver)
-    context.sink_password = sink_password
+    context.sink_password = password
     input_text_by_xpath(SinkPage.sink_password(), context.sink_password, context.driver)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()    
