@@ -408,16 +408,6 @@ func (p *pktvisorBackend) scrapeDefault() error {
 
 func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 	ctx := context.Background()
-	p.exporter, err = p.createOtlpMqttExporter(ctx)
-	if err != nil {
-		p.logger.Error("failed to create a exporter", zap.Error(err))
-	}
-	p.receiver, err = createReceiver(ctx, p.exporter, p.logger)
-	if err != nil {
-		p.logger.Error("failed to create a receiver", zap.Error(err))
-	}
-
-	var errStartExp error
 	go func() {
 		startExpCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "startExporter"))
 		var ok bool
@@ -427,11 +417,31 @@ func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 				return
 			default:
 				if p.mqttClient != nil {
-					errStartExp = p.exporter.Start(ctx, nil)
+					var errStartExp error
+					p.exporter, errStartExp = p.createOtlpMqttExporter(ctx)
 					if errStartExp != nil {
+						p.logger.Error("failed to create a exporter", zap.Error(err))
+						return
+					}
+
+					p.receiver, err = createReceiver(ctx, p.exporter, p.logger)
+					if err != nil {
+						p.logger.Error("failed to create a receiver", zap.Error(err))
+						return
+					}
+
+					err = p.exporter.Start(ctx, nil)
+					if err != nil {
 						p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
 						return
 					}
+
+					err = p.receiver.Start(ctx, nil)
+					if err != nil {
+						p.logger.Error("otel receiver startup error", zap.Error(err))
+						return
+					}
+
 					ok = true
 					return
 				} else {
@@ -444,16 +454,10 @@ func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 		if !ok {
 			p.logger.Error("mqtt did not established a connection, stopping agent")
 			p.Stop(startExpCtx)
-			defer cancelFunc()
 		}
+		defer cancelFunc()
 		return
 	}()
-
-	err = p.receiver.Start(ctx, nil)
-	if err != nil {
-		p.logger.Error("otel receiver startup error", zap.Error(err))
-		return err
-	}
 	return nil
 }
 

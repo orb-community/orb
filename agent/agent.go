@@ -211,21 +211,12 @@ func (a *orbAgent) Stop(ctx context.Context) {
 
 func (a *orbAgent) sanityCheck(ctx context.Context) error {
 	for name, b := range a.backends {
-		iState, state, err := b.GetState()
+		state, _, err := b.GetState()
 		if err != nil {
-			a.logger.Error("error in backend", zap.String("backend", name), zap.String("state", state))
+			a.logger.Error("error in backend", zap.String("backend", name), zap.String("state", state.String()))
 			err2 := a.RestartBackend(ctx, name, "backend with error")
 			if err2 != nil {
-				a.logger.Error("error restarting backend", zap.String("backend", name), zap.String("state", state))
-				a.Stop(ctx)
-				return errors.New("error restarting backend: " + err2.Error())
-			}
-		}
-		if iState != backend.Running {
-			a.logger.Error("backend not running", zap.String("backend", name), zap.String("state", state))
-			err2 := a.RestartBackend(ctx, name, "backend with error")
-			if err2 != nil {
-				a.logger.Error("error restarting backend", zap.String("backend", name), zap.String("state", state))
+				a.logger.Error("error restarting backend", zap.String("backend", name), zap.String("state", state.String()))
 				a.Stop(ctx)
 				return errors.New("error restarting backend: " + err2.Error())
 			}
