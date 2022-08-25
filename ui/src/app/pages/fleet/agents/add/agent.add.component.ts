@@ -80,7 +80,10 @@ export class AgentAddComponent {
     this.selectedTags = { ...orb_tags };
 
     this.firstFormGroup = this._formBuilder.group({
-      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
+      name: [name, [
+          Validators.required,
+          Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'),
+          Validators.maxLength(64)]],
     });
   }
 
