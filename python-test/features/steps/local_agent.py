@@ -52,7 +52,7 @@ def check_agent_logs_considering_timestamp(context, condition, text_to_match, ti
     else:
         considered_timestamp = context.considered_timestamp
     text_found, logs = get_logs_and_check(context.container_id, text_to_match, considered_timestamp,
-                                    timeout=time_to_wait)
+                                          timeout=time_to_wait)
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
                                        f"Container logs: {json.dumps(logs, indent=4)}")
 
@@ -150,10 +150,8 @@ def run_agent_container(container_image, env_vars, container_name, time_to_wait=
     :returns: (str) the container ID
     """
     client = docker.from_env()
-    restart_policy = {"Name": "on-failure", "MaximumRetryCount": 2}
     container = client.containers.run(container_image, name=container_name, detach=True,
-                                      network_mode='host', environment=env_vars,
-                                      restart_policy=restart_policy)
+                                      network_mode='host', environment=env_vars)
     threading.Event().wait(time_to_wait)
     return container.id
 
