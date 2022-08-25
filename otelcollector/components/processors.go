@@ -19,7 +19,7 @@ func GetAttributeProcessorWithOwnerAndSinkData(ctx context.Context, factories co
 	slog.Debug("create processor:", name)
 	factory := factories.Processors[otelconfig.Type(name)]
 	cfg := factory.CreateDefaultConfig().(*attributesprocessor.Config)
-
+	// waiting update to have api to set attributes
 	set := component.ProcessorCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
