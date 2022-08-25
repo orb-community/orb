@@ -18,16 +18,12 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/extension/ballastextension"
 	"go.opentelemetry.io/collector/extension/zpagesextension"
-	"go.opentelemetry.io/collector/processor/batchprocessor"
-	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/zap"
 )
@@ -74,22 +70,6 @@ func getProcessors() []component.ProcessorFactory {
 		// Inserts Tenant and Sinks data in otlp package
 		// current version and stability for metrics [ 0.56.0 , alpha ]
 		attributesprocessor.NewFactory(),
-
-		// Routes the otlp package to it's correct sink
-		// current version and stability for metrics [ 0.56.0 , beta ]
-		routingprocessor.NewFactory(),
-
-		// still testing, want to track how many pipelines are running in parallel
-		// current version and stability for metrics [ 0.56.0 , beta ]
-		batchprocessor.NewFactory(),
-
-		// maybe use this for performance, keeping for safety
-		// current version and stability for metrics [ 0.56.0 , beta ]
-		memorylimiterprocessor.NewFactory(),
-
-		// maybe use this for logging the metric being published to exporter
-		// current version and stability for metrics [ 0.56.0 , beta ]
-		groupbyattrsprocessor.NewFactory(),
 	}
 }
 

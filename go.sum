@@ -1209,6 +1209,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.57.
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/containertest v0.57.2 h1:C4Wj0oF7lB/MT6W23MCarDFCCUl/6KIsrJXRk8WHhAs=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.57.2 h1:4HeNNbZnqz15hj4oGm1O1x+yP+hPnvhz2UYqrApvPDk=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.57.2/go.mod h1:xPchY5YNOL9jr6phVkJEvkEakMYr8HMD4uGYEoKXIek=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.58.0 h1:/MUjXRmZp29tfAznIRnUswyBnSIcxF2F7Lhibi/3Ew8=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.58.0/go.mod h1:se3IqyShxI0ktuzJDFhShD9+bd/4Q3e/vNcCPlBTEGo=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.57.2 h1:ShPZ70nYijOSyDBHeFa8SJEdMcTvZCkN8tYBKO+N18Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.49.0/go.mod h1:9osOCy6JuNvS8hY8Po8ZYBdp1Ioagi14vu36ss44IFU=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.57.2 h1:cRta2aFyoh7GmkEU1viGOogEpTh1BPDczSiRr7X785g=
@@ -1220,6 +1222,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometh
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.57.2/go.mod h1:usczt8Eymx/wg3hHWBksX/fWZ5VGdVgli8FM7sFmyCw=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.57.2 h1:cigp0s9KgUO9JldF9kHCzShdGuUfFqM9D2ctHE6fI3w=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.57.2/go.mod h1:kA2KIqBBFgWm0U2S3c6csM/mWoME3rdx0aozsq22mOo=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.58.0 h1:chae7fxn+g3vNUCALuienOkFGBh+8qB0bKPefxY3hYM=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.58.0/go.mod h1:iGCYmAgEUOTD5yNpoA/kgxcGte4G4TzuSm3ZFLQStto=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor v0.57.2 h1:VSlf6WS7bDIJuM3WQ8V0tn+TZix+mMdBvSTVwpRJkvI=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor v0.57.2/go.mod h1:b9u2MGBtdJ/EY0nhFfM31skFXwj/xzouBbJV6OuVa7o=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbytraceprocessor v0.57.2 h1:1tXmMW1mLd+TP4O5tpehMBReJFtRFx+lilYK7mF85cw=
@@ -1592,6 +1596,8 @@ go.opentelemetry.io/collector/pdata v0.58.0 h1:SKWw4vjd6ZjCuvsCvEzqwBaxvov4YbXnn
 go.opentelemetry.io/collector/pdata v0.58.0/go.mod h1:iMv7Pz+hRthi30rkYkwLVusxQ94GU4pPJgFq7gjGcBk=
 go.opentelemetry.io/collector/semconv v0.57.2 h1:+lcI4yi8xUzoSNZgGTs0vytZcEAH95Tb33Ig+gooBV8=
 go.opentelemetry.io/collector/semconv v0.57.2/go.mod h1:84YnUjmm+nhGu4YTDLnHCbxnL74ooWpismPG79tFD7w=
+go.opentelemetry.io/collector/semconv v0.58.0 h1:wk9KXVnt8IRdNzD9mmdW3d1M/IJ3HyLp1Lz2ZY1fBCM=
+go.opentelemetry.io/collector/semconv v0.58.0/go.mod h1:aRkHuJ/OshtDFYluKEtnG5nkKTsy1HZuvZVHmakx+Vo=
 go.opentelemetry.io/contrib v0.20.0/go.mod h1:G/EtFaa6qaN7+LxqfIAT3GiZa7Wv5DTBUzl5H4LY0Kc=
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.20.0/go.mod h1:oVGt1LRbBOBq1A5BQLlUg9UaU/54aiHw8cgjV3aWZ/E=
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.28.0/go.mod h1:vEhqr0m4eTc+DWxfsXoXue2GBgV2uUwVznkGIHW/e5w=
@@ -1687,6 +1693,8 @@ go.uber.org/zap v1.10.0/go.mod h1:vwi/ZaCAaUcBkycHslxD9B2zi4UTXhF60s6SWpuDF0Q=
 go.uber.org/zap v1.17.0/go.mod h1:MXVU+bhUf/A7Xi2HNOnopQOrmycQ5Ih87HtOu4q5SSo=
 go.uber.org/zap v1.21.0 h1:WefMeulhovoZ2sYXz7st6K0sLj7bBhpiFaud4r4zST8=
 go.uber.org/zap v1.21.0/go.mod h1:wjWOCqI0f2ZZrJF/UufIOkiC8ii6tm1iqIsLo76RfJw=
+go.uber.org/zap v1.22.0 h1:Zcye5DUgBloQ9BaT4qc9BnjOFog5TvBSAGkJ3Nf70c0=
+go.uber.org/zap v1.22.0/go.mod h1:H4siCOZOrAolnUPJEkfaSjDqyP+BDS0DdDWzwcgt3+U=
 golang.org/x/crypto v0.0.0-20171113213409-9f005a07e0d3/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20181009213950-7c1a557ab941/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
