@@ -1,4 +1,4 @@
-@group
+@sink
 Feature: Sink Management tests
 
 @smoke_ui
