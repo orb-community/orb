@@ -1,0 +1,30 @@
+# Original Copyright (c) Mainflux
+# SPDX-License-Identifier: Apache-2.0
+
+# Adapted for Orb project, modifications licensed under MPL v. 2.0:
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+version: "3.7"
+
+networks:
+  orb-base-net:
+    driver: bridge
+
+services:
+  otelcollector:
+    image: "ns1labs/orb-otelcollector:${ORB_RELEASE_TAG}"
+    container_name: orb-otelcollector
+    depends_on:
+      - nats
+      - es-redis
+    restart: no
+    environment:
+      ORB_OTELCOLLECTOR_LOG_LEVEL: debug
+      ORB_OTELCOLLECTOR_SINKS_GRPC_URL: ${ORB_SINKS_GRPC_URL}
+
+
+    networks:
+      - orb-base-net
+    command: ["up"]

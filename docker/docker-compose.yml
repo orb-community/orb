@@ -518,19 +518,7 @@ services:
     networks:
       - orb-base-net
 
-  otelcollector:
-    image: "ns1labs/orb-otelcollector:${ORB_RELEASE_TAG}"
-    container_name: orb-otelcollector
-    depends_on:
-      - nats
-      - es-redis
-    restart: no
-    environment:
-      ORB_OTELCOLLECTOR_LOG_LEVEL: debug
-      ORB_OTELCOLLECTOR_SINKS_GRPC_URL: ${ORB_SINKS_GRPC_URL}
 
-    networks:
-      - orb-base-net
 
   ui:
     image: "ns1labs/orb-ui:${ORB_RELEASE_TAG}"
