@@ -189,8 +189,12 @@ class DataTable:
     @classmethod
     def plus_button(cls):
         return "//button[contains(@class, 'appearance-ghost size-medium status-primary')]"
-
-
+    
+    @classmethod
+    def sink_name_on_datatable(cls, name):
+        return f"//span[@class='ng-star-inserted' and contains(text(), '{name}')]"
+   
+   
 class AgentGroupPage:
     def __init__(self):
         pass
@@ -327,3 +331,48 @@ class PolicyPage:
     @classmethod
     def remove_policy_confirmation_button(cls):
         return "//button[@data-orb-qa-id='button#delete']"
+
+
+class SinkPage:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def new_sink_button(cls):
+        return "//button[contains(text( ), 'New Sink')]"
+    
+    @classmethod
+    def name_label(cls):
+        return "//input[(@data-orb-qa-id= 'name')]"
+    
+    @classmethod
+    def sink_description(cls):
+        return "//input[(@data-orb-qa-id= 'description')]"
+    
+    @classmethod
+    def remote_url(cls):
+        return"//input[(@data-orb-qa-id= 'remote_host')]"
+    
+    @classmethod
+    def sink_tag_key(cls):
+        return "//input[(@id= 'key')]"
+    
+    @classmethod
+    def sink_tag_value(cls):
+        return "//input[(@id= 'value')]"
+    
+    @classmethod
+    def sink_add_tag_button(cls):
+        return "//button[contains(@data-orb-qa-id, 'button#addTag')]"
+    
+    @classmethod
+    def save_button(cls):
+        return "//button[contains(@data-orb-qa-id, 'button#save')]"
+    
+    @classmethod
+    def sink_username(cls):
+        return "//input[(@data-orb-qa-id= 'username')]"
+    
+    @classmethod
+    def sink_password(cls):
+        return "//input[(@data-orb-qa-id= 'password')]"
