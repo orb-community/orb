@@ -29,7 +29,7 @@ func NewFactory() component.ReceiverFactory {
 	return component.NewReceiverFactory(
 		typeStr,
 		CreateDefaultConfig,
-		component.WithMetricsReceiverAndStabilityLevel(CreateMetricsReceiver, component.StabilityLevelStable),
+		component.WithMetricsReceiver(CreateMetricsReceiver, component.StabilityLevelStable),
 	)
 }
 
