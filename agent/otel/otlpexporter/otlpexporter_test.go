@@ -17,6 +17,7 @@ package otlpexporter_test
 import (
 	"context"
 	"github.com/ns1labs/orb/agent/otel/otlpexporter"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -33,19 +34,19 @@ import (
 	"go.opentelemetry.io/collector/config/configtls"
 
 	"go.opentelemetry.io/collector/model/otlpgrpc"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
 var (
-	resourceAttributes1      = pdata.NewAttributeMapFromMap(map[string]pdata.AttributeValue{"resource-attr": pdata.NewAttributeValueString("resource-attr-val-1")})
+	resourceAttributes1      = pcommon.NewResource()
 	TestMetricStartTime      = time.Date(2020, 2, 11, 20, 26, 12, 321, time.UTC)
-	TestMetricStartTimestamp = pdata.NewTimestampFromTime(TestMetricStartTime)
+	TestMetricStartTimestamp = pcommon.NewTimestampFromTime(TestMetricStartTime)
 
 	TestMetricExemplarTime      = time.Date(2020, 2, 11, 20, 26, 13, 123, time.UTC)
-	TestMetricExemplarTimestamp = pdata.NewTimestampFromTime(TestMetricExemplarTime)
+	TestMetricExemplarTimestamp = pcommon.NewTimestampFromTime(TestMetricExemplarTime)
 
 	TestMetricTime      = time.Date(2020, 2, 11, 20, 26, 13, 789, time.UTC)
-	TestMetricTimestamp = pdata.NewTimestampFromTime(TestMetricTime)
+	TestMetricTimestamp = pcommon.NewTimestampFromTime(TestMetricTime)
 )
 
 const (
@@ -72,7 +73,7 @@ func (r *mockReceiver) GetMetadata() metadata.MD {
 
 type mockMetricsReceiver struct {
 	mockReceiver
-	lastRequest pdata.Metrics
+	lastRequest pmetric.Metrics
 }
 
 func (r *mockMetricsReceiver) Export(ctx context.Context, req otlpgrpc.MetricsRequest) (otlpgrpc.MetricsResponse, error) {
@@ -86,7 +87,7 @@ func (r *mockMetricsReceiver) Export(ctx context.Context, req otlpgrpc.MetricsRe
 	return otlpgrpc.NewMetricsResponse(), nil
 }
 
-func (r *mockMetricsReceiver) GetLastRequest() pdata.Metrics {
+func (r *mockMetricsReceiver) GetLastRequest() pmetric.Metrics {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 	return r.lastRequest
@@ -146,7 +147,7 @@ func TestSendMetrics(t *testing.T) {
 	assert.EqualValues(t, 0, atomic.LoadInt32(&rcv.requestCount))
 
 	// Send empty metric.
-	md := pdata.NewMetrics()
+	md := pmetric.NewMetrics()
 	assert.NoError(t, exp.ConsumeMetrics(context.Background(), md))
 
 	// Wait until it is received.
@@ -181,44 +182,44 @@ func TestSendMetrics(t *testing.T) {
 	require.Contains(t, mdata.Get("User-Agent")[0], "Collector/1.2.3test")
 }
 
-func GenerateMetricsTwoMetrics() pdata.Metrics {
+func GenerateMetricsTwoMetrics() pmetric.Metrics {
 	md := GenerateMetricsOneEmptyInstrumentationLibrary()
-	rm0ils0 := md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0)
+	rm0ils0 := md.ResourceMetrics().At(0).ScopeMetrics().At(0)
 	initSumIntMetric(rm0ils0.Metrics().AppendEmpty())
 	initSumIntMetric(rm0ils0.Metrics().AppendEmpty())
 	return md
 }
 
-func GenerateMetricsOneEmptyInstrumentationLibrary() pdata.Metrics {
+func GenerateMetricsOneEmptyInstrumentationLibrary() pmetric.Metrics {
 	md := GenerateMetricsNoLibraries()
-	md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().AppendEmpty()
+	md.ResourceMetrics().At(0).ScopeMetrics().AppendEmpty()
 	return md
 }
 
-func GenerateMetricsNoLibraries() pdata.Metrics {
+func GenerateMetricsNoLibraries() pmetric.Metrics {
 	md := GenerateMetricsOneEmptyResourceMetrics()
 	ms0 := md.ResourceMetrics().At(0)
 	initResource1(ms0.Resource())
 	return md
 }
 
-func GenerateMetricsOneEmptyResourceMetrics() pdata.Metrics {
-	md := pdata.NewMetrics()
+func GenerateMetricsOneEmptyResourceMetrics() pmetric.Metrics {
+	md := pmetric.NewMetrics()
 	md.ResourceMetrics().AppendEmpty()
 	return md
 }
 
-func initResource1(r pdata.Resource) {
-	initResourceAttributes1(r.Attributes())
+func initResource1(r pcommon.Resource) {
+	initResourceAttributes1(r)
 }
 
-func initResourceAttributes1(dest pdata.AttributeMap) {
-	dest.Clear()
+func initResourceAttributes1(dest pcommon.Resource) {
+	dest.Attributes().Clear()
 	resourceAttributes1.CopyTo(dest)
 }
 
-func initSumIntMetric(im pdata.Metric) {
-	initMetric(im, TestSumIntMetricName, pdata.MetricDataTypeSum)
+func initSumIntMetric(im pmetric.Metric) {
+	initMetric(im, TestSumIntMetricName, pmetric.MetricDataTypeSum)
 
 	idps := im.Sum().DataPoints()
 	idp0 := idps.AppendEmpty()
@@ -233,31 +234,31 @@ func initSumIntMetric(im pdata.Metric) {
 	idp1.SetIntVal(456)
 }
 
-func initMetric(m pdata.Metric, name string, ty pdata.MetricDataType) {
+func initMetric(m pmetric.Metric, name string, ty pmetric.MetricDataType) {
 	m.SetName(name)
 	m.SetDescription("")
 	m.SetUnit("1")
 	m.SetDataType(ty)
 	switch ty {
-	case pdata.MetricDataTypeSum:
+	case pmetric.MetricDataTypeSum:
 		sum := m.Sum()
 		sum.SetIsMonotonic(true)
-		sum.SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
-	case pdata.MetricDataTypeHistogram:
+		sum.SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+	case pmetric.MetricDataTypeHistogram:
 		histo := m.Histogram()
-		histo.SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
-	case pdata.MetricDataTypeExponentialHistogram:
+		histo.SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+	case pmetric.MetricDataTypeExponentialHistogram:
 		histo := m.ExponentialHistogram()
-		histo.SetAggregationTemporality(pdata.MetricAggregationTemporalityDelta)
+		histo.SetAggregationTemporality(pmetric.MetricAggregationTemporalityDelta)
 	}
 }
 
-func initMetricAttributes1(dest pdata.AttributeMap) {
+func initMetricAttributes1(dest pcommon.Map) {
 	dest.Clear()
 	dest.InsertString(TestLabelKey1, TestLabelValue1)
 }
 
-func initMetricAttributes2(dest pdata.AttributeMap) {
+func initMetricAttributes2(dest pcommon.Map) {
 	dest.Clear()
 	dest.InsertString(TestLabelKey2, TestLabelValue2)
 }
