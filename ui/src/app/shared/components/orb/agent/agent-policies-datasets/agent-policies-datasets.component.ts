@@ -1,97 +1,82 @@
-import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { forkJoin } from 'rxjs';
-import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
-import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
 import { NbDialogService } from '@nebular/theme';
+import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import {
   AgentPolicyState,
   AgentPolicyStates,
 } from 'app/common/interfaces/orb/agent.policy.interface';
+import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
 
 @Component({
   selector: 'ngx-agent-policies-datasets',
   templateUrl: './agent-policies-datasets.component.html',
   styleUrls: ['./agent-policies-datasets.component.scss'],
 })
-export class AgentPoliciesDatasetsComponent implements OnInit {
+export class AgentPoliciesDatasetsComponent implements OnInit, OnChanges {
   @Input() agent: Agent;
+
+  @Input()
+  datasets: { [id: string]: Dataset };
 
   @Output()
   refreshAgent: EventEmitter<string>;
 
   policyStates = AgentPolicyStates;
 
-  datasets: { [id: string]: Dataset };
-
   policies: AgentPolicyState[];
-
-  isLoading: boolean;
 
   errors;
 
   constructor(
-    private datasetService: DatasetPoliciesService,
     private router: Router,
     private route: ActivatedRoute,
     private dialogService: NbDialogService,
   ) {
     this.refreshAgent = new EventEmitter<string>();
     this.datasets = {};
+    this.policies = [];
     this.errors = {};
   }
 
-  ngOnInit(): void {
-    this.policies = this.getPoliciesStates(
-      this?.agent?.last_hb_data?.policy_state,
-    );
-    const datasetIds = this.getDatasetIds(this.policies);
-    this.isLoading = true;
-    this.retrieveDatasets(datasetIds);
+  ngOnInit(): void {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.agent) {
+      const policiesStates = this.agent?.last_hb_data?.policy_state;
+      if (!policiesStates || policiesStates.length === 0) {
+        this.errors['nodatasets'] = 'Agent has no defined datasets.';
+      } else {
+        this.policies = this.getPoliciesStates(policiesStates);
+      }
+    }
+    if (changes.datasets) {
+      this.datasets = changes.datasets.currentValue;
+    }
+    if (!this.datasets || Object.keys(this.datasets).length === 0) {
+      this.errors['nodatasets'] = 'Agent has no defined datasets.';
+    } else {
+      delete this.errors['nodatasets'];
+    }
   }
 
   getPoliciesStates(policyStates: { [id: string]: AgentPolicyState }) {
-    if (!policyStates || policyStates === {}) {
+    if (!policyStates || Object.keys(policyStates).length === 0) {
       this.errors['nodatasets'] = 'Agent has no defined policies.';
       return [];
     }
     return Object.entries(policyStates).map(([id, policy]) => {
       policy.id = id;
       return policy;
-    });
-  }
-
-  getDatasetIds(policiesStates: AgentPolicyState[]) {
-    if (!policiesStates || policiesStates === []) {
-      this.errors['nodatasets'] = 'Agent has no defined datasets.';
-      return [];
-    }
-
-    const datasetIds = policiesStates
-      .map((state) => state?.datasets)
-      .reduce((acc, curr) => curr.concat(acc), []);
-
-    return datasetIds;
-  }
-
-  retrieveDatasets(datasetIds: string[]) {
-    if (!datasetIds) {
-      return;
-    }
-
-    forkJoin(
-      datasetIds.map((id) => this.datasetService.getDatasetById(id)),
-    ).subscribe((resp) => {
-      this.datasets = resp.reduce(
-        (acc: { [id: string]: Dataset }, curr: Dataset) => {
-          acc[curr.id] = curr;
-          return acc;
-        },
-        {},
-      );
-      this.isLoading = false;
     });
   }
 

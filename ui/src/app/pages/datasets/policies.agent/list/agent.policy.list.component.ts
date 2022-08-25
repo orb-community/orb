@@ -17,9 +17,8 @@ import {
 } from '@swimlane/ngx-datatable';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import {
-  filterExact,
-  FilterOption,
-  filterSubstr,
+  filterNumber,
+  FilterOption, filterString,
   FilterTypes,
 } from 'app/common/interfaces/orb/filter-option';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
@@ -87,20 +86,20 @@ export class AgentPolicyListComponent
       {
         name: 'Name',
         prop: 'name',
-        filter: filterSubstr,
+        filter: filterString,
         type: FilterTypes.Input,
       },
       {
         name: 'Description',
         prop: 'description',
-        filter: filterSubstr,
+        filter: filterString,
         type: FilterTypes.Input,
       },
       {
         name: 'Version',
         prop: 'version',
-        filter: filterExact,
-        type: FilterTypes.Input,
+        filter: filterNumber,
+        type: FilterTypes.Number,
       },
     ];
 

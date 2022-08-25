@@ -41,7 +41,7 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 	return es.svc.CreateSink(ctx, token, s)
 }
 
-func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink,err error) {
+func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, err error) {
 	defer func() {
 		event := updateSinkEvent{
 			sinkID: sink.ID,
@@ -87,7 +87,7 @@ func (es eventStore) ViewSink(ctx context.Context, token string, key string) (_ 
 
 func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err error) {
 	sink, err := es.svc.ViewSink(ctx, token, id)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -96,8 +96,8 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err erro
 	}
 
 	event := deleteSinkEvent{
-		sinkID: id,
-		ownerID:  sink.MFOwnerID,
+		sinkID:  id,
+		ownerID: sink.MFOwnerID,
 	}
 
 	record := &redis.XAddArgs{

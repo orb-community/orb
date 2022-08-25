@@ -21,6 +21,9 @@
     <ng-container *ngSwitchCase="type.Checkbox">
       <ng-container [ngTemplateOutlet]="checkbox"></ng-container>
     </ng-container>
+    <ng-container *ngSwitchCase="type.Number">
+      <ng-container [ngTemplateOutlet]="number"></ng-container>
+    </ng-container>
     <button
       (click)="addFilter()"
       [disabled]="!filterParam || filterParam === ''"
@@ -37,7 +40,7 @@
     *ngFor="let filter of activeFilters$ | async; let index = index"
     class="filter-chip"
   >
-    {{ filter.name + ': ' + filter?.param }}
+    {{ filter?.exact ?  filter.name + ": '" + filter?.param + "'" : filter.name + ': ' +filter?.param}}
     <button
       class="remove-tag-button"
       (click)="removeFilter(index)"
@@ -49,6 +52,7 @@
   </mat-chip>
 </mat-chip-list>
 <ng-template #input>
+  <nb-form-field>
   <input
     [(ngModel)]="filterParam"
     nbInput
@@ -56,6 +60,16 @@
     type="text"
     placeholder="{{ selectedFilter?.name }}"
   />
+  <button nbSuffix nbButton ghost class="exact-match-button"
+          [class]="selectedFilter.exact ? 'exact-match' : 'partial-match'"
+          (click)="toggleExactMatch()">
+    <nb-icon [icon]="selectedFilter?.exact ? 'lock-outline' : 'unlock-outline'"
+             [nbTooltip]="selectedFilter.exact ? 'Toggle Partial Match' : 'Toggle Exact Match'"
+             pack="eva"
+             [attr.aria-label]="selectedFilter.exact ? 'Toggle Partial Match' : 'Toggle Exact Match'">
+    </nb-icon>
+  </button>
+  </nb-form-field>
 </ng-template>
 <ng-template #select>
   <nb-select [(selected)]="filterParam" placeholder="--select--" required>
@@ -65,7 +79,19 @@
   </nb-select>
 </ng-template>
 
+<ng-template #number>
+  <nb-form-field>
+    <input
+      [(ngModel)]="filterParam"
+      nbInput
+      required
+      placeholder="{{ selectedFilter?.name }}"
+    />
+  </nb-form-field>
+</ng-template>
+
 <ng-template #auto>
+
   <nb-autocomplete #auto>
     <nb-option
       *ngFor="let option of selectedFilter?.autoSuggestion | async"
@@ -74,6 +100,7 @@
       {{ option }}
     </nb-option>
   </nb-autocomplete>
+  <nb-form-field>
   <input
     #autoInput
     [(ngModel)]="filterParam"
@@ -82,6 +109,15 @@
     required
     type="text"
   />
+  <button nbSuffix nbButton ghost class="exact-match-button"
+          [class]="selectedFilter.exact ? 'exact-match' : 'partial-match'"
+          (click)="toggleExactMatch()">
+    <nb-icon [icon]="selectedFilter?.exact ? 'lock-outline' : 'unlock-outline'"
+             pack="eva"
+             [attr.aria-label]="exact ? 'Toggle Partial Match' : 'Toggle Exact Match'">
+    </nb-icon>
+  </button>
+  </nb-form-field>
 </ng-template>
 <ng-template #select>
   <nb-select [(selected)]="filterParam" placeholder="--select--" required>

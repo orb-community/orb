@@ -32,6 +32,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"io/ioutil"
 	"log"
@@ -85,7 +86,12 @@ func main() {
 		atomicLevel,
 	)
 	logger = zap.New(core, zap.AddCaller())
-	defer logger.Sync() // flushes buffer, if any
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(logger) // flushes buffer, if any
 
 	// only needed for mainflux interfaces
 	mflogger, err := mflog.New(os.Stdout, svcCfg.LogLevel)
@@ -96,10 +102,20 @@ func main() {
 	cacheClient := connectToRedis(cacheCfg.URL, cacheCfg.Pass, cacheCfg.DB, logger)
 
 	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
-	defer esClient.Close()
+	defer func(esClient *redis.Client) {
+		err := esClient.Close()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(esClient)
 
 	tracer, tracerCloser := initJaeger(svcName, jCfg.URL, logger)
-	defer tracerCloser.Close()
+	defer func(tracerCloser io.Closer) {
+		err := tracerCloser.Close()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(tracerCloser)
 
 	pubSub, err := mfnats.NewPubSub(natsCfg.URL, svcName, mflogger)
 	if err != nil {
@@ -109,7 +125,12 @@ func main() {
 	defer pubSub.Close()
 
 	policiesGRPCConn := connectToGRPC(policiesGRPCCfg, logger)
-	defer policiesGRPCConn.Close()
+	defer func(policiesGRPCConn *grpc.ClientConn) {
+		err := policiesGRPCConn.Close()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(policiesGRPCConn)
 
 	policiesGRPCTimeout, err := time.ParseDuration(policiesGRPCCfg.Timeout)
 	if err != nil {
@@ -118,7 +139,12 @@ func main() {
 	policiesGRPCClient := policiesgrpc.NewClient(tracer, policiesGRPCConn, policiesGRPCTimeout)
 
 	fleetGRPCConn := connectToGRPC(fleetGRPCCfg, logger)
-	defer fleetGRPCConn.Close()
+	defer func(fleetGRPCConn *grpc.ClientConn) {
+		err := fleetGRPCConn.Close()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(fleetGRPCConn)
 
 	fleetGRPCTimeout, err := time.ParseDuration(fleetGRPCCfg.Timeout)
 	if err != nil {
@@ -127,7 +153,12 @@ func main() {
 	fleetGRPCClient := fleetgrpc.NewClient(tracer, fleetGRPCConn, fleetGRPCTimeout)
 
 	sinksGRPCConn := connectToGRPC(sinksGRPCCfg, logger)
-	defer sinksGRPCConn.Close()
+	defer func(sinksGRPCConn *grpc.ClientConn) {
+		err := sinksGRPCConn.Close()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}(sinksGRPCConn)
 
 	sinksGRPCTimeout, err := time.ParseDuration(sinksGRPCCfg.Timeout)
 	if err != nil {
@@ -141,17 +172,28 @@ func main() {
 		Namespace: "sinker",
 		Subsystem: "sink",
 		Name:      "payload_size",
-		Help:      "Total size of payloads",
+		Help:      "Total size of outbound payloads",
 	}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
 	counter := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "sinker",
 		Subsystem: "sink",
 		Name:      "payload_count",
-		Help:      "Number of payloads received",
+		Help:      "Number of payloads wrote",
 	}, []string{"method", "agent_id", "agent", "policy_id", "policy", "sink_id", "owner_id"})
+	inputCounter := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "sinker",
+		Subsystem: "sink",
+		Name:      "message_inbound",
+		Help:      "Number of messages received",
+	}, []string{"method", "agent_id", "subtopic", "channel", "protocol"})
 
-	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, gauge, counter)
-	defer svc.Stop()
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, gauge, counter, inputCounter)
+	defer func(svc sinker.Service) {
+		err := svc.Stop()
+		if err != nil {
+			log.Fatalf("fatal error in stop the service: %e", err)
+		}
+	}(svc)
 
 	errs := make(chan error, 2)
 
@@ -223,7 +265,7 @@ func connectToGRPC(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
 			opts = append(opts, grpc.WithTransportCredentials(tpc))
 		}
 	} else {
-		opts = append(opts, grpc.WithInsecure())
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
 	conn, err := grpc.Dial(cfg.URL, opts...)

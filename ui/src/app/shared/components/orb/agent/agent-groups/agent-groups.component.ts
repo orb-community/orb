@@ -1,31 +1,24 @@
-import { Component, Input, OnInit } from '@angular/core';
-import {
-  AgentGroup,
-  AgentGroupState,
-} from 'app/common/interfaces/orb/agent.group.interface';
-import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
-import { NbDialogService } from '@nebular/theme';
+import { Component, Input, OnChanges, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NbDialogService } from '@nebular/theme';
+import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
-import { forkJoin } from 'rxjs';
+import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 
 @Component({
   selector: 'ngx-agent-groups',
   templateUrl: './agent-groups.component.html',
   styleUrls: ['./agent-groups.component.scss'],
 })
-export class AgentGroupsComponent implements OnInit {
+export class AgentGroupsComponent implements OnInit, OnChanges {
   @Input() agent: Agent;
 
+  @Input()
   groups: AgentGroup[];
-
-  isLoading: boolean;
 
   errors;
 
   constructor(
-    protected groupsService: AgentGroupsService,
     protected dialogService: NbDialogService,
     protected router: Router,
     protected route: ActivatedRoute,
@@ -34,44 +27,25 @@ export class AgentGroupsComponent implements OnInit {
     this.errors = {};
   }
 
-  ngOnInit(): void {
-    this.retrieveGroups(this.agent?.last_hb_data?.group_state);
-  }
+  ngOnInit(): void {}
 
-  retrieveGroups(groupState: AgentGroupState) {
-    if (!groupState || groupState === {}) {
-      this.errors['nogroup'] = 'This agent does not belong to any group.';
-      return;
+  ngOnChanges(changes) {
+    if (changes.groups) {
+      this.groups = changes.groups.currentValue;
     }
-
-    this.isLoading = true;
-
-    const groupIds = Object.keys(groupState);
-
-    forkJoin(
-      groupIds.map((id) => this.groupsService.getAgentGroupById(id)),
-    ).subscribe((resp) => {
-      this.groups = resp.filter((group) => !group.error);
-      this.errors.notfound = resp
-        .filter((group) => !!group.error)
-        .map((value) => `${value.id}: ${value.status} ${value.statusText}`)
-        .join(',\n');
-      this.isLoading = false;
-    });
+    if (!this.groups || this.groups.length === 0) {
+      this.errors['nogroup'] = 'This agent does not belong to any group.';
+    } else {
+      delete this.errors['nogroup'];
+    }
   }
 
-  showAgentGroupDetail(agentGroup) {
-    this.dialogService
-      .open(AgentGroupDetailsComponent, {
-        context: { agentGroup },
-        autoFocus: true,
-        closeOnEsc: true,
-      })
-      .onClose.subscribe((resp) => {
-        if (resp) {
-          this.onOpenEditAgentGroup(agentGroup);
-        }
-      });
+  showAgentGroupMatches(agentGroup) {
+    this.dialogService.open(AgentMatchComponent, {
+      context: { agentGroup },
+      autoFocus: true,
+      closeOnEsc: true,
+    });
   }
 
   onOpenEditAgentGroup(agentGroup: any) {

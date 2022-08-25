@@ -217,8 +217,14 @@ kind: collection`;
     this.modules = modules;
 
     this.detailsFG = this._formBuilder.group({
-      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
-      description: [description],
+      name: [name, [
+          Validators.required,
+          Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'),
+          Validators.maxLength(64),
+      ]],
+      description: [description, [
+        Validators.maxLength(64),
+      ]],
       backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFG = this._formBuilder.group({
@@ -423,7 +429,7 @@ kind: collection`;
     this.modules[name] = ({
       type,
       config,
-      ...(filter !== undefined && filter.length > 0) && filter,
+      filter: !!filter && Object.keys(filter).length > 0 && filter,
     });
 
   }

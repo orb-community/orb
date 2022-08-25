@@ -116,9 +116,9 @@ type SinkService interface {
 	ListBackends(ctx context.Context, token string) ([]string, error)
 	// ViewBackend retrieves a backend by the name
 	ViewBackend(ctx context.Context, token string, key string) (backend.Backend, error)
-	// ViewSink retrieves a sink by id
+	// ViewSink retrieves a sink by id, for View, does not send password
 	ViewSink(ctx context.Context, token string, key string) (Sink, error)
-	// ViewSink retrieves a sink by id
+	// ViewSinkInternal retrieves a sink by id, via GRPC, sends password
 	ViewSinkInternal(ctx context.Context, ownerID string, key string) (Sink, error)
 	// DeleteSink delete a existing sink by id
 	DeleteSink(ctx context.Context, token string, key string) error
