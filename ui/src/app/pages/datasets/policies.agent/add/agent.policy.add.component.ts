@@ -475,7 +475,7 @@ kind: collection`;
         input: {
           tap: this.tap.name,
           input_type: this.tapFG.controls.input_type.value,
-          ...Object.entries(this.inputConfigFG.controls)
+          ...Object.entries(this.inputConfigFG?.controls || {})
             .map(([key, control]) => ({ [key]: control.value }))
             .reduce((acc, curr) => {
               for (const [key, value] of Object.entries(curr)) {
@@ -483,7 +483,7 @@ kind: collection`;
               }
               return acc;
             }, { config: {} }),
-          ...Object.entries(this.inputFilterFG.controls)
+          ...Object.entries(this.inputFilterFG?.controls || {})
             .map(([key, control]) => ({ [key]: control.value }))
             .reduce((acc, curr) => {
               for (const [key, value] of Object.entries(curr)) {
