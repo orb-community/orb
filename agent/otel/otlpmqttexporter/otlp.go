@@ -130,7 +130,7 @@ func (e *exporter) export(_ context.Context, metricsTopic string, request fleet.
 		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
 		return token.Error()
 	}
-	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", 0), zap.Int("batch_count", 0))
+	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", buf.Len()), zap.Int("batch_count", 0))
 
 	return nil
 }

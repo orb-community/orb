@@ -326,9 +326,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	p.scraper.StartAsync()
 
 	if p.scrapeOtel {
-		if err := p.scrapeOpenTelemetry(); err != nil {
-			return err
-		}
+		p.scrapeOpenTelemetry(ctx)
 	} else {
 		if err := p.scrapeDefault(); err != nil {
 			return err
@@ -406,11 +404,11 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
-func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
-	ctx := context.Background()
+func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 	go func() {
-		startExpCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "startExporter"))
+		startExpCtx, cancelFunc := context.WithCancel(ctx)
 		var ok bool
+		var err error
 		for i := 1; i < 10; i++ {
 			select {
 			case <-startExpCtx.Done():
@@ -455,10 +453,9 @@ func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
 			p.logger.Error("mqtt did not established a connection, stopping agent")
 			p.Stop(startExpCtx)
 		}
-		defer cancelFunc()
+		cancelFunc()
 		return
 	}()
-	return nil
 }
 
 func (p *pktvisorBackend) Stop(ctx context.Context) error {
@@ -472,8 +469,12 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 	p.scraper.Stop()
 
 	if p.scrapeOtel {
-		_ = p.exporter.Shutdown(context.Background())
-		_ = p.receiver.Shutdown(context.Background())
+		if p.exporter != nil {
+			_ = p.exporter.Shutdown(context.Background())
+		}
+		if p.receiver != nil {
+			_ = p.receiver.Shutdown(context.Background())
+		}
 	}
 
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
