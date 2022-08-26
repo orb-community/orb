@@ -68,8 +68,8 @@ export class SinkAddComponent {
 
       this.initializeForms();
 
-      this.isLoading = false;
       if (backend !== '') this.onSinkTypeSelected(backend);
+      this.isLoading = false;
     }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
   }
 
@@ -160,7 +160,6 @@ export class SinkAddComponent {
         !!conf && (curr.prop in conf) && conf[curr.prop] ||
         '',
         curr.required ? Validators.required : null,
-          Validators.maxLength(64),
       ];
       return accumulator;
     }, {});
