@@ -1,5 +1,5 @@
 @group
-Feature: Agent Group tests
+Feature: Agent Group tests using orb UI
 
 
 @smoke_ui

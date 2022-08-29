@@ -1,5 +1,5 @@
 @sink
-Feature: Sink Management tests
+Feature: Sink Management tests using orb UI 
 
 @smoke_ui
 Scenario: Create a new Sink Management
