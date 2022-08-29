@@ -37,7 +37,7 @@ export class AgentKeyComponent implements OnInit {
   }
 
   makeCommand2Copy() {
-    this.command2copy = `docker run -d --net=host \\
+    this.command2copy = `docker run -d --restart=always --net=host \\
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
@@ -45,7 +45,7 @@ export class AgentKeyComponent implements OnInit {
 -e PKTVISOR_PCAP_IFACE_DEFAULT=mock \\
 ns1labs/orb-agent:develop`;
 
-    this.command2show = `docker run -d --net=host \\
+    this.command2show = `docker run -d --restart=always --net=host \\
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\

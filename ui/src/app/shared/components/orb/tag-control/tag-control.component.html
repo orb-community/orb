@@ -34,7 +34,9 @@
                  autofocus="true"
                  data-orb-qa-id="input#orb_tag_key"
                  fieldSize="medium"
+                 maxlength="64"
                  id="key"
+                 name="key"
                  [(ngModel)]="key"
                  fullWidth="true"
                  nbInput/>
@@ -48,9 +50,11 @@
           <label class="font-weight-bold">{{strings.value}}</label>
         </div>
         <div>
-          <input data-orb-qa-id="input#orb_tag_value"
+          <input #valueInput
+                 data-orb-qa-id="input#orb_tag_value"
                  fieldSize="medium"
                  id="value"
+                 maxlength="64"
                  [(ngModel)]="value"
                  fullWidth="true"
                  nbInput/>
