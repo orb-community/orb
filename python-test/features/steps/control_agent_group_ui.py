@@ -79,7 +79,7 @@ def create_agent_group_through_the_agent_group_page(context, orb_tags):
         EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
     WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully created'))
-    context.initial_counter_group = check_total_counter(context.driver)
+    context.initial_counter = check_total_counter(context.driver)
 
 
 @when("delete the agent group using filter by name with {orb_tags} orb tag")
@@ -115,8 +115,8 @@ def create_agent_through_the_agent_group_page(context, orb_tags):
 @then("total number was decreased in one unit")
 def check_total_counter_final(context):
     final_counter_group = check_total_counter(context.driver)
-    assert_that(final_counter_group, equal_to(context.initial_counter_group - 1),
-                'The counter was not decreased wirh successfully')
+    assert_that(final_counter_group, equal_to(context.initial_counter - 1),
+                'The counter was not decreased with successfully')
 
 
 def check_total_counter(driver):

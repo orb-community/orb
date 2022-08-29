@@ -50,6 +50,7 @@ def create_sink(context, orb_tags):
         EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
     WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Sink successfully created'))
+    context.initial_counter = check_total_counter(context.driver)
     
     
 @then("the new sink {condition} shown on the datatable")
@@ -73,3 +74,63 @@ def check_total_counter(driver):
     WebDriverWait(driver, 3).until(
         EC.presence_of_element_located((By.XPATH, DataTable.page_count())))
     return int(driver.find_element(By.XPATH, DataTable.page_count()).text.split()[0])
+
+@when("delete a sink using filter by name with {orb_tags} orb tag")
+def delete_a_sink_item(context, orb_tags):
+    create_sink(context, orb_tags)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.filter_by()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.filter_by())))
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.option_list())))
+    select_list = WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.all_filter_options())))
+    select_list[0].click()
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_element_located((By.XPATH, DataTable.filter_by_name_field())))
+    input_text_by_xpath(DataTable.filter_by_name_field(), context.name_label, context.driver)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.plus_button()))).click()
+    WebDriverWait(context.driver, 5).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.trash_icon()))).click()
+    input_text_by_xpath(SinkPage.delete_sink_confirmation_field(), context.name_label, context.driver)
+    WebDriverWait(context.driver, 5).until(
+        EC.element_to_be_clickable((By.XPATH, SinkPage.delete_sink_confirmation_title()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, SinkPage.delete_sink_confirmation_button()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Sink successfully deleted'))
+    WebDriverWait(context.driver, 3).until(EC.element_to_be_clickable((By.XPATH, UtilButton.clear_all_filters())),
+                                           "Unable to clear all filters").click()
+
+
+
+@when("delete a sink using filter by {filter_option} with {orb_tags} orb tag")
+def delete_a_sink_item(context, filter_option, orb_tags):
+    create_sink(context, orb_tags)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.filter_by()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.filter_by())))
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.option_list())))
+    select_list = WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.all_filter_options())))
+    select_list[0].click()
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_element_located((By.XPATH, DataTable.filter_by_name_field())))
+    input_text_by_xpath(DataTable.filter_by_name_field(), context.name_label, context.driver)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.plus_button()))).click()
+    WebDriverWait(context.driver, 5).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.trash_icon()))).click()
+    input_text_by_xpath(SinkPage.delete_sink_confirmation_field(), context.name_label, context.driver)
+    WebDriverWait(context.driver, 5).until(
+        EC.element_to_be_clickable((By.XPATH, SinkPage.delete_sink_confirmation_title()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, SinkPage.delete_sink_confirmation_button()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Sink successfully deleted'))
+    WebDriverWait(context.driver, 3).until(EC.element_to_be_clickable((By.XPATH, UtilButton.clear_all_filters())),
+                                           "Unable to clear all filters").click()
