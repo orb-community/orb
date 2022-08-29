@@ -116,7 +116,7 @@ def create_agent_through_the_agent_group_page(context, orb_tags):
 def check_total_counter_final(context):
     final_counter_group = check_total_counter(context.driver)
     assert_that(final_counter_group, equal_to(context.initial_counter - 1),
-                'The counter was not decreased with successfully')
+                'The counter was not decrease with successful')
 
 
 def check_total_counter(driver):
