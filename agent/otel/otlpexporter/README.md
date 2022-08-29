@@ -27,3 +27,8 @@ sequenceDiagram
     SinkerOtelExporter-->>Prometheus: from config
 ```
 
+
+
+Somehow it is breaking when
+
+go get github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver

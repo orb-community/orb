@@ -12,8 +12,6 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
 	"k8s.io/client-go/rest"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
 )
 
 type prometheusReceiverWrapper struct {
@@ -37,7 +35,7 @@ func New(params component.ReceiverCreateSettings, cfg *Config, consumer consumer
 
 // Start creates and starts the prometheus receiver.
 func (prw *prometheusReceiverWrapper) Start(ctx context.Context, host component.Host) error {
-	pFactory := prometheusreceiver.NewFactory()
+	pFactory := NewFactory()
 
 	pConfig, err := GetPrometheusConfig(prw.config)
 	if err != nil {
@@ -53,20 +51,19 @@ func (prw *prometheusReceiverWrapper) Start(ctx context.Context, host component.
 	return prw.prometheusReceiver.Start(ctx, host)
 }
 
-func GetPrometheusConfig(cfg *Config) (*prometheusreceiver.Config, error) {
+func GetPrometheusConfig(cfg *Config) (*Config, error) {
 	var bearerToken string
-	if cfg.UseServiceAccount {
-		restConfig, err := rest.InClusterConfig()
-		if err != nil {
-			return nil, err
-		}
-		bearerToken = restConfig.BearerToken
-		if bearerToken == "" {
-			return nil, errors.New("bearer token was empty")
-		}
+	// TODO check what was UseServiceAccount field
+	restConfig, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	bearerToken = restConfig.BearerToken
+	if bearerToken == "" {
+		return nil, errors.New("bearer token was empty")
 	}
 
-	out := &prometheusreceiver.Config{}
+	out := &Config{}
 	httpConfig := configutil.HTTPClientConfig{}
 
 	scheme := "http"
@@ -74,8 +71,8 @@ func GetPrometheusConfig(cfg *Config) (*prometheusreceiver.Config, error) {
 	httpConfig.BearerToken = configutil.Secret(bearerToken)
 
 	scrapeConfig := &config.ScrapeConfig{
-		ScrapeInterval:  model.Duration(cfg.CollectionInterval),
-		ScrapeTimeout:   model.Duration(cfg.CollectionInterval),
+		ScrapeInterval:  model.Duration(cfg.BufferPeriod),
+		ScrapeTimeout:   model.Duration(cfg.BufferPeriod),
 		JobName:         fmt.Sprintf("%s/%s", typeStr, cfg.Endpoint),
 		HonorTimestamps: true,
 		Scheme:          scheme,
