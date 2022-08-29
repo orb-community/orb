@@ -376,3 +376,19 @@ class SinkPage:
     @classmethod
     def sink_password(cls):
         return "//input[(@data-orb-qa-id= 'password')]"
+    
+    @classmethod
+    def sink_password(cls):
+        return "//input[(@data-orb-qa-id= 'password')]"
+    
+    @classmethod
+    def delete_sink_confirmation_field(cls):
+        return "//input[contains(@class, 'input-full-width')]"    
+    
+    @classmethod
+    def delete_sink_confirmation_title(cls):
+        return "//nb-card-header[contains(text(), 'Delete Sink Confirmation')]"   
+ 
+    @classmethod
+    def delete_sink_confirmation_button(cls):
+        return "//button[contains(text(), 'I Understand, Delete This Sink')]"   
