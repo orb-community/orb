@@ -154,7 +154,7 @@ export class HandlerPolicyAddComponent implements OnInit, OnDestroy {
 
     const valueReducer = (dynConfig) => {
       return (acc, [key, control]) => {
-        if (control.value !== undefined) {
+        if (control.value !== undefined && control.value !== '') {
           if (dynConfig[key].type === 'string[]') {
             acc[key] = control.value.split(','); // todo we must support separator definition
           } else {
