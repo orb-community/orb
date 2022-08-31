@@ -188,9 +188,11 @@ func (a *orbAgent) Stop(ctx context.Context) {
 		a.rpcFromCancelFunc()
 	}
 	for name, b := range a.backends {
-		a.logger.Debug("stopping backend", zap.String("backend", name))
-		if err := b.Stop(ctx); err != nil {
-			a.logger.Error("error while stopping the backend", zap.String("backend", name))
+		if state, _, _ := b.GetState(); state == backend.Running {
+			a.logger.Debug("stopping backend", zap.String("backend", name))
+			if err := b.Stop(ctx); err != nil {
+				a.logger.Error("error while stopping the backend", zap.String("backend", name))
+			}
 		}
 	}
 	a.stopHeartbeat(ctx)
@@ -205,6 +207,22 @@ func (a *orbAgent) Stop(ctx context.Context) {
 		a.groupRequestSucceeded()
 	}
 	defer a.cancelFunction()
+}
+
+func (a *orbAgent) sanityCheck(ctx context.Context) error {
+	for name, b := range a.backends {
+		state, _, err := b.GetState()
+		if err != nil {
+			a.logger.Error("error in backend", zap.String("backend", name), zap.String("state", state.String()))
+			err2 := a.RestartBackend(ctx, name, "backend with error")
+			if err2 != nil {
+				a.logger.Error("error restarting backend", zap.String("backend", name), zap.String("state", state.String()))
+				a.Stop(ctx)
+				return errors.New("error restarting backend: " + err2.Error())
+			}
+		}
+	}
+	return nil
 }
 
 func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason string) error {

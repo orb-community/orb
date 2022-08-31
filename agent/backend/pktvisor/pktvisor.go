@@ -158,6 +158,11 @@ func (p *pktvisorBackend) checkAlive() (bool, error) {
 		return false, errors.New("pktvisor process ended")
 	}
 
+	if status.StopTs > 0 {
+		p.logger.Info("pktvisor process stopped")
+		return false, errors.New("pktvisor process ended")
+	}
+
 	return true, nil
 }
 
@@ -321,9 +326,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	p.scraper.StartAsync()
 
 	if p.scrapeOtel {
-		if err := p.scrapeOpenTelemetry(); err != nil {
-			return err
-		}
+		p.scrapeOpenTelemetry(ctx)
 	} else {
 		if err := p.scrapeDefault(); err != nil {
 			return err
@@ -401,29 +404,58 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
-func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
-	ctx := context.Background()
-	p.exporter, err = p.createOtlpMqttExporter(ctx)
-	if err != nil {
-		p.logger.Error("failed to create a exporter", zap.Error(err))
-	}
-	p.receiver, err = createReceiver(ctx, p.exporter, p.logger)
-	if err != nil {
-		p.logger.Error("failed to create a receiver", zap.Error(err))
-	}
+func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
+	go func() {
+		startExpCtx, cancelFunc := context.WithCancel(ctx)
+		var ok bool
+		var err error
+		for i := 1; i < 10; i++ {
+			select {
+			case <-startExpCtx.Done():
+				return
+			default:
+				if p.mqttClient != nil {
+					var errStartExp error
+					p.exporter, errStartExp = p.createOtlpMqttExporter(ctx)
+					if errStartExp != nil {
+						p.logger.Error("failed to create a exporter", zap.Error(err))
+						return
+					}
 
-	err = p.exporter.Start(ctx, nil)
-	if err != nil {
-		p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
-		return err
-	}
+					p.receiver, err = createReceiver(ctx, p.exporter, p.logger)
+					if err != nil {
+						p.logger.Error("failed to create a receiver", zap.Error(err))
+						return
+					}
 
-	err = p.receiver.Start(ctx, nil)
-	if err != nil {
-		p.logger.Error("otel receiver startup error", zap.Error(err))
-		return err
-	}
-	return nil
+					err = p.exporter.Start(ctx, nil)
+					if err != nil {
+						p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
+						return
+					}
+
+					err = p.receiver.Start(ctx, nil)
+					if err != nil {
+						p.logger.Error("otel receiver startup error", zap.Error(err))
+						return
+					}
+
+					ok = true
+					return
+				} else {
+					p.logger.Info("waiting until mqtt client is connected", zap.String("wait time", (time.Duration(i)*time.Second).String()))
+					time.Sleep(time.Duration(i) * time.Second)
+					continue
+				}
+			}
+		}
+		if !ok {
+			p.logger.Error("mqtt did not established a connection, stopping agent")
+			p.Stop(startExpCtx)
+		}
+		cancelFunc()
+		return
+	}()
 }
 
 func (p *pktvisorBackend) Stop(ctx context.Context) error {
@@ -437,8 +469,12 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 	p.scraper.Stop()
 
 	if p.scrapeOtel {
-		_ = p.exporter.Shutdown(context.Background())
-		_ = p.receiver.Shutdown(context.Background())
+		if p.exporter != nil {
+			_ = p.exporter.Shutdown(context.Background())
+		}
+		if p.receiver != nil {
+			_ = p.receiver.Shutdown(context.Background())
+		}
 	}
 
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
@@ -538,9 +574,11 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 func (p *pktvisorBackend) FullReset(ctx context.Context) error {
 
 	// force a stop, which stops scrape as well. if proc is dead, it no ops.
-	if err := p.Stop(ctx); err != nil {
-		p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
-		return err
+	if state, _, _ := p.GetState(); state == backend.Running {
+		if err := p.Stop(ctx); err != nil {
+			p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
+			return err
+		}
 	}
 
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "pktvisor"))

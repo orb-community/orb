@@ -123,6 +123,11 @@ func (a *orbAgent) sendHeartbeats(ctx context.Context, cancelFunc context.Cancel
 			ctx.Done()
 			return
 		case t := <-a.hbTicker.C:
+			err := a.sanityCheck(ctx)
+			if err != nil {
+				a.logger.Error("error on sanity check in heartbeat, could not restart backend", zap.Error(err))
+				return
+			}
 			a.sendSingleHeartbeat(ctx, t, fleet.Online)
 		}
 	}

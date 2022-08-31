@@ -55,6 +55,7 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 			}
 			if !ok {
 				a.logger.Error("Pktvisor wasn't able to change to running, stopping connection")
+				ctx.Done()
 			}
 		}()
 
