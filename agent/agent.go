@@ -270,19 +270,19 @@ func (a *orbAgent) restartComms(ctx context.Context) error {
 }
 
 func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
+	a.logger.Info("restarting all backends", zap.String("reason", reason))
+	for name := range a.backends {
+		a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
+		err := a.RestartBackend(ctx, name, reason)
+		if err != nil {
+			a.logger.Error("failed to restart backend", zap.Error(err))
+		}
+	}
 	a.logger.Info("restarting comms", zap.String("reason", reason))
 	a.stopHeartbeat(ctx)
 	err := a.restartComms(ctx)
 	if err != nil {
 		a.logger.Error("failed to restart comms", zap.Error(err))
-	}
-	a.logger.Info("restarting all backends", zap.String("reason", reason))
-	for name := range a.backends {
-		a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
-		err = a.RestartBackend(ctx, name, reason)
-		if err != nil {
-			a.logger.Error("failed to restart backend", zap.Error(err))
-		}
 	}
 	a.startHearbeat()
 	a.logger.Info("all backends and comms were restarted")
