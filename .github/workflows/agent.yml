@@ -6,6 +6,12 @@ on:
       pktvisor_tag:
         description: 'pktvisor agent docker tag to package'
         required: true
+        
+  repository_dispatch:
+    inputs:
+      pktvisor_tag:
+        description: 'pktvisor agent docker tag to package'
+        required: true
 
 jobs:
 
