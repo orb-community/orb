@@ -233,7 +233,7 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 	be := a.backends[name]
 	a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
 	a.logger.Info("removing policies", zap.String("backend", name))
-	if err := a.policyManager.RemoveBackendPolicies(be, false); err != nil {
+	if err := a.policyManager.RemoveBackendPolicies(be, true); err != nil {
 		a.logger.Error("failed to remove policies", zap.String("backend", name), zap.Error(err))
 	}
 	a.logger.Info("resetting backend", zap.String("backend", name))
