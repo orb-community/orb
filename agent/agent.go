@@ -240,9 +240,10 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 	if err := be.FullReset(ctx); err != nil {
 		a.logger.Error("failed to reset backend", zap.String("backend", name), zap.Error(err))
 	}
-	a.logger.Info("reapplying policies", zap.String("backend", name))
-	if err := a.policyManager.ApplyBackendPolicies(be); err != nil {
-		a.logger.Error("failed to reapply policies", zap.String("backend", name), zap.Error(err))
+	err := a.sendAgentPoliciesReq()
+	if err != nil {
+		a.logger.Error("failed to send agent policies request", zap.Error(err))
+		return nil
 	}
 	return nil
 }
