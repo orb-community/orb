@@ -17,7 +17,7 @@ package components
 import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -69,7 +69,7 @@ func getProcessors() []component.ProcessorFactory {
 	return []component.ProcessorFactory{
 		// Inserts Tenant and Sinks data in otlp package
 		// current version and stability for metrics [ 0.56.0 , alpha ]
-		attributesprocessor.NewFactory(),
+		transformprocessor.NewFactory(),
 	}
 }
 

@@ -3,7 +3,7 @@ package components
 import (
 	"context"
 	"github.com/ns1labs/orb/pkg/config"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor"
 	"go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
@@ -14,12 +14,12 @@ import (
 func GetAttributeProcessorWithOwnerAndSinkData(ctx context.Context, factories component.Factories, nextConsumer consumer.Metrics) error {
 	logger := config.LoggerFromContext(ctx)
 	slog := logger.Sugar()
-	name := "attributeprocessor"
+	name := "transformprocessor"
 	subCtx := context.WithValue(ctx, "name", name)
 	slog.Debug("create processor:", name)
 	factory := factories.Processors[otelconfig.Type(name)]
-	cfg := factory.CreateDefaultConfig().(*attributesprocessor.Config)
-	// waiting update to have api to set attributes
+	cfg := factory.CreateDefaultConfig().(*transformprocessor.Config)
+	cfg.Metrics.Queries = append(cfg.Metrics.Queries, "")
 	set := component.ProcessorCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
