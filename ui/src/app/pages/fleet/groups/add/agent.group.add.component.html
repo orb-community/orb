@@ -33,9 +33,21 @@
                   autofocus
                   fieldSize="medium"
                   formControlName="name"
+                  [status]="firstFormGroup?.controls.name.touched ? (!firstFormGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                   fullWidth="true"
                   nbInput/>
               </div>
+              <ng-container *ngIf="firstFormGroup?.controls.name.touched && !firstFormGroup.controls.name.valid">
+                <p *ngIf="!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
+                  Name is required!
+                </p>
+                <p *ngIf="!!firstFormGroup.controls.name.errors?.pattern" class="caption status-danger mb-1">
+                  Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
+                </p>
+                <p *ngIf="firstFormGroup?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
+                  Name must be less than {{firstFormGroup.controls.name.errors?.maxlength.requiredLength}} characters
+                </p>
+              </ng-container>
             </nb-form-field>
             <hr/>
             <nb-form-field>
@@ -46,7 +58,13 @@
                 fieldSize="medium"
                 formControlName="description"
                 fullWidth="true"
+                [status]="form?.controls.description.touched ? (!form.controls.description.valid  ? 'danger' : 'success') : 'basic'"
                 nbInput/>
+                <ng-container *ngIf="firstFormGroup?.controls.description.touched && !firstFormGroup.controls.description.valid">
+                  <p *ngIf="firstFormGroup?.controls.description.errors?.maxlength" class="caption status-danger mb-1">
+                    Description must be less than {{firstFormGroup.controls.description.errors?.maxlength.requiredLength}} characters
+                  </p>
+                </ng-container>
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">

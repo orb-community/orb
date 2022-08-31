@@ -117,10 +117,10 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 		return getErr
 	}
 
-	if res.StatusCode != 200 {
+	if (res.StatusCode < 200) || (res.StatusCode > 299) {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return errors.New(fmt.Sprintf("non 200 HTTP error code from pktvisord, no or invalid body: %d", res.StatusCode))
+			return errors.New(fmt.Sprintf("non 200-299 HTTP error code from pktvisord, no or invalid body: %d", res.StatusCode))
 		}
 		if len(body) == 0 {
 			return errors.New(fmt.Sprintf("%d empty body", res.StatusCode))

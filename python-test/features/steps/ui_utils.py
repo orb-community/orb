@@ -20,6 +20,7 @@ def go_to_page(page, headless=True):
     """
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
+    options.add_argument("--remote-debugging-port=9222")
     if headless:
         options.add_argument('headless')
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
