@@ -27,8 +27,23 @@ Feature: Create agents using orb ui
             And that the user is on the orb Agents page
         When a new agent is created through the UI with 1 orb tag(s)
             And the agent container is started using the command provided by the UI on an unavailable port
+        Then last container created is running after 5 seconds
+            And the container logs should contain the message "agent startup error" within 5 seconds
+            And the container logs should contain "[error] unable to bind to localhost:port" as log within 5 seconds
+            And first container created is running after 5 seconds
+
+    @smoke_ui
+    Scenario: Run two orb agents on the same port without restart always parameter
+        Given that the Orb user logs in Orb UI
+            And that the user is on the orb Agents page
+            And a new agent is created through the UI with 1 orb tag(s)
+            And the agent container is started using the command provided by the UI on an available port
+            And that the user is on the orb Agents page
+        When a new agent is created through the UI with 1 orb tag(s)
+            And the agent container is started using the command provided by the UI without --restart=always on an unavailable port
         Then last container created is exited after 5 seconds
             And the container logs should contain the message "agent startup error" within 5 seconds
+            And the container logs should contain "[error] unable to bind to localhost:port" as log within 5 seconds
             And first container created is running after 5 seconds
 
     @smoke_ui
