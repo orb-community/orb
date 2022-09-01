@@ -27,7 +27,7 @@ visor:
   config:
     cp_token: CP_TOKEN
     cp_url: CP_URL
-    cp_path: /user/local/sbin/crashpad_handler
+    cp_path: /usr/local/sbin/crashpad_handler
   taps:
 END
 ) > "$tmpfile"
