@@ -41,7 +41,7 @@ type orbAgent struct {
 	backends          map[string]backend.Backend
 	cancelFunction    context.CancelFunc
 	rpcFromCancelFunc context.CancelFunc
-	// TODO: look for a better way to do this, context should'nt be inside structs
+	// TODO: look for a better way to do this, context shouldn't be inside structs
 	asyncContext context.Context
 
 	hbTicker *time.Ticker

@@ -156,11 +156,13 @@ func (a *policyManager) RemovePolicy(policyID string, policyName string, beName 
 	// Remove policy via http request
 	err := be.RemovePolicy(pd)
 	if err != nil {
+		a.logger.Error("received error")
 		return err
 	}
 	// Remove policy from orb-agent local repo
 	err = a.repo.Remove(pd.ID)
 	if err != nil {
+
 		return err
 	}
 	return nil

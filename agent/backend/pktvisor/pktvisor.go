@@ -104,16 +104,15 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
+		p.logger.Error("received error from payload", zap.Error(err))
 		return err
 	}
-	if contentType == "" {
-		contentType = "application/json"
-	}
-	req.Header.Add("Content-Type", contentType)
 
+	req.Header.Add("Content-Type", contentType)
 	res, getErr := client.Do(req)
 
 	if getErr != nil {
+		p.logger.Error("received error from payload", zap.Error(getErr))
 		return getErr
 	}
 
@@ -208,8 +207,9 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 
 func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	var resp interface{}
-	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, nil, "", 10)
+	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, http.NoBody, "application/json", 10)
 	if err != nil {
+		p.logger.Error("received error", zap.Error(err))
 		return err
 	}
 	return nil
@@ -217,7 +217,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 
 func (p *pktvisorBackend) Version() (string, error) {
 	var appMetrics AppMetrics
-	err := p.request("metrics/app", &appMetrics, http.MethodGet, nil, "", 5)
+	err := p.request("metrics/app", &appMetrics, http.MethodGet, http.NoBody, "application/json", 5)
 	if err != nil {
 		return "", err
 	}
@@ -305,7 +305,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	var readinessError error
 	for backoff := 0; backoff < ReadinessBackoff; backoff++ {
 		var appMetrics AppMetrics
-		readinessError = p.request("metrics/app", &appMetrics, http.MethodGet, nil, "", ReadinessTimeout)
+		readinessError = p.request("metrics/app", &appMetrics, http.MethodGet, http.NoBody, "application/json", ReadinessTimeout)
 		if readinessError == nil {
 			p.logger.Info("pktvisor readiness ok, got version ", zap.String("pktvisor_version", appMetrics.App.Version))
 			break
@@ -513,7 +513,7 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 
 func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, error) {
 	var metrics map[string]interface{}
-	err := p.request(fmt.Sprintf("policies/__all/metrics/bucket/%d", period), &metrics, http.MethodGet, nil, "", 5)
+	err := p.request(fmt.Sprintf("policies/__all/metrics/bucket/%d", period), &metrics, http.MethodGet, http.NoBody, "application/json", 5)
 	if err != nil {
 		return nil, err
 	}
@@ -522,7 +522,7 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 
 func (p *pktvisorBackend) GetCapabilities() (map[string]interface{}, error) {
 	var taps interface{}
-	err := p.request("taps", &taps, http.MethodGet, nil, "", 5)
+	err := p.request("taps", &taps, http.MethodGet, http.NoBody, "application/json", 5)
 	if err != nil {
 		return nil, err
 	}
