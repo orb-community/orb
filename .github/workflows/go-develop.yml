@@ -166,6 +166,16 @@ jobs:
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
 
+      - name: Replace token
+        run: |
+          sed -i -e "s/CP_TOKEN/${{ secrets.CRASHPAD_TOKEN }}/g" agent/docker/orb-agent-entry.sh
+
+      - name: Replace escape url
+        run: |
+          REPLACE=${{ secrets.CRASHPAD_URL }}
+          ESCAPED_REPLACE=$(printf '%s\n' "$REPLACE" | sed -e 's/[\/&]/\\&/g')
+          sed -i -e "s/CP_URL/$ESCAPED_REPLACE/g" agent/docker/orb-agent-entry.sh
+
       - name: Build orb-agent
         shell: bash
         env:
