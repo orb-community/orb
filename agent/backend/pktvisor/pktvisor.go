@@ -135,9 +135,11 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 		}
 	}
 
-	err = json.NewDecoder(res.Body).Decode(&payload)
-	if err != nil {
-		return err
+	if res.Body != nil {
+		err = json.NewDecoder(res.Body).Decode(&payload)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
