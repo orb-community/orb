@@ -6,12 +6,9 @@ on:
       pktvisor_tag:
         description: 'pktvisor agent docker tag to package'
         required: true
-        
+
   repository_dispatch:
-    inputs:
-      pktvisor_tag:
-        description: 'pktvisor agent docker tag to package'
-        required: true
+      types: [build-agent]
 
 jobs:
 
@@ -33,12 +30,12 @@ jobs:
         run: echo ${{ env.BRANCH_NAME }}
 
       - name: Generate ref tag (main)
-        if: ${{ env.BRANCH_NAME == 'main' }}
+        if: ${{ env.BRANCH_NAME == 'main' || github.event.client_payload.branch_name == 'main' }}
         run: |
           echo "REF_TAG=latest" >> $GITHUB_ENV
 
       - name: Generate ref tag (develop)
-        if: ${{ env.BRANCH_NAME == 'develop' }}
+        if: ${{ env.BRANCH_NAME == 'develop' || github.event.client_payload.branch_name == 'develop' }}
         run: |
           echo "REF_TAG=develop" >> $GITHUB_ENV
 
@@ -46,7 +43,7 @@ jobs:
         run: echo ${{ env.REF_TAG }}
 
       - name: Append suffix on VERSION file for develop build
-        if: ${{ env.BRANCH_NAME == 'develop' }}
+        if: ${{ env.BRANCH_NAME == 'develop' || github.event.client_payload.branch_name == 'develop'}}
         run: |
           echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
@@ -68,12 +65,12 @@ jobs:
         run: echo ${{ env.BRANCH_NAME }}
 
       - name: Generate ref tag (main)
-        if: ${{ env.BRANCH_NAME == 'main' }}
+        if: ${{ env.BRANCH_NAME == 'main' || github.event.client_payload.branch_name == 'main' }}
         run: |
           echo "REF_TAG=latest" >> $GITHUB_ENV
 
       - name: Generate ref tag (develop)
-        if: ${{ env.BRANCH_NAME == 'develop' }}
+        if: ${{ env.BRANCH_NAME == 'develop' || github.event.client_payload.branch_name == 'develop' }}
         run: |
           echo "REF_TAG=develop" >> $GITHUB_ENV
 
@@ -81,7 +78,7 @@ jobs:
         run: echo ${{ env.REF_TAG }}
 
       - name: Append suffix on VERSION file for develop build
-        if: ${{ env.BRANCH_NAME == 'develop' }}
+        if: ${{ env.BRANCH_NAME == 'develop' || github.event.client_payload.branch_name == 'develop' }}
         run: |
           echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
