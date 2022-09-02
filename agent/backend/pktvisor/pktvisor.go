@@ -247,6 +247,11 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		pvOptions = append(pvOptions, "--config", p.configFile)
 	}
 	p.logger.Info("pktvisor startup", zap.Strings("arguments", pvOptions))
+	
+	// the macros should be properly configured to enable crashpad 
+	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
+	// pvOptions = append(pvOptions, "--cp-url", PKTVISOR_CP_URL)
+	// pvOptions = append(pvOptions, "--cp-path", PKTVISOR_CP_PATH)
 	p.proc = cmd.NewCmdOptions(cmd.Options{
 		Buffered:  false,
 		Streaming: true,
