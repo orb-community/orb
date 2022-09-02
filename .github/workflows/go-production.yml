@@ -145,15 +145,17 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
-      - name: Replace token
+      - name: Replace crashpad params
         run: |
-          sed -i -e "s/CP_TOKEN/${{ secrets.CRASHPAD_TOKEN }}/g" agent/docker/orb-agent-entry.sh
-
-      - name: Replace escape url
-        run: |
-          REPLACE=${{ secrets.CRASHPAD_URL }}
-          ESCAPED_REPLACE=$(printf '%s\n' "$REPLACE" | sed -e 's/[\/&]/\\&/g')
-          sed -i -e "s/CP_URL/$ESCAPED_REPLACE/g" agent/docker/orb-agent-entry.sh
+          ESCAPED_REPLACE_LINE1_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-token\", ${{ secrets.CRASHPAD_TOKEN }})" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE2_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-url\", ${{ secrets.CRASHPAD_URL }})" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE3_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-path\", /usr/local/sbin/crashpad_handler)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE1_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-token\", PKTVISOR_CP_TOKEN)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE2_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-url\", PKTVISOR_CP_URL)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE3_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-path\", PKTVISOR_CP_PATH)" | sed -e 's/[\/&]/\\&/g')
+          sed -i -e "s/$ESCAPED_REPLACE_LINE1_OLD/$ESCAPED_REPLACE_LINE1_NEW/g" agent/backend/pktvisor/pktvisor.go      
+          sed -i -e "s/$ESCAPED_REPLACE_LINE2_OLD/$ESCAPED_REPLACE_LINE2_NEW/g" agent/backend/pktvisor/pktvisor.go 
+          sed -i -e "s/$ESCAPED_REPLACE_LINE3_OLD/$ESCAPED_REPLACE_LINE3_NEW/g" agent/backend/pktvisor/pktvisor.go
 
       - name: Build orb-agent
         shell: bash
@@ -461,15 +463,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           
-      - name: Replace token
+      - name: Replace crashpad params
         run: |
-          sed -i -e "s/CP_TOKEN/${{ secrets.CRASHPAD_TOKEN }}/g" agent/docker/orb-agent-entry.sh
-
-      - name: Replace escape url
-        run: |
-          REPLACE=${{ secrets.CRASHPAD_URL }}
-          ESCAPED_REPLACE=$(printf '%s\n' "$REPLACE" | sed -e 's/[\/&]/\\&/g')
-          sed -i -e "s/CP_URL/$ESCAPED_REPLACE/g" agent/docker/orb-agent-entry.sh
+          ESCAPED_REPLACE_LINE1_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-token\", ${{ secrets.CRASHPAD_TOKEN }})" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE2_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-url\", ${{ secrets.CRASHPAD_URL }})" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE3_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-path\", /usr/local/sbin/crashpad_handler)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE1_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-token\", PKTVISOR_CP_TOKEN)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE2_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-url\", PKTVISOR_CP_URL)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE3_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-path\", PKTVISOR_CP_PATH)" | sed -e 's/[\/&]/\\&/g')
+          sed -i -e "s/$ESCAPED_REPLACE_LINE1_OLD/$ESCAPED_REPLACE_LINE1_NEW/g" agent/backend/pktvisor/pktvisor.go      
+          sed -i -e "s/$ESCAPED_REPLACE_LINE2_OLD/$ESCAPED_REPLACE_LINE2_NEW/g" agent/backend/pktvisor/pktvisor.go 
+          sed -i -e "s/$ESCAPED_REPLACE_LINE3_OLD/$ESCAPED_REPLACE_LINE3_NEW/g" agent/backend/pktvisor/pktvisor.go
 
       - name: Build + push - agent (multi-arch)
         env:
