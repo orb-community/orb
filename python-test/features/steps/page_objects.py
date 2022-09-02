@@ -193,7 +193,11 @@ class DataTable:
     @classmethod
     def sink_name_on_datatable(cls, name):
         return f"//span[@class='ng-star-inserted' and contains(text(), '{name}')]"
-   
+    
+    @classmethod
+    def edit_icon(cls):
+        return "//*[@data-name='edit']"
+       
    
 class AgentGroupPage:
     def __init__(self):
@@ -392,3 +396,8 @@ class SinkPage:
     @classmethod
     def delete_sink_confirmation_button(cls):
         return "//button[contains(text(), 'I Understand, Delete This Sink')]"   
+
+    @classmethod
+    def next_button(cls):
+        return "//*[@data-orb-qa-id= 'button#next']"
+    

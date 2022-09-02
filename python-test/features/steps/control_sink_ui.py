@@ -13,7 +13,8 @@ sink_description_prefix = "sink_description_"
 sink_remote_url = "www.remoteurl.com"
 username = configs.get('email')
 password = configs.get('password')
-
+sink_update_prefix = "sink_name_upd"
+    
     
 @when('a sink is created through the UI with {orb_tags} orb tag')
 def create_sink(context, orb_tags):
@@ -134,3 +135,53 @@ def delete_a_sink_item(context, filter_option, orb_tags):
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Sink successfully deleted'))
     WebDriverWait(context.driver, 3).until(EC.element_to_be_clickable((By.XPATH, UtilButton.clear_all_filters())),
                                            "Unable to clear all filters").click()
+    
+
+@when("update a sink using filter by name with {orb_tags} orb tag")  
+def update_a_sink_item(context, orb_tags):
+    create_sink(context, orb_tags)
+    context.initial_counter_datatable = check_total_counter(context.driver)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.filter_by()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.filter_by())))
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.option_list())))
+    select_list = WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.all_filter_options())))
+    select_list[0].click()
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_element_located((By.XPATH, DataTable.filter_by_name_field())))
+    input_text_by_xpath(DataTable.filter_by_name_field(), context.name_label, context.driver)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.plus_button()))).click()
+    WebDriverWait(context.driver, 5).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.edit_icon()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, SinkPage.sink_description()))).click()
+    WebDriverWait(context.driver, 5).until(
+        EC.element_to_be_clickable((By.XPATH, SinkPage.name_label()))).clear()
+    context.name_label = sink_update_prefix + random_string(5)
+    input_text_by_xpath(SinkPage.name_label(), context.name_label, context.driver)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
+    context.sink_password = password
+    input_text_by_xpath(SinkPage.sink_password(), context.sink_password, context.driver)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click() 
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Sink successfully updated'))
+    WebDriverWait(context.driver, 3).until(EC.element_to_be_clickable((By.XPATH, UtilButton.clear_all_filters())),
+                                           "Unable to clear all filters").click()
+    context.initial_counter = check_total_counter(context.driver)
+    
+
+@then("total number was the same")
+def check_total_counter_final(context):
+    final_counter_datatable = check_total_counter(context.driver)
+    assert_that(final_counter_datatable, equal_to(context.initial_counter_datatable),
+                'The counter was not the same') 
