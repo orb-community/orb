@@ -24,10 +24,6 @@ cat <<END
 version: "1.0"
 
 visor:
-  config:
-    cp_token: CP_TOKEN
-    cp_url: CP_URL
-    cp_path: /usr/local/sbin/crashpad_handler
   taps:
 END
 ) > "$tmpfile"
