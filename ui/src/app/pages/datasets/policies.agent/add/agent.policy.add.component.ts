@@ -217,8 +217,14 @@ kind: collection`;
     this.modules = modules;
 
     this.detailsFG = this._formBuilder.group({
-      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
-      description: [description],
+      name: [name, [
+          Validators.required,
+          Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'),
+          Validators.maxLength(64),
+      ]],
+      description: [description, [
+        Validators.maxLength(64),
+      ]],
       backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFG = this._formBuilder.group({
@@ -422,8 +428,13 @@ kind: collection`;
 
     this.modules[name] = ({
       type,
-      config,
-      ...(filter !== undefined && filter.length > 0) && filter,
+      ...(!!config && config),
+      ...(!!filter && Object.entries(filter).reduce((acc, [key, value]) => {
+        if (value && value !== '') {
+          acc[key] = value;
+        }
+        return acc;
+      }, {})),
     });
 
   }
@@ -469,7 +480,7 @@ kind: collection`;
         input: {
           tap: this.tap.name,
           input_type: this.tapFG.controls.input_type.value,
-          ...Object.entries(this.inputConfigFG.controls)
+          ...Object.entries(this.inputConfigFG?.controls || {})
             .map(([key, control]) => ({ [key]: control.value }))
             .reduce((acc, curr) => {
               for (const [key, value] of Object.entries(curr)) {
@@ -477,7 +488,7 @@ kind: collection`;
               }
               return acc;
             }, { config: {} }),
-          ...Object.entries(this.inputFilterFG.controls)
+          ...Object.entries(this.inputFilterFG?.controls || {})
             .map(([key, control]) => ({ [key]: control.value }))
             .reduce((acc, curr) => {
               for (const [key, value] of Object.entries(curr)) {

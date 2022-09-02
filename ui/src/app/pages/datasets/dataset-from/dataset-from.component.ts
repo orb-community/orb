@@ -131,6 +131,7 @@ export class DatasetFromComponent implements OnInit {
             // 0_bla
             '^[a-zA-Z_][a-zA-Z0-9_-]*$',
           ),
+          Validators.maxLength(64),
         ],
       ],
       agent_policy_id: [agent_policy_id, [Validators.required]],

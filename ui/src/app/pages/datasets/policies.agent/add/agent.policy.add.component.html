@@ -29,6 +29,7 @@
             </div>
           </ng-template>
           <form [formGroup]="detailsFG">
+            <nb-form-field>
             <div class="d-flex flex-column">
               <div>
                 <label
@@ -42,10 +43,24 @@
                 fieldSize="medium"
                 formControlName="name"
                 fullWidth="true"
+                [status]="detailsFG?.controls.name.touched ? (!detailsFG.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                 id="name"
                 nbInput/>
+                <ng-container *ngIf="detailsFG?.controls.name.touched && !detailsFG.controls.name.valid">
+                  <p *ngIf="!detailsFG.controls.name.value" class="caption status-danger mb-1">
+                    Name is required!
+                  </p>
+                  <p *ngIf="!!detailsFG.controls.name.errors?.pattern" class="caption status-danger mb-1">
+                    Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
+                  </p>
+                  <p *ngIf="detailsFG?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
+                    Name must be less than {{detailsFG.controls.name.errors?.maxlength.requiredLength}} characters
+                  </p>
+                </ng-container>
             </div>
+          </nb-form-field>
             <hr/>
+            <nb-form-field>
             <div>
               <label
                 class="font-weight-bold"
@@ -58,7 +73,13 @@
               fullWidth="true"
               id="description"
               nbInput/>
-            <hr/>
+              <ng-container *ngIf="detailsFG?.controls.description.touched && !detailsFG.controls.description.valid">
+                <p *ngIf="detailsFG?.controls.description.errors?.maxlength" class="caption status-danger mb-1">
+                  Description must be less than {{detailsFG.controls.description.errors?.maxlength.requiredLength}} characters
+                </p>
+              </ng-container>
+            </nb-form-field>
+            
             <div class="d-flex justify-content-end">
               <button
                       (click)="resizeComponents()"

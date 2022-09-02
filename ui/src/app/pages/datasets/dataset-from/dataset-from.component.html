@@ -28,6 +28,7 @@
                             [readonly]="fetchedData && !(availableAgentGroups.length > 0)"
                             [nbAutocomplete]="autoControl"
                             formControlName="agent_group_name"
+                            [status]="form?.controls.agent_group_name.touched ? (!form.controls.agent_group_name.valid  ? 'danger' : 'success') : 'basic'"
                             nbInput
                             fullWidth="true"
                             placeholder="Agent Group"
@@ -72,6 +73,7 @@
                             autofocus
                             data-orb-qa-id="agent_policy_id"
                             formControlName="agent_policy_id"
+                            [status]="form?.controls.agent_policy_id.touched ? (!form.controls.agent_policy_id.valid  ? 'danger' : 'success') : 'basic'"
                             fullWidth="true"
                             placeholder="Policy"
                             size="medium"
@@ -130,20 +132,24 @@
                         data-orb-qa-id="name"
                         fieldSize="medium"
                         formControlName="name"
+                        [status]="form?.controls.name.touched ? (!form.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                         fullWidth="true"
                         nbInput/>
+                        <ng-container
+                                *ngIf="form.controls?.name.invalid
+                      && (form.controls?.name.dirty)"
+                                class="required">
+                            <div *ngIf="form.controls?.name.errors?.required" class="caption status-danger mb-1">
+                                Name is required.
+                            </div>
+                            <div *ngIf="form.controls?.name.errors?.pattern" class="caption status-danger mb-1">
+                                Name does not match the pattern.
+                            </div>
+                            <div *ngIf="form?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
+                                Name must be less than {{form.controls.name.errors?.maxlength.requiredLength}} characters
+                            </div>
+                        </ng-container>
             </nb-form-field>
-            <div
-                    *ngIf="form.controls?.name.invalid
-          && (form.controls?.name.dirty)"
-                    class="required">
-                <div *ngIf="form.controls?.name.errors?.required">
-                    Name is required.
-                </div>
-                <div *ngIf="form.controls?.name.errors?.pattern">
-                    Name does not match the pattern.
-                </div>
-            </div>
         </form>
     </nb-card-body>
     <nb-card-footer>

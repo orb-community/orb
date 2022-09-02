@@ -153,14 +153,33 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 		return err
 	}
 
-	a.hbTicker = time.NewTicker(HeartbeatFreq)
-	a.hbDone = make(chan bool)
-	heartbeatCtx, hbcancelFunc := a.extendContext("heartbeat")
-	go a.sendHeartbeats(heartbeatCtx, hbcancelFunc)
+	a.startHearbeat()
 
 	return nil
 }
 
+func (a *orbAgent) startHearbeat() {
+	a.hbTicker = time.NewTicker(HeartbeatFreq)
+	a.hbDone = make(chan bool)
+	heartbeatCtx, hbcancelFunc := a.extendContext("heartbeat")
+	go a.sendHeartbeats(heartbeatCtx, hbcancelFunc)
+}
+
+func (a *orbAgent) stopHeartbeat(ctx context.Context) {
+	a.logger.Debug("stopping heartbeat", zap.Any("routine", ctx.Value("routine")))
+	a.hbTicker.Stop()
+	if a.rpcFromCancelFunc != nil {
+		a.rpcFromCancelFunc()
+	}
+	if a.client != nil && a.client.IsConnected() {
+		a.unsubscribeGroupChannels()
+		a.sendSingleHeartbeat(ctx, time.Now(), fleet.Offline)
+		if token := a.client.Unsubscribe(a.rpcFromCoreTopic); token.Wait() && token.Error() != nil {
+			a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
+		}
+	}
+	defer close(a.hbDone)
+}
 func (a *orbAgent) Stop(ctx context.Context) {
 	a.logger.Info("routine call for stop agent", zap.Any("routine", ctx.Value("routine")))
 	defer a.cancelFunction()
@@ -173,18 +192,11 @@ func (a *orbAgent) Stop(ctx context.Context) {
 			a.logger.Error("error while stopping the backend", zap.String("backend", name))
 		}
 	}
-	a.hbTicker.Stop()
+	a.stopHeartbeat(ctx)
 	if a.client != nil && a.client.IsConnected() {
-		a.sendSingleHeartbeat(ctx, time.Now(), fleet.Offline)
-		if token := a.client.Unsubscribe(a.rpcFromCoreTopic); token.Wait() && token.Error() != nil {
-			a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
-		}
-		a.unsubscribeGroupChannels()
 		a.client.Disconnect(250)
 	}
-
 	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
-	defer close(a.hbDone)
 	defer close(a.policyRequestSucceeded)
 	defer close(a.groupRequestSucceeded)
 }
@@ -232,6 +244,7 @@ func (a *orbAgent) restartComms(ctx context.Context) error {
 
 func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
 	a.logger.Info("restarting comms", zap.String("reason", reason))
+	a.stopHeartbeat(ctx)
 	err := a.restartComms(ctx)
 	if err != nil {
 		a.logger.Error("failed to restart comms", zap.Error(err))
@@ -244,6 +257,7 @@ func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
 			a.logger.Error("failed to restart backend", zap.Error(err))
 		}
 	}
+	a.startHearbeat()
 	a.logger.Info("all backends and comms were restarted")
 
 	return nil

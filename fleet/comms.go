@@ -12,6 +12,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/hashicorp/go-version"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
@@ -62,10 +63,12 @@ const RPCFromCoreTopic = "fromcore"
 const LogTopic = "log"
 
 type fleetCommsService struct {
-	logger         *zap.Logger
-	agentRepo      AgentRepository
-	agentGroupRepo AgentGroupRepository
-	policyClient   pb.PolicyServiceClient
+	logger              *zap.Logger
+	agentRepo           AgentRepository
+	agentGroupRepo      AgentGroupRepository
+	policyClient        pb.PolicyServiceClient
+	asyncContext        context.Context
+	cancelAsyncContexts context.CancelFunc
 
 	// agent comms
 	agentPubSub mfnats.PubSub
@@ -675,6 +678,7 @@ func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, p
 }
 
 func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
+	ctx, cancelFunc := svc.extendAsyncCtx("handleMsgFromAgent")
 
 	// NOTE: we need to consider ALL input from the agent as untrusted, the same as untrusted HTTP API would be
 	// Given security context is that to get this far we know mainflux MQTT proxy has authenticated a
@@ -682,54 +686,64 @@ func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 	// channelID is globally unique across all owners and things, and can therefore substitute for an ownerID (which we do not have here)
 	// mainflux will not allow a thing to communicate on a channelID it does not belong to - thus it is not possible
 	// to brute force a channelID from another tenant without brute forcing all three UUIDs which is a lot of entropy
-
 	var payload map[string]interface{}
 	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
 		return err
 	}
+	go func(ctx context.Context, cancelFunc context.CancelFunc) {
+		defer func(t time.Time) {
+			svc.logger.Info("handleMsgFromAgent", zap.String("duration", time.Since(t).String()))
+			cancelFunc()
+		}(time.Now())
 
-	svc.logger.Debug("received agent message",
-		zap.Any("payload", payload),
-		zap.String("subtopic", msg.Subtopic),
-		zap.String("channel", msg.Channel),
-		zap.String("protocol", msg.Protocol),
-		zap.Int64("created", msg.Created),
-		zap.String("publisher", msg.Publisher))
+		svc.logger.Debug("received agent message",
+			zap.Any("payload", payload),
+			zap.String("channel", msg.Channel),
+			zap.String("protocol", msg.Protocol),
+			zap.Int64("created", msg.Created),
+			zap.String("publisher", msg.Publisher))
 
-	if len(msg.Payload) > MaxMsgPayloadSize {
-		return ErrPayloadTooBig
-	}
-
-	// dispatch
-	switch msg.Subtopic {
-	case CapabilitiesTopic:
-		if err := svc.handleCapabilities(msg.Publisher, msg.Channel, msg.Payload); err != nil {
-			svc.logger.Error("capabilities failure", zap.Error(err))
-			return err
+		if len(msg.Payload) > MaxMsgPayloadSize {
+			svc.logger.Error("message received is above the max payload size", zap.Int("payload size", len(msg.Payload)), zap.Int("limit", MaxMsgPayloadSize))
+			return
 		}
-	case HeartbeatsTopic:
-		if err := svc.handleHeartbeat(msg.Publisher, msg.Channel, msg.Payload); err != nil {
-			svc.logger.Error("heartbeat failure", zap.Error(err))
-			return err
-		}
-	case RPCToCoreTopic:
-		if err := svc.handleRPCToCore(msg.Publisher, msg.Channel, msg.Payload); err != nil {
-			svc.logger.Error("RPC to core failure", zap.Error(err))
-			return err
-		}
-	case LogTopic:
-		svc.logger.Error("implement me: LogChannel")
-	default:
-		svc.logger.Warn("unsupported/unhandled agent subtopic, ignoring",
-			zap.String("subtopic", msg.Subtopic),
-			zap.String("thing_id", msg.Publisher),
-			zap.String("channel_id", msg.Channel))
-	}
 
+		// dispatch
+		switch msg.Subtopic {
+		case CapabilitiesTopic:
+			if err := svc.handleCapabilities(msg.Publisher, msg.Channel, msg.Payload); err != nil {
+				svc.logger.Error("capabilities failure", zap.Error(err))
+				return
+			}
+		case HeartbeatsTopic:
+			if err := svc.handleHeartbeat(msg.Publisher, msg.Channel, msg.Payload); err != nil {
+				svc.logger.Error("heartbeat failure", zap.Error(err))
+				return
+			}
+		case RPCToCoreTopic:
+			if err := svc.handleRPCToCore(msg.Publisher, msg.Channel, msg.Payload); err != nil {
+				svc.logger.Error("RPC to core failure", zap.Error(err))
+				return
+			}
+		case LogTopic:
+			svc.logger.Error("implement me: LogChannel")
+		default:
+			svc.logger.Warn("unsupported/unhandled agent subtopic, ignoring",
+				zap.String("subtopic", msg.Subtopic),
+				zap.String("thing_id", msg.Publisher),
+				zap.String("channel_id", msg.Channel))
+		}
+	}(ctx, cancelFunc)
 	return nil
 }
 
+func (svc fleetCommsService) extendAsyncCtx(method string) (context.Context, context.CancelFunc) {
+	traceId := uuid.NewString()
+	return context.WithCancel(context.WithValue(context.WithValue(svc.asyncContext, "routine", method), "trace-id", traceId))
+}
+
 func (svc fleetCommsService) Start() error {
+	svc.asyncContext, svc.cancelAsyncContexts = context.WithCancel(context.WithValue(context.Background(), "routine", "asyncParent"))
 	if err := svc.agentPubSub.Subscribe(fmt.Sprintf("channels.*.%s", CapabilitiesTopic), svc.handleMsgFromAgent); err != nil {
 		return err
 	}
@@ -760,5 +774,6 @@ func (svc fleetCommsService) Stop() error {
 		return err
 	}
 	svc.logger.Info("unsubscribed from agent channels")
+	svc.cancelAsyncContexts()
 	return nil
 }

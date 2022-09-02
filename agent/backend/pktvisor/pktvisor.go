@@ -117,10 +117,10 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 		return getErr
 	}
 
-	if res.StatusCode != 200 {
+	if (res.StatusCode < 200) || (res.StatusCode > 299) {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return errors.New(fmt.Sprintf("non 200 HTTP error code from pktvisord, no or invalid body: %d", res.StatusCode))
+			return errors.New(fmt.Sprintf("non 2xx HTTP error code from pktvisord, no or invalid body: %d", res.StatusCode))
 		}
 		if len(body) == 0 {
 			return errors.New(fmt.Sprintf("%d empty body", res.StatusCode))
@@ -247,6 +247,11 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		pvOptions = append(pvOptions, "--config", p.configFile)
 	}
 	p.logger.Info("pktvisor startup", zap.Strings("arguments", pvOptions))
+	
+	// the macros should be properly configured to enable crashpad 
+	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
+	// pvOptions = append(pvOptions, "--cp-url", PKTVISOR_CP_URL)
+	// pvOptions = append(pvOptions, "--cp-path", PKTVISOR_CP_PATH)
 	p.proc = cmd.NewCmdOptions(cmd.Options{
 		Buffered:  false,
 		Streaming: true,
