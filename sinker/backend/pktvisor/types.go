@@ -185,6 +185,8 @@ type FlowPayload struct {
 		PayloadSize             Quantiles   `mapstructure:"payload_size"`
 		TCP                     int64       `mapstructure:"tcp"`
 		UDP                     int64       `mapstructure:"udp"`
+		TopGeoLoc               []NameCount `mapstructure:"top_geoLoc"`
+		TopASN                  []NameCount `mapstructure:"top_asn"`
 		TopDstIpsAndPortBytes   []NameCount `mapstructure:"top_dst_ips_and_port_bytes"`
 		TopDstIpsAndPortPackets []NameCount `mapstructure:"top_dst_ips_and_port_packets"`
 		TopDstIpsBytes          []NameCount `mapstructure:"top_dst_ips_bytes"`
