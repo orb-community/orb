@@ -1,8 +1,10 @@
 package otlpmqttexporter
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -118,11 +120,17 @@ func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
 
 func (e *exporter) export(_ context.Context, metricsTopic string, request fleet.AgentMetricsRPC) error {
 	// convert metrics to interface
-	if token := e.config.Client.Publish(metricsTopic, 1, false, request); token.Wait() && token.Error() != nil {
+	buf := bytes.Buffer{}
+	enc := gob.NewEncoder(&buf)
+	if err := enc.Encode(request.Payload); err != nil {
+		e.logger.Error("Failed to encode metrics", zap.Error(err))
+	}
+
+	if token := e.config.Client.Publish(metricsTopic, 1, false, buf.Bytes()); token.Wait() && token.Error() != nil {
 		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
 		return token.Error()
 	}
-	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", 0), zap.Int("batch_count", 0))
+	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", buf.Len()), zap.Int("batch_count", 0))
 
 	return nil
 }

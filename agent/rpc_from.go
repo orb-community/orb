@@ -103,9 +103,7 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 			}
 			a.handleAgentPolicies(ctx, r.Payload, r.FullList)
 			a.logger.Debug("received agent policies, marking success")
-			if ctx.Err() == nil {
-				a.policyRequestSucceeded <- true
-			}
+			a.policyRequestSucceeded()
 		case fleet.GroupRemovedRPCFunc:
 			var r fleet.GroupRemovedRPC
 			if err := json.Unmarshal(message.Payload(), &r); err != nil {
@@ -204,9 +202,7 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			}
 			a.handleGroupMembership(r.Payload)
 			a.logger.Debug("received group membership, marking success")
-			if ctx.Err() == nil {
-				a.groupRequestSucceeded <- true
-			}
+			a.groupRequestSucceeded()
 		case fleet.AgentPolicyRPCFunc:
 			var r fleet.AgentPolicyRPC
 			if err := json.Unmarshal(message.Payload(), &r); err != nil {
@@ -215,9 +211,7 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			}
 			a.handleAgentPolicies(ctx, r.Payload, r.FullList)
 			a.logger.Debug("received agent policies, marking success")
-			if ctx.Err() == nil {
-				a.policyRequestSucceeded <- true
-			}
+			a.policyRequestSucceeded()
 		case fleet.AgentStopRPCFunc:
 			var r fleet.AgentStopRPC
 			if err := json.Unmarshal(message.Payload(), &r); err != nil {

@@ -104,16 +104,15 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
+		p.logger.Error("received error from payload", zap.Error(err))
 		return err
 	}
-	if contentType == "" {
-		contentType = "application/json"
-	}
-	req.Header.Add("Content-Type", contentType)
 
+	req.Header.Add("Content-Type", contentType)
 	res, getErr := client.Do(req)
 
 	if getErr != nil {
+		p.logger.Error("received error from payload", zap.Error(getErr))
 		return getErr
 	}
 
@@ -135,9 +134,11 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 		}
 	}
 
-	err = json.NewDecoder(res.Body).Decode(&payload)
-	if err != nil {
-		return err
+	if res.Body != nil {
+		err = json.NewDecoder(res.Body).Decode(&payload)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -155,6 +156,11 @@ func (p *pktvisorBackend) checkAlive() (bool, error) {
 		if err != nil {
 			p.logger.Error("proc.Stop error", zap.Error(err))
 		}
+		return false, errors.New("pktvisor process ended")
+	}
+
+	if status.StopTs > 0 {
+		p.logger.Info("pktvisor process stopped")
 		return false, errors.New("pktvisor process ended")
 	}
 
@@ -201,8 +207,9 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 
 func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	var resp interface{}
-	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, nil, "", 10)
+	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, http.NoBody, "application/json", 10)
 	if err != nil {
+		p.logger.Error("received error", zap.Error(err))
 		return err
 	}
 	return nil
@@ -210,7 +217,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 
 func (p *pktvisorBackend) Version() (string, error) {
 	var appMetrics AppMetrics
-	err := p.request("metrics/app", &appMetrics, http.MethodGet, nil, "", 5)
+	err := p.request("metrics/app", &appMetrics, http.MethodGet, http.NoBody, "application/json", 5)
 	if err != nil {
 		return "", err
 	}
@@ -303,7 +310,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	var readinessError error
 	for backoff := 0; backoff < ReadinessBackoff; backoff++ {
 		var appMetrics AppMetrics
-		readinessError = p.request("metrics/app", &appMetrics, http.MethodGet, nil, "", ReadinessTimeout)
+		readinessError = p.request("metrics/app", &appMetrics, http.MethodGet, http.NoBody, "application/json", ReadinessTimeout)
 		if readinessError == nil {
 			p.logger.Info("pktvisor readiness ok, got version ", zap.String("pktvisor_version", appMetrics.App.Version))
 			break
@@ -326,9 +333,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	p.scraper.StartAsync()
 
 	if p.scrapeOtel {
-		if err := p.scrapeOpenTelemetry(); err != nil {
-			return err
-		}
+		p.scrapeOpenTelemetry(ctx)
 	} else {
 		if err := p.scrapeDefault(); err != nil {
 			return err
@@ -406,29 +411,58 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
-func (p *pktvisorBackend) scrapeOpenTelemetry() (err error) {
-	ctx := context.Background()
-	p.exporter, err = p.createOtlpMqttExporter(ctx)
-	if err != nil {
-		p.logger.Error("failed to create a exporter", zap.Error(err))
-	}
-	p.receiver, err = createReceiver(ctx, p.exporter, p.logger)
-	if err != nil {
-		p.logger.Error("failed to create a receiver", zap.Error(err))
-	}
+func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
+	go func() {
+		startExpCtx, cancelFunc := context.WithCancel(ctx)
+		var ok bool
+		var err error
+		for i := 1; i < 10; i++ {
+			select {
+			case <-startExpCtx.Done():
+				return
+			default:
+				if p.mqttClient != nil {
+					var errStartExp error
+					p.exporter, errStartExp = p.createOtlpMqttExporter(ctx)
+					if errStartExp != nil {
+						p.logger.Error("failed to create a exporter", zap.Error(err))
+						return
+					}
 
-	err = p.exporter.Start(ctx, nil)
-	if err != nil {
-		p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
-		return err
-	}
+					p.receiver, err = createReceiver(ctx, p.exporter, p.logger)
+					if err != nil {
+						p.logger.Error("failed to create a receiver", zap.Error(err))
+						return
+					}
 
-	err = p.receiver.Start(ctx, nil)
-	if err != nil {
-		p.logger.Error("otel receiver startup error", zap.Error(err))
-		return err
-	}
-	return nil
+					err = p.exporter.Start(ctx, nil)
+					if err != nil {
+						p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
+						return
+					}
+
+					err = p.receiver.Start(ctx, nil)
+					if err != nil {
+						p.logger.Error("otel receiver startup error", zap.Error(err))
+						return
+					}
+
+					ok = true
+					return
+				} else {
+					p.logger.Info("waiting until mqtt client is connected", zap.String("wait time", (time.Duration(i)*time.Second).String()))
+					time.Sleep(time.Duration(i) * time.Second)
+					continue
+				}
+			}
+		}
+		if !ok {
+			p.logger.Error("mqtt did not established a connection, stopping agent")
+			p.Stop(startExpCtx)
+		}
+		cancelFunc()
+		return
+	}()
 }
 
 func (p *pktvisorBackend) Stop(ctx context.Context) error {
@@ -442,8 +476,12 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 	p.scraper.Stop()
 
 	if p.scrapeOtel {
-		_ = p.exporter.Shutdown(context.Background())
-		_ = p.receiver.Shutdown(context.Background())
+		if p.exporter != nil {
+			_ = p.exporter.Shutdown(context.Background())
+		}
+		if p.receiver != nil {
+			_ = p.receiver.Shutdown(context.Background())
+		}
 	}
 
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
@@ -480,7 +518,7 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 
 func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, error) {
 	var metrics map[string]interface{}
-	err := p.request(fmt.Sprintf("policies/__all/metrics/bucket/%d", period), &metrics, http.MethodGet, nil, "", 5)
+	err := p.request(fmt.Sprintf("policies/__all/metrics/bucket/%d", period), &metrics, http.MethodGet, http.NoBody, "application/json", 5)
 	if err != nil {
 		return nil, err
 	}
@@ -489,7 +527,7 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 
 func (p *pktvisorBackend) GetCapabilities() (map[string]interface{}, error) {
 	var taps interface{}
-	err := p.request("taps", &taps, http.MethodGet, nil, "", 5)
+	err := p.request("taps", &taps, http.MethodGet, http.NoBody, "application/json", 5)
 	if err != nil {
 		return nil, err
 	}
@@ -543,9 +581,11 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 func (p *pktvisorBackend) FullReset(ctx context.Context) error {
 
 	// force a stop, which stops scrape as well. if proc is dead, it no ops.
-	if err := p.Stop(ctx); err != nil {
-		p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
-		return err
+	if state, _, _ := p.GetState(); state == backend.Running {
+		if err := p.Stop(ctx); err != nil {
+			p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
+			return err
+		}
 	}
 
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "pktvisor"))

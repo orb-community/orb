@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
+	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
@@ -33,9 +34,31 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 	opts.SetConnectTimeout(5 * time.Minute)
 	opts.SetResumeSubs(true)
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
-		if client.IsConnected() {
-			a.requestReconnection(ctx, client, config)
-		}
+		go func() {
+			ok := false
+			for i := 1; i < 10; i++ {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					if i, s, _ := a.backends["pktvisor"].GetState(); backend.Running != i {
+						a.logger.Info("waiting until pktvisor is in running state",
+							zap.String("current state", s), zap.String("wait time", (time.Duration(i)*time.Second).String()))
+						time.Sleep(time.Duration(i) * time.Second)
+						continue
+					} else {
+						ok = true
+						a.requestReconnection(ctx, client, config)
+						return
+					}
+				}
+			}
+			if !ok {
+				a.logger.Error("Pktvisor wasn't able to change to running, stopping connection")
+				ctx.Done()
+			}
+		}()
+
 	})
 
 	if !a.config.OrbAgent.TLS.Verify {
