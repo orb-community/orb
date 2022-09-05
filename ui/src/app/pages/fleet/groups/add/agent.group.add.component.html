@@ -58,7 +58,7 @@
                 fieldSize="medium"
                 formControlName="description"
                 fullWidth="true"
-                [status]="form?.controls.description.touched ? (!form.controls.description.valid  ? 'danger' : 'success') : 'basic'"
+                [status]="firstFormGroup?.controls.description.touched ? (!firstFormGroup.controls.description.valid  ? 'danger' : 'success') : 'basic'"
                 nbInput/>
                 <ng-container *ngIf="firstFormGroup?.controls.description.touched && !firstFormGroup.controls.description.valid">
                   <p *ngIf="firstFormGroup?.controls.description.errors?.maxlength" class="caption status-danger mb-1">
@@ -107,12 +107,24 @@
           <div class="d-flex row">
             <div class="col-12">
               <p *ngIf="tagMatch?.total && tagMatch.total > 0">
-                {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}.
+                {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}
+                .&nbsp;<button
+                      (click)="toggleExpandMatches()"
+                      class="appearance-ghost size-small status-basic button-expand"
+                      nbButton>{{expanded
+                      ? strings.match.collapse
+                      : strings.match.expand}}</button>
               </p>
               <p *ngIf="!tagMatch.total || tagMatch.total === 0">
                 {{strings.match.matchNone}}
               </p>
             </div>
+          </div>
+          <div
+                  *ngIf="expanded"
+                  class="d-flex tag-table">
+            <ng-container *ngTemplateOutlet="matchingAgentsTable; context: {matchingAgents: matchingAgents}">
+            </ng-container>
           </div>
           <hr/>
           <div class="d-flex justify-content-end">
@@ -124,6 +136,7 @@
               nbStepperNext
               shape="round"
               status="primary"
+              (click)="expanded = false;"
               type="submit">
               {{ strings.stepper.next }}
             </button>
@@ -195,24 +208,10 @@
             </div>
           </div>
           <div
-            *ngIf="expanded"
-            class="d-flex row">
-            <div class="tag-table">
-              <ngx-datatable
-                  #table
-                  *ngIf="columns"
-                  [columnMode]="columnMode.flex"
-                  [columns]="columns"
-                  [footerHeight]="50"
-                  [headerHeight]="50"
-                  [rowHeight]="50"
-                  [rows]="matchingAgents"
-                  [scrollbarV]="true"
-                  [virtualization]="false"
-                  class="orb"
-                  style="height: 100%;">
-              </ngx-datatable>
-            </div>
+                  *ngIf="expanded"
+                  class="d-flex tag-table">
+            <ng-container *ngTemplateOutlet="matchingAgentsTable; context: {matchingAgents: matchingAgents}">
+            </ng-container>
           </div>
           <hr/>
           <div class="d-flex justify-content-end">
@@ -288,4 +287,23 @@
   <div>
     {{ row.ts_last_hb | date: 'M/d/yy, HH:mm z' }}
   </div>
+</ng-template>
+
+<ng-template
+  #matchingAgentsTable
+  let-matchingAgents="matchingAgents">
+  <ngx-datatable
+          #table
+          *ngIf="columns"
+          [columnMode]="columnMode.flex"
+          [columns]="columns"
+          [footerHeight]="50"
+          [headerHeight]="50"
+          [rowHeight]="50"
+          [rows]="matchingAgents"
+          [scrollbarV]="true"
+          [virtualization]="false"
+          class="orb"
+          style="height: 100%; width: 100%">
+  </ngx-datatable>
 </ng-template>
