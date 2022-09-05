@@ -1,5 +1,7 @@
 nb-card {
-  width: 400px;
+  min-width: 400px;
+  width: 100%;
+  max-width: 80vw;
 }
 
 button {
@@ -195,10 +197,10 @@ tr div p {
 .tag-table {
   position: relative;
   left: 0;
-  min-height: 18vw;
-  height: 25vw;
+  min-height: 250px;
+  height: 50%;
   max-height: 30vw;
-  width: 57vw;
+  width: 200%;
 }
 
 .orb-service- {
@@ -258,7 +260,7 @@ mat-chip-list {
 }
 
 .max-width-vw {
-  width: 50vw;
+  width: 80vw;
 }
 
 @keyframes slidetween {
