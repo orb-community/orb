@@ -428,8 +428,13 @@ kind: collection`;
 
     this.modules[name] = ({
       type,
-      config,
-      filter: !!filter && Object.keys(filter).length > 0 && filter,
+      ...(!!config && config),
+      ...(!!filter && Object.entries(filter).reduce((acc, [key, value]) => {
+        if (value && value !== '') {
+          acc[key] = value;
+        }
+        return acc;
+      }, {})),
     });
 
   }

@@ -139,6 +139,19 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
+      - name: Replace crashpad params
+        run: |
+          ESCAPED_REPLACE_LINE1_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-token\", \"${{ secrets.CRASHPAD_TOKEN }}\")" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE2_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-url\", \"${{ secrets.CRASHPAD_URL }}\")" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE3_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-path\", \"/usr/local/sbin/crashpad_handler\")" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE1_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-token\", PKTVISOR_CP_TOKEN)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE2_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-url\", PKTVISOR_CP_URL)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE3_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-path\", PKTVISOR_CP_PATH)" | sed -e 's/[\/&]/\\&/g')
+          sed -i -e "s/$ESCAPED_REPLACE_LINE1_OLD/$ESCAPED_REPLACE_LINE1_NEW/g" agent/backend/pktvisor/pktvisor.go      
+          sed -i -e "s/$ESCAPED_REPLACE_LINE2_OLD/$ESCAPED_REPLACE_LINE2_NEW/g" agent/backend/pktvisor/pktvisor.go 
+          sed -i -e "s/$ESCAPED_REPLACE_LINE3_OLD/$ESCAPED_REPLACE_LINE3_NEW/g" agent/backend/pktvisor/pktvisor.go
+
       - name: Build orb-agent
         shell: bash
         env:

@@ -88,10 +88,10 @@ func (cc *cloudConfigManager) request(address string, token string, response int
 	if getErr != nil {
 		return getErr
 	}
-	if res.StatusCode != 201 {
+	if (res.StatusCode < 200) || (res.StatusCode > 299) {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return errors.New(fmt.Sprintf("non 200 HTTP error code from API, no or invalid body: %d", res.StatusCode))
+			return errors.New(fmt.Sprintf("expected 2xx status code, no or invalid body: %d", res.StatusCode))
 		}
 		if body[0] == '{' {
 			var jsonBody map[string]interface{}

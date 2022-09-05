@@ -276,6 +276,7 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 	if ctxt.deviceID != "" {
 		if err := labelsListFlag.Set("device;" + ctxt.deviceID); err != nil {
 			handleParticleError(ctxt, err)
+			ctxt.deviceID = ""
 			return tsList
 		}
 	}
