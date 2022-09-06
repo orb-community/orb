@@ -14,7 +14,7 @@ agent_group_to_be_deleted = "agent_group_to_delete"
 
 
 @when('a new agent group is created through the UI with {orb_tags} orb tag')
-def create_agent_through_the_agent_group_page(context, orb_tags):
+def create_agent_group_through_the_agent_group_page(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
     WebDriverWait(context.driver, 5).until(
         EC.element_to_be_clickable((By.XPATH, AgentGroupPage.new_agent_group_button())),
@@ -84,7 +84,7 @@ def create_agent_group_with_description_through_the_agent_group_page(context, or
 
 @when("delete the agent group using filter by name with {orb_tags} orb tag")
 def delete_agent_through_the_agent_group_page(context, orb_tags):
-    create_agent_group_through_the_agent_group_page(context, orb_tags)
+    create_agent_group_with_description_through_the_agent_group_page(context, orb_tags)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, DataTable.filter_by()))).click()
     WebDriverWait(context.driver, 3).until(
@@ -129,7 +129,7 @@ def check_total_counter(driver):
 
 @when("update the agent group using filter by name with {orb_tags} orb tag")
 def update_an_agent_group_by_name_through_the_agent_group_page(context, orb_tags):
-    create_agent_through_the_agent_group_page(context, orb_tags)
+    create_agent_group_through_the_agent_group_page(context, orb_tags)
     context.initial_counter_datatable = check_total_counter(context.driver)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, DataTable.filter_by()))).click()
