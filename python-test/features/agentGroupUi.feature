@@ -6,7 +6,7 @@ Feature: Agent Group tests using Orb UI
 Scenario: Create a new Agent Group
     Given that the Orb user logs in Orb UI
         And the user clicks on Agent Groups on left menu
-    When a new agent group is created through the UI with 1 orb tag
+   When a new agent group is created through the UI with 1 orb tag
     Then the new agent group is shown on the datatable
 
 @smoke_ui
@@ -22,7 +22,7 @@ Scenario: Delete an Agent Group
         And the user clicks on Agent Groups on left menu
     When delete the agent group using filter by name with 1 orb tag
     Then the new agent group is not shown on the datatable
-    And total number was decreased in one unit
+        And total number was decreased in one unit
 
 @smoke_ui
 Scenario: Update an Agent Group by Name
@@ -30,4 +30,4 @@ Scenario: Update an Agent Group by Name
         And the user clicks on Agent Groups on left menu
     When update the agent group using filter by name with 1 orb tag
     Then the new agent group is shown on the datatable
-    And total number was the same
+        And total number was the same
