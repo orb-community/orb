@@ -197,6 +197,10 @@ class DataTable:
     @classmethod
     def edit_icon(cls):
         return "//*[@data-name='edit']"
+    
+    @classmethod
+    def close_option_selected(cls):
+        return "//*[@class='fa fa-window-close']"
        
    
 class AgentGroupPage:
@@ -238,6 +242,7 @@ class AgentGroupPage:
     @classmethod
     def delete_agent_group_confirmation_field(cls):
         return "//input[contains(@class, 'input-full-width')]"
+   
 
 
 class PolicyPage:
