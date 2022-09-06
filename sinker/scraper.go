@@ -119,99 +119,115 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 	}
 
 	// TODO do the strategy p to otlp format extract the loop below to function as JSON format handler and add new function for OTLP
-	for _, m := range metricsRPC.Payload {
-		// this payload loop is per policy. each policy has a list of datasets it is associated with, and each dataset may contain multiple sinks
-		// however, per policy, we want a unique set of sink IDs as we don't want to send the same metrics twice to the same sink for the same policy
-		datasetSinkIDs := make(map[string]bool)
-		// first go through the datasets and gather the unique set of sinks we need for this particular policy
-		for _, ds := range m.Datasets {
-			if ds == "" {
-				svc.logger.Error("malformed agent RPC: empty dataset", zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID))
+	for _, metricsPayload := range metricsRPC.Payload {
+		if metricsPayload.Format == "otlp" {
+			//handleOtlp
+		} else {
+			// this payload loop is per policy. each policy has a list of datasets it is associated with, and each dataset may contain multiple sinks
+			// however, per policy, we want a unique set of sink IDs as we don't want to send the same metrics twice to the same sink for the same policy
+			datasetSinkIDs := make(map[string]bool)
+			// first go through the datasets and gather the unique set of sinks we need for this particular policy
+			err2 := svc.GetSinks(agentID, metricsPayload, agent, datasetSinkIDs)
+			if err2 != nil {
+				return err2
+			}
+
+			// ensure there are sinks
+			if len(datasetSinkIDs) == 0 {
+				svc.logger.Error("unable to attach any sinks to policy", zap.String("policy_id", metricsPayload.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID))
 				continue
 			}
-			dataset, err := svc.policiesClient.RetrieveDataset(context.Background(), &pb2.DatasetByIDReq{
-				DatasetID: ds,
-				OwnerID:   agent.OwnerID,
-			})
+
+			// now that we have the sinks, process the metrics for this policy
+			tsList, err := be.ProcessMetrics(agent, agentID, metricsPayload)
 			if err != nil {
-				svc.logger.Error("unable to retrieve dataset", zap.String("dataset_id", ds), zap.String("owner_id", agent.OwnerID), zap.Error(err))
+				svc.logger.Error("ProcessMetrics failed", zap.String("policy_id", metricsPayload.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
 				continue
 			}
-			for _, sid := range dataset.SinkIds {
-				if !svc.sinkerCache.Exists(agent.OwnerID, sid) {
-					// Use the retrieved sinkID to get the backend config
-					sink, err := svc.sinksClient.RetrieveSink(context.Background(), &pb3.SinkByIDReq{
-						SinkID:  sid,
-						OwnerID: agent.OwnerID,
-					})
-					if err != nil {
-						return err
-					}
 
-					var data config.SinkConfig
-					if err := json.Unmarshal(sink.Config, &data); err != nil {
-						return err
-					}
-
-					data.SinkID = sid
-					data.OwnerID = agent.OwnerID
-					err = svc.sinkerCache.Add(data)
-					if err != nil {
-						return err
-					}
-				}
-				datasetSinkIDs[sid] = true
-			}
-		}
-
-		// ensure there are sinks
-		if len(datasetSinkIDs) == 0 {
-			svc.logger.Error("unable to attach any sinks to policy", zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID))
-			continue
-		}
-
-		// now that we have the sinks, process the metrics for this policy
-		tsList, err := be.ProcessMetrics(agent, agentID, m)
-		if err != nil {
-			svc.logger.Error("ProcessMetrics failed", zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
-			continue
-		}
-
-		// finally, sink this policy
-		sinkIDList := make([]string, len(datasetSinkIDs))
-		i := 0
-		for k := range datasetSinkIDs {
-			sinkIDList[i] = k
-			i++
-		}
-		svc.logger.Info("sinking agent metric RPC",
-			zap.String("owner_id", agent.OwnerID),
-			zap.String("agent", agent.AgentName),
-			zap.String("policy", m.PolicyName),
-			zap.String("policy_id", m.PolicyID),
-			zap.Strings("sinks", sinkIDList))
-
-		for _, id := range sinkIDList {
-			err = svc.remoteWriteToPrometheus(tsList, agent.OwnerID, id)
-			if err != nil {
-				svc.logger.Warn(fmt.Sprintf("unable to remote write to sinkID: %s", id), zap.String("policy_id", m.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
-			}
-
-			// send operational metrics
-			labels := []string{
-				"method", "sinker_payload_size",
-				"agent_id", agentID,
-				"agent", agent.AgentName,
-				"policy_id", m.PolicyID,
-				"policy", m.PolicyName,
-				"sink_id", id,
-				"owner_id", agent.OwnerID,
-			}
-			svc.requestCounter.With(labels...).Add(1)
-			svc.requestGauge.With(labels...).Add(float64(len(m.Data)))
+			// finally, sink this policy
+			svc.SinkPolicy(agentID, datasetSinkIDs, agent, metricsPayload, err, tsList)
 		}
 	}
 
+	return nil
+}
+
+func (svc sinkerService) SinkPolicy(agentID string, datasetSinkIDs map[string]bool, agent *pb.AgentInfoRes, metricsPayload fleet.AgentMetricsRPCPayload, err error, tsList []prometheus.TimeSeries) {
+	sinkIDList := make([]string, len(datasetSinkIDs))
+	i := 0
+	for k := range datasetSinkIDs {
+		sinkIDList[i] = k
+		i++
+	}
+	svc.logger.Info("sinking agent metric RPC",
+		zap.String("owner_id", agent.OwnerID),
+		zap.String("agent", agent.AgentName),
+		zap.String("policy", metricsPayload.PolicyName),
+		zap.String("policy_id", metricsPayload.PolicyID),
+		zap.Strings("sinks", sinkIDList))
+
+	for _, id := range sinkIDList {
+		err = svc.remoteWriteToPrometheus(tsList, agent.OwnerID, id)
+		if err != nil {
+			svc.logger.Warn(fmt.Sprintf("unable to remote write to sinkID: %s", id), zap.String("policy_id", metricsPayload.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID), zap.Error(err))
+		}
+
+		// send operational metrics
+		labels := []string{
+			"method", "sinker_payload_size",
+			"agent_id", agentID,
+			"agent", agent.AgentName,
+			"policy_id", metricsPayload.PolicyID,
+			"policy", metricsPayload.PolicyName,
+			"sink_id", id,
+			"owner_id", agent.OwnerID,
+		}
+		svc.requestCounter.With(labels...).Add(1)
+		svc.requestGauge.With(labels...).Add(float64(len(metricsPayload.Data)))
+	}
+}
+
+func (svc sinkerService) GetSinks(agentID string, m fleet.AgentMetricsRPCPayload, agent *pb.AgentInfoRes, datasetSinkIDs map[string]bool) error {
+	for _, ds := range m.Datasets {
+		if ds == "" {
+			svc.logger.Error("malformed agent RPC: empty dataset", zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID))
+			continue
+		}
+		dataset, err := svc.policiesClient.RetrieveDataset(context.Background(), &pb2.DatasetByIDReq{
+			DatasetID: ds,
+			OwnerID:   agent.OwnerID,
+		})
+		if err != nil {
+			svc.logger.Error("unable to retrieve dataset", zap.String("dataset_id", ds), zap.String("owner_id", agent.OwnerID), zap.Error(err))
+			continue
+		}
+		for _, sid := range dataset.SinkIds {
+			if !svc.sinkerCache.Exists(agent.OwnerID, sid) {
+				// Use the retrieved sinkID to get the backend config
+				sink, err := svc.sinksClient.RetrieveSink(context.Background(), &pb3.SinkByIDReq{
+					SinkID:  sid,
+					OwnerID: agent.OwnerID,
+				})
+				if err != nil {
+					return err
+				}
+
+				var data config.SinkConfig
+				if err := json.Unmarshal(sink.Config, &data); err != nil {
+					return err
+				}
+
+				data.SinkID = sid
+				data.OwnerID = agent.OwnerID
+				err = svc.sinkerCache.Add(data)
+				if err != nil {
+					return err
+				}
+			}
+			datasetSinkIDs[sid] = true
+		}
+	}
 	return nil
 }
 
@@ -258,4 +274,11 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	}(inputContext)
 
 	return nil
+}
+
+func (svc sinkerService) handleOtlp(metrics fleet.AgentMetricsRPCPayload) {
+	//getDatasets
+	//through datasets, get sinks
+	//process metrics to prometheus participle
+	//sink metrics to prometheus or other exporter
 }
