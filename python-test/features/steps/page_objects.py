@@ -359,7 +359,7 @@ class SinkPage:
     
     @classmethod
     def sink_tag_key(cls):
-        return "//input[(@id= 'key')]"
+        return "//input[(@data-orb-qa-id= 'input#orb_tag_key')]"
     
     @classmethod
     def sink_tag_value(cls):
@@ -400,4 +400,3 @@ class SinkPage:
     @classmethod
     def next_button(cls):
         return "//*[@data-orb-qa-id= 'button#next']"
-    
