@@ -2,7 +2,15 @@
 #
 # entry point for orb-agent
 #
-
+# check geodb folder and extract db
+DIR="/geo-db/"
+if [ -d "$DIR" ]; then
+  # extract geodb files. #
+  cd /geo-db/
+  gzip -d asn.mmdb.gz
+  gzip -d city.mmdb.gz
+fi
+#
 # orb agent binary location. by default, matches orb-agent container (see Dockerfile)
 orb_agent_bin="${ORB_AGENT_BIN:-/usr/local/bin/orb-agent}"
 
