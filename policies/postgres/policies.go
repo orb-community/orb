@@ -459,7 +459,7 @@ func (r policiesRepository) RetrieveAllDatasetsByOwner(ctx context.Context, owne
 	orderQuery := getOrderQuery(pm.Order)
 	dirQuery := getDirQuery(pm.Dir)
 
-	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_ids, metadata, ts_created 
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, valid, agent_group_id, agent_policy_id, sink_ids, metadata, tags, ts_created 
 			FROM datasets
 			WHERE mf_owner_id = :mf_owner_id %s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, nameQuery, orderQuery, dirQuery)
 
