@@ -121,13 +121,13 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 	// TODO do the strategy p to otlp format extract the loop below to function as JSON format handler and add new function for OTLP
 	for _, metricsPayload := range metricsRPC.Payload {
 		if metricsPayload.Format == "otlp" {
-			//handleOtlp
+			svc.handleOtlp(agent, agentID, metricsPayload)
 		} else {
 			// this payload loop is per policy. each policy has a list of datasets it is associated with, and each dataset may contain multiple sinks
 			// however, per policy, we want a unique set of sink IDs as we don't want to send the same metrics twice to the same sink for the same policy
 			datasetSinkIDs := make(map[string]bool)
 			// first go through the datasets and gather the unique set of sinks we need for this particular policy
-			err2 := svc.GetSinks(agentID, metricsPayload, agent, datasetSinkIDs)
+			err2 := svc.GetSinks(agent, agentID, metricsPayload, datasetSinkIDs)
 			if err2 != nil {
 				return err2
 			}
@@ -188,7 +188,7 @@ func (svc sinkerService) SinkPolicy(agentID string, datasetSinkIDs map[string]bo
 	}
 }
 
-func (svc sinkerService) GetSinks(agentID string, m fleet.AgentMetricsRPCPayload, agent *pb.AgentInfoRes, datasetSinkIDs map[string]bool) error {
+func (svc sinkerService) GetSinks(agent *pb.AgentInfoRes, agentID string, m fleet.AgentMetricsRPCPayload, datasetSinkIDs map[string]bool) error {
 	for _, ds := range m.Datasets {
 		if ds == "" {
 			svc.logger.Error("malformed agent RPC: empty dataset", zap.String("agent_id", agentID), zap.String("owner_id", agent.OwnerID))
@@ -276,9 +276,11 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	return nil
 }
 
-func (svc sinkerService) handleOtlp(metrics fleet.AgentMetricsRPCPayload) {
+func (svc sinkerService) handleOtlp(agent *pb.AgentInfoRes, thingID string, data fleet.AgentMetricsRPCPayload) {
+
 	//getDatasets
-	//through datasets, get sinks
-	//process metrics to prometheus participle
+	//get sinks through datasets
+	//add sink's info to otlp package
+	// (?) process metrics to prometheus participle
 	//sink metrics to prometheus or other exporter
 }
