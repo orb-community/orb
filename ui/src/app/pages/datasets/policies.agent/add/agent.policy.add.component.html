@@ -79,7 +79,9 @@
                 </p>
               </ng-container>
             </nb-form-field>
-            
+            <div class="d-flex flex-wrap">
+              <ngx-tag-control [(tags)]="selectedTags" autofocus></ngx-tag-control>
+            </div>
             <div class="d-flex justify-content-end">
               <button
                       (click)="resizeComponents()"
