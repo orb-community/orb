@@ -32,9 +32,16 @@ import (
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
 
-const DefaultBinary = "/usr/local/sbin/pktvisord"
-const ReadinessBackoff = 10
-const ReadinessTimeout = 10
+const (
+	DefaultBinary       = "/usr/local/sbin/pktvisord"
+	ReadinessBackoff    = 10
+	ReadinessTimeout    = 10
+	ApplyPolicyTimeout  = 10
+	RemovePolicyTimeout = 15
+	VersionTimeout      = 5
+	ScrapeTimeout       = 5
+	TapsTimeout         = 5
+)
 
 type pktvisorBackend struct {
 	logger          *zap.Logger
@@ -195,7 +202,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 	}
 
 	var resp map[string]interface{}
-	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(policyYaml), "application/x-yaml", 5)
+	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(policyYaml), "application/x-yaml", ApplyPolicyTimeout)
 	if err != nil {
 		p.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", policyYaml))
 		return err
@@ -207,7 +214,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 
 func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	var resp interface{}
-	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, http.NoBody, "application/json", 10)
+	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout)
 	if err != nil {
 		p.logger.Error("received error", zap.Error(err))
 		return err
@@ -217,7 +224,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 
 func (p *pktvisorBackend) Version() (string, error) {
 	var appMetrics AppMetrics
-	err := p.request("metrics/app", &appMetrics, http.MethodGet, http.NoBody, "application/json", 5)
+	err := p.request("metrics/app", &appMetrics, http.MethodGet, http.NoBody, "application/json", VersionTimeout)
 	if err != nil {
 		return "", err
 	}
@@ -254,8 +261,8 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		pvOptions = append(pvOptions, "--config", p.configFile)
 	}
 	p.logger.Info("pktvisor startup", zap.Strings("arguments", pvOptions))
-	
-	// the macros should be properly configured to enable crashpad 
+
+	// the macros should be properly configured to enable crashpad
 	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
 	// pvOptions = append(pvOptions, "--cp-url", PKTVISOR_CP_URL)
 	// pvOptions = append(pvOptions, "--cp-path", PKTVISOR_CP_PATH)
@@ -518,7 +525,7 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 
 func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, error) {
 	var metrics map[string]interface{}
-	err := p.request(fmt.Sprintf("policies/__all/metrics/bucket/%d", period), &metrics, http.MethodGet, http.NoBody, "application/json", 5)
+	err := p.request(fmt.Sprintf("policies/__all/metrics/bucket/%d", period), &metrics, http.MethodGet, http.NoBody, "application/json", ScrapeTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -527,7 +534,7 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 
 func (p *pktvisorBackend) GetCapabilities() (map[string]interface{}, error) {
 	var taps interface{}
-	err := p.request("taps", &taps, http.MethodGet, http.NoBody, "application/json", 5)
+	err := p.request("taps", &taps, http.MethodGet, http.NoBody, "application/json", TapsTimeout)
 	if err != nil {
 		return nil, err
 	}
