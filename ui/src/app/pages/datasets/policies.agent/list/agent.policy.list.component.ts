@@ -18,7 +18,7 @@ import {
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import {
   filterNumber,
-  FilterOption, filterString,
+  FilterOption, filterString, filterTags,
   FilterTypes,
 } from 'app/common/interfaces/orb/filter-option';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
@@ -61,6 +61,8 @@ export class AgentPolicyListComponent
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
 
+  @ViewChild('tagsTemplateCell') tagsTemplateCell: TemplateRef<any>;
+
   private currentComponentWidth;
 
   policies$: Observable<AgentPolicy[]>;
@@ -94,6 +96,12 @@ export class AgentPolicyListComponent
         prop: 'description',
         filter: filterString,
         type: FilterTypes.Input,
+      },
+      {
+        name: 'Tags',
+        prop: 'tags',
+        filter: filterTags,
+        type: FilterTypes.AutoComplete,
       },
       {
         name: 'Version',
@@ -152,17 +160,34 @@ export class AgentPolicyListComponent
         name: 'Policy Name',
         resizeable: false,
         canAutoResize: true,
-        flexGrow: 2,
-        minWidth: 150,
+        flexGrow: 3,
+        minWidth: 300,
         cellTemplate: this.nameTemplateCell,
       },
       {
         prop: 'description',
         name: 'Description',
         resizeable: false,
-        flexGrow: 4,
+        flexGrow: 2,
         minWidth: 150,
         cellTemplate: this.nameTemplateCell,
+      },
+      {
+        prop: 'tags',
+        flexGrow: 6,
+        canAutoResize: true,
+        name: 'Tags',
+        minWidth: 150,
+        cellTemplate: this.tagsTemplateCell,
+        comparator: (a, b) =>
+            Object.entries(a)
+                .map(([key, value]) => `${key}:${value}`)
+                .join(',')
+                .localeCompare(
+                    Object.entries(b)
+                        .map(([key, value]) => `${key}:${value}`)
+                        .join(','),
+                ),
       },
       {
         prop: 'version',
