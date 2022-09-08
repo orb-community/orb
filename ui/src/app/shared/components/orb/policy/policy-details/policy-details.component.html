@@ -34,6 +34,10 @@
       <label class="summary-accent">Policy Description</label>
       <p>{{ policy?.description }}</p>
     </div>
+    <div class="flex-row">
+      <label class="summary-accent">Tags</label>
+      <ngx-tag-display [tags]="policy.tags"></ngx-tag-display>
+    </div>
   </div>
 </ng-template>
 
@@ -80,4 +84,6 @@
         nbInput/>
     </nb-form-field>
   </form>
+  <label class="font-weight-bold">Tags</label>
+  <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
 </ng-template>
