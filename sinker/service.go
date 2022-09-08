@@ -38,7 +38,7 @@ import (
 
 const (
 	BackendMetricsTopic = "be.*.m.>"
-	MaxMsgPayloadSize   = 1024 * 100
+	MaxMsgPayloadSize   = 2048 * 100
 )
 
 var (
