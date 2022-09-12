@@ -39,7 +39,8 @@ def create_agent_group_matching_agent(context, amount_of_agent_groups, amount_of
     assert_that(tags_keys, has_length(greater_than_or_equal_to(amount_of_tags)), "Amount of tags greater than tags"
                                                                                  "contained in agent")
     tags_to_group = {key: tags_in_agent[key] for key in sample(tags_keys, amount_of_tags)}
-
+    assert_that(len(tags_to_group), greater_than(0), f"Unable to create group without tags. Tags:{tags_to_group}. "
+                                                     f"Agent:{context.agent}")
     for group in range(int(amount_of_agent_groups)):
         agent_group_name = agent_group_name_prefix + random_string()
         agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, group_description,
@@ -244,7 +245,8 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
 
     json_request = {"name": name, "description": description, "tags": tags}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
-
+    if expected_status_code == 201:
+        assert_that(len(tags), greater_than(0), f"Tags is required to created a group. Json used: {json_request}")
     response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
     try:
         response_json = response.json()
