@@ -127,6 +127,7 @@ func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
 				SchemaVersion: ag.SchemaVersion,
 				LastModified:  ag.LastModified,
 				Created:       ag.Created,
+				Tags:          ag.OrbTags,
 			}
 			res.Policies = append(res.Policies, view)
 		}
@@ -209,6 +210,7 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			AgentGroupID: req.AgentGroupID,
 			PolicyID:     req.PolicyID,
 			SinkIDs:      req.SinkIDs,
+			Tags:         req.Tags,
 		}
 
 		saved, err := svc.AddDataset(ctx, req.token, d)
@@ -421,6 +423,7 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 				AgentGroupID: dataset.AgentGroupID,
 				TsCreated:    dataset.Created,
 				Valid:        dataset.Valid,
+				Tags:         dataset.Tags,
 			}
 			res.Datasets = append(res.Datasets, view)
 		}

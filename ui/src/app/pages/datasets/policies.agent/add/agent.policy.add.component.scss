@@ -19,6 +19,10 @@ mat-chip nb-icon {
   font-size: 1rem;
 }
 
+ngx-tag-control, ngx-tag-display {
+  margin-top: 20px;
+}
+
 ::ng-deep {
   .header {
     align-items: flex-end !important;
