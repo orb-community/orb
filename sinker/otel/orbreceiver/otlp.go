@@ -17,7 +17,6 @@ package orbreceiver // import "go.opentelemetry.io/collector/receiver/otlpreceiv
 import (
 	"context"
 	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/metrics"
-	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.uber.org/zap"
 	"sync"
 
@@ -31,6 +30,7 @@ type orbReceiver struct {
 	ctx             context.Context
 	cancelFunc      context.CancelFunc
 	metricsReceiver *metrics.Receiver
+	encoder         encoder
 
 	shutdownWG sync.WaitGroup
 
@@ -50,16 +50,19 @@ func NewOrbReceiver(cfg *Config, settings component.ReceiverCreateSettings) *orb
 }
 
 // Start appends the message channel that Orb-Sinker will deliver the message
-func (r *orbReceiver) Start(ctx context.Context, host component.Host) error {
+func (r *orbReceiver) Start(ctx context.Context, _ component.Host) error {
 	r.ctx, r.cancelFunc = context.WithCancel(ctx)
-
+	r.encoder = jsEncoder
 	return nil
 }
 
 // Shutdown is a method to turn off receiving.
 func (r *orbReceiver) Shutdown(ctx context.Context) error {
-	r.shutdownWG.Wait()
-	defer r.cancelFunc()
+	r.cfg.Logger.Warn("shutting down orb-receiver")
+	defer func() {
+		r.cancelFunc()
+		ctx.Done()
+	}()
 	return nil
 }
 
@@ -79,8 +82,7 @@ func (r *orbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 				break LOOP
 			case message := <-*r.cfg.MetricsChannel:
 				r.cfg.Logger.Info("received metric, pushing to exporter")
-				mr := pmetricotlp.NewRequest()
-				err := mr.UnmarshalJSON(message)
+				mr, err := r.encoder.unmarshalMetricsRequest(message)
 				if err != nil {
 					r.cfg.Logger.Error("error during unmarshalling, skipping message", zap.Error(err))
 					continue
