@@ -54,8 +54,9 @@ type Service interface {
 }
 
 type sinkerService struct {
-	pubSub mfnats.PubSub
-	otel   bool
+	pubSub          mfnats.PubSub
+	otel            bool
+	otelCancelFunct context.CancelFunc
 
 	sinkerCache config.ConfigRepo
 	esclient    *redis.Client
