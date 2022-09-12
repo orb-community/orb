@@ -41,6 +41,13 @@ def run_local_agent_container(context, status_port):
                                                context.agent['name'][-5:])
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
+    if availability[status_port]:
+        log = f"web server listening on localhost:{context.port}"
+    else:
+        log = f"unable to bind to localhost:{context.port}"
+    agent_started, logs = get_logs_and_check(context.container_id, log, element_to_check="log")
+    assert_that(agent_started, equal_to(True), f"Log {log} not found on agent logs. Agent Name: {context.agent['name']}."
+                                               f"\n Logs:{logs}")
 
 
 @step('the container logs that were output after {condition} contain the message "{text_to_match}" within'
