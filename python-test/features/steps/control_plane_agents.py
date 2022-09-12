@@ -252,10 +252,11 @@ def provision_agent_using_config_file(context, provision, port, agent_tags, stat
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
     port = return_port_to_run_docker_container(context, True)
-    context.agent_file_name = create_agent_config_file(context.token, agent_name, interface,
-                                                       agent_tags, orb_url, base_orb_address, port,
-                                                       context.agent_groups, auto_provision, orb_cloud_mqtt_id,
-                                                       orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id)
+    context.agent_file_name, tags_on_agent = create_agent_config_file(context.token, agent_name, interface,
+                                                                      agent_tags, orb_url, base_orb_address, port,
+                                                                      context.agent_groups, auto_provision,
+                                                                      orb_cloud_mqtt_id,
+                                                                      orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id)
     context.container_id = run_agent_config_file(agent_name)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(port)
@@ -264,6 +265,9 @@ def provision_agent_using_config_file(context, provision, port, agent_tags, stat
     assert_that(agent_started, equal_to(True), f"Log {log} not found on agent logs. Agent Name: {agent_name}.\n"
                                                f"Logs:{logs}")
     context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=10)
+    context.agent, are_tags_correct = get_agent_tags(context.token, context.agent['id'], tags_on_agent)
+    assert_that(are_tags_correct, equal_to(True), f"Agent tags created does not match with the required ones. Agent:"
+                                                  f"{context.agent}. Tags that would be present: {tags_on_agent}")
     assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found. Logs: {logs}")
     assert_that(context.agent, is_not(None), f"Agent {agent_name} not correctly created. Logs: {logs}")
     agent_id = context.agent['id']
@@ -331,7 +335,6 @@ def get_agent(token, agent_id, status_code=200):
     :param (int) status_code: status code that must be returned on response
     :returns: (dict) the fetched agent
     """
-
 
     get_agents_response = requests.get(orb_url + '/api/v1/agents/' + agent_id,
                                        headers={'Authorization': f'Bearer {token}'})
@@ -550,7 +553,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     dir_path = configs.get("local_orb_path")
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file)
-    return agent_name
+    return agent_name, tags
 
 
 @threading_wait_until
@@ -574,3 +577,22 @@ def check_datasets_for_policy(token, agent_id, list_agent_policies_id, amount_of
         event.set()
         return dataset_ok, agent
     return dataset_ok, agent
+
+
+@threading_wait_until
+def get_agent_tags(token, agent_id, expected_tags, event=None):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: that identifies the agent to be checked
+    :param (dict) expected_tags: agent tags expected to be on agent
+    :param (obj) event: threading.event
+    :return: agent data, if the tags were found
+    """
+    agent = get_agent(token, agent_id)
+    expected_tags_insensitive = {k.lower(): v for k, v in expected_tags['tags'].items()}
+    if set(agent['agent_tags']) == set(expected_tags_insensitive):
+        event.set()
+    else:
+        event.wait(1)
+    return agent, event.is_set()
