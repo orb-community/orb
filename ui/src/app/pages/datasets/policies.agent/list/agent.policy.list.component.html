@@ -55,6 +55,30 @@
   </button>
 </ng-template>
 
+<ng-template
+        #tagsTemplateCell
+        let-i="index"
+        let-row="row"
+        let-value="value"
+>
+  <mat-chip-list nbTooltip="{{ value | json }}">
+    <mat-chip
+            *ngFor="let tag of value | keyvalue"
+            [style.background-color]="tag | tagcolor"
+            class="orb-tag-chip"
+    >
+      {{ tag | tagchip }}
+    </mat-chip>
+    <mat-chip
+            *ngIf="(row?.tags | json) === '{}'"
+            [style.background-color]="'notag' | tagcolor"
+            class="orb-tag-chip"
+    >
+      No tags were created
+    </mat-chip>
+  </mat-chip-list>
+</ng-template>
+
 <ng-template #versionTemplateCell let-i="index" let-row="row" let-value="value">
   <span *ngIf="row?.version >= 0" nbTooltip="{{ 'Policy Version: ' + value }}">
     {{ value }}

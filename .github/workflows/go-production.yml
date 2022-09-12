@@ -390,12 +390,14 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
-      - name: Commit image tag on orb-live-manifest environment prod
+
+      - name: Commit image tag on orb-live-manifest environment prod and ns1 environments
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"
           git config --global credential.helper cache
           git clone https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live-manifest.git
+          # Commit prd folder
           cd orb-live-manifest/prod
           mv values.yaml .template/values.old
           cat .template/values.yaml.tpl >> values.yaml
@@ -403,6 +405,15 @@ jobs:
           git add values.yaml
           git add .template/values.old
           git commit -m "[NS1 Orb Bot] Update image tag on prod environment"
+          # Commit ns1 folder
+          cd orb-live-manifest/ns1
+          mv values.yaml .template/values.old
+          cat .template/values.yaml.tpl >> values.yaml
+          sed -i -e "s/IMAGE_TAG/${{ needs.prebuild.outputs.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
+          git add values.yaml
+          git add .template/values.old
+          git commit -m "[NS1 Orb Bot] Update image tag on ns1 environment"
+          #commit on repo
           git push origin main
 
   post-slack-message:
@@ -465,9 +476,9 @@ jobs:
           
       - name: Replace crashpad params
         run: |
-          ESCAPED_REPLACE_LINE1_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-token\", ${{ secrets.CRASHPAD_TOKEN }})" | sed -e 's/[\/&]/\\&/g')
-          ESCAPED_REPLACE_LINE2_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-url\", ${{ secrets.CRASHPAD_URL }})" | sed -e 's/[\/&]/\\&/g')
-          ESCAPED_REPLACE_LINE3_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-path\", /usr/local/sbin/crashpad_handler)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE1_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-token\", \"${{ secrets.CRASHPAD_TOKEN }}\")" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE2_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-url\", \"${{ secrets.CRASHPAD_URL }}\")" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE3_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-path\", \"/usr/local/sbin/crashpad_handler\")" | sed -e 's/[\/&]/\\&/g')
           ESCAPED_REPLACE_LINE1_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-token\", PKTVISOR_CP_TOKEN)" | sed -e 's/[\/&]/\\&/g')
           ESCAPED_REPLACE_LINE2_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-url\", PKTVISOR_CP_URL)" | sed -e 's/[\/&]/\\&/g')
           ESCAPED_REPLACE_LINE3_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-path\", PKTVISOR_CP_PATH)" | sed -e 's/[\/&]/\\&/g')

@@ -10,6 +10,7 @@ import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface
 import { NbDialogService } from '@nebular/theme';
 import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
 import { STRINGS } from '../../../../../assets/text/strings';
+import { Tags } from 'app/common/interfaces/orb/tag';
 
 const CONFIG = {
   TAPS: 'TAPS',
@@ -127,6 +128,8 @@ kind: collection`;
       return acc;
     }, {}) as { [propName: string]: boolean };
 
+  selectedTags: Tags;
+
   constructor(
     private agentPoliciesService: AgentPoliciesService,
     private notificationsService: NotificationsService,
@@ -199,6 +202,7 @@ kind: collection`;
       description,
       backend,
       policy_data,
+      tags,
       policy: {
         input: {
           tap,
@@ -213,7 +217,7 @@ kind: collection`;
     if (policy_data) {
       this.code = policy_data;
     }
-
+    this.selectedTags = { ...tags };
     this.modules = modules;
 
     this.detailsFG = this._formBuilder.group({
@@ -225,7 +229,7 @@ kind: collection`;
       description: [description, [
         Validators.maxLength(64),
       ]],
-      backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
+      backend: [{ backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFG = this._formBuilder.group({
       selected_tap: [tap, Validators.required],
@@ -428,13 +432,8 @@ kind: collection`;
 
     this.modules[name] = ({
       type,
-      ...(!!config && config),
-      ...(!!filter && Object.entries(filter).reduce((acc, [key, value]) => {
-        if (value && value !== '') {
-          acc[key] = value;
-        }
-        return acc;
-      }, {})),
+      config,
+      filter,
     });
 
   }
@@ -473,7 +472,7 @@ kind: collection`;
       name: this.detailsFG.controls.name.value,
       description: this.detailsFG.controls.description.value,
       backend: this.detailsFG.controls.backend.value,
-      tags: {},
+      tags: { ...this.selectedTags },
       version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
       policy: {
         kind: 'collection',

@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Tags } from 'app/common/interfaces/orb/tag';
 
 @Component({
   selector: 'ngx-policy-details',
@@ -27,6 +28,8 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
 
   formGroup: FormGroup;
 
+  selectedTags: Tags;
+
   constructor(private fb: FormBuilder) {
     this.policy = {};
     this.editMode = false;
@@ -44,7 +47,7 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
 
   updateForm() {
     if (this.editMode) {
-      const { name: name, description } = this.policy;
+      const { name, description, tags } = this.policy;
       this.formGroup = this.fb.group({
         name: [
           name,
@@ -55,6 +58,7 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
         ],
         description: [description],
       });
+      this.selectedTags = {...tags};
     } else {
       this.formGroup = this.fb.group({
         name: null,

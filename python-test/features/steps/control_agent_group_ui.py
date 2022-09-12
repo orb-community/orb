@@ -14,7 +14,7 @@ agent_group_to_be_deleted = "agent_group_to_delete"
 
 
 @when('a new agent group is created through the UI with {orb_tags} orb tag')
-def create_agent_through_the_agent_group_page(context, orb_tags):
+def create_agent_group_through_the_agent_group_page(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
     WebDriverWait(context.driver, 5).until(
         EC.element_to_be_clickable((By.XPATH, AgentGroupPage.new_agent_group_button())),
@@ -52,7 +52,7 @@ def check_presence_of_group_on_orb_ui(context, condition):
 
 
 @when("a new agent group with description is created through the UI with {orb_tags} orb tag")
-def create_agent_group_through_the_agent_group_page(context, orb_tags):
+def create_agent_group_with_description_through_the_agent_group_page(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
     WebDriverWait(context.driver, 5).until(
         EC.element_to_be_clickable((By.XPATH, AgentGroupPage.new_agent_group_button())), message="Unable to click on "
@@ -83,8 +83,8 @@ def create_agent_group_through_the_agent_group_page(context, orb_tags):
 
 
 @when("delete the agent group using filter by name with {orb_tags} orb tag")
-def create_agent_through_the_agent_group_page(context, orb_tags):
-    create_agent_group_through_the_agent_group_page(context, orb_tags)
+def delete_agent_through_the_agent_group_page(context, orb_tags):
+    create_agent_group_with_description_through_the_agent_group_page(context, orb_tags)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, DataTable.filter_by()))).click()
     WebDriverWait(context.driver, 3).until(
@@ -124,3 +124,42 @@ def check_total_counter(driver):
     WebDriverWait(driver, 3).until(
         EC.presence_of_element_located((By.XPATH, DataTable.page_count())))
     return int(driver.find_element(By.XPATH, DataTable.page_count()).text.split()[0])
+
+
+
+@when("update the agent group using filter by name with {orb_tags} orb tag")
+def update_an_agent_group_by_name_through_the_agent_group_page(context, orb_tags):
+    create_agent_group_through_the_agent_group_page(context, orb_tags)
+    context.initial_counter_datatable = check_total_counter(context.driver)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.filter_by()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.filter_by())))
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.option_list())))
+    select_list = WebDriverWait(context.driver, 3).until(
+        EC.presence_of_all_elements_located((By.XPATH, DataTable.all_filter_options())))
+    select_list[0].click()
+    WebDriverWait(context.driver, 3).until(
+        EC.presence_of_element_located((By.XPATH, DataTable.filter_by_name_field())))
+    input_text_by_xpath(DataTable.filter_by_name_field(), context.agent_group_name, context.driver)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.plus_button()))).click()
+    WebDriverWait(context.driver, 5).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.edit_icon()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, AgentGroupPage.agent_group_name()))).clear()
+    context.agent_group_name = agent_group_name_prefix + random_string(5)
+    input_text_by_xpath(AgentGroupPage.agent_group_name(), context.agent_group_name, context.driver)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
+    WebDriverWait(context.driver, 3).until(
+        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully updated'))
+    context.initial_counter = check_total_counter(context.driver)
+    WebDriverWait(context.driver, 3).until(
+        EC.element_to_be_clickable((By.XPATH, DataTable.close_option_selected()))).click()
+    

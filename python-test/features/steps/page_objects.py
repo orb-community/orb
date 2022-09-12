@@ -197,6 +197,10 @@ class DataTable:
     @classmethod
     def edit_icon(cls):
         return "//*[@data-name='edit']"
+    
+    @classmethod
+    def close_option_selected(cls):
+        return "//*[@class='fa fa-window-close']"
        
    
 class AgentGroupPage:
@@ -238,6 +242,7 @@ class AgentGroupPage:
     @classmethod
     def delete_agent_group_confirmation_field(cls):
         return "//input[contains(@class, 'input-full-width')]"
+   
 
 
 class PolicyPage:
@@ -359,7 +364,7 @@ class SinkPage:
     
     @classmethod
     def sink_tag_key(cls):
-        return "//input[(@id= 'key')]"
+        return "//input[(@data-orb-qa-id= 'input#orb_tag_key')]"
     
     @classmethod
     def sink_tag_value(cls):
@@ -400,4 +405,3 @@ class SinkPage:
     @classmethod
     def next_button(cls):
         return "//*[@data-orb-qa-id= 'button#next']"
-    

@@ -46,13 +46,23 @@ def create_agent_group_matching_agent(context, amount_of_agent_groups, amount_of
                                                           tags_to_group, context.agent_groups)
 
 
+@step("{amount_of_agent_groups} Agent Group(s) is created with {orb_tags} orb tag(s) (lower case)")
+# this step is temporary because of issue https://github.com/ns1labs/orb/issues/1053
+def create_group_with_tags_lower_case(context, amount_of_agent_groups, orb_tags):
+    create_new_agent_group(context, amount_of_agent_groups, orb_tags, tags_lower_case=True)
+
+
 @step("{amount_of_agent_groups} Agent Group(s) is created with {orb_tags} orb tag(s)")
 def create_new_agent_group(context, amount_of_agent_groups, orb_tags, **kwargs):
     if "group_description" in kwargs.keys():
         group_description = kwargs["group_description"]
     else:
         group_description = agent_group_description
-    context.orb_tags = create_tags_set(orb_tags)
+    if "tags_lower_case" in kwargs.keys() and kwargs["tags_lower_case"] is True:
+        orb_tags = create_tags_set(orb_tags)
+        context.orb_tags = {k.lower(): v.lower() for k, v in orb_tags.items()}
+    else:
+        context.orb_tags = create_tags_set(orb_tags)
 
     for group in range(int(amount_of_agent_groups)):
         agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
@@ -403,6 +413,7 @@ def return_matching_groups(token, existing_agent_groups, agent_json):
         group_data = get_agent_group(token, group)
         group_tags = dict(group_data["tags"])
         agent_tags = agent_json["orb_tags"]
+        agent_tags.update(agent_json['agent_tags'])
         if all(item in agent_tags.items() for item in group_tags.items()) is True:
             groups_matching.append(existing_agent_groups[group])
             groups_matching_id.append(group)

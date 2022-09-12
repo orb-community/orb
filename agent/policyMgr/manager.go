@@ -127,7 +127,11 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			a.applyPolicy(payload, be, &pd, updatePolicy)
 		}
 		// save policy (with latest status) to local policy db
-		a.repo.Update(pd)
+		err := a.repo.Update(pd)
+		if err != nil {
+			a.logger.Error("got error in update last status", zap.Error(err))
+			return
+		}
 		return
 	case "remove":
 		err := a.RemovePolicy(payload.ID, payload.Name, payload.Backend)
@@ -152,11 +156,13 @@ func (a *policyManager) RemovePolicy(policyID string, policyName string, beName 
 	// Remove policy via http request
 	err := be.RemovePolicy(pd)
 	if err != nil {
+		a.logger.Error("received error")
 		return err
 	}
 	// Remove policy from orb-agent local repo
 	err = a.repo.Remove(pd.ID)
 	if err != nil {
+
 		return err
 	}
 	return nil
