@@ -5,17 +5,21 @@ services:
     image: confluentinc/cp-zookeeper:7.2.1
     hostname: zoo1
     container_name: zoo1
+    restart: on-failure
     ports:
       - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_SERVER_ID: 1
       ZOOKEEPER_SERVERS: zoo1:2888:3888
+    networks:
+      - orb-base-net
 
   kafka1:
     image: confluentinc/cp-kafka:7.2.1
     hostname: kafka1
     container_name: kafka1
+    restart: on-failure
     ports:
       - "9092:9092"
       - "29092:29092"

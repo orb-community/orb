@@ -6,6 +6,7 @@ services:
     command: [ "--config=/etc/otel-collector-config.yaml", "${OTELCOL_ARGS}" ]
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    restart: on-failure
     ports:
       - "1888:1888"   # pprof extension
       - "8888:8888"   # Prometheus metrics exposed by the collector
@@ -17,3 +18,7 @@ services:
       - orb-base-net
     depends_on:
       - kafka1
+
+networks:
+  orb-base-net:
+    driver: bridge
