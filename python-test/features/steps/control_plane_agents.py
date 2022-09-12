@@ -1,9 +1,7 @@
-import threading
-
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
     create_tags_set, find_files, threading_wait_until, return_port_to_run_docker_container, validate_json
-from local_agent import run_local_agent_container, run_agent_config_file, get_orb_agent_logs
+from local_agent import run_local_agent_container, run_agent_config_file, get_orb_agent_logs, get_logs_and_check
 from control_plane_agent_groups import return_matching_groups, tags_to_match_k_groups
 from behave import given, then, step
 from hamcrest import *
@@ -33,8 +31,8 @@ def check_if_agents_exist(context, orb_tags, status):
     existing_agents = get_agent(token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
     timeout = 30
-    agent_status, context.agent = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
     logs = get_orb_agent_logs(context.container_id)
+    agent_status, context.agent = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'. \n"
                 f"Agent: {json.dumps(context.agent, indent=4)}. \n Logs: {logs}")
@@ -261,8 +259,11 @@ def provision_agent_using_config_file(context, provision, port, agent_tags, stat
     context.container_id = run_agent_config_file(agent_name)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(port)
+    log = f"web server listening on localhost:{port}"
+    agent_started, logs = get_logs_and_check(context.container_id, log, element_to_check="log")
+    assert_that(agent_started, equal_to(True), f"Log {log} not found on agent logs. Agent Name: {agent_name}.\n"
+                                               f"Logs:{logs}")
     context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=10)
-    logs = get_orb_agent_logs(context.container_id)
     assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found. Logs: {logs}")
     assert_that(context.agent, is_not(None), f"Agent {agent_name} not correctly created. Logs: {logs}")
     agent_id = context.agent['id']
