@@ -4,6 +4,8 @@
 build/*
 localconfig/
 
+**/.env
+
 # /ui - UI dependencies
 ui/node_modules
 ui/dist

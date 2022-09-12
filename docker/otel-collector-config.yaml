@@ -1,0 +1,20 @@
+receivers:
+  kafka:
+    protocol_version: 2.0.0
+
+
+
+extensions:
+    #  for basic auth
+    basicauth/exporter:
+      client_auth:
+        username: ${PROM_USERNAME}
+        password: ${PROM_PASSWORD}
+
+processors:
+
+exporters:
+  prometheusremotewrite:
+    endpoint: "${PROM_URL}"
+    auth:
+      authenticator: basicauth/exporter
