@@ -15,6 +15,7 @@ import (
 	policiespb "github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/sinker/backend/pktvisor"
 	"github.com/ns1labs/orb/sinker/config"
+	"github.com/ns1labs/orb/sinker/otel"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	promexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
@@ -47,9 +48,10 @@ type Service interface {
 }
 
 type sinkerService struct {
-	pubSub          mfnats.PubSub
-	otel            bool
-	otelCancelFunct context.CancelFunc
+	pubSub             mfnats.PubSub
+	otel               bool
+	otelCancelFunct    context.CancelFunc
+	otelMetricsChannel chan []byte
 
 	sinkerCache config.ConfigRepo
 	esclient    *redis.Client
@@ -82,9 +84,10 @@ func (svc sinkerService) Start() error {
 
 	svc.hbTicker = time.NewTicker(CheckerFreq)
 	svc.hbDone = make(chan bool)
+	svc.otelMetricsChannel = make(chan []byte)
 	go svc.checkSinker()
 
-	err := svc.startOtel()
+	err := svc.startOtel(svc.asyncContext)
 	if err != nil {
 		return err
 	}
@@ -92,30 +95,12 @@ func (svc sinkerService) Start() error {
 	return nil
 }
 
-func (svc sinkerService) startOtel() error {
-	ctx := context.Background()
+func (svc sinkerService) startOtel(ctx context.Context) error {
+	var err error
 	if svc.otel {
-		exporter, err := createExporter(ctx, svc.logger)
+		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, svc.logger, &svc.otelMetricsChannel)
 		if err != nil {
-			svc.logger.Error("error during create exporter", zap.Error(err))
-			return err
-		}
-
-		metricsReceiver, err := createReceiver(ctx, svc.logger)
-		if err != nil {
-			svc.logger.Error("error during create receiver", zap.Error(err))
-			return err
-		}
-
-		err = exporter.Start(ctx, nil)
-		if err != nil {
-			svc.logger.Error("otel exporter startup error", zap.Error(err))
-			return err
-		}
-
-		err = metricsReceiver.Start(ctx, nil)
-		if err != nil {
-			svc.logger.Error("otel receiver startup error", zap.Error(err))
+			svc.logger.Error("error during StartOtelComponents", zap.Error(err))
 			return err
 		}
 	}

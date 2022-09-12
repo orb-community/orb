@@ -288,11 +288,6 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	return nil
 }
 
-func (svc sinkerService) handleOtlp(agent fleet.Agent, thingID string, data fleet.AgentMetricsRPCPayload) {
-
-	//getDatasets
-	//get sinks through datasets
-	//add sink's info to otlp package
-	// (?) process metrics to prometheus participle
-	//sink metrics to prometheus or other exporter
+func (svc sinkerService) handleOtlp(_ fleet.Agent, _ string, data fleet.AgentMetricsRPCPayload) {
+	svc.otelMetricsChannel <- data.Data
 }
