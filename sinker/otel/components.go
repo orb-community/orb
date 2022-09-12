@@ -30,10 +30,11 @@ func StartOtelComponents(ctx context.Context, logger zap.Logger) (context.Cancel
 	}
 	err = exporter.Start(exporterCtx, nil)
 	if err != nil {
-		log.Error("error on startting exporter", err)
+		log.Error("error on starting exporter", err)
 		otelCancelFunc()
 		return nil, err
 	}
 	// receiver Factory
+
 	return otelCancelFunc, nil
 }
