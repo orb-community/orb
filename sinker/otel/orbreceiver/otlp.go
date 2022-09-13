@@ -52,7 +52,7 @@ func NewOrbReceiver(cfg *Config, settings component.ReceiverCreateSettings) *orb
 // Start appends the message channel that Orb-Sinker will deliver the message
 func (r *orbReceiver) Start(ctx context.Context, _ component.Host) error {
 	r.ctx, r.cancelFunc = context.WithCancel(ctx)
-	r.encoder = jsEncoder
+	r.encoder = pbEncoder
 	return nil
 }
 
