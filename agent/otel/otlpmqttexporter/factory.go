@@ -85,7 +85,7 @@ func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings 
 }
 
 func createTracesExporter(
-	_ context.Context,
+	ctx context.Context,
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.TracesExporter, error) {
@@ -96,8 +96,9 @@ func createTracesExporter(
 	oCfg := cfg.(*Config)
 
 	return exporterhelper.NewTracesExporter(
-		cfg,
+		ctx,
 		set,
+		cfg,
 		oce.pushTraces,
 		exporterhelper.WithStart(oce.start),
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
@@ -108,7 +109,7 @@ func createTracesExporter(
 }
 
 func CreateMetricsExporter(
-	_ context.Context,
+	ctx context.Context,
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.MetricsExporter, error) {
@@ -119,8 +120,9 @@ func CreateMetricsExporter(
 	oCfg := cfg.(*Config)
 
 	return exporterhelper.NewMetricsExporter(
-		cfg,
+		ctx,
 		set,
+		cfg,
 		oce.pushMetrics,
 		exporterhelper.WithStart(oce.start),
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
@@ -142,8 +144,9 @@ func createLogsExporter(
 	oCfg := cfg.(*Config)
 
 	return exporterhelper.NewLogsExporter(
-		cfg,
+		ctx,
 		set,
+		cfg,
 		oce.pushLogs,
 		exporterhelper.WithStart(oce.start),
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
