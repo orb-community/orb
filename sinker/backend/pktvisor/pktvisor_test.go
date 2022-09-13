@@ -66,6 +66,10 @@ func TestDHCPConversion(t *testing.T) {
 			Name:  "policy",
 			Value: "policy-test",
 		},
+		{
+			Name:  "handler",
+			Value: "policy_dhcp",
+		},
 	}
 
 	cases := map[string]struct {
@@ -307,6 +311,10 @@ func TestASNConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_packets",
+					},
+					{
 						Name:  "asn",
 						Value: "36236/NETACTUATE",
 					},
@@ -411,6 +419,10 @@ func TestGeoLocConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_packets",
+					},
+					{
 						Name:  "geo_loc",
 						Value: "AS/Hong Kong/HCW/Central",
 					},
@@ -490,6 +502,10 @@ func TestPCAPConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_pcap",
 		},
 	}
 
@@ -624,6 +640,10 @@ func TestDNSConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
 		},
 	}
 
@@ -913,6 +933,10 @@ func TestDNSRatesConversion(t *testing.T) {
 		{
 			Name:  "quantile",
 			Value: "0.99",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
 		},
 	}
 
@@ -1531,6 +1555,10 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 			Name:  "policy",
 			Value: "policy-test",
 		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
+		},
 	}
 
 	cases := map[string]struct {
@@ -1881,6 +1909,10 @@ func TestDNSXactConversion(t *testing.T) {
 			Name:  "policy",
 			Value: "policy-test",
 		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
+		},
 	}
 
 	cases := map[string]struct {
@@ -2110,6 +2142,10 @@ func TestPacketsConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
 		},
 	}
 
@@ -2473,6 +2509,10 @@ func TestPeriodConversion(t *testing.T) {
 			Name:  "policy",
 			Value: "policy-test",
 		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
+		},
 	}
 
 	cases := map[string]struct {
@@ -2682,6 +2722,10 @@ func TestFlowCardinalityConversion(t *testing.T) {
 			Name:  "policy",
 			Value: "policy-test",
 		},
+		{
+			Name:  "handler",
+			Value: "policy_flow",
+		},
 	}
 
 	cases := map[string]struct {
@@ -2880,6 +2924,10 @@ func TestFlowConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_flow",
 		},
 	}
 
