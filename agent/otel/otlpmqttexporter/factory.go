@@ -33,11 +33,12 @@ func NewFactory() component.ExporterFactory {
 		component.WithMetricsExporter(CreateMetricsExporter, component.StabilityLevelAlpha))
 }
 
-func CreateConfig(addr, id, key, channel, pktvisor string) config.Exporter {
+func CreateConfig(addr, id, key, channel, pktvisor, metricsTopic string) config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
 		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
+		MetricsTopic:     metricsTopic,
 		Address:          addr,
 		Id:               id,
 		Key:              key,

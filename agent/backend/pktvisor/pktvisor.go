@@ -56,10 +56,11 @@ type pktvisorBackend struct {
 	// MQTT Config for OTEL MQTT
 	mqttConfig config.MQTTConfig
 
-	mqttClient   mqtt.Client
-	metricsTopic string
-	scraper      *gocron.Scheduler
-	policyRepo   policies.PolicyRepo
+	mqttClient       mqtt.Client
+	metricsTopic     string
+	otlpMetricsTopic string
+	scraper          *gocron.Scheduler
+	policyRepo       policies.PolicyRepo
 
 	receiver component.MetricsReceiver
 	exporter component.MetricsExporter
@@ -78,6 +79,7 @@ func (p *pktvisorBackend) GetStartTime() time.Time {
 func (p *pktvisorBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
 	p.mqttClient = client
 	p.metricsTopic = fmt.Sprintf("%s/m/%c", baseTopic, agentID[0])
+	p.otlpMetricsTopic = fmt.Sprintf("%s/m/%c", baseTopic, agentID[0])
 }
 
 func (p *pktvisorBackend) GetState() (backend.BackendState, string, error) {
@@ -553,7 +555,7 @@ func Register() bool {
 func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component.MetricsExporter, error) {
 
 	if p.mqttClient != nil {
-		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.metricsTopic, p.pktvisorVersion)
+		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.otlpMetricsTopic, p.pktvisorVersion)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
@@ -562,7 +564,8 @@ func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component
 		}
 		return exporter, nil
 	} else {
-		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key, p.mqttConfig.ChannelID, p.pktvisorVersion)
+		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key,
+			p.mqttConfig.ChannelID, p.pktvisorVersion, p.otlpMetricsTopic)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
