@@ -71,37 +71,46 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 	}
 	stats := make(map[string]StatSnapshot)
 	for handlerLabel, handlerData := range metrics {
-		stats[handlerLabel] = StatSnapshot{}
 		if data, ok := handlerData["pcap"]; ok {
-			err := mapstructure.Decode(data, stats[handlerLabel].Pcap)
+			sTmp := StatSnapshot{}
+			err := mapstructure.Decode(data, &sTmp.Pcap)
 			if err != nil {
 				p.logger.Error("error decoding pcap handler", zap.Error(err))
 				continue
 			}
+			stats[handlerLabel] = sTmp
 		} else if data, ok := handlerData["dns"]; ok {
-			err := mapstructure.Decode(data, stats[handlerLabel].DNS)
+			sTmp := StatSnapshot{}
+			err := mapstructure.Decode(data, &sTmp.DNS)
 			if err != nil {
 				p.logger.Error("error decoding dns handler", zap.Error(err))
 				continue
 			}
+			stats[handlerLabel] = sTmp
 		} else if data, ok := handlerData["packets"]; ok {
-			err := mapstructure.Decode(data, stats[handlerLabel].Packets)
+			sTmp := StatSnapshot{}
+			err := mapstructure.Decode(data, &sTmp.Packets)
 			if err != nil {
 				p.logger.Error("error decoding packets handler", zap.Error(err))
 				continue
 			}
+			stats[handlerLabel] = sTmp
 		} else if data, ok := handlerData["dhcp"]; ok {
-			err := mapstructure.Decode(data, stats[handlerLabel].DHCP)
+			sTmp := StatSnapshot{}
+			err := mapstructure.Decode(data, &sTmp.DHCP)
 			if err != nil {
 				p.logger.Error("error decoding dhcp handler", zap.Error(err))
 				continue
 			}
+			stats[handlerLabel] = sTmp
 		} else if data, ok := handlerData["flow"]; ok {
-			err := mapstructure.Decode(data, stats[handlerLabel].Flow)
+			sTmp := StatSnapshot{}
+			err := mapstructure.Decode(data, &sTmp.Flow)
 			if err != nil {
 				p.logger.Error("error decoding dhcp handler", zap.Error(err))
 				continue
 			}
+			stats[handlerLabel] = sTmp
 		}
 	}
 	return parseToProm(&context, stats), nil
@@ -118,9 +127,7 @@ func parseToProm(ctxt *context, statsMap map[string]StatSnapshot) prometheus.TSL
 		} else {
 			convertToPromParticle(ctxt, statsMap, "", &tsList)
 		}
-		for _, ts := range tsList {
-			finalTs = append(finalTs, ts)
-		}
+		finalTs = append(finalTs, tsList...)
 	}
 	return finalTs
 }
