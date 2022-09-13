@@ -49,7 +49,7 @@ func CreateConfig(addr, id, key, channel, pktvisor, metricsTopic string) config.
 
 func CreateDefaultConfig() config.Exporter {
 	base := fmt.Sprintf("channels/%s/messages", defaultMQTTId)
-	metricsTopic := fmt.Sprintf("%s/be/%s", base, defaultName)
+	metricsTopic := fmt.Sprintf("%s/otlp/%s", base, defaultName)
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
