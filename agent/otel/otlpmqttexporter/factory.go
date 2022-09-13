@@ -30,7 +30,7 @@ func NewFactory() component.ExporterFactory {
 	return component.NewExporterFactory(
 		typeStr,
 		CreateDefaultConfig,
-		component.WithMetricsExporter(CreateMetricsExporter))
+		component.WithMetricsExporter(CreateMetricsExporter, component.StabilityLevelAlpha))
 }
 
 func CreateConfig(addr, id, key, channel, pktvisor string) config.Exporter {
@@ -131,7 +131,7 @@ func CreateMetricsExporter(
 }
 
 func createLogsExporter(
-	_ context.Context,
+	ctx context.Context,
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.LogsExporter, error) {

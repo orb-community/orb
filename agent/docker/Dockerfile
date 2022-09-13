@@ -1,5 +1,5 @@
 ARG PKTVISOR_TAG=latest-develop
-FROM golang:1.17-alpine AS builder
+FROM golang:1.19-alpine AS builder
 
 WORKDIR /go/src/github.com/ns1labs/orb
 COPY go.mod .
