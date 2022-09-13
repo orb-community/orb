@@ -33,6 +33,7 @@ import (
 
 const (
 	BackendMetricsTopic = "be.*.m.>"
+	OtelMetricsTopic    = "otlp.*.m.>"
 	MaxMsgPayloadSize   = 2048 * 100
 )
 
@@ -79,6 +80,11 @@ func (svc sinkerService) Start() error {
 	svc.asyncContext, svc.cancelAsyncContext = context.WithCancel(context.Background())
 	topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
 	if err := svc.pubSub.Subscribe(topic, svc.handleMsgFromAgent); err != nil {
+		return err
+	}
+	//OtelMetricsTopic
+	otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
+	if err := svc.pubSub.Subscribe(otelTopic, svc.handleOtelMsgFromAgent); err != nil {
 		return err
 	}
 	svc.logger.Info("started metrics consumer", zap.String("topic", topic))

@@ -130,36 +130,31 @@ func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopi
 		AgentTags:   agentPb.AgentTags,
 	}
 
-	// TODO do the strategy p to otlp format extract the loop below to function as JSON format handler and add new function for OTLP
 	for _, metricsPayload := range metricsRPC.Payload {
-		if metricsPayload.Format == "otlp" {
-			svc.handleOtlp(agent, agentID, metricsPayload)
-		} else {
-			// this payload loop is per policy. each policy has a list of datasets it is associated with, and each dataset may contain multiple sinks
-			// however, per policy, we want a unique set of sink IDs as we don't want to send the same metrics twice to the same sink for the same policy
-			datasetSinkIDs := make(map[string]bool)
-			// first go through the datasets and gather the unique set of sinks we need for this particular policy
-			err2 := svc.GetSinks(agent, metricsPayload, datasetSinkIDs)
-			if err2 != nil {
-				return err2
-			}
-
-			// ensure there are sinks
-			if len(datasetSinkIDs) == 0 {
-				svc.logger.Error("unable to attach any sinks to policy", zap.String("policy_id", metricsPayload.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.MFOwnerID))
-				continue
-			}
-
-			// now that we have the sinks, process the metrics for this policy
-			tsList, err := be.ProcessMetrics(agentPb, agentID, metricsPayload)
-			if err != nil {
-				svc.logger.Error("ProcessMetrics failed", zap.String("policy_id", metricsPayload.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.MFOwnerID), zap.Error(err))
-				continue
-			}
-
-			// finally, sink this policy
-			svc.SinkPolicy(agent, metricsPayload, datasetSinkIDs, tsList)
+		// this payload loop is per policy. each policy has a list of datasets it is associated with, and each dataset may contain multiple sinks
+		// however, per policy, we want a unique set of sink IDs as we don't want to send the same metrics twice to the same sink for the same policy
+		datasetSinkIDs := make(map[string]bool)
+		// first go through the datasets and gather the unique set of sinks we need for this particular policy
+		err2 := svc.GetSinks(agent, metricsPayload, datasetSinkIDs)
+		if err2 != nil {
+			return err2
 		}
+
+		// ensure there are sinks
+		if len(datasetSinkIDs) == 0 {
+			svc.logger.Error("unable to attach any sinks to policy", zap.String("policy_id", metricsPayload.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.MFOwnerID))
+			continue
+		}
+
+		// now that we have the sinks, process the metrics for this policy
+		tsList, err := be.ProcessMetrics(agentPb, agentID, metricsPayload)
+		if err != nil {
+			svc.logger.Error("ProcessMetrics failed", zap.String("policy_id", metricsPayload.PolicyID), zap.String("agent_id", agentID), zap.String("owner_id", agent.MFOwnerID), zap.Error(err))
+			continue
+		}
+
+		// finally, sink this policy
+		svc.SinkPolicy(agent, metricsPayload, datasetSinkIDs, tsList)
 	}
 
 	return nil
@@ -243,6 +238,25 @@ func (svc sinkerService) GetSinks(agent fleet.Agent, agentMetricsRPCPayload flee
 	return nil
 }
 
+func (svc sinkerService) handleOtelMsgFromAgent(msg messaging.Message) error {
+	inputContext := context.WithValue(context.Background(), "trace-id", uuid.NewString())
+	go func(ctx context.Context) {
+		defer func(t time.Time) {
+			svc.logger.Info("message consumption time", zap.String("execution", time.Since(t).String()))
+		}(time.Now())
+		svc.logger.Debug("received agent message",
+			zap.String("subtopic", msg.Subtopic),
+			zap.String("channel", msg.Channel),
+			zap.String("protocol", msg.Protocol),
+			zap.Int64("created", msg.Created),
+			zap.String("publisher", msg.Publisher),
+			zap.Any("trace-id", ctx.Value("trace-id")))
+
+		svc.otelMetricsChannel <- msg.Payload
+	}(inputContext)
+	return nil
+}
+
 func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	inputContext := context.WithValue(context.Background(), "trace-id", uuid.NewString())
 	go func(ctx context.Context) {
@@ -286,8 +300,4 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	}(inputContext)
 
 	return nil
-}
-
-func (svc sinkerService) handleOtlp(_ fleet.Agent, _ string, data fleet.AgentMetricsRPCPayload) {
-	svc.otelMetricsChannel <- data.Data
 }
