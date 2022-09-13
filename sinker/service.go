@@ -21,6 +21,7 @@ import (
 	promexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -171,8 +172,10 @@ func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsE
 	// 2. Create the Prometheus metrics exporter that'll receive and verify the metrics produced.
 	exporterCfg := &promexporter.Config{
 		ExporterSettings: otelconfig.NewExporterSettings(otelconfig.NewComponentID("pktvisor_prometheus_exporter")),
+		HTTPServerSettings: confighttp.HTTPServerSettings{
+			Endpoint: ":8787",
+		},
 		Namespace:        "test",
-		Endpoint:         ":8787",
 		SendTimestamps:   true,
 		MetricExpiration: 2 * time.Hour,
 	}
