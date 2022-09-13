@@ -242,9 +242,9 @@ func (svc sinkerService) handleOtelMsgFromAgent(msg messaging.Message) error {
 	inputContext := context.WithValue(context.Background(), "trace-id", uuid.NewString())
 	go func(ctx context.Context) {
 		defer func(t time.Time) {
-			svc.logger.Info("message consumption time", zap.String("execution", time.Since(t).String()))
+			svc.logger.Info("otel message consumption time", zap.String("execution", time.Since(t).String()))
 		}(time.Now())
-		svc.logger.Debug("received agent message",
+		svc.logger.Debug("otel received agent message",
 			zap.String("subtopic", msg.Subtopic),
 			zap.String("channel", msg.Channel),
 			zap.String("protocol", msg.Protocol),
