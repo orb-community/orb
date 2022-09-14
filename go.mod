@@ -124,6 +124,7 @@ require (
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/knadh/koanf v1.4.3 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20201022064351-38db28db192b // indirect
+	github.com/leaanthony/go-ansi-parser v1.6.0 // indirect
 	github.com/linode/linodego v1.8.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mainflux/senml v1.5.0 // indirect
@@ -155,6 +156,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common/sigv4 v0.1.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.9 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect

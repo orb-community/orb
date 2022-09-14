@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/ns1labs/orb/fleet"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"net/http"
 	"net/url"
@@ -99,29 +98,18 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
-	metricRPC := fleet.AgentMetricsRPC{
-		SchemaVersion: fleet.CurrentRPCSchemaVersion,
-		Func:          fleet.AgentMetricsRPCFunc,
-		Payload: []fleet.AgentMetricsRPCPayload{
-			{
-				Format:    "otlp",
-				BEVersion: e.config.PktVisorVersion,
-				Data:      request,
-			},
-		},
-	}
-	return e.export(ctx, e.config.MetricsTopic, metricRPC)
+	return e.export(ctx, e.config.MetricsTopic, request)
 }
 
 func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (e *exporter) export(_ context.Context, metricsTopic string, request fleet.AgentMetricsRPC) error {
+func (e *exporter) export(_ context.Context, metricsTopic string, request []byte) error {
 	// convert metrics to interface
 	buf := bytes.Buffer{}
 	enc := gob.NewEncoder(&buf)
-	if err := enc.Encode(request.Payload); err != nil {
+	if err := enc.Encode(request); err != nil {
 		e.logger.Error("Failed to encode metrics", zap.Error(err))
 	}
 
