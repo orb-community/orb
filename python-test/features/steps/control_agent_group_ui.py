@@ -4,12 +4,11 @@ from ui_utils import *
 from hamcrest import *
 from utils import random_string, create_tags_set
 from page_objects import *
+from control_plane_agent_groups import agent_group_name_prefix, agent_group_description
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
-agent_group_name_prefix = "test_agent_group_name_"
-agent_group_description_prefix = "test_agent_group_description_"
 agent_group_to_be_deleted = "agent_group_to_delete"
 
 
@@ -64,7 +63,7 @@ def create_agent_group_with_description_through_the_agent_group_page(context, or
                                                                                                       "available")
     context.agent_group_name = agent_group_name_prefix + random_string(10)
     input_text_by_xpath(AgentGroupPage.agent_group_name(), context.agent_group_name, context.driver)
-    context.agent_group_description = agent_group_description_prefix + random_string(10)
+    context.agent_group_description = agent_group_description + random_string(10)
     input_text_by_xpath(AgentGroupPage.agent_group_description(), context.agent_group_description, context.driver)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
@@ -149,7 +148,7 @@ def update_an_agent_group_by_name_through_the_agent_group_page(context, orb_tags
         EC.element_to_be_clickable((By.XPATH, DataTable.edit_icon()))).click()
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, AgentGroupPage.agent_group_name()))).clear()
-    context.agent_group_name = agent_group_name_prefix + random_string(5)
+    context.agent_group_name = agent_group_name_prefix + "upd" + random_string(5)
     input_text_by_xpath(AgentGroupPage.agent_group_name(), context.agent_group_name, context.driver)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
