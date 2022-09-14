@@ -16,6 +16,7 @@ package orbreceiver
 
 import (
 	"context"
+	"fmt"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/metrics"
 	"go.uber.org/zap"
@@ -24,6 +25,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 )
+
+const OtelMetricsTopic = "otlp.*.m.>"
 
 // OrbReceiver is the type that exposes Trace and Metrics reception.
 type OrbReceiver struct {
@@ -77,6 +80,11 @@ func (r *OrbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 		r.cfg.Logger.Warn("error context is nil, using background")
 		r.ctx = context.Background()
 	}
+	otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
+	if err := r.cfg.PubSub.Subscribe(otelTopic, r.MessageInbound); err != nil {
+		return err
+	}
+	r.cfg.Logger.Info("started metrics consumer", zap.String("otel-topic", otelTopic))
 
 	return nil
 }
