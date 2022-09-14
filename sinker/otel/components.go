@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel *chan []byte) (context.CancelFunc, error) {
+func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel chan []byte) (context.CancelFunc, error) {
 	otelContext, otelCancelFunc := context.WithCancel(ctx)
 
 	log := logger.Sugar()

@@ -28,7 +28,7 @@ type Config struct {
 	Logger *zap.Logger
 
 	// Entry from Metrics
-	MetricsChannel *chan []byte
+	MetricsChannel chan []byte
 }
 
 var _ config.Receiver = (*Config)(nil)

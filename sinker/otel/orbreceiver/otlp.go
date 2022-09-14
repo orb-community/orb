@@ -40,8 +40,9 @@ type orbReceiver struct {
 // NewOrbReceiver just creates the OpenTelemetry receiver services. It is the caller's
 // responsibility to invoke the respective Start*Reception methods as well
 // as the various Stop*Reception methods to end it.
-func NewOrbReceiver(cfg *Config, settings component.ReceiverCreateSettings) *orbReceiver {
+func NewOrbReceiver(ctx context.Context, cfg *Config, settings component.ReceiverCreateSettings) *orbReceiver {
 	r := &orbReceiver{
+		ctx:      ctx,
 		cfg:      cfg,
 		settings: settings,
 	}
@@ -72,7 +73,7 @@ func (r *orbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 		return component.ErrNilNextConsumer
 	}
 	if r.ctx == nil {
-		r.cfg.Logger.Warn("error context is nil, using background ")
+		r.cfg.Logger.Warn("error context is nil, using background")
 		r.ctx = context.Background()
 	}
 	metricsReceiverCtx, cancelMetricsReceiver := context.WithCancel(r.ctx)
@@ -84,10 +85,11 @@ func (r *orbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 		for {
 			select {
 			case <-ctx.Done():
-				close(*r.cfg.MetricsChannel)
+				logger.Warn("closing receiver routine.")
+				close(r.cfg.MetricsChannel)
 				break LOOP
-			case message := <-*r.cfg.MetricsChannel:
-				r.cfg.Logger.Info("received metric, pushing to exporter")
+			case message := <-r.cfg.MetricsChannel:
+				r.cfg.Logger.Info("received metric message, pushing to exporter")
 				mr, err := r.encoder.unmarshalMetricsRequest(message)
 				if err != nil {
 					r.cfg.Logger.Error("error during unmarshalling, skipping message", zap.Error(err))

@@ -92,7 +92,6 @@ func (svc sinkerService) Start() error {
 
 	svc.hbTicker = time.NewTicker(CheckerFreq)
 	svc.hbDone = make(chan bool)
-	svc.otelMetricsChannel = make(chan []byte)
 	go svc.checkSinker()
 
 	err := svc.startOtel(svc.asyncContext)
@@ -106,7 +105,8 @@ func (svc sinkerService) Start() error {
 func (svc sinkerService) startOtel(ctx context.Context) error {
 	var err error
 	if svc.otel {
-		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, svc.logger, &svc.otelMetricsChannel)
+		svc.otelMetricsChannel = make(chan []byte)
+		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, svc.logger, svc.otelMetricsChannel)
 		if err != nil {
 			svc.logger.Error("error during StartOtelComponents", zap.Error(err))
 			return err
