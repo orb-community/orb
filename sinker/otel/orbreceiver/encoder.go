@@ -16,6 +16,7 @@ package orbreceiver
 
 import (
 	"bytes"
+	"encoding/base64"
 
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
@@ -101,7 +102,12 @@ func (jsonEncoder) unmarshalTracesRequest(buf []byte) (ptraceotlp.Request, error
 
 func (jsonEncoder) unmarshalMetricsRequest(buf []byte) (pmetricotlp.Request, error) {
 	req := pmetricotlp.NewRequest()
-	err := req.UnmarshalJSON(buf)
+	var decodedBuf []byte
+	_, err := base64.StdEncoding.Decode(decodedBuf, buf)
+	if err != nil {
+		return req, err
+	}
+	err = req.UnmarshalJSON(buf)
 	return req, err
 }
 
