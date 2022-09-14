@@ -950,10 +950,6 @@ func TestDNSRatesConversion(t *testing.T) {
 			Name:  "quantile",
 			Value: "0.99",
 		},
-		{
-			Name:  "handler",
-			Value: "policy_dns",
-		},
 	}
 
 	cases := map[string]struct {
