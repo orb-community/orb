@@ -266,8 +266,8 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
 	// pvOptions = append(pvOptions, "--cp-url", PKTVISOR_CP_URL)
 	// pvOptions = append(pvOptions, "--cp-path", PKTVISOR_CP_PATH)
-	pvOptions = append(pvOptions, "--default-geo-city", "/geo-db/city.mmdb")
-	pvOptions = append(pvOptions, "--default-geo-asn", "/geo-db/asn.mmdb")
+	// pvOptions = append(pvOptions, "--default-geo-city", "/geo-db/city.mmdb")
+	// pvOptions = append(pvOptions, "--default-geo-asn", "/geo-db/asn.mmdb")
 	
 	p.proc = cmd.NewCmdOptions(cmd.Options{
 		Buffered:  false,
