@@ -17,6 +17,7 @@ package orbreceiver // import "go.opentelemetry.io/collector/receiver/otlpreceiv
 import (
 	"context"
 	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/sharedcomponent"
+	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -49,11 +50,15 @@ func createMetricsReceiver(
 	cfg config.Receiver,
 	consumer consumer.Metrics,
 ) (component.MetricsReceiver, error) {
+	receiverCfg := cfg.(*Config)
+	receiverCfg.Logger.Info("Creating Metrics Receiver")
 	r := receivers.GetOrAdd(cfg, func() component.Component {
 		return NewOrbReceiver(cfg.(*Config), set)
 	})
-
-	if err := r.Unwrap().(*orbReceiver).registerMetricsConsumer(consumer); err != nil {
+	receiverCfg.Logger.Info("receiver created, registering metrics", zap.Any("receiver", r.Unwrap().(*orbReceiver)))
+	err := r.Unwrap().(*orbReceiver).registerMetricsConsumer(consumer)
+	if err != nil {
+		receiverCfg.Logger.Info("error on register metrics consumer")
 		return nil, err
 	}
 	return r, nil

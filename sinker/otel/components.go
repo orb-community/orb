@@ -59,6 +59,7 @@ func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel
 		},
 	}
 	receiver, err := orbReceiverFactory.CreateMetricsReceiver(receiverCtx, receiverSet, receiverCfg, exporter)
+	log.Info("created receiver")
 	if err != nil {
 		log.Error("error on creating receiver", err)
 		otelCancelFunc()
@@ -66,6 +67,7 @@ func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel
 		return nil, err
 	}
 	err = receiver.Start(receiverCtx, nil)
+	log.Info("started receiver")
 	if err != nil {
 		log.Error("error on starting receiver", err)
 		otelCancelFunc()

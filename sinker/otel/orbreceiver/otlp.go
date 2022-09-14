@@ -71,10 +71,15 @@ func (r *orbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 	if mc == nil {
 		return component.ErrNilNextConsumer
 	}
+	if r.ctx == nil {
+		r.cfg.Logger.Warn("error context is nil, using background ")
+		r.ctx = context.Background()
+	}
 	metricsReceiverCtx, cancelMetricsReceiver := context.WithCancel(r.ctx)
 	r.cfg.Logger.Info("registering go routine to read new messages from orb-sinker")
-	go func(ctx context.Context, cancelFunc context.CancelFunc) {
+	go func(ctx context.Context, cancelFunc context.CancelFunc, logger *zap.Logger) {
 		defer cancelFunc()
+		logger.Info("started routine to listen to channel.")
 	LOOP:
 		for {
 			select {
@@ -95,7 +100,7 @@ func (r *orbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 				}
 			}
 		}
-	}(metricsReceiverCtx, cancelMetricsReceiver)
+	}(metricsReceiverCtx, cancelMetricsReceiver, r.cfg.Logger)
 
 	return nil
 }
