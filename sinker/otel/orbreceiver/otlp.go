@@ -84,7 +84,7 @@ func (r *OrbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 	if err := r.cfg.PubSub.Subscribe(otelTopic, r.MessageInbound); err != nil {
 		return err
 	}
-	r.cfg.Logger.Info("started metrics consumer", zap.String("otel-topic", otelTopic))
+	r.cfg.Logger.Info("started otel metrics consumer", zap.String("otel-topic", otelTopic))
 
 	return nil
 }
