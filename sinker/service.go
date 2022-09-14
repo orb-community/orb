@@ -50,10 +50,9 @@ type Service interface {
 }
 
 type sinkerService struct {
-	pubSub             mfnats.PubSub
-	otel               bool
-	otelCancelFunct    context.CancelFunc
-	otelMetricsChannel chan []byte
+	pubSub          mfnats.PubSub
+	otel            bool
+	otelCancelFunct context.CancelFunc
 
 	sinkerCache config.ConfigRepo
 	esclient    *redis.Client
@@ -82,13 +81,7 @@ func (svc sinkerService) Start() error {
 	if err := svc.pubSub.Subscribe(topic, svc.handleMsgFromAgent); err != nil {
 		return err
 	}
-	//OtelMetricsTopic
-
-	otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
-	if err := svc.pubSub.Subscribe(otelTopic, svc.handleOtelMsgFromAgent); err != nil {
-		return err
-	}
-	svc.logger.Info("started metrics consumer", zap.String("topic", topic), zap.String("otel-topic", otelTopic))
+	svc.logger.Info("started metrics consumer", zap.String("topic", topic))
 
 	svc.hbTicker = time.NewTicker(CheckerFreq)
 	svc.hbDone = make(chan bool)
@@ -96,6 +89,7 @@ func (svc sinkerService) Start() error {
 
 	err := svc.startOtel(svc.asyncContext)
 	if err != nil {
+		svc.logger.Error("error on starting otel, exiting")
 		return err
 	}
 
@@ -103,10 +97,9 @@ func (svc sinkerService) Start() error {
 }
 
 func (svc sinkerService) startOtel(ctx context.Context) error {
-	var err error
 	if svc.otel {
-		svc.otelMetricsChannel = make(chan []byte, 1024)
-		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, svc.logger, svc.otelMetricsChannel)
+		var err error
+		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, svc.logger, svc.pubSub)
 		if err != nil {
 			svc.logger.Error("error during StartOtelComponents", zap.Error(err))
 			return err

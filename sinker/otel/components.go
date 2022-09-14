@@ -2,6 +2,7 @@ package otel
 
 import (
 	"context"
+	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"github.com/ns1labs/orb/sinker/otel/orbreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter"
 	"go.opentelemetry.io/collector/component"
@@ -11,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel chan []byte) (context.CancelFunc, error) {
+func StartOtelComponents(ctx context.Context, logger *zap.Logger, pubSub mfnats.PubSub) (context.CancelFunc, error) {
 	otelContext, otelCancelFunc := context.WithCancel(ctx)
 
 	log := logger.Sugar()
@@ -49,7 +50,7 @@ func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel
 	receiverCtx := context.WithValue(otelContext, "component", "orbreceiver")
 	receiverCfg := orbReceiverFactory.CreateDefaultConfig().(*orbreceiver.Config)
 	receiverCfg.Logger = logger
-	receiverCfg.MetricsChannel = metricsChannel
+	receiverCfg.PubSub = pubSub
 	receiverSet := component.ReceiverCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,

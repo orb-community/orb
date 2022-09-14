@@ -253,6 +253,7 @@ func (svc sinkerService) handleOtelMsgFromAgent(msg messaging.Message) error {
 			zap.Any("trace-id", ctx.Value("trace-id")))
 
 		svc.otelMetricsChannel <- msg.Payload
+
 		svc.logger.Info("passed metric to channel")
 	}(inputContext)
 	return nil

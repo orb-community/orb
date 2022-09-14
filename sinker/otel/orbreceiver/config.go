@@ -15,6 +15,7 @@
 package orbreceiver // import "go.opentelemetry.io/collector/receiver/otlpreceiver"
 
 import (
+	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/config"
@@ -28,7 +29,7 @@ type Config struct {
 	Logger *zap.Logger
 
 	// Entry from Metrics
-	MetricsChannel chan []byte
+	PubSub mfnats.PubSub
 }
 
 var _ config.Receiver = (*Config)(nil)

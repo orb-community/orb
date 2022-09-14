@@ -16,6 +16,7 @@ package orbreceiver
 
 import (
 	"context"
+	"github.com/mainflux/mainflux/pkg/messaging"
 	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/metrics"
 	"go.uber.org/zap"
 	"sync"
@@ -24,8 +25,8 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 )
 
-// orbReceiver is the type that exposes Trace and Metrics reception.
-type orbReceiver struct {
+// OrbReceiver is the type that exposes Trace and Metrics reception.
+type OrbReceiver struct {
 	cfg             *Config
 	ctx             context.Context
 	cancelFunc      context.CancelFunc
@@ -40,8 +41,8 @@ type orbReceiver struct {
 // NewOrbReceiver just creates the OpenTelemetry receiver services. It is the caller's
 // responsibility to invoke the respective Start*Reception methods as well
 // as the various Stop*Reception methods to end it.
-func NewOrbReceiver(ctx context.Context, cfg *Config, settings component.ReceiverCreateSettings) *orbReceiver {
-	r := &orbReceiver{
+func NewOrbReceiver(ctx context.Context, cfg *Config, settings component.ReceiverCreateSettings) *OrbReceiver {
+	r := &OrbReceiver{
 		ctx:      ctx,
 		cfg:      cfg,
 		settings: settings,
@@ -51,14 +52,14 @@ func NewOrbReceiver(ctx context.Context, cfg *Config, settings component.Receive
 }
 
 // Start appends the message channel that Orb-Sinker will deliver the message
-func (r *orbReceiver) Start(ctx context.Context, _ component.Host) error {
+func (r *OrbReceiver) Start(ctx context.Context, _ component.Host) error {
 	r.ctx, r.cancelFunc = context.WithCancel(ctx)
 	r.encoder = jsEncoder
 	return nil
 }
 
 // Shutdown is a method to turn off receiving.
-func (r *orbReceiver) Shutdown(ctx context.Context) error {
+func (r *OrbReceiver) Shutdown(ctx context.Context) error {
 	r.cfg.Logger.Warn("shutting down orb-receiver")
 	defer func() {
 		r.cancelFunc()
@@ -68,7 +69,7 @@ func (r *orbReceiver) Shutdown(ctx context.Context) error {
 }
 
 // registerMetricsConsumer creates a go routine that will monitor the channel
-func (r *orbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
+func (r *OrbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 	if mc == nil {
 		return component.ErrNilNextConsumer
 	}
@@ -76,37 +77,29 @@ func (r *orbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 		r.cfg.Logger.Warn("error context is nil, using background")
 		r.ctx = context.Background()
 	}
-	metricsReceiverCtx, cancelMetricsReceiver := context.WithCancel(r.ctx)
-	r.cfg.Logger.Info("registering go routine to read new messages from orb-sinker")
-	go func(ctx context.Context, cancelFunc context.CancelFunc, logger *zap.Logger) {
-		defer cancelFunc()
-		logger.Info("started routine to listen to channel.")
-	LOOP:
-		for {
-			select {
-			case <-ctx.Done():
-				logger.Warn("closing receiver routine.")
-				close(r.cfg.MetricsChannel)
-				break LOOP
-			case message, ok := <-r.cfg.MetricsChannel:
-				if !ok {
-					r.cfg.Logger.Error("MetricsChannel closed")
-					continue
-				}
-				r.cfg.Logger.Info("received metric message, pushing to exporter")
-				mr, err := r.encoder.unmarshalMetricsRequest(message)
-				if err != nil {
-					r.cfg.Logger.Error("error during unmarshalling, skipping message", zap.Error(err))
-					continue
-				}
-				_, err = r.metricsReceiver.Export(ctx, mr)
-				if err != nil {
-					r.cfg.Logger.Error("error during export, skipping message", zap.Error(err))
-					continue
-				}
-			}
-		}
-	}(metricsReceiverCtx, cancelMetricsReceiver, r.cfg.Logger)
 
+	return nil
+}
+
+func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
+	go func() {
+		r.cfg.Logger.Debug("received agent message",
+			zap.String("subtopic", msg.Subtopic),
+			zap.String("channel", msg.Channel),
+			zap.String("protocol", msg.Protocol),
+			zap.Int64("created", msg.Created),
+			zap.String("publisher", msg.Publisher))
+		r.cfg.Logger.Info("received metric message, pushing to exporter")
+		mr, err := r.encoder.unmarshalMetricsRequest(msg.Payload)
+		if err != nil {
+			r.cfg.Logger.Error("error during unmarshalling, skipping message", zap.Error(err))
+			return
+		}
+		_, err = r.metricsReceiver.Export(r.ctx, mr)
+		if err != nil {
+			r.cfg.Logger.Error("error during export, skipping message", zap.Error(err))
+			return
+		}
+	}()
 	return nil
 }
