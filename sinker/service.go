@@ -105,7 +105,7 @@ func (svc sinkerService) Start() error {
 func (svc sinkerService) startOtel(ctx context.Context) error {
 	var err error
 	if svc.otel {
-		svc.otelMetricsChannel = make(chan []byte)
+		svc.otelMetricsChannel = make(chan []byte, 1024)
 		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, svc.logger, svc.otelMetricsChannel)
 		if err != nil {
 			svc.logger.Error("error during StartOtelComponents", zap.Error(err))

@@ -88,7 +88,11 @@ func (r *orbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 				logger.Warn("closing receiver routine.")
 				close(r.cfg.MetricsChannel)
 				break LOOP
-			case message := <-r.cfg.MetricsChannel:
+			case message, ok := <-r.cfg.MetricsChannel:
+				if !ok {
+					r.cfg.Logger.Error("MetricsChannel closed")
+					continue
+				}
 				r.cfg.Logger.Info("received metric message, pushing to exporter")
 				mr, err := r.encoder.unmarshalMetricsRequest(message)
 				if err != nil {
