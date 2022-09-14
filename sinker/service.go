@@ -77,7 +77,7 @@ type sinkerService struct {
 }
 
 func (svc sinkerService) Start() error {
-	svc.asyncContext, svc.cancelAsyncContext = context.WithCancel(context.Background())
+	svc.asyncContext, svc.cancelAsyncContext = context.WithCancel(context.WithValue(context.Background(), "routine", "async"))
 	topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
 	if err := svc.pubSub.Subscribe(topic, svc.handleMsgFromAgent); err != nil {
 		return err
@@ -153,7 +153,7 @@ func New(logger *zap.Logger,
 		requestGauge:        requestGauge,
 		requestCounter:      requestCounter,
 		messageInputCounter: inputCounter,
-		otel:                false,
+		otel:                true,
 	}
 }
 

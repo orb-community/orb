@@ -21,11 +21,15 @@ func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel
 	exporterFactory := kafkaexporter.NewFactory()
 	exporterCtx := context.WithValue(otelContext, "component", "kafkaexporter")
 	exporterCreateSettings := component.ExporterCreateSettings{
-		TelemetrySettings: component.TelemetrySettings{},
-		BuildInfo:         component.BuildInfo{},
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.MeterProvider(),
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
 	}
 	expCfg := exporterFactory.CreateDefaultConfig().(*kafkaexporter.Config)
-	expCfg.Brokers = []string{"kafka1:9092"}
+	expCfg.Brokers = []string{"kafka1:19092"}
 	exporter, err := exporterFactory.CreateMetricsExporter(exporterCtx, exporterCreateSettings, expCfg)
 	if err != nil {
 		log.Error("error on creating exporter", err)
