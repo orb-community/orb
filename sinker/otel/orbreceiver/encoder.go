@@ -103,7 +103,7 @@ func (jsonEncoder) unmarshalMetricsRequest(buf []byte) (pmetricotlp.Request, err
 	req := pmetricotlp.NewRequest()
 	buffer := bytes.Buffer{}
 	dec := gob.NewDecoder(&buffer)
-	err := dec.Decode(buf)
+	err := dec.Decode(&buf)
 	if err != nil {
 		return req, err
 	}
