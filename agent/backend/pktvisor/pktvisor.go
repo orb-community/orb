@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os/exec"
+	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -78,8 +79,10 @@ func (p *pktvisorBackend) GetStartTime() time.Time {
 
 func (p *pktvisorBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
 	p.mqttClient = client
-	p.metricsTopic = fmt.Sprintf("%s/m/%c", baseTopic, agentID[0])
-	p.otlpMetricsTopic = fmt.Sprintf("%s/otlp/%c", baseTopic, agentID[0])
+	metricsTopic := strings.Replace(baseTopic, "?", "be", 1)
+	otelMetricsTopic := strings.Replace(baseTopic, "?", "otlp", 1)
+	p.metricsTopic = fmt.Sprintf("%s/m/%c", metricsTopic, agentID[0])
+	p.otlpMetricsTopic = fmt.Sprintf("%s/m/%c", otelMetricsTopic, agentID[0])
 }
 
 func (p *pktvisorBackend) GetState() (backend.BackendState, string, error) {

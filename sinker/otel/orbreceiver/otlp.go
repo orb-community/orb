@@ -72,6 +72,7 @@ func (r *orbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 		return component.ErrNilNextConsumer
 	}
 	metricsReceiverCtx, cancelMetricsReceiver := context.WithCancel(r.ctx)
+	r.cfg.Logger.Info("registering go routine to read new messages from orb-sinker")
 	go func(ctx context.Context, cancelFunc context.CancelFunc) {
 		defer cancelFunc()
 	LOOP:
