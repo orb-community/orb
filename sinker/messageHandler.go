@@ -238,27 +238,6 @@ func (svc sinkerService) GetSinks(agent fleet.Agent, agentMetricsRPCPayload flee
 	return nil
 }
 
-func (svc sinkerService) handleOtelMsgFromAgent(msg messaging.Message) error {
-	inputContext := context.WithValue(context.Background(), "trace-id", uuid.NewString())
-	go func(ctx context.Context) {
-		defer func(t time.Time) {
-			svc.logger.Info("otel message consumption time", zap.String("execution", time.Since(t).String()))
-		}(time.Now())
-		svc.logger.Info("otel received agent message",
-			zap.String("subtopic", msg.Subtopic),
-			zap.String("channel", msg.Channel),
-			zap.String("protocol", msg.Protocol),
-			zap.Int64("created", msg.Created),
-			zap.String("publisher", msg.Publisher),
-			zap.Any("trace-id", ctx.Value("trace-id")))
-
-		svc.otelMetricsChannel <- msg.Payload
-
-		svc.logger.Info("passed metric to channel")
-	}(inputContext)
-	return nil
-}
-
 func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	inputContext := context.WithValue(context.Background(), "trace-id", uuid.NewString())
 	go func(ctx context.Context) {
