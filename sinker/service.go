@@ -83,11 +83,12 @@ func (svc sinkerService) Start() error {
 		return err
 	}
 	//OtelMetricsTopic
+
 	otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
 	if err := svc.pubSub.Subscribe(otelTopic, svc.handleOtelMsgFromAgent); err != nil {
 		return err
 	}
-	svc.logger.Info("started metrics consumer", zap.String("topic", topic))
+	svc.logger.Info("started metrics consumer", zap.String("topic", topic), zap.String("otel-topic", otelTopic))
 
 	svc.hbTicker = time.NewTicker(CheckerFreq)
 	svc.hbDone = make(chan bool)
@@ -117,6 +118,10 @@ func (svc sinkerService) startOtel(ctx context.Context) error {
 func (svc sinkerService) Stop() error {
 	topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
 	if err := svc.pubSub.Unsubscribe(topic); err != nil {
+		return err
+	}
+	otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
+	if err := svc.pubSub.Unsubscribe(otelTopic); err != nil {
 		return err
 	}
 	svc.logger.Info("unsubscribed from agent metrics")

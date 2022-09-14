@@ -15,7 +15,7 @@ func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel
 	otelContext, otelCancelFunc := context.WithCancel(ctx)
 
 	log := logger.Sugar()
-	log.Info("Starting to create Otel Components", ctx.Value("routine"))
+	log.Info("Starting to create Otel Components in routine: ", ctx.Value("routine"))
 	var bla kafkaexporter.Config
 	log.Info("load info on", bla)
 	exporterFactory := kafkaexporter.NewFactory()
@@ -25,6 +25,7 @@ func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
 			MeterProvider:  global.MeterProvider(),
+			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
