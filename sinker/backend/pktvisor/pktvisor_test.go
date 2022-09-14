@@ -66,6 +66,10 @@ func TestDHCPConversion(t *testing.T) {
 			Name:  "policy",
 			Value: "policy-test",
 		},
+		{
+			Name:  "handler",
+			Value: "policy_dhcp",
+		},
 	}
 
 	cases := map[string]struct {
@@ -307,6 +311,10 @@ func TestASNConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_packets",
+					},
+					{
 						Name:  "asn",
 						Value: "36236/NETACTUATE",
 					},
@@ -411,6 +419,10 @@ func TestGeoLocConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_packets",
+					},
+					{
 						Name:  "geo_loc",
 						Value: "AS/Hong Kong/HCW/Central",
 					},
@@ -490,6 +502,10 @@ func TestPCAPConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_pcap",
 		},
 	}
 
@@ -624,6 +640,10 @@ func TestDNSConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
 		},
 	}
 
@@ -839,6 +859,10 @@ func TestDNSRatesConversion(t *testing.T) {
 			Value: "policy-test",
 		},
 		{
+			Name:  "handler",
+			Value: "policy_dns",
+		},
+		{
 			Name:  "quantile",
 			Value: "0.5",
 		},
@@ -861,6 +885,10 @@ func TestDNSRatesConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
 		},
 		{
 			Name:  "quantile",
@@ -887,6 +915,10 @@ func TestDNSRatesConversion(t *testing.T) {
 			Value: "policy-test",
 		},
 		{
+			Name:  "handler",
+			Value: "policy_dns",
+		},
+		{
 			Name:  "quantile",
 			Value: "0.95",
 		},
@@ -909,6 +941,10 @@ func TestDNSRatesConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
 		},
 		{
 			Name:  "quantile",
@@ -943,6 +979,376 @@ func TestDNSRatesConversion(t *testing.T) {
 			}),
 			expectedDatapoints: []float64{0, 1, 2, 6},
 		},
+	}
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			data.Data = c.data
+			res, err := be.ProcessMetrics(agent, agentID.String(), data)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var receivedLabel []prometheus.Label
+			var receivedDatapoint []float64
+
+			for _, value := range res {
+				if c.expectedLabels[0] == value.Labels[0] {
+					for _, labels := range value.Labels {
+						receivedLabel = append(receivedLabel, labels)
+					}
+					receivedDatapoint = append(receivedDatapoint, value.Datapoint.Value)
+				}
+			}
+
+			assert.ElementsMatch(t, c.expectedLabels, receivedLabel, fmt.Sprintf("%s: expected %v got %v", desc, c.expectedLabels, receivedLabel))
+			assert.ElementsMatch(t, c.expectedDatapoints, receivedDatapoint, fmt.Sprintf("%s: expected %v got %v", desc, c.expectedDatapoints, receivedDatapoint))
+		})
+	}
+
+}
+
+func TestDHCPRatesConversion(t *testing.T) {
+	var logger = zap.NewNop()
+	pktvisor.Register(logger)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	var agent = &pb.AgentInfoRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+	}
+
+	data := fleet.AgentMetricsRPCPayload{
+		PolicyID:   policyID.String(),
+		PolicyName: "policy-test",
+		Datasets:   nil,
+		Format:     "json",
+		BEVersion:  "1.0",
+	}
+
+	be := backend.GetBackend("pktvisor")
+
+	commonLabels := []prometheus.Label{
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dhcp",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.5",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dhcp",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.9",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dhcp",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.95",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dhcp",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.99",
+		},
+	}
+
+	cases := map[string]struct {
+		data               []byte
+		expectedLabels     []prometheus.Label
+		expectedDatapoints []float64
+	}{
+		"DHCPPayloadRates": {
+			data: []byte(`
+{
+	"policy_dhcp": {
+		"dhcp": {
+        	"rates": {
+				"total": {
+					"p50": 0,
+    	      		"p90": 1,
+        			"p95": 2,
+        			"p99": 6
+        		}
+			}
+    	}
+	}
+}`),
+			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
+				Name:  "__name__",
+				Value: "dhcp_rates_total",
+			}),
+			expectedDatapoints: []float64{0, 1, 2, 6},
+		},
+	}
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			data.Data = c.data
+			res, err := be.ProcessMetrics(agent, agentID.String(), data)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var receivedLabel []prometheus.Label
+			var receivedDatapoint []float64
+
+			for _, value := range res {
+				if c.expectedLabels[0] == value.Labels[0] {
+					for _, labels := range value.Labels {
+						receivedLabel = append(receivedLabel, labels)
+					}
+					receivedDatapoint = append(receivedDatapoint, value.Datapoint.Value)
+				}
+			}
+
+			assert.ElementsMatch(t, c.expectedLabels, receivedLabel, fmt.Sprintf("%s: expected %v got %v", desc, c.expectedLabels, receivedLabel))
+			assert.ElementsMatch(t, c.expectedDatapoints, receivedDatapoint, fmt.Sprintf("%s: expected %v got %v", desc, c.expectedDatapoints, receivedDatapoint))
+		})
+	}
+
+}
+
+func TestPacketsRatesConversion(t *testing.T) {
+	var logger = zap.NewNop()
+	pktvisor.Register(logger)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	var agent = &pb.AgentInfoRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+	}
+
+	data := fleet.AgentMetricsRPCPayload{
+		PolicyID:   policyID.String(),
+		PolicyName: "policy-test",
+		Datasets:   nil,
+		Format:     "json",
+		BEVersion:  "1.0",
+	}
+
+	be := backend.GetBackend("pktvisor")
+
+	commonLabels := []prometheus.Label{
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.5",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.9",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.95",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.99",
+		},
+	}
+
+	cases := map[string]struct {
+		data               []byte
+		expectedLabels     []prometheus.Label
+		expectedDatapoints []float64
+	}{
 		"PacketsPayloadRatesPpsIn": {
 			data: []byte(`
 {
@@ -1009,28 +1415,180 @@ func TestDNSRatesConversion(t *testing.T) {
 			}),
 			expectedDatapoints: []float64{0, 1, 2, 6},
 		},
-		"DHCPPayloadRates": {
-			data: []byte(`
-{
-	"policy_dhcp": {
-		"dhcp": {
-        	"rates": {
-				"total": {
-					"p50": 0,
-    	      		"p90": 1,
-        			"p95": 2,
-        			"p99": 6
-        		}
-			}
-    	}
 	}
-}`),
-			expectedLabels: labelQuantiles(commonLabels, prometheus.Label{
-				Name:  "__name__",
-				Value: "dhcp_rates_total",
-			}),
-			expectedDatapoints: []float64{0, 1, 2, 6},
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			data.Data = c.data
+			res, err := be.ProcessMetrics(agent, agentID.String(), data)
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var receivedLabel []prometheus.Label
+			var receivedDatapoint []float64
+
+			for _, value := range res {
+				if c.expectedLabels[0] == value.Labels[0] {
+					for _, labels := range value.Labels {
+						receivedLabel = append(receivedLabel, labels)
+					}
+					receivedDatapoint = append(receivedDatapoint, value.Datapoint.Value)
+				}
+			}
+
+			assert.ElementsMatch(t, c.expectedLabels, receivedLabel, fmt.Sprintf("%s: expected %v got %v", desc, c.expectedLabels, receivedLabel))
+			assert.ElementsMatch(t, c.expectedDatapoints, receivedDatapoint, fmt.Sprintf("%s: expected %v got %v", desc, c.expectedDatapoints, receivedDatapoint))
+		})
+	}
+
+}
+
+func TestFlowRatesConversion(t *testing.T) {
+	var logger = zap.NewNop()
+	pktvisor.Register(logger)
+
+	ownerID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	agentID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	var agent = &pb.AgentInfoRes{
+		OwnerID:   ownerID.String(),
+		AgentName: "agent-test",
+	}
+
+	data := fleet.AgentMetricsRPCPayload{
+		PolicyID:   policyID.String(),
+		PolicyName: "policy-test",
+		Datasets:   nil,
+		Format:     "json",
+		BEVersion:  "1.0",
+	}
+
+	be := backend.GetBackend("pktvisor")
+
+	commonLabels := []prometheus.Label{
+		{
+			Name:  "instance",
+			Value: "agent-test",
 		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_flow",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.5",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_flow",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.9",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_flow",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.95",
+		},
+		{
+			Name:  "instance",
+			Value: "agent-test",
+		},
+		{
+			Name:  "agent_id",
+			Value: agentID.String(),
+		},
+		{
+			Name:  "agent",
+			Value: "agent-test",
+		},
+		{
+			Name:  "policy_id",
+			Value: policyID.String(),
+		},
+		{
+			Name:  "policy",
+			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_flow",
+		},
+		{
+			Name:  "quantile",
+			Value: "0.99",
+		},
+	}
+
+	cases := map[string]struct {
+		data               []byte
+		expectedLabels     []prometheus.Label
+		expectedDatapoints []float64
+	}{
 		"FlowPayloadRatesBytes": {
 			data: []byte(`
 				{
@@ -1128,7 +1686,7 @@ func TestDNSRatesConversion(t *testing.T) {
 
 }
 
-func TestDNSTopKMetricsConversion(t *testing.T) {
+func TestTopKMetricsConversion(t *testing.T) {
 	var logger = zap.NewNop()
 	pktvisor.Register(logger)
 
@@ -1201,6 +1759,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_dns",
+					},
+					{
 						Name:  "qname",
 						Value: ".google.com",
 					},
@@ -1249,6 +1811,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_dns",
 					},
 					{
 						Name:  "qname",
@@ -1301,6 +1867,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_dns",
+					},
+					{
 						Name:  "ecs",
 						Value: "2001:470:1f0b:1600::",
 					},
@@ -1349,6 +1919,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_dns",
 					},
 					{
 						Name:  "qtype",
@@ -1401,6 +1975,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_dns",
+					},
+					{
 						Name:  "port",
 						Value: "39783",
 					},
@@ -1449,6 +2027,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_dns",
 					},
 					{
 						Name:  "rcode",
@@ -1530,6 +2112,10 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
 		},
 	}
 
@@ -1881,6 +2467,10 @@ func TestDNSXactConversion(t *testing.T) {
 			Name:  "policy",
 			Value: "policy-test",
 		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
+		},
 	}
 
 	cases := map[string]struct {
@@ -2110,6 +2700,10 @@ func TestPacketsConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_dns",
 		},
 	}
 
@@ -2452,29 +3046,6 @@ func TestPeriodConversion(t *testing.T) {
 
 	be := backend.GetBackend("pktvisor")
 
-	commonLabels := []prometheus.Label{
-		{
-			Name:  "instance",
-			Value: "agent-test",
-		},
-		{
-			Name:  "agent_id",
-			Value: agentID.String(),
-		},
-		{
-			Name:  "agent",
-			Value: "agent-test",
-		},
-		{
-			Name:  "policy_id",
-			Value: policyID.String(),
-		},
-		{
-			Name:  "policy",
-			Value: "policy-test",
-		},
-	}
-
 	cases := map[string]struct {
 		data            []byte
 		expectedLength  prometheus.TimeSeries
@@ -2493,19 +3064,71 @@ func TestPeriodConversion(t *testing.T) {
     }
 }`),
 			expectedLength: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
-					Name:  "__name__",
-					Value: "dns_period_length",
-				})),
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "dns_period_length",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_dns",
+					},
+				},
 				Datapoint: prometheus.Datapoint{
 					Value: 60,
 				},
 			},
 			expectedStartTs: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
-					Name:  "__name__",
-					Value: "dns_period_start_ts",
-				})),
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "dns_period_start_ts",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_dns",
+					},
+				},
 				Datapoint: prometheus.Datapoint{
 					Value: 1624888107,
 				},
@@ -2524,19 +3147,71 @@ func TestPeriodConversion(t *testing.T) {
     }
 }`),
 			expectedLength: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
-					Name:  "__name__",
-					Value: "packets_period_length",
-				})),
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "packets_period_length",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_packets",
+					},
+				},
 				Datapoint: prometheus.Datapoint{
 					Value: 60,
 				},
 			},
 			expectedStartTs: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
-					Name:  "__name__",
-					Value: "packets_period_start_ts",
-				})),
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "packets_period_start_ts",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_packets",
+					},
+				},
 				Datapoint: prometheus.Datapoint{
 					Value: 1624888107,
 				},
@@ -2555,19 +3230,71 @@ func TestPeriodConversion(t *testing.T) {
     }
 }`),
 			expectedLength: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
-					Name:  "__name__",
-					Value: "dhcp_period_length",
-				})),
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "dhcp_period_length",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_dhcp",
+					},
+				},
 				Datapoint: prometheus.Datapoint{
 					Value: 60,
 				},
 			},
 			expectedStartTs: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
-					Name:  "__name__",
-					Value: "dhcp_period_start_ts",
-				})),
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "dhcp_period_start_ts",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_dhcp",
+					},
+				},
 				Datapoint: prometheus.Datapoint{
 					Value: 1624888107,
 				},
@@ -2586,19 +3313,71 @@ func TestPeriodConversion(t *testing.T) {
     }
 }`),
 			expectedLength: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
-					Name:  "__name__",
-					Value: "flow_period_length",
-				})),
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_period_length",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_flow",
+					},
+				},
 				Datapoint: prometheus.Datapoint{
 					Value: 60,
 				},
 			},
 			expectedStartTs: prometheus.TimeSeries{
-				Labels: append(prependLabel(commonLabels, prometheus.Label{
-					Name:  "__name__",
-					Value: "flow_period_start_ts",
-				})),
+				Labels: []prometheus.Label{
+					{
+						Name:  "__name__",
+						Value: "flow_period_start_ts",
+					},
+					{
+						Name:  "instance",
+						Value: "agent-test",
+					},
+					{
+						Name:  "agent_id",
+						Value: agentID.String(),
+					},
+					{
+						Name:  "agent",
+						Value: "agent-test",
+					},
+					{
+						Name:  "policy_id",
+						Value: policyID.String(),
+					},
+					{
+						Name:  "policy",
+						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_flow",
+					},
+				},
 				Datapoint: prometheus.Datapoint{
 					Value: 1624888107,
 				},
@@ -2681,6 +3460,10 @@ func TestFlowCardinalityConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_flow",
 		},
 	}
 
@@ -2880,6 +3663,10 @@ func TestFlowConversion(t *testing.T) {
 		{
 			Name:  "policy",
 			Value: "policy-test",
+		},
+		{
+			Name:  "handler",
+			Value: "policy_flow",
 		},
 	}
 
@@ -3154,6 +3941,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_flow",
+					},
+					{
 						Name:  "device",
 						Value: "192.168.4.7",
 					},
@@ -3210,6 +4001,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_flow",
 					},
 					{
 						Name:  "device",
@@ -3270,6 +4065,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_flow",
+					},
+					{
 						Name:  "device",
 						Value: "192.168.4.7",
 					},
@@ -3326,6 +4125,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_flow",
 					},
 					{
 						Name:  "device",
@@ -3386,6 +4189,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_flow",
+					},
+					{
 						Name:  "device",
 						Value: "192.168.4.7",
 					},
@@ -3442,6 +4249,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_flow",
 					},
 					{
 						Name:  "device",
@@ -3502,6 +4313,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_flow",
+					},
+					{
 						Name:  "device",
 						Value: "192.168.4.7",
 					},
@@ -3558,6 +4373,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_flow",
 					},
 					{
 						Name:  "device",
@@ -3618,6 +4437,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_flow",
+					},
+					{
 						Name:  "device",
 						Value: "192.168.4.7",
 					},
@@ -3676,6 +4499,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_flow",
+					},
+					{
 						Name:  "device",
 						Value: "192.168.4.7",
 					},
@@ -3731,6 +4558,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_flow",
 					},
 					{
 						Name:  "device",
@@ -3791,6 +4622,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_flow",
+					},
+					{
 						Name:  "device",
 						Value: "192.168.4.7",
 					},
@@ -3847,6 +4682,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_flow",
 					},
 					{
 						Name:  "device",
@@ -3907,6 +4746,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_flow",
+					},
+					{
 						Name:  "device",
 						Value: "192.168.4.7",
 					},
@@ -3965,6 +4808,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "policy-test",
 					},
 					{
+						Name:  "handler",
+						Value: "policy_flow",
+					},
+					{
 						Name:  "device",
 						Value: "192.168.4.7",
 					},
@@ -4021,6 +4868,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_flow",
 					},
 					{
 						Name:  "device",
@@ -4130,6 +4981,10 @@ func TestAgentTagsConversion(t *testing.T) {
 					{
 						Name:  "policy",
 						Value: "policy-test",
+					},
+					{
+						Name:  "handler",
+						Value: "policy_packets",
 					},
 					{
 						Name:  "testkey",
@@ -4246,6 +5101,10 @@ func TestTagsConversion(t *testing.T) {
 			Value: "policy-test",
 		},
 		{
+			Name:  "handler",
+			Value: "policy_packets",
+		},
+		{
 			Name:  "asn",
 			Value: "36236/NETACTUATE",
 		},
@@ -4302,7 +5161,7 @@ func prependLabel(labelList []prometheus.Label, label prometheus.Label) []promet
 }
 
 func labelQuantiles(labelList []prometheus.Label, label prometheus.Label) []prometheus.Label {
-	for i := 0; i < 28; i += 7 {
+	for i := 0; i < 32; i += 8 {
 		labelList = append(labelList[:i+1], labelList[i:]...)
 		labelList[i] = label
 	}
