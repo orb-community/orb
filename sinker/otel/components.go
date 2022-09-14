@@ -16,8 +16,6 @@ func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel
 
 	log := logger.Sugar()
 	log.Info("Starting to create Otel Components in routine: ", ctx.Value("routine"))
-	var bla kafkaexporter.Config
-	log.Info("load info on", bla)
 	exporterFactory := kafkaexporter.NewFactory()
 	exporterCtx := context.WithValue(otelContext, "component", "kafkaexporter")
 	exporterCreateSettings := component.ExporterCreateSettings{
@@ -45,6 +43,7 @@ func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel
 		ctx.Done()
 		return nil, err
 	}
+	log.Info("created kafka exporter successfully")
 	// receiver Factory
 	orbReceiverFactory := orbreceiver.NewFactory()
 	receiverCtx := context.WithValue(otelContext, "component", "orbreceiver")
@@ -73,5 +72,6 @@ func StartOtelComponents(ctx context.Context, logger *zap.Logger, metricsChannel
 		ctx.Done()
 		return nil, err
 	}
+	log.Info("created orb receiver successfully")
 	return otelCancelFunc, nil
 }
