@@ -16,7 +16,6 @@ package orbreceiver
 
 import (
 	"bytes"
-	"encoding/gob"
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
@@ -101,13 +100,7 @@ func (jsonEncoder) unmarshalTracesRequest(buf []byte) (ptraceotlp.Request, error
 
 func (jsonEncoder) unmarshalMetricsRequest(buf []byte) (pmetricotlp.Request, error) {
 	req := pmetricotlp.NewRequest()
-	buffer := bytes.Buffer{}
-	dec := gob.NewDecoder(&buffer)
-	err := dec.Decode(&buf)
-	if err != nil {
-		return req, err
-	}
-	err = req.UnmarshalJSON(buf)
+	err := req.UnmarshalJSON(buf)
 	return req, err
 }
 

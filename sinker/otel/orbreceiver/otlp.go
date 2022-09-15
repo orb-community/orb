@@ -57,7 +57,7 @@ func NewOrbReceiver(ctx context.Context, cfg *Config, settings component.Receive
 // Start appends the message channel that Orb-Sinker will deliver the message
 func (r *OrbReceiver) Start(ctx context.Context, _ component.Host) error {
 	r.ctx, r.cancelFunc = context.WithCancel(ctx)
-	r.encoder = jsEncoder
+	r.encoder = pbEncoder
 	return nil
 }
 
@@ -98,6 +98,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
 		r.cfg.Logger.Info("received metric message, pushing to exporter")
+		r.cfg.Logger.Info("DEBUG logging md", zap.ByteString("metrics", msg.Payload))
 		mr, err := r.encoder.unmarshalMetricsRequest(msg.Payload)
 		if err != nil {
 			r.cfg.Logger.Error("error during unmarshalling, skipping message", zap.Error(err))
