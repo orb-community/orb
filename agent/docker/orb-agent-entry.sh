@@ -4,12 +4,16 @@
 #
 
 trapeze () {
-
-printf "\rFinishing container.."
-exit 0
+  printf "\rFinishing container.."
+  exit 0
 }
 
-trap trapeze SIGINT
+agentstop () {
+  if [ -f "/var/run/orb-agent.pid"  ]; then
+    ID=$(cat /var/run/orb-agent.pid)
+    kill -15 $ID
+  fi
+}
 
 # check geodb folder and extract db
 cd /geo-db/
@@ -34,6 +38,8 @@ fi
 
 tmpfile=$(mktemp /tmp/orb-agent-pktvisor-conf.XXXXXX)
 trap 'rm -f "$tmpfile"' EXIT
+trap trapeze SIGINT
+trap agentstop SIGTERM
 
 #Add defaults
 (
@@ -134,8 +140,25 @@ fi
 # or specify pair of TAPNAME:IFACE
 # TODO allow multiple, split on comma
 # PKTVISOR_PCAP_IFACE_TAPS=default_pcap:en0
-if [ $# -eq 0 ]; then
-  exec "$orb_agent_bin" run
-else
-  exec "$orb_agent_bin" "$@"
-fi
+  # eternal loop
+  while true
+  do
+    # pid file dont exist
+    if [ ! -f "/var/run/orb-agent.pid"  ]; then
+      # running orb-agent in background
+      nohup /run-agent.sh "$@" &
+      sleep 2
+      if [ -d "/nohup.out" ]; then
+         tail -f /nohup.out &
+      fi
+    else
+      PID=$(cat /var/run/orb-agent.pid)
+      if [ ! -d "/proc/$PID" ]; then
+         # stop container
+         echo "$PID is not running"
+         rm /var/run/orb-agent.pid
+         exit 1
+      fi
+      sleep 5
+    fi
+  done
