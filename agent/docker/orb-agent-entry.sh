@@ -3,12 +3,12 @@
 # entry point for orb-agent
 #
 
-trapeze () {
+agentstop1 () {
   printf "\rFinishing container.."
   exit 0
 }
 
-agentstop () {
+agentstop2 () {
   if [ -f "/var/run/orb-agent.pid"  ]; then
     ID=$(cat /var/run/orb-agent.pid)
     kill -15 $ID
@@ -38,8 +38,8 @@ fi
 
 tmpfile=$(mktemp /tmp/orb-agent-pktvisor-conf.XXXXXX)
 trap 'rm -f "$tmpfile"' EXIT
-trap trapeze SIGINT
-trap agentstop SIGTERM
+trap agentstop1 SIGINT
+trap agentstop2 SIGTERM
 
 #Add defaults
 (
