@@ -18,12 +18,12 @@ extensions:
 
   basicauth/client:
     client_auth:
-      username: $USERNAME
-      password: $PASSWORD
+      username: 378030
+      password: eyJrIjoiOGYxNjFjZTk5Zjk1NTIyOTRjOGMzMWVkMjllMmVmMmE4ZjU1NDI5MSIsIm4iOiJvcmIucHJvZCIsImlkIjo2MjM1Nzh9
 
 exporters:
   prometheusremotewrite:
-    endpoint: $URL
+    endpoint: https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push
     auth:
       authenticator: basicauth/client
   logging:
