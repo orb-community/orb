@@ -206,6 +206,10 @@ func convertFlowToPromParticle(ctxt *context, statsMap map[string]interface{}, l
 			ipv4_regex := `^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4})`
 
 			if ok, _ := regexp.MatchString(ipv4_regex+`|`+ipv6_regex, key); ok {
+				if ok = strings.Contains(label, "Devices"); !ok {
+					return
+				}
+				label = strings.ReplaceAll(label, "Devices", "")
 				ctxt.deviceID = key
 				convertFlowToPromParticle(ctxt, statistic, label, tsList)
 			} else {
@@ -389,6 +393,10 @@ func topNMetricsParser(label string) (string, error) {
 	mapNMetrics["TopSRVFAIL"] = "qname"
 	mapNMetrics["TopUDPPorts"] = "port"
 	mapNMetrics["TopSlow"] = "qname"
+	mapNMetrics["TopGeoLocBytes"] = "geo_loc"
+	mapNMetrics["TopGeoLocPackes"] = "geo_loc"
+	mapNMetrics["TopAsnBytes"] = "asn"
+	mapNMetrics["TopAsnPackets"] = "asn"
 	mapNMetrics["TopDstIpsBytes"] = "ip"
 	mapNMetrics["TopDstIpsPackets"] = "ip"
 	mapNMetrics["TopSrcIpsBytes"] = "ip"
