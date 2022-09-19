@@ -5,7 +5,7 @@ from hamcrest import *
 import requests
 
 configs = TestConfig.configs()
-sink_label_name_prefix = "test_sink_label_name_"
+sink_name_prefix  = "test_sink_label_name_"
 orb_url = configs.get('orb_url')
 
 
@@ -28,7 +28,7 @@ def check_prometheus_grafana_credentials(context):
 
 @when("a new sink is created")
 def create_sink(context):
-    sink_label_name = sink_label_name_prefix + random_string(10)
+    sink_label_name = sink_name_prefix + random_string(10)
     token = context.token
     endpoint = context.remote_prometheus_endpoint
     username = context.prometheus_username
@@ -79,7 +79,7 @@ def create_invalid_sink(context, credential):
     assert_that(credential, any_of(equal_to('endpoint'), equal_to('username'), equal_to('password')),
                 "Invalid prometheus field")
     check_prometheus_grafana_credentials(context)
-    sink_label_name = sink_label_name_prefix + random_string(10)
+    sink_label_name = sink_name_prefix + random_string(10)
     token = context.token
     prometheus_credentials = {'endpoint': context.remote_prometheus_endpoint, 'username': context.prometheus_username,
                               'password': context.prometheus_key}
@@ -104,13 +104,13 @@ def check_sink_status(context, status, time_to_wait):
 @then('cleanup sinks')
 def clean_sinks(context):
     """
-    Remove all sinks starting with 'sink_label_name_prefix' from the orb
+    Remove all sinks starting with 'sink_name_prefix' from the orb
 
     :param context: Behave class that contains contextual information during the running of tests.
     """
     token = context.token
     sinks_list = list_sinks(token)
-    sinks_filtered_list = filter_list_by_parameter_start_with(sinks_list, 'name', sink_label_name_prefix)
+    sinks_filtered_list = filter_list_by_parameter_start_with(sinks_list, 'name', sink_name_prefix)
     delete_sinks(token, sinks_filtered_list)
 
 

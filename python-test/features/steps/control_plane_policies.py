@@ -203,14 +203,15 @@ def new_policy(context, kwargs):
 @step('the container logs that were output after {condition} does not contain the message "{text_to_match}" referred '
       'to deleted policy anymore')
 def check_agent_logs_for_deleted_policies_considering_timestamp(context, condition, text_to_match):
-    policies_have_expected_message = \
+    policies_have_expected_message, logs = \
         check_agent_log_for_policies(text_to_match, context.container_id, list(context.policy['id']),
                                      context.considered_timestamp)
     assert_that(len(policies_have_expected_message), equal_to(0),
                 f"Message '{text_to_match}' for policy "
                 f"'{context.policy['id']}: {context.policy['name']}'"
                 f" present on logs even after removing policy! \n"
-                f"Agent: {json.dumps(context.agent, indent=4)}")
+                f"Agent: {json.dumps(context.agent, indent=4)}. \n"
+                f"Agent Logs: {logs}")
 
 
 @step('the container logs that were output after {condition} contain the message "{'
@@ -222,7 +223,7 @@ def check_agent_logs_for_policies_considering_timestamp(context, condition, text
     else:
         considered_timestamp = context.considered_timestamp
     policies_data = list()
-    policies_have_expected_message = \
+    policies_have_expected_message, logs = \
         check_agent_log_for_policies(text_to_match, context.container_id, context.list_agent_policies_id,
                                      considered_timestamp, timeout=time_to_wait)
     if len(set(context.list_agent_policies_id).difference(policies_have_expected_message)) > 0:
@@ -234,20 +235,22 @@ def check_agent_logs_for_policies_considering_timestamp(context, condition, text
                 f"Message '{text_to_match}' for policy "
                 f"'{policies_data}'"
                 f" was not found in the agent logs!"
-                f"Agent: {json.dumps(context.agent, indent=4)}")
+                f"Agent: {json.dumps(context.agent, indent=4)}. \n"
+                f"Agent Logs: {logs}")
 
 
 @step('the container logs contain the message "{text_to_match}" referred to each policy within {'
       'time_to_wait} seconds')
 def check_agent_logs_for_policies(context, text_to_match, time_to_wait):
-    policies_have_expected_message = \
+    policies_have_expected_message, logs = \
         check_agent_log_for_policies(text_to_match, context.container_id, context.list_agent_policies_id,
                                      timeout=time_to_wait)
     assert_that(policies_have_expected_message, equal_to(set(context.list_agent_policies_id)),
                 f"Message '{text_to_match}' for policy "
                 f"'{set(context.list_agent_policies_id).difference(policies_have_expected_message)}'"
                 f" was not found in the agent logs!. \n"
-                f"Agent: {json.dumps(context.agent, indent=4)}")
+                f"Agent: {json.dumps(context.agent, indent=4)}. \n"
+                f"Agent Logs: {logs}")
 
 
 @step('{amount_of_policies} {type_of_policies} policies are applied to the group')
@@ -619,9 +622,9 @@ def check_agent_log_for_policies(expected_message, container_id, list_agent_poli
                                                 considered_timestamp)
     if len(policies_have_expected_message) == len(list_agent_policies_id):
         event.set()
-        return policies_have_expected_message
+        return policies_have_expected_message, logs
 
-    return policies_have_expected_message
+    return policies_have_expected_message, logs
 
 
 def is_expected_msg_in_log_line(log_line, expected_message, list_agent_policies_id, considered_timestamp):
