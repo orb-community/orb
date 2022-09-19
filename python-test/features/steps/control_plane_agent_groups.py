@@ -39,11 +39,18 @@ def create_agent_group_matching_agent(context, amount_of_agent_groups, amount_of
     assert_that(tags_keys, has_length(greater_than_or_equal_to(amount_of_tags)), "Amount of tags greater than tags"
                                                                                  "contained in agent")
     tags_to_group = {key: tags_in_agent[key] for key in sample(tags_keys, amount_of_tags)}
-
+    assert_that(len(tags_to_group), greater_than(0), f"Unable to create group without tags. Tags:{tags_to_group}. "
+                                                     f"Agent:{context.agent}")
     for group in range(int(amount_of_agent_groups)):
         agent_group_name = agent_group_name_prefix + random_string()
         agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, group_description,
                                                           tags_to_group, context.agent_groups)
+
+
+@step("{amount_of_agent_groups} Agent Group(s) is created with {orb_tags} orb tag(s) (lower case)")
+# this step is temporary because of issue https://github.com/ns1labs/orb/issues/1053
+def create_group_with_tags_lower_case(context, amount_of_agent_groups, orb_tags):
+    create_new_agent_group(context, amount_of_agent_groups, orb_tags, tags_lower_case=True)
 
 
 @step("{amount_of_agent_groups} Agent Group(s) is created with {orb_tags} orb tag(s)")
@@ -52,7 +59,11 @@ def create_new_agent_group(context, amount_of_agent_groups, orb_tags, **kwargs):
         group_description = kwargs["group_description"]
     else:
         group_description = agent_group_description
-    context.orb_tags = create_tags_set(orb_tags)
+    if "tags_lower_case" in kwargs.keys() and kwargs["tags_lower_case"] is True:
+        orb_tags = create_tags_set(orb_tags)
+        context.orb_tags = {k.lower(): v.lower() for k, v in orb_tags.items()}
+    else:
+        context.orb_tags = create_tags_set(orb_tags)
 
     for group in range(int(amount_of_agent_groups)):
         agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
@@ -234,7 +245,8 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
 
     json_request = {"name": name, "description": description, "tags": tags}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
-
+    if expected_status_code == 201:
+        assert_that(len(tags), greater_than(0), f"Tags is required to created a group. Json used: {json_request}")
     response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
     try:
         response_json = response.json()
@@ -403,6 +415,7 @@ def return_matching_groups(token, existing_agent_groups, agent_json):
         group_data = get_agent_group(token, group)
         group_tags = dict(group_data["tags"])
         agent_tags = agent_json["orb_tags"]
+        agent_tags.update(agent_json['agent_tags'])
         if all(item in agent_tags.items() for item in group_tags.items()) is True:
             groups_matching.append(existing_agent_groups[group])
             groups_matching_id.append(group)

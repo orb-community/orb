@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NbDialogService } from '@nebular/theme';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Agent } from 'app/common/interfaces/orb/agent.interface';
-import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
+import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 
 @Component({
   selector: 'ngx-agent-groups',
@@ -40,18 +40,12 @@ export class AgentGroupsComponent implements OnInit, OnChanges {
     }
   }
 
-  showAgentGroupDetail(agentGroup) {
-    this.dialogService
-      .open(AgentGroupDetailsComponent, {
-        context: { agentGroup },
-        autoFocus: true,
-        closeOnEsc: true,
-      })
-      .onClose.subscribe((resp) => {
-        if (resp) {
-          this.onOpenEditAgentGroup(agentGroup);
-        }
-      });
+  showAgentGroupMatches(agentGroup) {
+    this.dialogService.open(AgentMatchComponent, {
+      context: { agentGroup },
+      autoFocus: true,
+      closeOnEsc: true,
+    });
   }
 
   onOpenEditAgentGroup(agentGroup: any) {

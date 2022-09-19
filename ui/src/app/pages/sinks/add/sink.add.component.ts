@@ -68,8 +68,8 @@ export class SinkAddComponent {
 
       this.initializeForms();
 
-      this.isLoading = false;
       if (backend !== '') this.onSinkTypeSelected(backend);
+      this.isLoading = false;
     }).catch(reason => console.warn(`Couldn't retrieve data. Reason: ${ reason }`));
   }
 
@@ -86,8 +86,8 @@ export class SinkAddComponent {
     const { name, description, backend, tags } = this.sink;
 
     this.firstFormGroup = this._formBuilder.group({
-      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
-      description: [description],
+      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'), Validators.maxLength(64)]],
+      description: [description, [Validators.maxLength(64)]],
       backend: [backend, Validators.required],
     });
 

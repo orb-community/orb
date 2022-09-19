@@ -34,8 +34,23 @@
                        data-orb-qa-id="name"
                        fieldSize="medium"
                        fullWidth="true"
+                       [status]="firstFormGroup?.controls.name.touched ? (!firstFormGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                        formControlName="name"
                        nbInput/>
+                <ng-container
+                       *ngIf="firstFormGroup.controls?.name.invalid
+             && (firstFormGroup.controls?.name.dirty)"
+                       class="required">
+                   <div *ngIf="firstFormGroup.controls?.name.errors?.required" class="caption status-danger mb-1">
+                       Name is required.
+                   </div>
+                   <div *ngIf="firstFormGroup.controls?.name.errors?.pattern" class="caption status-danger mb-1">
+                       Name does not match the pattern.
+                   </div>
+                   <div *ngIf="firstFormGroup?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
+                       Name must be less than {{firstFormGroup.controls.name.errors?.maxlength.requiredLength}} characters
+                   </div>
+               </ng-container>
               </div>
             </nb-form-field>
             <hr/>
@@ -46,8 +61,17 @@
               <input data-orb-qa-id="description"
                      fieldSize="medium"
                      formControlName="description"
+                     [status]="firstFormGroup?.controls.description.touched ? (!firstFormGroup.controls.description.valid  ? 'danger' : 'success') : 'basic'"
                      fullWidth="true"
                      nbInput/>
+              <ng-container
+                     *ngIf="firstFormGroup.controls?.description.invalid
+           && (firstFormGroup.controls?.description.dirty)"
+                     class="required">
+                 <div *ngIf="firstFormGroup?.controls.description.errors?.maxlength" class="caption status-danger mb-1">
+                     Description must be less than {{firstFormGroup.controls.description.errors?.maxlength.requiredLength}} characters
+                 </div>
+             </ng-container>
             </nb-form-field>
             <hr/>
             <nb-form-field>
@@ -60,6 +84,7 @@
                          data-orb-qa-id="backend"
                          formControlName="backend"
                          fullWidth="true"
+                         [status]="firstFormGroup?.controls.backend.touched ? (!firstFormGroup.controls.backend.valid  ? 'danger' : 'success') : 'basic'"
                          placeholder="Select backend type"
                          size="medium"
               >

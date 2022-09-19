@@ -93,12 +93,12 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
       name,
       description,
       id,
-      tags,
       backend,
     } = this.policy;
 
     // get values from all modified sections' forms and submit through service.
     const policyDetails = this.detailsComponent.formGroup?.value;
+    const tags = this.detailsComponent.selectedTags;
     const policyInterface = this.interfaceComponent.code;
 
     // trying to work around rest api

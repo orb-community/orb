@@ -74,8 +74,10 @@ func (a *orbAgent) handleAgentPolicies(ctx context.Context, rpc []fleet.AgentPol
 }
 
 func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Message) {
-	handleMsgCtx, handleMsgCtxCancelFunc := context.WithCancel(context.WithValue(context.Background(), "routine", "group_fromCore_rpc_handler"))
+	handleMsgCtx, handleMsgCtxCancelFunc := a.extendContext("handleGroupRPCFromCore")
+	a.rpcFromCancelFunc = handleMsgCtxCancelFunc
 	go func(ctx context.Context, cancelFunc context.CancelFunc) {
+		defer cancelFunc()
 		a.logger.Debug("Group RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 		var rpc fleet.RPC
 		if err := json.Unmarshal(message.Payload(), &rpc); err != nil {
@@ -101,7 +103,9 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 			}
 			a.handleAgentPolicies(ctx, r.Payload, r.FullList)
 			a.logger.Debug("received agent policies, marking success")
-			a.policyRequestSucceeded <- true
+			if a.policyRequestSucceeded != nil {
+				a.policyRequestSucceeded()
+			}
 		case fleet.GroupRemovedRPCFunc:
 			var r fleet.GroupRemovedRPC
 			if err := json.Unmarshal(message.Payload(), &r); err != nil {
@@ -190,7 +194,6 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			a.logger.Error("error decoding RPC message from core", zap.Error(fleet.ErrSchemaMalformed))
 			return
 		}
-
 		// dispatch
 		switch rpc.Func {
 		case fleet.GroupMembershipRPCFunc:
@@ -201,7 +204,9 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			}
 			a.handleGroupMembership(r.Payload)
 			a.logger.Debug("received group membership, marking success")
-			a.groupRequestSucceeded <- true
+			if a.groupRequestSucceeded != nil {
+				a.groupRequestSucceeded()
+			}
 		case fleet.AgentPolicyRPCFunc:
 			var r fleet.AgentPolicyRPC
 			if err := json.Unmarshal(message.Payload(), &r); err != nil {
@@ -210,7 +215,9 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 			}
 			a.handleAgentPolicies(ctx, r.Payload, r.FullList)
 			a.logger.Debug("received agent policies, marking success")
-			a.policyRequestSucceeded <- true
+			if a.policyRequestSucceeded != nil {
+				a.policyRequestSucceeded()
+			}
 		case fleet.AgentStopRPCFunc:
 			var r fleet.AgentStopRPC
 			if err := json.Unmarshal(message.Payload(), &r); err != nil {

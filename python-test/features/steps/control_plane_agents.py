@@ -1,9 +1,7 @@
-import threading
-
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
     create_tags_set, find_files, threading_wait_until, return_port_to_run_docker_container, validate_json
-from local_agent import run_local_agent_container, run_agent_config_file, get_orb_agent_logs
+from local_agent import run_local_agent_container, run_agent_config_file, get_orb_agent_logs, get_logs_and_check
 from control_plane_agent_groups import return_matching_groups, tags_to_match_k_groups
 from behave import given, then, step
 from hamcrest import *
@@ -33,8 +31,8 @@ def check_if_agents_exist(context, orb_tags, status):
     existing_agents = get_agent(token, agent_id)
     assert_that(len(existing_agents), greater_than(0), "Agent not created")
     timeout = 30
-    agent_status, context.agent = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
     logs = get_orb_agent_logs(context.container_id)
+    agent_status, context.agent = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'. \n"
                 f"Agent: {json.dumps(context.agent, indent=4)}. \n Logs: {logs}")
@@ -151,7 +149,9 @@ def list_groups_matching_an_agent(context, amount_of_groups):
                 f"Agent: {json.dumps(context.agent, indent=4)} \n\n"
                 f"Agent Logs: {logs}.")
     assert_that(sorted(context.list_groups_id), equal_to(sorted(context.groups_matching_id)),
-                "Groups matching the agent is not the same as the created by test process")
+                "Groups matching the agent is not the same as the created by test process  \n"
+                f"Agent: {json.dumps(context.agent, indent=4)} \n\n"
+                f"Agent Logs: {logs}.")
 
 
 @step("edit the orb tags on agent and use {orb_tags} orb tag(s)")
@@ -232,22 +232,42 @@ def check_agent_exists_on_backend(token, agent_name, event=None):
     return agent, event.is_set()
 
 
-@step("an agent is self-provisioned via a configuration file on port {port} with {agent_tags} agent tags and has "
+@step("an agent is {provision} via a configuration file on port {port} with {agent_tags} agent tags and has "
       "status {status}")
-def provision_agent_using_config_file(context, port, agent_tags, status):
-    agent_name = f"{agent_name_prefix}{random_string(10)}"
+def provision_agent_using_config_file(context, provision, port, agent_tags, status):
+    assert_that(provision, any_of(equal_to("self-provisioned"), equal_to("provisioned")), "Unexpected provision attribute")
+    if provision == "provisioned":
+        auto_provision = "false"
+        orb_cloud_mqtt_id = context.agent['id']
+        orb_cloud_mqtt_key = context.agent['key']
+        orb_cloud_mqtt_channel_id = context.agent['channel_id']
+        agent_name = context.agent['name']
+    else:
+        auto_provision = "true"
+        orb_cloud_mqtt_id = None
+        orb_cloud_mqtt_key = None
+        orb_cloud_mqtt_channel_id = None
+        agent_name = f"{agent_name_prefix}{random_string(10)}"
     interface = configs.get('orb_agent_interface', 'mock')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
     port = return_port_to_run_docker_container(context, True)
-    context.agent_file_name = create_agent_config_file(context.token, agent_name, interface,
-                                                       agent_tags, orb_url, base_orb_address, port,
-                                                       context.agent_groups)
+    context.agent_file_name, tags_on_agent = create_agent_config_file(context.token, agent_name, interface,
+                                                                      agent_tags, orb_url, base_orb_address, port,
+                                                                      context.agent_groups, auto_provision,
+                                                                      orb_cloud_mqtt_id,
+                                                                      orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id)
     context.container_id = run_agent_config_file(agent_name)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(port)
+    log = f"web server listening on localhost:{port}"
+    agent_started, logs = get_logs_and_check(context.container_id, log, element_to_check="log")
+    assert_that(agent_started, equal_to(True), f"Log {log} not found on agent logs. Agent Name: {agent_name}.\n"
+                                               f"Logs:{logs}")
     context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=10)
-    logs = get_orb_agent_logs(context.container_id)
+    context.agent, are_tags_correct = get_agent_tags(context.token, context.agent['id'], tags_on_agent)
+    assert_that(are_tags_correct, equal_to(True), f"Agent tags created does not match with the required ones. Agent:"
+                                                  f"{context.agent}. Tags that would be present: {tags_on_agent}")
     assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found. Logs: {logs}")
     assert_that(context.agent, is_not(None), f"Agent {agent_name} not correctly created. Logs: {logs}")
     agent_id = context.agent['id']
@@ -315,7 +335,6 @@ def get_agent(token, agent_id, status_code=200):
     :param (int) status_code: status code that must be returned on response
     :returns: (dict) the fetched agent
     """
-
 
     get_agents_response = requests.get(orb_url + '/api/v1/agents/' + agent_id,
                                        headers={'Authorization': f'Bearer {token}'})
@@ -485,7 +504,8 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
 
 
 def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, port,
-                             existing_agent_groups):
+                             existing_agent_groups, auto_provision="true", orb_cloud_mqtt_id=None,
+                             orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None):
     """
     Create a file .yaml with configs of the agent that will be provisioned
 
@@ -497,8 +517,15 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     :param (str) base_orb_address: base orb url address
     :param (str) port: port on which agent must run.
     :param (dict) existing_agent_groups: all agent groups available
+    :param (str) auto_provision: if true auto_provision the agent. If false, provision an agent already existent on orb
+    :param (str) orb_cloud_mqtt_id: agent mqtt id.
+    :param (str) orb_cloud_mqtt_key: agent mqtt key.
+    :param (str) orb_cloud_mqtt_channel_id: agent mqtt channel id.
     :return: path to the directory where the agent config file was created
     """
+    assert_that(auto_provision, any_of(equal_to("true"), equal_to("false")), "Unexpected value for auto_provision "
+                                                                             "on agent config file creation")
+
     if re.match(r"matching (\d+|all|the) group*", agent_tags):
         amount_of_group = re.search(r"(\d+|all|the)", agent_tags).groups()[0]
         all_used_tags = tags_to_match_k_groups(token, amount_of_group, existing_agent_groups)
@@ -508,10 +535,17 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     if configs.get('ignore_ssl_and_certificate_errors', 'true').lower() == 'true':
         mqtt_url = f"{base_orb_address}:1883"
         agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, mqtt_url,
-                                                                     tls_verify="false")
+                                                                     tls_verify="false", auto_provision=auto_provision,
+                                                                     orb_cloud_mqtt_id=orb_cloud_mqtt_id,
+                                                                     orb_cloud_mqtt_key=orb_cloud_mqtt_key,
+                                                                     orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id)
     else:
         mqtt_url = "tls://" + base_orb_address + ":8883"
-        agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, mqtt_url)
+        agent_config_file = FleetAgent.config_file_of_agent_tap_pcap(agent_name, token, iface, orb_url, mqtt_url,
+                                                                     auto_provision=auto_provision,
+                                                                     orb_cloud_mqtt_id=orb_cloud_mqtt_id,
+                                                                     orb_cloud_mqtt_key=orb_cloud_mqtt_key,
+                                                                     orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)
     agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
@@ -519,7 +553,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     dir_path = configs.get("local_orb_path")
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file)
-    return agent_name
+    return agent_name, tags
 
 
 @threading_wait_until
@@ -543,3 +577,22 @@ def check_datasets_for_policy(token, agent_id, list_agent_policies_id, amount_of
         event.set()
         return dataset_ok, agent
     return dataset_ok, agent
+
+
+@threading_wait_until
+def get_agent_tags(token, agent_id, expected_tags, event=None):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: that identifies the agent to be checked
+    :param (dict) expected_tags: agent tags expected to be on agent
+    :param (obj) event: threading.event
+    :return: agent data, if the tags were found
+    """
+    agent = get_agent(token, agent_id)
+    expected_tags_insensitive = {k.lower(): v for k, v in expected_tags['tags'].items()}
+    if set(agent['agent_tags']) == set(expected_tags_insensitive):
+        event.set()
+    else:
+        event.wait(1)
+    return agent, event.is_set()

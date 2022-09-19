@@ -61,6 +61,7 @@ import { MessageValuePipe } from './pipes/message-value.pipe';
 import { PrettyYamlPipe } from './pipes/pretty-yaml.pipe';
 import { ToMillisecsPipe } from './pipes/time.pipe';
 import { PollControlComponent } from './components/poll-control/poll-control.component';
+import {EmptyInputDirective} from 'app/shared/directives/empty-input.directive';
 
 @NgModule({
   imports: [
@@ -126,6 +127,7 @@ import { PollControlComponent } from './components/poll-control/poll-control.com
     SortPipe,
     FilterComponent,
     PollControlComponent,
+    EmptyInputDirective,
   ],
   exports: [
     ThemeModule,
@@ -160,6 +162,7 @@ import { PollControlComponent } from './components/poll-control/poll-control.com
     SortPipe,
     FilterComponent,
     PollControlComponent,
+    EmptyInputDirective,
   ],
   providers: [
     MessageValuePipe,

@@ -52,8 +52,8 @@
 </ng-template>
 
 <ng-template #sinksTemplateCell let-i="index" let-row="row" let-value="value">
-    <div *ngFor="let sink of value; last as isLast" class="d-inline-flex">
+    <ng-container *ngFor="let sink of value; last as isLast" class="d-inline-flex">
         <button (click)="onOpenSinkDetails(sink)"
                 class="edit-dataset-button">{{ sink?.name }}{{ isLast ? '' : ', '}}</button>
-    </div>
+    </ng-container>
 </ng-template>

@@ -35,7 +35,7 @@ import (
 )
 
 const (
-	defaulHTTPClientTimeout = 30 * time.Second
+	defaulHTTPClientTimeout = 10 * time.Second
 	defaultUserAgent        = "orb-promremote-go/1.0.0"
 )
 
@@ -243,9 +243,9 @@ func (c *client) WriteProto(
 
 	defer resp.Body.Close()
 
-	if result.StatusCode/100 != 2 {
+	if result.StatusCode < 200 || result.StatusCode > 299 {
 		writeErr := writeError{
-			err:  fmt.Errorf("expected HTTP 200 status code: actual=%d", resp.StatusCode),
+			err:  fmt.Errorf("expected 2xx status code: actual=%d", resp.StatusCode),
 			code: result.StatusCode,
 		}
 

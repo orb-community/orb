@@ -41,6 +41,13 @@ def run_local_agent_container(context, status_port):
                                                context.agent['name'][-5:])
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
+    if availability[status_port]:
+        log = f"web server listening on localhost:{context.port}"
+    else:
+        log = f"unable to bind to localhost:{context.port}"
+    agent_started, logs = get_logs_and_check(context.container_id, log, element_to_check="log")
+    assert_that(agent_started, equal_to(True), f"Log {log} not found on agent logs. Agent Name: {context.agent['name']}."
+                                               f"\n Logs:{logs}")
 
 
 @step('the container logs that were output after {condition} contain the message "{text_to_match}" within'
@@ -67,10 +74,18 @@ def check_errors_on_agent_logs(context, type_of_message):
 
 
 @then('the container logs should contain the message "{text_to_match}" within {time_to_wait} seconds')
-def check_agent_log(context, text_to_match, time_to_wait):
+def check_agent_msg_in_logs(context, text_to_match, time_to_wait):
     text_found, logs = get_logs_and_check(context.container_id, text_to_match, timeout=time_to_wait)
 
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
+                                       f"Container logs: {json.dumps(logs, indent=4)}")
+
+
+@then('the container logs should contain "{error_log}" as log within {time_to_wait} seconds')
+def check_agent_log_in_logs(context, error_log, time_to_wait):
+    error_log = error_log.replace(":port", f":{context.port}")
+    text_found, logs = get_logs_and_check(context.container_id, error_log, element_to_check="log", timeout=time_to_wait)
+    assert_that(text_found, is_(True), f"Log {error_log} was not found in the agent logs!. \n\n"
                                        f"Container logs: {json.dumps(logs, indent=4)}")
 
 
@@ -84,16 +99,12 @@ def check_last_container_status(context, order, status, seconds):
 
 
 @step("{order} container created is {status} after {seconds} seconds")
-def check_last_container_status(context, order, status, seconds):
+def check_last_container_status_after_time(context, order, status, seconds):
     event = threading.Event()
     event.wait(int(seconds))
     event.set()
     if event.is_set() is True:
-        order_convert = {"first": 0, "last": -1, "second": 1}
-        container = list(context.containers_id.keys())[order_convert[order]]
-        container_status = check_container_status(container, status, timeout=seconds)
-        assert_that(container_status, equal_to(status), f"Container {context.container_id} failed with status"
-                                                        f"{container_status}")
+        check_last_container_status(context, order, status, seconds)
 
 
 @step("the agent container is started using the command provided by the UI on an {status_port} port")
@@ -107,6 +118,14 @@ def run_container_using_ui_command(context, status_port):
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + context.agent['name'][-5:])
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
+
+
+@step(
+    "the agent container is started using the command provided by the UI without {parameter_to_remove} on an {"
+    "status_port} port")
+def run_container_using_ui_command_without_restart(context, parameter_to_remove, status_port):
+    context.agent_provisioning_command = context.agent_provisioning_command.replace(f"{parameter_to_remove} ", "")
+    run_container_using_ui_command(context, status_port)
 
 
 @step("stop the orb-agent container")
@@ -194,6 +213,34 @@ def check_logs_contain_message(logs, expected_message, event, start_time=0):
     return event.is_set()
 
 
+def check_logs_contain_log(logs, expected_log, event, start_time=0):
+    """
+    Check if the logs from Orb agent container contain specific log
+
+    :param (list) logs: list of log lines
+    :param (str) expected_log: log that we expect to find in the logs
+    :param (obj) event: threading.event
+    :param (int) start_time: time to be considered as initial time. Default: None
+    :returns: (bool) whether expected message was found in the logs
+    """
+
+    for log_line in logs:
+        log_line = safe_load_json(log_line)
+
+        if log_line is not None and "log" in log_line.keys() and expected_log in log_line['log'] and isinstance(
+                log_line['ts'], int) and \
+                log_line['ts'] > start_time:
+            event.set()
+            return event.is_set()
+        elif log_line is not None and "log" in log_line.keys() and expected_log in log_line['log'] and isinstance(
+                log_line['ts'], str) and \
+                datetime.timestamp(ciso8601.parse_datetime(log_line['ts'])) > start_time:
+            event.set()
+            return event.is_set()
+
+    return event.is_set()
+
+
 def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pktvisor_port):
     """
     :param (str) command: docker command to provision an agent
@@ -253,17 +300,22 @@ def check_container_status(container_id, status, event=None):
 
 
 @threading_wait_until
-def get_logs_and_check(container_id, expected_message, start_time=0, event=None):
+def get_logs_and_check(container_id, expected_message, start_time=0, element_to_check="msg", event=None):
     """
 
     :param container_id: agent container ID
     :param (str) expected_message: message that we expect to find in the logs
     :param (int) start_time: time to be considered as initial time. Default: None
+    :param element_to_check: Part of the log to be validated. Options: "msg" and "log". Default: "msg".
     :param (obj) event: threading.event
     :return: (bool) if the expected message is found return True, if not, False
     """
+    assert_that(element_to_check, any_of(equal_to("msg"), equal_to("log")), "Unexpected value for element to check.")
     logs = get_orb_agent_logs(container_id)
-    text_found = check_logs_contain_message(logs, expected_message, event, start_time)
+    if element_to_check == "msg":
+        text_found = check_logs_contain_message(logs, expected_message, event, start_time)
+    else:
+        text_found = check_logs_contain_log(logs, expected_message, event, start_time)
     return text_found, logs
 
 

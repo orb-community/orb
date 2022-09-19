@@ -88,7 +88,6 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if sink.Backend != "" || sink.Error != "" {
 		return Sink{}, errors.ErrUpdateEntity
 	}
-
 	sink.MFOwnerID = skOwnerID
 	sink, err = svc.encryptMetadata(sink)
 	if err != nil {
@@ -98,8 +97,11 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if err != nil {
 		return Sink{}, err
 	}
-
 	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	if err != nil {
+		return Sink{}, err
+	}
+	sinkEdited, err = svc.decryptMetadata(sinkEdited)
 	if err != nil {
 		return Sink{}, err
 	}

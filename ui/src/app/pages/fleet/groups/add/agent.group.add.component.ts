@@ -127,10 +127,15 @@ export class AgentGroupAddComponent
 
     this.firstFormGroup = this._formBuilder.group({
       name: [
-        name,
-        [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')],
+        name, [
+            Validators.required,
+            Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'),
+            Validators.maxLength(64),
+        ],
       ],
-      description: [description],
+      description: [description, [
+          Validators.maxLength(64),
+      ]],
     });
   }
 
@@ -139,22 +144,22 @@ export class AgentGroupAddComponent
       {
         prop: 'name',
         name: 'Agent Name',
-        flexGrow: 2,
+        flexGrow: 3,
         canAutoResize: true,
         resizeable: false,
-        minWidth: 90,
-        width: 120,
-        maxWidth: 200,
+        minWidth: 300,
+        width: 450,
+        maxWidth: 700,
       },
       {
         prop: 'combined_tags',
         name: 'Tags',
-        flexGrow: 6,
+        flexGrow: 3,
         resizeable: false,
         canAutoResize: true,
         minWidth: 300,
         width: 450,
-        maxWidth: 1000,
+        maxWidth: 700,
         cellTemplate: this.agentTagsTemplateCell,
         comparator: (a, b) =>
           Object.entries(a)
@@ -170,23 +175,9 @@ export class AgentGroupAddComponent
         prop: 'state',
         name: 'Status',
         flexGrow: 1,
-        canAutoResize: true,
         resizeable: false,
-        minWidth: 90,
-        maxWidth: 150,
+        width: 120,
         cellTemplate: this.agentStateTemplateRef,
-      },
-      {
-        name: 'Last Activity',
-        prop: 'ts_last_hb',
-        cellTemplate: this.agentLastHBTemplateRef,
-        flexGrow: 2,
-        resizeable: false,
-        canAutoResize: true,
-        minWidth: 180,
-        width: 250,
-        maxWidth: 400,
-        sortable: false,
       },
     ];
   }

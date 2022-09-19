@@ -37,10 +37,13 @@
                        nbInput/>
                 <ng-container *ngIf="firstFormGroup?.controls.name.touched && !firstFormGroup.controls.name.valid">
                   <p *ngIf="!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
-                    Agent name is required!
+                    Name is required!
                   </p>
-                  <p *ngIf="!!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
-                    Agent name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
+                  <p *ngIf="!!firstFormGroup.controls.name.errors?.pattern" class="caption status-danger mb-1">
+                    Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
+                  </p>
+                  <p *ngIf="firstFormGroup?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
+                    Name must be less than {{firstFormGroup.controls.name.errors?.maxlength.requiredLength}} characters
                   </p>
                 </ng-container>
               </div>

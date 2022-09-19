@@ -10,6 +10,7 @@ import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface
 import { NbDialogService } from '@nebular/theme';
 import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
 import { STRINGS } from '../../../../../assets/text/strings';
+import { Tags } from 'app/common/interfaces/orb/tag';
 
 const CONFIG = {
   TAPS: 'TAPS',
@@ -127,6 +128,8 @@ kind: collection`;
       return acc;
     }, {}) as { [propName: string]: boolean };
 
+  selectedTags: Tags;
+
   constructor(
     private agentPoliciesService: AgentPoliciesService,
     private notificationsService: NotificationsService,
@@ -199,6 +202,7 @@ kind: collection`;
       description,
       backend,
       policy_data,
+      tags,
       policy: {
         input: {
           tap,
@@ -213,13 +217,19 @@ kind: collection`;
     if (policy_data) {
       this.code = policy_data;
     }
-
+    this.selectedTags = { ...tags };
     this.modules = modules;
 
     this.detailsFG = this._formBuilder.group({
-      name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$')]],
-      description: [description],
-      backend: [{ value: backend, disabled: backend !== '' }, [Validators.required]],
+      name: [name, [
+          Validators.required,
+          Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'),
+          Validators.maxLength(64),
+      ]],
+      description: [description, [
+        Validators.maxLength(64),
+      ]],
+      backend: [{ backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFG = this._formBuilder.group({
       selected_tap: [tap, Validators.required],
@@ -423,7 +433,7 @@ kind: collection`;
     this.modules[name] = ({
       type,
       config,
-      ...(filter !== undefined && filter.length > 0) && filter,
+      filter,
     });
 
   }
@@ -462,14 +472,14 @@ kind: collection`;
       name: this.detailsFG.controls.name.value,
       description: this.detailsFG.controls.description.value,
       backend: this.detailsFG.controls.backend.value,
-      tags: {},
+      tags: { ...this.selectedTags },
       version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
       policy: {
         kind: 'collection',
         input: {
           tap: this.tap.name,
           input_type: this.tapFG.controls.input_type.value,
-          ...Object.entries(this.inputConfigFG.controls)
+          ...Object.entries(this.inputConfigFG?.controls || {})
             .map(([key, control]) => ({ [key]: control.value }))
             .reduce((acc, curr) => {
               for (const [key, value] of Object.entries(curr)) {
@@ -477,7 +487,7 @@ kind: collection`;
               }
               return acc;
             }, { config: {} }),
-          ...Object.entries(this.inputFilterFG.controls)
+          ...Object.entries(this.inputFilterFG?.controls || {})
             .map(([key, control]) => ({ [key]: control.value }))
             .reduce((acc, curr) => {
               for (const [key, value] of Object.entries(curr)) {
