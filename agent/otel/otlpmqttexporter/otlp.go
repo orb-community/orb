@@ -92,7 +92,6 @@ func (e *exporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
 // pushMetrics Exports metrics
 func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewRequestFromMetrics(md)
-	e.logger.Info("DEBUG logging md", zap.Any("metrics", md.ResourceMetrics()))
 	request, err := tr.MarshalProto()
 	if err != nil {
 		return consumererror.NewPermanent(err)
