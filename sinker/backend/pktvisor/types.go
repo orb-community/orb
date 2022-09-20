@@ -177,16 +177,16 @@ type FlowPayload struct {
 			SrcIpsIn      int64 `mapstructure:"src_ips_in"`
 			SrcPortsIn    int64 `mapstructure:"src_ports_in"`
 		} `mapstructure:"cardinality"`
-		Filtered                int64       `mapstructure:"filtered"`
-		Flows                   int64       `mapstructure:"flows"`
+		RecordsFiltered         int64       `mapstructure:"records_filtered"`
 		Ipv4                    int64       `mapstructure:"ipv4"`
 		Ipv6                    int64       `mapstructure:"ipv6"`
 		OtherL4                 int64       `mapstructure:"other_l4"`
-		PayloadSize             Quantiles   `mapstructure:"payload_size"`
 		TCP                     int64       `mapstructure:"tcp"`
 		UDP                     int64       `mapstructure:"udp"`
-		TopGeoLoc               []NameCount `mapstructure:"top_geoLoc"`
-		TopASN                  []NameCount `mapstructure:"top_asn"`
+		TopGeoLocBytes          []NameCount `mapstructure:"top_geoLoc_bytes"`
+		TopGeoLocPackets        []NameCount `mapstructure:"top_geoLoc_packets"`
+		TopAsnBytes             []NameCount `mapstructure:"top_ASN_bytes"`
+		TopAsnPackets           []NameCount `mapstructure:"top_ASN_packets"`
 		TopDstIpsAndPortBytes   []NameCount `mapstructure:"top_dst_ips_and_port_bytes"`
 		TopDstIpsAndPortPackets []NameCount `mapstructure:"top_dst_ips_and_port_packets"`
 		TopDstIpsBytes          []NameCount `mapstructure:"top_dst_ips_bytes"`
@@ -205,22 +205,12 @@ type FlowPayload struct {
 		TopSrcIpsPackets        []NameCount `mapstructure:"top_src_ips_packets"`
 		TopSrcPortsBytes        []NameCount `mapstructure:"top_src_ports_bytes"`
 		TopSrcPortsPackets      []NameCount `mapstructure:"top_src_ports_packets"`
-		Total                   int64       `mapstructure:"total"`
+		RecordsTotal            int64       `mapstructure:"records_total"`
 		Udp                     int64       `mapstructure:"udp"`
 	} `mapstructure:"devices"`
-	DeepSamples int64         `mapstructure:"deep_samples"`
-	Events      int64         `mapstructure:"events"`
-	Filtered    int64         `mapstructure:"filtered"`
-	Total       int64         `mapstructure:"total"`
-	Period      PeriodPayload `mapstructure:"period"`
-	Rates       struct {
-		Bytes   Rates `mapstructure:"bytes"`
-		Packets Rates `mapstructure:"packets"`
-		Events  Rates `mapstructure:"events"`
-	} `mapstructure:"rates"`
-	Volume struct {
-		Bytes Quantiles `mapstructure:"bytes"`
-	} `mapstructure:"volume"`
+	RecordsFiltered int64         `mapstructure:"records_filtered"`
+	RecordsTotal    int64         `mapstructure:"records_total"`
+	Period          PeriodPayload `mapstructure:"period"`
 }
 
 // StatSnapshot is a snapshot of a given period from pktvisord
