@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/metrics"
+	"go.opentelemetry.io/collector/config"
 	"go.uber.org/zap"
 	"sync"
 
@@ -57,6 +58,7 @@ func NewOrbReceiver(ctx context.Context, cfg *Config, settings component.Receive
 // Start appends the message channel that Orb-Sinker will deliver the message
 func (r *OrbReceiver) Start(ctx context.Context, _ component.Host) error {
 	r.ctx, r.cancelFunc = context.WithCancel(ctx)
+
 	r.encoder = pbEncoder
 	return nil
 }
@@ -80,6 +82,7 @@ func (r *OrbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 		r.cfg.Logger.Warn("error context is nil, using background")
 		r.ctx = context.Background()
 	}
+	r.metricsReceiver = metrics.New(config.NewComponentIDWithName("otlp", "metrics"), mc, r.settings)
 	otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
 	if err := r.cfg.PubSub.Subscribe(otelTopic, r.MessageInbound); err != nil {
 		return err
@@ -98,7 +101,6 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
 		r.cfg.Logger.Info("received metric message, pushing to exporter")
-		r.cfg.Logger.Info("DEBUG logging md", zap.ByteString("metrics", msg.Payload))
 		mr, err := r.encoder.unmarshalMetricsRequest(msg.Payload)
 		if err != nil {
 			r.cfg.Logger.Error("error during unmarshalling, skipping message", zap.Error(err))
