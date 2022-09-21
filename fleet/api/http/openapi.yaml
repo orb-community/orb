@@ -344,6 +344,27 @@ paths:
           description: A non-existent entity request.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /agent/{id}/rpc/reset:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/AgentId"
+    post:
+      summary: 'Request for reset agent remotely'
+      operationId: resetAgent
+      tags:
+        - agents
+      responses:
+        '200':
+          description: Agent was successful resquested to reset
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
+
 components:
   requestBodies:
     AgentGroupCreateReq:
