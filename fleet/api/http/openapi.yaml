@@ -427,9 +427,10 @@ components:
       name: Authorization
       description: User's access token.
       in: header
-      schema:
-        type: string
-        format: jwt
+      bearerAuth:
+        scheme: bearer
+        type: http
+        format: JWT
       required: true
     AgentGroupId:
       name: id
