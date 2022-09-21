@@ -77,11 +77,13 @@ type sinkerService struct {
 
 func (svc sinkerService) Start() error {
 	svc.asyncContext, svc.cancelAsyncContext = context.WithCancel(context.WithValue(context.Background(), "routine", "async"))
-	topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
-	if err := svc.pubSub.Subscribe(topic, svc.handleMsgFromAgent); err != nil {
-		return err
+	if !svc.otel {
+		topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
+		if err := svc.pubSub.Subscribe(topic, svc.handleMsgFromAgent); err != nil {
+			return err
+		}
+		svc.logger.Info("started metrics consumer", zap.String("topic", topic))
 	}
-	svc.logger.Info("started metrics consumer", zap.String("topic", topic))
 
 	svc.hbTicker = time.NewTicker(CheckerFreq)
 	svc.hbDone = make(chan bool)
