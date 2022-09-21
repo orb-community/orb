@@ -1,4 +1,4 @@
-version: '2.1'
+version: "3.7"
 services:
   # Collector
   otel-collector:
@@ -37,7 +37,7 @@ services:
       ORB_FLEET_GRPC_TIMEOUT: ${ORB_FLEET_GRPC_TIMEOUT}
       ORB_SINKS_GRPC_URL: ${ORB_SINKS_GRPC_URL}
       ORB_SINKS_GRPC_TIMEOUT: ${ORB_SINKS_GRPC_TIMEOUT}
-      ORB_SINKER_OTEL_ENABLE: true
+      ORB_SINKER_OTEL_ENABLE: "true"
     networks:
       - orb-base-net
 networks:
