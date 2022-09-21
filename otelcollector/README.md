@@ -1,3 +1,26 @@
+# OTel in Orb
+
+## Getting Started
+
+### Before you get started
+Make sure your .env files, with variables of Mainflux and Orb values are in the project root directory
+
+### Building OpenTelemetry Collector Contrib
+To use the otel-collector standard, you must download the image or build your own with the main repository for opentelemetry-collector-contrib
+Use [this link](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/examples/demo#using-a-locally-built-image) to check how to do it following the main branch
+
+### Building orb
+
+```shell
+make dockers run-otel
+```
+
+### Stopping orb
+
+```shell
+make stop-otel
+```
+
 ## Diagrams
 
 
