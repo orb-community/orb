@@ -1,4 +1,4 @@
-# OTel in Orb
+# OTel in Orb MVP
 
 ## Getting Started
 
