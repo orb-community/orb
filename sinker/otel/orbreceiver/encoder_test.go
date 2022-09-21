@@ -7,6 +7,9 @@ import (
 )
 
 func Test_decodeTestDataFiles(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping because this test is supposed to run locally not in build")
+	}
 	dir := "/home/lpegoraro/workspace/orb/sinker/otel/orbreceiver/testdata"
 	files, err := os.ReadDir(dir)
 	if err != nil {
