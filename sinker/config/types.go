@@ -10,14 +10,15 @@ import (
 )
 
 type SinkConfig struct {
-	SinkID          string          `json:"sink_id"`
-	OwnerID         string          `json:"owner_id"`
-	Url             string          `json:"remote_host"`
-	User            string          `json:"username"`
-	Password        string          `json:"password"`
-	State           PrometheusState `json:"state,omitempty"`
-	Msg             string          `json:"msg,omitempty"`
-	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
+	SinkID          string            `json:"sink_id"`
+	OwnerID         string            `json:"owner_id"`
+	Url             string            `json:"remote_host"`
+	User            string            `json:"username"`
+	Password        string            `json:"password"`
+	State           PrometheusState   `json:"state,omitempty"`
+	Msg             string            `json:"msg,omitempty"`
+	LastRemoteWrite time.Time         `json:"last_remote_write,omitempty"`
+	OtelConfig      OtelConfiguration `json:"otel,omitempty"`
 }
 
 const (
@@ -28,6 +29,10 @@ const (
 )
 
 type PrometheusState int
+
+type OtelConfiguration struct {
+	Enable bool
+}
 
 var promStateMap = [...]string{
 	"unknown",

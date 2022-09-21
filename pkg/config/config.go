@@ -28,6 +28,10 @@ type NatsConfig struct {
 	ConsumerCfgPath string `mapstructure:"config_path"`
 }
 
+type OtelConfig struct {
+	Enable string `mapstructure:"enable"`
+}
+
 type CacheConfig struct {
 	URL  string `mapstructure:"url"`
 	Pass string `mapstructure:"pass"`
@@ -93,6 +97,19 @@ func LoadNatsConfig(prefix string) NatsConfig {
 	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
 	var nC NatsConfig
+	cfg.Unmarshal(&nC)
+
+	return nC
+}
+
+func LoadOtelConfig(prefix string) OtelConfig {
+	cfg := viper.New()
+	cfg.SetEnvPrefix(fmt.Sprintf("%s_otel", prefix))
+
+	cfg.SetDefault("enable", "false")
+	cfg.AllowEmptyEnv(true)
+	cfg.AutomaticEnv()
+	var nC OtelConfig
 	cfg.Unmarshal(&nC)
 
 	return nC

@@ -134,6 +134,7 @@ func New(logger *zap.Logger,
 	policiesClient policiespb.PolicyServiceClient,
 	fleetClient fleetpb.FleetServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
+	enableOtel bool,
 	requestGauge metrics.Gauge,
 	requestCounter metrics.Counter,
 	inputCounter metrics.Counter,
@@ -151,7 +152,7 @@ func New(logger *zap.Logger,
 		requestGauge:        requestGauge,
 		requestCounter:      requestCounter,
 		messageInputCounter: inputCounter,
-		otel:                true,
+		otel:                enableOtel,
 	}
 }
 
