@@ -30,3 +30,5 @@ ui/src/environments/environment.env.ts
 
 python-test/behave_orb
 test_agent_name*
+docker/otel-collector-config.yaml
+!docker/otel-collector-config.yaml.tpl
