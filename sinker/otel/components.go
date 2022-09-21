@@ -29,7 +29,8 @@ func StartOtelComponents(ctx context.Context, logger *zap.Logger, pubSub mfnats.
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
 	expCfg := exporterFactory.CreateDefaultConfig().(*kafkaexporter.Config)
-	expCfg.Brokers = []string{"kafka1:9092"}
+	expCfg.Brokers = []string{"kafka1:19092"}
+	expCfg.Topic = "otlp_metrics"
 	exporter, err := exporterFactory.CreateMetricsExporter(exporterCtx, exporterCreateSettings, expCfg)
 	if err != nil {
 		log.Error("error on creating exporter", err)
