@@ -29,7 +29,8 @@ type NatsConfig struct {
 }
 
 type OtelConfig struct {
-	Enable string `mapstructure:"enable"`
+	Enable   string `mapstructure:"enable"`
+	KafkaUrl string `mapstructure:"kafka_url"`
 }
 
 type CacheConfig struct {
@@ -107,6 +108,7 @@ func LoadOtelConfig(prefix string) OtelConfig {
 	cfg.SetEnvPrefix(fmt.Sprintf("%s_otel", prefix))
 
 	cfg.SetDefault("enable", "false")
+	cfg.SetDefault("kafka_url", "kafka1:19092")
 	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
 	var nC OtelConfig

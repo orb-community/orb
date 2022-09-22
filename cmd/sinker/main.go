@@ -189,8 +189,9 @@ func main() {
 	}, []string{"method", "agent_id", "subtopic", "channel", "protocol"})
 
 	otelEnabled := otelCfg.Enable == "true"
+	otelKafkaUrl := otelCfg.KafkaUrl
 
-	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, otelEnabled, gauge, counter, inputCounter)
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, otelKafkaUrl, otelEnabled, gauge, counter, inputCounter)
 	defer func(svc sinker.Service) {
 		err := svc.Stop()
 		if err != nil {

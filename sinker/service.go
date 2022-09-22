@@ -18,15 +18,6 @@ import (
 	"github.com/ns1labs/orb/sinker/otel"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
-	promexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
-	"go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/confighttp"
-	"go.opentelemetry.io/collector/config/configtelemetry"
-	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/otel/metric/global"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"time"
 )
@@ -53,6 +44,7 @@ type sinkerService struct {
 	pubSub          mfnats.PubSub
 	otel            bool
 	otelCancelFunct context.CancelFunc
+	otelKafkaUrl    string
 
 	sinkerCache config.ConfigRepo
 	esclient    *redis.Client
@@ -101,7 +93,7 @@ func (svc sinkerService) Start() error {
 func (svc sinkerService) startOtel(ctx context.Context) error {
 	if svc.otel {
 		var err error
-		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, svc.logger, svc.pubSub)
+		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, svc.logger, svc.otelKafkaUrl, svc.pubSub)
 		if err != nil {
 			svc.logger.Error("error during StartOtelComponents", zap.Error(err))
 			return err
@@ -111,14 +103,18 @@ func (svc sinkerService) startOtel(ctx context.Context) error {
 }
 
 func (svc sinkerService) Stop() error {
-	topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
-	if err := svc.pubSub.Unsubscribe(topic); err != nil {
-		return err
+	if svc.otel {
+		otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
+		if err := svc.pubSub.Unsubscribe(otelTopic); err != nil {
+			return err
+		}
+	} else {
+		topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
+		if err := svc.pubSub.Unsubscribe(topic); err != nil {
+			return err
+		}
 	}
-	otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
-	if err := svc.pubSub.Unsubscribe(otelTopic); err != nil {
-		return err
-	}
+
 	svc.logger.Info("unsubscribed from agent metrics")
 
 	svc.hbTicker.Stop()
@@ -136,6 +132,7 @@ func New(logger *zap.Logger,
 	policiesClient policiespb.PolicyServiceClient,
 	fleetClient fleetpb.FleetServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
+	otelKafkaUrl string,
 	enableOtel bool,
 	requestGauge metrics.Gauge,
 	requestCounter metrics.Counter,
@@ -155,49 +152,6 @@ func New(logger *zap.Logger,
 		requestCounter:      requestCounter,
 		messageInputCounter: inputCounter,
 		otel:                enableOtel,
+		otelKafkaUrl:        otelKafkaUrl,
 	}
-}
-
-func createReceiver(ctx context.Context, logger *zap.Logger) (component.MetricsReceiver, error) {
-	receiverFactory := otlpreceiver.NewFactory()
-
-	set := component.ReceiverCreateSettings{
-		TelemetrySettings: component.TelemetrySettings{
-			Logger:         logger,
-			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
-			MetricsLevel:   configtelemetry.LevelDetailed,
-		},
-		BuildInfo: component.BuildInfo{},
-	}
-	metricsReceiver, err := receiverFactory.CreateMetricsReceiver(ctx, set,
-		receiverFactory.CreateDefaultConfig(), consumertest.NewNop())
-	return metricsReceiver, err
-}
-
-func createExporter(ctx context.Context, logger *zap.Logger) (component.MetricsExporter, error) {
-	// 2. Create the Prometheus metrics exporter that'll receive and verify the metrics produced.
-	exporterCfg := &promexporter.Config{
-		ExporterSettings: otelconfig.NewExporterSettings(otelconfig.NewComponentID("pktvisor_prometheus_exporter")),
-		HTTPServerSettings: confighttp.HTTPServerSettings{
-			Endpoint: ":8787",
-		},
-		Namespace:        "test",
-		SendTimestamps:   true,
-		MetricExpiration: 2 * time.Hour,
-	}
-	exporterFactory := promexporter.NewFactory()
-	set := component.ExporterCreateSettings{
-		TelemetrySettings: component.TelemetrySettings{
-			Logger:         logger,
-			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
-		},
-		BuildInfo: component.NewDefaultBuildInfo(),
-	}
-	exporter, err := exporterFactory.CreateMetricsExporter(ctx, set, exporterCfg)
-	if err != nil {
-		return nil, err
-	}
-	return exporter, nil
 }
