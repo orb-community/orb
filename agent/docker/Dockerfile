@@ -17,10 +17,12 @@ RUN mkdir /tmp/build && CGO_ENABLED=1 make agent_bin && mv build/orb-agent /tmp/
 FROM ns1labs/pktvisor:${PKTVISOR_TAG}
 
 RUN mkdir /etc/cloudprober
+
 COPY --from=builder /tmp/build/orb-agent /usr/local/bin/orb-agent
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/agent.yaml /etc/orb/agent.yaml
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/orb-agent-entry.sh /usr/local/bin/orb-agent-entry.sh
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/run-agent.sh /run-agent.sh
+COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/cloudprober.cfg /etc/cloudprober/cloudprober.cfg
 COPY --from=builder /tmp/cloudprober /usr/local/sbin/cloudprober
 
 RUN chmod a+x /run-agent.sh
