@@ -94,9 +94,15 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewRequestFromMetrics(md)
 	request, err := tr.MarshalProto()
 	if err != nil {
+		defer ctx.Done()
 		return consumererror.NewPermanent(err)
 	}
-	return e.export(ctx, e.config.MetricsTopic, request)
+	err = e.export(ctx, e.config.MetricsTopic, request)
+	if err != nil {
+		defer ctx.Done()
+		return err
+	}
+	return err
 }
 
 func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
