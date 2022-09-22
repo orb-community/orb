@@ -5,7 +5,6 @@ from hamcrest import *
 from utils import random_string, create_tags_set
 from page_objects import *
 from control_plane_agent_groups import agent_group_name_prefix, agent_group_description
-from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
@@ -24,20 +23,7 @@ def create_agent_group_through_the_agent_group_page(context, orb_tags):
                                                                                                       "page not "
                                                                                                       "available")
     context.agent_group_name = agent_group_name_prefix + random_string(10)
-    input_text_by_xpath(AgentGroupPage.agent_group_name(), context.agent_group_name, context.driver)
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
-    for tag_key, tag_value in context.orb_tags.items():
-        input_text_by_xpath(AgentGroupPage.agent_group_tag_key(), tag_key, context.driver)
-        input_text_by_xpath(AgentGroupPage.agent_group_tag_value(), tag_value, context.driver)
-        WebDriverWait(context.driver, 3).until(
-            EC.element_to_be_clickable((By.XPATH, AgentGroupPage.agent_group_add_tag_button()))).click()
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
-    WebDriverWait(context.driver, 3).until(
-        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully created'))
+    create_group_via_UI(context.agent_group_name, context.orb_tags, context.driver)
 
 
 @then("the new agent group {condition} shown on the datatable")
@@ -64,20 +50,8 @@ def create_agent_group_with_description_through_the_agent_group_page(context, or
     context.agent_group_name = agent_group_name_prefix + random_string(10)
     input_text_by_xpath(AgentGroupPage.agent_group_name(), context.agent_group_name, context.driver)
     context.agent_group_description = agent_group_description + random_string(10)
+    create_group_via_UI(context.agent_group_name, context.orb_tags, context.driver)
     input_text_by_xpath(AgentGroupPage.agent_group_description(), context.agent_group_description, context.driver)
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
-    for tag_key, tag_value in context.orb_tags.items():
-        input_text_by_xpath(AgentGroupPage.agent_group_tag_key(), tag_key, context.driver)
-        input_text_by_xpath(AgentGroupPage.agent_group_tag_value(), tag_value, context.driver)
-        WebDriverWait(context.driver, 3).until(
-            EC.element_to_be_clickable((By.XPATH, AgentGroupPage.agent_group_add_tag_button()))).click()
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
-    WebDriverWait(context.driver, 3).until(
-        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully created'))
     context.initial_counter = check_total_counter(context.driver)
 
 
@@ -100,7 +74,8 @@ def delete_agent_through_the_agent_group_page(context, orb_tags):
         EC.element_to_be_clickable((By.XPATH, DataTable.plus_button()))).click()
     WebDriverWait(context.driver, 5).until(
         EC.element_to_be_clickable((By.XPATH, DataTable.trash_icon()))).click()
-    input_text_by_xpath(AgentGroupPage.delete_agent_group_confirmation_field(), context.agent_group_name, context.driver)
+    input_text_by_xpath(AgentGroupPage.delete_agent_group_confirmation_field(), context.agent_group_name,
+                        context.driver)
     WebDriverWait(context.driver, 5).until(
         EC.element_to_be_clickable((By.XPATH, AgentGroupPage.delete_agent_group_confirmation_title()))).click()
     WebDriverWait(context.driver, 3).until(
@@ -123,7 +98,6 @@ def check_total_counter(driver):
     WebDriverWait(driver, 3).until(
         EC.presence_of_element_located((By.XPATH, DataTable.page_count())))
     return int(driver.find_element(By.XPATH, DataTable.page_count()).text.split()[0])
-
 
 
 @when("update the agent group using filter by name with {orb_tags} orb tag")
@@ -161,4 +135,24 @@ def update_an_agent_group_by_name_through_the_agent_group_page(context, orb_tags
     context.initial_counter = check_total_counter(context.driver)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, DataTable.close_option_selected()))).click()
-    
+
+
+def create_group_via_UI(name, orb_tags, driver, description=None, time_to_wait_until=5):
+    assert_that(str(driver.current_url), equal_to(f"{orb_url}/pages/fleet/groups/add"), "Not possible to create a "
+                                                                                        "group because the driver is "
+                                                                                        "not on the group add page")
+    input_text_by_xpath(AgentGroupPage.agent_group_name(), name, driver)
+    if description is not None:
+        input_text_by_xpath(AgentGroupPage.agent_group_description(), agent_group_description, driver)
+    WebDriverWait(driver, time_to_wait_until).until(EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
+    for tag_key, tag_value in orb_tags.items():
+        input_text_by_xpath(AgentGroupPage.agent_group_tag_key(), tag_key, driver)
+        input_text_by_xpath(AgentGroupPage.agent_group_tag_value(), tag_value, driver)
+        WebDriverWait(driver, time_to_wait_until).until(
+            EC.element_to_be_clickable((By.XPATH, AgentGroupPage.agent_group_add_tag_button()))).click()
+    WebDriverWait(driver, time_to_wait_until).until(
+        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
+    WebDriverWait(driver, time_to_wait_until).until(
+        EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
+    WebDriverWait(driver, time_to_wait_until).until(
+        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully created'))

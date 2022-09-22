@@ -7,7 +7,6 @@ from datetime import datetime
 import socket
 import os
 import re
-import multiprocessing
 import json
 import jsonschema
 from jsonschema import validate
@@ -17,7 +16,7 @@ tag_prefix = "test_tag_"
 
 def random_string(k=10):
     """
-    Generates a string composed of of k (int) random letters lowercase and uppercase mixed
+    Generates a string composed of k (int) random letters lowercase and uppercase mixed
 
     :param (int) k: sets the length of the randomly generated string
     :return: (str) string consisting of k random letters lowercase and uppercase mixed. Default:10

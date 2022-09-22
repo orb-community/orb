@@ -90,7 +90,8 @@ def create_agent_through_the_agents_page(context, orb_tags):
 
 @then("the agents list and the agents view should display agent's status as {status} within {time_to_wait} seconds")
 def check_status_on_orb_ui(context, status, time_to_wait):
-    context.driver.get(f"{orb_url}/pages/fleet/agents")
+    agents_page = f"{orb_url}/pages/fleet/agents"
+    context.driver, current_url = go_to_page(agents_page, driver=context.driver)
     agent_status_datatable = check_agent_status_on_orb_ui(context.driver, DataTable.agent_status(context.agent_name),
                                                           status, timeout=time_to_wait)
     assert_that(agent_status_datatable, is_not(None), f"Unable to find status of the agent: {context.agent_name}"
@@ -122,3 +123,113 @@ def check_agent_status_on_orb_ui(driver, agent_xpath, status, event=None):
         return agent_status_datatable.text
     driver.refresh()
     return agent_status_datatable
+
+
+@step("the policy must have status {status} on agent view page (Active Policies/Datasets)")
+def get_policy_status_agent_view_page(context, status):
+    agent_id = context.agent['id']
+    agent_view_page = OrbUrl.agent_view(orb_url, agent_id)
+    context.driver, current_url = go_to_page(agent_view_page, driver=context.driver)
+    name = context.policy['name']
+    WebDriverWait(context.driver, time_webdriver_wait).until(
+        EC.url_to_be(agent_view_page))
+    policy_status, policy_name = get_policy_ui_status(context.driver, name, status)
+    assert_that(policy_name, equal_to(name), "Unexpected policy name")
+    assert_that(policy_status, equal_to(status), "Unexpected policy status on agent view page")
+
+
+@step("policy and dataset are clickable and redirect user to referred pages")
+def click_policy_and_dataset(context):
+    agent_id = context.agent['id']
+    agent_view_page = OrbUrl.agent_view(orb_url, agent_id)
+    policy_id = context.policy['id']
+    policy_view_page = OrbUrl.policy_view(orb_url, policy_id)
+    policy_name = context.policy['name']
+    dataset_name = context.dataset['name']
+    context.driver, current_url = go_to_page(agent_view_page, driver=context.driver)
+    expand_policy_button = get_expand_policy_button(context.driver, policy_name)
+    assert_that(expand_policy_button, is_not(None), "Unable to expand policy to check dataset on agent view page")
+    WebDriverWait(context.driver, time_webdriver_wait).until(
+        EC.element_to_be_clickable(expand_policy_button)).click()
+    WebDriverWait(context.driver, time_webdriver_wait).until(
+        EC.element_to_be_clickable((By.XPATH, AgentsPage.dataset_button(dataset_name)))).click()
+    WebDriverWait(context.driver, time_webdriver_wait).until(
+        EC.presence_of_element_located((By.XPATH, Dataset.DetailsModal())), "Dataset details modal was not opened "
+                                                                            "after click above dataset name on agent "
+                                                                            "views page")
+    context.driver, current_url = go_to_page(agent_view_page, driver=context.driver)
+    go_to_policy_button = get_policy_name_button(context.driver, policy_name)
+    WebDriverWait(context.driver, time_webdriver_wait).until(
+        EC.element_to_be_clickable(go_to_policy_button)).click()
+    WebDriverWait(context.driver, time_webdriver_wait).until(
+        EC.url_to_be(policy_view_page), "User not redirect to policy view page after click on policy name on agent view"
+                                        " page")
+
+
+@step("group must be listed on agent view page (Active Groups)")
+def check_group_in_active_group(context):
+    agent_id = context.agent['id']
+    agent_view_page = OrbUrl.agent_view(orb_url, agent_id)
+    context.driver, current_url = go_to_page(agent_view_page, driver=context.driver)
+    group_name = list(context.agent_groups.values())[0]
+    WebDriverWait(context.driver, time_webdriver_wait).until(
+        EC.element_to_be_clickable((By.XPATH, AgentsPage.active_groups(group_name))),
+        message="Unable to click on Active Group on agent view page").click()
+    WebDriverWait(context.driver, time_webdriver_wait).until(
+        EC.presence_of_element_located((By.XPATH, AgentGroupPage.MatchingGroupsModal())), "Matching groups modal was "
+                                                                                          "not opened after click "
+                                                                                          "above group name on agent "
+                                                                                          "views page")
+
+
+@threading_wait_until
+def get_policy_ui_status(driver, name, status, event=None):
+    elements = WebDriverWait(driver, time_webdriver_wait).until(
+        EC.presence_of_all_elements_located((By.XPATH, AgentsPage.policies_and_datasets(name))))
+    span_elements = list()
+    policy_name = None
+    for element in elements:
+        if element.tag_name == 'span':
+            span_elements.append(element)
+        elif element.tag_name == 'button':
+            policy_name = element
+    policy_status = span_elements[2].text
+    policy_name = policy_name.text
+    if span_elements[0].text == "Policy:" and span_elements[1].text == "Status:" and policy_status == status:
+        event.set()
+    else:
+        driver.refresh()
+        event.wait(1)
+    return policy_status, policy_name
+
+
+@threading_wait_until
+def get_expand_policy_button(driver, name, event=None):
+    elements = WebDriverWait(driver, time_webdriver_wait).until(
+        EC.presence_of_all_elements_located((By.XPATH, AgentsPage.policies_and_datasets(name))))
+    expand_policy_icon = None
+    for element in elements:
+        if element.tag_name == 'nb-icon':
+            expand_policy_icon = element
+    if expand_policy_icon is not None:
+        event.set()
+    else:
+        driver.refresh()
+        event.wait(1)
+    return expand_policy_icon
+
+
+@threading_wait_until
+def get_policy_name_button(driver, name, event=None):
+    elements = WebDriverWait(driver, time_webdriver_wait).until(
+        EC.presence_of_all_elements_located((By.XPATH, AgentsPage.policies_and_datasets(name))))
+    policy_name = None
+    for element in elements:
+        if element.tag_name == 'button':
+            policy_name = element
+    if policy_name.text == name:
+        event.set()
+    else:
+        driver.refresh()
+        event.wait(1)
+    return policy_name
