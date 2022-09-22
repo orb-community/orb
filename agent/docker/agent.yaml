@@ -8,3 +8,8 @@ orb:
     pktvisor:
       binary: "/usr/local/sbin/pktvisord"
       config_file: "/etc/orb/agent.yaml"
+
+    cloudprober:
+      binary: "/usr/local/sbin/cloudprober"
+      config_file: "/etc/cloudprober/cloudprober.cfg"
+      
