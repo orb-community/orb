@@ -38,6 +38,7 @@ services:
       ORB_SINKS_GRPC_URL: ${ORB_SINKS_GRPC_URL}
       ORB_SINKS_GRPC_TIMEOUT: ${ORB_SINKS_GRPC_TIMEOUT}
       ORB_SINKER_OTEL_ENABLE: "true"
+      ORB_SINKER_OTEL_KAFKA_URL: "kafka1:19092"
     networks:
       - orb-base-net
 networks:
