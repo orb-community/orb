@@ -268,7 +268,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// pvOptions = append(pvOptions, "--cp-path", PKTVISOR_CP_PATH)
 	// pvOptions = append(pvOptions, "--default-geo-city", "/geo-db/city.mmdb")
 	// pvOptions = append(pvOptions, "--default-geo-asn", "/geo-db/asn.mmdb")
-	
+
 	p.proc = cmd.NewCmdOptions(cmd.Options{
 		Buffered:  false,
 		Streaming: true,
@@ -278,7 +278,11 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// log STDOUT and STDERR lines streaming from Cmd
 	doneChan := make(chan struct{})
 	go func() {
-		defer close(doneChan)
+		defer func() {
+			if doneChan != nil {
+				close(doneChan)
+			}
+		}()
 		for p.proc.Stdout != nil || p.proc.Stderr != nil {
 			select {
 			case line, open := <-p.proc.Stdout:
