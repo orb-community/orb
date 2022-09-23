@@ -778,155 +778,6 @@ Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and inse
 
 
 @smoke
-Scenario: agent with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-    When an agent is self-provisioned via a configuration file on port available with 3 agent tags and has status online
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And 3 simple policies are applied to the group
-    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 3 policies are applied and all has status running
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And remove the agent .yaml generated on each scenario
-
-
-@smoke
-Scenario: agent with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
-        And 3 simple policies are applied to the group
-        And a new agent is created with 0 orb tag(s)
-    When an agent is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
-    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
-        And this agent's heartbeat shows that 3 policies are applied and all has status running
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And remove the agent .yaml generated on each scenario
-
-
-@smoke
-Scenario: agent with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-    When an agent is self-provisioned via a configuration file on port available with 3 agent tags and has status online
-        And edit the orb tags on agent and use 2 orb tag(s)
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And 3 simple policies are applied to the group
-    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
-        And this agent's heartbeat shows that 3 policies are applied and all has status running
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And remove the agent .yaml generated on each scenario
-
-
-@smoke
-Scenario: agent with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
-        And 3 simple policies are applied to the group
-        And a new agent is created with 2 orb tag(s)
-    When an agent is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
-    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
-        And this agent's heartbeat shows that 3 policies are applied and all has status running
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And remove the agent .yaml generated on each scenario
-
-@smoke
-Scenario: agent with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=false)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a new agent is created with 0 orb tag(s)
-    When an agent is provisioned via a configuration file on port available with 3 agent tags and has status online
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And 3 simple policies are applied to the group
-    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 3 policies are applied and all has status running
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And remove the agent .yaml generated on each scenario
-
-#@smoke
-@MUTE
-Scenario: agent with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
-        And 3 simple policies are applied to the group
-        And a new agent is created with 0 orb tag(s)
-    When an agent is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
-    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
-        And this agent's heartbeat shows that 3 policies are applied and all has status running
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And remove the agent .yaml generated on each scenario
-
-@smoke
-Scenario: agent with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=false)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a new agent is created with 2 orb tag(s)
-    When an agent is provisioned via a configuration file on port available with 3 agent tags and has status online
-        And edit the orb tags on agent and use 2 orb tag(s)
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And 3 simple policies are applied to the group
-    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
-        And this agent's heartbeat shows that 3 policies are applied and all has status running
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And remove the agent .yaml generated on each scenario
-
-#@smoke
-@MUTE
-Scenario: agent with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
-        And 3 simple policies are applied to the group
-        And a new agent is created with 2 orb tag(s)
-    When an agent is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
-    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
-        And this agent's heartbeat shows that 3 policies are applied and all has status running
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
-        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And remove the agent .yaml generated on each scenario
-
-@smoke
 Scenario: Remotely restart agents with policies applied
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -999,3 +850,460 @@ Scenario: Remove agent (check dataset)
         And the container logs should not contain any panic message
         And last container created is exited after 120 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+
+### AGENTS PROVISIONED USING CONFIGURATION FILES:
+########### pcap
+
+@smoke
+Scenario: agent pcap with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
+@smoke
+Scenario: agent pcap with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
+        And 3 simple policies pcap are applied to the group
+        And a new agent is created with 0 orb tag(s)
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
+@smoke
+Scenario: agent pcap with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And edit the orb tags on agent and use 2 orb tag(s)
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
+@smoke
+Scenario: agent pcap with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
+        And 3 simple policies pcap are applied to the group
+        And a new agent is created with 2 orb tag(s)
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+@smoke
+Scenario: agent pcap with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And a new agent is created with 0 orb tag(s)
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+#@smoke
+@MUTE
+Scenario: agent pcap with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
+        And 3 simple policies pcap are applied to the group
+        And a new agent is created with 0 orb tag(s)
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+@smoke
+Scenario: agent pcap with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And a new agent is created with 2 orb tag(s)
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And edit the orb tags on agent and use 2 orb tag(s)
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+#@smoke
+@MUTE
+Scenario: agent pcap with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
+        And 3 simple policies pcap are applied to the group
+        And a new agent is created with 2 orb tag(s)
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
+########### flow
+
+@smoke
+Scenario: agent flow with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
+@smoke
+Scenario: agent flow with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
+        And 3 simple policies flow are applied to the group
+        And a new agent is created with 0 orb tag(s)
+    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
+@smoke
+Scenario: agent flow with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And edit the orb tags on agent and use 2 orb tag(s)
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
+@smoke
+Scenario: agent flow with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
+        And 3 simple policies flow are applied to the group
+        And a new agent is created with 2 orb tag(s)
+    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+@smoke
+Scenario: agent flow with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And a new agent is created with 0 orb tag(s)
+    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+#@smoke
+@MUTE
+Scenario: agent flow with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
+        And 3 simple policies flow are applied to the group
+        And a new agent is created with 0 orb tag(s)
+    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+@smoke
+Scenario: agent flow with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And a new agent is created with 2 orb tag(s)
+    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And edit the orb tags on agent and use 2 orb tag(s)
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+#@smoke
+@MUTE
+Scenario: agent flow with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
+        And 3 simple policies flow are applied to the group
+        And a new agent is created with 2 orb tag(s)
+    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
+
+########### dnstap
+
+@smoke
+Scenario: agent dnstap with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
+@smoke
+Scenario: agent dnstap with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
+        And 3 simple policies dnstap are applied to the group
+        And a new agent is created with 0 orb tag(s)
+    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
+@smoke
+Scenario: agent dnstap with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And edit the orb tags on agent and use 2 orb tag(s)
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
+@smoke
+Scenario: agent dnstap with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
+        And 3 simple policies dnstap are applied to the group
+        And a new agent is created with 2 orb tag(s)
+    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+@smoke
+Scenario: agent dnstap with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And a new agent is created with 0 orb tag(s)
+    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+#@smoke
+@MUTE
+Scenario: agent dnstap with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
+        And 3 simple policies dnstap are applied to the group
+        And a new agent is created with 0 orb tag(s)
+    When an agent(input_type:dnstap, settings: {{"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+@smoke
+Scenario: agent dnstap with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And a new agent is created with 2 orb tag(s)
+    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And edit the orb tags on agent and use 2 orb tag(s)
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies with same tap as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+#@smoke
+@MUTE
+Scenario: agent dnstap with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+        And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
+        And 3 simple policies dnstap are applied to the group
+        And a new agent is created with 2 orb tag(s)
+    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario

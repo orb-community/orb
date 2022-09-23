@@ -18,13 +18,26 @@ orb_url = TestConfig.configs().get('orb_url')
 
 @step("a new policy is created using: {kwargs}")
 def create_new_policy(context, kwargs):
-    kwargs_dict = parse_policy_params(kwargs)
-    policy_json = make_policy_json(kwargs_dict["name"], kwargs_dict['handle_label'],
-                                   kwargs_dict["handler"], kwargs_dict["description"], kwargs_dict["tap"],
-                                   kwargs_dict["input_type"], kwargs_dict["host_specification"],
-                                   kwargs_dict["bpf_filter_expression"], kwargs_dict["pcap_source"],
-                                   kwargs_dict["only_qname_suffix"], kwargs_dict["only_rcode"],
-                                   kwargs_dict["exclude_noerror"], kwargs_dict["backend_type"])
+    if kwargs.split(", ")[-1].split("=")[-1] == "flow":
+        kwargs_dict = parse_flow_policy_params(kwargs)
+    else:
+        kwargs_dict = parse_policy_params(kwargs)
+    if kwargs_dict["handler"] == "flow":
+        policy_json = make_policy_flow_json(kwargs_dict['name'], kwargs_dict['handle_label'], kwargs_dict['handler'],
+                                            kwargs_dict['description'],
+                                            kwargs_dict['tap'], kwargs_dict['input_type'], kwargs_dict['port'],
+                                            kwargs_dict['bind'], kwargs_dict['flow_type'],
+                                            kwargs_dict['sample_rate_scaling'], kwargs_dict['only_devices'],
+                                            kwargs_dict['only_ips'], kwargs_dict['only_ports'],
+                                            kwargs_dict['only_interfaces'], kwargs_dict['geoloc_notfound'],
+                                            kwargs_dict['asn_notfound'], kwargs_dict['backend_type'])
+    else:
+        policy_json = make_policy_json(kwargs_dict["name"], kwargs_dict['handle_label'],
+                                       kwargs_dict["handler"], kwargs_dict["description"], kwargs_dict["tap"],
+                                       kwargs_dict["input_type"], kwargs_dict["host_specification"],
+                                       kwargs_dict["bpf_filter_expression"], kwargs_dict["pcap_source"],
+                                       kwargs_dict["only_qname_suffix"], kwargs_dict["only_rcode"],
+                                       kwargs_dict["exclude_noerror"], kwargs_dict["backend_type"])
 
     context.policy = create_policy(context.token, policy_json)
 
@@ -203,14 +216,15 @@ def new_policy(context, kwargs):
 @step('the container logs that were output after {condition} does not contain the message "{text_to_match}" referred '
       'to deleted policy anymore')
 def check_agent_logs_for_deleted_policies_considering_timestamp(context, condition, text_to_match):
-    policies_have_expected_message = \
+    policies_have_expected_message, logs = \
         check_agent_log_for_policies(text_to_match, context.container_id, list(context.policy['id']),
                                      context.considered_timestamp)
     assert_that(len(policies_have_expected_message), equal_to(0),
                 f"Message '{text_to_match}' for policy "
                 f"'{context.policy['id']}: {context.policy['name']}'"
                 f" present on logs even after removing policy! \n"
-                f"Agent: {json.dumps(context.agent, indent=4)}")
+                f"Agent: {json.dumps(context.agent, indent=4)}. \n"
+                f"Agent Logs: {logs}")
 
 
 @step('the container logs that were output after {condition} contain the message "{'
@@ -222,7 +236,7 @@ def check_agent_logs_for_policies_considering_timestamp(context, condition, text
     else:
         considered_timestamp = context.considered_timestamp
     policies_data = list()
-    policies_have_expected_message = \
+    policies_have_expected_message, logs = \
         check_agent_log_for_policies(text_to_match, context.container_id, context.list_agent_policies_id,
                                      considered_timestamp, timeout=time_to_wait)
     if len(set(context.list_agent_policies_id).difference(policies_have_expected_message)) > 0:
@@ -234,20 +248,22 @@ def check_agent_logs_for_policies_considering_timestamp(context, condition, text
                 f"Message '{text_to_match}' for policy "
                 f"'{policies_data}'"
                 f" was not found in the agent logs!"
-                f"Agent: {json.dumps(context.agent, indent=4)}")
+                f"Agent: {json.dumps(context.agent, indent=4)}. \n"
+                f"Agent Logs: {logs}")
 
 
 @step('the container logs contain the message "{text_to_match}" referred to each policy within {'
       'time_to_wait} seconds')
 def check_agent_logs_for_policies(context, text_to_match, time_to_wait):
-    policies_have_expected_message = \
+    policies_have_expected_message, logs = \
         check_agent_log_for_policies(text_to_match, context.container_id, context.list_agent_policies_id,
                                      timeout=time_to_wait)
     assert_that(policies_have_expected_message, equal_to(set(context.list_agent_policies_id)),
                 f"Message '{text_to_match}' for policy "
                 f"'{set(context.list_agent_policies_id).difference(policies_have_expected_message)}'"
                 f" was not found in the agent logs!. \n"
-                f"Agent: {json.dumps(context.agent, indent=4)}")
+                f"Agent: {json.dumps(context.agent, indent=4)}. \n"
+                f"Agent Logs: {logs}")
 
 
 @step('{amount_of_policies} {type_of_policies} policies are applied to the group')
@@ -255,6 +271,24 @@ def apply_n_policies(context, amount_of_policies, type_of_policies):
     args_for_policies = return_policies_type(int(amount_of_policies), type_of_policies)
     for i in range(int(amount_of_policies)):
         create_new_policy(context, args_for_policies[i][1])
+        check_policies(context)
+        create_new_dataset(context, 1, 'last', 1, 'sink')
+
+
+@step('{amount_of_policies} {type_of_policies} policies {policies_input} are applied to the group')
+def apply_n_policies(context, amount_of_policies, type_of_policies, policies_input):
+    if "same tap as created via config file" in policies_input:
+        policies_input = list(context.tap.values())[0]['input_type']
+    args_for_policies = return_policies_type(int(amount_of_policies), type_of_policies, policies_input)
+    if "tap" in context:
+        tap_name = list(context.tap.keys())[0]
+        input_type = list(context.tap.values())[0]['input_type']
+    else:
+        context.tap_name = tap_name = f"default_tap_before_provision_{random_string(10)}"
+        input_type = policies_input
+    for i in range(int(amount_of_policies)):
+        kwargs = f"{args_for_policies[i][1]}, tap={tap_name}, input_type={input_type}"
+        create_new_policy(context, kwargs)
         check_policies(context)
         create_new_dataset(context, 1, 'last', 1, 'sink')
 
@@ -482,6 +516,59 @@ def make_policy_json(name, handler_label, handler, description=None, tap="defaul
     return json_request
 
 
+def make_policy_flow_json(name, handler_label, handler, description=None, tap="default_flow",
+                          input_type="flow", port=None, bind=None, flow_type=None, sample_rate_scaling=None,
+                          only_devices=None, only_ips=None, only_ports=None, only_interfaces=None, geoloc_notfound=None,
+                          asn_notfound=None, backend_type="pktvisor"):
+    """
+
+    Generate a policy json
+
+    :param (str) name:  of the policy to be created
+    :param (str) handler_label:  of the handler
+    :param (str) handler: to be added
+    :param (str) description: description of policy
+    :param tap: named, host specific connection specifications for the raw input streams accessed by pktvisor
+    :param input_type: this must reference a tap name, or application of the policy will fail
+    :param backend_type: Agent backend this policy is for. Cannot change once created. Default: pktvisor
+    :return: (dict) a dictionary containing the created policy data
+    """
+    assert_that(handler, equal_to("flow"), "Unexpected handler for policy")
+    assert_that(name, not_none(), "Unable to create policy without name")
+
+    json_request = {"name": name,
+                    "description": description,
+                    "backend": backend_type,
+                    "policy": {
+                        "kind": "collection",
+                        "input": {
+                            "tap": tap,
+                            "input_type": input_type,
+                            "config": {"port": port,
+                                       "bind": bind,
+                                       "only_ports": only_ports,
+                                       "flow_type": flow_type}},
+                        "handlers": {
+                            "modules": {
+                                handler_label: {
+                                    "type": handler,
+                                    "filter": {"only_devices": only_devices,
+                                               "only_ips": only_ips,
+                                               "only_ports": only_ports,
+                                               "only_interfaces": only_interfaces,
+                                               "geoloc_notfound": geoloc_notfound,
+                                               "asn_notfound": asn_notfound},
+                                    "config": {
+                                        "sample_rate_scaling": sample_rate_scaling}
+                                }
+                            }
+                        }
+                    }
+                    }
+    json_request = remove_empty_from_json(json_request.copy())
+    return json_request
+
+
 def get_policy(token, policy_id, expected_status_code=200):
     """
     Gets a policy from Orb control plane
@@ -619,9 +706,9 @@ def check_agent_log_for_policies(expected_message, container_id, list_agent_poli
                                                 considered_timestamp)
     if len(policies_have_expected_message) == len(list_agent_policies_id):
         event.set()
-        return policies_have_expected_message
+        return policies_have_expected_message, logs
 
-    return policies_have_expected_message
+    return policies_have_expected_message, logs
 
 
 def is_expected_msg_in_log_line(log_line, expected_message, list_agent_policies_id, considered_timestamp):
@@ -688,27 +775,35 @@ def list_datasets_for_a_policy(policy_id, datasets_list):
     return id_of_related_datasets
 
 
-def return_policies_type(k, policies_type='mixed'):
+def return_policies_type(k, policies_type='mixed', input_type="pcap"):
     assert_that(policies_type, any_of(equal_to('mixed'), any_of('simple'), any_of('advanced')),
                 "Unexpected value for policies type")
 
-    advanced = {
-        'advanced_dns_libpcap_0': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=0",
-        'advanced_dns_libpcap_2': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=2",
-        'advanced_dns_libpcap_3': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=3",
-        'advanced_dns_libpcap_5': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=5",
+    if input_type == "flow":
+        advanced = {
+            "advanced_flow": "handler=flow, description='policy_flow', asn_notfound=true, sample_rate_scaling=true"
+        }
+        simple = {
+            'simple_flow': "handler=flow"
+        }
+    else:
+        advanced = {
+            'advanced_dns_libpcap_0': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=0",
+            'advanced_dns_libpcap_2': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=2",
+            'advanced_dns_libpcap_3': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=3",
+            'advanced_dns_libpcap_5': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=5",
 
-        'advanced_net': "handler=net, description='policy_net', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
+            'advanced_net': "handler=net, description='policy_net', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
 
-        'advanced_dhcp': "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
-    }
+            'advanced_dhcp': "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
+        }
 
-    simple = {
+        simple = {
 
-        'simple_dns': "handler=dns",
-        'simple_net': "handler=net",
-        # 'simple_dhcp': "handler=dhcp",
-    }
+            'simple_dns': "handler=dns",
+            'simple_net': "handler=net",
+            # 'simple_dhcp': "handler=dhcp",
+        }
 
     mixed = dict()
     mixed.update(advanced)
@@ -824,6 +919,29 @@ def parse_policy_params(kwargs):
 
     assert_that(kwargs_dict["handler"], any_of(equal_to("dns"), equal_to("dhcp"), equal_to("net")),
                 "Unexpected handler for policy")
+    kwargs_dict['handle_label'] = f"default_{kwargs_dict['handler']}_{random_string(3)}"
+
+    return kwargs_dict
+
+
+def parse_flow_policy_params(kwargs):
+    name = policy_name_prefix + random_string(10)
+
+    kwargs_dict = {'name': name, 'handler': None, 'description': None, 'tap': "default_flow",
+                   'input_type': "flow", 'port': None, 'bind': None, 'flow_type': None, 'sample_rate_scaling': None,
+                   'only_devices': None, 'only_ips': None, 'only_ports': None, 'only_interfaces': None,
+                   'geoloc_notfound': None,
+                   'asn_notfound': None, 'backend_type': "pktvisor"}
+
+    for i in kwargs.split(", "):
+        assert_that(i, matches_regexp("^.+=.+$"), f"Unexpected format for param {i}")
+        item = i.split("=")
+        kwargs_dict[item[0]] = item[1]
+
+    if policy_name_prefix not in kwargs_dict["name"]:
+        kwargs_dict["name"] + policy_name_prefix + kwargs_dict["name"]
+
+    assert_that(kwargs_dict["handler"], equal_to("flow"), "Unexpected handler for policy")
     kwargs_dict['handle_label'] = f"default_{kwargs_dict['handler']}_{random_string(3)}"
 
     return kwargs_dict

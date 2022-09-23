@@ -4,17 +4,16 @@ from ui_utils import *
 from hamcrest import *
 from utils import random_string, create_tags_set
 from page_objects import *
+from control_plane_sink import sink_name_prefix
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
-sink_name_prefix = "sink_name_"
 sink_description_prefix = "sink_description_"
 sink_remote_url = "www.remoteurl.com"
 username = configs.get('email')
 password = configs.get('password')
-sink_update_prefix = "sink_name_upd"
-    
+  
     
 @when('a sink is created through the UI with {orb_tags} orb tag')
 def create_sink(context, orb_tags):
@@ -161,7 +160,7 @@ def update_a_sink_item(context, orb_tags):
         EC.element_to_be_clickable((By.XPATH, SinkPage.sink_description()))).click()
     WebDriverWait(context.driver, 5).until(
         EC.element_to_be_clickable((By.XPATH, SinkPage.name_label()))).clear()
-    context.name_label = sink_update_prefix + random_string(5)
+    context.name_label = sink_name_prefix + "upd" + random_string(5)
     input_text_by_xpath(SinkPage.name_label(), context.name_label, context.driver)
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
