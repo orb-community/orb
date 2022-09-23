@@ -190,7 +190,7 @@ class DataTable:
 
     @classmethod
     def agent_group(cls, name):
-        return f"//span[@class='ng-star-inserte5d' and contains(text(), '{name}')]"
+        return f"//span[@class='ng-star-inserted' and contains(text(), '{name}')]"
 
     @classmethod
     def trash_icon(cls):

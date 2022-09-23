@@ -48,10 +48,9 @@ def create_agent_group_with_description_through_the_agent_group_page(context, or
                                                                                                       "page not "
                                                                                                       "available")
     context.agent_group_name = agent_group_name_prefix + random_string(10)
-    input_text_by_xpath(AgentGroupPage.agent_group_name(), context.agent_group_name, context.driver)
     context.agent_group_description = agent_group_description + random_string(10)
-    create_group_via_UI(context.agent_group_name, context.orb_tags, context.driver)
-    input_text_by_xpath(AgentGroupPage.agent_group_description(), context.agent_group_description, context.driver)
+    create_group_via_UI(context.agent_group_name, context.orb_tags, context.driver,
+                        description=context.agent_group_description)
     context.initial_counter = check_total_counter(context.driver)
 
 
