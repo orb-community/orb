@@ -17,7 +17,6 @@ import (
 	"github.com/ns1labs/orb/sinker/prometheus"
 	pb3 "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -264,8 +263,6 @@ func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 			"subtopic", msg.Subtopic,
 			"channel", msg.Channel,
 			"protocol", msg.Protocol,
-			"created", strconv.FormatInt(msg.Created, 10),
-			"trace_id", ctx.Value("trace-id").(string),
 		}
 		svc.messageInputCounter.With(labels...).Add(1)
 
