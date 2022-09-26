@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os/exec"
+	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -56,10 +57,11 @@ type pktvisorBackend struct {
 	// MQTT Config for OTEL MQTT
 	mqttConfig config.MQTTConfig
 
-	mqttClient   mqtt.Client
-	metricsTopic string
-	scraper      *gocron.Scheduler
-	policyRepo   policies.PolicyRepo
+	mqttClient       mqtt.Client
+	metricsTopic     string
+	otlpMetricsTopic string
+	scraper          *gocron.Scheduler
+	policyRepo       policies.PolicyRepo
 
 	receiver component.MetricsReceiver
 	exporter component.MetricsExporter
@@ -77,7 +79,10 @@ func (p *pktvisorBackend) GetStartTime() time.Time {
 
 func (p *pktvisorBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
 	p.mqttClient = client
-	p.metricsTopic = fmt.Sprintf("%s/m/%c", baseTopic, agentID[0])
+	metricsTopic := strings.Replace(baseTopic, "?", "be", 1)
+	otelMetricsTopic := strings.Replace(baseTopic, "?", "otlp", 1)
+	p.metricsTopic = fmt.Sprintf("%s/m/%c", metricsTopic, agentID[0])
+	p.otlpMetricsTopic = fmt.Sprintf("%s/m/%c", otelMetricsTopic, agentID[0])
 }
 
 func (p *pktvisorBackend) GetState() (backend.BackendState, string, error) {
@@ -266,9 +271,6 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
 	// pvOptions = append(pvOptions, "--cp-url", PKTVISOR_CP_URL)
 	// pvOptions = append(pvOptions, "--cp-path", PKTVISOR_CP_PATH)
-	// pvOptions = append(pvOptions, "--default-geo-city", "/geo-db/city.mmdb")
-	// pvOptions = append(pvOptions, "--default-geo-asn", "/geo-db/asn.mmdb")
-	
 	p.proc = cmd.NewCmdOptions(cmd.Options{
 		Buffered:  false,
 		Streaming: true,
@@ -556,7 +558,7 @@ func Register() bool {
 func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component.MetricsExporter, error) {
 
 	if p.mqttClient != nil {
-		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.metricsTopic, p.pktvisorVersion)
+		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.otlpMetricsTopic, p.pktvisorVersion)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
@@ -565,7 +567,8 @@ func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component
 		}
 		return exporter, nil
 	} else {
-		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key, p.mqttConfig.ChannelID, p.pktvisorVersion)
+		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key,
+			p.mqttConfig.ChannelID, p.pktvisorVersion, p.otlpMetricsTopic)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)

@@ -76,7 +76,7 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 func (a *orbAgent) requestReconnection(ctx context.Context, client mqtt.Client, config config.MQTTConfig) {
 	a.nameAgentRPCTopics(config.ChannelID)
 	for name, be := range a.backends {
-		be.SetCommsClient(config.Id, client, fmt.Sprintf("%s/be/%s", a.baseTopic, name))
+		be.SetCommsClient(config.Id, client, fmt.Sprintf("%s/?/%s", a.baseTopic, name))
 	}
 
 	if token := client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {

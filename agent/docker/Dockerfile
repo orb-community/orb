@@ -1,5 +1,5 @@
 ARG PKTVISOR_TAG=latest-develop
-FROM golang:1.17-alpine AS builder
+FROM golang:1.19-alpine AS builder
 
 WORKDIR /go/src/github.com/ns1labs/orb
 COPY go.mod .
@@ -13,8 +13,5 @@ FROM ns1labs/pktvisor:${PKTVISOR_TAG}
 COPY --from=builder /tmp/build/orb-agent /usr/local/bin/orb-agent
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/agent.yaml /etc/orb/agent.yaml
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/orb-agent-entry.sh /usr/local/bin/orb-agent-entry.sh
-COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/run-agent.sh /run-agent.sh
-
-RUN chmod a+x /run-agent.sh
 
 ENTRYPOINT [ "/usr/local/bin/orb-agent-entry.sh" ]
