@@ -8,22 +8,27 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from page_objects import *
-from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException,\
+    ElementClickInterceptedException
 from utils import threading_wait_until
 
+time_webdriver_wait = 5
 
-def go_to_page(page, headless=True):
+
+def go_to_page(page, headless=True, driver=None):
     """Open the page in Chrome browser
     Args:
         :param (str) page: site's URL
         :param (bool) headless: run webdriver in headless mode
+        :param (obj) driver: selenium webdriver
     """
-    options = webdriver.ChromeOptions()
-    options.add_argument("--start-maximized")
-    options.add_argument("--remote-debugging-port=9222")
-    if headless:
-        options.add_argument('headless')
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+    if driver is None:
+        options = webdriver.ChromeOptions()
+        options.add_argument("--start-maximized")
+        options.add_argument("--remote-debugging-port=9222")
+        if headless:
+            options.add_argument('headless')
+        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     driver.get(str(page))
     return driver, str(driver.current_url)
 
@@ -35,12 +40,15 @@ def input_text_by_id(element_id, information, driver):
         information (string): information that should be sent
         driver (webdriver): selenium webdriver
     """
-    action = ActionChains(driver)
-    WebDriverWait(driver, 3).until(
-        EC.element_to_be_clickable((By.ID, element_id)))
-    data = driver.find_element(By.ID, (str(element_id)))
-    action.send_keys_to_element(data, information).perform()
-    WebDriverWait(driver, 3).until(lambda check: data.get_attribute('value') == information)
+    try:
+        action = ActionChains(driver)
+        WebDriverWait(driver, time_webdriver_wait).until(
+            EC.element_to_be_clickable((By.ID, element_id)))
+        data = driver.find_element(By.ID, (str(element_id)))
+        action.send_keys_to_element(data, information).perform()
+        WebDriverWait(driver, time_webdriver_wait).until(lambda check: data.get_attribute('value') == information)
+    except Exception as error:
+        raise ValueError(f"Fails to input text by ID using ID {element_id}. Exception: {error}")
 
 
 @threading_wait_until
@@ -51,13 +59,19 @@ def input_text_by_xpath(element_xpath, information, driver, event=None):
         information (string): information that should be sent
         driver (webdriver): selenium webdriver
     """
-    WebDriverWait(driver, 3).until(
-        EC.visibility_of_element_located((By.XPATH, element_xpath)))
-    data = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.XPATH, element_xpath)))
-    data.click()
-    data.send_keys(information)
-    if data.get_attribute('value') == str(information):
-        event.set()
+    try:
+        WebDriverWait(driver, time_webdriver_wait).until(
+            EC.visibility_of_element_located((By.XPATH, element_xpath)))
+        data = WebDriverWait(driver, time_webdriver_wait).until(EC.presence_of_element_located((By.XPATH, element_xpath)))
+        data.click()
+        data.send_keys(information)
+        if data.get_attribute('value') == str(information):
+            event.set()
+    except ElementClickInterceptedException:
+        print(ElementClickInterceptedException)
+        event.wait(1)
+    except Exception as error:
+        raise ValueError(f"Fails to input text by XPATH using XPATH {element_xpath}. Exception: {error}")
 
 
 def get_selector_options(driver, selector_options_xpath=UtilButton.selector_options()):
@@ -70,7 +84,7 @@ def get_selector_options(driver, selector_options_xpath=UtilButton.selector_opti
 
     """
     dict_options = dict()
-    WebDriverWait(driver, 3).until(
+    WebDriverWait(driver, time_webdriver_wait).until(
         EC.presence_of_all_elements_located((By.XPATH, selector_options_xpath)))
     options = driver.find_elements(By.XPATH, selector_options_xpath)
     for option in options:
@@ -86,36 +100,36 @@ def find_element_on_datatable(driver, xpath):
     :param (str) xpath: xpath of the element to be found
     :return: web element, if found. None if not found.
     """
-    WebDriverWait(driver, 3).until(
+    WebDriverWait(driver, time_webdriver_wait).until(
         EC.presence_of_all_elements_located((By.XPATH, DataTable.page_count())), message="Unable to find page count")
-    WebDriverWait(driver, 3).until(
+    WebDriverWait(driver, time_webdriver_wait).until(
         EC.presence_of_all_elements_located((By.XPATH, DataTable.body())), message="Unable to find list body")
-    pages = WebDriverWait(driver, 3).until(EC.presence_of_all_elements_located((By.XPATH, DataTable.sub_pages())),
+    pages = WebDriverWait(driver, time_webdriver_wait).until(EC.presence_of_all_elements_located((By.XPATH, DataTable.sub_pages())),
                                            message="Unable to find subpages")
     if len(pages) > 1:
-        WebDriverWait(driver, 3).until(
+        WebDriverWait(driver, time_webdriver_wait).until(
             EC.presence_of_element_located((By.XPATH, DataTable.last_page())), message="Unable to find 'go to last "
                                                                                        "page' button")
         try:  # avoid failure because of ghost button
-            WebDriverWait(driver, 3).until(
+            WebDriverWait(driver, time_webdriver_wait).until(
                 EC.element_to_be_clickable((By.XPATH, DataTable.destroyed_on_click_button())),
                 message="ghost button").click()
         except TimeoutException:
             pass
-        WebDriverWait(driver, 3).until(
+        WebDriverWait(driver, time_webdriver_wait).until(
             EC.element_to_be_clickable((By.XPATH, DataTable.last_page())), message="Unable to click on 'go to the last "
                                                                                    "page' button").click()
-        last_pages = WebDriverWait(driver, 3).until(EC.presence_of_all_elements_located((By.XPATH,
+        last_pages = WebDriverWait(driver, time_webdriver_wait).until(EC.presence_of_all_elements_located((By.XPATH,
                                                                                          DataTable.sub_pages())),
                                                     message="Unable to find subpages")
         last_page = int(last_pages[-1].text)
         for page in range(last_page):
             try:
-                element = WebDriverWait(driver, 2).until(
+                element = WebDriverWait(driver, time_webdriver_wait).until(
                     EC.presence_of_element_located((By.XPATH, xpath)))
                 return element
             except TimeoutException:
-                WebDriverWait(driver, 2).until(
+                WebDriverWait(driver, time_webdriver_wait).until(
                     EC.element_to_be_clickable((By.XPATH, DataTable.previous_page())),
                     message="Unable to click on 'go to the previous page' button").click()
             except StaleElementReferenceException:
@@ -126,14 +140,14 @@ def find_element_on_datatable(driver, xpath):
         return None
     else:
         try:
-            element = WebDriverWait(driver, 2).until(
+            element = WebDriverWait(driver, time_webdriver_wait).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
             return element
         except TimeoutException:
             return None
         except StaleElementReferenceException:
             driver.refresh()
-            threading.Event().wait(1)
+            threading.Event().wait(time_webdriver_wait)
             return StaleElementReferenceException
         except OSError as err:
             return err
@@ -143,7 +157,7 @@ def find_element_on_datatable(driver, xpath):
 def find_element_on_datatable_by_condition(driver, element_xpath, xpath_referring_page, condition="is", event=None):
     try:
         assert_that(condition, any_of(equal_to("is"), equal_to("is not")), "Unexpected value for list condition")
-        WebDriverWait(driver, 3).until(
+        WebDriverWait(driver, time_webdriver_wait).until(
             EC.element_to_be_clickable((By.XPATH, xpath_referring_page)),
             message=f"Unable to find {xpath_referring_page} icon on left menu")
         driver.find_element(By.XPATH, xpath_referring_page).click()
@@ -154,11 +168,25 @@ def find_element_on_datatable_by_condition(driver, element_xpath, xpath_referrin
             event.set()
         return element_on_datatable
     except TimeoutException:
+        driver.refresh()
+        event.wait(1)
         print(TimeoutException)
-        raise TimeoutException
     except StaleElementReferenceException:
         driver.refresh()
         event.wait(1)
         print(StaleElementReferenceException)
     except OSError as err:
-        raise err
+        print(err)
+
+
+class OrbUrl:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def agent_view(cls, orb_url, agent_id):
+        return f"{orb_url}/pages/fleet/agents/view/{agent_id}"
+
+    @classmethod
+    def policy_view(cls, orb_url, policy_id):
+        return f"{orb_url}/pages/datasets/policies/view/{policy_id}"
