@@ -9,6 +9,7 @@
 # expects to be set as env var
 PRODUCTION_AGENT_REF_TAG ?= latest
 PRODUCTION_AGENT_DEBUG_REF_TAG ?= latest-debug
+PRODUCTION_AGENT_HACKATHON_REF_TAG ?= hackathon
 REF_TAG ?= develop
 DEBUG_REF_TAG ?= develop-debug
 PKTVISOR_TAG ?= latest-develop
@@ -135,6 +136,14 @@ agent_production:
 	docker build \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_REF_TAG) \
+	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
+	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
+	  -f agent/docker/Dockerfile .
+
+agent_hackathon:
+	docker build \
+	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
+	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_HACKATHON_REF_TAG) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
 	  -f agent/docker/Dockerfile .
