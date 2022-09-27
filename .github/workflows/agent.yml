@@ -10,6 +10,9 @@ on:
   repository_dispatch:
       types: [build-agent]
 
+  push:
+    branches: [ hackathon ]
+
 jobs:
 
   build:
