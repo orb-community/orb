@@ -188,7 +188,7 @@ func (p *cloudproberBackend) ApplyPolicy(data policies.PolicyData, updatePolicy 
 
 	fullPolicy := map[string]interface{}{
 		"version": "1.0",
-		"visor": map[string]interface{}{
+		"prober": map[string]interface{}{
 			"policies": map[string]interface{}{
 				data.Name: data.Data,
 			},
@@ -251,14 +251,10 @@ func (p *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 	}
 
 	pvOptions := []string{
-		"--admin-api",
-		"-l",
-		p.adminAPIHost,
-		"-p",
-		p.adminAPIPort,
+		"--config_file"
 	}
 	if len(p.configFile) > 0 {
-		pvOptions = append(pvOptions, "--config", p.configFile)
+		pvOptions = append(pvOptions, " ", p.configFile)
 	}
 	p.logger.Info("cloudprobe startup", zap.Strings("arguments", pvOptions))
 	
