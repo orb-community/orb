@@ -27,15 +27,13 @@ type pktvisorBackend struct {
 }
 
 type context struct {
-	agent        *pb.AgentInfoRes
-	agentID      string
-	policyID     string
-	policyName   string
-	deviceID     string
-	deviceIF     string
-	handlerLabel string
-	tags         map[string]string
-	logger       *zap.Logger
+	agent      *pb.AgentInfoRes
+	agentID    string
+	policyID   string
+	policyName string
+	deviceID   string
+	tags       map[string]string
+	logger     *zap.Logger
 }
 
 func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
@@ -61,77 +59,61 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 	}
 
 	context := context{
-		agent:        agent,
-		agentID:      agentID,
-		policyID:     data.PolicyID,
-		policyName:   data.PolicyName,
-		deviceID:     "",
-		deviceIF:     "",
-		handlerLabel: "",
-		tags:         tags,
-		logger:       p.logger,
+		agent:      agent,
+		agentID:    agentID,
+		policyID:   data.PolicyID,
+		policyName: data.PolicyName,
+		deviceID:   "",
+		tags:       tags,
+		logger:     p.logger,
 	}
-	stats := make(map[string]StatSnapshot)
-	for handlerLabel, handlerData := range metrics {
+	stats := StatSnapshot{}
+	for _, handlerData := range metrics {
 		if data, ok := handlerData["pcap"]; ok {
-			sTmp := StatSnapshot{}
-			err := mapstructure.Decode(data, &sTmp.Pcap)
+			err := mapstructure.Decode(data, &stats.Pcap)
 			if err != nil {
 				p.logger.Error("error decoding pcap handler", zap.Error(err))
 				continue
 			}
-			stats[handlerLabel] = sTmp
 		} else if data, ok := handlerData["dns"]; ok {
-			sTmp := StatSnapshot{}
-			err := mapstructure.Decode(data, &sTmp.DNS)
+			err := mapstructure.Decode(data, &stats.DNS)
 			if err != nil {
 				p.logger.Error("error decoding dns handler", zap.Error(err))
 				continue
 			}
-			stats[handlerLabel] = sTmp
 		} else if data, ok := handlerData["packets"]; ok {
-			sTmp := StatSnapshot{}
-			err := mapstructure.Decode(data, &sTmp.Packets)
+			err := mapstructure.Decode(data, &stats.Packets)
 			if err != nil {
 				p.logger.Error("error decoding packets handler", zap.Error(err))
 				continue
 			}
-			stats[handlerLabel] = sTmp
 		} else if data, ok := handlerData["dhcp"]; ok {
-			sTmp := StatSnapshot{}
-			err := mapstructure.Decode(data, &sTmp.DHCP)
+			err := mapstructure.Decode(data, &stats.DHCP)
 			if err != nil {
 				p.logger.Error("error decoding dhcp handler", zap.Error(err))
 				continue
 			}
-			stats[handlerLabel] = sTmp
 		} else if data, ok := handlerData["flow"]; ok {
-			sTmp := StatSnapshot{}
-			err := mapstructure.Decode(data, &sTmp.Flow)
+			err := mapstructure.Decode(data, &stats.Flow)
 			if err != nil {
 				p.logger.Error("error decoding dhcp handler", zap.Error(err))
 				continue
 			}
-			stats[handlerLabel] = sTmp
 		}
 	}
 	return parseToProm(&context, stats), nil
 }
 
-func parseToProm(ctxt *context, statsMap map[string]StatSnapshot) prometheus.TSList {
-	var finalTs = prometheus.TSList{}
-	for handlerLabel, stats := range statsMap {
-		var tsList = prometheus.TSList{}
-		statsMap := structs.Map(stats)
-		ctxt.handlerLabel = handlerLabel
-		if stats.Flow != nil {
-			convertFlowToPromParticle(ctxt, statsMap, "", &tsList)
-		} else {
-			convertToPromParticle(ctxt, statsMap, "", &tsList)
-		}
-		finalTs = append(finalTs, tsList...)
+func parseToProm(ctxt *context, stats StatSnapshot) prometheus.TSList {
+	var tsList = prometheus.TSList{}
+
+	statsMap := structs.Map(stats)
+	if stats.Flow != nil {
+		convertFlowToPromParticle(ctxt, statsMap, "", &tsList)
+		return tsList
 	}
-	return finalTs
+	convertToPromParticle(ctxt, statsMap, "", &tsList)
+	return tsList
 }
 
 func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label string, tsList *prometheus.TSList) {
@@ -204,13 +186,10 @@ func convertFlowToPromParticle(ctxt *context, statsMap map[string]interface{}, l
 		case map[string]interface{}:
 			// Call convertToPromParticle recursively until the last interface of the StatSnapshot struct
 			// The prom particle label it's been formed during the recursive call (concatenation)
+			ipv6_regex := `^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$`
+			ipv4_regex := `^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4})`
 
-			if label == "FlowDevices" {
-				label = strings.ReplaceAll(label, "Devices", "")
-				if ok := strings.Contains(key, "|"); ok {
-					ctxt.deviceIF = key
-					key = strings.Split(key, "|")[0]
-				}
+			if ok, _ := regexp.MatchString(ipv4_regex+`|`+ipv6_regex, key); ok {
 				ctxt.deviceID = key
 				convertFlowToPromParticle(ctxt, statistic, label, tsList)
 			} else {
@@ -294,21 +273,10 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 		handleParticleError(ctxt, err)
 		return tsList
 	}
-	if err := labelsListFlag.Set("handler;" + ctxt.handlerLabel); err != nil {
-		handleParticleError(ctxt, err)
-		return tsList
-	}
 	if ctxt.deviceID != "" {
 		if err := labelsListFlag.Set("device;" + ctxt.deviceID); err != nil {
 			handleParticleError(ctxt, err)
 			ctxt.deviceID = ""
-			return tsList
-		}
-	}
-	if ctxt.deviceIF != "" {
-		if err := labelsListFlag.Set("device_interface;" + ctxt.deviceIF); err != nil {
-			handleParticleError(ctxt, err)
-			ctxt.deviceIF = ""
 			return tsList
 		}
 	}
@@ -401,10 +369,6 @@ func topNMetricsParser(label string) (string, error) {
 	mapNMetrics["TopSRVFAIL"] = "qname"
 	mapNMetrics["TopUDPPorts"] = "port"
 	mapNMetrics["TopSlow"] = "qname"
-	mapNMetrics["TopGeoLocBytes"] = "geo_loc"
-	mapNMetrics["TopGeoLocPackes"] = "geo_loc"
-	mapNMetrics["TopAsnBytes"] = "asn"
-	mapNMetrics["TopAsnPackets"] = "asn"
 	mapNMetrics["TopDstIpsBytes"] = "ip"
 	mapNMetrics["TopDstIpsPackets"] = "ip"
 	mapNMetrics["TopSrcIpsBytes"] = "ip"
@@ -419,10 +383,10 @@ func topNMetricsParser(label string) (string, error) {
 	mapNMetrics["TopSrcIpsAndPortPackets"] = "ip_port"
 	mapNMetrics["TopConversationsBytes"] = "conversations"
 	mapNMetrics["TopConversationsPackets"] = "conversations"
-	mapNMetrics["TopInInterfacesBytes"] = "interface"
-	mapNMetrics["TopInInterfacesPackets"] = "interface"
-	mapNMetrics["TopOutInterfacesBytes"] = "interface"
-	mapNMetrics["TopOutInterfacesPackets"] = "interface"
+	mapNMetrics["TopInIfIndexBytes"] = "index"
+	mapNMetrics["TopInIfIndexPackets"] = "index"
+	mapNMetrics["TopOutIfIndexBytes"] = "index"
+	mapNMetrics["TopOutIfIndexPackets"] = "index"
 	if value, ok := mapNMetrics[label]; ok {
 		return value, nil
 	} else {

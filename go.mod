@@ -1,6 +1,6 @@
 module github.com/ns1labs/orb
 
-go 1.19
+go 1.18
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.4.1

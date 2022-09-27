@@ -106,6 +106,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			r.cfg.Logger.Error("error during unmarshalling, skipping message", zap.Error(err))
 			return
 		}
+		//r.cfg.Logger.Info("metrics", zap.Binary("metrics", mr.Metrics()))
 		_, err = r.metricsReceiver.Export(r.ctx, mr)
 		if err != nil {
 			r.cfg.Logger.Error("error during export, skipping message", zap.Error(err))

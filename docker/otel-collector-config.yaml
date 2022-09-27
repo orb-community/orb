@@ -1,0 +1,42 @@
+receivers:
+  kafka:
+    brokers:
+      - kafka1:19092
+    topic: otlp_metrics
+    protocol_version: 2.0.0
+
+processors:
+  batch:
+
+extensions:
+  health_check:
+    check_collector_pipeline:
+      enabled: true
+      interval: "1m"
+      exporter_failure_threshold: 5
+
+  pprof:
+    endpoint: :1888
+
+  zpages:
+    endpoint: :55679
+
+  basicauth/client:
+    client_auth:
+      username: 222873
+      password: eyJrIjoiOWJmZTczZTA0ZDhjODEyOWVmNzhmMjgxYmY4ZTFiMTdjZThjZDk3NSIsIm4iOiJwcm9tLXNpbmszIiwiaWQiOjU1MDc0OX0=
+
+exporters:
+  prometheusremotewrite:
+    endpoint: https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push
+    auth:
+      authenticator: basicauth/client
+  logging:
+    loglevel: debug
+
+service:
+  extensions: [ pprof, zpages, health_check, basicauth/client ]
+  pipelines:
+    metrics:
+      receivers: [ kafka ]
+      exporters: [ prometheusremotewrite ]
