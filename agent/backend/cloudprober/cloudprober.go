@@ -57,6 +57,7 @@ type cloudproberBackend struct {
 
 	mqttClient   mqtt.Client
 	metricsTopic string
+	otlpMetricsTopic string
 	scraper      *gocron.Scheduler
 	policyRepo   policies.PolicyRepo
 
