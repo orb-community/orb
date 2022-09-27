@@ -203,14 +203,10 @@ func (cpbe *cloudproberBackend) ApplyPolicy(_ policies.PolicyData, _ bool) error
 
 }
 
+// RemovePolicy in here we will only call the ApplyPolicy since the same concept applies, the policyManager will update the repo and re-generate the config file
 func (cpbe *cloudproberBackend) RemovePolicy(data policies.PolicyData) error {
-	var resp interface{}
-	err := cpbe.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout)
-	if err != nil {
-		cpbe.logger.Error("received error", zap.Error(err))
-		return err
-	}
-	return nil
+	return cpbe.ApplyPolicy(data, false)
+
 }
 
 func (cpbe *cloudproberBackend) Version() (string, error) {

@@ -117,6 +117,12 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			}
 
 		}
+		// save policy (with latest status) to local policy db
+		err := a.repo.Update(pd)
+		if err != nil {
+			a.logger.Error("got error in update last status", zap.Error(err))
+			return
+		}
 		if !backend.HaveBackend(payload.Backend) {
 			a.logger.Warn("policy failed to apply because backend is not available", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name))
 			pd.State = policies.FailedToApply
@@ -125,13 +131,9 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			// attempt to apply the policy to the backend. status of policy application (running/failed) is maintained there.
 			be := backend.GetBackend(payload.Backend)
 			a.applyPolicy(payload, be, &pd, updatePolicy)
+
 		}
-		// save policy (with latest status) to local policy db
-		err := a.repo.Update(pd)
-		if err != nil {
-			a.logger.Error("got error in update last status", zap.Error(err))
-			return
-		}
+
 		return
 	case "remove":
 		err := a.RemovePolicy(payload.ID, payload.Name, payload.Backend)
@@ -153,15 +155,25 @@ func (a *policyManager) RemovePolicy(policyID string, policyName string, beName 
 		return errors.New("policy remove for a backend we do not have, ignoring")
 	}
 	be := backend.GetBackend(beName)
+	policy, err := a.repo.Get(policyID)
+	if err != nil {
+		a.logger.Error("received error")
+		return err
+	}
 	// Remove policy from orb-agent local repo
-	err := a.repo.Remove(pd.ID)
+	err = a.repo.Remove(pd.ID)
 	if err != nil {
 		a.logger.Error("received error")
 		return err
 	}
 	err = be.RemovePolicy(pd)
 	if err != nil {
-		a.logger.Error("received error")
+		a.logger.Error("received error, reverting the backend policy on repository")
+		err := a.repo.Update(policy)
+		if err != nil {
+			a.logger.Error("could not replace backend policy on repository, agent is desynchronized")
+			return err
+		}
 		return err
 	}
 
@@ -193,17 +205,19 @@ func (a *policyManager) RemovePolicyDataset(policyID string, datasetID string, b
 	}
 }
 
-func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be backend.Backend, pd *policies.PolicyData, updatePolicy bool) {
+func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be backend.Backend, pd *policies.PolicyData, updatePolicy bool) error {
 	err := be.ApplyPolicy(*pd, updatePolicy)
 	if err != nil {
 		a.logger.Warn("policy failed to apply", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.Error(err))
 		pd.State = policies.FailedToApply
 		pd.BackendErr = err.Error()
-	} else {
-		a.logger.Info("policy applied successfully", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name))
-		pd.State = policies.Running
-		pd.BackendErr = ""
+		return err
 	}
+	a.logger.Info("policy applied successfully", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name))
+	pd.State = policies.Running
+	pd.BackendErr = ""
+	return nil
+
 }
 
 func (a *policyManager) RemoveBackendPolicies(be backend.Backend, permanently bool) error {
