@@ -88,14 +88,6 @@ func (p *cloudproberBackend) GetState() (backend.BackendState, string, error) {
 	return backend.Running, "", nil
 }
 
-// AppMetrics represents server application information
-type AppMetrics struct {
-	App struct {
-		Version   string  `json:"version"`
-		UpTimeMin float64 `json:"up_time_min"`
-	} `json:"app"`
-}
-
 // note this needs to be stateless because it is called for multiple go routines
 func (p *cloudproberBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string, timeout int32) error {
 	client := http.Client{
@@ -223,13 +215,7 @@ func (p *cloudproberBackend) RemovePolicy(data policies.PolicyData) error {
 }
 
 func (p *cloudproberBackend) Version() (string, error) {
-	var appMetrics AppMetrics
-	err := p.request("metrics/app", &appMetrics, http.MethodGet, http.NoBody, "application/json", VersionTimeout)
-	if err != nil {
-		return "", err
-	}
-	p.cloudproberVersion = appMetrics.App.Version
-	return appMetrics.App.Version, nil
+	return "1.0", nil
 }
 
 func (p *cloudproberBackend) Write(payload []byte) (n int, err error) {
@@ -503,13 +489,8 @@ func (p *cloudproberBackend) scrapeMetrics() (map[string]interface{}, error) {
 }
 
 func (p *cloudproberBackend) GetCapabilities() (map[string]interface{}, error) {
-	var taps interface{}
-	err := p.request("taps", &taps, http.MethodGet, http.NoBody, "application/json", TapsTimeout)
-	if err != nil {
-		return nil, err
-	}
 	jsonBody := make(map[string]interface{})
-	jsonBody["taps"] = taps
+	jsonBody["taps"] = "none"
 	return jsonBody, nil
 }
 
@@ -517,7 +498,6 @@ func Register() bool {
 	backend.Register("cloudprober", &cloudproberBackend{
 		adminAPIProtocol: "http",
 	})
-	//p.logger.Error("trying to Register backend", zap.Error(err))
 	return true
 }
 
