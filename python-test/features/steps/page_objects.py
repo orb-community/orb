@@ -55,6 +55,18 @@ class Dataset:
     def DetailsModal(cls):
         return f"//nb-card-header[contains(text(), 'Dataset Details')]/ancestor::nb-dialog-container"
 
+    @classmethod
+    def dataset_name(cls):
+        return "//input[contains(@data-orb-qa-id, 'input#name')]"
+
+    @classmethod
+    def dataset_remove_confirmation(cls):
+        return "//button[contains(text(), 'I Understand, Delete This Dataset ')]"
+
+    @classmethod
+    def selected_sinks(cls):
+        return "//mat-chip[contains(@class, 'orb-selected-sink')]"
+
 
 class AgentsPage:
     def __init__(self):
@@ -101,6 +113,12 @@ class AgentsPage:
         return f"//nb-card-header[contains(text(), 'Active " \
                f"Policies/Datasets')]/ancestor::nb-card/descendant::nb-card-body/descendant::nb-accordion/descendant" \
                f"::button[contains(text(),'{name}')]/ancestor::nb-accordion-item-header//*"
+
+    @classmethod
+    def no_policies_span(cls):
+        return "//nb-card-header[contains(text(), 'Active " \
+               "Policies/Datasets')]/ancestor::nb-card/descendant::nb-card-body/span[contains(text(),'Agent has no " \
+               "defined datasets.')] "
 
     @classmethod
     def active_groups(cls, name):
@@ -373,6 +391,14 @@ class PolicyPage:
     @classmethod
     def new_dataset_button(cls):
         return "//button[contains(text( ), 'New Dataset')]"
+
+    @classmethod
+    def dataset_details_modal(cls, name):
+        return f"//button[contains(text( ), '{name}')]"
+
+    @classmethod
+    def remove_dataset_button(cls):
+        return "//button[contains(@class, 'dataset-delete-button')]"
 
 
 class DatasetModal:

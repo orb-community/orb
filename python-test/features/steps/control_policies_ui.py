@@ -1,5 +1,5 @@
 from behave import step
-from control_plane_policies import parse_policy_params, get_policy, make_policy_json
+from control_plane_policies import parse_policy_params, get_policy, make_policy_json, list_policies
 from test_config import TestConfig
 from ui_utils import *
 from utils import remove_empty_from_json
@@ -92,6 +92,11 @@ def create_new_policy_through_UI(context, kwargs):
                                            params["bpf_filter_expression"], params["pcap_source"],
                                            params["only_qname_suffix"], params["only_rcode"],
                                            params["exclude_noerror"], params["backend_type"])
+    all_policies = list_policies(context.token)
+    for policy in all_policies:
+        if policy['name'] == params["name"]:
+            context.policy = policy
+            break
 
 
 @step('user must be directed to the policy view page')

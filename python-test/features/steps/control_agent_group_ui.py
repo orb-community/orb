@@ -1,10 +1,10 @@
-from behave import when, then
+from behave import when, then, step
 from test_config import TestConfig
 from ui_utils import *
 from hamcrest import *
 from utils import random_string, create_tags_set
 from page_objects import *
-from control_plane_agent_groups import agent_group_name_prefix, agent_group_description
+from control_plane_agent_groups import agent_group_name_prefix, agent_group_description, list_agent_groups
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
@@ -23,7 +23,25 @@ def create_agent_group_through_the_agent_group_page(context, orb_tags):
                                                                                                       "page not "
                                                                                                       "available")
     context.agent_group_name = agent_group_name_prefix + random_string(10)
-    create_group_via_UI(context.agent_group_name, context.orb_tags, context.driver)
+    create_group_via_UI(context.agent_group_name, context.orb_tags, context.driver, context.token, context.agent_groups)
+
+
+@step('a new agent group is created through the UI with same tags as the agent')
+def create_agent_group_through_the_agent_group_page(context):
+    context.agent_group_name = agent_group_name_prefix + random_string(10)
+    WebDriverWait(context.driver, 5).until(
+        EC.element_to_be_clickable((By.XPATH, AgentGroupPage.new_agent_group_button())),
+        message="Unable to click on new agent group"
+                " button").click()
+    tags_in_agent = context.agent["orb_tags"]
+    if context.agent["agent_tags"] is not None:
+        tags_in_agent.update(context.agent["agent_tags"])
+    tags_keys = tags_in_agent.keys()
+    context.orb_tags = tags_in_agent
+
+    assert_that(len(tags_keys), greater_than(0), f"Unable to create group without tags. Tags:{tags_in_agent}. "
+                                                 f"Agent:{context.agent}")
+    create_group_via_UI(context.agent_group_name, context.orb_tags, context.driver, context.token, context.agent_groups)
 
 
 @then("the new agent group {condition} shown on the datatable")
@@ -49,7 +67,7 @@ def create_agent_group_with_description_through_the_agent_group_page(context, or
                                                                                                       "available")
     context.agent_group_name = agent_group_name_prefix + random_string(10)
     context.agent_group_description = agent_group_description + random_string(10)
-    create_group_via_UI(context.agent_group_name, context.orb_tags, context.driver,
+    create_group_via_UI(context.agent_group_name, context.orb_tags, context.driver, context.token, context.agent_groups,
                         description=context.agent_group_description)
     context.initial_counter = check_total_counter(context.driver)
 
@@ -136,14 +154,15 @@ def update_an_agent_group_by_name_through_the_agent_group_page(context, orb_tags
         EC.element_to_be_clickable((By.XPATH, DataTable.close_option_selected()))).click()
 
 
-def create_group_via_UI(name, orb_tags, driver, description=None, time_to_wait_until=5):
+def create_group_via_UI(name, orb_tags, driver, token, existent_groups, description=None, time_to_wait_until=5):
     assert_that(str(driver.current_url), equal_to(f"{orb_url}/pages/fleet/groups/add"), "Not possible to create a "
                                                                                         "group because the driver is "
                                                                                         "not on the group add page")
     input_text_by_xpath(AgentGroupPage.agent_group_name(), name, driver)
     if description is not None:
         input_text_by_xpath(AgentGroupPage.agent_group_description(), agent_group_description, driver)
-    WebDriverWait(driver, time_to_wait_until).until(EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
+    WebDriverWait(driver, time_to_wait_until).until(
+        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
     for tag_key, tag_value in orb_tags.items():
         input_text_by_xpath(AgentGroupPage.agent_group_tag_key(), tag_key, driver)
         input_text_by_xpath(AgentGroupPage.agent_group_tag_value(), tag_value, driver)
@@ -155,3 +174,8 @@ def create_group_via_UI(name, orb_tags, driver, description=None, time_to_wait_u
         EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
     WebDriverWait(driver, time_to_wait_until).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully created'))
+    all_groups = list_agent_groups(token)
+    for group in all_groups:
+        if group['name'] == name:
+            existent_groups[group['id']] = group['name']
+            break

@@ -1,9 +1,10 @@
 from behave import given, then, step
 from ui_utils import *
-from control_plane_agents import agent_name_prefix
+from control_plane_agents import agent_name_prefix, get_agent
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from utils import random_string, create_tags_set, threading_wait_until
 from test_config import TestConfig
 from hamcrest import *
@@ -88,7 +89,7 @@ def create_agent_through_the_agents_page(context, orb_tags):
     context.agent['name'] = context.agent_name
 
 
-@then("the agents list and the agents view should display agent's status as {status} within {time_to_wait} seconds")
+@step("the agents list and the agents view should display agent's status as {status} within {time_to_wait} seconds")
 def check_status_on_orb_ui(context, status, time_to_wait):
     agents_page = f"{orb_url}/pages/fleet/agents"
     context.driver, current_url = go_to_page(agents_page, driver=context.driver)
@@ -105,6 +106,7 @@ def check_status_on_orb_ui(context, status, time_to_wait):
             (By.XPATH, AgentsPage.agent_status())), message="Unable to find agent status on agent view page").text
     agent_view_status = agent_view_status.replace(".", "")
     assert_that(agent_view_status, equal_to(status), f"Agent {context.agent['id']} status failed")
+    context.agent = get_agent(context.token, context.agent['id'])
 
 
 @threading_wait_until
@@ -182,6 +184,15 @@ def check_group_in_active_group(context):
                                                                                           "views page")
 
 
+@step("policy must be removed from the agent")
+def check_no_policies_agent(context):
+    agent_id = context.agent['id']
+    agent_view_page = OrbUrl.agent_view(orb_url, agent_id)
+    context.driver, current_url = go_to_page(agent_view_page, driver=context.driver)
+    found_span = wait_xpath(context.driver, AgentsPage.no_policies_span(), timeout=180)
+    assert_that(found_span, equal_to(True), "Policies was note removed from the agent")
+
+
 @threading_wait_until
 def get_policy_ui_status(driver, name, status, event=None):
     elements = WebDriverWait(driver, time_webdriver_wait).until(
@@ -233,3 +244,16 @@ def get_policy_name_button(driver, name, event=None):
         driver.refresh()
         event.wait(1)
     return policy_name
+
+
+@threading_wait_until
+def wait_xpath(driver, xpath, event=None):
+    try:
+        WebDriverWait(driver, time_webdriver_wait).until(
+            EC.presence_of_element_located((By.XPATH, xpath)))
+        event.set()
+        return event.is_set()
+    except TimeoutException:
+        driver.refresh()
+        event.wait(1)
+        return event.is_set()
