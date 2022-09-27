@@ -26,7 +26,6 @@ import (
 	"github.com/ns1labs/orb/agent/policies"
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v3"
 )
 
 var _ backend.Backend = (*cloudproberBackend)(nil)
@@ -168,36 +167,30 @@ func (cpbe *cloudproberBackend) checkAlive() (bool, error) {
 // ApplyPolicy in cloudprober, when we receive a new probe, we will stop the binary, recreate the config with all policies bundled and then
 //
 //	start the cloudprober again
-func (cpbe *cloudproberBackend) ApplyPolicy(data policies.PolicyData, _ bool) error {
+func (cpbe *cloudproberBackend) ApplyPolicy(_ policies.PolicyData, _ bool) error {
 
 	cpbe.logger.Debug("recreate config file based on policies")
 
-	cpbe.logger.Debug("cloudprober policy apply", zap.String("policy_id", data.ID), zap.Any("data", data.Data))
-
-	fullPolicy := map[string]interface{}{
-		"version": "1.0",
-		"prober": map[string]interface{}{
-			"policies": map[string]interface{}{
-				data.Name: data.Data,
-			},
-		},
-	}
-
-	policyYaml, err := yaml.Marshal(fullPolicy)
+	policiesData, err := cpbe.policyRepo.GetAllByBackend(BackendName)
 	if err != nil {
-		cpbe.logger.Warn("yaml policy marshal failure", zap.String("policy_id", data.ID), zap.Any("policy", fullPolicy))
+		cpbe.logger.Error("Received error during retrieving cloudprober policies")
 		return err
 	}
 
-	defaultLocation := "/etc/cloudprober.cfg"
-	fileContent, err := cpbe.buildConfigFile(policyYaml)
+	if len(policiesData) == 0 {
+		cpbe.logger.Warn("No policies to apply, waiting")
+		return nil
+	}
+
+	fileContent, err := cpbe.buildConfigFile(policiesData)
 	if err != nil {
-		cpbe.logger.Warn("policy convertion to cloudprober configuration failure", zap.String("policy_id", data.ID), zap.Any("policy", fullPolicy))
+		cpbe.logger.Error("error on building cloudprober file")
 		return err
 	}
-	err = cpbe.overrideConfigFile(fileContent, defaultLocation)
+
+	err = cpbe.overrideConfigFile(fileContent, cpbe.configFile)
 	if err != nil {
-		cpbe.logger.Error("failure to override configuration", zap.String("policy_id", data.ID), zap.Any("policy", fullPolicy))
+		cpbe.logger.Error("failure to override configuration")
 		return err
 	}
 	err = cpbe.stopBinary()
@@ -264,13 +257,18 @@ func (cpbe *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Ca
 		}
 	}()
 
-	cpbe.logger.Info("cloudprober process started", zap.Int("pid", status.PID))
-
+	cpbe.logger.Info("cloudprober waiting for policies")
 	cpbe.scraper = gocron.NewScheduler(time.UTC)
 	cpbe.scraper.StartAsync()
 
 	// only one scrape mechanism
 	cpbe.scrapeOpenTelemetry(ctx)
+
+	err := cpbe.ApplyPolicy(policies.PolicyData{}, false)
+	if err != nil {
+		cpbe.logger.Error("error during applying policies")
+		return err
+	}
 
 	return nil
 }
@@ -514,7 +512,7 @@ func (cpbe *cloudproberBackend) FullReset(ctx context.Context) error {
 	return nil
 }
 
-func (cpbe *cloudproberBackend) buildConfigFile(policyYaml []byte) ([]byte, error) {
+func (cpbe *cloudproberBackend) buildConfigFile(policyYaml []policies.PolicyData) ([]byte, error) {
 
 	return nil, nil
 }
