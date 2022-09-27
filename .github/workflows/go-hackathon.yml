@@ -321,7 +321,6 @@ jobs:
       - package-policies
       - package-sinker
       - package-sinks
-      - package-ui
 
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
