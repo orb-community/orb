@@ -7,19 +7,20 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+
 	"github.com/ns1labs/orb/agent"
-	"github.com/ns1labs/orb/agent/backend/pktvisor"
 	"github.com/ns1labs/orb/agent/backend/cloudprober"
+	"github.com/ns1labs/orb/agent/backend/pktvisor"
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
 )
 
 const (
@@ -69,15 +70,16 @@ func Run(cmd *cobra.Command, args []string) {
 	}
 
 	// include cloudprober backend by default if binary is at default location
-//	_, err = os.Stat(cloudprober.DefaultBinary)
-//	if err == nil && config.OrbAgent.Backends == nil {
-//		config.OrbAgent.Backends = make(map[string]map[string]string)
-//		config.OrbAgent.Backends["cloudprober"] = make(map[string]string)
-//		config.OrbAgent.Backends["cloudprober"]["binary"] = cloudprober.DefaultBinary
-//		if len(cfgFiles) > 0 {
-//			config.OrbAgent.Backends["cloudprober"]["config_file"] = cfgFiles[0]
-//		}
-//	}
+	//	_, err = os.Stat(cloudprober.DefaultBinary)
+	//	if err == nil && config.OrbAgent.Backends == nil {
+	//		config.OrbAgent.Backends = make(map[string]map[string]string)
+	//		config.OrbAgent.Backends["cloudprober"] = make(map[string]string)
+	//		config.OrbAgent.Backends["cloudprober"]["binary"] = cloudprober.DefaultBinary
+	//		if len(cfgFiles) > 0 {
+	//			config.OrbAgent.Backends["cloudprober"]["config_file"] = cfgFiles[0]
+	//		}
+	//	}
+
 	// logger
 	var logger *zap.Logger
 	atomicLevel := zap.NewAtomicLevel()
@@ -165,7 +167,7 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.backends.pktvisor.config_file", "")
 	v.SetDefault("orb.backends.pktvisor.api_host", "localhost")
 	v.SetDefault("orb.backends.pktvisor.api_port", "10853")
-	
+
 	//cloudprober
 	v.SetDefault("orb.backends.cloudprober.binary", "")
 	v.SetDefault("orb.backends.cloudprober.config_file", "")
