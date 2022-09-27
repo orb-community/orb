@@ -153,18 +153,18 @@ func (a *policyManager) RemovePolicy(policyID string, policyName string, beName 
 		return errors.New("policy remove for a backend we do not have, ignoring")
 	}
 	be := backend.GetBackend(beName)
-	// Remove policy via http request
-	err := be.RemovePolicy(pd)
+	// Remove policy from orb-agent local repo
+	err := a.repo.Remove(pd.ID)
 	if err != nil {
 		a.logger.Error("received error")
 		return err
 	}
-	// Remove policy from orb-agent local repo
-	err = a.repo.Remove(pd.ID)
+	err = be.RemovePolicy(pd)
 	if err != nil {
-
+		a.logger.Error("received error")
 		return err
 	}
+
 	return nil
 }
 

@@ -5,7 +5,6 @@
 package cloudprober
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -14,6 +13,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"os/exec"
 	"time"
 
@@ -33,6 +33,7 @@ import (
 var _ backend.Backend = (*cloudproberBackend)(nil)
 
 const (
+	BackendName         = "cloudprober"
 	DefaultBinary       = "/usr/local/sbin/cloudprober"
 	ReadinessBackoff    = 10
 	ReadinessTimeout    = 10
@@ -71,39 +72,47 @@ type cloudproberBackend struct {
 	scrapeOtel bool
 }
 
-func (p *cloudproberBackend) GetStartTime() time.Time {
-	return p.startTime
+func (cpbe *cloudproberBackend) GetStartTime() time.Time {
+	return cpbe.startTime
 }
 
-func (p *cloudproberBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
-	p.mqttClient = client
-	p.metricsTopic = fmt.Sprintf("%s/m/%c", baseTopic, agentID[0])
+func (cpbe *cloudproberBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
+	cpbe.mqttClient = client
+	cpbe.metricsTopic = fmt.Sprintf("%s/m/%c", baseTopic, agentID[0])
 }
 
-func (p *cloudproberBackend) GetState() (backend.BackendState, string, error) {
-	_, err := p.checkAlive()
+func (cpbe *cloudproberBackend) GetState() (backend.BackendState, string, error) {
+	_, err := cpbe.checkAlive()
 	if err != nil {
 		return backend.Unknown, "", err
 	}
 	return backend.Running, "", nil
 }
 
+// AppMetrics represents server application information
+type AppMetrics struct {
+	App struct {
+		Version   string  `json:"version"`
+		UpTimeMin float64 `json:"up_time_min"`
+	} `json:"app"`
+}
+
 // note this needs to be stateless because it is called for multiple go routines
-func (p *cloudproberBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string, timeout int32) error {
+func (cpbe *cloudproberBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string, timeout int32) error {
 	client := http.Client{
 		Timeout: time.Second * time.Duration(timeout),
 	}
 
-	alive, err := p.checkAlive()
+	alive, err := cpbe.checkAlive()
 	if !alive {
 		return err
 	}
 
-	URL := fmt.Sprintf("%s://%s:%s/%s", p.adminAPIProtocol, p.adminAPIHost, p.adminAPIPort, url)
+	URL := fmt.Sprintf("%s://%s:%s/%s", cpbe.adminAPIProtocol, cpbe.adminAPIHost, cpbe.adminAPIPort, url)
 
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
-		p.logger.Error("received error from payload", zap.Error(err))
+		cpbe.logger.Error("received error from payload", zap.Error(err))
 		return err
 	}
 
@@ -111,7 +120,7 @@ func (p *cloudproberBackend) request(url string, payload interface{}, method str
 	res, getErr := client.Do(req)
 
 	if getErr != nil {
-		p.logger.Error("received error from payload", zap.Error(getErr))
+		cpbe.logger.Error("received error from payload", zap.Error(getErr))
 		return getErr
 	}
 
@@ -142,41 +151,29 @@ func (p *cloudproberBackend) request(url string, payload interface{}, method str
 	return nil
 }
 
-func (p *cloudproberBackend) checkAlive() (bool, error) {
-	status := p.proc.Status()
-
-	if status.Error != nil {
-		p.logger.Error("cloudprobe process error", zap.Error(status.Error))
-		return false, status.Error
-	}
-
-	if status.Complete {
-		err := p.proc.Stop()
-		if err != nil {
-			p.logger.Error("proc.Stop error", zap.Error(err))
+func (cpbe *cloudproberBackend) checkAlive() (bool, error) {
+	policyData, err := cpbe.policyRepo.GetAllByBackend(BackendName)
+	if err != nil {
+		if err.Error() == "not found" {
+			// if doesn't have any policies then returns true because is on standby
+			return true, nil
 		}
-		return false, errors.New("cloudprobe process ended")
 	}
-
-	if status.StopTs > 0 {
-		p.logger.Info("cloudprobe process stopped")
-		return false, errors.New("cloudprobe process ended")
+	if len(policyData) > 0 && cpbe.proc.Status().StopTs > 0 {
+		return false, errors.New("cloudprobe contains policies but is stopped")
 	}
 
 	return true, nil
 }
 
-func (p *cloudproberBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool) error {
+// ApplyPolicy in cloudprober, when we receive a new probe, we will stop the binary, recreate the config with all policies bundled and then
+//
+//	start the cloudprober again
+func (cpbe *cloudproberBackend) ApplyPolicy(data policies.PolicyData, _ bool) error {
 
-	if updatePolicy {
-		// To update a policy it's necessary first remove it and then apply a new version
-		err := p.RemovePolicy(data)
-		if err != nil {
-			p.logger.Warn("policy failed to remove", zap.String("policy_id", data.ID), zap.String("policy_name", data.Name), zap.Error(err))
-		}
-	}
+	cpbe.logger.Debug("recreate config file based on policies")
 
-	p.logger.Debug("cloudprober policy apply", zap.String("policy_id", data.ID), zap.Any("data", data.Data))
+	cpbe.logger.Debug("cloudprober policy apply", zap.String("policy_id", data.ID), zap.Any("data", data.Data))
 
 	fullPolicy := map[string]interface{}{
 		"version": "1.0",
@@ -189,14 +186,19 @@ func (p *cloudproberBackend) ApplyPolicy(data policies.PolicyData, updatePolicy 
 
 	policyYaml, err := yaml.Marshal(fullPolicy)
 	if err != nil {
-		p.logger.Warn("yaml policy marshal failure", zap.String("policy_id", data.ID), zap.Any("policy", fullPolicy))
+		cpbe.logger.Warn("yaml policy marshal failure", zap.String("policy_id", data.ID), zap.Any("policy", fullPolicy))
 		return err
 	}
 
-	var resp map[string]interface{}
-	err = p.request("policies", &resp, http.MethodPost, bytes.NewBuffer(policyYaml), "application/x-yaml", ApplyPolicyTimeout)
+	defaultLocation := "/etc/cloudprober.cfg"
+	fileContent, err := cpbe.buildConfigFile(policyYaml)
 	if err != nil {
-		p.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", policyYaml))
+		cpbe.logger.Warn("policy convertion to cloudprober configuration failure", zap.String("policy_id", data.ID), zap.Any("policy", fullPolicy))
+		return err
+	}
+	err = cpbe.overrideConfigFile(fileContent, defaultLocation)
+	if err != nil {
+		cpbe.logger.Error("failure to override configuration", zap.String("policy_id", data.ID), zap.Any("policy", fullPolicy))
 		return err
 	}
 
@@ -204,70 +206,61 @@ func (p *cloudproberBackend) ApplyPolicy(data policies.PolicyData, updatePolicy 
 
 }
 
-func (p *cloudproberBackend) RemovePolicy(data policies.PolicyData) error {
+func (cpbe *cloudproberBackend) RemovePolicy(data policies.PolicyData) error {
 	var resp interface{}
-	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout)
+	err := cpbe.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout)
 	if err != nil {
-		p.logger.Error("received error", zap.Error(err))
+		cpbe.logger.Error("received error", zap.Error(err))
 		return err
 	}
 	return nil
 }
 
-func (p *cloudproberBackend) Version() (string, error) {
-	return "1.0", nil
+func (cpbe *cloudproberBackend) Version() (string, error) {
+	var appMetrics AppMetrics
+	err := cpbe.request("metrics/app", &appMetrics, http.MethodGet, http.NoBody, "application/json", VersionTimeout)
+	if err != nil {
+		return "", err
+	}
+	cpbe.cloudproberVersion = appMetrics.App.Version
+	return appMetrics.App.Version, nil
 }
 
-func (p *cloudproberBackend) Write(payload []byte) (n int, err error) {
-	p.logger.Info("cloudprober", zap.ByteString("log", payload))
+func (cpbe *cloudproberBackend) Write(payload []byte) (n int, err error) {
+	cpbe.logger.Info("cloudprober", zap.ByteString("log", payload))
 	return len(payload), nil
 }
 
-func (p *cloudproberBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
+func (cpbe *cloudproberBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
 
 	// this should record the start time whether it's successful or not
 	// because it is used by the automatic restart system for last attempt
-	p.startTime = time.Now()
-	p.cancelFunc = cancelFunc
+	cpbe.startTime = time.Now()
+	cpbe.cancelFunc = cancelFunc
 
-	_, err := exec.LookPath(p.binary)
+	err := cpbe.startBinary()
 	if err != nil {
-		p.logger.Error("cloudprobe startup error: binary not found", zap.Error(err))
 		return err
 	}
-
-	pvOptions := []string{
-		"-config_file",
-	}
-	if len(p.configFile) > 0 {
-		pvOptions = append(pvOptions, p.configFile)
-	}
-	p.logger.Info("cloudprobe startup", zap.Strings("arguments", pvOptions))
-
-	p.proc = cmd.NewCmdOptions(cmd.Options{
-		Buffered:  false,
-		Streaming: true,
-	}, p.binary, pvOptions...)
-	p.statusChan = p.proc.Start()
 
 	// log STDOUT and STDERR lines streaming from Cmd
 	doneChan := make(chan struct{})
 	go func() {
 		defer close(doneChan)
-		for p.proc.Stdout != nil || p.proc.Stderr != nil {
+		for cpbe.proc.Stdout != nil || cpbe.proc.Stderr != nil {
 			select {
-			case line, open := <-p.proc.Stdout:
+			case line, open := <-cpbe.proc.Stdout:
 				if !open {
-					p.proc.Stdout = nil
+					cpbe.proc.Stdout = nil
 					continue
 				}
-				p.logger.Info("cloudprober stdout", zap.String("log", line))
-			case line, open := <-p.proc.Stderr:
+				cpbe.logger.Info("cloudprober stdout", zap.String("log", line))
+			case line, open := <-cpbe.proc.Stderr:
 				if !open {
-					p.proc.Stderr = nil
+					cpbe.proc.Stderr = nil
 					continue
 				}
-				p.logger.Info("cloudprober stderr", zap.String("log", line))
+				cpbe.logger.Info("cloudprober stderr", zap.String("log", line))
 			}
 		}
 	}()
@@ -275,30 +268,30 @@ func (p *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 	// wait for simple startup errors
 	time.Sleep(time.Second)
 
-	status := p.proc.Status()
+	status := cpbe.proc.Status()
 
 	if status.Error != nil {
-		p.logger.Error("cloudprober startup error", zap.Error(status.Error))
+		cpbe.logger.Error("cloudprober startup error", zap.Error(status.Error))
 		return status.Error
 	}
 
 	if status.Complete {
-		err = p.proc.Stop()
+		err = cpbe.proc.Stop()
 		if err != nil {
-			p.logger.Error("proc.Stop error", zap.Error(err))
+			cpbe.logger.Error("proc.Stop error", zap.Error(err))
 		}
 		return errors.New("cloudprober startup error, check log")
 	}
 
-	p.logger.Info("cloudprober process started", zap.Int("pid", status.PID))
+	cpbe.logger.Info("cloudprober process started", zap.Int("pid", status.PID))
 
-	p.scraper = gocron.NewScheduler(time.UTC)
-	p.scraper.StartAsync()
+	cpbe.scraper = gocron.NewScheduler(time.UTC)
+	cpbe.scraper.StartAsync()
 
-	if p.scrapeOtel {
-		p.scrapeOpenTelemetry(ctx)
+	if cpbe.scrapeOtel {
+		cpbe.scrapeOpenTelemetry(ctx)
 	} else {
-		if err := p.scrapeDefault(); err != nil {
+		if err := cpbe.scrapeDefault(); err != nil {
 			return err
 		}
 	}
@@ -306,31 +299,58 @@ func (p *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 	return nil
 }
 
-func (p *cloudproberBackend) scrapeDefault() error {
+func (cpbe *cloudproberBackend) startBinary() error {
+	_, err := exec.LookPath(cpbe.binary)
+	if err != nil {
+		cpbe.logger.Error("cloudprober startup error: binary not found", zap.Error(err))
+		return err
+	}
+
+	pvOptions := []string{
+		"-config_file",
+	}
+	if len(cpbe.configFile) > 0 {
+		pvOptions = append(pvOptions, cpbe.configFile)
+	}
+	cpbe.logger.Info("cloudprober startup", zap.Strings("arguments", pvOptions))
+
+	cpbe.proc = cmd.NewCmdOptions(cmd.Options{
+		Buffered:  false,
+		Streaming: true,
+	}, cpbe.binary, pvOptions...)
+	cpbe.statusChan = cpbe.proc.Start()
+	return err
+}
+
+func (cpbe *cloudproberBackend) stopBinary() error {
+	cpbe.proc.Stop()
+}
+
+func (cpbe *cloudproberBackend) scrapeDefault() error {
 	// scrape all policy json output with one call every minute.
 	// TODO support policies with custom bucket times
-	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
-		metrics, err := p.scrapeMetrics()
+	job, err := cpbe.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
+		metrics, err := cpbe.scrapeMetrics()
 		if err != nil {
-			p.logger.Error("scrape failed", zap.Error(err))
+			cpbe.logger.Error("scrape failed", zap.Error(err))
 			return
 		}
 		if len(metrics) == 0 {
-			p.logger.Warn("scrape: no policies found, skipping")
+			cpbe.logger.Warn("scrape: no policies found, skipping")
 			return
 		}
 
 		var batchPayload []fleet.AgentMetricsRPCPayload
 		totalSize := 0
 		for pName, pMetrics := range metrics {
-			data, err := p.policyRepo.GetByName(pName)
+			data, err := cpbe.policyRepo.GetByName(pName)
 			if err != nil {
-				p.logger.Warn("skipping cloudprober policy not managed by orb", zap.String("policy", pName), zap.String("error_message", err.Error()))
+				cpbe.logger.Warn("skipping cloudprober policy not managed by orb", zap.String("policy", pName), zap.String("error_message", err.Error()))
 				continue
 			}
 			payloadData, err := json.Marshal(pMetrics)
 			if err != nil {
-				p.logger.Error("error marshalling scraped metric json", zap.String("policy", pName), zap.Error(err))
+				cpbe.logger.Error("error marshalling scraped metric json", zap.String("policy", pName), zap.Error(err))
 				continue
 			}
 			metricPayload := fleet.AgentMetricsRPCPayload{
@@ -338,12 +358,12 @@ func (p *cloudproberBackend) scrapeDefault() error {
 				PolicyName: data.Name,
 				Datasets:   data.GetDatasetIDs(),
 				Format:     "json",
-				BEVersion:  p.cloudproberVersion,
+				BEVersion:  cpbe.cloudproberVersion,
 				Data:       payloadData,
 			}
 			batchPayload = append(batchPayload, metricPayload)
 			totalSize += len(payloadData)
-			p.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", data.ID), zap.Int("payload_size_b", len(payloadData)))
+			cpbe.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", data.ID), zap.Int("payload_size_b", len(payloadData)))
 		}
 
 		rpc := fleet.AgentMetricsRPC{
@@ -354,15 +374,15 @@ func (p *cloudproberBackend) scrapeDefault() error {
 
 		body, err := json.Marshal(rpc)
 		if err != nil {
-			p.logger.Error("error marshalling metric rpc payload", zap.Error(err))
+			cpbe.logger.Error("error marshalling metric rpc payload", zap.Error(err))
 			return
 		}
 
-		if token := p.mqttClient.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
-			p.logger.Error("error sending metrics RPC", zap.String("topic", p.metricsTopic), zap.Error(token.Error()))
+		if token := cpbe.mqttClient.Publish(cpbe.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
+			cpbe.logger.Error("error sending metrics RPC", zap.String("topic", cpbe.metricsTopic), zap.Error(token.Error()))
 			return
 		}
-		p.logger.Info("scraped and published metrics", zap.String("topic", p.metricsTopic), zap.Int("payload_size_b", totalSize), zap.Int("batch_count", len(batchPayload)))
+		cpbe.logger.Info("scraped and published metrics", zap.String("topic", cpbe.metricsTopic), zap.Int("payload_size_b", totalSize), zap.Int("batch_count", len(batchPayload)))
 
 	})
 
@@ -374,7 +394,7 @@ func (p *cloudproberBackend) scrapeDefault() error {
 	return nil
 }
 
-func (p *cloudproberBackend) scrapeOpenTelemetry(ctx context.Context) {
+func (cpbe *cloudproberBackend) scrapeOpenTelemetry(ctx context.Context) {
 	go func() {
 		startExpCtx, cancelFunc := context.WithCancel(ctx)
 		var ok bool
@@ -384,113 +404,118 @@ func (p *cloudproberBackend) scrapeOpenTelemetry(ctx context.Context) {
 			case <-startExpCtx.Done():
 				return
 			default:
-				if p.mqttClient != nil {
+				if cpbe.mqttClient != nil {
 					var errStartExp error
-					p.exporter, errStartExp = p.createOtlpMqttExporter(ctx)
+					cpbe.exporter, errStartExp = cpbe.createOtlpMqttExporter(ctx)
 					if errStartExp != nil {
-						p.logger.Error("failed to create a exporter", zap.Error(err))
+						cpbe.logger.Error("failed to create a exporter", zap.Error(err))
 						return
 					}
 
-					p.receiver, err = createReceiver(ctx, p.exporter, p.logger)
+					cpbe.receiver, err = createReceiver(ctx, cpbe.exporter, cpbe.logger)
 					if err != nil {
-						p.logger.Error("failed to create a receiver", zap.Error(err))
+						cpbe.logger.Error("failed to create a receiver", zap.Error(err))
 						return
 					}
 
-					err = p.exporter.Start(ctx, nil)
+					err = cpbe.exporter.Start(ctx, nil)
 					if err != nil {
-						p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
+						cpbe.logger.Error("otel mqtt exporter startup error", zap.Error(err))
 						return
 					}
 
-					err = p.receiver.Start(ctx, nil)
+					err = cpbe.receiver.Start(ctx, nil)
 					if err != nil {
-						p.logger.Error("otel receiver startup error", zap.Error(err))
+						cpbe.logger.Error("otel receiver startup error", zap.Error(err))
 						return
 					}
 
 					ok = true
 					return
 				} else {
-					p.logger.Info("waiting until mqtt client is connected", zap.String("wait time", (time.Duration(i)*time.Second).String()))
+					cpbe.logger.Info("waiting until mqtt client is connected", zap.String("wait time", (time.Duration(i)*time.Second).String()))
 					time.Sleep(time.Duration(i) * time.Second)
 					continue
 				}
 			}
 		}
 		if !ok {
-			p.logger.Error("mqtt did not established a connection, stopping agent")
-			p.Stop(startExpCtx)
+			cpbe.logger.Error("mqtt did not established a connection, stopping agent")
+			cpbe.Stop(startExpCtx)
 		}
 		cancelFunc()
 		return
 	}()
 }
 
-func (p *cloudproberBackend) Stop(ctx context.Context) error {
-	p.logger.Info("routine call to stop cloudprober", zap.Any("routine", ctx.Value("routine")))
-	defer p.cancelFunc()
-	err := p.proc.Stop()
-	finalStatus := <-p.statusChan
+func (cpbe *cloudproberBackend) Stop(ctx context.Context) error {
+	cpbe.logger.Info("routine call to stop cloudprober", zap.Any("routine", ctx.Value("routine")))
+	defer cpbe.cancelFunc()
+	err := cpbe.proc.Stop()
+	finalStatus := <-cpbe.statusChan
 	if err != nil {
-		p.logger.Error("cloudprober shutdown error", zap.Error(err))
+		cpbe.logger.Error("cloudprober shutdown error", zap.Error(err))
 	}
-	p.scraper.Stop()
+	cpbe.scraper.Stop()
 
-	if p.scrapeOtel {
-		if p.exporter != nil {
-			_ = p.exporter.Shutdown(context.Background())
+	if cpbe.scrapeOtel {
+		if cpbe.exporter != nil {
+			_ = cpbe.exporter.Shutdown(context.Background())
 		}
-		if p.receiver != nil {
-			_ = p.receiver.Shutdown(context.Background())
+		if cpbe.receiver != nil {
+			_ = cpbe.receiver.Shutdown(context.Background())
 		}
 	}
 
-	p.logger.Info("cloudprober process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
+	cpbe.logger.Info("cloudprober process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
 	return nil
 }
 
-func (p *cloudproberBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string, otelConfig map[string]interface{}) error {
-	p.logger = logger
-	p.policyRepo = repo
+func (cpbe *cloudproberBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string, otelConfig map[string]interface{}) error {
+	cpbe.logger = logger
+	cpbe.policyRepo = repo
 
 	var prs bool
-	if p.binary, prs = config["binary"]; !prs {
+	if cpbe.binary, prs = config["binary"]; !prs {
 		return errors.New("you must specify cloudprober binary")
 	}
-	if p.configFile, prs = config["config_file"]; !prs {
-		p.configFile = ""
+	if cpbe.configFile, prs = config["config_file"]; !prs {
+		cpbe.configFile = ""
 	}
-	if p.adminAPIHost, prs = config["api_host"]; !prs {
+	if cpbe.adminAPIHost, prs = config["api_host"]; !prs {
 		return errors.New("you must specify cloudprober admin API host")
 	}
-	if p.adminAPIPort, prs = config["api_port"]; !prs {
+	if cpbe.adminAPIPort, prs = config["api_port"]; !prs {
 		return errors.New("you must specify cloudprober admin API port")
 	}
 
 	for k, v := range otelConfig {
 		switch k {
 		case "Enable":
-			p.scrapeOtel = v.(bool)
+			cpbe.scrapeOtel = v.(bool)
 		}
 	}
 
 	return nil
 }
 
-func (p *cloudproberBackend) scrapeMetrics() (map[string]interface{}, error) {
+func (cpbe *cloudproberBackend) scrapeMetrics() (map[string]interface{}, error) {
 	var metrics map[string]interface{}
-	err := p.request("metrics", &metrics, http.MethodGet, http.NoBody, "application/json", ScrapeTimeout)
+	err := cpbe.request("metrics", &metrics, http.MethodGet, http.NoBody, "application/json", ScrapeTimeout)
 	if err != nil {
 		return nil, err
 	}
 	return metrics, nil
 }
 
-func (p *cloudproberBackend) GetCapabilities() (map[string]interface{}, error) {
+func (cpbe *cloudproberBackend) GetCapabilities() (map[string]interface{}, error) {
+	var taps interface{}
+	err := cpbe.request("taps", &taps, http.MethodGet, http.NoBody, "application/json", TapsTimeout)
+	if err != nil {
+		return nil, err
+	}
 	jsonBody := make(map[string]interface{})
-	jsonBody["taps"] = "none"
+	jsonBody["taps"] = taps
 	return jsonBody, nil
 }
 
@@ -500,14 +525,15 @@ func Register() bool {
 		adminAPIPort:     "9313",
 		adminAPIProtocol: "http",
 	})
+	//p.logger.Error("trying to Register backend", zap.Error(err))
 	return true
 }
 
-func (p *cloudproberBackend) createOtlpMqttExporter(ctx context.Context) (component.MetricsExporter, error) {
+func (cpbe *cloudproberBackend) createOtlpMqttExporter(ctx context.Context) (component.MetricsExporter, error) {
 
-	if p.mqttClient != nil {
-		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.metricsTopic, p.cloudproberVersion)
-		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
+	if cpbe.mqttClient != nil {
+		cfg := otlpmqttexporter.CreateConfigClient(cpbe.mqttClient, cpbe.metricsTopic, cpbe.cloudproberVersion)
+		set := otlpmqttexporter.CreateDefaultSettings(cpbe.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 		if err != nil {
@@ -515,8 +541,8 @@ func (p *cloudproberBackend) createOtlpMqttExporter(ctx context.Context) (compon
 		}
 		return exporter, nil
 	} else {
-		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key, p.mqttConfig.ChannelID, p.cloudproberVersion)
-		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
+		cfg := otlpmqttexporter.CreateConfig(cpbe.mqttConfig.Address, cpbe.mqttConfig.Id, cpbe.mqttConfig.Key, cpbe.mqttConfig.ChannelID, cpbe.cloudproberVersion)
+		set := otlpmqttexporter.CreateDefaultSettings(cpbe.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 		if err != nil {
@@ -538,20 +564,39 @@ func createReceiver(ctx context.Context, exporter component.MetricsExporter, log
 	return receiver, nil
 }
 
-func (p *cloudproberBackend) FullReset(ctx context.Context) error {
+func (cpbe *cloudproberBackend) FullReset(ctx context.Context) error {
 
 	// force a stop, which stops scrape as well. if proc is dead, it no ops.
-	if state, _, _ := p.GetState(); state == backend.Running {
-		if err := p.Stop(ctx); err != nil {
-			p.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
+	if state, _, _ := cpbe.GetState(); state == backend.Running {
+		if err := cpbe.Stop(ctx); err != nil {
+			cpbe.logger.Error("failed to stop backend on restart procedure", zap.Error(err))
 			return err
 		}
 	}
 
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "cloudprober"))
 	// start it
-	if err := p.Start(backendCtx, cancelFunc); err != nil {
-		p.logger.Error("failed to start backend on restart procedure", zap.Error(err))
+	if err := cpbe.Start(backendCtx, cancelFunc); err != nil {
+		cpbe.logger.Error("failed to start backend on restart procedure", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
+func (cpbe *cloudproberBackend) buildConfigFile(policyYaml []byte) ([]byte, error) {
+
+	return "", nil
+}
+
+func (cpbe *cloudproberBackend) overrideConfigFile(content []byte, location string) error {
+	err := os.Remove(location)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(location, content, os.ModeType)
+	if err != nil {
 		return err
 	}
 

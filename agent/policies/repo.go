@@ -15,6 +15,7 @@ type PolicyRepo interface {
 	Remove(policyID string) error
 	Update(data PolicyData) error
 	GetAll() ([]PolicyData, error)
+	GetAllByBackend(backendName string) ([]PolicyData, error)
 	GetByName(policyName string) (PolicyData, error)
 	EnsureDataset(policyID string, datasetID string) error
 	RemoveDataset(policyID string, datasetID string) (bool, error)
@@ -24,6 +25,7 @@ type PolicyRepo interface {
 type policyMemRepo struct {
 	logger *zap.Logger
 
+	// TODO Change this to robinhood's hashmap
 	db      map[string]PolicyData
 	nameMap map[string]string
 }
@@ -113,6 +115,19 @@ func (p policyMemRepo) GetAll() (ret []PolicyData, err error) {
 	for _, v := range p.db {
 		ret[i] = v
 		i++
+	}
+	err = nil
+	return ret, err
+}
+
+func (p policyMemRepo) GetAllByBackend(name string) (ret []PolicyData, err error) {
+	ret = make([]PolicyData, len(p.db))
+	i := 0
+	for _, v := range p.db {
+		if v.Backend == name {
+			ret[i] = v
+			i++
+		}
 	}
 	err = nil
 	return ret, err
