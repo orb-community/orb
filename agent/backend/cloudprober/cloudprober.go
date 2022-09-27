@@ -44,14 +44,14 @@ const (
 )
 
 type cloudproberBackend struct {
-	logger          *zap.Logger
-	binary          string
-	configFile      string
+	logger             *zap.Logger
+	binary             string
+	configFile         string
 	cloudproberVersion string
-	proc            *cmd.Cmd
-	statusChan      <-chan cmd.Status
-	startTime       time.Time
-	cancelFunc      context.CancelFunc
+	proc               *cmd.Cmd
+	statusChan         <-chan cmd.Status
+	startTime          time.Time
+	cancelFunc         context.CancelFunc
 
 	// MQTT Config for OTEL MQTT
 	mqttConfig config.MQTTConfig
@@ -251,13 +251,13 @@ func (p *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 	}
 
 	pvOptions := []string{
-		"--config_file"
+		"-config_file",
 	}
 	if len(p.configFile) > 0 {
-		pvOptions = append(pvOptions, " ", p.configFile)
+		pvOptions = append(pvOptions, p.configFile)
 	}
 	p.logger.Info("cloudprobe startup", zap.Strings("arguments", pvOptions))
-	
+
 	p.proc = cmd.NewCmdOptions(cmd.Options{
 		Buffered:  false,
 		Streaming: true,
@@ -539,6 +539,7 @@ func Register() bool {
 	backend.Register("cloudprober", &cloudproberBackend{
 		adminAPIProtocol: "http",
 	})
+	//p.logger.Error("trying to Register backend", zap.Error(err))
 	return true
 }
 
