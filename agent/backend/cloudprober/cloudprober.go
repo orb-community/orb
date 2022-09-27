@@ -306,28 +306,6 @@ func (p *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 
 	p.logger.Info("cloudprober process started", zap.Int("pid", status.PID))
 
-	var readinessError error
-	for backoff := 0; backoff < ReadinessBackoff; backoff++ {
-		var appMetrics AppMetrics
-		readinessError = p.request("metrics", &appMetrics, http.MethodGet, http.NoBody, "application/json", ReadinessTimeout)
-		if readinessError == nil {
-			p.logger.Info("cloudprober readiness ok, got version ", zap.String("cloudprober_version", appMetrics.App.Version))
-			break
-		}
-		backoffDuration := time.Duration(backoff) * time.Second
-		p.logger.Info("cloudprober is not ready, trying again with backoff", zap.String("backoff backoffDuration", backoffDuration.String()))
-		time.Sleep(backoffDuration)
-	}
-
-	if readinessError != nil {
-		p.logger.Error("cloudprober error on readiness", zap.Error(readinessError))
-		err = p.proc.Stop()
-		if err != nil {
-			p.logger.Error("proc.Stop error", zap.Error(err))
-		}
-		return readinessError
-	}
-
 	p.scraper = gocron.NewScheduler(time.UTC)
 	p.scraper.StartAsync()
 
