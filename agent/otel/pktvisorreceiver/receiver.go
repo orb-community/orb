@@ -79,8 +79,9 @@ func GetPrometheusConfig(cfg *Config) (*prometheusreceiver.Config, error) {
 		JobName:         fmt.Sprintf("%s/%s", typeStr, cfg.Endpoint),
 		HonorTimestamps: true,
 		Scheme:          scheme,
-		MetricsPath:     cfg.MetricsPath,
-		Params:          cfg.Params,
+
+		MetricsPath: cfg.MetricsPath,
+		Params:      cfg.Params,
 		ServiceDiscoveryConfigs: discovery.Configs{
 			&discovery.StaticConfig{
 				{
