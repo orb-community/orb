@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ns1labs/orb/agent/otel/cloudprobereceiver"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -22,7 +23,6 @@ import (
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
-	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
 	"go.opentelemetry.io/collector/component"
@@ -537,6 +537,8 @@ func (p *cloudproberBackend) GetCapabilities() (map[string]interface{}, error) {
 
 func Register() bool {
 	backend.Register("cloudprober", &cloudproberBackend{
+		adminAPIHost:     "localhost", // using default by their doc
+		adminAPIPort:     "9313",
 		adminAPIProtocol: "http",
 	})
 	//p.logger.Error("trying to Register backend", zap.Error(err))
@@ -568,10 +570,10 @@ func (p *cloudproberBackend) createOtlpMqttExporter(ctx context.Context) (compon
 }
 
 func createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
-	set := pktvisorreceiver.CreateDefaultSettings(logger)
-	cfg := pktvisorreceiver.CreateDefaultConfig()
+	set := cloudprobereceiver.CreateDefaultSettings(logger)
+	cfg := cloudprobereceiver.CreateDefaultConfig()
 	// Create the Prometheus receiver and pass in the previously created Prometheus exporter.
-	receiver, err := pktvisorreceiver.CreateMetricsReceiver(ctx, set, cfg, exporter)
+	receiver, err := cloudprobereceiver.CreateMetricsReceiver(ctx, set, cfg, exporter)
 	if err != nil {
 		return nil, err
 	}
