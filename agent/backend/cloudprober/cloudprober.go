@@ -24,7 +24,6 @@ import (
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
 	"github.com/ns1labs/orb/agent/policies"
-	"github.com/ns1labs/orb/fleet"
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -201,6 +200,11 @@ func (cpbe *cloudproberBackend) ApplyPolicy(data policies.PolicyData, _ bool) er
 		cpbe.logger.Error("failure to override configuration", zap.String("policy_id", data.ID), zap.Any("policy", fullPolicy))
 		return err
 	}
+	err = cpbe.stopBinary()
+	err = cpbe.startBinary()
+	if err != nil {
+		return err
+	}
 
 	return nil
 
@@ -238,11 +242,6 @@ func (cpbe *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Ca
 	cpbe.startTime = time.Now()
 	cpbe.cancelFunc = cancelFunc
 
-	err := cpbe.startBinary()
-	if err != nil {
-		return err
-	}
-
 	// log STDOUT and STDERR lines streaming from Cmd
 	doneChan := make(chan struct{})
 	go func() {
@@ -265,36 +264,13 @@ func (cpbe *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Ca
 		}
 	}()
 
-	// wait for simple startup errors
-	time.Sleep(time.Second)
-
-	status := cpbe.proc.Status()
-
-	if status.Error != nil {
-		cpbe.logger.Error("cloudprober startup error", zap.Error(status.Error))
-		return status.Error
-	}
-
-	if status.Complete {
-		err = cpbe.proc.Stop()
-		if err != nil {
-			cpbe.logger.Error("proc.Stop error", zap.Error(err))
-		}
-		return errors.New("cloudprober startup error, check log")
-	}
-
 	cpbe.logger.Info("cloudprober process started", zap.Int("pid", status.PID))
 
 	cpbe.scraper = gocron.NewScheduler(time.UTC)
 	cpbe.scraper.StartAsync()
 
-	if cpbe.scrapeOtel {
-		cpbe.scrapeOpenTelemetry(ctx)
-	} else {
-		if err := cpbe.scrapeDefault(); err != nil {
-			return err
-		}
-	}
+	// only one scrape mechanism
+	cpbe.scrapeOpenTelemetry(ctx)
 
 	return nil
 }
@@ -319,78 +295,32 @@ func (cpbe *cloudproberBackend) startBinary() error {
 		Streaming: true,
 	}, cpbe.binary, pvOptions...)
 	cpbe.statusChan = cpbe.proc.Start()
+
+	// wait for simple startup errors
+	time.Sleep(time.Second)
+
+	status := cpbe.proc.Status()
+
+	if status.Error != nil {
+		cpbe.logger.Error("cloudprober startup error", zap.Error(status.Error))
+		return status.Error
+	}
+
+	if status.Complete {
+		err := cpbe.stopBinary()
+		if err != nil {
+			cpbe.logger.Error("proc.Stop error", zap.Error(err))
+		}
+		return errors.New("cloudprober startup error, check log")
+	}
 	return err
 }
 
 func (cpbe *cloudproberBackend) stopBinary() error {
-	cpbe.proc.Stop()
-}
-
-func (cpbe *cloudproberBackend) scrapeDefault() error {
-	// scrape all policy json output with one call every minute.
-	// TODO support policies with custom bucket times
-	job, err := cpbe.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
-		metrics, err := cpbe.scrapeMetrics()
-		if err != nil {
-			cpbe.logger.Error("scrape failed", zap.Error(err))
-			return
-		}
-		if len(metrics) == 0 {
-			cpbe.logger.Warn("scrape: no policies found, skipping")
-			return
-		}
-
-		var batchPayload []fleet.AgentMetricsRPCPayload
-		totalSize := 0
-		for pName, pMetrics := range metrics {
-			data, err := cpbe.policyRepo.GetByName(pName)
-			if err != nil {
-				cpbe.logger.Warn("skipping cloudprober policy not managed by orb", zap.String("policy", pName), zap.String("error_message", err.Error()))
-				continue
-			}
-			payloadData, err := json.Marshal(pMetrics)
-			if err != nil {
-				cpbe.logger.Error("error marshalling scraped metric json", zap.String("policy", pName), zap.Error(err))
-				continue
-			}
-			metricPayload := fleet.AgentMetricsRPCPayload{
-				PolicyID:   data.ID,
-				PolicyName: data.Name,
-				Datasets:   data.GetDatasetIDs(),
-				Format:     "json",
-				BEVersion:  cpbe.cloudproberVersion,
-				Data:       payloadData,
-			}
-			batchPayload = append(batchPayload, metricPayload)
-			totalSize += len(payloadData)
-			cpbe.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", data.ID), zap.Int("payload_size_b", len(payloadData)))
-		}
-
-		rpc := fleet.AgentMetricsRPC{
-			SchemaVersion: fleet.CurrentRPCSchemaVersion,
-			Func:          fleet.AgentMetricsRPCFunc,
-			Payload:       batchPayload,
-		}
-
-		body, err := json.Marshal(rpc)
-		if err != nil {
-			cpbe.logger.Error("error marshalling metric rpc payload", zap.Error(err))
-			return
-		}
-
-		if token := cpbe.mqttClient.Publish(cpbe.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
-			cpbe.logger.Error("error sending metrics RPC", zap.String("topic", cpbe.metricsTopic), zap.Error(token.Error()))
-			return
-		}
-		cpbe.logger.Info("scraped and published metrics", zap.String("topic", cpbe.metricsTopic), zap.Int("payload_size_b", totalSize), zap.Int("batch_count", len(batchPayload)))
-
-	})
-
+	err := cpbe.proc.Stop()
 	if err != nil {
 		return err
 	}
-
-	job.SingletonMode()
 	return nil
 }
 
@@ -451,7 +381,7 @@ func (cpbe *cloudproberBackend) scrapeOpenTelemetry(ctx context.Context) {
 func (cpbe *cloudproberBackend) Stop(ctx context.Context) error {
 	cpbe.logger.Info("routine call to stop cloudprober", zap.Any("routine", ctx.Value("routine")))
 	defer cpbe.cancelFunc()
-	err := cpbe.proc.Stop()
+	err := cpbe.stopBinary()
 	finalStatus := <-cpbe.statusChan
 	if err != nil {
 		cpbe.logger.Error("cloudprober shutdown error", zap.Error(err))
@@ -586,7 +516,7 @@ func (cpbe *cloudproberBackend) FullReset(ctx context.Context) error {
 
 func (cpbe *cloudproberBackend) buildConfigFile(policyYaml []byte) ([]byte, error) {
 
-	return "", nil
+	return nil, nil
 }
 
 func (cpbe *cloudproberBackend) overrideConfigFile(content []byte, location string) error {

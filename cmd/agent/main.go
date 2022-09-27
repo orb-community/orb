@@ -168,6 +168,7 @@ func mergeOrError(path string) {
 
 	//cloudprober
 	v.SetDefault("orb.backends.cloudprober.binary", "")
+	v.SetDefault("orb.backends.cloudprober.config_file", "/etc/cloudprober/cloudprober.cfg")
 	v.SetDefault("orb.backends.cloudprober.api_host", "localhost")
 	v.SetDefault("orb.backends.cloudprober.api_port", "9313")
 
