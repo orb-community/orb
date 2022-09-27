@@ -16,7 +16,7 @@ import (
 // This file implements factory for prometheus_simple receiver
 const (
 	// The value of "type" key in configuration.
-	typeStr = "pktvisor_prometheus"
+	typeStr = "cloudprobe_prometheus"
 
 	defaultEndpoint    = "localhost:9313"
 	defaultMetricsPath = "/metrics"
@@ -55,7 +55,6 @@ func CreateDefaultConfig() config.Receiver {
 }
 
 func CreateConfig(endpoint, metricsPath string) config.Receiver {
-
 	return &Config{
 		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
 		TCPAddr: confignet.TCPAddr{
