@@ -472,7 +472,7 @@ func (c *cloudproberBackend) createOtlpMqttExporter(ctx context.Context) (compon
 		}
 		return exporter, nil
 	} else {
-		cfg := otlpmqttexporter.CreateConfig(c.mqttConfig.Address, c.mqttConfig.Id, c.mqttConfig.Key, c.mqttConfig.ChannelID, c.cloudproberVersion)
+		cfg := otlpmqttexporter.CreateConfig(c.mqttConfig.Address, c.mqttConfig.Id, c.mqttConfig.Key, c.mqttConfig.ChannelID, c.cloudproberVersion, c.otlpMetricsTopic)
 		set := otlpmqttexporter.CreateDefaultSettings(c.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
