@@ -272,8 +272,12 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 func (c *cloudproberBackend) startBinary() error {
 	_, err := exec.LookPath(c.binary)
 	if err != nil {
-		c.logger.Error("cloudprober startup error: binary not found", zap.Error(err))
-		return err
+		if _, err := exec.LookPath(DefaultBinary); err == nil {
+			c.binary = DefaultBinary
+		} else {
+			c.logger.Error("cloudprober startup error: binary not found", zap.Error(err))
+			return err
+		}
 	}
 
 	pvOptions := []string{
@@ -321,6 +325,7 @@ func (c *cloudproberBackend) stopBinary() error {
 func (c *cloudproberBackend) scrapeOpenTelemetry(ctx context.Context) {
 	go func() {
 		startExpCtx, cancelFunc := context.WithCancel(ctx)
+		defer cancelFunc()
 		var ok bool
 		var err error
 		for i := 1; i < 10; i++ {
@@ -365,9 +370,11 @@ func (c *cloudproberBackend) scrapeOpenTelemetry(ctx context.Context) {
 		}
 		if !ok {
 			c.logger.Error("mqtt did not established a connection, stopping agent")
-			c.Stop(startExpCtx)
+			err := c.Stop(startExpCtx)
+			if err != nil {
+				return
+			}
 		}
-		cancelFunc()
 		return
 	}()
 }
