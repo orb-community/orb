@@ -517,7 +517,7 @@ func (c *cloudproberBackend) FullReset(ctx context.Context) error {
 
 func (c *cloudproberBackend) buildConfigFile(policyYaml []policies.PolicyData) ([]byte, error) {
 	//hardcoded for now, we will use the proto from cloudprober dependencies to parse policy data
-	hardCodedConfigs := "probe {\n  name: \"google_homepage\"\n  type: HTTP\n  targets {\n    host_names: \"www.google.com\"\n  }\n  interval_msec: 5000  # 5s\n  timeout_msec: 1000   # 1s\n}\nserver {\n  type: HTTP\n  http_server {\n    port: 8099\n  }\n}\n\nsurfacer {\n  type: PROMETHEUS\n\n  prometheus_surfacer {\n    # Following option adds a prefix to exported metrics, for example,\n    # \"total\" metric is exported as \"cloudprober_total\".\n    metrics_prefix: \"cloudprober_\"\n  }\n}"
+	hardCodedConfigs := "probe {\n  name: \"google_homepage\"\n  type: HTTP\n  targets {\n    host_names: \"www.google.com\"\n  }\n  interval_msec: 5000 \n  timeout_msec: 1000 \n}\nserver {\n  type: HTTP\n  http_server {\n    port: 8099\n  }\n}\n\nsurfacer {\n  type: PROMETHEUS\n\n  prometheus_surfacer {\n    # Following option adds a prefix to exported metrics, for example,\n    # \"total\" metric is exported as \"cloudprober_total\".\n    metrics_prefix: \"cloudprober_\"\n  }\n}"
 	return []byte(hardCodedConfigs), nil
 }
 
