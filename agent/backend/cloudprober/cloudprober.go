@@ -107,7 +107,7 @@ func (p *cloudproberBackend) request(url string, payload interface{}, method str
 		return err
 	}
 
-	URL := fmt.Sprintf("%s://%s:%s/api/v1/%s", p.adminAPIProtocol, p.adminAPIHost, p.adminAPIPort, url)
+	URL := fmt.Sprintf("%s://%s:%s/%s", p.adminAPIProtocol, p.adminAPIHost, p.adminAPIPort, url)
 
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
@@ -309,7 +309,7 @@ func (p *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 	var readinessError error
 	for backoff := 0; backoff < ReadinessBackoff; backoff++ {
 		var appMetrics AppMetrics
-		readinessError = p.request("metrics/app", &appMetrics, http.MethodGet, http.NoBody, "application/json", ReadinessTimeout)
+		readinessError = p.request("metrics", &appMetrics, http.MethodGet, http.NoBody, "application/json", ReadinessTimeout)
 		if readinessError == nil {
 			p.logger.Info("cloudprober readiness ok, got version ", zap.String("cloudprober_version", appMetrics.App.Version))
 			break
@@ -346,7 +346,7 @@ func (p *cloudproberBackend) scrapeDefault() error {
 	// scrape all policy json output with one call every minute.
 	// TODO support policies with custom bucket times
 	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
-		metrics, err := p.scrapeMetrics(1)
+		metrics, err := p.scrapeMetrics()
 		if err != nil {
 			p.logger.Error("scrape failed", zap.Error(err))
 			return
@@ -515,9 +515,9 @@ func (p *cloudproberBackend) Configure(logger *zap.Logger, repo policies.PolicyR
 	return nil
 }
 
-func (p *cloudproberBackend) scrapeMetrics(period uint) (map[string]interface{}, error) {
+func (p *cloudproberBackend) scrapeMetrics() (map[string]interface{}, error) {
 	var metrics map[string]interface{}
-	err := p.request(fmt.Sprintf("metrics", period), &metrics, http.MethodGet, http.NoBody, "application/json", ScrapeTimeout)
+	err := p.request("metrics", &metrics, http.MethodGet, http.NoBody, "application/json", ScrapeTimeout)
 	if err != nil {
 		return nil, err
 	}
