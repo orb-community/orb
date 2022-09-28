@@ -19,7 +19,7 @@ func Test_cloudproberBackend_buildConfigFile(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "testing parse single policy",
+			name: "single policy",
 			args: args{
 				policyYaml: []policies.PolicyData{
 					{
@@ -29,10 +29,90 @@ func Test_cloudproberBackend_buildConfigFile(t *testing.T) {
 						Data: map[string]interface{}{
 							"probes": []map[string]interface{}{
 								{
-									"name":               "sample_google_probe",
+									"name":               "simple_google_probe",
 									"type":               "http",
 									"interval_msec":      2000,
 									"timeout_msec":       3000,
+									"targets_host_names": "www.google.com,ns1.com,www.reddit.com",
+								},
+							},
+						},
+					},
+				},
+			},
+			want:    []byte("probe {\n  name: \"sample_google_probe\"\n  type: HTTP\n  targets {\n    host_names: \"www.google.com\"\n  }\n  interval_msec: 5000  # 5s\n  timeout_msec: 1000   # 1s\n}\nserver {\n  type: HTTP\n  http_server {\n    port: 8099\n  }\n}\n\nsurfacer {\n  type: PROMETHEUS\n\n  prometheus_surfacer {\n    # Following option adds a prefix to exported metrics, for example,\n    # \"total\" metric is exported as \"cloudprober_total\".\n    metrics_prefix: \"cloudprober_\"\n  }\n}"),
+			wantErr: false,
+		},
+		{
+			name: "multiple probe policy",
+			args: args{
+				policyYaml: []policies.PolicyData{
+					{
+						ID:      "multipleprobe-id",
+						Name:    "multipleprobe-name",
+						Backend: BackendName,
+						Data: map[string]interface{}{
+							"probes": []map[string]interface{}{
+								{
+									"name":               "multi_google_probe",
+									"type":               "http",
+									"interval_msec":      5000,
+									"timeout_msec":       1000,
+									"targets_host_names": "www.google.com",
+								},
+								{
+									"name":               "multi_ping_probe",
+									"type":               "ping",
+									"interval_msec":      5000,
+									"timeout_msec":       1000,
+									"targets_host_names": "www.google.com,ns1.com,www.reddit.com",
+								},
+							},
+						},
+					},
+				},
+			},
+			want:    []byte("probe {\n  name: \"sample_google_probe\"\n  type: HTTP\n  targets {\n    host_names: \"www.google.com\"\n  }\n  interval_msec: 5000  # 5s\n  timeout_msec: 1000   # 1s\n}\nserver {\n  type: HTTP\n  http_server {\n    port: 8099\n  }\n}\n\nsurfacer {\n  type: PROMETHEUS\n\n  prometheus_surfacer {\n    # Following option adds a prefix to exported metrics, for example,\n    # \"total\" metric is exported as \"cloudprober_total\".\n    metrics_prefix: \"cloudprober_\"\n  }\n}"),
+			wantErr: false,
+		},
+		{
+			name: "parse multiple policies",
+			args: args{
+				policyYaml: []policies.PolicyData{
+					{
+						ID:      "singlepolicy-id",
+						Name:    "singlepolicy-name",
+						Backend: BackendName,
+						Data: map[string]interface{}{
+							"probes": []map[string]interface{}{
+								{
+									"name":               "simple_google_probe",
+									"type":               "http",
+									"interval_msec":      5000,
+									"timeout_msec":       1000,
+									"targets_host_names": "www.google.com",
+								},
+							},
+						},
+					},
+					{
+						ID:      "multipleprobe-id",
+						Name:    "multipleprobe-name",
+						Backend: BackendName,
+						Data: map[string]interface{}{
+							"probes": []map[string]interface{}{
+								{
+									"name":               "multi_google_probe",
+									"type":               "http",
+									"interval_msec":      5000,
+									"timeout_msec":       1000,
+									"targets_host_names": "www.google.com",
+								},
+								{
+									"name":               "multi_ping_probe",
+									"type":               "ping",
+									"interval_msec":      5000,
+									"timeout_msec":       1000,
 									"targets_host_names": "www.google.com,ns1.com,www.reddit.com",
 								},
 							},
