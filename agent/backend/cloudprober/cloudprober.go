@@ -232,6 +232,26 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 	c.startTime = time.Now()
 	c.cancelFunc = cancelFunc
 
+	_, err := exec.LookPath(c.binary)
+	if err != nil {
+		c.logger.Error("cloudprobe startup error: binary not found", zap.Error(err))
+		return err
+	}
+
+	pvOptions := []string{
+		"-config_file",
+	}
+	if len(c.configFile) > 0 {
+		pvOptions = append(pvOptions, c.configFile)
+	}
+	c.logger.Info("cloudprobe startup", zap.Strings("arguments", pvOptions))
+
+	c.proc = cmd.NewCmdOptions(cmd.Options{
+		Buffered:  false,
+		Streaming: true,
+	}, c.binary, pvOptions...)
+	c.statusChan = c.proc.Start()
+	
 	// log STDOUT and STDERR lines streaming from Cmd
 	doneChan := make(chan struct{})
 	go func() {
