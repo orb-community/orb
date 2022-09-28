@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	promconfig "github.com/prometheus/prometheus/config"
+	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/config/confignet"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
