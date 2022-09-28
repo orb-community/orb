@@ -3,7 +3,7 @@ package cloudprobereceiver_test
 import (
 	"context"
 	"fmt"
-	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
+	"github.com/ns1labs/orb/agent/otel/cloudprobereceiver"
 	promconfig "github.com/prometheus/prometheus/config"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/config/confignet"
@@ -189,7 +189,7 @@ func TestEndToEndToCloudprober(t *testing.T) {
 		//it'll feed scraped and converted metrics then pass them to the Prometheus exporter.
 		receiverFactory := prometheusreceiver.NewFactory()
 		receiverCreateSet := componenttest.NewNopReceiverCreateSettings()
-		rcvCfg := &pktvisorreceiver.Config{
+		rcvCfg := &cloudprobeceiver.Config{
 			ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
 			TCPAddr: confignet.TCPAddr{
 				Endpoint: defaultEndpoint,
@@ -198,7 +198,7 @@ func TestEndToEndToCloudprober(t *testing.T) {
 			CollectionInterval: 1 * time.Second,
 		}
 		// 3.5 Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
-		pConfig, err := pktvisorreceiver.GetPrometheusConfig(rcvCfg)
+		pConfig, err := cloudprobeceiver.GetPrometheusConfig(rcvCfg)
 		if err != nil {
 			t.Fatalf("failed to create prometheus receiver config: %v", err)
 		}
