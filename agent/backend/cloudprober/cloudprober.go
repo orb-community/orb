@@ -277,7 +277,7 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 	status := c.proc.Status()
 
 	if status.Error != nil {
-		c.logger.Error("pktvisor startup error", zap.Error(status.Error))
+		c.logger.Error("cloudprober startup error", zap.Error(status.Error))
 		return status.Error
 	}
 
@@ -286,7 +286,7 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 		if err != nil {
 			c.logger.Error("proc.Stop error", zap.Error(err))
 		}
-		return errors.New("pktvisor startup error, check log")
+		return errors.New("cloudprober startup error, check log")
 	}
 
 
