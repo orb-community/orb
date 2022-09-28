@@ -10,7 +10,7 @@ import (
 )
 
 func TestReceiver(t *testing.T) {
-	f := pktvisorreceiver.NewFactory()
+	f := cloudprobereceiver.NewFactory()
 	tests := map[string]struct {
 		useServiceAccount bool
 		wantError         bool
@@ -23,7 +23,7 @@ func TestReceiver(t *testing.T) {
 	}
 	for desc, tt := range tests {
 		t.Run(desc, func(t *testing.T) {
-			cfg := (f.CreateDefaultConfig()).(*pktvisorreceiver.Config)
+			cfg := (f.CreateDefaultConfig()).(*cloudprobereceiver.Config)
 			cfg.UseServiceAccount = tt.useServiceAccount
 
 			r, err := f.CreateMetricsReceiver(
