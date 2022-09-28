@@ -189,7 +189,7 @@ func TestEndToEndToCloudprober(t *testing.T) {
 		//it'll feed scraped and converted metrics then pass them to the Prometheus exporter.
 		receiverFactory := prometheusreceiver.NewFactory()
 		receiverCreateSet := componenttest.NewNopReceiverCreateSettings()
-		rcvCfg := &cloudprobeceiver.Config{
+		rcvCfg := &cloudprobereceiver.Config{
 			ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
 			TCPAddr: confignet.TCPAddr{
 				Endpoint: defaultEndpoint,
@@ -198,7 +198,7 @@ func TestEndToEndToCloudprober(t *testing.T) {
 			CollectionInterval: 1 * time.Second,
 		}
 		// 3.5 Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
-		pConfig, err := cloudprobeceiver.GetPrometheusConfig(rcvCfg)
+		pConfig, err := cloudprobereceiver.GetPrometheusConfig(rcvCfg)
 		if err != nil {
 			t.Fatalf("failed to create prometheus receiver config: %v", err)
 		}
