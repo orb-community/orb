@@ -16,7 +16,7 @@ import (
     "policy": {
         "probes": [
             {
-				"name" : "p_name
+				"name" : "p_name"
 				"type": "http",
 				"interval_msec": 2000,
 				"timeout_msec": 3000,
