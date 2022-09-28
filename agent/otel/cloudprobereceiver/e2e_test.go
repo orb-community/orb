@@ -59,7 +59,7 @@ func TestEndToEndSummarySupport(t *testing.T) {
 			HTTPServerSettings: confighttp.HTTPServerSettings{
 				Endpoint: ":8787",
 			},
-			Namespace:        "test"
+			Namespace:        "test",
 			SendTimestamps:   true,
 			MetricExpiration: 2 * time.Hour,
 		}
