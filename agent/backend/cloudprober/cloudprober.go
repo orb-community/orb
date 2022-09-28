@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ghodss/yaml"
 	"github.com/ns1labs/orb/agent/otel/cloudprobereceiver"
 	"io"
 	"io/ioutil"
