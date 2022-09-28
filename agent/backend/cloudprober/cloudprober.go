@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -55,11 +56,11 @@ type cloudproberBackend struct {
 	// MQTT Config for OTEL MQTT
 	mqttConfig config.MQTTConfig
 
-	mqttClient   mqtt.Client
-	metricsTopic string
+	mqttClient       mqtt.Client
+	metricsTopic     string
 	otlpMetricsTopic string
-	scraper      *gocron.Scheduler
-	policyRepo   policies.PolicyRepo
+	scraper          *gocron.Scheduler
+	policyRepo       policies.PolicyRepo
 
 	receiver component.MetricsReceiver
 	exporter component.MetricsExporter
@@ -77,7 +78,8 @@ func (c *cloudproberBackend) GetStartTime() time.Time {
 
 func (c *cloudproberBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
 	c.mqttClient = client
-	c.metricsTopic = fmt.Sprintf("%s/m/%c", baseTopic, agentID[0])
+	otelMetricsTopic := strings.Replace(baseTopic, "?", "otlp", 1)
+	c.metricsTopic = fmt.Sprintf("%s/m/%c", otelMetricsTopic, agentID[0])
 }
 
 func (c *cloudproberBackend) GetState() (backend.BackendState, string, error) {
@@ -251,7 +253,7 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 		Streaming: true,
 	}, c.binary, pvOptions...)
 	c.statusChan = c.proc.Start()
-	
+
 	// log STDOUT and STDERR lines streaming from Cmd
 	doneChan := make(chan struct{})
 	go func() {
@@ -273,7 +275,7 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 			}
 		}
 	}()
-	
+
 	status := c.proc.Status()
 
 	if status.Error != nil {
@@ -288,7 +290,6 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 		}
 		return errors.New("cloudprober startup error, check log")
 	}
-
 
 	c.logger.Info("cloudprober waiting for policies")
 	c.scraper = gocron.NewScheduler(time.UTC)
