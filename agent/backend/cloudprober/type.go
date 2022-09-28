@@ -44,7 +44,7 @@ func (p *Probes) ToConfigFile() string {
 	for _, probeCfg := range p.ProbeData {
 		builder.WriteString("\nprobe { \n")
 		builder.WriteString("  name: \"" + probeCfg.Name + "\"\n")
-		builder.WriteString("  type: " + probeCfg.ProbeType + "\n")
+		builder.WriteString("  type: " + strings.ToUpper(probeCfg.ProbeType) + "\n")
 		builder.WriteString("  targets { \n")
 		builder.WriteString("    host_names: ")
 		builder.WriteString(probeCfg.Targets)
