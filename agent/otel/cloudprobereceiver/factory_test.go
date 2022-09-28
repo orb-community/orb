@@ -2,7 +2,7 @@ package cloudprobereceiver_test
 
 import (
 	"context"
-	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
+	"github.com/ns1labs/orb/agent/otel/cloudprobereceiver"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
