@@ -10,7 +10,7 @@ import (
 )
 
 func TestFactory(t *testing.T) {
-	f := pktvisorreceiver.NewFactory()
+	f := cloudprobereceiver.NewFactory()
 	cfg := f.CreateDefaultConfig()
 	require.NotNil(t, cfg)
 
