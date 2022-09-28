@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ghodss/yaml"
 	"github.com/ns1labs/orb/agent/otel/cloudprobereceiver"
 	"io"
 	"io/ioutil"
@@ -554,25 +553,28 @@ func (c *cloudproberBackend) FullReset(ctx context.Context) error {
 	return nil
 }
 
-func (c *cloudproberBackend) buildConfigFile(policyYaml []policies.PolicyData) ([]byte, error) {
+func (c *cloudproberBackend) buildConfigFile(policyData []policies.PolicyData) ([]byte, error) {
 	//hardcoded for now, we will use the proto from cloudprober dependencies to parse policy data
 	var builder strings.Builder
-	for _, data := range policyYaml {
-		var probes Probes
-		byteData, err := yaml.Marshal(data.Data)
+	for _, data := range policyData {
+		var probes *Probes
+		byteData, err := json.Marshal(data.Data)
 		if err != nil {
 			c.logger.Error("Failed to parse policy", zap.String("policy-id", data.ID),
 				zap.String("policy-name", data.Name),
 				zap.String("backend", data.Backend))
 			return nil, err
 		}
-		err = yaml.Unmarshal(byteData, probes)
+		err = json.Unmarshal(byteData, &probes)
 		if err != nil {
+			c.logger.Error("Failed to unmarshal policy", zap.String("policy-id", data.ID),
+				zap.String("policy-name", data.Name),
+				zap.String("backend", data.Backend))
 			return nil, err
 		}
 		builder.WriteString(probes.ToConfigFile())
 	}
-	hardCodedConfigs := "\nserver {\n  type: HTTP\n  http_server {\n    port: 8099\n  }\n}\n\nsurfacer {\n  type: PROMETHEUS\n\n  prometheus_surfacer {\n    # Following option adds a prefix to exported metrics, for example,\n    # \"total\" metric is exported as \"cloudprober_total\".\n    metrics_prefix: \"cloudprober_\"\n  }\n}"
+	hardCodedConfigs := "\nserver {\n  type: HTTP\n  http_server {\n    port: 8099\n  }\n}\n\nsurfacer {\n  type: PROMETHEUS\n\n  prometheus_surfacer {\n    metrics_prefix: \"cloudprober_\"\n  }\n}"
 	builder.WriteString(hardCodedConfigs)
 	return []byte(builder.String()), nil
 }
