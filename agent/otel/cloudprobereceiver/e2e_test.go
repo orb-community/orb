@@ -58,7 +58,7 @@ func TestEndToEndSummarySupport(t *testing.T) {
 		exporterCfg := &promexporter.Config{
 			ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 			HTTPServerSettings: confighttp.HTTPServerSettings{
-				Endpoint: ":8787",
+				Endpoint: ":8788",
 			},
 			Namespace:        "test",
 			SendTimestamps:   true,
@@ -152,13 +152,13 @@ jvm_gc_collection_seconds_sum{gc="G1 Young Generation",} 0.229
 jvm_gc_collection_seconds_count{gc="G1 Old Generation",} 0.0
 jvm_gc_collection_seconds_sum{gc="G1 Old Generation",} 0.0`
 
-func TestEndToEndToPktvisor(t *testing.T) {
+func TestEndToEndToCloudprober(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("This test can take a couple of seconds")
 		}
 
-		defaultEndpoint := container.GetHostPort("10853/tcp")
+		defaultEndpoint := container.GetHostPort("9313/tcp")
 
 		//1. Create the Prometheus scrape endpoint.
 		ctx, cancel := context.WithCancel(context.Background())
@@ -168,7 +168,7 @@ func TestEndToEndToPktvisor(t *testing.T) {
 		exporterCfg := &promexporter.Config{
 			ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 			HTTPServerSettings: confighttp.HTTPServerSettings{
-				Endpoint: ":8787",
+				Endpoint: ":8788",
 			},
 			Namespace:        "test",
 			SendTimestamps:   true,
