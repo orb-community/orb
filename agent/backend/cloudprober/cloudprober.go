@@ -9,12 +9,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ghodss/yaml"
 	"github.com/ns1labs/orb/agent/otel/cloudprobereceiver"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -55,11 +57,11 @@ type cloudproberBackend struct {
 	// MQTT Config for OTEL MQTT
 	mqttConfig config.MQTTConfig
 
-	mqttClient   mqtt.Client
-	metricsTopic string
+	mqttClient       mqtt.Client
+	metricsTopic     string
 	otlpMetricsTopic string
-	scraper      *gocron.Scheduler
-	policyRepo   policies.PolicyRepo
+	scraper          *gocron.Scheduler
+	policyRepo       policies.PolicyRepo
 
 	receiver component.MetricsReceiver
 	exporter component.MetricsExporter
@@ -77,7 +79,8 @@ func (c *cloudproberBackend) GetStartTime() time.Time {
 
 func (c *cloudproberBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
 	c.mqttClient = client
-	c.metricsTopic = fmt.Sprintf("%s/m/%c", baseTopic, agentID[0])
+	otelMetricsTopic := strings.Replace(baseTopic, "?", "otlp", 1)
+	c.metricsTopic = fmt.Sprintf("%s/m/%c", otelMetricsTopic, agentID[0])
 }
 
 func (c *cloudproberBackend) GetState() (backend.BackendState, string, error) {
@@ -251,7 +254,7 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 		Streaming: true,
 	}, c.binary, pvOptions...)
 	c.statusChan = c.proc.Start()
-	
+
 	// log STDOUT and STDERR lines streaming from Cmd
 	doneChan := make(chan struct{})
 	go func() {
@@ -273,7 +276,7 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 			}
 		}
 	}()
-	
+
 	status := c.proc.Status()
 
 	if status.Error != nil {
@@ -288,7 +291,6 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 		}
 		return errors.New("cloudprober startup error, check log")
 	}
-
 
 	c.logger.Info("cloudprober waiting for policies")
 	c.scraper = gocron.NewScheduler(time.UTC)
@@ -554,8 +556,25 @@ func (c *cloudproberBackend) FullReset(ctx context.Context) error {
 
 func (c *cloudproberBackend) buildConfigFile(policyYaml []policies.PolicyData) ([]byte, error) {
 	//hardcoded for now, we will use the proto from cloudprober dependencies to parse policy data
-	hardCodedConfigs := "probe {\n  name: \"google_homepage\"\n  type: HTTP\n  targets {\n    host_names: \"www.google.com\"\n  }\n  interval_msec: 5000 \n  timeout_msec: 1000 \n}\nserver {\n  type: HTTP\n  http_server {\n    port: 8099\n  }\n}\n\nsurfacer {\n  type: PROMETHEUS\n\n  prometheus_surfacer {\n    # Following option adds a prefix to exported metrics, for example,\n    # \"total\" metric is exported as \"cloudprober_total\".\n    metrics_prefix: \"cloudprober_\"\n  }\n}"
-	return []byte(hardCodedConfigs), nil
+	var builder strings.Builder
+	for _, data := range policyYaml {
+		var probes Probes
+		bytedata, err := yaml.Marshal(data.Data)
+		if err != nil {
+			c.logger.Error("Failed to parse policy", zap.String("policy-id", data.ID),
+				zap.String("policy-name", data.Name),
+				zap.String("backend", data.Backend))
+			return nil, err
+		}
+		err = yaml.Unmarshal(bytedata, probes)
+		if err != nil {
+			return nil, err
+		}
+		builder.WriteString(probes.ToConfigFile())
+	}
+	hardCodedConfigs := "\nserver {\n  type: HTTP\n  http_server {\n    port: 8099\n  }\n}\n\nsurfacer {\n  type: PROMETHEUS\n\n  prometheus_surfacer {\n    # Following option adds a prefix to exported metrics, for example,\n    # \"total\" metric is exported as \"cloudprober_total\".\n    metrics_prefix: \"cloudprober_\"\n  }\n}"
+	builder.WriteString(hardCodedConfigs)
+	return []byte(builder.String()), nil
 }
 
 func (c *cloudproberBackend) overrideConfigFile(content []byte, location string) error {
