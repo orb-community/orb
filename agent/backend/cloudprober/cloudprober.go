@@ -273,6 +273,22 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 			}
 		}
 	}()
+	
+	status := c.proc.Status()
+
+	if status.Error != nil {
+		c.logger.Error("pktvisor startup error", zap.Error(status.Error))
+		return status.Error
+	}
+
+	if status.Complete {
+		err = c.proc.Stop()
+		if err != nil {
+			c.logger.Error("proc.Stop error", zap.Error(err))
+		}
+		return errors.New("pktvisor startup error, check log")
+	}
+
 
 	c.logger.Info("cloudprober waiting for policies")
 	c.scraper = gocron.NewScheduler(time.UTC)
@@ -281,7 +297,7 @@ func (c *cloudproberBackend) Start(ctx context.Context, cancelFunc context.Cance
 	// only one scrape mechanism
 	c.scrapeOpenTelemetry(ctx)
 
-	err := c.ApplyPolicy(policies.PolicyData{}, false)
+	err = c.ApplyPolicy(policies.PolicyData{}, false)
 	if err != nil {
 		c.logger.Error("error during applying policies")
 		return err
