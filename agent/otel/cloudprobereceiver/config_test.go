@@ -17,7 +17,7 @@ func TestLoadConfig(t *testing.T) {
 		factories, err := componenttest.NopFactories()
 		assert.NoError(t, err)
 
-		factories.Receivers[typeStr] = pktvisorreceiver.NewFactory()
+		factories.Receivers[typeStr] = cloudprobereceiver.NewFactory()
 		factories.Exporters["prometheus"] = prometheusexporter.NewFactory()
 		factories.Exporters["otlpmqtt"] = otlpmqttexporter.NewFactory()
 		cfgPath := path.Join(".", "testdata", "config.yaml")
