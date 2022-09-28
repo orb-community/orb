@@ -559,14 +559,14 @@ func (c *cloudproberBackend) buildConfigFile(policyYaml []policies.PolicyData) (
 	var builder strings.Builder
 	for _, data := range policyYaml {
 		var probes Probes
-		bytedata, err := yaml.Marshal(data.Data)
+		byteData, err := yaml.Marshal(data.Data)
 		if err != nil {
 			c.logger.Error("Failed to parse policy", zap.String("policy-id", data.ID),
 				zap.String("policy-name", data.Name),
 				zap.String("backend", data.Backend))
 			return nil, err
 		}
-		err = yaml.Unmarshal(bytedata, probes)
+		err = yaml.Unmarshal(byteData, probes)
 		if err != nil {
 			return nil, err
 		}

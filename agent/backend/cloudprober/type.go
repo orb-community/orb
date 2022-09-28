@@ -3,23 +3,19 @@ package cloudprober
 import "strings"
 
 type Probes struct {
-	probe []Probe
+	probe []Probe `yaml:"probes"`
 }
 
 type Probe struct {
-	name string `yaml:"name"`
+	name string `yaml:"p_name"`
 
 	probeType string `yaml:"type"`
 
-	targets target `yaml:"targets"`
+	targets string `yaml:"targets_host_names"`
 
 	intervalMsec uint `yaml:"interval_msec"`
 
 	timeoutMsec uint `yaml:"timeout_msec"`
-}
-
-type target struct {
-	hostNames []string `yaml:"host_names"`
 }
 
 func (p *Probes) ToConfigFile() string {
@@ -30,7 +26,7 @@ func (p *Probes) ToConfigFile() string {
 		builder.WriteString("  type: " + probeCfg.probeType + "\n")
 		builder.WriteString("  targets { \n")
 		builder.WriteString("    host_names: ")
-		builder.WriteString(strings.Join(probeCfg.targets.hostNames, ","))
+		builder.WriteString(probeCfg.targets)
 		builder.WriteString("\n")
 		builder.WriteString("  interval_msec: ")
 		builder.WriteRune(int32(probeCfg.intervalMsec))
