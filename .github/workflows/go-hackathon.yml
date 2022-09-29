@@ -313,6 +313,81 @@ jobs:
       - name: Push service containers
         if: github.event_name != 'pull_request'
         run: docker push -a ns1labs/orb-sinks
+        
+  package-ui-dependencies:
+    needs:
+      - prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            yarn:
+              ui/package.json
+      - name: Login to Docker Hub
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build orb yarn image
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        env:
+          IMAGE_NAME: ns1labs/orb-ui-modules
+        run: |
+          make ui-modules
+      - name: Push ui image
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        run: |
+          docker push -a ns1labs/orb-ui-modules
+
+  package-ui:
+    needs:
+      - prebuild
+      - package-ui-dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+      - name: Build orb-ui
+        env:
+          IMAGE_NAME: ns1labs/orb-ui
+        run: |
+          make ui
+      - name: Commit orb-ui-live on orb-live repo develop
+        if: github.event_name != 'pull_request'
+        run: |
+          git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
+          git config --global user.name "${{secrets.GH_ORB_USER}}"
+          git config --global credential.helper cache
+          git clone -b develop https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live.git          
+          cd orb-live
+          rm -rf ui
+          git add .
+          git commit -m "[NS1 Orb Bot] clean ui folder"
+          cp -rf ../ui .
+          cp -rf ../VERSION .
+          echo "${{ steps.commit_hash.outputs.sha_short }}" > COMMIT_HASH          
+          git add .
+          git commit -m "[NS1 Orb Bot] Update Orb Live UI for develop"
+          git push origin develop
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push ui container
+        if: github.event_name != 'pull_request'
+        run: |
+          docker push -a ns1labs/orb-ui
 
   publish-orb-live-stg:
     needs:
