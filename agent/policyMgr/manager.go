@@ -117,12 +117,6 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			}
 
 		}
-		// save policy (with latest status) to local policy db
-		err := a.repo.Update(pd)
-		if err != nil {
-			a.logger.Error("got error in update last status", zap.Error(err))
-			return
-		}
 		if !backend.HaveBackend(payload.Backend) {
 			a.logger.Warn("policy failed to apply because backend is not available", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name))
 			pd.State = policies.FailedToApply
@@ -133,7 +127,12 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			a.applyPolicy(payload, be, &pd, updatePolicy)
 
 		}
-
+		// save policy (with latest status) to local policy db
+		err := a.repo.Update(pd)
+		if err != nil {
+			a.logger.Error("got error in update last status", zap.Error(err))
+			return
+		}
 		return
 	case "remove":
 		err := a.RemovePolicy(payload.ID, payload.Name, payload.Backend)
