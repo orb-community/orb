@@ -11,7 +11,7 @@
     <h4>{{ isEdit ? 'Edit Agent Policy' : 'Create Agent Policy'}}</h4>
   </header>
   <div
-    *ngIf="!isLoading['backend'] && !isLoading['taps'] && !isLoading['inputs'] && !isLoading['handlers']"
+    *ngIf="!isLoading['BACKEND']"
     class="d-flex row">
     <div class="d-flex col-12 mt-5">
       <nb-stepper
@@ -59,7 +59,6 @@
                 </ng-container>
             </div>
           </nb-form-field>
-            <hr/>
             <nb-form-field>
             <div>
               <label
@@ -79,6 +78,30 @@
                 </p>
               </ng-container>
             </nb-form-field>
+            <nb-form-field>
+              <div>
+                <label
+                  class="font-weight-bold"
+                  for="description">Policy Backend</label>
+              </div>
+              <nb-select (selectedChange)="onBackendSelected($event)"
+                         appearance="filled"
+                         data-orb-qa-id="backend"
+                         formControlName="backend"
+                         fullWidth="true"
+                         [status]="detailsFG?.controls.backend.touched ? (!detailsFG.controls.backend.valid  ? 'danger' : 'success') : 'basic'"
+                         placeholder="Select backend type"
+                         size="medium"
+              >
+                <nb-option *ngFor="let type of availableBackends | keyvalue"
+                           [value]="type.value.backend">{{ type.key | titlecase }}</nb-option>
+              </nb-select>
+                <ng-container *ngIf="detailsFG?.controls.backend.touched && !detailsFG.controls.backend.valid">
+                  <p *ngIf="detailsFG?.controls.description.errors?.maxlength" class="caption status-danger mb-1">
+                    Description must be less than {{detailsFG.controls.description.errors?.maxlength.requiredLength}} characters
+                  </p>
+                </ng-container>
+              </nb-form-field>
             <div class="d-flex flex-wrap">
               <ngx-tag-control [(tags)]="selectedTags" autofocus></ngx-tag-control>
             </div>
