@@ -221,7 +221,7 @@ func (c *cloudproberBackend) Version() (string, error) {
 	}
 	cmd.Run()
 	c.cloudproberVersion = b.String()
-	c.logger.Info("retrieving cloudprobe version", zap.Strings("Version", c.cloudproberVersion))
+	c.logger.Info("retrieving cloudprobe version", zap.Strings(c.cloudproberVersion))
 	return b.String(), nil
 }
 
