@@ -68,8 +68,15 @@ func (e *exporter) start(_ context.Context, _ component.Host) error {
 		opts.SetDefaultPublishHandler(func(client mqtt.Client, message mqtt.Message) {
 			e.logger.Info("message on unknown channel, ignoring", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 		})
-		opts.SetPingTimeout(5 * time.Second)
+		opts.SetPingTimeout(10 * time.Second)
 		opts.SetAutoReconnect(true)
+        	opts.SetMaxReconnectInterval(10 * time.Second)
+		opts.SetConnectionLostHandler(func(c mqtt.Client, err error) {
+			fmt.Printf("!!!!!! mqtt connection lost error: %s\n" + err.Error())
+		})
+		opts.SetReconnectingHandler(func(c mqtt.Client, options *mqtt.ClientOptions) {
+			fmt.Println("...... mqtt reconnecting ......")
+		})
 
 		if e.config.TLS {
 			opts.TLSConfig = &tls.Config{InsecureSkipVerify: true}
