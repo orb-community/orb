@@ -89,7 +89,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17
+          go-version: 1.19
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.agent == 'true' }}
@@ -103,7 +103,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17
+          go-version: 1.19
 
       - name: Go unit tests
         run: |
@@ -119,7 +119,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17
+          go-version: 1.19
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.orb == 'true' }}
@@ -133,7 +133,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17
+          go-version: 1.19
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.orb == 'true' }}
@@ -147,7 +147,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17
+          go-version: 1.19
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.orb == 'true' }}
