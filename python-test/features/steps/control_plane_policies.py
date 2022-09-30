@@ -2,7 +2,7 @@ from hamcrest import *
 import requests
 from behave import given, then, step
 from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
-    threading_wait_until
+    threading_wait_until, UtilsManager
 from local_agent import get_orb_agent_logs
 from test_config import TestConfig
 from datetime import datetime
@@ -945,3 +945,357 @@ def parse_flow_policy_params(kwargs):
     kwargs_dict['handle_label'] = f"default_{kwargs_dict['handler']}_{random_string(3)}"
 
     return kwargs_dict
+
+
+class HandlerConfigs(UtilsManager):
+    def __init__(self):
+        self.handler_configs = dict()
+
+    def add_configs(self, **kwargs):
+        self.handler_configs = UtilsManager.add_configs(self, self.handler_configs, **kwargs)
+
+        return self.handler_configs
+
+    def remove_configs(self, *args):
+        self.handler_configs = UtilsManager.remove_configs(self, self.handler_configs, *args)
+
+        return self.handler_configs
+
+    def json(self):
+        return json.dumps(self.handler_configs)
+
+
+class HandlerModules(HandlerConfigs):
+    def __init__(self):
+        self.handler_modules = dict()
+
+    def __build_module(self, name, module_type, configs_list, filters_list):
+        module = {
+            name: {
+                "type": module_type,
+                "config": {
+                },
+
+                "filter": {
+                },
+                "metrics_groups": {
+                }
+            }
+        }
+
+        for module_config in configs_list:
+            if list(module_config.values())[0] is not None:
+                module[name]["config"].update(module_config)
+
+        for tap_filter in filters_list:
+            if list(tap_filter.values())[0] is not None:
+                module[name]["filter"].update(tap_filter)
+
+        self.handler_modules.update(module)
+
+    def add_dns_module(self, name, public_suffix_list=None, only_rcode=None, exclude_noerror=None,
+                       only_dnssec_response=None, answer_count=None,
+                       only_qtype=None, only_qname_suffix=None, geoloc_notfound=None, asn_notfound=None,
+                       dnstap_msg_type=None):
+        self.name = name
+        self.public_suffix_list = {'public_suffix_list': public_suffix_list}
+        self.only_rcode = {'only_rcode': only_rcode}
+        self.exclude_noerror = {'exclude_noerror': exclude_noerror}
+        self.only_dnssec_response = {'only_dnssec_response': only_dnssec_response}
+        self.answer_count = {'answer_count': answer_count}
+        self.only_qtype = {'only_qtype': only_qtype}
+        self.only_qname_suffix = {'only_qname_suffix': only_qname_suffix}
+        self.geoloc_notfound = {'geoloc_notfound': geoloc_notfound}
+        self.asn_notfound = {'asn_notfound': asn_notfound}
+        self.dnstap_msg_type = {'dnstap_msg_type': dnstap_msg_type}
+
+        dns_configs = [self.public_suffix_list]
+
+        dns_filters = [self.only_rcode, self.exclude_noerror, self.only_dnssec_response, self.answer_count,
+                       self.only_qtype, self.only_qname_suffix,
+                       self.geoloc_notfound, self.asn_notfound, self.dnstap_msg_type]
+
+        self.__build_module(self.name, "dns", dns_configs, dns_filters)
+        return self.handler_modules
+
+    def add_net_module(self, name, geoloc_notfound=None, asn_notfound=None, only_geoloc_prefix=None,
+                       only_asn_number=None):
+        self.name = name
+        self.geoloc_notfound = {'geoloc_notfound': geoloc_notfound}
+        self.asn_notfound = {'asn_notfound': asn_notfound}
+        self.only_geoloc_prefix = {'only_geoloc_prefix': only_geoloc_prefix}
+        self.only_asn_number = {'only_asn_number': only_asn_number}
+
+        net_configs = []
+
+        net_filters = [self.geoloc_notfound, self.asn_notfound, self.only_geoloc_prefix, self.only_asn_number]
+
+        self.__build_module(self.name, "net", net_configs, net_filters)
+        return self.handler_modules
+
+    def add_dhcp_module(self, name):
+        self.name = name
+
+        dhcp_configs = []
+
+        dhcp_filters = []
+
+        self.__build_module(self.name, "dhcp", dhcp_configs, dhcp_filters)
+        return self.handler_modules
+
+    def add_bgp_module(self, name):
+        self.name = name
+
+        bgp_configs = []
+
+        bgp_filters = []
+
+        self.__build_module(self.name, "bgp", bgp_configs, bgp_filters)
+        return self.handler_modules
+
+    def add_pcap_module(self, name):
+        self.name = name
+
+        pcap_configs = []
+
+        pcap_filters = []
+
+        self.__build_module(self.name, "pcap", pcap_configs, pcap_filters)
+        return self.handler_modules
+
+    def add_flow_module(self, name, sample_rate_scaling=None, recorded_stream=None, only_devices=None, only_ips=None,
+                        only_ports=None, only_interfaces=None, geoloc_notfound=None, asn_notfound=None):
+        self.name = name
+        self.sample_rate_scaling = {'sample_rate_scaling': sample_rate_scaling}
+        self.recorded_stream = {'recorded_stream': recorded_stream}
+        self.only_devices = {'only_devices': only_devices}
+        self.only_ips = {'only_ips': only_ips}
+        self.only_ports = {'only_ports': only_ports}
+        self.only_interfaces = {'only_interfaces': only_interfaces}
+        self.geoloc_notfound = {'geoloc_notfound': geoloc_notfound}
+        self.asn_notfound = {'asn_notfound': asn_notfound}
+
+        flow_configs = [self.sample_rate_scaling, self.recorded_stream]
+
+        flow_filters = [self.only_devices, self.only_ips, self.only_ports, self.only_interfaces, self.geoloc_notfound,
+                        self.asn_notfound]
+
+        self.__build_module(self.name, "flow", flow_configs, flow_filters)
+        return self.handler_modules
+
+    def add_configs(self, name, **kwargs):
+        self.handler_modules[name]["config"] = UtilsManager.add_configs(self, self.handler_modules[name]["config"],
+                                                                        **kwargs)
+
+        return self.handler_modules
+
+    def add_filters(self, name, **kwargs):
+        if "filter" not in self.handler_modules[name].keys():
+            self.handler_modules[name].update({"filter": {}})
+
+        self.handler_modules[name]["filter"] = UtilsManager.add_filters(self, self.handler_modules[name]["filter"],
+                                                                        **kwargs)
+
+        return self.handler_modules
+
+    def enable_metrics_group(self, name, *args):
+        self.metrics_group = self.handler_modules[name]["metrics_groups"]
+        metrics_enable = list()
+        if 'enable' not in self.metrics_group.keys():
+            self.metrics_group.update({"enable": metrics_enable})
+
+        for metric in args:
+            metrics_enable.append(metric)
+            if 'disable' in self.metrics_group.keys() and metric in self.metrics_group['disable']:
+                self.metrics_group['disable'].remove(metric)
+
+        self.metrics_group['enable'] = metrics_enable
+
+        return self.handler_modules
+
+    def disable_metrics_group(self, name, *args):
+        self.metrics_group = self.handler_modules[name]["metrics_groups"]
+        metrics_disable = list()
+        if 'disable' not in self.metrics_group.keys():
+            self.metrics_group.update({"disable": metrics_disable})
+
+        for metric in args:
+            metrics_disable.append(metric)
+            if 'enable' in self.metrics_group.keys() and metric in self.metrics_group['enable']:
+                self.metrics_group['enable'].remove(metric)
+
+        self.metrics_group['disable'] = metrics_disable
+
+        return self.handler_modules
+
+    def remove_metrics_group(self, name, *args):
+        self.metrics_group = self.handler_modules[name]["metrics_groups"]
+
+        for metric in args:
+            if 'enable' in self.metrics_group.keys() and metric in self.metrics_group['enable']:
+                self.metrics_group['enable'].remove(metric)
+            if 'disable' in self.metrics_group.keys() and metric in self.metrics_group['disable']:
+                self.metrics_group['disable'].remove(metric)
+
+        return self.handler_modules
+
+    def remove_filters(self, name, *args):
+
+        self.handler_modules[name]["filter"] = UtilsManager.remove_configs(self, self.handler_modules[name]["filter"],
+                                                                           *args)
+
+        return self.handler_modules
+
+    def remove_configs(self, name, *args):
+
+        self.handler_modules[name]["config"] = UtilsManager.remove_configs(self, self.handler_modules[name]["config"],
+                                                                           *args)
+
+        return self.handler_modules
+
+    def remove_module(self, name):
+        assert_that(name, is_in(self.handler_modules.keys()), "Unexisting module")
+        self.handler_modules.pop(name)
+        return self.handler_modules
+
+    def json(self):
+        return json.dumps(self.handler_modules)
+
+
+class Policy(HandlerModules, HandlerConfigs):
+    def __init__(self):
+
+        self.policy = {"handlers": {
+            "config": {},
+            "modules": {}
+        },
+            "input": {},
+            "config": {},
+            "kind": "collection"
+        }
+        self.config = self.policy['config']
+        self.handler_configs = self.policy["handlers"]["config"]
+        self.handler_modules = self.policy["handlers"]["modules"]
+
+    def add_module_configs(self, name, **kwargs):
+        self.handler_modules[name]['config'] = UtilsManager.add_configs(self, self.handler_modules[name]['config'],
+                                                                        **kwargs)
+        return self.policy
+
+    def remove_module_configs(self, name, *args):
+        self.handler_modules[name]['config'] = UtilsManager.remove_configs(self, self.handler_modules[name]['config'],
+                                                                           *args)
+        return self.policy
+
+    def add_module_filters(self, name, **kwargs):
+        self.handler_modules[name]['filter'] = UtilsManager.add_filters(self, self.handler_modules[name]['filter'],
+                                                                        **kwargs)
+        return self.policy
+
+    def remove_module_filters(self, name, *args):
+        self.handler_modules[name]['filter'] = UtilsManager.remove_filters(self, self.handler_modules[name]['filter'],
+                                                                           *args)
+        return self.policy
+
+    def add_handler_configs(self, **kwargs):
+        self.handler_configs = UtilsManager.add_configs(self, self.handler_configs, **kwargs)
+        return self.policy
+
+    def remove_handler_configs(self, *args):
+        self.handler_configs = UtilsManager.remove_configs(self, self.handler_configs, *args)
+        return self.policy
+
+    def add_input_configs(self, **kwargs):
+        assert_that('input_type', is_in(self.policy['input'].keys()),
+                    "It is not possible to enter settings without defining the input. Use `add_input` first.")
+        assert_that(any_of('tap', 'tap_selector'), is_in(self.policy['input'].keys()),
+                    "It is not possible to enter settings without defining the input. Use `add_input` first.")
+        if 'config' not in self.policy['input'].keys():
+            self.policy['input'].update({'config': {}})
+        self.policy['input']['config'] = UtilsManager.add_configs(self, self.policy['input']['config'], **kwargs)
+        return self.policy
+
+    def remove_input_configs(self, *args):
+        self.policy['input']['config'] = UtilsManager.remove_configs(self, self.policy['input']['config'], *args)
+        return self.policy
+
+    def add_input_filters(self, **kwargs):
+        assert_that('input_type', is_in(self.policy['input'].keys()),
+                    "It is not possible to enter settings without defining the input. Use `add_input` first.")
+        assert_that(any_of('tap', 'tap_selector'), is_in(self.policy['input'].keys()),
+                    "It is not possible to enter settings without defining the input. Use `add_input` first.")
+        if 'filter' not in self.policy['input'].keys():
+            self.policy['input'].update({'filter': {}})
+        self.policy['input']['filter'] = UtilsManager.add_filters(self, self.policy['input']['filter'], **kwargs)
+        return self.policy
+
+    def remove_input_filters(self, name, *args):
+        self.policy['input']['filter'] = UtilsManager.remove_filters(self, self.policy['input']['filter'], *args)
+        return self.policy
+
+    def add_configs(self, **kwargs):
+        self.config = UtilsManager.add_configs(self, self.config, **kwargs)
+        return self.policy
+
+    def remove_configs(self, *args):
+        self.config = UtilsManager.remove_configs(self, self.config, *args)
+        return self.policy
+
+    def add_filters(self, **kwargs):
+        raise ValueError(f"Policy objects do not have filters. Try `add_module_filters` or `add_input_filters` instead")
+        return self.policy
+
+    def remove_filters(self, **kwargs):
+        raise ValueError(
+            f"Policy objects do not have filters. Try `remove_module_filters` or `remove_input_filters` instead")
+        return self.policy
+
+    def __add_input_tap(self, input_type, name):
+        assert_that('tap_selector', not (is_in(self.policy['input'].keys())),
+                    "tap_selector is already defined. Use `remove_input_tap_selector` first.")
+        if 'tap' not in self.policy['input'].keys():
+            self.policy['input'].update({'tap': {}})
+        if 'input_type' not in self.policy['input'].keys():
+            self.policy['input'].update({'input_type': {}})
+        self.policy['input']['tap'] = name
+        self.policy['input']['input_type'] = input_type
+        return self.policy
+
+    def __add_input_tap_selector(self, input_type, input_match, **kwargs):
+        assert_that('tap', not (is_in(self.policy['input'].keys())),
+                    "tap is already defined. Use `remove_input_tap` first.")
+        assert_that(input_type, any_of(equal_to('any'), equal_to('all')), "Invalid input_match")
+        if 'tap_selector' not in self.policy['input'].keys():
+            self.policy['input'].update({'tap_selector': {}})
+        if 'input_type' not in self.policy['input'].keys():
+            self.policy['input'].update({'input_type': {}})
+
+            all_selectors = list()
+        elif input_match in self.policy['input']['tap_selector'].keys():
+            all_selectors = self.policy['input']['tap_selector'][input_match]
+        else:
+            all_selectors = list()
+
+        for selector_key in kwargs:
+            all_selectors.append({selector_key: kwargs[selector_key]})
+
+        self.policy['input']['tap_selector'] = {{input_match: all_selectors}}
+        self.policy['input']['input_type'] = input_type
+
+    def add_input(self, input_type, selector='tap', **kwargs):
+        assert_that(selector, any_of('tap', 'tap_selector'), "Invalid input selector")
+
+        if selector == 'tap':
+            assert_that('name', is_in(kwargs.keys()),
+                        "If `selector=tap`, you need to specify tap name. name=`the_name_you_want`.")
+            self.__add_input_tap(input_type, kwargs['name'])
+
+        else:
+            assert_that('input_match', is_in(kwargs.keys()),
+                        "If `selector=tap`, you need to specify input_match. input_match=`any` or input_match=`all`.")
+            input_match = kwargs['input_match']
+            kwargs.pop['input_match']
+            self.__add_input_tap_selector(input_type, input_match, kwargs)
+
+    def json(self):
+        return json.dumps(self.policy)

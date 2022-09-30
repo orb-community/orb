@@ -10,6 +10,7 @@ import re
 import json
 import jsonschema
 from jsonschema import validate
+from abc import ABC, abstractmethod
 
 tag_prefix = "test_tag_"
 
@@ -226,7 +227,6 @@ def get_schema(path_to_file):
 
 
 def validate_json(json_data, path_to_file):
-
     """
     Compare a file with the schema and validate if the structure is correct
     :param json_data: json to be validated
@@ -243,3 +243,38 @@ def validate_json(json_data, path_to_file):
         return False, err
 
     return True
+
+
+class UtilsManager(ABC):
+    def __init__(self):
+        pass
+
+    def add_configs(self, config_object, **kwargs):
+
+        for each_config in kwargs:
+            if kwargs[each_config] is not None:
+                config_object.update({each_config: kwargs[each_config]})
+
+        return config_object
+
+    def remove_configs(self, config_object, *args):
+        for each_config in args:
+            if each_config in config_object.keys():
+                config_object.pop(each_config)
+        return config_object
+
+    def add_filters(self, filter_object, **kwargs):
+        for each_filter in kwargs:
+            if kwargs[each_filter] is not None:
+                filter_object.update({each_filter: kwargs[each_filter]})
+        return filter_object
+
+    def remove_filters(self, filter_object, *args):
+        for each_filter in args:
+            if each_filter in filter_object.keys():
+                filter_object.pop(each_filter)
+        return filter_object
+
+    @abstractmethod
+    def json(self):
+        pass
