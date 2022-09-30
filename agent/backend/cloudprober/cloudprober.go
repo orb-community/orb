@@ -212,7 +212,7 @@ func (c *cloudproberBackend) RemovePolicy(data policies.PolicyData) error {
 
 }
 
-func (p *cloudproberBackend) Version() (string, error) {
+func (c *cloudproberBackend) Version() (string, error) {
 	cmd, b := exec.Command(p.binary, "-version"), new(strings.Builder)
 	cmd.Stdout = b
 	if err := cmd.Run(); err != nil {
@@ -220,7 +220,7 @@ func (p *cloudproberBackend) Version() (string, error) {
 		return "", err
 	}
 	cmd.Run()
-	p.cloudproberVersion = b.String()
+	c.cloudproberVersion = b.String()
 	return b.String(), nil
 }
 
