@@ -10,11 +10,10 @@ package mocks
 
 import (
 	"context"
-	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/sinks"
-	"strings"
+	"reflect"
 	"sync"
 )
 
@@ -92,12 +91,13 @@ func (s *sinkRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm s
 
 	var sks []sinks.Sink
 
-	prefix := fmt.Sprintf("%s", owner)
 	id := uint64(0)
 	for _, v := range s.sinksMock {
 		id++
-		if strings.HasPrefix(v.MFOwnerID, prefix) && id >= first && id < last {
-			sks = append(sks, v)
+		if v.MFOwnerID == owner && id >= first && id < last {
+			if reflect.DeepEqual(pm.Tags, v.Tags) || pm.Tags == nil {
+				sks = append(sks, v)
+			}
 		}
 	}
 

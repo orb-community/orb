@@ -17,6 +17,7 @@ package logs
 import (
 	"context"
 	"errors"
+	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/testdata"
 	"net"
 	"testing"
 
@@ -29,7 +30,6 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/internal/testdata"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 )
 

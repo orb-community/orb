@@ -1,4 +1,4 @@
-from behave import given, when, then, step
+from behave import given, then, step
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json
 from hamcrest import *
@@ -26,7 +26,7 @@ def check_prometheus_grafana_credentials(context):
     assert_that(context.prometheus_key, not_(""), 'No Grafana Cloud API Key was provided!')
 
 
-@when("a new sink is created")
+@step("a new sink is created")
 def create_sink(context):
     sink_label_name = sink_name_prefix + random_string(10)
     token = context.token
