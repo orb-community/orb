@@ -212,14 +212,16 @@ func (c *cloudproberBackend) RemovePolicy(data policies.PolicyData) error {
 
 }
 
-func (c *cloudproberBackend) Version() (string, error) {
-	var appMetrics AppMetrics
-	err := c.request("metrics/app", &appMetrics, http.MethodGet, http.NoBody, "application/json", VersionTimeout)
-	if err != nil {
+func (p *cloudproberBackend) Version() (string, error) {
+	cmd, b := exec.Command(p.binary, "-version"), new(strings.Builder)
+	cmd.Stdout = b
+	if err := cmd.Run(); err != nil {
+		c.logger.Error("Error retrieving cloudprobe version", zap.Error(err))
 		return "", err
 	}
-	c.cloudproberVersion = appMetrics.App.Version
-	return appMetrics.App.Version, nil
+	cmd.Run()
+	p.cloudproberVersion = b.String()
+	return b.String(), nil
 }
 
 func (c *cloudproberBackend) Write(payload []byte) (n int, err error) {
