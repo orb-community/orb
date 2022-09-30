@@ -31,13 +31,6 @@ var (
 	Debug    bool
 )
 
-func init() {
-
-	pktvisor.Register()
-	cloudprober.Register()
-
-}
-
 func Version(cmd *cobra.Command, args []string) {
 	fmt.Printf("orb-agent %s\n", buildinfo.GetVersion())
 	os.Exit(0)
@@ -57,27 +50,6 @@ func Run(cmd *cobra.Command, args []string) {
 
 	config.OrbAgent.Debug.Enable = Debug
 
-	// include pktvisor backend by default if binary is at default location
-	_, err = os.Stat(pktvisor.DefaultBinary)
-	if err == nil && config.OrbAgent.Backends == nil {
-		config.OrbAgent.Backends = make(map[string]map[string]string)
-		config.OrbAgent.Backends["pktvisor"] = make(map[string]string)
-		config.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
-		if len(cfgFiles) > 0 {
-			config.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
-		}
-	}
-
-	// include cloudprober backend by default if binary is at default location
-	//	_, err = os.Stat(cloudprober.DefaultBinary)
-	//	if err == nil && config.OrbAgent.Backends == nil {
-	//		config.OrbAgent.Backends = make(map[string]map[string]string)
-	//		config.OrbAgent.Backends["cloudprober"] = make(map[string]string)
-	//		config.OrbAgent.Backends["cloudprober"]["binary"] = cloudprober.DefaultBinary
-	//		if len(cfgFiles) > 0 {
-	//			config.OrbAgent.Backends["cloudprober"]["config_file"] = cfgFiles[0]
-	//		}
-	//	}
 	// logger
 	var logger *zap.Logger
 	atomicLevel := zap.NewAtomicLevel()
@@ -97,6 +69,41 @@ func Run(cmd *cobra.Command, args []string) {
 	defer func(logger *zap.Logger) {
 		_ = logger.Sync()
 	}(logger)
+
+	// include pktvisor backend by default if binary is at default location
+
+	if config.OrbAgent.Backends == nil {
+		_, err = os.Stat(pktvisor.DefaultBinary)
+		if err != nil {
+			logger.Fatal("pktvisor could not be initialized either in configuration path nor default")
+		}
+		config.OrbAgent.Backends = make(map[string]map[string]string)
+		config.OrbAgent.Backends["pktvisor"] = make(map[string]string)
+		config.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
+		config.OrbAgent.Backends["pktvisor"]["enabled"] = "true"
+		if len(cfgFiles) > 0 {
+			config.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
+		}
+	}
+	pktvisorConfig, ok := config.OrbAgent.Backends["pktvisor"]
+	if ok && pktvisorConfig["enabled"] == "true" {
+		logger.Debug("registering pktvisor backend", zap.String("binary", pktvisorConfig["binary"]))
+		pktvisor.Register()
+	}
+
+	cloudproberConfig, ok := config.OrbAgent.Backends["cloudprober"]
+	if ok && cloudproberConfig["enabled"] == "true" {
+		_, err = os.Stat(cloudproberConfig["binary"])
+		if err != nil {
+			_, err = os.Stat(cloudprober.DefaultBinary)
+			if err != nil {
+				logger.Fatal("cloudprober could not be initialized either in configuration path nor default")
+			}
+			cloudproberConfig["binary"] = cloudprober.DefaultBinary
+		}
+		logger.Debug("registering cloudprober backend", zap.String("binary", cloudproberConfig["binary"]))
+		cloudprober.Register()
+	}
 
 	// new agent
 	a, err := agent.New(logger, config)
