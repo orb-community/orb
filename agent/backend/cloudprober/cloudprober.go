@@ -213,7 +213,7 @@ func (c *cloudproberBackend) RemovePolicy(data policies.PolicyData) error {
 }
 
 func (c *cloudproberBackend) Version() (string, error) {
-	cmd, b := exec.Command(p.binary, "-version"), new(strings.Builder)
+	cmd, b := exec.Command(c.binary, "-version"), new(strings.Builder)
 	cmd.Stdout = b
 	if err := cmd.Run(); err != nil {
 		c.logger.Error("Error retrieving cloudprobe version", zap.Error(err))
