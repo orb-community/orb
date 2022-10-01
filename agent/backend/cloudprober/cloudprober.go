@@ -220,9 +220,9 @@ func (c *cloudproberBackend) Version() (string, error) {
 		return "", err
 	}
 	cmd.Run()
-	c.cloudproberVersion = b.String()
-	c.logger.Info("retrieving cloudprobe version" + c.cloudproberVersion)
-	return b.String(), nil
+	c.cloudproberVersion = strings.TrimSuffix(b.String(), "\n")
+	c.logger.Info("retrieving cloudprobe version: " + c.cloudproberVersion)
+	return c.cloudproberVersion, nil
 }
 
 func (c *cloudproberBackend) Write(payload []byte) (n int, err error) {
