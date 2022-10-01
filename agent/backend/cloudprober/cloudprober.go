@@ -40,7 +40,7 @@ const (
 	RemovePolicyTimeout = 15
 	VersionTimeout      = 5
 	ScrapeTimeout       = 5
-	ProbesTimeout         = 5
+	ProbesTimeout       = 5
 )
 
 type cloudproberBackend struct {
@@ -68,6 +68,8 @@ type cloudproberBackend struct {
 	adminAPIHost     string
 	adminAPIPort     string
 	adminAPIProtocol string
+	
+	healthcheckPort string
 
 	scrapeOtel bool
 }
