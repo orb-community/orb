@@ -498,9 +498,9 @@ func (c *cloudproberBackend) GetCapabilities() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	jsonString := protojson.Format(probes)
-	jsonBody := make(map[string]interface{})
-	jsonBody["probes"] = jsonString
+	protoBody := make(map[string]interface{})
+	protoBody["probes"] = probes
+	jsonBody := protojson.Format(protoBody)
 	return jsonBody, nil
 }
 
