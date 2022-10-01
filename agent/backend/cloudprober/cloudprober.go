@@ -40,7 +40,7 @@ const (
 	RemovePolicyTimeout = 15
 	VersionTimeout      = 5
 	ScrapeTimeout       = 5
-	TapsTimeout         = 5
+	ProbesTimeout         = 5
 )
 
 type cloudproberBackend struct {
@@ -481,13 +481,13 @@ func (c *cloudproberBackend) scrapeMetrics() (map[string]interface{}, error) {
 }
 
 func (c *cloudproberBackend) GetCapabilities() (map[string]interface{}, error) {
-	var taps interface{}
-	err := c.request("taps", &taps, http.MethodGet, http.NoBody, "application/json", TapsTimeout)
+	var probes interface{}
+	err := c.request("config", &probes, http.MethodGet, http.NoBody, "application/json", ProbesTimeout)
 	if err != nil {
 		return nil, err
 	}
 	jsonBody := make(map[string]interface{})
-	jsonBody["taps"] = taps
+	jsonBody["probes"] = probes
 	return jsonBody, nil
 }
 
