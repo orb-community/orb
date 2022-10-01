@@ -21,6 +21,7 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-cmd/cmd"
 	"github.com/go-co-op/gocron"
+	"google.golang.org/protobuf/proto"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/config"
 	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
@@ -493,12 +494,13 @@ func (c *cloudproberBackend) scrapeMetrics() (map[string]interface{}, error) {
 
 func (c *cloudproberBackend) GetCapabilities() (map[string]interface{}, error) {
 	var probes interface{}
-	err := c.request("config", &probes, http.MethodGet, http.NoBody, "application/json", ProbesTimeout)
+	err := c.request("config", &probes, http.MethodGet, http.NoBody, "application/protobuf", ProbesTimeout)
 	if err != nil {
 		return nil, err
 	}
+	jsonString := protojson.Format(probes)
 	jsonBody := make(map[string]interface{})
-	jsonBody["probes"] = probes
+	jsonBody["probes"] = jsonString
 	return jsonBody, nil
 }
 
