@@ -91,7 +91,7 @@ func Run(cmd *cobra.Command, args []string) {
 	core := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderCfg),
 		os.Stdout,
-		atomicLevel,
+		ato	v.SetDefault("orb.backends.cloudprober.healthcheck_port", "8099")micLevel,
 	)
 	logger = zap.New(core, zap.AddCaller())
 	defer func(logger *zap.Logger) {
@@ -171,6 +171,7 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.backends.cloudprober.config_file", "/etc/cloudprober/cloudprober.cfg")
 	v.SetDefault("orb.backends.cloudprober.api_host", "localhost")
 	v.SetDefault("orb.backends.cloudprober.api_port", "9313")
+	v.SetDefault("orb.backends.cloudprober.healthcheck_port", "8099")
 
 	if len(path) > 0 {
 		cobra.CheckErr(v.ReadInConfig())
