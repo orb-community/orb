@@ -91,7 +91,7 @@ func Run(cmd *cobra.Command, args []string) {
 	core := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderCfg),
 		os.Stdout,
-		ato	v.SetDefault("orb.backends.cloudprober.healthcheck_port", "8099")micLevel,
+		atomicLevel,
 	)
 	logger = zap.New(core, zap.AddCaller())
 	defer func(logger *zap.Logger) {
