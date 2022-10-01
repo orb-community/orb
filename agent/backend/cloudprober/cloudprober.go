@@ -99,21 +99,27 @@ type AppMetrics struct {
 }
 
 // note this needs to be stateless because it is called for multiple go routines
-func (c *cloudproberBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string, timeout int32) error {
+func (p *cloudproberBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string, timeout int32) error {
 	client := http.Client{
 		Timeout: time.Second * time.Duration(timeout),
 	}
 
-	alive, err := c.checkAlive()
+	alive, err := p.checkAlive()
 	if !alive {
 		return err
 	}
-
-	URL := fmt.Sprintf("%s://%s:%s/%s", c.adminAPIProtocol, c.adminAPIHost, c.adminAPIPort, url)
+	var returnBody string
+	var URL string
+	if url != "healthcheck" {
+		URL = fmt.Sprintf("%s://%s:%s/%s", p.adminAPIProtocol, p.adminAPIHost, p.adminAPIPort, url)
+	} else {
+		URL = fmt.Sprintf("%s://%s:%s/%s", p.adminAPIProtocol, p.adminAPIHost, p.healthcheckPort, url)
+		p.logger.Error("healthcheck request", zap.String("check url", URL))
+	}
 
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
-		c.logger.Error("received error from payload", zap.Error(err))
+		p.logger.Error("received error from payload", zap.Error(err))
 		return err
 	}
 
@@ -121,34 +127,37 @@ func (c *cloudproberBackend) request(url string, payload interface{}, method str
 	res, getErr := client.Do(req)
 
 	if getErr != nil {
-		c.logger.Error("received error from payload", zap.Error(getErr))
+		p.logger.Error("received error from payload", zap.Error(getErr))
 		return getErr
 	}
 
-	if (res.StatusCode < 200) || (res.StatusCode > 299) {
+	if res.StatusCode >= 200 {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return errors.New(fmt.Sprintf("non 2xx HTTP error code from cloudprober, no or invalid body: %d", res.StatusCode))
 		}
 		if len(body) == 0 {
 			return errors.New(fmt.Sprintf("%d empty body", res.StatusCode))
-		} else if body[0] == '{' {
-			var jsonBody map[string]interface{}
-			err := json.Unmarshal(body, &jsonBody)
-			if err == nil {
-				if errMsg, ok := jsonBody["error"]; ok {
-					return errors.New(fmt.Sprintf("%d %s", res.StatusCode, errMsg))
-				}
+		} else if url == "healthcheck" {
+			returnBody = string(body[:])
+			if returnBody == "ok" {
+
+				p.logger.Error("received ok from healthcheck", zap.String("return:", returnBody))
+				return nil
+			} else {
+				p.logger.Error("healthcheck failed", zap.String("return:", returnBody))
+				return nil
 			}
 		}
 	}
 
 	if res.Body != nil {
-		err = json.NewDecoder(res.Body).Decode(&payload)
+		payload = returnBody
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
