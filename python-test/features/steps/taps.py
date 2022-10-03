@@ -19,24 +19,18 @@ class Taps(UtilsManager):
             }
         }
 
-        for tap_config in configs_list:
-            if list(tap_config.values())[0] is not None:
-                tap[name]["config"].update(tap_config)
-
-        for tap_filter in filters_list:
-            if list(tap_filter.values())[0] is not None:
-                tap[name]["filter"].update(tap_filter)
+        tap = UtilsManager.update_object_with_filters_and_configs(self, tap, name, configs_list, filters_list)
 
         self.taps.update(tap)
 
-    def add_pcap(self, name, pcap_file=None, pcap_source=None, iface=None, host_spec=None, debug=None, bpf=None):
+    def add_pcap(self, name, **kwargs):
         self.name = name
-        self.pcap_file = {"pcap_file": pcap_file}
-        self.pcap_source = {"pcap_source": pcap_source}
-        self.iface = {"iface": iface}
-        self.host_spec = {"host_spec": host_spec}
-        self.debug = {"debug": debug}
-        self.bpf = {"bpf": bpf}
+        self.pcap_file = {'pcap_file': kwargs.get('pcap_file')}
+        self.pcap_source = {'pcap_source': kwargs.get('pcap_source')}
+        self.iface = {'iface': kwargs.get('iface')}
+        self.host_spec = {'host_spec': kwargs.get('host_spec')}
+        self.debug = {'debug': kwargs.get('debug')}
+        self.bpf = {'bpf': kwargs.get('bpf')}
 
         pcap_configs = [self.pcap_file, self.pcap_source, self.iface, self.host_spec, self.debug]
 
@@ -46,12 +40,12 @@ class Taps(UtilsManager):
 
         return self.taps
 
-    def add_flow(self, name, pcap_file=None, port=None, bind=None, flow_type=None):
+    def add_flow(self, name, **kwargs):
         self.name = name
-        self.pcap_file = {"pcap_file": pcap_file}
-        self.port = {"port": port}
-        self.bind = {"bind": bind}
-        self.flow_type = {"flow_type": flow_type}
+        self.pcap_file = {"pcap_file": kwargs.get('pcap_file')}
+        self.port = {"port": kwargs.get('port')}
+        self.bind = {"bind": kwargs.get('bind')}
+        self.flow_type = {"flow_type": kwargs.get('flow_type')}
 
         flow_configs = [self.pcap_file, self.port, self.bind, self.flow_type]
 
@@ -61,12 +55,12 @@ class Taps(UtilsManager):
 
         return self.taps
 
-    def add_dnstap(self, name, dnstap_file, socket, tcp, only_hosts):
+    def add_dnstap(self, name, **kwargs):
         self.name = name
-        self.dnstap_file = {"dnstap_file": dnstap_file}
-        self.socket = {"socket": socket}
-        self.tcp = {"tcp": tcp}
-        self.only_hosts = {"only_hosts": only_hosts}
+        self.dnstap_file = {"dnstap_file": kwargs.get('dnstap_file')}
+        self.socket = {"socket": kwargs.get('socket')}
+        self.tcp = {"tcp": kwargs.get('tcp')}
+        self.only_hosts = {"only_hosts": kwargs.get('only_hosts')}
 
         dnstap_configs = [self.dnstap_file, self.socket, self.tcp]
 
@@ -93,14 +87,13 @@ class Taps(UtilsManager):
         return self.taps
 
     def add_tag(self, tap_name, tags):
-        assert_that(tap_name, any_of(is_in(self.taps.keys()), equal_to('all')), "Unexisting tap")
+        assert_that(tap_name, any_of(is_in(list(self.taps.keys())), equal_to('all')), "Invalid tap")
         if tap_name == "all":
             tap_names = list(self.taps.keys())
         else:
             tap_names = [tap_name]
         for tap_name in tap_names:
-            for tag_pair in tags:
-                tag_key, tag_value = tag_pair.split(":")
+            for tag_key, tag_value in tags.items():
                 if "tags" in self.taps[tap_name].keys():
                     self.taps[tap_name]["tags"].update({tag_key: tag_value})
                 else:
@@ -109,25 +102,25 @@ class Taps(UtilsManager):
         return self.taps
 
     def remove_tap(self, name):
-        assert_that(name, is_in(self.taps.keys()), "Unexisting tap")
+        assert_that(name, is_in(list(self.taps.keys())), "Invalid tap")
         self.taps.pop(name)
 
         return self.taps
 
     def remove_configs(self, name, *args):
-        assert_that(name, is_in(self.taps.keys()), "Unexisting tap")
+        assert_that(name, is_in(list(self.taps.keys())), "Invalid tap")
         self.taps[name]["config"] = UtilsManager.remove_configs(self, self.taps[name]["config"], *args)
 
         return self.taps
 
     def remove_filter(self, name, *args):
-        assert_that(name, is_in(self.taps.keys()), "Unexisting tap")
+        assert_that(name, is_in(list(self.taps.keys())), "Invalid tap")
         self.taps[name]["filter"] = UtilsManager.remove_filters(self, self.taps[name]["filter"], *args)
 
         return self.taps
 
     def remove_tag(self, tap_name, tags_keys):
-        assert_that(tap_name, any_of(is_in(self.taps.keys()), equal_to('all')), "Unexisting tap")
+        assert_that(tap_name, any_of(is_in(list(self.taps.keys())), equal_to('all')), "Invalid tap")
         if tap_name == "all":
             tap_names = list(self.taps.keys())
         else:

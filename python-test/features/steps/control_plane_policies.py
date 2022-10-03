@@ -2,7 +2,7 @@ from hamcrest import *
 import requests
 from behave import given, then, step
 from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
-    threading_wait_until, UtilsManager
+    threading_wait_until, UtilsManager, create_tags_set
 from local_agent import get_orb_agent_logs
 from test_config import TestConfig
 from datetime import datetime
@@ -14,6 +14,55 @@ import ciso8601
 
 policy_name_prefix = "test_policy_name_"
 orb_url = TestConfig.configs().get('orb_url')
+
+
+@step("a {handler} policy {input_type} with tap_selector matching {match_type} of {condition} tap tags ands settings: {settings} is applied to the group")
+def apply_policy_using_tap_selector(context, handler, input_type, match_type, condition, settings):
+    module_name = f"{handler}_{random_string(5)}"
+    policy_name = policy_name_prefix + random_string(10)
+    if condition == "0 agent" and match_type == "any":
+        tags = create_tags_set("3", tag_prefix='testtaptag', string_mode='lower')
+    elif condition == "0 agent" and match_type == "all":
+        tags = list(context.tap_tags.values())[0]
+        tags.update(create_tags_set("1", tag_prefix='testtaptag', string_mode='lower'))
+    elif condition == "1 agent (1 tag matching)":
+        chosen_key = choice(list(context.tap_tags.keys()))
+        tags = context.tap_tags[chosen_key]
+    elif condition == "1 agent (1 tag matching + 1 random tag)":
+        tags = create_tags_set("1", tag_prefix='testtaptag', string_mode='lower')
+        chosen_key = choice(list(context.tap_tags.keys()))
+        tags.update(context.tap_tags[chosen_key])
+    elif condition == "an agent":
+        tags = list(context.tap_tags.values())[0]
+    else:
+        raise ValueError("Invalid selector condition")
+
+    policy = Policy(policy_name, f"description: {condition}", 'pktvisor')
+    policy.add_input(input_type, 'tap_selector', input_match=match_type, tags=tags)
+    if handler.lower() == "pcap":
+        policy.add_pcap_module(module_name)
+    elif handler.lower() == "dns":
+        policy.add_dns_module(module_name)
+    elif handler.lower() == "net":
+        policy.add_net_module(module_name)
+    elif handler.lower() == "dhcp":
+        policy.add_dhcp_module(module_name)
+    elif handler.lower() == "bgp":
+        policy.add_bgp_module(module_name)
+    elif handler.lower() == "flow":
+        policy.add_flow_module(module_name)
+    else:
+        raise ValueError("Invalid policy handler. It must be one of pcap, dns, net, dhcp, bpg or flow.")
+
+    context.policy = create_policy(context.token, policy.policy)
+    check_policies(context)
+    create_new_dataset(context, 1, 'last', 1, 'sink')
+
+
+@step("the policy application error details must show that {message}")
+def check_policy_error_detail(context, message):
+    error_message = context.agent['last_hb_data']['policy_state'][context.policy['id']]['error']
+    assert_that(message, equal_to(error_message), f"Unexpected error message. Agent: {context.agent}")
 
 
 @step("a new policy is created using: {kwargs}")
@@ -277,7 +326,7 @@ def apply_n_policies(context, amount_of_policies, type_of_policies):
 
 @step('{amount_of_policies} {type_of_policies} policies {policies_input} are applied to the group')
 def apply_n_policies(context, amount_of_policies, type_of_policies, policies_input):
-    if "same tap as created via config file" in policies_input:
+    if "same input_type as created via config file" in policies_input:
         policies_input = list(context.tap.values())[0]['input_type']
     args_for_policies = return_policies_type(int(amount_of_policies), type_of_policies, policies_input)
     if "tap" in context:
@@ -983,14 +1032,16 @@ class HandlerModules(HandlerConfigs):
             }
         }
 
-        for module_config in configs_list:
-            if list(module_config.values())[0] is not None:
-                module[name]["config"].update(module_config)
+        module = UtilsManager.update_object_with_filters_and_configs(self, module, name, configs_list, filters_list)
 
-        for tap_filter in filters_list:
-            if list(tap_filter.values())[0] is not None:
-                module[name]["filter"].update(tap_filter)
-
+        # for module_config in configs_list:
+        #     if list(module_config.values())[0] is not None:
+        #         module[name]["config"].update(module_config)
+        #
+        # for tap_filter in filters_list:
+        #     if list(tap_filter.values())[0] is not None:
+        #         module[name]["filter"].update(tap_filter)
+        #
         self.handler_modules.update(module)
 
     def add_dns_module(self, name, public_suffix_list=None, only_rcode=None, exclude_noerror=None,
@@ -1154,7 +1205,7 @@ class HandlerModules(HandlerConfigs):
         return self.handler_modules
 
     def remove_module(self, name):
-        assert_that(name, is_in(self.handler_modules.keys()), "Unexisting module")
+        assert_that(name, is_in(list(self.handler_modules.keys())), "Invalid module")
         self.handler_modules.pop(name)
         return self.handler_modules
 
@@ -1163,19 +1214,22 @@ class HandlerModules(HandlerConfigs):
 
 
 class Policy(HandlerModules, HandlerConfigs):
-    def __init__(self):
+    def __init__(self, name, description, backend_type):
 
-        self.policy = {"handlers": {
-            "config": {},
-            "modules": {}
-        },
-            "input": {},
-            "config": {},
-            "kind": "collection"
-        }
-        self.config = self.policy['config']
-        self.handler_configs = self.policy["handlers"]["config"]
-        self.handler_modules = self.policy["handlers"]["modules"]
+        self.policy = {"name": name,
+                       "description": description,
+                       "backend": backend_type,
+                       "policy": {"handlers": {
+                           "config": {},
+                           "modules": {}
+                       },
+                           "input": {},
+                           "config": {},
+                           "kind": "collection"
+                       }}
+        self.config = self.policy['policy']['config']
+        self.handler_configs = self.policy['policy']["handlers"]["config"]
+        self.handler_modules = self.policy['policy']["handlers"]["modules"]
 
     def add_module_configs(self, name, **kwargs):
         self.handler_modules[name]['config'] = UtilsManager.add_configs(self, self.handler_modules[name]['config'],
@@ -1206,31 +1260,40 @@ class Policy(HandlerModules, HandlerConfigs):
         return self.policy
 
     def add_input_configs(self, **kwargs):
-        assert_that('input_type', is_in(self.policy['input'].keys()),
+        assert_that('input_type', is_in(list(self.policy['policy']['input'].keys())),
                     "It is not possible to enter settings without defining the input. Use `add_input` first.")
-        assert_that(any_of('tap', 'tap_selector'), is_in(self.policy['input'].keys()),
-                    "It is not possible to enter settings without defining the input. Use `add_input` first.")
-        if 'config' not in self.policy['input'].keys():
-            self.policy['input'].update({'config': {}})
-        self.policy['input']['config'] = UtilsManager.add_configs(self, self.policy['input']['config'], **kwargs)
+        if 'tap' not in self.policy['policy']['input'].keys() and 'tap_selector' not in self.policy['policy'][
+            'input'].keys():
+            raise ValueError("It is not possible to enter settings without defining the input. Use `add_input` first")
+        if 'config' not in self.policy['policy']['input'].keys():
+            self.policy['policy']['input'].update({'config': {}})
+        self.policy['policy']['input']['config'] = UtilsManager.add_configs(self,
+                                                                            self.policy['policy']['input']['config'],
+                                                                            **kwargs)
         return self.policy
 
     def remove_input_configs(self, *args):
-        self.policy['input']['config'] = UtilsManager.remove_configs(self, self.policy['input']['config'], *args)
+        self.policy['policy']['input']['config'] = UtilsManager.remove_configs(self, self.policy['input']['config'],
+                                                                               *args)
         return self.policy
 
     def add_input_filters(self, **kwargs):
-        assert_that('input_type', is_in(self.policy['input'].keys()),
+        assert_that('input_type', is_in(list(self.policy['policy']['input'].keys())),
                     "It is not possible to enter settings without defining the input. Use `add_input` first.")
-        assert_that(any_of('tap', 'tap_selector'), is_in(self.policy['input'].keys()),
-                    "It is not possible to enter settings without defining the input. Use `add_input` first.")
-        if 'filter' not in self.policy['input'].keys():
-            self.policy['input'].update({'filter': {}})
-        self.policy['input']['filter'] = UtilsManager.add_filters(self, self.policy['input']['filter'], **kwargs)
+        if 'tap' not in self.policy['policy']['input'].keys() and 'tap_selector' not in self.policy['policy'][
+            'input'].keys():
+            raise ValueError("It is not possible to enter settings without defining the input. Use `add_input` first")
+        if 'filter' not in self.policy['policy']['input'].keys():
+            self.policy['policy']['input'].update({'filter': {}})
+        self.policy['policy']['input']['filter'] = UtilsManager.add_filters(self,
+                                                                            self.policy['policy']['input']['filter'],
+                                                                            **kwargs)
         return self.policy
 
     def remove_input_filters(self, name, *args):
-        self.policy['input']['filter'] = UtilsManager.remove_filters(self, self.policy['input']['filter'], *args)
+        self.policy['policy']['input']['filter'] = UtilsManager.remove_filters(self,
+                                                                               self.policy['policy']['input']['filter'],
+                                                                               *args)
         return self.policy
 
     def add_configs(self, **kwargs):
@@ -1243,59 +1306,63 @@ class Policy(HandlerModules, HandlerConfigs):
 
     def add_filters(self, **kwargs):
         raise ValueError(f"Policy objects do not have filters. Try `add_module_filters` or `add_input_filters` instead")
-        return self.policy
 
     def remove_filters(self, **kwargs):
         raise ValueError(
             f"Policy objects do not have filters. Try `remove_module_filters` or `remove_input_filters` instead")
-        return self.policy
 
     def __add_input_tap(self, input_type, name):
-        assert_that('tap_selector', not (is_in(self.policy['input'].keys())),
-                    "tap_selector is already defined. Use `remove_input_tap_selector` first.")
+        assert_that('tap_selector', not_(is_in(list(self.policy['policy']['input'].keys()))),
+                    "tap_selector is already defined. Use `remove_input` first.")
         if 'tap' not in self.policy['input'].keys():
-            self.policy['input'].update({'tap': {}})
-        if 'input_type' not in self.policy['input'].keys():
-            self.policy['input'].update({'input_type': {}})
-        self.policy['input']['tap'] = name
-        self.policy['input']['input_type'] = input_type
+            self.policy['policy']['input'].update({'tap': {}})
+        if 'input_type' not in self.policy['policy']['input'].keys():
+            self.policy['policy']['input'].update({'input_type': {}})
+        self.policy['policy']['input']['tap'] = name
+        self.policy['policy']['input']['input_type'] = input_type
         return self.policy
 
-    def __add_input_tap_selector(self, input_type, input_match, **kwargs):
-        assert_that('tap', not (is_in(self.policy['input'].keys())),
-                    "tap is already defined. Use `remove_input_tap` first.")
-        assert_that(input_type, any_of(equal_to('any'), equal_to('all')), "Invalid input_match")
-        if 'tap_selector' not in self.policy['input'].keys():
-            self.policy['input'].update({'tap_selector': {}})
-        if 'input_type' not in self.policy['input'].keys():
-            self.policy['input'].update({'input_type': {}})
-
+    def __add_input_tap_selector(self, input_type, **kwargs):
+        assert_that('tap', not_(is_in(list(self.policy['policy']['input'].keys()))),
+                    "tap is already defined. Use `remove_input` first.")
+        assert_that('input_match', is_in(list(kwargs.keys())),
+                    "`input_match` is a required parameter if selector is `tap_selector`")
+        assert_that('tags', is_in(list(kwargs.keys())),
+                    "`tags` is a required parameter if selector is `tap_selector`")
+        assert_that(kwargs['input_match'], any_of(equal_to('any'), equal_to('all')), "Invalid input_match")
+        input_match = kwargs['input_match']
+        kwargs.pop('input_match')
+        if 'tap_selector' not in self.policy['policy']['input'].keys():
+            self.policy['policy']['input'].update({'tap_selector': {}})
+        if 'input_type' not in self.policy['policy']['input'].keys():
+            self.policy['policy']['input'].update({'input_type': {}})
             all_selectors = list()
-        elif input_match in self.policy['input']['tap_selector'].keys():
-            all_selectors = self.policy['input']['tap_selector'][input_match]
+        elif input_match in self.policy['policy']['input']['tap_selector'].keys():
+            all_selectors = self.policy['policy']['input']['tap_selector'][input_match]
         else:
             all_selectors = list()
 
-        for selector_key in kwargs:
-            all_selectors.append({selector_key: kwargs[selector_key]})
+        for selector_key in kwargs['tags']:
+            all_selectors.append({selector_key: kwargs['tags'][selector_key]})
 
-        self.policy['input']['tap_selector'] = {{input_match: all_selectors}}
-        self.policy['input']['input_type'] = input_type
+        self.policy['policy']['input']['tap_selector'] = {input_match: all_selectors}
+        self.policy['policy']['input']['input_type'] = input_type
 
-    def add_input(self, input_type, selector='tap', **kwargs):
+    def add_input(self, input_type, selector, **kwargs):
         assert_that(selector, any_of('tap', 'tap_selector'), "Invalid input selector")
 
         if selector == 'tap':
-            assert_that('name', is_in(kwargs.keys()),
+            assert_that('name', is_in(list(kwargs.keys())),
                         "If `selector=tap`, you need to specify tap name. name=`the_name_you_want`.")
             self.__add_input_tap(input_type, kwargs['name'])
 
         else:
-            assert_that('input_match', is_in(kwargs.keys()),
+            assert_that('input_match', is_in(list(kwargs.keys())),
                         "If `selector=tap`, you need to specify input_match. input_match=`any` or input_match=`all`.")
-            input_match = kwargs['input_match']
-            kwargs.pop['input_match']
-            self.__add_input_tap_selector(input_type, input_match, kwargs)
+            self.__add_input_tap_selector(input_type, **kwargs)
+
+    def remove_input(self):
+        self.policy['policy']['input'] = dict()
 
     def json(self):
         return json.dumps(self.policy)

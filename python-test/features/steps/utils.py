@@ -15,14 +15,22 @@ from abc import ABC, abstractmethod
 tag_prefix = "test_tag_"
 
 
-def random_string(k=10):
+def random_string(k=10, mode='mixed'):
     """
     Generates a string composed of k (int) random letters lowercase and uppercase mixed
 
-    :param (int) k: sets the length of the randomly generated string
-    :return: (str) string consisting of k random letters lowercase and uppercase mixed. Default:10
+    :param (int) k: sets the length of the randomly generated string. Default:10
+    :param(str) mode: define if the letters will be lowercase, uppercase or mixed.Default: mixed. Options: lower and
+    upper.
+    :return: (str) string consisting of k random letters lowercase and uppercase mixed.
     """
-    return ''.join(random.choices(string.ascii_letters, k=k))
+    assert_that(mode, any_of("mixed", "upper", "lower"), "Invalid string mode")
+    if mode == 'mixed':
+        return ''.join(random.choices(string.ascii_letters, k=k))
+    elif mode == 'lower':
+        return ''.join(random.choices(string.ascii_lowercase, k=k))
+    else:
+        return ''.join(random.choices(string.ascii_uppercase, k=k))
 
 
 def safe_load_json(json_str):
@@ -73,11 +81,14 @@ def generate_random_string_with_predefined_prefix(string_prefix, n_random=10):
     return random_string_with_predefined_prefix
 
 
-def create_tags_set(orb_tags):
+def create_tags_set(orb_tags, tag_prefix=tag_prefix, string_mode='mixed'):
     """
     Create a set of orb-tags
     :param orb_tags: If defined: the defined tags that should compose the set.
                      If random: the number of tags that the set must contain.
+    :param tag_prefix: prefix to be used on each tag creation
+    :param string_mode: define if the letters will be lowercase, uppercase or mixed.Default: mixed. Options: lower
+    and upper.
     :return: (dict) tag_set
     """
     tag_set = dict()
@@ -94,10 +105,10 @@ def create_tags_set(orb_tags):
             for tag in orb_tags.split(", "):
                 key, value = tag.split(":")
                 tag_set[key] = value
-                return tag_set
+            return tag_set
     amount_of_tags = int(orb_tags.split()[0])
     for tag in range(amount_of_tags):
-        tag_set[tag_prefix + random_string(6)] = tag_prefix + random_string(4)
+        tag_set[tag_prefix + random_string(6, string_mode)] = tag_prefix + random_string(4, string_mode)
     return tag_set
 
 
@@ -274,6 +285,16 @@ class UtilsManager(ABC):
             if each_filter in filter_object.keys():
                 filter_object.pop(each_filter)
         return filter_object
+
+    def update_object_with_filters_and_configs(self, dict_object, name, configs_list, filters_list):
+        for module_config in configs_list:
+            if list(module_config.values())[0] is not None:
+                dict_object[name]["config"].update(module_config)
+
+            for tap_filter in filters_list:
+                if list(tap_filter.values())[0] is not None:
+                    dict_object[name]["filter"].update(tap_filter)
+        return dict_object
 
     @abstractmethod
     def json(self):
