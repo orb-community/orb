@@ -9,6 +9,8 @@ import (
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
 	"time"
+
+	"github.com/ns1labs/orb/sinker/sinkOrchestrator"
 )
 
 const (
@@ -121,6 +123,7 @@ func (es eventStore) handleSinksUpdate(ctx context.Context, e updateSinkEvent) e
 		}
 
 		es.configRepo.Edit(sinkConfig)
+		sinkOrchestrator.UpdateSink(sinkConfig)
 	} else {
 		cfg.SinkID = e.sinkID
 		cfg.OwnerID = e.owner
