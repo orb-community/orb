@@ -1,4 +1,4 @@
-@group
+@group_ui @AUTORETRY
 Feature: Agent Group tests using Orb UI
 
 
@@ -24,7 +24,7 @@ Scenario: Delete an Agent Group
     Then the new agent group is not shown on the datatable
         And total number was decreased in one unit
 
-@smoke_ui
+@smoke_ui @test
 Scenario: Update an Agent Group by Name
     Given that the Orb user logs in Orb UI
         And the user clicks on Agent Groups on left menu

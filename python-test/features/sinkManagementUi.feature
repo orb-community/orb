@@ -1,5 +1,5 @@
-@sink
-Feature: Sink Management tests using orb UI 
+@sink @AUTORETRY
+Feature: Sink Management tests using orb UI
 
 @smoke_ui
 Scenario: Create a new Sink Management 

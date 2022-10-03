@@ -1,4 +1,4 @@
-@agents_ui
+@agents_ui @AUTORETRY
 Feature: Create agents using orb ui
 
     @smoke_ui
