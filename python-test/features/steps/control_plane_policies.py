@@ -1034,14 +1034,6 @@ class HandlerModules(HandlerConfigs):
 
         module = UtilsManager.update_object_with_filters_and_configs(self, module, name, configs_list, filters_list)
 
-        # for module_config in configs_list:
-        #     if list(module_config.values())[0] is not None:
-        #         module[name]["config"].update(module_config)
-        #
-        # for tap_filter in filters_list:
-        #     if list(tap_filter.values())[0] is not None:
-        #         module[name]["filter"].update(tap_filter)
-        #
         self.handler_modules.update(module)
 
     def add_dns_module(self, name, public_suffix_list=None, only_rcode=None, exclude_noerror=None,
