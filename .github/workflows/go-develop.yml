@@ -18,6 +18,7 @@ jobs:
       orb: ${{ steps.filter.outputs.orb }}
       migrate: ${{ steps.filter.outputs.migrate }}
       ui: ${{ steps.filter.outputs.ui }}
+      docs: ${{ steps.filter.outputs.docs }}
       VERSION: ${{ env.VERSION }}
     steps:
       - uses: actions/checkout@v2
@@ -91,6 +92,7 @@ jobs:
     steps:
     - name: Repository Dispatch
       uses: peter-evans/repository-dispatch@v2
+      if: ${{ needs.prebuild.outputs.docs == 'true' }}
       with:
         token: ${{ secrets.BOT_TOKEN }}
         repository: ns1labs/orb-website
