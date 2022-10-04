@@ -378,8 +378,8 @@ components:
         example: "{\"key\":\"value\"}"
       required: false
     Authorization:
-      name: Bearer authorization
-      description: User's access token.
+      name: Authorization
+      description: User's access token (bearer auth).
       in: header
       bearerAuth:
         scheme: bearer
