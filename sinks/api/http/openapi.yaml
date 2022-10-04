@@ -246,7 +246,7 @@ components:
         type: object
         example: "{\"key\":\"value\"}"
     Authorization:
-      name: Authorization
+      name: Bearer authorization
       description: User's access token.
       in: header
       bearerAuth:

@@ -92,9 +92,9 @@ jobs:
     steps:
     - name: Repository Dispatch
       uses: peter-evans/repository-dispatch@v2
-      if: ${{ needs.prebuild.outputs.docs == 'true' }}
+      if: ${{ needs.prebuild.outputs.docs == 'true' && github.event_name != 'pull_request' }}
       with:
-        token: ${{ secrets.BOT_TOKEN }}
+        token: ${{ secrets.GH_ORB_ACCESS_TOKEN }}
         repository: ns1labs/orb-website
         event-type: build-docs
         client-payload: '{"branch_name": "main"}'
