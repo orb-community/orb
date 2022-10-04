@@ -16,6 +16,32 @@ policy_name_prefix = "test_policy_name_"
 orb_url = TestConfig.configs().get('orb_url')
 
 
+@step("a new policy is requested to be created with the same name as an existent one and: {kwargs}")
+def create_policy_with_conflict_name(context, kwargs):
+    if kwargs.split(", ")[-1].split("=")[-1] == "flow":
+        kwargs_dict = parse_flow_policy_params(kwargs)
+    else:
+        kwargs_dict = parse_policy_params(kwargs)
+    if kwargs_dict["handler"] == "flow":
+        policy_json = make_policy_flow_json(context.policy['name'], kwargs_dict['handle_label'], kwargs_dict['handler'],
+                                            kwargs_dict['description'],
+                                            kwargs_dict['tap'], kwargs_dict['input_type'], kwargs_dict['port'],
+                                            kwargs_dict['bind'], kwargs_dict['flow_type'],
+                                            kwargs_dict['sample_rate_scaling'], kwargs_dict['only_devices'],
+                                            kwargs_dict['only_ips'], kwargs_dict['only_ports'],
+                                            kwargs_dict['only_interfaces'], kwargs_dict['geoloc_notfound'],
+                                            kwargs_dict['asn_notfound'], kwargs_dict['backend_type'])
+    else:
+        policy_json = make_policy_json(context.policy['name'], kwargs_dict['handle_label'],
+                                       kwargs_dict["handler"], kwargs_dict["description"], kwargs_dict["tap"],
+                                       kwargs_dict["input_type"], kwargs_dict["host_specification"],
+                                       kwargs_dict["bpf_filter_expression"], kwargs_dict["pcap_source"],
+                                       kwargs_dict["only_qname_suffix"], kwargs_dict["only_rcode"],
+                                       kwargs_dict["exclude_noerror"], kwargs_dict["backend_type"])
+
+    context.error_message = create_policy(context.token, policy_json, expected_status_code=409)
+
+
 @step("a new policy is created using: {kwargs}")
 def create_new_policy(context, kwargs):
     if kwargs.split(", ")[-1].split("=")[-1] == "flow":
@@ -112,9 +138,21 @@ def policy_editing(context, kwargs):
         edited_attributes["only_qname_suffix"] = edited_attributes["only_qname_suffix"].replace("]", "")
         edited_attributes["only_qname_suffix"] = edited_attributes["only_qname_suffix"].split("/ ")
 
-    if policy_name_prefix not in edited_attributes["name"]:
-        context.random_part_policy_name = f"_{random_string(10)}"
-        edited_attributes["name"] = policy_name_prefix + edited_attributes["name"] + context.random_part_policy_name
+    if edited_attributes["name"] == 'conflict':
+        policies_list = list_policies(context.token)
+        policies_filtered_list = filter_list_by_parameter_start_with(policies_list, 'name', policy_name_prefix)
+        policies_name = list()
+        for policy in policies_filtered_list:
+            policies_name.append(policy['name'])
+        policies_name.remove(context.policy['name'])
+        name_to_use = choice(policies_name)
+        edited_attributes["name"] = name_to_use
+        expected_status_code = 409
+    else:
+        expected_status_code = 200
+        if policy_name_prefix not in edited_attributes["name"]:
+            context.random_part_policy_name = f"_{random_string(10)}"
+            edited_attributes["name"] = policy_name_prefix + edited_attributes["name"] + context.random_part_policy_name
 
     policy_json = make_policy_json(edited_attributes["name"], edited_attributes["handler_label"],
                                    edited_attributes["handler"], edited_attributes["description"],
@@ -124,9 +162,16 @@ def policy_editing(context, kwargs):
                                    edited_attributes["only_qname_suffix"], edited_attributes["only_rcode"],
                                    edited_attributes["exclude_noerror"], edited_attributes["backend_type"])
     context.considered_timestamp = datetime.now().timestamp()
-    context.policy = edit_policy(context.token, context.policy['id'], policy_json)
 
-    assert_that(context.policy['name'], equal_to(edited_attributes["name"]), f"Policy name failed: {context.policy}")
+    if expected_status_code == 200:
+
+        context.policy = edit_policy(context.token, context.policy['id'], policy_json)
+
+        assert_that(context.policy['name'], equal_to(edited_attributes["name"]),
+                    f"Policy name failed: {context.policy}")
+    else:
+        context.error_message = edit_policy(context.token, context.policy['id'], policy_json,
+                                            expected_status_code=expected_status_code)
 
 
 @step("policy {attribute} must be {value}")
@@ -396,13 +441,14 @@ def compare_two_policies(token, id_policy_one, id_policy_two):
                                     f"Policy 2: {policy_two}")
 
 
-def create_policy(token, json_request):
+def create_policy(token, json_request, expected_status_code=201):
     """
 
     Creates a new policy in Orb control plane
 
     :param (str) token: used for API authentication
     :param (dict) json_request: policy json
+    :expected_status_code (int): code to be returned on response
     :return: response of policy creation
 
     """
@@ -414,20 +460,21 @@ def create_policy(token, json_request):
         response_json = response.json()
     except ValueError:
         response_json = ValueError
-    assert_that(response.status_code, equal_to(201),
+    assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create policy failed with status=' + str(response.status_code) + ': '
                 + str(response_json))
 
     return response_json
 
 
-def edit_policy(token, policy_id, json_request):
+def edit_policy(token, policy_id, json_request, expected_status_code=200):
     """
     Editing a policy on Orb control plane
 
     :param (str) token: used for API authentication
     :param (str) policy_id: that identifies the policy to be edited
     :param (dict) json_request: policy json
+    :param (int) expected_status_code: status to be returned on response
     :return: response of policy editing
     """
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
@@ -438,7 +485,7 @@ def edit_policy(token, policy_id, json_request):
         response_json = response.json()
     except ValueError:
         response_json = ValueError
-    assert_that(response.status_code, equal_to(200),
+    assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to editing policy failed with status=' + str(response.status_code) + ': '
                 + str(response_json))
 

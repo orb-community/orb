@@ -1,3 +1,4 @@
+import random
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
     create_tags_set, find_files, threading_wait_until, return_port_to_run_docker_container, validate_json
@@ -238,7 +239,8 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
     assert_that(provision, any_of(equal_to("self-provisioned"), equal_to("provisioned")), "Unexpected provision "
                                                                                           "attribute")
     settings = json.loads(settings)
-    if ("tcp" in settings.keys() and settings["tcp"].split(":")[1] == "available_port") or ("port" in settings.keys() and settings["port"] == "available_port"):
+    if ("tcp" in settings.keys() and settings["tcp"].split(":")[1] == "available_port") or (
+            "port" in settings.keys() and settings["port"] == "available_port"):
         port_to_attach = return_port_to_run_docker_container(context)
         if "tcp" in settings.keys():
             ip = settings["tcp"].split(":")[0]
@@ -327,6 +329,29 @@ def check_agent_backend_pktvisor_routes(context, route):
     route_schema_path = local_orb_path + f"/python-test/features/steps/schemas/{route}_schema.json"
     is_schema_valid = validate_json(response.json(), route_schema_path)
     assert_that(is_schema_valid, equal_to(True), f"Invalid route json. \n Route = {route}")
+
+
+@step("edit the agent name using an already existent one")
+def edit_agent_using_name_with_conflict(context):
+    agents_list = list_agents(context.token)
+    agents_filtered_list = filter_list_by_parameter_start_with(agents_list, 'name', agent_name_prefix)
+    agents_name = list()
+    for agent in agents_filtered_list:
+        agents_name.append(agent['name'])
+    agents_name.remove(context.agent['name'])
+    name_to_use = random.choice(agents_name)
+    context.error_message = edit_agent(context.token, context.agent['id'], name_to_use, context.agent['orb_tags'], 409)
+
+
+@step("a new agent is requested to be created with the same name as an existent one")
+def create_agent_with_name_conflict(context):
+    tag = create_tags_set('1')
+    context.error_message = create_agent(context.token, context.agent['name'], tag, 409)
+
+
+@step("the error message on response is {message}")
+def check_error_message(context, message):
+    assert_that(context.error_message['error'], equal_to(message), "Unexpected error message")
 
 
 @threading_wait_until
@@ -440,13 +465,14 @@ def delete_agent(token, agent_id):
                 + agent_id + ' failed with status=' + str(response.status_code))
 
 
-def create_agent(token, name, tags):
+def create_agent(token, name, tags, expected_status_code=201):
     """
     Creates an agent in Orb control plane
 
     :param (str) token: used for API authentication
     :param (str) name: of the agent to be created
     :param (dict) tags: orb agent tags
+    :param expected_status_code: status code to be returned on response
     :returns: (dict) a dictionary containing the created agent data
     """
 
@@ -459,7 +485,7 @@ def create_agent(token, name, tags):
         response_json = response.json()
     except ValueError:
         response_json = ValueError
-    assert_that(response.status_code, equal_to(201),
+    assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create agent failed with status=' + str(response.status_code) + ":" + str(response_json))
 
     return response_json
@@ -561,7 +587,8 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         tags = {"tags": create_tags_set(agent_tags)}
     if configs.get('ignore_ssl_and_certificate_errors', 'true').lower() == 'true':
         mqtt_url = f"{base_orb_address}:1883"
-        agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url, tap_name,
+        agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
+                                                                     tap_name,
                                                                      tls_verify="false", auto_provision=auto_provision,
                                                                      orb_cloud_mqtt_id=orb_cloud_mqtt_id,
                                                                      orb_cloud_mqtt_key=orb_cloud_mqtt_key,
@@ -570,7 +597,8 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      settings=settings)
     else:
         mqtt_url = "tls://" + base_orb_address + ":8883"
-        agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url, tap_name,
+        agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
+                                                                     tap_name,
                                                                      auto_provision=auto_provision,
                                                                      orb_cloud_mqtt_id=orb_cloud_mqtt_id,
                                                                      orb_cloud_mqtt_key=orb_cloud_mqtt_key,

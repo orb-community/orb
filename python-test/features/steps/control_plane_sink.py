@@ -5,7 +5,7 @@ from hamcrest import *
 import requests
 
 configs = TestConfig.configs()
-sink_name_prefix  = "test_sink_label_name_"
+sink_name_prefix = "test_sink_label_name_"
 orb_url = configs.get('orb_url')
 
 
@@ -41,19 +41,36 @@ def create_sink(context):
     context.existent_sinks_id.append(context.sink['id'])
 
 
+@step("a new sink is is requested to be created with the same name as an existent one")
+def create_sink_with_conflict_name(context):
+    token = context.token
+    endpoint = context.remote_prometheus_endpoint
+    username = context.prometheus_username
+    password = context.prometheus_key
+    context.error_message = create_new_sink(token, context.sink['name'], endpoint, username, password,
+                                            expected_status_code=409)
+
+
+@step("the name of last Sink is edited using an already existent one")
+def edit_sink_name_with_conflict(context):
+    first_sink = get_sink(context.token, context.existent_sinks_id[0])
+    context.sink['name'] = first_sink['name']
+    context.error_message = edit_sink(context.token, context.sink['id'], context.sink, expected_status_code=409)
+
+
 @step("{amount_of_sinks} new sinks are created")
 def create_multiple_sinks(context, amount_of_sinks):
     check_prometheus_grafana_credentials(context)
     for sink in range(int(amount_of_sinks)):
         create_sink(context)
-        
-        
+
+
 @given("that a sink already exists")
 def new_sink(context):
     check_prometheus_grafana_credentials(context)
     create_sink(context)
-    
-    
+
+
 @step("that {amount_of_sinks} sinks already exists")
 def new_multiple_sinks(context, amount_of_sinks):
     check_prometheus_grafana_credentials(context)
@@ -115,7 +132,7 @@ def clean_sinks(context):
 
 
 def create_new_sink(token, name_label, remote_host, username, password, description=None, tag_key='',
-                    tag_value=None, backend_type="prometheus"):
+                    tag_value=None, backend_type="prometheus", expected_status_code=201):
     """
 
     Creates a new sink in Orb control plane
@@ -129,6 +146,7 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     :param (str) tag_key: the key of the tag to be added to this sink. Default: ''
     :param (str) tag_value: the value of the tag to be added to this sink. Default: None
     :param (str) backend_type: type of backend used to send metrics. Default: prometheus
+    :param (int) expected_status_code: status code expected as response
     :return: (dict) a dictionary containing the created sink data
     """
     json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
@@ -142,7 +160,7 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
         response_json = response.json()
     except ValueError:
         response_json = ValueError
-    assert_that(response.status_code, equal_to(201),
+    assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create sink failed with status=' + str(response.status_code) + ': ' + str(response_json))
 
     return response_json
@@ -255,3 +273,24 @@ def get_sink_status_and_check(token, sink_id, status, event=None):
         event.set()
         return get_sink_response
     return get_sink_response
+
+
+def edit_sink(token, sink_id, sink_body, expected_status_code=200):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) sink_id: that identifies the sink to be edited
+    :param (str) sink_body: sink's existent data
+    :param (int) expected_status_code: expected request's status code. Default:200.
+    :returns: (dict) the edited agent group
+    """
+
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+
+    response = requests.put(orb_url + '/api/v1/sinks/' + sink_id, json=sink_body,
+                            headers=headers_request)
+
+    assert_that(response.status_code, equal_to(expected_status_code),
+                'Request to edit sink failed with status=' + str(response.status_code) + ":" + str(response.json()))
+
+    return response.json()

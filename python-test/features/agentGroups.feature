@@ -128,3 +128,21 @@ Feature: agent groups creation
             And this agent's heartbeat shows that 0 groups are matching the agent
             And 0 agent must be matching on response field matching_agents of the last group created
             And the agent status in Orb should be online within 30 seconds
+
+@smoke @sanity
+Scenario: Create policy with name conflict
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And 1 Agent Group(s) is created with all tags contained in the agent
+    When a new group is requested to be created with the same name as an existent one
+    Then the error message on response is failed to create agent group
+
+@MUTE
+Scenario: Edit group using an already existent name (conflict)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And  2 Agent Group(s) is created with all tags contained in the agent
+    When the name of first Agent Group is edited using: name=conflict
+    Then the error message on response is entity already exists

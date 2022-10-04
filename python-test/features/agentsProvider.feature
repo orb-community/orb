@@ -161,3 +161,21 @@ Scenario: Remove agent
         And last container created is exited within 70 seconds
         And the container logs should not contain any panic message
         And last container created is exited after 120 seconds
+
+
+@smoke @sanity
+Scenario: Create agent with name conflict
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+    When a new agent is requested to be created with the same name as an existent one
+    Then the error message on response is failed to create agent
+
+@smoke @sanity
+Scenario: Edit agent using an already existent name (conflict)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And that an agent with 1 orb tag(s) already exists and is online
+    When edit the agent name using an already existent one
+    Then the error message on response is entity already exists
