@@ -18,6 +18,7 @@ jobs:
       orb: ${{ steps.filter.outputs.orb }}
       migrate: ${{ steps.filter.outputs.migrate }}
       ui: ${{ steps.filter.outputs.ui }}
+      docs: ${{ steps.filter.outputs.docs }}
       VERSION: ${{ env.VERSION }}
     steps:
       - uses: actions/checkout@v2
@@ -42,6 +43,10 @@ jobs:
               - 'cmd/sinker/**'
             ui: 
               - 'ui/**'
+            docs:
+              - 'fleet/api/http/openapi.yaml'
+              - 'sinks/api/http/openapi.yaml'
+              - 'policies/api/openapi.yaml'
 
       - name: Set branch name
         shell: bash
@@ -80,6 +85,19 @@ jobs:
         uses: ./.github/actions/go-report
         with:
           go_report_threshold: 90.1 #grade A+
+          
+  update-api-docs:
+    needs: prebuild
+    runs-on: ubuntu-latest
+    steps:
+    - name: Repository Dispatch
+      uses: peter-evans/repository-dispatch@v2
+      if: ${{ needs.prebuild.outputs.docs == 'true' }}
+      with:
+        token: ${{ secrets.BOT_TOKEN }}
+        repository: ns1labs/orb-website
+        event-type: build-docs
+        client-payload: '{"branch_name": "main"}'
 
   test-agent:
     runs-on: ubuntu-latest
