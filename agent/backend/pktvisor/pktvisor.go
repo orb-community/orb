@@ -265,14 +265,14 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	if len(p.configFile) > 0 {
 		pvOptions = append(pvOptions, "--config", p.configFile)
 	}
-	
-        // the macros should be properly configured to enable crashpad
+
+	// the macros should be properly configured to enable crashpad
 	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
 	// pvOptions = append(pvOptions, "--cp-url", PKTVISOR_CP_URL)
 	// pvOptions = append(pvOptions, "--cp-path", PKTVISOR_CP_PATH)
 	// pvOptions = append(pvOptions, "--default-geo-city", "/geo-db/city.mmdb")
 	// pvOptions = append(pvOptions, "--default-geo-asn", "/geo-db/asn.mmdb")
-	
+
 	p.logger.Info("pktvisor startup", zap.Strings("arguments", pvOptions))
 
 	p.proc = cmd.NewCmdOptions(cmd.Options{
@@ -405,16 +405,19 @@ func (p *pktvisorBackend) scrapeDefault() error {
 			Payload:       batchPayload,
 		}
 
-		body, err := json.Marshal(rpc)
+		// ###### DO NOT MERGE ###########
+		_, err = json.Marshal(rpc)
 		if err != nil {
 			p.logger.Error("error marshalling metric rpc payload", zap.Error(err))
 			return
 		}
 
-		if token := p.mqttClient.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
-			p.logger.Error("error sending metrics RPC", zap.String("topic", p.metricsTopic), zap.Error(token.Error()))
-			return
-		}
+		p.logger.Info("FAKE METRIC SEND")
+		//if token := p.mqttClient.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
+		//	p.logger.Error("error sending metrics RPC", zap.String("topic", p.metricsTopic), zap.Error(token.Error()))
+		//	return
+		//}
+		// ###### DO NO MERGE ##########
 		p.logger.Info("scraped and published metrics", zap.String("topic", p.metricsTopic), zap.Int("payload_size_b", totalSize), zap.Int("batch_count", len(batchPayload)))
 
 	})
