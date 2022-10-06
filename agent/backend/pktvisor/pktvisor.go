@@ -31,7 +31,7 @@ const (
 	ReadinessTimeout    = 10
 	ApplyPolicyTimeout  = 10
 	RemovePolicyTimeout = 15
-	VersionTimeout      = 2 // also used for readiness check
+	VersionTimeout      = 2
 	ScrapeTimeout       = 5
 	TapsTimeout         = 5
 )

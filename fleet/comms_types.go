@@ -51,6 +51,7 @@ type BackendStateInfo struct {
 	State             string    `json:"state"`
 	Error             string    `json:"error,omitempty"`
 	RestartCount      int64     `json:"restart_count,omitempty"`
+	LastError         string    `json:"last_error,omitempty"`
 	LastRestartTS     time.Time `json:"last_restart_ts,omitempty"`
 	LastRestartReason string    `json:"last_restart_reason,omitempty"`
 }

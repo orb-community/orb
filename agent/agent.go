@@ -117,7 +117,8 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 		}
 		a.backends[name] = be
 		a.backendState[name] = &backend.State{
-			Status: backend.Unknown,
+			Status:        backend.Unknown,
+			LastRestartTS: time.Unix(0, 0),
 		}
 	}
 	return nil

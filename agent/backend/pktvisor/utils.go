@@ -24,7 +24,7 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 
 	status, _, err := p.getProcRunningStatus()
 	if status != backend.Running {
-		p.logger.Warn("ignoring pktvisor request because process is not running or is unresponsive", zap.String("url", url), zap.String("method", method), zap.Error(err))
+		p.logger.Warn("skipping pktvisor REST API request because process is not running or is unresponsive", zap.String("url", url), zap.String("method", method), zap.Error(err))
 		return err
 	}
 
