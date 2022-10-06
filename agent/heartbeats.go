@@ -91,6 +91,7 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, agentsS
 			}
 			ps[pd.ID] = fleet.PolicyStateInfo{
 				Name:     pd.Name,
+				Version:  pd.Version,
 				State:    pstate,
 				Error:    pd.BackendErr,
 				Datasets: pd.GetDatasetIDs(),
