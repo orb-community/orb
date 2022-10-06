@@ -61,7 +61,7 @@ type PolicyStateInfo struct {
 	Datasets []string `json:"datasets,omitempty"`
 	State    string   `json:"state"`
 	Error    string   `json:"error,omitempty"`
-	Version  int64    `json:"version,omitempty"`
+	Version  int32    `json:"version,omitempty"`
 }
 
 type GroupStateInfo struct {

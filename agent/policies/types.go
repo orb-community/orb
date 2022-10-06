@@ -15,7 +15,7 @@ type PolicyData struct {
 	GroupIds   map[string]bool
 	Name       string
 	Backend    string
-	Version    int64
+	Version    int32
 	Data       interface{}
 	State      PolicyState
 	BackendErr string
