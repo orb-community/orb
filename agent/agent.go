@@ -7,6 +7,7 @@ package agent
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/fatih/structs"
 	"github.com/google/uuid"
@@ -39,6 +40,7 @@ type orbAgent struct {
 	client            mqtt.Client
 	db                *sqlx.DB
 	backends          map[string]backend.Backend
+	backendState      map[string]*backend.State
 	cancelFunction    context.CancelFunc
 	rpcFromCancelFunc context.CancelFunc
 	// TODO: look for a better way to do this, context shouldn't be inside structs
@@ -100,6 +102,7 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 		return errors.New("no backends specified")
 	}
 	a.backends = make(map[string]backend.Backend, len(a.config.OrbAgent.Backends))
+	a.backendState = make(map[string]*backend.State)
 	for name, configurationEntry := range a.config.OrbAgent.Backends {
 		if !backend.HaveBackend(name) {
 			return errors.New("specified backend does not exist: " + name)
@@ -113,6 +116,9 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 			return err
 		}
 		a.backends[name] = be
+		a.backendState[name] = &backend.State{
+			Status: backend.Unknown,
+		}
 	}
 	return nil
 }
@@ -155,20 +161,20 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 		return err
 	}
 
-	a.startHearbeat()
+	a.logonWithHearbeat()
 
 	return nil
 }
 
-func (a *orbAgent) startHearbeat() {
+func (a *orbAgent) logonWithHearbeat() {
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
 	a.hbDone = make(chan bool)
 	heartbeatCtx, hbcancelFunc := a.extendContext("heartbeat")
 	go a.sendHeartbeats(heartbeatCtx, hbcancelFunc)
 }
 
-func (a *orbAgent) stopHeartbeat(ctx context.Context) {
-	a.logger.Debug("stopping heartbeat", zap.Any("routine", ctx.Value("routine")))
+func (a *orbAgent) logoffWithHeartbeat(ctx context.Context) {
+	a.logger.Debug("stopping heartbeat, going offline status", zap.Any("routine", ctx.Value("routine")))
 	a.hbTicker.Stop()
 	if a.rpcFromCancelFunc != nil {
 		a.rpcFromCancelFunc()
@@ -188,14 +194,14 @@ func (a *orbAgent) Stop(ctx context.Context) {
 		a.rpcFromCancelFunc()
 	}
 	for name, b := range a.backends {
-		if state, _, _ := b.GetState(); state == backend.Running {
+		if state, _, _ := b.GetRunningStatus(); state == backend.Running {
 			a.logger.Debug("stopping backend", zap.String("backend", name))
 			if err := b.Stop(ctx); err != nil {
 				a.logger.Error("error while stopping the backend", zap.String("backend", name))
 			}
 		}
 	}
-	a.stopHeartbeat(ctx)
+	a.logoffWithHeartbeat(ctx)
 	if a.client != nil && a.client.IsConnected() {
 		a.client.Disconnect(250)
 	}
@@ -209,22 +215,6 @@ func (a *orbAgent) Stop(ctx context.Context) {
 	defer a.cancelFunction()
 }
 
-func (a *orbAgent) sanityCheck(ctx context.Context) error {
-	for name, b := range a.backends {
-		state, _, err := b.GetState()
-		if err != nil {
-			a.logger.Error("error in backend", zap.String("backend", name), zap.String("state", state.String()))
-			err2 := a.RestartBackend(ctx, name, "backend with error")
-			if err2 != nil {
-				a.logger.Error("error restarting backend", zap.String("backend", name), zap.String("state", state.String()))
-				a.Stop(ctx)
-				return errors.New("error restarting backend: " + err2.Error())
-			}
-		}
-	}
-	return nil
-}
-
 func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason string) error {
 	if !backend.HaveBackend(name) {
 		return errors.New("specified backend does not exist: " + name)
@@ -232,18 +222,21 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 
 	be := a.backends[name]
 	a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
+	a.backendState[name].RestartCount += 1
+	a.backendState[name].LastRestartTS = time.Now()
+	a.backendState[name].LastRestartReason = reason
 	a.logger.Info("removing policies", zap.String("backend", name))
 	if err := a.policyManager.RemoveBackendPolicies(be, true); err != nil {
 		a.logger.Error("failed to remove policies", zap.String("backend", name), zap.Error(err))
 	}
 	a.logger.Info("resetting backend", zap.String("backend", name))
 	if err := be.FullReset(ctx); err != nil {
+		a.backendState[name].LastError = fmt.Sprintf("failed to reset backend: %v", err)
 		a.logger.Error("failed to reset backend", zap.String("backend", name), zap.Error(err))
 	}
 	err := a.sendAgentPoliciesReq()
 	if err != nil {
 		a.logger.Error("failed to send agent policies request", zap.Error(err))
-		return nil
 	}
 	return nil
 }
@@ -279,12 +272,12 @@ func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
 		}
 	}
 	a.logger.Info("restarting comms", zap.String("reason", reason))
-	a.stopHeartbeat(ctx)
+	a.logoffWithHeartbeat(ctx)
 	err := a.restartComms(ctx)
 	if err != nil {
 		a.logger.Error("failed to restart comms", zap.Error(err))
 	}
-	a.startHearbeat()
+	a.logonWithHearbeat()
 	a.logger.Info("all backends and comms were restarted")
 
 	return nil

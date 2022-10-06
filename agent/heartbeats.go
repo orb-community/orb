@@ -7,6 +7,7 @@ package agent
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
@@ -33,22 +34,40 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, state f
 	for name, be := range a.backends {
 		if state == fleet.Offline {
 			bes[name] = fleet.BackendStateInfo{State: backend.Offline.String()}
-		} else {
-			state, errmsg, err := be.GetState()
-			if err != nil {
-				a.logger.Error("failed to retrieve backend state", zap.String("backend", name), zap.Error(err))
-				bes[name] = fleet.BackendStateInfo{State: backend.AgentError.String(), Error: err.Error()}
-				if time.Now().Sub(be.GetStartTime()) >= RestartTimeMin {
-					a.logger.Info("attempting backend restart due to failed status during heartbeat")
-					err := a.RestartBackend(ctx, name, "failed during heartbeat")
-					if err != nil {
-						a.logger.Error("failed to restart backend", zap.Error(err), zap.String("backend", name))
-					}
-				}
-				continue
-			}
-			bes[name] = fleet.BackendStateInfo{State: state.String(), Error: errmsg}
+			continue
 		}
+		besi := fleet.BackendStateInfo{}
+		status, errMsg, err := be.GetRunningStatus()
+		besi.State = status.String()
+		if status != backend.Running {
+			a.logger.Error("backend not ready", zap.String("backend", name), zap.String("status", status.String()), zap.String("errMsg", errMsg), zap.Error(err))
+			if err != nil {
+				a.backendState[name].LastError = fmt.Sprintf("failed to retrieve backend status: %v", err)
+			} else if errMsg != "" {
+				a.backendState[name].LastError = errMsg
+			}
+			if time.Now().Sub(be.GetStartTime()) >= RestartTimeMin {
+				a.logger.Info("attempting backend restart due to failed status during heartbeat")
+				err := a.RestartBackend(ctx, name, "failed during heartbeat")
+				if err != nil {
+					a.logger.Error("failed to restart backend", zap.Error(err), zap.String("backend", name))
+				}
+			}
+			continue
+		}
+		if a.backendState[name].LastError != "" {
+			besi.Error = a.backendState[name].LastError
+		}
+		if !a.backendState[name].LastRestartTS.IsZero() {
+			besi.LastRestartTS = a.backendState[name].LastRestartTS
+		}
+		if a.backendState[name].RestartCount > 0 {
+			besi.RestartCount = a.backendState[name].RestartCount
+		}
+		if a.backendState[name].LastRestartReason != "" {
+			besi.LastRestartReason = a.backendState[name].LastRestartReason
+		}
+		bes[name] = besi
 	}
 
 	ps := make(map[string]fleet.PolicyStateInfo)
@@ -98,6 +117,10 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, state f
 		return
 	}
 
+	// ##### DO NOT MERGE ####
+	a.logger.Debug("heartbeat dump", zap.Any("data", hbData))
+	// ##### DO NOT MERGE ####
+
 	if token := a.client.Publish(a.heartbeatsTopic, 1, false, body); token.Wait() && token.Error() != nil {
 		a.logger.Error("error sending heartbeat", zap.Error(token.Error()))
 		err = a.restartComms(ctx)
@@ -123,11 +146,6 @@ func (a *orbAgent) sendHeartbeats(ctx context.Context, cancelFunc context.Cancel
 			ctx.Done()
 			return
 		case t := <-a.hbTicker.C:
-			err := a.sanityCheck(ctx)
-			if err != nil {
-				a.logger.Error("error on sanity check in heartbeat, could not restart backend", zap.Error(err))
-				return
-			}
 			a.sendSingleHeartbeat(ctx, t, fleet.Online)
 		}
 	}

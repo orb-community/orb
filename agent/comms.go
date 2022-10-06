@@ -41,8 +41,10 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 				case <-ctx.Done():
 					return
 				default:
-					if i, s, _ := a.backends["pktvisor"].GetState(); backend.Running != i {
-						a.logger.Info("waiting until pktvisor is in running state",
+					belist := backend.GetList()
+					firstBackend := belist[0]
+					if i, s, _ := a.backends[firstBackend].GetRunningStatus(); backend.Running != i {
+						a.logger.Info("waiting until a backend is in running state", zap.String("backend", firstBackend),
 							zap.String("current state", s), zap.String("wait time", (time.Duration(i)*time.Second).String()))
 						time.Sleep(time.Duration(i) * time.Second)
 						continue
@@ -54,7 +56,7 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 				}
 			}
 			if !ok {
-				a.logger.Error("Pktvisor wasn't able to change to running, stopping connection")
+				a.logger.Error("backend wasn't able to change to running, stopping connection")
 				ctx.Done()
 			}
 		}()

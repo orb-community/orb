@@ -48,8 +48,11 @@ type Capabilities struct {
 const CurrentHeartbeatSchemaVersion = "1.0"
 
 type BackendStateInfo struct {
-	State string `json:"state"`
-	Error string `json:"error,omitempty"`
+	State             string    `json:"state"`
+	Error             string    `json:"error,omitempty"`
+	RestartCount      int64     `json:"restart_count,omitempty"`
+	LastRestartTS     time.Time `json:"last_restart_ts,omitempty"`
+	LastRestartReason string    `json:"last_restart_reason,omitempty"`
 }
 
 type PolicyStateInfo struct {
