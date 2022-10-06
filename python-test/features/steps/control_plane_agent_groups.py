@@ -134,6 +134,7 @@ def edit_multiple_groups_parameters(context, edited_parameters, group_order, par
                 editing_param_dict["tags"].update(context.agent["agent_tags"])
         else:
             editing_param_dict["tags"] = create_tags_set(editing_param_dict["tags"])
+    expected_status_code = 200
     if "name" in editing_param_dict.keys() and editing_param_dict["name"] is not None:
         if editing_param_dict['name'] == "conflict":
             agent_group_name = list(context.agent_groups.values())[-1]
@@ -141,7 +142,6 @@ def edit_multiple_groups_parameters(context, edited_parameters, group_order, par
             expected_status_code = 409
         else:
             editing_param_dict["name"] = f"{agent_group_name_prefix}{editing_param_dict['name']}_{random_string(5)}"
-            expected_status_code = 200
 
     for parameter, value in editing_param_dict.items():
         group_data[parameter] = value
