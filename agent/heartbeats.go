@@ -55,6 +55,8 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, agentsS
 				if err != nil {
 					a.logger.Error("failed to restart backend", zap.Error(err), zap.String("backend", name))
 				}
+			} else {
+				a.logger.Info("waiting to attempt backend restart due to failed status", zap.Duration("remaining", RestartTimeMin-(time.Now().Sub(be.GetStartTime()))))
 			}
 		} else {
 			// status is Running so no current error

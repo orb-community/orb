@@ -57,11 +57,13 @@ type BackendStateInfo struct {
 }
 
 type PolicyStateInfo struct {
-	Name     string   `json:"name"`
-	Datasets []string `json:"datasets,omitempty"`
-	State    string   `json:"state"`
-	Error    string   `json:"error,omitempty"`
-	Version  int32    `json:"version,omitempty"`
+	Name            string    `json:"name"`
+	Datasets        []string  `json:"datasets,omitempty"`
+	State           string    `json:"state"`
+	Error           string    `json:"error,omitempty"`
+	Version         int32     `json:"version,omitempty"`
+	LastScrapeBytes int64     `json:"last_scrape_bytes,omitempty"`
+	LastScrapeTS    time.Time `json:"last_scrape_ts,omitempty"`
 }
 
 type GroupStateInfo struct {

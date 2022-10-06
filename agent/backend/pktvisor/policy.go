@@ -52,10 +52,10 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 }
 
 func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
+	p.logger.Debug("pktvisor policy remove", zap.String("policy_id", data.ID))
 	var resp interface{}
 	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout)
 	if err != nil {
-		p.logger.Error("received error", zap.Error(err))
 		return err
 	}
 	return nil

@@ -79,9 +79,9 @@ func (p *pktvisorBackend) scrapeDefault() error {
 		var batchPayload []fleet.AgentMetricsRPCPayload
 		totalSize := 0
 		for pName, pMetrics := range metrics {
-			data, err := p.policyRepo.GetByName(pName)
+			policyData, err := p.policyRepo.GetByName(pName)
 			if err != nil {
-				p.logger.Warn("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.String("error_message", err.Error()))
+				p.logger.Warn("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.Error(err))
 				continue
 			}
 			payloadData, err := json.Marshal(pMetrics)
@@ -90,16 +90,22 @@ func (p *pktvisorBackend) scrapeDefault() error {
 				continue
 			}
 			metricPayload := fleet.AgentMetricsRPCPayload{
-				PolicyID:   data.ID,
-				PolicyName: data.Name,
-				Datasets:   data.GetDatasetIDs(),
+				PolicyID:   policyData.ID,
+				PolicyName: policyData.Name,
+				Datasets:   policyData.GetDatasetIDs(),
 				Format:     "json",
 				BEVersion:  p.pktvisorVersion,
 				Data:       payloadData,
 			}
 			batchPayload = append(batchPayload, metricPayload)
 			totalSize += len(payloadData)
-			p.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", data.ID), zap.Int("payload_size_b", len(payloadData)))
+			policyData.LastScrapeBytes = int64(totalSize)
+			policyData.LastScrapeTS = time.Now()
+			err = p.policyRepo.Update(policyData)
+			if err != nil {
+				p.logger.Error("unable to update policy repo during scrape", zap.Error(err))
+			}
+			p.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", policyData.ID), zap.Int("payload_size_b", len(payloadData)))
 		}
 
 		rpc := fleet.AgentMetricsRPC{
