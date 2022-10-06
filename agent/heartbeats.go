@@ -92,11 +92,13 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, agentsS
 				pd.BackendErr = "backend is unreachable"
 			}
 			ps[pd.ID] = fleet.PolicyStateInfo{
-				Name:     pd.Name,
-				Version:  pd.Version,
-				State:    pstate,
-				Error:    pd.BackendErr,
-				Datasets: pd.GetDatasetIDs(),
+				Name:            pd.Name,
+				Version:         pd.Version,
+				State:           pstate,
+				Error:           pd.BackendErr,
+				Datasets:        pd.GetDatasetIDs(),
+				LastScrapeTS:    pd.LastScrapeTS,
+				LastScrapeBytes: pd.LastScrapeBytes,
 			}
 		}
 	} else {
