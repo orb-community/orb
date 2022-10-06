@@ -16,7 +16,6 @@ policy_name_prefix = "test_policy_name_"
 orb_url = TestConfig.configs().get('orb_url')
 
 
-
 @step("a new policy is requested to be created with the same name as an existent one and: {kwargs}")
 def create_policy_with_conflict_name(context, kwargs):
     if kwargs.split(", ")[-1].split("=")[-1] == "flow":
@@ -43,7 +42,9 @@ def create_policy_with_conflict_name(context, kwargs):
     context.error_message = create_policy(context.token, policy_json, expected_status_code=409)
 
 
-@step("a {handler} policy {input_type} with tap_selector matching {match_type} of {condition} tap tags ands settings: {settings} is applied to the group")
+@step(
+    "a {handler} policy {input_type} with tap_selector matching {match_type} of {condition} tap tags ands settings: {"
+    "settings} is applied to the group")
 def apply_policy_using_tap_selector(context, handler, input_type, match_type, condition, settings):
     module_name = f"{handler}_{random_string(5)}"
     policy_name = policy_name_prefix + random_string(10)

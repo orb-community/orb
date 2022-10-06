@@ -1,4 +1,4 @@
-@agentGroups
+@agentGroups @AUTORETRY
 Feature: agent groups creation
 
     @smoke

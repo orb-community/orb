@@ -1,4 +1,4 @@
-@policies
+@policies @AUTORETRY
 Feature: policy creation
 
   @smoke

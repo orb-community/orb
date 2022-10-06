@@ -1,4 +1,4 @@
-@agents
+@agents @AUTORETRY
 Feature: agent provider
 
 @smoke

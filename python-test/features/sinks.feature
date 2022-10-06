@@ -1,4 +1,4 @@
-@sinks
+@sinks @AUTORETRY
 Feature: sink creation
 
 #  @smoke

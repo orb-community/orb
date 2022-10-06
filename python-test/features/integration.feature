@@ -1,4 +1,4 @@
-@integration
+@integration @AUTORETRY
 Feature: Integration tests
 
 
