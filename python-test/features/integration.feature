@@ -1,4 +1,4 @@
-@integration
+@integration @AUTORETRY
 Feature: Integration tests
 
 
@@ -13,6 +13,28 @@ Scenario: Test agents backend routes
         And taps route must be enabled
         And inputs route must be enabled
 
+
+@smoke @sanity
+Scenario: Create dataset with name conflict
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And 1 Agent Group(s) is created with 2 orb tag(s)
+        And that a sink already exists
+        And 1 simple policies are applied to the group
+    When a new dataset is requested to be created with the same name as an existent one
+    Then the error message on response is failed to create dataset
+
+
+@MUTE
+Scenario: Edit dataset using an already existent name (conflict)
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And 1 Agent Group(s) is created with 2 orb tag(s)
+        And that a sink already exists
+        And 1 simple policies are applied to the group
+        And 1 new dataset is created using the policy, last group and 1 sink
+    When editing a dataset using a name already in use
+    Then the error message on response is entity already exists
 
 
 @smoke
