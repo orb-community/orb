@@ -248,6 +248,11 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
             settings["tcp"] = tcp
         else:
             settings["port"] = port_to_attach
+    if 'input_tags' in settings.keys():
+        input_tags = settings['input_tags']
+        settings.pop('input_tags')
+    else:
+        input_tags = '3'
     if provision == "provisioned":
         auto_provision = "false"
         orb_cloud_mqtt_id = context.agent['id']
@@ -273,11 +278,14 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
                                                                                    agent_tags, orb_url,
                                                                                    base_orb_address, port,
                                                                                    context.agent_groups, tap_name,
-                                                                                   input_type, auto_provision,
-                                                                                   orb_cloud_mqtt_id,
+                                                                                   input_type, input_tags,
+                                                                                   auto_provision, orb_cloud_mqtt_id,
                                                                                    orb_cloud_mqtt_key,
                                                                                    orb_cloud_mqtt_channel_id,
                                                                                    settings)
+    for key, value in context.tap.items():
+        if 'tags' in value.keys():
+            context.tap_tags.update({key: value['tags']})
     context.container_id = run_agent_config_file(agent_name)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(port)
@@ -553,7 +561,7 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
 
 
 def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, port,
-                             existing_agent_groups, tap_name, input_type="pcap", auto_provision="true",
+                             existing_agent_groups, tap_name, input_type="pcap", input_tags='3', auto_provision="true",
                              orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None,
                              settings=None):
     """
@@ -569,6 +577,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     :param (dict) existing_agent_groups: all agent groups available
     :param (str) tap_name: name of the input tap
     :param (str) input_type: type of tap on agent. Default: pcap
+    :param (str) input_tags: tags to be inserted on input tap
     :param (str) auto_provision: if true auto_provision the agent. If false, provision an agent already existent on orb
     :param (str) orb_cloud_mqtt_id: agent mqtt id.
     :param (str) orb_cloud_mqtt_key: agent mqtt key.
@@ -578,6 +587,8 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     """
     assert_that(auto_provision, any_of(equal_to("true"), equal_to("false")), "Unexpected value for auto_provision "
                                                                              "on agent config file creation")
+    convert_type = {"true": True, "false": False}
+    auto_provision = convert_type[auto_provision]
 
     if re.match(r"matching (\d+|all|the) group*", agent_tags):
         amount_of_group = re.search(r"(\d+|all|the)", agent_tags).groups()[0]
@@ -587,13 +598,12 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         tags = {"tags": create_tags_set(agent_tags)}
     if configs.get('ignore_ssl_and_certificate_errors', 'true').lower() == 'true':
         mqtt_url = f"{base_orb_address}:1883"
-        agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
-                                                                     tap_name,
-                                                                     tls_verify="false", auto_provision=auto_provision,
+        agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url, tap_name,
+                                                                     tls_verify=False, auto_provision=auto_provision,
                                                                      orb_cloud_mqtt_id=orb_cloud_mqtt_id,
                                                                      orb_cloud_mqtt_key=orb_cloud_mqtt_key,
                                                                      orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
-                                                                     input_type=input_type,
+                                                                     input_type=input_type, input_tags=input_tags,
                                                                      settings=settings)
     else:
         mqtt_url = "tls://" + base_orb_address + ":8883"
@@ -603,7 +613,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      orb_cloud_mqtt_id=orb_cloud_mqtt_id,
                                                                      orb_cloud_mqtt_key=orb_cloud_mqtt_key,
                                                                      orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
-                                                                     input_type=input_type,
+                                                                     input_type=input_type, input_tags=input_tags,
                                                                      settings=settings)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)
