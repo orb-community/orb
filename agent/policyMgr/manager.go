@@ -217,7 +217,7 @@ func (a *policyManager) RemoveBackendPolicies(be backend.Backend, permanently bo
 		err := be.RemovePolicy(plcy)
 		if err != nil {
 			a.logger.Error("failed to remove policy from backend", zap.String("policy_id", plcy.ID), zap.String("policy_name", plcy.Name), zap.Error(err))
-			return err
+			// note we continue here: even if the backend failed to remove, we update our policy repo to remove it
 		}
 		if permanently {
 			a.repo.Remove(plcy.ID)
