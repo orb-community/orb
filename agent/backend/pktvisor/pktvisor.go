@@ -30,7 +30,7 @@ const (
 	ReadinessBackoff    = 10
 	ReadinessTimeout    = 10
 	ApplyPolicyTimeout  = 10
-	RemovePolicyTimeout = 15
+	RemovePolicyTimeout = 20
 	VersionTimeout      = 2
 	ScrapeTimeout       = 5
 	TapsTimeout         = 5
