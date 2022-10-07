@@ -873,6 +873,111 @@ Scenario: Remove agent (check dataset)
         And last container created is exited after 120 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
+@smoke
+Scenario: Edit sink active and use invalid remote host
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And 1 Agent Group(s) is created with 3 orb tag(s)
+        And the name, tags, description of last Agent Group is edited using: name=edited_before_policy/ tags=2 orb tag(s)/ description=edited
+        And that a sink already exists
+        And 10 simple policies are applied to the group
+    When a new agent is created with orb tags matching 1 existing group
+        And the agent container is started on an available port
+        And the agent status is online
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 10 policies are applied and all has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the sink remote host is edited and an invalid one is used
+    Then referred sink must have error state on response within 120 seconds
+        And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+
+
+@smoke
+Scenario: Edit sink active and use invalid username
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And 1 Agent Group(s) is created with 3 orb tag(s)
+        And the name, tags, description of last Agent Group is edited using: name=edited_before_policy/ tags=2 orb tag(s)/ description=edited
+        And that a sink already exists
+        And 10 simple policies are applied to the group
+    When a new agent is created with orb tags matching 1 existing group
+        And the agent container is started on an available port
+        And the agent status is online
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 10 policies are applied and all has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the sink username is edited and an invalid one is used
+    Then referred sink must have error state on response within 120 seconds
+        And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+
+
+@smoke
+Scenario: Edit sink active and use invalid password
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And 1 Agent Group(s) is created with 3 orb tag(s)
+        And the name, tags, description of last Agent Group is edited using: name=edited_before_policy/ tags=2 orb tag(s)/ description=edited
+        And that a sink already exists
+        And 10 simple policies are applied to the group
+    When a new agent is created with orb tags matching 1 existing group
+        And the agent container is started on an available port
+        And the agent status is online
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 10 policies are applied and all has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the sink password is edited and an invalid one is used
+    Then referred sink must have error state on response within 120 seconds
+        And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+
+
+@smoke
+Scenario: Edit sink with invalid username and use valid one
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And referred agent is subscribed to 1 group
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And that a sink with invalid username already exists
+        And 3 simple policies are applied to the group
+        And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=3 already exists
+    When 1 new dataset is created using the policy, last group and 1 sink
+        And this agent's heartbeat shows that 4 policies are applied and all has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have error state on response within 30 seconds
+        And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And the sink username is edited and an valid one is used
+    Then referred sink must have active state on response within 120 seconds
+        And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+
+
+@smoke
+Scenario: Edit sink with password and use valid one
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And referred agent is subscribed to 1 group
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And that a sink with invalid password already exists
+        And 3 simple policies are applied to the group
+        And that a policy using: handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=5 already exists
+        And 1 new dataset is created using the policy, last group and 1 sink
+    When this agent's heartbeat shows that 4 policies are applied and all has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have error state on response within 30 seconds
+        And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And the sink password is edited and an valid one is used
+    Then referred sink must have active state on response within 120 seconds
+        And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+
+
 ### AGENTS PROVISIONED USING CONFIGURATION FILES:
 
 ########### tap_selector

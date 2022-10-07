@@ -118,6 +118,32 @@ def check_sink_status(context, status, time_to_wait):
     assert_that(get_sink_response['state'], equal_to(status), f"Sink {context.sink} state failed")
 
 
+@step("the sink {field_to_edit} is edited and an {type_of_field} one is used")
+def edit_sink_field(context, field_to_edit, type_of_field):
+    assert_that(field_to_edit, any_of("remote host", "username", "password", "name", "description", "tags"),
+                "Unexpected field to be edited.")
+    assert_that(type_of_field, any_of("valid", "invalid"), "Invalid type of sink field")
+    sink = get_sink(context.token, context.sink['id'])
+    sink['config']['password'] = configs.get('prometheus_key')
+    if field_to_edit == "remote host":
+        if type_of_field == "invalid":
+            sink['config']['remote_host'] = context.remote_prometheus_endpoint[:-2]
+        else:
+            sink['config']['remote_host'] = configs.get('remote_prometheus_endpoint')
+    if field_to_edit == "password":
+        if type_of_field == "invalid":
+            sink['config']['password'] = context.prometheus_key[:-2]
+        else:
+            sink['config']['password'] = configs.get('prometheus_key')
+    if field_to_edit == "username":
+        if type_of_field == "invalid":
+            sink['config']['username'] = context.prometheus_username[:-2]
+        else:
+            sink['config']['username'] = configs.get('prometheus_username')
+
+    context.sink = edit_sink(context.token, context.sink['id'], sink)
+
+
 @then('cleanup sinks')
 def clean_sinks(context):
     """
