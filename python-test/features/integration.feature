@@ -262,8 +262,8 @@ Scenario: Sink with invalid endpoint
         And referred sink must have error state on response within 30 seconds
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
-@MUTE
-#@smoke
+
+@smoke
 Scenario: Unapplying policies that failed by editing agent orb tags to unsubscribe from group
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -281,8 +281,8 @@ Scenario: Unapplying policies that failed by editing agent orb tags to unsubscri
         And this agent's heartbeat shows that 0 policies are applied to the agent
 
 
-@MUTE
-#@smoke
+
+@smoke
 Scenario: Unapplying policies that failed by editing group tags to unsubscribe agent from group
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -300,8 +300,8 @@ Scenario: Unapplying policies that failed by editing group tags to unsubscribe a
         And this agent's heartbeat shows that 0 policies are applied to the agent
 
 
-@MUTE
-#@smoke
+
+@smoke
 Scenario: Unapplying policies that failed by removing group
     Given the Orb user has a registered account
         And the Orb user logs in
