@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"gopkg.in/yaml.v2"
-	"strings"
 )
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
@@ -19,6 +18,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 			},
 		},
 		Extensions: &Extensions{
+			HealthCheckExtConfig: &HealthCheckExtension{},
 			PProf: &PProfExtension{
 				Endpoint: ":1888", // Leaving default for now, will need to change with more processes
 			},
@@ -38,7 +38,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 			},
 		},
 		Service: ServiceConfig{
-			Extensions: []string{"pprof", "basicauth/exporter"},
+			Extensions: []string{"pprof", "health_check", "basicauth/exporter"},
 			Pipelines: struct {
 				Metrics struct {
 					Receivers  []string `json:"receivers" yaml:"receivers"`
@@ -62,7 +62,6 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 		return "", err
 	}
 	returnedString := "---\n" + string(marshal)
-	returnedString = strings.TrimRight(returnedString, `'`)
 	return returnedString, nil
 
 }
