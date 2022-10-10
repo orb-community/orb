@@ -25,6 +25,24 @@ type SinkerUpdateEvent struct {
 	Timestamp time.Time
 }
 
+type SinkerOtelConfigEvent struct {
+	SinkId     string
+	Owner      string
+	State      string
+	ConfigYaml string
+	Timestamp  time.Time
+}
+
+func (e SinkerOtelConfigEvent) Encode() map[string]interface{} {
+	return map[string]interface{}{
+		"sink_id":   e.SinkId,
+		"owner":     e.Owner,
+		"state":     e.State,
+		"config":    e.ConfigYaml,
+		"timestamp": e.Timestamp.Unix(),
+	}
+}
+
 func (cse SinkerUpdateEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
 		"sink_id":   cse.SinkID,
