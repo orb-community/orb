@@ -3,7 +3,7 @@ package sinker
 import (
 	"context"
 	"fmt"
-	"github.com/ghodss/yaml"
+	"gopkg.in/yaml.v2"
 )
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the

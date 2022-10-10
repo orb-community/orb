@@ -27,7 +27,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 			sinkUrl:        "https://mysinkurl:9922",
 			sinkUsername:   "wile.e.coyote",
 			sinkPassword:   "CarnivorousVulgaris",
-		}, want: "",
+		}, want: "---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics/sink-id-222\n    protocol_version: 2.0.0\nprocessors: null\nextensions:\n  health_check: null\n  pprof:\n    endpoint: :1888\n  zpages: null\n  basic_auth/exporter:\n    client_auth:\n      username: wile.e.coyote\n      password: CarnivorousVulgaris\nexporters:\n  prometheusremotewrite:\n    endpoint: https://mysinkurl:9922\nservice:\n  extensions: '[pprof, basic_auth/exporter]'\n  pipelines:\n    metrics:\n      receivers: '[kafka]'\n      processors: null\n      exporters: '[prometheusremotewrite]'\n",
 			wantErr: false},
 	}
 	for _, tt := range tests {
