@@ -1,10 +1,11 @@
-from behave import when, then, step
+from behave import when, then
 from test_config import TestConfig
 from ui_utils import *
 from hamcrest import *
 from utils import random_string, create_tags_set
 from page_objects import *
-from control_plane_sink import sink_name_prefix, list_sinks
+from control_plane_sink import sink_name_prefix
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
@@ -14,7 +15,7 @@ username = configs.get('email')
 password = configs.get('password')
   
     
-@step('a sink is created through the UI with {orb_tags} orb tag')
+@when('a sink is created through the UI with {orb_tags} orb tag')
 def create_sink(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
     context.initial_counter_datatable = check_total_counter(context.driver)
@@ -50,11 +51,6 @@ def create_sink(context, orb_tags):
     WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Sink successfully created'))
     context.initial_counter = check_total_counter(context.driver)
-    all_sinks = list_sinks(context.token)
-    for sink in all_sinks:
-        if sink['name'] == context.name_label:
-            context.existent_sinks_id.append(sink['id'])
-            break
     
     
 @then("the new sink {condition} shown on the datatable")

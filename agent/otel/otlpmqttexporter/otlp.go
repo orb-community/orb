@@ -1,11 +1,14 @@
 package otlpmqttexporter
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/ns1labs/orb/fleet"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"net/http"
 	"net/url"
@@ -91,30 +94,43 @@ func (e *exporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
 
 // pushMetrics Exports metrics
 func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
-	tr := pmetricotlp.NewRequestFromMetrics(md)
+	tr := pmetricotlp.NewRequest()
+	tr.SetMetrics(md)
 	request, err := tr.MarshalProto()
 	if err != nil {
-		defer ctx.Done()
 		return consumererror.NewPermanent(err)
 	}
-	err = e.export(ctx, e.config.MetricsTopic, request)
-	if err != nil {
-		defer ctx.Done()
-		return err
+	metricRPC := fleet.AgentMetricsRPC{
+		SchemaVersion: fleet.CurrentRPCSchemaVersion,
+		Func:          fleet.AgentMetricsRPCFunc,
+		Payload: []fleet.AgentMetricsRPCPayload{
+			{
+				Format:    "otlp",
+				BEVersion: e.config.PktVisorVersion,
+				Data:      request,
+			},
+		},
 	}
-	return err
+	return e.export(ctx, e.config.MetricsTopic, metricRPC)
 }
 
 func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (e *exporter) export(_ context.Context, metricsTopic string, request []byte) error {
-	if token := e.config.Client.Publish(metricsTopic, 1, false, request); token.Wait() && token.Error() != nil {
+func (e *exporter) export(_ context.Context, metricsTopic string, request fleet.AgentMetricsRPC) error {
+	// convert metrics to interface
+	buf := bytes.Buffer{}
+	enc := gob.NewEncoder(&buf)
+	if err := enc.Encode(request.Payload); err != nil {
+		e.logger.Error("Failed to encode metrics", zap.Error(err))
+	}
+
+	if token := e.config.Client.Publish(metricsTopic, 1, false, buf.Bytes()); token.Wait() && token.Error() != nil {
 		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
 		return token.Error()
 	}
-	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", len(request)))
+	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", buf.Len()), zap.Int("batch_count", 0))
 
 	return nil
 }

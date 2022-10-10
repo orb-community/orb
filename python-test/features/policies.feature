@@ -1,4 +1,4 @@
-@policies @AUTORETRY
+@policies
 Feature: policy creation
 
   @smoke
@@ -114,20 +114,3 @@ Scenario: Create 3 duplicated dns policy without insert new name and 1 with new 
         And 3 policies must be successfully duplicated and 0 must return an error
         And try to duplicate this policy 2 times with a random new name
     Then 2 policies must be successfully duplicated and 0 must return an error
-
-
-@smoke @sanity
-Scenario: Create policy with name conflict
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And a new policy is created using: handler=dns, description='policy_dns'
-    When a new policy is requested to be created with the same name as an existent one and: handler=dhcp, description='policy_dns'
-    Then the error message on response is failed to create policy
-
-@smoke @sanity
-Scenario: Edit policy using an already existent name (conflict)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And a new policy is created using: handler=dns, description='policy_dns'
-    When editing a policy using name=conflict
-    Then the error message on response is entity already exists

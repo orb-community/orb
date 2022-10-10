@@ -28,7 +28,7 @@ func TestCreateDefaultConfig(t *testing.T) {
 	assert.Equal(t, "uuid2", testedCfg.Key, "default key uuid1")
 	assert.Equal(t, "channels/uuid1/messages", testedCfg.ChannelID, "default channel ID agent_test_metrics ")
 	assert.False(t, testedCfg.TLS, "default TLS is disabled")
-	assert.Equal(t, "channels/uuid1/messages/otlp/pktvisor", testedCfg.MetricsTopic, "default metrics topic is nil, only passed in the export function")
+	assert.Equal(t, "channels/uuid1/messages/be/pktvisor", testedCfg.MetricsTopic, "default metrics topic is nil, only passed in the export function")
 }
 
 func TestCreateMetricsExporter(t *testing.T) {
@@ -152,7 +152,7 @@ func TestCreateConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, CreateConfig(tt.args.addr, tt.args.id, tt.args.key, tt.args.channel, "1.0", "metricstopic"), "CreateConfig(%v, %v, %v, %v)", tt.args.addr, tt.args.id, tt.args.key, tt.args.channel)
+			assert.Equalf(t, tt.want, CreateConfig(tt.args.addr, tt.args.id, tt.args.key, tt.args.channel, "1.0"), "CreateConfig(%v, %v, %v, %v)", tt.args.addr, tt.args.id, tt.args.key, tt.args.channel)
 		})
 	}
 }

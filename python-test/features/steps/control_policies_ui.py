@@ -1,5 +1,5 @@
 from behave import step
-from control_plane_policies import parse_policy_params, get_policy, make_policy_json, list_policies
+from control_plane_policies import parse_policy_params, get_policy, make_policy_json
 from test_config import TestConfig
 from ui_utils import *
 from utils import remove_empty_from_json
@@ -13,26 +13,24 @@ orb_url = configs.get('orb_url')
 
 @step("a new policy is created through the UI with: {kwargs}")
 def create_new_policy_through_UI(context, kwargs):
-    WebDriverWait(context.driver, time_webdriver_wait).until(
+    WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, PolicyPage.new_policy_button()))).click()
-    WebDriverWait(context.driver, time_webdriver_wait).until(
+    WebDriverWait(context.driver, 3).until(
         EC.presence_of_element_located((By.XPATH, PolicyPage.policy_page_header())))
-    WebDriverWait(context.driver, time_webdriver_wait).until(EC.url_to_be(OrbPagesUrl.PolicyAdd(orb_url)))
+    WebDriverWait(context.driver, 3).until(EC.url_to_be(OrbPagesUrl.PolicyAdd(orb_url)))
     params = parse_policy_params(kwargs)
-    threading.Event().wait(time_webdriver_wait)
+    threading.Event().wait(3)
     input_text_by_xpath(PolicyPage.policy_name(), params["name"], context.driver)
     if params["description"] is not None:
         input_text_by_xpath(PolicyPage.policy_description(), params["description"], context.driver)
-        WebDriverWait(context.driver, time_webdriver_wait).until(
+        WebDriverWait(context.driver, 3).until(
             (EC.text_to_be_present_in_element_value((By.XPATH, PolicyPage.policy_description()),
                                                     params["description"])))
-        threading.Event().wait(time_webdriver_wait)
-    WebDriverWait(context.driver, time_webdriver_wait).until(
-        (EC.text_to_be_present_in_element_value((By.XPATH, PolicyPage.policy_name()),
-                                                params["name"])))
-    WebDriverWait(context.driver, time_webdriver_wait).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
-    WebDriverWait(context.driver, time_webdriver_wait).until(
+        threading.Event().wait(3)
+    WebDriverWait(context.driver, 3).until((EC.text_to_be_present_in_element_value((By.XPATH, PolicyPage.policy_name()),
+                                                                                   params["name"])))
+    WebDriverWait(context.driver, 3).until(EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
+    WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, PolicyPage.tap_selector_button()))).click()
     taps_options = get_selector_options(context.driver)
     chosen_tap = [val for key, val in taps_options.items() if params["tap"] in key]
@@ -41,34 +39,33 @@ def create_new_policy_through_UI(context, kwargs):
     else:  # todo improve logic for more than one
         raise "Invalid option for taps. More than one options was detected."
     if params["host_specification"] is not None:
-        WebDriverWait(context.driver, time_webdriver_wait).until(
+        WebDriverWait(context.driver, 3).until(
             EC.element_to_be_clickable((By.XPATH, PolicyPage.advanced_options_expander()))).click()
         input_text_by_xpath(PolicyPage.host_spec(), params["host_specification"], context.driver)
     if params["bpf_filter_expression"] is not None:
         input_text_by_xpath(PolicyPage.filter_expression(), params["bpf_filter_expression"], context.driver)
-    WebDriverWait(context.driver, time_webdriver_wait).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
-    WebDriverWait(context.driver, time_webdriver_wait).until(
+    WebDriverWait(context.driver, 3).until(EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
+    WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, PolicyPage.add_handler_button()))).click()
-    WebDriverWait(context.driver, time_webdriver_wait).until(
+    WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, PolicyPage.handler_selector_button()))).click()
     handlers_options = get_selector_options(context.driver)
     chosen_handler = [val for key, val in handlers_options.items() if params["handler"] in key]
     if len(chosen_handler) == 1:
         chosen_handler[0].click()
-        params["handle_label"] = WebDriverWait(context.driver, time_webdriver_wait).until(
+        params["handle_label"] = WebDriverWait(context.driver, 3).until(
             EC.presence_of_element_located((By.XPATH, PolicyPage.handler_name()))).get_attribute('value')
     else:  # todo improve logic for more than one
         raise "Invalid option for handlers. More than one options was detected."
     if params["exclude_noerror"] is not None and params["exclude_noerror"].lower() == "true":
-        WebDriverWait(context.driver, time_webdriver_wait).until(
+        WebDriverWait(context.driver, 3).until(
             EC.element_to_be_clickable((By.XPATH, PolicyPage.exclude_noerror_checkbox()))).click()
     if params["only_qname_suffix"] is not None:
         params["only_qname_suffix"] = str(params["only_qname_suffix"]).replace("[", "").replace("]", "").replace("'",
                                                                                                                  "")
         input_text_by_xpath(PolicyPage.only_qname_suffix(), params["only_qname_suffix"], context.driver)
     if params["only_rcode"] is not None:
-        WebDriverWait(context.driver, time_webdriver_wait).until(
+        WebDriverWait(context.driver, 3).until(
             EC.element_to_be_clickable((By.XPATH, PolicyPage.only_rcode_selector_button()))).click()
         rcodes = get_selector_options(context.driver)
         chosen_rcode = [val for key, val in rcodes.items() if params["only_rcode"] in key]
@@ -76,13 +73,11 @@ def create_new_policy_through_UI(context, kwargs):
             chosen_rcode[0].click()
         else:  # todo improve logic for more than one
             raise "Invalid option for rcode. More than one options was detected."
-    WebDriverWait(context.driver, time_webdriver_wait).until(
-        EC.presence_of_element_located((By.XPATH, PolicyPage.save_handler_button())))
-    WebDriverWait(context.driver, time_webdriver_wait).until(
+    WebDriverWait(context.driver, 3).until(EC.presence_of_element_located((By.XPATH, PolicyPage.save_handler_button())))
+    WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, PolicyPage.save_handler_button()))).click()
-    WebDriverWait(context.driver, time_webdriver_wait).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
-    WebDriverWait(context.driver, time_webdriver_wait).until(
+    WebDriverWait(context.driver, 3).until(EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
+    WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Policy successfully created'),
         message="Confirmation span of policy creation is not correctly displayed")
     context.policy_name = params["name"]
@@ -92,19 +87,13 @@ def create_new_policy_through_UI(context, kwargs):
                                            params["bpf_filter_expression"], params["pcap_source"],
                                            params["only_qname_suffix"], params["only_rcode"],
                                            params["exclude_noerror"], params["backend_type"])
-    all_policies = list_policies(context.token)
-    for policy in all_policies:
-        if policy['name'] == params["name"]:
-            context.policy = policy
-            break
 
 
 @step('user must be directed to the policy view page')
 def check_policy_view_page(context):
-    WebDriverWait(context.driver, time_webdriver_wait).until(
-        EC.presence_of_element_located((By.XPATH, PolicyPage.policy_view_header())))
+    WebDriverWait(context.driver, 3).until(EC.presence_of_element_located((By.XPATH, PolicyPage.policy_view_header())))
     policy_name = \
-        WebDriverWait(context.driver, time_webdriver_wait).until(
+        WebDriverWait(context.driver, 3).until(
             EC.presence_of_element_located((By.XPATH, PolicyPage.policy_view_name()))).text
     assert_that(policy_name, equal_to(context.policy_name), "Policy name is not correct in policy view page")
     current_url = str(context.driver.current_url)
@@ -146,11 +135,11 @@ def remove_policy_from_orb_ui(context):
         find_element_on_datatable_by_condition(context.driver, policy_removal_icon, LeftMenu.policies())
     removal_policy_button.click()
     input_text_by_xpath(PolicyPage.remove_policy_confirmation_name(), context.policy_name, context.driver)
-    WebDriverWait(context.driver, time_webdriver_wait).until(
+    WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, "//html"))).click()  # blank space
-    policy_removal_confirmation = WebDriverWait(context.driver, time_webdriver_wait).until(
+    policy_removal_confirmation = WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, PolicyPage.remove_policy_confirmation_button())))
     policy_removal_confirmation.click()
-    WebDriverWait(context.driver, time_webdriver_wait).until(
+    WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Policy successfully deleted'),
         message="Confirmation span of policy removal is not correctly displayed")

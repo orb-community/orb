@@ -131,7 +131,7 @@ services:
       POSTGRES_PASSWORD: ${MF_AUTH_DB_PASS}
       POSTGRES_DB: ${MF_AUTH_DB}
     ports:
-      - "15001:5432"
+      - 15001:5432
     networks:
       - orb-base-net
     volumes:
@@ -143,7 +143,7 @@ services:
     depends_on:
       - auth-db
     expose:
-      - "${MF_AUTH_GRPC_PORT}"
+      - ${MF_AUTH_GRPC_PORT}
     restart: on-failure
     environment:
       MF_AUTH_LOG_LEVEL: ${MF_AUTH_LOG_LEVEL}
@@ -180,7 +180,7 @@ services:
       POSTGRES_PASSWORD: ${MF_USERS_DB_PASS}
       POSTGRES_DB: ${MF_USERS_DB}
     ports:
-      - "15002:5432"
+      - 15002:5432
     networks:
       - orb-base-net
     volumes:
@@ -231,7 +231,7 @@ services:
       POSTGRES_PASSWORD: ${MF_THINGS_DB_PASS}
       POSTGRES_DB: ${MF_THINGS_DB}
     ports:
-      - "15003:5432"
+      - 15003:5432
     networks:
       - orb-base-net
     volumes:
@@ -361,7 +361,7 @@ services:
       POSTGRES_PASSWORD: ${ORB_FLEET_DB_PASS}
       POSTGRES_DB: ${ORB_FLEET_DB_DB}
     ports:
-      - "15004:5432"
+      - 15004:5432
     networks:
       - orb-base-net
     volumes:
@@ -376,7 +376,7 @@ services:
       POSTGRES_PASSWORD: ${ORB_POLICIES_DB_PASS}
       POSTGRES_DB: ${ORB_POLICIES_DB_DB}
     ports:
-      - "15005:5432"
+      - 15005:5432
     networks:
       - orb-base-net
     volumes:
@@ -391,7 +391,7 @@ services:
       POSTGRES_PASSWORD: ${ORB_SINKS_DB_PASS}
       POSTGRES_DB: ${ORB_SINKS_DB_DB}
     ports:
-      - "15006:5432"
+      - 15006:5432
     networks:
       - orb-base-net
     volumes:
