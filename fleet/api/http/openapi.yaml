@@ -19,7 +19,6 @@ paths:
         - $ref: "#/components/parameters/Name"
         - $ref: "#/components/parameters/Order"
         - $ref: "#/components/parameters/Direction"
-        - $ref: "#/components/parameters/Tags"
       responses:
         '200':
           $ref: "#/components/responses/AgentGroupsPageRes"
@@ -140,7 +139,6 @@ paths:
         - $ref: "#/components/parameters/Name"
         - $ref: "#/components/parameters/Order"
         - $ref: "#/components/parameters/Direction"
-        - $ref: "#/components/parameters/Tags"
       responses:
         '200':
           $ref: "#/components/responses/AgentPageRes"
@@ -179,7 +177,7 @@ paths:
   /agents/{id}:
     parameters:
       - $ref: "#/components/parameters/Authorization"
-      - $ref: "#/components/parameters/AgentId"
+      - $ref: "#/components/parameters/AgentGroupId"
     get:
       summary: 'Get an existing Agent'
       operationId: readAgent
@@ -234,10 +232,10 @@ paths:
   /agents/{id}/matching_groups:
     parameters:
       - $ref: "#/components/parameters/Authorization"
-      - $ref: "#/components/parameters/AgentId"
+      - $ref: "#/components/parameters/AgentGroupId"
     get:
       summary: 'Get matching groups for an existing Agent'
-      operationId: matchingGroups
+      operationId: readAgent
       tags:
         - agents
       responses:
@@ -312,7 +310,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/Authorization"
     get:
-      summary: 'List of pktvisor Inputs available across current agents'
+      summary: 'List of pktvisorInputs available across current agents'
       operationId: listInputs
       tags:
         - agents
@@ -368,11 +366,6 @@ paths:
           $ref: "#/components/responses/ServiceErrorRes"
 
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
   requestBodies:
     AgentGroupCreateReq:
       description: JSON-formatted document describing the new Agent Group configuration
@@ -451,17 +444,9 @@ components:
         default: 0
         minimum: 0
       required: false
-    Tags:
-      name: tags
-      description: Tags filter. Filtering is performed as a case-insensitive partial key value match.
-      in: query
-      schema:
-        type: object
-        example: "{\"key\":\"value\"}"
-      required: false
     Authorization:
       name: Authorization
-      description: User's access token (bearer auth)
+      description: User's access token.
       in: header
       bearerAuth:
         scheme: bearer

@@ -37,16 +37,11 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
     this.updateForm();
   }
 
-  ngOnInit(): void {
-    this.selectedTags = this.policy?.tags || {};
-  }
+  ngOnInit(): void {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes?.editMode) {
       this.toggleEdit(changes.editMode.currentValue, false);
-    }
-    if (changes?.policy) {
-      this.selectedTags = this.policy?.tags || {};
     }
   }
 
@@ -63,7 +58,7 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
         ],
         description: [description],
       });
-      this.selectedTags = {...tags} || {};
+      this.selectedTags = {...tags};
     } else {
       this.formGroup = this.fb.group({
         name: null,

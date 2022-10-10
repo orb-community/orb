@@ -13,16 +13,16 @@ import (
 )
 
 const (
-	Unknown RunningStatus = iota
+	Unknown BackendState = iota
 	Running
 	BackendError
 	AgentError
 	Offline
 )
 
-type RunningStatus int
+type BackendState int
 
-var runningStatusMap = [...]string{
+var backendStateMap = [...]string{
 	"unknown",
 	"running",
 	"backend_error",
@@ -30,7 +30,7 @@ var runningStatusMap = [...]string{
 	"offline",
 }
 
-var runningStatusRevMap = map[string]RunningStatus{
+var backendStateRevMap = map[string]BackendState{
 	"unknown":       Unknown,
 	"running":       Running,
 	"backend_error": BackendError,
@@ -38,16 +38,8 @@ var runningStatusRevMap = map[string]RunningStatus{
 	"offline":       Offline,
 }
 
-type State struct {
-	Status            RunningStatus
-	RestartCount      int64
-	LastError         string
-	LastRestartTS     time.Time
-	LastRestartReason string
-}
-
-func (s RunningStatus) String() string {
-	return runningStatusMap[s]
+func (s BackendState) String() string {
+	return backendStateMap[s]
 }
 
 type Backend interface {
@@ -60,7 +52,7 @@ type Backend interface {
 
 	GetStartTime() time.Time
 	GetCapabilities() (map[string]interface{}, error)
-	GetRunningStatus() (RunningStatus, string, error)
+	GetState() (BackendState, string, error)
 
 	ApplyPolicy(data policies.PolicyData, updatePolicy bool) error
 	RemovePolicy(data policies.PolicyData) error

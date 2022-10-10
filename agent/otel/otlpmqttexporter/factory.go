@@ -30,15 +30,14 @@ func NewFactory() component.ExporterFactory {
 	return component.NewExporterFactory(
 		typeStr,
 		CreateDefaultConfig,
-		component.WithMetricsExporter(CreateMetricsExporter, component.StabilityLevelAlpha))
+		component.WithMetricsExporter(CreateMetricsExporter))
 }
 
-func CreateConfig(addr, id, key, channel, pktvisor, metricsTopic string) config.Exporter {
+func CreateConfig(addr, id, key, channel, pktvisor string) config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
 		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
-		MetricsTopic:     metricsTopic,
 		Address:          addr,
 		Id:               id,
 		Key:              key,
@@ -49,7 +48,7 @@ func CreateConfig(addr, id, key, channel, pktvisor, metricsTopic string) config.
 
 func CreateDefaultConfig() config.Exporter {
 	base := fmt.Sprintf("channels/%s/messages", defaultMQTTId)
-	metricsTopic := fmt.Sprintf("%s/otlp/%s", base, defaultName)
+	metricsTopic := fmt.Sprintf("%s/be/%s", base, defaultName)
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
@@ -86,7 +85,7 @@ func CreateDefaultSettings(logger *zap.Logger) component.ExporterCreateSettings 
 }
 
 func createTracesExporter(
-	ctx context.Context,
+	_ context.Context,
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.TracesExporter, error) {
@@ -97,9 +96,8 @@ func createTracesExporter(
 	oCfg := cfg.(*Config)
 
 	return exporterhelper.NewTracesExporter(
-		ctx,
-		set,
 		cfg,
+		set,
 		oce.pushTraces,
 		exporterhelper.WithStart(oce.start),
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
@@ -110,7 +108,7 @@ func createTracesExporter(
 }
 
 func CreateMetricsExporter(
-	ctx context.Context,
+	_ context.Context,
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.MetricsExporter, error) {
@@ -121,9 +119,8 @@ func CreateMetricsExporter(
 	oCfg := cfg.(*Config)
 
 	return exporterhelper.NewMetricsExporter(
-		ctx,
-		set,
 		cfg,
+		set,
 		oce.pushMetrics,
 		exporterhelper.WithStart(oce.start),
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
@@ -134,7 +131,7 @@ func CreateMetricsExporter(
 }
 
 func createLogsExporter(
-	ctx context.Context,
+	_ context.Context,
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.LogsExporter, error) {
@@ -145,9 +142,8 @@ func createLogsExporter(
 	oCfg := cfg.(*Config)
 
 	return exporterhelper.NewLogsExporter(
-		ctx,
-		set,
 		cfg,
+		set,
 		oce.pushLogs,
 		exporterhelper.WithStart(oce.start),
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),

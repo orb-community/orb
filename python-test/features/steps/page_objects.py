@@ -46,28 +46,6 @@ class OrbPagesUrl:
         return f"{orb_url}/pages/datasets/policies/add"
 
 
-class Dataset:
-
-    def __init__(self):
-        pass
-
-    @classmethod
-    def DetailsModal(cls):
-        return f"//nb-card-header[contains(text(), 'Dataset Details')]/ancestor::nb-dialog-container"
-
-    @classmethod
-    def dataset_name(cls):
-        return "//input[contains(@data-orb-qa-id, 'input#name')]"
-
-    @classmethod
-    def dataset_remove_confirmation(cls):
-        return "//button[contains(text(), 'I Understand, Delete This Dataset ')]"
-
-    @classmethod
-    def selected_sinks(cls):
-        return "//mat-chip[contains(@class, 'orb-selected-sink')]"
-
-
 class AgentsPage:
     def __init__(self):
         pass
@@ -107,28 +85,6 @@ class AgentsPage:
     @classmethod
     def agent_status(cls):
         return "//span[@class='float-right']//child::span"
-
-    @classmethod
-    def policies_and_datasets(cls, name):
-        return f"//nb-card-header[contains(text(), 'Active " \
-               f"Policies/Datasets')]/ancestor::nb-card/descendant::nb-card-body/descendant::nb-accordion/descendant" \
-               f"::button[contains(text(),'{name}')]/ancestor::nb-accordion-item-header//*"
-
-    @classmethod
-    def no_policies_span(cls):
-        return "//nb-card-header[contains(text(), 'Active " \
-               "Policies/Datasets')]/ancestor::nb-card/descendant::nb-card-body/span[contains(text(),'Agent has no " \
-               "defined datasets.')] "
-
-    @classmethod
-    def active_groups(cls, name):
-        return f"//nb-card-header[contains(text(), 'Active " \
-               f"Groups')]/ancestor::nb-card/descendant::nb-card-body/descendant::span[contains(text()," \
-               f"'{name}')]/ancestor::button"
-
-    @classmethod
-    def dataset_button(cls, name):
-        return f"//span[contains(text(),'Dataset:')]/following-sibling::button[contains(text(), '{name}')]"
 
 
 class UtilButton:
@@ -233,20 +189,20 @@ class DataTable:
     @classmethod
     def plus_button(cls):
         return "//button[contains(@class, 'appearance-ghost size-medium status-primary')]"
-
+    
     @classmethod
     def sink_name_on_datatable(cls, name):
         return f"//span[@class='ng-star-inserted' and contains(text(), '{name}')]"
-
+    
     @classmethod
     def edit_icon(cls):
         return "//*[@data-name='edit']"
-
+    
     @classmethod
     def close_option_selected(cls):
         return "//*[@class='fa fa-window-close']"
-
-
+       
+   
 class AgentGroupPage:
     def __init__(self):
         pass
@@ -286,10 +242,7 @@ class AgentGroupPage:
     @classmethod
     def delete_agent_group_confirmation_field(cls):
         return "//input[contains(@class, 'input-full-width')]"
-
-    @classmethod
-    def MatchingGroupsModal(cls):
-        return f"//nb-card-header[contains(text(), ' Matching Agents')]/ancestor::nb-dialog-container"
+   
 
 
 class PolicyPage:
@@ -388,35 +341,6 @@ class PolicyPage:
     def remove_policy_confirmation_button(cls):
         return "//button[@data-orb-qa-id='button#delete']"
 
-    @classmethod
-    def new_dataset_button(cls):
-        return "//button[contains(text( ), 'New Dataset')]"
-
-    @classmethod
-    def dataset_details_modal(cls, name):
-        return f"//button[contains(text( ), '{name}')]"
-
-    @classmethod
-    def remove_dataset_button(cls):
-        return "//button[contains(@class, 'dataset-delete-button')]"
-
-
-class DatasetModal:
-    def __init__(self):
-        pass
-
-    @classmethod
-    def agent_group(cls):
-        return "//input[@formcontrolname='agent_group_name']"
-
-    @classmethod
-    def sinks_selector_button(cls):
-        return "//button[contains(@class, 'select-button') and contains(@class, 'placeholder')]"
-
-    @classmethod
-    def dataset_name(cls):
-        return "//input[@data-orb-qa-id='name']"
-
 
 class SinkPage:
     def __init__(self):
@@ -425,58 +349,58 @@ class SinkPage:
     @classmethod
     def new_sink_button(cls):
         return "//button[contains(text( ), 'New Sink')]"
-
+    
     @classmethod
     def name_label(cls):
         return "//input[(@data-orb-qa-id= 'name')]"
-
+    
     @classmethod
     def sink_description(cls):
         return "//input[(@data-orb-qa-id= 'description')]"
-
+    
     @classmethod
     def remote_url(cls):
-        return "//input[(@data-orb-qa-id= 'remote_host')]"
-
+        return"//input[(@data-orb-qa-id= 'remote_host')]"
+    
     @classmethod
     def sink_tag_key(cls):
         return "//input[(@data-orb-qa-id= 'input#orb_tag_key')]"
-
+    
     @classmethod
     def sink_tag_value(cls):
         return "//input[(@id= 'value')]"
-
+    
     @classmethod
     def sink_add_tag_button(cls):
         return "//button[contains(@data-orb-qa-id, 'button#addTag')]"
-
+    
     @classmethod
     def save_button(cls):
         return "//button[contains(@data-orb-qa-id, 'button#save')]"
-
+    
     @classmethod
     def sink_username(cls):
         return "//input[(@data-orb-qa-id= 'username')]"
-
+    
     @classmethod
     def sink_password(cls):
         return "//input[(@data-orb-qa-id= 'password')]"
-
+    
     @classmethod
     def sink_password(cls):
         return "//input[(@data-orb-qa-id= 'password')]"
-
+    
     @classmethod
     def delete_sink_confirmation_field(cls):
-        return "//input[contains(@class, 'input-full-width')]"
-
+        return "//input[contains(@class, 'input-full-width')]"    
+    
     @classmethod
     def delete_sink_confirmation_title(cls):
-        return "//nb-card-header[contains(text(), 'Delete Sink Confirmation')]"
-
+        return "//nb-card-header[contains(text(), 'Delete Sink Confirmation')]"   
+ 
     @classmethod
     def delete_sink_confirmation_button(cls):
-        return "//button[contains(text(), 'I Understand, Delete This Sink')]"
+        return "//button[contains(text(), 'I Understand, Delete This Sink')]"   
 
     @classmethod
     def next_button(cls):

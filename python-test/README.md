@@ -117,9 +117,3 @@ Examples:
 Running smoke tests:
 
 > behavex -t=@smoke --parallel-processes=8 --parallel-scheme=scenario
-
-## Tip
-
-After running the tests, clean up your environment by running the command:
-
-> behavex -t=@cleanup --parallel-processes=10 --parallel-scheme=scenario

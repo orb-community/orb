@@ -134,21 +134,14 @@ def edit_multiple_groups_parameters(context, edited_parameters, group_order, par
                 editing_param_dict["tags"].update(context.agent["agent_tags"])
         else:
             editing_param_dict["tags"] = create_tags_set(editing_param_dict["tags"])
-    expected_status_code = 200
     if "name" in editing_param_dict.keys() and editing_param_dict["name"] is not None:
-        if editing_param_dict['name'] == "conflict":
-            agent_group_name = list(context.agent_groups.values())[-1]
-            editing_param_dict["name"] = agent_group_name
-            expected_status_code = 409
-        else:
-            editing_param_dict["name"] = f"{agent_group_name_prefix}{editing_param_dict['name']}_{random_string(5)}"
+        editing_param_dict["name"] = f"{agent_group_name_prefix}{editing_param_dict['name']}_{random_string(5)}"
 
     for parameter, value in editing_param_dict.items():
         group_data[parameter] = value
 
     context.editing_response = edit_agent_group(context.token, agent_groups_id, group_data["name"],
-                                                group_data["description"], group_data["tags"],
-                                                expected_status_code=expected_status_code)
+                                                group_data["description"], group_data["tags"])
 
 
 @then("agent group editing must fail")
@@ -236,13 +229,6 @@ def check_logs_for_group(context, text_to_match, time_to_wait):
                                        f"{set(groups_matching).difference(groups_to_which_subscribed)}!.\n\n"
                                        f"Logs = {container_logs}. \n\n"
                                        f"Agent: {json.dumps(context.agent, indent=4)} \n\n")
-
-
-@step("a new group is requested to be created with the same name as an existent one")
-def create_group_with_name_conflict(context):
-    tags = create_tags_set('1')
-    name = list(context.agent_groups.values())[0]
-    context.error_message = create_agent_group(context.token, name, 'conflict_group', tags, 409)
 
 
 def create_agent_group(token, name, description, tags, expected_status_code=201):

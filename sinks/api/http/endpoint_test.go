@@ -370,151 +370,145 @@ func TestListSinks(t *testing.T) {
 		auth   string
 		status int
 		url    string
-		total  uint64
+		res    []sinks.Sink
 	}{
 		"get a list of sinks": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 0, 5),
-			total:  5,
+			res:    data[0:5],
 		},
 		"get a list of sinks with empty token": {
 			auth:   "",
 			status: http.StatusUnauthorized,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 0, 1),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks with invalid token": {
 			auth:   invalidToken,
 			status: http.StatusUnauthorized,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 0, 1),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks ordered by name descendent": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=desc", sinkURL, 0, 5),
-			total:  5,
+			res:    data[0:5],
 		},
 		"get a list of sinks ordered by name ascendent": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=asc", sinkURL, 0, 5),
-			total:  5,
+			res:    data[0:5],
 		},
 		"get a list of sinks with invalid order": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=wrong", sinkURL, 0, 5),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks with invalid dir": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=wrong", sinkURL, 0, 5),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks with negative offset": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, -1, 5),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks with negative limit": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 1, -5),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks with offset 1 and zero limit": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 1, 0),
-			total:  10,
+			res:    data[1:8],
 		},
 		"get a list of sinks without offset": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?limit=%d", sinkURL, 5),
-			total:  5,
+			res:    data[0:5],
 		},
 		"get a list of sinks without limit": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d", sinkURL, 1),
-			total:  10,
+			res:    data[1:11],
 		},
 		"get a list of sinks with redundant query params": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&value=something", sinkURL, 0, 5),
-			total:  5,
+			res:    data[0:5],
 		},
 		"get a list of sinks with limit greater than max": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d", sinkURL, 0, 110),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks with default URL": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s%s", sinkURL, ""),
-			total:  10,
+			res:    data[0:10],
 		},
 		"get a list of sinks with invalid number of params": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s%s", sinkURL, "?offset=4&limit=4&limit=5&offset=5"),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks with invalid offset": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s%s", sinkURL, "?offset=e&limit=5"),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks with invalid limit": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s%s", sinkURL, "?offset=5&limit=e"),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks filtering with invalid name": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&name=%s", sinkURL, 0, 5, invalidName),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks sorted by name ascendent": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=asc", sinkURL, 0, 5),
-			total:  5,
+			res:    data[0:5],
 		},
 		"get a list of sinks sorted by name descendent": {
 			auth:   token,
 			status: http.StatusOK,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=desc", sinkURL, 0, 5),
-			total:  5,
+			res:    data[0:5],
 		},
 		"get a list of sinks sorted with invalid order": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=wrong&dir=desc", sinkURL, 0, 5),
-			total:  0,
+			res:    nil,
 		},
 		"get a list of sinks sorted with invalid direction": {
 			auth:   token,
 			status: http.StatusBadRequest,
 			url:    fmt.Sprintf("%s?offset=%d&limit=%d&order=name&dir=wrong", sinkURL, 0, 5),
-			total:  0,
-		},
-		"get a list of sinks filtered by tag": {
-			auth:   token,
-			status: http.StatusOK,
-			url:    fmt.Sprintf("%s?offset=%d&limit=%d&tags={\"%s\":\"%s\"}", sinkURL, 0, 5, "test", "test"),
-			total:  0,
+			res:    nil,
 		},
 	}
 
@@ -528,14 +522,8 @@ func TestListSinks(t *testing.T) {
 			}
 
 			res, err := req.make()
-			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
-			var body sinksPagesRes
-			json.NewDecoder(res.Body).Decode(&body)
-			total := uint64(len(body.Sinks))
-
 			assert.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d, got %d", desc, tc.status, res.StatusCode))
-			assert.Equal(t, tc.total, total, fmt.Sprintf("%s: expected total %d got %d", desc, tc.total, total))
 		})
 	}
 }

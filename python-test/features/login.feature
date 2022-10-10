@@ -1,4 +1,4 @@
-@login @AUTORETRY
+@login
   Feature: login tests
 
   @smoke
