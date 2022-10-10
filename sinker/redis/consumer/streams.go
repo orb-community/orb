@@ -90,11 +90,11 @@ func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
 		timestamp: time.Time{},
 	}
 
-	var config types.Metadata
-	if err := json.Unmarshal([]byte(read(event, "config", "")), &config); err != nil {
+	var metadata types.Metadata
+	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
 		return updateSinkEvent{}, err
 	}
-	val.config = config
+	val.config = metadata
 	return val, nil
 }
 
