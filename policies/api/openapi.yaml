@@ -275,6 +275,11 @@ paths:
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   requestBodies:
     PolicyCreateReq:
       description: JSON-formatted document describing the new Policy configuration
@@ -369,12 +374,12 @@ components:
       description: Tags filter. Filtering is performed as a case-insensitive partial key value match.
       in: query
       schema:
-        type: string
-        default: "{\"key\":\"value\"}"
+        type: object
+        example: "{\"key\":\"value\"}"
       required: false
     Authorization:
       name: Authorization
-      description: User's access token.
+      description: User's access token (bearer auth).
       in: header
       bearerAuth:
         scheme: bearer

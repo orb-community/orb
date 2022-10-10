@@ -7,6 +7,7 @@ package agent
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/policies"
 	"github.com/ns1labs/orb/fleet"
@@ -20,7 +21,7 @@ const HeartbeatFreq = 50 * time.Second
 // RestartTimeMin minimum time to wait between restarts
 const RestartTimeMin = 5 * time.Minute
 
-func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, state fleet.State) {
+func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, agentsState fleet.State) {
 
 	if a.heartbeatsTopic == "" {
 		a.logger.Debug("heartbeat topic not yet set, skipping")
@@ -31,44 +32,73 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, state f
 
 	bes := make(map[string]fleet.BackendStateInfo)
 	for name, be := range a.backends {
-		if state == fleet.Offline {
+		if agentsState == fleet.Offline {
 			bes[name] = fleet.BackendStateInfo{State: backend.Offline.String()}
-		} else {
-			state, errmsg, err := be.GetState()
-			if err != nil {
-				a.logger.Error("failed to retrieve backend state", zap.String("backend", name), zap.Error(err))
-				bes[name] = fleet.BackendStateInfo{State: backend.AgentError.String(), Error: err.Error()}
-				if time.Now().Sub(be.GetStartTime()) >= RestartTimeMin {
-					a.logger.Info("attempting backend restart due to failed status during heartbeat")
-					err := a.RestartBackend(ctx, name, "failed during heartbeat")
-					if err != nil {
-						a.logger.Error("failed to restart backend", zap.Error(err), zap.String("backend", name))
-					}
-				}
-				continue
-			}
-			bes[name] = fleet.BackendStateInfo{State: state.String(), Error: errmsg}
+			continue
 		}
+		besi := fleet.BackendStateInfo{}
+		backendStatus, errMsg, err := be.GetRunningStatus()
+		a.backendState[name].Status = backendStatus
+		besi.State = backendStatus.String()
+		if backendStatus != backend.Running {
+			a.logger.Error("backend not ready", zap.String("backend", name), zap.String("status", backendStatus.String()), zap.String("errMsg", errMsg), zap.Error(err))
+			if err != nil {
+				a.backendState[name].LastError = fmt.Sprintf("failed to retrieve backend status: %v", err)
+			} else if errMsg != "" {
+				a.backendState[name].LastError = errMsg
+			}
+			// status is not running so we have a current error
+			besi.Error = a.backendState[name].LastError
+			if time.Now().Sub(be.GetStartTime()) >= RestartTimeMin {
+				a.logger.Info("attempting backend restart due to failed status during heartbeat")
+				err := a.RestartBackend(ctx, name, "failed during heartbeat")
+				if err != nil {
+					a.logger.Error("failed to restart backend", zap.Error(err), zap.String("backend", name))
+				}
+			} else {
+				a.logger.Info("waiting to attempt backend restart due to failed status", zap.Duration("remaining_secs", RestartTimeMin-(time.Now().Sub(be.GetStartTime()))))
+			}
+		} else {
+			// status is Running so no current error
+			besi.Error = ""
+		}
+		if a.backendState[name].LastError != "" {
+			besi.LastError = a.backendState[name].LastError
+		}
+		if !a.backendState[name].LastRestartTS.IsZero() {
+			besi.LastRestartTS = a.backendState[name].LastRestartTS
+		}
+		if a.backendState[name].RestartCount > 0 {
+			besi.RestartCount = a.backendState[name].RestartCount
+		}
+		if a.backendState[name].LastRestartReason != "" {
+			besi.LastRestartReason = a.backendState[name].LastRestartReason
+		}
+		bes[name] = besi
 	}
 
 	ps := make(map[string]fleet.PolicyStateInfo)
 	pdata, err := a.policyManager.GetPolicyState()
 	if err == nil {
 		for _, pd := range pdata {
-			if state == fleet.Offline {
-				ps[pd.ID] = fleet.PolicyStateInfo{
-					Name:     pd.Name,
-					State:    policies.Offline.String(),
-					Error:    pd.BackendErr,
-					Datasets: pd.GetDatasetIDs(),
-				}
-			} else {
-				ps[pd.ID] = fleet.PolicyStateInfo{
-					Name:     pd.Name,
-					State:    pd.State.String(),
-					Error:    pd.BackendErr,
-					Datasets: pd.GetDatasetIDs(),
-				}
+			pstate := policies.Offline.String()
+			// if agent is not offline, default to status that policy manager believes we should be in
+			if agentsState != fleet.Offline {
+				pstate = pd.State.String()
+			}
+			// but if the policy backend is not running, policy isn't either
+			if bestate, ok := a.backendState[pd.Backend]; ok && bestate.Status != backend.Running {
+				pstate = policies.Unknown.String()
+				pd.BackendErr = "backend is unreachable"
+			}
+			ps[pd.ID] = fleet.PolicyStateInfo{
+				Name:            pd.Name,
+				Version:         pd.Version,
+				State:           pstate,
+				Error:           pd.BackendErr,
+				Datasets:        pd.GetDatasetIDs(),
+				LastScrapeTS:    pd.LastScrapeTS,
+				LastScrapeBytes: pd.LastScrapeBytes,
 			}
 		}
 	} else {
@@ -85,7 +115,7 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, state f
 
 	hbData := fleet.Heartbeat{
 		SchemaVersion: fleet.CurrentHeartbeatSchemaVersion,
-		State:         state,
+		State:         agentsState,
 		TimeStamp:     t,
 		BackendState:  bes,
 		PolicyState:   ps,
@@ -123,11 +153,6 @@ func (a *orbAgent) sendHeartbeats(ctx context.Context, cancelFunc context.Cancel
 			ctx.Done()
 			return
 		case t := <-a.hbTicker.C:
-			err := a.sanityCheck(ctx)
-			if err != nil {
-				a.logger.Error("error on sanity check in heartbeat, could not restart backend", zap.Error(err))
-				return
-			}
 			a.sendSingleHeartbeat(ctx, t, fleet.Online)
 		}
 	}

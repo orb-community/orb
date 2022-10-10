@@ -29,7 +29,7 @@ func NewFactory() component.ReceiverFactory {
 	return component.NewReceiverFactory(
 		typeStr,
 		CreateDefaultConfig,
-		component.WithMetricsReceiver(CreateMetricsReceiver))
+		component.WithMetricsReceiver(CreateMetricsReceiver, component.StabilityLevelAlpha))
 }
 
 func CreateDefaultSettings(logger *zap.Logger) component.ReceiverCreateSettings {

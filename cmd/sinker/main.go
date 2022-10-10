@@ -64,6 +64,7 @@ func main() {
 	fleetGRPCCfg := config.LoadGRPCConfig("orb", "fleet")
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
 	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
+	otelCfg := config.LoadOtelConfig(envPrefix)
 
 	// main logger
 	var logger *zap.Logger
@@ -187,7 +188,10 @@ func main() {
 		Help:      "Number of messages received",
 	}, []string{"method", "agent_id", "subtopic", "channel", "protocol"})
 
-	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, gauge, counter, inputCounter)
+	otelEnabled := otelCfg.Enable == "true"
+	otelKafkaUrl := otelCfg.KafkaUrl
+
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, otelKafkaUrl, otelEnabled, gauge, counter, inputCounter)
 	defer func(svc sinker.Service) {
 		err := svc.Stop()
 		if err != nil {

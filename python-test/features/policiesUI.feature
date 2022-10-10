@@ -1,4 +1,4 @@
-@policies_ui
+@policies_ui @AUTORETRY
 Feature: Create policies using orb ui
 
   @MUTE
