@@ -153,16 +153,13 @@ func (a *policyManager) RemovePolicy(policyID string, policyName string, beName 
 		return errors.New("policy remove for a backend we do not have, ignoring")
 	}
 	be := backend.GetBackend(beName)
-	// Remove policy via http request
 	err := be.RemovePolicy(pd)
 	if err != nil {
-		a.logger.Error("received error")
-		return err
+		a.logger.Error("backend remove policy failed: will still remove from PolicyManager", zap.String("policy_id", policyID), zap.Error(err))
 	}
 	// Remove policy from orb-agent local repo
 	err = a.repo.Remove(pd.ID)
 	if err != nil {
-
 		return err
 	}
 	return nil
@@ -217,13 +214,19 @@ func (a *policyManager) RemoveBackendPolicies(be backend.Backend, permanently bo
 		err := be.RemovePolicy(plcy)
 		if err != nil {
 			a.logger.Error("failed to remove policy from backend", zap.String("policy_id", plcy.ID), zap.String("policy_name", plcy.Name), zap.Error(err))
-			return err
+			// note we continue here: even if the backend failed to remove, we update our policy repo to remove it
 		}
 		if permanently {
-			a.repo.Remove(plcy.ID)
+			err = a.repo.Remove(plcy.ID)
+			if err != nil {
+				return err
+			}
 		} else {
 			plcy.State = policies.Unknown
-			a.repo.Update(plcy)
+			err = a.repo.Update(plcy)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -247,7 +250,10 @@ func (a *policyManager) ApplyBackendPolicies(be backend.Backend) error {
 			policy.State = policies.Running
 			policy.BackendErr = ""
 		}
-		a.repo.Update(policy)
+		err = a.repo.Update(policy)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -5,6 +5,7 @@ def before_scenario(context, scenario):
     context.containers_id = dict()
     context.agent_groups = dict()
     context.existent_sinks_id = list()
+    context.tap_tags = dict()
 
 
 def after_scenario(context, scenario):

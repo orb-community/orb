@@ -1,0 +1,46 @@
+version: "3.7"
+services:
+  # Collector
+  otel-collector:
+    image: otelcontribcol:latest
+    command: [ "--config=/etc/otel-collector-config.yaml", "${OTELCOL_ARGS}" ]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    restart: on-failure
+    ports:
+      - "1888:1888"   # pprof extension
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
+      - "4317:4317"   # OTLP gRPC receiver
+      - "55679:55679" # zpages extension
+    networks:
+      - orb-base-net
+    depends_on:
+      - kafka1
+  # Sinker Service with listening only in OpenTelemetry
+  sinker-otel:
+    image: "ns1labs/orb-sinker:${ORB_RELEASE_TAG}"
+    container_name: orb-sinker-otel
+    depends_on:
+      - nats
+      - es-redis
+    restart: on-failure
+    environment:
+      ORB_SINKER_LOG_LEVEL: debug
+      ORB_SINKER_NATS_URL: ${MF_NATS_URL}
+      ORB_SINKER_ES_URL: es-redis:${MF_REDIS_TCP_PORT}
+      ORB_SINKER_CACHE_URL: sinker-redis:${MF_REDIS_TCP_PORT}
+      ORB_POLICIES_GRPC_URL: ${ORB_POLICIES_GRPC_URL}
+      ORB_POLICIES_GRPC_TIMEOUT: ${ORB_POLICIES_GRPC_TIMEOUT}
+      ORB_FLEET_GRPC_URL: ${ORB_FLEET_GRPC_URL}
+      ORB_FLEET_GRPC_TIMEOUT: ${ORB_FLEET_GRPC_TIMEOUT}
+      ORB_SINKS_GRPC_URL: ${ORB_SINKS_GRPC_URL}
+      ORB_SINKS_GRPC_TIMEOUT: ${ORB_SINKS_GRPC_TIMEOUT}
+      ORB_SINKER_OTEL_ENABLE: "true"
+      ORB_SINKER_OTEL_KAFKA_URL: "kafka1:19092"
+    networks:
+      - orb-base-net
+networks:
+  orb-base-net:
+    driver: bridge

@@ -1,4 +1,4 @@
-@group
+@group_ui @AUTORETRY
 Feature: Agent Group tests using Orb UI
 
 

@@ -1,5 +1,5 @@
 import yaml
-from utils import return_port_to_run_docker_container
+from utils import create_tags_set
 
 from taps import *
 
@@ -9,28 +9,32 @@ class FleetAgent:
         pass
 
     @classmethod
-    def config_file_of_orb_agent(cls, name, token, iface, orb_url, base_orb_mqtt, tap_name, tls_verify="true",
-                                 auto_provision="true", orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None,
-                                 orb_cloud_mqtt_channel_id=None, input_type="pcap", settings=None):
-        assert_that(tls_verify, any_of(equal_to("true"), equal_to("false")), "Unexpected value for tls_verify on "
-                                                                             "agent pcap config file creation")
-        assert_that(auto_provision, any_of(equal_to("true"), equal_to("false")), "Unexpected value for auto_provision "
-                                                                                 "on agent pcap config file creation")
+    def config_file_of_orb_agent(cls, name, token, iface, orb_url, base_orb_mqtt, tap_name, tls_verify=True,
+                                 auto_provision=True, orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None,
+                                 orb_cloud_mqtt_channel_id=None, input_type="pcap", input_tags='3', settings=None):
+        assert_that(tls_verify, any_of(equal_to(True), equal_to(False)), "Unexpected value for tls_verify on "
+                                                                         "agent pcap config file creation")
+        assert_that(auto_provision, any_of(equal_to(True), equal_to(False)), "Unexpected value for auto_provision "
+                                                                             "on agent pcap config file creation")
         assert_that(input_type, any_of(equal_to("pcap"), equal_to("flow"), equal_to("dnstap")),
                     "Unexpect type of input type.")
         if "iface" in settings.keys() and settings["iface"] == "default":
             settings['iface'] = iface
+        tap = Taps()
         if input_type == "pcap":
-            tap = Taps.pcap(tap_name, input_type, settings)
+            tap.add_pcap(tap_name, **settings)
         elif input_type == "flow":
-            tap = Taps.flow(tap_name, input_type, settings)
+            tap.add_flow(tap_name, **settings)
         else:
-            tap = Taps.dnstap(tap_name, input_type, settings)
-        if auto_provision == "true":
+            tap.add_dnstap(tap_name, **settings)
+        if input_tags is not None and input_tags != '0':
+            tap_tags = create_tags_set(input_tags, tag_prefix='testtaptag', string_mode='lower')
+            tap.add_tag(tap_name, tap_tags)
+        if auto_provision:
             agent = {
                 "version": "1.0",
                 "visor": {
-                    "taps": tap
+                    "taps": tap.taps
                 },
                 "orb": {
                     "backends": {
@@ -40,13 +44,11 @@ class FleetAgent:
                         }
                     },
                     "tls": {
-                        "verify": {
-                            "tls_verify": tls_verify
-                        }
+                        "verify": tls_verify
                     },
                     "cloud": {
                         "config": {
-                            "auto_provision":  auto_provision,
+                            "auto_provision": auto_provision,
                             "agent_name": name
                         },
                         "api": {
@@ -66,7 +68,7 @@ class FleetAgent:
             agent = {
                 "version": "1.0",
                 "visor": {
-                    "taps": tap
+                    "taps": tap.taps
                 },
                 "orb": {
                     "backends": {
@@ -76,9 +78,8 @@ class FleetAgent:
                         }
                     },
                     "tls": {
-                        "verify": {
-                            "tls_verify": tls_verify
-                        }
+                        "verify": tls_verify
+
                     },
                     "cloud": {
                         "config": {
@@ -86,7 +87,7 @@ class FleetAgent:
                         },
                         "api": {
                             "address": orb_url
-                            },
+                        },
                         "mqtt": {
                             "address": base_orb_mqtt,
                             "id": orb_cloud_mqtt_id,
@@ -97,4 +98,4 @@ class FleetAgent:
                 }
             }
         agent = yaml.dump(agent)
-        return agent, tap
+        return agent, tap.taps

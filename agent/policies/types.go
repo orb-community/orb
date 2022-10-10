@@ -7,18 +7,21 @@ package policies
 import (
 	"database/sql/driver"
 	_ "github.com/mattn/go-sqlite3"
+	"time"
 )
 
 type PolicyData struct {
-	ID         string
-	Datasets   map[string]bool
-	GroupIds   map[string]bool
-	Name       string
-	Backend    string
-	Version    int32
-	Data       interface{}
-	State      PolicyState
-	BackendErr string
+	ID              string
+	Datasets        map[string]bool
+	GroupIds        map[string]bool
+	Name            string
+	Backend         string
+	Version         int32
+	Data            interface{}
+	State           PolicyState
+	BackendErr      string
+	LastScrapeBytes int64
+	LastScrapeTS    time.Time
 }
 
 func (d *PolicyData) GetDatasetIDs() []string {
@@ -40,17 +43,6 @@ const (
 )
 
 type PolicyState int
-
-type policyData struct {
-	ID         string
-	Datasets   map[string]bool
-	Name       string
-	Backend    string
-	Version    int32
-	Data       interface{}
-	State      PolicyState
-	BackendErr string
-}
 
 var policyStateMap = [...]string{
 	"unknown",
