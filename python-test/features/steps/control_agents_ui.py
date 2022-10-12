@@ -18,10 +18,10 @@ orb_url = configs.get('orb_url')
 def click_element_left_menu(context, element):
     dict_elements = {"Agents": LeftMenu.agents(), "Agent Groups": LeftMenu.agent_group(),
                      "Policy Management": LeftMenu.policies(), "Sink Management": LeftMenu.sinks()}
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, dict_elements[element])), message=f"Unable to find {element} "
-                                                                                f"icon on left menu")
-    context.driver.find_element(By.XPATH, dict_elements[element]).click()
+    message = f"Unable to find {element} icon on left menu"
+    button_was_clicked = button_click_by_xpath(dict_elements[element], context.driver, message)
+    assert_that(button_was_clicked, equal_to(True), message)
+
 
 
 @step("that the user is on the orb {element} page")
@@ -38,29 +38,29 @@ def check_which_orb_page(context, element):
 @step("a new agent is created through the UI with {orb_tags} orb tag(s)")
 def create_agent_through_the_agents_page(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, AgentsPage.new_agent_button())), message="Unable to click on new agent"
-                                                                                       " button").click()
+    button_was_clicked = button_click_by_xpath(AgentsPage.new_agent_button(), context.driver,
+                                               "Unable to click on new agent button")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on new agent button")
     WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{OrbPagesUrl.Agents(orb_url)}/add"),
                                            message="Orb add agents page not "
                                                    "available")
     context.agent_name = agent_name_prefix + random_string(10)
     input_text_by_xpath(AgentsPage.agent_name(), context.agent_name, context.driver)
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button())), message="Unable to click on next "
-                                                                                  "button (page 1)").click()
+    button_was_clicked = button_click_by_xpath(UtilButton.next_button(), context.driver,
+                                               "Unable to click on next button (page 1)")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on next button (page 1)")
     for tag_key, tag_value in context.orb_tags.items():
         input_text_by_xpath(AgentsPage.agent_tag_key(), tag_key, context.driver)
         input_text_by_xpath(AgentsPage.agent_tag_value(), tag_value, context.driver)
-        WebDriverWait(context.driver, 3).until(
-            EC.element_to_be_clickable((By.XPATH, AgentsPage.agent_add_tag_button())), message="Unable to click on add"
-                                                                                               " tag button").click()
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button())), message="Unable to click on next "
-                                                                                  "button (page 2)").click()
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.save_button())), message="Unable to click on save "
-                                                                                  "button").click()
+        button_was_clicked = button_click_by_xpath(AgentsPage.agent_add_tag_button(), context.driver,
+                                                   "Unable to click on add tag button")
+        assert_that(button_was_clicked, equal_to(True), "Unable to click on add tag button")
+    button_was_clicked = button_click_by_xpath(UtilButton.next_button(), context.driver,
+                                               "Unable to click on next button (page 2)")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on next button (page 2)")
+    button_was_clicked = button_click_by_xpath(UtilButton.save_button(), context.driver,
+                                               "Unable to click on save button")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on save button")
     WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent successfully created'),
         message="Confirmation span of agent creation not displayed")
@@ -73,9 +73,9 @@ def create_agent_through_the_agents_page(context, orb_tags):
             message="Provisioning command not displayed").text
 
     context.agent_provisioning_command = agent_provisioning_command.replace("\n\n", " ")
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.close_button())), message="Unable to click on close "
-                                                                                   "button").click()
+    button_was_clicked = button_click_by_xpath(UtilButton.close_button(), context.driver,
+                                               "Unable to click on close button")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on close button")
     agent = find_element_on_datatable_by_condition(context.driver, DataTable.agent(context.agent_name),
                                                    LeftMenu.agents())
     assert_that(agent, is_not(None), f"Unable to find the agent: {context.agent_name}")
@@ -98,9 +98,9 @@ def check_status_on_orb_ui(context, status, time_to_wait):
     assert_that(agent_status_datatable, is_not(None), f"Unable to find status of the agent: {context.agent_name}"
                                                       f" on datatable")
     assert_that(agent_status_datatable, equal_to(status), f"Agent {context.agent['id']} status failed on Agents list")
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, DataTable.agent(context.agent_name))),
-        message="Unable to click on agent name").click()
+    button_was_clicked = button_click_by_xpath(DataTable.agent(context.agent_name), context.driver,
+                                               "Unable to click on agent name")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on agent name")
     agent_view_status = WebDriverWait(context.driver, 3).until(
         EC.presence_of_element_located(
             (By.XPATH, AgentsPage.agent_status())), message="Unable to find agent status on agent view page").text
@@ -153,8 +153,9 @@ def click_policy_and_dataset(context):
     assert_that(expand_policy_button, is_not(None), "Unable to expand policy to check dataset on agent view page")
     WebDriverWait(context.driver, time_webdriver_wait).until(
         EC.element_to_be_clickable(expand_policy_button)).click()
-    WebDriverWait(context.driver, time_webdriver_wait).until(
-        EC.element_to_be_clickable((By.XPATH, AgentsPage.dataset_button(dataset_name)))).click()
+    button_was_clicked = button_click_by_xpath(AgentsPage.dataset_button(dataset_name), context.driver,
+                                               "Unable to click on dataset button on agent page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on dataset button on agent page")
     WebDriverWait(context.driver, time_webdriver_wait).until(
         EC.presence_of_element_located((By.XPATH, Dataset.DetailsModal())), "Dataset details modal was not opened "
                                                                             "after click above dataset name on agent "
@@ -174,9 +175,9 @@ def check_group_in_active_group(context):
     agent_view_page = OrbUrl.agent_view(orb_url, agent_id)
     context.driver, current_url = go_to_page(agent_view_page, driver=context.driver)
     group_name = list(context.agent_groups.values())[0]
-    WebDriverWait(context.driver, time_webdriver_wait).until(
-        EC.element_to_be_clickable((By.XPATH, AgentsPage.active_groups(group_name))),
-        message="Unable to click on Active Group on agent view page").click()
+    button_was_clicked = button_click_by_xpath(AgentsPage.active_groups(group_name), context.driver,
+                                               "Unable to click on Active Group on agent view page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on Active Group on agent view page")
     WebDriverWait(context.driver, time_webdriver_wait).until(
         EC.presence_of_element_located((By.XPATH, AgentGroupPage.MatchingGroupsModal())), "Matching groups modal was "
                                                                                           "not opened after click "

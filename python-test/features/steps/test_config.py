@@ -57,7 +57,7 @@ def _read_configs():
     else:
         configs['orb_url'] = f"https://{configs.get('orb_address')}"
 
-    is_credentials_registered = configs.get('is_credentials_registered').lower()
+    is_credentials_registered = configs.get('is_credentials_registered', 'true').lower()
     assert_that(is_credentials_registered, any_of(equal_to('true'), equal_to('false')),
                 'Invalid value to is_credentials_registered parameter. A boolean value is expected.')
     configs['is_credentials_registered'] = is_credentials_registered
