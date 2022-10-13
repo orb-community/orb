@@ -977,7 +977,7 @@ Scenario: Edit sink with password and use valid one
     Then referred sink must have active state on response within 120 seconds
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
-@smoke @test
+@smoke
 Scenario: Check policies status when agent backend stop running
     Given the Orb user has a registered account
         And the Orb user logs in
