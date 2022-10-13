@@ -15,7 +15,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autoNumber 1
-    Note over Sinker: Received metrics, fetched policy, sink, retrieved sink id 222
+    Note over Sinker: Received metrics, fetched policy, dataset, sink, retrieved sink id 222
     Sinker->>Redis: xread key: sink-id / val: deploymentYaml (orb.maestro.otelCollector / hashmap)
     Sinker->>Maestro: grpc: create otel-collector
     Maestro->>Sinker: Will create otel-collector
