@@ -9,6 +9,8 @@ def before_scenario(context, scenario):
 
 
 def after_scenario(context, scenario):
+    if 'access_denied' in context and context.access_denied is True:
+        scenario.set_status(Status.skipped)
     if scenario.status != Status.failed:
         context.execute_steps('''
         Then stop the orb-agent container
