@@ -112,14 +112,8 @@ def multiple_dataset_for_policy(context, amount_of_datasets, time_to_wait):
       " has status {policies_status}")
 def list_policies_applied_to_an_agent_and_referred_status(context, amount_of_policies, amount_of_policies_with_status,
                                                           policies_status):
-    # context.agent = get_agent(context.token, context.agent['id'])
-    # list_policies_applied_to_an_agent(context, amount_of_policies)
-    # list_of_policies_status = list()
-    # for policy_id in context.list_agent_policies_id:
-    #     list_of_policies_status.append(context.agent['last_hb_data']['policy_state'][policy_id]["state"])
     if amount_of_policies_with_status == "all":
         amount_of_policies_with_status = int(amount_of_policies)
-    # amount_of_policies_applied_with_status = list_of_policies_status.count(policies_status)
     context.agent, context.list_agent_policies_id, amount_of_policies_applied_with_status = \
         get_policies_applied_to_an_agent_by_status(context.token, context.agent['id'], amount_of_policies,
                                                    amount_of_policies_with_status, policies_status, timeout=180)
