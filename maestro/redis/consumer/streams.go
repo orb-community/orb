@@ -20,12 +20,12 @@ const (
 	sinkerPrefix = "sinker."
 	sinkerUpdate = sinkerPrefix + "update"
 	sinkerCreate = sinkerPrefix + "create"
-	sinkerDelete = sinkerPrefix + "delete"
+	sinkerDelete = sinkerPrefix + "remove"
 
 	sinksPrefix = "sinks."
 	sinksUpdate = sinksPrefix + "update"
 	sinksCreate = sinksPrefix + "create"
-	sinksDelete = sinksPrefix + "delete"
+	sinksDelete = sinksPrefix + "remove"
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
