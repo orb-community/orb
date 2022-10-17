@@ -9,17 +9,20 @@
 package maestro
 
 import (
+	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 )
 
 var _ MaestroService = (*maestroService)(nil)
 
 type maestroService struct {
-	logger *zap.Logger
+	logger      *zap.Logger
+	redisClient *redis.Client
 }
 
-func NewMaestroService(logger *zap.Logger) MaestroService {
+func NewMaestroService(logger *zap.Logger, redisClient *redis.Client) MaestroService {
 	return &maestroService{
-		logger: logger,
+		logger:      logger,
+		redisClient: redisClient,
 	}
 }

@@ -3,8 +3,179 @@ package maestro
 import (
 	"context"
 	"fmt"
+	"github.com/ns1labs/orb/pkg/errors"
 	"gopkg.in/yaml.v2"
+	"strings"
 )
+
+var k8sOtelCollector = `
+{
+    "kind": "List",
+    "apiVersion": "v1",
+    "metadata": {},
+    "items": [
+        {
+            "kind": "ConfigMap",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "otel-collector-config-SINK_ID",
+                "creationTimestamp": null
+            },
+            "data": {
+                "config.yaml": "SINK_CONFIG"
+            }
+        },
+        {
+            "kind": "Deployment",
+            "apiVersion": "apps/v1",
+            "metadata": {
+                "name": "otel-SINK_ID",
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "opentelemetry",
+                    "component": "otel-collector"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "app": "opentelemetry",
+                        "component": "otel-collector-SINK_ID"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app": "opentelemetry",
+                            "component": "otel-collector-SINK_ID"
+                        }
+                    },
+                    "spec": {
+                        "volumes": [
+                            {
+                                "name": "varlog",
+                                "hostPath": {
+                                    "path": "/var/log",
+                                    "type": ""
+                                }
+                            },
+                            {
+                                "name": "varlibdockercontainers",
+                                "hostPath": {
+                                    "path": "/var/lib/docker/containers",
+                                    "type": ""
+                                }
+                            },
+                            {
+                                "name": "data",
+                                "configMap": {
+                                    "name": "otel-collector-config-SINK_ID",
+                                    "defaultMode": 420
+                                }
+                            }
+                        ],
+                        "containers": [
+                            {
+                                "name": "otel-collector",
+                                "image": "otel/opentelemetry-collector-contrib:0.60.0",
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "100m",
+                                        "memory": "200Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "100m",
+                                        "memory": "200Mi"
+                                    }
+                                },
+                                "volumeMounts": [
+                                    {
+                                        "name": "varlog",
+                                        "readOnly": true,
+                                        "mountPath": "/var/log"
+                                    },
+                                    {
+                                        "name": "varlibdockercontainers",
+                                        "readOnly": true,
+                                        "mountPath": "/var/lib/docker/containers"
+                                    },
+                                    {
+                                        "name": "data",
+                                        "readOnly": true,
+                                        "mountPath": "/etc/otelcol-contrib/config.yaml",
+                                        "subPath": "config.yaml"
+                                    }
+                                ],
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "imagePullPolicy": "IfNotPresent"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "terminationGracePeriodSeconds": 30,
+                        "dnsPolicy": "ClusterFirst",
+                        "securityContext": {},
+                        "schedulerName": "default-scheduler"
+                    }
+                },
+                "strategy": {
+                    "type": "RollingUpdate",
+                    "rollingUpdate": {
+                        "maxUnavailable": "25%",
+                        "maxSurge": "25%"
+                    }
+                },
+                "revisionHistoryLimit": 10,
+                "progressDeadlineSeconds": 600
+            },
+            "status": {}
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "otel-SINK_ID",
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "opentelemetry",
+                    "component": "otel-collector-SINK_ID"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "metrics",
+                        "protocol": "TCP",
+                        "port": 8888,
+                        "targetPort": 8888
+                    }
+                ],
+                "selector": {
+                    "component": "otel-collector-SINK_ID"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }
+    ]
+}
+`
+
+func GetDeploymentJson(sinkId, sinkUrl, sinkUsername, sinkPassword string) (string, error) {
+	// prepare manifest
+	manifest := strings.Replace(k8sOtelCollector, "SINK_ID", sinkId, -1)
+	config, err := ReturnConfigYamlFromSink(context.Background(), "orb-live-stg-kafka.orb-live.svc.cluster.local:9092", sinkId, sinkUrl, sinkUsername, sinkPassword)
+	if err != nil {
+		return "", errors.Wrap(errors.New("failed to build YAML"), err)
+	}
+	manifest = strings.Replace(manifest, "SINK_CONFIG", config, -1)
+	return manifest, nil
+}
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
 func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl, sinkUsername, sinkPassword string) (string, error) {

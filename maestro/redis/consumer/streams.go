@@ -20,12 +20,12 @@ const (
 	sinkerPrefix = "sinker."
 	sinkerUpdate = sinkerPrefix + "update"
 	sinkerCreate = sinkerPrefix + "create"
-	sinkerDelete = sinkerPrefix + "delete"
+	sinkerDelete = sinkerPrefix + "remove"
 
 	sinksPrefix = "sinks."
 	sinksUpdate = sinksPrefix + "update"
 	sinksCreate = sinksPrefix + "create"
-	sinksDelete = sinksPrefix + "delete"
+	sinksDelete = sinksPrefix + "remove"
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
@@ -144,23 +144,19 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinks
 	return nil
 }
 
-// Create collector
-func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro UPDATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	err := es.maestroService.CreateOtelCollector(ctx, event.sinkID, event.config, event.ownerID)
-	if err != nil {
-		return err
-	}
+// handleSinksCreateCollector will create Deployment Entry in Redis
+func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinksUpdateEvent) error {
+	es.logger.Info("Received maestro CREATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+
+	es.client.HSet(ctx, event.sinkID)
+
 	return nil
 }
 
-// Create collector
-func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro CREATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	err := es.maestroService.CreateOtelCollector(ctx, event.sinkID, event.config, event.ownerID)
-	if err != nil {
-		return err
-	}
+// handleSinksUpdateCollector will update Deployment Entry in Redis
+func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinksUpdateEvent) error {
+	es.logger.Info("Received maestro UPDATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+
 	return nil
 }
 

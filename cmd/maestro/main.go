@@ -97,7 +97,7 @@ func connectToRedis(redisURL, redisPass, redisDB string, logger *zap.Logger) *r.
 }
 
 func newMaestroService(logger *zap.Logger, esClient *r.Client) maestro.MaestroService {
-	svc := maestro.NewMaestroService(logger)
+	svc := maestro.NewMaestroService(logger, esClient)
 	return svc
 }
 
