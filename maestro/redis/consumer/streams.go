@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"github.com/ns1labs/orb/pkg/types"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -135,32 +136,6 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 }
 
 // Delete collector
-func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro DELETE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID, event.config, event.ownerID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// handleSinksCreateCollector will create Deployment Entry in Redis
-func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro CREATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-
-	es.client.HSet(ctx, event.sinkID)
-
-	return nil
-}
-
-// handleSinksUpdateCollector will update Deployment Entry in Redis
-func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro UPDATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-
-	return nil
-}
-
-// Delete collector
 func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event sinkerUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinker, sink state=" + event.state + ", , Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
 	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID, event.state, event.ownerID)
@@ -191,20 +166,19 @@ func decodeSinkerStateUpdate(event map[string]interface{}) sinkerUpdateEvent {
 	return val
 }
 
-func decodeSinksUpdate(event map[string]interface{}) sinksUpdateEvent {
-	val := sinksUpdateEvent{
-		ownerID:   read(event, "owner", ""),
-		sinkID:    read(event, "sink_id", ""),
-		config:    read(event, "config", ""),
-		timestamp: time.Time{},
-	}
-	return val
-}
-
 func read(event map[string]interface{}, key, def string) string {
 	val, ok := event[key].(string)
 	if !ok {
 		return def
+	}
+
+	return val
+}
+
+func readMetadata(event map[string]interface{}, key string) types.Metadata {
+	val, ok := event[key].(types.Metadata)
+	if !ok {
+		return types.Metadata{}
 	}
 
 	return val
