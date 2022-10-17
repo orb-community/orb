@@ -10,6 +10,7 @@ package producer
 
 import (
 	"context"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/backend"
@@ -37,7 +38,31 @@ func (es eventStore) ViewSinkInternal(ctx context.Context, ownerID string, key s
 	return es.svc.ViewSinkInternal(ctx, ownerID, key)
 }
 
-func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink) (sinks.Sink, error) {
+func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, err error) {
+	defer func() {
+		event := createSinkEvent{
+			sinkID: sink.ID,
+			owner:  sink.MFOwnerID,
+			config: sink.Config,
+		}
+
+		encode, err := event.Encode()
+		if err != nil {
+			es.logger.Error("error encoding object", zap.Error(err))
+		}
+
+		record := &redis.XAddArgs{
+			Stream:       streamID,
+			MaxLenApprox: streamLen,
+			Values:       encode,
+		}
+
+		err = es.client.XAdd(ctx, record).Err()
+		if err != nil {
+			es.logger.Error("error sending event to event store", zap.Error(err))
+		}
+	}()
+
 	return es.svc.CreateSink(ctx, token, s)
 }
 
@@ -100,10 +125,15 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err erro
 		ownerID: sink.MFOwnerID,
 	}
 
+	encode, err := event.Encode()
+	if err != nil {
+		es.logger.Error("error encoding object", zap.Error(err))
+	}
+
 	record := &redis.XAddArgs{
 		Stream:       streamID,
 		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Values:       encode,
 	}
 
 	err = es.client.XAdd(ctx, record).Err()

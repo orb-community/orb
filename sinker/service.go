@@ -25,7 +25,7 @@ import (
 const (
 	BackendMetricsTopic = "be.*.m.>"
 	OtelMetricsTopic    = "otlp.*.m.>"
-	MaxMsgPayloadSize   = 2048 * 100
+	MaxMsgPayloadSize   = 1048 * 1000
 )
 
 var (

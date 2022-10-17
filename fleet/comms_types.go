@@ -19,7 +19,7 @@ var (
 )
 
 // MaxMsgPayloadSize maximum payload size we will process from a client
-const MaxMsgPayloadSize = 1024 * 5
+const MaxMsgPayloadSize = 1024 * 25
 
 // MQTT messaging schemes
 

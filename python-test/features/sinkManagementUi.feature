@@ -2,7 +2,7 @@
 Feature: Sink Management tests using orb UI
 
 @smoke_ui
-Scenario: Create a new Sink Management 
+Scenario: Create a new Sink through UI
     Given that the Orb user logs in Orb UI
         And the user clicks on Sink Management on left menu
     When a sink is created through the UI with 1 orb tag
@@ -10,7 +10,7 @@ Scenario: Create a new Sink Management
         And total number was increased in one unit
 
 @smoke_ui
-Scenario: Delete an Sink Management by name
+Scenario: Delete a Sink by name through UI
     Given that the Orb user logs in Orb UI
         And the user clicks on Sink Management on left menu
     When delete a sink using filter by name with 1 orb tag
@@ -18,7 +18,7 @@ Scenario: Delete an Sink Management by name
         And total number was decreased in one unit
 
 @smoke_ui
-Scenario: Edit an Sink Management by name
+Scenario: Edit a Sink by name through UI
     Given that the Orb user logs in Orb UI
         And the user clicks on Sink Management on left menu
     When update a sink using filter by name with 1 orb tag
