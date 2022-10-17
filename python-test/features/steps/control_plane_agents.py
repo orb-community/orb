@@ -13,6 +13,7 @@ import re
 import json
 import psutil
 import os
+import signal
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
@@ -369,7 +370,7 @@ def kill_pktvisor_on_agent(context):
                 proc_port = proc_con[0].laddr.port
                 if proc_port == context.port:
                     current_proc_pid = process.pid
-                    process.terminate()
+                    process.send_signal(signal.SIGKILL)
                     break
         assert_that(current_proc_pid, is_not(None), "Unable to find pid of pktvisor process")
     except psutil.AccessDenied:
@@ -377,6 +378,31 @@ def kill_pktvisor_on_agent(context):
         raise ValueError(f"You are not allowed to run this scenario without root permissions.")
     except Exception as exception:
         raise exception
+
+
+@step("{backend} state is {state}")
+def check_back_state(context, backend, state):
+    backend_state, agent = wait_until_expected_backend_state(context.token, context.agent['id'], backend, state,
+                                                             timeout=180)
+    logs = get_orb_agent_logs(context.container_id)
+    assert_that(backend_state, equal_to(state), f"Unexpected backend state on agent: {agent}. Logs: {logs}")
+
+
+@step("{backend} error is {error}")
+def check_back_error(context, backend, error):
+    backend_state, agent = wait_until_expected_backend_error(context.token, context.agent['id'], backend, error,
+                                                             timeout=180)
+    logs = get_orb_agent_logs(context.container_id)
+    assert_that(backend_state, equal_to(error), f"Unexpected backend error on agent: {agent}. Logs: {logs}")
+
+
+@step("agent backend {backend} restart_count is {restart_count}")
+def check_auto_reset(context, backend, restart_count):
+    amount, agent = wait_until_expected_amount_of_restart_count(context.token, context.agent['id'], backend,
+                                                                restart_count, timeout=400)
+    logs = get_orb_agent_logs(context.container_id)
+    assert_that(int(amount), equal_to(int(restart_count)), f"Unexpected restart count for backend {backend} on agent: "
+                                                           f"{agent}. Logs: {logs}")
 
 
 @threading_wait_until
@@ -397,6 +423,75 @@ def wait_until_expected_agent_status(token, agent_id, status, event=None):
         event.set()
         return agent_status, agent
     return agent_status, agent
+
+
+@threading_wait_until
+def wait_until_expected_amount_of_restart_count(token, agent_id, backend, amount_of_restart, event=None):
+    """
+    Keeps fetching agent data from Orb control plane until it gets to
+    the expected agent status or this operation times out
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: whose backend state will be evaluated
+    :param (str) amount_of_restart: expected amount of restart state
+    :param (str) backend: backend to check state
+    :param (obj) event: threading.event
+    """
+
+    agent = get_agent(token, agent_id)
+    if 'restart_count' in agent["last_hb_data"]["backend_state"][backend].keys():
+        amount = agent["last_hb_data"]["backend_state"][backend]['restart_count']
+        if int(amount_of_restart) == int(amount):
+            event.set()
+            return amount, agent
+        return amount, agent
+    else:
+        return None, agent
+
+
+@threading_wait_until
+def wait_until_expected_backend_state(token, agent_id, backend, state, event=None):
+    """
+    Keeps fetching agent data from Orb control plane until it gets to
+    the expected agent status or this operation times out
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: whose backend state will be evaluated
+    :param (str) state: expected backend state
+    :param (str) backend: backend to check state
+    :param (obj) event: threading.event
+    """
+
+    agent = get_agent(token, agent_id)
+    backend_state = agent["last_hb_data"]["backend_state"][backend]['state']
+    if backend_state == state:
+        event.set()
+        return backend_state, agent
+    return backend_state, agent
+
+
+@threading_wait_until
+def wait_until_expected_backend_error(token, agent_id, backend, error, event=None):
+    """
+    Keeps fetching agent data from Orb control plane until it gets to
+    the expected agent status or this operation times out
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: whose backend error will be evaluated
+    :param (str) error: expected backend error
+    :param (str) backend: backend to check error
+    :param (obj) event: threading.event
+    """
+
+    agent = get_agent(token, agent_id)
+    if 'error' in agent["last_hb_data"]["backend_state"][backend].keys():
+        backend_error = agent["last_hb_data"]["backend_state"][backend]['error']
+        if backend_error == error:
+            event.set()
+            return backend_error, agent
+        return backend_error, agent
+    else:
+        return None, agent
 
 
 def get_agent(token, agent_id, status_code=200):
