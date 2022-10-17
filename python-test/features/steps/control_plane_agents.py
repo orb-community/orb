@@ -596,7 +596,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         tags = {"tags": all_used_tags}
     else:
         tags = {"tags": create_tags_set(agent_tags)}
-    if configs.get('ignore_ssl_and_certificate_errors', 'true').lower() == 'true':
+    if configs.get('ignore_ssl_and_certificate_errors', 'false').lower() == 'true':
         mqtt_url = f"{base_orb_address}:1883"
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url, tap_name,
                                                                      tls_verify=False, auto_provision=auto_provision,
