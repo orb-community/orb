@@ -134,7 +134,7 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 	}
 }
 
-//Delete collector
+// Delete collector
 func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinksUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
 	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID, event.config, event.ownerID)
@@ -144,7 +144,7 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinks
 	return nil
 }
 
-//Create collector
+// Create collector
 func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinksUpdateEvent) error {
 	es.logger.Info("Received maestro UPDATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
 	err := es.maestroService.CreateOtelCollector(ctx, event.sinkID, event.config, event.ownerID)
@@ -154,7 +154,7 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinks
 	return nil
 }
 
-//Create collector
+// Create collector
 func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinksUpdateEvent) error {
 	es.logger.Info("Received maestro CREATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
 	err := es.maestroService.CreateOtelCollector(ctx, event.sinkID, event.config, event.ownerID)
@@ -164,7 +164,7 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinks
 	return nil
 }
 
-//Delete collector
+// Delete collector
 func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event sinkerUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinker, sink state=" + event.state + ", , Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
 	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID, event.state, event.ownerID)
@@ -174,9 +174,10 @@ func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event sink
 	return nil
 }
 
-//Create collector
+// Create collector
 func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event sinkerUpdateEvent) error {
 	es.logger.Info("Received maestro CREATE event from sinker, sink state=" + event.state + ", Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+
 	err := es.maestroService.CreateOtelCollector(ctx, event.sinkID, event.state, event.ownerID)
 	if err != nil {
 		return err

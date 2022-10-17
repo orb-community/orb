@@ -13,11 +13,11 @@ import (
 const (
 	streamID       = "orb.sinker"
 	streamLen      = 1000
-	CheckerFreq    = 300 * time.Second
+	CheckerFreq    = 5 * time.Minute
 	DefaultTimeout = 30 * time.Minute
 )
 
-func (svc *sinkerService) checkState(t time.Time) {
+func (svc *sinkerService) checkState(_ time.Time) {
 	owners, err := svc.sinkerCache.GetAllOwners()
 	if err != nil {
 		svc.logger.Error("failed to retrieve the list of owners")
@@ -31,7 +31,7 @@ func (svc *sinkerService) checkState(t time.Time) {
 			return
 		}
 		for _, cfg := range configs {
-			// Set idle if the sinker is more then 30 minutes not sending metrics (Remove from Redis)
+			// Set idle if the sinker is more than 30 minutes not sending metrics (Remove from Redis)
 			if cfg.LastRemoteWrite.Add(DefaultTimeout).Before(time.Now()) {
 				if cfg.State == config.Active {
 					if err := svc.sinkerCache.Remove(cfg.OwnerID, cfg.SinkID); err != nil {

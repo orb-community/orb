@@ -21,42 +21,6 @@ import (
 )
 
 var (
-	otelCollectorCfg = `---
-receivers:
-  kafka:
-    brokers:
-    - orb-live-stg-kafka.orb-live.svc.cluster.local:9092
-    topic: otlp_metrics-sink-id-222
-    protocol_version: 2.0.0
-extensions:
-  health_check:
-    endpoint: :13133
-    path: /health/status
-    check_collector_pipeline:
-      enabled: true
-      interval: 5m
-      exporter_failure_threshold: 5
-  basicauth/exporter:
-    client_auth:
-      username: admin
-      password: amanda.joaquina
-exporters:
-  prometheusremotewrite:
-    endpoint: https://prometheus.qa.orb.live/api/v1/write
-    auth:
-      authenticator: basicauth/exporter
-service:
-  extensions:
-  - health_check
-  - basicauth/exporter
-  pipelines:
-    metrics:
-      receivers:
-      - kafka
-      exporters:
-      - prometheusremotewrite
-`
-
 	k8sOtelCollector = `
 {
     "kind": "List",
@@ -218,13 +182,17 @@ service:
 	ErrConflictMaestro = errors.New("Otel collector already exists")
 )
 
-func (svc maestroService) collectorDeploy(operation string, namespace string, sinkId string, manifest string, config string) error {
+func (svc maestroService) collectorDeploy(operation, namespace, manifest, sinkId, sinkUrl, sinkUsername, sinkPassword string) error {
 	// prepare manifest
 	manifest = strings.Replace(manifest, "SINK_ID", sinkId, -1)
-	config = strings.Replace(config, "\n", `\n`, -1)
+	config, err := ReturnConfigYamlFromSink(context.Background(), "orb-live-stg-kafka.orb-live.svc.cluster.local:9092", sinkId, sinkUrl, sinkUsername, sinkPassword)
+	if err != nil {
+		svc.logger.Error("Could not build Sink config YAML for Otel Collector", zap.String("sinkId", sinkId), zap.Error(err))
+		return err
+	}
 	manifest = strings.Replace(manifest, "SINK_CONFIG", config, -1)
 	fileContent := []byte(manifest)
-	err := os.WriteFile("/tmp/otel-collector-"+sinkId+".json", fileContent, 0644)
+	err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", fileContent, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -261,8 +229,13 @@ func (svc maestroService) collectorDeploy(operation string, namespace string, si
 	return nil
 }
 
+func getConfigFromSinkId(id string) (sinkUrl, sinkUsername, sinkPassword string) {
+	return "", "", ""
+}
+
 func (svc maestroService) CreateOtelCollector(ctx context.Context, sinkID string, msg string, ownerID string) error {
-	err := svc.collectorDeploy("apply", "otelcollectors", sinkID, k8sOtelCollector, otelCollectorCfg)
+	sinkUrl, sinkUsername, sinkPassword := getConfigFromSinkId(sinkID)
+	err := svc.collectorDeploy("apply", "otelcollectors", k8sOtelCollector, sinkID, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
 		return err
 	}
@@ -270,7 +243,8 @@ func (svc maestroService) CreateOtelCollector(ctx context.Context, sinkID string
 }
 
 func (svc maestroService) UpdateOtelCollector(ctx context.Context, sinkID string, msg string, ownerID string) error {
-	err := svc.collectorDeploy("apply", "otelcollectors", sinkID, k8sOtelCollector, otelCollectorCfg)
+	sinkUrl, sinkUsername, sinkPassword := getConfigFromSinkId(sinkID)
+	err := svc.collectorDeploy("apply", "otelcollectors", k8sOtelCollector, sinkID, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
 		return err
 	}
@@ -278,7 +252,7 @@ func (svc maestroService) UpdateOtelCollector(ctx context.Context, sinkID string
 }
 
 func (svc maestroService) DeleteOtelCollector(ctx context.Context, sinkID string, msg string, ownerID string) error {
-	err := svc.collectorDeploy("delete", "otelcollectors", sinkID, k8sOtelCollector, otelCollectorCfg)
+	err := svc.collectorDeploy("delete", "otelcollectors", k8sOtelCollector, sinkID, "", "", "")
 	if err != nil {
 		return err
 	}
