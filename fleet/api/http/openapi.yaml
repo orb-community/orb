@@ -461,7 +461,7 @@ components:
       required: false
     Authorization:
       name: Authorization
-      description: User's access token.
+      description: User's access token (bearer auth)
       in: header
       bearerAuth:
         scheme: bearer

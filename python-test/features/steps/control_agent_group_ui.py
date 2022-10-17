@@ -12,12 +12,11 @@ agent_group_to_be_deleted = "agent_group_to_delete"
 
 
 @when('a new agent group is created through the UI with {orb_tags} orb tag')
-def create_agent_group_through_the_agent_group_page(context, orb_tags):
+def create_agent_group_through_the_agent_group_page_with_tags(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
-    WebDriverWait(context.driver, 5).until(
-        EC.element_to_be_clickable((By.XPATH, AgentGroupPage.new_agent_group_button())),
-        message="Unable to click on new agent group"
-                " button").click()
+    button_was_clicked = button_click_by_xpath(AgentGroupPage.new_agent_group_button(), context.driver,
+                                               "Unable to click on new agent group button")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on new agent group button")
     WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{orb_url}/pages/fleet/groups/add"), message="Orb add"
                                                                                                       "agent group "
                                                                                                       "page not "
@@ -29,10 +28,9 @@ def create_agent_group_through_the_agent_group_page(context, orb_tags):
 @step('a new agent group is created through the UI with same tags as the agent')
 def create_agent_group_through_the_agent_group_page(context):
     context.agent_group_name = agent_group_name_prefix + random_string(10)
-    WebDriverWait(context.driver, 5).until(
-        EC.element_to_be_clickable((By.XPATH, AgentGroupPage.new_agent_group_button())),
-        message="Unable to click on new agent group"
-                " button").click()
+    button_was_clicked = button_click_by_xpath(AgentGroupPage.new_agent_group_button(), context.driver,
+                                               "Unable to click on new agent group button")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on new agent group button")
     tags_in_agent = context.agent["orb_tags"]
     if context.agent["agent_tags"] is not None:
         tags_in_agent.update(context.agent["agent_tags"])
@@ -57,10 +55,9 @@ def check_presence_of_group_on_orb_ui(context, condition):
 @when("a new agent group with description is created through the UI with {orb_tags} orb tag")
 def create_agent_group_with_description_through_the_agent_group_page(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
-    WebDriverWait(context.driver, 5).until(
-        EC.element_to_be_clickable((By.XPATH, AgentGroupPage.new_agent_group_button())), message="Unable to click on "
-                                                                                                 "new agent group "
-                                                                                                 " button").click()
+    button_was_clicked = button_click_by_xpath(AgentGroupPage.new_agent_group_button(), context.driver,
+                                               "Unable to click on new agent group button")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on new agent group button")
     WebDriverWait(context.driver, 5).until(EC.url_to_be(f"{orb_url}/pages/fleet/groups/add"), message="Orb add"
                                                                                                       "agent group "
                                                                                                       "page not "
@@ -75,8 +72,9 @@ def create_agent_group_with_description_through_the_agent_group_page(context, or
 @when("delete the agent group using filter by name with {orb_tags} orb tag")
 def delete_agent_through_the_agent_group_page(context, orb_tags):
     create_agent_group_with_description_through_the_agent_group_page(context, orb_tags)
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, DataTable.filter_by()))).click()
+    button_was_clicked = button_click_by_xpath(DataTable.filter_by(), context.driver,
+                                               "Unable to click on filter group button")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on filter group button")
     WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located((By.XPATH, DataTable.filter_by())))
     WebDriverWait(context.driver, 3).until(
@@ -87,20 +85,25 @@ def delete_agent_through_the_agent_group_page(context, orb_tags):
     WebDriverWait(context.driver, 3).until(
         EC.presence_of_element_located((By.XPATH, DataTable.filter_by_name_field())))
     input_text_by_xpath(DataTable.filter_by_name_field(), context.agent_group_name, context.driver)
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, DataTable.plus_button()))).click()
-    WebDriverWait(context.driver, 5).until(
-        EC.element_to_be_clickable((By.XPATH, DataTable.trash_icon()))).click()
+    button_was_clicked = button_click_by_xpath(DataTable.plus_button(), context.driver,
+                                               "Unable to click on plus button on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on plus button on group page")
+    button_was_clicked = button_click_by_xpath(DataTable.trash_icon(), context.driver,
+                                               "Unable to click on trash icon on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on trash icon on group page")
     input_text_by_xpath(AgentGroupPage.delete_agent_group_confirmation_field(), context.agent_group_name,
                         context.driver)
-    WebDriverWait(context.driver, 5).until(
-        EC.element_to_be_clickable((By.XPATH, AgentGroupPage.delete_agent_group_confirmation_title()))).click()
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, AgentGroupPage.delete_agent_group_confirmation_button()))).click()
+    button_was_clicked = button_click_by_xpath(AgentGroupPage.delete_agent_group_confirmation_title(), context.driver,
+                                               "Unable to click on delete group on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on delete group on group page")
+    button_was_clicked = button_click_by_xpath(AgentGroupPage.delete_agent_group_confirmation_button(), context.driver,
+                                               "Unable to click on delete group confirmation on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on delete group confirmation on group page")
     WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully deleted'))
-    WebDriverWait(context.driver, 3).until(EC.element_to_be_clickable((By.XPATH, UtilButton.clear_all_filters())),
-                                           "Unable to clear all filters").click()
+    button_was_clicked = button_click_by_xpath(UtilButton.clear_all_filters(), context.driver,
+                                               "Unable to clear all filters")
+    assert_that(button_was_clicked, equal_to(True), "Unable to clear all filters")
 
 
 @then("total number was decreased in one unit")
@@ -119,10 +122,11 @@ def check_total_counter(driver):
 
 @when("update the agent group using filter by name with {orb_tags} orb tag")
 def update_an_agent_group_by_name_through_the_agent_group_page(context, orb_tags):
-    create_agent_group_through_the_agent_group_page(context, orb_tags)
+    create_agent_group_through_the_agent_group_page_with_tags(context, orb_tags)
     context.initial_counter_datatable = check_total_counter(context.driver)
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, DataTable.filter_by()))).click()
+    button_was_clicked = button_click_by_xpath(DataTable.filter_by(), context.driver,
+                                               "Unable to click on filter on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on filter on group page")
     WebDriverWait(context.driver, 3).until(
         EC.presence_of_all_elements_located((By.XPATH, DataTable.filter_by())))
     WebDriverWait(context.driver, 3).until(
@@ -133,25 +137,31 @@ def update_an_agent_group_by_name_through_the_agent_group_page(context, orb_tags
     WebDriverWait(context.driver, 3).until(
         EC.presence_of_element_located((By.XPATH, DataTable.filter_by_name_field())))
     input_text_by_xpath(DataTable.filter_by_name_field(), context.agent_group_name, context.driver)
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, DataTable.plus_button()))).click()
-    WebDriverWait(context.driver, 5).until(
-        EC.element_to_be_clickable((By.XPATH, DataTable.edit_icon()))).click()
+    button_was_clicked = button_click_by_xpath(DataTable.plus_button(), context.driver,
+                                               "Unable to click on plus button on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on plus button on group page")
+    button_was_clicked = button_click_by_xpath(DataTable.edit_icon(), context.driver,
+                                               "Unable to click on edit button on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on edit button on group page")
     WebDriverWait(context.driver, 3).until(
         EC.element_to_be_clickable((By.XPATH, AgentGroupPage.agent_group_name()))).clear()
     context.agent_group_name = agent_group_name_prefix + "upd" + random_string(5)
     input_text_by_xpath(AgentGroupPage.agent_group_name(), context.agent_group_name, context.driver)
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
+    button_was_clicked = button_click_by_xpath(UtilButton.next_button(), context.driver,
+                                               "Unable to click on next button on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on next button on group page")
+    button_was_clicked = button_click_by_xpath(UtilButton.next_button(), context.driver,
+                                               "Unable to click on next button on group page (2)")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on next button on group page (2)")
+    button_was_clicked = button_click_by_xpath(UtilButton.save_button(), context.driver,
+                                               "Unable to click on save button on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on save button on group page")
     WebDriverWait(context.driver, 3).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully updated'))
     context.initial_counter = check_total_counter(context.driver)
-    WebDriverWait(context.driver, 3).until(
-        EC.element_to_be_clickable((By.XPATH, DataTable.close_option_selected()))).click()
+    button_was_clicked = button_click_by_xpath(DataTable.close_option_selected(), context.driver,
+                                               "Unable to click on close option button on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on close option button on group page")
 
 
 def create_group_via_UI(name, orb_tags, driver, token, existent_groups, description=None, time_to_wait_until=5):
@@ -161,17 +171,21 @@ def create_group_via_UI(name, orb_tags, driver, token, existent_groups, descript
     input_text_by_xpath(AgentGroupPage.agent_group_name(), name, driver)
     if description is not None:
         input_text_by_xpath(AgentGroupPage.agent_group_description(), agent_group_description, driver)
-    WebDriverWait(driver, time_to_wait_until).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
+    button_was_clicked = button_click_by_xpath(UtilButton.next_button(), driver,
+                                               "Unable to click on next button on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on next button on group page")
     for tag_key, tag_value in orb_tags.items():
         input_text_by_xpath(AgentGroupPage.agent_group_tag_key(), tag_key, driver)
         input_text_by_xpath(AgentGroupPage.agent_group_tag_value(), tag_value, driver)
-        WebDriverWait(driver, time_to_wait_until).until(
-            EC.element_to_be_clickable((By.XPATH, AgentGroupPage.agent_group_add_tag_button()))).click()
-    WebDriverWait(driver, time_to_wait_until).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.next_button()))).click()
-    WebDriverWait(driver, time_to_wait_until).until(
-        EC.element_to_be_clickable((By.XPATH, UtilButton.save_button()))).click()
+        button_was_clicked = button_click_by_xpath(AgentGroupPage.agent_group_add_tag_button(), driver,
+                                                   "Unable to click on add tags button on group page")
+        assert_that(button_was_clicked, equal_to(True), "Unable to click on add tags button on group page")
+    button_was_clicked = button_click_by_xpath(UtilButton.next_button(), driver,
+                                               "Unable to click on next button on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on next tags button on group page")
+    button_was_clicked = button_click_by_xpath(UtilButton.save_button(), driver,
+                                               "Unable to click on save button on group page")
+    assert_that(button_was_clicked, equal_to(True), "Unable to click on save tags button on group page")
     WebDriverWait(driver, time_to_wait_until).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully created'))
     all_groups = list_agent_groups(token)

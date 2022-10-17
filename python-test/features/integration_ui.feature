@@ -1,3 +1,4 @@
+@integration_ui @AUTORETRY
 Feature: Integration UI tests
 
   @smoke_ui
