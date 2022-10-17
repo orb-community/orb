@@ -11,17 +11,12 @@ import (
 )
 
 const (
-	streamID  = "orb.collectors"
-	streamLen = 1000
-
 	streamSinker = "orb.sinker"
 	streamSinks  = "orb.sinks"
 	group        = "orb.collectors"
 
 	sinkerPrefix = "sinker."
 	sinkerUpdate = sinkerPrefix + "update"
-	sinkerCreate = sinkerPrefix + "create"
-	sinkerDelete = sinkerPrefix + "remove"
 
 	sinksPrefix = "sinks."
 	sinksUpdate = sinksPrefix + "update"
@@ -138,7 +133,7 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 // Delete collector
 func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event sinkerUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinker, sink state=" + event.state + ", , Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID, event.state, event.ownerID)
+	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID)
 	if err != nil {
 		return err
 	}
