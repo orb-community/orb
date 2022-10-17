@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const deploymentKey = "sinks.deployment"
+const deploymentKey = "orb.sinks.deployment"
 
 // handleSinksDeleteCollector will delete Deployment Entry and force delete otel collector
 func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinksUpdateEvent) error {
