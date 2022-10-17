@@ -77,7 +77,7 @@ Scenario: apply one policy using multiple datasets to the same group
         And that a sink already exists
     When 2 simple policies are applied to the group by 3 datasets each
     Then this agent's heartbeat shows that 2 policies are applied and all has status running
-        And 3 datasets are linked with each policy on agent's heartbeat within 30 seconds
+        And 3 datasets are linked with each policy on agent's heartbeat within 180 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 180 seconds
         And referred sink must have active state on response within 180 seconds
         And 6 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
