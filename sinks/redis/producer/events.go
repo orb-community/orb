@@ -10,8 +10,9 @@ package producer
 
 import (
 	"encoding/json"
-	"github.com/ns1labs/orb/pkg/types"
 	"time"
+
+	"github.com/ns1labs/orb/pkg/types"
 )
 
 const (
@@ -22,7 +23,7 @@ const (
 )
 
 type event interface {
-	Encode() map[string]interface{}
+	Encode() (map[string]interface{}, error)
 }
 
 var (
@@ -30,22 +31,24 @@ var (
 )
 
 type createSinkEvent struct {
-	mfThing   string
+	sinkID    string
 	owner     string
-	name      string
-	content   string
+	config    types.Metadata
 	timestamp time.Time
 }
 
-func (cce createSinkEvent) Encode() map[string]interface{} {
+func (cce createSinkEvent) Encode() (map[string]interface{}, error) {
+	config, err := json.Marshal(cce.config)
+	if err != nil {
+		return nil, err
+	}
 	return map[string]interface{}{
-		"thing_id":  cce.mfThing,
+		"sink_id":   cce.sinkID,
 		"owner":     cce.owner,
-		"name":      cce.name,
-		"content":   cce.content,
+		"config":    config,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": SinkCreate,
-	}
+	}, nil
 }
 
 type deleteSinkEvent struct {
@@ -53,12 +56,12 @@ type deleteSinkEvent struct {
 	ownerID string
 }
 
-func (dse deleteSinkEvent) Encode() map[string]interface{} {
+func (dse deleteSinkEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"sink_id":   dse.sinkID,
 		"owner_id":  dse.ownerID,
 		"operation": SinkDelete,
-	}
+	}, nil
 }
 
 type updateSinkEvent struct {
