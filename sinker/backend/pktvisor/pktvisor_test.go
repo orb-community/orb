@@ -4023,14 +4023,14 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				},
 			},
 		},
-		"FlowTopInIfIndexBytes": {
+		"FlowTopInInterfacesBytes": {
 			data: []byte(`
 {
     "policy_flow": {
 		"flow": {
 			"devices":{
 				"192.168.4.7": {
-        			"top_in_if_index_bytes": [
+        			"top_in_interfaces_bytes": [
 						{
           	  	  			"estimate": 8,
           	  	  			"name": "300"
@@ -4045,7 +4045,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_in_if_index_bytes",
+						Value: "flow_top_in_interfaces_bytes",
 					},
 					{
 						Name:  "instance",
@@ -4076,7 +4076,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "192.168.4.7",
 					},
 					{
-						Name:  "index",
+						Name:  "interface",
 						Value: "300",
 					},
 				},
@@ -4085,14 +4085,14 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				},
 			},
 		},
-		"FlowTopInIfIndexPackets": {
+		"FlowTopInInterfacesPackets": {
 			data: []byte(`
 {
     "policy_flow": {
 		"flow": {
 			"devices":{
 				"192.168.4.7": {
-        			"top_in_if_index_packets": [
+        			"top_in_interfaces_packets": [
 						{
           	  	  			"estimate": 8,
           	  	  			"name": "300"
@@ -4107,7 +4107,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_in_if_index_packets",
+						Value: "flow_top_in_interfaces_packets",
 					},
 					{
 						Name:  "instance",
@@ -4138,7 +4138,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "192.168.4.7",
 					},
 					{
-						Name:  "index",
+						Name:  "interface",
 						Value: "300",
 					},
 				},
@@ -4147,14 +4147,14 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				},
 			},
 		},
-		"FlowTopOutIfIndexBytes": {
+		"FlowTopOutInterfacesBytes": {
 			data: []byte(`
 {
     "policy_flow": {
 		"flow": {
 			"devices":{
-				"192.168.4.7": {
-        			"top_out_if_index_bytes": [
+				"192.168.4.7|37": {
+        			"top_out_interfaces_bytes": [
 						{
           	  	  			"estimate": 8,
           	  	  			"name": "200"
@@ -4169,7 +4169,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_out_if_index_bytes",
+						Value: "flow_top_out_interfaces_bytes",
 					},
 					{
 						Name:  "instance",
@@ -4200,7 +4200,11 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "192.168.4.7",
 					},
 					{
-						Name:  "index",
+						Name:  "device_interface",
+						Value: "192.168.4.7|37",
+					},
+					{
+						Name:  "interface",
 						Value: "200",
 					},
 				},
@@ -4209,14 +4213,14 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				},
 			},
 		},
-		"FlowTopOutIfIndexPackets": {
+		"FlowTopOutInterfacesPackets": {
 			data: []byte(`
 {
     "policy_flow": {
 		"flow": {
 			"devices":{
 				"192.168.4.7": {
-        			"top_out_if_index_packets": [
+        			"top_out_interfaces_packets": [
 						{
           	  	  			"estimate": 8,
           	  	  			"name": "200"
@@ -4231,7 +4235,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 				Labels: []prometheus.Label{
 					{
 						Name:  "__name__",
-						Value: "flow_top_out_if_index_packets",
+						Value: "flow_top_out_interfaces_packets",
 					},
 					{
 						Name:  "instance",
@@ -4262,7 +4266,7 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "192.168.4.7",
 					},
 					{
-						Name:  "index",
+						Name:  "interface",
 						Value: "200",
 					},
 				},

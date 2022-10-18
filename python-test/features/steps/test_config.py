@@ -48,7 +48,7 @@ def _read_configs():
     assert_that(os.path.exists(local_orb_path), equal_to(True), f"Invalid orb_path: {local_orb_path}.")
     configs['local_orb_path'] = local_orb_path
 
-    ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors', 'true').lower()
+    ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors', 'false').lower()
     assert_that(ignore_ssl_and_certificate_errors, any_of(equal_to('true'), equal_to('false')),
                 'Invalid value to ignore_ssl_and_certificate_errors parameter. A boolean value is expected.')
     configs['ignore_ssl_and_certificate_errors'] = ignore_ssl_and_certificate_errors
@@ -57,7 +57,7 @@ def _read_configs():
     else:
         configs['orb_url'] = f"https://{configs.get('orb_address')}"
 
-    is_credentials_registered = configs.get('is_credentials_registered').lower()
+    is_credentials_registered = configs.get('is_credentials_registered', 'true').lower()
     assert_that(is_credentials_registered, any_of(equal_to('true'), equal_to('false')),
                 'Invalid value to is_credentials_registered parameter. A boolean value is expected.')
     configs['is_credentials_registered'] = is_credentials_registered

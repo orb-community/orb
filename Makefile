@@ -5,6 +5,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+include docker/.env
 
 # expects to be set as env var
 PRODUCTION_AGENT_REF_TAG ?= latest
@@ -16,7 +17,7 @@ PKTVISOR_DEBUG_TAG ?= latest-develop-debug
 DOCKER_IMAGE_NAME_PREFIX ?= orb
 DOCKERHUB_REPO = ns1labs
 BUILD_DIR = build
-SERVICES = fleet policies sinks sinker migrate
+SERVICES = fleet policies sinks sinker migrate maestro
 DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
 CGO_ENABLED ?= 0
@@ -113,6 +114,12 @@ build_docker:
 
 run:
 	docker-compose -f docker/docker-compose.yml up -d
+
+run-otel:
+	docker-compose -f docker/docker-compose.yml -f docker/dc-zp-kafka.yml -f docker/dc-sinker-otelcol.yml up -d
+
+stop-otel:
+	docker-compose -f docker/docker-compose.yml -f docker/dc-zp-kafka.yml -f docker/dc-sinker-otelcol.yml down
 
 agent_bin:
 	$(call compile_service_linux,agent)

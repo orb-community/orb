@@ -19,6 +19,7 @@ paths:
         - $ref: "#/components/parameters/Name"
         - $ref: "#/components/parameters/Order"
         - $ref: "#/components/parameters/Direction"
+        - $ref: "#/components/parameters/Tags"
       responses:
         '200':
           $ref: "#/components/responses/SinksPageRes"
@@ -168,6 +169,11 @@ paths:
           $ref: "#/components/responses/ServiceErrorRes"
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   requestBodies:
     SinkCreateReq:
       description: JSON-formatted document describing the new Sink configuration
@@ -232,13 +238,21 @@ components:
         default: 0
         minimum: 0
       required: false
+    Tags:
+      name: tags
+      description: Tags filter. Filtering is performed as a case-insensitive partial key value match.
+      in: query
+      schema:
+        type: object
+        example: "{\"key\":\"value\"}"
     Authorization:
       name: Authorization
-      description: User's access token.
+      description: User's access token (bearer auth).
       in: header
-      schema:
-        type: string
-        format: jwt
+      bearerAuth:
+        scheme: bearer
+        type: http
+        format: JWT
       required: true
     SinkId:
       name: id

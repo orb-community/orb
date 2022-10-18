@@ -14,6 +14,15 @@ orb_url = TestConfig.configs().get('orb_url')
 configs = TestConfig.configs()
 
 
+@step("a new dataset is requested to be created with the same name as an existent one")
+def create_dataset_with_conflict_name(context):
+    policy_id = context.policy['id']
+    dataset_name = context.dataset['name']
+    groups_to_be_used = random.sample(list(context.agent_groups.keys()), int(1))
+    context.error_message = create_dataset(context.token, dataset_name, policy_id, groups_to_be_used[-1],
+                                           context.used_sinks_id, 409)
+
+
 @step("{amount_of_datasets} new dataset is created using the policy, {group_order} group and {amount_of_sinks}"
       " {sink_number}")
 def create_new_dataset(context, amount_of_datasets, group_order, amount_of_sinks, sink_number):
@@ -59,6 +68,21 @@ def edit_sinks_on_dataset(context, amount_of_sinks):
     sinks = context.existent_sinks_id[:int(amount_of_sinks)]
     edit_dataset(context.token, dataset['id'], dataset['name'], dataset['agent_policy_id'], dataset['agent_group_id'],
                  sinks)
+
+
+@step("editing a dataset using a name already in use")
+def edit_dataset_with_conflict_name(context):
+    dataset = get_dataset(context.token, context.dataset['id'])
+    sinks = context.existent_sinks_id[:int(1)]
+    datasets_list = list_datasets(context.token)
+    agents_filtered_list = filter_list_by_parameter_start_with(datasets_list, 'name', dataset_name_prefix)
+    datasets_name = list()
+    for dataset in agents_filtered_list:
+        datasets_name.append(dataset['name'])
+    datasets_name.remove(context.dataset['name'])
+    name_to_use = random.choice(datasets_name)
+    context.error_message = edit_dataset(context.token, dataset['id'], name_to_use, dataset['agent_policy_id'],
+                                         dataset['agent_group_id'], sinks, 409)
 
 
 @step('a dataset linked to this agent is removed')
@@ -127,7 +151,8 @@ def check_amount_datasets_per_status(context, amount_of_datasets_valid, amount_o
 
 
 @threading_wait_until
-def check_all_test_dataset_per_status(token, existing_datasets_ids_list, amount_of_datasets_valid, amount_of_datasets_invalid, event=None):
+def check_all_test_dataset_per_status(token, existing_datasets_ids_list, amount_of_datasets_valid,
+                                      amount_of_datasets_invalid, event=None):
     datasets_list = list_datasets(token)
     datasets_test_list = [dataset for dataset in datasets_list if dataset['id'] in existing_datasets_ids_list]
     valid_datasets = [dataset for dataset in datasets_test_list if dataset['valid'] is True]
@@ -137,7 +162,7 @@ def check_all_test_dataset_per_status(token, existing_datasets_ids_list, amount_
     return valid_datasets, invalid_datasets
 
 
-def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
+def create_dataset(token, name_label, policy_id, agent_group_id, sink_id, expected_status_code=201):
     """
 
     :param (str) token: used for API authentication
@@ -145,6 +170,7 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
     :param (str) policy_id: that identifies policy to be bound
     :param (str) agent_group_id: that identifies agent_group to be bound
     :param (str) sink_id: that identifies sink to be bound
+    :param (int) expected_status_code: code to be on response
     :return:
     """
 
@@ -157,14 +183,14 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id):
         response_json = response.json()
     except ValueError:
         response_json = ValueError
-    assert_that(response.status_code, equal_to(201),
+    assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create dataset failed with status=' + str(response.status_code) + ': ' +
                 str(response_json))
 
     return response_json
 
 
-def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_id):
+def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_id, expected_status_code=200):
     """
 
     :param (str) dataset_id: that identifies dataset to be edited
@@ -173,6 +199,7 @@ def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_
     :param (str) policy_id: that identifies policy to be bound
     :param (str) agent_group_id: that identifies agent_group to be bound
     :param (str) sink_id: that identifies sink to be bound
+    :param (int) expected_status_code: code to be on response
     :return: edited dataset json
     """
 
@@ -182,7 +209,7 @@ def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_
 
     response = requests.put(f"{orb_url}/api/v1/policies/dataset/{dataset_id}", json=json_request,
                             headers=header_request)
-    assert_that(response.status_code, equal_to(200),
+    assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to edit dataset failed with status=' + str(response.status_code) + ': ' + str(response.json()))
 
     return response.json()

@@ -19,7 +19,7 @@ var (
 )
 
 // MaxMsgPayloadSize maximum payload size we will process from a client
-const MaxMsgPayloadSize = 1024 * 5
+const MaxMsgPayloadSize = 1024 * 25
 
 // MQTT messaging schemes
 
@@ -48,15 +48,22 @@ type Capabilities struct {
 const CurrentHeartbeatSchemaVersion = "1.0"
 
 type BackendStateInfo struct {
-	State string `json:"state"`
-	Error string `json:"error,omitempty"`
+	State             string    `json:"state"`
+	Error             string    `json:"error,omitempty"`
+	RestartCount      int64     `json:"restart_count,omitempty"`
+	LastError         string    `json:"last_error,omitempty"`
+	LastRestartTS     time.Time `json:"last_restart_ts,omitempty"`
+	LastRestartReason string    `json:"last_restart_reason,omitempty"`
 }
 
 type PolicyStateInfo struct {
-	Name     string   `json:"name"`
-	Datasets []string `json:"datasets,omitempty"`
-	State    string   `json:"state"`
-	Error    string   `json:"error,omitempty"`
+	Name            string    `json:"name"`
+	Datasets        []string  `json:"datasets,omitempty"`
+	State           string    `json:"state"`
+	Error           string    `json:"error,omitempty"`
+	Version         int32     `json:"version,omitempty"`
+	LastScrapeBytes int64     `json:"last_scrape_bytes,omitempty"`
+	LastScrapeTS    time.Time `json:"last_scrape_ts,omitempty"`
 }
 
 type GroupStateInfo struct {
