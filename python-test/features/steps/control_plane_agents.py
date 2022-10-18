@@ -1,19 +1,19 @@
-import random
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
-    create_tags_set, find_files, threading_wait_until, return_port_to_run_docker_container, validate_json
+from utils import *
 from local_agent import run_local_agent_container, run_agent_config_file, get_orb_agent_logs, get_logs_and_check
 from control_plane_agent_groups import return_matching_groups, tags_to_match_k_groups
 from behave import given, then, step
 from hamcrest import *
 from datetime import datetime
 import requests
-import os
 from agent_config_file import FleetAgent
 import yaml
 from yaml.loader import SafeLoader
 import re
 import json
+import psutil
+import os
+import signal
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
@@ -113,13 +113,11 @@ def multiple_dataset_for_policy(context, amount_of_datasets, time_to_wait):
       " has status {policies_status}")
 def list_policies_applied_to_an_agent_and_referred_status(context, amount_of_policies, amount_of_policies_with_status,
                                                           policies_status):
-    list_policies_applied_to_an_agent(context, amount_of_policies)
-    list_of_policies_status = list()
-    for policy_id in context.list_agent_policies_id:
-        list_of_policies_status.append(context.agent['last_hb_data']['policy_state'][policy_id]["state"])
     if amount_of_policies_with_status == "all":
         amount_of_policies_with_status = int(amount_of_policies)
-    amount_of_policies_applied_with_status = list_of_policies_status.count(policies_status)
+    context.agent, context.list_agent_policies_id, amount_of_policies_applied_with_status = \
+        get_policies_applied_to_an_agent_by_status(context.token, context.agent['id'], amount_of_policies,
+                                                   amount_of_policies_with_status, policies_status, timeout=180)
     logs = get_orb_agent_logs(context.container_id)
     assert_that(amount_of_policies_applied_with_status, equal_to(int(amount_of_policies_with_status)),
                 f"{amount_of_policies_with_status} policies was supposed to have status {policies_status}. \n"
@@ -362,6 +360,51 @@ def check_error_message(context, message):
     assert_that(context.error_message['error'], equal_to(message), "Unexpected error message")
 
 
+@step("agent backend (pktvisor) stops running")
+def kill_pktvisor_on_agent(context):
+    try:
+        current_proc_pid = None
+        for process in psutil.process_iter():
+            if "pkt" in process.name():
+                proc_con = process.connections()
+                proc_port = proc_con[0].laddr.port
+                if proc_port == context.port:
+                    current_proc_pid = process.pid
+                    process.send_signal(signal.SIGKILL)
+                    break
+        assert_that(current_proc_pid, is_not(None), "Unable to find pid of pktvisor process")
+    except psutil.AccessDenied:
+        context.access_denied = True
+        raise ValueError(f"You are not allowed to run this scenario without root permissions.")
+    except Exception as exception:
+        raise exception
+
+
+@step("{backend} state is {state}")
+def check_back_state(context, backend, state):
+    backend_state, agent = wait_until_expected_backend_state(context.token, context.agent['id'], backend, state,
+                                                             timeout=180)
+    logs = get_orb_agent_logs(context.container_id)
+    assert_that(backend_state, equal_to(state), f"Unexpected backend state on agent: {agent}. Logs: {logs}")
+
+
+@step("{backend} error is {error}")
+def check_back_error(context, backend, error):
+    backend_state, agent = wait_until_expected_backend_error(context.token, context.agent['id'], backend, error,
+                                                             timeout=180)
+    logs = get_orb_agent_logs(context.container_id)
+    assert_that(backend_state, equal_to(error), f"Unexpected backend error on agent: {agent}. Logs: {logs}")
+
+
+@step("agent backend {backend} restart_count is {restart_count}")
+def check_auto_reset(context, backend, restart_count):
+    amount, agent = wait_until_expected_amount_of_restart_count(context.token, context.agent['id'], backend,
+                                                                restart_count, timeout=400)
+    logs = get_orb_agent_logs(context.container_id)
+    assert_that(int(amount), equal_to(int(restart_count)), f"Unexpected restart count for backend {backend} on agent: "
+                                                           f"{agent}. Logs: {logs}")
+
+
 @threading_wait_until
 def wait_until_expected_agent_status(token, agent_id, status, event=None):
     """
@@ -380,6 +423,75 @@ def wait_until_expected_agent_status(token, agent_id, status, event=None):
         event.set()
         return agent_status, agent
     return agent_status, agent
+
+
+@threading_wait_until
+def wait_until_expected_amount_of_restart_count(token, agent_id, backend, amount_of_restart, event=None):
+    """
+    Keeps fetching agent data from Orb control plane until it gets to
+    the expected agent status or this operation times out
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: whose backend state will be evaluated
+    :param (str) amount_of_restart: expected amount of restart state
+    :param (str) backend: backend to check state
+    :param (obj) event: threading.event
+    """
+
+    agent = get_agent(token, agent_id)
+    if 'restart_count' in agent["last_hb_data"]["backend_state"][backend].keys():
+        amount = agent["last_hb_data"]["backend_state"][backend]['restart_count']
+        if int(amount_of_restart) == int(amount):
+            event.set()
+            return amount, agent
+        return amount, agent
+    else:
+        return None, agent
+
+
+@threading_wait_until
+def wait_until_expected_backend_state(token, agent_id, backend, state, event=None):
+    """
+    Keeps fetching agent data from Orb control plane until it gets to
+    the expected agent status or this operation times out
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: whose backend state will be evaluated
+    :param (str) state: expected backend state
+    :param (str) backend: backend to check state
+    :param (obj) event: threading.event
+    """
+
+    agent = get_agent(token, agent_id)
+    backend_state = agent["last_hb_data"]["backend_state"][backend]['state']
+    if backend_state == state:
+        event.set()
+        return backend_state, agent
+    return backend_state, agent
+
+
+@threading_wait_until
+def wait_until_expected_backend_error(token, agent_id, backend, error, event=None):
+    """
+    Keeps fetching agent data from Orb control plane until it gets to
+    the expected agent status or this operation times out
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: whose backend error will be evaluated
+    :param (str) error: expected backend error
+    :param (str) backend: backend to check error
+    :param (obj) event: threading.event
+    """
+
+    agent = get_agent(token, agent_id)
+    if 'error' in agent["last_hb_data"]["backend_state"][backend].keys():
+        backend_error = agent["last_hb_data"]["backend_state"][backend]['error']
+        if backend_error == error:
+            event.set()
+            return backend_error, agent
+        return backend_error, agent
+    else:
+        return None, agent
 
 
 def get_agent(token, agent_id, status_code=200):
@@ -541,6 +653,23 @@ def get_policies_applied_to_an_agent(token, agent_id, amount_of_policies, event=
 
 
 @threading_wait_until
+def get_policies_applied_to_an_agent_by_status(token, agent_id, amount_of_policies, amount_of_policies_with_status,
+                                               status, event=None):
+    agent, list_agent_policies_id = get_policies_applied_to_an_agent(token, agent_id, amount_of_policies, timeout=180)
+    list_of_policies_status = list()
+    for policy_id in list_agent_policies_id:
+        list_of_policies_status.append(agent['last_hb_data']['policy_state'][policy_id]["state"])
+    if amount_of_policies_with_status == "all":
+        amount_of_policies_with_status = int(amount_of_policies)
+    amount_of_policies_applied_with_status = list_of_policies_status.count(status)
+    if amount_of_policies_applied_with_status == amount_of_policies_with_status:
+        event.set()
+    else:
+        event.wait(5)
+    return agent, list_agent_policies_id, amount_of_policies_applied_with_status
+
+
+@threading_wait_until
 def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, event=None):
     """
 
@@ -598,7 +727,8 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         tags = {"tags": create_tags_set(agent_tags)}
     if configs.get('ignore_ssl_and_certificate_errors', 'false').lower() == 'true':
         mqtt_url = f"{base_orb_address}:1883"
-        agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url, tap_name,
+        agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
+                                                                     tap_name,
                                                                      tls_verify=False, auto_provision=auto_provision,
                                                                      orb_cloud_mqtt_id=orb_cloud_mqtt_id,
                                                                      orb_cloud_mqtt_key=orb_cloud_mqtt_key,
