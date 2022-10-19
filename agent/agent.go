@@ -187,7 +187,11 @@ func (a *orbAgent) logoffWithHeartbeat(ctx context.Context) {
 			a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
 		}
 	}
-	defer close(a.hbDone)
+	defer func() {
+		if a.hbDone != nil {
+			close(a.hbDone)
+		}
+	}()
 }
 func (a *orbAgent) Stop(ctx context.Context) {
 	a.logger.Info("routine call for stop agent", zap.Any("routine", ctx.Value("routine")))

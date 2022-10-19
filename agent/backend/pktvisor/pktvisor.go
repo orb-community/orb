@@ -135,6 +135,8 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	}
 
 	// the macros should be properly configured to enable crashpad
+
+        // the macros should be properly configured to enable crashpad
 	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
 	// pvOptions = append(pvOptions, "--cp-url", PKTVISOR_CP_URL)
 	// pvOptions = append(pvOptions, "--cp-path", PKTVISOR_CP_PATH)
@@ -152,7 +154,11 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// log STDOUT and STDERR lines streaming from Cmd
 	doneChan := make(chan struct{})
 	go func() {
-		defer close(doneChan)
+		defer func() {
+			if doneChan != nil {
+				close(doneChan)
+			}
+		}()
 		for p.proc.Stdout != nil || p.proc.Stderr != nil {
 			select {
 			case line, open := <-p.proc.Stdout:
