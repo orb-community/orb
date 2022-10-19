@@ -1,4 +1,4 @@
-package sinker
+package maestro
 
 import (
 	"context"

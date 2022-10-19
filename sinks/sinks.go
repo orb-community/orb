@@ -124,13 +124,12 @@ type SinkService interface {
 	DeleteSink(ctx context.Context, token string, key string) error
 	// ValidateSink validate a sink configuration without saving
 	ValidateSink(ctx context.Context, token string, sink Sink) (Sink, error)
-	// ChangeState
+	// ChangeSinkStateInternal change the sink internal state from new/idle/active
 	ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state State) error
 }
 
 type SinkRepository interface {
-	// Save persists the Sink. Successful operation is indicated by non-nil
-	// error response.
+	// Save persists the Sink. Successful operation is indicated by non-nil error response.
 	Save(ctx context.Context, sink Sink) (string, error)
 	// Update performs an update to the existing sink, A non-nil error is
 	// returned to indicate operation failure

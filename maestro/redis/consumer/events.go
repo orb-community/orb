@@ -8,13 +8,14 @@
 package consumer
 
 import (
+	"github.com/ns1labs/orb/pkg/types"
 	"time"
 )
 
 type sinksUpdateEvent struct {
 	ownerID   string
 	sinkID    string
-	config    string
+	config    types.Metadata
 	timestamp time.Time
 }
 

@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"github.com/ns1labs/orb/pkg/types"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -10,17 +11,12 @@ import (
 )
 
 const (
-	streamID  = "orb.collectors"
-	streamLen = 1000
-
 	streamSinker = "orb.sinker"
 	streamSinks  = "orb.sinks"
 	group        = "orb.collectors"
 
 	sinkerPrefix = "sinker."
 	sinkerUpdate = sinkerPrefix + "update"
-	sinkerCreate = sinkerPrefix + "create"
-	sinkerDelete = sinkerPrefix + "remove"
 
 	sinksPrefix = "sinks."
 	sinksUpdate = sinksPrefix + "update"
@@ -134,49 +130,20 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 	}
 }
 
-//Delete collector
-func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro DELETE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID, event.config, event.ownerID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//Create collector
-func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro UPDATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	err := es.maestroService.CreateOtelCollector(ctx, event.sinkID, event.config, event.ownerID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//Create collector
-func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro CREATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	err := es.maestroService.CreateOtelCollector(ctx, event.sinkID, event.config, event.ownerID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//Delete collector
+// Delete collector
 func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event sinkerUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinker, sink state=" + event.state + ", , Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID, event.state, event.ownerID)
+	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-//Create collector
+// Create collector
 func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event sinkerUpdateEvent) error {
 	es.logger.Info("Received maestro CREATE event from sinker, sink state=" + event.state + ", Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+
 	err := es.maestroService.CreateOtelCollector(ctx, event.sinkID, event.state, event.ownerID)
 	if err != nil {
 		return err
@@ -194,20 +161,19 @@ func decodeSinkerStateUpdate(event map[string]interface{}) sinkerUpdateEvent {
 	return val
 }
 
-func decodeSinksUpdate(event map[string]interface{}) sinksUpdateEvent {
-	val := sinksUpdateEvent{
-		ownerID:   read(event, "owner", ""),
-		sinkID:    read(event, "sink_id", ""),
-		config:    read(event, "config", ""),
-		timestamp: time.Time{},
-	}
-	return val
-}
-
 func read(event map[string]interface{}, key, def string) string {
 	val, ok := event[key].(string)
 	if !ok {
 		return def
+	}
+
+	return val
+}
+
+func readMetadata(event map[string]interface{}, key string) types.Metadata {
+	val, ok := event[key].(types.Metadata)
+	if !ok {
+		return types.Metadata{}
 	}
 
 	return val
