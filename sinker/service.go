@@ -40,7 +40,7 @@ type Service interface {
 	Stop() error
 }
 
-type sinkerService struct {
+type SinkerService struct {
 	pubSub          mfnats.PubSub
 	otel            bool
 	otelCancelFunct context.CancelFunc
@@ -67,7 +67,7 @@ type sinkerService struct {
 	asyncContext        context.Context
 }
 
-func (svc sinkerService) Start() error {
+func (svc SinkerService) Start() error {
 	svc.asyncContext, svc.cancelAsyncContext = context.WithCancel(context.WithValue(context.Background(), "routine", "async"))
 	if !svc.otel {
 		topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
@@ -90,7 +90,7 @@ func (svc sinkerService) Start() error {
 	return nil
 }
 
-func (svc sinkerService) startOtel(ctx context.Context) error {
+func (svc SinkerService) startOtel(ctx context.Context) error {
 	if svc.otel {
 		var err error
 		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, svc.logger, svc.otelKafkaUrl, svc.pubSub)
@@ -102,7 +102,7 @@ func (svc sinkerService) startOtel(ctx context.Context) error {
 	return nil
 }
 
-func (svc sinkerService) Stop() error {
+func (svc SinkerService) Stop() error {
 	if svc.otel {
 		otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
 		if err := svc.pubSub.Unsubscribe(otelTopic); err != nil {
@@ -140,7 +140,7 @@ func New(logger *zap.Logger,
 ) Service {
 
 	pktvisor.Register(logger)
-	return &sinkerService{
+	return &SinkerService{
 		logger:              logger,
 		pubSub:              pubSub,
 		esclient:            esclient,

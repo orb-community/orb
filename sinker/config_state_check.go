@@ -17,7 +17,7 @@ const (
 	DefaultTimeout = 30 * time.Minute
 )
 
-func (svc *sinkerService) checkState(_ time.Time) {
+func (svc *SinkerService) checkState(_ time.Time) {
 	owners, err := svc.sinkerCache.GetAllOwners()
 	if err != nil {
 		svc.logger.Error("failed to retrieve the list of owners")
@@ -44,7 +44,7 @@ func (svc *sinkerService) checkState(_ time.Time) {
 	}
 }
 
-func (svc *sinkerService) checkSinker() {
+func (svc *SinkerService) checkSinker() {
 	svc.checkState(time.Now())
 	for {
 		select {
