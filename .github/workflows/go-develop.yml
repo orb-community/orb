@@ -116,6 +116,19 @@ jobs:
       - name: Go coverage tests
         if: ${{ needs.prebuild.outputs.agent == 'true' }}
         run: SERVICE=agent make test_service_cov
+        
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go get github.com/axw/gocov/...
+          go get github.com/AlekSi/gocov-xml
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
 
   test-fleet:
     runs-on: ubuntu-latest
@@ -133,6 +146,19 @@ jobs:
             SERVICE=fleet make test_service
             SERVICE=fleet make test_service_cov
           fi
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go get github.com/axw/gocov/...
+          go get github.com/AlekSi/gocov-xml
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
 
   test-policies:
     runs-on: ubuntu-latest
@@ -149,6 +175,19 @@ jobs:
         run: |
           SERVICE=policies make test_service
           SERVICE=policies make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go get github.com/axw/gocov/...
+          go get github.com/AlekSi/gocov-xml
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
 
   test-sinks:
     runs-on: ubuntu-latest
@@ -165,7 +204,19 @@ jobs:
         run: |
           SERVICE=sinks make test_service
           SERVICE=sinks make test_service_cov
-        
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go get github.com/axw/gocov/...
+          go get github.com/AlekSi/gocov-xml
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
 
   test-sinker:
     runs-on: ubuntu-latest
@@ -182,6 +233,19 @@ jobs:
         run: |
           SERVICE=sinker make test_service
           SERVICE=sinker make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go get github.com/axw/gocov/...
+          go get github.com/AlekSi/gocov-xml
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
 
   package-agent:
     needs:
