@@ -113,7 +113,6 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		execCtx, execCancelF := context.WithCancel(r.ctx)
 		defer execCancelF()
 		agentPb, err := r.sinkerService.ExtractAgent(execCtx, msg.Channel)
-
 		if err != nil {
 			execCancelF()
 			r.cfg.Logger.Error("error during extracting agent information from fleet", zap.Error(err))
