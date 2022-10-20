@@ -49,7 +49,7 @@ func (ke kafkaErrors) Error() string {
 
 func (e *kafkaTracesProducer) tracesPusher(ctx context.Context, td ptrace.Traces) error {
 	sinkId := ctx.Value("sink-id").(string)
-	topic := e.topic + sinkId
+	topic := e.topic + "_" + sinkId
 	messages, err := e.marshaler.Marshal(td, topic)
 	if err != nil {
 		return consumererror.NewPermanent(err)
@@ -81,7 +81,7 @@ type kafkaMetricsProducer struct {
 
 func (e *kafkaMetricsProducer) metricsDataPusher(ctx context.Context, md pmetric.Metrics) error {
 	sinkId := ctx.Value("sink-id").(string)
-	topic := e.topic + sinkId
+	topic := e.topic + "_" + sinkId
 	messages, err := e.marshaler.Marshal(md, topic)
 	if err != nil {
 		return consumererror.NewPermanent(err)
@@ -113,7 +113,7 @@ type kafkaLogsProducer struct {
 
 func (e *kafkaLogsProducer) logsDataPusher(ctx context.Context, ld plog.Logs) error {
 	sinkId := ctx.Value("sink-id").(string)
-	topic := e.topic + sinkId
+	topic := e.topic + "_" + sinkId
 	messages, err := e.marshaler.Marshal(ld, topic)
 	if err != nil {
 		return consumererror.NewPermanent(err)
