@@ -16,6 +16,7 @@ import (
 	"github.com/ns1labs/orb/sinker/backend/pktvisor"
 	"github.com/ns1labs/orb/sinker/config"
 	"github.com/ns1labs/orb/sinker/otel"
+	"github.com/ns1labs/orb/sinker/otel/bridgeservice"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
@@ -93,7 +94,8 @@ func (svc SinkerService) Start() error {
 func (svc SinkerService) startOtel(ctx context.Context) error {
 	if svc.otel {
 		var err error
-		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, svc.logger, svc.otelKafkaUrl, svc.pubSub)
+		bridgeService := bridgeservice.NewBridgeService(svc.logger, svc.sinkerCache, svc.policiesClient, svc.fleetClient)
+		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, &bridgeService, svc.logger, svc.otelKafkaUrl, svc.pubSub)
 		if err != nil {
 			svc.logger.Error("error during StartOtelComponents", zap.Error(err))
 			return err

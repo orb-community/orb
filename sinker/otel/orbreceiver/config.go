@@ -16,7 +16,7 @@ package orbreceiver // import "go.opentelemetry.io/collector/receiver/otlpreceiv
 
 import (
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
-	"github.com/ns1labs/orb/sinker"
+	"github.com/ns1labs/orb/sinker/otel/bridgeservice"
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/config"
@@ -32,7 +32,7 @@ type Config struct {
 	// Entry from Metrics
 	PubSub mfnats.PubSub
 	// Entry for Accessing DataSets, AgentGroup and Sinks
-	SinkerService *sinker.SinkerService
+	SinkerService *bridgeservice.SinkerOtelBridgeService
 }
 
 var _ config.Receiver = (*Config)(nil)
