@@ -83,10 +83,14 @@ jobs:
         uses: actions/checkout@v2
         with:
           name: workspace
+
       - name: Run go report
         uses: ./.github/actions/go-report
         with:
           go_report_threshold: 90.1 #grade A+
+
+      - name: refresh go-report
+        uses: creekorful/goreportcard-action@v1.0
           
   update-api-docs:
     needs: prebuild
