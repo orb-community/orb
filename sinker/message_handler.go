@@ -81,7 +81,7 @@ func (svc SinkerService) encodeBase64(user string, password string) string {
 	return fmt.Sprintf("Basic %s", sEnc)
 }
 
-func (svc SinkerService) handleMetrics(agentID string, channelID string, subtopic string, payload []byte) error {
+func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, channelID string, subtopic string, payload []byte) error {
 
 	// find backend to send it to
 	beName := strings.Split(subtopic, ".")
@@ -113,7 +113,7 @@ func (svc SinkerService) handleMetrics(agentID string, channelID string, subtopi
 		return fleet.ErrSchemaMalformed
 	}
 
-	agentPb, err2 := svc.ExtractAgent(channelID)
+	agentPb, err2 := svc.ExtractAgent(ctx, channelID)
 	if err2 != nil {
 		return err2
 	}
@@ -279,7 +279,7 @@ func (svc SinkerService) handleMsgFromAgent(msg messaging.Message) error {
 			return
 		}
 
-		if err := svc.handleMetrics(msg.Publisher, msg.Channel, msg.Subtopic, msg.Payload); err != nil {
+		if err := svc.handleMetrics(ctx, msg.Publisher, msg.Channel, msg.Subtopic, msg.Payload); err != nil {
 			svc.logger.Error("metrics processing failure", zap.Any("trace-id", ctx.Value("trace-id")), zap.Error(err))
 			return
 		}
