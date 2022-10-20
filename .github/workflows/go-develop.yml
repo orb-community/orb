@@ -112,23 +112,28 @@ jobs:
       - name: Go unit tests
 #        if: ${{ needs.prebuild.outputs.agent == 'true' }}
         run: |
-          SERVICE=agent make test_service
           SERVICE=agent make test_service_cov
+#          SERVICE=agent make test_service
         
       - name: Install dependencies
-#        if: ${{ needs.prebuild.outputs.agent == 'true' }}
+#        if: ${{ needs.prebuild.outputs.agent == 'true' && github.event_name == 'pull_request' }}
         run: |
           go mod tidy
           sudo apt update && sudo apt install -y build-essential jq
-          go get github.com/axw/gocov/...
-          go get github.com/AlekSi/gocov-xml
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
           
       - name: coverage to xml
-#        if: ${{ needs.prebuild.outputs.agent == 'true' }}
+#        if: ${{ needs.prebuild.outputs.agent == 'true' && github.event_name == 'pull_request' }}
         run: |
           echo "Current directory: ${PWD}"
           echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
           gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
 
   test-fleet:
     runs-on: ubuntu-latest
