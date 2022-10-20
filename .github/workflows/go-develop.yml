@@ -134,6 +134,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           files: ./coverage.xml
+          name: orb
 
   test-fleet:
     runs-on: ubuntu-latest
