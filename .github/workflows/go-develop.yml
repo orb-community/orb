@@ -104,6 +104,7 @@ jobs:
   test-agent:
     runs-on: ubuntu-latest
     needs: prebuild
+    if: ${{ github.event_name == 'pull_request' || needs.prebuild.outputs.agent == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -112,12 +113,33 @@ jobs:
           go-version: 1.19
 
       - name: Go unit tests
-        if: ${{ needs.prebuild.outputs.agent == 'true' }}
-        run: SERVICE=agent make test_service
+        run: |
+          SERVICE=agent make test_service_cov
+        
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
 
   test-fleet:
     runs-on: ubuntu-latest
     needs: prebuild
+    if: ${{ github.event_name == 'pull_request' || needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -127,55 +149,32 @@ jobs:
 
       - name: Go unit tests
         run: |
-          if [ "${{ needs.prebuild.outputs.orb }}" == "true" ]; then
-            SERVICE=fleet make test_service
-          fi
+            SERVICE=fleet make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
 
   test-policies:
     runs-on: ubuntu-latest
     needs: prebuild
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.19
-
-      - name: Go unit tests
-        if: ${{ needs.prebuild.outputs.orb == 'true' }}
-        run: SERVICE=policies make test_service
-
-  test-sinks:
-    runs-on: ubuntu-latest
-    needs: prebuild
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.19
-
-      - name: Go unit tests
-        if: ${{ needs.prebuild.outputs.orb == 'true' }}
-        run: SERVICE=sinks make test_service
-
-  test-sinker:
-    runs-on: ubuntu-latest
-    needs: prebuild
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.19
-
-      - name: Go unit tests
-        if: ${{ needs.prebuild.outputs.orb == 'true' }}
-        run: SERVICE=sinker make test_service      
-
-  test-maestro:
-    runs-on: ubuntu-latest
-    needs: prebuild
+    if: ${{ github.event_name == 'pull_request' || needs.prebuild.outputs.orb == 'true' }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
@@ -185,9 +184,132 @@ jobs:
 
       - name: Go unit tests
         run: |
-          if [ "${{ needs.prebuild.outputs.orb }}" == "true" ]; then
-            SERVICE=maestro make test_service
-          fi
+          SERVICE=policies make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
+
+  test-sinks:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    if: ${{ github.event_name == 'pull_request' || needs.prebuild.outputs.orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Go unit tests
+        run: |
+          SERVICE=sinks make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
+
+  test-sinker:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    if: ${{ github.event_name == 'pull_request' || needs.prebuild.outputs.orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Go unit tests
+        run: |
+          SERVICE=sinker make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true   
+
+  test-maestro:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    if: ${{ github.event_name == 'pull_request' || needs.prebuild.outputs.orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Go unit tests
+        run: |
+            SERVICE=maestro make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
 
   package-agent:
     needs:
