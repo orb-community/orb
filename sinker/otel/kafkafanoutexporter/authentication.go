@@ -18,11 +18,10 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
+	"github.com/ns1labs/orb/sinker/otel/kafkafanoutexporter/internal/awsmsk"
 
 	"github.com/Shopify/sarama"
 	"go.opentelemetry.io/collector/config/configtls"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter/internal/awsmsk"
 )
 
 // Authentication defines authentication.
