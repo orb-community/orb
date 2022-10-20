@@ -41,6 +41,8 @@ jobs:
               - 'cmd/sinks/**'
               - 'sinker/**'
               - 'cmd/sinker/**'
+              - 'maestro/**'
+              - 'cmd/maestro/**'
             ui: 
               - 'ui/**'
             docs:
