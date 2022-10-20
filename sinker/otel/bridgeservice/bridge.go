@@ -2,7 +2,6 @@ package bridgeservice
 
 import (
 	"context"
-	"github.com/ns1labs/orb/fleet/pb"
 	fleetpb "github.com/ns1labs/orb/fleet/pb"
 	policiespb "github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/sinker/config"
@@ -10,8 +9,8 @@ import (
 )
 
 type BridgeService interface {
-	ExtractAgent(ctx context.Context, channelID string) (*pb.AgentInfoRes, error)
-	GetSinksFromDataSet(ownerID, datasetId string) (map[string]bool, error)
+	ExtractAgent(ctx context.Context, channelID string) (*fleetpb.AgentInfoRes, error)
+	GetDataSetsFromAgentGroups(ctx context.Context, mfOwnerId string, agentGroupIds []string) (map[string]string, error)
 }
 
 type SinkerOtelBridgeService struct {
@@ -21,25 +20,36 @@ type SinkerOtelBridgeService struct {
 	fleetClient    fleetpb.FleetServiceClient
 }
 
-func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID string) (*pb.AgentInfoRes, error) {
-	agentPb, err := bs.fleetClient.RetrieveAgentInfoByChannelID(ctx, &pb.AgentInfoByChannelIDReq{Channel: channelID})
+func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID string) (*fleetpb.AgentInfoRes, error) {
+	agentPb, err := bs.fleetClient.RetrieveAgentInfoByChannelID(ctx, &fleetpb.AgentInfoByChannelIDReq{Channel: channelID})
 	if err != nil {
 		return nil, err
 	}
 	return agentPb, nil
 }
 
-func (bs *SinkerOtelBridgeService) GetSinksFromDataSet(ownerID, datasetId string) (map[string]bool, error) {
-
-	_, err := bs.policiesClient.RetrieveDataset(context.Background(), &policiespb.DatasetByIDReq{
-		DatasetID: datasetId,
-		OwnerID:   ownerID,
+func (bs *SinkerOtelBridgeService) GetSinkIdsFromAgentGroups(ctx context.Context, mfOwnerId string, agentGroupIds []string) (map[string]string, error) {
+	policiesRes, err := bs.policiesClient.RetrievePoliciesByGroups(ctx, &policiespb.PoliciesByGroupsReq{
+		GroupIDs: agentGroupIds,
+		OwnerID:  mfOwnerId,
 	})
 	if err != nil {
-		bs.logger.Error("unable to retrieve dataset", zap.String("dataset_id", datasetId), zap.String("owner_id", ownerID), zap.Error(err))
+		bs.logger.Error("unable to retrieve policies from agent groups", zap.Error(err))
 		return nil, err
 	}
-
-	return nil, nil
-
+	mapSinkIdPolicy := make(map[string]string)
+	for _, policy := range policiesRes.Policies {
+		datasetRes, err := bs.policiesClient.RetrieveDataset(ctx, &policiespb.DatasetByIDReq{
+			DatasetID: policy.DatasetId,
+			OwnerID:   mfOwnerId,
+		})
+		if err != nil {
+			bs.logger.Error("unable to retrieve datasets from policy", zap.String("policy", policy.Name), zap.Error(err))
+			continue
+		}
+		for _, sinkId := range datasetRes.SinkIds {
+			mapSinkIdPolicy[sinkId] = "active"
+		}
+	}
+	return mapSinkIdPolicy, nil
 }

@@ -113,10 +113,15 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		execCtx, execCancelF := context.WithCancel(r.ctx)
 		defer execCancelF()
 		agentPb, err := r.sinkerService.ExtractAgent(execCtx, msg.Channel)
-
 		if err != nil {
 			execCancelF()
 			r.cfg.Logger.Error("error during extracting agent information from fleet", zap.Error(err))
+			return
+		}
+		sinkIds, err := r.sinkerService.GetSinkIdsFromAgentGroups(execCtx, agentPb.OwnerID, agentPb.AgentGroupIDs)
+		if err != nil {
+			execCancelF()
+			r.cfg.Logger.Error("error during extracting sinks information from policies", zap.Error(err))
 			return
 		}
 		attributeCtx := context.WithValue(r.ctx, "agent-name", agentPb.AgentName)
@@ -124,10 +129,13 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		attributeCtx = context.WithValue(attributeCtx, "orb-tags", agentPb.OrbTags)
 		attributeCtx = context.WithValue(attributeCtx, "agent-groups", agentPb.AgentGroupIDs)
 		attributeCtx = context.WithValue(attributeCtx, "agent-ownerID", agentPb.OwnerID)
-		_, err = r.metricsReceiver.Export(attributeCtx, mr)
-		if err != nil {
-			r.cfg.Logger.Error("error during export, skipping message", zap.Error(err))
-			return
+		for sinkId, _ := range sinkIds {
+			attributeCtx = context.WithValue(attributeCtx, "sink-id", sinkId)
+			_, err = r.metricsReceiver.Export(attributeCtx, mr)
+			if err != nil {
+				r.cfg.Logger.Error("error during export, skipping message", zap.Error(err))
+				return
+			}
 		}
 	}()
 	return nil
