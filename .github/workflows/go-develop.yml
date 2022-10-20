@@ -112,6 +112,10 @@ jobs:
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.agent == 'true' }}
         run: SERVICE=agent make test_service
+        
+      - name: Go coverage tests
+        if: ${{ needs.prebuild.outputs.agent == 'true' }}
+        run: SERVICE=agent make test_service_cov
 
   test-fleet:
     runs-on: ubuntu-latest
@@ -127,6 +131,7 @@ jobs:
         run: |
           if [ "${{ needs.prebuild.outputs.orb }}" == "true" ]; then
             SERVICE=fleet make test_service
+            SERVICE=fleet make test_service_cov
           fi
 
   test-policies:
@@ -141,7 +146,9 @@ jobs:
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.orb == 'true' }}
-        run: SERVICE=policies make test_service
+        run: |
+          SERVICE=policies make test_service
+          SERVICE=policies make test_service_cov
 
   test-sinks:
     runs-on: ubuntu-latest
@@ -155,7 +162,10 @@ jobs:
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.orb == 'true' }}
-        run: SERVICE=sinks make test_service
+        run: |
+          SERVICE=sinks make test_service
+          SERVICE=sinks make test_service_cov
+        
 
   test-sinker:
     runs-on: ubuntu-latest
@@ -169,7 +179,9 @@ jobs:
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.orb == 'true' }}
-        run: SERVICE=sinker make test_service
+        run: |
+          SERVICE=sinker make test_service
+          SERVICE=sinker make test_service_cov
 
   package-agent:
     needs:
