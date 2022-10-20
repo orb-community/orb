@@ -13,6 +13,18 @@ type BridgeService interface {
 	GetDataSetsFromAgentGroups(ctx context.Context, mfOwnerId string, agentGroupIds []string) (map[string]string, error)
 }
 
+func NewBridgeService(logger *zap.Logger,
+	sinkerCache config.ConfigRepo,
+	policiesClient policiespb.PolicyServiceClient,
+	fleetClient fleetpb.FleetServiceClient) SinkerOtelBridgeService {
+	return SinkerOtelBridgeService{
+		logger:         logger,
+		sinkerCache:    sinkerCache,
+		policiesClient: policiesClient,
+		fleetClient:    fleetClient,
+	}
+}
+
 type SinkerOtelBridgeService struct {
 	logger         *zap.Logger
 	sinkerCache    config.ConfigRepo
