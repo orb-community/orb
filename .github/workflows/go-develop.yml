@@ -110,14 +110,13 @@ jobs:
           go-version: 1.19
 
       - name: Go unit tests
-        if: ${{ needs.prebuild.outputs.agent == 'true' }}
-        run: SERVICE=agent make test_service
-        
-      - name: Go coverage tests
-        if: ${{ needs.prebuild.outputs.agent == 'true' }}
-        run: SERVICE=agent make test_service_cov
+#        if: ${{ needs.prebuild.outputs.agent == 'true' }}
+        run: |
+          SERVICE=agent make test_service
+          SERVICE=agent make test_service_cov
         
       - name: Install dependencies
+#        if: ${{ needs.prebuild.outputs.agent == 'true' }}
         run: |
           go mod tidy
           sudo apt update && sudo apt install -y build-essential jq
@@ -125,6 +124,7 @@ jobs:
           go get github.com/AlekSi/gocov-xml
           
       - name: coverage to xml
+#        if: ${{ needs.prebuild.outputs.agent == 'true' }}
         run: |
           echo "Current directory: ${PWD}"
           echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
@@ -141,13 +141,13 @@ jobs:
           go-version: 1.19
 
       - name: Go unit tests
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
-          if [ "${{ needs.prebuild.outputs.orb }}" == "true" ]; then
             SERVICE=fleet make test_service
             SERVICE=fleet make test_service_cov
-          fi
           
       - name: Install dependencies
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
           go mod tidy
           sudo apt update && sudo apt install -y build-essential jq
@@ -155,6 +155,7 @@ jobs:
           go get github.com/AlekSi/gocov-xml
           
       - name: coverage to xml
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
           echo "Current directory: ${PWD}"
           echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
@@ -177,6 +178,7 @@ jobs:
           SERVICE=policies make test_service_cov
           
       - name: Install dependencies
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
           go mod tidy
           sudo apt update && sudo apt install -y build-essential jq
@@ -184,6 +186,7 @@ jobs:
           go get github.com/AlekSi/gocov-xml
           
       - name: coverage to xml
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
           echo "Current directory: ${PWD}"
           echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
@@ -206,6 +209,7 @@ jobs:
           SERVICE=sinks make test_service_cov
           
       - name: Install dependencies
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
           go mod tidy
           sudo apt update && sudo apt install -y build-essential jq
@@ -213,6 +217,7 @@ jobs:
           go get github.com/AlekSi/gocov-xml
           
       - name: coverage to xml
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
           echo "Current directory: ${PWD}"
           echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
@@ -235,6 +240,7 @@ jobs:
           SERVICE=sinker make test_service_cov
           
       - name: Install dependencies
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
           go mod tidy
           sudo apt update && sudo apt install -y build-essential jq
@@ -242,6 +248,7 @@ jobs:
           go get github.com/AlekSi/gocov-xml
           
       - name: coverage to xml
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
           echo "Current directory: ${PWD}"
           echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
