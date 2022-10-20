@@ -41,6 +41,8 @@ jobs:
               - 'cmd/sinks/**'
               - 'sinker/**'
               - 'cmd/sinker/**'
+              - 'maestro/**'
+              - 'cmd/maestro/**'
             ui: 
               - 'ui/**'
             docs:
@@ -272,6 +274,41 @@ jobs:
         with:
           files: coverage.xml
           name: orb
+          verbose: true   
+
+  test-maestro:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    if: ${{ github.event_name == 'pull_request' || needs.prebuild.outputs.orb == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Go unit tests
+        run: |
+            SERVICE=maestro make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
           verbose: true
 
   package-agent:
@@ -436,6 +473,33 @@ jobs:
       - name: Push service containers
         if: github.event_name != 'pull_request'
         run: docker push -a ns1labs/orb-sinks
+        
+  package-maestro:
+    needs:
+      - prebuild
+      - test-maestro
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
+      - name: Build service containers
+        run: SERVICE=maestro make build_docker
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-maestro
 
   package-ui-dependencies:
     needs:
