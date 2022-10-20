@@ -3,8 +3,8 @@ package otel
 import (
 	"context"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
+	kafkaexporter "github.com/ns1labs/orb/sinker/otel/kafkafanoutexporter"
 	"github.com/ns1labs/orb/sinker/otel/orbreceiver"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/otel/metric/global"
