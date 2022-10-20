@@ -47,8 +47,10 @@ func (ke kafkaErrors) Error() string {
 	return fmt.Sprintf("Failed to deliver %d messages due to %s", ke.count, ke.err)
 }
 
-func (e *kafkaTracesProducer) tracesPusher(_ context.Context, td ptrace.Traces) error {
-	messages, err := e.marshaler.Marshal(td, e.topic)
+func (e *kafkaTracesProducer) tracesPusher(ctx context.Context, td ptrace.Traces) error {
+	sinkId := ctx.Value("sink-id").(string)
+	topic := e.topic + sinkId
+	messages, err := e.marshaler.Marshal(td, topic)
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
@@ -77,8 +79,10 @@ type kafkaMetricsProducer struct {
 	logger    *zap.Logger
 }
 
-func (e *kafkaMetricsProducer) metricsDataPusher(_ context.Context, md pmetric.Metrics) error {
-	messages, err := e.marshaler.Marshal(md, e.topic)
+func (e *kafkaMetricsProducer) metricsDataPusher(ctx context.Context, md pmetric.Metrics) error {
+	sinkId := ctx.Value("sink-id").(string)
+	topic := e.topic + sinkId
+	messages, err := e.marshaler.Marshal(md, topic)
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
@@ -107,8 +111,10 @@ type kafkaLogsProducer struct {
 	logger    *zap.Logger
 }
 
-func (e *kafkaLogsProducer) logsDataPusher(_ context.Context, ld plog.Logs) error {
-	messages, err := e.marshaler.Marshal(ld, e.topic)
+func (e *kafkaLogsProducer) logsDataPusher(ctx context.Context, ld plog.Logs) error {
+	sinkId := ctx.Value("sink-id").(string)
+	topic := e.topic + sinkId
+	messages, err := e.marshaler.Marshal(ld, topic)
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
