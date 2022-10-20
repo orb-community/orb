@@ -40,6 +40,10 @@ define run_test
 	 go test -mod=mod -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd' | grep '$(SERVICE)')
 endef
 
+define run_test_coverage
+	 go test -cover -coverprofile=coverage.out $(shell go list ./... | grep -v 'cmd' | grep '$(SERVICE)')
+endef
+
 define make_docker
 	$(eval SERVICE=$(shell [ -z "$(SERVICE)" ] && echo $(subst docker_,,$(1)) || echo $(SERVICE)))
 	docker build \
@@ -87,8 +91,13 @@ test:
 
 run_test_service: test_service $(2)
 
+run_test_service_cov: test_service_cov $(2)
+
 test_service:
 	$(call run_test,$(@))
+
+test_service_cov:
+	$(call run_test_coverage,$(@))
 
 proto:
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative policies/pb/policies.proto
