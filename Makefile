@@ -41,7 +41,7 @@ define run_test
 endef
 
 define run_test_coverage
-	 go test -cover -coverprofile=coverage.out -covermode=atomic $(shell go list ./... | grep -v 'cmd' | grep '$(SERVICE)')
+	 go test -mod=mod -race -count 1 -tags test -cover -coverprofile=coverage.out -covermode=atomic $(shell go list ./... | grep -v 'cmd' | grep '$(SERVICE)')
 endef
 
 define make_docker
