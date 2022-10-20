@@ -113,7 +113,7 @@ func (svc SinkerService) handleMetrics(agentID string, channelID string, subtopi
 		return fleet.ErrSchemaMalformed
 	}
 
-	agentPb, err2 := svc.ExtractAgent(channelID)
+	agentPb, err2 := svc.ExtractAgent(context.Background(), channelID)
 	if err2 != nil {
 		return err2
 	}

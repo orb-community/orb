@@ -119,7 +119,10 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			return
 		}
 		attributeCtx := context.WithValue(r.ctx, "agent-name", agentPb.AgentName)
-		attributeCtx = context.WithValue(attributeCtx, "", "")
+		attributeCtx = context.WithValue(attributeCtx, "agent-tags", agentPb.AgentTags)
+		attributeCtx = context.WithValue(attributeCtx, "orb-tags", agentPb.OrbTags)
+		attributeCtx = context.WithValue(attributeCtx, "agent-groups", agentPb.AgentGroupIDs)
+		attributeCtx = context.WithValue(attributeCtx, "agent-ownerID", agentPb.OwnerID)
 		_, err = r.metricsReceiver.Export(attributeCtx, mr)
 		if err != nil {
 			r.cfg.Logger.Error("error during export, skipping message", zap.Error(err))

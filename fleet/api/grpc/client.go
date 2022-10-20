@@ -90,7 +90,7 @@ func (g grpcClient) RetrieveAgentInfoByChannelID(ctx context.Context, in *pb.Age
 	}
 
 	ir := res.(agentInfoRes)
-	return &pb.AgentInfoRes{OwnerID: ir.ownerID, AgentName: ir.agentName, AgentTags: ir.agentTags, OrbTags: ir.orbTags}, nil
+	return &pb.AgentInfoRes{OwnerID: ir.ownerID, AgentName: ir.agentName, AgentTags: ir.agentTags, OrbTags: ir.orbTags, AgentGroupIDs: ir.agentGroupIDs}, nil
 }
 
 // NewClient returns new gRPC client instance.

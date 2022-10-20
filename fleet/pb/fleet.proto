@@ -50,5 +50,5 @@ message AgentInfoRes {
   string agentName = 2;
   map<string, string> agentTags = 3;
   map<string, string> orbTags = 4;
-  repeated string agentGroupId = 5;
+  repeated string agentGroupIDs = 5;
 }
