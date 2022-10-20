@@ -188,7 +188,7 @@ jobs:
           go-version: 1.19
 
       - name: Go unit tests
-        if: ${{ needs.prebuild.outputs.agent == 'true' }}
+        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
           SERVICE=policies make test_service_cov
           
