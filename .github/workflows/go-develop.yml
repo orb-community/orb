@@ -130,6 +130,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
+          files: coverage.xml
           name: orb
           verbose: true
 
@@ -164,6 +165,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
+          files: coverage.xml
           name: orb
           verbose: true
 
@@ -198,6 +200,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
+          files: coverage.xml
           name: orb
           verbose: true
 
@@ -213,7 +216,6 @@ jobs:
           go-version: 1.19
 
       - name: Go unit tests
-        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
           SERVICE=sinks make test_service_cov
           
@@ -225,7 +227,6 @@ jobs:
           go install github.com/AlekSi/gocov-xml@latest
           
       - name: coverage to xml
-        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
           echo "Current directory: ${PWD}"
           echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
@@ -234,6 +235,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
+          files: coverage.xml
           name: orb
           verbose: true
 
@@ -268,6 +270,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
+          files: coverage.xml
           name: orb
           verbose: true
 
