@@ -89,16 +89,15 @@ func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
 		owner:     read(event, "owner", ""),
 		timestamp: time.Time{},
 	}
-
-	var config types.Metadata
-	if err := json.Unmarshal([]byte(read(event, "config", "")), &config); err != nil {
+	var metadata types.Metadata
+	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
 		return updateSinkEvent{}, err
 	}
-	val.config = config
+	val.config = metadata
 	return val, nil
 }
 
-func (es eventStore) handleSinksUpdate(ctx context.Context, e updateSinkEvent) error {
+func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) error {
 	data, err := json.Marshal(e.config)
 	if err != nil {
 		return err
