@@ -1088,6 +1088,101 @@ func TestDeleteAllDatasetsPolicy(t *testing.T) {
 	}
 }
 
+func TestDatasetsRetrieveByGroup(t *testing.T) {
+	dbMiddleware := postgres.NewDatabase(db)
+	repo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	nameID, err := types.NewIdentifier("mypolicy")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	policy := policies.Policy{
+		Name:      nameID,
+		MFOwnerID: oID.String(),
+		Policy:    types.Metadata{"pkey1": "pvalue1"},
+	}
+	policyID, err := repo.SavePolicy(context.Background(), policy)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	groupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	sinkIDs := make([]string, 2)
+	for i := 0; i < 2; i++ {
+		sinkID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		sinkIDs[i] = sinkID.String()
+	}
+
+	dsnameID, err := types.NewIdentifier("mydataset")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	dataset := policies.Dataset{
+		Name:         dsnameID,
+		MFOwnerID:    oID.String(),
+		Valid:        true,
+		AgentGroupID: groupID.String(),
+		PolicyID:     policyID,
+		SinkIDs:      sinkIDs,
+		Metadata:     types.Metadata{"testkey": "testvalue"},
+		Created:      time.Time{},
+	}
+	_, err = repo.SaveDataset(context.Background(), dataset)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
+	cases := map[string]struct {
+		groupID  []string
+		ownerID  string
+		policyID string
+		results  int
+		err      error
+	}{
+		"retrieve existing datasets by group ID and ownerID": {
+			groupID:  []string{groupID.String()},
+			ownerID:  policy.MFOwnerID,
+			policyID: policyID,
+			results:  1,
+			err:      nil,
+		},
+		"retrieve non existing datasets by group ID and ownerID": {
+			groupID:  []string{policy.MFOwnerID},
+			ownerID:  policy.MFOwnerID,
+			policyID: policyID,
+			results:  0,
+			err:      nil,
+		},
+		"retrieve datasets by groupID with empty owner": {
+			groupID:  []string{policy.MFOwnerID},
+			ownerID:  "",
+			policyID: policyID,
+			results:  0,
+			err:      errors.ErrMalformedEntity,
+		},
+		"retrieve datasets by groupID with empty groupID": {
+			groupID:  []string{},
+			ownerID:  policy.MFOwnerID,
+			policyID: policyID,
+			results:  0,
+			err:      errors.ErrMalformedEntity,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			dsList, err := repo.RetrieveDatasetsByGroupID(context.Background(), tc.groupID, tc.ownerID)
+			if err == nil {
+				assert.Equal(t, tc.results, len(dsList), fmt.Sprintf("%s: expected %d got %d\n", desc, tc.results, len(dsList)))
+				if tc.results > 0 {
+					assert.Equal(t, dataset.ID, dsList[0].ID, fmt.Sprintf("%s: expected %s got %s\n", desc, dataset.ID, dsList[0].ID))
+				}
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		})
+	}
+}
+
 func testSortDataset(t *testing.T, pm policies.PageMetadata, ags []policies.Dataset) {
 	t.Helper()
 	switch pm.Order {
