@@ -131,7 +131,7 @@ jobs:
           gocov convert ./coverage.out | gocov-xml > ./coverage.xml
           
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v2
         with:
           files: ./coverage.xml
           version: "v0.1.15"
