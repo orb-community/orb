@@ -193,9 +193,10 @@ func encodeRetrieveAgentInfoByChannelIDRequest(ctx context.Context, grpcReq inte
 func decodeAgentInfoResponse(ctx context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*pb.AgentInfoRes)
 	return agentInfoRes{
-		ownerID:   res.GetOwnerID(),
-		agentName: res.GetAgentName(),
-		agentTags: res.GetAgentTags(),
-		orbTags:   res.GetOrbTags(),
+		ownerID:       res.GetOwnerID(),
+		agentName:     res.GetAgentName(),
+		agentTags:     res.GetAgentTags(),
+		orbTags:       res.GetOrbTags(),
+		agentGroupIDs: res.GetAgentGroupIDs(),
 	}, nil
 }
