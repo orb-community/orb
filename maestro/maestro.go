@@ -49,13 +49,20 @@ type Maestro struct {
 	Created     time.Time
 }
 
-type MaestroService interface {
-	// CreateOtelCollector - create a existing collector by id
-	CreateOtelCollector(ctx context.Context, sinkID string, msg string, ownerID string) error
+type SinkConfig struct {
+	Id       string
+	Url      string
+	Username string
+	Password string
+}
 
-	// DeleteOtelCollector - delete a existing collector by id
+type MaestroService interface {
+	// CreateOtelCollector - create an existing collector by id
+	CreateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error
+
+	// DeleteOtelCollector - delete an existing collector by id
 	DeleteOtelCollector(ctx context.Context, sinkID string) error
 
-	// UpdateOtelCollector - update a existing collector by id
-	UpdateOtelCollector(ctx context.Context, sinkID string, msg string, ownerID string) error
+	// UpdateOtelCollector - update an existing collector by id
+	UpdateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error
 }

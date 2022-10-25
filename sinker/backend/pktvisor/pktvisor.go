@@ -26,7 +26,7 @@ type pktvisorBackend struct {
 	logger *zap.Logger
 }
 
-type context struct {
+type metricAppendix struct {
 	agent        *pb.AgentInfoRes
 	agentID      string
 	policyID     string
@@ -34,6 +34,7 @@ type context struct {
 	deviceID     string
 	deviceIF     string
 	handlerLabel string
+	format       string
 	tags         map[string]string
 	logger       *zap.Logger
 }
@@ -60,7 +61,7 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 		tags[k] = v
 	}
 
-	context := context{
+	appendix := metricAppendix{
 		agent:        agent,
 		agentID:      agentID,
 		policyID:     data.PolicyID,
@@ -70,6 +71,7 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 		handlerLabel: "",
 		tags:         tags,
 		logger:       p.logger,
+		format:       "prom_sinker",
 	}
 	stats := make(map[string]StatSnapshot)
 	for handlerLabel, handlerData := range metrics {
@@ -115,10 +117,10 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 			stats[handlerLabel] = sTmp
 		}
 	}
-	return parseToProm(&context, stats), nil
+	return parseToProm(&appendix, stats), nil
 }
 
-func parseToProm(ctxt *context, statsMap map[string]StatSnapshot) prometheus.TSList {
+func parseToProm(ctxt *metricAppendix, statsMap map[string]StatSnapshot) prometheus.TSList {
 	var finalTs = prometheus.TSList{}
 	for handlerLabel, stats := range statsMap {
 		var tsList = prometheus.TSList{}
@@ -134,7 +136,7 @@ func parseToProm(ctxt *context, statsMap map[string]StatSnapshot) prometheus.TSL
 	return finalTs
 }
 
-func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label string, tsList *prometheus.TSList) {
+func convertToPromParticle(ctxt *metricAppendix, statsMap map[string]interface{}, label string, tsList *prometheus.TSList) {
 	for key, value := range statsMap {
 		switch statistic := value.(type) {
 		case map[string]interface{}:
@@ -198,7 +200,7 @@ func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label
 	}
 }
 
-func convertFlowToPromParticle(ctxt *context, statsMap map[string]interface{}, label string, tsList *prometheus.TSList) {
+func convertFlowToPromParticle(ctxt *metricAppendix, statsMap map[string]interface{}, label string, tsList *prometheus.TSList) {
 	for key, value := range statsMap {
 		switch statistic := value.(type) {
 		case map[string]interface{}:
@@ -261,7 +263,7 @@ func convertFlowToPromParticle(ctxt *context, statsMap map[string]interface{}, l
 	}
 }
 
-func makePromParticle(ctxt *context, label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool, name string) *prometheus.TSList {
+func makePromParticle(ctxt *metricAppendix, label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool, name string) *prometheus.TSList {
 	mapQuantiles := make(map[string]string)
 	mapQuantiles["P50"] = "0.5"
 	mapQuantiles["P90"] = "0.9"
@@ -354,7 +356,7 @@ func makePromParticle(ctxt *context, label string, k string, v interface{}, tsLi
 	return tsList
 }
 
-func handleParticleError(ctxt *context, err error) {
+func handleParticleError(ctxt *metricAppendix, err error) {
 	ctxt.logger.Error("failed to set prometheus element", zap.Error(err))
 }
 

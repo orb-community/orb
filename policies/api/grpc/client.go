@@ -27,6 +27,29 @@ type grpcClient struct {
 	retrievePolicy           endpoint.Endpoint
 	retrievePoliciesByGroups endpoint.Endpoint
 	retrieveDataset          endpoint.Endpoint
+	retrieveDatasetsByGroups endpoint.Endpoint
+}
+
+func (client grpcClient) RetrieveDatasetsByGroups(ctx context.Context, in *pb.DatasetsByGroupsReq, opts ...grpc.CallOption) (*pb.DatasetsRes, error) {
+	ctx, cancel := context.WithTimeout(ctx, client.timeout)
+	defer cancel()
+
+	ar := accessByGroupIDReq{
+		GroupIDs: in.GroupIDs,
+		OwnerID:  in.OwnerID,
+	}
+	res, err := client.retrieveDatasetsByGroups(ctx, ar)
+	if err != nil {
+		return nil, err
+	}
+
+	ir := res.(datasetListRes)
+	dsList := make([]*pb.DatasetRes, len(ir.datasets))
+	for i, ds := range ir.datasets {
+		dsList[i] = &pb.DatasetRes{Id: ds.id, SinkIds: ds.sinkIDs, PolicyId: ds.policyID, AgentGroupId: ds.agentGroupID}
+	}
+	return &pb.DatasetsRes{DatasetList: dsList}, nil
+
 }
 
 func (client grpcClient) RetrievePolicy(ctx context.Context, in *pb.PolicyByIDReq, opts ...grpc.CallOption) (*pb.PolicyRes, error) {

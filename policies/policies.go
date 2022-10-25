@@ -121,6 +121,9 @@ type Service interface {
 
 	// RemoveAllDatasetsByPolicyIDInternal removes all datasets by policyID owned by the specified user
 	RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) error
+
+	// ListDatasetsByGroupIDInternal gRPC version of retrieving list of datasets belonging to specified agent group with no token
+	ListDatasetsByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Dataset, error)
 }
 
 type Repository interface {
@@ -182,4 +185,7 @@ type Repository interface {
 
 	// DeleteAllDatasetsPolicy removes all datasets by policyID
 	DeleteAllDatasetsPolicy(ctx context.Context, policyID string, ownerID string) error
+
+	// RetrieveDatasetsByGroupID Retrieve dataset list by group id
+	RetrieveDatasetsByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]Dataset, error)
 }

@@ -23,14 +23,12 @@ var (
 	ErrConflictMaestro = errors.New("Otel collector already exists")
 )
 
-func (svc maestroService) collectorDeploy(operation, namespace, manifest, sinkId, sinkUrl, sinkUsername, sinkPassword string) error {
-	manifest, err := GetDeploymentJson(sinkId, sinkUrl, sinkUsername, sinkPassword)
-	if err != nil {
-		svc.logger.Error("failed to get deployment json", zap.Error(err))
-		return err
-	}
+const namespace = "otelcollectors"
+
+func (svc maestroService) collectorDeploy(ctx context.Context, operation, sinkId, manifest string) error {
+
 	fileContent := []byte(manifest)
-	err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", fileContent, 0644)
+	err := os.WriteFile("/tmp/otel-collector-"+sinkId+".json", fileContent, 0644)
 	if err != nil {
 		svc.logger.Error("failed to write file content", zap.Error(err))
 		return err
@@ -68,23 +66,26 @@ func (svc maestroService) collectorDeploy(operation, namespace, manifest, sinkId
 	return nil
 }
 
-func (svc maestroService) getConfigFromSinkId(id string) (sinkUrl, sinkUsername, sinkPassword string) {
+func (svc maestroService) getConfigFromSinkId(config SinkConfig) (sinkID, sinkUrl, sinkUsername, sinkPassword string) {
 
-	return "", "", ""
+	return config.Id, config.Url, config.Username, config.Password
 }
 
-func (svc maestroService) CreateOtelCollector(ctx context.Context, sinkID string, msg string, ownerID string) error {
-	sinkUrl, sinkUsername, sinkPassword := svc.getConfigFromSinkId(sinkID)
-	err := svc.collectorDeploy("apply", "otelcollectors", k8sOtelCollector, sinkID, sinkUrl, sinkUsername, sinkPassword)
+func (svc maestroService) CreateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
+	err := svc.collectorDeploy(ctx, "apply", sinkID, deploymentEntry)
+
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (svc maestroService) UpdateOtelCollector(ctx context.Context, sinkID string, msg string, ownerID string) error {
-	sinkUrl, sinkUsername, sinkPassword := svc.getConfigFromSinkId(sinkID)
-	err := svc.collectorDeploy("apply", "otelcollectors", k8sOtelCollector, sinkID, sinkUrl, sinkUsername, sinkPassword)
+func (svc maestroService) UpdateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
+	err := svc.DeleteOtelCollector(ctx, sinkID)
+	if err != nil {
+		return err
+	}
+	err = svc.CreateOtelCollector(ctx, sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
@@ -92,7 +93,7 @@ func (svc maestroService) UpdateOtelCollector(ctx context.Context, sinkID string
 }
 
 func (svc maestroService) DeleteOtelCollector(ctx context.Context, sinkID string) error {
-	err := svc.collectorDeploy("delete", "otelcollectors", k8sOtelCollector, sinkID, "", "", "")
+	err := svc.collectorDeploy(ctx, "delete", sinkID, "")
 	if err != nil {
 		return err
 	}

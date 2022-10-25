@@ -9,6 +9,15 @@ import (
 
 const deploymentKey = "orb.sinks.deployment"
 
+func (es eventStore) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error) {
+	cmd := es.client.HGet(ctx, deploymentKey, sinkId)
+	if err := cmd.Err(); err != nil {
+		es.logger.Error("error during redis reading of SinkId", zap.String("sink-id", sinkId), zap.Error(err))
+		return "", err
+	}
+	return cmd.String(), nil
+}
+
 // handleSinksDeleteCollector will delete Deployment Entry and force delete otel collector
 func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinksUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
@@ -22,7 +31,7 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinks
 
 // handleSinksCreateCollector will create Deployment Entry in Redis
 func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro CREATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+	es.logger.Info("Received event to Create DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
 	sinkUrl := event.config["sink_url"].(string)
 	sinkUsername := event.config["username"].(string)
 	sinkPassword := event.config["password"].(string)
@@ -36,9 +45,10 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinks
 	return nil
 }
 
-// handleSinksUpdateCollector will update Deployment Entry in Redis
+// handleSinksUpdateCollector will update Deployment Entry in Redis and force update otel collector
 func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro UPDATE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+	es.logger.Info("Received event to Update DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+
 	sinkUrl := event.config["sink_url"].(string)
 	sinkUsername := event.config["username"].(string)
 	sinkPassword := event.config["password"].(string)
@@ -48,6 +58,11 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinks
 		return err
 	}
 	es.client.HSet(ctx, deploymentKey, event.sinkID, deploy)
+	err = es.maestroService.UpdateOtelCollector(ctx, event.sinkID, deploy)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
