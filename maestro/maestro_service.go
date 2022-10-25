@@ -28,7 +28,7 @@ const namespace = "otelcollectors"
 func (svc maestroService) collectorDeploy(ctx context.Context, operation, sinkId, manifest string) (err error) {
 
 	fileContent := []byte(manifest)
-	err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", fileContent, 0644)
+	err := os.WriteFile("/tmp/otel-collector-"+sinkId+".json", fileContent, 0644)
 	if err != nil {
 		svc.logger.Error("failed to write file content", zap.Error(err))
 		return err
