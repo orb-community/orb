@@ -63,7 +63,21 @@ func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.Sinke
 		`set(resource.attributes["sink-id"], ctx.Value("sink-id"))`,
 		`set(resource.attributes["format"], "otlp")`,
 	}
-
+	transformSet := component.ProcessorCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.MeterProvider(),
+			MetricsLevel:   configtelemetry.LevelDetailed,
+		},
+	}
+	processor, err := transformFactory.CreateMetricsProcessor(transformCtx, transformSet, transformCfg, exporter)
+	if err != nil {
+		log.Error("error on creating processor", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
 	log.Info("created kafka exporter successfully")
 	// receiver Factory
 	orbReceiverFactory := orbreceiver.NewFactory()
@@ -80,7 +94,7 @@ func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.Sinke
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 	}
-	receiver, err := orbReceiverFactory.CreateMetricsReceiver(receiverCtx, receiverSet, receiverCfg, exporter)
+	receiver, err := orbReceiverFactory.CreateMetricsReceiver(receiverCtx, receiverSet, receiverCfg, processor)
 	log.Info("created receiver")
 	if err != nil {
 		log.Error("error on creating receiver", err)
