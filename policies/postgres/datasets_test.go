@@ -1129,22 +1129,25 @@ func TestDatasetsRetrieveByGroup(t *testing.T) {
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
-	_, err = repo.SaveDataset(context.Background(), dataset)
+	id, err := repo.SaveDataset(context.Background(), dataset)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	dataset.ID = id
 
 	cases := map[string]struct {
-		groupID  []string
-		ownerID  string
-		policyID string
-		results  int
-		err      error
+		datasetID string
+		groupID   []string
+		ownerID   string
+		policyID  string
+		results   int
+		err       error
 	}{
 		"retrieve existing datasets by group ID and ownerID": {
-			groupID:  []string{groupID.String()},
-			ownerID:  policy.MFOwnerID,
-			policyID: policyID,
-			results:  1,
-			err:      nil,
+			datasetID: dataset.ID,
+			groupID:   []string{groupID.String()},
+			ownerID:   policy.MFOwnerID,
+			policyID:  policyID,
+			results:   1,
+			err:       nil,
 		},
 		"retrieve non existing datasets by group ID and ownerID": {
 			groupID:  []string{policy.MFOwnerID},
