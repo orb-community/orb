@@ -170,47 +170,77 @@ type PeriodPayload struct {
 // FlowPayload contains the information specifically for the Flow protocol
 type FlowPayload struct {
 	Devices map[string]struct {
-		Cardinality struct {
-			Conversations int64 `mapstructure:"conversations"`
-			DstIpsOut     int64 `mapstructure:"dst_ips_out"`
-			DstPortsOut   int64 `mapstructure:"dst_ports_out"`
-			SrcIpsIn      int64 `mapstructure:"src_ips_in"`
-			SrcPortsIn    int64 `mapstructure:"src_ports_in"`
-		} `mapstructure:"cardinality"`
 		RecordsFiltered         int64       `mapstructure:"records_filtered"`
-		Ipv4                    int64       `mapstructure:"ipv4"`
-		Ipv6                    int64       `mapstructure:"ipv6"`
-		OtherL4                 int64       `mapstructure:"other_l4"`
-		TCP                     int64       `mapstructure:"tcp"`
-		UDP                     int64       `mapstructure:"udp"`
-		TopGeoLocBytes          []NameCount `mapstructure:"top_geoLoc_bytes"`
-		TopGeoLocPackets        []NameCount `mapstructure:"top_geoLoc_packets"`
-		TopAsnBytes             []NameCount `mapstructure:"top_ASN_bytes"`
-		TopAsnPackets           []NameCount `mapstructure:"top_ASN_packets"`
-		TopDstIpsAndPortBytes   []NameCount `mapstructure:"top_dst_ips_and_port_bytes"`
-		TopDstIpsAndPortPackets []NameCount `mapstructure:"top_dst_ips_and_port_packets"`
-		TopDstIpsBytes          []NameCount `mapstructure:"top_dst_ips_bytes"`
-		TopDstIpsPackets        []NameCount `mapstructure:"top_dst_ips_packets"`
-		TopDstPortsBytes        []NameCount `mapstructure:"top_dst_ports_bytes"`
-		TopDstPortsPackets      []NameCount `mapstructure:"top_dst_ports_packets"`
+		RecordsTotal            int64       `mapstructure:"records_total"`
 		TopInInterfacesBytes    []NameCount `mapstructure:"top_in_interfaces_bytes"`
 		TopInInterfacesPackets  []NameCount `mapstructure:"top_in_interfaces_packets"`
 		TopOutInterfacesBytes   []NameCount `mapstructure:"top_out_interfaces_bytes"`
 		TopOutInterfacesPackets []NameCount `mapstructure:"top_out_interfaces_packets"`
-		TopSrcIpsAndPortBytes   []NameCount `mapstructure:"top_src_ips_and_port_bytes"`
-		TopSrcIpsAndPortPackets []NameCount `mapstructure:"top_src_ips_and_port_packets"`
-		TopConversationsBytes   []NameCount `mapstructure:"top_conversations_bytes"`
-		TopConversationsPackets []NameCount `mapstructure:"top_conversations_packets"`
-		TopSrcIpsBytes          []NameCount `mapstructure:"top_src_ips_bytes"`
-		TopSrcIpsPackets        []NameCount `mapstructure:"top_src_ips_packets"`
-		TopSrcPortsBytes        []NameCount `mapstructure:"top_src_ports_bytes"`
-		TopSrcPortsPackets      []NameCount `mapstructure:"top_src_ports_packets"`
-		RecordsTotal            int64       `mapstructure:"records_total"`
-		Udp                     int64       `mapstructure:"udp"`
+		Interfaces              map[string]struct {
+			Cardinality struct {
+				Conversations int64 `mapstructure:"conversations"`
+				DstIpsOut     int64 `mapstructure:"dst_ips_out"`
+				DstPortsOut   int64 `mapstructure:"dst_ports_out"`
+				SrcIpsIn      int64 `mapstructure:"src_ips_in"`
+				SrcPortsIn    int64 `mapstructure:"src_ports_in"`
+			} `mapstructure:"cardinality"`
+			InIpv4Bytes                int64       `mapstructure:"in_ipv4_bytes"`
+			InIpv4Packets              int64       `mapstructure:"in_ipv4_packets"`
+			InIpv6Bytes                int64       `mapstructure:"in_ipv6_bytes"`
+			InIpv6Packets              int64       `mapstructure:"in_ipv6_packets"`
+			InOtherL4Bytes             int64       `mapstructure:"in_other_l4_bytes"`
+			InOtherL4Packets           int64       `mapstructure:"in_other_l4_packets"`
+			InTcpBytes                 int64       `mapstructure:"in_tcp_bytes"`
+			InTcpPackets               int64       `mapstructure:"in_tcp_packets"`
+			InUdpBytes                 int64       `mapstructure:"in_udp_bytes"`
+			InUdpPackets               int64       `mapstructure:"in_udp_packets"`
+			InBytes                    int64       `mapstructure:"in_bytes"`
+			InPackets                  int64       `mapstructure:"in_packets"`
+			OutIpv4Bytes               int64       `mapstructure:"out_ipv4_bytes"`
+			OutIpv4Packets             int64       `mapstructure:"out_ipv4_packets"`
+			OutIpv6Bytes               int64       `mapstructure:"out_ipv6_bytes"`
+			OutIpv6Packets             int64       `mapstructure:"out_ipv6_packets"`
+			OutOtherL4Bytes            int64       `mapstructure:"out_other_l4_bytes"`
+			OutOtherL4Packets          int64       `mapstructure:"out_other_l4_packets"`
+			OutTcpBytes                int64       `mapstructure:"out_tcp_bytes"`
+			OutTcpPackets              int64       `mapstructure:"out_tcp_packets"`
+			OutUdpBytes                int64       `mapstructure:"out_udp_bytes"`
+			OutUdpPackets              int64       `mapstructure:"out_udp_packets"`
+			OutBytes                   int64       `mapstructure:"out_bytes"`
+			OutPackets                 int64       `mapstructure:"out_packets"`
+			TopInSrcIpsBytes           []NameCount `mapstructure:"top_in_src_ips_bytes"`
+			TopInSrcIpsPackets         []NameCount `mapstructure:"top_in_src_ips_packets"`
+			TopInSrcPortsBytes         []NameCount `mapstructure:"top_in_src_ports_bytes"`
+			TopInSrcPortsPackets       []NameCount `mapstructure:"top_in_src_ports_packets"`
+			TopInSrcIpsAndPortBytes    []NameCount `mapstructure:"top_in_src_ips_and_port_bytes"`
+			TopInSrcIpsAndPortPackets  []NameCount `mapstructure:"top_in_src_ips_and_port_packets"`
+			TopInDstIpsBytes           []NameCount `mapstructure:"top_in_dst_ips_bytes"`
+			TopInDstIpsPackets         []NameCount `mapstructure:"top_in_dst_ips_packets"`
+			TopInDstPortsBytes         []NameCount `mapstructure:"top_in_dst_ports_bytes"`
+			TopInDstPortsPackets       []NameCount `mapstructure:"top_in_dst_ports_packets"`
+			TopInDstIpsAndPortBytes    []NameCount `mapstructure:"top_in_dst_ips_and_port_bytes"`
+			TopInDstIpsAndPortPackets  []NameCount `mapstructure:"top_in_dst_ips_and_port_packets"`
+			TopOutSrcIpsBytes          []NameCount `mapstructure:"top_out_src_ips_bytes"`
+			TopOutSrcIpsPackets        []NameCount `mapstructure:"top_out_src_ips_packets"`
+			TopOutSrcPortsBytes        []NameCount `mapstructure:"top_out_src_ports_bytes"`
+			TopOutSrcPortsPackets      []NameCount `mapstructure:"top_out_src_ports_packets"`
+			TopOutSrcIpsAndPortBytes   []NameCount `mapstructure:"top_out_src_ips_and_port_bytes"`
+			TopOutSrcIpsAndPortPackets []NameCount `mapstructure:"top_out_src_ips_and_port_packets"`
+			TopOutDstIpsBytes          []NameCount `mapstructure:"top_out_dst_ips_bytes"`
+			TopOutDstIpsPackets        []NameCount `mapstructure:"top_out_dst_ips_packets"`
+			TopOutDstPortsBytes        []NameCount `mapstructure:"top_out_dst_ports_bytes"`
+			TopOutDstPortsPackets      []NameCount `mapstructure:"top_out_dst_ports_packets"`
+			TopOutDstIpsAndPortBytes   []NameCount `mapstructure:"top_out_dst_ips_and_port_bytes"`
+			TopOutDstIpsAndPortPackets []NameCount `mapstructure:"top_out_dst_ips_and_port_packets"`
+			TopConversationsBytes      []NameCount `mapstructure:"top_conversations_bytes"`
+			TopConversationsPackets    []NameCount `mapstructure:"top_conversations_packets"`
+			TopGeoLocBytes             []NameCount `mapstructure:"top_geoLoc_bytes"`
+			TopGeoLocPackets           []NameCount `mapstructure:"top_geoLoc_packets"`
+			TopAsnBytes                []NameCount `mapstructure:"top_ASN_bytes"`
+			TopAsnPackets              []NameCount `mapstructure:"top_ASN_packets"`
+		} `mapstructure:"interfaces"`
 	} `mapstructure:"devices"`
-	RecordsFiltered int64         `mapstructure:"records_filtered"`
-	RecordsTotal    int64         `mapstructure:"records_total"`
-	Period          PeriodPayload `mapstructure:"period"`
+	Period PeriodPayload `mapstructure:"period"`
 }
 
 // StatSnapshot is a snapshot of a given period from pktvisord

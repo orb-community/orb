@@ -209,11 +209,11 @@ func convertFlowToPromParticle(ctxt *metricAppendix, statsMap map[string]interfa
 
 			if label == "FlowDevices" {
 				label = strings.ReplaceAll(label, "Devices", "")
-				if ok := strings.Contains(key, "|"); ok {
-					ctxt.deviceIF = key
-					key = strings.Split(key, "|")[0]
-				}
 				ctxt.deviceID = key
+				convertFlowToPromParticle(ctxt, statistic, label, tsList)
+			} else if label == "FlowInterfaces" {
+				label = strings.ReplaceAll(label, "Interfaces", "")
+				ctxt.deviceIF = ctxt.deviceID + "|" + key
 				convertFlowToPromParticle(ctxt, statistic, label, tsList)
 			} else {
 				convertFlowToPromParticle(ctxt, statistic, label+key, tsList)
@@ -407,18 +407,30 @@ func topNMetricsParser(label string) (string, error) {
 	mapNMetrics["TopGeoLocPackes"] = "geo_loc"
 	mapNMetrics["TopAsnBytes"] = "asn"
 	mapNMetrics["TopAsnPackets"] = "asn"
-	mapNMetrics["TopDstIpsBytes"] = "ip"
-	mapNMetrics["TopDstIpsPackets"] = "ip"
-	mapNMetrics["TopSrcIpsBytes"] = "ip"
-	mapNMetrics["TopSrcIpsPackets"] = "ip"
-	mapNMetrics["TopDstPortsBytes"] = "port"
-	mapNMetrics["TopDstPortsPackets"] = "port"
-	mapNMetrics["TopSrcPortsBytes"] = "port"
-	mapNMetrics["TopSrcPortsPackets"] = "port"
-	mapNMetrics["TopDstIpsAndPortBytes"] = "ip_port"
-	mapNMetrics["TopDstIpsAndPortPackets"] = "ip_port"
-	mapNMetrics["TopSrcIpsAndPortBytes"] = "ip_port"
-	mapNMetrics["TopSrcIpsAndPortPackets"] = "ip_port"
+	mapNMetrics["TopInDstIpsBytes"] = "ip"
+	mapNMetrics["TopInDstIpsPackets"] = "ip"
+	mapNMetrics["TopInSrcIpsBytes"] = "ip"
+	mapNMetrics["TopInSrcIpsPackets"] = "ip"
+	mapNMetrics["TopInDstPortsBytes"] = "port"
+	mapNMetrics["TopInDstPortsPackets"] = "port"
+	mapNMetrics["TopInSrcPortsBytes"] = "port"
+	mapNMetrics["TopInSrcPortsPackets"] = "port"
+	mapNMetrics["TopInDstIpsAndPortBytes"] = "ip_port"
+	mapNMetrics["TopInDstIpsAndPortPackets"] = "ip_port"
+	mapNMetrics["TopInSrcIpsAndPortBytes"] = "ip_port"
+	mapNMetrics["TopInSrcIpsAndPortPackets"] = "ip_port"
+	mapNMetrics["TopOutDstIpsBytes"] = "ip"
+	mapNMetrics["TopOutDstIpsPackets"] = "ip"
+	mapNMetrics["TopOutSrcIpsBytes"] = "ip"
+	mapNMetrics["TopOutSrcIpsPackets"] = "ip"
+	mapNMetrics["TopOutDstPortsBytes"] = "port"
+	mapNMetrics["TopOutDstPortsPackets"] = "port"
+	mapNMetrics["TopOutSrcPortsBytes"] = "port"
+	mapNMetrics["TopOutSrcPortsPackets"] = "port"
+	mapNMetrics["TopOutDstIpsAndPortBytes"] = "ip_port"
+	mapNMetrics["TopOutDstIpsAndPortPackets"] = "ip_port"
+	mapNMetrics["TopOutSrcIpsAndPortBytes"] = "ip_port"
+	mapNMetrics["TopOutSrcIpsAndPortPackets"] = "ip_port"
 	mapNMetrics["TopConversationsBytes"] = "conversations"
 	mapNMetrics["TopConversationsPackets"] = "conversations"
 	mapNMetrics["TopInInterfacesBytes"] = "interface"

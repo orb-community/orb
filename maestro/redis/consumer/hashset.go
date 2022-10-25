@@ -48,6 +48,7 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinks
 // handleSinksUpdateCollector will update Deployment Entry in Redis and force update otel collector
 func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinksUpdateEvent) error {
 	es.logger.Info("Received event to Update DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+
 	sinkUrl := event.config["sink_url"].(string)
 	sinkUsername := event.config["username"].(string)
 	sinkPassword := event.config["password"].(string)
@@ -61,6 +62,7 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinks
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

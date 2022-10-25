@@ -41,6 +41,8 @@ jobs:
               - 'cmd/sinks/**'
               - 'sinker/**'
               - 'cmd/sinker/**'
+              - 'maestro/**'
+              - 'cmd/maestro/**'
             ui: 
               - 'ui/**'
             docs:
@@ -81,10 +83,14 @@ jobs:
         uses: actions/checkout@v2
         with:
           name: workspace
+
       - name: Run go report
         uses: ./.github/actions/go-report
         with:
           go_report_threshold: 90.1 #grade A+
+
+      - name: refresh go-report
+        uses: creekorful/goreportcard-action@v1.0
           
   update-api-docs:
     needs: prebuild
@@ -110,8 +116,32 @@ jobs:
           go-version: 1.19
 
       - name: Go unit tests
-        if: ${{ needs.prebuild.outputs.agent == 'true' }}
-        run: SERVICE=agent make test_service
+#        if: ${{ needs.prebuild.outputs.agent == 'true' }}
+        run: |
+          SERVICE=agent make test_service_cov
+        
+      - name: Install dependencies
+#        if: ${{ needs.prebuild.outputs.agent == 'true' }}        
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+#       if: ${{ needs.prebuild.outputs.agent == 'true' }}
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+#        if: ${{ needs.prebuild.outputs.agent == 'true' }}
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
 
   test-fleet:
     runs-on: ubuntu-latest
@@ -124,10 +154,32 @@ jobs:
           go-version: 1.19
 
       - name: Go unit tests
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
         run: |
-          if [ "${{ needs.prebuild.outputs.orb }}" == "true" ]; then
-            SERVICE=fleet make test_service
-          fi
+            SERVICE=fleet make test_service_cov
+          
+      - name: Install dependencies
+#       if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
 
   test-policies:
     runs-on: ubuntu-latest
@@ -140,8 +192,32 @@ jobs:
           go-version: 1.19
 
       - name: Go unit tests
-        if: ${{ needs.prebuild.outputs.orb == 'true' }}
-        run: SERVICE=policies make test_service
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          SERVICE=policies make test_service_cov
+          
+      - name: Install dependencies
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
 
   test-sinks:
     runs-on: ubuntu-latest
@@ -154,8 +230,32 @@ jobs:
           go-version: 1.19
 
       - name: Go unit tests
-        if: ${{ needs.prebuild.outputs.orb == 'true' }}
-        run: SERVICE=sinks make test_service
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          SERVICE=sinks make test_service_cov
+          
+      - name: Install dependencies
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
 
   test-sinker:
     runs-on: ubuntu-latest
@@ -168,8 +268,70 @@ jobs:
           go-version: 1.19
 
       - name: Go unit tests
-        if: ${{ needs.prebuild.outputs.orb == 'true' }}
-        run: SERVICE=sinker make test_service
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          SERVICE=sinker make test_service_cov
+          
+      - name: Install dependencies
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true   
+
+  test-maestro:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Go unit tests
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+            SERVICE=maestro make test_service_cov
+          
+      - name: Install dependencies
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
 
   package-agent:
     needs:
@@ -333,6 +495,33 @@ jobs:
       - name: Push service containers
         if: github.event_name != 'pull_request'
         run: docker push -a ns1labs/orb-sinks
+        
+  package-maestro:
+    needs:
+      - prebuild
+      - test-maestro
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
+      - name: Build service containers
+        run: SERVICE=maestro make build_docker
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-maestro
 
   package-ui-dependencies:
     needs:

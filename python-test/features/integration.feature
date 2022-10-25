@@ -42,6 +42,7 @@ Scenario: Apply multiple advanced policies to an agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -56,6 +57,7 @@ Scenario: Apply two simple policies to an agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -72,6 +74,7 @@ Scenario: apply one policy using multiple datasets to the same group
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 2 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -88,6 +91,7 @@ Scenario: Remove group to which agent is linked
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -107,6 +111,7 @@ Scenario: Remove policy from agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 3 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -127,6 +132,7 @@ Scenario: Remove dataset from agent with just one dataset linked
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 3 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -145,6 +151,7 @@ Scenario: Remove dataset from agent with more than one dataset linked
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 4 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -249,6 +256,7 @@ Scenario: Sink with invalid endpoint
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink with invalid endpoint already exists
@@ -268,6 +276,7 @@ Scenario: Unapplying policies that failed by editing agent orb tags to unsubscri
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -287,6 +296,7 @@ Scenario: Unapplying policies that failed by editing group tags to unsubscribe a
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -306,6 +316,7 @@ Scenario: Unapplying policies that failed by removing group
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -326,6 +337,7 @@ Scenario: Sink with invalid username
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink with invalid username already exists
@@ -345,6 +357,7 @@ Scenario: Sink with invalid password
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink with invalid password already exists
@@ -431,6 +444,7 @@ Scenario: Agent subscription to multiple group with policies after editing orb a
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -451,6 +465,7 @@ Scenario: Agent subscription to group with policies after editing orb agent's ta
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -472,6 +487,7 @@ Scenario: Remove one of the groups that applies the same policy on the agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 2 groups
         And this agent's heartbeat shows that 2 groups are matching the agent
         And that a sink already exists
@@ -492,6 +508,7 @@ Scenario: Remove one of the datasets that applies the same policy on the agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 2 groups
         And this agent's heartbeat shows that 2 groups are matching the agent
         And that a sink already exists
@@ -527,6 +544,7 @@ Scenario: Edit agent name and apply policies to then
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 5 orb tag(s) already exists and is online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 1 agent must be matching on response field matching_agents of the last group created
         And that a sink already exists
@@ -556,6 +574,7 @@ Scenario: Editing tags of an Agent Group with policies (subscription - provision
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 2 orb tag(s) already exists and is online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with 1 orb tag(s) and without description
         And that a sink already exists
         And 2 simple policies are applied to the group
@@ -605,6 +624,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (unsubscription
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with same tag as the agent and without description
         And that a sink already exists
         And 2 simple policies are applied to the group
@@ -622,6 +642,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 3 orb tag(s) already exists and is online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with 1 orb tag(s) and without description
         And that a sink already exists
         And 2 simple policies are applied to the group
@@ -676,6 +697,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to net
         And the Orb user logs in
         And that a sink already exists
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a new policy is created using: handler=dns, description='policy_dns', bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=0
         And 1 new dataset is created using the policy, last group and 1 sink
@@ -696,6 +718,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to dhcp
         And the Orb user logs in
         And that a sink already exists
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And this agent's heartbeat shows that 1 groups are matching the agent
         And a new policy is created using: handler=dns, host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.foo.com/ .example.com], only_rcode=2
@@ -714,6 +737,7 @@ Scenario: Edit a simple policy with handler dhcp changing the handler to net
         And the Orb user logs in
         And that a sink already exists
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And this agent's heartbeat shows that 1 groups are matching the agent
         And a new policy is created using: handler=dhcp
@@ -731,6 +755,7 @@ Scenario: Edit a simple policy with handler net changing the handler to dns and 
         And the Orb user logs in
         And that a sink already exists
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a new policy is created using: handler=net
         And 1 new dataset is created using the policy, last group and 1 sink
@@ -751,6 +776,7 @@ Scenario: remove 1 sink from a dataset with 2 sinks
         And the Orb user logs in
         And that 2 sinks already exists
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And this agent's heartbeat shows that 1 groups are matching the agent
         And a new policy is created using: handler=dhcp
@@ -768,6 +794,7 @@ Scenario: remove 1 sink from a dataset with 1 sinks
         And the Orb user logs in
         And that 2 sinks already exists
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a new policy is created using: handler=dhcp
         And 1 new dataset is created using the policy, last group and 1 sinks
@@ -785,6 +812,7 @@ Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and inse
         And the Orb user logs in
         And that 2 sinks already exists
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a new policy is created using: handler=dns
         And 1 new dataset is created using the policy, last group and 1 sinks
@@ -804,6 +832,7 @@ Scenario: Remotely restart agents with policies applied
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -823,6 +852,7 @@ Scenario: Remotely restart agents without policies applied
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -842,6 +872,7 @@ Scenario: Create duplicated policy
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink already exists
@@ -941,6 +972,7 @@ Scenario: Edit sink with invalid username and use valid one
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink with invalid username already exists
@@ -962,6 +994,7 @@ Scenario: Edit sink with password and use valid one
     Given the Orb user has a registered account
         And the Orb user logs in
         And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
         And that a sink with invalid password already exists
@@ -978,6 +1011,76 @@ Scenario: Edit sink with password and use valid one
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
+@smoke
+Scenario: Check policies status when agent backend stop running
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
+        And referred agent is subscribed to 1 group
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And that a sink already exists
+        And 5 mixed policies are applied to the group
+        And this agent's heartbeat shows that 5 policies are applied and all has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And 5 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+    When agent backend (pktvisor) stops running
+        And pktvisor state is backend_error
+    Then this agent's heartbeat shows that 5 policies are applied and all has status unknown
+
+
+@smoke
+Scenario: Check backend status when agent backend stop running
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
+    When agent backend (pktvisor) stops running
+    Then pktvisor state is backend_error
+        And pktvisor error is failed to retrieve backend status: signal: killed
+
+
+@smoke
+Scenario: Check auto reset after pktvisor stop running
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
+        And referred agent is subscribed to 1 group
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And that a sink already exists
+        And 10 mixed policies are applied to the group
+        Then this agent's heartbeat shows that 10 policies are applied and all has status running
+    When agent backend (pktvisor) stops running
+        And pktvisor state is backend_error
+        And pktvisor error is failed to retrieve backend status: signal: killed
+        And this agent's heartbeat shows that 10 policies are applied and all has status unknown
+    Then agent backend pktvisor restart_count is 1
+        And pktvisor state is running
+        And this agent's heartbeat shows that 10 policies are applied and all has status running
+
+
+@smoke
+Scenario: Check new policies applied after pktvisor stop running
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
+        And referred agent is subscribed to 1 group
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And that a sink already exists
+        And 10 mixed policies are applied to the group
+        And this agent's heartbeat shows that 10 policies are applied and all has status running
+        And agent backend (pktvisor) stops running
+        And pktvisor state is backend_error
+        And pktvisor error is failed to retrieve backend status: signal: killed
+        And this agent's heartbeat shows that 10 policies are applied and all has status unknown
+        And agent backend pktvisor restart_count is 1
+        And pktvisor state is running
+        And this agent's heartbeat shows that 10 policies are applied and all has status running
+    When 2 mixed policies are applied to the group
+    Then this agent's heartbeat shows that 12 policies are applied and all has status running
+
 ### AGENTS PROVISIONED USING CONFIGURATION FILES:
 
 ########### tap_selector
@@ -988,6 +1091,7 @@ Scenario: tap_selector - any - matching 0 of all tags from an agent
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching any of 0 agent tap tags ands settings: geoloc_notfound=False is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1003,6 +1107,7 @@ Scenario: tap_selector - any - matching 1 of all tags from an agent
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching any of 1 agent (1 tag matching) tap tags ands settings: geoloc_notfound=False is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1020,6 +1125,7 @@ Scenario: tap_selector - any - matching 1 of all tags (plus 1 random tag) from a
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching any of 1 agent (1 tag matching + 1 random tag) tap tags ands settings: geoloc_notfound=False is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1037,6 +1143,7 @@ Scenario: tap_selector - all - matching 0 of all tags from an agent
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all of 0 agent tap tags ands settings: geoloc_notfound=False is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1052,6 +1159,7 @@ Scenario: tap_selector - all - matching 1 of all tags from an agent
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all of 1 agent (1 tag matching) tap tags ands settings: geoloc_notfound=False is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1070,6 +1178,7 @@ Scenario: tap_selector - all - matching all tags from an agent
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all of an agent tap tags ands settings: geoloc_notfound=False is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1089,6 +1198,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1110,6 +1220,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And 3 simple policies pcap are applied to the group
         And a new agent is created with 0 orb tag(s)
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
@@ -1126,6 +1237,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -1148,6 +1260,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And 3 simple policies pcap are applied to the group
         And a new agent is created with 2 orb tag(s)
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
@@ -1164,6 +1277,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And that a sink already exists
         And a new agent is created with 0 orb tag(s)
     When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1185,6 +1299,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And 3 simple policies pcap are applied to the group
         And a new agent is created with 0 orb tag(s)
     When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
@@ -1201,6 +1316,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And that a sink already exists
         And a new agent is created with 2 orb tag(s)
     When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -1223,6 +1339,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And 3 simple policies pcap are applied to the group
         And a new agent is created with 2 orb tag(s)
     When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
@@ -1241,6 +1358,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1262,6 +1380,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And 3 simple policies flow are applied to the group
         And a new agent is created with 0 orb tag(s)
     When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
@@ -1278,6 +1397,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -1300,6 +1420,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And 3 simple policies flow are applied to the group
         And a new agent is created with 2 orb tag(s)
     When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
@@ -1316,6 +1437,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And that a sink already exists
         And a new agent is created with 0 orb tag(s)
     When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1337,6 +1459,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And 3 simple policies flow are applied to the group
         And a new agent is created with 0 orb tag(s)
     When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
@@ -1353,6 +1476,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And that a sink already exists
         And a new agent is created with 2 orb tag(s)
     When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -1375,6 +1499,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And 3 simple policies flow are applied to the group
         And a new agent is created with 2 orb tag(s)
     When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
@@ -1394,6 +1519,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1415,6 +1541,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And 3 simple policies dnstap are applied to the group
         And a new agent is created with 0 orb tag(s)
     When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
@@ -1431,6 +1558,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And the Orb user logs in
         And that a sink already exists
     When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -1453,6 +1581,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And 3 simple policies dnstap are applied to the group
         And a new agent is created with 2 orb tag(s)
     When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
@@ -1469,6 +1598,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And that a sink already exists
         And a new agent is created with 0 orb tag(s)
     When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
@@ -1490,6 +1620,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And 3 simple policies dnstap are applied to the group
         And a new agent is created with 0 orb tag(s)
     When an agent(input_type:dnstap, settings: {{"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
@@ -1506,6 +1637,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And that a sink already exists
         And a new agent is created with 2 orb tag(s)
     When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with 3 agent tags and has status online
+        And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -1528,6 +1660,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And 3 simple policies dnstap are applied to the group
         And a new agent is created with 2 orb tag(s)
     When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online
+        And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
