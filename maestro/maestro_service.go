@@ -25,7 +25,7 @@ var (
 
 const namespace = "otelcollectors"
 
-func (svc maestroService) collectorDeploy(ctx context.Context, operation, sinkId, manifest string) (err error) {
+func (svc maestroService) collectorDeploy(ctx context.Context, operation, sinkId, manifest string) error {
 
 	fileContent := []byte(manifest)
 	err := os.WriteFile("/tmp/otel-collector-"+sinkId+".json", fileContent, 0644)
