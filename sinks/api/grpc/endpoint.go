@@ -48,7 +48,7 @@ func retrieveSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 func retrieveSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(sinksFilter)
-		filter := sinks.SinksFilter{
+		filter := sinks.Filter{
 			OtelSink: req.isOtel,
 		}
 		sinks, err := svc.ListSinksInternal(ctx, filter)

@@ -26,6 +26,10 @@ type sinkRepositoryMock struct {
 	sinksMock map[string]sinks.Sink
 }
 
+func (s *sinkRepositoryMock) SearchAllSinks(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
+	return nil, nil
+}
+
 func (s *sinkRepositoryMock) UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
 	return nil
 }

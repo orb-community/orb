@@ -153,8 +153,13 @@ func (svc sinkService) ViewSinkInternal(ctx context.Context, ownerID string, key
 	return res, nil
 }
 
-func (svc sinkService) ListsSinksInternal(ctx context.Context, filter SinksFilter) ([]Sink, error) {
-	panic("not implemented")
+func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (sinks []Sink, err error) {
+	sinks, err = svc.sinkRepo.SearchAllSinks(ctx, filter)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrNotFound, err)
+	}
+
+	return
 }
 
 func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error) {

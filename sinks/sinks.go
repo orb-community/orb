@@ -59,8 +59,11 @@ var stateMap = [...]string{
 	"idle",
 }
 
-type SinksFilter struct {
-	OtelSink bool
+const MetadataLabelOtel = "opentelemetry"
+
+type Filter struct {
+	StateFilter   string
+	OpenTelemetry string
 }
 
 var stateRevMap = map[string]State{
@@ -117,7 +120,7 @@ type SinkService interface {
 	// ListSinks retrieves data about sinks
 	ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error)
 	// ListSinksInternal retrieves data from sinks filtered by SinksFilter for Services like Maestro, to build DeploymentEntries
-	ListSinksInternal(ctx context.Context, filter SinksFilter) ([]Sink, error)
+	ListSinksInternal(ctx context.Context, filter Filter) ([]Sink, error)
 	// ListBackends retrieves a list of available backends
 	ListBackends(ctx context.Context, token string) ([]string, error)
 	// ViewBackend retrieves a backend by the name
@@ -143,7 +146,7 @@ type SinkRepository interface {
 	// RetrieveAllByOwnerID retrieves Sinks by OwnerID
 	RetrieveAllByOwnerID(ctx context.Context, owner string, pm PageMetadata) (Page, error)
 	// SearchAllSinks search Sinks for internal usage like services
-	SearchAllSinks(ctx context.Context, filter SinksFilter) ([]Sink, error)
+	SearchAllSinks(ctx context.Context, filter Filter) ([]Sink, error)
 	// RetrieveById retrieves a Sink by ID
 	RetrieveById(ctx context.Context, key string) (Sink, error)
 	// RetrieveByOwnerAndId retrieves a By OwnerId And SinkId
