@@ -20,9 +20,17 @@ func (es eventStore) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId st
 
 // handleSinksDeleteCollector will delete Deployment Entry and force delete otel collector
 func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro DELETE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+	es.logger.Info("Received event to Create DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+	sinkUrl := event.config["sink_url"].(string)
+	sinkUsername := event.config["username"].(string)
+	sinkPassword := event.config["password"].(string)
+	deploy, err := maestro.GetDeploymentJson(event.sinkID, sinkUrl, sinkUsername, sinkPassword)
+	if err != nil {
+		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.sinkID))
+		return err
+	}
 	es.client.HDel(ctx, deploymentKey, event.sinkID)
-	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID)
+	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID, deploy)
 	if err != nil {
 		return err
 	}
@@ -41,14 +49,16 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinks
 		return err
 	}
 	es.client.HSet(ctx, deploymentKey, event.sinkID, deploy)
-
+	err = es.maestroService.CreateOtelCollector(ctx, event.sinkID, deploy)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // handleSinksUpdateCollector will update Deployment Entry in Redis and force update otel collector
 func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinksUpdateEvent) error {
 	es.logger.Info("Received event to Update DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-
 	sinkUrl := event.config["sink_url"].(string)
 	sinkUsername := event.config["username"].(string)
 	sinkPassword := event.config["password"].(string)
