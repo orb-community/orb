@@ -92,8 +92,8 @@ func (svc maestroService) UpdateOtelCollector(ctx context.Context, sinkID, deplo
 	return nil
 }
 
-func (svc maestroService) DeleteOtelCollector(ctx context.Context, sinkID string) error {
-	err := svc.collectorDeploy(ctx, "delete", sinkID, "")
+func (svc maestroService) DeleteOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
+	err := svc.collectorDeploy(ctx, "delete", sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
