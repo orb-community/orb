@@ -61,7 +61,7 @@ type MaestroService interface {
 	CreateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error
 
 	// DeleteOtelCollector - delete an existing collector by id
-	DeleteOtelCollector(ctx context.Context, sinkID string) error
+	DeleteOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error
 
 	// UpdateOtelCollector - update an existing collector by id
 	UpdateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error
