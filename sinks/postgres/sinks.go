@@ -99,7 +99,7 @@ func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
 	return nil
 }
 
-func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
+func (s sinksRepository) RetrieveAllByOwnerID(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
 	name, nameQuery := getNameQuery(pm.Name)
 	orderQuery := getOrderQuery(pm.Order)
 	dirQuery := getDirQuery(pm.Dir)

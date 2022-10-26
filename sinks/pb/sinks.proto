@@ -5,11 +5,11 @@ option go_package = "sinks/pb";
 
 service SinkService {
   rpc RetrieveSink(SinkByIDReq) returns (SinkRes) {}
-  rpc RetrieveSinks(SinksFilterReq) returns (OtelSinkRes) {}
+  rpc RetrieveSinks(SinksFilterReq) returns (SinksRes) {}
 }
 
-message OtelSinkRes {
-  repeated SinkRes otelSinks = 1;
+message SinksRes {
+  repeated SinkRes sinks = 1;
 }
 
 message SinksFilterReq {

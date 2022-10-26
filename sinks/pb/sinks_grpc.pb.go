@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SinkServiceClient interface {
 	RetrieveSink(ctx context.Context, in *SinkByIDReq, opts ...grpc.CallOption) (*SinkRes, error)
-	RetrieveSinks(ctx context.Context, in *SinksFilterReq, opts ...grpc.CallOption) (*OtelSinkRes, error)
+	RetrieveSinks(ctx context.Context, in *SinksFilterReq, opts ...grpc.CallOption) (*SinksRes, error)
 }
 
 type sinkServiceClient struct {
@@ -43,8 +43,8 @@ func (c *sinkServiceClient) RetrieveSink(ctx context.Context, in *SinkByIDReq, o
 	return out, nil
 }
 
-func (c *sinkServiceClient) RetrieveSinks(ctx context.Context, in *SinksFilterReq, opts ...grpc.CallOption) (*OtelSinkRes, error) {
-	out := new(OtelSinkRes)
+func (c *sinkServiceClient) RetrieveSinks(ctx context.Context, in *SinksFilterReq, opts ...grpc.CallOption) (*SinksRes, error) {
+	out := new(SinksRes)
 	err := c.cc.Invoke(ctx, "/sinks.SinkService/RetrieveSinks", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (c *sinkServiceClient) RetrieveSinks(ctx context.Context, in *SinksFilterRe
 // for forward compatibility
 type SinkServiceServer interface {
 	RetrieveSink(context.Context, *SinkByIDReq) (*SinkRes, error)
-	RetrieveSinks(context.Context, *SinksFilterReq) (*OtelSinkRes, error)
+	RetrieveSinks(context.Context, *SinksFilterReq) (*SinksRes, error)
 	mustEmbedUnimplementedSinkServiceServer()
 }
 
@@ -68,7 +68,7 @@ type UnimplementedSinkServiceServer struct {
 func (UnimplementedSinkServiceServer) RetrieveSink(context.Context, *SinkByIDReq) (*SinkRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrieveSink not implemented")
 }
-func (UnimplementedSinkServiceServer) RetrieveSinks(context.Context, *SinksFilterReq) (*OtelSinkRes, error) {
+func (UnimplementedSinkServiceServer) RetrieveSinks(context.Context, *SinksFilterReq) (*SinksRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrieveSinks not implemented")
 }
 func (UnimplementedSinkServiceServer) mustEmbedUnimplementedSinkServiceServer() {}

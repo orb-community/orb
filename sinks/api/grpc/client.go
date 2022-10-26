@@ -26,6 +26,13 @@ type grpcClient struct {
 	retrieveSink endpoint.Endpoint
 }
 
+func (client grpcClient) RetrieveSinks(ctx context.Context, in *pb.SinksFilterReq, opts ...grpc.CallOption) (*pb.OtelSinkRes, error) {
+	ctx, cancel := context.WithTimeout(ctx, client.timeout)
+	defer cancel()
+
+	panic("implement me")
+}
+
 func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, opts ...grpc.CallOption) (*pb.SinkRes, error) {
 	ctx, cancel := context.WithTimeout(ctx, client.timeout)
 	defer cancel()

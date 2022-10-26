@@ -82,7 +82,7 @@ func (s *sinkRepositoryMock) Update(ctx context.Context, sink sinks.Sink) (err e
 	return sinks.ErrNotFound
 }
 
-func (s *sinkRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
+func (s *sinkRepositoryMock) RetrieveAllByOwnerID(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
