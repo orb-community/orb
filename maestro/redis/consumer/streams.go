@@ -130,7 +130,7 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 	}
 }
 
-// Delete collector
+// handleSinkerDeleteCollector Delete collector
 func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event sinkerUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinker, sink state=" + event.state + ", , Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
 	deployment, err := es.GetDeploymentEntryFromSinkId(ctx, event.sinkID)
@@ -144,7 +144,7 @@ func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event sink
 	return nil
 }
 
-// Create collector
+// handleSinkerCreateCollector Create collector
 func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event sinkerUpdateEvent) error {
 	es.logger.Info("Received maestro CREATE event from sinker, sink state=" + event.state + ", Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
 	deploymentEntry, err := es.GetDeploymentEntryFromSinkId(ctx, event.sinkID)
