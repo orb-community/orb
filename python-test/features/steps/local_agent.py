@@ -24,6 +24,8 @@ def run_local_agent_container(context, status_port):
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
     image_tag = ':' + configs.get('agent_docker_tag', 'latest')
     agent_image = agent_docker_image + image_tag
+    include_otel_env_var = configs.get("include_otel_env_var")
+    enable_otel = configs.get("enable_otel")
     env_vars = {"ORB_CLOUD_ADDRESS": orb_address,
                 "ORB_CLOUD_MQTT_ID": context.agent['id'],
                 "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
@@ -31,6 +33,8 @@ def run_local_agent_container(context, status_port):
                 "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
     if ignore_ssl_and_certificate_errors == 'true':
         env_vars["ORB_TLS_VERIFY"] = "false"
+    if include_otel_env_var == "true":
+        env_vars["ORB_OTEL_ENABLE"] = enable_otel
 
     context.port = return_port_to_run_docker_container(context, availability[status_port])
 
@@ -112,8 +116,11 @@ def run_container_using_ui_command(context, status_port):
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
     context.port = return_port_to_run_docker_container(context, availability[status_port])
+    include_otel_env_var = configs.get("include_otel_env_var")
+    enable_otel = configs.get("enable_otel")
     context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
-                                                         ignore_ssl_and_certificate_errors, str(context.port))
+                                                         ignore_ssl_and_certificate_errors, str(context.port),
+                                                         include_otel_env_var, enable_otel)
     assert_that(context.container_id, is_not((none())), f"Agent container was not run")
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + context.agent['name'][-5:])
     if context.container_id not in context.containers_id.keys():
@@ -241,11 +248,13 @@ def check_logs_contain_log(logs, expected_log, event, start_time=0):
     return event.is_set()
 
 
-def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pktvisor_port):
+def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pktvisor_port,
+                                  include_otel_env_var="false", enable_otel="false"):
     """
     :param (str) command: docker command to provision an agent
     :param (bool) ignore_ssl_and_certificate_errors: True if orb address doesn't have a valid certificate.
     :param (str or int) pktvisor_port: Port on which pktvisor should run
+    :param (str): if 'true', ORB_OTEL_ENABLE env ver is included on command provisioning of the agent
     :return: agent container ID
     """
     command = command.replace("\\\n", " ")
@@ -253,6 +262,8 @@ def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pk
     if ignore_ssl_and_certificate_errors == 'true':
         args.insert(-1, "-e")
         args.insert(-1, "ORB_TLS_VERIFY=false")
+    if include_otel_env_var == "true":
+        args.insert(-1, f"ORB_OTEL_ENABLE={enable_otel}")
     if pktvisor_port != 'default':
         args.insert(-1, "-e")
         args.insert(-1, f"ORB_BACKENDS_PKTVISOR_API_PORT={pktvisor_port}")

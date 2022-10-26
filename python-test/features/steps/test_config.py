@@ -61,4 +61,14 @@ def _read_configs():
     assert_that(is_credentials_registered, any_of(equal_to('true'), equal_to('false')),
                 'Invalid value to is_credentials_registered parameter. A boolean value is expected.')
     configs['is_credentials_registered'] = is_credentials_registered
+    include_otel_env_var = configs.get("include_otel_env_var", "false").lower()
+    configs["include_otel_env_var"] = include_otel_env_var
+    enable_otel = configs.get('enable_otel', 'false').lower()
+    assert_that(enable_otel, any_of(equal_to('true'), equal_to('false')),
+                'Invalid value to enable_otel parameter. A boolean value is expected.')
+    configs['enable_otel'] = enable_otel
+    if include_otel_env_var == "false" and enable_otel == "true":
+        raise ValueError("'enable_otel' is enabled, but the variable is not being included in the commands because of "
+                         "'include_otel_env_var' is false. Check your parameters.")
+
     return configs
