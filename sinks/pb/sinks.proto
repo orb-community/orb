@@ -5,6 +5,15 @@ option go_package = "sinks/pb";
 
 service SinkService {
   rpc RetrieveSink(SinkByIDReq) returns (SinkRes) {}
+  rpc RetrieveSinks(SinksFilterReq) returns (OtelSinkRes) {}
+}
+
+message OtelSinkRes {
+  repeated SinkRes otelSinks = 1;
+}
+
+message SinksFilterReq {
+  string otelEnabled = 1;
 }
 
 message SinkByIDReq {
