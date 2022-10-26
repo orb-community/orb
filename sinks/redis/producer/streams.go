@@ -121,8 +121,9 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err erro
 	}
 
 	event := deleteSinkEvent{
-		sinkID:  id,
-		ownerID: sink.MFOwnerID,
+		sinkID: sink.ID,
+		owner:  sink.MFOwnerID,
+		config: sink.Config,
 	}
 
 	encode, err := event.Encode()
