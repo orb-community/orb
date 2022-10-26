@@ -18,7 +18,7 @@ type accessByIDReq struct {
 }
 
 type sinksFilter struct {
-	isOtel bool
+	isOtel string
 }
 
 func (req accessByIDReq) validate() error {
