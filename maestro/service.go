@@ -10,6 +10,7 @@ package maestro
 
 import (
 	"github.com/go-redis/redis/v8"
+	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 )
 
@@ -18,11 +19,13 @@ var _ MaestroService = (*maestroService)(nil)
 type maestroService struct {
 	logger      *zap.Logger
 	redisClient *redis.Client
+	sinksClient sinkspb.SinkServiceClient
 }
 
-func NewMaestroService(logger *zap.Logger, redisClient *redis.Client) MaestroService {
+func NewMaestroService(logger *zap.Logger, redisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient) MaestroService {
 	return &maestroService{
 		logger:      logger,
 		redisClient: redisClient,
+		sinksClient: sinksGrpcClient,
 	}
 }

@@ -11,11 +11,21 @@ package main
 import (
 	"context"
 	"fmt"
+	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
+	sinkspb "github.com/ns1labs/orb/sinks/pb"
+	"github.com/opentracing/opentracing-go"
+	jconfig "github.com/uber/jaeger-client-go/config"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
+	"io"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/ns1labs/orb/maestro"
 	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
@@ -37,6 +47,8 @@ func main() {
 
 	esCfg := config.LoadEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
+	jCfg := config.LoadJaegerConfig(envPrefix)
+	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 
 	// logger
 	var logger *zap.Logger
@@ -62,11 +74,33 @@ func main() {
 	defer func(logger *zap.Logger) {
 		_ = logger.Sync()
 	}(logger)
-
+	log := logger.Sugar()
 	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
 	defer esClient.Close()
 
-	svc := newMaestroService(logger, esClient)
+	tracer, tracerCloser := initJaeger(svcName, jCfg.URL, logger)
+	defer func(tracerCloser io.Closer) {
+		err := tracerCloser.Close()
+		if err != nil {
+			logger.Fatal(err.Error())
+		}
+	}(tracerCloser)
+
+	sinksGRPCConn := connectToGRPC(sinksGRPCCfg, logger)
+	defer func(sinksGRPCConn *grpc.ClientConn) {
+		err := sinksGRPCConn.Close()
+		if err != nil {
+			logger.Fatal(err.Error())
+		}
+	}(sinksGRPCConn)
+
+	sinksGRPCTimeout, err := time.ParseDuration(sinksGRPCCfg.Timeout)
+	if err != nil {
+		log.Fatalf("Invalid %s value: %s", sinksGRPCCfg.Timeout, err.Error())
+	}
+	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
+
+	svc := newMaestroService(logger, esClient, sinksGRPCClient)
 	errs := make(chan error, 2)
 
 	go subscribeToSinkerES(svc, esClient, esCfg, logger)
@@ -78,8 +112,61 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	err := <-errs
+	err = <-errs
 	logger.Error(fmt.Sprintf("Maestro service terminated: %s", err))
+}
+
+func connectToGRPC(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
+	var opts []grpc.DialOption
+	tls, err := strconv.ParseBool(cfg.ClientTLS)
+	if err != nil {
+		tls = false
+	}
+	if tls {
+		if cfg.CaCerts != "" {
+			tpc, err := credentials.NewClientTLSFromFile(cfg.CaCerts, "")
+			if err != nil {
+				logger.Error(fmt.Sprintf("Failed to create tls credentials: %s", err))
+				os.Exit(1)
+			}
+			opts = append(opts, grpc.WithTransportCredentials(tpc))
+		}
+	} else {
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
+
+	conn, err := grpc.Dial(cfg.URL, opts...)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Failed to dial to gRPC service %s: %s", cfg.URL, err))
+		os.Exit(1)
+	}
+	logger.Info(fmt.Sprintf("Dialed to gRPC service %s at %s, TLS? %t", cfg.Service, cfg.URL, tls))
+
+	return conn
+}
+
+func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io.Closer) {
+	if url == "" {
+		return opentracing.NoopTracer{}, ioutil.NopCloser(nil)
+	}
+
+	tracer, closer, err := jconfig.Configuration{
+		ServiceName: svcName,
+		Sampler: &jconfig.SamplerConfig{
+			Type:  "const",
+			Param: 1,
+		},
+		Reporter: &jconfig.ReporterConfig{
+			LocalAgentHostPort: url,
+			LogSpans:           true,
+		},
+	}.NewTracer()
+	if err != nil {
+		logger.Error("Failed to init Jaeger client", zap.Error(err))
+		os.Exit(1)
+	}
+
+	return tracer, closer
 }
 
 func connectToRedis(redisURL, redisPass, redisDB string, logger *zap.Logger) *r.Client {
@@ -96,8 +183,8 @@ func connectToRedis(redisURL, redisPass, redisDB string, logger *zap.Logger) *r.
 	})
 }
 
-func newMaestroService(logger *zap.Logger, esClient *r.Client) maestro.MaestroService {
-	svc := maestro.NewMaestroService(logger, esClient)
+func newMaestroService(logger *zap.Logger, esClient *r.Client, sinksGrpc sinkspb.SinkServiceClient) maestro.MaestroService {
+	svc := maestro.NewMaestroService(logger, esClient, sinksGrpc)
 	return svc
 }
 
