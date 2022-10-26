@@ -133,7 +133,11 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 // Delete collector
 func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event sinkerUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinker, sink state=" + event.state + ", , Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID)
+	deployment, err := es.GetDeploymentEntryFromSinkId(ctx, event.sinkID)
+	if err != nil {
+		return err
+	}
+	err = es.maestroService.DeleteOtelCollector(ctx, event.sinkID, deployment)
 	if err != nil {
 		return err
 	}

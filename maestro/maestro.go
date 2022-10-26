@@ -28,7 +28,7 @@ var (
 	// ErrEntityConnected indicates error while checking connection in database
 	ErrEntityConnected = errors.New("check connection in database error")
 
-	// ErrUpdateEntity indicates error while updating a entity
+	// ErrUpdateEntity indicates error while updating an entity
 	ErrUpdateEntity = errors.New("failed to update entity")
 
 	ErrUnauthorizedAccess = errors.New("missing or invalid credentials provided")
