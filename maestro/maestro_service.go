@@ -81,7 +81,7 @@ func (svc maestroService) CreateOtelCollector(ctx context.Context, sinkID, deplo
 }
 
 func (svc maestroService) UpdateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
-	err := svc.DeleteOtelCollector(ctx, sinkID)
+	err := svc.DeleteOtelCollector(ctx, sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
