@@ -52,14 +52,22 @@ func (cce createSinkEvent) Encode() (map[string]interface{}, error) {
 }
 
 type deleteSinkEvent struct {
-	sinkID  string
-	ownerID string
+	sinkID    string
+	owner     string
+	config    types.Metadata
+	timestamp time.Time
 }
 
 func (dse deleteSinkEvent) Encode() (map[string]interface{}, error) {
+	config, err := json.Marshal(dse.config)
+	if err != nil {
+		return nil, err
+	}
 	return map[string]interface{}{
 		"sink_id":   dse.sinkID,
-		"owner_id":  dse.ownerID,
+		"owner":     dse.owner,
+		"config":    config,
+		"timestamp": dse.timestamp.Unix(),
 		"operation": SinkDelete,
 	}, nil
 }
