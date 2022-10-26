@@ -25,7 +25,7 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinks
 	if err != nil {
 		return err
 	}
-	err = es.maestroService.DeleteOtelCollector(ctx, event.sinkID, deployment)
+	err = es.kubecontrol.DeleteOtelCollector(ctx, event.sinkID, deployment)
 	if err != nil {
 		return err
 	}
@@ -39,13 +39,21 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinks
 	sinkUrl := event.config["sink_url"].(string)
 	sinkUsername := event.config["username"].(string)
 	sinkPassword := event.config["password"].(string)
-	deploy, err := maestro.GetDeploymentJson(event.sinkID, sinkUrl, sinkUsername, sinkPassword)
+	err2 := es.CreateDeploymentEntry(ctx, event.sinkID, sinkUrl, sinkUsername, sinkPassword)
+	if err2 != nil {
+		return err2
+	}
+
+	return nil
+}
+
+func (es eventStore) CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl, sinkUsername, sinkPassword string) error {
+	deploy, err := maestro.GetDeploymentJson(sinkId, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
-		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.sinkID))
+		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sinkId))
 		return err
 	}
-	es.client.HSet(ctx, deploymentKey, event.sinkID, deploy)
-
+	es.client.HSet(ctx, deploymentKey, sinkId, deploy)
 	return nil
 }
 
@@ -61,7 +69,7 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinks
 		return err
 	}
 	es.client.HSet(ctx, deploymentKey, event.sinkID, deploy)
-	err = es.maestroService.UpdateOtelCollector(ctx, event.sinkID, deploy)
+	err = es.kubecontrol.UpdateOtelCollector(ctx, event.sinkID, deploy)
 	if err != nil {
 		return err
 	}

@@ -12,14 +12,12 @@ import (
 	"context"
 	"fmt"
 	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
-	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"github.com/opentracing/opentracing-go"
 	jconfig "github.com/uber/jaeger-client-go/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"strconv"
@@ -28,7 +26,6 @@ import (
 	"time"
 
 	"github.com/ns1labs/orb/maestro"
-	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
 	"github.com/ns1labs/orb/pkg/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -37,10 +34,9 @@ import (
 )
 
 const (
-	svcName     = "maestro"
-	mfEnvPrefix = "mf"
-	envPrefix   = "orb_maestro"
-	httpPort    = "8500"
+	svcName   = "maestro"
+	envPrefix = "orb_maestro"
+	httpPort  = "8500"
 )
 
 func main() {
@@ -76,7 +72,12 @@ func main() {
 	}(logger)
 	log := logger.Sugar()
 	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
-	defer esClient.Close()
+	defer func(esClient *r.Client) {
+		err := esClient.Close()
+		if err != nil {
+			return
+		}
+	}(esClient)
 
 	tracer, tracerCloser := initJaeger(svcName, jCfg.URL, logger)
 	defer func(tracerCloser io.Closer) {
@@ -100,16 +101,21 @@ func main() {
 	}
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
 
-	svc := newMaestroService(logger, esClient, sinksGRPCClient)
+	svc := maestro.NewMaestroService(logger, esClient, sinksGRPCClient, esCfg)
 	errs := make(chan error, 2)
 
-	go subscribeToSinkerES(svc, esClient, esCfg, logger)
-	go subscribeToSinksES(svc, esClient, esCfg, logger)
+	mainContext, mainCancelFunction := context.WithCancel(context.Background())
+	err = svc.Start(mainContext, mainCancelFunction)
+	if err != nil {
+		mainCancelFunction()
+		log.Fatalf(fmt.Sprintf("Maestro service terminated: %s", err))
+	}
 
 	go func() {
 		c := make(chan os.Signal)
 		signal.Notify(c, syscall.SIGINT)
 		errs <- fmt.Errorf("%s", <-c)
+		mainCancelFunction()
 	}()
 
 	err = <-errs
@@ -147,7 +153,7 @@ func connectToGRPC(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
 
 func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io.Closer) {
 	if url == "" {
-		return opentracing.NoopTracer{}, ioutil.NopCloser(nil)
+		return opentracing.NoopTracer{}, io.NopCloser(nil)
 	}
 
 	tracer, closer, err := jconfig.Configuration{
@@ -181,25 +187,4 @@ func connectToRedis(redisURL, redisPass, redisDB string, logger *zap.Logger) *r.
 		Password: redisPass,
 		DB:       db,
 	})
-}
-
-func newMaestroService(logger *zap.Logger, esClient *r.Client, sinksGrpc sinkspb.SinkServiceClient) maestro.MaestroService {
-	svc := maestro.NewMaestroService(logger, esClient, sinksGrpc)
-	return svc
-}
-
-func subscribeToSinkerES(svc maestro.MaestroService, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
-	eventStore := rediscons1.NewEventStore(svc, client, cfg.Consumer, logger)
-	logger.Info("Subscribed to Redis Event Store for sinker")
-	if err := eventStore.SubscribeSinker(context.Background()); err != nil {
-		logger.Error("Bootstrap service failed to subscribe to event sourcing sinker", zap.Error(err))
-	}
-}
-
-func subscribeToSinksES(svc maestro.MaestroService, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
-	logger.Info("Subscribed to Redis Event Store for sinks")
-	eventStore := rediscons1.NewEventStore(svc, client, cfg.Consumer, logger)
-	if err := eventStore.SubscribeSinks(context.Background()); err != nil {
-		logger.Error("Bootstrap service failed to subscribe to event sourcing sinks", zap.Error(err))
-	}
 }
