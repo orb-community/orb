@@ -153,13 +153,28 @@ func (svc sinkService) ViewSinkInternal(ctx context.Context, ownerID string, key
 	return res, nil
 }
 
+func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (sinks []Sink, err error) {
+	sinks, err = svc.sinkRepo.SearchAllSinks(ctx, filter)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrNotFound, err)
+	}
+	for _, sink := range sinks {
+		sink, err = svc.decryptMetadata(sink)
+		if err != nil {
+			return nil, errors.Wrap(errors.ErrViewEntity, err)
+		}
+	}
+
+	return
+}
+
 func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error) {
 	res, err := svc.identify(token)
 	if err != nil {
 		return Page{}, err
 	}
 
-	return svc.sinkRepo.RetrieveAll(ctx, res, pm)
+	return svc.sinkRepo.RetrieveAllByOwnerID(ctx, res, pm)
 }
 
 func (svc sinkService) DeleteSink(ctx context.Context, token string, id string) error {

@@ -25,6 +25,7 @@ type grpcServer struct {
 	pb.UnimplementedSinkServiceServer
 	retrieveSink    kitgrpc.Handler
 	passwordService sinks.PasswordService
+	retrieveSinks   kitgrpc.Handler
 }
 
 func NewServer(tracer opentracing.Tracer, svc sinks.SinkService) pb.SinkServiceServer {
@@ -34,7 +35,21 @@ func NewServer(tracer opentracing.Tracer, svc sinks.SinkService) pb.SinkServiceS
 			decodeRetrieveSinkRequest,
 			encodeSinkResponse,
 		),
+		retrieveSinks: kitgrpc.NewServer(
+			kitot.TraceServer(tracer, "retrieve_sinks")(retrieveSinksEndpoint(svc)),
+			decodeRetrieveSinksRequest,
+			encodeSinksResponse,
+		),
 	}
+}
+
+func (gs *grpcServer) RetrieveSinks(ctx context.Context, req *pb.SinksFilterReq) (*pb.SinksRes, error) {
+	_, res, err := gs.retrieveSinks.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, encodeError(err)
+	}
+
+	return res.(*pb.SinksRes), nil
 }
 
 func (gs *grpcServer) RetrieveSink(ctx context.Context, req *pb.SinkByIDReq) (*pb.SinkRes, error) {
@@ -44,6 +59,30 @@ func (gs *grpcServer) RetrieveSink(ctx context.Context, req *pb.SinkByIDReq) (*p
 	}
 
 	return res.(*pb.SinkRes), nil
+}
+
+func decodeRetrieveSinksRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.SinksFilterReq)
+	return sinksFilter{isOtel: req.OtelEnabled}, nil
+}
+
+func encodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(sinksRes)
+	var sinksRes *pb.SinksRes
+	for _, sink := range res.sinks {
+		sinkRes := &pb.SinkRes{
+			Id:          sink.id,
+			Name:        sink.name,
+			Description: sink.description,
+			Tags:        sink.tags,
+			State:       sink.state,
+			Error:       sink.error,
+			Backend:     sink.backend,
+			Config:      sink.config,
+		}
+		sinksRes.Sinks = append(sinksRes.Sinks, sinkRes)
+	}
+	return &sinksRes, nil
 }
 
 func decodeRetrieveSinkRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {

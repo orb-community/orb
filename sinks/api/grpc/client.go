@@ -22,11 +22,41 @@ import (
 var _ pb.SinkServiceClient = (*grpcClient)(nil)
 
 type grpcClient struct {
-	timeout      time.Duration
-	retrieveSink endpoint.Endpoint
+	timeout       time.Duration
+	retrieveSink  endpoint.Endpoint
+	retrieveSinks endpoint.Endpoint
 }
 
-func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, opts ...grpc.CallOption) (*pb.SinkRes, error) {
+func (client grpcClient) RetrieveSinks(ctx context.Context, in *pb.SinksFilterReq, _ ...grpc.CallOption) (*pb.SinksRes, error) {
+	ctx, cancel := context.WithTimeout(ctx, client.timeout)
+	defer cancel()
+
+	sinksFilter := sinksFilter{
+		isOtel: in.OtelEnabled,
+	}
+
+	res, err := client.retrieveSinks(ctx, sinksFilter)
+	if err != nil {
+		return nil, err
+	}
+	var sinksResponse *pb.SinksRes
+	ir := res.(sinksRes)
+	for _, sinkResponse := range ir.sinks {
+		sinksResponse.Sinks = append(sinksResponse.Sinks, &pb.SinkRes{
+			Id:          sinkResponse.id,
+			Name:        sinkResponse.name,
+			Description: sinkResponse.description,
+			Tags:        sinkResponse.tags,
+			State:       sinkResponse.state,
+			Error:       sinkResponse.error,
+			Backend:     sinkResponse.backend,
+			Config:      sinkResponse.config,
+		})
+	}
+	return sinksResponse, nil
+}
+
+func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, _ ...grpc.CallOption) (*pb.SinkRes, error) {
 	ctx, cancel := context.WithTimeout(ctx, client.timeout)
 	defer cancel()
 
@@ -66,7 +96,39 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 			decodeSinkResponse,
 			pb.SinkRes{},
 		).Endpoint()),
+		retrieveSinks: kitot.TraceClient(tracer, "retrieve_sinks")(kitgrpc.NewClient(
+			conn,
+			svcName,
+			"RetrieveSinks",
+			encodeRetrieveSinksRequest,
+			decodeSinksResponse,
+			pb.SinkRes{},
+		).Endpoint()),
 	}
+}
+
+func encodeRetrieveSinksRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*sinksFilter)
+	return &pb.SinksFilterReq{OtelEnabled: req.isOtel}, nil
+}
+
+func decodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(*pb.SinksRes)
+	var sinksRes sinksRes
+	for _, sink := range res.Sinks {
+		sinkRs := sinkRes{
+			id:          sink.Id,
+			name:        sink.Name,
+			description: sink.Description,
+			tags:        sink.Tags,
+			state:       sink.State,
+			error:       sink.Error,
+			backend:     sink.Backend,
+			config:      sink.Config,
+		}
+		sinksRes.sinks = append(sinksRes.sinks, sinkRs)
+	}
+	return &sinksRes, nil
 }
 
 func encodeRetrieveSinkRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {

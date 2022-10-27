@@ -1,31 +1,38 @@
-// Copyright (c) Mainflux
-// SPDX-License-Identifier: Apache-2.0
-
-// Adapted for Orb project, modifications licensed under MPL v. 2.0:
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-
-package maestro
+package kubecontrol
 
 import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
 	"os"
 	"os/exec"
 )
 
-var (
-	ErrCreateMaestro   = errors.New("failed to create Otel Collector")
-	ErrConflictMaestro = errors.New("Otel collector already exists")
-)
-
 const namespace = "otelcollectors"
 
-func (svc maestroService) collectorDeploy(ctx context.Context, operation, sinkId, manifest string) error {
+var _ Service = (*deployService)(nil)
+
+type deployService struct {
+	logger *zap.Logger
+}
+
+func NewService(logger *zap.Logger) Service {
+	return &deployService{logger: logger}
+}
+
+type Service interface {
+	// CreateOtelCollector - create an existing collector by id
+	CreateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error
+
+	// DeleteOtelCollector - delete an existing collector by id
+	DeleteOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error
+
+	// UpdateOtelCollector - update an existing collector by id
+	UpdateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error
+}
+
+func (svc *deployService) collectorDeploy(_ context.Context, operation, sinkId, manifest string) error {
 
 	fileContent := []byte(manifest)
 	err := os.WriteFile("/tmp/otel-collector-"+sinkId+".json", fileContent, 0644)
@@ -66,12 +73,7 @@ func (svc maestroService) collectorDeploy(ctx context.Context, operation, sinkId
 	return nil
 }
 
-func (svc maestroService) getConfigFromSinkId(config SinkConfig) (sinkID, sinkUrl, sinkUsername, sinkPassword string) {
-
-	return config.Id, config.Url, config.Username, config.Password
-}
-
-func (svc maestroService) CreateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
+func (svc *deployService) CreateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
 	err := svc.collectorDeploy(ctx, "apply", sinkID, deploymentEntry)
 
 	if err != nil {
@@ -80,20 +82,16 @@ func (svc maestroService) CreateOtelCollector(ctx context.Context, sinkID, deplo
 	return nil
 }
 
-func (svc maestroService) UpdateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
-	err := svc.DeleteOtelCollector(ctx, sinkID)
-	if err != nil {
-		return err
-	}
-	err = svc.CreateOtelCollector(ctx, sinkID, deploymentEntry)
+func (svc *deployService) UpdateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
+	err := svc.CreateOtelCollector(ctx, sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (svc maestroService) DeleteOtelCollector(ctx context.Context, sinkID string) error {
-	err := svc.collectorDeploy(ctx, "delete", sinkID, "")
+func (svc *deployService) DeleteOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
+	err := svc.collectorDeploy(ctx, "delete", sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}

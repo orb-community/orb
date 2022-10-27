@@ -742,8 +742,6 @@ github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7J
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.16.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAlGdZY=
 github.com/onsi/gomega v1.20.1 h1:PA/3qinGoukvymdIDV8pii6tiZgC8kbmJO6Z5+b002Q=
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.62.0 h1:/jMfx1V+TfLULWVo+nJbnUsbsC4OvDY5NCmwmIyAU5o=
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.62.0/go.mod h1:w/y5lJ1Emnf2imDVqImSETnMP7X+FhTz+Ucxiq/Obi4=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.62.0 h1:EoidrEk6Dmap+Cw+lXipNL7IVGicS0N6V+oCvesIj/c=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.62.0/go.mod h1:4BwkK9Fb1xZDxmXt7gSm5nxCxtVWJf61/UaCt54gVjU=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.62.0 h1:PMUgwDspM+2DX2Ol8Tj/jUBQqzvykVwnFily/HjRDPA=

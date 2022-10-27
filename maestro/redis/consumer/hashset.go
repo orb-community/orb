@@ -2,7 +2,7 @@ package consumer
 
 import (
 	"context"
-	"github.com/ns1labs/orb/maestro"
+	"github.com/ns1labs/orb/maestro/config"
 	"go.uber.org/zap"
 	"time"
 )
@@ -21,11 +21,15 @@ func (es eventStore) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId st
 // handleSinksDeleteCollector will delete Deployment Entry and force delete otel collector
 func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinksUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	es.client.HDel(ctx, deploymentKey, event.sinkID)
-	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID)
+	deployment, err := es.GetDeploymentEntryFromSinkId(ctx, event.sinkID)
 	if err != nil {
 		return err
 	}
+	err = es.kubecontrol.DeleteOtelCollector(ctx, event.sinkID, deployment)
+	if err != nil {
+		return err
+	}
+	es.client.HDel(ctx, deploymentKey, event.sinkID)
 	return nil
 }
 
@@ -35,30 +39,37 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinks
 	sinkUrl := event.config["sink_url"].(string)
 	sinkUsername := event.config["username"].(string)
 	sinkPassword := event.config["password"].(string)
-	deploy, err := maestro.GetDeploymentJson(event.sinkID, sinkUrl, sinkUsername, sinkPassword)
+	err2 := es.CreateDeploymentEntry(ctx, event.sinkID, sinkUrl, sinkUsername, sinkPassword)
+	if err2 != nil {
+		return err2
+	}
+
+	return nil
+}
+
+func (es eventStore) CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl, sinkUsername, sinkPassword string) error {
+	deploy, err := config.GetDeploymentJson(sinkId, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
-		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.sinkID))
+		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sinkId))
 		return err
 	}
-	es.client.HSet(ctx, deploymentKey, event.sinkID, deploy)
-
+	es.client.HSet(ctx, deploymentKey, sinkId, deploy)
 	return nil
 }
 
 // handleSinksUpdateCollector will update Deployment Entry in Redis and force update otel collector
 func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinksUpdateEvent) error {
 	es.logger.Info("Received event to Update DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-
 	sinkUrl := event.config["sink_url"].(string)
 	sinkUsername := event.config["username"].(string)
 	sinkPassword := event.config["password"].(string)
-	deploy, err := maestro.GetDeploymentJson(event.sinkID, sinkUrl, sinkUsername, sinkPassword)
+	deploy, err := config.GetDeploymentJson(event.sinkID, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.sinkID))
 		return err
 	}
 	es.client.HSet(ctx, deploymentKey, event.sinkID, deploy)
-	err = es.maestroService.UpdateOtelCollector(ctx, event.sinkID, deploy)
+	err = es.kubecontrol.UpdateOtelCollector(ctx, event.sinkID, deploy)
 	if err != nil {
 		return err
 	}

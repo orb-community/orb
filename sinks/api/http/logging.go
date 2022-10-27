@@ -19,6 +19,20 @@ type loggingMiddleware struct {
 	svc    sinks.SinkService
 }
 
+func (l loggingMiddleware) ListSinksInternal(ctx context.Context, filter sinks.Filter) (sinks []sinks.Sink, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: list_sinks_internal",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: list_sinks_internal",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ListSinksInternal(ctx, filter)
+}
+
 func (l loggingMiddleware) ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {

@@ -89,6 +89,7 @@ func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
 		owner:     read(event, "owner", ""),
 		timestamp: time.Time{},
 	}
+
 	var metadata types.Metadata
 	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
 		return updateSinkEvent{}, err
