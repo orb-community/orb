@@ -63,7 +63,7 @@ func (gs *grpcServer) RetrieveSink(ctx context.Context, req *pb.SinkByIDReq) (*p
 
 func decodeRetrieveSinksRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.SinksFilterReq)
-	return sinksFilter{isOtel: req.OtelEnabled == "true"}, nil
+	return sinksFilter{isOtel: req.OtelEnabled}, nil
 }
 
 func encodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
