@@ -2,7 +2,7 @@ package consumer
 
 import (
 	"context"
-	"github.com/ns1labs/orb/maestro"
+	"github.com/ns1labs/orb/maestro/config"
 	"go.uber.org/zap"
 	"time"
 )
@@ -48,7 +48,7 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinks
 }
 
 func (es eventStore) CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl, sinkUsername, sinkPassword string) error {
-	deploy, err := maestro.GetDeploymentJson(sinkId, sinkUrl, sinkUsername, sinkPassword)
+	deploy, err := config.GetDeploymentJson(sinkId, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sinkId))
 		return err
@@ -63,7 +63,7 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinks
 	sinkUrl := event.config["sink_url"].(string)
 	sinkUsername := event.config["username"].(string)
 	sinkPassword := event.config["password"].(string)
-	deploy, err := maestro.GetDeploymentJson(event.sinkID, sinkUrl, sinkUsername, sinkPassword)
+	deploy, err := config.GetDeploymentJson(event.sinkID, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.sinkID))
 		return err
