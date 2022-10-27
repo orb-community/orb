@@ -158,6 +158,12 @@ func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (si
 	if err != nil {
 		return nil, errors.Wrap(errors.ErrNotFound, err)
 	}
+	for _, sink := range sinks {
+		sink, err = svc.decryptMetadata(sink)
+		if err != nil {
+			return nil, errors.Wrap(errors.ErrViewEntity, err)
+		}
+	}
 
 	return
 }
