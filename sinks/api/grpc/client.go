@@ -15,6 +15,7 @@ import (
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 	"github.com/ns1labs/orb/sinks/pb"
 	"github.com/opentracing/opentracing-go"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"time"
 )
@@ -22,6 +23,7 @@ import (
 var _ pb.SinkServiceClient = (*grpcClient)(nil)
 
 type grpcClient struct {
+	logger        *zap.Logger
 	timeout       time.Duration
 	retrieveSink  endpoint.Endpoint
 	retrieveSinks endpoint.Endpoint
@@ -37,12 +39,13 @@ func (client grpcClient) RetrieveSinks(ctx context.Context, in *pb.SinksFilterRe
 
 	res, err := client.retrieveSinks(ctx, sinksFilter)
 	if err != nil {
+		client.logger.Error("error during retrieve sinks", zap.Error(err))
 		return nil, err
 	}
-	var sinksResponse *pb.SinksRes
 	ir := res.(sinksRes)
-	for _, sinkResponse := range ir.sinks {
-		sinksResponse.Sinks = append(sinksResponse.Sinks, &pb.SinkRes{
+	sinkList := make([]*pb.SinkRes, len(ir.sinks))
+	for i, sinkResponse := range ir.sinks {
+		sinkList[i] = &pb.SinkRes{
 			Id:          sinkResponse.id,
 			Name:        sinkResponse.name,
 			Description: sinkResponse.description,
@@ -51,9 +54,9 @@ func (client grpcClient) RetrieveSinks(ctx context.Context, in *pb.SinksFilterRe
 			Error:       sinkResponse.error,
 			Backend:     sinkResponse.backend,
 			Config:      sinkResponse.config,
-		})
+		}
 	}
-	return sinksResponse, nil
+	return &pb.SinksRes{Sinks: sinkList}, nil
 }
 
 func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, _ ...grpc.CallOption) (*pb.SinkRes, error) {
@@ -83,10 +86,11 @@ func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, _
 	}, nil
 }
 
-func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Duration) pb.SinkServiceClient {
+func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Duration, logger *zap.Logger) pb.SinkServiceClient {
 	svcName := "sinks.SinkService"
 
 	return &grpcClient{
+		logger:  logger,
 		timeout: timeout,
 		retrieveSink: kitot.TraceClient(tracer, "retrieve_sink")(kitgrpc.NewClient(
 			conn,
@@ -114,9 +118,9 @@ func encodeRetrieveSinksRequest(_ context.Context, grpcReq interface{}) (interfa
 
 func decodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*pb.SinksRes)
-	var sinksRes sinksRes
-	for _, sink := range res.Sinks {
-		sinkRs := sinkRes{
+	sinkList := make([]sinkRes, len(res.Sinks))
+	for i, sink := range res.Sinks {
+		sinkList[i] = sinkRes{
 			id:          sink.Id,
 			name:        sink.Name,
 			description: sink.Description,
@@ -126,9 +130,8 @@ func decodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, e
 			backend:     sink.Backend,
 			config:      sink.Config,
 		}
-		sinksRes.sinks = append(sinksRes.sinks, sinkRs)
 	}
-	return &sinksRes, nil
+	return sinksRes{sinks: sinkList}, nil
 }
 
 func encodeRetrieveSinkRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {

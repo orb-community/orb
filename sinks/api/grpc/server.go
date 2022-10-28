@@ -15,6 +15,7 @@ import (
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/pb"
 	"github.com/opentracing/opentracing-go"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -22,14 +23,16 @@ import (
 var _ pb.SinkServiceServer = (*grpcServer)(nil)
 
 type grpcServer struct {
+	logger *zap.Logger
 	pb.UnimplementedSinkServiceServer
 	retrieveSink    kitgrpc.Handler
 	passwordService sinks.PasswordService
 	retrieveSinks   kitgrpc.Handler
 }
 
-func NewServer(tracer opentracing.Tracer, svc sinks.SinkService) pb.SinkServiceServer {
+func NewServer(tracer opentracing.Tracer, svc sinks.SinkService, logger *zap.Logger) pb.SinkServiceServer {
 	return &grpcServer{
+		logger: logger,
 		retrieveSink: kitgrpc.NewServer(
 			kitot.TraceServer(tracer, "retrieve_sink")(retrieveSinkEndpoint(svc)),
 			decodeRetrieveSinkRequest,
@@ -68,9 +71,9 @@ func decodeRetrieveSinksRequest(_ context.Context, grpcReq interface{}) (interfa
 
 func encodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(sinksRes)
-	var sinksRes *pb.SinksRes
-	for _, sink := range res.sinks {
-		sinkRes := &pb.SinkRes{
+	sList := make([]*pb.SinkRes, len(res.sinks))
+	for i, sink := range res.sinks {
+		sList[i] = &pb.SinkRes{
 			Id:          sink.id,
 			Name:        sink.name,
 			Description: sink.description,
@@ -80,9 +83,10 @@ func encodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, e
 			Backend:     sink.backend,
 			Config:      sink.config,
 		}
-		sinksRes.Sinks = append(sinksRes.Sinks, sinkRes)
 	}
-	return &sinksRes, nil
+	return &pb.SinksRes{
+		Sinks: sList,
+	}, nil
 }
 
 func decodeRetrieveSinkRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {

@@ -112,16 +112,21 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 			switch event["operation"] {
 			case sinksCreate:
 				rte := decodeSinksUpdate(event)
-				err = es.handleSinksCreateCollector(context, rte) //should create collector
+				if rte.config["opentelemetry"].(string) == "enabled" {
+					err = es.handleSinksCreateCollector(context, rte) //should create collector
+				}
 
 			case sinksUpdate:
 				rte := decodeSinksUpdate(event)
-				err = es.handleSinksUpdateCollector(context, rte) //should create collector
+				if rte.config["opentelemetry"].(string) == "enabled" {
+					err = es.handleSinksUpdateCollector(context, rte) //should create collector
+				}
 
 			case sinksDelete:
 				rte := decodeSinksUpdate(event)
-				err = es.handleSinksDeleteCollector(context, rte) //should delete collector
-
+				if rte.config["opentelemetry"].(string) == "enabled" {
+					err = es.handleSinksDeleteCollector(context, rte) //should delete collector
+				}
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle sinks event", zap.String("operation", event["operation"].(string)), zap.Error(err))

@@ -99,7 +99,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Invalid %s value: %s", sinksGRPCCfg.Timeout, err.Error())
 	}
-	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
+	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout, logger)
 
 	svc := maestro.NewMaestroService(logger, esClient, sinksGRPCClient, esCfg)
 	errs := make(chan error, 2)
