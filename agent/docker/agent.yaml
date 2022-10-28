@@ -1,21 +1,10 @@
 version: "1.0"
 
 visor: 
-  taps: 
-    default_pcap: 
-      input_type: pcap
-      config: 
-        iface: auto
+  taps:
 
 orb: 
   backends: 
     pktvisor: 
       binary: /usr/local/sbin/pktvisord
       config_file: /etc/orb/agent.yaml
-  cloud: 
-    api: 
-      address: "https://orb.live"
-    config: 
-      auto_provision: true
-    mqtt: 
-      address: "tls://orb.live:8883"
