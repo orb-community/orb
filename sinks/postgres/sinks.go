@@ -45,7 +45,8 @@ func (s sinksRepository) SearchAllSinks(ctx context.Context, filter sinks.Filter
 	}
 	defer rows.Close()
 
-	var items []sinks.Sink
+	//	var items []sinks.Sink
+	items := make([]sinks.Sink, 0)
 	for rows.Next() {
 		dbSink := dbSink{}
 		if err := rows.StructScan(&dbSink); err != nil {
@@ -70,7 +71,7 @@ func (s sinksRepository) SearchAllSinks(ctx context.Context, filter sinks.Filter
 		}
 	}
 
-	return nil, err
+	return items, err
 }
 
 func (s sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, error) {
