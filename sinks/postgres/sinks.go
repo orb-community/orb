@@ -45,7 +45,6 @@ func (s sinksRepository) SearchAllSinks(ctx context.Context, filter sinks.Filter
 	}
 	defer rows.Close()
 
-	//	var items []sinks.Sink
 	items := make([]sinks.Sink, 0)
 	for rows.Next() {
 		dbSink := dbSink{}
