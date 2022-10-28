@@ -1,0 +1,13 @@
+<nb-card>
+  <nb-card-header>Agent Backends</nb-card-header>
+  <nb-card-body>    
+    <ng-container *ngFor="let backend of agent?.agent_metadata?.backends | keyvalue">
+      <p>{{backend.key}}</p>
+      <p>{{backend.value.version}}</p>
+      <ng-container *ngIf="agent?.last_hb_data?.backend_state">
+        <p><label>State</label> {{agent.last_hb_data.backend_state[backend.key].state}}</p>
+        <p><label>Last Restart</label> {{agent.last_hb_data.backend_state[backend.key].last_restart_ts}}</p>
+      </ng-container>
+    </ng-container>
+  </nb-card-body>
+</nb-card>
