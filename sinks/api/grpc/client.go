@@ -15,6 +15,7 @@ import (
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 	"github.com/ns1labs/orb/sinks/pb"
 	"github.com/opentracing/opentracing-go"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"time"
 )
@@ -22,6 +23,7 @@ import (
 var _ pb.SinkServiceClient = (*grpcClient)(nil)
 
 type grpcClient struct {
+	logger        *zap.Logger
 	timeout       time.Duration
 	retrieveSink  endpoint.Endpoint
 	retrieveSinks endpoint.Endpoint
@@ -37,6 +39,7 @@ func (client grpcClient) RetrieveSinks(ctx context.Context, in *pb.SinksFilterRe
 
 	res, err := client.retrieveSinks(ctx, sinksFilter)
 	if err != nil {
+
 		return nil, err
 	}
 	var sinksResponse *pb.SinksRes
@@ -83,10 +86,11 @@ func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, _
 	}, nil
 }
 
-func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Duration) pb.SinkServiceClient {
+func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Duration, logger *zap.Logger) pb.SinkServiceClient {
 	svcName := "sinks.SinkService"
 
 	return &grpcClient{
+		logger:  logger,
 		timeout: timeout,
 		retrieveSink: kitot.TraceClient(tracer, "retrieve_sink")(kitgrpc.NewClient(
 			conn,

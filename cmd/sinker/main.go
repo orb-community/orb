@@ -165,7 +165,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Invalid %s value: %s", sinksGRPCCfg.Timeout, err.Error())
 	}
-	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
+	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout, logger)
 
 	configRepo := cacheconfig.NewSinkerCache(cacheClient, logger)
 	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient)
