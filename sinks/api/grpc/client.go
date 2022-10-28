@@ -39,7 +39,7 @@ func (client grpcClient) RetrieveSinks(ctx context.Context, in *pb.SinksFilterRe
 
 	res, err := client.retrieveSinks(ctx, sinksFilter)
 	if err != nil {
-
+		client.logger.Error("error during retrieve sinks", zap.Error(err))
 		return nil, err
 	}
 	var sinksResponse *pb.SinksRes
