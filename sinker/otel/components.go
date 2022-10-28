@@ -5,6 +5,8 @@ import (
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"github.com/ns1labs/orb/sinker/otel/bridgeservice"
 	kafkaexporter "github.com/ns1labs/orb/sinker/otel/kafkafanoutexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor"
+
 	"github.com/ns1labs/orb/sinker/otel/orbreceiver"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
@@ -46,6 +48,36 @@ func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.Sinke
 		ctx.Done()
 		return nil, err
 	}
+	transformFactory := transformprocessor.NewFactory()
+	transformCtx := context.WithValue(otelContext, "component", "transformprocessor")
+	log.Info("start to create component", zap.Any("component", transformCtx.Value("component")))
+	transformCfg := transformFactory.CreateDefaultConfig().(*transformprocessor.Config)
+	transformCfg.OTTLConfig.Metrics.Statements = []string{
+		`set(resource.attributes["agent-name"], ctx.Value("agent-name"))`,
+		`set(resource.attributes["agent-tags"], ctx.Value("agent-tags"))`,
+		`set(resource.attributes["orb-tags"], ctx.Value("orb-tags"))`,
+		`set(resource.attributes["agent-groups"], ctx.Value("agent-groups"))`,
+		`set(resource.attributes["agent-ownerID"], ctx.Value("agent-ownerID"))`,
+		`set(resource.attributes["policy-id"], ctx.Value("policy-id"))`,
+		`set(resource.attributes["policy-name"], ctx.Value("policy-name"))`,
+		`set(resource.attributes["sink-id"], ctx.Value("sink-id"))`,
+		`set(resource.attributes["format"], "otlp")`,
+	}
+	transformSet := component.ProcessorCreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.MeterProvider(),
+			MetricsLevel:   configtelemetry.LevelDetailed,
+		},
+	}
+	processor, err := transformFactory.CreateMetricsProcessor(transformCtx, transformSet, transformCfg, exporter)
+	if err != nil {
+		log.Error("error on creating processor", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
 	log.Info("created kafka exporter successfully")
 	// receiver Factory
 	orbReceiverFactory := orbreceiver.NewFactory()
@@ -62,7 +94,7 @@ func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.Sinke
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 	}
-	receiver, err := orbReceiverFactory.CreateMetricsReceiver(receiverCtx, receiverSet, receiverCfg, exporter)
+	receiver, err := orbReceiverFactory.CreateMetricsReceiver(receiverCtx, receiverSet, receiverCfg, processor)
 	log.Info("created receiver")
 	if err != nil {
 		log.Error("error on creating receiver", err)
