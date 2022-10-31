@@ -25,20 +25,17 @@
       To use the provisioning command, you must replace AGENT_KEY with the Agent Key given to you during agent
       creation. If you have lost the Agent Key, you must remove and create a new agent.
     </p>
-    <p>
-      If you are looking for scrapping real data from your Agent, please consider changing the mock with your Agent default iface.
-    </p>
     <pre>
-          <button
-            [cdkCopyToClipboard]="command2copy"
-            ghost="true"
-            (click)="toggleIcon('command')"
-            nbButton>
-            <nb-icon [icon]="copyCommandIcon"
-                     pack="eva">
-            </nb-icon>
-          </button>
-          <code [innerHtml]="command2show">{{ command2show }}</code>
-        </pre>
+      <button
+        [cdkCopyToClipboard]="command2copy"
+        ghost="true"
+        (click)="toggleIcon('command')"
+        nbButton>
+        <nb-icon [icon]="copyCommandIcon"
+                  pack="eva">
+        </nb-icon>
+      </button>
+      <code [innerHtml]="command2show">{{ command2show }}</code>
+    </pre>
   </nb-card-body>
 </nb-card>

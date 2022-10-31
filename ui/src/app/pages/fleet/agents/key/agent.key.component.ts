@@ -42,7 +42,7 @@ export class AgentKeyComponent implements OnInit {
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
--e PKTVISOR_PCAP_IFACE_DEFAULT=mock \\
+-e PKTVISOR_PCAP_IFACE_DEFAULT=auto \\
 ns1labs/orb-agent:develop`;
 
     this.command2show = `docker run -d --restart=always --net=host \\
@@ -50,7 +50,7 @@ ns1labs/orb-agent:develop`;
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
--e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>mock</mark> \\
+-e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>auto</mark> \\
 ns1labs/orb-agent:develop`;
   }
 
