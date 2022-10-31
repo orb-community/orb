@@ -38,26 +38,6 @@ export class AgentInformationComponent implements OnInit {
     return agentVersion ? agentVersion : '-';
   }
 
-  getAgentBackend() {
-    const backends = this.agent?.agent_metadata?.backends;
-    const backend = !!backends && Object.keys(backends).length > 0 ? Object.keys(backends)[0] : '-';
-    return backend;
-  }
-
-  getAgentBackendState() {
-    const backends_states = this.agent?.last_hb_data?.backend_state;
-    let formatted = Object.entries(backends_states).map(([key, value]) => {
-      return { backend: key, state: value };
-    });
-    return backends_states;
-  }
-
-  getAgentBackendVersion() {
-    const backends = this.agent?.agent_metadata?.backends;
-    const version = !!backends && Object.keys(backends).length > 0 ? Object.values(backends)[0]['version'] : '-';
-    return version;
-  }
-
   notifyResetSuccess() {
     this.notificationService.success('Agent Reset Requested', '');
   }
