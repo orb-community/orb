@@ -10,15 +10,14 @@ package maestro
 
 import (
 	"context"
-	"database/sql/driver"
 	"encoding/json"
 	"github.com/go-redis/redis/v8"
+	maestroconfig "github.com/ns1labs/orb/maestro/config"
 	"github.com/ns1labs/orb/maestro/kubecontrol"
 	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
 	"github.com/ns1labs/orb/pkg/config"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
-	"time"
 )
 
 var _ Service = (*maestroService)(nil)
@@ -47,54 +46,6 @@ func NewMaestroService(logger *zap.Logger, redisClient *redis.Client, sinksGrpcC
 	}
 }
 
-type SinkData struct {
-	SinkID          string          `json:"sink_id"`
-	OwnerID         string          `json:"owner_id"`
-	Url             string          `json:"remote_host"`
-	User            string          `json:"username"`
-	Password        string          `json:"password"`
-	OpenTelemetry   string          `json:"opentelemetry"`
-	State           PrometheusState `json:"state,omitempty"`
-	Msg             string          `json:"msg,omitempty"`
-	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
-}
-
-const (
-	Unknown PrometheusState = iota
-	Active
-	Error
-	Idle
-)
-
-type PrometheusState int
-
-var promStateMap = [...]string{
-	"unknown",
-	"active",
-	"error",
-	"idle",
-}
-
-var promStateRevMap = map[string]PrometheusState{
-	"unknown": Unknown,
-	"active":  Active,
-	"error":   Error,
-	"idle":    Idle,
-}
-
-func (p PrometheusState) String() string {
-	return promStateMap[p]
-}
-
-func (p *PrometheusState) Scan(value interface{}) error {
-	*p = promStateRevMap[string(value.([]byte))]
-	return nil
-}
-
-func (p PrometheusState) Value() (driver.Value, error) {
-	return p.String(), nil
-}
-
 // Start will load all sinks from DB using SinksGRPC,
 //
 //	then for each sink, will create DeploymentEntry in Redis
@@ -114,7 +65,7 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 
 	for _, sinkRes := range sinksRes.Sinks {
 		sinkContext := context.WithValue(loadCtx, "sink-id", sinkRes.Id)
-		var data SinkData
+		var data maestroconfig.SinkData
 		if err := json.Unmarshal(sinkRes.Config, &data); err != nil {
 			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", sinkRes.Id))
 			continue

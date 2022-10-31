@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/ns1labs/orb/maestro/config"
 	"github.com/ns1labs/orb/pkg/types"
+	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 	"time"
 )
@@ -39,9 +40,20 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinks
 // handleSinksCreateCollector will create Deployment Entry in Redis
 func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinksUpdateEvent) error {
 	es.logger.Info("Received event to Create DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.owner)
-	sinkUrl := event.config["sink_url"].(string)
-	sinkUsername := event.config["username"].(string)
-	sinkPassword := event.config["password"].(string)
+	sinkData, err := es.sinksClient.RetrieveSink(ctx, &sinkspb.SinkByIDReq{
+		SinkID:  event.sinkID,
+		OwnerID: event.owner,
+	})
+	if err != nil {
+		es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.sinkID), zap.Error(err))
+	}
+	var data config.SinkData
+	if err := json.Unmarshal(sinkData.Config, &data); err != nil {
+		return err
+	}
+	sinkUrl := data.Url
+	sinkUsername := data.User
+	sinkPassword := data.Password
 	err2 := es.CreateDeploymentEntry(ctx, event.sinkID, sinkUrl, sinkUsername, sinkPassword)
 	if err2 != nil {
 		return err2
@@ -63,9 +75,20 @@ func (es eventStore) CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl,
 // handleSinksUpdateCollector will update Deployment Entry in Redis and force update otel collector
 func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinksUpdateEvent) error {
 	es.logger.Info("Received event to Update DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.owner)
-	sinkUrl := event.config["sink_url"].(string)
-	sinkUsername := event.config["username"].(string)
-	sinkPassword := event.config["password"].(string)
+	sinkData, err := es.sinksClient.RetrieveSink(ctx, &sinkspb.SinkByIDReq{
+		SinkID:  event.sinkID,
+		OwnerID: event.owner,
+	})
+	if err != nil {
+		es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.sinkID), zap.Error(err))
+	}
+	var data config.SinkData
+	if err := json.Unmarshal(sinkData.Config, &data); err != nil {
+		return err
+	}
+	sinkUrl := data.Url
+	sinkUsername := data.User
+	sinkPassword := data.Password
 	deploy, err := config.GetDeploymentJson(event.sinkID, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.sinkID))

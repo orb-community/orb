@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ns1labs/orb/maestro/kubecontrol"
 	"github.com/ns1labs/orb/pkg/types"
+	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -35,6 +36,7 @@ type Subscriber interface {
 
 type eventStore struct {
 	kubecontrol kubecontrol.Service
+	sinksClient sinkspb.SinkServiceClient
 	client      *redis.Client
 	esconsumer  string
 	logger      *zap.Logger
