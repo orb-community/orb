@@ -112,7 +112,7 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 }
 
 func encodeRetrieveSinksRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*sinksFilter)
+	req := grpcReq.(sinksFilter)
 	return &pb.SinksFilterReq{OtelEnabled: req.isOtel}, nil
 }
 
