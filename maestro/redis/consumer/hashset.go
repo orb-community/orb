@@ -2,7 +2,9 @@ package consumer
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/ns1labs/orb/maestro/config"
+	"github.com/ns1labs/orb/pkg/types"
 	"go.uber.org/zap"
 	"time"
 )
@@ -20,7 +22,7 @@ func (es eventStore) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId st
 
 // handleSinksDeleteCollector will delete Deployment Entry and force delete otel collector
 func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received maestro DELETE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+	es.logger.Info("Received maestro DELETE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.owner)
 	deployment, err := es.GetDeploymentEntryFromSinkId(ctx, event.sinkID)
 	if err != nil {
 		return err
@@ -35,7 +37,7 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinks
 
 // handleSinksCreateCollector will create Deployment Entry in Redis
 func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received event to Create DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+	es.logger.Info("Received event to Create DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.owner)
 	sinkUrl := event.config["sink_url"].(string)
 	sinkUsername := event.config["username"].(string)
 	sinkPassword := event.config["password"].(string)
@@ -59,7 +61,7 @@ func (es eventStore) CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl,
 
 // handleSinksUpdateCollector will update Deployment Entry in Redis and force update otel collector
 func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinksUpdateEvent) error {
-	es.logger.Info("Received event to Update DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
+	es.logger.Info("Received event to Update DeploymentEntry from sinks ID=" + event.sinkID + ", Owner ID=" + event.owner)
 	sinkUrl := event.config["sink_url"].(string)
 	sinkUsername := event.config["username"].(string)
 	sinkPassword := event.config["password"].(string)
@@ -77,12 +79,16 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinks
 	return nil
 }
 
-func decodeSinksUpdate(event map[string]interface{}) sinksUpdateEvent {
+func decodeSinksUpdate(event map[string]interface{}) (sinksUpdateEvent, error) {
 	val := sinksUpdateEvent{
-		ownerID:   read(event, "owner", ""),
 		sinkID:    read(event, "sink_id", ""),
-		config:    readMetadata(event, "config"),
+		owner:     read(event, "owner", ""),
 		timestamp: time.Time{},
 	}
-	return val
+	var metadata types.Metadata
+	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
+		return sinksUpdateEvent{}, err
+	}
+	val.config = metadata
+	return val, nil
 }

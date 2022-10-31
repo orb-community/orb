@@ -109,28 +109,29 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 			event := msg.Values
 
 			es.logger.Info("logging event", zap.Any("sink_event", event))
-			var err error
+			rte, err := decodeSinksUpdate(event)
+			if err != nil {
+				es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
+				break
+			}
 			switch event["operation"] {
 			case sinksCreate:
-				rte := decodeSinksUpdate(event)
 				if rte.config["opentelemetry"].(string) == "enabled" {
 					err = es.handleSinksCreateCollector(context, rte) //should create collector
 				}
 
 			case sinksUpdate:
-				rte := decodeSinksUpdate(event)
 				if rte.config["opentelemetry"].(string) == "enabled" {
 					err = es.handleSinksUpdateCollector(context, rte) //should create collector
 				}
 
 			case sinksDelete:
-				rte := decodeSinksUpdate(event)
 				if rte.config["opentelemetry"].(string) == "enabled" {
 					err = es.handleSinksDeleteCollector(context, rte) //should delete collector
 				}
 			}
 			if err != nil {
-				es.logger.Error("Failed to handle sinks event", zap.String("operation", event["operation"].(string)), zap.Error(err))
+				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
 				break
 			}
 			es.client.XAck(context, streamSinks, group, msg.ID)
