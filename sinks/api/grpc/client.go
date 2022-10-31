@@ -103,7 +103,7 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 		retrieveSinks: kitot.TraceClient(tracer, "retrieve_sinks_internal")(kitgrpc.NewClient(
 			conn,
 			svcName,
-			"RetrieveSinks",
+			"RetrieveSinksInternal",
 			encodeRetrieveSinksRequest,
 			decodeSinksResponse,
 			pb.SinksRes{},
