@@ -170,7 +170,6 @@ func GetDeploymentJson(sinkId, sinkUrl, sinkUsername, sinkPassword string) (stri
 	// prepare manifest
 	manifest := strings.Replace(k8sOtelCollector, "SINK_ID", sinkId, -1)
 	config, err := ReturnConfigYamlFromSink(context.Background(), "orb-live-stg-kafka.orb-live.svc.cluster.local:9092", sinkId, sinkUrl, sinkUsername, sinkPassword)
-	config = strings.Replace(config, "/n", `/n`, -1)
 	if err != nil {
 		return "", errors.Wrap(errors.New("failed to build YAML"), err)
 	}
@@ -234,7 +233,8 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 		return "", err
 	}
 	returnedString := "---\n" + string(marshal)
-	return returnedString, nil
+	returnString := strings.Replace(returnedString, "\n", `\n`, -1)
+	return returnString, nil
 
 }
 
