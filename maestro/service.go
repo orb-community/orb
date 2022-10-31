@@ -124,6 +124,7 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 			svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", data.SinkID))
 			continue
 		}
+		svc.logger.Info("successfully created deploymentEntry for sink", zap.String("sink-id", data.SinkID))
 
 		// if State is Active, deploy OtelCollector
 		if data.State == Active {
@@ -137,6 +138,7 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 				svc.logger.Warn("failed to deploy OtelCollector for sink, skipping", zap.String("sink-id", data.SinkID))
 				continue
 			}
+			svc.logger.Info("successfully created otel collector for sink", zap.String("sink-id", data.SinkID))
 		}
 	}
 
