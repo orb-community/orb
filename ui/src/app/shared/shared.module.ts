@@ -24,6 +24,7 @@ import {
   NbInputModule,
   NbListModule,
   NbSelectModule,
+  NbTabsetModule,
   NbTooltipModule,
 } from '@nebular/theme';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
@@ -95,6 +96,7 @@ import { AgentBackendsComponent } from './components/orb/agent/agent-backends/ag
     MatCheckboxModule,
     MatToolbarModule,
     NbAutocompleteModule,
+    NbTabsetModule,
   ],
   declarations: [
     ConfirmationComponent,
