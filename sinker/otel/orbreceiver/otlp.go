@@ -124,13 +124,13 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			r.cfg.Logger.Error("error during extracting sinks information from policies", zap.Error(err))
 			return
 		}
-		attributeCtx := context.WithValue(r.ctx, "agent-name", agentPb.AgentName)
-		attributeCtx = context.WithValue(attributeCtx, "agent-tags", agentPb.AgentTags)
-		attributeCtx = context.WithValue(attributeCtx, "orb-tags", agentPb.OrbTags)
-		attributeCtx = context.WithValue(attributeCtx, "agent-groups", agentPb.AgentGroupIDs)
-		attributeCtx = context.WithValue(attributeCtx, "agent-ownerID", agentPb.OwnerID)
+		attributeCtx := context.WithValue(r.ctx, "agent_name", agentPb.AgentName)
+		attributeCtx = context.WithValue(attributeCtx, "agent_tags", agentPb.AgentTags)
+		attributeCtx = context.WithValue(attributeCtx, "orb_tags", agentPb.OrbTags)
+		attributeCtx = context.WithValue(attributeCtx, "agent_groups", agentPb.AgentGroupIDs)
+		attributeCtx = context.WithValue(attributeCtx, "agent_ownerID", agentPb.OwnerID)
 		for sinkId, _ := range sinkIds {
-			attributeCtx = context.WithValue(attributeCtx, "sink-id", sinkId)
+			attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
 			_, err = r.metricsReceiver.Export(attributeCtx, mr)
 			if err != nil {
 				r.cfg.Logger.Error("error during export, skipping message", zap.Error(err))
