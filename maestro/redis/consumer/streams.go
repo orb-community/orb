@@ -108,11 +108,11 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
 
+			es.logger.Info("logging event", zap.Any("sink_event", event))
 			var err error
 			switch event["operation"] {
 			case sinksCreate:
 				rte := decodeSinksUpdate(event)
-				es.logger.Info("logging rte", zap.Any("sink_event", event))
 				if rte.config["opentelemetry"].(string) == "enabled" {
 					err = es.handleSinksCreateCollector(context, rte) //should create collector
 				}
