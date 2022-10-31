@@ -51,7 +51,7 @@ export const STRINGS = {
       tags: 'Tags',
       state: 'Status',
       error: 'Error',
-      backend: 'Service Type',
+      backend: 'Backend Service Type',
       config: 'Connection Details',
       config_remote_host: 'Remote Write URL',
       config_username: 'Username',
