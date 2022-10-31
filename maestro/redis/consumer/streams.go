@@ -112,6 +112,7 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 			switch event["operation"] {
 			case sinksCreate:
 				rte := decodeSinksUpdate(event)
+				es.logger.Info("logging rte", zap.Any("sink_event", rte))
 				if rte.config["opentelemetry"].(string) == "enabled" {
 					err = es.handleSinksCreateCollector(context, rte) //should create collector
 				}
