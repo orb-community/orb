@@ -116,11 +116,9 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 		sinkContext := context.WithValue(loadCtx, "sink-id", sinkRes.Id)
 		var data SinkData
 		if err := json.Unmarshal(sinkRes.Config, &data); err != nil {
-			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", data.SinkID))
+			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", sinkRes.Id))
 			continue
 		}
-		svc.logger.Info("debugging data", zap.Any("data", data))
-		svc.logger.Info("debugging config", zap.Any("data", sinkRes.Config))
 
 		if val, _ := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkRes.Id); val != "" {
 			svc.logger.Info("Skipping deploymentEntry because it is already created")
@@ -132,10 +130,10 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 			svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
 			continue
 		}
-		svc.logger.Info("successfully created deploymentEntry for sink", zap.String("sink-id", sinkRes.Id))
+		svc.logger.Info("successfully created deploymentEntry for sink", zap.String("sink-id", sinkRes.Id), zap.String("state", sinkRes.State))
 
 		// if State is Active, deploy OtelCollector
-		if data.State == Active {
+		if sinkRes.State == "1" || sinkRes.State == "active" {
 			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(sinkContext, sinkRes.Id)
 			if err != nil {
 				svc.logger.Warn("failed to fetch deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
