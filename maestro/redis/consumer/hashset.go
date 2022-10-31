@@ -25,6 +25,7 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinks
 	es.logger.Info("Received maestro DELETE event from sinks ID=" + event.sinkID + ", Owner ID=" + event.owner)
 	deployment, err := es.GetDeploymentEntryFromSinkId(ctx, event.sinkID)
 	if err != nil {
+		es.logger.Error("did not find collector entry for sink", zap.String("sink-id", event.sinkID))
 		return err
 	}
 	err = es.kubecontrol.DeleteOtelCollector(ctx, event.sinkID, deployment)
@@ -79,16 +80,19 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinks
 	return nil
 }
 
-func decodeSinksUpdate(event map[string]interface{}) (sinksUpdateEvent, error) {
+func decodeSinksEvent(event map[string]interface{}, operation string) (sinksUpdateEvent, error) {
 	val := sinksUpdateEvent{
 		sinkID:    read(event, "sink_id", ""),
 		owner:     read(event, "owner", ""),
-		timestamp: time.Time{},
+		timestamp: time.Now(),
 	}
-	var metadata types.Metadata
-	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
-		return sinksUpdateEvent{}, err
+	if operation != sinksDelete {
+		var metadata types.Metadata
+		if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
+			return sinksUpdateEvent{}, err
+		}
+		val.config = metadata
+		return val, nil
 	}
-	val.config = metadata
 	return val, nil
 }

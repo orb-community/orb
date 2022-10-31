@@ -108,8 +108,8 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
 
-			es.logger.Info("logging event", zap.Any("sink_event", event))
-			rte, err := decodeSinksUpdate(event)
+			es.logger.Info("debugging event", zap.Any("sink_event", event))
+			rte, err := decodeSinksEvent(event, event["operation"].(string))
 			if err != nil {
 				es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
 				break
@@ -126,9 +126,8 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 				}
 
 			case sinksDelete:
-				if rte.config["opentelemetry"].(string) == "enabled" {
-					err = es.handleSinksDeleteCollector(context, rte) //should delete collector
-				}
+				err = es.handleSinksDeleteCollector(context, rte) //should delete collector
+
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
