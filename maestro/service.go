@@ -53,6 +53,7 @@ type SinkData struct {
 	Url             string          `json:"remote_host"`
 	User            string          `json:"username"`
 	Password        string          `json:"password"`
+	OpenTelemetry   string          `json:"opentelemetry"`
 	State           PrometheusState `json:"state,omitempty"`
 	Msg             string          `json:"msg,omitempty"`
 	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
@@ -118,27 +119,34 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", data.SinkID))
 			continue
 		}
+		svc.logger.Info("debugging data", zap.Any("data", data))
+		svc.logger.Info("debugging config", zap.Any("data", sinkRes.Config))
+
+		if val, _ := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkRes.Id); val != "" {
+			svc.logger.Info("Skipping deploymentEntry because it is already created")
+			continue
+		}
 
 		err := svc.eventStore.CreateDeploymentEntry(sinkContext, sinkRes.Id, data.Url, data.User, data.Password)
 		if err != nil {
-			svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", data.SinkID))
+			svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
 			continue
 		}
-		svc.logger.Info("successfully created deploymentEntry for sink", zap.String("sink-id", data.SinkID))
+		svc.logger.Info("successfully created deploymentEntry for sink", zap.String("sink-id", sinkRes.Id))
 
 		// if State is Active, deploy OtelCollector
 		if data.State == Active {
-			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(sinkContext, data.SinkID)
+			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(sinkContext, sinkRes.Id)
 			if err != nil {
-				svc.logger.Warn("failed to fetch deploymentEntry for sink, skipping", zap.String("sink-id", data.SinkID))
+				svc.logger.Warn("failed to fetch deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
 				continue
 			}
-			err = svc.kubecontrol.CreateOtelCollector(sinkContext, data.SinkID, deploymentEntry)
+			err = svc.kubecontrol.CreateOtelCollector(sinkContext, sinkRes.Id, deploymentEntry)
 			if err != nil {
-				svc.logger.Warn("failed to deploy OtelCollector for sink, skipping", zap.String("sink-id", data.SinkID))
+				svc.logger.Warn("failed to deploy OtelCollector for sink, skipping", zap.String("sink-id", sinkRes.Id))
 				continue
 			}
-			svc.logger.Info("successfully created otel collector for sink", zap.String("sink-id", data.SinkID))
+			svc.logger.Info("successfully created otel collector for sink", zap.String("sink-id", sinkRes.Id))
 		}
 	}
 
