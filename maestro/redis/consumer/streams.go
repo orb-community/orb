@@ -42,10 +42,11 @@ type eventStore struct {
 	logger      *zap.Logger
 }
 
-func NewEventStore(client *redis.Client, kubecontrol kubecontrol.Service, esconsumer string, logger *zap.Logger) Subscriber {
+func NewEventStore(client *redis.Client, kubecontrol kubecontrol.Service, esconsumer string, sinksClient sinkspb.SinkServiceClient, logger *zap.Logger) Subscriber {
 	return eventStore{
 		kubecontrol: kubecontrol,
 		client:      client,
+		sinksClient: sinksClient,
 		esconsumer:  esconsumer,
 		logger:      logger,
 	}
