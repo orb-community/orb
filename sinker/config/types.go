@@ -47,8 +47,8 @@ func (p PrometheusState) String() string {
 	return promStateMap[p]
 }
 
-func (p *PrometheusState) Scan(value interface{}) error {
-	*p = promStateRevMap[string(value.([]byte))]
+func (p *PrometheusState) SetFromString(value string) error {
+	*p = promStateRevMap[value]
 	return nil
 }
 
