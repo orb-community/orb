@@ -49,7 +49,7 @@ func (ke kafkaErrors) Error() string {
 
 func (e *kafkaTracesProducer) tracesPusher(ctx context.Context, td ptrace.Traces) error {
 	sinkId := ctx.Value("sink-id").(string)
-	topic := e.topic + "_" + sinkId
+	topic := e.topic + "-" + sinkId
 	messages, err := e.marshaler.Marshal(td, topic)
 	if err != nil {
 		return consumererror.NewPermanent(err)
