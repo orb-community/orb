@@ -7,6 +7,7 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 
@@ -68,7 +69,9 @@ func (es eventStore) CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl,
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sinkId))
 		return err
 	}
-	es.client.HSet(ctx, deploymentKey, sinkId, deploy)
+	tmp := strings.Split(deploy, "\n")
+	newDeploy := strings.Join(tmp[1:], "\n")
+	es.client.HSet(ctx, deploymentKey, sinkId, newDeploy)
 	return nil
 }
 
