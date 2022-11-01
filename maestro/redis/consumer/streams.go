@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ns1labs/orb/maestro/kubecontrol"
 	"github.com/ns1labs/orb/pkg/types"
+	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -35,15 +36,17 @@ type Subscriber interface {
 
 type eventStore struct {
 	kubecontrol kubecontrol.Service
+	sinksClient sinkspb.SinkServiceClient
 	client      *redis.Client
 	esconsumer  string
 	logger      *zap.Logger
 }
 
-func NewEventStore(client *redis.Client, kubecontrol kubecontrol.Service, esconsumer string, logger *zap.Logger) Subscriber {
+func NewEventStore(client *redis.Client, kubecontrol kubecontrol.Service, esconsumer string, sinksClient sinkspb.SinkServiceClient, logger *zap.Logger) Subscriber {
 	return eventStore{
 		kubecontrol: kubecontrol,
 		client:      client,
+		sinksClient: sinksClient,
 		esconsumer:  esconsumer,
 		logger:      logger,
 	}
@@ -108,28 +111,29 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
 
-			var err error
+			es.logger.Info("debugging event", zap.Any("sink_event", event))
+			rte, err := decodeSinksEvent(event, event["operation"].(string))
+			if err != nil {
+				es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
+				break
+			}
 			switch event["operation"] {
 			case sinksCreate:
-				rte := decodeSinksUpdate(event)
 				if rte.config["opentelemetry"].(string) == "enabled" {
 					err = es.handleSinksCreateCollector(context, rte) //should create collector
 				}
 
 			case sinksUpdate:
-				rte := decodeSinksUpdate(event)
 				if rte.config["opentelemetry"].(string) == "enabled" {
 					err = es.handleSinksUpdateCollector(context, rte) //should create collector
 				}
 
 			case sinksDelete:
-				rte := decodeSinksUpdate(event)
-				if rte.config["opentelemetry"].(string) == "enabled" {
-					err = es.handleSinksDeleteCollector(context, rte) //should delete collector
-				}
+				err = es.handleSinksDeleteCollector(context, rte) //should delete collector
+
 			}
 			if err != nil {
-				es.logger.Error("Failed to handle sinks event", zap.String("operation", event["operation"].(string)), zap.Error(err))
+				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
 				break
 			}
 			es.client.XAck(context, streamSinks, group, msg.ID)

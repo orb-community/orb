@@ -1,7 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-
 package config
 
 import (
@@ -9,12 +5,13 @@ import (
 	"time"
 )
 
-type SinkConfig struct {
+type SinkData struct {
 	SinkID          string          `json:"sink_id"`
 	OwnerID         string          `json:"owner_id"`
 	Url             string          `json:"remote_host"`
 	User            string          `json:"username"`
 	Password        string          `json:"password"`
+	OpenTelemetry   string          `json:"opentelemetry"`
 	State           PrometheusState `json:"state,omitempty"`
 	Msg             string          `json:"msg,omitempty"`
 	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
@@ -47,8 +44,8 @@ func (p PrometheusState) String() string {
 	return promStateMap[p]
 }
 
-func (p *PrometheusState) SetFromString(value string) error {
-	*p = promStateRevMap[value]
+func (p *PrometheusState) Scan(value interface{}) error {
+	*p = promStateRevMap[string(value.([]byte))]
 	return nil
 }
 

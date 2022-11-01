@@ -20,12 +20,11 @@ import (
 	"github.com/mainflux/mainflux/pkg/messaging"
 	"github.com/ns1labs/orb/sinker/otel/bridgeservice"
 	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/metrics"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
 	"sync"
-
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/consumer"
 )
 
 const OtelMetricsTopic = "otlp.*.m.>"
@@ -130,11 +129,17 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		attributeCtx = context.WithValue(attributeCtx, "agent_groups", agentPb.AgentGroupIDs)
 		attributeCtx = context.WithValue(attributeCtx, "agent_ownerID", agentPb.OwnerID)
 		for sinkId, _ := range sinkIds {
+			err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
+			if err != nil {
+				r.cfg.Logger.Error("error notifying sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
+				continue
+			}
 			attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
 			_, err = r.metricsReceiver.Export(attributeCtx, mr)
 			if err != nil {
-				r.cfg.Logger.Error("error during export, skipping message", zap.Error(err))
-				return
+				r.cfg.Logger.Error("error during export, skipping sink", zap.Error(err))
+				_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "error", err.Error())
+				continue
 			}
 		}
 	}()

@@ -13,8 +13,8 @@ import (
 )
 
 type sinksUpdateEvent struct {
-	ownerID   string
 	sinkID    string
+	owner     string
 	config    types.Metadata
 	timestamp time.Time
 }

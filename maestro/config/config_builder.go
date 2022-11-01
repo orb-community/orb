@@ -233,7 +233,8 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 		return "", err
 	}
 	returnedString := "---\n" + string(marshal)
-	return returnedString, nil
+	returnString := strings.Replace(returnedString, "\n", `\n`, -1)
+	return returnString, nil
 
 }
 

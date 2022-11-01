@@ -80,7 +80,8 @@ type kafkaMetricsProducer struct {
 }
 
 func (e *kafkaMetricsProducer) metricsDataPusher(ctx context.Context, md pmetric.Metrics) error {
-	sinkId := ctx.Value("sink-id").(string)
+	e.logger.Info("logging context", zap.Any("context", ctx))
+	sinkId := ctx.Value("sink_id").(string)
 	topic := e.topic + "_" + sinkId
 	messages, err := e.marshaler.Marshal(md, topic)
 	if err != nil {
