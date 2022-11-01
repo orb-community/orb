@@ -17,6 +17,7 @@ const (
 
 	sinksPrefix = "sinks."
 	sinksUpdate = sinksPrefix + "update"
+	sinksCreate = sinksPrefix + "create"
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
@@ -55,6 +56,18 @@ func (es eventStore) Subscribe(context context.Context) error {
 
 			var err error
 			switch event["operation"] {
+			case sinksCreate:
+				rte, derr := decodeSinksCreate(event)
+				if derr != nil {
+					err = derr
+					break
+				}
+				err = es.handleSinksCreate(context, rte)
+				if err != nil {
+					es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
+					break
+				}
+				es.client.XAck(context, stream, group, msg.ID)
 			case sinksUpdate:
 				rte, derr := decodeSinksUpdate(event)
 				if derr != nil {
@@ -81,6 +94,20 @@ func NewEventStore(sinkerService sinker.Service, configRepo config.ConfigRepo, c
 		esconsumer:    esconsumer,
 		logger:        log,
 	}
+}
+
+func decodeSinksCreate(event map[string]interface{}) (updateSinkEvent, error) {
+	val := updateSinkEvent{
+		sinkID:    read(event, "sink_id", ""),
+		owner:     read(event, "owner", ""),
+		timestamp: time.Time{},
+	}
+	var metadata types.Metadata
+	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
+		return updateSinkEvent{}, err
+	}
+	val.config = metadata
+	return val, nil
 }
 
 func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
@@ -119,12 +146,38 @@ func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) err
 			sinkConfig.OwnerID = e.owner
 		}
 
-		es.configRepo.Edit(sinkConfig)
+		err = es.configRepo.Edit(sinkConfig)
+		if err != nil {
+			return err
+		}
 	} else {
 		cfg.SinkID = e.sinkID
 		cfg.OwnerID = e.owner
-		es.configRepo.Add(cfg)
+		err = es.configRepo.Add(cfg)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
+}
+
+func (es eventStore) handleSinksCreate(_ context.Context, e updateSinkEvent) error {
+	data, err := json.Marshal(e.config)
+	if err != nil {
+		return err
+	}
+	var cfg config.SinkConfig
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return err
+	}
+	cfg.SinkID = e.sinkID
+	cfg.OwnerID = e.owner
+	cfg.State = config.Unknown
+	err = es.configRepo.Add(cfg)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

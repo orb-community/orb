@@ -53,15 +53,15 @@ func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.Sinke
 	log.Info("start to create component", zap.Any("component", transformCtx.Value("component")))
 	transformCfg := transformFactory.CreateDefaultConfig().(*transformprocessor.Config)
 	transformCfg.OTTLConfig.Metrics.Statements = []string{
-		`set(metric["agent-name"], resource.attributes["agent_name"])`,
-		`set(metric["agent-tags"], resource.attributes["agent_tags"])`,
-		`set(metric["orb-tags"], resource.attributes["orb_tags"])`,
-		`set(metric["agent-groups"], resource.attributes["agent_groups"])`,
-		`set(metric["agent-ownerID"], resource.attributes["agent_ownerID"])`,
-		`set(metric["policy-id"], resource.attributes["policy_id"])`,
-		`set(metric["policy-name"], resource.attributes["policy_name"])`,
-		`set(metric["sink-id"], resource.attributes["sink_id"])`,
-		`set(metric["format"], "otlp")`,
+		`set(attributes["agent-name"], resource.attributes["agent_name"])`,
+		`set(attributes["agent-tags"], resource.attributes["agent_tags"])`,
+		`set(attributes["orb-tags"], resource.attributes["orb_tags"])`,
+		`set(attributes["agent-groups"], resource.attributes["agent_groups"])`,
+		`set(attributes["agent-ownerID"], resource.attributes["agent_ownerID"])`,
+		`set(attributes["policy-id"], resource.attributes["policy_id"])`,
+		`set(attributes["policy-name"], resource.attributes["policy_name"])`,
+		`set(attributes["sink-id"], resource.attributes["sink_id"])`,
+		`set(attributes["format"], "otlp")`,
 	}
 	transformSet := component.ProcessorCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
