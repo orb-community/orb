@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 const namespace = "otelcollectors"
@@ -35,7 +36,11 @@ type Service interface {
 func (svc *deployService) collectorDeploy(_ context.Context, operation, sinkId, manifest string) error {
 
 	fileContent := []byte(manifest)
-	err := os.WriteFile("/tmp/otel-collector-"+sinkId+".json", fileContent, 0644)
+
+	tmp := strings.Split(string(fileContent), "\n")
+	newContent := strings.Join(tmp[1:], "\n")
+
+	err := os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
 	if err != nil {
 		svc.logger.Error("failed to write file content", zap.Error(err))
 		return err
