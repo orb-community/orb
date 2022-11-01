@@ -131,15 +131,15 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		for sinkId, _ := range sinkIds {
 			err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
 			if err != nil {
-				r.cfg.Logger.Error("error notifying sink active, changing state", zap.String("sink-id", sinkId), zap.Error(err))
-				return
+				r.cfg.Logger.Error("error notifying sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
+				continue
 			}
 			attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
 			_, err = r.metricsReceiver.Export(attributeCtx, mr)
 			if err != nil {
-				r.cfg.Logger.Error("error during export, skipping message", zap.Error(err))
+				r.cfg.Logger.Error("error during export, skipping sink", zap.Error(err))
 				_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "error", err.Error())
-				return
+				continue
 			}
 		}
 	}()
