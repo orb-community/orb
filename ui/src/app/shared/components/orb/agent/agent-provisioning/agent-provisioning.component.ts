@@ -50,7 +50,7 @@ export class AgentProvisioningComponent implements OnInit {
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent?.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY="AGENT_KEY" \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=auto \\
-ns1labs/orb-agent:develop`;
+ns1labs/orb-agent`;
 
       this.command2show = `docker run -d --restart=always --net=host \\
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
@@ -58,7 +58,7 @@ ns1labs/orb-agent:develop`;
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent?.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY=<mark>AGENT_KEY</mark> \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>auto</mark> \\
-ns1labs/orb-agent:develop`;
+ns1labs/orb-agent`;
     }
   }
 
