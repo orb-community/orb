@@ -33,7 +33,7 @@ func (svc *SinkerService) checkState(_ time.Time) {
 		for _, cfg := range configs {
 			// Set idle if the sinker is more than 30 minutes not sending metrics (Remove from Redis)
 			if cfg.LastRemoteWrite.Add(DefaultTimeout).Before(time.Now()) {
-				if cfg.State == config.Active {
+				if cfg.State == config.Active && cfg.Opentelemetry != "enabled" {
 					if err := svc.sinkerCache.Remove(cfg.OwnerID, cfg.SinkID); err != nil {
 						svc.logger.Error("error updating sink config cache", zap.Error(err))
 						return
