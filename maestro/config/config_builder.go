@@ -105,7 +105,9 @@ var k8sOtelCollector = `
                                     {
                                         "name": "data",
                                         "readOnly": true,
-                                        "mountPath": "/etc/otelcol-contrib/config.yaml",
+                                      if _, err := strconv.Atoi(sinkUsername); err != nil {
+		sinkUsername = "#$#" + sinkUsername
+	}  "mountPath": "/etc/otelcol-contrib/config.yaml",
                                         "subPath": "config.yaml"
                                     }
                                 ],
@@ -180,9 +182,6 @@ func GetDeploymentJson(sinkId, sinkUrl, sinkUsername, sinkPassword string) (stri
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
 func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl, sinkUsername, sinkPassword string) (string, error) {
-	if _, err := strconv.Atoi(sinkUsername); err != nil {
-		sinkUsername = "#$#" + sinkUsername
-	}
 	config := OtelConfigFile{
 		Receivers: Receivers{
 			Kafka: KafkaReceiver{
