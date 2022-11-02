@@ -126,7 +126,7 @@ func (e *exporter) export(_ context.Context, metricsTopic string, request []byte
 		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
 		return token.Error()
 	}
-	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", len(compressedPayload)), zap.Int("regular_size_b", len(request)))
+	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", len(request)), zap.Int("compressed_payload_size_b", len(compressedPayload)))
 
 	return nil
 }
