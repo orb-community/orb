@@ -17,7 +17,6 @@ import (
 )
 
 func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.Client, error) {
-
 	opts := mqtt.NewClientOptions().AddBroker(config.Address).SetClientID(config.Id)
 	opts.SetUsername(config.Id)
 	opts.SetPassword(config.Key)
@@ -27,6 +26,8 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 	})
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
 		a.logger.Error("connection to mqtt lost", zap.Error(err))
+		a.logger.Info("reconnecting....");
+		client.Connect()
 	})
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(false)
