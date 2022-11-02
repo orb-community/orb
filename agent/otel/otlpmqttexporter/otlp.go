@@ -120,7 +120,6 @@ func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
 }
 
 func (e *exporter) export(_ context.Context, metricsTopic string, request []byte) error {
-	//compress payload 
 	compressedPayload := compressBrotli(request)
 	if token := e.config.Client.Publish(metricsTopic, 1, false, compressedPayload); token.Wait() && token.Error() != nil {
 		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
