@@ -122,7 +122,7 @@ fi
 if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = 'mock' ]; then
   MAYBE_MOCK='pcap_source: mock'
 fi
-if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" && "${PKTVISOR_DNSTAP}" != 'true' && "${PKTVISOR_SFLOW}" != 'true' && "${PKTVISOR_NETFLOW}" != 'true' ]]; then
+if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" ]]; then
 (
 cat <<END
     default_pcap:
