@@ -36,9 +36,13 @@ func (svc *SinkerService) checkState(_ time.Time) {
 				svc.logger.Info("opentelemetry:", zap.String("otel", cfg.Opentelemetry))
 				if cfg.State == config.Active {
 					if cfg.Opentelemetry == "enabled" {
-						cfg.State = config.Idle
+						err := cfg.State.SetFromString("idle")
+						if err != nil {
+							svc.logger.Error("error updating sink state otel", zap.Error(err))
+							return
+						}
 						if err := svc.sinkerCache.Edit(cfg); err != nil {
-							svc.logger.Error("error updating sink config cache for otel", zap.Error(err))
+							svc.logger.Error("error updating sink config cache otel", zap.Error(err))
 							return
 						}
 					} else {
