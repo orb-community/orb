@@ -114,10 +114,6 @@ END
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
 
-# Short form: specify just interface, creates tap named "default_pcap"
-if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = '' ]; then
-  PKTVISOR_PCAP_IFACE_DEFAULT=auto
-fi
 # special case: if the iface is "mock", then use "mock" pcap source
 if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = 'mock' ]; then
   MAYBE_MOCK='pcap_source: mock'
