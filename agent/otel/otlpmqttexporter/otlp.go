@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"runtime"
 	"time"
+	"bytes"
+	"github.com/andybalholm/brotli"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -32,6 +34,14 @@ type exporter struct {
 	settings   component.TelemetrySettings
 	// Default user-agent header.
 	userAgent string
+}
+
+func compressBrotli(data []byte) []byte {
+	var b bytes.Buffer
+	w := brotli.NewWriterLevel(&b, brotli.BestCompression)
+	w.Write(data)
+	w.Close()
+	return b.Bytes()
 }
 
 // Crete new exporter.
@@ -110,11 +120,13 @@ func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
 }
 
 func (e *exporter) export(_ context.Context, metricsTopic string, request []byte) error {
-	if token := e.config.Client.Publish(metricsTopic, 1, false, request); token.Wait() && token.Error() != nil {
+	//compress payload 
+	compressedPayload := compressBrotli(request)
+	if token := e.config.Client.Publish(metricsTopic, 1, false, compressedPayload); token.Wait() && token.Error() != nil {
 		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
 		return token.Error()
 	}
-	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", len(request)))
+	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", len(compressedPayload)), zap.Int("regular_size_b", len(request)))
 
 	return nil
 }
