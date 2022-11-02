@@ -34,10 +34,17 @@ func (svc *SinkerService) checkState(_ time.Time) {
 			// Set idle if the sinker is more than 30 minutes not sending metrics (Remove from Redis)
 			if cfg.LastRemoteWrite.Add(DefaultTimeout).Before(time.Now()) {
 				if cfg.State == config.Active {
-					cfg.State = config.Idle
-					if err := svc.sinkerCache.Edit(cfg); err != nil {
-						svc.logger.Error("error updating sink config cache", zap.Error(err))
-						return
+					if cfg.Opentelemetry == "enabled" {
+						cfg.State = config.Idle
+						if err := svc.sinkerCache.Edit(cfg); err != nil {
+							svc.logger.Error("error updating sink config cache for otel", zap.Error(err))
+							return
+						}
+					} else {
+						if err := svc.sinkerCache.Remove(cfg.OwnerID, cfg.SinkID); err != nil {
+							svc.logger.Error("error updating sink config cache", zap.Error(err))
+							return
+						}
 					}
 				}
 			}
