@@ -105,9 +105,7 @@ var k8sOtelCollector = `
                                     {
                                         "name": "data",
                                         "readOnly": true,
-                                      if _, err := strconv.Atoi(sinkUsername); err != nil {
-		sinkUsername = "#$#" + sinkUsername
-	}  "mountPath": "/etc/otelcol-contrib/config.yaml",
+                                        "mountPath": "/etc/otelcol-contrib/config.yaml",
                                         "subPath": "config.yaml"
                                     }
                                 ],
