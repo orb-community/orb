@@ -17,6 +17,10 @@ package orbreceiver
 import (
 	"context"
 	"fmt"
+	"bytes"
+	"io/ioutil"
+
+	"github.com/andybalholm/brotli"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	"github.com/ns1labs/orb/sinker/otel/bridgeservice"
 	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/metrics"
@@ -94,6 +98,13 @@ func (r *OrbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 	return nil
 }
 
+func decompressBrotli(data []byte) []byte {
+	rdata := bytes.NewReader(data)
+	r := brotli.NewReader(rdata)
+	s, _ := ioutil.ReadAll(r)
+	return []byte(s)
+}
+
 func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 	go func() {
 		r.cfg.Logger.Debug("received agent message",
@@ -103,7 +114,8 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
 		r.cfg.Logger.Info("received metric message, pushing to exporter")
-		mr, err := r.encoder.unmarshalMetricsRequest(msg.Payload)
+		decompressedPayload := decompressBrotli(msg.Payload)
+		mr, err := r.encoder.unmarshalMetricsRequest(decompressedPayload)
 		if err != nil {
 			r.cfg.Logger.Error("error during unmarshalling, skipping message", zap.Error(err))
 			return
