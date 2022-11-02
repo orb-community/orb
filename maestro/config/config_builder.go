@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/ns1labs/orb/pkg/errors"
 	"gopkg.in/yaml.v2"
-	"strconv"
 	"strings"
 )
 
